@@ -1,0 +1,31 @@
+openapi: 3.1.0
+info:
+    title: 'Universitas Lampung'
+    version: 2.0.1
+    description: 'Pusat Data Terintegrasi Universitas Lampung'
+    contact: { name: 'Mahendra Pratama', email: mahendra.pratama15@eng.unila.ac.id, url: 'https://pdut.unila.ac.id/' }
+servers:
+    - { url: http://127.0.0.1:8000/api, description: 'Local url for testing' }
+tags:
+  - name: Akses
+    description: Manajemen akses web service
+  - name: Referensi
+    description: Data referensi yang digunakan untuk data lain
+    x-tag-expanded: false
+  - name: Dokumen
+    description: Manajemen dokumen yang diunggah di sistem
+    x-tag-expanded: false
+paths:
+  /list:
+    get:
+      description: Returns a list of stuff
+      responses:
+        '200':
+          description: Successful response
+components:
+  securitySchemes:
+    Bearer:
+      type: apiKey
+      name: Authorization
+      description: Token yang didapat dari [/authorize](#post-/authorize) (awali dengan `Bearer ` diikuti spasi)
+      in: header

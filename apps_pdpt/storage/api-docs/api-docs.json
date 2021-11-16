@@ -1,0 +1,133 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Pangkalan Data UNILA Terpadu - Web Service",
+        "description": "Versi 0.1.0",
+        "contact": {
+            "email": "mahendra.pratama15@eng.unila.ac.id"
+        },
+        "version": "0.1.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost/unila/pdut-unila/apps_pdpt/public/api/0.1",
+            "description": "Server Production"
+        },
+        {
+            "url": "http://pdut-dev.unila.ac.id",
+            "description": "Server Sandbox"
+        },
+        {
+            "url": "/unila/digital-marketing-backend/web_app_backend/public/api/0.1"
+        }
+    ],
+    "paths": {
+        "/login/do_login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "AKSES",
+                "description": "Mendapatkan token untuk otorisasi",
+                "operationId": "authLogin",
+                "requestBody": {
+                    "description": "Pass user credentials",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "username": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user1@mail.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "PassWord12345"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "successful operation"
+                    },
+                    "404": {
+                        "description": "page not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Maaf, halaman tidak ditemukan"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/referensi/negara": {
+            "get": {
+                "tags": [
+                    "Referensi"
+                ],
+                "summary": "Get list of projects",
+                "description": "Returns list of projects",
+                "operationId": "getNegara",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": []
+                    }
+                ]
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Overview",
+            "description": "Web service ini digunakan oleh pengembang perangkat lunak atau admin perguruan tinggi untuk mengakses data pada PDUT. Web service ini tidak ditujukan untuk individu dosen karena menggunakan hak akses admin dan dapat mengakses data seluruh dosen pada perguruan tinggi yang bersangkutan."
+        },
+        {
+            "name": "Format Data",
+            "description": "Seluruh data menggunakan format JSON untuk request dan response. Terdapat pengecualian pada endpoint terkait dokumen. Upload dokumen menggunakan format multipart/form-data untuk mengirimkan isi dokumen dalam bentuk binary. Download dokumen akan mengembalikan isi dokumen dalam bentuk binary sesuai mime type dokumen. Sebagian besar ID data menggunakan format UUID (00000000-0000-0000-0000-000000000000) lowercase. Seluruh tanggal untuk request maupun response menggunakan format yyyy-mm-dd. Angka menggunakan titik . untuk pemisah desimal. Field request yang sifatnya opsional dapat diisi dengan null, 0, atau array kosong [] sesuai tipe datanya. Tidak diperkenankan menambahkan atau mengurangi field JSON pada request karena berpotensi mengakibatkan error.."
+        }
+    ],
+    "components": {
+        "securitySchemes": {
+            "bearer_token": {
+                "type": "apiKey",
+                "description": "Enter token in format (Bearer <token>)",
+                "name": "Authorization",
+                "in": "header"
+            }
+        }
+    },
+    "security": [
+        []
+    ]
+}

@@ -14,6 +14,17 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::group([
+    'prefix' => '0.1',
+    'as' => 'api.',
+    'namespace' => 'App\Http\Controllers\PDUT\Api',
+    'middleware' => ['auth.api']
+], function () {
+    Route::get('referensi/negara','Referensi\NegaraController@index');
+});
+
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+

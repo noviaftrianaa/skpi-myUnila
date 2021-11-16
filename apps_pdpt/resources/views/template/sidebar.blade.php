@@ -1,0 +1,46 @@
+<!-- Sidebar -->
+<div class="sidebar">
+    <!-- Sidebar Menu -->
+    <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column nav-flat" data-widget="treeview" role="menu" data-accordion="false">
+            <li class="nav-item">
+                <a href="{{ route('dashboard') }}" class="nav-link {{ AktifMenu('dashboard') }}">
+                    <i class="nav-icon fas fa-tachometer-alt"></i>
+                    <p>Dashboard</p>
+                </a>
+            </li>
+
+            @if(\Session::has('menu_user_manajemen'))
+                @foreach(Session::get('menu_user_manajemen') AS $menu_name_1 => $menu_route_1)
+                    @if($menu_route_1[0]==true)
+                        <li class="nav-item has-treeview
+                <?php
+                        $state = 0;
+                        foreach($menu_route_1[1] AS $menu_name_2 => $menu_route_2) {
+                            echo ((AktifMenu($menu_route_2[1],2)=='active')?'menu-open':'');
+                            ($state==0?((AktifMenu($menu_route_2[1],2)=='active')?$state=1:$state=0):$state=1);
+                        }
+                        ?>
+                            ">
+                            <a href="#" class="nav-link {{ $state==1?'active':'' }}">
+                                <i class="nav-icon {{ $menu_route_1[2] }}"></i>
+                                <p>{{ $menu_name_1 }}</p> <i class="right fas fa-angle-left"></i>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                @foreach($menu_route_1[1] AS $menu_name_2 => $menu_route_2)
+                                    <li class="nav-item"><a href="{{ route($menu_route_2[1]) }}" class="nav-link {{ AktifMenu($menu_route_2[1],2) }}"><i class="nav-icon fa fa-circle-o"></i> <span>{{ $menu_name_2 }}</span></a></li>
+                                @endforeach
+                            </ul>
+                        </li>
+                    @else
+                        <li class="nav-item">
+                            <a href="{{ route($menu_route_1[1]) }}" class="nav-link {{ AktifMenu($menu_route_1[1]) }}"><i class="nav-icon {{ $menu_route_1[2] }}"></i> <p>{{ $menu_name_1 }}</p></a>
+                        </li>
+                    @endif
+                @endforeach
+            @endif
+        </ul>
+    </nav>
+    <!-- /.sidebar-menu -->
+</div>
+<!-- /.sidebar -->
