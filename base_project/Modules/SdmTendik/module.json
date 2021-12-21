@@ -1,0 +1,13 @@
+{
+    "name": "SdmTendik",
+    "alias": "sdmtendik",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\SdmTendik\\Providers\\SdmTendikServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}
