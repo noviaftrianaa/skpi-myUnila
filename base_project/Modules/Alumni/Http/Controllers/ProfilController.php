@@ -6,7 +6,7 @@ use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
-class AlumniController extends Controller
+class ProfilController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -14,7 +14,7 @@ class AlumniController extends Controller
      */
     public function index()
     {
-        return view('alumni::pages.dashboard.index');
+        return view('alumni::profil');
     }
 
     /**
@@ -23,7 +23,7 @@ class AlumniController extends Controller
      */
     public function create()
     {
-        //
+        return view('alumni::create');
     }
 
     /**
@@ -41,9 +41,9 @@ class AlumniController extends Controller
      * @param int $id
      * @return Renderable
      */
-    public function show()
+    public function show($id)
     {
-        return view('alumni::data_alumni');
+        return view('alumni::show');
     }
 
     /**
