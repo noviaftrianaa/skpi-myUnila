@@ -1,8 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Modules\Dosen\Http\Controllers\DosenController;
-
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -14,7 +11,13 @@ use Modules\Dosen\Http\Controllers\DosenController;
 |
 */
 
-Route::get(
-    '/',
-    [DosenController::class, 'index']
-);
+Route::prefix('stakeholder')->group(function() {
+    //dashboard
+    Route::get('/index-da', 'StakeholderController@index');
+
+    //krs&khs
+    Route::get('/index-krs', function() { return view ('stakeholder::pages.krs_khs.index-krs');});
+});
+
+
+

@@ -21,10 +21,9 @@ Route::prefix('mahasiswa')->group(function() {
 
     //perkuliahaan
     Route::get('/kurikulum', function () { return view('mahasiswa::pages.perkuliahan.kurikulum.index'); });
-    Route::get('/jadwal', function () { return view('mahasiswa::pages.profil.portofolio.index'); });
+    Route::get('/jadwal', function () { return view('mahasiswa::pages.perkuliahan.jadwal_kelas.index'); });
     Route::get('/nilai', function () { return view('mahasiswa::pages.profil.portofolio.index'); });
     Route::get('/status-semester', function () { return view('mahasiswa::pages.profil.portofolio.index'); });
-    Route::get('/mengulang', function () { return view('mahasiswa::pages.profil.portofolio.index'); });
 
     //tugas akhir
     Route::get('/daftar-list', function () { return view('mahasiswa::pages.profil.portofolio.index'); });
@@ -34,6 +33,5 @@ Route::prefix('mahasiswa')->group(function() {
     //lainnya
     Route::get('/sertifikasi', function () { return view('mahasiswa::pages.profil.portofolio.index'); });
     Route::get('/beasiswa', function () { return view('mahasiswa::pages.profil.portofolio.index'); });
-
 
 });
