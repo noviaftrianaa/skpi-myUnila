@@ -1,8 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Modules\Dosen\Http\Controllers\DosenController;
-
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -14,7 +11,9 @@ use Modules\Dosen\Http\Controllers\DosenController;
 |
 */
 
-Route::get(
-    '/',
-    [DosenController::class, 'index']
-);
+Route::prefix('alumni')->group(function() {
+    Route::get('/', 'AlumniController@index');
+});
+
+Route::get('/profil', 'AlumniController@create');
+Route::get('/data_alumni', 'AlumniController@show');

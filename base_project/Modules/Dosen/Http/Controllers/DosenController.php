@@ -1,12 +1,12 @@
 <?php
 
-namespace Modules\Mahasiswa\Http\Controllers;
+namespace Modules\Dosen\Http\Controllers;
 
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
-class MahasiswaController extends Controller
+class DosenController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -14,7 +14,7 @@ class MahasiswaController extends Controller
      */
     public function index()
     {
-        return view('mahasiswa::pages.dashboard.index');
+        return view('dosen::index');
     }
 
     /**
@@ -23,7 +23,7 @@ class MahasiswaController extends Controller
      */
     public function create()
     {
-        return view('mahasiswa::create');
+        return view('dosen::create');
     }
 
     /**
@@ -43,7 +43,7 @@ class MahasiswaController extends Controller
      */
     public function show($id)
     {
-        return view('mahasiswa::show');
+        return view('dosen::show');
     }
 
     /**
@@ -53,7 +53,7 @@ class MahasiswaController extends Controller
      */
     public function edit($id)
     {
-        return view('mahasiswa::edit');
+        return view('dosen::edit');
     }
 
     /**
