@@ -1,5 +1,6 @@
 {
     "SdmTendik": true,
     "Authentication": true,
-    "Mahasiswa": true
+    "Mahasiswa": true,
+    "Alumni": true
 }
