@@ -1,6 +1,42 @@
 @extends('mahasiswa::layouts.master')
 @section('title', 'Dashboard')
 @section('content')
+@section('css')
+<style>
+.stats {
+    background: #f2f5f8 !important;
+    color: #000 !important
+}
+
+.articles {
+    font-size: 10px;
+    color: #a1aab9
+}
+
+.number1 {
+    font-weight: 500
+}
+
+.followers {
+    font-size: 15px;
+    color: #a1aab9
+}
+
+.number2 {
+    font-weight: 500
+}
+
+.rating {
+    font-size: 10px;
+    color: #a1aab9
+}
+
+.number3 {
+    font-weight: 500
+}
+</style>
+@stop
+
 <div class="container-fluid py-4">
     <div class="row">
       <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
@@ -11,7 +47,7 @@
                 <div class="numbers">
                   <p class="text-sm mb-0 text-capitalize font-weight-bold">Semester Saat Ini</p>
                   <h5 class="font-weight-bolder mb-0">
-                    8 ( aktif )
+                    8 ( Aktif )
                   </h5>
                 </div>
               </div>
@@ -72,7 +108,7 @@
             <div class="row">
               <div class="col-8">
                 <div class="numbers">
-                  <p class="text-sm mb-0 text-capitalize font-weight-bold">Pembayaran</p>
+                  <p class="text-sm mb-0 text-capitalize font-weight-bold">Status Pembayaran</p>
                   <h5 class="font-weight-bolder mb-0">
                     Lunas
                   </h5>
@@ -90,6 +126,36 @@
     </div>
 
     <div class="row mt-4">
+        <div class="col-lg-4 mb-lg-0 mb-4">
+          <div class="card z-index-2">
+            <div class="card-body p-3">
+                <h6 class="ms-2 mb-3"> Profil </h6>
+                    <div class="d-flex align-items-center">
+                        <div class="image"> <img src="https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&q=80" class="rounded" width="155"> </div>
+                        <div class="ml-3 w-100 p-3">
+                            <h4 class="mb-0 mt-0">Mizar Zulmi Ramadhan</h4>
+                            <div class="p-3 mt-2 rounded text-white stats">
+                                <div class="d-flex flex-column">
+                                    <table>
+                                        <tr>
+                                          <td width="30%">NPM</td>
+                                          <td width="70%">: 1717051073</td>
+                                        </tr>
+                                        <tr>
+                                          <td>Prodi</td>
+                                          <td>: S1 Ilmu Komputer</td>
+                                        </tr>
+                                      </table>
+                                </div>
+                            </div>
+                            <div class="button mt-2 d-flex flex-row align-items-center">
+                                <button class="btn btn-sm btn-round mb-0 me-1 bg-gradient-dark">Detail</button>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+          </div>
+        </div>
         <div class="col-lg-3 mb-lg-0 mb-4">
           <div class="card z-index-2">
             <div class="card-body p-3">
@@ -100,7 +166,7 @@
             </div>
           </div>
         </div>
-        <div class="col-lg-9 mb-lg-0">
+        <div class="col-lg-5 mb-lg-0">
           <div class="card z-index-2">
             <div class="card-header pb-0">
               <h6>Indeks Prestasi</h6>
@@ -164,7 +230,7 @@
                       </div>
                     </td>
                     <td>
-                        <span class="text-xs font-weight-bold"> Wajib </span>
+                        <span class="text-xs font-weight-bold"> Kuliah </span>
                     </td>
                     <td class="align-middle text-center text-sm">
                       <span class="text-xs font-weight-bold"> METODOLOGI PENELITIAN </span>
@@ -188,7 +254,7 @@
                       </div>
                     </td>
                     <td>
-                        <span class="text-xs font-weight-bold"> Wajib </span>
+                        <span class="text-xs font-weight-bold"> Kuliah </span>
                     </td>
                     <td class="align-middle text-center text-sm">
                       <span class="text-xs font-weight-bold"> ETIKA PROFESI </span>
@@ -212,7 +278,7 @@
                       </div>
                     </td>
                     <td>
-                        <span class="text-xs font-weight-bold"> Pilihan </span>
+                        <span class="text-xs font-weight-bold"> Praktikum </span>
                     </td>
                     <td class="align-middle text-center text-sm">
                       <span class="text-xs font-weight-bold"> WEB LANJUT </span>
@@ -236,7 +302,7 @@
                       </div>
                     </td>
                     <td>
-                        <span class="text-xs font-weight-bold"> Pilihan </span>
+                        <span class="text-xs font-weight-bold"> Praktikum </span>
                     </td>
                     <td class="align-middle text-center text-sm">
                       <span class="text-xs font-weight-bold"> MOBILE LANJUT </span>
@@ -342,9 +408,9 @@
     gradientStroke2.addColorStop(0, 'rgba(20,23,39,0)'); //purple colors
 
     new Chart(ctx2, {
-      type: "line",
+      type: "bar",
       data: {
-        labels: ["1", "2", "3", "4", "5", "6", "7", "8"],
+        labels: ["smst 1", "smst 2", "smst 3", "smst 4", "smst 5", "smst 6", "smst 7", "smst 8"],
         datasets: [{
             label: "IPS",
             tension: 0.4,
@@ -377,7 +443,7 @@
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            display: false,
+            display: true,
           }
         },
         interaction: {
