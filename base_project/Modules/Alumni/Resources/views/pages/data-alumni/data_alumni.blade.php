@@ -25,7 +25,7 @@
                     <td>
                       <div class="d-flex px-2 py-1">
                         <div>
-                          <img src="../assets/img/team-2.jpg" class="avatar avatar-sm me-3" alt="user1">
+                          <img src="../assets/img/girl.png" class="avatar avatar-sm me-3" alt="user1">
                         </div>
                         <div class="d-flex flex-column justify-content-center">
                           <h6 class="mb-0 text-sm">Aprily Ayu Anbar</h6>
@@ -48,7 +48,7 @@
                     <td>
                       <div class="d-flex px-2 py-1">
                         <div>
-                          <img src="../assets/img/team-3.jpg" class="avatar avatar-sm me-3" alt="user2">
+                          <img src="../assets/img/girl.png" class="avatar avatar-sm me-3" alt="user2">
                         </div>
                         <div class="d-flex flex-column justify-content-center">
                           <h6 class="mb-0 text-sm">Zuliana Nur Fadhlila</h6>
@@ -71,7 +71,7 @@
                     <td>
                       <div class="d-flex px-2 py-1">
                         <div>
-                          <img src="../assets/img/team-4.jpg" class="avatar avatar-sm me-3" alt="user3">
+                          <img src="../assets/img/boy.png" class="avatar avatar-sm me-3" alt="user3">
                         </div>
                         <div class="d-flex flex-column justify-content-center">
                           <h6 class="mb-0 text-sm">Mizar Zulmi Ramadhan</h6>
@@ -94,7 +94,7 @@
                     <td>
                       <div class="d-flex px-2 py-1">
                         <div>
-                          <img src="../assets/img/team-3.jpg" class="avatar avatar-sm me-3" alt="user4">
+                          <img src="../assets/img/boy.png" class="avatar avatar-sm me-3" alt="user4">
                         </div>
                         <div class="d-flex flex-column justify-content-center">
                           <h6 class="mb-0 text-sm">Rio Ananda Putra</h6>
@@ -117,7 +117,7 @@
                     <td>
                       <div class="d-flex px-2 py-1">
                         <div>
-                          <img src="../assets/img/team-2.jpg" class="avatar avatar-sm me-3" alt="user5">
+                          <img src="../assets/img/boy.png" class="avatar avatar-sm me-3" alt="user5">
                         </div>
                         <div class="d-flex flex-column justify-content-center">
                           <h6 class="mb-0 text-sm">Tegar Wisnu Pambudi</h6>
