@@ -2,5 +2,6 @@
     "SdmTendik": true,
     "Authentication": true,
     "Mahasiswa": true,
-    "Alumni": true
+    "Alumni": true,
+    "Dosen": true
 }
