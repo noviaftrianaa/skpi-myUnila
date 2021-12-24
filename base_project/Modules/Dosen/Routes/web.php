@@ -12,5 +12,5 @@
 */
 
 Route::prefix('dosen')->group(function() {
-    Route::get('/', 'DosenController@index');
+    Route::get('/', 'DosenController@index')->name('dashboard/dosen');
 });
