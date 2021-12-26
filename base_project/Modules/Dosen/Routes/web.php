@@ -13,4 +13,5 @@
 
 Route::prefix('dosen')->group(function() {
     Route::get('/', 'DosenController@index')->name('dashboard/dosen');
+    Route::get('profile','DosenProfileController@index')->name('dosen.profile');
 });

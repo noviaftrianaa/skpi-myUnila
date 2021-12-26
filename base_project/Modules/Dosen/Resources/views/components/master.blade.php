@@ -12,6 +12,7 @@
         <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
         <link href="{{ asset('assets/css/nucleo-svg.css') }}" rel="stylesheet" />
         <link id="pagestyle" href="{{ asset('assets/css/soft-ui-dashboard.css?v=1.0.3') }}" rel="stylesheet" />
+        @yield('css')
     </head>
 
 <body class="g-sidenav-show  bg-gray-100">
@@ -27,9 +28,9 @@
 
   	@yield('content')
 
-    @section('footer')
+    {{-- @section('footer')
 	    @include('dosen::components.footer')
-	  @show
+	  @show --}}
 
        </div>
      </main>
