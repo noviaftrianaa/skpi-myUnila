@@ -62,7 +62,7 @@
 @section('content')
     <div class="container-fluid py-4 bg-white">
         <div class="row">
-            <div class="col-md-3 border-right line">
+            <div class="col-md-3 border-right">
                 <div class="d-flex flex-column align-items-center text-center p-3 py-5"><img class="rounded-circle mt-5"
                         width="150px"
                         src="https://st3.depositphotos.com/15648834/17930/v/600/depositphotos_179308454-stock-illustration-unknown-person-silhouette-glasses-profile.jpg">
@@ -78,7 +78,7 @@
                             </div>
                         </div>
 
-                        <div class="table-responsive p-0 line-top">
+                        <div class="table-responsive p-0">
                             <table class="table align-items-center justify-content-center mb-0">
                                 </thead>
                                 <tbody>
@@ -119,7 +119,7 @@
                             </div>
                         </div>
 
-                        <div class="table-responsive p-0 line-top">
+                        <div class="table-responsive p-0">
                             <table class="table align-items-center justify-content-center mb-0">
                                 </thead>
                                 <tbody>
@@ -156,7 +156,7 @@
                             </div>
                         </div>
 
-                        <div class="table-responsive p-0 line-top">
+                        <div class="table-responsive p-0">
                             <table class="table align-items-center justify-content-center mb-0">
                                 </thead>
                                 <tbody>
@@ -185,77 +185,77 @@
                 </div>
             </div>
 
-            <div class="col-md-5 border-right line">
+            <div class="col-md-5 border-right">
                 <div class="p-3">
-                <div class="card p-3">
-                    <div class="card-header pb-0 p-3">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h4 class="text-right">Kepegawaian</h4>
+                    <div class="card p-3">
+                        <div class="card-header pb-0 p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h4 class="text-right">Kepegawaian</h4>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive p-0">
+                            <table class="table align-items-center justify-content-center mb-0">
+                                </thead>
+                                <tbody>
+                                    @foreach ($dosen_profile['kepegawaian'] as $key => $value)
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex px-2">
+                                                    <div class="my-auto">
+                                                        <h6 class="mb-0 text-sm">
+                                                            {{ str_replace('_', ' ', $key) }}</h6>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <p class="text-sm font-weight-bold mb-0">:</p>
+                                            </td>
+                                            <td>
+                                                <span class="text-xs font-weight-bold">{{ $value }}</span>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-
-                    <div class="table-responsive p-0 line-top">
-                        <table class="table align-items-center justify-content-center mb-0">
-                            </thead>
-                            <tbody>
-                                @foreach ($dosen_profile['kepegawaian'] as $key => $value)
-                                    <tr>
-                                        <td>
-                                            <div class="d-flex px-2">
-                                                <div class="my-auto">
-                                                    <h6 class="mb-0 text-sm">
-                                                        {{ str_replace('_', ' ', $key) }}</h6>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <p class="text-sm font-weight-bold mb-0">:</p>
-                                        </td>
-                                        <td>
-                                            <span class="text-xs font-weight-bold">{{ $value }}</span>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
                 </div>
 
                 <div class="p-3">
-                <div class="card p-3">
-                    <div class="card-header pb-0 p-3">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h4 class="text-right">Alamat</h4>
+                    <div class="card p-3">
+                        <div class="card-header pb-0 p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h4 class="text-right">Alamat</h4>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive p-0">
+                            <table class="table align-items-center justify-content-center mb-0">
+                                </thead>
+                                <tbody>
+                                    @foreach ($dosen_profile['alamat'] as $key => $value)
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex px-2">
+                                                    <div class="my-auto">
+                                                        <h6 class="mb-0 text-sm">
+                                                            {{ ucwords(str_replace('_', ' ', $key)) }}</h6>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <p class="text-sm font-weight-bold mb-0">:</p>
+                                            </td>
+                                            <td>
+                                                <span class="text-xs font-weight-bold">{{ $value }}</span>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-
-                    <div class="table-responsive p-0 line-top">
-                        <table class="table align-items-center justify-content-center mb-0">
-                            </thead>
-                            <tbody>
-                                @foreach ($dosen_profile['alamat'] as $key => $value)
-                                    <tr>
-                                        <td>
-                                            <div class="d-flex px-2">
-                                                <div class="my-auto">
-                                                    <h6 class="mb-0 text-sm">
-                                                        {{ ucwords(str_replace('_', ' ', $key)) }}</h6>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <p class="text-sm font-weight-bold mb-0">:</p>
-                                        </td>
-                                        <td>
-                                            <span class="text-xs font-weight-bold">{{ $value }}</span>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
                 </div>
             </div>
 
@@ -268,7 +268,7 @@
                             </div>
                         </div>
 
-                        <div class="card-body p-3 line-top">
+                        <div class="card-body p-3">
                             <div class="timeline timeline-one-side">
                                 @foreach ($dosen_profile['keilmuan'] as $key => $values)
                                     <div class="timeline-block mb-3">
@@ -277,10 +277,12 @@
                                         </span>
                                         <div class="timeline-content">
                                             <h6 class="text-dark text-sm font-weight-bold mb-0">{{ $key }}</h6>
-                                            <p class="text-dark text-sm font-weight-bold mb-0">{{ $values['Perguruan_Tinggi'] }}</p>
-                                    @foreach ($values['prodi'] as $value)
-                                            <p class="text-secondary font-weight-bold text-xs mt-1 mb-0">{{ $value }}</p>
-                                    @endforeach
+                                            <p class="text-dark text-sm font-weight-bold mb-0">
+                                                {{ $values['Perguruan_Tinggi'] }}</p>
+                                            @foreach ($values['prodi'] as $value)
+                                                <p class="text-secondary font-weight-bold text-xs mt-1 mb-0">
+                                                    {{ $value }}</p>
+                                            @endforeach
                                         </div>
                                     </div>
                                 @endforeach

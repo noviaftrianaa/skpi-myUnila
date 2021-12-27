@@ -13,7 +13,7 @@
 
 Route::prefix('stakeholder')->group(function() {
     //dashboard
-    Route::get('/index-da', 'StakeholderController@index');
+    Route::get('/index-da', 'StakeholderController@index')->name('stakeholder.dashboard');
 
     //krs&khs
     Route::get('/index-krs', function() { return view ('stakeholder::pages.krs_khs.index-krs');});

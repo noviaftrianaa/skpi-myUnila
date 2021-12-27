@@ -13,7 +13,7 @@
 
 Route::prefix('alumni')->group(function() {
     //dashboard
-    Route::get('/', 'AlumniController@index');
+    Route::get('/', 'AlumniController@index')->name('alumni.dashboard');
 
     //status tugas akhir
     Route::get('/index-ta', function() { return view('alumni::pages.status-ta.index-ta'); });

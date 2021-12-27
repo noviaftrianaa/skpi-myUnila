@@ -14,7 +14,6 @@ use Modules\Dosen\Http\Controllers\DosenController;
 |
 */
 
-Route::get(
-    '/',
-    [DosenController::class, 'index']
-);
+Route::get('/', function () {
+    return view('components.dashboard');
+});
