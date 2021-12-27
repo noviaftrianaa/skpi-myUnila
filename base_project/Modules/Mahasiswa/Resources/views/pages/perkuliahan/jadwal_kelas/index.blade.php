@@ -3,7 +3,20 @@
 
 @section('css')
 <style>
+.search {
+    top: 6px;
+    left: 10px
+}
 
+.form-control {
+    border: none;
+    padding-left: 32px
+}
+
+.form-control:focus {
+    border: none;
+    box-shadow: none
+}
 </style>
 @stop
 
@@ -13,17 +26,27 @@
     <div class="col-lg-12 col-md-12 mb-md-0 mb-4">
       <div class="card">
         <div class="card-header pb-0">
-          <div class="row">
-            <div class="col-lg-6 col-7">
-              <h6>Kelas & Jadwal</h6>
-              <p class="text-sm mb-0">
-              </p>
+            <div class="row">
+                <h5 class="card-header d-flex justify-content-between align-items-center">
+                  Kelas & Jadwal
+                </h5>
             </div>
-            <div class="col-lg-6 col-5 my-auto text-end">
-            </div>
-          </div>
         </div>
         <div class="card-body px-0 pb-2">
+            <div class="mb-2 d-flex justify-content-between align-items-center px-5 mb-3">
+                <div class="position-relative"> <span class="position-absolute search"><i class="fa fa-search"></i></span> <input class="form-control w-100" placeholder="Pencarian, mata kuliah..."> </div>
+                <div class="px-2"> <div class="dropdown">
+                    <button class="btn bg-gradient-primary dropdown-toggle mt-3" type="button"
+                        id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                        Tahun Ajaran
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <li><a class="dropdown-item" href="javascript:;">2021/2022 Genap</a></li>
+                        <li><a class="dropdown-item" href="javascript:;">2020/2021 Ganjil</a></li>
+                        <li><a class="dropdown-item" href="javascript:;">2019/2020 Genap</a></li>
+                    </ul>
+                </div> </div>
+            </div>
           <div class="table-responsive">
             <table class="table align-items-center mb-3">
               <thead>
@@ -62,7 +85,7 @@
                     <span class="text-xs font-weight-bold"> GIK L1C </span>
                   </td>
                   <td class="align-middle text-center text-sm">
-                        <button type="button" class="btn btn-info btn-sm dropdown-toggle dropdown-toggle-split m-3" data-bs-toggle="dropdown" aria-expanded="false">
+                        <button type="button" class="btn btn-info btn-sm m-3 py-1 px-3 dropdown-toggle dropdown-toggle-split m-3" data-bs-toggle="dropdown" aria-expanded="false">
                           <span class="visually-hidden">Toggle Dropdown</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-dark">
@@ -96,7 +119,7 @@
                     <span class="text-xs font-weight-bold"> GIK L1C </span>
                   </td>
                   <td class="align-middle text-center text-sm">
-                        <button type="button" class="btn btn-info btn-sm dropdown-toggle dropdown-toggle-split m-3" data-bs-toggle="dropdown" aria-expanded="false">
+                        <button type="button" class="btn btn-info btn-sm m-3 py-1 px-3 dropdown-toggle dropdown-toggle-split m-3" data-bs-toggle="dropdown" aria-expanded="false">
                           <span class="visually-hidden">Toggle Dropdown</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-dark">
@@ -109,7 +132,7 @@
                 </tr>
                 <tr>
                   <td>
-                    <span class="text-xs font-weight-bold">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2</span>
+                    <span class="text-xs font-weight-bold">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3</span>
                   </td>
                   <td>
                     <span class="text-xs font-weight-bold"> 15:30 </span>
@@ -130,7 +153,41 @@
                     <span class="text-xs font-weight-bold"> ILK11 </span>
                   </td>
                   <td class="align-middle text-center text-sm">
-                        <button type="button" class="btn btn-info btn-sm dropdown-toggle dropdown-toggle-split m-3" data-bs-toggle="dropdown" aria-expanded="false">
+                        <button type="button" class="btn btn-info btn-sm m-3 py-1 px-3 dropdown-toggle dropdown-toggle-split m-3" data-bs-toggle="dropdown" aria-expanded="false">
+                          <span class="visually-hidden">Toggle Dropdown</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-dark">
+                          <li><a class="dropdown-item" href="#">Kontrak Kuliah</a></li>
+                          <li><a class="dropdown-item" href="#">Peserta Kelas</a></li>
+                          <li><a class="dropdown-item" href="#">Tugas Kuliah</a></li>
+                          <li><a class="dropdown-item" href="#">Jadwal Ujian</a></li>
+                        </ul>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <span class="text-xs font-weight-bold">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4</span>
+                  </td>
+                  <td>
+                    <span class="text-xs font-weight-bold"> 15:30 </span>
+                  </td>
+                  <td>
+                    <span class="text-xs font-weight-bold"> 17:00 </span>
+                  </td>
+                  <td class="align-middle text-center text-sm">
+                    <span class="text-xs font-weight-bold"> Kuliah </span>
+                  </td>
+                  <td class="align-middle text-center text-sm">
+                    <span class="text-xs font-weight-bold"> COM616302 - TEKNOLOGI DAN APLIKASI MOBILE </span>
+                  </td>
+                  <td class="align-middle text-center text-sm">
+                    <span class="text-xs font-weight-bold"> Ardiansyah,, S.Kom., M.Kom. </span>
+                  </td>
+                  <td class="align-middle text-center text-sm">
+                    <span class="text-xs font-weight-bold"> GIK L2 </span>
+                  </td>
+                  <td class="align-middle text-center text-sm">
+                        <button type="button" class="btn btn-info btn-sm m-3 py-1 px-3 dropdown-toggle dropdown-toggle-split m-3" data-bs-toggle="dropdown" aria-expanded="false">
                           <span class="visually-hidden">Toggle Dropdown</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-dark">

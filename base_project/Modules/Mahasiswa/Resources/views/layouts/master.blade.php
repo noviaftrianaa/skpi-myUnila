@@ -4,7 +4,7 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <link rel="apple-touch-icon" sizes="76x76" href="{{ asset('assets/img/apple-icon.png') }}">
-        <link rel="icon" type="image/png" href="{{ asset('assets/img/favicon.png') }}">
+        <link rel="icon" type="image/png" href="{{ asset('assets/img/unila.png') }}">
         <title>@yield('title')</title>
         <!--     Fonts and icons     -->
         <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
@@ -110,6 +110,7 @@
      <script src="{{ asset('assets/js/plugins/perfect-scrollbar.min.js') }}"></script>
      <script src="{{ asset('assets/js/plugins/smooth-scrollbar.min.js') }}"></script>
      <script src="{{ asset('assets/js/plugins/chartjs.min.js') }}"></script>
+     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
      @yield('js')
      <script>
        var win = navigator.platform.indexOf('Win') > -1;
