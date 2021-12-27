@@ -1,5 +1,5 @@
 @extends('stakeholder::layouts.master')
-@section('title', 'PDUT Universitas Lampung - Beranda')
+@section('title', 'PDUT Universitas Lampung - Prestasi')
 @section('content')
 @section('css')
 <style>
@@ -88,8 +88,8 @@
               <div class="col-8">
                 <div class="numbers">
                   <p class="text-sm mb-0 text-capitalize font-weight-bold">Status Pembayaran</p>
-                  <h5 class="font-weight-bolder mb-0" style=color:#fe2200>
-                    Belum Bayar
+                  <h5 class="font-weight-bolder mb-0">
+                    Lunas
                    </h5>
                 </div>
               </div>
@@ -111,32 +111,31 @@
                   <p class="text-sm mb-0 text-capitalize font-weight-bold">Status Beasiswa</p>
                   <h6 class="font-weight-bolder mb-0">
                     Beasiswa PPA
-                  </h6>
-                   <label class="font-weight-bolder mb-0" style=color:#fe2200>Exp : 21/12/2022</label>
-                </div>
-              </div>
-              <div class="col-4 text-end">
-                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
-                  <i class="ni ni-trophy text-lg opacity-10" aria-hidden="true"></i>
-                </div>
+                   </h6>
+                    exp : 21/12/2022
+                   </div>
+            </div>
+            <div class="col-4 text-end">
+              <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                <i class="ni ni-trophy text-lg opacity-10" aria-hidden="true"></i>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+    </div>
 
     <div class="row mt-4">
-        <div class="col-lg-9 mb-lg-0 mb-4">
+        <div class="col-lg-12 mb-lg-0 mb-4">
           <div class="card z-index-2">
             <div class="card-body p-3">
-                <h6 class="ms-0 mb-2"> Profil Mahasiswa </h6>
+                <h6 class="ms-2 mb-3"> Profil Mahasiswa</h6>
                     <div class="d-flex align-items-center">
-                      <div class="image"> <img src="../assets/img/Mahasiswa.png" class="rounded" width="155">
-                      </div>
-                        <div class="ml-3 w-100 p-1">
+                        <div class="image"> <img src="../assets/img/Mahasiswa.png" class="rounded" width="200"> </div>
+                        <div class="ml-3 w-100 p-3">
                             <h4 class="mb-0 mt-0">Zuliana Nurfadlillah</h4>
-                            <div class="p-2 mt-2 rounded text-white stats">
+                            <div class="p-3 mt-2 rounded text-white stats">
                                 <div class="d-flex flex-column">
                                     <table>
                                         <tr>
@@ -174,107 +173,14 @@
             </div>
           </div>
         </div>
-        <div class="col-lg-3 mb-lg-0 mb-4">
-            <div class="card z-index-2">
-              <div class="card-header p-3">
-                <div class="row">
-                    <h6 class="ms-0 mb-2">Status Pembayaran / UKT</h6>
-                </div>
-              </div>
-              <div class="card-body p-0">
-                <div class="table-responsive">
-                  <table class="table align-items-center mb-2">
-                    <thead>
-                      <tr>
-                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">No.</th>
-                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-3">Semester</th>
-                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Ket.</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>
-                          <div class="d-flex px-3 py-1">
-                            <div class="d-flex flex-column justify-content-center">
-                              <h6 class="mb-0 text-sm">1.</h6>
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                            <span class="text-xs font-weight-bold"> Semester 10 </span>
-                        </td>
-                        <td class="align-middle text-center text-sm">
-                          <span class="text-xs font-weight-bold">
-                            <i class="fa fa-times" style="color:#fe2200"></i> 
-                          </span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <div class="d-flex px-3 py-1">
-                            <div class="d-flex flex-column justify-content-center">
-                              <h6 class="mb-0 text-sm">2.</h6>
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                            <span class="text-xs font-weight-bold"> Semester 9 </span>
-                        </td>
-                        <td class="align-middle text-center text-sm">
-                          <span class="text-xs font-weight-bold"> <i class="fa fa-check" style="color:#1a9601"></i> </span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <div class="d-flex px-3 py-1">
-                            <div class="d-flex flex-column justify-content-center">
-                              <h6 class="mb-0 text-sm">3.</h6>
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                            <span class="text-xs font-weight-bold"> Semester 8 </span>
-                        </td>
-                        <td class="align-middle text-center text-sm">
-                          <span class="text-xs font-weight-bold"> <i class="fa fa-check" style="color:#1a9601"></i> </span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <div class="d-flex px-3 py-1">
-                            <div class="d-flex flex-column justify-content-center">
-                              <h6 class="mb-0 text-sm">4.</h6>
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                            <span class="text-xs font-weight-bold"> Semester 7 </span>
-                        </td>
-                        <td class="align-middle text-center text-sm">
-                          <span class="text-xs font-weight-bold">
-                            <i class="fa fa-check" style="color:#1a9601"></i>
-                          </span>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                  
-                </div>
-                
-                <div class="mb-lg-2 mb-4 text-sm button mt-0 d-flex flex-row align-items-center">
-                  <button class="btn btn-sm btn-round mb-0 me-1 bg-gradient-dark">Detail</button>
-              </div>
-              </div>
-            </div>
-        </div>
-      </div>
-      
-      <div class="row mt-4">
-        <div class="col-lg-12 mb-lg-0 mb-4 ">
+        <div class="row my-4">
+        <div class="col-lg-12 mb-lg-0">
           <div class="card z-index-2">
             <div class="card-header pb-0">
               <h6>Indeks Prestasi</h6>
               <p class="text-sm">
+                {{-- <i class="fa fa-arrow-up text-success"></i> --}}
+                {{-- <span class="font-weight-bold">4% more</span> in 2021 --}}
                 <a href="#" class="btn btn-sm btn-round mb-2 me-3 bg-gradient-dark"><i class="fa fa-download text-white"></i>&nbsp;&nbsp;Unduh</a>
                 <a href="#" class="btn btn-sm btn-round mb-2 me-3 bg-gradient-dark"><i class="fa fa-print text-white"></i>&nbsp;&nbsp;Cetak</a>
               </p>
@@ -287,8 +193,7 @@
           </div>
         </div>
       </div>
-         
-        
+    </div>
 @endsection
 
 @section('js')
@@ -320,7 +225,7 @@
             borderWidth: 3,
             backgroundColor: gradientStroke1,
             fill: true,
-            data: [2.7, 2.52, 3.19, 3.13, 3.29, 3.08, 3.75, 2.75, 2.99, 3.01],
+            data: [2.7, 2.52, 3.19, 3.13, 3.29, 3.08, 3.75, 0.75, 1.50, 3.89],
             maxBarThickness: 6
 
           },
@@ -333,7 +238,7 @@
             borderWidth: 3,
             backgroundColor: gradientStroke2,
             fill: true,
-            data: [2.7, 2.61, 2.79, 2.88, 2.96, 2.97, 3.04, 2.92, 2.56, 2.77 ],
+            data: [2.7, 2.61, 2.79, 2.88, 2.96, 2.97, 3.04, 2.92, 3.29, 3.08],
             maxBarThickness: 6
           },
         ],
