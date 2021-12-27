@@ -167,6 +167,7 @@ return [
          */
         Yajra\DataTables\DataTablesServiceProvider::class,
         browner12\helpers\HelperServiceProvider::class,
+        Milon\Barcode\BarcodeServiceProvider::class,
 
         /*
          * Application Service Providers...
