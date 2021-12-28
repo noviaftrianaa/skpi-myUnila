@@ -3,197 +3,274 @@
 @section('content')
 @section('css')
 <style>
-.stats {
-    background: #f2f5f8 !important;
-    color: #000 !important
+  .stats {
+      background: #f2f5f8 !important;
+      color: #000 !important
+  }
+
+  .articles {
+      font-size: 10px;
+      color: #a1aab9
+  }
+
+  .number1 {
+      font-weight: 500
+  }
+
+  .followers {
+      font-size: 12px;
+      color: #a1aab9
+  }
+
+  .number2 {
+      font-weight: 500
+  }
+
+  .rating {
+      font-size: 10px;
+      color: #a1aab9
+  }
+
+  .number3 {
+      font-weight: 500
+  }
+
+  td {
+      font-size: 13px
+  }
+
+
 }
 
-.articles {
-    font-size: 10px;
-    color: #a1aab9
+body {
+  background-color: #e7dfcf;
+  position: relative;
+  margin: 20px 30px
 }
 
-.number1 {
-    font-weight: 500
+.container {
+  max-width: 800px;
+  background-color: white;
+  padding: 0
 }
 
-.followers {
-    font-size: 15px;
-    color: #a1aab9
+.review {
+  font-size: 30px;
+  font-weight: 600;
 }
 
-.number2 {
-    font-weight: 500
+.sub-review {
+  font-size: 20px;
+  font-weight: 300;
 }
 
-.rating {
-    font-size: 10px;
-    color: #a1aab9
+.name {
+  font-size: 18px;
+  color: #1F233C;
+  margin: 0
 }
 
-.number3 {
-    font-weight: 500
+.job {
+  color: #c8c8c8;
+  font-size: 14px
+}
+
+.carousel-inner {
+  max-width: 800px
+}
+
+.fa-minus {
+  font-size: 14px
+}
+
+.carousel-indicators {
+  bottom: -20px;
+  right: 0;
+  margin: 0
+}
+
+.carousel-indicators [data-bs-target] {
+  height: 10px;
+  border: 2px solid black;
+  width: 10px;
+  background-color: inherit;
+  border-radius: 50%
+}
+
+.carousel-indicators .active {
+  border: 2px solid transparent;
+  background-color: #1F233C
+}
+
+.left {
+  color: rgb(20, 20, 20);
+  font-weight: 600
+}
+
+.right {
+  color: rgb(12, 12, 12);
+  font-weight: 600
+}
+
+.carousel-control-next,
+.carousel-control-prev {
+  position: relative
+}
+
+@media (max-width:560px) {
+  .review {
+      font-size: 14px;
+      font-weight: 600
+  }
+
+  .name {
+      font-size: 13px
+  }
+
+  .job {
+      font-size: 10px
+  }
+
+  .right {
+      font-size: 12px
+  }
+
+  .left {
+      font-size: 12px
+  }
+
+  .carousel-indicators [data-bs-target] {
+      height: 8px;
+      border: 1px solid black;
+      width: 8px;
+      background-color: inherit;
+      border-radius: 50%
+  }
+
+  .carousel-indicators .active {
+      border: 1px solid transparent;
+      background-color: #1F233C
+  }
 }
 </style>
 @stop
 
 <div class="container-fluid py-4">
-    <div class="row">
-      <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-        <div class="card">
-          <div class="card-body p-3">
-            <div class="row">
-              <div class="col-8">
-                <div class="numbers">
-                  <p class="text-sm mb-0 text-capitalize font-weight-bold">Semester Saat Ini</p>
-                  <h5 class="font-weight-bolder mb-0">
-                    10 ( Aktif )
-                  </h5>
-                </div>
-              </div>
-              <div class="col-4 text-end">
-                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
-                  <i class="fas fa-bookmark text-lg opacity-10" aria-hidden="true"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-        <div class="card">
-          <div class="card-body p-3">
-            <div class="row">
-              <div class="col-8">
-                <div class="numbers">
-                  <p class="text-sm mb-0 text-capitalize font-weight-bold">IPK</p>
-                  <h5 class="font-weight-bolder mb-0">
-                    3.03
-                  </h5>
-                </div>
-              </div>
-              <div class="col-4 text-end">
-                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
-                  <i class="fas fa-ribbon text-lg opacity-10" aria-hidden="true"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-        <div class="card">
-          <div class="card-body p-3">
-            <div class="row">
-              <div class="col-8">
-                <div class="numbers">
-                  <p class="text-sm mb-0 text-capitalize font-weight-bold">Status Pembayaran</p>
-                  <h5 class="font-weight-bolder mb-0">
-                    Lunas
-                   </h5>
-                </div>
-              </div>
-              <div class="col-4 text-end">
-                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
-                  <i class="ni ni-money-coins text-lg opacity-10" aria-hidden="true"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-xl-3 col-sm-6">
-        <div class="card">
-          <div class="card-body p-3">
-            <div class="row">
-              <div class="col-8">
-                <div class="numbers">
-                  <p class="text-sm mb-0 text-capitalize font-weight-bold">Status Beasiswa</p>
-                  <h6 class="font-weight-bolder mb-0">
-                    Beasiswa PPA
-                   </h6>
-                    exp : 21/12/2022
-                   </div>
-            </div>
-            <div class="col-4 text-end">
-              <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
-                <i class="ni ni-trophy text-lg opacity-10" aria-hidden="true"></i>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    </div>
-
-    <div class="row mt-4">
-        <div class="col-lg-12 mb-lg-0 mb-4">
-          <div class="card z-index-2">
-            <div class="card-body p-3">
-                <h6 class="ms-2 mb-3"> Profil Mahasiswa</h6>
-                    <div class="d-flex align-items-center">
-                        <div class="image"> <img src="../assets/img/Mahasiswa.png" class="rounded" width="200"> </div>
-                        <div class="ml-3 w-100 p-3">
-                            <h4 class="mb-0 mt-0">Zuliana Nurfadlillah</h4>
-                            <div class="p-3 mt-2 rounded text-white stats">
-                                <div class="d-flex flex-column">
-                                    <table>
-                                        <tr>
-                                          <td width="30%">NPM</td>
-                                          <td width="70%">: 1517051048</td>
-                                        </tr>
-                                        <tr>
-                                          <td>Tempat, tanggal lahir</td>
-                                          <td>: Bandar Lampung, 23 Februari 1998</td>
-                                        </tr>
-                                        <tr>
-                                          <td width="30%">Alamat</td>
-                                          <td width="70%">: Jln. R.A Basyid No. 115 Untung Suropati, Labuhan Dalam, Tanjung Senang, Bandar Lampung</td>
-                                        </tr>
-                                        <tr>
-                                          <td>Program Studi</td>
-                                          <td>: S1 Ilmu Komputer</td>
-                                        </tr>
-                                        <tr>
-                                          <td width="30%">Konsentrasi</td>
-                                          <td width="70%">: -</td>
-                                        </tr>
-                                        <tr>
-                                          <td>Pembimbing Akadamik</td>
-                                          <td>: Febi Eka Febriansyah, S.T</td>
-                                        </tr>
-                                      </table>
-                                </div>
-                            </div>
-                            <div class="button mt-2 d-flex flex-row align-items-center">
-                                <button class="btn btn-sm btn-round mb-0 me-1 bg-gradient-dark">Detail</button>
-                            </div>
+  <div class="row mt-2">
+    <div class="col-lg-12 mb-lg-0 mb-4">
+      <div class="card z-index-2">
+        <div class="card-body p-3">
+          <h5 class="ms-0 mb-2"> Kemajuan Belajar </h5>
+          <hr>
+          <div class="row nav-tabs-custom">
+            <div class="d-flex align-items-center">
+              <div class="ml-4 w-100 p-1">
+                <div class="p-3 mt-0 rounded text-white stats">
+                  <div class="col-md-15">
+                    <div class="row">
+                      <div class="col-sm-5" >
+                        <div class="col-sm-23">
+                          <div class="d-flex flex-column">
+                            <table>
+                              <tr>
+                                <td width="30%">NPM</td>
+                                <td width="45%">: 1517051048</td>
+                              </tr>
+                              <tr>
+                                <td width="30%">Status Mahasiswa</td>
+                                <td width="45%">: Aktif</td>
+                              </tr>
+                              <tr>
+                                <td width="30%">Angkatan</td>
+                                <td width="45%">: 2019</td>
+                              </tr>
+                              <tr>
+                                <td width="30%">Tahun Kurikulum</td>
+                                <td width="45%">: 2020</td>
+                              </tr>
+                            </table>
+                          </div>
                         </div>
+                      </div>
+
+                      <div class="col-sm-7" >
+                        <div class="col-sm-23">
+                          <div class="d-flex flex-column">
+                            <table>
+                              <tr>
+                                <td width="30%">Nama Mahasiswa</td>
+                                <td width="45%">: Zuliana Nurfadlillah</td>
+                              </tr>
+                              <tr>
+                                <td width="30%">Program Studi</td>
+                                <td width="45%">: S1 - Biologi Terapan</td>
+                              </tr>
+                              <tr>
+                                <td width="30%">Pembimbing Akadamik</td>
+                                <td width="45%">: DR NUNING NURCAHYANI, M.Sc.</td>
+                              </tr>
+                              <tr>
+                                <td width="30%">Semester / IPK</td>
+                                <td width="45%">: 10 / 3.03</td>
+                              </tr>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-            </div>
-          </div>
-        </div>
-        <div class="row my-4">
-        <div class="col-lg-12 mb-lg-0">
-          <div class="card z-index-2">
-            <div class="card-header pb-0">
-              <h6>Indeks Prestasi</h6>
-              <p class="text-sm">
-                {{-- <i class="fa fa-arrow-up text-success"></i> --}}
-                {{-- <span class="font-weight-bold">4% more</span> in 2021 --}}
-                <a href="#" class="btn btn-sm btn-round mb-2 me-3 bg-gradient-dark"><i class="fa fa-download text-white"></i>&nbsp;&nbsp;Unduh</a>
-                <a href="#" class="btn btn-sm btn-round mb-2 me-3 bg-gradient-dark"><i class="fa fa-print text-white"></i>&nbsp;&nbsp;Cetak</a>
-              </p>
-            </div>
-            <div class="card-body p-3">
-              <div class="chart">
-                <canvas id="chart-line" class="chart-canvas" height="300"></canvas>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-lg-12 mb-lg-0 mb-4 ">
+      <div class="card z-index-2">
+        <div class="card-header pb-0">
+          <h5>Indeks Prestasi</h5>
+          <hr>
+          <p class="text-sm">
+            <a href="#" class="btn btn-sm btn-round mb-2 me-3 btn-primary"><i class="fa fa-download text-white"></i>&nbsp;&nbsp;Unduh</a>
+            <a href="#" class="btn btn-sm btn-round mb-2 me-3 btn-primary"><i class="fa fa-print text-white"></i>&nbsp;&nbsp;Cetak</a>
+          </p>
+        </div>
+        <div class="card-body p-3">
+          <div class="chart">
+            <canvas id="chart-line" class="chart-canvas" height="300"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row my-4">
+    <div class="row">
+      <div class="col-md-7">
+        <div id="container_sks" class="container-box"></div>
+      </div>
+      <div class="col-md-5">
+        <div id="container_skspie" class="container-box"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row my-4">
+    <div class="row">
+    <div class="col-md-7">
+        <div id="container_sks" class="container-box"></div>
+    </div>
+    <div class="col-md-5">
+        <div id="container_skspie" class="container-box"></div>
+    </div>
+</div>
+  </div>
+
+</div>
 @endsection
 
 @section('js')

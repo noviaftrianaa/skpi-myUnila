@@ -170,7 +170,7 @@ body {
                 </div>
               </div>
               <div class="col-4 text-end">
-                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                <div class="icon icon-shape btn-primary shadow text-center border-radius-md">
                   <i class="fas fa-bookmark text-lg opacity-10" aria-hidden="true"></i>
                 </div>
               </div>
@@ -191,7 +191,7 @@ body {
                 </div>
               </div>
               <div class="col-4 text-end">
-                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                <div class="icon icon-shape btn-primary shadow text-center border-radius-md">
                   <i class="fas fa-ribbon text-lg opacity-10" aria-hidden="true"></i>
                 </div>
               </div>
@@ -212,7 +212,7 @@ body {
                 </div>
               </div>
               <div class="col-4 text-end">
-                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                <div class="icon icon-shape btn-primary shadow text-center border-radius-md">
                   <i class="ni ni-money-coins text-lg opacity-10" aria-hidden="true"></i>
                 </div>
               </div>
@@ -234,7 +234,7 @@ body {
                 </div>
               </div>
               <div class="col-4 text-end">
-                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                <div class="icon icon-shape btn-primary shadow text-center border-radius-md">
                   <i class="ni ni-trophy text-lg opacity-10" aria-hidden="true"></i>
                 </div>
               </div>
@@ -248,7 +248,8 @@ body {
         <div class="col-lg-9 mb-lg-0 mb-4">
           <div class="card z-index-2">
             <div class="card-body p-3">
-                <h6 class="ms-0 mb-2"> Profil Mahasiswa </h6>
+                <h5 class="ms-0 mb-2"> Profil Mahasiswa </h5>
+                <hr>
                     <div class="d-flex align-items-center">
                       <div class="image"> <img src="../assets/img/Mahasiswa.png" class="rounded" width="155">
                       </div>
@@ -285,7 +286,7 @@ body {
                                 </div>
                             </div>
                             <div class="button mt-2 d-flex flex-row align-items-center">
-                                <button class="btn btn-sm btn-round mb-0 me-1 bg-gradient-dark">Detail</button>
+                                <button class="btn btn-sm btn-round mb-0 me-1 btn-primary">Detail</button>
                             </div>
                         </div>
                     </div>
@@ -296,7 +297,8 @@ body {
             <div class="card z-index-2">
               <div class="card-header p-3">
                 <div class="row">
-                    <h6 class="ms-0 mb-2">Status Pembayaran / UKT</h6>
+                    <h5 class="ms-0 mb-2">Status Pembayaran / UKT</h5>
+                    <hr>
                 </div>
               </div>
               <div class="card-body p-0">
@@ -380,7 +382,7 @@ body {
                 </div>
                 
                 <div class="mb-lg-2 mb-4 text-sm button mt-0 d-flex flex-row align-items-center">
-                  <button class="btn btn-sm btn-round mb-0 me-1 bg-gradient-dark">Detail</button>
+                  <button class="btn btn-sm btn-round mb-0 me-1 btn-primary">Detail</button>
               </div>
               </div>
             </div>
@@ -391,10 +393,11 @@ body {
         <div class="col-lg-12 mb-lg-0 mb-4 ">
           <div class="card z-index-2">
             <div class="card-header pb-0">
-              <h6>Indeks Prestasi</h6>
+              <h5>Indeks Prestasi</h5>
+              <hr>
               <p class="text-sm">
-                <a href="#" class="btn btn-sm btn-round mb-2 me-3 bg-gradient-dark"><i class="fa fa-download text-white"></i>&nbsp;&nbsp;Unduh</a>
-                <a href="#" class="btn btn-sm btn-round mb-2 me-3 bg-gradient-dark"><i class="fa fa-print text-white"></i>&nbsp;&nbsp;Cetak</a>
+                <a href="#" class="btn btn-sm btn-round mb-2 me-3 btn-primary"><i class="fa fa-download text-white"></i>&nbsp;&nbsp;Unduh</a>
+                <a href="#" class="btn btn-sm btn-round mb-2 me-3 btn-primary"><i class="fa fa-print text-white"></i>&nbsp;&nbsp;Cetak</a>
               </p>
             </div>
             <div class="card-body p-3">

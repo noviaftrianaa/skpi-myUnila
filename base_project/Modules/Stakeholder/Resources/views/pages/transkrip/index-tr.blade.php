@@ -162,7 +162,7 @@ body {
         <div class="card-body p-3">
           <form class="form-inline" method="post" id="form_filter">
             <div class="row">
-              <label for="alamat" style="margin-right:5px" class="col-sm-2 col-form-label">Periode</label>
+              <label for="periode" style="margin-right:5px" class="col-sm-2 col-form-label">Periode</label>
               <div class="col-md-2"><select id="periode" name="periode" class="form-control input-sm" onchange="goSubmit(this)">
                 <option value="1" >Pilih Semester</option>
                 <option value="2" selected>2021 Ganjil</option>
@@ -234,19 +234,19 @@ body {
                                     <table>
                                       <tr>
                                         <td width="30%">Nama Mahasiswa</td>
-                                        <td width="55%">: Zuliana Nurfadlillah</td>
+                                        <td width="45%">: Zuliana Nurfadlillah</td>
                                       </tr>
                                       <tr>
                                         <td width="30%">Program Studi</td>
-                                        <td width="55%">: S1 - Biologi Terapan</td>
+                                        <td width="45%">: S1 - Biologi Terapan</td>
                                       </tr>
                                       <tr>
                                         <td width="30%">Pembimbing Akadamik</td>
-                                        <td width="55%">: DR NUNING NURCAHYANI, M.Sc.</td>
+                                        <td width="45%">: DR NUNING NURCAHYANI, M.Sc.</td>
                                       </tr>
                                       <tr>
                                         <td width="30%">Semester / IPK</td>
-                                        <td width="55%">: 10 / 3.03</td>
+                                        <td width="45%">: 10 / 3.03</td>
                                       </tr>
                                     </table>
                                   </div>
@@ -661,11 +661,11 @@ body {
                                                 <th class="text-center">89</th>
                                                 <th>&nbsp;</th>
                                                 <th>&nbsp;</th>
-                                                <th style="text-align:right">310,00</th>
+                                                <th style="text-align:center">310,00</th>
                                               </tr>
                                               <tr>
                                               <th colspan="8">Indeks Prestasi Kumulatif</th>
-                                              <th style="text-align:right">3,03</th>
+                                              <th style="text-align:center">3,03</th>
                                               </tr>                     
                                             </tfoot>
                                       </table>
