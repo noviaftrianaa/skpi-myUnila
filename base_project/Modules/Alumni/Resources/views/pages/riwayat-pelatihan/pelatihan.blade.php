@@ -24,6 +24,8 @@
                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Pelatihan</th>
                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Tahun</th>
                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Penyelengara</th>
+                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Lokasi</th>
+                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Durasi</th>
                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Dokumen</th>
               </tr>
             </thead>
@@ -34,6 +36,8 @@
                 <td>Best Twenty Two Indonesia Next 2018 by Telkomsel</td>
                 <td style="color:rgb(90, 196, 187)"><b>2018</td>
                 <td>Telkomsel</td>
+                <td>Singapura</td>
+                <td>1 Minggu</td>
                 <td>
                   <button type="button" class="btn btn-warning btn-sm"><i class="fa fa-eye"></i></button>
                 </td>
@@ -44,6 +48,8 @@
                 <td>Microsoft Office Specialist Certified</td>
                 <td style="color:rgb(90, 196, 187)"><b>2018</td>
                 <td>Microsoft</td>
+                <td>Jakarta</td>
+                <td>1 Minggu</td>
                 <td>
                   <button type="button" class="btn btn-warning btn-sm"><i class="fa fa-eye"></i></button>
                 </td>
@@ -53,6 +59,8 @@
                 <td>ICAgile Profesional Certified</td>
                 <td style="color:rgb(90, 196, 187)"><b>2019</td>
                 <td>The Agile Company</td>
+                <td>Jakarta</td>
+                <td>2 Hari</td>
                 <td>
                   <button type="button" class="btn btn-warning btn-sm"><i class="fa fa-eye"></i></button>
                 </td>
@@ -63,6 +71,8 @@
                 <td>Indonesia Professional Certification Authority</td>
                 <td style="color:rgb(90, 196, 187)"><b>2019</td>
                 <td>LSPPRI</td>
+                <td>Lampung</td>
+                <td>4 Hari</td>
                 <td>
                   <button type="button" class="btn btn-warning btn-sm"><i class="fa fa-eye"></i></button>
                 </td>

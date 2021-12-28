@@ -32,5 +32,8 @@ Route::prefix('alumni')->group(function() {
 
     //riwayat transkrip
     Route::get('/index-transkrip', function() { return view('alumni::pages.transkrip.index-transkrip'); });
+
+    //riwayat legalisir
+    Route::get('/index-legalisir', function() { return view('alumni::pages.legalisir.index-legalisir'); });
 });
 

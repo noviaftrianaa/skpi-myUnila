@@ -16,12 +16,13 @@
         <link href="{{ asset('assets/css/nucleo-svg.css') }}" rel="stylesheet" />
         <!-- CSS Files -->
         <link id="pagestyle" href="{{ asset('assets/css/soft-ui-dashboard.css?v=1.0.3') }}" rel="stylesheet" />
-
+        <link id="pagestyle" href="{{ asset('assets/css/custom.css') }}" rel="stylesheet" />
+        @yield('css')
     </head>
 
 <body class="g-sidenav-show  bg-gray-100">
 
-    @section('asidebar')
+    @section('sidebar')
 	@include('alumni::layouts.sidebar')
 	@show
      <main class="main-content position-relative max-height-vh-100 h-100 mt-1 border-radius-lg ">
