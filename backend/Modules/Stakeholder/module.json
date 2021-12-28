@@ -1,0 +1,13 @@
+{
+    "name": "Stakeholder",
+    "alias": "stakeholder",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Stakeholder\\Providers\\StakeholderServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}
