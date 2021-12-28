@@ -3,36 +3,154 @@
 @section('content')
 @section('css')
 <style>
-.stats {
-    background: #f2f5f8 !important;
-    color: #000 !important
+  .stats {
+      background: #f2f5f8 !important;
+      color: #000 !important
+  }
+
+  .articles {
+      font-size: 10px;
+      color: #a1aab9
+  }
+
+  .number1 {
+      font-weight: 500
+  }
+
+  .followers {
+      font-size: 12px;
+      color: #a1aab9
+  }
+
+  .number2 {
+      font-weight: 500
+  }
+
+  .rating {
+      font-size: 10px;
+      color: #a1aab9
+  }
+
+  .number3 {
+      font-weight: 500
+  }
+
+  td {
+      font-size: 13px
+  }
+
+
 }
 
-.articles {
-    font-size: 10px;
-    color: #a1aab9
+body {
+  background-color: #e7dfcf;
+  position: relative;
+  margin: 20px 30px
 }
 
-.number1 {
-    font-weight: 500
+.container {
+  max-width: 800px;
+  background-color: white;
+  padding: 0
 }
 
-.followers {
-    font-size: 15px;
-    color: #a1aab9
+.review {
+  font-size: 30px;
+  font-weight: 600;
 }
 
-.number2 {
-    font-weight: 500
+.sub-review {
+  font-size: 20px;
+  font-weight: 300;
 }
 
-.rating {
-    font-size: 10px;
-    color: #a1aab9
+.name {
+  font-size: 18px;
+  color: #1F233C;
+  margin: 0
 }
 
-.number3 {
-    font-weight: 500
+.job {
+  color: #c8c8c8;
+  font-size: 14px
+}
+
+.carousel-inner {
+  max-width: 800px
+}
+
+.fa-minus {
+  font-size: 14px
+}
+
+.carousel-indicators {
+  bottom: -20px;
+  right: 0;
+  margin: 0
+}
+
+.carousel-indicators [data-bs-target] {
+  height: 10px;
+  border: 2px solid black;
+  width: 10px;
+  background-color: inherit;
+  border-radius: 50%
+}
+
+.carousel-indicators .active {
+  border: 2px solid transparent;
+  background-color: #1F233C
+}
+
+.left {
+  color: rgb(20, 20, 20);
+  font-weight: 600
+}
+
+.right {
+  color: rgb(12, 12, 12);
+  font-weight: 600
+}
+
+.carousel-control-next,
+.carousel-control-prev {
+  position: relative
+}
+
+@media (max-width:560px) {
+  .review {
+      font-size: 14px;
+      font-weight: 600
+  }
+
+  .name {
+      font-size: 13px
+  }
+
+  .job {
+      font-size: 10px
+  }
+
+  .right {
+      font-size: 12px
+  }
+
+  .left {
+      font-size: 12px
+  }
+
+  .carousel-indicators [data-bs-target] {
+      height: 8px;
+      border: 1px solid black;
+      width: 8px;
+      background-color: inherit;
+      border-radius: 50%
+  }
+
+  .carousel-indicators .active {
+      border: 1px solid transparent;
+      background-color: #1F233C
+  }
 }
 </style>
 @stop
@@ -153,7 +271,7 @@
                                         </tr>
                                         <tr>
                                           <td>Program Studi</td>
-                                          <td>: S1 Ilmu Komputer</td>
+                                          <td>: S1- Biologi Terapan</td>
                                         </tr>
                                         <tr>
                                           <td width="30%">Konsentrasi</td>
@@ -161,7 +279,7 @@
                                         </tr>
                                         <tr>
                                           <td>Pembimbing Akadamik</td>
-                                          <td>: Febi Eka Febriansyah, S.T</td>
+                                          <td>: DR NUNING NURCAHYANI, M.Sc.</td>
                                         </tr>
                                       </table>
                                 </div>
@@ -186,8 +304,8 @@
                   <table class="table align-items-center mb-2">
                     <thead>
                       <tr>
-                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">No.</th>
-                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-3">Semester</th>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">No.</th>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Semester</th>
                         <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Ket.</th>
                       </tr>
                     </thead>
