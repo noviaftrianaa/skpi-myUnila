@@ -2,10 +2,16 @@
     <div class="sidenav-header">
       <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
       <a class="navbar-brand m-0" href="/alumni" target="_blank">
-        <img src="../assets/img/unila.png" class="navbar-brand-img h-100" alt="main_logo">
+        <img src="../assets/img/unilabg.png" class="navbar-brand-img h-100" alt="main_logo">
         <span class="ms-1 font-weight-bold">PDUT UNILA</span>
+        <br>
+       <br>
+        <span class="ms-1 font-weight-bold">Aprily Ayu Anbar</span><br>
+        <span class="ms-1">Alumni - S1 Teknik Informatika</span>
       </a>
     </div>
+    <br>
+    <br>
     <hr class="horizontal dark mt-0">
     <div class="collapse navbar-collapse  w-auto  max-height-vh-100 h-100" id="sidenav-collapse-main">
       <ul class="navbar-nav">
@@ -71,7 +77,7 @@
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link  " href="../pages/tables.html">
+          <a class="nav-link {{ (request()->is('alumni/index-transkrip')) ? 'active' : '' }}" href="{{url('alumni/index-transkrip')}}">
             <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
               <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                 <title>transkrip</title>
@@ -113,7 +119,7 @@
         </li>
         
         <li class="nav-item">
-          <a class="nav-link  " href="../pages/rtl.html">
+          <a class="nav-link {{ (request()->is('alumni/pendidikan')) ? 'active' : '' }}" href="{{url('alumni/pendidikan')}}">
             <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
               <svg width="12px" height="12px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                 <title>pendidikan</title>
@@ -134,7 +140,7 @@
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link  " href="../pages/rtl.html">
+          <a class="nav-link {{ (request()->is('alumni/pelatihan')) ? 'active' : '' }}" href="{{url('alumni/pelatihan')}}">
             <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
               <svg width="12px" height="12px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                 <title>riwayat pelatihan</title>
@@ -154,7 +160,7 @@
             <span class="nav-link-text ms-1">Riwayat Pelatihan</span>
           </a>
         </li>
-        <li class="nav-item">
+        {{-- <li class="nav-item">
           <a class="nav-link  " href="../pages/sign-in.html">
             <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
               <svg width="12px" height="12px" viewBox="0 0 40 44" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -173,7 +179,7 @@
             </div>
             <span class="nav-link-text ms-1">Forum Diskusi</span>
           </a>
-        </li>
+        </li> --}}
         <li class="nav-item">
           <a class="nav-link  " href="../pages/sign-in.html">
             <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
