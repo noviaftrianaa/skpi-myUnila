@@ -4,8 +4,8 @@
       <a class="navbar-brand m-0" href="/alumni" target="_blank">
         <img src="../assets/img/unilabg.png" class="navbar-brand-img h-100" alt="main_logo">
         <span class="ms-1 font-weight-bold">PDUT UNILA</span>
-        <br>
-       <br>
+        <hr>
+     
         <span class="ms-1 font-weight-bold">Aprily Ayu Anbar</span><br>
         <span class="ms-1">Alumni - S1 Teknik Informatika</span>
       </a>
@@ -181,7 +181,7 @@
           </a>
         </li> --}}
         <li class="nav-item">
-          <a class="nav-link  " href="../pages/sign-in.html">
+          <a class="nav-link {{ (request()->is('alumni/index-legalisir')) ? 'active' : '' }}" href="{{url('alumni/index-legalisir')}}">
             <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
               <svg width="12px" height="12px" viewBox="0 0 40 44" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                 <title>permintaan legalisir</title>
@@ -197,7 +197,7 @@
                 </g>
               </svg>
             </div>
-            <span class="nav-link-text ms-1">Legalisir Transkrip & Ijazah</span>
+            <span class="nav-link-text ms-1">Legalisasi</span>
           </a>
         </li>
       

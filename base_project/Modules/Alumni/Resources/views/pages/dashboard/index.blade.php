@@ -12,13 +12,12 @@
                       <p class="text-sm mb-0 text-capitalize font-weight-bold">IPK</p>
                       <h5 class="font-weight-bolder mb-0">
                        3.67
-                        <span class="text-success text-sm font-weight-bolder"></span>
                       </h5>
                     </div>
                   </div>
                   <div class="col-4 text-end">
-                    <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
-                      <i class="ni ni-money-coins text-lg opacity-10" aria-hidden="true"></i>
+                    <div class="icon icon-shape btn-danger shadow text-center border-radius-md">
+                      <i class="fas fa-ribbon text-lg opacity-10" aria-hidden="true"></i>
                     </div>
                   </div>
                 </div>
@@ -34,13 +33,12 @@
                       <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Semester </p>
                       <h5 class="font-weight-bolder mb-0">
                        11
-                        <span class="text-success text-sm font-weight-bolder"></span>
                       </h5>
                     </div>
                   </div>
                   <div class="col-4 text-end">
-                    <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
-                      <i class="ni ni-world text-lg opacity-10" aria-hidden="true"></i>
+                    <div class="icon icon-shape btn-warning shadow text-center border-radius-md">
+                      <i class="fas fa-bookmark text-lg opacity-10" aria-hidden="true"></i>
                     </div>
                   </div>
                 </div>
@@ -56,13 +54,12 @@
                       <p class="text-sm mb-0 text-capitalize font-weight-bold">Total SKS</p>
                       <h5 class="font-weight-bolder mb-0">
                         149
-                        <span class="text-danger text-sm font-weight-bolder"></span>
                       </h5>
                     </div>
                   </div>
                   <div class="col-4 text-end">
-                    <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
-                      <i class="ni ni-paper-diploma text-lg opacity-10" aria-hidden="true"></i>
+                    <div class="icon icon-shape btn-success shadow text-center border-radius-md">
+                      <i class="fas fa-list text-lg opacity-10" aria-hidden="true"></i>
                     </div>
                   </div>
                 </div>
@@ -83,8 +80,8 @@
                     </div>
                   </div>
                   <div class="col-4 text-end">
-                    <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
-                      <i class="ni ni-cart text-lg opacity-10" aria-hidden="true"></i>
+                    <div class="icon icon-shape btn-primary shadow text-center border-radius-md">
+                      <i class="fas fa-graduation-cap text-lg opacity-10" aria-hidden="true"></i>
                     </div>
                   </div>
                 </div>
@@ -107,7 +104,7 @@
               <div class="col-auto my-auto">
                 <div class="h-80">
                   <h5 class="mb-1">
-                    Aprily Ayu Anbar
+                    Aprily Ayu Anbar, S.T.
                   </h5>
                   <p class="mb-0 font-weight-bold text-sm">
                     Web Developer
@@ -142,35 +139,45 @@
                       <thead>
                         <tr>
                           <th>NPM</th>
-                          <th>:</th>
-                          <th>1515061005</th>
+                          <td>:</td>
+                          <td>1515061005</td>
                         </tr>
                       </thead>
                       <tbody>
                         <tr>
-                          <td>Angkatan</td>
+                          <th>Angkatan</th>
                           <td>:</td>
                           <td>2015</td>
                         </tr>
                         <tr>
-                          <td>Tanggal Masuk</td>
+                          <th>Tanggal Masuk</th>
                           <td>:</td>
                           <td>24 Agustus 2015</td>
                         </tr>
                         <tr>
-                          <td>Tanggal Lulus</td>
+                          <th>Tanggal Lulus</th>
                           <td>:</td>
                           <td>13 November 2020</td>
                         </tr>
                         <tr>
-                          <td>IPK</td>
+                          <th>IPK</th>
                           <td>:</td>
                           <td>3.67</td>
                         </tr>
                         <tr>
-                          <td>Sosial Media:</td>
+                          <th>Sosial Media:</th>
                           <td>:</td>
-                          <td>3.67</td>
+                          <td>
+                            <a class="btn btn-facebook btn-simple mb-0 ps-1 pe-2 py-0" href="javascript:;">
+                            <i class="fab fa-facebook fa-lg"></i>
+                          </a>
+                          <a class="btn btn-twitter btn-simple mb-0 ps-1 pe-2 py-0" href="javascript:;">
+                            <i class="fab fa-twitter fa-lg"></i>
+                          </a>
+                          <a class="btn btn-instagram btn-simple mb-0 ps-1 pe-2 py-0" href="javascript:;">
+                            <i class="fab fa-instagram fa-lg"></i>
+                          </a>
+                        </td>
                         </tr>
                       </tbody>
                       </table>
