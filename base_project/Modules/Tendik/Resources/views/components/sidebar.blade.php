@@ -1,20 +1,24 @@
 <aside class="sidenav navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-3 "
     id="sidenav-main">
     <div class="sidenav-header">
-        <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none"
-            aria-hidden="true" id="iconSidenav"></i>
-        <a class="navbar-brand m-0" href="https://demos.creative-tim.com/soft-ui-dashboard/pages/dashboard.html"
-            target="_blank">
-            <img src="../assets/img/logo-ct.png" class="navbar-brand-img h-100" alt="main_logo">
-            <span class="ms-1 font-weight-bold">Tendik Unila</span>
+        <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
+        <a class="navbar-brand m-0" href="/alumni" target="_blank">
+          <img src="../assets/img/unilabg.png" class="navbar-brand-img h-100" alt="main_logo">
+          <span class="ms-1 font-weight-bold">PDUT UNILA</span>
+          <br>
+         <br>
+          <span class="ms-1 font-weight-bold">Rio Ananda Putra</span><br>
+          <span class="ms-1">Tenaga Kependidikan - UPT TIK</span>
         </a>
-    </div>
+      </div>
+      <br>
+      <br>
     <hr class="horizontal dark mt-0">
     <div class="collapse navbar-collapse  w-auto  max-height-vh-100 h-100" id="sidenav-collapse-main">
         <ul class="navbar-nav">
 
             <li class="nav-item">
-                <a class="nav-link  active" href="../pages/dashboard.html">
+                <a class="nav-link {{ (request()->is('tendik')) ? 'active' : '' }}" href="{{url('tendik')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 45 40" version="1.1"
@@ -44,7 +48,7 @@
                 <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Profil Tendik</h6>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="../pages/tables.html">
+                <a class="nav-link {{ (request()->is('tendik/data-pribadi')) ? 'active' : '' }}" href="{{url('tendik/data-pribadi')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1"
@@ -70,7 +74,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link  " href="../pages/billing.html">
+                <a class="nav-link {{ (request()->is('tendik/inpassing')) ? 'active' : '' }}" href="{{url('tendik/inpassing')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -96,7 +100,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link  " href="../pages/virtual-reality.html">
+                <a class="nav-link {{ (request()->is('tendik/jabatan-fungsional')) ? 'active' : '' }}" href="{{url('tendik/jabatan-fungsional')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1"
@@ -125,7 +129,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link  " href="../pages/rtl.html">
+                <a class="nav-link {{ (request()->is('tendik/kepangkatan')) ? 'active' : '' }}" href="{{url('tendik/kepangkatan')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 40 40" version="1.1"
@@ -154,7 +158,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link  " href="../pages/profile.html">
+                <a class="nav-link {{ (request()->is('tendik/penempatan')) ? 'active' : '' }}" href="{{url('tendik/penempatan')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 46 42" version="1.1"
@@ -187,7 +191,7 @@
                 <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Kualifikasi</h6>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="../pages/tables.html">
+                <a class="nav-link {{ (request()->is('tendik/pendidikan-formal')) ? 'active' : '' }}" href="{{url('tendik/pendidikan-formal')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1"
@@ -213,7 +217,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link  " href="../pages/billing.html">
+                <a class="nav-link {{ (request()->is('tendik/diklat')) ? 'active' : '' }}" href="{{url('tendik/diklat')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -243,7 +247,7 @@
                 <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Kompetensi</h6>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="../pages/tables.html">
+                <a class="nav-link {{ (request()->is('tendik/sertifikasi')) ? 'active' : '' }}" href="{{url('tendik/sertifikasi')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1"
@@ -269,7 +273,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link  " href="../pages/billing.html">
+                <a class="nav-link {{ (request()->is('tendik/tes')) ? 'active' : '' }}" href="{{url('tendik/tes')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -299,7 +303,7 @@
                 <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Pengelolaan Lab.</h6>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="../pages/tables.html">
+                <a class="nav-link {{ (request()->is('tendik/perancang')) ? 'active' : '' }}" href="{{url('tendik/perancang')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1"
@@ -325,7 +329,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link  " href="../pages/billing.html">
+                <a class="nav-link {{ (request()->is('tendik/pengoprasian')) ? 'active' : '' }}" href="{{url('tendik/pengoprasian')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -351,7 +355,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link  " href="../pages/billing.html">
+                <a class="nav-link {{ (request()->is('tendik/pemeliharaan')) ? 'active' : '' }}" href="{{url('tendik/pemeliharaan')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -377,7 +381,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link  " href="../pages/billing.html">
+                                <a class="nav-link {{ (request()->is('tendik/pengevaluasian')) ? 'active' : '' }}" href="{{url('tendik/pengevaluasian')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -403,7 +407,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link  " href="../pages/billing.html">
+                                <a class="nav-link {{ (request()->is('tendik/pengembangan')) ? 'active' : '' }}" href="{{url('tendik/pengembangan')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -434,7 +438,7 @@
                 <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Pengemb. Profesi</h6>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="../pages/tables.html">
+                                <a class="nav-link {{ (request()->is('tendik/karya-tulis')) ? 'active' : '' }}" href="{{url('tendik/karya-tulis')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1"
@@ -460,7 +464,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link  " href="../pages/billing.html">
+                                <a class="nav-link {{ (request()->is('tendik/penerjemahan')) ? 'active' : '' }}" href="{{url('tendik/penerjemahan')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -486,7 +490,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link  " href="../pages/billing.html">
+                                <a class="nav-link {{ (request()->is('tendik/pembuatan-pedoman')) ? 'active' : '' }}" href="{{url('tendik/pembuatan-pedoman')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -512,7 +516,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link  " href="../pages/billing.html">
+                                <a class="nav-link {{ (request()->is('tendik/penemuan-teknologi')) ? 'active' : '' }}" href="{{url('tendik/penemuan-teknologi')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -543,7 +547,7 @@
                 <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Penunjang</h6>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="../pages/tables.html">
+                                <a class="nav-link {{ (request()->is('tendik/pengajaran')) ? 'active' : '' }}" href="{{url('tendik/pengajaran')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1"
@@ -569,7 +573,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link  " href="../pages/billing.html">
+                                <a class="nav-link {{ (request()->is('tendik/pembimbingan')) ? 'active' : '' }}" href="{{url('tendik/pembimbingan')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -595,7 +599,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link  " href="../pages/billing.html">
+                                <a class="nav-link {{ (request()->is('tendik/seminar-loka-karyawan')) ? 'active' : '' }}" href="{{url('tendik/seminar-loka-karyawan')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -621,7 +625,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link  " href="../pages/billing.html">
+                                <a class="nav-link {{ (request()->is('tendik/anggota-profesi')) ? 'active' : '' }}" href="{{url('tendik/anggota-profesi')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -647,7 +651,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link  " href="../pages/billing.html">
+                                <a class="nav-link {{ (request()->is('tendik/tim-penilai')) ? 'active' : '' }}" href="{{url('tendik/tim-penilai')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -673,7 +677,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link  " href="../pages/billing.html">
+                                <a class="nav-link {{ (request()->is('tendik/penghargaan')) ? 'active' : '' }}" href="{{url('tendik/penghargaan')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -705,7 +709,7 @@
                 <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Reward</h6>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="../pages/tables.html">
+                                <a class="nav-link {{ (request()->is('tendik/beasiswa')) ? 'active' : '' }}" href="{{url('tendik/beasiswa')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1"
@@ -731,7 +735,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link  " href="../pages/billing.html">
+                                <a class="nav-link {{ (request()->is('tendik/kesejahtraan')) ? 'active' : '' }}" href="{{url('tendik/kesejahtraan')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -757,7 +761,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link  " href="../pages/billing.html">
+                                <a class="nav-link {{ (request()->is('tendik/tunjangan')) ? 'active' : '' }}" href="{{url('tendik/tunjangan')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -782,68 +786,9 @@
                     <span class="nav-link-text ms-1">Tunjungan</span>
                 </a>
             </li>
-
-
-
-
-            {{-- <li class="nav-item mt-3">
-                <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">layanan PAK PLP</h6>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="../pages/tables.html">
-                    <div
-                        class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
-                        <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1"
-                            xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                            <title>ajuan-angka-kredit</title>
-                            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                                <g transform="translate(-1869.000000, -293.000000)" fill="#FFFFFF" fill-rule="nonzero">
-                                    <g transform="translate(1716.000000, 291.000000)">
-                                        <g id="profil" transform="translate(153.000000, 2.000000)">
-                                            <path class="color-background opacity-6"
-                                                d="M12.25,17.5 L8.75,17.5 L8.75,1.75 C8.75,0.78225 9.53225,0 10.5,0 L31.5,0 C32.46775,0 33.25,0.78225 33.25,1.75 L33.25,12.25 L29.75,12.25 L29.75,3.5 L12.25,3.5 L12.25,17.5 Z">
-                                            </path>
-                                            <path class="color-background"
-                                                d="M40.25,14 L24.5,14 C23.53225,14 22.75,14.78225 22.75,15.75 L22.75,38.5 L19.25,38.5 L19.25,22.75 C19.25,21.78225 18.46775,21 17.5,21 L1.75,21 C0.78225,21 0,21.78225 0,22.75 L0,40.25 C0,41.21775 0.78225,42 1.75,42 L40.25,42 C41.21775,42 42,41.21775 42,40.25 L42,15.75 C42,14.78225 41.21775,14 40.25,14 Z M12.25,36.75 L7,36.75 L7,33.25 L12.25,33.25 L12.25,36.75 Z M12.25,29.75 L7,29.75 L7,26.25 L12.25,26.25 L12.25,29.75 Z M35,36.75 L29.75,36.75 L29.75,33.25 L35,33.25 L35,36.75 Z M35,29.75 L29.75,29.75 L29.75,26.25 L35,26.25 L35,29.75 Z M35,22.75 L29.75,22.75 L29.75,19.25 L35,19.25 L35,22.75 Z">
-                                            </path>
-                                        </g>
-                                    </g>
-                                </g>
-                            </g>
-                        </svg>
-                    </div>
-                    <span class="nav-link-text ms-1">Ajuan Angka Kredit</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link  " href="../pages/billing.html">
-                    <div
-                        class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
-                        <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
-                            xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                            <title>penilaian-pak</title>
-                            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                                <g transform="translate(-2169.000000, -745.000000)" fill="#FFFFFF" fill-rule="nonzero">
-                                    <g transform="translate(1716.000000, 291.000000)">
-                                        <g transform="translate(453.000000, 454.000000)">
-                                            <path class="color-background opacity-6"
-                                                d="M43,10.7482083 L43,3.58333333 C43,1.60354167 41.3964583,0 39.4166667,0 L3.58333333,0 C1.60354167,0 0,1.60354167 0,3.58333333 L0,10.7482083 L43,10.7482083 Z">
-                                            </path>
-                                            <path class="color-background"
-                                                d="M0,16.125 L0,32.25 C0,34.2297917 1.60354167,35.8333333 3.58333333,35.8333333 L39.4166667,35.8333333 C41.3964583,35.8333333 43,34.2297917 43,32.25 L43,16.125 L0,16.125 Z M19.7083333,26.875 L7.16666667,26.875 L7.16666667,23.2916667 L19.7083333,23.2916667 L19.7083333,26.875 Z M35.8333333,26.875 L28.6666667,26.875 L28.6666667,23.2916667 L35.8333333,23.2916667 L35.8333333,26.875 Z">
-                                            </path>
-                                        </g>
-                                    </g>
-                                </g>
-                            </g>
-                        </svg>
-                    </div>
-                    <span class="nav-link-text ms-1">Penilaian PAK</span>
-                </a>
-            </li> --}}
         </ul>
     </div>
-    <div class="sidenav-footer mx-3 ">
+    {{-- <div class="sidenav-footer mx-3 ">
         <div class="card card-background shadow-none card-background-mask-secondary" id="sidenavCard">
             <div class="full-background"
                 style="background-image: url('../assets/img/curved-images/white-curved.jpeg')"></div>
@@ -864,5 +809,5 @@
         <a class="btn bg-gradient-primary mt-4 w-100"
             href="https://www.creative-tim.com/product/soft-ui-dashboard-pro?ref=sidebarfree" type="button">Upgrade to
             pro</a>
-    </div>
+    </div> --}}
 </aside>

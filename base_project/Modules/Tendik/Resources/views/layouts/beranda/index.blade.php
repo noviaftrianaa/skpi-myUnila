@@ -1,10 +1,39 @@
 @extends('tendik::components.master')
 
 @section('content')
+
+<style>
+        .stats {
+        background: #f2f5f8 !important;
+        color: #000 !important;
+    }
+</style>
+
     <div class="container-fluid py-4">
 
         <div class="row my-4">
-            <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+            <div class="col-xl-2 col-sm-5 mb-xl-0 mb-4">
+                <div class="card">
+                    <div class="card-body p-3">
+                        <div class="row">
+                            <div class="col-8">
+                                <div class="numbers">
+                                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Tahun Keaktifan</p>
+                                    <h5 class="font-weight-bolder mb-0">
+                                        2021/2022
+                                    </h5>
+                                </div>
+                            </div>
+                            <div class="col-4 text-end">
+                                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                                    <i class="ni ni-money-coins text-lg opacity-10" aria-hidden="true"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-2 col-sm-5 mb-xl-0 mb-4">
                 <div class="card">
                     <div class="card-body p-3">
                         <div class="row">
@@ -25,7 +54,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+            <div class="col-xl-2 col-sm-5 mb-xl-0 mb-4">
                 <div class="card">
                     <div class="card-body p-3">
                         <div class="row">
@@ -46,7 +75,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+            <div class="col-xl-2 col-sm-5 mb-xl-0 mb-4">
                 <div class="card">
                     <div class="card-body p-3">
                         <div class="row">
@@ -67,7 +96,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-xl-3 col-sm-6">
+            <div class="col-xl-2 col-sm-5 mb-xl-0 mb-4">
                 <div class="card">
                     <div class="card-body p-3">
                         <div class="row">
@@ -88,35 +117,90 @@
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="row my-4">
-            <div class="col-lg-6 mb-lg-0 mb-4">
-                <div class="card h-100">
+            <div class="col-xl-2 col-sm-5 mb-xl-0 mb-4">
+                <div class="card">
                     <div class="card-body p-3">
                         <div class="row">
-                            <div class="col-lg-6">
-                                <div class="d-flex flex-column h-100">
-                                    <h5 class="font-weight-bolder">Rio Ananda Putra</h5>
-                                    <p class="mb-5">NITK 0293023029302930</p>
+                            <div class="col-8">
+                                <div class="numbers">
+                                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Buku Diterbitkan</p>
+                                    <h5 class="font-weight-bolder mb-0">
+                                        2
+                                    </h5>
                                 </div>
                             </div>
-                            <div class="col-lg-5 ms-auto text-center mt-5 mt-lg-0">
-                                <div class="bg-gradient-primary border-radius-lg h-100">
-                                    <img src="../assets/img/shapes/waves-white.svg"
-                                        class="position-absolute h-100 w-50 top-0 d-lg-block d-none" alt="waves">
-                                    <div class="position-relative d-flex align-items-center justify-content-center h-100">
-                                        <img class="w-100 position-relative z-index-2 pt-4"
-                                            src="../assets/img/profile_dosen.jpg" alt="rocket">
-                                    </div>
+                            <div class="col-4 text-end">
+                                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                                    <i class="ni ni-cart text-lg opacity-10" aria-hidden="true"></i>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+
+        <div class="row my-4">
             <div class="col-lg-6 mb-lg-0 mb-4">
-                <div class="card">
+                <div class="card h-100">
+                    <div class="card-body p-3">
+                        <h5 class="font-weight-bolder float-right d-flex justify-content-center">Rio Annada Putra</h5>
+                            <div class="d-flex align-items-center">
+                                <div class="image"> <img src="https://obs.line-scdn.net/0h9jY97ARhZkVkQE_muf8ZEl4WZSpXLHVGAHY3WzQuOHEeIiRGWXIgK0dGbSJMdiEbDSUtI0hCfXQccSBEXnMg/w644" class="rounded" width="155"> </div>
+                                    <div class="ml-3 w-100 p-3">
+                                        <div class="p-3 mt-2 rounded text-white stats">
+                                            <div class="d-flex flex-column">
+                                                <table>
+                                                    <tbody><tr>
+                                                    <td width="35%">NITK</td>
+                                                    <td>: 1717051073</td>
+                                                    </tr>
+                                                    <tr>
+                                                    <td>NIP</td>
+                                                    <td>: 7700007066</td>
+                                                    </tr>
+                                                    <tr>
+                                                    <td>Pangkat/Golongan</td>
+                                                    <td>: III/d - Penata Tk. I</td>
+                                                    </tr>
+                                                    <tr>
+                                                    <td>Jabatan</td>
+                                                    <td>: PLP Ahli Madya</td>
+                                                    </tr>
+                                                    <tr>
+                                                    <td>Fakultas/Prodi</td>
+                                                    <td>: TEKNIK/TEKNIK</td>
+                                                    </tr>
+                                                </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                            </div>
+                            <div class="button">
+                                <button class="btn btn-icon btn-3 btn-primary" type="button">
+                                    <span class="btn-inner--icon"><i class="ni ni-button-play"></i></span>
+                                  <span class="btn-inner--text">Selengkapnya</span>
+                                </button>
+                            </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <div class="col-lg-6 mb-lg-0 mb-4">
+                <div class="card  h-100">
                     <div class="card-header pb-0">
                         <div class="row">
                             <div class="col-lg-6 col-7">
@@ -169,7 +253,7 @@
                     <div class="card-header pb-0">
                         <div class="row">
                             <div class="col-lg-6 col-7">
-                                <h6>Rekap Kehadiran Dalam Seminggu</h6>
+                                <h6>Rekap Kehadiran Seminggu Terakhir</h6>
                             </div>
                             <div class="col-lg-6 col-5 my-auto text-end">
                                 <p class="text-sm mb-0">
@@ -378,208 +462,340 @@
                     </div>
                 </div>
             </div>
-
         </div>
 
         <div class="row my-4">
             <div class="col">
                 <div class="card">
                     <div class="p-4">
-                        <ul class="nav nav-tabs" id="myTab" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home"
-                                    type="button" role="tab" aria-controls="home" aria-selected="true"><i
-                                        class="fa fa-tasks"></i> Kinerja Pokok</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="profile-tab" data-bs-toggle="tab"
-                                    data-bs-target="#profile" type="button" role="tab" aria-controls="profile"
-                                    aria-selected="false"><i class="fa fa-tasks"></i> Kinerja Tambahan</button>
-                            </li>
-                        </ul>
+                        <div class="nav-wrapper position-relative end-0">
+                            <ul class="nav nav-pills nav-fill p-1" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link mb-0 px-0 py-1 active" data-bs-toggle="tab" href="#home"
+                                        role="tab" aria-controls="preview" aria-selected="true">
+                                        <i class="ni ni-badge text-sm me-2"></i> Kinerja Pokok
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mb-0 px-0 py-1" data-bs-toggle="tab" href="#profile"
+                                        role="tab" aria-controls="code" aria-selected="false">
+                                        <i class="ni ni-laptop text-sm me-2"></i> Kinerja Tambahan
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+
                         <div class="tab-content" id="myTabContent">
-                            <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
-                                <table class="table align-items-center mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th
-                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                                Priode Laporan</th>
-                                            <th
-                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                                Tanggal Mulai</th>
-                                            <th
-                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                                Tanggal Selesai</th>
-                                            <th
-                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                                Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
+                            <div class="tab-pane fade show active" id="home" role="tabpanel"
+                                aria-labelledby="home-tab">
+                                <div class="card">
+                                    <div class="card-body px-0 pb-2">
+                                        <div class="table-responsive">
+                                            <table class="table align-items-center mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th
+                                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                                            Judul</th>
+                                                        <th
+                                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                                            Tahun Pelaksanaan</th>
+                                                        <th
+                                                            class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                                            Lama Kegiatan</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">Identifikasi
+                                                                        Tumbuhan
+                                                                        Sumber Pakan Lebah
+                                                                        Madu di Kecamatan Gading Rejo Kabupeten
+                                                                        Pringsewu</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">2021/2022</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="align-middle text-center text-sm">
+                                                            <span class="text-xs font-weight-bold"> 1 Tahun </span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">Identifikasi
+                                                                        Kerusakan
+                                                                        Tegakan Hutan di
+                                                                        Areal Garapan Petani KPPH Kuyung Bawah dalam
+                                                                        Tahura Wan Abdul
+                                                                        Rachman</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">2020/2021</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="align-middle text-center text-sm">
+                                                            <span class="text-xs font-weight-bold"> 1 Tahun </span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">Tingkat Kesamaan
+                                                                        Komposisi Tegakan Hutan
+                                                                        Antargarapan Petani KPPH Talangmulya</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">2019/2020</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="align-middle text-center text-sm">
+                                                            <span class="text-xs font-weight-bold"> 1 Tahun </span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm"> Identifikasi
+                                                                        Tingkat
+                                                                        Kerusakan Tegakan
+                                                                        Hutan di Areal Garapan Petani KPPH Talang
+                                                                        Mulya
+                                                                        Kecamatan Padang
+                                                                        Cermin</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">2018/2019</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="align-middle text-center text-sm">
+                                                            <span class="text-xs font-weight-bold"> 1 Tahun </span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">Tipe Kombinasi Jenis
+                                                                        Tanaman dan Hasil
+                                                                        Panen pada Areal Garapan Petani dalam
+                                                                        Kawasan
+                                                                        Hutan Register 19
+                                                                        Provinsi Lampung</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">2017/2018</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="align-middle text-center text-sm">
+                                                            <span class="text-xs font-weight-bold"> 1 Tahun </span>
+                                                        </td>
+                                                    </tr>
 
-
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">Februari 2021</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">01 Februari 2021</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">28 Februari 2021</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">Selesai</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-
-
-
-
-
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">Februari 2021</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">01 Februari 2021</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">28 Februari 2021</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">Selesai</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
-                                <table class="table align-items-center mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th
-                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                                Priode Laporan</th>
-                                            <th
-                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                                Tanggal Mulai</th>
-                                            <th
-                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                                Tanggal Selesai</th>
-                                            <th
-                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                                Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
+                                <div class="card">
+                                    <div class="card-body px-0 pb-2">
+                                        <div class="table-responsive">
+                                            <table class="table align-items-center mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th
+                                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                                            Judul</th>
+                                                        <th
+                                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                                            Tahun Anggaran</th>
+                                                        <th
+                                                            class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                                            Lama Kegiatan</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">Identifikasi
+                                                                        Tumbuhan
+                                                                        Sumber Pakan
+                                                                        Lebah Madu di Kecamatan Gading Rejo
+                                                                        Kabupeten
+                                                                        Pringsewu</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">2021/2022</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="align-middle text-center text-sm">
+                                                            <span class="text-xs font-weight-bold"> 1 Tahun </span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">Identifikasi
+                                                                        Kerusakan
+                                                                        Tegakan Hutan
+                                                                        di Areal Garapan Petani KPPH Kuyung Bawah
+                                                                        dalam
+                                                                        Tahura Wan
+                                                                        Abdul Rachman</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">2020/2021</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="align-middle text-center text-sm">
+                                                            <span class="text-xs font-weight-bold"> 1 Tahun </span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">Tingkat Kesamaan
+                                                                        Komposisi Tegakan
+                                                                        Hutan Antargarapan Petani KPPH Talangmulya
+                                                                    </h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">2019/2020</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="align-middle text-center text-sm">
+                                                            <span class="text-xs font-weight-bold"> 1 Tahun </span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm"> Identifikasi
+                                                                        Tingkat
+                                                                        Kerusakan
+                                                                        Tegakan Hutan di Areal Garapan Petani KPPH
+                                                                        Talang Mulya
+                                                                        Kecamatan Padang Cermin</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">2018/2019</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="align-middle text-center text-sm">
+                                                            <span class="text-xs font-weight-bold"> 1 Tahun </span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">Tipe Kombinasi Jenis
+                                                                        Tanaman dan
+                                                                        Hasil Panen pada Areal Garapan Petani dalam
+                                                                        Kawasan Hutan
+                                                                        Register 19 Provinsi Lampung</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">2017/2018</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="align-middle text-center text-sm">
+                                                            <span class="text-xs font-weight-bold"> 1 Tahun </span>
+                                                        </td>
+                                                    </tr>
 
-
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">Februari 2021</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">01 Februari 2021</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">28 Februari 2021</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">Selesai</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-
-
-
-
-
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">Februari 2021</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">01 Februari 2021</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">28 Februari 2021</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">Selesai</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-
-
                 </div>
             </div>
         </div>
@@ -588,990 +804,478 @@
             <div class="col">
                 <div class="card">
                     <div class="p-4">
-                        <ul class="nav nav-tabs" id="myTab" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home"
-                                    type="button" role="tab" aria-controls="home" aria-selected="true"><i
-                                        class="fa fa-flask"></i> Penelitian</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="profile-tab" data-bs-toggle="tab"
-                                    data-bs-target="#profile" type="button" role="tab" aria-controls="profile"
-                                    aria-selected="false"><i class="fa fa-globe"></i> Pengabdian</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="contact-tab" data-bs-toggle="tab"
-                                    data-bs-target="#contact" type="button" role="tab" aria-controls="contact"
-                                    aria-selected="false"><i class="fa fa-newspaper-o"></i> Publikasi</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="contact-tab" data-bs-toggle="tab"
-                                    data-bs-target="#contact" type="button" role="tab" aria-controls="contact"
-                                    aria-selected="false"><i class="fa fa-bullhorn"></i> Pembicara</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="contact-tab" data-bs-toggle="tab"
-                                    data-bs-target="#contact" type="button" role="tab" aria-controls="contact"
-                                    aria-selected="false"><i class="fa fa-book"></i> Buku Diterbitkan</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="contact-tab" data-bs-toggle="tab"
-                                    data-bs-target="#contact" type="button" role="tab" aria-controls="contact"
-                                    aria-selected="false"><i class="fa fa-desktop"></i> Penemuan
-                                    Teknologi</button>
-                            </li>
-                        </ul>
-                        <div class="tab-content" id="myTabContent">
-                            <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
-                                <table class="table align-items-center mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th
-                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                                Judul</th>
-                                            <th
-                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                                Tahun Pelaksanaan</th>
-                                            <th
-                                                class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                                Lama Kegiatan</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">Identifikasi Tumbuhan Sumber Pakan Lebah
-                                                            Madu di Kecamatan Gading Rejo Kabupeten Pringsewu</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">2021/2022</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="align-middle text-center text-sm">
-                                                <span class="text-xs font-weight-bold"> 1 Tahun </span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">Identifikasi Kerusakan Tegakan Hutan di
-                                                            Areal Garapan Petani KPPH Kuyung Bawah dalam Tahura Wan Abdul
-                                                            Rachman</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">2020/2021</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="align-middle text-center text-sm">
-                                                <span class="text-xs font-weight-bold"> 1 Tahun </span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">Tingkat Kesamaan Komposisi Tegakan Hutan
-                                                            Antargarapan Petani KPPH Talangmulya</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">2019/2020</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="align-middle text-center text-sm">
-                                                <span class="text-xs font-weight-bold"> 1 Tahun </span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm"> Identifikasi Tingkat Kerusakan Tegakan
-                                                            Hutan di Areal Garapan Petani KPPH Talang Mulya Kecamatan Padang
-                                                            Cermin</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">2018/2019</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="align-middle text-center text-sm">
-                                                <span class="text-xs font-weight-bold"> 1 Tahun </span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">Tipe Kombinasi Jenis Tanaman dan Hasil
-                                                            Panen pada Areal Garapan Petani dalam Kawasan Hutan Register 19
-                                                            Provinsi Lampung</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">2017/2018</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="align-middle text-center text-sm">
-                                                <span class="text-xs font-weight-bold"> 1 Tahun </span>
-                                            </td>
-                                        </tr>
+                        <div class="nav-wrapper position-relative end-0">
+                            <ul class="nav nav-pills nav-fill p-1" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link mb-0 px-0 py-1 active" data-bs-toggle="tab" href="#home"
+                                        role="tab" aria-controls="preview" aria-selected="true">
+                                        <i class="ni ni-badge text-sm me-2"></i> Tunjangan
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mb-0 px-0 py-1" data-bs-toggle="tab" href="#profile"
+                                        role="tab" aria-controls="code" aria-selected="false">
+                                        <i class="ni ni-laptop text-sm me-2"></i> Kesejahtraan
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
 
-                                    </tbody>
-                                </table>
+                        <div class="tab-content" id="myTabContent">
+                            <div class="tab-pane fade show active" id="home" role="tabpanel"
+                                aria-labelledby="home-tab">
+                                <div class="card">
+                                    <div class="card-body px-0 pb-2">
+                                        <div class="table-responsive">
+                                            <table class="table align-items-center mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Jenis</th>
+                                                        <th>Nama</th>
+                                                        <th>Pemberi</th>
+                                                        <th>Sumber Dana</th>
+                                                        <th>Tahun</th>
+                                                        <th>Nominal</th>
+                                                    </tr>
+                                                </thead>
+
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Cuma-cuma</td>
+                                                        <td>Tunjangan Karena Ganteng</td>
+                                                        <td>Universitas Lampung</td>
+                                                        <td>Dana Kaget</td>
+                                                        <td>2020 - 2021</td>
+                                                        <td>Rp. 55.000.000,-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Cuma-cuma</td>
+                                                        <td>Tunjangan Karena Ganteng</td>
+                                                        <td>Universitas Lampung</td>
+                                                        <td>Dana Kaget</td>
+                                                        <td>2020 - 2021</td>
+                                                        <td>Rp. 55.000.000,-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Cuma-cuma</td>
+                                                        <td>Tunjangan Karena Ganteng</td>
+                                                        <td>Universitas Lampung</td>
+                                                        <td>Dana Kaget</td>
+                                                        <td>2020 - 2021</td>
+                                                        <td>Rp. 55.000.000,-</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
-                                <table class="table align-items-center mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th
-                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                                Judul</th>
-                                            <th
-                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                                Tahun Pelaksanaan</th>
-                                            <th
-                                                class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                                Lama Kegiatan</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">Identifikasi Tumbuhan Sumber Pakan Lebah
-                                                            Madu di Kecamatan Gading Rejo Kabupeten Pringsewu</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">2021/2022</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="align-middle text-center text-sm">
-                                                <span class="text-xs font-weight-bold"> 1 Tahun </span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">Identifikasi Kerusakan Tegakan Hutan di
-                                                            Areal Garapan Petani KPPH Kuyung Bawah dalam Tahura Wan Abdul
-                                                            Rachman</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">2020/2021</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="align-middle text-center text-sm">
-                                                <span class="text-xs font-weight-bold"> 1 Tahun </span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">Tingkat Kesamaan Komposisi Tegakan Hutan
-                                                            Antargarapan Petani KPPH Talangmulya</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">2019/2020</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="align-middle text-center text-sm">
-                                                <span class="text-xs font-weight-bold"> 1 Tahun </span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm"> Identifikasi Tingkat Kerusakan Tegakan
-                                                            Hutan di Areal Garapan Petani KPPH Talang Mulya Kecamatan Padang
-                                                            Cermin</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">2018/2019</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="align-middle text-center text-sm">
-                                                <span class="text-xs font-weight-bold"> 1 Tahun </span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">Tipe Kombinasi Jenis Tanaman dan Hasil
-                                                            Panen pada Areal Garapan Petani dalam Kawasan Hutan Register 19
-                                                            Provinsi Lampung</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">2017/2018</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="align-middle text-center text-sm">
-                                                <span class="text-xs font-weight-bold"> 1 Tahun </span>
-                                            </td>
-                                        </tr>
+                                <div class="card">
+                                    <div class="card-body px-0 pb-2">
+                                        <div class="table-responsive">
+                                            <table class="table align-items-center mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Jenis</th>
+                                                        <th>Nama</th>
+                                                        <th>Pemberi</th>
+                                                        <th>Sumber Dana</th>
+                                                        <th>Tahun</th>
+                                                        <th>Nominal</th>
+                                                    </tr>
+                                                </thead>
 
-                                    </tbody>
-                                </table>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Cuma-cuma</td>
+                                                        <td>Tunjangan Karena Ganteng</td>
+                                                        <td>Universitas Lampung</td>
+                                                        <td>Dana Kaget</td>
+                                                        <td>2020 - 2021</td>
+                                                        <td>Rp. 55.000.000,-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Cuma-cuma</td>
+                                                        <td>Tunjangan Karena Ganteng</td>
+                                                        <td>Universitas Lampung</td>
+                                                        <td>Dana Kaget</td>
+                                                        <td>2020 - 2021</td>
+                                                        <td>Rp. 55.000.000,-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Cuma-cuma</td>
+                                                        <td>Tunjangan Karena Ganteng</td>
+                                                        <td>Universitas Lampung</td>
+                                                        <td>Dana Kaget</td>
+                                                        <td>2020 - 2021</td>
+                                                        <td>Rp. 55.000.000,-</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row my-4">
+            <div class="col">
+                <div class="card">
+                    <div class="p-4">
+                        <div class="nav-wrapper position-relative end-0">
+                            <ul class="nav nav-pills nav-fill p-1" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link mb-0 px-0 py-1 active" data-bs-toggle="tab" href="#home"
+                                        role="tab" aria-controls="preview" aria-selected="true">
+                                        <i class="ni ni-badge text-sm me-2"></i> Penelitian
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mb-0 px-0 py-1" data-bs-toggle="tab" href="#profile"
+                                        role="tab" aria-controls="code" aria-selected="false">
+                                        <i class="ni ni-laptop text-sm me-2"></i> Pengabdian
+                                    </a>
+                                </li>
+
+                                <li class="nav-item">
+                                    <a class="nav-link mb-0 px-0 py-1" data-bs-toggle="tab" href="#contact"
+                                        role="tab" aria-controls="code" aria-selected="false">
+                                        <i class="ni ni-laptop text-sm me-2"></i> Publikasi
+                                    </a>
+                                </li>
+
+                                <li class="nav-item">
+                                    <a class="nav-link mb-0 px-0 py-1" data-bs-toggle="tab" href="#contact"
+                                        role="tab" aria-controls="code" aria-selected="false">
+                                        <i class="ni ni-laptop text-sm me-2"></i> Penulisan Buku
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="tab-content" id="myTabContent">
+                            <div class="tab-pane fade show active" id="home" role="tabpanel"
+                                aria-labelledby="home-tab">
+                                <div class="card">
+                                    <div class="card-body px-0 pb-2">
+                                        <div class="table-responsive">
+                                            <table class="table align-items-center mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th
+                                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                                            Judul</th>
+                                                        <th
+                                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                                            Tahun Pelaksanaan</th>
+                                                        <th
+                                                            class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                                            Lama Kegiatan</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">Identifikasi
+                                                                        Tumbuhan
+                                                                        Sumber Pakan Lebah
+                                                                        Madu di Kecamatan Gading Rejo Kabupeten
+                                                                        Pringsewu</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">2021/2022</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="align-middle text-center text-sm">
+                                                            <span class="text-xs font-weight-bold"> 1 Tahun </span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">Identifikasi
+                                                                        Kerusakan
+                                                                        Tegakan Hutan di
+                                                                        Areal Garapan Petani KPPH Kuyung Bawah dalam
+                                                                        Tahura Wan Abdul
+                                                                        Rachman</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">2020/2021</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="align-middle text-center text-sm">
+                                                            <span class="text-xs font-weight-bold"> 1 Tahun </span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">Tingkat Kesamaan
+                                                                        Komposisi Tegakan Hutan
+                                                                        Antargarapan Petani KPPH Talangmulya</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">2019/2020</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="align-middle text-center text-sm">
+                                                            <span class="text-xs font-weight-bold"> 1 Tahun </span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm"> Identifikasi
+                                                                        Tingkat
+                                                                        Kerusakan Tegakan
+                                                                        Hutan di Areal Garapan Petani KPPH Talang
+                                                                        Mulya
+                                                                        Kecamatan Padang
+                                                                        Cermin</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">2018/2019</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="align-middle text-center text-sm">
+                                                            <span class="text-xs font-weight-bold"> 1 Tahun </span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">Tipe Kombinasi Jenis
+                                                                        Tanaman dan Hasil
+                                                                        Panen pada Areal Garapan Petani dalam
+                                                                        Kawasan
+                                                                        Hutan Register 19
+                                                                        Provinsi Lampung</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">2017/2018</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="align-middle text-center text-sm">
+                                                            <span class="text-xs font-weight-bold"> 1 Tahun </span>
+                                                        </td>
+                                                    </tr>
+
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                                <div class="card">
+                                    <div class="card-body px-0 pb-2">
+                                        <div class="table-responsive">
+                                            <table class="table align-items-center mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th
+                                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                                            Judul</th>
+                                                        <th
+                                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                                            Tahun Anggaran</th>
+                                                        <th
+                                                            class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                                            Lama Kegiatan</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">Identifikasi
+                                                                        Tumbuhan
+                                                                        Sumber Pakan
+                                                                        Lebah Madu di Kecamatan Gading Rejo
+                                                                        Kabupeten
+                                                                        Pringsewu</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">2021/2022</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="align-middle text-center text-sm">
+                                                            <span class="text-xs font-weight-bold"> 1 Tahun </span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">Identifikasi
+                                                                        Kerusakan
+                                                                        Tegakan Hutan
+                                                                        di Areal Garapan Petani KPPH Kuyung Bawah
+                                                                        dalam
+                                                                        Tahura Wan
+                                                                        Abdul Rachman</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">2020/2021</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="align-middle text-center text-sm">
+                                                            <span class="text-xs font-weight-bold"> 1 Tahun </span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">Tingkat Kesamaan
+                                                                        Komposisi Tegakan
+                                                                        Hutan Antargarapan Petani KPPH Talangmulya
+                                                                    </h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">2019/2020</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="align-middle text-center text-sm">
+                                                            <span class="text-xs font-weight-bold"> 1 Tahun </span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm"> Identifikasi
+                                                                        Tingkat
+                                                                        Kerusakan
+                                                                        Tegakan Hutan di Areal Garapan Petani KPPH
+                                                                        Talang Mulya
+                                                                        Kecamatan Padang Cermin</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">2018/2019</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="align-middle text-center text-sm">
+                                                            <span class="text-xs font-weight-bold"> 1 Tahun </span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">Tipe Kombinasi Jenis
+                                                                        Tanaman dan
+                                                                        Hasil Panen pada Areal Garapan Petani dalam
+                                                                        Kawasan Hutan
+                                                                        Register 19 Provinsi Lampung</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex px-2 py-1">
+                                                                <div
+                                                                    class="d-flex flex-column justify-content-center">
+                                                                    <h6 class="mb-0 text-sm">2017/2018</h6>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="align-middle text-center text-sm">
+                                                            <span class="text-xs font-weight-bold"> 1 Tahun </span>
+                                                        </td>
+                                                    </tr>
+
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
-                                <table class="table align-items-center mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th
-                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                                Judul</th>
-                                            <th
-                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                                Jenis</th>
-                                            <th
-                                                class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                                Tanggal Terbit</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">Identifikasi Tumbuhan Sumber Pakan Lebah
-                                                            Madu di Kecamatan Gading Rejo Kabupeten Pringsewu</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">2021/2022</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="align-middle text-center text-sm">
-                                                <span class="text-xs font-weight-bold"> 1 Tahun </span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">Identifikasi Kerusakan Tegakan Hutan di
-                                                            Areal Garapan Petani KPPH Kuyung Bawah dalam Tahura Wan Abdul
-                                                            Rachman</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">2020/2021</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="align-middle text-center text-sm">
-                                                <span class="text-xs font-weight-bold"> 1 Tahun </span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">Tingkat Kesamaan Komposisi Tegakan Hutan
-                                                            Antargarapan Petani KPPH Talangmulya</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">2019/2020</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="align-middle text-center text-sm">
-                                                <span class="text-xs font-weight-bold"> 1 Tahun </span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm"> Identifikasi Tingkat Kerusakan Tegakan
-                                                            Hutan di Areal Garapan Petani KPPH Talang Mulya Kecamatan Padang
-                                                            Cermin</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">2018/2019</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="align-middle text-center text-sm">
-                                                <span class="text-xs font-weight-bold"> 1 Tahun </span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">Tipe Kombinasi Jenis Tanaman dan Hasil
-                                                            Panen pada Areal Garapan Petani dalam Kawasan Hutan Register 19
-                                                            Provinsi Lampung</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex px-2 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <h6 class="mb-0 text-sm">2017/2018</h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="align-middle text-center text-sm">
-                                                <span class="text-xs font-weight-bold"> 1 Tahun </span>
-                                            </td>
-                                        </tr>
-
-                                    </tbody>
-                                </table>
+                                ...
                             </div>
-                        </div>
-                    </div>
-
-
-                </div>
-            </div>
-        </div>
-
-        <div class="row my-4">
-            <div class="col-lg-12 col-md-6 mb-md-0 mb-4">
-                <div class="card">
-                    <div class="card-header pb-0">
-                        <div class="row">
-                            <div class="col-lg-6 col-7">
-                                <h6>Tunjangan</h6>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body px-4 pb-2">
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Jenis</th>
-                                        <th>Nama</th>
-                                        <th>Pemberi</th>
-                                        <th>Sumber Dana</th>
-                                        <th>Tahun</th>
-                                        <th>Nominal</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody>
-                                    <tr>
-                                        <td>Cuma-cuma</td>
-                                        <td>Tunjangan Karena Ganteng</td>
-                                        <td>Universitas Lampung</td>
-                                        <td>Dana Kaget</td>
-                                        <td>2020 - 2021</td>
-                                        <td>Rp. 55.000.000,-</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Cuma-cuma</td>
-                                        <td>Tunjangan Karena Ganteng</td>
-                                        <td>Universitas Lampung</td>
-                                        <td>Dana Kaget</td>
-                                        <td>2020 - 2021</td>
-                                        <td>Rp. 55.000.000,-</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Cuma-cuma</td>
-                                        <td>Tunjangan Karena Ganteng</td>
-                                        <td>Universitas Lampung</td>
-                                        <td>Dana Kaget</td>
-                                        <td>2020 - 2021</td>
-                                        <td>Rp. 55.000.000,-</td>
-                                    </tr>
-                                </tbody>
-                            </table>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <div class="row my-4">
-            <div class="col-lg-12 col-md-6 mb-md-0 mb-4">
-                <div class="card">
-                    <div class="card-header pb-0">
-                        <div class="row">
-                            <div class="col-lg-6 col-7">
-                                <h6>Kesejahteraan</h6>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body px-4 pb-2">
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Jenis</th>
-                                        <th>Nama</th>
-                                        <th>Pemberi</th>
-                                        <th>Sumber Dana</th>
-                                        <th>Tahun</th>
-                                        <th>Nominal</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody>
-                                    <tr>
-                                        <td>Cuma-cuma</td>
-                                        <td>Tunjangan Karena Ganteng</td>
-                                        <td>Universitas Lampung</td>
-                                        <td>Dana Kaget</td>
-                                        <td>2020 - 2021</td>
-                                        <td>Rp. 55.000.000,-</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Cuma-cuma</td>
-                                        <td>Tunjangan Karena Ganteng</td>
-                                        <td>Universitas Lampung</td>
-                                        <td>Dana Kaget</td>
-                                        <td>2020 - 2021</td>
-                                        <td>Rp. 55.000.000,-</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Cuma-cuma</td>
-                                        <td>Tunjangan Karena Ganteng</td>
-                                        <td>Universitas Lampung</td>
-                                        <td>Dana Kaget</td>
-                                        <td>2020 - 2021</td>
-                                        <td>Rp. 55.000.000,-</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- <div class="row my-4">
-            <div class="col-lg-6 col-md-6 mb-md-0 mb-4">
-                <div class="card">
-                    <div class="card-header pb-0">
-                        <div class="row">
-                            <div class="col-lg-6 col-7">
-                                <h6>Tunjangan</h6>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body px-0 pb-2">
-                        <div class="table-responsive">
-                            <table class="table align-items-center mb-0">
-                                <thead>
-                                    <tr>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Instansi Pemberi</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Sumber Dana</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Tahun mulai</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Tahun Selesai</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> 07.30 </span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> 16.30 </span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> UPT TIK</span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> UPT TK</span>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6 col-md-6 mb-md-0 mb-4">
-                <div class="card">
-                    <div class="card-header pb-0">
-                        <div class="row">
-                            <div class="col-lg-6 col-7">
-                                <h6>Kesejahteraan</h6>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body px-0 pb-2">
-                        <div class="table-responsive">
-                            <table class="table align-items-center mb-0">
-                                <thead>
-                                    <tr>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Layanan Kesejahteraan</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Penyelenggara</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Tahun mulai</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Tahun Selesai</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> 07.30 </span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> 16.30 </span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> UPT TIK</span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> UPT TK</span>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row my-4">
-            <div class="col-lg-6 col-md-6 mb-md-0 mb-4">
-                <div class="card">
-                    <div class="card-header pb-0">
-                        <div class="row">
-                            <div class="col-lg-6 col-7">
-                                <h6>Pengajaran</h6>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body px-0 pb-2">
-                        <div class="table-responsive">
-                            <table class="table align-items-center mb-0">
-                                <thead>
-                                    <tr>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Nama Kegiatan</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Penyelenggara</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Jumlah Jam</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Tahun</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> 07.30 </span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> 16.30 </span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> UPT TIK</span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> UPT TK</span>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6 col-md-6 mb-md-0 mb-4">
-                <div class="card">
-                    <div class="card-header pb-0">
-                        <div class="row">
-                            <div class="col-lg-6 col-7">
-                                <h6>Penelitian</h6>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body px-0 pb-2">
-                        <div class="table-responsive">
-                            <table class="table align-items-center mb-0">
-                                <thead>
-                                    <tr>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Instansi Pemberi</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Sumber Dana</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Tahun mulai</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Tahun Selesai</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> 07.30 </span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> 16.30 </span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> UPT TIK</span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> UPT TK</span>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row my-4">
-            <div class="col-lg-6 col-md-6 mb-md-0 mb-4">
-                <div class="card">
-                    <div class="card-header pb-0">
-                        <div class="row">
-                            <div class="col-lg-6 col-7">
-                                <h6>Pengabdian Masyarakat</h6>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body px-0 pb-2">
-                        <div class="table-responsive">
-                            <table class="table align-items-center mb-0">
-                                <thead>
-                                    <tr>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Instansi Pemberi</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Sumber Dana</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Tahun mulai</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Tahun Selesai</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> 07.30 </span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> 16.30 </span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> UPT TIK</span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> UPT TK</span>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6 col-md-6 mb-md-0 mb-4">
-                <div class="card">
-                    <div class="card-header pb-0">
-                        <div class="row">
-                            <div class="col-lg-6 col-7">
-                                <h6>Publikasi</h6>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body px-0 pb-2">
-                        <div class="table-responsive">
-                            <table class="table align-items-center mb-0">
-                                <thead>
-                                    <tr>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Instansi Pemberi</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Sumber Dana</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Tahun mulai</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Tahun Selesai</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> 07.30 </span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> 16.30 </span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> UPT TIK</span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> UPT TK</span>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row my-4">
-            <div class="col-lg-6 col-md-6 mb-md-0 mb-4">
-                <div class="card">
-                    <div class="card-header pb-0">
-                        <div class="row">
-                            <div class="col-lg-6 col-7">
-                                <h6>Pembicara</h6>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body px-0 pb-2">
-                        <div class="table-responsive">
-                            <table class="table align-items-center mb-0">
-                                <thead>
-                                    <tr>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Instansi Pemberi</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Sumber Dana</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Tahun mulai</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Tahun Selesai</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> 07.30 </span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> 16.30 </span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> UPT TIK</span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> UPT TK</span>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6 col-md-6 mb-md-0 mb-4">
-                <div class="card">
-                    <div class="card-header pb-0">
-                        <div class="row">
-                            <div class="col-lg-6 col-7">
-                                <h6>Penemuan Teknologi</h6>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body px-0 pb-2">
-                        <div class="table-responsive">
-                            <table class="table align-items-center mb-0">
-                                <thead>
-                                    <tr>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Instansi Pemberi</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Sumber Dana</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Tahun mulai</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Tahun Selesai</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> 07.30 </span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> 16.30 </span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> UPT TIK</span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> UPT TK</span>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row my-4">
-            <div class="col-lg-12 col-md-6 mb-md-0 mb-4">
-                <div class="card">
-                    <div class="card-header pb-0">
-                        <div class="row">
-                            <div class="col-lg-6 col-7">
-                                <h6>Buku Yang Diterbitkan</h6>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body px-0 pb-2">
-                        <div class="table-responsive">
-                            <table class="table align-items-center mb-0">
-                                <thead>
-                                    <tr>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Instansi Pemberi</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Sumber Dana</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Tahun mulai</th>
-                                        <th
-                                            class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                            Tahun Selesai</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> 07.30 </span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> 16.30 </span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> UPT TIK</span>
-                                        </td>
-                                        <td class="text-sm">
-                                            <span class="text-xs font-weight-bold"> UPT TK</span>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div> --}}
-
-
-
-
 
     </div>
+
 @endsection
