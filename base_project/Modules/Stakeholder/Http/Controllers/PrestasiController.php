@@ -1,12 +1,12 @@
 <?php
 
-namespace Modules\Alumni\Http\Controllers;
+namespace Modules\Stakeholder\Http\Controllers;
 
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
-class StatusTAController extends Controller
+class PrestasiController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -14,7 +14,7 @@ class StatusTAController extends Controller
      */
     public function index()
     {
-        return view('alumni::pages.status-ta.index-ta');
+        return view('stakeholder::pages.prestasi.index-prestasi');
     }
 
     /**
@@ -23,7 +23,7 @@ class StatusTAController extends Controller
      */
     public function create()
     {
-        return view('alumni::create');
+        return view('stakeholder::create');
     }
 
     /**
@@ -43,7 +43,7 @@ class StatusTAController extends Controller
      */
     public function show($id)
     {
-        return view('alumni::show');
+        return view('stakeholder::show');
     }
 
     /**
@@ -53,7 +53,7 @@ class StatusTAController extends Controller
      */
     public function edit($id)
     {
-        return view('alumni::edit');
+        return view('stakeholder::edit');
     }
 
     /**

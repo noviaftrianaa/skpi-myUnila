@@ -23,5 +23,14 @@ Route::prefix('alumni')->group(function() {
 
     //loker
     Route::get('/loker', function() { return view('alumni::pages.loker.loker'); });
+
+    //riwayat pelatihan
+    Route::get('/pelatihan', function() { return view('alumni::pages.riwayat-pelatihan.pelatihan'); });
+
+    //riwayat pendidikan
+    Route::get('/pendidikan', function() { return view('alumni::pages.riwayat-pendidikan.pendidikan'); });
+
+    //riwayat transkrip
+    Route::get('/index-transkrip', function() { return view('alumni::pages.transkrip.index-transkrip'); });
 });
 

@@ -15,9 +15,10 @@
                   <tr>
                     <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Nama</th>
                     <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Pekerjaan</th>
-                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Tahun Masuk</th>
-                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Tahun Lulus</th>
-                    
+                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
+                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Judul Tugas Akhir</th>
+                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Pembimbing</th>
+                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Tahun Lulus</th> 
                   </tr>
                 </thead>
                 <tbody>
@@ -38,8 +39,15 @@
                       <p class="text-xs text-secondary mb-0">Staff</p>
                     </td>
                     <td class="align-middle text-center">
-                        <span class="text-secondary text-xs font-weight-bold">2015</span>
+                        <span class="text-xs font-weight-bold mb-0">Lulus</span>
                       </td>
+                    <td class="align-middle text-center">
+                      <span class="text-xs font-weight-bold mb-0">Surat Keterangan Pendamping Ijazah (SKPI) Berbasis Website <br> dengan Laravel Framework pada Fakultas Teknik Universitas Lampung</span>
+                    </td>
+                    <td>
+                      <p class="text-xs font-weight-bold mb-0">1. Ing. Hery Dian Septama,S.T.</p>
+                      <p class="text-xs font-weight-bold mb-0">2. Yessi Mulyani, S.T.,M.T.</p>
+                    </td>
                     <td class="align-middle text-center">
                       <span class="text-secondary text-xs font-weight-bold">2020</span>
                     </td>
@@ -61,11 +69,18 @@
                         <p class="text-xs text-secondary mb-0">Staff</p>
                       </td>
                       <td class="align-middle text-center">
-                          <span class="text-secondary text-xs font-weight-bold">2015</span>
-                        </td>
-                      <td class="align-middle text-center">
-                        <span class="text-secondary text-xs font-weight-bold">2020</span>
+                        <span class="text-xs font-weight-bold mb-0">Lulus</span>
                       </td>
+                    <td class="align-middle text-center">
+                      <span class="text-xs font-weight-bold mb-0">Surat Keterangan Pendamping Ijazah (SKPI) Berbasis Website <br> dengan Laravel Framework pada Fakultas Teknik Universitas Lampung</span>
+                    </td>
+                    <td>
+                      <p class="text-xs font-weight-bold mb-0">1. Ing. Hery Dian Septama,S.T.</p>
+                      <p class="text-xs font-weight-bold mb-0">2. Yessi Mulyani, S.T.,M.T.</p>
+                    </td>
+                    <td class="align-middle text-center">
+                      <span class="text-secondary text-xs font-weight-bold">2020</span>
+                    </td>
                   </tr>
                   <tr>
                     <td>
@@ -84,11 +99,18 @@
                         <p class="text-xs text-secondary mb-0">Staff</p>
                       </td>
                       <td class="align-middle text-center">
-                          <span class="text-secondary text-xs font-weight-bold">2017</span>
-                        </td>
-                      <td class="align-middle text-center">
-                        <span class="text-secondary text-xs font-weight-bold">2021</span>
+                        <span class="text-xs font-weight-bold mb-0">Lulus</span>
                       </td>
+                    <td class="align-middle text-center">
+                      <span class="text-xs font-weight-bold mb-0">Surat Keterangan Pendamping Ijazah (SKPI) Berbasis Website <br> dengan Laravel Framework pada Fakultas Teknik Universitas Lampung</span>
+                    </td>
+                    <td>
+                      <p class="text-xs font-weight-bold mb-0">1. Ing. Hery Dian Septama,S.T.</p>
+                      <p class="text-xs font-weight-bold mb-0">2. Yessi Mulyani, S.T.,M.T.</p>
+                    </td>
+                    <td class="align-middle text-center">
+                      <span class="text-secondary text-xs font-weight-bold">2020</span>
+                    </td>
                   </tr>
                   <tr>
                     <td>
@@ -107,11 +129,18 @@
                       <p class="text-xs text-secondary mb-0">Developer</p>
                     </td>
                     <td class="align-middle text-center">
-                        <span class="text-secondary text-xs font-weight-bold">2017</span>
-                      </td>
-                    <td class="align-middle text-center">
-                      <span class="text-secondary text-xs font-weight-bold">2021</span>
+                      <span class="text-xs font-weight-bold mb-0">Lulus</span>
                     </td>
+                  <td class="align-middle text-center">
+                    <span class="text-xs font-weight-bold mb-0">Surat Keterangan Pendamping Ijazah (SKPI) Berbasis Website <br> dengan Laravel Framework pada Fakultas Teknik Universitas Lampung</span>
+                  </td>
+                  <td>
+                    <p class="text-xs font-weight-bold mb-0">1. Ing. Hery Dian Septama,S.T.</p>
+                    <p class="text-xs font-weight-bold mb-0">2. Yessi Mulyani, S.T.,M.T.</p>
+                  </td>
+                  <td class="align-middle text-center">
+                    <span class="text-secondary text-xs font-weight-bold">2020</span>
+                  </td>
                   </tr>
                   <tr>
                     <td>
@@ -130,11 +159,18 @@
                       <p class="text-xs text-secondary mb-0">Executive</p>
                     </td>
                     <td class="align-middle text-center">
-                        <span class="text-secondary text-xs font-weight-bold">2017</span>
-                      </td>
-                    <td class="align-middle text-center">
-                      <span class="text-secondary text-xs font-weight-bold">2021</span>
+                      <span class="text-xs font-weight-bold mb-0">Lulus</span>
                     </td>
+                  <td class="align-middle text-center">
+                    <span class="text-xs font-weight-bold mb-0">Surat Keterangan Pendamping Ijazah (SKPI) Berbasis Website <br> dengan Laravel Framework pada Fakultas Teknik Universitas Lampung</span>
+                  </td>
+                  <td>
+                    <p class="text-xs font-weight-bold mb-0">1. Ing. Hery Dian Septama,S.T.</p>
+                    <p class="text-xs font-weight-bold mb-0">2. Yessi Mulyani, S.T.,M.T.</p>
+                  </td>
+                  <td class="align-middle text-center">
+                    <span class="text-secondary text-xs font-weight-bold">2020</span>
+                  </td>
                   </tr>
                 </tbody>
               </table>
