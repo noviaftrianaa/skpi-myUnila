@@ -16,6 +16,7 @@
         <link href="{{ asset('assets/css/nucleo-svg.css') }}" rel="stylesheet" />
         <!-- CSS Files -->
         <link id="pagestyle" href="{{ asset('assets/css/soft-ui-dashboard.css?v=1.0.3') }}" rel="stylesheet" />
+        <link id="pagestyle" href="{{ asset('assets/css/custom.css') }}" rel="stylesheet" />
         @yield('css')
     </head>
 
@@ -31,14 +32,14 @@
 
 	@yield('content')
 
-    {{-- @section('footer')
+    @section('footer')
 	@include('mahasiswa::layouts.footer')
-	@show --}}
+	@show
 
        </div>
      </main>
 
-     <div class="fixed-plugin">
+     {{-- <div class="fixed-plugin">
        <a class="fixed-plugin-button text-dark position-fixed px-3 py-2">
          <i class="fa fa-cog py-2"> </i>
        </a>
@@ -103,7 +104,7 @@
            </div>
          </div>
        </div>
-     </div>
+     </div> --}}
      <!--   Core JS Files   -->
      <script src="{{ asset('assets/js/core/popper.min.js') }}"></script>
      <script src="{{ asset('assets/js/core/bootstrap.min.js') }}"></script>

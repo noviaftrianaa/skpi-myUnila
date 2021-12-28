@@ -17,3 +17,7 @@ use Modules\Dosen\Http\Controllers\DosenController;
 Route::get('/', function () {
     return view('components.dashboard');
 });
+
+Route::get('/login', function () {
+    return view('pages.auth.login');
+});

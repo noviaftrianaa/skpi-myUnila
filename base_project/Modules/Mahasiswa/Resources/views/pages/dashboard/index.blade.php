@@ -180,7 +180,7 @@ body {
                                             <p class="sub-review text-center">Khusus Calon Guru SMK, Pelaku Budaya, Beasiswa Prestasi Talenta dan Prestasi Akademik
                                                 (Dalam & Luar Negeri)</p>
                                             <div class="name d-flex align-items-center justify-content-center mt-3">
-                                                <a href="{{url('mahasiswa/beasiswa')}}" class="btn btn-sm btn-round mb-0 me-1 bg-gradient-primary py-1 px-3">Lihat Selengkapnya</a><br>
+                                                <a href="{{url('mahasiswa/beasiswa')}}" class="btn btn-sm btn-round mb-0 me-1 btn-primary py-1 px-3">Lihat Selengkapnya</a><br>
                                             </div>
                                         </div>
                                     </div>
@@ -195,7 +195,7 @@ body {
                                             <p class="sub-review text-center">Khusus GTK, Pelaku Budaya dan Beasiswa Prestasi Talenta
                                                 (Dalam & Luar Negeri)</p>
                                             <div class="name d-flex align-items-center justify-content-center mt-3">
-                                                <a href="{{url('mahasiswa/beasiswa')}}" class="btn btn-sm btn-round mb-0 me-1 bg-gradient-primary py-1 px-3">Lihat Selengkapnya</a><br>
+                                                <a href="{{url('mahasiswa/beasiswa')}}" class="btn btn-sm btn-round mb-0 me-1 btn-primary py-1 px-3">Lihat Selengkapnya</a><br>
                                             </div>
                                         </div>
                                     </div>
@@ -209,7 +209,7 @@ body {
                                             <p class="review text-center">Beasiswa S2 / S3 LPDP</p>
                                             <p class="sub-review text-center">(Dalam & Luar Negeri) ditujukan bagi setiap warganegara Indonesia yang telah lulus S1/D4 atau lulusan S2 dan ingin lanjut studi ke jenjang master maupun doktor.</p>
                                             <div class="name d-flex align-items-center justify-content-center mt-3">
-                                                <a href="{{url('mahasiswa/beasiswa')}}" class="btn btn-sm btn-round mb-0 me-1 bg-gradient-primary py-1 px-3">Lihat Selengkapnya</a><br>
+                                                <a href="{{url('mahasiswa/beasiswa')}}" class="btn btn-sm btn-round mb-0 me-1 btn-primary py-1 px-3">Lihat Selengkapnya</a><br>
                                             </div>
                                         </div>
                                     </div>
@@ -221,7 +221,7 @@ body {
                 </div>
             </div>
             <div class="modal-footer mt-5">
-                <button type="button" class="btn bg-gradient-danger btn-sm py-1 px-3" data-bs-dismiss="modal"><i class="fa fa-close"></i>&nbsp;&nbsp;Tutup</button>
+                <button type="button" class="btn btn-danger btn-sm py-1 px-3" data-bs-dismiss="modal"><i class="fa fa-close"></i>&nbsp;&nbsp;Tutup</button>
             </div>
         </div>
     </div>
@@ -243,7 +243,7 @@ body {
                 </div>
               </div>
               <div class="col-4 text-end">
-                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                <div class="icon icon-shape btn-primary shadow text-center border-radius-md">
                   <i class="fas fa-bookmark text-lg opacity-10" aria-hidden="true"></i>
                 </div>
               </div>
@@ -264,7 +264,7 @@ body {
                 </div>
               </div>
               <div class="col-4 text-end">
-                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                <div class="icon icon-shape btn-primary shadow text-center border-radius-md">
                   <i class="fas fa-ribbon text-lg opacity-10" aria-hidden="true"></i>
                 </div>
               </div>
@@ -285,7 +285,7 @@ body {
                 </div>
               </div>
               <div class="col-4 text-end">
-                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                <div class="icon icon-shape btn-primary shadow text-center border-radius-md">
                   <i class="fa fa-star text-lg opacity-10" aria-hidden="true"></i>
                 </div>
               </div>
@@ -306,7 +306,7 @@ body {
                 </div>
               </div>
               <div class="col-4 text-end">
-                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                <div class="icon icon-shape btn-primary shadow text-center border-radius-md">
                   <i class="ni ni-money-coins text-lg opacity-10" aria-hidden="true"></i>
                 </div>
               </div>
@@ -352,7 +352,7 @@ body {
                                 </div>
                             </div>
                             <div class="button mt-2 d-flex flex-row align-items-center">
-                                <button class="btn btn-sm btn-round mb-0 me-1 bg-gradient-primary py-1 px-3">Detail</button>
+                                <button class="btn btn-sm btn-round mb-0 me-1 btn-primary py-1 px-3">Detail</button>
                             </div>
                         </div>
                     </div>
@@ -575,7 +575,7 @@ body {
               <div class="card-header pb-0">
                 <h6>Indeks Prestasi</h6>
                 <p class="text-sm mt-4">
-                  <a href="#" class="btn btn-sm btn-round mb-0 me-1 bg-gradient-primary py-1 px-3"><i class="fa fa-download text-white"></i>&nbsp;&nbsp;Unduh Transkrip</a>
+                  <a href="#" class="btn btn-sm btn-round mb-0 me-1 btn-primary py-1 px-3"><i class="fa fa-download text-white"></i>&nbsp;&nbsp;Unduh Transkrip</a>
                 </p>
               </div>
               <div class="card-body p-3">
