@@ -12,6 +12,10 @@
 */
 
 Route::prefix('dosen')->group(function() {
-    Route::get('/', 'DosenController@index')->name('dashboard/dosen');
+    Route::get('/', 'DosenController@index')->name('dosen.dashboard');
     Route::get('profile','DosenProfileController@index')->name('dosen.profile');
+    Route::prefix('inpassing')->group(function() {
+        Route::get('/','DosenInpassingController@index')->name('dosen.inpassing');
+        Route::get('add','DosenInpassingController@create')->name('dosen.inpassing.add');
+    });
 });

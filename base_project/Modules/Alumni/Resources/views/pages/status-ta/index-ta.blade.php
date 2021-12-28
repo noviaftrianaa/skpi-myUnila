@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container-fluid py-4">
-<div class="col-12 mt-4">
+<div class="col-12 mt-2">
   <div class="card h-100">
     <div class="card-header pb-0 p-3">
       <div class="row">
@@ -47,14 +47,54 @@
             </div>
         </div>
       </div>
-      <ul class="list-group">
-        <li class="list-group-item border-0 ps-0 pt-0 text-sm"><strong class="text-dark">No. SK Kelulusan:</strong> &nbsp; -</li>
-        <li class="list-group-item border-0 ps-0 text-sm"><strong class="text-dark">NINA:</strong> &nbsp; 55202202100064</li>
-        <li class="list-group-item border-0 ps-0 text-sm"><strong class="text-dark">No. Ijazah:</strong> &nbsp; 04716/26.5 S1/2021</li>
-        <li class="list-group-item border-0 ps-0 text-sm"><strong class="text-dark">Program:</strong> &nbsp; Sarjana</li>
-        <li class="list-group-item border-0 ps-0 text-sm"><strong class="text-dark">Program Studi:</strong> &nbsp; Teknik Informatika</li>
-        
-      </ul>
+      <div class="card-body px-0 pt-0 pb-2">
+        <div class="table-responsive p-0">
+          <table class="table align-items-center mb-0">
+            <thead>
+              <tr>
+                <td class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Judul Tugas Akhir</td>
+                <td>:</td>
+                <td class="text-xs font-weight-bold mb-0">Surat Keterangan Pendamping Ijazah (SKPI) Berbasis Website <br> dengan Laravel Framework pada Fakultas Teknik Universitas Lampung</td>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Nama Pembimbing</td>
+                <td>:</td>
+                <td>
+                  <p class="text-xs font-weight-bold mb-0">1. Ing. Hery Dian Septama,S.T.</p>
+                  <p class="text-xs font-weight-bold mb-0">2. Yessi Mulyani, S.T.,M.T.</p>
+                </td>
+              </tr>
+              <tr>
+                <td class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">No. SK Kelulusan</td>
+                <td>:</td>
+                <td>-</td>
+              </tr>
+              <tr>
+                <td class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">NINA</td>
+                <td>:</td>
+                <td class="text-xs font-weight-bold mb-0">55202202100064</td>
+              </tr>
+              <tr>
+                <td class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">No. Ijazah</td>
+                <td>:</td>
+                <td class="text-xs font-weight-bold mb-0">04716/26.5 S1/2021</td>
+              </tr>
+              <tr>
+                <td class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Program</td>
+                <td>:</td>
+                <td class="text-xs font-weight-bold mb-0">Sarjana (S1)</td>
+              </tr>
+              <tr>
+                <td class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Prodi</td>
+                <td>:</td>
+                <td class="text-xs font-weight-bold mb-0">Teknik Informatika</td>
+              </tr>
+            </tbody>
+            </table>
+        </div>
+      </div>
     </div>
   </div>
 </div>

@@ -12,5 +12,5 @@
 */
 
 Route::prefix('tendik')->group(function() {
-    Route::get('/', 'TendikController@index');
+    Route::get('/', 'TendikController@index')->name('tendik.dashboard');
 });
