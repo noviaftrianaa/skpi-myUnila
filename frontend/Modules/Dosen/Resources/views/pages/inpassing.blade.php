@@ -20,7 +20,7 @@
                                 </p>
                             </div>
                             <div class="col-lg-6 col-5 my-auto text-end">
-                                <a class="btn bg-gradient-success mb-0" href="{{ route('dosen.inpassing.add') }}"><i class="fas fa-plus"
+                                <a class="btn btn-primary mb-0" href="{{ route('dosen.inpassing.add') }}"><i class="fas fa-plus"
                                         aria-hidden="true"></i>&nbsp;&nbsp;Tambah Data</a>
                             </div>
                         </div>

@@ -16,7 +16,7 @@
                                 </div>
                             </div>
                             <div class="col-4 text-end">
-                                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                                <div class="icon icon-shape btn-primary shadow text-center border-radius-md">
                                     <i class="fas fa-ribbon text-lg opacity-10" aria-hidden="true"></i>
                                 </div>
                             </div>
@@ -38,7 +38,7 @@
                                 </div>
                             </div>
                             <div class="col-4 text-end">
-                                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                                <div class="icon icon-shape btn-primary shadow text-center border-radius-md">
                                     <i class="fas fa-ribbon text-lg opacity-10" aria-hidden="true"></i>
                                 </div>
                             </div>
@@ -60,7 +60,7 @@
                                 </div>
                             </div>
                             <div class="col-4 text-end">
-                                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                                <div class="icon icon-shape btn-primary shadow text-center border-radius-md">
                                     <i class="fa fa-star text-lg opacity-10" aria-hidden="true"></i>
                                 </div>
                             </div>
@@ -82,7 +82,7 @@
                                 </div>
                             </div>
                             <div class="col-4 text-end">
-                                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                                <div class="icon icon-shape btn-primary shadow text-center border-radius-md">
                                     <i class="ni ni-money-coins text-lg opacity-10" aria-hidden="true"></i>
                                 </div>
                             </div>
@@ -104,7 +104,7 @@
                                 </div>
                             </div>
                             <div class="col-4 text-end">
-                                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                                <div class="icon icon-shape btn-primary shadow text-center border-radius-md">
                                     <i class="ni ni-money-coins text-lg opacity-10" aria-hidden="true"></i>
                                 </div>
                             </div>
@@ -126,7 +126,7 @@
                                 </div>
                             </div>
                             <div class="col-4 text-end">
-                                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                                <div class="icon icon-shape btn-primary shadow text-center border-radius-md">
                                     <i class="ni ni-money-coins text-lg opacity-10" aria-hidden="true"></i>
                                 </div>
                             </div>
@@ -317,7 +317,7 @@
                                             <h6 class="mb-0 text-sm">{{ $absensi[0] }}</h6>
                                         </td>
                                         <td class="align-middle text-center text-sm">
-                                            <span class="badge bg-gradient-success">Hadir</span>
+                                            <span class="badge btn-success">Hadir</span>
                                         </td>
                                     </tr>
 
@@ -333,7 +333,7 @@
                                             <h6 class="mb-0 text-sm">{{ $absensi[1] }}</h6>
                                         </td>
                                         <td class="align-middle text-center text-sm">
-                                            <span class="badge bg-gradient-success">Hadir</span>
+                                            <span class="badge btn-success">Hadir</span>
                                         </td>
                                     </tr>
 
@@ -349,7 +349,7 @@
                                             <h6 class="mb-0 text-sm">{{ $absensi[2] }}</h6>
                                         </td>
                                         <td class="align-middle text-center text-sm">
-                                            <span class="badge bg-gradient-success">Hadir</span>
+                                            <span class="badge btn-success">Hadir</span>
                                         </td>
                                     </tr>
 
@@ -365,7 +365,7 @@
                                             <h6 class="mb-0 text-sm">{{ $absensi[3] }}</h6>
                                         </td>
                                         <td class="align-middle text-center text-sm">
-                                            <span class="badge bg-gradient-success">Hadir</span>
+                                            <span class="badge btn-success">Hadir</span>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -383,7 +383,7 @@
                                 <div class="col-lg-6 col-7">
                                     <h6>Pengajaran</h6>
                                     <div class="dropdown">
-                                        <button class="btn bg-gradient-primary dropdown-toggle mt-3" type="button"
+                                        <button class="btn btn-primary dropdown-toggle mt-3" type="button"
                                             id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                                             Tahun Ajaran
                                         </button>
@@ -702,7 +702,7 @@
                                 <div class="col-lg-6 col-7">
                                     <h6>Bibingan Mahasiswa</h6>
                                     <div class="dropdown">
-                                        <button class="btn bg-gradient-primary dropdown-toggle mt-3" type="button"
+                                        <button class="btn btn-primary dropdown-toggle mt-3" type="button"
                                             id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                                             Tahun Ajaran
                                         </button>
