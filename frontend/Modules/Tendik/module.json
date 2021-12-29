@@ -1,0 +1,13 @@
+{
+    "name": "Tendik",
+    "alias": "tendik",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Tendik\\Providers\\TendikServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}
