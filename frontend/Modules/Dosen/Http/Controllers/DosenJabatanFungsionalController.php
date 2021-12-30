@@ -2,36 +2,35 @@
 
 namespace Modules\Dosen\Http\Controllers;
 
-use DataTables;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
-class DosenInpassingController extends Controller
+class DosenJabatanFungsionalController extends Controller
 {
     public function index()
     {
-        $listInpassing = $this->listInpassing();
-        return view('dosen::pages.inpassing.inpassing',compact('listInpassing'));
+        $listJabatanFungsional = $this->listJabatanFungsional();
+        return view('dosen::pages.jabatan_fungsional.index-jabatan_fungsional', compact('listJabatanFungsional'));
     }
-    
-    public function listInpassing()
+
+    public function listJabatanFungsional()
     {
         $list = [];        
         $golongan = [
-            'Penata',
-            'Penata Muda',
-            'Juru',
-            'Pengatur',
-            'Pengatur Tk.1'
+            'Lektor Kepala (700.00)',
+            'Lektor Kepala (400.00)',
+            'Lektor Kepala (400.00)',
+            'Lektor (300.00)',
+            'Lektor (200.00)',
+            'Asisten Ahli (150.00)',
+            'Asisten Ahli (100.00)',
         ];
         for ($i=0; $i < 5; $i++) { 
             $list[] = [
                 'id' => ($i+1),
-                'pangkat' => $golongan[$i],
-                'golongan' => 'III/c',
+                'jabatan_fungsional' => $golongan[$i],
                 'no_sk' => '1567/J26/KP/2001',
-                'tgl_sk' => '20-05-2001',
                 'tmt' => '06-06-2021'
             ];
         }
@@ -40,12 +39,11 @@ class DosenInpassingController extends Controller
 
     public function create()
     {
-        return view('dosen::pages.inpassing.add-inpassing');
+        return view('dosen::pages.jabatan_fungsional.add-jabatan_fungsional');
     }
 
     public function store(Request $request)
     {
-        //
     }
 
     public function show($id)
@@ -53,18 +51,16 @@ class DosenInpassingController extends Controller
         return view('dosen::show');
     }
 
-    public function edit($id = '1')
+    public function edit($id)
     {
-        return view('dosen::pages.inpassing.edit-inpassing');
+        return view('dosen::edit');
     }
 
     public function update(Request $request, $id)
     {
-        //
     }
 
     public function destroy($id)
     {
-        //
     }
 }

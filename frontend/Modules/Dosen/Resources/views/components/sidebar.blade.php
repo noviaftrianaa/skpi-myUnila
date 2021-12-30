@@ -1,11 +1,15 @@
 <aside class="sidenav navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-3 "
     id="sidenav-main">
-    <div class="sidenav-header">
+    <div class="sidenav-header mb-4">
         <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none"
         aria-hidden="true" id="iconSidenav"></i>
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <img src="../assets/img/unila.png" class="navbar-brand-img h-100" alt="main_logo">
+            </div>
+        </div>
         <a class="navbar-brand m-0" href="{{ route('dosen.dashboard') }}">
-            {{-- <img src="../assets/img/unila.png" class="navbar-brand-img h-100" alt="main_logo"> --}}
-                <span class="ms-1 font-weight-bold">Tegar Wisnu Pambudi</span>
+            <span class="ms-1 font-weight-bold">Tegar Wisnu Pambudi</span>
             <br>
             <span class="ms-1">Dosen - Prodi S1 Ilmu Komputer</span>
         </a>
@@ -95,7 +99,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link  " href="../pages/virtual-reality.html">
+                <a class="nav-link  " href={{ route('dosen.jabatan_fungsional') }}>
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1"
