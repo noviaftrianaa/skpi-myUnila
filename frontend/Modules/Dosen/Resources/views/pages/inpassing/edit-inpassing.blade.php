@@ -1,5 +1,5 @@
 @extends('dosen::components.master')
-@section('title', 'Tambah Inpassing')
+@section('title', 'Edit Inpassing')
 
 @section('css')
     <style>
