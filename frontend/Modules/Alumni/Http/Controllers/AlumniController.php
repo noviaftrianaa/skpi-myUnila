@@ -23,7 +23,7 @@ class AlumniController extends Controller
      */
     public function create()
     {
-        //
+        return view('alumni::pages.dashboard.edit-profil');
     }
 
     /**

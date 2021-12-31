@@ -7,7 +7,7 @@
   <strong>Informasi</strong> 
   <hr>
   Biaya Legalisasi yang telah ditetapkan adalah : <b>Rp 2000,00 /lembar</b>
-<br>Transfer ke <b>8976546807</b> BNI a.n. <b>Universitas Lampung<b>
+<br>Transfer ke <b>897654****</b> BNI a.n. <b>Universitas Lampung<b>
 </div>
     </div>
     <br>

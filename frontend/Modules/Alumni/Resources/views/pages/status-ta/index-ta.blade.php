@@ -10,7 +10,7 @@
           <h6 class="mb-0">Status Tugas Akhir</h6>
         </div>
         <div class="col-md-4 text-end">
-          <a href="javascript:;">
+          <a href="{{url('alumni/edit-status-ta')}}">
             <i class="fas fa-cog text-secondary text-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah"></i>
           </a>
         </div>

@@ -14,9 +14,12 @@
 Route::prefix('alumni')->group(function() {
     //dashboard
     Route::get('/', 'AlumniController@index')->name('alumni.dashboard');
+    Route::get('/edit-profil', function() { return view('alumni::pages.dashboard.edit-profil'); });
+    Route::get('/detail-pekerjaan', function() { return view('alumni::pages.dashboard.detail-pekerjaan'); });
 
     //status tugas akhir
     Route::get('/index-ta', function() { return view('alumni::pages.status-ta.index-ta'); });
+    Route::get('/edit-status-ta', function() { return view('alumni::pages.status-ta.edit-status-ta'); });
 
     //data alumni
     Route::get('/data_alumni', function() { return view('alumni::pages.data-alumni.data_alumni'); });
