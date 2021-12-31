@@ -20,8 +20,8 @@
                                 </p>
                             </div>
                             <div class="col-lg-6 col-5 my-auto text-end">
-                                <a class="btn bg-gradient-success mb-0" href="{{ route('dosen.inpassing.add') }}"><i class="fas fa-plus"
-                                        aria-hidden="true"></i>&nbsp;&nbsp;Tambah Data</a>
+                                <a class="btn btn-primary mb-0" href="{{ route('dosen.inpassing.add') }}"><i
+                                        class="fas fa-plus" aria-hidden="true"></i>&nbsp;&nbsp;Tambah Data</a>
                             </div>
                         </div>
                     </div>
@@ -54,6 +54,10 @@
                                             class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
                                             Terhitung Mulai
                                         </th>
+                                        <th
+                                            class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                            Action
+                                        </th>
                                     </tr>
                                 </thead>
 
@@ -80,6 +84,15 @@
                                             <td class="align-middle text-center text-sm">
                                                 <span class="text-xs font-weight-bold"> {{ $value['tmt'] }} </span>
                                             </td>
+                                            <td class="align-middle text-center text-sm">
+                                                <a class="btn btn-primary btn-ms py-1 mx-1 my-3"
+                                                    data-bs-toggle="modal" data-bs-target="#modal-default"><i
+                                                        class="fa fa-info-circle"></i> Detail</a>
+                                                <a href="{{ route('dosen.inpassing.edit') }}" class="btn btn-warning btn-ms py-1 mx-1 my-3"><i
+                                                        class="fa fa-pencil-square-o"></i> Edit</a>
+                                                <a href="" class="btn btn-danger btn-ms py-1 mx-1 my-3"><i
+                                                        class="fa fa-trash-o"></i> Hapus</a>
+                                            </td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -90,6 +103,8 @@
             </div>
         </div>
     </div>
+
+    @include('dosen::pages.inpassing.modal.detail-inpassing')
 @endsection
 
 @section('js')

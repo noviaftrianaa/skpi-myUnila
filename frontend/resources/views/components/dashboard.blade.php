@@ -13,7 +13,7 @@
     <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
     <link href="{{ asset('assets/css/nucleo-svg.css') }}" rel="stylesheet" />
     <link id="pagestyle" href="{{ asset('assets/css/soft-ui-dashboard.css?v=1.0.3') }}" rel="stylesheet" />
-
+    <link id="pagestyle" href="{{ asset('assets/css/custom.css') }}" rel="stylesheet" />
 </head>
 
 <body class="g-sidenav-show  bg-gray-100">
@@ -27,7 +27,7 @@
         }
 
     </style>
-    <main class="main-content position-relative max-height-vh-100 h-100 mt-1 border-radius-lg ">
+    <main class="main-content position-relative max-height-vh-100 h-100 mt-1 border-radius-lg">
         <div class="container centered">
             <div class="col-md-12">
                 <div class="card">
@@ -44,19 +44,19 @@
                             </div>
                             <div class="col-md-9 text-end pb-0 mb-0">
                                 <div class="d-inline-flex p-2">
-                                    <a class="btn bg-gradient-primary mb-0" href="{{ route('alumni.dashboard') }}"><i class="fas fa-users"></i>&nbsp;&nbsp;Alumni</a>
+                                    <a class="btn btn-primary mb-0" href="{{ route('alumni.dashboard') }}" target="_blank"><i class="fas fa-users"></i>&nbsp;&nbsp;Alumni</a>
                                 </div>
                                 <div class="d-inline-flex p-2">
-                                    <a class="btn bg-gradient-primary mb-0" href="{{ route('dosen.dashboard') }}"><i class="fas fa-chalkboard-teacher"></i>&nbsp;&nbsp;Dosen</a>
+                                    <a class="btn btn-primary mb-0" href="{{ route('dosen.dashboard') }}" target="_blank"><i class="fas fa-chalkboard-teacher"></i>&nbsp;&nbsp;Dosen</a>
                                 </div>
                                 <div class="d-inline-flex p-2">
-                                    <a class="btn bg-gradient-primary mb-0" href="{{ route('mahasiswa.dashboard') }}"><i class="fas fa-user-graduate"></i>&nbsp;&nbsp;Mahasiswa</a>
+                                    <a class="btn btn-primary mb-0" href="{{ route('mahasiswa.dashboard') }}" target="_blank"><i class="fas fa-user-graduate"></i>&nbsp;&nbsp;Mahasiswa</a>
                                 </div>
                                 <div class="d-inline-flex p-2">
-                                    <a class="btn bg-gradient-primary mb-0" href="{{ route('stakeholder.dashboard') }}"><i class="fas fa-user-friends"></i>&nbsp;&nbsp;Stakeholder</a>
+                                    <a class="btn btn-primary mb-0" href="{{ route('stakeholder.dashboard') }}" target="_blank"><i class="fas fa-user-friends"></i>&nbsp;&nbsp;Stakeholder</a>
                                 </div>
                                 <div class="d-inline-flex p-2">
-                                    <a class="btn bg-gradient-primary mb-0" href="{{ route('tendik.dashboard') }}"><i class="fas fa-laptop-house"></i>&nbsp;&nbsp;Tendik</a>
+                                    <a class="btn btn-primary mb-0" href="{{ route('tendik.dashboard') }}" target="_blank"><i class="fas fa-laptop-house"></i>&nbsp;&nbsp;Tendik</a>
                                 </div>
                             </div>
                         </div>

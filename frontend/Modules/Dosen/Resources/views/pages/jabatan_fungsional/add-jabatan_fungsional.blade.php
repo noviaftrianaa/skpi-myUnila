@@ -1,5 +1,5 @@
 @extends('dosen::components.master')
-@section('title', 'Tambah Inpassing')
+@section('title', 'Tambah Jabatan Fungsional')
 
 @section('css')
     <style>
@@ -18,7 +18,7 @@
                     <div class="card-header pb-0">
                         <div class="row">
                             <div class="col-lg-6 col-7">
-                                <h6>Form Tambah Inpassing</h6>
+                                <h6>Form Tambah Jabatan Fungsional</h6>
                             </div>
                         </div>
                     </div>
@@ -33,17 +33,17 @@
                                                 <label for="pangkat_golongan">Pangkat / Golongan</label>
                                                 <select class="form-control" id="pangkat_golongan">
                                                     <option>Pilih</option>
-                                                    <option>1a / Juru Muda</option>
-                                                    <option>2b / Pengatur Muda</option>
-                                                    <option>3c / Pengatur</option>
-                                                    <option>4a / Pangatur Tua</option>
+                                                    <option>Asisten Ahli (300.00)</option>
+                                                    <option>Pembantu (300.00)</option>
+                                                    <option>Lektor (300.00)</option>
+                                                    <option>Lektor Ahli (300.00)</option>
                                                 </select>
                                             </div>
                                         </div>
 
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label for="pangkat_golongan">Nomor SK Inpassing</label>
+                                                <label for="pangkat_golongan">Nomor SK</label>
                                                 <div class="form-group">
                                                     <input type="email" class="form-control"
                                                         id="exampleFormControlInput1">
@@ -53,16 +53,6 @@
                                     </div>
 
                                     <div class="row">
-                                        <div class="col-md-12">
-                                            <div class="form-group">
-                                                <label for="pangkat_golongan">Tanggal SK</label>
-                                                <div class="form-group">
-                                                    <input type="email" class="form-control"
-                                                        id="exampleFormControlInput1">
-                                                </div>
-                                            </div>
-                                        </div>
-
                                         <div class="col-md-12">
                                             <div class="form-group">
                                                 <label for="pangkat_golongan">Terhitung Mulai Tanggal</label>
@@ -75,7 +65,7 @@
 
                                         <div class="col-md-12">
                                             <div class="form-group">
-                                                <label for="pangkat_golongan">Angka Kredit</label>
+                                                <label for="pangkat_golongan">Kelebihan Pengajaran</label>
                                                 <div class="form-group">
                                                     <input type="email" class="form-control"
                                                         id="exampleFormControlInput1">
@@ -85,9 +75,9 @@
                                     </div>
 
                                     <div class="row">
-                                        <div class="col-md-6">
+                                        <div class="col-md-12">
                                             <div class="form-group">
-                                                <label for="pangkat_golongan">Masa Kerja (Tahun)</label>
+                                                <label for="pangkat_golongan">Kelebihan Penelitian</label>
                                                 <div class="form-group">
                                                     <input type="email" class="form-control"
                                                         id="exampleFormControlInput1">
@@ -95,9 +85,19 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-md-6">
+                                        <div class="col-md-12">
                                             <div class="form-group">
-                                                <label for="pangkat_golongan">Masa Kerja (Bulan)</label>
+                                                <label for="pangkat_golongan">Kelebihan Pengabdian Masyarakat</label>
+                                                <div class="form-group">
+                                                    <input type="email" class="form-control"
+                                                        id="exampleFormControlInput1">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label for="pangkat_golongan">Kelebihan Kegiatan Penunjang</label>
                                                 <div class="form-group">
                                                     <input type="email" class="form-control"
                                                         id="exampleFormControlInput1">
