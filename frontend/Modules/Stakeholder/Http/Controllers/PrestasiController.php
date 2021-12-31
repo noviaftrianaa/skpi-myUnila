@@ -14,7 +14,7 @@ class PrestasiController extends Controller
      */
     public function index()
     {
-        return view('stakeholder::pages.prestasi.index-prestasi');
+        return view('stakeholder::pages.prestasi.prestasi');
     }
 
     /**
