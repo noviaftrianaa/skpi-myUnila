@@ -123,7 +123,7 @@
                       <h6 class="mb-0">Informasi Singkat</h6>
                     </div>
                     <div class="col-md-4 text-end">
-                      <a href="javascript:;">
+                      <a href="{{url('alumni/edit-profil')}}">
                         <i class="fas fa-user-edit text-secondary text-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Profile"></i>
                       </a>
                     </div>
@@ -208,8 +208,8 @@
                     <h6 class="mb-0">Riwayat Pekerjaan</h6>
                   </div>
                   <div class="col-md-4 text-end">
-                    <a href="javascript:;">
-                      <i class="fas fa-cog text-secondary text-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Profile"></i>
+                    <a href="{{url('alumni/detail-pekerjaan')}}">
+                      <i class="fas fa-eye text-secondary text-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Detail"></i>
                     </a>
                   </div>
                 </div>
