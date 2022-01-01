@@ -17,7 +17,8 @@ Route::prefix('mahasiswa')->group(function() {
     Route::get('/beranda', 'MahasiswaController@index')->name('mahasiswa.dashboard');
 
     //profil
-    Route::get('/data-pribadi', function () { return view('mahasiswa::pages.profil.data_pribadi.index'); });
+    // Route::get('/data-pribadi', function () { return view('mahasiswa::pages.profil.data_pribadi.index'); });
+    Route::get('/data-profil','profil\DataProfilController@index')->name('data-profil');
     Route::get('/ukm', function () { return view('mahasiswa::pages.profil.ukm.index'); });
 
     //perkuliahaan

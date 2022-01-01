@@ -14,7 +14,7 @@ class TranskripController extends Controller
      */
     public function index()
     {
-        return view('stakeholder::pages.transkrip.index-tr');
+        return view('stakeholder::pages.transkrip.index');
     }
 
     /**

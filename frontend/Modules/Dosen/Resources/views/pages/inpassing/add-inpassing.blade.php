@@ -1,5 +1,5 @@
 @extends('dosen::components.master')
-@section('title', 'Inpassing')
+@section('title', 'Tambah Inpassing')
 
 @section('css')
     <style>
@@ -23,10 +23,10 @@
                         </div>
                     </div>
 
-                    <div class="card-body pb-2">
-                        <form>
+                    <form>
+                        <div class="card-body pb-2">
                             <div class="row">
-                                <div class="col-lg-6 col-md-6">
+                                <div class="col-lg-12 col-md-6">
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
@@ -34,9 +34,9 @@
                                                 <select class="form-control" id="pangkat_golongan">
                                                     <option>Pilih</option>
                                                     <option>1a / Juru Muda</option>
-                                                    <option>3</option>
-                                                    <option>4</option>
-                                                    <option>5</option>
+                                                    <option>2b / Pengatur Muda</option>
+                                                    <option>3c / Pengatur</option>
+                                                    <option>4a / Pangatur Tua</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -107,161 +107,379 @@
                                     </div>
                                 </div>
 
-                                <div class="col-lg-6 col-md-6" style="display: show;">
+                                <div class="col-lg-12 col-md-6" style="display: show;">
                                     <div class="row">
-                                        <div class="col-lg-12 col-md-12 mb-5">
-                                            <h6 class="mb-1">Upload Dokumen</h6>
-                                            <p class="text-sm mb-0">
-                                                <i class="fas fa-info-circle text-info" aria-hidden="true"></i>
-                                                <span class="font-italic ms-1">Maksimal total ukuran file dalam sekali
-                                                    proses upload 2 MB
-                                                </span>
-                                            </p>
+                                        <div class="col-lg-12 col-md-12 mb-3">
+                                            <div class="row">
+                                                <div class="col-lg-6 col-7">
+                                                    <h6 class="mb-1">Upload Dokumen</h6>
+                                                    <p class="text-sm mb-0">
+                                                        <i class="fas fa-info-circle text-info" aria-hidden="true"></i>
+                                                        <span class="font-italic ms-1">Maksimal total ukuran file dalam
+                                                            sekali
+                                                            proses upload 2 MB
+                                                        </span>
+                                                    </p>
+                                                </div>
+                                                <div class="col-lg-6 col-5 my-auto text-end">
+                                                    <a class="btn btn-primary mb-0"
+                                                        href="{{ route('dosen.inpassing.add') }}"><i
+                                                            class="fas fa-plus" aria-hidden="true"></i>&nbsp;&nbsp;Tambah
+                                                        Dokumen</a>
+                                                </div>
+                                            </div>
                                         </div>
 
-                                        <div class="col-lg-12 col-md-12">
+                                        <div class="col-lg-12 col-md-12 mb-2 mt-2">
                                             <div class="accordion" id="accordionExample">
-                                                <div class="card">
-                                                    <div class="accordion-item">
-                                                        <h2 class="accordion-header" id="headingOne">
-                                                            <button class="accordion-button" type="button"
-                                                                data-bs-toggle="collapse" data-bs-target="#collapseOne"
-                                                                aria-expanded="true" aria-controls="collapseOne">
-                                                                <p class="h5">Dokumen 1</p>
-                                                            </button>
-                                                        </h2>
-                                                        <div id="collapseOne" class="accordion-collapse collapse show"
-                                                            aria-labelledby="headingOne" data-bs-parent="#accordionExample">
-                                                            <div class="accordion-body">
-                                                                <div class="table-responsive">
-                                                                    <table class="table align-items-center mb-3">
-                                                                        <tbody>
-                                                                            <tr class="pb-0">
-                                                                                <td>
-                                                                                    <label>File</label>
-                                                                                </td>
-                                                                                <td>
-                                                                                    <div class="form-group">
-                                                                                        <input type="email"
-                                                                                            class="form-control"
-                                                                                            id="exampleFormControlInput1">
-                                                                                    </div>
-                                                                                </td>
-                                                                            </tr>
+                                                <div class="accordion-item">
+                                                    <h2 class="accordion-header rounded-top" id="headingOne"
+                                                        style="background-color: #121589;">
+                                                        <button class="accordion-button" type="button"
+                                                            data-bs-toggle="collapse" data-bs-target="#collapseOne"
+                                                            aria-expanded="true" aria-controls="collapseOne">
+                                                            <a style="color: white;">Dokumen 1</a>
+                                                        </button>
+                                                    </h2>
+                                                    <div id="collapseOne"
+                                                        class="accordion-collapse collapse show border border-dark rounded-bottom"
+                                                        aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                                                        <div class="accordion-body">
+                                                            <div class="row">
+                                                                <div class="col-lg-12 col-md-12">
+                                                                    <div class="form-group">
+                                                                        <label for="exampleFormControlInput1">File
+                                                                        </label>
+                                                                        <input type="email" class="form-control"
+                                                                            id="exampleFormControlInput1"
+                                                                            placeholder="name@example.com">
+                                                                    </div>
 
-                                                                            <tr>
-                                                                                <td>
-                                                                                    <label>Nama Dokumen</label>
-                                                                                </td>
-                                                                                <td>
-                                                                                    <div class="form-group">
-                                                                                        <div class="form-group">
-                                                                                            <input type="email"
-                                                                                                class="form-control"
-                                                                                                id="exampleFormControlInput1">
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </td>
-                                                                            </tr>
+                                                                    <div class="form-group">
+                                                                        <label for="exampleFormControlInput1">Nama
+                                                                            Dokumen</label>
+                                                                        <input type="email" class="form-control"
+                                                                            id="exampleFormControlInput1"
+                                                                            placeholder="name@example.com">
+                                                                    </div>
 
-                                                                            <tr>
-                                                                                <td>
-                                                                                    <label>Keterangan</label>
-                                                                                </td>
-                                                                                <td>
-                                                                                    <div class="form-group">
-                                                                                        <div class="form-group">
-                                                                                            <input type="email"
-                                                                                                class="form-control"
-                                                                                                id="exampleFormControlInput1">
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </td>
-                                                                            </tr>
+                                                                    <div class="form-group">
+                                                                        <label
+                                                                            for="exampleFormControlInput1">Keterangan</label>
+                                                                        <textarea rows="3" class="form-control"
+                                                                            id="exampleFormControlInput1"
+                                                                            placeholder="name@example.com"></textarea>
+                                                                    </div>
 
-                                                                            <tr>
-                                                                                <td>
-                                                                                    <label>Jenis Dokumen</label>
-                                                                                </td>
-                                                                                <td>
-                                                                                    <div class="form-group">
-                                                                                        <div class="form-group">
-                                                                                            <select class="form-control"
-                                                                                                id="pangkat_golongan">
-                                                                                                <option>Pilih</option>
-                                                                                                <option>1a / Juru Muda
-                                                                                                </option>
-                                                                                                <option>3</option>
-                                                                                                <option>4</option>
-                                                                                                <option>5</option>
-                                                                                            </select>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </td>
-                                                                            </tr>
-                                                                        </tbody>
-                                                                    </table>
+                                                                    <div class="form-group">
+                                                                        <label for="exampleFormControlInput1">Jenis
+                                                                            Dokumen</label>
+                                                                        <select class="form-control">
+                                                                            <option value="">Pilih...</option>
+                                                                            {
+                                                                            <option value="4007">Analisis instruksional
+                                                                            </option>
+                                                                            {
+                                                                            <option value="4004">Evaluasi hasil</option>
+                                                                            {
+                                                                            <option value="4003">Evaluasi proses</option>
+                                                                            {
+                                                                            <option value="17">Foto</option>
+                                                                            {
+                                                                            <option value="2017">Hasil Peer Review Karya
+                                                                                Ilmiah</option>
+                                                                            {
+                                                                            <option value="2018">Hasil Tes Kemiripan Karya
+                                                                                Ilmiah</option>
+                                                                            {
+                                                                            <option value="2">Ijazah</option>
+                                                                            {
+                                                                            <option value="38">Jurnal Internasional
+                                                                                Bereputasi utk Dosen Asing</option>
+                                                                            {
+                                                                            <option value="44">Kartu Keluarga</option>
+                                                                            {
+                                                                            <option value="4006">Kisi-kisi soal</option>
+                                                                            {
+                                                                            <option value="36">Kitas Bagi Dosen Asing
+                                                                            </option>
+                                                                            {
+                                                                            <option value="4002">Kontak perkuliahan</option>
+                                                                            {
+                                                                            <option value="1">KTP</option>
+                                                                            {
+                                                                            <option value="5">Lainnya</option>
+                                                                            {
+                                                                            <option value="43">NPWP</option>
+                                                                            {
+                                                                            <option value="101">Publikasi</option>
+                                                                            {
+                                                                            <option value="11">Riwayat Pendidikan Baru
+                                                                            </option>
+                                                                            {
+                                                                            <option value="4005">RPS</option>
+                                                                            {
+                                                                            <option value="501">Sertifikat Asesor BKD
+                                                                            </option>
+                                                                            {
+                                                                            <option value="6">Sertifikat Bhs. Inggris
+                                                                            </option>
+                                                                            {
+                                                                            <option value="21">Sertifikat Dosen (Serdos)
+                                                                            </option>
+                                                                            {
+                                                                            <option value="22">Sertifikat Profesional
+                                                                            </option>
+                                                                            {
+                                                                            <option value="7">Sertifikat TPA</option>
+                                                                            {
+                                                                            <option value="41">SK Associate Professor untuk
+                                                                                Dosen Asing</option>
+                                                                            {
+                                                                            <option value="19">SK CPNS</option>
+                                                                            {
+                                                                            <option value="4">SK Dosen/Instruktur/Tutor
+                                                                            </option>
+                                                                            {
+                                                                            <option value="23">SK Jabatan Fungsional
+                                                                            </option>
+                                                                            {
+                                                                            <option value="10">SK Pangkat/Inpassing</option>
+                                                                            {
+                                                                            <option value="24">SK Pemberhentian/Lolos
+                                                                            </option>
+                                                                            {
+                                                                            <option value="42">SK Penugasan</option>
+                                                                            {
+                                                                            <option value="20">SK Penyetaraan Ijasah
+                                                                            </option>
+                                                                            {
+                                                                            <option value="18">SK PNS</option>
+                                                                            {
+                                                                            <option value="39">Surat Keterangan Aktif
+                                                                                Melaksanakan Tridharma PT</option>
+                                                                            {
+                                                                            <option value="37">Surat Keterangan Jabatan
+                                                                                Akademik Dosen Asing</option>
+                                                                            {
+                                                                            <option value="35">Surat Keterangan Jadwal
+                                                                                Mengajar</option>
+                                                                            {
+                                                                            <option value="40">Surat Pernyataan dari
+                                                                                Pimpinan PT</option>
+                                                                            {
+                                                                            <option value="3">Surat Pernyataan Dosen
+                                                                            </option>
+                                                                            {
+                                                                            <option value="25">Transkrip Nilai</option>
+                                                                        </select>
+                                                                    </div>
+
+                                                                    <div class="form-group">
+                                                                        <label for="exampleFormControlInput1">Tautan
+                                                                            Dokumen</label>
+                                                                        <div class="input-group">
+                                                                            <span class="input-group-text"
+                                                                                id="basic-addon3">https://</span>
+                                                                            <input type="email" class="form-control"
+                                                                                id="exampleFormControlInput1"
+                                                                                placeholder="name@example.com">
+                                                                        </div>
+                                                                        <p class="text-sm mt-1">
+                                                                            <i class="fas fa-info-circle text-info"
+                                                                                aria-hidden="true"></i>
+                                                                            <span class="font-italic ms-1">Perhatikan format
+                                                                                penulisan url dengan http atau https
+                                                                            </span>
+                                                                        </p>
+                                                                    </div>
+
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="accordion-item">
-                                                        <h2 class="accordion-header" id="headingTwo">
-                                                            <button class="accordion-button collapsed" type="button"
-                                                                data-bs-toggle="collapse" data-bs-target="#collapseTwo"
-                                                                aria-expanded="false" aria-controls="collapseTwo">
-                                                                Dokumen 2
-                                                            </button>
-                                                        </h2>
-                                                        <div id="collapseTwo" class="accordion-collapse collapse"
-                                                            aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
-                                                            <div class="accordion-body">
-                                                                <strong>This is the second item's accordion body.</strong>
-                                                                It is hidden by default, until the collapse plugin adds the
-                                                                appropriate classes that we use to style each element. These
-                                                                classes control the overall appearance, as well as the
-                                                                showing and hiding via CSS transitions. You can modify any
-                                                                of this with custom CSS or overriding our default variables.
-                                                                It's also worth noting that just about any HTML can go
-                                                                within the <code>.accordion-body</code>, though the
-                                                                transition does limit overflow.
+                                                </div>
 
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="accordion-item">
-                                                        <h2 class="accordion-header" id="headingThree">
-                                                            <button class="accordion-button collapsed" type="button"
-                                                                data-bs-toggle="collapse" data-bs-target="#collapseThree"
-                                                                aria-expanded="false" aria-controls="collapseThree">
-                                                                Accordion Item #3
-                                                            </button>
-                                                        </h2>
-                                                        <div id="collapseThree" class="accordion-collapse collapse"
-                                                            aria-labelledby="headingThree"
-                                                            data-bs-parent="#accordionExample">
-                                                            <div class="accordion-body">
-                                                                <strong>This is the third item's accordion body.</strong> It
-                                                                is hidden by default, until the collapse plugin adds the
-                                                                appropriate classes that we use to style each element. These
-                                                                classes control the overall appearance, as well as the
-                                                                showing and hiding via CSS transitions. You can modify any
-                                                                of this with custom CSS or overriding our default variables.
-                                                                It's also worth noting that just about any HTML can go
-                                                                within the <code>.accordion-body</code>, though the
-                                                                transition does limit overflow.
+                                            </div>
+                                        </div>
+
+                                        <div class="col-lg-12 col-md-12 mb-2 mt-2">
+                                            <div class="accordion" id="accordionExample">
+                                                <div class="accordion-item">
+                                                    <h2 class="accordion-header rounded-top" id="headingOne"
+                                                        style="background-color: #121589;">
+                                                        <button class="accordion-button" type="button"
+                                                            data-bs-toggle="collapse" data-bs-target="#collapseOne"
+                                                            aria-expanded="true" aria-controls="collapseOne">
+                                                            <a style="color: white;">Dokumen 1</a>
+                                                        </button>
+                                                    </h2>
+                                                    <div id="collapseOne"
+                                                        class="accordion-collapse collapse border border-dark rounded-bottom"
+                                                        aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                                                        <div class="accordion-body">
+                                                            <div class="row">
+                                                                <div class="col-lg-12 col-md-12">
+                                                                    <div class="form-group">
+                                                                        <label for="exampleFormControlInput1">File
+                                                                        </label>
+                                                                        <input type="email" class="form-control"
+                                                                            id="exampleFormControlInput1"
+                                                                            placeholder="name@example.com">
+                                                                    </div>
+
+                                                                    <div class="form-group">
+                                                                        <label for="exampleFormControlInput1">Nama
+                                                                            Dokumen</label>
+                                                                        <input type="email" class="form-control"
+                                                                            id="exampleFormControlInput1"
+                                                                            placeholder="name@example.com">
+                                                                    </div>
+
+                                                                    <div class="form-group">
+                                                                        <label
+                                                                            for="exampleFormControlInput1">Keterangan</label>
+                                                                        <textarea rows="3" class="form-control"
+                                                                            id="exampleFormControlInput1"
+                                                                            placeholder="name@example.com"></textarea>
+                                                                    </div>
+
+                                                                    <div class="form-group">
+                                                                        <label for="exampleFormControlInput1">Jenis
+                                                                            Dokumen</label>
+                                                                        <select class="form-control">
+                                                                            <option value="">Pilih...</option>
+                                                                            {
+                                                                            <option value="4007">Analisis instruksional
+                                                                            </option>
+                                                                            {
+                                                                            <option value="4004">Evaluasi hasil</option>
+                                                                            {
+                                                                            <option value="4003">Evaluasi proses</option>
+                                                                            {
+                                                                            <option value="17">Foto</option>
+                                                                            {
+                                                                            <option value="2017">Hasil Peer Review Karya
+                                                                                Ilmiah</option>
+                                                                            {
+                                                                            <option value="2018">Hasil Tes Kemiripan Karya
+                                                                                Ilmiah</option>
+                                                                            {
+                                                                            <option value="2">Ijazah</option>
+                                                                            {
+                                                                            <option value="38">Jurnal Internasional
+                                                                                Bereputasi utk Dosen Asing</option>
+                                                                            {
+                                                                            <option value="44">Kartu Keluarga</option>
+                                                                            {
+                                                                            <option value="4006">Kisi-kisi soal</option>
+                                                                            {
+                                                                            <option value="36">Kitas Bagi Dosen Asing
+                                                                            </option>
+                                                                            {
+                                                                            <option value="4002">Kontak perkuliahan</option>
+                                                                            {
+                                                                            <option value="1">KTP</option>
+                                                                            {
+                                                                            <option value="5">Lainnya</option>
+                                                                            {
+                                                                            <option value="43">NPWP</option>
+                                                                            {
+                                                                            <option value="101">Publikasi</option>
+                                                                            {
+                                                                            <option value="11">Riwayat Pendidikan Baru
+                                                                            </option>
+                                                                            {
+                                                                            <option value="4005">RPS</option>
+                                                                            {
+                                                                            <option value="501">Sertifikat Asesor BKD
+                                                                            </option>
+                                                                            {
+                                                                            <option value="6">Sertifikat Bhs. Inggris
+                                                                            </option>
+                                                                            {
+                                                                            <option value="21">Sertifikat Dosen (Serdos)
+                                                                            </option>
+                                                                            {
+                                                                            <option value="22">Sertifikat Profesional
+                                                                            </option>
+                                                                            {
+                                                                            <option value="7">Sertifikat TPA</option>
+                                                                            {
+                                                                            <option value="41">SK Associate Professor untuk
+                                                                                Dosen Asing</option>
+                                                                            {
+                                                                            <option value="19">SK CPNS</option>
+                                                                            {
+                                                                            <option value="4">SK Dosen/Instruktur/Tutor
+                                                                            </option>
+                                                                            {
+                                                                            <option value="23">SK Jabatan Fungsional
+                                                                            </option>
+                                                                            {
+                                                                            <option value="10">SK Pangkat/Inpassing</option>
+                                                                            {
+                                                                            <option value="24">SK Pemberhentian/Lolos
+                                                                            </option>
+                                                                            {
+                                                                            <option value="42">SK Penugasan</option>
+                                                                            {
+                                                                            <option value="20">SK Penyetaraan Ijasah
+                                                                            </option>
+                                                                            {
+                                                                            <option value="18">SK PNS</option>
+                                                                            {
+                                                                            <option value="39">Surat Keterangan Aktif
+                                                                                Melaksanakan Tridharma PT</option>
+                                                                            {
+                                                                            <option value="37">Surat Keterangan Jabatan
+                                                                                Akademik Dosen Asing</option>
+                                                                            {
+                                                                            <option value="35">Surat Keterangan Jadwal
+                                                                                Mengajar</option>
+                                                                            {
+                                                                            <option value="40">Surat Pernyataan dari
+                                                                                Pimpinan PT</option>
+                                                                            {
+                                                                            <option value="3">Surat Pernyataan Dosen
+                                                                            </option>
+                                                                            {
+                                                                            <option value="25">Transkrip Nilai</option>
+                                                                        </select>
+                                                                    </div>
+
+                                                                    <div class="form-group">
+                                                                        <label for="exampleFormControlInput1">Tautan
+                                                                            Dokumen</label>
+                                                                        <div class="input-group">
+                                                                            <span class="input-group-text"
+                                                                                id="basic-addon3">https://</span>
+                                                                            <input type="email" class="form-control"
+                                                                                id="exampleFormControlInput1"
+                                                                                placeholder="name@example.com">
+                                                                        </div>
+                                                                        <p class="text-sm mt-1">
+                                                                            <i class="fas fa-info-circle text-info"
+                                                                                aria-hidden="true"></i>
+                                                                            <span class="font-italic ms-1">Perhatikan format
+                                                                                penulisan url dengan http atau https
+                                                                            </span>
+                                                                        </p>
+                                                                    </div>
+
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
 
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </form>
-                    </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

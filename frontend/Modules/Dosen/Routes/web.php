@@ -17,5 +17,11 @@ Route::prefix('dosen')->group(function() {
     Route::prefix('inpassing')->group(function() {
         Route::get('/','DosenInpassingController@index')->name('dosen.inpassing');
         Route::get('add','DosenInpassingController@create')->name('dosen.inpassing.add');
+        Route::get('edit','DosenInpassingController@edit')->name('dosen.inpassing.edit');
+    });
+
+    Route::prefix('jabatan-fungsional')->group(function() {
+        Route::get('/','DosenJabatanFungsionalController@index')->name('dosen.jabatan_fungsional'); 
+        Route::get('add','DosenJabatanFungsionalController@create')->name('dosen.jabatan_fungsional.add'); 
     });
 });

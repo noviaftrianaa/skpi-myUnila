@@ -13,25 +13,25 @@
 
 Route::prefix('stakeholder')->group(function() {
     //dashboard
-    Route::get('/index-da', 'StakeholderController@index')->name('stakeholder.dashboard');
+    Route::get('/', 'StakeholderController@index');
+    Route::get('/beranda', 'StakeholderController@index')->name('stakeholder.dashboard');
 
     //krs&khs
-    Route::get('/index-krs', function() { return view ('stakeholder::pages.krs_khs.index-krs');});
+    Route::get('/absensi', function () { return view('stakeholder::pages.absensi.index'); });
 
     //transkrip
-    Route::get('/index-tr', function() { return view ('stakeholder::pages.transkrip.index-tr');});
-
+    Route::get('/transkrip', function () { return view('stakeholder::pages.transkrip.index'); });
     //status spp
-    Route::get('/index-status-spp', function() { return view ('stakeholder::pages.status_spp.index-status-spp');});
+    Route::get('/status-pembayaran-spp', function() { return view ('stakeholder::pages.status_spp.index');});
 
     //status beasiswa
-    Route::get('/index-status-beasiswa', function() { return view ('stakeholder::pages.status_beasiswa.index-status-beasiswa');});
+    Route::get('/status-beasiswa', function() { return view ('stakeholder::pages.status_beasiswa.index');});
 
     //prestasi
-    Route::get('/index-prestasi', function() { return view ('stakeholder::pages.prestasi.index-prestasi');});
+    Route::get('/prestasi', function() { return view ('stakeholder::pages.prestasi.index');});
 
     //kemampuan belajar
-    Route::get('/index-kemajuan-belajar', function() { return view ('stakeholder::pages.kemajuan_belajar.index-kemajuan-belajar');});
+    Route::get('/kemajuan-belajar', function() { return view ('stakeholder::pages.kemajuan_belajar.index');});
 });
 
 

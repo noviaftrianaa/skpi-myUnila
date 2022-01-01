@@ -14,7 +14,7 @@ class StakeholderController extends Controller
      */
     public function index()
     {
-        return view('stakeholder::pages.dashboard.index-da');
+        return view('stakeholder::pages.dashboard.index');
     }
 
     /**

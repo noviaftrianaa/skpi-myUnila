@@ -12,7 +12,7 @@ class DosenInpassingController extends Controller
     public function index()
     {
         $listInpassing = $this->listInpassing();
-        return view('dosen::pages.inpassing',compact('listInpassing'));
+        return view('dosen::pages.inpassing.inpassing',compact('listInpassing'));
     }
     
     public function listInpassing()
@@ -53,9 +53,9 @@ class DosenInpassingController extends Controller
         return view('dosen::show');
     }
 
-    public function edit($id)
+    public function edit($id = '1')
     {
-        return view('dosen::edit');
+        return view('dosen::pages.inpassing.edit-inpassing');
     }
 
     public function update(Request $request, $id)

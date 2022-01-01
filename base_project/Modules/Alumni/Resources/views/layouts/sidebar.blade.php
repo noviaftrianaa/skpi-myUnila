@@ -53,7 +53,7 @@
                 </g>
               </svg>
             </div>
-            <span class="nav-link-text ms-1">Status Tugas Akhir</span>
+            <span class="nav-link-text ms-1">Tugas Akhir</span>
           </a>
         </li>
         <li class="nav-item">

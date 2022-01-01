@@ -124,7 +124,7 @@
                     </div>
                     <div class="col-md-4 text-end">
                       <a href="javascript:;">
-                        <i class="fas fa-user-edit text-secondary text-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Profile"></i>
+                        <i class="fas fa-user-edit text-secondary text-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah Profil"></i>
                       </a>
                     </div>
                   </div>
@@ -209,7 +209,7 @@
                   </div>
                   <div class="col-md-4 text-end">
                     <a href="javascript:;">
-                      <i class="fas fa-cog text-secondary text-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Profile"></i>
+                      <i class="fas fa-pencil-alt text-secondary text-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah Data"></i>
                     </a>
                   </div>
                 </div>

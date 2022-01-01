@@ -14,7 +14,7 @@ class KemajuanBelajarController extends Controller
      */
     public function index()
     {
-        return view('stakeholder::pages.kemajuan_belajar.index-kemajuan-belajar');
+        return view('stakeholder::pages.kemajuan_belajar.kemajuan-belajar');
     }
 
     /**

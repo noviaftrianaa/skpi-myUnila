@@ -14,7 +14,7 @@ class StatusSppController extends Controller
      */
     public function index()
     {
-        return view('stakeholder::pages.status_spp.index-status-spp');
+        return view('stakeholder::pages.status_spp.index');
     }
 
     /**
