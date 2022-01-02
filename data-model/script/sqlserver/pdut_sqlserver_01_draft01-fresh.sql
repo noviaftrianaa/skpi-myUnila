@@ -1,13 +1,25 @@
 /*==============================================================*/
 /* DBMS name:      Microsoft SQL Server 2014                    */
-/* Created on:     02/01/2022 01:42:14                          */
+/* Created on:     03/01/2022 02:15:59                          */
 /*==============================================================*/
 
+
+/*==============================================================*/
+/* User: keuangan                                               */
+/*==============================================================*/
+create schema keuangan
+go
 
 /*==============================================================*/
 /* User: dok                                                    */
 /*==============================================================*/
 create schema dok
+go
+
+/*==============================================================*/
+/* User: kerjasama                                              */
+/*==============================================================*/
+create schema kerjasama
 go
 
 /*==============================================================*/
@@ -32,6 +44,12 @@ go
 /* User: sarpras                                                */
 /*==============================================================*/
 create schema sarpras
+go
+
+/*==============================================================*/
+/* User: tracer                                                 */
+/*==============================================================*/
+create schema tracer
 go
 
 /*==============================================================*/
@@ -154,7 +172,7 @@ go
 /*==============================================================*/
 /* Table: alat                                                  */
 /*==============================================================*/
-create table alat (
+create table sarpras.alat (
    id_alat              uniqueidentifier     not null,
    id_jns_sarana        int                  not null,
    id_hapus_buku        char(1)              null,
@@ -197,6 +215,13 @@ create table alat (
    tgl_hapus_buku       date                 null,
    asal_data            char(1)              null default '9'
       constraint ckc_asal_data_alat check (asal_data is null or (asal_data in ('1','2','3','4','5','6','9','7','8'))),
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_alat check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_alat primary key (id_alat)
 )
 go
@@ -204,11 +229,18 @@ go
 /*==============================================================*/
 /* Table: alat_long                                             */
 /*==============================================================*/
-create table alat_long (
+create table sarpras.alat_long (
    id_alat              uniqueidentifier     not null,
    id_smt               char(5)              not null,
    jml_laik             int                  not null,
    jml_tidak_laik       int                  not null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_alat_lon check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_alat_long primary key (id_alat, id_smt)
 )
 go
@@ -216,9 +248,16 @@ go
 /*==============================================================*/
 /* Table: alat_transportasi                                     */
 /*==============================================================*/
-create table alat_transportasi (
+create table sarpras.alat_transportasi (
    id_alat_transport    numeric(2)           not null,
    nm_alat_transport    varchar(60)          not null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_alat_tra check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_alat_transportasi primary key (id_alat_transport)
 )
 go
@@ -226,7 +265,7 @@ go
 /*==============================================================*/
 /* Table: anak                                                  */
 /*==============================================================*/
-create table anak (
+create table pdrd.anak (
    id_anak              uniqueidentifier     not null,
    id_jenj_didik        numeric(2)           null,
    id_sdm               uniqueidentifier     not null,
@@ -238,6 +277,13 @@ create table anak (
    tmpt_lahir           varchar(32)          null,
    tgl_lahir            date                 not null,
    thn_masuk            numeric(4)           null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_anak check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_anak primary key (id_anak)
 )
 go
@@ -245,7 +291,7 @@ go
 /*==============================================================*/
 /* Table: anggota_aktivitas_mahasiswa                           */
 /*==============================================================*/
-create table anggota_aktivitas_mahasiswa (
+create table pdrd.anggota_aktivitas_mahasiswa (
    id_ang_akt_mhs       uniqueidentifier     not null,
    id_akt_mhs           uniqueidentifier     not null,
    id_reg_pd            uniqueidentifier     not null,
@@ -253,6 +299,13 @@ create table anggota_aktivitas_mahasiswa (
    nipd                 varchar(24)          not null,
    jns_peran_mhs        char(1)              not null default '3'
       constraint ckc_jns_peran_mhs_anggota_ check (jns_peran_mhs in ('1','2','3')),
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_delete_ang_akt_mhs check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_anggota_aktivitas_mahasiswa primary key (id_ang_akt_mhs)
 )
 go
@@ -260,7 +313,7 @@ go
 /*==============================================================*/
 /* Table: anggota_orgprof                                       */
 /*==============================================================*/
-create table anggota_orgprof (
+create table pdrd.anggota_orgprof (
    id_ang_orgprof       uniqueidentifier     not null,
    id_sdm               uniqueidentifier     not null,
    nm_org               varchar(100)         not null,
@@ -268,6 +321,13 @@ create table anggota_orgprof (
    mulai_anggota        date                 not null,
    selesai_anggota      date                 null,
    instansi_profesi     varchar(100)         null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_delete_ang_org check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_anggota_orgprof primary key (id_ang_orgprof)
 )
 go
@@ -275,11 +335,18 @@ go
 /*==============================================================*/
 /* Table: anggota_panitia                                       */
 /*==============================================================*/
-create table anggota_panitia (
+create table pdrd.anggota_panitia (
    id_ang_panitia       uniqueidentifier     not null,
    id_panitia           uniqueidentifier     not null,
    id_sdm               uniqueidentifier     not null,
    peran                varchar(30)          not null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_delete_ang_panitia check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_anggota_panitia primary key (id_ang_panitia)
 )
 go
@@ -287,7 +354,7 @@ go
 /*==============================================================*/
 /* Table: angkutan                                              */
 /*==============================================================*/
-create table angkutan (
+create table sarpras.angkutan (
    id_angkutan          uniqueidentifier     not null,
    id_jns_sarana        int                  not null,
    id_hapus_buku        char(1)              null,
@@ -334,6 +401,13 @@ create table angkutan (
    no_polisi            varchar(255)         null,
    no_bkpb              varchar(255)         null,
    alamat               varchar(255)         null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_angkutan check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_angkutan primary key (id_angkutan)
 )
 go
@@ -360,7 +434,7 @@ go
 /*==============================================================*/
 /* Table: bangunan                                              */
 /*==============================================================*/
-create table bangunan (
+create table sarpras.bangunan (
    id_bangunan          uniqueidentifier     not null,
    id_stat_milik_sarpras numeric(1)           not null,
    id_sms               uniqueidentifier     not null,
@@ -412,6 +486,13 @@ create table bangunan (
    nup_brg_tanah        varchar(250)         null,
    tgl_sk_pemakai       date                 null,
    kapasitas            numeric(5)           null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_bangunan check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_bangunan primary key (id_bangunan)
 )
 go
@@ -465,7 +546,7 @@ go
 /*==============================================================*/
 /* Table: biaya_operasional                                     */
 /*==============================================================*/
-create table biaya_operasional (
+create table keuangan.biaya_operasional (
    id_bo                uniqueidentifier     not null,
    id_tahun_anggaran    numeric(4)           not null,
    id_jns_keuangan      int                  not null,
@@ -473,6 +554,13 @@ create table biaya_operasional (
    sumber               varchar(200)         not null,
    total_biaya          numeric(16,2)        not null,
    tgl_operasional      date                 null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_biaya_op check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_biaya_operasional primary key (id_bo)
 )
 go
@@ -594,9 +682,16 @@ go
 /*==============================================================*/
 /* Table: dbr                                                   */
 /*==============================================================*/
-create table dbr (
+create table sarpras.dbr (
    id_ruang             uniqueidentifier     not null,
    id_alat              uniqueidentifier     not null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_dbr check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_dbr primary key (id_ruang, id_alat)
 )
 go
@@ -1039,13 +1134,6 @@ go
 create table dok.dokumen (
    id_dok               uniqueidentifier     not null,
    id_jns_dok           int                  not null,
-   create_date          datetime             not null,
-   id_creator           uniqueidentifier     not null,
-   last_update          datetime             not null,
-   id_updater           uniqueidentifier     null,
-   soft_delete          numeric(1)           not null default 0
-      constraint ckc_soft_delete_dokumen check (soft_delete between 0 and 1 and soft_delete in (0,1)),
-   last_sync            datetime             not null,
    nm_dok               varchar(60)          not null,
    ket_dok              varchar(200)         null,
    file_dok             varbinary(max)       null,
@@ -1053,6 +1141,13 @@ create table dok.dokumen (
    url                  varchar(256)         null,
    media_type           varchar(250)         null,
    file_name            varchar(500)         null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_dokumen check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_dokumen primary key (id_dok)
 )
 go
@@ -1103,10 +1198,13 @@ go
 /*==============================================================*/
 /* Table: foto_peserta_didik                                    */
 /*==============================================================*/
-create table foto_peserta_didik (
+create table dok.foto_peserta_didik (
    id_foto_pd           uniqueidentifier     not null,
    id_blob              uniqueidentifier     not null,
    id_pd                uniqueidentifier     not null,
+   wkt_unggah           datetime             not null,
+   a_tampil             numeric(1)           not null default 0
+      constraint ckc_a_tampil_foto_pes check (a_tampil between 0 and 1 and a_tampil in (0,1)),
    create_date          datetime             not null,
    id_creator           uniqueidentifier     not null,
    last_update          datetime             not null,
@@ -1114,9 +1212,6 @@ create table foto_peserta_didik (
    soft_delete          numeric(1)           not null default 0
       constraint ckc_soft_delete_foto_pes check (soft_delete between 0 and 1 and soft_delete in (0,1)),
    last_sync            datetime             not null,
-   wkt_unggah           datetime             not null,
-   a_tampil             numeric(1)           not null default 0
-      constraint ckc_a_tampil_foto_pes check (a_tampil between 0 and 1 and a_tampil in (0,1)),
    constraint pk_foto_peserta_didik primary key (id_foto_pd)
 )
 go
@@ -1155,7 +1250,7 @@ go
 /*==============================================================*/
 /* Table: hasil_tracer_atasan                                   */
 /*==============================================================*/
-create table hasil_tracer_atasan (
+create table tracer.hasil_tracer_atasan (
    id_hasil_tracer_atasan uniqueidentifier     not null,
    id_hasil_tracer_study uniqueidentifier     not null,
    id_negara            char(2)              null,
@@ -1167,6 +1262,13 @@ create table hasil_tracer_atasan (
    bidang_tempat_bekerja varchar(200)         null,
    saran                text                 null,
    harapan              text                 null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_delete_hasil_ts_atasan check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_hasil_tracer_atasan primary key (id_hasil_tracer_atasan)
 )
 go
@@ -1174,7 +1276,7 @@ go
 /*==============================================================*/
 /* Table: hasil_tracer_study                                    */
 /*==============================================================*/
-create table hasil_tracer_study (
+create table tracer.hasil_tracer_study (
    id_hasil_tracer_study uniqueidentifier     not null,
    id_thn_ajaran        numeric(4)           not null,
    id_wil               char(8)              null,
@@ -1186,6 +1288,13 @@ create table hasil_tracer_study (
    jns_tmpt_bekerja     varchar(40)          null,
    nm_tmpt_bekerja      varchar(200)         null,
    income_per_bln       numeric(16,2)        null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_delete_hasil_ts check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_hasil_tracer_study primary key (id_hasil_tracer_study)
 )
 go
@@ -1210,6 +1319,7 @@ go
 /*==============================================================*/
 create table pdrd.inpassing (
    id_inpassing         uniqueidentifier     not null,
+   id_sdm               uniqueidentifier     not null,
    id_pangkat_gol       numeric(2)           not null,
    sk_inpassing         varchar(80)          not null,
    tgl_sk_inpassing     date                 null,
@@ -1866,13 +1976,17 @@ go
 /*==============================================================*/
 /* Table: kbli                                                  */
 /*==============================================================*/
-create table kbli (
+create table ref.kbli (
    id_kbli              numeric(7)           not null,
-   induk_kbli_id_kbli   numeric(7)           null,
+   id_induk_kbli        numeric(7)           null,
    kategori             varchar(2)           not null,
    kode                 varchar(5)           not null,
    judul                varchar(200)         not null,
    lv_kbli              numeric(2)           not null default 1,
+   create_date          datetime             not null,
+   last_update          datetime             not null,
+   expired_date         datetime             null,
+   last_sync            datetime             not null,
    constraint pk_kbli primary key (id_kbli)
 )
 go
@@ -2041,7 +2155,7 @@ go
 /*==============================================================*/
 /* Table: kepanitiaan                                           */
 /*==============================================================*/
-create table kepanitiaan (
+create table pdrd.kepanitiaan (
    id_panitia           uniqueidentifier     not null,
    id_jns_panitia       int                  not null,
    nm_panitia           varchar(80)          not null,
@@ -2051,6 +2165,13 @@ create table kepanitiaan (
    sk_tugas             varchar(80)          not null,
    tmt_sk_tugas         date                 not null,
    tst_sk_tugas         date                 null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_kepaniti check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_kepanitiaan primary key (id_panitia)
 )
 go
@@ -2058,7 +2179,7 @@ go
 /*==============================================================*/
 /* Table: kesejahteraan                                         */
 /*==============================================================*/
-create table kesejahteraan (
+create table pdrd.kesejahteraan (
    id_kesejahteraan     uniqueidentifier     not null,
    id_sdm               uniqueidentifier     not null,
    id_jns_sejahtera     int                  not null,
@@ -2068,6 +2189,13 @@ create table kesejahteraan (
    sampai_thn           numeric(4)           null,
    stat                 int                  null,
    no_peserta           varchar(16)          null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_kesejaht check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_kesejahteraan primary key (id_kesejahteraan)
 )
 go
@@ -2075,7 +2203,7 @@ go
 /*==============================================================*/
 /* Table: kuliah_mhs                                            */
 /*==============================================================*/
-create table kuliah_mhs (
+create table pdrd.kuliah_mhs (
    id_reg_pd            uniqueidentifier     not null,
    id_smt               char(5)              not null,
    id_stat_mhs          char(1)              not null,
@@ -2084,6 +2212,13 @@ create table kuliah_mhs (
    ipk                  numeric(5,2)         null,
    total_sks            numeric(5,2)         null,
    biaya_smt            numeric(16,2)        null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_kuliah_m check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_kuliah_mhs primary key (id_reg_pd, id_smt)
 )
 go
@@ -2091,7 +2226,7 @@ go
 /*==============================================================*/
 /* Table: kurikulum_sp                                          */
 /*==============================================================*/
-create table kurikulum_sp (
+create table pdrd.kurikulum_sp (
    id_kurikulum_sp      uniqueidentifier     not null,
    id_jenj_didik        numeric(2)           not null,
    nm_kurikulum_sp      varchar(100)         not null,
@@ -2101,6 +2236,13 @@ create table kurikulum_sp (
    jmlh_sks_lulus       numeric(5,2)         null,
    jmlh_sks_wajib       numeric(5,2)         null,
    jmlh_sks_pilihan     numeric(5,2)         null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_kurikulu check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_kurikulum_sp primary key (id_kurikulum_sp)
 )
 go
@@ -2108,7 +2250,7 @@ go
 /*==============================================================*/
 /* Table: laporan_studi                                         */
 /*==============================================================*/
-create table laporan_studi (
+create table pdrd.laporan_studi (
    id_lap_studi         uniqueidentifier     not null,
    smt                  numeric(2)           not null,
    domisili             varchar(200)         null,
@@ -2121,6 +2263,13 @@ create table laporan_studi (
    kemajuan_riset       text                 null,
    stat_kemajuan        int                  null 
       constraint ckc_stat_kemajuan_laporan_ check (stat_kemajuan is null or (stat_kemajuan in (1,2,3,4))),
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_laporan_ check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_laporan_studi primary key (id_lap_studi)
 )
 go
@@ -2130,6 +2279,9 @@ go
 /*==============================================================*/
 create table dok.large_object (
    id_blob              uniqueidentifier     not null,
+   blob_content         varbinary(max)       not null,
+   file_name            varchar(500)         null,
+   mime_type            varchar(100)         null,
    create_date          datetime             not null,
    id_creator           uniqueidentifier     not null,
    last_update          datetime             not null,
@@ -2137,9 +2289,6 @@ create table dok.large_object (
    soft_delete          numeric(1)           not null default 0
       constraint ckc_soft_delete_large_ob check (soft_delete between 0 and 1 and soft_delete in (0,1)),
    last_sync            datetime             not null,
-   blob_content         varbinary(max)       not null,
-   file_name            varchar(500)         null,
-   mime_type            varchar(100)         null,
    constraint pk_large_object primary key (id_blob)
 )
 go
@@ -2147,14 +2296,31 @@ go
 /*==============================================================*/
 /* Table: lembaga_akred                                         */
 /*==============================================================*/
-create table lembaga_akred (
+create table ref.lembaga_akred (
    id_lemb_akred        char(5)              not null,
+   nm_lemb              varchar(100)         not null,
+   jln                  varchar(255)         null,
+   rt                   numeric(3)           null,
+   rw                   numeric(3)           null,
+   nm_dsn               varchar(60)          null,
+   ds_kel               varchar(60)          null,
+   kode_pos             char(5)              null,
+   lintang              numeric(11,7)        null,
+   bujur                numeric(11,7)        null,
+   no_tel               varchar(20)          null,
+   no_fax               varchar(20)          null,
+   email                varchar(60)          null,
+   website              varchar(256)         null,
    kd_kl                char(3)              null,
    kd_satker            varchar(20)          null,
    tgl_mulai_beroperasi date                 not null,
    ket                  varchar(250)         null,
    target_akred         char(1)              not null default 'P'
       constraint ckc_target_akred_lembaga_ check (target_akred in ('P','K') and target_akred = upper(target_akred)),
+   create_date          datetime             not null,
+   last_update          datetime             not null,
+   expired_date         datetime             null,
+   last_sync            datetime             not null,
    constraint pk_lembaga_akred primary key (id_lemb_akred)
 )
 go
@@ -2162,25 +2328,13 @@ go
 /*==============================================================*/
 /* Table: lembaga_iptek                                         */
 /*==============================================================*/
-create table lembaga_iptek (
+create table pdrd.lembaga_iptek (
    id_lemb_iptek        uniqueidentifier     not null,
+   nm_lemb              varchar(100)         not null,
    nrli                 char(20)             null,
    hub_lemb_iptek       char(1)              not null 
       constraint ckc_hub_lemb_iptek_lembaga_ check (hub_lemb_iptek in ('1','2','3','9')),
    nm_singkat           varchar(20)          null,
-   constraint pk_lembaga_iptek primary key (id_lemb_iptek)
-)
-go
-
-/*==============================================================*/
-/* Table: lembaga_non_sp                                        */
-/*==============================================================*/
-create table lembaga_non_sp (
-   id_lemb_non_sp       uniqueidentifier     not null,
-   induk_lembaga_non_sp_id_lemb_non_sp uniqueidentifier     null,
-   id_wil               char(8)              not null,
-   id_jns_lemb          numeric(5)           not null,
-   nm_lemb              varchar(100)         not null,
    lintang              numeric(11,7)        null,
    bujur                numeric(11,7)        null,
    no_tel               varchar(20)          null,
@@ -2193,13 +2347,52 @@ create table lembaga_non_sp (
    nm_dsn               varchar(60)          null,
    ds_kel               varchar(60)          null,
    kode_pos             char(5)              null,
-   kd_kl                char(3)              null,
-   kd_satker            varchar(20)          null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_delete_lemb_iptek check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
+   constraint pk_lembaga_iptek primary key (id_lemb_iptek)
+)
+go
+
+/*==============================================================*/
+/* Table: lembaga_non_sp                                        */
+/*==============================================================*/
+create table pdrd.lembaga_non_sp (
+   id_lemb_non_sp       uniqueidentifier     not null,
+   nm_lemb              varchar(100)         not null,
    singkatan            varchar(50)          null,
    deskripsi            varchar(100)         null,
    level_lemb           numeric(2)           not null,
    tgl_mulai_efektif    date                 null,
    tgl_akhir_efektif    date                 null,
+   jln                  varchar(255)         null,
+   rt                   numeric(3)           null,
+   rw                   numeric(3)           null,
+   nm_dsn               varchar(60)          null,
+   ds_kel               varchar(60)          null,
+   kode_pos             char(5)              null,
+   lintang              numeric(11,7)        null,
+   bujur                numeric(11,7)        null,
+   no_tel               varchar(20)          null,
+   no_fax               varchar(20)          null,
+   email                varchar(60)          null,
+   website              varchar(256)         null,
+   kd_kl                char(3)              null,
+   kd_satker            varchar(20)          null,
+   id_jns_lemb          numeric(5)           not null,
+   id_wil               char(8)              not null,
+   id_induk_lemb_non_sp uniqueidentifier     null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_delete_lemb_non_sp check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_lembaga_non_sp primary key (id_lemb_non_sp)
 )
 go
@@ -2207,9 +2400,13 @@ go
 /*==============================================================*/
 /* Table: lembaga_pengangkat                                    */
 /*==============================================================*/
-create table lembaga_pengangkat (
+create table ref.lembaga_pengangkat (
    id_lemb_angkat       numeric(2)           not null,
    nm_lemb_angkat       varchar(100)         not null,
+   create_date          datetime             not null,
+   last_update          datetime             not null,
+   expired_date         datetime             null,
+   last_sync            datetime             not null,
    constraint pk_lembaga_pengangkat primary key (id_lemb_angkat)
 )
 go
@@ -2271,10 +2468,17 @@ go
 /*==============================================================*/
 /* Table: map_abmas_tse                                         */
 /*==============================================================*/
-create table map_abmas_tse (
+create table pdrd.map_abmas_tse (
    id_tse               numeric(5)           not null,
    id_litabmas          uniqueidentifier     not null,
    urutan3              numeric(2)           not null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_map_abma check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_map_abmas_tse primary key (id_tse, id_litabmas, urutan3)
 )
 go
@@ -2282,10 +2486,17 @@ go
 /*==============================================================*/
 /* Table: map_litabmas_bidang                                   */
 /*==============================================================*/
-create table map_litabmas_bidang (
+create table pdrd.map_litabmas_bidang (
    id_kel_bidang        uniqueidentifier     not null,
    id_litabmas          uniqueidentifier     not null,
    urutan2              int                  not null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_map_lita check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_map_litabmas_bidang primary key (id_kel_bidang, id_litabmas, urutan2)
 )
 go
@@ -2293,10 +2504,17 @@ go
 /*==============================================================*/
 /* Table: map_publikasi_bidang                                  */
 /*==============================================================*/
-create table map_publikasi_bidang (
+create table pdrd.map_publikasi_bidang (
    id_kel_bidang        uniqueidentifier     not null,
    id_publikasi         uniqueidentifier     not null,
    urutan               numeric(2)           not null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_map_publ check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_map_publikasi_bidang primary key (id_kel_bidang, id_publikasi, urutan)
 )
 go
@@ -2439,9 +2657,16 @@ go
 /*==============================================================*/
 /* Table: mitra_litabmas                                        */
 /*==============================================================*/
-create table mitra_litabmas (
+create table pdrd.mitra_litabmas (
    id_dudi              uniqueidentifier     not null,
    id_litabmas          uniqueidentifier     not null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_mitra_li check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_mitra_litabmas primary key (id_dudi, id_litabmas)
 )
 go
@@ -2449,7 +2674,7 @@ go
 /*==============================================================*/
 /* Table: mou                                                   */
 /*==============================================================*/
-create table mou (
+create table kerjasama.mou (
    id_mou               uniqueidentifier     not null,
    id_sp                uniqueidentifier     not null,
    id_dudi              uniqueidentifier     null,
@@ -2466,6 +2691,13 @@ create table mou (
    cp                   varchar(100)         null,
    tel_cp               varchar(20)          null,
    jab_cp               varchar(40)          null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_mou check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_mou primary key (id_mou)
 )
 go
@@ -2602,10 +2834,14 @@ go
 /*==============================================================*/
 /* Table: pangkat_golongan                                      */
 /*==============================================================*/
-create table pangkat_golongan (
+create table ref.pangkat_golongan (
    id_pangkat_gol       numeric(2)           not null,
    kode_gol             varchar(5)           not null,
    nm_pangkat           varchar(50)          not null,
+   create_date          datetime             not null,
+   last_update          datetime             not null,
+   expired_date         datetime             null,
+   last_sync            datetime             not null,
    constraint pk_pangkat_golongan primary key (id_pangkat_gol)
 )
 go
@@ -2613,7 +2849,7 @@ go
 /*==============================================================*/
 /* Table: pd_anggota_litabmas                                   */
 /*==============================================================*/
-create table pd_anggota_litabmas (
+create table pdrd.pd_anggota_litabmas (
    id_pd_ang_litabmas   uniqueidentifier     not null,
    id_litabmas          uniqueidentifier     not null,
    id_pd                uniqueidentifier     not null,
@@ -2623,6 +2859,13 @@ create table pd_anggota_litabmas (
       constraint ckc_stat_aktif_pd_anggo check (stat_aktif between 0 and 1 and stat_aktif in (0,1)),
    nm_pd                varchar(120)         null,
    nipd                 varchar(24)          null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_pd_anggo check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_pd_anggota_litabmas primary key (id_pd_ang_litabmas)
 )
 go
@@ -2630,9 +2873,13 @@ go
 /*==============================================================*/
 /* Table: pekerjaan                                             */
 /*==============================================================*/
-create table pekerjaan (
+create table ref.pekerjaan (
    id_pekerjaan         int                  not null,
    nm_pekerjaan         varchar(50)          not null,
+   create_date          datetime             not null,
+   last_update          datetime             not null,
+   expired_date         datetime             null,
+   last_sync            datetime             not null,
    constraint pk_pekerjaan primary key (id_pekerjaan)
 )
 go
@@ -2640,9 +2887,13 @@ go
 /*==============================================================*/
 /* Table: pembiayaan                                            */
 /*==============================================================*/
-create table pembiayaan (
+create table ref.pembiayaan (
    id_pembiayaan        numeric(2)           not null,
    nm_pembiayaan        varchar(40)          not null,
+   create_date          datetime             not null,
+   last_update          datetime             not null,
+   expired_date         datetime             null,
+   last_sync            datetime             not null,
    constraint pk_pembiayaan primary key (id_pembiayaan)
 )
 go
@@ -2768,9 +3019,13 @@ go
 /*==============================================================*/
 /* Table: penghasilan                                           */
 /*==============================================================*/
-create table penghasilan (
+create table ref.penghasilan (
    id_penghasilan       int                  not null,
    nm_penghasilan       varchar(50)          not null,
+   create_date          datetime             not null,
+   last_update          datetime             not null,
+   expired_date         datetime             null,
+   last_sync            datetime             not null,
    constraint pk_penghasilan primary key (id_penghasilan)
 )
 go
@@ -2794,41 +3049,8 @@ go
 /*==============================================================*/
 /* Table: peserta_didik                                         */
 /*==============================================================*/
-create table peserta_didik (
+create table pdrd.peserta_didik (
    id_pd                uniqueidentifier     not null,
-   id_kk                int                  null,
-   id_jenj_didik        numeric(2)           null,
-   pendidikan_ibu_id_jenj_didik numeric(2)           null,
-   id_pekerjaan         int                  null,
-   id_negara            char(2)              not null,
-   pekerjaan_ibu_id_pekerjaan int                  null,
-   id_penghasilan       int                  null,
-   id_agama             smallint             not null,
-   pendidikan_wali_id_jenj_didik numeric(2)           null,
-   id_blob              uniqueidentifier     null,
-   penghasilan_ayah_id_penghasilan int                  null,
-   kebutuhan_khusus_ibu_id_kk int                  null,
-   pekerjaan_ayah_id_pekerjaan int                  null,
-   id_jns_tinggal       numeric(2)           null,
-   kebutuhan_khusus_ayah_id_kk int                  null,
-   id_stat_mhs          char(1)              not null,
-   penghasilan_ibu_id_penghasilan int                  null,
-   id_alat_transport    numeric(2)           null,
-   id_wil               char(8)              null,
-   jln                  varchar(255)         null,
-   rt                   numeric(3)           null,
-   rw                   numeric(3)           null,
-   nm_dsn               varchar(60)          null,
-   ds_kel               varchar(60)          null,
-   kode_pos             char(5)              null,
-   nm_ayah              varchar(100)         null,
-   tgl_lahir_ayah       date                 null,
-   nik_ayah             char(20)             null,
-   nm_wali              varchar(100)         null,
-   tgl_lahir_wali       date                 null,
-   nm_ibu_kandung       varchar(100)         null,
-   tgl_lahir_ibu        date                 null,
-   nik_ibu              char(20)             null,
    nm_pd                varchar(120)         not null,
    jk                   char(1)              null 
       constraint ckc_jk_peserta_ check (jk is null or (jk in ('L','P','*'))),
@@ -2836,11 +3058,51 @@ create table peserta_didik (
    nik                  char(20)             null,
    tmpt_lahir           varchar(32)          not null,
    tgl_lahir            date                 null,
+   jln                  varchar(255)         null,
+   rt                   numeric(3)           null,
+   rw                   numeric(3)           null,
+   nm_dsn               varchar(60)          null,
+   ds_kel               varchar(60)          null,
+   kode_pos             char(5)              null,
+   tlpn_rumah           varchar(20)          null,
+   tlpn_hp              varchar(20)          null,
+   nm_wali              varchar(100)         null,
+   tgl_lahir_wali       date                 null,
+   id_pendidikan_wali   numeric(2)           null,
+   id_pekerjaan_wali    int                  null,
+   id_penghasilan_wali  int                  null,
+   nm_ayah              varchar(100)         null,
+   tgl_lahir_ayah       date                 null,
+   nik_ayah             char(20)             null,
+   id_pendidikan_ayah   numeric(2)           null,
+   id_pekerjaan_ayah    int                  null,
+   id_penghasilan_ayah  int                  null,
+   id_kk_ayah           int                  null,
+   nm_ibu_kandung       varchar(100)         null,
+   tgl_lahir_ibu        date                 null,
+   nik_ibu              char(20)             null,
+   id_pendidikan_ibu    numeric(2)           null,
+   id_pekerjaan_ibu     int                  null,
+   id_penghasilan_ibu   int                  null,
+   id_kk_ibu            int                  null,
    a_terima_kps         numeric(1)           not null default 0
       constraint ckc_a_terima_kps_peserta_ check (a_terima_kps between 0 and 1 and a_terima_kps in (0,1)),
    no_kps               varchar(40)          null,
-   tlpn_rumah           varchar(20)          null,
-   tlpn_hp              varchar(20)          null,
+   id_kk                int                  null,
+   id_kewarganegaraan   char(2)              not null,
+   id_agama             smallint             not null,
+   id_blob              uniqueidentifier     null,
+   id_jns_tinggal       numeric(2)           null,
+   id_stat_mhs          char(1)              not null,
+   id_alat_transport    numeric(2)           null,
+   id_wil               char(8)              null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_peserta_ check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_peserta_didik primary key (id_pd)
 )
 go
@@ -2872,16 +3134,23 @@ go
 /*==============================================================*/
 /* Table: prestasi                                              */
 /*==============================================================*/
-create table prestasi (
+create table pdrd.prestasi (
    id_prestasi          uniqueidentifier     not null,
    id_jenis_prestasi    int                  not null,
-   id_sp                uniqueidentifier     not null,
-   id_pd                uniqueidentifier     not null,
-   id_tkt_prestasi      int                  not null,
    nm_prestasi          varchar(160)         not null,
    thn_prestasi         numeric(4)           not null,
    penyelenggara        varchar(100)         null,
    peringkat            numeric(1)           null,
+   id_sp                uniqueidentifier     not null,
+   id_pd                uniqueidentifier     not null,
+   id_tkt_prestasi      int                  not null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_prestasi check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_prestasi primary key (id_prestasi)
 )
 go
@@ -2889,7 +3158,7 @@ go
 /*==============================================================*/
 /* Table: profil_prodi                                          */
 /*==============================================================*/
-create table profil_prodi (
+create table pdrd.profil_prodi (
    id_thn_ajaran        numeric(4)           not null,
    id_sms               uniqueidentifier     not null,
    desk_singkat         text                 null,
@@ -2903,14 +3172,21 @@ create table profil_prodi (
    keberlanjutan        text                 null,
    frek_kur             char(1)              null,
    laks_kur             char(1)              null,
-   himp_alumni          text                 null
+   himp_alumni          text                 null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_delete_profil_prodi check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null
 )
 go
 
 /*==============================================================*/
 /* Table: profil_pt                                             */
 /*==============================================================*/
-create table profil_pt (
+create table pdrd.profil_pt (
    id_sp                uniqueidentifier     not null,
    id_thn_ajaran        numeric(4)           not null,
    desk_singkat         text                 null,
@@ -2930,19 +3206,23 @@ create table profil_pt (
    sebar_info           text                 null,
    renc_kembang_si      text                 null,
    eval_lulusan         text                 null,
-   mekanisme_eval_lulusan text                 null
+   mekanisme_eval_lulusan text                 null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_delete_profil_pt check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null
 )
 go
 
 /*==============================================================*/
 /* Table: publikasi                                             */
 /*==============================================================*/
-create table publikasi (
+create table pdrd.publikasi (
    id_publikasi         uniqueidentifier     not null,
    id_jns_pub           int                  not null,
-   id_kat_capaian       numeric(3)           null,
-   id_media_pub         uniqueidentifier     null,
-   id_litabmas          uniqueidentifier     null,
    judul                varchar(200)         not null,
    judul_chapter        varchar(500)         null,
    judul_asli           varchar(500)         null,
@@ -2977,6 +3257,16 @@ create table publikasi (
       constraint ckc_a_komersialisasi_publikas check (a_komersialisasi between 0 and 1 and a_komersialisasi in (0,1)),
    stat_impor_sinta     numeric(1)           null,
    quartile             numeric(1)           null,
+   id_kat_capaian       numeric(3)           null,
+   id_media_pub         uniqueidentifier     null,
+   id_litabmas          uniqueidentifier     null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_publikas check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_publikasi primary key (id_publikasi)
 )
 go
@@ -2984,21 +3274,23 @@ go
 /*==============================================================*/
 /* Table: reg_pd                                                */
 /*==============================================================*/
-create table reg_pd (
+create table pdrd.reg_pd (
    id_reg_pd            uniqueidentifier     not null,
-   id_jns_keluar        char(1)              null,
    id_sp                uniqueidentifier     null,
-   id_jalur_daftar      numeric              not null,
-   id_smt               char(5)              null,
-   id_pembiayaan        numeric(2)           not null,
    id_sms               uniqueidentifier     null,
-   id_jns_daftar        numeric(2)           not null,
-   pt_pd_id_sp          uniqueidentifier     not null,
    id_pd                uniqueidentifier     not null,
-   semester_masuk_id_smt char(5)              not null,
-   id_prodi_asal        uniqueidentifier     null,
-   nipd                 varchar(24)          not null,
+   id_jns_daftar        numeric(2)           not null,
+   id_jalur_daftar      numeric              not null,
+   id_pembiayaan        numeric(2)           not null,
+   id_smt               char(5)              null,
    tgl_masuk_sp         date                 not null,
+   nipd                 varchar(24)          not null,
+   id_semester_masuk    char(5)              not null,
+   id_sp_asal           uniqueidentifier     not null,
+   nm_pt_asal           varchar(100)         null,
+   id_prodi_asal        uniqueidentifier     null,
+   nm_prodi_asal        varchar(100)         null,
+   id_jns_keluar        char(1)              null,
    tgl_keluar           date                 null,
    ket                  varchar(250)         null,
    skhun                char(20)             null,
@@ -3018,9 +3310,14 @@ create table reg_pd (
    sert_prof            varchar(80)          null,
    a_pindah_mhs_asing   numeric(1)           null default 0
       constraint ckc_a_pindah_mhs_asin_reg_pd check (a_pindah_mhs_asing is null or (a_pindah_mhs_asing between 0 and 1 and a_pindah_mhs_asing in (0,1))),
-   nm_pt_asal           varchar(100)         null,
-   nm_prodi_asal        varchar(100)         null,
    biaya_masuk_kuliah   numeric(16,2)        null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_reg_pd check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_reg_pd primary key (id_reg_pd)
 )
 go
@@ -3028,7 +3325,7 @@ go
 /*==============================================================*/
 /* Table: reg_ptk                                               */
 /*==============================================================*/
-create table reg_ptk (
+create table pdrd.reg_ptk (
    id_reg_ptk           uniqueidentifier     not null,
    id_jns_keluar        char(1)              null,
    id_sdm               uniqueidentifier     null,
@@ -3041,6 +3338,13 @@ create table reg_ptk (
    tmt_srt_tgs          date                 not null,
    tgl_ptk_keluar       date                 null,
    nidn                 char(10)             null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_reg_ptk check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_reg_ptk primary key (id_reg_ptk)
 )
 go
@@ -3072,7 +3376,7 @@ go
 /*==============================================================*/
 /* Table: ruang                                                 */
 /*==============================================================*/
-create table ruang (
+create table sarpras.ruang (
    id_ruang             uniqueidentifier     not null,
    id_sms               uniqueidentifier     not null,
    kd_satuan            char(1)              not null,
@@ -3081,6 +3385,13 @@ create table ruang (
    lantai               numeric(3)           not null,
    kapasitas            numeric(5)           null,
    luas                 float                null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_ruang check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_ruang primary key (id_ruang)
 )
 go
@@ -3088,7 +3399,7 @@ go
 /*==============================================================*/
 /* Table: rwy_didik_nonformal                                   */
 /*==============================================================*/
-create table rwy_didik_nonformal (
+create table pdrd.rwy_didik_nonformal (
    id_rwy_didik_nonformal uniqueidentifier     not null,
    id_sms               uniqueidentifier     not null,
    id_rwy_didik_formal  uniqueidentifier     not null,
@@ -3097,6 +3408,13 @@ create table rwy_didik_nonformal (
    tmt_sk_setara        date                 not null,
    level_kkni           int                  not null,
    nm_prodi_penyetara   varchar(100)         not null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_rwy_didi check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_rwy_didik_nonformal primary key (id_rwy_didik_nonformal)
 )
 go
@@ -3104,7 +3422,7 @@ go
 /*==============================================================*/
 /* Table: rwy_fungsional                                        */
 /*==============================================================*/
-create table rwy_fungsional (
+create table pdrd.rwy_fungsional (
    id_rwy_jabfung       uniqueidentifier     not null,
    id_sdm               uniqueidentifier     not null,
    id_kel_bidang        uniqueidentifier     null,
@@ -3117,6 +3435,13 @@ create table rwy_fungsional (
    lebih_pengmas        numeric(7,2)         null,
    lebih_tunjang        numeric(7,2)         null,
    bidang_ilmu          varchar(200)         null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_rwy_fung check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_rwy_fungsional primary key (id_rwy_jabfung)
 )
 go
@@ -3124,7 +3449,7 @@ go
 /*==============================================================*/
 /* Table: rwy_kepangkatan                                       */
 /*==============================================================*/
-create table rwy_kepangkatan (
+create table pdrd.rwy_kepangkatan (
    id_rwy_pangkat       uniqueidentifier     not null,
    id_sdm               uniqueidentifier     not null,
    id_pangkat_gol       numeric(2)           not null,
@@ -3133,6 +3458,13 @@ create table rwy_kepangkatan (
    tmt_sk_pangkat       date                 not null,
    masa_kerja_gol_thn   numeric(2)           not null,
    masa_kerja_gol_bln   numeric(2)           not null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_rwy_kepa check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_rwy_kepangkatan primary key (id_rwy_pangkat)
 )
 go
@@ -3140,7 +3472,7 @@ go
 /*==============================================================*/
 /* Table: rwy_pekerjaan                                         */
 /*==============================================================*/
-create table rwy_pekerjaan (
+create table pdrd.rwy_pekerjaan (
    id_rwy_kerja         uniqueidentifier     not null,
    id_sdm               uniqueidentifier     not null,
    id_dudi              uniqueidentifier     null,
@@ -3154,6 +3486,13 @@ create table rwy_pekerjaan (
    selesai_bekerja      date                 null,
    a_ln                 numeric(1)           not null default 0
       constraint ckc_a_ln_rwy_peke check (a_ln between 0 and 1 and a_ln in (0,1)),
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_rwy_peke check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_rwy_pekerjaan primary key (id_rwy_kerja)
 )
 go
@@ -3161,7 +3500,7 @@ go
 /*==============================================================*/
 /* Table: rwy_pend_formal                                       */
 /*==============================================================*/
-create table rwy_pend_formal (
+create table pdrd.rwy_pend_formal (
    id_rwy_didik_formal  uniqueidentifier     not null,
    id_sms               uniqueidentifier     null,
    id_sdm               uniqueidentifier     not null,
@@ -3184,6 +3523,13 @@ create table rwy_pend_formal (
    no_ijazah            varchar(80)          null,
    judul_tesis          varchar(500)         null,
    tgl_lulus            date                 null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_rwy_pend check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_rwy_pend_formal primary key (id_rwy_didik_formal)
 )
 go
@@ -3191,14 +3537,22 @@ go
 /*==============================================================*/
 /* Table: rwy_sertifikasi                                       */
 /*==============================================================*/
-create table rwy_sertifikasi (
+create table pdrd.rwy_sertifikasi (
    id_rwy_sert          uniqueidentifier     not null,
    id_jns_sert          numeric(3)           not null,
    id_bid_studi         int                  not null,
+   id_sdm               uniqueidentifier     not null,
    thn_sert             numeric(4)           not null,
    sk_sert              varchar(80)          not null,
    nrg                  varchar(15)          null,
    no_peserta           varchar(16)          null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_rwy_sert check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_rwy_sertifikasi primary key (id_rwy_sert)
 )
 go
@@ -3206,7 +3560,7 @@ go
 /*==============================================================*/
 /* Table: rwy_struktural                                        */
 /*==============================================================*/
-create table rwy_struktural (
+create table pdrd.rwy_struktural (
    id_rwy_jabstruk      uniqueidentifier     not null,
    id_sdm               uniqueidentifier     not null,
    id_jab_tgs           numeric(5)           not null,
@@ -3214,6 +3568,13 @@ create table rwy_struktural (
    tmt_sk_jabstruk      date                 not null,
    tst_sk_jabstruk      date                 null,
    lokasi_tugas         varchar(80)          null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_rwy_stru check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_rwy_struktural primary key (id_rwy_jabstruk)
 )
 go
@@ -3235,29 +3596,24 @@ go
 /*==============================================================*/
 /* Table: satuan_pendidikan                                     */
 /*==============================================================*/
-create table satuan_pendidikan (
+create table pdrd.satuan_pendidikan (
    id_sp                uniqueidentifier     not null,
-   id_bp                smallint             not null,
-   id_wil               char(8)              not null,
-   id_blob              uniqueidentifier     null,
-   id_stat_milik        numeric(1)           not null,
-   id_lemb_non_sp       uniqueidentifier     not null,
    nm_lemb              varchar(100)         not null,
-   lintang              numeric(11,7)        null,
-   bujur                numeric(11,7)        null,
-   no_tel               varchar(20)          null,
-   no_fax               varchar(20)          null,
-   email                varchar(60)          null,
-   website              varchar(256)         null,
+   nss                  char(12)             null,
+   npsn                 char(8)              null,
+   nm_singkat           varchar(20)          null,
    jln                  varchar(255)         null,
    rt                   numeric(3)           null,
    rw                   numeric(3)           null,
    nm_dsn               varchar(60)          null,
    ds_kel               varchar(60)          null,
    kode_pos             char(5)              null,
-   nss                  char(12)             null,
-   npsn                 char(8)              null,
-   nm_singkat           varchar(20)          null,
+   lintang              numeric(11,7)        null,
+   bujur                numeric(11,7)        null,
+   no_tel               varchar(20)          null,
+   no_fax               varchar(20)          null,
+   email                varchar(60)          null,
+   website              varchar(256)         null,
    stat_sp              char(1)              not null,
    sk_pendirian_sp      varchar(80)          null,
    tgl_sk_pendirian_sp  date                 null,
@@ -3278,6 +3634,18 @@ create table satuan_pendidikan (
    npwp                 char(15)             null,
    nm_wp                varchar(100)         null,
    flag                 char(1)              null,
+   id_pembina           uniqueidentifier     not null,
+   id_blob              uniqueidentifier     null,
+   id_stat_milik        numeric(1)           not null,
+   id_wil               char(8)              not null,
+   id_bp                smallint             not null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_satuan_p check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_satuan_pendidikan primary key (id_sp)
 )
 go
@@ -3285,16 +3653,8 @@ go
 /*==============================================================*/
 /* Table: sdm                                                   */
 /*==============================================================*/
-create table sdm (
+create table pdrd.sdm (
    id_sdm               uniqueidentifier     not null,
-   id_keahlian_lab      smallint             null,
-   id_jns_sdm           numeric(2)           not null,
-   id_agama             smallint             not null,
-   id_lemb_angkat       numeric(2)           not null,
-   id_pekerjaan         int                  not null,
-   id_stat_aktif        numeric(2)           not null,
-   id_negara            char(2)              not null,
-   id_wil               char(8)              not null,
    nm_sdm               varchar(100)         not null,
    jk                   char(1)              not null 
       constraint ckc_jk_sdm check (jk in ('L','P','*')),
@@ -3322,6 +3682,21 @@ create table sdm (
    stat_data            int                  null,
    akta_ijin_ajar       char(1)              null,
    nira                 char(30)             null,
+   kewarganegaraan      char(2)              not null,
+   id_jns_sdm           numeric(2)           not null,
+   id_wil               char(8)              not null,
+   id_stat_aktif        numeric(2)           not null,
+   id_agama             smallint             not null,
+   id_keahlian_lab      smallint             null,
+   id_pekerjaan_suami_istri int                  not null,
+   id_lemb_angkat       numeric(2)           not null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_sdm check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_sdm primary key (id_sdm)
 )
 go
@@ -3329,13 +3704,20 @@ go
 /*==============================================================*/
 /* Table: sdm_anggota_litabmas                                  */
 /*==============================================================*/
-create table sdm_anggota_litabmas (
+create table pdrd.sdm_anggota_litabmas (
    id_litabmas          uniqueidentifier     not null,
    id_sdm               uniqueidentifier     not null,
    peran_litabmas       char(1)              not null 
       constraint ckc_peran_litabmas_sdm_angg check (peran_litabmas in ('A','K')),
    stat_aktif           numeric(1)           not null default 0
       constraint ckc_stat_aktif_sdm_angg check (stat_aktif between 0 and 1 and stat_aktif in (0,1)),
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_sdm_angg check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_sdm_anggota_litabmas primary key (id_litabmas, id_sdm)
 )
 go
@@ -3359,7 +3741,7 @@ go
 /*==============================================================*/
 /* Table: skim_kegiatan                                         */
 /*==============================================================*/
-create table skim_kegiatan (
+create table ref.skim_kegiatan (
    id_skim              uniqueidentifier     not null,
    id_jenj_didik        numeric(2)           null,
    nm_skim              varchar(80)          not null,
@@ -3387,7 +3769,7 @@ go
 /*==============================================================*/
 /* Table: smi                                                   */
 /*==============================================================*/
-create table smi (
+create table pdrd.smi (
    id_smi               uniqueidentifier     not null,
    singkatan            varchar(50)          null,
    kode_smi             varchar(20)          null,
@@ -3397,6 +3779,13 @@ create table smi (
    tmt_sk_selenggara    date                 null,
    tst_sk_selenggara    date                 null,
    habis_masa_laku      date                 null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_smi check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_smi primary key (id_smi)
 )
 go
@@ -3404,59 +3793,34 @@ go
 /*==============================================================*/
 /* Table: sms                                                   */
 /*==============================================================*/
-create table sms (
+create table pdrd.sms (
    id_sms               uniqueidentifier     not null,
-   id_jur               varchar(25)          null,
-   id_kel_usaha         char(8)              not null,
-   id_sp                uniqueidentifier     not null,
-   id_jns_sms           numeric(2)           not null,
-   id_jenj_didik        numeric(2)           not null,
-   induk_sms_id_sms     uniqueidentifier     null,
-   id_blob              uniqueidentifier     null,
-   id_fungsi_lab        char(1)              not null,
-   id_wil               char(8)              not null,
+   nm_lemb              varchar(100)         not null,
+   kd_kl                char(3)              null,
+   kd_satker            varchar(20)          null,
+   smt_mulai            char(5)              null,
+   a_selenggara_subst   numeric(1)           not null default 0
+      constraint ckc_a_selenggara_subs_sms check (a_selenggara_subst between 0 and 1 and a_selenggara_subst in (0,1)),
+   kode_prodi           varchar(10)          null,
+   nm_prodi_english     varchar(100)         null,
    jln                  varchar(255)         null,
    rt                   numeric(3)           null,
    rw                   numeric(3)           null,
    nm_dsn               varchar(60)          null,
    ds_kel               varchar(60)          null,
    kode_pos             char(5)              null,
-   nm_lemb              varchar(100)         not null,
    lintang              numeric(11,7)        null,
    bujur                numeric(11,7)        null,
    no_tel               varchar(20)          null,
    no_fax               varchar(20)          null,
    email                varchar(60)          null,
    website              varchar(256)         null,
-   kd_kl                char(3)              null,
-   kd_satker            varchar(20)          null,
    singkatan            varchar(50)          null,
    tgl_berdiri          date                 null,
    sk_selenggara        varchar(80)          null,
    tgl_sk_selenggara    date                 null,
    tmt_sk_selenggara    date                 null,
    tst_sk_selenggara    date                 null,
-   smt_mulai            char(5)              null,
-   luas_lab             numeric(5)           null,
-   kapasitas_prak_satu_shift numeric(4)           null,
-   jml_mhs_pengguna     numeric(6)           null,
-   jml_jam_penggunaan   numeric(5)           null,
-   jml_prodi_pengguna   numeric(3)           null,
-   jml_modul_prak_sendiri numeric(4)           null,
-   jml_modul_prak_lain  numeric(4)           null,
-   fungsi_selain_praktikum_ char(1)              null,
-   penggunaan_lab       char(1)              null,
-   a_selenggara_subst   numeric(1)           not null default 0
-      constraint ckc_a_selenggara_subs_sms check (a_selenggara_subst between 0 and 1 and a_selenggara_subst in (0,1)),
-   sistem_ajar          numeric(1)           null,
-   a_pjj                numeric(1)           null default 0
-      constraint ckc_a_pjj_sms check (a_pjj is null or (a_pjj between 0 and 1 and a_pjj in (0,1))),
-   a_psdku              numeric(1)           null default 0
-      constraint ckc_a_psdku_sms check (a_psdku is null or (a_psdku between 0 and 1 and a_psdku in (0,1))),
-   a_pkl                numeric(1)           null default 0
-      constraint ckc_a_pkl_sms check (a_pkl is null or (a_pkl between 0 and 1 and a_pkl in (0,1))),
-   kode_prodi           varchar(10)          null,
-   nm_prodi_english     varchar(100)         null,
    kpst_pd              numeric(5)           null,
    sks_lulus            numeric(3)           null,
    gelar_lulusan        varchar(10)          null,
@@ -3466,6 +3830,38 @@ create table sms (
       constraint ckc_polesei_nilai_sms check (polesei_nilai is null or (polesei_nilai in ('B','T'))),
    a_kependidikan       numeric(1)           null default 0
       constraint ckc_a_kependidikan_sms check (a_kependidikan is null or (a_kependidikan between 0 and 1 and a_kependidikan in (0,1))),
+   sistem_ajar          numeric(1)           null,
+   a_pjj                numeric(1)           null default 0
+      constraint ckc_a_pjj_sms check (a_pjj is null or (a_pjj between 0 and 1 and a_pjj in (0,1))),
+   a_psdku              numeric(1)           null default 0
+      constraint ckc_a_psdku_sms check (a_psdku is null or (a_psdku between 0 and 1 and a_psdku in (0,1))),
+   luas_lab             numeric(5)           null,
+   kapasitas_prak_satu_shift numeric(4)           null,
+   jml_mhs_pengguna     numeric(6)           null,
+   jml_jam_penggunaan   numeric(5)           null,
+   jml_prodi_pengguna   numeric(3)           null,
+   jml_modul_prak_sendiri numeric(4)           null,
+   jml_modul_prak_lain  numeric(4)           null,
+   fungsi_selain_prak   char(1)              null,
+   penggunaan_lab       char(1)              null,
+   a_pkl                numeric(1)           null default 0
+      constraint ckc_a_pkl_sms check (a_pkl is null or (a_pkl between 0 and 1 and a_pkl in (0,1))),
+   id_sp                uniqueidentifier     not null,
+   id_jenj_didik        numeric(2)           not null,
+   id_jns_sms           numeric(2)           not null,
+   id_fungsi_lab        char(1)              not null,
+   id_kel_usaha         char(8)              not null,
+   id_blob              uniqueidentifier     null,
+   id_wil               char(8)              not null,
+   id_jur               varchar(25)          null,
+   id_induk_sms         uniqueidentifier     null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_sms check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_sms primary key (id_sms)
 )
 go
@@ -3473,7 +3869,7 @@ go
 /*==============================================================*/
 /* Table: sms_kerjasama                                         */
 /*==============================================================*/
-create table sms_kerjasama (
+create table kerjasama.sms_kerjasama (
    id_sms_kerjasama     uniqueidentifier     not null,
    id_sumber_dana       numeric(4)           null,
    id_sms               uniqueidentifier     not null,
@@ -3485,6 +3881,13 @@ create table sms_kerjasama (
    prestasi_penghargaan varchar(200)         null,
    pangsa_psr_brg       varchar(200)         null,
    pangsa_psr_jasa      varchar(200)         null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_sms_kerj check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_sms_kerjasama primary key (id_sms_kerjasama)
 )
 go
@@ -3577,7 +3980,7 @@ go
 /*==============================================================*/
 /* Table: substansi_kuliah                                      */
 /*==============================================================*/
-create table substansi_kuliah (
+create table pdrd.substansi_kuliah (
    id_subst             uniqueidentifier     not null,
    id_jns_subst         char(5)              not null,
    nm_subst             varchar(50)          not null,
@@ -3586,6 +3989,13 @@ create table substansi_kuliah (
    sks_prak             numeric(5,2)         null,
    sks_prak_lap         numeric(5,2)         null,
    sks_sim              numeric(5,2)         null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_substans check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_substansi_kuliah primary key (id_subst)
 )
 go
@@ -3593,7 +4003,7 @@ go
 /*==============================================================*/
 /* Table: sumber_dana                                           */
 /*==============================================================*/
-create table sumber_dana (
+create table ref.sumber_dana (
    id_sumber_dana       numeric(4)           not null,
    nm_sumber_dana       varchar(80)          not null,
    u_blockgrant         numeric(1)           not null default 0
@@ -3604,6 +4014,10 @@ create table sumber_dana (
       constraint ckc_u_lit_sumber_d check (u_lit between 0 and 1 and u_lit in (0,1)),
    u_unit_usaha         numeric(1)           not null default 0
       constraint ckc_u_unit_usaha_sumber_d check (u_unit_usaha between 0 and 1 and u_unit_usaha in (0,1)),
+   create_date          datetime             not null,
+   last_update          datetime             not null,
+   expired_date         datetime             null,
+   last_sync            datetime             not null,
    constraint pk_sumber_dana primary key (id_sumber_dana)
 )
 go
@@ -3643,7 +4057,7 @@ go
 /*==============================================================*/
 /* Table: tanah                                                 */
 /*==============================================================*/
-create table tanah (
+create table sarpras.tanah (
    id_tanah             uniqueidentifier     not null,
    id_stat_milik_sarpras numeric(1)           not null,
    id_sms               uniqueidentifier     not null,
@@ -3688,6 +4102,13 @@ create table tanah (
    tgl_mutasi_keluar    date                 null,
    batas                varchar(1)           null,
    ket_tanah            varchar(255)         null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_tanah check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_tanah primary key (id_tanah)
 )
 go
@@ -3738,12 +4159,11 @@ go
 /*==============================================================*/
 /* Table: tugas_belajar                                         */
 /*==============================================================*/
-create table tugas_belajar (
+create table pdrd.tugas_belajar (
    id_tb                uniqueidentifier     not null,
    id_sp                uniqueidentifier     null,
    id_jenj_didik        numeric(2)           not null,
    id_sdm               uniqueidentifier     not null,
-   id_negara            char(2)              not null,
    nm_prodi             varchar(100)         not null,
    tgl_mulai_tb         date                 not null,
    domisili             varchar(200)         not null,
@@ -3751,6 +4171,14 @@ create table tugas_belajar (
    tgl_sk_tb            date                 null,
    pembiayaan           varchar(150)         null,
    tgl_lulus            date                 null,
+   id_negara            char(2)              not null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_tugas_be check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_tugas_belajar primary key (id_tb)
 )
 go
@@ -3758,7 +4186,7 @@ go
 /*==============================================================*/
 /* Table: tugas_tambahan                                        */
 /*==============================================================*/
-create table tugas_tambahan (
+create table pdrd.tugas_tambahan (
    id_tgs_tambah        uniqueidentifier     not null,
    id_jab_tgs           numeric(5)           not null,
    id_sdm               uniqueidentifier     not null,
@@ -3768,6 +4196,13 @@ create table tugas_tambahan (
    sk_tugas_tambah      varchar(80)          not null,
    tmt_sk_tambah        date                 not null,
    tst_sk_tambah        date                 null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_tugas_ta check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_tugas_tambahan primary key (id_tgs_tambah)
 )
 go
@@ -3775,7 +4210,7 @@ go
 /*==============================================================*/
 /* Table: tulis_buku_ajar                                       */
 /*==============================================================*/
-create table tulis_buku_ajar (
+create table pdrd.tulis_buku_ajar (
    id_tulis_buku_ajar   uniqueidentifier     not null,
    id_buku_ajar         uniqueidentifier     not null,
    urutan2              int                  not null,
@@ -3786,6 +4221,13 @@ create table tulis_buku_ajar (
       constraint ckc_jns_penulis_tulis_bu check (jns_penulis in ('1','2','3')),
    nm_pd                varchar(120)         null,
    nipd                 varchar(24)          null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_tulis_bu check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_tulis_buku_ajar primary key (id_tulis_buku_ajar)
 )
 go
@@ -3793,7 +4235,7 @@ go
 /*==============================================================*/
 /* Table: tulis_pub                                             */
 /*==============================================================*/
-create table tulis_pub (
+create table pdrd.tulis_pub (
    id_tulis_pub         uniqueidentifier     not null,
    id_publikasi         uniqueidentifier     not null,
    urutan2              int                  not null,
@@ -3809,6 +4251,13 @@ create table tulis_pub (
    id_afiliasi          uniqueidentifier     null,
    jns_afiliasi         char(1)              null 
       constraint ckc_jns_afiliasi_tulis_pu check (jns_afiliasi is null or (jns_afiliasi in ('I','S'))),
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_tulis_pu check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_tulis_pub primary key (id_tulis_pub)
 )
 go
@@ -3816,7 +4265,7 @@ go
 /*==============================================================*/
 /* Table: tunjangan                                             */
 /*==============================================================*/
-create table tunjangan (
+create table pdrd.tunjangan (
    id_tunj              uniqueidentifier     not null,
    id_sdm               uniqueidentifier     not null,
    id_jns_tunj          int                  null,
@@ -3827,6 +4276,13 @@ create table tunjangan (
    sampai_thn           numeric(4)           null,
    nominal              numeric(16,2)        not null,
    stat                 int                  null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_tunjanga check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_tunjangan primary key (id_tunj)
 )
 go
@@ -3890,7 +4346,7 @@ go
 /*==============================================================*/
 /* Table: visiting_scientist                                    */
 /*==============================================================*/
-create table visiting_scientist (
+create table pdrd.visiting_scientist (
    id_visit             uniqueidentifier     not null,
    id_sdm               uniqueidentifier     null,
    id_sp                uniqueidentifier     null,
@@ -3902,6 +4358,13 @@ create table visiting_scientist (
    tgl_laks             date                 null,
    sk_tugas             varchar(80)          null,
    tgl_sk_tugas         date                 null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_visiting check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    constraint pk_visiting_scientist primary key (id_visit)
 )
 go
@@ -3929,12 +4392,12 @@ go
 
 alter table pdrd.akred_sp
    add constraint fk_akred_sp_akred_sp_satuan_p foreign key (id_sp)
-      references satuan_pendidikan (id_sp)
+      references pdrd.satuan_pendidikan (id_sp)
 go
 
 alter table pdrd.akred_sp
    add constraint fk_akred_sp_akred_sp__lembaga_ foreign key (id_lemb_akred)
-      references lembaga_akred (id_lemb_akred)
+      references ref.lembaga_akred (id_lemb_akred)
 go
 
 alter table pdrd.akred_sp
@@ -3944,12 +4407,12 @@ go
 
 alter table pdrd.akreditasi_prodi
    add constraint fk_akredita_akreditas_sms foreign key (id_sms)
-      references sms (id_sms)
+      references pdrd.sms (id_sms)
 go
 
 alter table pdrd.akreditasi_prodi
    add constraint fk_akredita_lemb_akre_lembaga_ foreign key (id_lemb_akred)
-      references lembaga_akred (id_lemb_akred)
+      references ref.lembaga_akred (id_lemb_akred)
 go
 
 alter table pdrd.akreditasi_prodi
@@ -3964,7 +4427,7 @@ go
 
 alter table pdrd.akt_ajar_dosen
    add constraint fk_akt_ajar_mengajar__substans foreign key (id_subst)
-      references substansi_kuliah (id_subst)
+      references pdrd.substansi_kuliah (id_subst)
 go
 
 alter table pdrd.akt_ajar_dosen
@@ -3979,7 +4442,7 @@ go
 
 alter table pdrd.akt_ajar_dosen
    add constraint fk_akt_ajar_ptk_penga_reg_ptk foreign key (id_reg_ptk)
-      references reg_ptk (id_reg_ptk)
+      references pdrd.reg_ptk (id_reg_ptk)
 go
 
 alter table pdrd.akt_mhs
@@ -3989,7 +4452,7 @@ go
 
 alter table pdrd.akt_mhs
    add constraint fk_akt_mhs_prodi_akt_sms foreign key (id_sms)
-      references sms (id_sms)
+      references pdrd.sms (id_sms)
 go
 
 alter table pdrd.akt_mhs
@@ -3997,102 +4460,102 @@ alter table pdrd.akt_mhs
       references ref.semester (id_smt)
 go
 
-alter table alat
+alter table sarpras.alat
    add constraint fk_alat_alat_mili_sms foreign key (id_sms)
-      references sms (id_sms)
+      references pdrd.sms (id_sms)
 go
 
-alter table alat
+alter table sarpras.alat
    add constraint fk_alat_alat_ptk2_sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
-alter table alat
+alter table sarpras.alat
    add constraint fk_alat_hapus_buk_jenis_ha foreign key (id_hapus_buku)
       references ref.jenis_hapus_buku (id_hapus_buku)
 go
 
-alter table alat
+alter table sarpras.alat
    add constraint fk_alat_jenis_sar_jenis_sa foreign key (id_jns_sarana)
       references ref.jenis_sarana (id_jns_sarana)
 go
 
-alter table alat
+alter table sarpras.alat
    add constraint fk_alat_status_mi_status_m foreign key (id_stat_milik_sarpras)
       references ref.status_milik_sarpras (id_stat_milik_sarpras)
 go
 
-alter table alat_long
+alter table sarpras.alat_long
    add constraint fk_alat_lon_alat_long_alat foreign key (id_alat)
-      references alat (id_alat)
+      references sarpras.alat (id_alat)
 go
 
-alter table alat_long
+alter table sarpras.alat_long
    add constraint fk_alat_lon_smt_pemak_semester foreign key (id_smt)
       references ref.semester (id_smt)
 go
 
-alter table anak
+alter table pdrd.anak
    add constraint fk_anak_anak_sdm_sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
-alter table anak
+alter table pdrd.anak
    add constraint fk_anak_anak_stat_status_a foreign key (id_stat_anak)
       references ref.status_anak (id_stat_anak)
 go
 
-alter table anak
+alter table pdrd.anak
    add constraint fk_anak_jenjang_a_jenjang_ foreign key (id_jenj_didik)
       references ref.jenjang_pendidikan (id_jenj_didik)
 go
 
-alter table anggota_aktivitas_mahasiswa
+alter table pdrd.anggota_aktivitas_mahasiswa
    add constraint fk_anggota__akt_mhs_a_akt_mhs foreign key (id_akt_mhs)
       references pdrd.akt_mhs (id_akt_mhs)
 go
 
-alter table anggota_aktivitas_mahasiswa
+alter table pdrd.anggota_aktivitas_mahasiswa
    add constraint fk_anggota__reg_ang_a_reg_pd foreign key (id_reg_pd)
-      references reg_pd (id_reg_pd)
+      references pdrd.reg_pd (id_reg_pd)
 go
 
-alter table anggota_orgprof
+alter table pdrd.anggota_orgprof
    add constraint fk_anggota__orgprof_p_sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
-alter table anggota_panitia
+alter table pdrd.anggota_panitia
    add constraint fk_anggota__anggota_p_kepaniti foreign key (id_panitia)
-      references kepanitiaan (id_panitia)
+      references pdrd.kepanitiaan (id_panitia)
 go
 
-alter table anggota_panitia
+alter table pdrd.anggota_panitia
    add constraint fk_anggota__panitia_p_sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
-alter table angkutan
+alter table sarpras.angkutan
    add constraint fk_angkutan_alat_mili_sms foreign key (id_sms)
-      references sms (id_sms)
+      references pdrd.sms (id_sms)
 go
 
-alter table angkutan
+alter table sarpras.angkutan
    add constraint fk_angkutan_alat_ptk_sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
-alter table angkutan
+alter table sarpras.angkutan
    add constraint fk_angkutan_hapus_buk_jenis_ha foreign key (id_hapus_buku)
       references ref.jenis_hapus_buku (id_hapus_buku)
 go
 
-alter table angkutan
+alter table sarpras.angkutan
    add constraint fk_angkutan_jenis_sar_jenis_sa foreign key (id_jns_sarana)
       references ref.jenis_sarana (id_jns_sarana)
 go
 
-alter table angkutan
+alter table sarpras.angkutan
    add constraint fk_angkutan_status_mi_status_m foreign key (id_stat_milik_sarpras)
       references ref.status_milik_sarpras (id_stat_milik_sarpras)
 go
@@ -4102,39 +4565,39 @@ alter table man_akses.aplikasi
       references man_akses.unit_organisasi (id_organisasi)
 go
 
-alter table bangunan
+alter table sarpras.bangunan
    add constraint fk_bangunan_hapus_buk_jenis_ha foreign key (id_hapus_buku)
       references ref.jenis_hapus_buku (id_hapus_buku)
 go
 
-alter table bangunan
+alter table sarpras.bangunan
    add constraint fk_bangunan_jns_prasa_jenis_pr foreign key (id_jns_prasarana)
       references ref.jenis_prasarana (id_jns_prasarana)
 go
 
-alter table bangunan
+alter table sarpras.bangunan
    add constraint fk_bangunan_satuan_ba_satuan foreign key (kd_satuan)
       references ref.satuan (kd_satuan)
 go
 
-alter table bangunan
+alter table sarpras.bangunan
    add constraint fk_bangunan_sms_pemil_sms foreign key (id_sms)
-      references sms (id_sms)
+      references pdrd.sms (id_sms)
 go
 
-alter table bangunan
+alter table sarpras.bangunan
    add constraint fk_bangunan_status_mi_status_m foreign key (id_stat_milik_sarpras)
       references ref.status_milik_sarpras (id_stat_milik_sarpras)
 go
 
-alter table bangunan
+alter table sarpras.bangunan
    add constraint fk_bangunan_tanah_ban_tanah foreign key (id_tanah)
-      references tanah (id_tanah)
+      references sarpras.tanah (id_tanah)
 go
 
 alter table beasiswa_sdm
    add constraint fk_beasiswa_beasiswa__sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
 alter table beasiswa_sdm
@@ -4144,20 +4607,20 @@ go
 
 alter table beasiswa_sdm
    add constraint fk_beasiswa_studi_sms_sms foreign key (id_sms)
-      references sms (id_sms)
+      references pdrd.sms (id_sms)
 go
 
-alter table biaya_operasional
+alter table keuangan.biaya_operasional
    add constraint fk_biaya_op_jenis_bia_jenis_ke foreign key (id_jns_keuangan)
       references ref.jenis_keuangan (id_jns_keuangan)
 go
 
-alter table biaya_operasional
+alter table keuangan.biaya_operasional
    add constraint fk_biaya_op_sms_opera_sms foreign key (id_sms)
-      references sms (id_sms)
+      references pdrd.sms (id_sms)
 go
 
-alter table biaya_operasional
+alter table keuangan.biaya_operasional
    add constraint fk_biaya_op_thn_angga_tahun_an foreign key (id_tahun_anggaran)
       references ref.tahun_anggaran (id_tahun_anggaran)
 go
@@ -4174,7 +4637,7 @@ go
 
 alter table pdrd.bimbing_mhs
    add constraint fk_bimbing__dosen_pem_sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
 alter table pdrd.buku_ajar
@@ -4192,29 +4655,29 @@ alter table pdrd.buku_ajar
       references pdrd.litabmas (id_litabmas)
 go
 
-alter table dbr
+alter table sarpras.dbr
    add constraint fk_dbr_detail_al_alat foreign key (id_alat)
-      references alat (id_alat)
+      references sarpras.alat (id_alat)
 go
 
-alter table dbr
+alter table sarpras.dbr
    add constraint fk_dbr_ruang_det_ruang foreign key (id_ruang)
-      references ruang (id_ruang)
+      references sarpras.ruang (id_ruang)
 go
 
 alter table pdrd.detasering
    add constraint fk_detaseri_pt_sas_de_satuan_p foreign key (id_sp_sasaran)
-      references satuan_pendidikan (id_sp)
+      references pdrd.satuan_pendidikan (id_sp)
 go
 
 alter table pdrd.detasering
    add constraint fk_detaseri_pt_sum_de_satuan_p foreign key (id_sp_sumber)
-      references satuan_pendidikan (id_sp)
+      references pdrd.satuan_pendidikan (id_sp)
 go
 
 alter table pdrd.detasering
    add constraint fk_detaseri_ptk_detas_sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
 alter table pdrd.diklat
@@ -4229,7 +4692,7 @@ go
 
 alter table pdrd.diklat
    add constraint fk_diklat_diklat_pt_sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
 alter table dok.dok_akt_mhs
@@ -4244,7 +4707,7 @@ go
 
 alter table dok.dok_ang_orgprof
    add constraint fk_dok_ang__angorgpro_anggota_ foreign key (id_ang_orgprof)
-      references anggota_orgprof (id_ang_orgprof)
+      references pdrd.anggota_orgprof (id_ang_orgprof)
 go
 
 alter table dok.dok_ang_orgprof
@@ -4309,7 +4772,7 @@ go
 
 alter table dok.dok_jabstruk
    add constraint fk_dok_jabs_jabstruk__rwy_stru foreign key (id_rwy_jabstruk)
-      references rwy_struktural (id_rwy_jabstruk)
+      references pdrd.rwy_struktural (id_rwy_jabstruk)
 go
 
 alter table dok.dok_laporan_studi
@@ -4319,7 +4782,7 @@ go
 
 alter table dok.dok_laporan_studi
    add constraint fk_dok_lapo_lap_studi_laporan_ foreign key (id_lap_studi)
-      references laporan_studi (id_lap_studi)
+      references pdrd.laporan_studi (id_lap_studi)
 go
 
 alter table dok.dok_litabmas
@@ -4349,7 +4812,7 @@ go
 
 alter table dok.dok_panitia
    add constraint fk_dok_pani_panitia_d_kepaniti foreign key (id_panitia)
-      references kepanitiaan (id_panitia)
+      references pdrd.kepanitiaan (id_panitia)
 go
 
 alter table dok.dok_pembicara
@@ -4389,12 +4852,12 @@ go
 
 alter table dok.dok_pub
    add constraint fk_dok_pub_pub_dok_publikas foreign key (id_publikasi)
-      references publikasi (id_publikasi)
+      references pdrd.publikasi (id_publikasi)
 go
 
 alter table dok.dok_rwy_didik
    add constraint fk_dok_rwy__didik_dok_rwy_pend foreign key (id_rwy_didik_formal)
-      references rwy_pend_formal (id_rwy_didik_formal)
+      references pdrd.rwy_pend_formal (id_rwy_didik_formal)
 go
 
 alter table dok.dok_rwy_didik
@@ -4409,7 +4872,7 @@ go
 
 alter table dok.dok_rwy_kepangkatan
    add constraint fk_dok_rwy__rwy_pangk_rwy_kepa foreign key (id_rwy_pangkat)
-      references rwy_kepangkatan (id_rwy_pangkat)
+      references pdrd.rwy_kepangkatan (id_rwy_pangkat)
 go
 
 alter table dok.dok_rwy_pekerjaan
@@ -4419,7 +4882,7 @@ go
 
 alter table dok.dok_rwy_pekerjaan
    add constraint fk_dok_rwy__rwy_kerja_rwy_peke foreign key (id_rwy_kerja)
-      references rwy_pekerjaan (id_rwy_kerja)
+      references pdrd.rwy_pekerjaan (id_rwy_kerja)
 go
 
 alter table dok.dok_rwy_sertifikasi
@@ -4429,7 +4892,7 @@ go
 
 alter table dok.dok_rwy_sertifikasi
    add constraint fk_dok_rwy__rwy_sert__rwy_sert foreign key (id_rwy_sert)
-      references rwy_sertifikasi (id_rwy_sert)
+      references pdrd.rwy_sertifikasi (id_rwy_sert)
 go
 
 alter table dok.dok_tugtam
@@ -4439,7 +4902,7 @@ go
 
 alter table dok.dok_tugtam
    add constraint fk_dok_tugt_tugtam_do_tugas_ta foreign key (id_tgs_tambah)
-      references tugas_tambahan (id_tgs_tambah)
+      references pdrd.tugas_tambahan (id_tgs_tambah)
 go
 
 alter table dok.dok_visit_scientist
@@ -4449,7 +4912,7 @@ go
 
 alter table dok.dok_visit_scientist
    add constraint fk_dok_visi_visiting__visiting foreign key (id_visit)
-      references visiting_scientist (id_visit)
+      references pdrd.visiting_scientist (id_visit)
 go
 
 alter table dok.dokumen
@@ -4467,54 +4930,60 @@ alter table pdrd.dudi
       references ref.wilayah (id_wil)
 go
 
-alter table foto_peserta_didik
+alter table dok.foto_peserta_didik
    add constraint fk_foto_pes_pemilik_f_peserta_ foreign key (id_pd)
-      references peserta_didik (id_pd)
+      references pdrd.peserta_didik (id_pd)
 go
 
-alter table foto_peserta_didik
+alter table dok.foto_peserta_didik
    add constraint fk_foto_pes_rincian_f_large_ob foreign key (id_blob)
       references dok.large_object (id_blob)
 go
 
-alter table hasil_tracer_atasan
+alter table tracer.hasil_tracer_atasan
    add constraint fk_hasil_tr_hasil_ata_hasil_tr foreign key (id_hasil_tracer_study)
-      references hasil_tracer_study (id_hasil_tracer_study)
+      references tracer.hasil_tracer_study (id_hasil_tracer_study)
 go
 
-alter table hasil_tracer_atasan
+alter table tracer.hasil_tracer_atasan
    add constraint fk_hasil_tr_negara_at_negara foreign key (id_negara)
       references ref.negara (id_negara)
 go
 
-alter table hasil_tracer_atasan
+alter table tracer.hasil_tracer_atasan
    add constraint fk_hasil_tr_prov_atas_wilayah foreign key (id_wil)
       references ref.wilayah (id_wil)
 go
 
-alter table hasil_tracer_study
+alter table tracer.hasil_tracer_study
    add constraint fk_hasil_tr_lingkup_w_wilayah foreign key (id_wil)
       references ref.wilayah (id_wil)
 go
 
-alter table hasil_tracer_study
+alter table tracer.hasil_tracer_study
    add constraint fk_hasil_tr_reg_pd_ha_reg_pd foreign key (id_reg_pd)
-      references reg_pd (id_reg_pd)
+      references pdrd.reg_pd (id_reg_pd)
 go
 
-alter table hasil_tracer_study
+alter table tracer.hasil_tracer_study
    add constraint fk_hasil_tr_smt_mengi_semester foreign key (id_smt)
       references ref.semester (id_smt)
 go
 
-alter table hasil_tracer_study
+alter table tracer.hasil_tracer_study
    add constraint fk_hasil_tr_tahun_men_tahun_aj foreign key (id_thn_ajaran)
       references ref.tahun_ajaran (id_thn_ajaran)
 go
 
 alter table pdrd.inpassing
+   add constraint fk_inpassin_inpassing_sdm foreign key (id_sdm)
+      references pdrd.sdm (id_sdm)
+         on update cascade on delete cascade
+go
+
+alter table pdrd.inpassing
    add constraint fk_inpassin_inpassing_pangkat_ foreign key (id_pangkat_gol)
-      references pangkat_golongan (id_pangkat_gol)
+      references ref.pangkat_golongan (id_pangkat_gol)
 go
 
 alter table ref.jab_tgs
@@ -4529,7 +4998,7 @@ go
 
 alter table ref.jenis_beasiswa
    add constraint fk_jenis_be_sumber_be_sumber_d foreign key (id_sumber_dana)
-      references sumber_dana (id_sumber_dana)
+      references ref.sumber_dana (id_sumber_dana)
 go
 
 alter table ref.jurusan
@@ -4557,14 +5026,14 @@ alter table ref.kategori_kegiatan
       references ref.jenis_sdm (id_jns_sdm)
 go
 
-alter table kbli
-   add constraint fk_kbli_induk_kbl_kbli foreign key (induk_kbli_id_kbli)
-      references kbli (id_kbli)
+alter table ref.kbli
+   add constraint fk_kbli_induk_kbl_kbli foreign key (id_induk_kbli)
+      references ref.kbli (id_kbli)
 go
 
 alter table pdrd.keaktifan_ptk
    add constraint fk_keaktifa_long_reg__reg_ptk foreign key (id_reg_ptk)
-      references reg_ptk (id_reg_ptk)
+      references pdrd.reg_ptk (id_reg_ptk)
 go
 
 alter table pdrd.keaktifan_ptk
@@ -4579,7 +5048,7 @@ go
 
 alter table pdrd.kelas_kuliah
    add constraint fk_kelas_ku_prodi_kel_sms foreign key (id_sms)
-      references sms (id_sms)
+      references pdrd.sms (id_sms)
 go
 
 alter table pdrd.kelas_kuliah
@@ -4592,52 +5061,52 @@ alter table ref.kelompok_bidang
       references ref.kelompok_bidang (id_kel_bidang)
 go
 
-alter table kepanitiaan
+alter table pdrd.kepanitiaan
    add constraint fk_kepaniti_jenis_pan_jenis_ke foreign key (id_jns_panitia)
       references ref.jenis_kepanitiaan (id_jns_panitia)
 go
 
-alter table kesejahteraan
+alter table pdrd.kesejahteraan
    add constraint fk_kesejaht_kesejahte_jenis_ke foreign key (id_jns_sejahtera)
       references ref.jenis_kesejahteraan (id_jns_sejahtera)
 go
 
-alter table kesejahteraan
+alter table pdrd.kesejahteraan
    add constraint fk_kesejaht_kesejahte_sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
-alter table kuliah_mhs
+alter table pdrd.kuliah_mhs
    add constraint fk_kuliah_m_keaktifan_semester foreign key (id_smt)
       references ref.semester (id_smt)
 go
 
-alter table kuliah_mhs
+alter table pdrd.kuliah_mhs
    add constraint fk_kuliah_m_register__reg_pd foreign key (id_reg_pd)
-      references reg_pd (id_reg_pd)
+      references pdrd.reg_pd (id_reg_pd)
 go
 
-alter table kuliah_mhs
+alter table pdrd.kuliah_mhs
    add constraint fk_kuliah_m_status_mh_status_m foreign key (id_stat_mhs)
       references ref.status_mahasiswa (id_stat_mhs)
 go
 
-alter table kurikulum_sp
+alter table pdrd.kurikulum_sp
    add constraint fk_kurikulu_jenjang_k_jenjang_ foreign key (id_jenj_didik)
       references ref.jenjang_pendidikan (id_jenj_didik)
 go
 
-alter table lembaga_non_sp
-   add constraint fk_lembaga__induk_lem_lembaga_ foreign key (induk_lembaga_non_sp_id_lemb_non_sp)
-      references lembaga_non_sp (id_lemb_non_sp)
+alter table pdrd.lembaga_non_sp
+   add constraint fk_lembaga__induk_lem_lembaga_ foreign key (id_induk_lemb_non_sp)
+      references pdrd.lembaga_non_sp (id_lemb_non_sp)
 go
 
-alter table lembaga_non_sp
+alter table pdrd.lembaga_non_sp
    add constraint fk_lembaga__jenis_lem_jenis_le foreign key (id_jns_lemb)
       references ref.jenis_lembaga (id_jns_lemb)
 go
 
-alter table lembaga_non_sp
+alter table pdrd.lembaga_non_sp
    add constraint fk_lembaga__wilayah_l_wilayah foreign key (id_wil)
       references ref.wilayah (id_wil)
 go
@@ -4654,12 +5123,12 @@ go
 
 alter table pdrd.litabmas
    add constraint fk_litabmas_lemb_peng_lembaga_ foreign key (id_lemb_iptek)
-      references lembaga_iptek (id_lemb_iptek)
+      references pdrd.lembaga_iptek (id_lemb_iptek)
 go
 
 alter table pdrd.litabmas
    add constraint fk_litabmas_litabmas__smi foreign key (id_smi)
-      references smi (id_smi)
+      references pdrd.smi (id_smi)
 go
 
 alter table pdrd.litabmas
@@ -4669,7 +5138,7 @@ go
 
 alter table pdrd.litabmas
    add constraint fk_litabmas_skim_kegi_skim_keg foreign key (id_skim)
-      references skim_kegiatan (id_skim)
+      references ref.skim_kegiatan (id_skim)
 go
 
 alter table pdrd.litabmas
@@ -4692,34 +5161,34 @@ alter table pdrd.litabmas
       references ref.tse (id_tse)
 go
 
-alter table map_abmas_tse
+alter table pdrd.map_abmas_tse
    add constraint fk_map_abma_abmas_tse_tse foreign key (id_tse)
       references ref.tse (id_tse)
 go
 
-alter table map_abmas_tse
+alter table pdrd.map_abmas_tse
    add constraint fk_map_abma_tse_abmas_litabmas foreign key (id_litabmas)
       references pdrd.litabmas (id_litabmas)
 go
 
-alter table map_litabmas_bidang
+alter table pdrd.map_litabmas_bidang
    add constraint fk_map_lita_bidang_li_litabmas foreign key (id_litabmas)
       references pdrd.litabmas (id_litabmas)
 go
 
-alter table map_litabmas_bidang
+alter table pdrd.map_litabmas_bidang
    add constraint fk_map_lita_litabmas__kelompok foreign key (id_kel_bidang)
       references ref.kelompok_bidang (id_kel_bidang)
 go
 
-alter table map_publikasi_bidang
+alter table pdrd.map_publikasi_bidang
    add constraint fk_map_publ_pub_bidan_kelompok foreign key (id_kel_bidang)
       references ref.kelompok_bidang (id_kel_bidang)
 go
 
-alter table map_publikasi_bidang
+alter table pdrd.map_publikasi_bidang
    add constraint fk_map_publ_pub_bidan_publikas foreign key (id_publikasi)
-      references publikasi (id_publikasi)
+      references pdrd.publikasi (id_publikasi)
 go
 
 alter table pdrd.matkul
@@ -4729,7 +5198,7 @@ go
 
 alter table pdrd.matkul
    add constraint fk_matkul_prodi_mat_sms foreign key (id_sms)
-      references sms (id_sms)
+      references pdrd.sms (id_sms)
 go
 
 alter table pdrd.matkul_kurikulum
@@ -4757,24 +5226,24 @@ alter table man_akses.menu_role
       references man_akses.peran (id_peran)
 go
 
-alter table mitra_litabmas
+alter table pdrd.mitra_litabmas
    add constraint fk_mitra_li_mitra_akt_litabmas foreign key (id_litabmas)
       references pdrd.litabmas (id_litabmas)
 go
 
-alter table mitra_litabmas
+alter table pdrd.mitra_litabmas
    add constraint fk_mitra_li_mitra_dud_dudi foreign key (id_dudi)
       references pdrd.dudi (id_dudi)
 go
 
-alter table mou
+alter table kerjasama.mou
    add constraint fk_mou_mou_antar_dudi foreign key (id_dudi)
       references pdrd.dudi (id_dudi)
 go
 
-alter table mou
+alter table kerjasama.mou
    add constraint fk_mou_mou_antar_satuan_p foreign key (id_sp)
-      references satuan_pendidikan (id_sp)
+      references pdrd.satuan_pendidikan (id_sp)
 go
 
 alter table pdrd.nilai_smt_mhs
@@ -4784,12 +5253,12 @@ go
 
 alter table pdrd.nilai_smt_mhs
    add constraint fk_nilai_sm_reg_nilai_reg_ptk foreign key (id_reg_ptk)
-      references reg_ptk (id_reg_ptk)
+      references pdrd.reg_ptk (id_reg_ptk)
 go
 
 alter table pdrd.nilai_tes
    add constraint fk_nilai_te_nilai_tes_sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
 alter table pdrd.nilai_tes
@@ -4812,12 +5281,12 @@ alter table pdrd.non_ca_anggota_litabmas
       references pdrd.litabmas (id_litabmas)
 go
 
-alter table pd_anggota_litabmas
+alter table pdrd.pd_anggota_litabmas
    add constraint fk_pd_anggo_ang_litab_peserta_ foreign key (id_pd)
-      references peserta_didik (id_pd)
+      references pdrd.peserta_didik (id_pd)
 go
 
-alter table pd_anggota_litabmas
+alter table pdrd.pd_anggota_litabmas
    add constraint fk_pd_anggo_mhs_anggo_litabmas foreign key (id_litabmas)
       references pdrd.litabmas (id_litabmas)
 go
@@ -4834,7 +5303,7 @@ go
 
 alter table pdrd.pembicara
    add constraint fk_pembicar_pembicata_sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
 alter table pdrd.pengelola_jurnal
@@ -4844,7 +5313,7 @@ go
 
 alter table pdrd.pengelola_jurnal
    add constraint fk_pengelol_kelola_ju_sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
 alter table pdrd.penghargaan
@@ -4854,7 +5323,7 @@ go
 
 alter table pdrd.penghargaan
    add constraint fk_pengharg_pengharga_sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
 alter table pdrd.penghargaan
@@ -4862,97 +5331,97 @@ alter table pdrd.penghargaan
       references ref.tingkat_penghargaan (id_tkt_penghargaan)
 go
 
-alter table peserta_didik
+alter table pdrd.peserta_didik
    add constraint fk_peserta__agama_pd_agama foreign key (id_agama)
       references ref.agama (id_agama)
 go
 
-alter table peserta_didik
+alter table pdrd.peserta_didik
    add constraint fk_peserta__alat_tran_alat_tra foreign key (id_alat_transport)
-      references alat_transportasi (id_alat_transport)
+      references sarpras.alat_transportasi (id_alat_transport)
 go
 
-alter table peserta_didik
+alter table pdrd.peserta_didik
    add constraint fk_peserta__foto_pd_large_ob foreign key (id_blob)
       references dok.large_object (id_blob)
 go
 
-alter table peserta_didik
+alter table pdrd.peserta_didik
    add constraint fk_peserta__jenis_tin_jenis_ti foreign key (id_jns_tinggal)
       references ref.jenis_tinggal (id_jns_tinggal)
 go
 
-alter table peserta_didik
-   add constraint fk_peserta__kebutuhan_kebutuha foreign key (kebutuhan_khusus_ayah_id_kk)
+alter table pdrd.peserta_didik
+   add constraint fk_peserta__kebutuhan_kebutuha foreign key (id_kk_ayah)
       references ref.kebutuhan_khusus (id_kk)
 go
 
-alter table peserta_didik
-   add constraint fk_peserta_kk_ibu foreign key (kebutuhan_khusus_ibu_id_kk)
+alter table pdrd.peserta_didik
+   add constraint fk_peserta_kk_ibu foreign key (id_kk_ibu)
       references ref.kebutuhan_khusus (id_kk)
 go
 
-alter table peserta_didik
+alter table pdrd.peserta_didik
    add constraint fk_peserta_kk_pd foreign key (id_kk)
       references ref.kebutuhan_khusus (id_kk)
 go
 
-alter table peserta_didik
-   add constraint fk_peserta__kewargane_negara foreign key (id_negara)
+alter table pdrd.peserta_didik
+   add constraint fk_peserta__kewargane_negara foreign key (id_kewarganegaraan)
       references ref.negara (id_negara)
 go
 
-alter table peserta_didik
-   add constraint fk_peserta__pekerjaan_pekerjaa foreign key (pekerjaan_ayah_id_pekerjaan)
-      references pekerjaan (id_pekerjaan)
+alter table pdrd.peserta_didik
+   add constraint fk_peserta__pekerjaan_pekerjaa foreign key (id_pekerjaan_ayah)
+      references ref.pekerjaan (id_pekerjaan)
 go
 
-alter table peserta_didik
-   add constraint fk_peserta__pekerjaan_ibu foreign key (pekerjaan_ibu_id_pekerjaan)
-      references pekerjaan (id_pekerjaan)
+alter table pdrd.peserta_didik
+   add constraint fk_peserta__pekerjaan_ibu foreign key (id_pekerjaan_ibu)
+      references ref.pekerjaan (id_pekerjaan)
 go
 
-alter table peserta_didik
-   add constraint fk_peserta__pekerjaan_wali foreign key (id_pekerjaan)
-      references pekerjaan (id_pekerjaan)
+alter table pdrd.peserta_didik
+   add constraint fk_peserta__pekerjaan_wali foreign key (id_pekerjaan_wali)
+      references ref.pekerjaan (id_pekerjaan)
 go
 
-alter table peserta_didik
-   add constraint fk_peserta__pendidika_ayah foreign key (id_jenj_didik)
+alter table pdrd.peserta_didik
+   add constraint fk_peserta__pendidika_ayah foreign key (id_pendidikan_ayah)
       references ref.jenjang_pendidikan (id_jenj_didik)
 go
 
-alter table peserta_didik
-   add constraint fk_peserta__pendidikan_ibu foreign key (pendidikan_ibu_id_jenj_didik)
+alter table pdrd.peserta_didik
+   add constraint fk_peserta__pendidikan_ibu foreign key (id_pendidikan_ibu)
       references ref.jenjang_pendidikan (id_jenj_didik)
 go
 
-alter table peserta_didik
-   add constraint fk_peserta__pendidika_wali foreign key (pendidikan_wali_id_jenj_didik)
+alter table pdrd.peserta_didik
+   add constraint fk_peserta__pendidika_wali foreign key (id_pendidikan_wali)
       references ref.jenjang_pendidikan (id_jenj_didik)
 go
 
-alter table peserta_didik
-   add constraint fk_peserta__penghasil_ayah foreign key (penghasilan_ayah_id_penghasilan)
-      references penghasilan (id_penghasilan)
+alter table pdrd.peserta_didik
+   add constraint fk_peserta__penghasil_ayah foreign key (id_penghasilan_ayah)
+      references ref.penghasilan (id_penghasilan)
 go
 
-alter table peserta_didik
-   add constraint fk_peserta__penghasil_ibu foreign key (penghasilan_ibu_id_penghasilan)
-      references penghasilan (id_penghasilan)
+alter table pdrd.peserta_didik
+   add constraint fk_peserta__penghasil_ibu foreign key (id_penghasilan_ibu)
+      references ref.penghasilan (id_penghasilan)
 go
 
-alter table peserta_didik
-   add constraint fk_peserta__penghasil_wali foreign key (id_penghasilan)
-      references penghasilan (id_penghasilan)
+alter table pdrd.peserta_didik
+   add constraint fk_peserta__penghasil_wali foreign key (id_penghasilan_wali)
+      references ref.penghasilan (id_penghasilan)
 go
 
-alter table peserta_didik
+alter table pdrd.peserta_didik
    add constraint fk_peserta__provinsi__wilayah foreign key (id_wil)
       references ref.wilayah (id_wil)
 go
 
-alter table peserta_didik
+alter table pdrd.peserta_didik
    add constraint fk_peserta__status_ke_status_m foreign key (id_stat_mhs)
       references ref.status_mahasiswa (id_stat_mhs)
 go
@@ -4967,142 +5436,142 @@ alter table man_akses.pj_aplikasi
       references man_akses.aplikasi (id_aplikasi)
 go
 
-alter table prestasi
+alter table pdrd.prestasi
    add constraint fk_prestasi_prestasi__jenis_pr foreign key (id_jenis_prestasi)
       references ref.jenis_prestasi (id_jenis_prestasi)
 go
 
-alter table prestasi
+alter table pdrd.prestasi
    add constraint fk_prestasi_prestasi__satuan_p foreign key (id_sp)
-      references satuan_pendidikan (id_sp)
+      references pdrd.satuan_pendidikan (id_sp)
 go
 
-alter table prestasi
+alter table pdrd.prestasi
    add constraint fk_prestasi_prestasi__peserta_ foreign key (id_pd)
-      references peserta_didik (id_pd)
+      references pdrd.peserta_didik (id_pd)
 go
 
-alter table prestasi
+alter table pdrd.prestasi
    add constraint fk_prestasi_prestasi__tingkat_ foreign key (id_tkt_prestasi)
       references ref.tingkat_prestasi (id_tkt_prestasi)
 go
 
-alter table profil_prodi
+alter table pdrd.profil_prodi
    add constraint fk_profil_p_profil_pr_sms foreign key (id_sms)
-      references sms (id_sms)
+      references pdrd.sms (id_sms)
 go
 
-alter table profil_prodi
+alter table pdrd.profil_prodi
    add constraint fk_ta_profil_prodi foreign key (id_thn_ajaran)
       references ref.tahun_ajaran (id_thn_ajaran)
 go
 
-alter table profil_pt
+alter table pdrd.profil_pt
    add constraint fk_profil_p_profil_sp_satuan_p foreign key (id_sp)
-      references satuan_pendidikan (id_sp)
+      references pdrd.satuan_pendidikan (id_sp)
 go
 
-alter table profil_pt
+alter table pdrd.profil_pt
    add constraint fk_ta_profil_pt foreign key (id_thn_ajaran)
       references ref.tahun_ajaran (id_thn_ajaran)
 go
 
-alter table publikasi
+alter table pdrd.publikasi
    add constraint fk_publikas_capaian_p_kategori foreign key (id_kat_capaian)
       references ref.kategori_capaian_luaran (id_kat_capaian)
 go
 
-alter table publikasi
+alter table pdrd.publikasi
    add constraint fk_publikas_jenis_pub_jenis_pu foreign key (id_jns_pub)
       references ref.jenis_publikasi (id_jns_pub)
 go
 
-alter table publikasi
+alter table pdrd.publikasi
    add constraint fk_publikas_luaran_pu_litabmas foreign key (id_litabmas)
       references pdrd.litabmas (id_litabmas)
 go
 
-alter table publikasi
+alter table pdrd.publikasi
    add constraint fk_publikas_pub_media_media_pu foreign key (id_media_pub)
       references ref.media_publikasi (id_media_pub)
 go
 
-alter table reg_pd
+alter table pdrd.reg_pd
    add constraint fk_reg_pd_alasan_ke_jenis_ke foreign key (id_jns_keluar)
       references ref.jenis_keluar (id_jns_keluar)
 go
 
-alter table reg_pd
+alter table pdrd.reg_pd
    add constraint fk_reg_pd_biaya_reg_pembiaya foreign key (id_pembiayaan)
-      references pembiayaan (id_pembiayaan)
+      references ref.pembiayaan (id_pembiayaan)
 go
 
-alter table reg_pd
+alter table pdrd.reg_pd
    add constraint fk_reg_pd_jalur_daf_jalur_da foreign key (id_jalur_daftar)
       references ref.jalur_daftar (id_jalur_daftar)
 go
 
-alter table reg_pd
+alter table pdrd.reg_pd
    add constraint fk_reg_pd_jenis_daf_jenis_pe foreign key (id_jns_daftar)
       references ref.jenis_pendaftaran (id_jns_daftar)
 go
 
-alter table reg_pd
+alter table pdrd.reg_pd
    add constraint fk_reg_pd_prodi_pd_sms foreign key (id_sms)
-      references sms (id_sms)
+      references pdrd.sms (id_sms)
 go
 
-alter table reg_pd
+alter table pdrd.reg_pd
    add constraint fk_reg_pd_pt_asal_satuan_p foreign key (id_sp)
-      references satuan_pendidikan (id_sp)
+      references pdrd.satuan_pendidikan (id_sp)
 go
 
-alter table reg_pd
-   add constraint fk_reg_pd_pt_pd_satuan_p foreign key (pt_pd_id_sp)
-      references satuan_pendidikan (id_sp)
+alter table pdrd.reg_pd
+   add constraint fk_reg_pd_pt_pd_satuan_p foreign key (id_sp_asal)
+      references pdrd.satuan_pendidikan (id_sp)
 go
 
-alter table reg_pd
+alter table pdrd.reg_pd
    add constraint fk_reg_pd_register__peserta_ foreign key (id_pd)
-      references peserta_didik (id_pd)
+      references pdrd.peserta_didik (id_pd)
 go
 
-alter table reg_pd
-   add constraint fk_reg_pd_semester__semester foreign key (semester_masuk_id_smt)
+alter table pdrd.reg_pd
+   add constraint fk_reg_pd_semester__semester foreign key (id_semester_masuk)
       references ref.semester (id_smt)
 go
 
-alter table reg_pd
+alter table pdrd.reg_pd
    add constraint fk_reg_pd_smt_yudis_semester foreign key (id_smt)
       references ref.semester (id_smt)
 go
 
-alter table reg_ptk
+alter table pdrd.reg_ptk
    add constraint fk_reg_ptk_ptk_ikata_ikatan_k foreign key (id_ikatan_kerja)
       references ref.ikatan_kerja_sdm (id_ikatan_kerja)
 go
 
-alter table reg_ptk
+alter table pdrd.reg_ptk
    add constraint fk_reg_ptk_ptk_kelua_jenis_ke foreign key (id_jns_keluar)
       references ref.jenis_keluar (id_jns_keluar)
 go
 
-alter table reg_ptk
+alter table pdrd.reg_ptk
    add constraint fk_reg_ptk_ptk_terda_satuan_p foreign key (id_sp)
-      references satuan_pendidikan (id_sp)
+      references pdrd.satuan_pendidikan (id_sp)
 go
 
-alter table reg_ptk
+alter table pdrd.reg_ptk
    add constraint fk_reg_ptk_ptk_terda_sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
-alter table reg_ptk
+alter table pdrd.reg_ptk
    add constraint fk_reg_ptk_reg_dosen_sms foreign key (id_sms)
-      references sms (id_sms)
+      references pdrd.sms (id_sms)
 go
 
-alter table reg_ptk
+alter table pdrd.reg_ptk
    add constraint fk_reg_ptk_statpeg_p_status_k foreign key (id_stat_pegawai)
       references ref.status_kepegawaian (id_stat_pegawai)
 go
@@ -5122,187 +5591,193 @@ alter table man_akses.role_pengguna
       references man_akses.unit_organisasi (id_organisasi)
 go
 
-alter table ruang
+alter table sarpras.ruang
    add constraint fk_ruang_satuan_ru_satuan foreign key (kd_satuan)
       references ref.satuan (kd_satuan)
 go
 
-alter table ruang
+alter table sarpras.ruang
    add constraint fk_ruang_sms_pemil_sms foreign key (id_sms)
-      references sms (id_sms)
+      references pdrd.sms (id_sms)
 go
 
-alter table rwy_didik_nonformal
+alter table pdrd.rwy_didik_nonformal
    add constraint fk_rwy_didi_prodi_pen_sms foreign key (id_sms)
-      references sms (id_sms)
+      references pdrd.sms (id_sms)
 go
 
-alter table rwy_didik_nonformal
+alter table pdrd.rwy_didik_nonformal
    add constraint fk_rwy_didi_rwy_didik_rwy_pend foreign key (id_rwy_didik_formal)
-      references rwy_pend_formal (id_rwy_didik_formal)
+      references pdrd.rwy_pend_formal (id_rwy_didik_formal)
 go
 
-alter table rwy_fungsional
+alter table pdrd.rwy_fungsional
    add constraint fk_rwy_fung_jab_fung__sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
-alter table rwy_fungsional
+alter table pdrd.rwy_fungsional
    add constraint fk_rwy_fung_jabfung_b_kelompok foreign key (id_kel_bidang)
       references ref.kelompok_bidang (id_kel_bidang)
 go
 
-alter table rwy_fungsional
+alter table pdrd.rwy_fungsional
    add constraint fk_rwy_fung_rwyt_fung_jabfung foreign key (id_jabfung)
       references ref.jabfung (id_jabfung)
 go
 
-alter table rwy_kepangkatan
+alter table pdrd.rwy_kepangkatan
    add constraint fk_rwy_kepa_riwayat_p_pangkat_ foreign key (id_pangkat_gol)
-      references pangkat_golongan (id_pangkat_gol)
+      references ref.pangkat_golongan (id_pangkat_gol)
 go
 
-alter table rwy_kepangkatan
+alter table pdrd.rwy_kepangkatan
    add constraint fk_rwy_kepa_rwy_pangk_sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
-alter table rwy_pekerjaan
+alter table pdrd.rwy_pekerjaan
    add constraint fk_rwy_peke_dudi_inst_dudi foreign key (id_dudi)
       references pdrd.dudi (id_dudi)
 go
 
-alter table rwy_pekerjaan
+alter table pdrd.rwy_pekerjaan
    add constraint fk_rwy_peke_pekerjaan_pekerjaa foreign key (id_pekerjaan)
-      references pekerjaan (id_pekerjaan)
+      references ref.pekerjaan (id_pekerjaan)
 go
 
-alter table rwy_pekerjaan
+alter table pdrd.rwy_pekerjaan
    add constraint fk_rwy_peke_rwy_peker_sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
-alter table rwy_pekerjaan
+alter table pdrd.rwy_pekerjaan
    add constraint fk_rwy_peke_sektor_pe_kbli foreign key (id_kbli)
-      references kbli (id_kbli)
+      references ref.kbli (id_kbli)
 go
 
-alter table rwy_pend_formal
+alter table pdrd.rwy_pend_formal
    add constraint fk_rwy_pend_ptk_rwyt__sms foreign key (id_sms)
-      references sms (id_sms)
+      references pdrd.sms (id_sms)
 go
 
-alter table rwy_pend_formal
+alter table pdrd.rwy_pend_formal
    add constraint fk_rwy_pend_riwayat_g_gelar_ak foreign key (id_gelar_akad)
       references ref.gelar_akademik (id_gelar_akad)
 go
 
-alter table rwy_pend_formal
+alter table pdrd.rwy_pend_formal
    add constraint fk_rwy_pend_rwyt_pend_bidang_s foreign key (id_bid_studi)
       references ref.bidang_studi (id_bid_studi)
 go
 
-alter table rwy_pend_formal
+alter table pdrd.rwy_pend_formal
    add constraint fk_rwy_pend_rwyt_pend_jenjang_ foreign key (id_jenj_didik)
       references ref.jenjang_pendidikan (id_jenj_didik)
 go
 
-alter table rwy_pend_formal
+alter table pdrd.rwy_pend_formal
    add constraint fk_rwy_pend_rwyt_pend_sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
-alter table rwy_sertifikasi
+alter table pdrd.rwy_sertifikasi
+   add constraint fk_rwy_sert_riwayat_s_sdm foreign key (id_sdm)
+      references pdrd.sdm (id_sdm)
+         on update cascade on delete cascade
+go
+
+alter table pdrd.rwy_sertifikasi
    add constraint fk_rwy_sert_rwyt_bida_bidang_s foreign key (id_bid_studi)
       references ref.bidang_studi (id_bid_studi)
 go
 
-alter table rwy_sertifikasi
+alter table pdrd.rwy_sertifikasi
    add constraint fk_rwy_sert_rwyt_sert_jenis_se foreign key (id_jns_sert)
       references ref.jenis_sert (id_jns_sert)
 go
 
-alter table rwy_struktural
+alter table pdrd.rwy_struktural
    add constraint fk_rwy_stru_jab_stru__sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
-alter table rwy_struktural
+alter table pdrd.rwy_struktural
    add constraint fk_rwy_stru_rwyt_jab_jab_tgs foreign key (id_jab_tgs)
       references ref.jab_tgs (id_jab_tgs)
 go
 
-alter table satuan_pendidikan
+alter table pdrd.satuan_pendidikan
    add constraint fk_satuan_p_logo_sp_large_ob foreign key (id_blob)
       references dok.large_object (id_blob)
 go
 
-alter table satuan_pendidikan
-   add constraint fk_satuan_p_pembina_s_lembaga_ foreign key (id_lemb_non_sp)
-      references lembaga_non_sp (id_lemb_non_sp)
+alter table pdrd.satuan_pendidikan
+   add constraint fk_satuan_p_pembina_s_lembaga_ foreign key (id_pembina)
+      references pdrd.lembaga_non_sp (id_lemb_non_sp)
 go
 
-alter table satuan_pendidikan
+alter table pdrd.satuan_pendidikan
    add constraint fk_satuan_p_sp_bentuk_bentuk_p foreign key (id_bp)
       references ref.bentuk_pendidikan (id_bp)
 go
 
-alter table satuan_pendidikan
+alter table pdrd.satuan_pendidikan
    add constraint fk_satuan_p_sp_milik_status_k foreign key (id_stat_milik)
       references ref.status_kepemilikan (id_stat_milik)
 go
 
-alter table satuan_pendidikan
+alter table pdrd.satuan_pendidikan
    add constraint fk_satuan_p_wilayah_s_wilayah foreign key (id_wil)
       references ref.wilayah (id_wil)
 go
 
-alter table sdm
+alter table pdrd.sdm
    add constraint fk_sdm_agama_sdm_agama foreign key (id_agama)
       references ref.agama (id_agama)
 go
 
-alter table sdm
+alter table pdrd.sdm
    add constraint fk_sdm_keahlian__keahlian foreign key (id_keahlian_lab)
       references ref.keahlian_lab (id_keahlian_lab)
 go
 
-alter table sdm
-   add constraint fk_sdm_kewargane_negara foreign key (id_negara)
+alter table pdrd.sdm
+   add constraint fk_sdm_kewargane_negara foreign key (kewarganegaraan)
       references ref.negara (id_negara)
 go
 
-alter table sdm
+alter table pdrd.sdm
    add constraint fk_sdm_lemb_peng_lembaga_ foreign key (id_lemb_angkat)
-      references lembaga_pengangkat (id_lemb_angkat)
+      references ref.lembaga_pengangkat (id_lemb_angkat)
 go
 
-alter table sdm
-   add constraint fk_sdm_pekerjaan_pekerjaa foreign key (id_pekerjaan)
-      references pekerjaan (id_pekerjaan)
+alter table pdrd.sdm
+   add constraint fk_sdm_pekerjaan_pekerjaa foreign key (id_pekerjaan_suami_istri)
+      references ref.pekerjaan (id_pekerjaan)
 go
 
-alter table sdm
+alter table pdrd.sdm
    add constraint fk_sdm_ptk_jenis_jenis_sd foreign key (id_jns_sdm)
       references ref.jenis_sdm (id_jns_sdm)
 go
 
-alter table sdm
+alter table pdrd.sdm
    add constraint fk_sdm_ptk_kecam_wilayah foreign key (id_wil)
       references ref.wilayah (id_wil)
 go
 
-alter table sdm
+alter table pdrd.sdm
    add constraint fk_sdm_stataktif_status_k foreign key (id_stat_aktif)
       references ref.status_keaktifan_pegawai (id_stat_aktif)
 go
 
-alter table sdm_anggota_litabmas
+alter table pdrd.sdm_anggota_litabmas
    add constraint fk_sdm_angg_ang_litab_sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
-alter table sdm_anggota_litabmas
+alter table pdrd.sdm_anggota_litabmas
    add constraint fk_sdm_angg_dosen_ang_litabmas foreign key (id_litabmas)
       references pdrd.litabmas (id_litabmas)
 go
@@ -5312,154 +5787,154 @@ alter table ref.semester
       references ref.tahun_ajaran (id_thn_ajaran)
 go
 
-alter table skim_kegiatan
+alter table ref.skim_kegiatan
    add constraint fk_skim_keg_jenj_pend_jenjang_ foreign key (id_jenj_didik)
       references ref.jenjang_pendidikan (id_jenj_didik)
 go
 
-alter table sms
+alter table pdrd.sms
    add constraint fk_sms_fungsi_la_fungsi_l foreign key (id_fungsi_lab)
       references ref.fungsi_lab (id_fungsi_lab)
 go
 
-alter table sms
-   add constraint fk_sms_induk_sms_sms foreign key (induk_sms_id_sms)
-      references sms (id_sms)
+alter table pdrd.sms
+   add constraint fk_sms_induk_sms_sms foreign key (id_induk_sms)
+      references pdrd.sms (id_sms)
 go
 
-alter table sms
+alter table pdrd.sms
    add constraint fk_sms_jursp_jur_jurusan foreign key (id_jur)
       references ref.jurusan (id_jur)
 go
 
-alter table sms
+alter table pdrd.sms
    add constraint fk_sms_kelompok__kelompok foreign key (id_kel_usaha)
       references ref.kelompok_usaha (id_kel_usaha)
 go
 
-alter table sms
+alter table pdrd.sms
    add constraint fk_sms_logo_sms_large_ob foreign key (id_blob)
       references dok.large_object (id_blob)
 go
 
-alter table sms
+alter table pdrd.sms
    add constraint fk_sms_progstudi_jenjang_ foreign key (id_jenj_didik)
       references ref.jenjang_pendidikan (id_jenj_didik)
 go
 
-alter table sms
+alter table pdrd.sms
    add constraint fk_sms_sms_jenis_jenis_sm foreign key (id_jns_sms)
       references ref.jenis_sms (id_jns_sms)
 go
 
-alter table sms
+alter table pdrd.sms
    add constraint fk_sms_sms_sp_satuan_p foreign key (id_sp)
-      references satuan_pendidikan (id_sp)
+      references pdrd.satuan_pendidikan (id_sp)
 go
 
-alter table sms
+alter table pdrd.sms
    add constraint fk_sms_wilayah_s_wilayah foreign key (id_wil)
       references ref.wilayah (id_wil)
 go
 
-alter table sms_kerjasama
+alter table kerjasama.sms_kerjasama
    add constraint fk_sms_kerj_mou_kerja_mou foreign key (id_mou)
-      references mou (id_mou)
+      references kerjasama.mou (id_mou)
 go
 
-alter table sms_kerjasama
+alter table kerjasama.sms_kerjasama
    add constraint fk_sms_kerj_sms_yang__sms foreign key (id_sms)
-      references sms (id_sms)
+      references pdrd.sms (id_sms)
 go
 
-alter table sms_kerjasama
+alter table kerjasama.sms_kerjasama
    add constraint fk_sms_kerj_sumber_da_sumber_d foreign key (id_sumber_dana)
-      references sumber_dana (id_sumber_dana)
+      references ref.sumber_dana (id_sumber_dana)
 go
 
-alter table substansi_kuliah
+alter table pdrd.substansi_kuliah
    add constraint fk_substans_substansi_jenis_su foreign key (id_jns_subst)
       references ref.jenis_subst (id_jns_subst)
 go
 
-alter table tanah
+alter table sarpras.tanah
    add constraint fk_tanah_hapus_buk_jenis_ha foreign key (id_hapus_buku)
       references ref.jenis_hapus_buku (id_hapus_buku)
 go
 
-alter table tanah
+alter table sarpras.tanah
    add constraint fk_tanah_jns_prasa_jenis_pr foreign key (id_jns_prasarana)
       references ref.jenis_prasarana (id_jns_prasarana)
 go
 
-alter table tanah
+alter table sarpras.tanah
    add constraint fk_tanah_sms_pemil_sms foreign key (id_sms)
-      references sms (id_sms)
+      references pdrd.sms (id_sms)
 go
 
-alter table tanah
+alter table sarpras.tanah
    add constraint fk_tanah_status_mi_status_m foreign key (id_stat_milik_sarpras)
       references ref.status_milik_sarpras (id_stat_milik_sarpras)
 go
 
-alter table tugas_belajar
+alter table pdrd.tugas_belajar
    add constraint fk_tugas_be_tb_jenjan_jenjang_ foreign key (id_jenj_didik)
       references ref.jenjang_pendidikan (id_jenj_didik)
 go
 
-alter table tugas_belajar
+alter table pdrd.tugas_belajar
    add constraint fk_tugas_be_tb_negara_negara foreign key (id_negara)
       references ref.negara (id_negara)
 go
 
-alter table tugas_belajar
+alter table pdrd.tugas_belajar
    add constraint fk_tugas_be_tb_sp_satuan_p foreign key (id_sp)
-      references satuan_pendidikan (id_sp)
+      references pdrd.satuan_pendidikan (id_sp)
 go
 
-alter table tugas_belajar
+alter table pdrd.tugas_belajar
    add constraint fk_tugas_be_tugas_bel_sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
-alter table tugas_tambahan
+alter table pdrd.tugas_tambahan
    add constraint fk_tugas_ta_jabatan_p_sms foreign key (id_sms)
-      references sms (id_sms)
+      references pdrd.sms (id_sms)
 go
 
-alter table tugas_tambahan
+alter table pdrd.tugas_tambahan
    add constraint fk_tugas_ta_tug_tamba_jab_tgs foreign key (id_jab_tgs)
       references ref.jab_tgs (id_jab_tgs)
 go
 
-alter table tugas_tambahan
+alter table pdrd.tugas_tambahan
    add constraint fk_tugas_ta_tugtam_pt_sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
-alter table tugas_tambahan
+alter table pdrd.tugas_tambahan
    add constraint fk_tugas_ta_tugtam_sp_satuan_p foreign key (id_sp)
-      references satuan_pendidikan (id_sp)
+      references pdrd.satuan_pendidikan (id_sp)
 go
 
-alter table tulis_buku_ajar
+alter table pdrd.tulis_buku_ajar
    add constraint fk_tulis_bu_buku_ajar_buku_aja foreign key (id_buku_ajar)
       references pdrd.buku_ajar (id_buku_ajar)
 go
 
-alter table tulis_pub
+alter table pdrd.tulis_pub
    add constraint fk_tulis_pu_penulis_p_publikas foreign key (id_publikasi)
-      references publikasi (id_publikasi)
+      references pdrd.publikasi (id_publikasi)
 go
 
-alter table tunjangan
+alter table pdrd.tunjangan
    add constraint fk_tunjanga_tunjangan_jenis_tu foreign key (id_jns_tunj)
       references ref.jenis_tunjangan (id_jns_tunj)
 go
 
-alter table tunjangan
+alter table pdrd.tunjangan
    add constraint fk_tunjanga_tunjangan_sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
 alter table pdrd.uji_mhs
@@ -5469,7 +5944,7 @@ go
 
 alter table pdrd.uji_mhs
    add constraint fk_uji_mhs_dosen_pen_sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
 alter table man_akses.unit_organisasi
@@ -5487,24 +5962,24 @@ alter table man_akses.unit_organisasi
       references ref.wilayah (id_wil)
 go
 
-alter table visiting_scientist
+alter table pdrd.visiting_scientist
    add constraint fk_visiting_capaian_v_kategori foreign key (id_kat_capaian)
       references ref.kategori_capaian_luaran (id_kat_capaian)
 go
 
-alter table visiting_scientist
+alter table pdrd.visiting_scientist
    add constraint fk_visiting_luaran_vi_litabmas foreign key (id_litabmas)
       references pdrd.litabmas (id_litabmas)
 go
 
-alter table visiting_scientist
+alter table pdrd.visiting_scientist
    add constraint fk_visiting_pengundan_satuan_p foreign key (id_sp)
-      references satuan_pendidikan (id_sp)
+      references pdrd.satuan_pendidikan (id_sp)
 go
 
-alter table visiting_scientist
+alter table pdrd.visiting_scientist
    add constraint fk_visiting_ptk_visit_sdm foreign key (id_sdm)
-      references sdm (id_sdm)
+      references pdrd.sdm (id_sdm)
 go
 
 alter table ref.wilayah
