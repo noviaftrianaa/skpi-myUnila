@@ -1,18 +1,15 @@
-<aside class="sidenav navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-3 "
+<aside class="sidenav navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-3 bg-white"
     id="sidenav-main">
-    <div class="sidenav-header">
-        <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
-        <a class="navbar-brand m-0" href="/alumni" target="_blank">
-          <img src="../assets/img/unilabg.png" class="navbar-brand-img h-100" alt="main_logo">
-          <span class="ms-1 font-weight-bold">PDUT UNILA</span>
-          <br>
-         <br>
-          <span class="ms-1 font-weight-bold">Rio Ananda Putra</span><br>
-          <span class="ms-1">Tenaga Kependidikan - UPT TIK</span>
+    <div class="sidenav-header mb-6">
+        <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none"
+            aria-hidden="true" id="iconSidenav"></i>
+        <a class="navbar-brand m-0" href="/tendik">
+            <img src="{{ asset('assets/img/unilabg.png') }}" class="navbar-brand-img h-100" alt="main_logo">
+            <span class="ms-1 font-weight-bold">PDUT UNILA</span>
+            <p class="mt-3 text-sm"><span class="font-weight-bold">Rio Ananda Putra</span><br>Tenaga Kependidikan<br>UPT
+                TIK</p>
         </a>
-      </div>
-      <br>
-      <br>
+    </div>
     <hr class="horizontal dark mt-0">
     <div class="collapse navbar-collapse  w-auto  max-height-vh-100 h-100" id="sidenav-collapse-main">
         <ul class="navbar-nav">
@@ -48,7 +45,8 @@
                 <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Profil Tendik</h6>
             </li>
             <li class="nav-item">
-                <a class="nav-link {{ (request()->is('tendik/data-pribadi')) ? 'active' : '' }}" href="{{url('tendik/data-pribadi')}}">
+                <a class="nav-link {{ (request()->is('tendik/data-pribadi')) ? 'active' : '' }}"
+                    href="{{url('tendik/data-pribadi')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1"
@@ -74,7 +72,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {{ (request()->is('tendik/inpassing')) ? 'active' : '' }}" href="{{url('tendik/inpassing')}}">
+                <a class="nav-link {{ (request()->is('tendik/inpassing')) ? 'active' : '' }}"
+                    href="{{url('tendik/inpassing')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -100,7 +99,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {{ (request()->is('tendik/jabatan-fungsional')) ? 'active' : '' }}" href="{{url('tendik/jabatan-fungsional')}}">
+                <a class="nav-link {{ (request()->is('tendik/jabatan-fungsional')) ? 'active' : '' }}"
+                    href="{{url('tendik/jabatan-fungsional')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1"
@@ -129,7 +129,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {{ (request()->is('tendik/kepangkatan')) ? 'active' : '' }}" href="{{url('tendik/kepangkatan')}}">
+                <a class="nav-link {{ (request()->is('tendik/kepangkatan')) ? 'active' : '' }}"
+                    href="{{url('tendik/kepangkatan')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 40 40" version="1.1"
@@ -158,7 +159,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {{ (request()->is('tendik/penempatan')) ? 'active' : '' }}" href="{{url('tendik/penempatan')}}">
+                <a class="nav-link {{ (request()->is('tendik/penempatan')) ? 'active' : '' }}"
+                    href="{{url('tendik/penempatan')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 46 42" version="1.1"
@@ -191,7 +193,8 @@
                 <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Kualifikasi</h6>
             </li>
             <li class="nav-item">
-                <a class="nav-link {{ (request()->is('tendik/pendidikan-formal')) ? 'active' : '' }}" href="{{url('tendik/pendidikan-formal')}}">
+                <a class="nav-link {{ (request()->is('tendik/pendidikan-formal')) ? 'active' : '' }}"
+                    href="{{url('tendik/pendidikan-formal')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1"
@@ -217,7 +220,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {{ (request()->is('tendik/diklat')) ? 'active' : '' }}" href="{{url('tendik/diklat')}}">
+                <a class="nav-link {{ (request()->is('tendik/diklat')) ? 'active' : '' }}"
+                    href="{{url('tendik/diklat')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -247,7 +251,8 @@
                 <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Kompetensi</h6>
             </li>
             <li class="nav-item">
-                <a class="nav-link {{ (request()->is('tendik/sertifikasi')) ? 'active' : '' }}" href="{{url('tendik/sertifikasi')}}">
+                <a class="nav-link {{ (request()->is('tendik/sertifikasi')) ? 'active' : '' }}"
+                    href="{{url('tendik/sertifikasi')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1"
@@ -303,7 +308,8 @@
                 <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Pengelolaan Lab.</h6>
             </li>
             <li class="nav-item">
-                <a class="nav-link {{ (request()->is('tendik/perancang')) ? 'active' : '' }}" href="{{url('tendik/perancang')}}">
+                <a class="nav-link {{ (request()->is('tendik/perancang')) ? 'active' : '' }}"
+                    href="{{url('tendik/perancang')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1"
@@ -329,7 +335,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {{ (request()->is('tendik/pengoprasian')) ? 'active' : '' }}" href="{{url('tendik/pengoprasian')}}">
+                <a class="nav-link {{ (request()->is('tendik/pengoprasian')) ? 'active' : '' }}"
+                    href="{{url('tendik/pengoprasian')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -355,7 +362,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {{ (request()->is('tendik/pemeliharaan')) ? 'active' : '' }}" href="{{url('tendik/pemeliharaan')}}">
+                <a class="nav-link {{ (request()->is('tendik/pemeliharaan')) ? 'active' : '' }}"
+                    href="{{url('tendik/pemeliharaan')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -381,7 +389,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                                <a class="nav-link {{ (request()->is('tendik/pengevaluasian')) ? 'active' : '' }}" href="{{url('tendik/pengevaluasian')}}">
+                <a class="nav-link {{ (request()->is('tendik/pengevaluasian')) ? 'active' : '' }}"
+                    href="{{url('tendik/pengevaluasian')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -407,7 +416,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                                <a class="nav-link {{ (request()->is('tendik/pengembangan')) ? 'active' : '' }}" href="{{url('tendik/pengembangan')}}">
+                <a class="nav-link {{ (request()->is('tendik/pengembangan')) ? 'active' : '' }}"
+                    href="{{url('tendik/pengembangan')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -438,7 +448,8 @@
                 <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Pengemb. Profesi</h6>
             </li>
             <li class="nav-item">
-                                <a class="nav-link {{ (request()->is('tendik/karya-tulis')) ? 'active' : '' }}" href="{{url('tendik/karya-tulis')}}">
+                <a class="nav-link {{ (request()->is('tendik/karya-tulis')) ? 'active' : '' }}"
+                    href="{{url('tendik/karya-tulis')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1"
@@ -464,7 +475,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                                <a class="nav-link {{ (request()->is('tendik/penerjemahan')) ? 'active' : '' }}" href="{{url('tendik/penerjemahan')}}">
+                <a class="nav-link {{ (request()->is('tendik/penerjemahan')) ? 'active' : '' }}"
+                    href="{{url('tendik/penerjemahan')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -490,7 +502,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                                <a class="nav-link {{ (request()->is('tendik/pembuatan-pedoman')) ? 'active' : '' }}" href="{{url('tendik/pembuatan-pedoman')}}">
+                <a class="nav-link {{ (request()->is('tendik/pembuatan-pedoman')) ? 'active' : '' }}"
+                    href="{{url('tendik/pembuatan-pedoman')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -516,7 +529,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                                <a class="nav-link {{ (request()->is('tendik/penemuan-teknologi')) ? 'active' : '' }}" href="{{url('tendik/penemuan-teknologi')}}">
+                <a class="nav-link {{ (request()->is('tendik/penemuan-teknologi')) ? 'active' : '' }}"
+                    href="{{url('tendik/penemuan-teknologi')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -547,7 +561,8 @@
                 <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Penunjang</h6>
             </li>
             <li class="nav-item">
-                                <a class="nav-link {{ (request()->is('tendik/pengajaran')) ? 'active' : '' }}" href="{{url('tendik/pengajaran')}}">
+                <a class="nav-link {{ (request()->is('tendik/pengajaran')) ? 'active' : '' }}"
+                    href="{{url('tendik/pengajaran')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1"
@@ -573,7 +588,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                                <a class="nav-link {{ (request()->is('tendik/pembimbingan')) ? 'active' : '' }}" href="{{url('tendik/pembimbingan')}}">
+                <a class="nav-link {{ (request()->is('tendik/pembimbingan')) ? 'active' : '' }}"
+                    href="{{url('tendik/pembimbingan')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -599,7 +615,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                                <a class="nav-link {{ (request()->is('tendik/seminar-loka-karyawan')) ? 'active' : '' }}" href="{{url('tendik/seminar-loka-karyawan')}}">
+                <a class="nav-link {{ (request()->is('tendik/seminar-loka-karyawan')) ? 'active' : '' }}"
+                    href="{{url('tendik/seminar-loka-karyawan')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -625,7 +642,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                                <a class="nav-link {{ (request()->is('tendik/anggota-profesi')) ? 'active' : '' }}" href="{{url('tendik/anggota-profesi')}}">
+                <a class="nav-link {{ (request()->is('tendik/anggota-profesi')) ? 'active' : '' }}"
+                    href="{{url('tendik/anggota-profesi')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -651,7 +669,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                                <a class="nav-link {{ (request()->is('tendik/tim-penilai')) ? 'active' : '' }}" href="{{url('tendik/tim-penilai')}}">
+                <a class="nav-link {{ (request()->is('tendik/tim-penilai')) ? 'active' : '' }}"
+                    href="{{url('tendik/tim-penilai')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -677,7 +696,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                                <a class="nav-link {{ (request()->is('tendik/penghargaan')) ? 'active' : '' }}" href="{{url('tendik/penghargaan')}}">
+                <a class="nav-link {{ (request()->is('tendik/penghargaan')) ? 'active' : '' }}"
+                    href="{{url('tendik/penghargaan')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -709,7 +729,8 @@
                 <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Reward</h6>
             </li>
             <li class="nav-item">
-                                <a class="nav-link {{ (request()->is('tendik/beasiswa')) ? 'active' : '' }}" href="{{url('tendik/beasiswa')}}">
+                <a class="nav-link {{ (request()->is('tendik/beasiswa')) ? 'active' : '' }}"
+                    href="{{url('tendik/beasiswa')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1"
@@ -735,7 +756,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                                <a class="nav-link {{ (request()->is('tendik/kesejahtraan')) ? 'active' : '' }}" href="{{url('tendik/kesejahtraan')}}">
+                <a class="nav-link {{ (request()->is('tendik/kesejahtraan')) ? 'active' : '' }}"
+                    href="{{url('tendik/kesejahtraan')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -761,7 +783,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                                <a class="nav-link {{ (request()->is('tendik/tunjangan')) ? 'active' : '' }}" href="{{url('tendik/tunjangan')}}">
+                <a class="nav-link {{ (request()->is('tendik/tunjangan')) ? 'active' : '' }}"
+                    href="{{url('tendik/tunjangan')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
@@ -788,26 +811,4 @@
             </li>
         </ul>
     </div>
-    {{-- <div class="sidenav-footer mx-3 ">
-        <div class="card card-background shadow-none card-background-mask-secondary" id="sidenavCard">
-            <div class="full-background"
-                style="background-image: url('../assets/img/curved-images/white-curved.jpeg')"></div>
-            <div class="card-body text-start p-3 w-100">
-                <div
-                    class="icon icon-shape icon-sm bg-white shadow text-center mb-3 d-flex align-items-center justify-content-center border-radius-md">
-                    <i class="ni ni-diamond text-dark text-gradient text-lg top-0" aria-hidden="true"
-                        id="sidenavCardIcon"></i>
-                </div>
-                <div class="docs-info">
-                    <h6 class="text-white up mb-0">Need help?</h6>
-                    <p class="text-xs font-weight-bold">Please check our docs</p>
-                    <a href="https://www.creative-tim.com/learning-lab/bootstrap/license/soft-ui-dashboard"
-                        target="_blank" class="btn btn-white btn-sm w-100 mb-0">Documentation</a>
-                </div>
-            </div>
-        </div>
-        <a class="btn bg-gradient-primary mt-4 w-100"
-            href="https://www.creative-tim.com/product/soft-ui-dashboard-pro?ref=sidebarfree" type="button">Upgrade to
-            pro</a>
-    </div> --}}
 </aside>
