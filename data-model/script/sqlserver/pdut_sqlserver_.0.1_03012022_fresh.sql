@@ -1,13 +1,25 @@
 /*==============================================================*/
 /* DBMS name:      Microsoft SQL Server 2014                    */
-/* Created on:     03/01/2022 02:15:59                          */
+/* Created on:     03/01/2022 11:12:00                          */
 /*==============================================================*/
 
+
+/*==============================================================*/
+/* User: beasiswa                                               */
+/*==============================================================*/
+create schema beasiswa
+go
 
 /*==============================================================*/
 /* User: keuangan                                               */
 /*==============================================================*/
 create schema keuangan
+go
+
+/*==============================================================*/
+/* User: logger                                                 */
+/*==============================================================*/
+create schema logger
 go
 
 /*==============================================================*/
@@ -50,6 +62,24 @@ go
 /* User: tracer                                                 */
 /*==============================================================*/
 create schema tracer
+go
+
+/*==============================================================*/
+/* Table: access_token                                          */
+/*==============================================================*/
+create table man_akses.access_token (
+   id_token             uniqueidentifier     not null,
+   waktu_create         datetime             null,
+   waktu_expired        datetime             not null,
+   keterangan           varchar(255)         null,
+   token_value          varchar(64)          not null,
+   is_seq_uri           numeric(1)           not null default 0
+      constraint ckc_is_seq_uri_access_t check (is_seq_uri between 0 and 1 and is_seq_uri in (0,1)),
+   is_reg_user          numeric(1)           not null default 0
+      constraint ckc_is_reg_user_access_t check (is_reg_user between 0 and 1 and is_reg_user in (0,1)),
+   base_url             varchar(256)         not null,
+   constraint pk_access_token primary key (id_token)
+)
 go
 
 /*==============================================================*/
@@ -423,6 +453,8 @@ create table man_akses.aplikasi (
    token_aplikasi       varchar(1000)        null,
    app_key              varchar(500)         null,
    url                  varchar(256)         null,
+   a_generate_menu      numeric(1)           not null default 0
+      constraint ckc_a_generate_menu_aplikasi check (a_generate_menu between 0 and 1 and a_generate_menu in (0,1)),
    tgl_create           datetime             not null,
    last_update          datetime             not null,
    expired_date         datetime             null,
@@ -500,11 +532,18 @@ go
 /*==============================================================*/
 /* Table: beasiswa_sdm                                          */
 /*==============================================================*/
-create table beasiswa_sdm (
+create table beasiswa.beasiswa_sdm (
    id_beasiswa_sdm      uniqueidentifier     not null,
    id_jns_beasiswa      int                  not null,
    id_sdm               uniqueidentifier     not null,
    id_sms               uniqueidentifier     null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_beasiswa check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
    ket                  varchar(250)         not null,
    thn_mulai            numeric(4)           not null,
    thn_akhir            numeric(4)           null,
@@ -2466,6 +2505,108 @@ create table pdrd.litabmas (
 go
 
 /*==============================================================*/
+/* Table: log_akses                                             */
+/*==============================================================*/
+create table logger.log_akses (
+   id_log_akses         uniqueidentifier     not null,
+   id_role_pengguna     uniqueidentifier     not null,
+   id_log_login         uniqueidentifier     not null,
+   menu_akses           varchar(300)         not null,
+   method               varchar(50)          not null,
+   request_list         text                 null,
+   waktu_akses          datetime             not null,
+   a_berhasil           numeric(1)           not null default 0
+      constraint ckc_a_berhasil_log_akse check (a_berhasil between 0 and 1 and a_berhasil in (0,1)),
+   ket                  varchar(250)         null,
+   constraint pk_log_akses primary key (id_log_akses)
+)
+go
+
+/*==============================================================*/
+/* Table: log_akses_jwt                                         */
+/*==============================================================*/
+create table logger.log_akses_jwt (
+   id_log_akses_jwt     uniqueidentifier     not null,
+   id_log_jwt           uniqueidentifier     not null,
+   menu_akses           varchar(300)         not null,
+   method               varchar(50)          not null,
+   request_list         text                 null,
+   waktu_akses          datetime             not null,
+   a_berhasil           numeric(1)           not null default 0
+      constraint ckc_a_berhasil_log_jwt check (a_berhasil between 0 and 1 and a_berhasil in (0,1)),
+   ket                  varchar(250)         null,
+   hasil_akses          text                 null,
+   constraint pk_log_akses_jwt primary key (id_log_akses_jwt)
+)
+go
+
+/*==============================================================*/
+/* Table: log_jwt                                               */
+/*==============================================================*/
+create table logger.log_jwt (
+   id_log_jwt           uniqueidentifier     not null,
+   id_pengguna          uniqueidentifier     not null,
+   id_aplikasi          uniqueidentifier     null,
+   token_value          varchar(64)          null,
+   url                  varchar(256)         null,
+   ip_address           varchar(120)         null,
+   waktu_create         datetime             null,
+   waktu_expired        datetime             not null,
+   constraint pk_log_jwt primary key (id_log_jwt)
+)
+go
+
+/*==============================================================*/
+/* Table: log_login                                             */
+/*==============================================================*/
+create table logger.log_login (
+   id_log_login         uniqueidentifier     not null,
+   id_aplikasi          uniqueidentifier     not null,
+   id_pengguna          uniqueidentifier     not null,
+   waktu_login          datetime             not null,
+   waktu_logout         datetime             null,
+   ip_address           varchar(120)         null,
+   browser              varchar(60)          null,
+   os                   varchar(120)         null,
+   a_sesi_aktif         numeric(1)           not null default 0
+      constraint ckc_a_sesi_aktif_log_logi check (a_sesi_aktif between 0 and 1 and a_sesi_aktif in (0,1)),
+   constraint pk_log_login primary key (id_log_login)
+)
+go
+
+/*==============================================================*/
+/* Table: log_pengguna                                          */
+/*==============================================================*/
+create table logger.log_pengguna (
+   id_log_pengguna      uniqueidentifier     not null,
+   id_pengguna          uniqueidentifier     not null,
+   id_aplikasi          uniqueidentifier     not null,
+   count_login          numeric(8)           null,
+   ip_address           varchar(120)         null,
+   ket                  varchar(250)         null,
+   waktu_login          datetime             not null,
+   waktu_logout         datetime             null,
+   constraint pk_log_pengguna primary key (id_log_pengguna)
+)
+go
+
+/*==============================================================*/
+/* Table: log_token                                             */
+/*==============================================================*/
+create table logger.log_token (
+   id_token             uniqueidentifier     not null,
+   keterangan           varchar(255)         null,
+   "user"               varchar(25)          not null,
+   accessed_uri         varchar(255)         not null,
+   wkt_create           datetime             null,
+   wkt_update           datetime             null,
+   waktu_logout         datetime             null,
+   waktu_timeout        datetime             null,
+   constraint pk_log_token primary key (id_token)
+)
+go
+
+/*==============================================================*/
 /* Table: map_abmas_tse                                         */
 /*==============================================================*/
 create table pdrd.map_abmas_tse (
@@ -4142,6 +4283,36 @@ create table ref.tingkat_prestasi (
 go
 
 /*==============================================================*/
+/* Table: token_uri_sequence                                    */
+/*==============================================================*/
+create table man_akses.token_uri_sequence (
+   id_token             uniqueidentifier     not null,
+   accessed_uri         varchar(255)         null,
+   sequence             int                  null,
+   hit_count            int                  null,
+   first_hit            datetime             null,
+   last_hit             datetime             null,
+   constraint pk_token_uri_sequence primary key (id_token)
+)
+go
+
+/*==============================================================*/
+/* Table: token_user                                            */
+/*==============================================================*/
+create table man_akses.token_user (
+   id_token_user        uniqueidentifier     not null,
+   id_token             uniqueidentifier     not null,
+   passkey              varchar(30)          not null,
+   meta_user            text                 null,
+   wkt_create           datetime             null,
+   wkt_digunakan        datetime             null,
+   user_id              varchar(25)          null,
+   user_origin          varchar(255)         null,
+   constraint pk_token_user primary key (id_token_user)
+)
+go
+
+/*==============================================================*/
 /* Table: tse                                                   */
 /*==============================================================*/
 create table ref.tse (
@@ -4340,6 +4511,17 @@ create table man_akses.unit_organisasi (
    last_sync            datetime             not null,
    id_updater           uniqueidentifier     not null,
    constraint pk_unit_organisasi primary key (id_organisasi)
+)
+go
+
+/*==============================================================*/
+/* Table: versi_db                                              */
+/*==============================================================*/
+create table man_akses.versi_db (
+   id_versi             numeric              identity,
+   versi                varchar(20)          not null,
+   tgl_update           datetime             not null,
+   constraint pk_versi_db primary key (id_versi)
 )
 go
 
@@ -4595,17 +4777,17 @@ alter table sarpras.bangunan
       references sarpras.tanah (id_tanah)
 go
 
-alter table beasiswa_sdm
+alter table beasiswa.beasiswa_sdm
    add constraint fk_beasiswa_beasiswa__sdm foreign key (id_sdm)
       references pdrd.sdm (id_sdm)
 go
 
-alter table beasiswa_sdm
+alter table beasiswa.beasiswa_sdm
    add constraint fk_beasiswa_beasiswa__jenis_be foreign key (id_jns_beasiswa)
       references ref.jenis_beasiswa (id_jns_beasiswa)
 go
 
-alter table beasiswa_sdm
+alter table beasiswa.beasiswa_sdm
    add constraint fk_beasiswa_studi_sms_sms foreign key (id_sms)
       references pdrd.sms (id_sms)
 go
@@ -5159,6 +5341,66 @@ go
 alter table pdrd.litabmas
    add constraint fk_litabmas_tse_litab_tse foreign key (id_tse)
       references ref.tse (id_tse)
+go
+
+alter table logger.log_akses
+   add constraint fk_log_akse_log_role__role_pen foreign key (id_role_pengguna)
+      references man_akses.role_pengguna (id_role_pengguna)
+         on update cascade on delete cascade
+go
+
+alter table logger.log_akses
+   add constraint fk_log_akse_logger_ak_log_logi foreign key (id_log_login)
+      references logger.log_login (id_log_login)
+         on update cascade on delete cascade
+go
+
+alter table logger.log_akses_jwt
+   add constraint fk_log_akse_akses_jwt_log_jwt foreign key (id_log_jwt)
+      references logger.log_jwt (id_log_jwt)
+         on update cascade on delete cascade
+go
+
+alter table logger.log_jwt
+   add constraint fk_log_jwt_app_pemin_aplikasi foreign key (id_aplikasi)
+      references man_akses.aplikasi (id_aplikasi)
+         on update cascade on delete cascade
+go
+
+alter table logger.log_jwt
+   add constraint fk_log_jwt_log_pengg_pengguna foreign key (id_pengguna)
+      references man_akses.pengguna (id_pengguna)
+         on update cascade on delete cascade
+go
+
+alter table logger.log_login
+   add constraint fk_log_logi_log_login_pengguna foreign key (id_pengguna)
+      references man_akses.pengguna (id_pengguna)
+         on update cascade on delete cascade
+go
+
+alter table logger.log_login
+   add constraint fk_log_logi_log_login_aplikasi foreign key (id_aplikasi)
+      references man_akses.aplikasi (id_aplikasi)
+         on update cascade on delete cascade
+go
+
+alter table logger.log_pengguna
+   add constraint fk_log_peng_log_app_l_aplikasi foreign key (id_aplikasi)
+      references man_akses.aplikasi (id_aplikasi)
+         on update cascade on delete cascade
+go
+
+alter table logger.log_pengguna
+   add constraint fk_log_peng_log_pengu_pengguna foreign key (id_pengguna)
+      references man_akses.pengguna (id_pengguna)
+         on update cascade on delete cascade
+go
+
+alter table logger.log_token
+   add constraint fk_log_toke_token_log_access_t foreign key (id_token)
+      references man_akses.access_token (id_token)
+         on update cascade on delete cascade
 go
 
 alter table pdrd.map_abmas_tse
@@ -5877,6 +6119,18 @@ alter table sarpras.tanah
       references ref.status_milik_sarpras (id_stat_milik_sarpras)
 go
 
+alter table man_akses.token_uri_sequence
+   add constraint fk_token_ur_token_seq_access_t foreign key (id_token)
+      references man_akses.access_token (id_token)
+         on update cascade on delete cascade
+go
+
+alter table man_akses.token_user
+   add constraint fk_token_us_token_aks_access_t foreign key (id_token)
+      references man_akses.access_token (id_token)
+         on update cascade on delete cascade
+go
+
 alter table pdrd.tugas_belajar
    add constraint fk_tugas_be_tb_jenjan_jenjang_ foreign key (id_jenj_didik)
       references ref.jenjang_pendidikan (id_jenj_didik)
@@ -5997,3 +6251,4 @@ alter table ref.wilayah
       references ref.negara (id_negara)
 go
 
+INSERT INTO man_akses.versi_db (versi,tgl_update) VALUES ('0.1.0',GETDATE())
