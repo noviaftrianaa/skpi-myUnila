@@ -8,7 +8,7 @@
         "php": "^7.3|^8.0",
         "anhskohbo/no-captcha": "^3.2",
         "arcanedev/log-viewer": "^8.1",
-        "barryvdh/laravel-dompdf": "^0.8.5",
+        "barryvdh/laravel-dompdf": "^0.9.0",
         "darkaonline/l5-swagger": "^8.0",
         "doctrine/dbal": "^2.10",
         "econea/nusoap": "^0.9.10",
