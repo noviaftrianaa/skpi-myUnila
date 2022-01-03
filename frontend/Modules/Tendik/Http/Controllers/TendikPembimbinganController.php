@@ -6,7 +6,7 @@ use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
-class TendikSertifikasiController extends Controller
+class TendikPembimbinganController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -14,7 +14,7 @@ class TendikSertifikasiController extends Controller
      */
     public function index()
     {
-        return view('tendik::layouts.kompetensi.sertifikasi/index');
+        return view('tendik::layouts.penunjang.pembimbingan/index');
     }
 
     /**

@@ -1,8 +1,8 @@
 @extends('tendik::components.master')
-@section('title', 'Tes (IELTS, TOEFL dll)')
+@section('title', 'Tunjangan')
 
 @section('content')
-{{-- start tes --}}
+{{-- start Tunjangan --}}
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-12 mb-4">
@@ -10,7 +10,7 @@
                 <div class="card-header pb-0 p-3 mb-0">
                     <div class="row">
                         <div class="col-6 d-flex align-items-center">
-                            <p class="text-uppercase text-sm font-weight-bolder mb-0">Tes (IELTS, TOEFL dll)</p>
+                            <p class="text-uppercase text-sm font-weight-bolder mb-0">Tunjangan</p>
                         </div>
                         <div class="col-6 text-end">
                             <a class="btn btn-sm bg-gradient-dark mb-0" href="javascript:;">Tambah</a>
@@ -24,33 +24,41 @@
                             <thead class="bg-dark text-white">
                                 <tr>
                                     <th class="text-uppercase text-xxs font-weight-bolder">No</th>
-                                    <th class="text-uppercase text-xxs font-weight-bolder">Nama Tes</th>
-                                    <th class="text-uppercase text-xxs font-weight-bolder">Skor Tes</th>
-                                    <th class="text-uppercase text-xxs font-weight-bolder">Jenis Tes</th>
-                                    <th class="text-uppercase text-xxs font-weight-bolder">Penyelenggara</th>
-                                    <th class="text-uppercase text-xxs font-weight-bolder">Tahun</th>
+                                    <th class="text-uppercase text-xxs font-weight-bolder">Jenis Tunjangan</th>
+                                    <th class="text-uppercase text-xxs font-weight-bolder">Nama Tunjangan</th>
+                                    <th class="text-uppercase text-xxs font-weight-bolder">Instansi Pemberi Tunjangan</th>
+                                    <th class="text-uppercase text-xxs font-weight-bolder">Sumber Dana</th>
+                                    <th class="text-uppercase text-xxs font-weight-bolder">Tahun Mulai</th>
+                                    <th class="text-uppercase text-xxs font-weight-bolder">Tahun Selesai</th>
+                                    <th class="text-uppercase text-xxs font-weight-bolder">Nominal</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {{-- @foreach ($listTes as $value)
+                                {{-- @foreach ($listPendidikanFormal as $value)
                                     <tr>
                                         <td>
                                             <span class="text-xs font-weight-bold">{{ $value['id'] }}</span>
                                         </td>
                                         <td>
-                                            <span class="text-xs font-weight-bold"> {{ $value['nama_tes'] }} </span>
+                                            <span class="text-xs font-weight-bold"> {{ $value['jenis_tunjangan'] }} </span>
                                         </td>
                                         <td>
-                                            <span class="text-xs font-weight-bold"> {{ $value['skor_tes'] }} </span>
+                                            <span class="text-xs font-weight-bold"> {{ $value['nama_tunjangan'] }} </span>
                                         </td>
                                         <td>
-                                            <span class="text-xs font-weight-bold"> {{ $value['jenis_tes'] }} </span>
+                                            <span class="text-xs font-weight-bold"> {{ $value['instansi_pemberi_tunjangan'] }} </span>
                                         </td>
                                         <td>
-                                            <span class="text-xs font-weight-bold"> {{ $value['penyelenggara'] }} </span>
+                                            <span class="text-xs font-weight-bold"> {{ $value['sumber_dana'] }} </span>
                                         </td>
                                         <td>
-                                            <span class="text-xs font-weight-bold"> {{ $value['tahun'] }} </span>
+                                            <span class="text-xs font-weight-bold"> {{ $value['tahun_mulai'] }} </span>
+                                        </td>
+                                        <td>
+                                            <span class="text-xs font-weight-bold"> {{ $value['tahun_selesai'] }} </span>
+                                        </td>
+                                        <td>
+                                            <span class="text-xs font-weight-bold"> {{ $value['nominal'] }} </span>
                                         </td>
                                     </tr>
                                 @endforeach --}}
@@ -62,5 +70,5 @@
         </div>
     </div>
 </div>
-{{-- end tes --}}
+{{-- end Tunjangan --}}
 @endsection

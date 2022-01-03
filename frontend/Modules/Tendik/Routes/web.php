@@ -46,7 +46,6 @@ Route::prefix('tendik')->group(function () {
         Route::get('/', 'TendikTesController@index')->name('tendik.tes');
         Route::get('add', 'TendikTesController@create')->name('tendik.tes.add');
     });
-
     Route::prefix('perencanaan')->group(function () {
         Route::get('/', 'TendikPerencanaanController@index')->name('tendik.perencanaan');
         Route::get('add', 'TendikPerencanaanController@create')->name('tendik.perencanaan.add');
@@ -75,9 +74,9 @@ Route::prefix('tendik')->group(function () {
         Route::get('/', 'TendikPenerjemahanController@index')->name('tendik.penerjemahan');
         Route::get('add', 'TendikPenerjemahanController@create')->name('tendik.penerjemahan.add');
     });
-    Route::prefix('pembuat-pedoman')->group(function () {
-        Route::get('/', 'TendikPembuatPedomanController@index')->name('tendik.pembuat-pedoman');
-        Route::get('add', 'TendikPembuatPedomanController@create')->name('tendik.pembuat-pedoman.add');
+    Route::prefix('pembuatan-pedoman')->group(function () {
+        Route::get('/', 'TendikPembuatanPedomanController@index')->name('tendik.pembuatan-pedoman');
+        Route::get('add', 'TendikPembuatanPedomanController@create')->name('tendik.pembuatan-pedoman.add');
     });
     Route::prefix('penemuan-teknologi')->group(function () {
         Route::get('/', 'TendikPenemuanTeknologiController@index')->name('tendik.penemuan-teknologi');
@@ -92,8 +91,8 @@ Route::prefix('tendik')->group(function () {
         Route::get('add', 'TendikPembimbinganController@create')->name('tendik.pembimbingan.add');
     });
     Route::prefix('seminar-loka-karya')->group(function () {
-        Route::get('/', 'TendikPembuatPedomanController@index')->name('tendik.seminar-loka-karya');
-        Route::get('add', 'TendikPembuatPedomanController@create')->name('tendik.seminar-loka-karya');
+        Route::get('/', 'TendikSeminarLokaKaryaController@index')->name('tendik.seminar-loka-karya');
+        Route::get('add', 'TendikSeminarLokaKaryaController@create')->name('tendik.seminar-loka-karya.add');
     });
     Route::prefix('anggota-profesi')->group(function () {
         Route::get('/', 'TendikAnggotaProfesiController@index')->name('tendik.anggota-profesi');
@@ -115,8 +114,8 @@ Route::prefix('tendik')->group(function () {
         Route::get('/', 'TendikKesejahtraanController@index')->name('tendik.kesejahtraan');
         Route::get('add', 'TendikKesejahtraanController@create')->name('tendik.kesejahtraan.add');
     });
-    Route::prefix('tunjuangan')->group(function () {
-        Route::get('/', 'TendikTunjuanganController@index')->name('tendik.tunjuangan');
-        Route::get('add', 'TendikTunjuanganController@create')->name('tendik.tunjuangan.add');
+    Route::prefix('tunjangan')->group(function () {
+        Route::get('/', 'TendikTunjanganController@index')->name('tendik.tunjangan');
+        Route::get('add', 'TendikTunjanganController@create')->name('tendik.tunjangan.add');
     });
 });

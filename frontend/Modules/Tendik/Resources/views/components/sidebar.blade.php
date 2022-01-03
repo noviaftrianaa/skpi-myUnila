@@ -308,13 +308,13 @@
                 <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Pengelolaan Lab.</h6>
             </li>
             <li class="nav-item">
-                <a class="nav-link {{ (request()->is('tendik/perancang')) ? 'active' : '' }}"
-                    href="{{url('tendik/perancang')}}">
+                <a class="nav-link {{ (request()->is('tendik/perencanaan')) ? 'active' : '' }}"
+                    href="{{url('tendik/perencanaan')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1"
                             xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                            <title>perancangan</title>
+                            <title>perencanaan</title>
                             <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
                                 <g transform="translate(-1869.000000, -293.000000)" fill="#FFFFFF" fill-rule="nonzero">
                                     <g transform="translate(1716.000000, 291.000000)">
@@ -331,7 +331,7 @@
                             </g>
                         </svg>
                     </div>
-                    <span class="nav-link-text ms-1">Perancanan</span>
+                    <span class="nav-link-text ms-1">Perencanaan</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -615,13 +615,13 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {{ (request()->is('tendik/seminar-loka-karyawan')) ? 'active' : '' }}"
-                    href="{{url('tendik/seminar-loka-karyawan')}}">
+                <a class="nav-link {{ (request()->is('tendik/seminar-loka-karya')) ? 'active' : '' }}"
+                    href="{{url('tendik/seminar-loka-karya')}}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
                             xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                            <title>seminar-loka-karyawan</title>
+                            <title>seminar-loka-karya</title>
                             <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
                                 <g transform="translate(-2169.000000, -745.000000)" fill="#FFFFFF" fill-rule="nonzero">
                                     <g transform="translate(1716.000000, 291.000000)">

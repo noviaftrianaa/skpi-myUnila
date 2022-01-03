@@ -1,8 +1,8 @@
 @extends('tendik::components.master')
-@section('title', 'Pendidikan Formal')
+@section('title', 'Anggota Profesi')
 
 @section('content')
-{{-- start pendidikan formal --}}
+{{-- start Anggota Profesi --}}
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-12 mb-4">
@@ -10,7 +10,7 @@
                 <div class="card-header pb-0 p-3 mb-0">
                     <div class="row">
                         <div class="col-6 d-flex align-items-center">
-                            <p class="text-uppercase text-sm font-weight-bolder mb-0">Pendidikan Formal</p>
+                            <p class="text-uppercase text-sm font-weight-bolder mb-0">Anggota Profesi</p>
                         </div>
                         <div class="col-6 text-end">
                             <a class="btn btn-sm bg-gradient-dark mb-0" href="javascript:;">Tambah</a>
@@ -24,30 +24,33 @@
                             <thead class="bg-dark text-white">
                                 <tr>
                                     <th class="text-uppercase text-xxs font-weight-bolder">No</th>
-                                    <th class="text-uppercase text-xxs font-weight-bolder">Jenjang</th>
-                                    <th class="text-uppercase text-xxs font-weight-bolder">Gelar</th>
-                                    <th class="text-uppercase text-xxs font-weight-bolder">Bidang Studi</th>
-                                    <th class="text-uppercase text-xxs font-weight-bolder">Perguruan Tinggi</th>
-                                    <th class="text-uppercase text-xxs font-weight-bolder">Tahun Lulus</th>
+                                    <th class="text-uppercase text-xxs font-weight-bolder">Nama Organisasi</th>
+                                    <th class="text-uppercase text-xxs font-weight-bolder">Peran/Kedudukan</th>
+                                    <th class="text-uppercase text-xxs font-weight-bolder">Mulai Keanggotaan</th>
+                                    <th class="text-uppercase text-xxs font-weight-bolder">Selesai Keanggotaan</th>
+                                    <th class="text-uppercase text-xxs font-weight-bolder">Instansi Profesi</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {{-- @foreach ($listPendidikanFormal as $value)
+                                {{-- @foreach ($listAnggotaProfesi as $value)
                                     <tr>
                                         <td>
                                             <span class="text-xs font-weight-bold">{{ $value['id'] }}</span>
                                         </td>
                                         <td>
-                                            <span class="text-xs font-weight-bold"> {{ $value['jenjang'] }} </span>
+                                            <span class="text-xs font-weight-bold"> {{ $value['nama_organisasi'] }} </span>
                                         </td>
                                         <td>
-                                            <span class="text-xs font-weight-bold"> {{ $value['bidang_studi'] }} </span>
+                                            <span class="text-xs font-weight-bold"> {{ $value['peran_kedudukan'] }} </span>
                                         </td>
                                         <td>
-                                            <span class="text-xs font-weight-bold"> {{ $value['perguruan_tinggi'] }} </span>
+                                            <span class="text-xs font-weight-bold"> {{ $value['mulai_keanggotaan'] }} </span>
                                         </td>
                                         <td>
-                                            <span class="text-xs font-weight-bold"> {{ $value['tahun_lulus'] }} </span>
+                                            <span class="text-xs font-weight-bold"> {{ $value['selesai_keanggotaan'] }} </span>
+                                        </td>
+                                        <td>
+                                            <span class="text-xs font-weight-bold"> {{ $value['instansi_profesi'] }} </span>
                                         </td>
                                     </tr>
                                 @endforeach --}}
@@ -59,5 +62,5 @@
         </div>
     </div>
 </div>
-{{-- end pendidikan formal --}}
+{{-- end Anggota Profesi --}}
 @endsection
