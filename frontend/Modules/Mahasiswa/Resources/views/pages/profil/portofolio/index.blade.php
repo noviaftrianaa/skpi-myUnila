@@ -1,4 +1,4 @@
-@extends('mahasiswa::layouts.master')
+@extends('mahasiswa::components.master')
 @section('title', 'Data Pribadi')
 @section('css')
 <style>

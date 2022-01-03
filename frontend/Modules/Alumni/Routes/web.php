@@ -29,14 +29,17 @@ Route::prefix('alumni')->group(function() {
 
     //riwayat pelatihan
     Route::get('/pelatihan', function() { return view('alumni::pages.riwayat-pelatihan.pelatihan'); });
+    Route::get('/tambah-pelatihan', function() { return view('alumni::pages.riwayat-pelatihan.tambah-pelatihan'); });
 
     //riwayat pendidikan
     Route::get('/pendidikan', function() { return view('alumni::pages.riwayat-pendidikan.pendidikan'); });
+    Route::get('/tambah-pendidikan', function() { return view('alumni::pages.riwayat-pendidikan.tambah-pendidikan'); });
 
     //riwayat transkrip
     Route::get('/index-transkrip', function() { return view('alumni::pages.transkrip.index-transkrip'); });
 
     //riwayat legalisir
     Route::get('/index-legalisir', function() { return view('alumni::pages.legalisir.index-legalisir'); });
+    Route::get('/pengajuan', function() { return view('alumni::pages.legalisir.pengajuan'); });
 });
 

@@ -1,4 +1,4 @@
-@extends('mahasiswa::layouts.master')
+@extends('mahasiswa::components.master')
 @section('title', 'Dashboard')
 @section('content')
 @section('css')
@@ -118,6 +118,25 @@ body {
 }
 
 @media (max-width:560px) {
+    .modal-dialog{
+        width: 350px;
+        margin: auto;
+        top: -70px
+    }
+
+    .modal-dialog .img-modal{
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: -50px;
+        width: 50%!important;
+    }
+
+    .sub-review {
+        font-size: 14px;
+        font-weight: 200;
+    }
+
     .review {
         font-size: 14px;
         font-weight: 600
@@ -173,7 +192,7 @@ body {
                         <div class="carousel-inner">
                             <div class="carousel-item active">
                                 <div class="row">
-                                    <div class="col-lg-6 "> <img src="{{ asset('assets/img/beasiswa/ic_graduation_cap_s1d4.png') }}" class="d-block w-100" alt="..."> </div>
+                                    <div class="col-lg-6 "> <img src="{{ asset('assets/img/beasiswa/ic_graduation_cap_s1d4.png') }}" class="img-modal d-block w-100" alt="..."> </div>
                                     <div class="col-lg-6 ">
                                         <div class=" d-flex flex-column justify-content-center my-5 px-3">
                                             <p class="review text-center">Beasiswa S1 / D4</p>
@@ -188,7 +207,7 @@ body {
                             </div>
                             <div class="carousel-item">
                                 <div class="row">
-                                    <div class="col-lg-6 "> <img src="{{ asset('assets/img/beasiswa/ic_graduation_cap_s2s3.png') }}" class="d-block w-100" alt="..."> </div>
+                                    <div class="col-lg-6 "> <img src="{{ asset('assets/img/beasiswa/ic_graduation_cap_s2s3.png') }}" class="img-modal d-block w-100" alt="..."> </div>
                                     <div class="col-lg-6 ">
                                         <div class=" d-flex flex-column justify-content-center my-5 px-3">
                                             <p class="review text-center">Beasiswa S2 / S3 Non Dosen</p>
@@ -203,7 +222,7 @@ body {
                             </div>
                             <div class="carousel-item">
                                 <div class="row">
-                                    <div class="col-lg-6 "> <img src="{{ asset('assets/img/beasiswa/ic_lpdp.png') }}" class="d-block w-100" alt="..."> </div>
+                                    <div class="col-lg-6 "> <img src="{{ asset('assets/img/beasiswa/ic_lpdp.png') }}" class="img-modal d-block w-100" alt="..."> </div>
                                     <div class="col-lg-6 ">
                                         <div class=" d-flex flex-column justify-content-center my-5 px-3">
                                             <p class="review text-center">Beasiswa S2 / S3 LPDP</p>

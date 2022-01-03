@@ -13,11 +13,19 @@ class TendikDataPribadiController extends Controller
         $data_pribadi = [];
         $data_pribadi['profile'] = [
             'Nama' => 'Rio Ananda Putra',
-            'NIDN' => substr(str_shuffle('0123456789876543210'), 0, 10),
+            'NITK' => substr(str_shuffle('0123456789876543210'), 0, 10),
             'Jenis_Kelamin' => 'Laki-Laki',
             'Tempat_Lahir' => 'Bandar Lampung',
             'Tanggal_Lahir' => '29-12-1993',
-            'Nama Ibu Kandung' => 'Nurhalimah'
+            'Nama Ibu Kandung' => 'Nurhalimah',
+
+            'NIK' => '1871032606750005',
+            'Agama' => 'Islam',
+            'Kewarganegaraan' => 'Indonesia',
+
+            'NPWP' => '254895634322000',
+            'Nama Wajib Pajak' => 'Abdurachman Effendi',
+            'SINTA ID' => '(Tidak ada data)'
         ];
 
         $data_pribadi['kependudukan'] = [

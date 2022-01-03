@@ -1,4 +1,4 @@
-@extends('mahasiswa::layouts.master')
+@extends('mahasiswa::components.master')
 @section('title', 'Status Semester')
 
 @section('css')

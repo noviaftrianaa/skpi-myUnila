@@ -7,7 +7,7 @@
   <strong>Informasi</strong> 
   <hr>
   Biaya Legalisasi yang telah ditetapkan adalah : <b>Rp 2000,00 /lembar</b>
-<br>Transfer ke <b>8976546807</b> BNI a.n. <b>Universitas Lampung<b>
+<br>Transfer ke <b>89765****</b> BNI a.n. <b>Universitas Lampung<b>
 </div>
     </div>
     <br>
@@ -18,7 +18,9 @@
                 <h6 class="mb-0">Daftar Legalisasi Ijazah & Transkrip</h6>
               </div>
               <div class="col-6 text-end">
+                <a href="{{url('alumni/pengajuan')}}">
                 <button class="btn btn-outline-primary btn-sm">+ Pengajuan</i></button>
+                </a>
               </div>
             </div>
           </div>
@@ -29,6 +31,7 @@
               <thead>
                 <tr>
                   <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">No.</th>
+                  <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Jenis Dokumen</th>
                   <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Jumlah Dokumen</th>
                   <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Pengambilan</th>
                   <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Jumlah Bayar</th>
@@ -41,7 +44,8 @@
                     <td class="align-middle text-center">
                         <span class="text-xs font-weight-bold mb-0">1.</span>
                       </td>
-                      <td class="align-middle text-center">10</td>
+                      <td class="align-middle text-center">Ijazah</td>
+                    <td class="align-middle text-center">10</td>
                     <td class="align-middle text-center">Dikirim</td>
                     <td class="align-middle text-center">Rp 20.000,00</td>
                     <td class="align-middle text-center">-</td>

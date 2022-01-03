@@ -10,7 +10,9 @@
             <h6 class="mb-0">Daftar Pendidikan</h6>
           </div>
           <div class="col-6 text-end">
+            <a href="{{url('alumni/tambah-pendidikan')}}">
             <button class="btn btn-outline-primary btn-sm"><i class="fa fa-plus"></i></button>
+            </a>
           </div>
         </div>
       </div>
