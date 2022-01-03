@@ -1,4 +1,4 @@
-@extends('mahasiswa::layouts.master')
+@extends('mahasiswa::components.master')
 @section('title', 'Minat & Bakat')
 
 @section('css')
@@ -38,7 +38,7 @@ td {
             <div class="row">
                 <h5 class="card-header d-flex justify-content-between align-items-center">
                   Jenis Kegiatan
-                  <a href="#" class="btn btn-sm btn-round mb-0 me-1 bg-gradient-primary"><i class="fa fa-plus text-white"></i>&nbsp;&nbsp;Tambah</a>
+                  <a href="#" class="btn btn-sm btn-round mb-0 me-1 btn-primary"><i class="fa fa-plus text-white"></i>&nbsp;&nbsp;Tambah</a>
                 </h5>
             </div>
         </div>

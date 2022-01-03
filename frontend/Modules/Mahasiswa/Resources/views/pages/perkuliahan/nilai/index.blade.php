@@ -1,4 +1,4 @@
-@extends('mahasiswa::layouts.master')
+@extends('mahasiswa::components.master')
 @section('title', 'Riwayat Studi')
 
 @section('css')
@@ -20,13 +20,13 @@
             </div>
         <div class="card-body px-0 pb-2">
             <div class="row mt-2">
-                <div class="col-md-3">
+                {{-- <div class="col-md-3">
                     <select id="periode" name="periode" class="form-control" onchange="goSubmit(this)">
                         <option value="20202" selected="">Kartu Rencana Studi</option>
                         <option value="20201">Kartu Hasil Studi</option>
                         <option value="20192">Transkrip</option>
                     </select>
-                </div>
+                </div> --}}
                 <div class="col-md-3">
                     <select id="periode" name="periode" class="form-control" onchange="goSubmit(this)">
                         <option value="20211">2021 Ganjil</option>
@@ -38,11 +38,12 @@
                         <option value="20181">2018 Ganjil</option>
                         <option value="20172">2017 Genap</option>
                         <option value="20171">2017 Ganjil</option>
+                        <option value="20171">Semua Semester</option>
                     </select>
                 </div>
                 <div class="col-md-3">
                     <a href="#" class="btn btn-info btn-sm btn-round mb-0 me-1"><i class="fa fa-search text-white"></i>&nbsp;&nbsp;Tampilkan</a>
-                    <a href="#" class="btn btn-sm btn-round mb-0 me-1 bg-gradient-dark"><i class="fa fa-download text-white"></i>&nbsp;&nbsp;Download</a>
+                    <a href="#" class="btn btn-sm btn-round mb-0 me-1 btn-primary"><i class="fa fa-download text-white"></i>&nbsp;&nbsp;Download</a>
                 </div>
             </div>
           <div class="table-responsive">

@@ -44,11 +44,13 @@
 <div class="container-fluid py-4 bg-white mb-5">
     <div class="row">
         <div class="col-md-3 border-right">
-            <div class="d-flex flex-column align-items-center text-center p-3 py-5"><img class="rounded-circle mt-5"
-                    width="150px"
-                    src="https://st3.depositphotos.com/15648834/17930/v/600/depositphotos_179308454-stock-illustration-unknown-person-silhouette-glasses-profile.jpg">
-                <span class="font-weight-bold">{{ $mahasiswa_profil['kemahasiswaan']['Nama'] }}</span><span
-                    class="text-black-50">{{ $mahasiswa_profil['informasi_umum']['Email'] }}</span><span> </span>
+            <div class="d-flex flex-column align-items-center text-center p-3 py-5">
+            <input type="image" class="rounded-circle mt-5"
+            width="150px"
+            src="https://st3.depositphotos.com/15648834/17930/v/600/depositphotos_179308454-stock-illustration-unknown-person-silhouette-glasses-profile.jpg"/>
+            <input type="file" id="my_file" style="display: none;" />
+
+                <span class="text-black-50">Klik untuk ganti foto</span>
             </div>
 
         </div>
@@ -60,7 +62,7 @@
                         <div class="row">
                             <h5 class="card-header d-flex justify-content-between align-items-center">
                               Data Profil
-                              <a href="{{url('mahasiswa/data-profil/edit')}}" class="btn btn-sm btn-round btn-info"><i class="fa fa-edit text-white"></i>&nbsp;&nbsp;Ubah Data</a>
+                              <a href="{{url('mahasiswa/data-profil')}}" class="btn btn-sm btn-round btn-primary"><i class="fa fa-edit text-white"></i>&nbsp;&nbsp;Update Data</a>
                             </h5>
                         </div>
                     </div>
@@ -113,7 +115,7 @@
                                                     <p class="text-sm font-weight-bold mb-0">:</p>
                                                 </td>
                                                 <td>
-                                                    <span class="text-xs font-weight-bold">{{ $value }}</span>
+                                                    <input type="text" class="form-control input-lg" id="inputLogin" name="username" placeholder="Username" value="{{ $value }}" autofocus required>
                                                 </td>
                                             </tr>
                                             @endforeach
@@ -140,7 +142,7 @@
                                                         <p class="text-sm font-weight-bold mb-0">:</p>
                                                     </td>
                                                     <td>
-                                                        <span class="text-xs font-weight-bold">{{ $value }}</span>
+                                                          <input type="text" class="form-control input-lg" id="inputLogin" name="username" placeholder="Username" value="{{ $value }}" autofocus required>
                                                     </td>
                                                 </tr>
                                             @endforeach
@@ -167,7 +169,7 @@
                                                         <p class="text-sm font-weight-bold mb-0">:</p>
                                                     </td>
                                                     <td>
-                                                        <span class="text-xs font-weight-bold">{{ $value }}</span>
+                                                          <input type="text" class="form-control input-lg" id="inputLogin" name="username" placeholder="Username" value="{{ $value }}" autofocus required>
                                                     </td>
                                                 </tr>
                                             @endforeach
@@ -210,3 +212,10 @@
 </div>
 </div>
 @endsection
+@section('js')
+<script>
+$("input[type='image']").click(function() {
+    $("input[id='my_file']").click();
+});
+</script>
+@stop

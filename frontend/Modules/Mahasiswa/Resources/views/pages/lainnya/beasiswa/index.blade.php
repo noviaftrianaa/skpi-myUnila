@@ -1,4 +1,4 @@
-@extends('mahasiswa::layouts.master')
+@extends('mahasiswa::components.master')
 @section('title', 'Beasiswa')
 
 @section('css')
@@ -24,7 +24,7 @@
 
             </div>
             <div class="card-footer  border-0" style="min-height: 80px;background:white">
-                <a class="btn btn-sm btn-round mb-0 me-1 bg-gradient-primary mb-3" href="https://beasiswa.kemdikbud.go.id/dashboard"> Daftar </a><br>
+                <a class="btn btn-sm btn-round mb-0 me-1 btn-primary mb-3" href="https://beasiswa.kemdikbud.go.id/dashboard"> Daftar </a><br>
                 <a href="https://beasiswa.kemdikbud.go.id/syarat-s1">Persyaratan Pendaftaran</a></div>
         </div>
 
@@ -42,7 +42,7 @@
                 </p>
             </div>
             <div class="card-footer border-0" style="min-height: 80px;background:white">
-                <a href="http://beasiswadosen.kemdikbud.go.id" class="btn btn-sm btn-round mb-0 me-1 bg-gradient-primary mb-3"> Daftar </a> <br>
+                <a href="http://beasiswadosen.kemdikbud.go.id" class="btn btn-sm btn-round mb-0 me-1 btn-primary mb-3"> Daftar </a> <br>
                 <a href="https://beasiswa.kemdikbud.go.id/syarat-dosen">Persyaratan Pendaftaran</a>
             </div>
         </div>
@@ -59,7 +59,7 @@
                 </p>
             </div>
             <div class="card-footer border-0" style="min-height: 80px;background:white">
-                <a class="btn btn-sm btn-round mb-0 me-1 bg-gradient-primary mb-3" href="https://beasiswa.kemdikbud.go.id/dashboard"> Daftar </a> <br>
+                <a class="btn btn-sm btn-round mb-0 me-1 btn-primary mb-3" href="https://beasiswa.kemdikbud.go.id/dashboard"> Daftar </a> <br>
                 <a href="https://beasiswa.kemdikbud.go.id/syarat-non-dosen">Persyaratan Pendaftaran</a>
             </div>
         </div>
@@ -75,7 +75,7 @@
                 </p>
             </div>
             <div class="card-footer border-0" style="min-height: 80px;background:white">
-                <a href="https://beasiswalpdp.kemenkeu.go.id" class="btn btn-sm btn-round mb-0 me-1 bg-gradient-primary mb-3"> Daftar </a> <br>
+                <a href="https://beasiswalpdp.kemenkeu.go.id" class="btn btn-sm btn-round mb-0 me-1 btn-primary mb-3"> Daftar </a> <br>
                 <a href="https://www.lpdp.kemenkeu.go.id/in/page/Beasiswa2021" target="_blank">Persyaratan
                     Pendaftaran</a>
             </div>

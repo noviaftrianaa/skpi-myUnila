@@ -23,17 +23,17 @@
 <body class="g-sidenav-show  bg-gray-100">
 
     @section('sidebar')
-	@include('mahasiswa::layouts.sidebar')
+	@include('mahasiswa::components.sidebar')
 	@show
      <main class="main-content position-relative max-height-vh-100 h-100 mt-1 border-radius-lg ">
     @section('navbar')
-	@include('mahasiswa::layouts.navbar')
+	@include('mahasiswa::components.navbar')
 	@show
 
 	@yield('content')
 
     @section('footer')
-	@include('mahasiswa::layouts.footer')
+	@include('mahasiswa::components.footer')
 	@show
 
        </div>

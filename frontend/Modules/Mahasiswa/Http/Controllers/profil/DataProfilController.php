@@ -110,9 +110,67 @@ class DataProfilController extends Controller
      * @param int $id
      * @return Renderable
      */
-    public function edit($id)
+    public function edit()
     {
-        return view('mahasiswa::edit');
+        $mahasiswa_profil = [];
+        $mahasiswa_profil['kemahasiswaan'] = [
+            'NPM' => '1757051007',
+            'Nama' => 'Zulhaqqi Muslim Nastution',
+            'Program_Studi' => 'S1-Ilmu Komputer',
+            'Periode_Masuk' => '2017 Ganjil',
+            'Jalur_Pendaftaran' => 'SBMPTN',
+            'Status' => 'Aktif'
+        ];
+
+        $mahasiswa_profil['informasi_umum'] = [
+            'Jenis_Kelamin' => 'Laki-Laki',
+            'Tempat_Lahir' => 'Punggur',
+            'Tanggal_Lahir' => '17-09-1998',
+            'Agama' => 'Islam',
+            'Suku' => 'Jawa',
+            'No_Hp' => '089516501662',
+            'Email' => 'haqqi@gmail.com',
+            'Status' => 'lajang',
+            'NIK' => substr(str_shuffle('0123456789876543210'), 0 , 16),
+            'No_KK' => substr(str_shuffle('0123456789876543210'), 0 , 16),
+        ];
+
+        $mahasiswa_profil['domisili'] = [
+            'Alamat' => 'Batanghari Lampung Timur',
+            'RT' => '01',
+            'RW' => '07',
+            'Dusun' => 'Dusun Banarjoyo',
+            'Desa' => 'Banarjoyo',
+            'Kabupaten' => 'Lampung Timur',
+            'Provinsi' => 'Lampung',
+            'Kode_Pos' => '34153'
+        ];
+
+        $mahasiswa_profil['sekolah'] = [
+            'S3' => [
+                'Perguruan_Tinggi' => 'Universitas AMIKOM Yogyakarta',
+                'prodi' => [
+                    'Bidang_Studi' => 'Sistem Informasi',
+                    'Tahun_Pendidikan' => '2011-2018'
+                ]
+            ],
+            'S2' => [
+                'Perguruan_Tinggi' => 'Universitas AMIKOM Yogyakarta',
+                'prodi' => [
+                    'Bidang_Studi' => 'Sistem Informasi',
+                    'Tahun_Pendidikan' => '2011-2018'
+                ]
+            ],
+            'S1' => [
+                'Perguruan_Tinggi' => 'Universitas AMIKOM Yogyakarta',
+                'prodi' => [
+                    'Bidang_Studi' => 'Sistem Informasi',
+                    'Tahun_Pendidikan' => '2011-2018'
+                ]
+            ]
+        ];
+
+        return view('mahasiswa::pages.profil.data_profil.edit', compact('mahasiswa_profil'));
     }
 
     /**

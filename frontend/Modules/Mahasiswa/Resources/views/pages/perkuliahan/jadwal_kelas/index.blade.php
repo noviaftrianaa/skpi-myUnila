@@ -1,4 +1,4 @@
-@extends('mahasiswa::layouts.master')
+@extends('mahasiswa::components.master')
 @section('title', 'Jadwal dan Kelas')
 
 @section('css')
@@ -36,7 +36,7 @@
             <div class="mb-2 d-flex justify-content-between align-items-center px-5 mb-3">
                 <div class="position-relative"> <span class="position-absolute search"><i class="fa fa-search"></i></span> <input class="form-control w-100" placeholder="Pencarian, mata kuliah..."> </div>
                 <div class="px-2"> <div class="dropdown">
-                    <button class="btn bg-gradient-primary dropdown-toggle mt-3" type="button"
+                    <button class="btn btn-primary dropdown-toggle mt-3" type="button"
                         id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                         Tahun Ajaran
                     </button>
