@@ -110,7 +110,7 @@ class DataMahasiswaController extends Controller
             'Pendidikan_Asal' => '-',
             'Provinsi_Sekolah' => '-',
             'Kota_Sekolah' => '-',
-            'NISN' => 'Islam',
+            'NISN' => '-',
             'Alamat_Sekolah' => '-',
             'Telpon_Sekolah' => '-',
             'Nomor_Ijazah_Sekolah' => '-',
