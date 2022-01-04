@@ -12,7 +12,9 @@
                     <h6 class="mb-0">Transkrip Akademik</h6>
                   </div>
                   <div class="col-6 text-end">
-                    <button class="btn btn-outline-primary btn-sm"><i class="fa fa-download"></i></button>
+                    <a href="{{url('alumni/print_cv')}}" target="_blank">
+                      <button class="btn btn-outline-primary btn-sm"><i class="fa fa-download"></i></button>
+                    </a>
                   </div>
                 </div>
               </div>

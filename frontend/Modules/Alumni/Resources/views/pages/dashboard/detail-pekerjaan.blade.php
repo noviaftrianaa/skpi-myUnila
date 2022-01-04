@@ -43,7 +43,7 @@
                       <span class="text-secondary text-xs font-weight-bold">-</span>
                     </td>
                     <td class="align-middle text-center">
-                        <button type="button" class="btn btn-info btn-sm mt-3 py-1 px-3"><i class="fa fa-eye text-white"></i></button>
+                        <button type="button" class="btn btn-info btn-sm mt-3 py-1 px-3"><i class="fa fa-pencil text-white"></i></button>
                         |
                         <button type="button" class="btn btn-danger btn-sm mt-3 py-1 px-3"><i class="fa fa-trash text-white"></i></button>
                     </td>
@@ -68,7 +68,7 @@
                       <span class="text-secondary text-xs font-weight-bold">5000000</span>
                     </td>
                     <td class="align-middle text-center">
-                        <button type="button" class="btn btn-info btn-sm mt-3 py-1 px-3"><i class="fa fa-eye text-white"></i></button>
+                        <button type="button" class="btn btn-info btn-sm mt-3 py-1 px-3"><i class="fa fa-pencil text-white"></i></button>
                         |
                         <button type="button" class="btn btn-danger btn-sm mt-3 py-1 px-3"><i class="fa fa-trash text-white"></i></button>
                     </td>
@@ -93,7 +93,7 @@
                       <span class="text-secondary text-xs font-weight-bold">3890000</span>
                     </td>
                     <td class="align-middle text-center">
-                        <button type="button" class="btn btn-info btn-sm mt-3 py-1 px-3"><i class="fa fa-eye text-white"></i></button>
+                        <button type="button" class="btn btn-info btn-sm mt-3 py-1 px-3"><i class="fa fa-pencil text-white"></i></button>
                         |
                         <button type="button" class="btn btn-danger btn-sm mt-3 py-1 px-3"><i class="fa fa-trash text-white"></i></button>
                     </td>
@@ -118,7 +118,7 @@
                       <span class="text-secondary text-xs font-weight-bold">600000</span>
                     </td>
                     <td class="align-middle text-center">
-                        <button type="button" class="btn btn-info btn-sm mt-3 py-1 px-3"><i class="fa fa-eye text-white"></i></button>
+                        <button type="button" class="btn btn-info btn-sm mt-3 py-1 px-3"><i class="fa fa-pencil text-white"></i></button>
                         |
                         <button type="button" class="btn btn-danger btn-sm mt-3 py-1 px-3"><i class="fa fa-trash text-white"></i></button>
                     </td>
@@ -143,7 +143,7 @@
                       <span class="text-secondary text-xs font-weight-bold">1800000</span>
                     </td>
                     <td class="align-middle text-center">
-                        <button type="button" class="btn btn-info btn-sm mt-3 py-1 px-3"><i class="fa fa-eye text-white"></i></button>
+                        <button type="button" class="btn btn-info btn-sm mt-3 py-1 px-3"><i class="fa fa-pencil text-white"></i></button>
                         |
                         <button type="button" class="btn btn-danger btn-sm mt-3 py-1 px-3"><i class="fa fa-trash text-white"></i></button>
                     </td>

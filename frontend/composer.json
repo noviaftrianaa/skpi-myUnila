@@ -11,6 +11,7 @@
         "browner12/helpers": "^3.2",
         "darkaonline/l5-swagger": "^8.0",
         "doctrine/dbal": "^3.2",
+        "dompdf/dompdf": "^1.1",
         "fruitcake/laravel-cors": "^2.0",
         "guzzlehttp/guzzle": "^7.0.1",
         "laravel/framework": "^8.65",

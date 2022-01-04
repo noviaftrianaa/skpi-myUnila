@@ -95,7 +95,7 @@
             <span class="mask bg-gradient-primary opacity-6"></span>
           </div>
           <div class="card card-body blur shadow-blur mx-4 mt-n6 overflow-hidden">
-            <div class="row gx-4">
+            <div class="row gx-3">
               <div class="col-auto">
                 <div class="avatar avatar-xl position-relative">
                   <img src="../assets/img/ily.jpeg" alt="profile_image" class="w-100 border-radius-lg shadow-sm">
@@ -124,7 +124,11 @@
                     </div>
                     <div class="col-md-4 text-end">
                       <a href="{{url('alumni/edit-profil')}}">
-                        <i class="fas fa-user-edit text-secondary text-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Profile"></i>
+                        <i class="fas fa-user-edit text-secondary text-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah Profil"></i>
+                      </a>
+                      |
+                      <a href="{{url('alumni/print_cv')}}" target="_blank">
+                        <i class="fas fa-download text-secondary text-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Cetak CV"></i>
                       </a>
                     </div>
                   </div>

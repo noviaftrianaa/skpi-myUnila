@@ -41,5 +41,8 @@ Route::prefix('alumni')->group(function() {
     //riwayat legalisir
     Route::get('/index-legalisir', function() { return view('alumni::pages.legalisir.index-legalisir'); });
     Route::get('/pengajuan', function() { return view('alumni::pages.legalisir.pengajuan'); });
+    
+    //cetak pdf
+    Route::get('/print_cv', function() { return view('alumni::pages.pdf.print_cv'); });
 });
 

@@ -11,7 +11,7 @@
         </div>
         <div class="col-md-4 text-end">
           <a href="{{url('alumni/edit-status-ta')}}">
-            <i class="fas fa-cog text-secondary text-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah"></i>
+            <i class="fa fa-pencil text-secondary text-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah"></i>
           </a>
         </div>
       </div>
