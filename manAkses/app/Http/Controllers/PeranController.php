@@ -3,27 +3,32 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use DB;
-use Auth;
-use App\Models\User;
-use App\Models\UnitOrganisasi;
 use App\Models\Peran;
-use Illuminate\Support\Facades\Crypt;
 
-class UserController extends Controller
+class PeranController extends Controller
 {
-
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
     public function index()
     {
-        $user = User::all();
-        $unit = UnitOrganisasi::where('a_aktif',1)->get();
         $peran = Peran::all();
 
-        return view('manajemen.pengguna.index', [
-            'user'=>$user,
-            'unit'=>$unit,
+        return view('manajemen.peran.index', [
             'peran'=>$peran
         ]);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        //
     }
 
     /**
@@ -35,15 +40,17 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $array = $request->all();
+        $sum = Peran::get()->count();
 
-        $data = User::create([
-            'nm_pengguna'      => $array['nama'],
-            'nama_id'   => $array['nama_id'],
-            'password'  => sha1('12345678'),
-            'level'     => 2,
-            'unit'      => $array['unit'],
-            'status'    => $array['status']
+        $data = Peran::create([
+            'id_peran'=>($sum+1),
+            'nm_peran'=>$array['nm_peran'],
+            'a_perlu_sk'=>$array['a_perlu_sk'],
+            'tgl_create'=>currDateTime(),
+            'last_update'=>currDateTime(),
+            'last_sync'=>currDateTime()
         ]);
+
         if(!$data) {
             alert()->error('Data gagal disimpan!');
         } else {
@@ -86,15 +93,17 @@ class UserController extends Controller
         $id = Crypt::decrypt($id);
         $array = $request->all();
 
-        $data = User::where('id_pengguna',$id)->update([
-            'nm_pengguna'      => $array['nama'],
-            'last_update'      => currDateTime(),
-            'id_updater'       => Auth::user()->id_pengguna
+        $data = Peran::where('id_peran', $id)->update([
+            'nm_peran'=>$array['nm_peran'],
+            'a_perlu_sk'=>$array['a_perlu_sk'],
+            'last_update'=>currDateTime(),
+            'last_sync'=>currDateTime()
         ]);
+
         if(!$data) {
-            alert()->error('Data gagal disimpan!');
+            alert()->error('Data gagal diupdate!');
         } else {
-            alert()->success('Data berhasil disimpan!');
+            alert()->success('Data berhasil diupdate!');
         }
         return redirect()->back();
     }
@@ -108,26 +117,5 @@ class UserController extends Controller
     public function destroy($id)
     {
         //
-    }
-    
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function reset(Request $request, $id)
-    {
-        $id = Crypt::decrypt($id);
-        $data = User::where('id_pengguna', $id)->update([
-            'password'         => sha1('12345678'),
-            'last_update'      => currDateTime(),
-            'id_updater'       => Auth::user()->id_pengguna
-        ]);
-        if(!$data) {
-            alert()->error('Password gagal direset!');
-        } else {
-            alert()->success('Password berhasil direset!');
-        }
-        return redirect()->back();
     }
 }

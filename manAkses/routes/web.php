@@ -5,7 +5,7 @@ use App\Http\Controllers\Auth\{
     LoginController, RegisterController, ForgotPasswordController
 };
 use App\Http\Controllers\{
-    HomeController, UserController
+    HomeController, UserController, PeranController, UnitOrganisasiController
 };
 /*
 |--------------------------------------------------------------------------
@@ -46,6 +46,18 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::put('/store', [UserController::class, 'store'])->name('store');
         Route::patch('/{id}/update', [UserController::class, 'update'])->name('update');
         Route::patch('/{id}/reset', [UserController::class, 'reset'])->name('reset');
+    });
+    Route::namespace('peran')->prefix('peran')->name('peran.')->group(function () {
+        Route::get('/', [PeranController::class, 'index'])->name('index');
+        Route::put('/store', [PeranController::class, 'store'])->name('store');
+        Route::patch('/{id}/update', [PeranController::class, 'update'])->name('update');
+        Route::delete('/{id}/destroy', [PeranController::class, 'destroy'])->name('destroy');
+    });
+    Route::namespace('unit')->prefix('unit')->name('unit.')->group(function () {
+        Route::get('/', [UnitOrganisasiController::class, 'index'])->name('index');
+        Route::put('/store', [UnitOrganisasiController::class, 'store'])->name('store');
+        Route::patch('/{id}/update', [UnitOrganisasiController::class, 'update'])->name('update');
+        Route::delete('/{id}/destroy', [UnitOrganisasiController::class, 'destroy'])->name('destroy');
     });
 	
 });
