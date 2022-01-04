@@ -255,7 +255,7 @@ return [
          * Uncomment to add constants which can be used in annotations
          */
         'constants' => [
-            'L5_SWAGGER_CONST_HOST' => env('L5_SWAGGER_CONST_HOST', 'http://pdut-server.unila.ac.id'),
+            'L5_SWAGGER_CONST_HOST' => env('L5_SWAGGER_CONST_HOST', 'http://pdut.unila.ac.id'),
         ],
     ],
 ];
