@@ -17,7 +17,6 @@ Route::prefix('stakeholder')->group(function() {
     Route::get('/beranda', 'StakeholderController@index')->name('stakeholder.dashboard');
 
     //data mahasiswa
-    Route::get('/data-profil','profil\DataProfilController@index')->name('data-profil');
     Route::get('/data-mahasiswa','DataMahasiswaController@index')->name('data-mahasiswa');
     // Route::get('/data-mahasiswa', function () { return view('stakeholder::pages.data_mahasiswa.index'); });
 
