@@ -95,5 +95,21 @@ return [
             'N' => 'Non aktif',
             'H' => 'Dihapus'
         ]
+    ],
+    'ws'    => [
+        'pddikti'   => [
+            'url'   => '',
+            'token' => '',
+        ],
+        'feeder'    => [
+            'url'   => '',
+            'username'  => '',
+            'password'  => '',
+        ],
+        'sister'    => [
+            'url'   => '',
+            'username'  => '',
+            'password'  => '',
+        ]
     ]
 ];

@@ -8,14 +8,14 @@ if( !function_exists('guid') ){
      * @return  Uuid
      */
     function guid() {
-        $sql = DB::SELECT(DB::raw('SELECT NEWID() as id'));
-        if(is_object($sql[0]))
+        $guid = \DB::SELECT('SELECT NEWID()');
+        if(is_object($guid[0]))
         {
-            return $sql[0]->id;
+            return $guid[0]->NEWID;
         }
         else
         {
-            return $sql[0]['id'];
+            return $guid[0]['NEWID'];
         }
     }
 }
