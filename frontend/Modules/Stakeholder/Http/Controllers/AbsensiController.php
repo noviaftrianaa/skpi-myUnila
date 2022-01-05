@@ -6,7 +6,7 @@ use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
-class KrsKhsController extends Controller
+class AbsensiController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -14,7 +14,7 @@ class KrsKhsController extends Controller
      */
     public function index()
     {
-        return view('stakeholder::pages.krs_khs.index');
+        return view('stakeholder::pages.absensi.index');
     }
 
     /**

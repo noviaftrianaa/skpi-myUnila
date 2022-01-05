@@ -21,7 +21,7 @@
       <div class="timeline timeline-one-side">
         <div class="timeline-block mb-3">
           <span class="timeline-step">
-            <i class="ni ni-bulb-61 text-warning text-gradient"></i>
+            <i class="ni ni-bulb-61 text-info text-gradient"></i>
           </span>
           <div class="timeline-content">
             <h6 class="text-dark text-sm font-weight-bold mb-0">Seminar Proposal</h6>
@@ -30,7 +30,7 @@
         </div>
         <div class="timeline-block mb-3">
           <span class="timeline-step">
-              <i class="ni ni-bulb-61 text-primary text-gradient"></i>
+              <i class="ni ni-bulb-61 text-info text-gradient"></i>
           </span>
           <div class="timeline-content">
             <h6 class="text-dark text-sm font-weight-bold mb-0">Seminar Hasil</h6>
@@ -39,7 +39,7 @@
         </div>
         <div class="timeline-block mb-3">
           <span class="timeline-step">
-              <i class="ni ni-bulb-61 text-success text-gradient"></i>
+              <i class="ni ni-bulb-61 text-info text-gradient"></i>
           </span>
           <div class="timeline-content">
               <h6 class="text-dark text-sm font-weight-bold mb-0">Sidang Komprehensif</h6>

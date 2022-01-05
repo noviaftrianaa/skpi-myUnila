@@ -1,8 +1,8 @@
 @extends('tendik::components.master')
-@section('title', 'Kepangkatan')
+@section('title', 'Diklat')
 
 @section('content')
-{{-- start kepangkatan --}}
+{{-- start diklat --}}
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-12 mb-4">
@@ -10,7 +10,7 @@
                 <div class="card-header pb-0 p-3 mb-0">
                     <div class="row">
                         <div class="col-6 d-flex align-items-center">
-                            <p class="text-uppercase text-sm font-weight-bolder mb-0">Kepangkatan</p>
+                            <p class="text-uppercase text-sm font-weight-bolder mb-0">Diklat</p>
                         </div>
                         <div class="col-6 text-end">
                             <a class="btn btn-sm bg-gradient-dark mb-0" href="javascript:;">Tambah</a>
@@ -31,7 +31,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {{-- @foreach ($listJabatanFungsional as $value)
+                                {{-- @foreach ($listDiklat as $value)
                                     <tr>
                                         <td>
                                             <span class="text-xs font-weight-bold">{{ $value['id'] }}</span>
@@ -58,5 +58,5 @@
         </div>
     </div>
 </div>
-{{-- end kepangkatan --}}
+{{-- end diklat --}}
 @endsection

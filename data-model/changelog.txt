@@ -1,0 +1,21 @@
+---versi 0.2--- 4 Januari 2022
+Tambah tabel ref.jenis_media_pub
++ id_jns_media (numeric(2) PK not null)
++ nm_jns_media (varchar(80) not null)
+
+Tambah field pada ref.jenis_akt_mhs
++ a_kegiatan_kampus_merdeka (numeric(1) default 0 not null)
+
+Tambah field pada ref.media_pub
++ id_sp (uniqueidentifier)
++ id_kel_bidang (uniqueidentifier not null)
++ id_jns_media (numeric(2) not null)
++ id_negara (char(2) not null)
+
+Tambah field pada ref.semester
++ tgl_mulai (Date not null)
++ tgl_selesai (Date not null)
+
+Tambah field pada ref.tahun_ajaran
++ tgl_mulai (Date not null)
++ tgl_selesai (Date not null)

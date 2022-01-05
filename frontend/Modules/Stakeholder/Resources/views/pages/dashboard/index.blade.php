@@ -171,7 +171,7 @@ body {
               </div>
               <div class="col-4 text-end">
                 <div class="icon icon-shape btn-primary shadow text-center border-radius-md">
-                  <i class="fas fa-bookmark text-lg opacity-10" aria-hidden="true"></i>
+                  <i class==="fas fa-bookmark text-lg opacity-10" aria-hidden="true"></i>
                 </div>
               </div>
             </div>
@@ -269,6 +269,14 @@ body {
                                         <tr>
                                           <td width="30%">Alamat</td>
                                           <td width="70%">: Jln. R.A Basyid No. 115 Untung Suropati, Labuhan Dalam, Tanjung Senang, Bandar Lampung</td>
+                                        </tr>
+                                        <tr>
+                                          <td>Fakultas</td>
+                                          <td>: Matematika dan Ilmu Pengetahuan Alam</td>
+                                        </tr>
+                                        <tr>
+                                          <td width="30%">Jurusan</td>
+                                          <td width="70%">: Biologi</td>
                                         </tr>
                                         <tr>
                                           <td>Program Studi</td>

@@ -16,11 +16,16 @@ Route::prefix('stakeholder')->group(function() {
     Route::get('/', 'StakeholderController@index');
     Route::get('/beranda', 'StakeholderController@index')->name('stakeholder.dashboard');
 
-    //krs&khs
+    //data mahasiswa
+    Route::get('/data-mahasiswa','DataMahasiswaController@index')->name('data-mahasiswa');
+    // Route::get('/data-mahasiswa', function () { return view('stakeholder::pages.data_mahasiswa.index'); });
+
+    //absensi
     Route::get('/absensi', function () { return view('stakeholder::pages.absensi.index'); });
 
-    //transkrip
-    Route::get('/transkrip', function () { return view('stakeholder::pages.transkrip.index'); });
+    //Riwayah studi
+    Route::get('/riwayat-studi', function () { return view('stakeholder::pages.transkrip.index'); });
+
     //status spp
     Route::get('/status-pembayaran-spp', function() { return view ('stakeholder::pages.status_spp.index');});
 

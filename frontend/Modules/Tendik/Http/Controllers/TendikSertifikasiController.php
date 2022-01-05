@@ -14,7 +14,7 @@ class TendikSertifikasiController extends Controller
      */
     public function index()
     {
-        return view('tendik::layouts.kompetensi.seritifikasi/index');
+        return view('tendik::layouts.kompetensi.sertifikasi/index');
     }
 
     /**

@@ -92,7 +92,7 @@
         <div style="width: 50%; float:left">
         <div class="container-fluid">
           <div class="page-header min-height-100 border-radius-xl mt-4" style="background-image: url('../assets/img/curved-images/curved0.jpg'); background-position-y: 50%;">
-            <span class="mask bg-gradient-primary opacity-6"></span>
+            <span class="mask bg-gradient-info opacity-6"></span>
           </div>
           <div class="card card-body blur shadow-blur mx-4 mt-n6 overflow-hidden">
             <div class="row gx-3">
@@ -199,7 +199,7 @@
     <div style="width: 50%; float:right">
       <div class="container-fluid">
         <div class="page-header min-height-100 border-radius-xl mt-4" style="background-image: url('../assets/img/curved-images/curved0.jpg'); background-position-y: 50%;">
-          <span class="mask bg-gradient-primary opacity-6"></span>
+          <span class="mask bg-gradient-info opacity-6"></span>
         </div>
         <div class="card card-body blur shadow-blur mx-4 mt-n6 overflow-hidden">
       {{-- <div class="container-fluid py-4"> --}}
@@ -222,7 +222,7 @@
               <div class="timeline timeline-one-side">
                 <div class="timeline-block mb-3">
                   <span class="timeline-step">
-                    <i class="ni ni-building text-warning text-gradient"></i>
+                    <i class="ni ni-building text-success text-gradient"></i>
                   </span>
                   <div class="timeline-content">
                     <h6 class="text-dark text-sm font-weight-bold mb-0">UPT TIK UNILA</h6>
@@ -231,7 +231,7 @@
                 </div>
                 <div class="timeline-block mb-3">
                   <span class="timeline-step">
-                      <i class="ni ni-building text-primary text-gradient"></i>
+                      <i class="ni ni-building text-success text-gradient"></i>
                   </span>
                   <div class="timeline-content">
                     <h6 class="text-dark text-sm font-weight-bold mb-0">The Summit Bistro
@@ -251,7 +251,7 @@
                 </div>
                 <div class="timeline-block mb-3">
                   <span class="timeline-step">
-                      <i class="ni ni-building text-primary text-gradient"></i>
+                      <i class="ni ni-building text-success text-gradient"></i>
                   </span>
                   <div class="timeline-content">
                       <h6 class="text-dark text-sm font-weight-bold mb-0">PT. Angkasa Pura II (persero) cabang 601, IT staff
@@ -261,7 +261,7 @@
                 </div>
                 <div class="timeline-block mb-3">
                   <span class="timeline-step">
-                      <i class="ni ni-building text-warning text-gradient"></i>
+                      <i class="ni ni-building text-success text-gradient"></i>
                   </span>
                   <div class="timeline-content">
                       <h6 class="text-dark text-sm font-weight-bold mb-0">MooMooBee</h6>
