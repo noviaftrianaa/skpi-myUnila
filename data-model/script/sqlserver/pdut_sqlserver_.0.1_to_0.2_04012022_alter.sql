@@ -1,6 +1,6 @@
 /*==============================================================*/
 /* DBMS name:      Microsoft SQL Server 2014                    */
-/* Created on:     04/01/2022 11:56:45                          */
+/* Created on:     04/01/2022 13:03:40                          */
 /*==============================================================*/
 
 
@@ -130,6 +130,7 @@ go
 alter table ref.media_publikasi
    drop constraint ckc_bentuk_media_pub_media_pu
 go
+
 alter table ref.media_publikasi
    drop constraint ckc_jns_penerbit_media_pu
 go
@@ -244,16 +245,19 @@ if exists (select 1
             and   type = 'U')
    drop table ref.tmp_media_publikasi
 go
+
 /*==============================================================*/
 /* Table: semester                                              */
 /*==============================================================*/
 create table ref.semester (
    id_smt               char(5)              not null,
    id_thn_ajaran        numeric(4)           not null,
-   tgl_mulai            datetime             not null,
-   tgl_selesai          datetime             not null,
    nm_smt               varchar(50)          not null,
    smt                  numeric(2)           not null,
+   a_periode_aktif      numeric(1)           null default 0
+      constraint ckc_a_periode_aktif_semester check (a_periode_aktif is null or (a_periode_aktif between 0 and 1 and a_periode_aktif in (0,1))),
+   tgl_mulai            datetime             not null,
+   tgl_selesai          datetime             not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
    expired_date         datetime             null,
@@ -273,9 +277,11 @@ go
 /*==============================================================*/
 create table ref.tahun_ajaran (
    id_thn_ajaran        numeric(4)           not null,
+   nm_thn_ajaran        varchar(50)          not null,
+   a_periode_aktif      numeric(1)           null default 0
+      constraint ckc_a_periode_aktif_tahun_aj check (a_periode_aktif is null or (a_periode_aktif between 0 and 1 and a_periode_aktif in (0,1))),
    tgl_mulai            datetime             not null,
    tgl_selesai          datetime             not null,
-   nm_thn_ajaran        varchar(50)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
    expired_date         datetime             null,
