@@ -1,11 +1,11 @@
 @extends('template.default.app')
-@section('title','DATA PENGGUNA')
+@section('title','Data Pengguna')
 @extends('__partial.datatable')
 
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title"><i class="fa fa-list"></i> DATA PENGGUNA</h3>
+            <h3 class="card-title"><i class="fa fa-list"></i> Data Pengguna</h3>
             <div class="card-tools">
                 <button class="btn btn-primary btn-sm btn-flat" data-toggle="modal" data-target="#addItem"><i class="fa fa-plus"></i> Tambah</button>
             </div>
@@ -19,7 +19,8 @@
                         <th>Nama</th>
                         <th>Username</th>
                         <th>Jenis Kelamin</th>
-                        <th>Jabatan</th>
+                        <th>Peran</th>
+                        <th>Last Active</th>
                         <th>Aksi</th>
                       </tr>
                     </thead>
@@ -30,7 +31,8 @@
                             <td>{{$item->nm_pengguna}}</td>
                             <td>{{$item->username}}</td>
                             <td>{{($item->jenis_kelamin=="l")?'Laki-laki':'Perempuan'}}</td>
-                            <td>{{$item->jabatan}}</td>
+                            <td>{{$item->nm_peran}}</td>
+                            <td>{{TglIndonesia($item->last_active)}}</td>
                             <td>
                                 <button class="btn btn-outline-warning btn-xs" title="Reset" data-toggle="modal" data-target="#resetItem{{$item->id_pengguna}}"> <i class="fas fa-key"></i></button>
                                 <button class="btn btn-outline-info btn-xs" title="Edit" data-toggle="modal" data-target="#editItem{{$item->id_pengguna}}"> <i class="fas fa-edit"></i></button>
@@ -78,7 +80,7 @@
                             </div>
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
-                                    <label>Nama Unit</label>
+                                    <label>Unit Organisasi</label>
                                     <select class="form-control" name="unit">
                                         <option selected disabled>Pilih</option>
                                         @foreach($unit as $item)
@@ -90,7 +92,7 @@
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Peran</label>
-                                    <select class="form-control" name="level">
+                                    <select class="form-control" name="peran">
                                         <option selected disabled>Pilih</option>
                                         @foreach($peran as $item)
                                         <option value="{{$item->id_peran}}">{{$item->nm_peran}}</option>
@@ -173,7 +175,7 @@
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Peran</label>
-                                    <select class="form-control" name="level">
+                                    <select class="form-control" name="peran">
                                         <option selected disabled>Pilih</option>
                                         @foreach($peran as $item)
                                         <option value="{{$item->id_peran}}">{{$item->nm_peran}}</option>
@@ -232,7 +234,7 @@
                         <input type="hidden" name="_method" value="DELETE">
                         <div class="row">
                             <div class="col-sm-12">
-                                <p>Apakah yakin ingin mengubah password atas nama <b>{{$items->nama}}</b> menjadi default ?</p>
+                                <p>Apakah yakin ingin mengubah password atas nama <b>{{$items->nm_pengguna}}</b> menjadi default ?</p>
                             </div>
                         </div>
                         <div class="modal-footer no-bd">

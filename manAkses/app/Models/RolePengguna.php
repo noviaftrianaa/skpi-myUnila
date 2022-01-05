@@ -17,4 +17,14 @@ class RolePengguna extends Model
     {   
     	return $this->belongsTo('App\Models\Peran','id_peran','id_peran');
     }
+
+    public function user()
+    {
+        return $this->belongsTo('App\Models\User','id_pengguna','id_pengguna');
+    }
+
+    public function unitorganisasi()
+    {
+        return $this->belongsTo('App\Models\UnitOrganisasi','id_organisasi','id_organisasi');
+    }
 }

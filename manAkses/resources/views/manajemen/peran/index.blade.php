@@ -1,11 +1,11 @@
 @extends('template.default.app')
-@section('title','DATA PERAN')
+@section('title','Data Peran')
 @extends('__partial.datatable')
 
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title"><i class="fa fa-list"></i> DATA PERAN</h3>
+            <h3 class="card-title"><i class="fa fa-list"></i> Data Peran</h3>
             <div class="card-tools">
                 <button class="btn btn-primary btn-sm btn-flat" data-toggle="modal" data-target="#addItem"><i class="fa fa-plus"></i> Tambah</button>
             </div>

@@ -1,7 +1,7 @@
 <?php
 
 if( !function_exists('buttonDeleteMultipleId') ){
-    function buttonDeleteMultipleId($route, $wild_card=array(), $title, $attr = false){
+    function buttonDeleteMultipleId($route, $title, $wild_card=array(), $attr = false){
         if(check_akses($route)){
             if(count($wild_card)<=1) {
                 $url = route($route,$wild_card);

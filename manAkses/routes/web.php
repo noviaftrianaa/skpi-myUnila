@@ -47,6 +47,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::patch('/{id}/update', [UserController::class, 'update'])->name('update');
         Route::patch('/{id}/reset', [UserController::class, 'reset'])->name('reset');
         Route::put('/role', [UserController::class, 'role'])->name('role');
+        Route::put('/password', [UserController::class, 'password'])->name('password');
     });
     Route::namespace('peran')->prefix('peran')->name('peran.')->group(function () {
         Route::get('/', [PeranController::class, 'index'])->name('index');
@@ -63,6 +64,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::namespace('aplikasi')->prefix('aplikasi')->name('aplikasi.')->group(function () {
         Route::get('/', [AplikasiController::class, 'index'])->name('index');
         Route::get('/create', [AplikasiController::class, 'create'])->name('create');
+        Route::get('/create_menu', [AplikasiController::class, 'create_menu'])->name('create.menu');
         Route::put('/store', [AplikasiController::class, 'store'])->name('store');
         Route::patch('/{id}/update', [AplikasiController::class, 'update'])->name('update');
         Route::delete('/{id}/destroy', [AplikasiController::class, 'destroy'])->name('destroy');

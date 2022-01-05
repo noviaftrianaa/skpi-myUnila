@@ -1,6 +1,6 @@
 <?php
 if( !function_exists('buttonEditMultipleId') ){
-    function buttonEditMultipleId($route, $wild_card=array(), $title, $params = '', $attr = false){
+    function buttonEditMultipleId($route, $title, $wild_card=array(), $params = '', $attr = false){
         if(check_akses($route)) {
             $url = route($route,($wild_card));
             $attr = (array)$attr;
