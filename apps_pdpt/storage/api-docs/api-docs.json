@@ -10,7 +10,7 @@
     },
     "servers": [
         {
-            "url": "http://localhost/unila/pdut-unila/apps_pdpt/public/api/0.1",
+            "url": "http://pdut.unila.ac.id",
             "description": "Server Production"
         },
         {
