@@ -1,6 +1,6 @@
 <?php
 if( !function_exists('buttonAddMultipleId') ){
-    function buttonAddMultipleId($route, $wild_card=array(), $label, $attr = false){
+    function buttonAddMultipleId($route, $label, $wild_card=array(), $attr = false){
         if(check_akses($route)) {
             if(count($wild_card)==0) {
                 $url = route($route);
