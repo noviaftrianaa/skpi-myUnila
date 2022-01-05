@@ -1,6 +1,6 @@
 <?php
 if( !function_exists('FormInputSelect') ){
-    function FormInputSelect($fieldname, $label, $required=false, $with_default_select=true, $list, $data=null, $attr='', $etc=[]){
+    function FormInputSelect($fieldname, $label, $list, $required=false, $with_default_select=true, $data=null, $attr='', $etc=[]){
         return view('__partial.form.form_input_select', [
             'fieldname' => $fieldname,
             'label'     => $label,
