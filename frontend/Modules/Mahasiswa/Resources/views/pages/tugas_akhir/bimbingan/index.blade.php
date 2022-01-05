@@ -69,6 +69,18 @@
                             </div>
                         </a>
 
+                        <a href="#" class="list-group-item list-group-item-action border-0">
+                            {{-- <div class="badge btn-success float-right">1</div> --}}
+                            <div class="d-flex align-items-start">
+                                <img src="https://bootdey.com/img/Content/avatar/avatar5.png" class="rounded-circle mr-3" alt="Vanessa Tucker" width="40" height="40">
+                                <div class="flex-grow-1">
+                                    INDRI
+                                    <div class="small"></span>Pembimbing 2</div>
+                                    <div class="small"><span class="fas fa-circle chat-online"></span>196211271986031003</div>
+                                </div>
+                            </div>
+                        </a>
+
                         <hr class="d-block d-lg-none mt-1 mb-0">
                     </div>
                     <div class="col-12 col-lg-7 col-xl-9">
@@ -117,7 +129,7 @@
                                     </div>
                                     <div class="flex-shrink-1 bg-light rounded py-2 px-3 ml-3">
                                         <div class="font-weight-bold mb-1">INDRIYANTO</div>
-                                        Oke nanti saya cek.
+                                        Sudah Oke, Silahkan Lanjutkan Bab 2.
                                     </div>
                                 </div>
 
