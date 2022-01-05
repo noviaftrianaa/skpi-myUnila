@@ -47,6 +47,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::patch('/{id}/update', [UserController::class, 'update'])->name('update');
         Route::patch('/{id}/reset', [UserController::class, 'reset'])->name('reset');
         Route::put('/role', [UserController::class, 'role'])->name('role');
+        Route::put('/password', [UserController::class, 'password'])->name('password');
     });
     Route::namespace('peran')->prefix('peran')->name('peran.')->group(function () {
         Route::get('/', [PeranController::class, 'index'])->name('index');

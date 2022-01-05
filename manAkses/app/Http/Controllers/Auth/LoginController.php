@@ -97,7 +97,7 @@ class LoginController extends Controller
                     $role = RolePengguna::where('id_pengguna', $cari->id_pengguna)->orderBy('last_active','DESC')->first();
 
                     Session::put('login.log_address', get_client_ip());
-                    Session::put('login.role', $role->id_peran);
+                    Session::put('login.role', (!is_null($role)) ? $role->id_pengguna : NULL);
 
                     alert()->success(Auth::user()->nm_pengguna, 'Selamat Datang')->persistent("OK");
 

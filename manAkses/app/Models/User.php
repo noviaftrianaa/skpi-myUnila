@@ -33,4 +33,14 @@ class User extends Authenticatable
     protected $hidden = [
         'password'
     ];
+
+    public function rolepengguna()
+    {
+        return $this->hasMany('App\Models\RolePengguna','id_pengguna','id_pengguna');
+    }
+
+    public function pjaplikasi()
+    {
+        return $this->hasMany('App\Models\PJAplikasi','id_pengguna','id_pengguna');
+    }
 }
