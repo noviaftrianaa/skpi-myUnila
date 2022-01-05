@@ -32,7 +32,13 @@ class ReferensiController extends Controller
      */
     public function negara(Request $request)
     {
-        $data = DB::table('ref.negara')->select('id_negara','nm_negara')->toArray();
+        $listdata = DB::table('ref.negara')->select('id_negara','nm_negara')->get();
+        foreach ($listdata AS $each_data) {
+            $data[] = [
+                'id_negara'  => $each_data->id_negara,
+                'nama_negara'  => $each_data->nm_negara,
+            ];
+        }
         return response()->json([
             'status' => true,
             'message'=> 'success',
@@ -99,6 +105,47 @@ class ReferensiController extends Controller
             $data[] = [
                 'id_bentuk_pendidikan'  => $each_data->id_bp,
                 'nama_bentuk_pendidikan'  => $each_data->nm_bp,
+            ];
+        }
+        return response()->json([
+            'status' => true,
+            'message'=> 'success',
+            'data'  => $data
+        ]);
+    }
+
+    /**
+     * @OA\Get(
+     *      path="/referensi/agama",
+     *      operationId="getAgama",
+     *      tags={"Referensi"},
+     *      summary="Get list of projects",
+     *      description="Returns list of projects",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
+    public function agama(Request $request)
+    {
+        $listData = DB::table('ref.agama')
+            ->select('id_agama','nm_agama')
+            ->whereNull('expired_date')
+            ->get();
+        foreach ($listData AS $each_data) {
+            $data[] = [
+                'id_agama'  => $each_data->id_agama,
+                'nama_agama'  => $each_data->nm_agama,
             ];
         }
         return response()->json([
