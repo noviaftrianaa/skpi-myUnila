@@ -33,16 +33,7 @@ class AplikasiController extends Controller
      */
     public function store(Request $request)
     {
-        $array = $request->all();
-
-        $data = $array;
-
-        if(!$data) {
-            alert()->error('Data gagal disimpan!');
-        } else {
-            alert()->success('Data berhasil disimpan!');
-        }
-        return redirect()->back();
+        //
     }
 
     /**
@@ -76,18 +67,7 @@ class AplikasiController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $id = Crypt::decrypt($id);
-
-        $array = $request->all();
-
-        $data = $array;
-
-        if(!$data) {
-            alert()->error('Data gagal disimpan!');
-        } else {
-            alert()->success('Data berhasil disimpan!');
-        }
-        return redirect()->back();
+        //
     }
 
     /**
@@ -99,5 +79,10 @@ class AplikasiController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function create_menu()
+    {
+        return view('manajemen.aplikasi.create_menu');
     }
 }
