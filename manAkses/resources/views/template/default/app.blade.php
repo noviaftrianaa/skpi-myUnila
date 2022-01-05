@@ -73,6 +73,9 @@
                 </a>
                 <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
                 <!-- route password -->
+                    <button class="dropdown-item" data-toggle="modal" data-target="#roleItem">
+                        <i class="fas fa-users"></i> Ubah Peran
+                    </button>
                     <a href="#" class="dropdown-item">
                         <i class="fas fa-key mr-2"></i> Ubah Password
                     </a>
@@ -87,6 +90,55 @@
         </ul>
     </nav>
     <!-- /.navbar -->
+
+    <!-- Modal -->
+    <div class="modal fade" id="roleItem" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header no-bd">
+                    <h5 class="modal-title">
+                        <span class="fw-mediumbold">
+                        Ubah</span> 
+                        <span class="fw-light">
+                            Peran
+                        </span>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ route('user.role') }}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="_method" value="PUT">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group form-group-default">
+                                    
+                                    <?php $prole = DB::table('man_akses.peran as peran')
+                                        ->join('man_akses.role_pengguna as role','role.id_peran','=','peran.id_peran')
+                                        ->where('role.id_pengguna', auth()->user()->id_pengguna)
+                                        ->select('peran.id_peran','peran.nm_peran')
+                                        ->get(); ?>
+
+                                    <select name="role" class="form-control" required>
+                                        <option selected disabled>Pilih</option>
+                                        @foreach($prole as $item)
+                                        <option value="{{$item->id_peran}}" {{($item->id_peran==session()->get('login.role')) ? 'selected':''}}>{{$item->nm_peran}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer no-bd">
+                            <button type="submit" class="btn btn-primary">Ubah</button>
+                            <button type="button" class="btn btn-danger" data-dismiss="modal">Tutup</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Main Sidebar Container -->
     <aside class="main-sidebar sidebar-dark-primary elevation-4">

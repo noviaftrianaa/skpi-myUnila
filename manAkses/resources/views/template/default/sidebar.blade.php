@@ -31,6 +31,13 @@
 					<p>Data Unit Organisasi</p>
 				</a>
 			</li>
+			<li class="nav-item">
+			<!-- route dashboard -->
+				<a href="{{ route('aplikasi.index') }}" class="nav-link {{ (request()->is('aplikasi*')) ? 'active' : '' }}">
+					<i class="nav-icon fa fa-microchip"></i>
+					<p>Data Aplikasi</p>
+				</a>
+			</li>
 		</ul>
 	</nav>
 	<!-- /.sidebar-menu -->
