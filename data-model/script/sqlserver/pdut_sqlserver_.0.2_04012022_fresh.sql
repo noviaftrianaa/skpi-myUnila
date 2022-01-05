@@ -1,6 +1,6 @@
 /*==============================================================*/
 /* DBMS name:      Microsoft SQL Server 2014                    */
-/* Created on:     04/01/2022 11:52:00                          */
+/* Created on:     04/01/2022 13:00:54                          */
 /*==============================================================*/
 
 
@@ -3889,10 +3889,12 @@ go
 create table ref.semester (
    id_smt               char(5)              not null,
    id_thn_ajaran        numeric(4)           not null,
-   tgl_mulai            datetime             not null,
-   tgl_selesai          datetime             not null,
    nm_smt               varchar(50)          not null,
    smt                  numeric(2)           not null,
+   a_periode_aktif      numeric(1)           null default 0
+      constraint ckc_a_periode_aktif_semester check (a_periode_aktif is null or (a_periode_aktif between 0 and 1 and a_periode_aktif in (0,1))),
+   tgl_mulai            datetime             not null,
+   tgl_selesai          datetime             not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
    expired_date         datetime             null,
@@ -4190,9 +4192,11 @@ go
 /*==============================================================*/
 create table ref.tahun_ajaran (
    id_thn_ajaran        numeric(4)           not null,
+   nm_thn_ajaran        varchar(50)          not null,
+   a_periode_aktif      numeric(1)           null default 0
+      constraint ckc_a_periode_aktif_tahun_aj check (a_periode_aktif is null or (a_periode_aktif between 0 and 1 and a_periode_aktif in (0,1))),
    tgl_mulai            datetime             not null,
    tgl_selesai          datetime             not null,
-   nm_thn_ajaran        varchar(50)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
    expired_date         datetime             null,
@@ -6299,4 +6303,4 @@ alter table ref.wilayah
       references ref.negara (id_negara)
 go
 
-INSERT INTO man_akses.versi_db (versi,tgl_update) VALUES ('0.1.0',GETDATE())
+INSERT INTO man_akses.versi_db (versi,tgl_update) VALUES ('0.2.0',GETDATE())

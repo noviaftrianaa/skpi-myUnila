@@ -1,6 +1,6 @@
 @extends('template.default.app')
 @include('__partial.datatable')
-@section('title','Dashboard')
+@section('title','Dashboard Manajemen Akses UNILA')
 
 @section('content')
 <div class="row">

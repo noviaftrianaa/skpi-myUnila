@@ -17,6 +17,27 @@
 					<p>Data Pengguna</p>
 				</a>
 			</li>
+			<li class="nav-item">
+			<!-- route dashboard -->
+				<a href="{{ route('peran.index') }}" class="nav-link {{ (request()->is('peran*')) ? 'active' : '' }}">
+					<i class="nav-icon fas fa-users"></i>
+					<p>Data Peran</p>
+				</a>
+			</li>
+			<li class="nav-item">
+			<!-- route dashboard -->
+				<a href="{{ route('unit.index') }}" class="nav-link {{ (request()->is('unit*')) ? 'active' : '' }}">
+					<i class="nav-icon fas fa-users"></i>
+					<p>Data Unit Organisasi</p>
+				</a>
+			</li>
+			<li class="nav-item">
+			<!-- route dashboard -->
+				<a href="{{ route('aplikasi.index') }}" class="nav-link {{ (request()->is('aplikasi*')) ? 'active' : '' }}">
+					<i class="nav-icon fa fa-microchip"></i>
+					<p>Data Aplikasi</p>
+				</a>
+			</li>
 		</ul>
 	</nav>
 	<!-- /.sidebar-menu -->
