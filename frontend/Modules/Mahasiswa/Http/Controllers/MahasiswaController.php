@@ -5,6 +5,7 @@ namespace Modules\Mahasiswa\Http\Controllers;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use DB;
 
 class MahasiswaController extends Controller
 {
@@ -14,6 +15,8 @@ class MahasiswaController extends Controller
      */
     public function index()
     {
+        // $data = DB::table('role_pengguna')->get();
+        // dd($data);
         return view('mahasiswa::pages.dashboard.index');
     }
 

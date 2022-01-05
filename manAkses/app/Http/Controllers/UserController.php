@@ -8,6 +8,7 @@ use Auth;
 use App\Models\User;
 use App\Models\UnitOrganisasi;
 use App\Models\Peran;
+use App\Models\RolePengguna;
 use Illuminate\Support\Facades\Crypt;
 
 class UserController extends Controller
@@ -15,7 +16,18 @@ class UserController extends Controller
 
     public function index()
     {
-        $user = User::all();
+        $user = DB::SELECT('
+            SELECT pengguna.*, role.last_active, peran.nm_peran
+            FROM man_akses.pengguna AS pengguna
+            LEFT JOIN (
+                SELECT *
+                FROM man_akses.role_pengguna
+            ) AS role ON role.id_pengguna=pengguna.id_pengguna
+            LEFT JOIN (
+                SELECT *
+                FROM man_akses.peran
+            ) AS peran ON peran.id_peran=role.id_peran
+        ');
         $unit = UnitOrganisasi::where('a_aktif',1)->get();
         $peran = Peran::all();
 
@@ -91,6 +103,32 @@ class UserController extends Controller
             'last_update'      => currDateTime(),
             'id_updater'       => Auth::user()->id_pengguna
         ]);
+
+        $role = RolePengguna::where('id_pengguna', $id)->where('id_peran', $array['peran'])->first();
+        if(is_null($role)) {
+            $uuid = guid();
+            $peran = RolePengguna::create([
+                'id_role_pengguna'  => $uuid,
+                'id_pengguna'       => $id,
+                'id_organisasi'     => $array['unit'],
+                'id_peran'          => $array['peran'],
+                'approval_peran'    => 1,
+                'tgl_create'        => currDateTime(),
+                'last_update'       => currDateTime(),
+                'soft_delete'       => 0,
+                'last_sync'         => currDateTime(),
+                'id_updater'        => Auth::user()->id_pengguna
+            ]);
+        } else {
+            $peran = RolePengguna::where('id_role_pengguna', $role->id_role_pengguna)->update([
+                'id_organisasi'     => $array['unit'],
+                'id_peran'          => $array['peran'],
+                'last_update'       => currDateTime(),
+                'last_sync'         => currDateTime(),
+                'id_updater'        => Auth::user()->id_pengguna
+            ]);
+        }
+
         if(!$data) {
             alert()->error('Data gagal disimpan!');
         } else {
@@ -135,6 +173,26 @@ class UserController extends Controller
     {
         $array = $request->all();
         session()->put('login.role', $array['id_peran']);
+        return redirect()->back();
+    }
+
+    public function password(Request $request)
+    {
+        $request->validate([
+            'password' => ['required','max:8']
+        ]);
+
+        $array = $request->all();
+
+        if($array['password']==$array['confirm_password']) {
+            $pengguna = User::findOrFail(Auth::user()->id_pengguna);
+            $pengguna = User::where('id_pengguna', $pengguna->id_pengguna)->update([
+                'password'  => sha1($array['password'])
+            ]);
+            alert()->success('Password Berhasil Diupdate!');
+        } else {
+            alert()->error('Konfirmasi Password Tidak Sama!');
+        }
         return redirect()->back();
     }
 }

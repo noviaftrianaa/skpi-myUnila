@@ -12,8 +12,13 @@ class Peran extends Model
     protected $fillable = ['nm_peran','a_perlu_sk','tgl_create','last_update','expired_date','last_sync'];
     public $timestamps = false;
 
-    public function role_pengguna()
+    public function rolepengguna()
     {   
-    	return $this->hasMany('App\Models\RolePengguna','id_peran','id_peran');
+    	return $this->hasMany('App\Models\RolePengguna','id_peran');
+    }
+
+    public function menurole()
+    {
+        return $this->hasMany('App\Models\MenuRole','id_peran','id_peran');
     }
 }
