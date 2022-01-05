@@ -12,4 +12,9 @@ class RolePengguna extends Model
     protected $fillable = ['id_pengguna','id_organisasi','id_peran','sk_penugasan','tgl_sk_penugasan','approval_peran','tgl_kadaluarsa','last_active','tgl_create','last_update','soft_delete','last_sync','id_updater'];
     public $timestamps = false;
     public $incrementing = false;
+
+    public function peran()
+    {   
+    	return $this->belongsTo('App\Models\Peran','id_peran','id_peran');
+    }
 }

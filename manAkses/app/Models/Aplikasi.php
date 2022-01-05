@@ -12,4 +12,9 @@ class Aplikasi extends Model
     protected $fillable = ['id_organisasi','nm_aplikasi','ket_aplikasi','token_aplikasi','app_key','url','a_generate_menu','tgl_create','last_update','expired_date','last_sync'];
     public $timestamps = false;
     public $incrementing = false;
+
+    public function unit_organisasi()
+    {   
+    	return $this->belongsTo('App\Models\UnitOrganisasi','id_organisasi','id_organisasi');
+    }
 }

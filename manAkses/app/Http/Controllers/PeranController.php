@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Peran;
+use Illuminate\Support\Facades\Crypt;
 
 class PeranController extends Controller
 {

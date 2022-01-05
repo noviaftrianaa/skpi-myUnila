@@ -3,27 +3,26 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use DB;
-use Auth;
-use App\Models\User;
-use App\Models\UnitOrganisasi;
-use App\Models\Peran;
 use Illuminate\Support\Facades\Crypt;
+use App\Models\Aplikasi;
+use App\Models\UnitOrganisasi;
 
-class UserController extends Controller
+class AplikasiController extends Controller
 {
-
     public function index()
     {
-        $user = User::all();
+        $data = Aplikasi::with(['UnitOrganisasi'])->get();
         $unit = UnitOrganisasi::where('a_aktif',1)->get();
-        $peran = Peran::all();
 
-        return view('manajemen.pengguna.index', [
-            'user'=>$user,
-            'unit'=>$unit,
-            'peran'=>$peran
+        return view('manajemen.aplikasi.index', [
+            'data'=>$data,
+            'unit'=>$unit
         ]);
+    }
+
+    public function create()
+    {
+        return view('manajemen.aplikasi.create');
     }
 
     /**
@@ -36,14 +35,8 @@ class UserController extends Controller
     {
         $array = $request->all();
 
-        $data = User::create([
-            'nm_pengguna'      => $array['nama'],
-            'nama_id'   => $array['nama_id'],
-            'password'  => sha1('12345678'),
-            'level'     => 2,
-            'unit'      => $array['unit'],
-            'status'    => $array['status']
-        ]);
+        $data = $array;
+
         if(!$data) {
             alert()->error('Data gagal disimpan!');
         } else {
@@ -84,13 +77,11 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         $id = Crypt::decrypt($id);
+
         $array = $request->all();
 
-        $data = User::where('id_pengguna',$id)->update([
-            'nm_pengguna'      => $array['nama'],
-            'last_update'      => currDateTime(),
-            'id_updater'       => Auth::user()->id_pengguna
-        ]);
+        $data = $array;
+
         if(!$data) {
             alert()->error('Data gagal disimpan!');
         } else {
@@ -108,33 +99,5 @@ class UserController extends Controller
     public function destroy($id)
     {
         //
-    }
-    
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function reset(Request $request, $id)
-    {
-        $id = Crypt::decrypt($id);
-        $data = User::where('id_pengguna', $id)->update([
-            'password'         => sha1('12345678'),
-            'last_update'      => currDateTime(),
-            'id_updater'       => Auth::user()->id_pengguna
-        ]);
-        if(!$data) {
-            alert()->error('Password gagal direset!');
-        } else {
-            alert()->success('Password berhasil direset!');
-        }
-        return redirect()->back();
-    }
-
-    public function role(Request $request)
-    {
-        $array = $request->all();
-        session()->put('login.role', $array['id_peran']);
-        return redirect()->back();
     }
 }
