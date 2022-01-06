@@ -18,7 +18,7 @@ class Controller
      * )
      *
      * @OA\Server(
-     *      url="http://pdut-dev.unila.ac.id",
+     *      url=L5_SWAGGER_CONST_HOST_DEV,
      *      description="Server Sandbox"
      * )
 
