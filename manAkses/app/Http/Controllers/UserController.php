@@ -38,6 +38,11 @@ class UserController extends Controller
         ]);
     }
 
+    public function create()
+    {
+        return view('manajemen.pengguna.create');
+    }
+
     /**
      * Store a newly created resource in storage.
      *
@@ -48,13 +53,21 @@ class UserController extends Controller
     {
         $array = $request->all();
 
+        $uuid = guid();
         $data = User::create([
-            'nm_pengguna'      => $array['nama'],
-            'nama_id'   => $array['nama_id'],
-            'password'  => sha1('12345678'),
-            'level'     => 2,
-            'unit'      => $array['unit'],
-            'status'    => $array['status']
+            'id_pengguna'   => $uuid,
+            'nm_pengguna'   => $array['nama'],
+            'username'      => $array['username'],
+            'password'      => sha1('12345678'),
+            'jenis_kelamin' => 'l',
+            'approval_pengguna' => 1,
+            'a_aktif'       => 1,
+            'disable'       => 0,
+            'tgl_create'    => currDateTime(),
+            'last_update'   => currDateTime(),
+            'last_sync'     => currDateTime(),
+            'id_updater'    => $uuid,
+            'soft_delete'   => 0
         ]);
         if(!$data) {
             alert()->error('Data gagal disimpan!');
@@ -157,7 +170,7 @@ class UserController extends Controller
     {
         $id = Crypt::decrypt($id);
         $data = User::where('id_pengguna', $id)->update([
-            'password'         => sha1('12345678'),
+            'password'         => sha1('password'),
             'last_update'      => currDateTime(),
             'id_updater'       => Auth::user()->id_pengguna
         ]);
