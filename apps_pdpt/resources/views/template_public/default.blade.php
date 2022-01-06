@@ -31,7 +31,7 @@
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
     @stack('css')
 </head>
-<body>
+<body style="background-color: gainsboro">
 <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #1e73be">
     <div class="container">
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,7 +39,7 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
             <a class="navbar-brand text-white" href="{{ url('/') }}">
-                <img src="{{ asset('images/logo-unila.png') }}" width="60" height="60" alt="" loading="lazy"> Pangkalan Data UNILA Terintegrasi
+                <img src="{{ asset('images/logo-unila.png') }}" width="60" height="60" alt="" loading="lazy"> {{ config('mp.apps.title') }}
             </a>
             <ul class="navbar-nav ml-auto">
                 <a href="" class="btn btn-success my-2 my-sm-0"><i class="fa fa-key"></i> Login</a>
@@ -67,16 +67,7 @@
     $.widget.bridge('uibutton', $.ui.button)
 </script>
 <!-- Bootstrap 4 -->
-<script src="{{ asset('master_template/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-<!-- ChartJS -->
-<script src="{{ asset('master_template/plugins/chart.js/Chart.min.js') }}"></script>
-<!-- Sparkline -->
-<script src="{{ asset('master_template/plugins/sparklines/sparkline.js') }}"></script>
-<!-- JQVMap -->
-<script src="{{ asset('master_template/plugins/jqvmap/jquery.vmap.min.js') }}"></script>
-<script src="{{ asset('master_template/plugins/jqvmap/maps/jquery.vmap.usa.js') }}"></script>
-<!-- jQuery Knob Chart -->
-<script src="{{ asset('master_template/plugins/jquery-knob/jquery.knob.min.js') }}"></script>
+<script src="{{ asset('master_template/plugins/bootstrap/js/bootstrap.min.js') }}"></script>
 <!-- daterangepicker -->
 <script src="{{ asset('master_template/plugins/moment/moment.min.js') }}"></script>
 <script src="{{ asset('master_template/plugins/daterangepicker/daterangepicker.js') }}"></script>
@@ -100,7 +91,5 @@
         $('[data-toggle="tooltip"]').tooltip();
     })
 </script>
-<script src="{!! asset('js/particles/particles.min.js') !!}"></script>
-<script src="{!! asset('js/particles/app.js') !!}"></script>
 </body>
 </html>

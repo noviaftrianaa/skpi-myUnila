@@ -19,7 +19,7 @@ class AkreditasiSeeder extends Seeder
         $id_sp = 'e2b705a7-173e-464a-9fac-509128709515';
         $kode_sp = '001026';
         $token = 'a934b2aa-ec1d-32a1-9d41-e982b6b1426c';
-        $cari_sms = Sms::where('id_sp',$id_sp)->where('stat_prodi','A')->where('id_jns_sms',3)->get();
+        $cari_sms = Sms::where('id_sp',$id_sp)->where('id_jns_sms',3)->get();
         $url = 'https://api.kemdikbud.go.id:8243/pddikti/1.2/pt';
         $akred = [];
         $belum_akred = [];
@@ -36,16 +36,16 @@ class AkreditasiSeeder extends Seeder
                     echo ' dapat akreditasi:'.$each_data['nilai'];
                     $cari_akreditasi = AkreditasiProdi::find($each_data['id']);
                     if (is_null($cari_akreditasi)) {
-                        $cari_nilai = DB::table('ref.nilai_akreditasi')->where('nm_akred',$each_data['nilai'])->first();
+                        $cari_nilai = DB::table('ref.nilai_akred')->where('nm_akred',$each_data['nilai'])->first();
                         $simpan = new AkreditasiProdi();
                         $simpan->id_akreditasi_prodi            = $each_data['id'];
                         $simpan->id_lemb_akred                  = '00001';
                         $simpan->id_sms                         = $each_sms->id_sms;
-                        $simpan->id_akred                       = (in_array($each_data['nilai'],['Baik','Baik Sekali'])?2:$cari_nilai->id_akred);
+                        $simpan->id_akred                       = $cari_nilai->id_akred;
                         $simpan->sk_akreditasi_prodi            = $each_data['sk_akreditasi'];
                         $simpan->tanggal_sk_akreditasi_prodi    = $each_data['tgl_sk_akreditasi'];
                         $simpan->tst_sk_akreditasi_prodi        = $each_data['tst_sk_akreditasi'];
-                        $simpan->tgl_create                     = currDateTime();
+                        $simpan->create_date                    = currDateTime();
                         $simpan->id_creator                     = '443701e4-e814-48f3-9528-251bccee8af1';
                         $simpan->last_update                    = currDateTime();
                         $simpan->last_sync                      = currDateTime();
