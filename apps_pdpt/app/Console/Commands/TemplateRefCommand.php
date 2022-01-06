@@ -74,8 +74,8 @@ class TemplateRefCommand extends Command
             $data = [
                 'path' => $t->table_name,
                 'operation' => $operation,
-                'summary' => "Get list of projects $summaryAndDesc",
-                'description' => "Returns list of $summaryAndDesc",
+                'summary' => "Dapatkan daftar $summaryAndDesc",
+                'description' => "Menampilkan daftar data $summaryAndDesc",
                 'function' => $t->table_name,
                 'table' => $schema_name . "." . $t->table_name,
                 'select' => rtrim($selectQText, ','),

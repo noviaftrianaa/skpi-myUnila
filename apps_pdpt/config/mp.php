@@ -1,8 +1,8 @@
 <?php
 return [
     'apps'  => [
-        'title' => 'PDUT',
-        'acronym_title' => 'PDUT',
+        'title' => 'One Data UNILA',
+        'acronym_title' => 'ODU',
         'year_development' => 2021,
         'year_launch' => 2021,
         'first_development'  => '2021-03-01',

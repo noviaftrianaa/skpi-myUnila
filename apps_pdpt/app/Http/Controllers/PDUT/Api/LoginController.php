@@ -10,7 +10,7 @@ class LoginController extends Controller
     /**
      * @OA\Post(
      * path="/login/do_login",
-     * summary="AKSES",
+     * summary="Authentication",
      * description="Mendapatkan token untuk otorisasi",
      * operationId="authLogin",
      * tags={"Auth"},

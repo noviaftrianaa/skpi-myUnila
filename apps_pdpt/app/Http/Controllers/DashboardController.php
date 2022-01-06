@@ -39,7 +39,7 @@ class DashboardController extends Controller
                 tni.nm_akred
             FROM pdrd.satuan_pendidikan AS tsp
             JOIN pdrd.akred_sp AS ak ON ak.id_sp=tsp.id_sp
-            JOIN ref.nilai_akreditasi AS tni ON tni.id_akred=ak.id_akred
+            JOIN ref.nilai_akred AS tni ON tni.id_akred=ak.id_akred
             WHERE tsp.id_sp = '".$this->id_sp."'
             AND tsp.soft_delete=0
         "))->first();
@@ -54,20 +54,23 @@ class DashboardController extends Controller
             ) AS tap ON tap.id_sms=tprodi.id_sms
             LEFT JOIN pdrd.akreditasi_prodi AS akred ON akred.id_sms=tprodi.id_sms
                 AND akred.tst_sk_akreditasi_prodi=tap.max_tst AND akred.soft_delete=0
-            LEFT JOIN ref.nilai_akreditasi AS tni ON tni.id_akred=akred.id_akred
+            LEFT JOIN ref.nilai_akred AS tni ON tni.id_akred=akred.id_akred
             WHERE tprodi.soft_delete=0
-            AND tprodi.stat_prodi='A'
-              AND tprodi.id_jns_sms = 3
+                AND tprodi.stat_prodi='A'
+                AND tprodi.id_jns_sms = 3
             AND tprodi.id_sp ='".$this->id_sp."'
             GROUP BY tni.nm_akred
             ORDER BY tni.nm_akred ASC
         ");
+        $list_akreditasi = [];
         $akred = [];
         foreach ($data_akred AS $each_akred) {
+            $list_akreditasi[] = is_null($each_akred->nm_akred)?'Tidak ada akreditasi':$each_akred->nm_akred;
             $akred[is_null($each_akred->nm_akred)?'Tidak ada akreditasi':$each_akred->nm_akred] =$each_akred->total_akreditasi;
         }
+        $last_sync = '';
         $akred = json_encode($akred);
-        return view('dashboard.akreditasi',compact('akred','sp'));
+        return view('dashboard.akreditasi',compact('akred','sp','list_akreditasi'));
     }
 
     /**
