@@ -76,9 +76,9 @@
                     <button class="dropdown-item" data-toggle="modal" data-target="#roleItem">
                         <i class="fas fa-users"></i> Ubah Peran
                     </button>
-                    <a href="#" class="dropdown-item">
+                    <button class="dropdown-item" data-toggle="modal" data-target="#passwordItem">
                         <i class="fas fa-key mr-2"></i> Ubah Password
-                    </a>
+                    </button>
                 </div>
             </li>
             @endif
@@ -132,6 +132,48 @@
                         </div>
                         <div class="modal-footer no-bd">
                             <button type="submit" class="btn btn-primary">Ubah</button>
+                            <button type="button" class="btn btn-danger" data-dismiss="modal">Tutup</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="passwordItem" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header no-bd">
+                    <h5 class="modal-title">
+                        <span class="fw-mediumbold">
+                        Ubah</span> 
+                        <span class="fw-light">
+                            Password
+                        </span>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ route('user.password') }}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="_method" value="PUT">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group form-group-default">
+                                    <input name="password" type="password" class="form-control" placeholder="Kata Sandi Baru" required>
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <div class="form-group form-group-default">
+                                    <input name="confirm_password" type="password" class="form-control" placeholder="Konfirmasi Kata Sandi Baru" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer no-bd">
+                            <button type="submit" class="btn btn-primary">Simpan</button>
                             <button type="button" class="btn btn-danger" data-dismiss="modal">Tutup</button>
                         </div>
                     </form>

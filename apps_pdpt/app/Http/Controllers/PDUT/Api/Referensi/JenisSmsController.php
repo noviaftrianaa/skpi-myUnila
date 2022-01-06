@@ -1,0 +1,11 @@
+<?php
+
+namespace App\Http\Controllers\PDUT\Api\Referensi;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+
+class JenisSmsController extends Controller
+{
+    //
+}

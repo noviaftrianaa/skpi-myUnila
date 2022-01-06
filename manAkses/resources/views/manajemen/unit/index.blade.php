@@ -1,11 +1,11 @@
 @extends('template.default.app')
-@section('title','DATA UNIT ORGANISASI')
+@section('title','Data Unit Organisasi')
 @extends('__partial.datatable')
 
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title"><i class="fa fa-list"></i> DATA UNIT ORGANISASI</h3>
+            <h3 class="card-title"><i class="fa fa-list"></i> Data Unit Organisasi</h3>
         </div><!-- /.card-header -->
         <div class="card-body">
             <div class="table-responsive">

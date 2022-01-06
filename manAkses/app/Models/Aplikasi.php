@@ -13,8 +13,8 @@ class Aplikasi extends Model
     public $timestamps = false;
     public $incrementing = false;
 
-    public function unit_organisasi()
+    public function unitorganisasi()
     {   
-    	return $this->belongsTo('App\Models\UnitOrganisasi','id_organisasi','id_organisasi');
+    	return $this->belongsTo('App\Models\UnitOrganisasi','id_organisasi');
     }
 }

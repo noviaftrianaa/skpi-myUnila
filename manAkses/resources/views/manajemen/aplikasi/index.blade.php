@@ -1,11 +1,11 @@
 @extends('template.default.app')
-@section('title','DATA APLIKASI')
+@section('title','Data Aplikasi')
 @extends('__partial.datatable')
 
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title"><i class="fa fa-list"></i> DATA APLIKASI</h3>
+            <h3 class="card-title"><i class="fa fa-list"></i> Data Aplikasi</h3>
             <div class="card-tools">
                 <a class="btn btn-primary btn-sm btn-flat" href="{{route('aplikasi.create')}}"><i class="fa fa-plus"></i> Tambah</a>
             </div>
@@ -20,6 +20,7 @@
                         <th>Nama Organisasi</th>
                         <th>URL</th>
                         <th>Last Sync</th>
+                        <th>Menu</th>
                         <th>Aksi</th>
                       </tr>
                     </thead>
@@ -31,6 +32,9 @@
                             <td>{{$item->unit_organisasi->nm_lemb}}</td>
                             <td>{{$item->url}}</td>
                             <td>{{$item->last_sync}}</td>
+                            <td>
+                                <a class="btn btn-outline-info btn-xs" title="Edit" href="#"> <i class="fas fa-bars"></i> Generate Menu</a>
+                            </td>
                             <td>
                                 <a class="btn btn-outline-info btn-xs" title="Edit" href="#"> <i class="fas fa-edit"></i></a>
                             </td>
