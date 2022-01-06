@@ -25,6 +25,24 @@
                       </tr>
                     </thead>
                     <tbody>
+                        <tr>
+                            <td>0</td>
+                            <td>SIRANDU</td>
+                            <td>UPT TIK Universitas Lampung</td>
+                            <td>http://sirandu.unila.ac.id</td>
+                            <td>Date</td>
+                            <td>
+                                <a class="btn btn-outline-warning btn-xs" title="Edit" href="#"> <i class="fas fa-plus"></i> Menu</a>
+                                <ul class="mt-2">
+                                    <li>Menu 1</li>
+                                    <li>Menu 2</li>
+                                    <li>Menu 3</li>
+                                </ul>
+                            </td>
+                            <td>
+                                <a class="btn btn-outline-info btn-xs" title="Edit" href="#"> <i class="fas fa-edit"></i></a>
+                            </td>
+                        </tr>
                         @foreach($data as $no=>$item)
                         <tr>
                             <td>{{$no+1}}</td>
@@ -33,10 +51,10 @@
                             <td>{{$item->url}}</td>
                             <td>{{$item->last_sync}}</td>
                             <td>
-                                <a class="btn btn-outline-info btn-xs" title="Edit" href="#"> <i class="fas fa-bars"></i> Generate Menu</a>
+                                <a class="btn btn-outline-warning btn-xs" title="Edit" href="{{ route('aplikasi.create_menu', [Crypt::encrypt($item->id_aplikasi)]) }}"> <i class="fas fa-plus"></i> Menu</a>
                             </td>
                             <td>
-                                <a class="btn btn-outline-info btn-xs" title="Edit" href="#"> <i class="fas fa-edit"></i></a>
+                                <a class="btn btn-outline-info btn-xs" title="Edit" href="{{ route('aplikasi.edit', [Crypt::encrypt($item->id_aplikasi)]) }}"> <i class="fas fa-edit"></i></a>
                             </td>
                         </tr>
                         @endforeach

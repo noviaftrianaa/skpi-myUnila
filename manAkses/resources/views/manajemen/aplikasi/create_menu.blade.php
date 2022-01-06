@@ -21,48 +21,32 @@
                     </div>
                     <div class="col-sm-6">
                         <div class="form-group form-group-default">
-                            <label>Nama File</label>
-                            <input type="file" class="form-control" name="nama_file" required>
-                        </div>
-                    </div>
-                    <div class="col-sm-6">
-                        <div class="form-group form-group-default">
                             <label>Urutan Menu</label>
                             <input name="urutan_menu" type="number" class="form-control" placeholder="Masukkan Urutan Menu" required>
                         </div>
                     </div>
                     <div class="col-sm-6">
                         <div class="form-group form-group-default">
+                            <label>Nama File</label>
+                            <input type="text" class="form-control" name="nama_file" palceholder="Masukkan Nama File">
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group form-group-default">
                             <label>Apakah Aktif ?</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="a_aktif">
-                                <label class="form-check-label" for="flexRadioDefault1">
-                                    Bisa
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="a_aktif">
-                                <label class="form-check-label" for="flexRadioDefault1">
-                                    Tidak
-                                </label>
-                            </div>
+                            <select name="a_aktif" class="form-control" required>
+                                <option value="0">Tidak Aktif</option>
+                                <option value="1">Aktif</option>
+                            </select>
                         </div>
                     </div>
                     <div class="col-sm-6">
                         <div class="form-group form-group-default">
                             <label>Apakah Tampil ?</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="a_tampil">
-                                <label class="form-check-label" for="flexRadioDefault1">
-                                    Bisa
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="a_tampil">
-                                <label class="form-check-label" for="flexRadioDefault1">
-                                    Tidak
-                                </label>
-                            </div>
+                            <select name="a_aktif" class="form-control" required>
+                                <option value="0">Tidak Tampil</option>
+                                <option value="1">Tampil</option>
+                            </select>
                         </div>
                     </div>
                     <div class="col-sm-6">

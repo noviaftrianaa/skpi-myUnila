@@ -65,9 +65,11 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::namespace('aplikasi')->prefix('aplikasi')->name('aplikasi.')->group(function () {
         Route::get('/', [AplikasiController::class, 'index'])->name('index');
         Route::get('/create', [AplikasiController::class, 'create'])->name('create');
-        Route::get('/create_menu', [AplikasiController::class, 'create_menu'])->name('create.menu');
         Route::put('/store', [AplikasiController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [AplikasiController::class, 'edit'])->name('edit');
         Route::patch('/{id}/update', [AplikasiController::class, 'update'])->name('update');
+        Route::get('/{id}/create_menu', [AplikasiController::class, 'create_menu'])->name('create_menu');
+        Route::put('/{id}/store_menu', [AplikasiController::class, 'store_menu'])->name('store_menu');
         Route::delete('/{id}/destroy', [AplikasiController::class, 'destroy'])->name('destroy');
     });
 	

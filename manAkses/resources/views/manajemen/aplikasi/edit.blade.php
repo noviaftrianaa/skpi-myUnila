@@ -1,11 +1,11 @@
 @extends('template.default.app')
-@section('title','Tambah Aplikasi')
+@section('title','Edit Aplikasi')
 @extends('__partial.datatable')
 
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title"><i class="fa fa-list"></i> Tambah Aplikasi</h3>
+            <h3 class="card-title"><i class="fa fa-list"></i> Edit Aplikasi</h3>
         </div><!-- /.card-header -->
         <div class="card-body">
             <!-- FORM CREATE APLIKASI -->
@@ -24,13 +24,13 @@
                     <div class="col-sm-12">
                         <div class="form-group form-group-default">
                             <label>Nama Aplikasi</label>
-                            <input name="nm_aplikasi" type="text" class="form-control" placeholder="Masukkan Nama Aplikasi" required>
+                            <input name="nm_aplikasi" type="text" class="form-control" placeholder="Masukkan Nama Aplikasi" value="{{ $data->nm_aplikasi }}" required>
                         </div>
                     </div>
                     <div class="col-sm-12">
                         <div class="form-group form-group-default">
                             <label>Keterangan</label>
-                            <textarea class="form-control" name="ket_aplikasi" required></textarea>
+                            <textarea class="form-control" name="ket_aplikasi" required>{{ $data->ket_aplikasi }}</textarea>
                         </div>
                     </div>
                     <div class="col-sm-12">
@@ -40,7 +40,7 @@
                                 <div class="input-group-prepend">
                                     <span class="input-group-text">http://</span>
                                 </div>
-                                <input name="url" type="text" class="form-control" placeholder="Masukkan URL Aplikasi" required>
+                                <input name="url" type="text" class="form-control" placeholder="Masukkan URL Aplikasi" value="{{ $data->url }}" required>
                             </div>
                         </div>
                     </div>
@@ -48,8 +48,8 @@
                         <div class="form-group form-group-default">
                             <label>Apakah Bisa Generate Menu ?</label>
                             <select class="form-control" name="a_generate_menu" required>
-                                <option value="0">Tidak</option>
-                                <option value="1">Ya</option>
+                                <option value="0" {{ ($data->a_generate_menu==0) ? 'selected' : ''}}>Tidak</option>
+                                <option value="1" {{ ($data->a_generate_menu==1) ? 'selected' : ''}}>Ya</option>
                             </select>
                         </div>
                     </div>

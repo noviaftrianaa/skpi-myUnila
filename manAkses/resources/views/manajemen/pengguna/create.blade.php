@@ -15,16 +15,22 @@
             <div class="card-body">
                 <!-- FORM CREATE APLIKASI -->
                 <div class="row">
-                    <div class="col-sm-12">
+                    <div class="col-sm-4">
+                        <div class="form-group form-group-default">
+                            <label>Nama Pengguna</label>
+                            <input class="form-control" name="nama" type="text" placeholder="Masukkan Nama Pengguna" required>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
                         <div class="form-group form-group-default">
                             <label>Username</label>
                             <input class="form-control" name="username" type="email" placeholder="Masukkan Username" required>
                         </div>
                     </div>
-                    <div class="col-sm-12">
+                    <div class="col-sm-4">
                         <div class="form-group form-group-default">
-                            <label>Nama Pengguna</label>
-                            <input class="form-control" name="nama" type="text" placeholder="Masukkan Nama Pengguna" required>
+                            <label>Password</label>
+                            <input class="form-control" name="password" type="password" placeholder="Masukkan Password" required>
                         </div>
                     </div>
                     <div class="col-sm-12">
@@ -76,52 +82,28 @@
                     <div class="col-sm-4">
                         <div class="form-group form-group-default">
                             <label>Approval Pengguna ?</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="approval_pengguna">
-                                <label class="form-check-label" for="flexRadioDefault1">
-                                    Aktif
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="approval_pengguna">
-                                <label class="form-check-label" for="flexRadioDefault1">
-                                    Tidak Aktif
-                                </label>
-                            </div>
+                            <select name="approval_pengguna" class="form-control" required>
+                                <option value="0">Tidak Aktif</option>
+                                <option value="1">Aktif</option>
+                            </select>
                         </div>
                     </div>
                     <div class="col-sm-4">
                         <div class="form-group form-group-default">
                             <label>Apakah Aktif ?</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="a_aktif">
-                                <label class="form-check-label" for="flexRadioDefault1">
-                                    Aktif
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="a_aktif">
-                                <label class="form-check-label" for="flexRadioDefault1">
-                                    Tidak Aktif
-                                </label>
-                            </div>
+                            <select name="a_aktif" class="form-control" required>
+                                <option value="0">Tidak Aktif</option>
+                                <option value="1">Aktif</option>
+                            </select>
                         </div>
                     </div>
                     <div class="col-sm-4">
                         <div class="form-group form-group-default">
                             <label>Disable ?</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="disable">
-                                <label class="form-check-label" for="flexRadioDefault1">
-                                    Aktif
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="disable">
-                                <label class="form-check-label" for="flexRadioDefault1">
-                                    Tidak Aktif
-                                </label>
-                            </div>
+                            <select name="disable" class="form-control" required>
+                                <option value="0">Tidak Aktif</option>
+                                <option value="1">Aktif</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -154,8 +136,9 @@
                     <div class="col-sm-4">
                         <div class="form-group form-group-default">
                             <label>Approval Pengguna</label>
-                            <select name="approval_pengguna" class="form-control" required>
-                                <option selected disabled>Pilih</option>
+                            <select name="role_approval_pengguna" class="form-control" required>
+                                <option value="0">Tidak Aktif</option>
+                                <option value="1">Aktif</option>
                             </select>
                         </div>
                     </div>
