@@ -2,10 +2,11 @@
 
 namespace App\Models\PDUT\Ref;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\AbstractionModel;
 use Illuminate\Database\Eloquent\Model;
 
-class LembagaPengangkat extends Model
+class LembagaPengangkat extends AbstractionModel
 {
-    use HasFactory;
+    protected $table = 'ref.lembaga_pengangkat';
+    protected $primaryKey = 'id_lemb_angkat';
 }

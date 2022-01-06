@@ -2,10 +2,10 @@
 
 namespace App\Models\PDUT\Ref;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\AbstractionModel;
 use Illuminate\Database\Eloquent\Model;
 
-class KebutuhanKhusus extends Model
+class KebutuhanKhusus extends AbstractionModel
 {
     protected $table = 'ref.kebutuhan_khusus';
     protected $primaryKey = 'id_kk';

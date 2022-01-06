@@ -2,11 +2,11 @@
 
 namespace App\Models\PDUT\Ref;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\AbstractionModel;
 use Illuminate\Database\Eloquent\Model;
 
-class KelompokBidang extends Model
+class KelompokBidang extends AbstractionModel
 {
     protected $table = 'ref.kelompok_bidang';
-    protected $primaryKey = 'id_kel_bidang';
+    protected $primaryKey = 'a_leaf_node';
 }

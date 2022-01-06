@@ -2,11 +2,11 @@
 
 namespace App\Models\PDUT\Ref;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\AbstractionModel;
 use Illuminate\Database\Eloquent\Model;
 
-class MediaPublikasi extends Model
+class MediaPublikasi extends AbstractionModel
 {
     protected $table = 'ref.media_publikasi';
-    protected $primaryKey = 'id_media_pub';
+    protected $primaryKey = 'bentuk_media_pub';
 }

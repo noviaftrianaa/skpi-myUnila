@@ -2,11 +2,11 @@
 
 namespace App\Models\PDUT\Ref;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\AbstractionModel;
 use Illuminate\Database\Eloquent\Model;
 
-class JenisSarana extends Model
+class JenisSarana extends AbstractionModel
 {
     protected $table = 'ref.jenis_sarana';
-    protected $primaryKey = 'id_jns_sarana';
+    protected $primaryKey = 'a_penempatan';
 }

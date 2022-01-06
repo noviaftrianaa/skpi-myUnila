@@ -2,11 +2,11 @@
 
 namespace App\Models\PDUT\Ref;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\AbstractionModel;
 use Illuminate\Database\Eloquent\Model;
 
-class Kbli extends Model
+class Kbli extends AbstractionModel
 {
     protected $table = 'ref.kbli';
-    protected $primaryKey = 'id_kbli';
+    protected $primaryKey = 'id_induk_kbli';
 }

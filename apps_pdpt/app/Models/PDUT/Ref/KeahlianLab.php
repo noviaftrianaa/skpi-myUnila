@@ -2,10 +2,10 @@
 
 namespace App\Models\PDUT\Ref;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\AbstractionModel;
 use Illuminate\Database\Eloquent\Model;
 
-class KeahlianLab extends Model
+class KeahlianLab extends AbstractionModel
 {
     protected $table = 'ref.keahlian_lab';
     protected $primaryKey = 'id_keahlian_lab';
