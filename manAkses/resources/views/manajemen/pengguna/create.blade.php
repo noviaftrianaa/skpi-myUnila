@@ -48,29 +48,28 @@
                     <div class="col-sm-4">
                         <div class="form-group form-group-default">
                             <label>Tanggal Lahir</label>
-                            <input class="form-control" name="tanggal_lahir" type="date" placeholder="Masukkan Tanggal Lahir">
+                            <input class="form-control" name="tgl_lahir" type="date" placeholder="Masukkan Tanggal Lahir">
                         </div>
                     </div>
                     <div class="col-sm-4">
                         <div class="form-group form-group-default">
                             <label>Jenis Kelamin</label>
                             <select name="jenis_kelamin" class="form-control" required>
-                                <option selected disabled>Pilih</option>
+                                <option value="l">Laki-laki</option>
+                                <option value="p">Perempuan</option>
                             </select>
                         </div>
                     </div>
                     <div class="col-sm-4">
                         <div class="form-group form-group-default">
                             <label>Jabatan</label>
-                            <select name="jabatan" class="form-control" required>
-                                <option selected disabled>Pilih</option>
-                            </select>
+                            <input class="form-control" name="jabatan" type="text" placeholder="Masukkan Jabatan">
                         </div>
                     </div>
                     <div class="col-sm-4">
                         <div class="form-group form-group-default">
                             <label>Nomor Telepon</label>
-                            <input class="form-control" name="no_telp" type="number" placeholder="Masukkan Nomor Telepon">
+                            <input class="form-control" name="no_tel" type="number" placeholder="Masukkan Nomor Telepon">
                         </div>
                     </div>
                     <div class="col-sm-4">
@@ -120,16 +119,18 @@
                     <div class="col-sm-4">
                         <div class="form-group form-group-default">
                             <label>Unit Organisasi</label>
-                            <select name="unit" class="form-control" required>
-                                <option selected disabled>Pilih</option>
+                            <select name="id_organisasi" class="select2 form-control" data-placeholder="Pilih" required>
                             </select>
                         </div>
                     </div>
                     <div class="col-sm-4">
                         <div class="form-group form-group-default">
                             <label>Peran</label>
-                            <select name="peran" class="form-control" required>
-                                <option selected disabled>Pilih</option>
+                            <select name="id_peran[]" class="form-control select2" multiple="multiple" data-placeholder="Pilih" required>
+                                <option>Admin</option>
+                                <option>Operator</option>
+                                <option>Tendik</option>
+                                <option>Dosen</option>
                             </select>
                         </div>
                     </div>

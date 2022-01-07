@@ -16,8 +16,7 @@
                     <div class="col-sm-12">
                         <div class="form-group form-group-default">
                             <label>Unit Organisasi</label>
-                            <select class="form-control" name="id_organisasi">
-                                <option selected disabled>Pilih</option>
+                            <select name="id_organisasi" class="form-control select2" data-placeholder="Pilih" required>
                             </select>
                         </div>
                     </div>

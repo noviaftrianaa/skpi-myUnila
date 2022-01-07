@@ -126,6 +126,11 @@ class AplikasiController extends Controller
         return view('manajemen.aplikasi.create_menu');
     }
 
+    public function pj_aplikasi()
+    {
+        return view('manajemen.aplikasi.create_menu');
+    }
+
     public function store_menu(Request $request, $id)
     {
         $id = Crypt::decrypt($id);

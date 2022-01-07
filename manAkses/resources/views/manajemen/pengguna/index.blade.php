@@ -35,7 +35,8 @@
                             <td>{{TglIndonesia($item->last_active)}}</td>
                             <td>
                                 <button class="btn btn-outline-warning btn-xs" title="Reset" data-toggle="modal" data-target="#resetItem{{$item->id_pengguna}}"> <i class="fas fa-key"></i></button>
-                                <button class="btn btn-outline-info btn-xs" title="Edit" data-toggle="modal" data-target="#editItem{{$item->id_pengguna}}"> <i class="fas fa-edit"></i></button>
+                                <!-- <button class="btn btn-outline-info btn-xs" title="Edit User" data-toggle="modal" data-target="#editUserItem{{$item->id_pengguna}}"> <i class="fas fa-edit"></i></button> -->
+                                <a class="btn btn-outline-primary btn-xs" title="Show User" href="{{ route('user.show', [Crypt::encrypt($item->id_pengguna)]) }}"> <i class="fas fa-eye"></i></a>
                             </td>
                         </tr>
                         @endforeach
@@ -129,7 +130,7 @@
     </div>
 
     @foreach($user as $items)
-    <div class="modal fade" id="editItem{{$items->id_pengguna}}" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal fade" id="editUserItem{{$items->id_pengguna}}" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header no-bd">
@@ -151,53 +152,87 @@
                         <div class="row">
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
-                                    <label>Nama</label>
-                                    <input name="nama" type="text" class="form-control" value="{{$items->nm_pengguna}}" placeholder="Masukkan Nama Lengkap" required>
+                                    <label>Nama Pengguna</label>
+                                    <input class="form-control" name="nama" type="text" placeholder="Masukkan Nama Pengguna" value="{{$items->nm_pengguna}}" required>
                                 </div>
                             </div>
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Username</label>
-                                    <input name="username" type="text" class="form-control" value="{{$items->username}}" placeholder="Masukkan Email" disabled>
+                                    <input class="form-control" name="username" type="email" placeholder="Masukkan Username" value="{{$items->username}}" disabled>
                                 </div>
                             </div>
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
-                                    <label>Unit</label>
-                                    <select class="form-control" name="unit">
+                                    <label>Alamat</label>
+                                    <textarea class="form-control" name="alamat" required>{{$items->alamat}}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <div class="form-group form-group-default">
+                                    <label>Tempat Lahir</label>
+                                    <input class="form-control" name="tempat_lahir" type="text" placeholder="Masukkan Tempat Lahir" value="{{$items->tempat_lahir}}">
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <div class="form-group form-group-default">
+                                    <label>Tanggal Lahir</label>
+                                    <input class="form-control" name="tgl_lahir" type="date" placeholder="Masukkan Tanggal Lahir" value="{{$items->tgl_lahir}}">
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <div class="form-group form-group-default">
+                                    <label>Jenis Kelamin</label>
+                                    <select name="jenis_kelamin" class="form-control" required>
                                         <option selected disabled>Pilih</option>
-                                        @foreach($unit as $item)
-                                        <option value="{{$item->id_unit}}">{{$item->nm_lemb}}</option>
-                                        @endforeach
                                     </select>
                                 </div>
                             </div>
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
-                                    <label>Peran</label>
-                                    <select class="form-control" name="peran">
+                                    <label>Jabatan</label>
+                                    <select name="jabatan" class="form-control" required>
                                         <option selected disabled>Pilih</option>
-                                        @foreach($peran as $item)
-                                        <option value="{{$item->id_peran}}">{{$item->nm_peran}}</option>
-                                        @endforeach
                                     </select>
                                 </div>
                             </div>
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
-                                    <label>Status</label>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="status" id="flexRadioDefault1" {{($items->a_aktif==1) ? 'checked' : ''}}>
-                                        <label class="form-check-label" for="flexRadioDefault1">
-                                            Aktif
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="status" id="flexRadioDefault1" {{($items->a_aktif==0) ? 'checked' : ''}}>
-                                        <label class="form-check-label" for="flexRadioDefault1">
-                                            Tidak Aktif
-                                        </label>
-                                    </div>
+                                    <label>Nomor Telepon</label>
+                                    <input class="form-control" name="no_tel" type="number" placeholder="Masukkan Nomor Telepon" value="{{$items->no_tel}}">
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <div class="form-group form-group-default">
+                                    <label>Nomor HP</label>
+                                    <input class="form-control" name="no_hp" type="number" placeholder="Masukkan Nomor HP" value="{{$items->no_hp}}">
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <div class="form-group form-group-default">
+                                    <label>Approval Pengguna ?</label>
+                                    <select name="approval_pengguna" class="form-control" required>
+                                        <option value="0" {{ ($items->approval_pengguna==0) ? 'selected':''}}>Tidak Aktif</option>
+                                        <option value="1" {{ ($items->approval_pengguna==1) ? 'selected':''}}>Aktif</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <div class="form-group form-group-default">
+                                    <label>Apakah Aktif ?</label>
+                                    <select name="a_aktif" class="form-control" required>
+                                        <option value="0" {{ ($items->a_aktif==0) ? 'selected':''}}>Tidak Aktif</option>
+                                        <option value="1" {{ ($items->a_aktif==1) ? 'selected':''}}>Aktif</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <div class="form-group form-group-default">
+                                    <label>Disable ?</label>
+                                    <select name="disable" class="form-control" required>
+                                        <option value="0" {{ ($items->disable==0) ? 'selected':''}}>Tidak Aktif</option>
+                                        <option value="1" {{ ($items->disable==1) ? 'selected':''}}>Aktif</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
