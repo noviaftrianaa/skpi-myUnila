@@ -36,7 +36,7 @@
                             <td>
                                 <button class="btn btn-outline-warning btn-xs" title="Reset" data-toggle="modal" data-target="#resetItem{{$item->id_pengguna}}"> <i class="fas fa-key"></i></button>
                                 <!-- <button class="btn btn-outline-info btn-xs" title="Edit User" data-toggle="modal" data-target="#editUserItem{{$item->id_pengguna}}"> <i class="fas fa-edit"></i></button> -->
-                                <a class="btn btn-outline-primary btn-xs" title="Show User" href="{{ route('user.show', [Crypt::encrypt($item->id_pengguna)]) }}"> <i class="fas fa-eye"></i></a>
+                                <a class="btn btn-outline-primary btn-xs" title="Show User" href="{{ route('user.detail', [Crypt::encrypt($item->id_pengguna)]) }}"> <i class="fas fa-eye"></i></a>
                             </td>
                         </tr>
                         @endforeach

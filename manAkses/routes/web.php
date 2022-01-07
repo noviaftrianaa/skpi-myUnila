@@ -45,7 +45,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('index');
         Route::get('/create', [UserController::class, 'create'])->name('create');
         Route::put('/store', [UserController::class, 'store'])->name('store');
-        Route::get('/{id}', [UserController::class, 'show'])->name('show');
+        Route::get('/{id}', [UserController::class, 'detail'])->name('detail');
         Route::patch('/{id}/update', [UserController::class, 'update'])->name('update');
         Route::patch('/{id}/reset', [UserController::class, 'reset'])->name('reset');
         Route::put('/role', [UserController::class, 'role'])->name('role');

@@ -3,20 +3,25 @@
 
 @section('content')
     <div class="row">
-        <div class="col-md-3 col-sm-6 col-12">
-            <a href="{{route('user.index')}}" title="Data Pengguna">
-                <div class="info-box">
-                    <span class="info-box-icon bg-primary"><i class="fas fa-user"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">{{$data->count()}}</span>
-                        <span class="info-box-number">Pengguna Aktif</span>
-                    </div>
-                </div>
-            </a>
-        </div>
+		<div class="col-md-4 col-sm-6 col-12">
+			<div class="info-box bg-light">
+				<div class="info-box-content text-bold">
+					<span class="info-box-text text-center text-muted">Pengguna Aktif</span>
+					<span class="info-box-number text-center text-muted mb-0">{{$data->count()}}</span>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4 col-sm-6 col-12">
+			<div class="info-box bg-light">
+				<div class="info-box-content text-bold">
+					<span class="info-box-text text-center text-muted">Aplikasi</span>
+					<span class="info-box-number text-center text-muted mb-0">{{$data->count()}}</span>
+				</div>
+			</div>
+		</div>
     </div>
 
-	<div class="row">
+	<div class="row mt-3">
 		<div class="col-md-12">
 			SQL Server Version is <strong>
 				Microsoft SQL Server 2019 (RTM) - 15.0.2000.5 (X64)
