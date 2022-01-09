@@ -17,11 +17,20 @@ class DataMahasiswaController extends Controller
     $mahasiswa_profil = [];
         $mahasiswa_profil['kemahasiswaan'] = [
             'NPM' => '1517051048',
-            'Nama' => 'Zuliana Nurfadlillah',
+            'Nama_Mahasiswa' => 'Zuliana Nurfadlillah',
             'Program_Studi' => 'S1 - Biologi Terapan',
+            'Konsentrasi' => ' - ',
             'Periode_Masuk' => '2019 Ganjil',
+            'Tahun_Kurikulum' => '2020',
+            'Sistem_kuliah' => 'Reguler',
+            'Status' => 'Aktif',
+            'Kelas_Kelompok' => '-',
+            'Jenis_Pendaftaran' => 'Peserta Didik Baru',
             'Jalur_Pendaftaran' => 'PMB Mandiri / SMMPTN',
-            'Status' => 'Aktif'
+            'Gelombang' => '1',
+            'Tanggal_Masuk' => '19 Agustus 2015',
+            'Nomor_Tes' => '-',
+            'Beasiswa' => '-'
         ];
 
         $mahasiswa_profil['informasi_umum'] = [
