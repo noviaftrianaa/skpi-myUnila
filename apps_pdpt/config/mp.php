@@ -34,6 +34,7 @@ return [
         'tgl_create'   => date('Y-m-d H:i:s'),
         'last_update'   => date('Y-m-d H:i:s'),
         'last_sync'   => date('Y-m-d H:i:s', time()-60),
+        'waktu_expired_token'   => date('Y-m-d H:i:s', strtotime("+60 minutes")),
     ],
     'data_master'   => [
         'smt'   => [
@@ -94,6 +95,12 @@ return [
             'K' => 'Alih kelola',
             'N' => 'Non aktif',
             'H' => 'Dihapus'
+        ],
+        'stat_hadir'    => [
+            'A' => 'Alpha/Tanpa Keterangan',
+            'C' => 'Cuti',
+            'I' => 'Izin',
+            'H' => 'Hadir'
         ]
     ],
     'ws'    => [

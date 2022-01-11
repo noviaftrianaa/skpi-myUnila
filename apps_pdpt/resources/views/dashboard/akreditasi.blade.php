@@ -35,6 +35,9 @@
                 <div class="card">
                     <div class="card-header bg-primary">Daftar Akreditasi Program Studi di Universitas Lampung</div>
                     <div class="card-body">
+                        <div class="alert alert-info">
+                            Data terakhir diambil pada tanggal: {{ tglWaktuIndonesia($last_sync->last_sync) }}
+                        </div>
                         <ul class="nav nav-pills nav-fill" id="pills-tab" role="tablist">
                             @foreach($list_akreditasi AS $key_akred=>$each_akred)
                                 <li class="nav-item" role="presentation">
@@ -78,6 +81,7 @@
                                     AND tprodi.id_jns_sms=3
                                     AND tprodi.stat_prodi='A'
                                     AND tn.nm_akred ".($key_akreditasi==0?"IS NULL":"='".$each_akreditasi."'")."
+                                    ORDER BY takred.tst_sk_akreditasi_prodi ASC
                                 ");
                             ?>
                             <div class="tab-pane fade{{ $key_akreditasi==0?' show active':'' }}" id="akreditasi_{{ $key_akreditasi }}" role="tabpanel" aria-labelledby="akreditasi_{{ $key_akreditasi }}_tab">

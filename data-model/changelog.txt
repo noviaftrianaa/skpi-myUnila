@@ -19,3 +19,7 @@ Tambah field pada ref.semester
 Tambah field pada ref.tahun_ajaran
 + tgl_mulai (Date not null)
 + tgl_selesai (Date not null)
+
+---versi 0.3--- 11 Januari 2022
+Tambah field id_katgiat referensi ke ref.katgiat ke tabel:
+- pdrd.

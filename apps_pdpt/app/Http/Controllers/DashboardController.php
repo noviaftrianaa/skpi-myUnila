@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PDUT\Pdrd\AkreditasiProdi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -68,9 +69,9 @@ class DashboardController extends Controller
             $list_akreditasi[] = is_null($each_akred->nm_akred)?'Tidak ada akreditasi':$each_akred->nm_akred;
             $akred[is_null($each_akred->nm_akred)?'Tidak ada akreditasi':$each_akred->nm_akred] =$each_akred->total_akreditasi;
         }
-        $last_sync = '';
+        $last_sync = AkreditasiProdi::where('soft_delete',0)->orderBy('last_sync','DESC')->first();
         $akred = json_encode($akred);
-        return view('dashboard.akreditasi',compact('akred','sp','list_akreditasi'));
+        return view('dashboard.akreditasi',compact('akred','sp','list_akreditasi','last_sync'));
     }
 
     /**
