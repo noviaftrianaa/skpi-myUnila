@@ -5,7 +5,7 @@ use App\Http\Controllers\Auth\{
     LoginController, RegisterController, ForgotPasswordController
 };
 use App\Http\Controllers\{
-    HomeController, UserController, PeranController, UnitOrganisasiController, AplikasiController
+    HomeController, UserController, PeranController, UnitOrganisasiController, AplikasiController, TokenController
 };
 /*
 |--------------------------------------------------------------------------
@@ -43,7 +43,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::namespace('user')->prefix('user')->name('user.')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('index');
+        Route::get('/create', [UserController::class, 'create'])->name('create');
         Route::put('/store', [UserController::class, 'store'])->name('store');
+        Route::get('/{id}', [UserController::class, 'detail'])->name('detail');
         Route::patch('/{id}/update', [UserController::class, 'update'])->name('update');
         Route::patch('/{id}/reset', [UserController::class, 'reset'])->name('reset');
         Route::put('/role', [UserController::class, 'role'])->name('role');
@@ -64,10 +66,19 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::namespace('aplikasi')->prefix('aplikasi')->name('aplikasi.')->group(function () {
         Route::get('/', [AplikasiController::class, 'index'])->name('index');
         Route::get('/create', [AplikasiController::class, 'create'])->name('create');
-        Route::get('/create_menu', [AplikasiController::class, 'create_menu'])->name('create.menu');
         Route::put('/store', [AplikasiController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [AplikasiController::class, 'edit'])->name('edit');
         Route::patch('/{id}/update', [AplikasiController::class, 'update'])->name('update');
+        Route::get('/create_menu', [AplikasiController::class, 'create_menu'])->name('create_menu');
+        Route::get('/pj_aplikasi', [AplikasiController::class, 'pj_aplikasi'])->name('pj_aplikasi');
+        Route::put('/{id}/store_menu', [AplikasiController::class, 'store_menu'])->name('store_menu');
         Route::delete('/{id}/destroy', [AplikasiController::class, 'destroy'])->name('destroy');
+    });
+    Route::namespace('token')->prefix('token')->name('token.')->group(function () {
+        Route::get('/', [TokenController::class, 'index'])->name('index');
+        Route::put('/store', [TokenController::class, 'store'])->name('store');
+        Route::patch('/{id}/update', [TokenController::class, 'update'])->name('update');
+        Route::delete('/{id}/destroy', [TokenController::class, 'destroy'])->name('destroy');
     });
 	
 });

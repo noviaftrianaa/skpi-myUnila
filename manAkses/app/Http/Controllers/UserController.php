@@ -28,14 +28,21 @@ class UserController extends Controller
                 FROM man_akses.peran
             ) AS peran ON peran.id_peran=role.id_peran
         ');
+        $role = RolePengguna::all();
         $unit = UnitOrganisasi::where('a_aktif',1)->get();
         $peran = Peran::all();
 
         return view('manajemen.pengguna.index', [
             'user'=>$user,
             'unit'=>$unit,
-            'peran'=>$peran
+            'peran'=>$peran,
+            'role'=>$role
         ]);
+    }
+
+    public function create()
+    {
+        return view('manajemen.pengguna.create');
     }
 
     /**
@@ -48,14 +55,46 @@ class UserController extends Controller
     {
         $array = $request->all();
 
+        $uuid = guid();
         $data = User::create([
-            'nm_pengguna'      => $array['nama'],
-            'nama_id'   => $array['nama_id'],
-            'password'  => sha1('12345678'),
-            'level'     => 2,
-            'unit'      => $array['unit'],
-            'status'    => $array['status']
+            'id_pengguna'   => $uuid,
+            'nm_pengguna'   => $array['nama'],
+            'username'      => $array['username'],
+            'password'      => sha1($array['password']),
+            'jenis_kelamin' => $array['jenis_kelamin'],
+            'tempat_lahir'  => $array['tempat_lahir'],
+            'tgl_lahir'     => $array['tgl_lahir'],
+            'alamat'        => $array['alamat'],
+            'jabatan'       => $array['jabatan'],
+            'no_tel'        => $array['no_tel'],
+            'no_hp'         => $array['no_hp'],
+            'approval_pengguna' => $array['approval_pengguna'],
+            'a_aktif'       => $array['a_aktif'],
+            'disable'       => $array['disable'],
+            'tgl_create'    => currDateTime(),
+            'last_update'   => currDateTime(),
+            'last_sync'     => currDateTime(),
+            'id_updater'    => $uuid,
+            'soft_delete'   => 0
         ]);
+        foreach($array['id_peran'] as $item) {
+            $role = RolePengguna::create([
+                'id_role_pengguna' => guid(),
+                'id_pengguna' => $uuid,
+                'id_organisasi' => $array['id_organisasi'],
+                'id_peran' => $item,
+                'sk_penugasan' => $array['sk_penugasan'],
+                'tgl_sk_penugasan' => $array['tgl_sk_penugasan'],
+                'approval_pengguna' => $array['role_approval_pengguna'],
+                'tgl_kadaluarsa' => $array['tgl_kadaluarsa'],
+                'last_active' => currDateTime(),
+                'last_update' => currDateTime(),
+                'soft_delete' => 0,
+                'last_sync' => currDateTime(),
+                'id_updater' => $uuid
+            ]);
+        }
+    
         if(!$data) {
             alert()->error('Data gagal disimpan!');
         } else {
@@ -70,9 +109,29 @@ class UserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function detail($id)
     {
-        //
+        $id = Crypt::decrypt($id);
+        $data = User::findOrFail($id);
+        // $role = DB::SELECT('
+        //     SELECT role.id_role_pengguna, role.id_pengguna, role.sk_penugasan, role.tgl_sk_penugasan, role.approval_pengguna, role.tgl_kadaluarsa, organisasi.nm_lemb, CONCAT(peran.nm_peran)
+        //     FROM man_akses.role_pengguna as role
+        //     LEFT JOIN (
+        //         SELECT *
+        //         FROM man_akses.peran
+        //     ) as peran on peran.id_peran=role.id_peran
+        //     LEFT JOIN (
+        //         SELECT *
+        //         FROM man_akses.unit_organisasi
+        //     ) as organisasi on organisasi.id_organisasi=role.id_organisasi
+        //     WHERE role.id_pengguna="'.$id.'"
+        //     GROUP BY role.id_role_pengguna, role.id_pengguna, role.sk_penugasan, role.tgl_sk_penugasan, role.approval_pengguna, role.tgl_kadaluarsa, organisasi.nm_lemb
+        // ');
+        
+        return view('manajemen.pengguna.show', [
+            'data'=>$data
+            // 'role'=>$role
+        ]);
     }
 
     /**
@@ -93,7 +152,7 @@ class UserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update_user(Request $request, $id)
     {
         $id = Crypt::decrypt($id);
         $array = $request->all();
@@ -157,7 +216,7 @@ class UserController extends Controller
     {
         $id = Crypt::decrypt($id);
         $data = User::where('id_pengguna', $id)->update([
-            'password'         => sha1('12345678'),
+            'password'         => sha1('password'),
             'last_update'      => currDateTime(),
             'id_updater'       => Auth::user()->id_pengguna
         ]);

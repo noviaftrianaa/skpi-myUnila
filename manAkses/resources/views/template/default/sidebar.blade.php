@@ -38,6 +38,13 @@
 					<p>Data Aplikasi</p>
 				</a>
 			</li>
+			<li class="nav-item">
+			<!-- route dashboard -->
+				<a href="{{ route('token.index') }}" class="nav-link {{ (request()->is('token*')) ? 'active' : '' }}">
+					<i class="nav-icon fas fa-key"></i>
+					<p>Data Token</p>
+				</a>
+			</li>
 		</ul>
 	</nav>
 	<!-- /.sidebar-menu -->

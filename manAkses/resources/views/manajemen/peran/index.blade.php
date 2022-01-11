@@ -17,14 +17,16 @@
                       <tr>
                         <th>No.</th>
                         <th>Nama Peran</th>
+                        <th>Perlu SK ?</th>
                         <th>Aksi</th>
                       </tr>
                     </thead>
                     <tbody>
                         @foreach($peran as $no=>$item)
                         <tr>
-                            <td>{{$no+1}}</td>
-                            <td>{{$item->nm_peran}}</td>
+                            <td>{{ $no+1 }}</td>
+                            <td>{{ $item->nm_peran }}</td>
+                            <td>{{ ($item->a_perlu_sk==1) ? 'Ya' : 'Tidak'}}</td>
                             <td>
                                 <!-- <button class="btn btn-outline-warning btn-xs" title="Reset" data-toggle="modal" data-target="#resetItem{{$item->id_peran}}"> <i class="fas fa-key"></i></button> -->
                                 <button class="btn btn-outline-info btn-xs" title="Edit" data-toggle="modal" data-target="#editItem{{$item->id_peran}}"> <i class="fas fa-edit"></i></button>
@@ -67,18 +69,10 @@
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Apakah Perlu SK ?</label>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="a_perlu_sk" id="a_perlu_sk" value="1">
-                                        <label class="form-check-label" for="flexRadioDefault1">
-                                            Ya
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="a_perlu_sk" id="a_perlu_sk" value="0">
-                                        <label class="form-check-label" for="flexRadioDefault1">
-                                            Tidak
-                                        </label>
-                                    </div>
+                                    <select name="a_perlu_sk" class="form-control" required>
+                                        <option value="0">Tidak</option>
+                                        <option value="1">Ya</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -122,18 +116,10 @@
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Apakah Perlu SK ?</label>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="a_perlu_sk" id="a_perlu_sk" value="1" {{($items->a_perlu_sk==1)?'checked':''}}>
-                                        <label class="form-check-label" for="flexRadioDefault1">
-                                            Ya
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="a_perlu_sk" id="a_perlu_sk" value="0" {{($items->a_perlu_sk==1)?'checked':''}}>
-                                        <label class="form-check-label" for="flexRadioDefault1">
-                                            Tidak
-                                        </label>
-                                    </div>
+                                    <select name="a_perlu_sk" class="form-control" required>
+                                        <option value="0" {{($items->a_perlu_sk==0)?'selected':''}}>Tidak</option>
+                                        <option value="1" {{($items->a_perlu_sk==1)?'selected':''}}>Ya</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
