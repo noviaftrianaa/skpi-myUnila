@@ -14,6 +14,6 @@ class UnitOrganisasi extends Model
 
     public function aplikasi()
     {   
-    	return $this->hasManny('App\Models\Aplikasi','id_organisasi');
+    	return $this->hasManny('App\Models\Aplikasi','id_organisasi','id_organisasi');
     }
 }

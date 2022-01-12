@@ -16,8 +16,10 @@
                     <div class="col-sm-12">
                         <div class="form-group form-group-default">
                             <label>Unit Organisasi</label>
-                            <select class="form-control" name="id_organisasi">
-                                <option selected disabled>Pilih</option>
+                            <select class="form-control select2" name="id_organisasi">
+                                @foreach($unit as $item)
+                                <option value="{{$item->id_aplikasi}}" {{ ($item->id_organisasi==$data->id_organisasi) ? 'selected':''}}>{{$item->nm_lemb}}</option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
@@ -37,10 +39,7 @@
                         <div class="form-group form-group-default">
                             <label>URL</label>
                             <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text">http://</span>
-                                </div>
-                                <input name="url" type="text" class="form-control" placeholder="Masukkan URL Aplikasi" value="{{ $data->url }}" required>
+                                <input name="url" type="text" class="form-control" placeholder="http://" value="{{ $data->url }}" required>
                             </div>
                         </div>
                     </div>

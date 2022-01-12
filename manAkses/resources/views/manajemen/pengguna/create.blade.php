@@ -116,49 +116,37 @@
             <div class="card-body">
                 <!-- FORM CREATE APLIKASI -->
                 <div class="row">
-                    <div class="col-sm-4">
+                    <div class="col-sm-6">
                         <div class="form-group form-group-default">
                             <label>Unit Organisasi</label>
                             <select name="id_organisasi" class="select2 form-control" data-placeholder="Pilih" required>
+                                <option selected disabled>Pilih</option>
+                                @foreach($unit as $item)
+                                <option value="{{$item->id_organisasi}}">{{$item->nm_lemb}}</option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
-                    <div class="col-sm-4">
+                    <div class="col-sm-6">
                         <div class="form-group form-group-default">
                             <label>Peran</label>
                             <select name="id_peran[]" class="form-control select2" multiple="multiple" data-placeholder="Pilih" required>
-                                <option>Admin</option>
-                                <option>Operator</option>
-                                <option>Tendik</option>
-                                <option>Dosen</option>
+                                @foreach($peran as $item)
+                                <option value="{{$item->id_peran}}">{{$item->nm_peran}}</option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
-                    <div class="col-sm-4">
-                        <div class="form-group form-group-default">
-                            <label>Approval Pengguna</label>
-                            <select name="role_approval_pengguna" class="form-control" required>
-                                <option value="0">Tidak Aktif</option>
-                                <option value="1">Aktif</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-sm-4">
+                    <div class="col-sm-6">
                         <div class="form-group form-group-default">
                             <label>SK Penugasan</label>
                             <input class="form-control" name="sk_penugasan" type="file" placeholder="Masukkan SK Penugasan">
                         </div>
                     </div>
-                    <div class="col-sm-4">
+                    <div class="col-sm-6">
                         <div class="form-group form-group-default">
                             <label>Tanggal SK Penugasan</label>
                             <input class="form-control" name="tgl_sk_penugasan" type="date" placeholder="Masukkan Tanggal SK Penugasan">
-                        </div>
-                    </div>
-                    <div class="col-sm-4">
-                        <div class="form-group form-group-default">
-                            <label>Tanggal Kadaluarsa</label>
-                            <input class="form-control" name="tgl_kadaluarsa" type="date" placeholder="Masukkan Tanggal Kadaluarsa">
                         </div>
                     </div>
                 </div>

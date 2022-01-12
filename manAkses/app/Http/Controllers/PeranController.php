@@ -15,7 +15,7 @@ class PeranController extends Controller
      */
     public function index()
     {
-        $peran = Peran::all();
+        $peran = Peran::orderBy('nm_peran','ASC')->get();
 
         return view('manajemen.peran.index', [
             'peran'=>$peran
