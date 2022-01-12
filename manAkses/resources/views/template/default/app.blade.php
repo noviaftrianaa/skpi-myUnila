@@ -205,7 +205,7 @@
                     </div>
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-right">
-                            {!! auto_breadcrumb() !!}
+                            @{!! auto_breadcrumb() !!}
                         </ol>
                     </div>
                 </div>

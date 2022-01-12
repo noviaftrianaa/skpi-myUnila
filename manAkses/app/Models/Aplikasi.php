@@ -14,6 +14,11 @@ class Aplikasi extends Model
 
     public function unitorganisasi()
     {   
-    	return $this->belongsTo('App\Models\UnitOrganisasi','id_organisasi');
+    	return $this->belongsTo('App\Models\UnitOrganisasi','id_organisasi','id_organisasi');
+    }
+
+    public function pjaplikasi()
+    {
+        return $this->hasMany('App\Models\PJAplikasi','id_aplikasi','id_aplikasi');
     }
 }

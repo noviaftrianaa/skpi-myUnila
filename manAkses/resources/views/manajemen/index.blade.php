@@ -15,7 +15,7 @@
 			<div class="info-box bg-light">
 				<div class="info-box-content text-bold">
 					<span class="info-box-text text-center text-muted">Aplikasi</span>
-					<span class="info-box-number text-center text-muted mb-0">{{$data->count()}}</span>
+					<span class="info-box-number text-center text-muted mb-0">{{$apps->count()}}</span>
 				</div>
 			</div>
 		</div>

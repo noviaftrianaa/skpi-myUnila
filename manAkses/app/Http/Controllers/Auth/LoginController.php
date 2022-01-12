@@ -13,6 +13,7 @@ use DB;
 use SSO\SSO;
 use App\Http\Traits\Uuid;
 use App\Models\RolePengguna;
+use Cookie;
 
 class LoginController extends Controller
 {
@@ -118,14 +119,18 @@ class LoginController extends Controller
     }
 
     public function logout(){
-        if(auth()->check()) {
-            Session::flush();
-            Auth::logout();
-            alert()->success('Berhasil logout');
-            return redirect('auth/login')->with('pesan', 'berhasil logout');
-        } else {
+        if(SSO::check() === true) {
             SSO::logout();
-            return redirect('auth/login');
+            return redirect()->route('auth.logout');
+        } else {
+            if(Auth::check()) {
+                Auth::logout();
+                Session::flush();
+                alert()->success('Berhasil logout');
+                return redirect('auth/login')->with('pesan', 'berhasil logout');
+            } else {
+                return redirect('auth/login');
+            }
         }
     }
 }

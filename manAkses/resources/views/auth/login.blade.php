@@ -2,45 +2,26 @@
 @section('title', 'Login Area')
 @section('content')
 
-<!-- /form -->
-<div class="workinghny-form-grid">
-  <div class="wrapper">
-    <div class="logo">
-      <h1><a class="brand-logo" href="index.html"> Access Management<br>Sign In</a></h1>
-      <!-- if logo is image enable this   
-      <a class="brand-logo" href="#index.html">
-      <img src="image-path" alt="Your logo" title="Your logo" style="height:35px;" />
-      </a> -->
-    </div>
-    <div class="workinghny-block-grid">
-      <div class="workinghny-left-img">
-        <img src="https://upload.wikimedia.org/wikipedia/id/f/ff/Logo_UnivLampung.png" class="img-responsive" width="75%" alt="img" />
-      </div>
-      <div class="form-right-inf">
-        <div class="login-form-content">
-          <form action="{{route('auth.login')}}" class="signin-form" method="post">
-            {!! csrf_field() !!}
-            <div class="one-frm">
-              <label>Username</label>
-              <input type="text" name="username" id="username" placeholder="Tuliskan Username/Nama ID" value="{{ old('username') }}">
+<div class="box-2 d-flex flex-column h-100 ">
+    <div class="text-center">
+        <p class="mb-1 mb-sm-0 h-1">Sistem Informasi Manajemen Akses</p>
+        <p class="text-muted mt-4">Login your account</p>
+
+        <div class="card-mobile d-flex flex-column">
+            <div class="input-field d-flex flex-column">
+              <form id="loginForm" class="form-horizontal" role="form" action="{{route('auth.login')}}" method="post">
+                  {!! csrf_field() !!}
+                  <input type="email" class="form-control input-lg" id="inputLogin" name="username" placeholder="Username" value="{{ old('username') }}" autofocus required>
+                  <input type="password" class="form-control input-lg mt-3" id="inputPassword" name="password" placeholder="Password" required> 
+                  <button type="submit" class="mt-4 btn btn-success text-white d-flex justify-content-center align-items-center"><i class="fa fa-sign-in" aria-hidden="true"></i>&nbsp;Login</button>
+                  <div class="mt-3 text1"> <a href="{{ route('auth.register') }}" class="text-muted mt-3 forget">Register</a> </div>
+                  <div class="mt-3 text1"> <a href="{{ route('auth.signing_process') }}" class="text-muted mt-3 forget">Login with SSO</a> </div>
+                  <div class="mt-3 text1"> <a class="text-muted mt-3 forget" href="{{ route('auth.forgot_password') }}">Forget Password?</a> </div>
+                  <div class="text2 mt-4 d-flex flex-row align-items-center"> </span> </div>
+              </form>
             </div>
-            <div class="one-frm">
-              <label>Password</label>
-              <input type="password" name="password" id="password" placeholder="Tuliskan Password Anda">
-            </div>
-            <label class="check-remaind">
-              <input type="checkbox">
-              <span class="checkmark"></span>
-              <p class="remember">Remember Me</p>
-            </label>
-            <button class="btn btn-style mt-3">Sign In </button>
-            <p class="already">
-              <a href="{{ route('auth.signing_process') }}" class="btn btn-style mt-3">Login With SSO</a>
-            </p>
-          </form>
         </div>
-      </div>
     </div>
-  </div>
 </div>
+
 @endsection
