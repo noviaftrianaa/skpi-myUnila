@@ -18,7 +18,7 @@ Route::group([
     'prefix' => '0.1',
     'as' => 'api.',
     'namespace' => 'App\Http\Controllers\PDUT\Api',
-    'middleware' => ['auth.api']
+    // 'middleware' => ['auth.api']
 ], function () {
     //Referensi
     Route::get('referensi/agama','ReferensiController@agama');
@@ -96,6 +96,8 @@ Route::group([
 
     //Mahasiswa
     Route::get('mahasiswa/list','Pdrd\MahasiswaController@list');
+    Route::get('mahasiswa/list/{status}','Pdrd\MahasiswaController@status');
+    Route::get('mahasiswa/regis','Pdrd\MahasiswaController@regis');
 
     //Tracer
     Route::get('hasil_tracer_study','Tracer\TracerStudyController@index');
