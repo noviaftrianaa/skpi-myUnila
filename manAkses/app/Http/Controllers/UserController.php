@@ -46,9 +46,9 @@ class UserController extends Controller
         $uuid = guid();
         $data = User::create([
             'id_pengguna'   => $uuid,
-            'nm_pengguna'   => $array['nama'],
+            'nm_pengguna'   => $array['nm_pengguna'],
             'username'      => $array['username'],
-            'password'      => sha1($array['password']),
+            'password'      => sha1('12345678'),
             'jenis_kelamin' => $array['jenis_kelamin'],
             'tempat_lahir'  => $array['tempat_lahir'],
             'tgl_lahir'     => $array['tgl_lahir'],
@@ -56,9 +56,9 @@ class UserController extends Controller
             'jabatan'       => $array['jabatan'],
             'no_tel'        => $array['no_tel'],
             'no_hp'         => $array['no_hp'],
-            'approval_pengguna' => $array['approval_pengguna'],
-            'a_aktif'       => $array['a_aktif'],
-            'disable'       => $array['disable'],
+            'approval_pengguna' => 1,
+            'a_aktif'       => 1,
+            'disable'       => 0,
             'tgl_create'    => currDateTime(),
             'last_update'   => currDateTime(),
             'last_sync'     => currDateTime(),
@@ -152,41 +152,28 @@ class UserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update_user(Request $request, $id)
+    public function update(Request $request, $id)
     {
         $id = Crypt::decrypt($id);
         $array = $request->all();
 
         $data = User::where('id_pengguna',$id)->update([
-            'nm_pengguna'      => $array['nama'],
-            'last_update'      => currDateTime(),
-            'id_updater'       => Auth::user()->id_pengguna
+            'nm_pengguna'   => $array['nm_pengguna'],
+            'username'      => $array['username'],
+            'jenis_kelamin' => $array['jenis_kelamin'],
+            'tempat_lahir'  => $array['tempat_lahir'],
+            'tgl_lahir'     => $array['tgl_lahir'],
+            'alamat'        => $array['alamat'],
+            'jabatan'       => $array['jabatan'],
+            'no_tel'        => $array['no_tel'],
+            'no_hp'         => $array['no_hp'],
+            'approval_pengguna' => 1,
+            'a_aktif'       => 1,
+            'disable'       => 0,
+            'last_update'   => currDateTime(),
+            'last_sync'     => currDateTime(),
+            'id_updater'    => $id,
         ]);
-
-        $role = RolePengguna::where('id_pengguna', $id)->where('id_peran', $array['peran'])->first();
-        if(is_null($role)) {
-            $uuid = guid();
-            $peran = RolePengguna::create([
-                'id_role_pengguna'  => $uuid,
-                'id_pengguna'       => $id,
-                'id_organisasi'     => $array['unit'],
-                'id_peran'          => $array['peran'],
-                'approval_peran'    => 1,
-                'tgl_create'        => currDateTime(),
-                'last_update'       => currDateTime(),
-                'soft_delete'       => 0,
-                'last_sync'         => currDateTime(),
-                'id_updater'        => Auth::user()->id_pengguna
-            ]);
-        } else {
-            $peran = RolePengguna::where('id_role_pengguna', $role->id_role_pengguna)->update([
-                'id_organisasi'     => $array['unit'],
-                'id_peran'          => $array['peran'],
-                'last_update'       => currDateTime(),
-                'last_sync'         => currDateTime(),
-                'id_updater'        => Auth::user()->id_pengguna
-            ]);
-        }
 
         if(!$data) {
             alert()->error('Data gagal disimpan!');
@@ -204,7 +191,19 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $id = Crypt::decrypt($id);
+        $data = User::where('id_pengguna', $id)->update([
+            'soft_delete' => 1,
+            'last_update' => currDateTime(),
+            'last_sync' => currDateTime(),
+            'id_updater' => Auth::user()->id_pengguna
+        ]);
+        if(!$data) {
+            alert()->error('Data gagal dihapus!');
+        } else {
+            alert()->success('Data berhasil dihapus!');
+        }
+        return redirect()->back();
     }
     
     /**
