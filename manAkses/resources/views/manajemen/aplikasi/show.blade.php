@@ -429,6 +429,31 @@
                                     </select>
                                 </div>
                             </div>
+                            <div class="col-sm-12 col-12">
+                                <div class="form-group form-group-default">
+                                    <label>Peran</label>
+                                    <select class="form-control select2" name="id_peran[]" data-placeholder="Pilih" multiple required>
+                                        @foreach($peran as $item)
+                                        <option value="{{$item->id_peran}}">{{$item->nm_peran}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-12">
+                                <div class="form-group form-group-default">
+                                    <label>Apakah Bisa:</label><br>
+                                    <input type="checkbox" id="a_boleh_insert" name="a_boleh_insert" value="1">
+                                    <label for="a_boleh_insert"> Insert</label>&nbsp;&nbsp;
+                                    <input type="checkbox" id="a_boleh_show" name="a_boleh_show" value="1">
+                                    <label for="a_boleh_show"> Show</label>&nbsp;&nbsp;
+                                    <input type="checkbox" id="a_boleh_delete" name="a_boleh_delete" value="1">
+                                    <label for="a_boleh_delete"> Delete</label>&nbsp;&nbsp;
+                                    <input type="checkbox" id="a_boleh_update" name="a_boleh_update" value="1">
+                                    <label for="a_boleh_update"> Update</label>&nbsp;&nbsp;
+                                    <input type="checkbox" id="a_boleh_sanggah" name="a_boleh_sanggah" value="1">
+                                    <label for="a_boleh_sanggah"> Sanggah</label>
+                                </div>
+                            </div>
                         </div>
                         <div class="modal-footer no-bd">
                             <button type="submit" class="btn btn-primary">Simpan</button>
@@ -506,6 +531,32 @@
                                         <option value="0" {{($items->a_tampil==0)?'selected':''}}>Tidak</option>
                                         <option value="1" {{($items->a_tampil==1)?'selected':''}}>Ya</option>
                                     </select>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-12">
+                                <div class="form-group form-group-default">
+                                    <label>Peran</label>
+                                    <select class="form-control select2" name="id_peran[]" data-placeholder="Pilih" multiple required>
+                                        @foreach($peran as $item)
+                                        <option value="{{$item->id_peran}}">{{$item->nm_peran}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-12">
+                                <div class="form-group form-group-default">
+                                    <?php $menurole = DB::table('man_akses.menu_role')->where('id_menu', $items->id_menu)->first(); ?>
+                                    <label>Apakah Bisa:</label><br>
+                                    <input type="checkbox" id="a_boleh_insert" name="a_boleh_insert" value="1" {{($menurole->a_boleh_insert==1)?'checked':''}}>
+                                    <label for="a_boleh_insert"> Insert</label>&nbsp;&nbsp;
+                                    <input type="checkbox" id="a_boleh_show" name="a_boleh_show" value="1" {{($menurole->a_boleh_show==1)?'checked':''}}>
+                                    <label for="a_boleh_show"> Show</label>&nbsp;&nbsp;
+                                    <input type="checkbox" id="a_boleh_delete" name="a_boleh_delete" value="1" {{($menurole->a_boleh_delete==1)?'checked':''}}>
+                                    <label for="a_boleh_delete"> Delete</label>&nbsp;&nbsp;
+                                    <input type="checkbox" id="a_boleh_update" name="a_boleh_update" value="1" {{($menurole->a_boleh_update==1)?'checked':''}}>
+                                    <label for="a_boleh_update"> Update</label>&nbsp;&nbsp;
+                                    <input type="checkbox" id="a_boleh_sanggah" name="a_boleh_sanggah" value="1" {{($menurole->a_boleh_sanggah==1)?'checked':''}}>
+                                    <label for="a_boleh_sanggah"> Sanggah</label>
                                 </div>
                             </div>
                         </div>

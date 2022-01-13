@@ -16,7 +16,7 @@ class UserController extends Controller
 
     public function index()
     {
-        $user = User::where('soft_delete', 0)->orderBy('nm_pengguna', 'ASC')->get();
+        $user = User::where('soft_delete', 0)->orderBy('a_aktif','DESC')->orderBy('nm_pengguna', 'ASC')->get();
 
         return view('manajemen.pengguna.index', [
             'user'=>$user

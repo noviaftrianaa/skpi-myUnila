@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Menu;
 use App\Models\Aplikasi;
+use App\Models\MenuRole;
 use Crypt;
+use Auth;
 
 class MenuController extends Controller
 {
@@ -54,7 +56,25 @@ class MenuController extends Controller
             'last_sync' => currDateTime()
         ]);
 
-        if(!$data) {
+        foreach($array['id_peran'] as $item) {
+            $datas = MenuRole::create([
+                'id_peran' => $item,
+                'id_menu' => $data->id_menu,
+                'a_boleh_insert' => $array['a_boleh_insert'] ?? 0,
+                'a_boleh_show' => $array['a_boleh_insert'] ?? 0,
+                'a_boleh_delete' => $array['a_boleh_insert'] ?? 0,
+                'a_boleh_update' => $array['a_boleh_insert'] ?? 0,
+                'a_boleh_sanggah' => $array['a_boleh_insert'] ?? 0,
+                'approval_menu' => 1,
+                'tgl_create' => currDateTime(),
+                'last_update' => currDateTime(),
+                'soft_delete' => 0,
+                'last_sync' => currDateTime(),
+                'id_updater' => Auth::user()->id_pengguna
+            ]);
+        }
+
+        if(!$data && !$datas) {
             alert()->error('Data gagal disimpan!');
         } else {
             alert()->success('Data berhasil disimpan!');

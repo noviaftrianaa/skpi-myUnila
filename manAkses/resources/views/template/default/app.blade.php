@@ -6,7 +6,7 @@
     <title>@yield('title')</title>
     <!-- Tell the browser to be responsive to screen width -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/png" href="{{ asset((config('mp.apps.at_use')==1?config('mp.apps.user.logo'):config('mp.copyright.logo'))) }}">
+    <link rel="icon" type="image/png" href="{{ asset('auth/img/logo.png') }}">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="{{ asset('master_template/plugins/fontawesome-free/css/all.min.css') }}">
     <link rel="stylesheet" href="{{ asset('node_modules/font-awesome/css/font-awesome.css') }}">
@@ -123,7 +123,7 @@
                                         ->select('peran.id_peran','peran.nm_peran')
                                         ->get(); ?>
 
-                                    <select name="role" class="form-control" required>
+                                    <select name="id_peran" class="form-control" required>
                                         <option selected disabled>Pilih</option>
                                         @foreach($prole as $item)
                                         <option value="{{$item->id_peran}}" {{($item->id_peran==session()->get('login.role')) ? 'selected':''}}>{{$item->nm_peran}}</option>
