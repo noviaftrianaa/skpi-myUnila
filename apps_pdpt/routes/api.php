@@ -96,8 +96,9 @@ Route::group([
 
     //Mahasiswa
     Route::get('mahasiswa/list','Pdrd\MahasiswaController@list');
+    Route::get('mahasiswa/detail/{id_mahasiswa}','Pdrd\MahasiswaController@detail');
     Route::get('mahasiswa/list/{status}','Pdrd\MahasiswaController@status');
-    Route::get('mahasiswa/regis','Pdrd\MahasiswaController@regis');
+    Route::get('mahasiswa/regis/{jenis_daftar}','Pdrd\MahasiswaController@regis');
 
     //Tracer
     Route::get('hasil_tracer_study','Tracer\TracerStudyController@index');
@@ -105,6 +106,10 @@ Route::group([
 
     //Tridarma
     Route::get('buku_ajar','Tridarma\BukuAjarController@index');
+    Route::post('buku_ajar/simpan','Tridarma\BukuAjarController@store');
+
+    //Tridarma
+    Route::get('tulis_publikasi','Pdrd\BukuReferensiController@index');
     Route::post('buku_ajar/simpan','Tridarma\BukuAjarController@store');
 });
 
