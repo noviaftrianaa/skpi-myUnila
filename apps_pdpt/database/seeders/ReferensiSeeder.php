@@ -33,14 +33,14 @@ class ReferensiSeeder extends Seeder
         $method_alias = [
 //            'Jenis Pendaftaran'     => 'GetJenisPendaftaran',
 //            'Kebutuhan Khusus'      => 'GetKebutuhanKhusus',
-            'Jalur Masuk'           => 'GetJalurMasuk',
+//            'Jalur Masuk'           => 'GetJalurMasuk',
 //            'Status Mahasiswa'      => 'GetStatusMahasiswa',
-//            'Alat Transportasi'     => 'GetAlatTransportasi',
+            'Alat Transportasi'     => 'GetAlatTransportasi',
 //            'Jenis Tinggal'         => 'GetJenisTinggal',
 //            'Penghasilan'           => 'GetPenghasilan',
 //            'Pembiayaan'            => 'GetPembiayaan',
 //            'Jenis Prestasi'        => 'GetJenisPrestasi',
-//            'Tingkat Prestasi'      => 'GetTingkatPrestasi',
+            'Tingkat Prestasi'      => 'GetTingkatPrestasi',
         ];
         foreach ($method_alias AS $name_alias=>$each_method) {
             echo "Mendapatkan data Referensi ".$name_alias."\n";
@@ -84,11 +84,14 @@ class ReferensiSeeder extends Seeder
                         'last_sync'         => currDateTime()
                     ]);
                 } elseif ($each_method=='GetAlatTransportasi') {
-                    DB::table('ref.alat_transportasi')->insert([
+                    DB::table('sarpras.alat_transportasi')->insert([
                         'id_alat_transport' => $each_data['id_alat_transportasi'],
                         'nm_alat_transport' => $each_data['nama_alat_transportasi'],
                         'create_date'       => currDateTime(),
+                        'id_creator'        => '443701e4-e814-48f3-9528-251bccee8af1',
                         'last_update'       => currDateTime(),
+                        'id_updater'        => '443701e4-e814-48f3-9528-251bccee8af1',
+                        'soft_delete'       => 0,
                         'last_sync'         => currDateTime()
                     ]);
                 } elseif ($each_method=='GetJenisTinggal') {
