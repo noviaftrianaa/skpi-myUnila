@@ -14,6 +14,7 @@ use Auth;
 
 class AplikasiController extends Controller
 {
+
     public function index()
     {
         $data = Aplikasi::with(['UnitOrganisasi','PJAplikasi'])->lock('WITH(NOLOCK)')->get();

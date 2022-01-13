@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Crypt;
 
 class PeranController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      *

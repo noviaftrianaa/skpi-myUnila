@@ -66,7 +66,7 @@ class LoginController extends Controller
                 $check = User::where('username', SSO::getUser()->username)->first();
                 if(!is_null($check)) {
                     Auth::loginUsingId($check->id_pengguna);
-                    session()->flash('success', 'You are logged in!');
+                    // session()->flash('success', 'You are logged in!');
                     $role = RolePengguna::where('id_pengguna', $check->id_pengguna)->orderBy('last_active','DESC')->first();
                     Session::put('login.log_address', get_client_ip());
                     Session::put('login.role', (!is_null($role)) ? $role->id_pengguna : NULL);
@@ -76,6 +76,8 @@ class LoginController extends Controller
                     return redirect()->route('auth.login');
                 }
             }
+        } else {
+            return redirect()->route('auth.logout');
         }
     }
 
@@ -118,19 +120,24 @@ class LoginController extends Controller
         }
     }
 
+    private function ssoLogout()
+    {
+        SSO::logout();
+    }
+
     public function logout(){
-        if(SSO::check() === true) {
-            SSO::logout();
-            return redirect()->route('auth.logout');
-        } else {
-            if(Auth::check()) {
-                Auth::logout();
-                Session::flush();
-                alert()->success('Berhasil logout');
-                return redirect('auth/login')->with('pesan', 'berhasil logout');
+        if(Auth::check()) {
+            Auth::logout();
+            Session::flush();
+            Cookie::forget('PHPSESSID','laravel_session','XSRF-TOKEN');
+            alert()->success('Berhasil logout');
+            if(SSO::check()==true) {
+                SSO::logout(url('/'));
             } else {
-                return redirect('auth/login');
+                return redirect('auth/login')->with('pesan', 'berhasil logout');
             }
+        } else {
+            return redirect('auth/login');
         }
     }
 }

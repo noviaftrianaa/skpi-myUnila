@@ -7,6 +7,7 @@ use App\Models\AccessToken;
 
 class TokenController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      *

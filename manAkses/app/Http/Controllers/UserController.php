@@ -126,12 +126,14 @@ class UserController extends Controller
         if($pengguna->a_aktif==1) {
             $data = User::where('id_pengguna', $id)->update([
                 'a_aktif'=>0,
+                'disable' => 1,
                 'last_update'=>currDateTime(),
                 'last_sync'=>currDateTime()
             ]);
         } else {
             $data = User::where('id_pengguna', $id)->update([
                 'a_aktif'=>1,
+                'disable' => 0,
                 'last_update'=>currDateTime(),
                 'last_sync'=>currDateTime()
             ]);
