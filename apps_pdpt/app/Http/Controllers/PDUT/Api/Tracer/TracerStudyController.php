@@ -7,10 +7,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\PDUT\Tracer\HasilTracerStudy;
 use App\Models\PDUT\Tracer\HasilTracerAtasan;
+use Illuminate\Support\Facades\Log;
 
 class TracerStudyController extends Controller
 {
-     /**
+    /**
      * @OA\Get(
      *      path="/hasil_tracer_study/",
      *      operationId="getTracerStudy",
@@ -40,8 +41,8 @@ class TracerStudyController extends Controller
      */
     public function index()
     {
-       $listdata = DB::SELECT("
-            SELECT
+        $listdata = DB::SELECT("
+            SELECT TOP 50
                 tc_study.id_thn_ajaran,
                 tc_study.id_reg_pd,
                 tc_study.id_smt,
@@ -53,33 +54,28 @@ class TracerStudyController extends Controller
                 tc_study.income_per_bln,
                 wilayah.nm_wil,
                 reg.nipd AS npm,
-                CONCAT(sms.nm_lemb, '(',jenjang.nm_jenj_didik,')')  AS nm_prodi
+                pd.nm_pd,
+                pd.jk,
+            CONCAT(sms.nm_lemb, '(',jenjang.nm_jenj_didik,')')  AS nm_prodi
             FROM tracer.hasil_tracer_study AS tc_study WITH(NOLOCK)
             JOIN ref.wilayah AS wilayah WITH(NOLOCK) ON wilayah.id_wil = tc_study.id_wil
                 AND wilayah.expired_date IS NULL
             JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_reg_pd = tc_study.id_reg_pd
                 AND reg.soft_delete = 0
+            LEFT JOIN (
+                SELECT MAX(id_smt) as smt, id_reg_pd FROM pdrd.kuliah_mhs WITH(NOLOCK)
+                WHERE soft_delete = 0
+                GROUP BY id_reg_pd
+            )AS kuliah ON kuliah.id_reg_pd = reg.id_reg_pd
             JOIN pdrd.sms AS sms WITH(NOLOCK) ON  sms.id_sms = reg.id_sms
                 AND reg.soft_delete = 0
             JOIN ref.jenjang_pendidikan AS jenjang WITH(NOLOCK) ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
+            JOIN pdrd.peserta_didik AS pd WITH(NOLOCK) ON pd.id_pd = reg.id_pd
+                AND reg.soft_delete = 0
             WHERE tc_study.soft_delete = 0;
         ");
 
-        foreach ($listdata as $each_data) {
-            $data[] = [
-                'id_thn_ajaran' => $each_data->id_thn_ajaran,
-                'id_reg_pd' => $each_data->id_reg_pd,
-                'id_smt' => $each_data->id_smt,
-                'wkt_pengisian' => $each_data->wkt_pengisian,
-                'wkt_tunggu' => $each_data->wkt_tunggu,
-                'status_lulusan' => $each_data->status_lulusan,
-                'jns_tmpt_bekerja' => $each_data->jns_tmpt_bekerja,
-                'nm_wil' => $each_data->nm_wil,
-                'income_per_bln' => $each_data->income_per_bln,
-                'npm' => $each_data->npm,
-            ];
-        }
 
         return response()->json([
             'status' => true,
@@ -98,7 +94,7 @@ class TracerStudyController extends Controller
         //
     }
 
-            /**
+    /**
      * @OA\Post(
      *      path="/hasil_tracer_study/simpan",
      *      operationId="postTracerStudy",
@@ -129,8 +125,14 @@ class TracerStudyController extends Controller
      */
     public function store(Request $request)
     {
-        // $data = DB::table('tracer.hasil_tracer_study')->insert([
+        $id_hasil_tracer_study = guid();
+        $id_hasil_tracer_atasan = guid();
+        $id_updater = guid();
+        $id_creator = guid();
+        DB::beginTransaction();
+        try {
             $data = HasilTracerStudy::create([
+                'id_hasil_tracer_study' => $id_hasil_tracer_study,
                 'id_thn_ajaran' => $request->id_thn_ajaran,
                 'id_wil' => $request->id_wil,
                 'id_reg_pd' => $request->id_reg_pd,
@@ -141,40 +143,35 @@ class TracerStudyController extends Controller
                 'jns_tmpt_bekerja' => $request->jns_tmpt_bekerja,
                 'nm_tmpt_bekerja' => $request->nm_tmpt_bekerja,
                 'income_per_bln' => $request->income_per_bln,
-                'create_date' => $request->create_date,
-                'id_creator' => $request->id_creator,
-                'last_update' => $request->last_update,
-                'id_updater' => $request->id_updater,
-                'soft_delete' => $request->soft_delete,
-                'last_sync' => $request->last_sync
-		]);
+                'id_creator' => $id_creator,
+                'id_updater' => $id_updater,
+                'create_date' => currDateTime(),
+                'last_update' => currDateTime(),
+                'last_sync' => currDateTime(),
+                'soft_delete' => 0
+            ]);
 
-        // DB::table('tracer.hasil_tracer_atasan')->insert([
-            $data = HasilTracerStudy::create([
-                'id_hasil_tracer_study' => $data->id_hasil_tracer_study,
-                'id_negara' => $request->id_negara,
-                'id_wil' => $request->id_wil,
-                'email_atasan' => $request->email_atasan,
-                'nm_atasan' => $request->nm_atasan,
-                'jabatan_atasan' => $request->jabatan_atasan,
-                'nm_tmpt_bekerja' => $request->nm_tmpt_bekerja,
-                'bidang_tempat_bekerja' => $request->bidang_tempat_bekerja,
-                'saran' => $request->saran,
-                'harapan' => $request->harapan,
-                'create_date' => $data->create_date,
-                'id_creator' => $data->id_creator,
-                'last_update' => $data->last_update,
-                'id_updater' => $data->id_updater,
-                'soft_delete' => $data->soft_delete,
-                'last_sync' => $data->last_sync
-		]);
 
-        return response()->json([
-            'status' => true,
-            'message' => 'success',
-            'data'  => $data
-        ]);
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => 'Tersimpan'
+            ], 201);
+        } catch (\Exception $e) {
+            // Log::error('Message ' . $e->getMessage() . ' - ' . $e->getLine());
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal Tersimpan'
+            ], 400);
+        }
 
+
+        // return response()->json([
+        //     'status' => true,
+        //     'message' => 'success',
+        //     'data'  => $data
+        // ]);
     }
 
     /**

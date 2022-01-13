@@ -51,6 +51,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::put('/role', [UserController::class, 'role'])->name('role');
         Route::put('/password', [UserController::class, 'password'])->name('password');
         Route::patch('/edit/{id}', [UserController::class, 'edit'])->name('edit');
+        Route::delete('/delete/{id}', [UserController::class, 'destroy'])->name('destroy');
     });
     Route::prefix('role')->name('role.')->group(function() {
         Route::put('/', [RolePenggunaController::class, 'store'])->name('store');
