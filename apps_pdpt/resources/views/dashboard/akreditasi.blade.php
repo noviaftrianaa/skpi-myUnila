@@ -1,5 +1,6 @@
 @extends('template_public.default')
 @include('__partial.highchart')
+@include('__partial.datatable_class')
 
 @section('content')
     <div class="container">
@@ -8,6 +9,7 @@
                 <div class="card">
                     <div class="card-header bg-primary"><h3 class="card-title">Akreditasi PT</h3></div>
                     <div class="card-body">
+                        <img src="{{ asset('asset/logo/logo_unila.png') }}" alt="logo_unila" class="img-thumbnail rounded mx-auto d-block" width="200px">
                         <table class="table table-striped">
                             <tbody>
                             {!! tableRow('Nama PT',$sp->nm_lemb) !!}
@@ -25,6 +27,26 @@
                 <div class="card">
                     <div class="card-header bg-primary"><h3 class="card-title">Akreditasi Prodi</h3></div>
                     <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 col-sm-6 col-12">
+                                <div class="info-box shadow-lg">
+                                    <span class="info-box-icon bg-success"><i class="far fa-check-square"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Terakreditasi</span>
+                                        <span class="info-box-number">{{ $total['sudah'].' Prodi' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-sm-6 col-12">
+                                <div class="info-box shadow-lg">
+                                    <span class="info-box-icon bg-danger"><i class="far fa-square"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Belum Terakreditasi</span>
+                                        <span class="info-box-number">{{ $total['belum'].' Prodi' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div id="akreditasi_prodi"></div>
                     </div>
                 </div>
@@ -85,30 +107,32 @@
                                 ");
                             ?>
                             <div class="tab-pane fade{{ $key_akreditasi==0?' show active':'' }}" id="akreditasi_{{ $key_akreditasi }}" role="tabpanel" aria-labelledby="akreditasi_{{ $key_akreditasi }}_tab">
-                                <table class="table table-hover table-striped">
-                                    <thead>
-                                    <tr>
-                                        <th>No</th>
-                                        <th>Nama Program Studi</th>
-                                        <th>SK Akreditasi</th>
-                                        <th>Tanggal Akreditasi</th>
-                                        <th>Waktu Expired</th>
-                                        <th>Akreditasi</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    @foreach($data_akred_prodi AS $no_data=>$each_data_akred)
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-striped table-data">
+                                        <thead>
                                         <tr>
-                                            <td>{{ $no_data+1 }}</td>
-                                            <td>{{ $each_data_akred->asal_prodi }}</td>
-                                            <td>{{ $each_data_akred->sk_akreditasi_prodi }}</td>
-                                            <td>{{ $each_data_akred->tanggal_sk_akreditasi_prodi }}</td>
-                                            <td>{{ $each_data_akred->tst_sk_akreditasi_prodi }}</td>
-                                            <td>{{ $each_data_akred->nm_akred }}</td>
+                                            <th>No</th>
+                                            <th>Nama Program Studi</th>
+                                            <th>SK Akreditasi</th>
+                                            <th>Tanggal Akreditasi</th>
+                                            <th>Waktu Expired</th>
+                                            <th>Akreditasi</th>
                                         </tr>
-                                    @endforeach
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                        @foreach($data_akred_prodi AS $no_data=>$each_data_akred)
+                                            <tr>
+                                                <td>{{ $no_data+1 }}</td>
+                                                <td>{{ $each_data_akred->asal_prodi }}</td>
+                                                <td>{{ $each_data_akred->sk_akreditasi_prodi }}</td>
+                                                <td>{{ $each_data_akred->tanggal_sk_akreditasi_prodi }}</td>
+                                                <td>{{ $each_data_akred->tst_sk_akreditasi_prodi }}</td>
+                                                <td>{{ $each_data_akred->nm_akred }}</td>
+                                            </tr>
+                                        @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         @endforeach
                         </div>

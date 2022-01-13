@@ -38,66 +38,73 @@ Route::namespace('Auth')->group(function () {
 });
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+    
+    Route::get('/otorisasi', function() {
+        return view('error.pages');
+    });
 
-    Route::get('/', [HomeController::class, 'index'])->name('index');
+    Route::group(['middleware' => ['admin']], function() {
 
-    Route::namespace('user')->prefix('user')->name('user.')->group(function () {
-        Route::get('/', [UserController::class, 'index'])->name('index');
-        Route::get('/create', [UserController::class, 'create'])->name('create');
-        Route::put('/store', [UserController::class, 'store'])->name('store');
-        Route::get('/{id}', [UserController::class, 'detail'])->name('detail');
-        Route::patch('/{id}/update', [UserController::class, 'update'])->name('update');
-        Route::patch('/{id}/reset', [UserController::class, 'reset'])->name('reset');
-        Route::put('/role', [UserController::class, 'role'])->name('role');
-        Route::put('/password', [UserController::class, 'password'])->name('password');
-        Route::patch('/edit/{id}', [UserController::class, 'edit'])->name('edit');
+        Route::get('/', [HomeController::class, 'index'])->name('index');
+        
+        Route::namespace('user')->prefix('user')->name('user.')->group(function () {
+            Route::get('/', [UserController::class, 'index'])->name('index');
+            Route::get('/create', [UserController::class, 'create'])->name('create');
+            Route::put('/store', [UserController::class, 'store'])->name('store');
+            Route::get('/{id}', [UserController::class, 'detail'])->name('detail');
+            Route::patch('/{id}/update', [UserController::class, 'update'])->name('update');
+            Route::patch('/{id}/reset', [UserController::class, 'reset'])->name('reset');
+            Route::put('/role', [UserController::class, 'role'])->name('role');
+            Route::put('/password', [UserController::class, 'password'])->name('password');
+            Route::patch('/edit/{id}', [UserController::class, 'edit'])->name('edit');
+            Route::delete('/delete/{id}', [UserController::class, 'destroy'])->name('destroy');
+        });
+        Route::prefix('role')->name('role.')->group(function() {
+            Route::put('/', [RolePenggunaController::class, 'store'])->name('store');
+            Route::patch('/{id}/update', [RolePenggunaController::class, 'update'])->name('update');
+            Route::delete('/{id}/destroy', [RolePenggunaController::class, 'destroy'])->name('destroy');
+        });
+        Route::namespace('peran')->prefix('peran')->name('peran.')->group(function () {
+            Route::get('/', [PeranController::class, 'index'])->name('index');
+            Route::put('/store', [PeranController::class, 'store'])->name('store');
+            Route::patch('/{id}/update', [PeranController::class, 'update'])->name('update');
+            Route::delete('/{id}/destroy', [PeranController::class, 'destroy'])->name('destroy');
+        });
+        Route::namespace('unit')->prefix('unit')->name('unit.')->group(function () {
+            Route::get('/', [UnitOrganisasiController::class, 'index'])->name('index');
+            Route::put('/store', [UnitOrganisasiController::class, 'store'])->name('store');
+            Route::patch('/{id}/update', [UnitOrganisasiController::class, 'update'])->name('update');
+            Route::delete('/{id}/destroy', [UnitOrganisasiController::class, 'destroy'])->name('destroy');
+        });
+        Route::namespace('aplikasi')->prefix('aplikasi')->name('aplikasi.')->group(function () {
+            Route::get('/', [AplikasiController::class, 'index'])->name('index');
+            Route::get('/show/{id}', [AplikasiController::class, 'show'])->name('show');
+            Route::get('/create', [AplikasiController::class, 'create'])->name('create');
+            Route::put('/store', [AplikasiController::class, 'store'])->name('store');
+            Route::get('/edit/{id}', [AplikasiController::class, 'edit'])->name('edit');
+            Route::patch('/update/{id}', [AplikasiController::class, 'update'])->name('update');
+            Route::get('/create_menu', [AplikasiController::class, 'create_menu'])->name('create_menu');
+            Route::get('/pj_aplikasi', [AplikasiController::class, 'pj_aplikasi'])->name('pj_aplikasi');
+            Route::put('/store_menu/{id}', [AplikasiController::class, 'store_menu'])->name('store_menu');
+            Route::delete('/destroy/{id}', [AplikasiController::class, 'destroy'])->name('destroy');
+        });
+        Route::namespace('token')->prefix('token')->name('token.')->group(function () {
+            Route::get('/', [TokenController::class, 'index'])->name('index');
+            Route::put('/store', [TokenController::class, 'store'])->name('store');
+            Route::patch('/{id}/update', [TokenController::class, 'update'])->name('update');
+            Route::delete('/{id}/destroy', [TokenController::class, 'destroy'])->name('destroy');
+        });
+        Route::prefix('pj_aplikasi')->name('pj_aplikasi.')->group(function() {
+            Route::put('/', [PJAplikasiController::class, 'store'])->name('store');
+            Route::patch('/{id}/update', [PJAplikasiController::class, 'update'])->name('update');
+            Route::delete('/{id}/destroy', [PJAplikasiController::class, 'destroy'])->name('destroy');
+        });
+        Route::prefix('menu')->name('menu.')->group(function() {
+            Route::put('/', [MenuController::class, 'store'])->name('store');
+            Route::patch('/{id}/update', [MenuController::class, 'update'])->name('update');
+            Route::delete('/{id}/destroy', [MenuController::class, 'destroy'])->name('destroy');
+        });
     });
-    Route::prefix('role')->name('role.')->group(function() {
-        Route::put('/', [RolePenggunaController::class, 'store'])->name('store');
-        Route::patch('/{id}/update', [RolePenggunaController::class, 'update'])->name('update');
-        Route::delete('/{id}/destroy', [RolePenggunaController::class, 'destroy'])->name('destroy');
-    });
-    Route::namespace('peran')->prefix('peran')->name('peran.')->group(function () {
-        Route::get('/', [PeranController::class, 'index'])->name('index');
-        Route::put('/store', [PeranController::class, 'store'])->name('store');
-        Route::patch('/{id}/update', [PeranController::class, 'update'])->name('update');
-        Route::delete('/{id}/destroy', [PeranController::class, 'destroy'])->name('destroy');
-    });
-    Route::namespace('unit')->prefix('unit')->name('unit.')->group(function () {
-        Route::get('/', [UnitOrganisasiController::class, 'index'])->name('index');
-        Route::put('/store', [UnitOrganisasiController::class, 'store'])->name('store');
-        Route::patch('/{id}/update', [UnitOrganisasiController::class, 'update'])->name('update');
-        Route::delete('/{id}/destroy', [UnitOrganisasiController::class, 'destroy'])->name('destroy');
-    });
-    Route::namespace('aplikasi')->prefix('aplikasi')->name('aplikasi.')->group(function () {
-        Route::get('/', [AplikasiController::class, 'index'])->name('index');
-        Route::get('/show/{id}', [AplikasiController::class, 'show'])->name('show');
-        Route::get('/create', [AplikasiController::class, 'create'])->name('create');
-        Route::put('/store', [AplikasiController::class, 'store'])->name('store');
-        Route::get('/edit/{id}', [AplikasiController::class, 'edit'])->name('edit');
-        Route::patch('/update/{id}', [AplikasiController::class, 'update'])->name('update');
-        Route::get('/create_menu', [AplikasiController::class, 'create_menu'])->name('create_menu');
-        Route::get('/pj_aplikasi', [AplikasiController::class, 'pj_aplikasi'])->name('pj_aplikasi');
-        Route::put('/store_menu/{id}', [AplikasiController::class, 'store_menu'])->name('store_menu');
-        Route::delete('/destroy/{id}', [AplikasiController::class, 'destroy'])->name('destroy');
-    });
-    Route::namespace('token')->prefix('token')->name('token.')->group(function () {
-        Route::get('/', [TokenController::class, 'index'])->name('index');
-        Route::put('/store', [TokenController::class, 'store'])->name('store');
-        Route::patch('/{id}/update', [TokenController::class, 'update'])->name('update');
-        Route::delete('/{id}/destroy', [TokenController::class, 'destroy'])->name('destroy');
-    });
-    Route::prefix('pj_aplikasi')->name('pj_aplikasi.')->group(function() {
-        Route::put('/', [PJAplikasiController::class, 'store'])->name('store');
-        Route::patch('/{id}/update', [PJAplikasiController::class, 'update'])->name('update');
-        Route::delete('/{id}/destroy', [PJAplikasiController::class, 'destroy'])->name('destroy');
-    });
-    Route::prefix('menu')->name('menu.')->group(function() {
-        Route::put('/', [MenuController::class, 'store'])->name('store');
-        Route::patch('/{id}/update', [MenuController::class, 'update'])->name('update');
-        Route::delete('/{id}/destroy', [MenuController::class, 'destroy'])->name('destroy');
-    });
-	
 });
 
 Auth::routes();

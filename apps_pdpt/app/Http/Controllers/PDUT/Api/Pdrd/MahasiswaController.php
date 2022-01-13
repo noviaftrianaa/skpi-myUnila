@@ -70,6 +70,28 @@ class MahasiswaController extends Controller
     }
 
 
+    /**
+     * @OA\Get(
+     *      path="/pdrd/mahasiswa/detail",
+     *      operationId="getDetailMahasiswa",
+     *      tags={"Mahasiwa"},
+     *      summary="Dapatkan detail profil Mahasiswa",
+     *      description="Menampilkan detail data profil Mahasiswa",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function detail($id_mahasiswa)
     {
         $listdata = DB::SELECT("

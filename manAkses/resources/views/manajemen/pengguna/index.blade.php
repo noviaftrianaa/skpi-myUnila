@@ -17,7 +17,7 @@
                       <tr>
                         <th>No.</th>
                         <th>Nama</th>
-                        <th>Username</th>
+                        <th>Username (<i>Email</i>)</th>
                         <th>Jenis Kelamin</th>
                         <th>Status</th>
                         <th>Aksi</th>
@@ -38,9 +38,9 @@
                                 @endif
                             </td>
                             <td>
-                                <button class="btn btn-outline-warning btn-xs" title="Reset" data-toggle="modal" data-target="#resetItem{{$item->id_pengguna}}"> <i class="fas fa-key"></i></button>
-                                <!-- <button class="btn btn-outline-info btn-xs" title="Edit User" data-toggle="modal" data-target="#editUserItem{{$item->id_pengguna}}"> <i class="fas fa-edit"></i></button> -->
+                                <a class="btn btn-outline-warning btn-xs" title="Reset" data-toggle="modal" href="#resetItem{{$item->id_pengguna}}"> <i class="fas fa-key"></i></a>
                                 <a class="btn btn-outline-primary btn-xs" title="Show User" href="{{ route('user.detail', [Crypt::encrypt($item->id_pengguna)]) }}"> <i class="fas fa-eye"></i></a>
+                                <a class="btn btn-outline-danger btn-xs" title="Delete" data-toggle="modal" href="#deleteItem{{$item->id_pengguna}}"> <i class="fas fa-trash-alt"></i></a>
                             </td>
                         </tr>
                         @endforeach
@@ -109,6 +109,42 @@
                         <div class="row">
                             <div class="col-sm-12">
                                 <p>Apakah yakin ingin {{($items->a_aktif==1)?'menonaktifkan':'mengaktifkan kembali'}} pengguna atas nama <b>{{$items->nm_pengguna}}</b> ?</p>
+                            </div>
+                        </div>
+                        <div class="modal-footer no-bd">
+                            <button type="submit" class="btn btn-primary">Simpan</button>
+                            <button type="button" class="btn btn-danger" data-dismiss="modal">Tutup</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endforeach
+
+    @foreach($user as $items)
+    <div class="modal fade" id="deleteItem{{$items->id_pengguna}}" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header no-bd">
+                    <h5 class="modal-title">
+                        <span class="fw-mediumbold">
+                        Ubah Status </span> 
+                        <span class="fw-light">
+                            Aktif Pengguna
+                        </span>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ route('user.destroy', [Crypt::encrypt($items->id_pengguna)]) }}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <p>Apakah yakin ingin menghapus pengguna atas nama <b>{{$items->nm_pengguna}}</b> ?</p>
                             </div>
                         </div>
                         <div class="modal-footer no-bd">

@@ -2,23 +2,25 @@
 @section('title', 'Login Area')
 @section('content')
 
-<div class="box-2 d-flex flex-column h-100 ">
+<div class="box-2 d-flex align-items-center flex-column">
     <div class="text-center">
-        <p class="mb-1 mb-sm-0 h-1">Sistem Informasi Manajemen Akses</p>
-        <p class="text-muted mt-4">Login your account</p>
+        <p class="mb-1 mb-sm-0 h-1 mt-auto">
+            <img src="{{ asset('images/sima-sso.png') }}" title="Manajemen Akses" class="img-fluid" />
+        </p>
 
         <div class="card-mobile d-flex flex-column">
             <div class="input-field d-flex flex-column">
-              <form id="loginForm" class="form-horizontal" role="form" action="{{route('auth.login')}}" method="post">
-                  {!! csrf_field() !!}
-                  <input type="email" class="form-control input-lg" id="inputLogin" name="username" placeholder="Username" value="{{ old('username') }}" autofocus required>
-                  <input type="password" class="form-control input-lg mt-3" id="inputPassword" name="password" placeholder="Password" required> 
-                  <button type="submit" class="mt-4 btn btn-success text-white d-flex justify-content-center align-items-center"><i class="fa fa-sign-in" aria-hidden="true"></i>&nbsp;Login</button>
-                  <div class="mt-3 text1"> <a href="{{ route('auth.register') }}" class="text-muted mt-3 forget">Register</a> </div>
-                  <div class="mt-3 text1"> <a href="{{ route('auth.signing_process') }}" class="text-muted mt-3 forget">Login with SSO</a> </div>
-                  <div class="mt-3 text1"> <a class="text-muted mt-3 forget" href="{{ route('auth.forgot_password') }}">Forget Password?</a> </div>
-                  <div class="text2 mt-4 d-flex flex-row align-items-center"> </span> </div>
-              </form>
+                <div class="mt-3">
+                    <a type="button" href="{{ route('auth.signing_process') }}" class="btn btn-primary btn-block">
+                        <i class="fa fa-user"></i>  Login With SSO
+                    </a>
+                </div>
+                <div class="mt-3 text1">
+                    <a type="button" href="{{ route('auth.forgot_password') }}" class="btn btn-info btn-block">
+                        <i class="fa fa-question"></i>  Forgot Password
+                    </a>
+                </div>
+                <div class="mt-4 text-muted text-center">Situs ini dikelola oleh Tim <a href="http://tik.unila.ac.id" title="">TIK Universitas Lampung</a></div>
             </div>
         </div>
     </div>

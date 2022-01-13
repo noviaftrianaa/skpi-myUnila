@@ -15,22 +15,16 @@
             <div class="card-body">
                 <!-- FORM CREATE APLIKASI -->
                 <div class="row">
-                    <div class="col-sm-4">
+                    <div class="col-sm-6">
                         <div class="form-group form-group-default">
                             <label>Nama Pengguna</label>
-                            <input class="form-control" name="nama" type="text" placeholder="Masukkan Nama Pengguna" required>
+                            <input class="form-control" name="nm_pengguna" type="text" placeholder="Masukkan Nama Pengguna" required>
                         </div>
                     </div>
-                    <div class="col-sm-4">
+                    <div class="col-sm-6">
                         <div class="form-group form-group-default">
-                            <label>Username</label>
+                            <label>Username (<i>Email</i>)</label>
                             <input class="form-control" name="username" type="email" placeholder="Masukkan Username" required>
-                        </div>
-                    </div>
-                    <div class="col-sm-4">
-                        <div class="form-group form-group-default">
-                            <label>Password</label>
-                            <input class="form-control" name="password" type="password" placeholder="Masukkan Password" required>
                         </div>
                     </div>
                     <div class="col-sm-12">
@@ -55,8 +49,8 @@
                         <div class="form-group form-group-default">
                             <label>Jenis Kelamin</label>
                             <select name="jenis_kelamin" class="form-control" required>
-                                <option value="l">Laki-laki</option>
-                                <option value="p">Perempuan</option>
+                                <option value="L">Laki-laki</option>
+                                <option value="P">Perempuan</option>
                             </select>
                         </div>
                     </div>
@@ -76,33 +70,6 @@
                         <div class="form-group form-group-default">
                             <label>Nomor HP</label>
                             <input class="form-control" name="no_hp" type="number" placeholder="Masukkan Nomor HP">
-                        </div>
-                    </div>
-                    <div class="col-sm-4">
-                        <div class="form-group form-group-default">
-                            <label>Approval Pengguna ?</label>
-                            <select name="approval_pengguna" class="form-control" required>
-                                <option value="0">Tidak Aktif</option>
-                                <option value="1">Aktif</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-sm-4">
-                        <div class="form-group form-group-default">
-                            <label>Apakah Aktif ?</label>
-                            <select name="a_aktif" class="form-control" required>
-                                <option value="0">Tidak Aktif</option>
-                                <option value="1">Aktif</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-sm-4">
-                        <div class="form-group form-group-default">
-                            <label>Disable ?</label>
-                            <select name="disable" class="form-control" required>
-                                <option value="0">Tidak Aktif</option>
-                                <option value="1">Aktif</option>
-                            </select>
                         </div>
                     </div>
                 </div>
@@ -140,7 +107,7 @@
                     <div class="col-sm-6">
                         <div class="form-group form-group-default">
                             <label>SK Penugasan</label>
-                            <input class="form-control" name="sk_penugasan" type="file" placeholder="Masukkan SK Penugasan">
+                            <input class="form-control" name="sk_penugasan" type="text" placeholder="Masukkan SK Penugasan">
                         </div>
                     </div>
                     <div class="col-sm-6">
