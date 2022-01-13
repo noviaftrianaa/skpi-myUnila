@@ -18,9 +18,10 @@ Route::group([
     'prefix' => '0.1',
     'as' => 'api.',
     'namespace' => 'App\Http\Controllers\PDUT\Api',
-    'middleware' => ['auth.api']
+    // 'middleware' => ['auth.api']
 ], function () {
     Route::post('login/do_login','LoginController@do_login');
+    //Referensi
     Route::get('referensi/agama','ReferensiController@agama');
     Route::get('referensi/bentuk_pendidikan','ReferensiController@bentuk_pendidikan');
     Route::get('referensi/bidang_studi','ReferensiController@bidang_studi');
@@ -97,6 +98,19 @@ Route::group([
 
     Route::get('buku_ajar','Tridarma/BukuAjarController@index');
     Route::post('buku_ajar/simpan','Tridarma/BukuAjarController@store');
+
+    //Mahasiswa
+    Route::get('mahasiswa/list','Pdrd\MahasiswaController@list');
+    Route::get('mahasiswa/list/{status}','Pdrd\MahasiswaController@status');
+    Route::get('mahasiswa/regis','Pdrd\MahasiswaController@regis');
+
+    //Tracer
+    Route::get('hasil_tracer_study','Tracer\TracerStudyController@index');
+    Route::post('hasil_tracer_study/simpan','Tracer\TracerStudyController@store');
+
+    //Tridarma
+    Route::get('buku_ajar','Tridarma\BukuAjarController@index');
+    Route::post('buku_ajar/simpan','Tridarma\BukuAjarController@store');
 });
 
 

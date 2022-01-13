@@ -1,5 +1,5 @@
 @extends('auth.layout')
-@section('title', 'Pastikan email yang dimasukkan valid!')
+@section('title', 'Register Account')
 @section('content')
     <form action="{{ route('auth.do_register') }}" method="post">
         {!! csrf_field() !!}

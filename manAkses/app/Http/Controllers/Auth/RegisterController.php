@@ -109,6 +109,7 @@ class RegisterController extends Controller
             $pengguna->id_pengguna = guid();
             $pengguna->username = $data['username'];
             $pengguna->password = sha1('password');
+            $pengguna->nm_pengguna = strtok($data['username'], '@');
             $pengguna->jenis_kelamin = 'l';
             $pengguna->approval_pengguna = 1;
             $pengguna->a_aktif = 1;

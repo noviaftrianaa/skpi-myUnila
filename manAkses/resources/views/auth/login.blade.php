@@ -2,45 +2,28 @@
 @section('title', 'Login Area')
 @section('content')
 
-<!-- /form -->
-<div class="workinghny-form-grid">
-  <div class="wrapper">
-    <div class="logo">
-      <h1><a class="brand-logo" href="index.html"> Access Management<br>Sign In</a></h1>
-      <!-- if logo is image enable this   
-      <a class="brand-logo" href="#index.html">
-      <img src="image-path" alt="Your logo" title="Your logo" style="height:35px;" />
-      </a> -->
-    </div>
-    <div class="workinghny-block-grid">
-      <div class="workinghny-left-img">
-        <img src="https://upload.wikimedia.org/wikipedia/id/f/ff/Logo_UnivLampung.png" class="img-responsive" width="75%" alt="img" />
-      </div>
-      <div class="form-right-inf">
-        <div class="login-form-content">
-          <form action="{{route('auth.login')}}" class="signin-form" method="post">
-            {!! csrf_field() !!}
-            <div class="one-frm">
-              <label>Username</label>
-              <input type="text" name="username" id="username" placeholder="Tuliskan Username/Nama ID" value="{{ old('username') }}">
+<div class="box-2 d-flex align-items-center flex-column">
+    <div class="text-center">
+        <p class="mb-1 mb-sm-0 h-1 mt-auto">
+            <img src="{{ asset('images/sima-sso.png') }}" title="Manajemen Akses" class="img-fluid" />
+        </p>
+
+        <div class="card-mobile d-flex flex-column">
+            <div class="input-field d-flex flex-column">
+                <div class="mt-3">
+                    <a type="button" href="{{ route('auth.signing_process') }}" class="btn btn-primary btn-block">
+                        <i class="fa fa-user"></i>  Login With SSO
+                    </a>
+                </div>
+                <div class="mt-3 text1">
+                    <a type="button" href="{{ route('auth.forgot_password') }}" class="btn btn-info btn-block">
+                        <i class="fa fa-question"></i>  Forgot Password
+                    </a>
+                </div>
+                <div class="mt-4 text-muted text-center">Situs ini dikelola oleh Tim <a href="http://tik.unila.ac.id" title="">TIK Universitas Lampung</a></div>
             </div>
-            <div class="one-frm">
-              <label>Password</label>
-              <input type="password" name="password" id="password" placeholder="Tuliskan Password Anda">
-            </div>
-            <label class="check-remaind">
-              <input type="checkbox">
-              <span class="checkmark"></span>
-              <p class="remember">Remember Me</p>
-            </label>
-            <button class="btn btn-style mt-3">Sign In </button>
-            <p class="already">
-              <a href="{{ route('auth.signing_process') }}" class="btn btn-style mt-3">Login With SSO</a>
-            </p>
-          </form>
         </div>
-      </div>
     </div>
-  </div>
 </div>
+
 @endsection

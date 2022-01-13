@@ -16,33 +16,21 @@ class UserController extends Controller
 
     public function index()
     {
-        $user = DB::SELECT('
-            SELECT pengguna.*, role.last_active, peran.nm_peran
-            FROM man_akses.pengguna AS pengguna
-            LEFT JOIN (
-                SELECT *
-                FROM man_akses.role_pengguna
-            ) AS role ON role.id_pengguna=pengguna.id_pengguna
-            LEFT JOIN (
-                SELECT *
-                FROM man_akses.peran
-            ) AS peran ON peran.id_peran=role.id_peran
-        ');
-        $role = RolePengguna::all();
-        $unit = UnitOrganisasi::where('a_aktif',1)->get();
-        $peran = Peran::all();
+        $user = User::where('soft_delete', 0)->orderBy('a_aktif','DESC')->orderBy('nm_pengguna', 'ASC')->get();
 
         return view('manajemen.pengguna.index', [
-            'user'=>$user,
-            'unit'=>$unit,
-            'peran'=>$peran,
-            'role'=>$role
+            'user'=>$user
         ]);
     }
 
     public function create()
     {
-        return view('manajemen.pengguna.create');
+        $unit = UnitOrganisasi::where('a_aktif',1)->get();
+        $peran = Peran::all();
+        return view('manajemen.pengguna.create', [
+            'unit'=>$unit,
+            'peran'=>$peran
+        ]);
     }
 
     /**
@@ -58,9 +46,9 @@ class UserController extends Controller
         $uuid = guid();
         $data = User::create([
             'id_pengguna'   => $uuid,
-            'nm_pengguna'   => $array['nama'],
+            'nm_pengguna'   => $array['nm_pengguna'],
             'username'      => $array['username'],
-            'password'      => sha1($array['password']),
+            'password'      => sha1('12345678'),
             'jenis_kelamin' => $array['jenis_kelamin'],
             'tempat_lahir'  => $array['tempat_lahir'],
             'tgl_lahir'     => $array['tgl_lahir'],
@@ -68,9 +56,9 @@ class UserController extends Controller
             'jabatan'       => $array['jabatan'],
             'no_tel'        => $array['no_tel'],
             'no_hp'         => $array['no_hp'],
-            'approval_pengguna' => $array['approval_pengguna'],
-            'a_aktif'       => $array['a_aktif'],
-            'disable'       => $array['disable'],
+            'approval_pengguna' => 1,
+            'a_aktif'       => 1,
+            'disable'       => 0,
             'tgl_create'    => currDateTime(),
             'last_update'   => currDateTime(),
             'last_sync'     => currDateTime(),
@@ -83,10 +71,10 @@ class UserController extends Controller
                 'id_pengguna' => $uuid,
                 'id_organisasi' => $array['id_organisasi'],
                 'id_peran' => $item,
-                'sk_penugasan' => $array['sk_penugasan'],
-                'tgl_sk_penugasan' => $array['tgl_sk_penugasan'],
-                'approval_pengguna' => $array['role_approval_pengguna'],
-                'tgl_kadaluarsa' => $array['tgl_kadaluarsa'],
+                'sk_penugasan' => (!empty($array['sk_penugasan'])) ? $array['sk_penugasan'] : null,
+                'tgl_sk_penugasan' => (!empty($array['tgl_sk_penugasan'])) ? $array['tgl_sk_penugasan'] : null,
+                'approval_peran' => 1,
+                'tgl_create' => currDateTime(),
                 'last_active' => currDateTime(),
                 'last_update' => currDateTime(),
                 'soft_delete' => 0,
@@ -100,7 +88,7 @@ class UserController extends Controller
         } else {
             alert()->success('Data berhasil disimpan!');
         }
-        return redirect()->back();
+        return redirect()->route('user.index');
     }
 
     /**
@@ -113,24 +101,15 @@ class UserController extends Controller
     {
         $id = Crypt::decrypt($id);
         $data = User::findOrFail($id);
-        // $role = DB::SELECT('
-        //     SELECT role.id_role_pengguna, role.id_pengguna, role.sk_penugasan, role.tgl_sk_penugasan, role.approval_pengguna, role.tgl_kadaluarsa, organisasi.nm_lemb, CONCAT(peran.nm_peran)
-        //     FROM man_akses.role_pengguna as role
-        //     LEFT JOIN (
-        //         SELECT *
-        //         FROM man_akses.peran
-        //     ) as peran on peran.id_peran=role.id_peran
-        //     LEFT JOIN (
-        //         SELECT *
-        //         FROM man_akses.unit_organisasi
-        //     ) as organisasi on organisasi.id_organisasi=role.id_organisasi
-        //     WHERE role.id_pengguna="'.$id.'"
-        //     GROUP BY role.id_role_pengguna, role.id_pengguna, role.sk_penugasan, role.tgl_sk_penugasan, role.approval_pengguna, role.tgl_kadaluarsa, organisasi.nm_lemb
-        // ');
+        $role = RolePengguna::with('Peran')->where('soft_delete',0)->where('id_pengguna', $id)->get();
+        $peran = Peran::all();
+        $unit = UnitOrganisasi::where('soft_delete', 0)->get();
         
         return view('manajemen.pengguna.show', [
-            'data'=>$data
-            // 'role'=>$role
+            'data'=>$data,
+            'role'=>$role,
+            'peran'=>$peran,
+            'unit'=>$unit
         ]);
     }
 
@@ -142,7 +121,28 @@ class UserController extends Controller
      */
     public function edit($id)
     {
-        //
+        $id = Crypt::decrypt($id);
+        $pengguna = User::where('id_pengguna', $id)->first();
+        if($pengguna->a_aktif==1) {
+            $data = User::where('id_pengguna', $id)->update([
+                'a_aktif'=>0,
+                'last_update'=>currDateTime(),
+                'last_sync'=>currDateTime()
+            ]);
+        } else {
+            $data = User::where('id_pengguna', $id)->update([
+                'a_aktif'=>1,
+                'last_update'=>currDateTime(),
+                'last_sync'=>currDateTime()
+            ]);
+        }
+
+        if(!$data) {
+            alert()->error('Data gagal disimpan!');
+        } else {
+            alert()->success('Data berhasil disimpan!');
+        }
+        return redirect()->back();
     }
 
     /**
@@ -152,41 +152,28 @@ class UserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update_user(Request $request, $id)
+    public function update(Request $request, $id)
     {
         $id = Crypt::decrypt($id);
         $array = $request->all();
 
         $data = User::where('id_pengguna',$id)->update([
-            'nm_pengguna'      => $array['nama'],
-            'last_update'      => currDateTime(),
-            'id_updater'       => Auth::user()->id_pengguna
+            'nm_pengguna'   => $array['nm_pengguna'],
+            'username'      => $array['username'],
+            'jenis_kelamin' => $array['jenis_kelamin'],
+            'tempat_lahir'  => $array['tempat_lahir'],
+            'tgl_lahir'     => $array['tgl_lahir'],
+            'alamat'        => $array['alamat'],
+            'jabatan'       => $array['jabatan'],
+            'no_tel'        => $array['no_tel'],
+            'no_hp'         => $array['no_hp'],
+            'approval_pengguna' => 1,
+            'a_aktif'       => 1,
+            'disable'       => 0,
+            'last_update'   => currDateTime(),
+            'last_sync'     => currDateTime(),
+            'id_updater'    => $id,
         ]);
-
-        $role = RolePengguna::where('id_pengguna', $id)->where('id_peran', $array['peran'])->first();
-        if(is_null($role)) {
-            $uuid = guid();
-            $peran = RolePengguna::create([
-                'id_role_pengguna'  => $uuid,
-                'id_pengguna'       => $id,
-                'id_organisasi'     => $array['unit'],
-                'id_peran'          => $array['peran'],
-                'approval_peran'    => 1,
-                'tgl_create'        => currDateTime(),
-                'last_update'       => currDateTime(),
-                'soft_delete'       => 0,
-                'last_sync'         => currDateTime(),
-                'id_updater'        => Auth::user()->id_pengguna
-            ]);
-        } else {
-            $peran = RolePengguna::where('id_role_pengguna', $role->id_role_pengguna)->update([
-                'id_organisasi'     => $array['unit'],
-                'id_peran'          => $array['peran'],
-                'last_update'       => currDateTime(),
-                'last_sync'         => currDateTime(),
-                'id_updater'        => Auth::user()->id_pengguna
-            ]);
-        }
 
         if(!$data) {
             alert()->error('Data gagal disimpan!');
@@ -204,7 +191,19 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $id = Crypt::decrypt($id);
+        $data = User::where('id_pengguna', $id)->update([
+            'soft_delete' => 1,
+            'last_update' => currDateTime(),
+            'last_sync' => currDateTime(),
+            'id_updater' => Auth::user()->id_pengguna
+        ]);
+        if(!$data) {
+            alert()->error('Data gagal dihapus!');
+        } else {
+            alert()->success('Data berhasil dihapus!');
+        }
+        return redirect()->back();
     }
     
     /**
@@ -216,7 +215,7 @@ class UserController extends Controller
     {
         $id = Crypt::decrypt($id);
         $data = User::where('id_pengguna', $id)->update([
-            'password'         => sha1('password'),
+            'password'         => sha1('12345678'),
             'last_update'      => currDateTime(),
             'id_updater'       => Auth::user()->id_pengguna
         ]);
