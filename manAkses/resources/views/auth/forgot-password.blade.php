@@ -1,24 +1,32 @@
-@extends('auth.layout')
-@section('title', 'Forgot Password')
+@extends('template.auth')
+@section('title', 'Forgot Password Area')
 @section('content')
-    <form action="{{ route('auth.do_forgot_password') }}" method="post">
-        {!! csrf_field() !!}
-        <label for="username">Username</label>
-        <div class="input-group mb-3">
-            <input type="text" name="username" id="username" class="form-control" placeholder="Tuliskan Username/Email Anda" value="{{ old('username') }}">
-            <div class="input-group-append">
-                <div class="input-group-text">
-                    <span class="fas fa-envelope"></span>
-                </div>
+
+<div class="box-2 d-flex align-items-center flex-column">
+    <div class="text-center">
+        <!-- <p class="mb-1 mb-sm-0 h-1 mt-auto">
+            @<img src="{{ asset('images/sima-sso.png') }}" title="Manajemen Akses" class="img-fluid" />
+        </p> -->
+        <p class="mb-1 mb-sm-0 h-1 mt-auto"><i class="fa fa-question"></i> Lupa Password</p>
+        <!-- <p class="mb-1 mb-sm-0 h-1">Universitas Lampung</p> -->
+
+        <div class="card-mobile d-flex flex-column">
+            <div class="input-field d-flex flex-column">
+                <form action="" method="post">
+                    {!! csrf_field() !!}
+                    <div class="mt-3">
+                        <input type="email" name="username" class="form-control text-center" placeholder="Masukkan Email Anda" required focuses>
+                    </div>
+                    <div class="mt-3 text1">
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <i class="fa fa-arrow-circle-right"></i>&nbsp;Submit
+                        </a>
+                    </div>
+                </form>
+                <div class="mt-4 text-muted text-center">Situs ini dikelola oleh Tim <a href="http://tik.unila.ac.id" title="">TIK Universitas Lampung</a></div>
             </div>
         </div>
-        <div class="row">
-            <button type="submit" class="btn btn-primary btn-block">Send</button>
-        </div>
-        <hr>
-        Sudah memiliki akun?
-        <div class="row mt-2">
-            <a  href="{{ route('login') }}" class="btn btn-outline-primary btn-block">Login</a>
-        </div>
-    </form>
+    </div>
+</div>
+
 @endsection
