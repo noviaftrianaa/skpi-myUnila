@@ -99,7 +99,12 @@ Route::group([
     ], function () {
         Route::prefix('buku')->group(function() {
             Route::prefix('ajar')->group(function() {
-                // Buku Ajar
+                Route::get('list','BukuAjarController@list');
+                Route::get('list_id','BukuAjarController@listById');
+                Route::get('detail','BukuAjarController@detail');
+                Route::post('add','BukuAjarController@add');
+                Route::put('update','BukuAjarController@update');
+                Route::delete('delete','BukuAjarController@delete');
             });
 
             Route::prefix('referensi')->group(function() {
@@ -109,7 +114,7 @@ Route::group([
 
         Route::prefix('penelitian')->group(function () {
             Route::get('list', 'PenelitianController@index');
-            Route::post('list', 'PenelitianController@getListPenelitianBySdmId');
+             Route::post('list', 'PenelitianController@getListPenelitianBySdmId');
         });
 
         Route::prefix('pengabdian')->group(function() {
@@ -133,7 +138,6 @@ Route::group([
     });
 
 });
-
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
