@@ -4,9 +4,11 @@
 
 <div class="box-2 d-flex align-items-center flex-column">
     <div class="text-center">
-        <p class="mb-1 mb-sm-0 h-1 mt-auto">
-            <img src="{{ asset('images/sima-sso.png') }}" title="Manajemen Akses" class="img-fluid" />
-        </p>
+        <!-- <p class="mb-1 mb-sm-0 h-1 mt-auto">
+            @<img src="{{ asset('images/sima-sso.png') }}" title="Manajemen Akses" class="img-fluid" />
+        </p> -->
+        <p class="mb-1 mb-sm-0 h-1 mt-auto">Sistem Informasi Manajemen Akses (SIMA) Universitas Lampung</p>
+        <!-- <p class="mb-1 mb-sm-0 h-1">Universitas Lampung</p> -->
 
         <div class="card-mobile d-flex flex-column">
             <div class="input-field d-flex flex-column">

@@ -129,7 +129,7 @@ class LoginController extends Controller
         if(Auth::check()) {
             Auth::logout();
             Session::flush();
-            Cookie::forget('PHPSESSID','laravel_session','XSRF-TOKEN');
+            // Cookie::forget('PHPSESSID','laravel_session','XSRF-TOKEN');
             alert()->success('Berhasil logout');
             if(SSO::check()==true) {
                 SSO::logout(url('/'));
