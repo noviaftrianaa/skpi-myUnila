@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Crypt;
 
 class PeranController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      *
@@ -15,7 +16,7 @@ class PeranController extends Controller
      */
     public function index()
     {
-        $peran = Peran::orderBy('nm_peran','ASC')->get();
+        $peran = Peran::whereNull('expired_date')->orderBy('nm_peran','ASC')->get();
 
         return view('manajemen.peran.index', [
             'peran'=>$peran
@@ -117,6 +118,17 @@ class PeranController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $id = Crypt::decrypt($id);
+        $data = Peran::where('id_peran', $id)->update([
+            'expired_date' => currDateTime(),
+            'id_updater' => Auth::user()->id_pengguna
+        ]);
+
+        if(!$data) {
+            alert()->error('Data berhasil dihapus!');
+        } else {
+            alert()->success('Data berhasil dihapus!');
+        }
+        return redirect()->back();
     }
 }

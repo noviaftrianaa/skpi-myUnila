@@ -56,6 +56,7 @@ class TracerStudyController extends Controller
                 reg.nipd AS npm,
                 pd.nm_pd,
                 pd.jk,
+                kul.ipk,
             CONCAT(sms.nm_lemb, '(',jenjang.nm_jenj_didik,')')  AS nm_prodi
             FROM tracer.hasil_tracer_study AS tc_study WITH(NOLOCK)
             JOIN ref.wilayah AS wilayah WITH(NOLOCK) ON wilayah.id_wil = tc_study.id_wil
@@ -67,6 +68,9 @@ class TracerStudyController extends Controller
                 WHERE soft_delete = 0
                 GROUP BY id_reg_pd
             )AS kuliah ON kuliah.id_reg_pd = reg.id_reg_pd
+            JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_smt = kuliah.smt
+                AND kul.id_reg_pd = kuliah.id_reg_pd
+                AND kul.soft_delete = 0
             JOIN pdrd.sms AS sms WITH(NOLOCK) ON  sms.id_sms = reg.id_sms
                 AND reg.soft_delete = 0
             JOIN ref.jenjang_pendidikan AS jenjang WITH(NOLOCK) ON jenjang.id_jenj_didik = sms.id_jenj_didik

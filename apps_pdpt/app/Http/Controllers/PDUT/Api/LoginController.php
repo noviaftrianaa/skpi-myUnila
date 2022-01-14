@@ -19,6 +19,7 @@ class LoginController extends Controller
      *    description="Pass user credentials",
      *    @OA\JsonContent(
      *       required={"email","password"},
+     *       @OA\Property(property="id_aplikasi", type="uuid", format="text", example="948DF317-78F7-4B92-A53F-0A56215E07DE"),
      *       @OA\Property(property="username", type="string", format="email", example="user1@mail.com"),
      *       @OA\Property(property="password", type="string", format="password", example="PassWord12345"),
      *    ),
@@ -37,4 +38,9 @@ class LoginController extends Controller
      * )
      *
     **/
+    public function do_login(Request $request)
+    {
+        $input = $request->all();
+
+    }
 }

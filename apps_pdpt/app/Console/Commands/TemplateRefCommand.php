@@ -19,17 +19,9 @@ class TemplateRefCommand extends Command
 
     public function handle()
     {
-        $schema_name = $this->ask('Enter Schema Name (exp. ref or dok) [schema_name]');
-        if (empty($schema_name)) {
-            $this->error('Please Enter the Correct Schema!');
-        }
-
-        if (!in_array($schema_name, ['ref', 'dok'])) {
-            $this->error('Please Enter the Correct Schema!');
-        }
-
+        $schema_name = 'ref';
         $createModel = $this->ask('Enter Create Mode (exp. 1 = function or 2 = model');
-        if (!in_array($createModel, [1,2])) {
+        if (!in_array($createModel, [1, 2])) {
             $this->error('Please Enter the Correct Create Mode!');
         }
 

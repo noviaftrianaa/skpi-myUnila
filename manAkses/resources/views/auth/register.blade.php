@@ -1,27 +1,21 @@
-@extends('auth.layout')
-@section('title', 'Register Account')
+@extends('template.auth')
+@section('title', 'Register Area')
 @section('content')
-    <form action="{{ route('auth.do_register') }}" method="post">
-        {!! csrf_field() !!}
-        <label for="email">Email</label>
-        <div class="input-group mb-3">
-            <input type="email" name="username" id="username" class="form-control {{($errors->has('username')?" is-invalid":"")}}" placeholder="Tulis Email anda">
-            <div class="input-group-append">
-                <div class="input-group-text">
-                    <span class="fas fa-envelope"></span>
+<div class="box-2 d-flex align-items-center flex-column">
+    <div class="text-center">
+        <div class="card-mobile d-flex flex-column">
+            <div class="input-field d-flex flex-column">
+                <div class="mt-3">
+                    <p class="mb-1 mb-sm-0 h-1 mt-auto">Silahkan hubungi Admin untuk mendaftarkan akun baru.</p>
                 </div>
+                <div class="mt-3 text1">
+                    <a type="button" href="helpdesktik.unila.ac.id" class="btn btn-primary btn-block">
+                        <i class="fa fa-question"></i>&nbsp;Helpdesk TIK Universitas Lampung
+                    </a>
+                </div>
+                <div class="mt-4 text-muted text-center">Situs ini dikelola oleh Tim <a href="http://tik.unila.ac.id" title="">TIK Universitas Lampung</a></div>
             </div>
-            @if($errors->has('username'))
-                <span class="invalid-feedback">{{ $errors->first('username') }}</span>
-            @endif
         </div>
-        <div class="row">
-            <button type="submit" class="btn btn-info btn-block">Daftar Akun</button>
-        </div>
-        <hr>
-        Sudah memiliki akun?
-        <div class="row mt-2">
-            <a  href="{{ route('login') }}" class="btn btn-outline-primary btn-block">Login</a>
-        </div>
-    </form>
+    </div>
+</div>
 @endsection

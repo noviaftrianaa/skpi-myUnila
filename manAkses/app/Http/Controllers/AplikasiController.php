@@ -9,10 +9,12 @@ use App\Models\UnitOrganisasi;
 use App\Models\User;
 use App\Models\PJAplikasi;
 use App\Models\Menu;
+use App\Models\Peran;
 use Auth;
 
 class AplikasiController extends Controller
 {
+
     public function index()
     {
         $data = Aplikasi::with(['UnitOrganisasi','PJAplikasi'])->lock('WITH(NOLOCK)')->get();
@@ -111,13 +113,15 @@ class AplikasiController extends Controller
         $menu = Menu::lock('WITH(NOLOCK)')->where('id_aplikasi', $id)->get();
         $unit = UnitOrganisasi::all();
         $pengguna = User::lock('WITH(NOLOCK)')->where('soft_delete',0)->where('a_aktif',1)->get();
+        $peran = Peran::whereNull('expired_date')->get();
 
         return view('manajemen.aplikasi.show', [
             'data'=>$data,
             'pj'=>$pj,
             'menu'=>$menu,
             'unit'=>$unit,
-            'pengguna'=>$pengguna
+            'pengguna'=>$pengguna,
+            'peran'=>$peran
         ]);
     }
 

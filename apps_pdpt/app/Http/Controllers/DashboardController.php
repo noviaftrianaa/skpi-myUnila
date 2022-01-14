@@ -64,14 +64,20 @@ class DashboardController extends Controller
             ORDER BY tni.nm_akred ASC
         ");
         $list_akreditasi = [];
+        $total = ['belum'=>0,'sudah'=>0];
         $akred = [];
         foreach ($data_akred AS $each_akred) {
+            if (is_null($each_akred->nm_akred) || in_array($each_akred->nm_akred,['Tidak Terakreditasi','Belum Terakreditasi'])) {
+                $total['belum'] += $each_akred->total_akreditasi;
+            } else {
+                $total['sudah'] += $each_akred->total_akreditasi;
+            }
             $list_akreditasi[] = is_null($each_akred->nm_akred)?'Tidak ada akreditasi':$each_akred->nm_akred;
             $akred[is_null($each_akred->nm_akred)?'Tidak ada akreditasi':$each_akred->nm_akred] =$each_akred->total_akreditasi;
         }
         $last_sync = AkreditasiProdi::where('soft_delete',0)->orderBy('last_sync','DESC')->first();
         $akred = json_encode($akred);
-        return view('dashboard.akreditasi',compact('akred','sp','list_akreditasi','last_sync'));
+        return view('dashboard.akreditasi',compact('akred','sp','list_akreditasi','last_sync','total'));
     }
 
     /**
