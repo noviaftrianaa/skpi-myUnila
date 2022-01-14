@@ -10,75 +10,151 @@ class BukuAjarController extends Controller
 {
     public function list(Request $request)
     {
-        $buku_ajar = DB::select("SELECT tsbuku.id_tulis_buku_ajar, buku.id_buku_ajar, buku.judul_buku, buku.isbn, buku.tgl_terbit, buku.penerbit
+        $page = 1; $count = 10;
+        if(!empty($request->page)) {
+            $page = $request->page; 
+        } 
+        if (!empty($request->count)) {
+            if ($request->count > 50) {
+                $count = 50;
+            } else {
+                $count = $request->count; 
+            }
+        }
+
+        $buku_ajar = DB::select("
+        DECLARE @PageNumber AS INT
+        DECLARE @RowsOfPage AS INT
+        SET @PageNumber= ?
+        SET @RowsOfPage= ?
+        SELECT tsbuku.id_tulis_buku_ajar, buku.id_buku_ajar, buku.judul_buku, buku.isbn, buku.tgl_terbit, buku.penerbit
         FROM pdrd.tulis_buku_ajar AS tsbuku WITH(NOLOCK)
         LEFT JOIN pdrd.buku_ajar AS buku WITH(NOLOCK) ON buku.id_buku_ajar = tsbuku.id_buku_ajar AND buku.soft_delete = 0
-        WHERE tsbuku.soft_delete = 0");
-
+        WHERE tsbuku.soft_delete = 0
+        ORDER BY tsbuku.id_tulis_buku_ajar ASC
+        OFFSET (@PageNumber-1)*@RowsOfPage ROWS
+        FETCH NEXT @RowsOfPage ROWS ONLY
+        ", [$page, $count]);
+        
+        foreach ($buku_ajar as $each_data) {
+            $data[] = [
+                'id_tulis_buku_ajar' => $each_data->id_tulis_buku_ajar,
+                'id_buku_ajar' => $each_data->id_buku_ajar,
+                'judul_buku' => $each_data->judul_buku,
+                'isbn' => $each_data->isbn,
+                'tanggal_terbit' => $each_data->tgl_terbit,
+                'penerbit' => $each_data->penerbit,
+                'rubrik_bkd' => null
+            ];
+        }
+        
         return response()->json([
             'success' => true,
-            'message' => 'get list all successfully',
-            'data'  => $buku_ajar
+            'message' => 'Get all data Buku Ajar',
+            'page' => $page,
+            'count' => $count,
+            'data'  => $data
         ], 200);
     }
     
     public function listById(Request $request)
     {
+        $id = $request->id_sdm;
+        if (empty($id)) {
+            return response()->json([
+                'status' => FALSE,
+                'message' => "Empty Field id_sdm"
+            ]);
+        }
+
         $buku_ajar = DB::select("SELECT tsbuku.id_tulis_buku_ajar, buku.id_buku_ajar, buku.judul_buku, buku.isbn, buku.tgl_terbit, buku.penerbit
         FROM pdrd.tulis_buku_ajar AS tsbuku WITH(NOLOCK)
         LEFT JOIN pdrd.buku_ajar AS buku WITH(NOLOCK) ON buku.id_buku_ajar = tsbuku.id_buku_ajar AND buku.soft_delete = 0
-        WHERE tsbuku.soft_delete = 0 AND tsbuku.id_sdm = ? ", [$request->id_sdm]);
-
+        WHERE tsbuku.soft_delete = 0 AND tsbuku.id_sdm = ? ", [$id]);
+        
+        foreach ($buku_ajar as $each_data) {
+            $data[] = [
+                'id_tulis_buku_ajar' => $each_data->id_tulis_buku_ajar,
+                'id_buku_ajar' => $each_data->id_buku_ajar,
+                'judul_buku' => $each_data->judul_buku,
+                'isbn' => $each_data->isbn,
+                'tanggal_terbit' => $each_data->tgl_terbit,
+                'penerbit' => $each_data->penerbit,
+                'rubrik_bkd' => null
+            ];
+        }
+        
         return response()->json([
             'success' => true,
             'message' => 'get list id successfully',
-            'data'  => $buku_ajar
+            'data'  => $data
         ], 200);
     }
 
     public function detail(Request $request)
     {
-        $buku_ajar = DB::select("SELECT * FROM pdrd.tulis_buku_ajar AS tsbuku WITH(NOLOCK)
-        JOIN ref.kategori_kegiatan AS katgiat WITH(NOLOCK) ON katgiat.id_katgiat = tsbuku.id_katgiat AND katgiat.id_induk_katgiat = katgiat.id_katgiat AND katgiat.expired_date IS NULL
-        JOIN pdrd.buku_ajar AS buku WITH(NOLOCK) ON buku.id_buku_ajar = tsbuku.id_buku_ajar AND buku.soft_delete = 0
-        LEFT JOIN ref.kategori_capaian_luaran AS kacaplu WITH(NOLOCK) ON kacaplu.id_kat_capaian = buku.id_kat_capaian AND kacaplu.expired_date IS NULL
-        LEFT JOIN ref.jenis_bahan_ajar AS jebaj WITH(NOLOCK) ON jebaj.id_jns_bhn_ajar = buku.id_jns_bhn_ajar AND jebaj.expired_date IS NULL
-        JOIN pdrd.litabmas AS lbms WITH(NOLOCK) ON lbms.id_litabmas = buku.id_litabmas AND lbms.id_litabmas = lbms.id_lanjutan_litabmas AND lbms.soft_delete = 0
-        LEFT JOIN pdrd.lembaga_iptek AS lmip WITH(NOLOCK) ON lmip.id_lemb_iptek = lbms.id_lemb_iptek AND lmip.soft_delete = 0
-        LEFT JOIN ref.skim_kegiatan AS skim WITH(NOLOCK) ON skim.id_skim = lbms.id_skim AND skim.expired_date IS NULL
-        JOIN ref.tahun_anggaran AS thag WITH(NOLOCK) ON thag.id_tahun_anggaran = lbms.id_thn_usulan AND thag.id_tahun_anggaran = lbms.id_thn_kegiatan AND thag.id_tahun_anggaran = lbms.id_thn_laks AND thag.expired_date IS NULL
-        LEFT JOIN ref.kelompok_bidang AS kebid WITH(NOLOCK) ON kebid.id_kel_bidang = lbms.id_kel_bidang AND kebid.expired_date IS NULL
-        LEFT JOIN ref.tse AS tse WITH(NOLOCK) ON tse.id_tse = lbms.id_tse AND tse.expired_date IS NULL
-        LEFT JOIN pdrd.smi AS smi WITH(NOLOCK) ON smi.id_smi = lbms.id_smi AND smi.soft_delete = 0
-        LEFT JOIN ref.jenis_penelitian AS jepel WITH(NOLOCK) ON jepel.id_jns_lit = lbms.id_jns_lit AND jepel.expired_date IS NULL
-        JOIN pdrd.sdm AS sdm WITH(NOLOCK) ON sdm.id_sdm = tsbuku.id_sdm AND sdm.soft_delete = 0
-        LEFT JOIN ref.negara AS ng WITH(NOLOCK) ON ng.id_negara = sdm.kewarganegaraan AND ng.expired_date IS NULL
-        LEFT JOIN ref.jenis_sdm AS jsdm WITH(NOLOCK) ON jsdm.id_jns_sdm = sdm.id_jns_sdm AND jsdm.expired_date IS NULL
-        LEFT JOIN ref.wilayah AS wil WITH(NOLOCK) ON wil.id_wil = sdm.id_wil AND wil.expired_date IS NULL
-        LEFT JOIN ref.status_keaktifan_pegawai AS aktpgw WITH(NOLOCK) ON aktpgw.id_stat_aktif = sdm.id_stat_aktif AND aktpgw.expired_date IS NULL
-        LEFT JOIN ref.agama AS agm WITH(NOLOCK) ON agm.id_agama = sdm.id_agama AND agm.expired_date IS NULL
-        LEFT JOIN ref.keahlian_lab AS ahlab WITH(NOLOCK) ON ahlab.id_keahlian_lab = sdm.id_keahlian_lab AND ahlab.expired_date IS NULL
-        LEFT JOIN ref.pekerjaan AS pkrj WITH(NOLOCK) ON pkrj.id_pekerjaan = sdm.id_pekerjaan_suami_istri AND pkrj.expired_date IS NULL
-        LEFT JOIN ref.lembaga_pengangkat AS lbpgt WITH(NOLOCK) ON lbpgt.id_lemb_angkat = sdm.id_lemb_angkat AND lbpgt.expired_date IS NULL
-        JOIN pdrd.non_ca AS nonca WITH(NOLOCK) ON nonca.id_orang = tsbuku.id_orang AND nonca.soft_delete = 0 
-        LEFT JOIN ref.negara AS ngnoca WITH(NOLOCK) ON ngnoca.id_negara = nonca.id_negara AND ngnoca.expired_date IS NULL
-        JOIN pdrd.peserta_didik AS pd WITH(NOLOCK) ON pd.id_pd = tsbuku.id_pd AND pd.soft_delete = 0
-        JOIN ref.jenjang_pendidikan AS jenpdd WITH(NOLOCK) ON jenpdd.id_jenj_didik = pd.id_pendidikan_wali AND jenpdd.id_jenj_didik = pd.id_pendidikan_ayah AND jenpdd.id_jenj_didik = pd.id_pendidikan_ibu AND jenpdd.expired_date IS NULL
-        JOIN ref.pekerjaan AS pkrja WITH(NOLOCK) ON pkrja.id_pekerjaan = pd.id_pekerjaan_wali AND pkrja.id_pekerjaan = pd.id_pekerjaan_ayah AND pkrja.id_pekerjaan = pd.id_pekerjaan_ibu AND pkrja.expired_date IS NULL
-        JOIN ref.penghasilan AS penghas WITH(NOLOCK) ON penghas.id_penghasilan = pd.id_penghasilan_wali AND penghas.id_penghasilan = pd.id_penghasilan_ayah AND penghas.id_penghasilan = pd.id_penghasilan_ibu AND penghas.expired_date IS NULL
-        JOIN ref.kebutuhan_khusus AS kebhus WITH(NOLOCK) ON kebhus.id_kk = pd.id_kk AND kebhus.id_kk = pd.id_kk_ayah AND kebhus.id_kk = pd.id_kk_ibu AND kebhus.expired_date IS NULL
-        LEFT JOIN ref.negara AS ngpd WITH(NOLOCK) ON ngpd.id_negara = pd.id_kewarganegaraan AND ngpd.expired_date IS NULL
-        LEFT JOIN ref.agama AS agmpd WITH(NOLOCK) ON agmpd.id_agama = pd.id_agama AND agmpd.expired_date IS NULL
-        LEFT JOIN ref.wilayah AS wilpd WITH(NOLOCK) ON wilpd.id_wil = pd.id_wil AND wilpd.expired_date IS NULL
-        LEFT JOIN dok.large_object AS lobj WITH(NOLOCK) ON lobj.id_blob = pd.id_blob
-        LEFT JOIN ref.jenis_tinggal AS jeting WITH(NOLOCK) ON jeting.id_jns_tinggal = pd.id_jns_tinggal AND jeting.expired_date IS NULL
-        LEFT JOIN ref.status_mahasiswa AS stmhs WITH(NOLOCK) ON stmhs.id_stat_mhs = pd.id_stat_mhs AND stmhs.expired_date IS NULL
-        LEFT JOIN sarpras.alat_transportasi AS trnsprt WITH(NOLOCK) ON trnsprt.id_alat_transport = pd.id_alat_transport
-        WHERE tsbuku.soft_delete = 0 ");
+        $id = $request->id_tulis_buku_ajar;
+        if (empty($id)) {
+            return response()->json([
+                'status' => FALSE,
+                'message' => "Empty Field id_tulis_buku_ajar"
+            ]);
+        }
+
+        $buku_ajar = DB::select("SELECT 
+            tsbuku.id_tulis_buku_ajar, tsbuku.id_buku_ajar, jebaj.nm_jns_bhn_ajar,  kacaplu.nm_kat_capaian, lbms.judul_litabmas,
+            buku.judul_buku, buku.tgl_terbit, buku.penerbit, buku.isbn, buku.sk_tugas, buku.tgl_sk_tugas 
+            FROM pdrd.tulis_buku_ajar AS tsbuku WITH(NOLOCK)
+            LEFT JOIN pdrd.buku_ajar AS buku WITH(NOLOCK) ON buku.id_buku_ajar = tsbuku.id_buku_ajar AND buku.soft_delete = 0
+            LEFT JOIN ref.jenis_bahan_ajar AS jebaj WITH(NOLOCK) ON jebaj.id_jns_bhn_ajar = buku.id_jns_bhn_ajar AND jebaj.expired_date IS NULL
+            LEFT JOIN ref.kategori_capaian_luaran AS kacaplu WITH(NOLOCK) ON kacaplu.id_kat_capaian = buku.id_kat_capaian AND kacaplu.expired_date IS NULL
+            LEFT JOIN pdrd.litabmas AS lbms WITH(NOLOCK) ON lbms.id_litabmas = buku.id_litabmas AND lbms.soft_delete = 0
+            WHERE tsbuku.soft_delete = 0 AND tsbuku.id_tulis_buku_ajar = ? ", [$id]);
+        
+        $buku_ajar_sdm = DB::select("SELECT 
+            sdm.id_sdm, sdm.nm_sdm, tsbuku.urutan2, tsbuku.afiliasi, tsbuku.peran_tulis
+            FROM pdrd.tulis_buku_ajar AS tsbuku
+            JOIN pdrd.sdm AS sdm ON sdm.id_sdm = tsbuku.id_sdm
+            WHERE tsbuku.id_buku_ajar = ? 
+            ORDER BY tsbuku.urutan2 ASC", [$buku_ajar[0]->id_buku_ajar]);
+
+        $buku_ajar_pd= DB::select("SELECT 
+            pd.id_pd, pd.nm_pd, tsbuku.urutan2, tsbuku.afiliasi, tsbuku.peran_tulis
+            FROM pdrd.tulis_buku_ajar AS tsbuku
+            JOIN pdrd.peserta_didik AS pd ON pd.id_pd = tsbuku.id_pd
+            WHERE tsbuku.id_buku_ajar = ? 
+            ORDER BY tsbuku.urutan2 ASC", [$buku_ajar[0]->id_buku_ajar]);
+        
+        $buku_ajar_nonca= DB::select("SELECT 
+            nonca.id_orang, nonca.nm_orang, tsbuku.urutan2, tsbuku.afiliasi, tsbuku.peran_tulis
+            FROM pdrd.tulis_buku_ajar AS tsbuku
+            JOIN pdrd.non_ca AS nonca ON nonca.id_orang = tsbuku.id_orang
+            WHERE tsbuku.id_buku_ajar = ? 
+            ORDER BY tsbuku.urutan2 ASC", [$buku_ajar[0]->id_buku_ajar]);
+
+        foreach ($buku_ajar as $each_data) {
+            $data[] = [
+                'id_tulis_buku_ajar' => $each_data->id_tulis_buku_ajar,
+                'id_buku_ajar' => $each_data->id_buku_ajar,
+                'jenis_bahan_ajar' => $each_data->nm_jns_bhn_ajar,
+                'kategori_capaian' => $each_data->nm_kat_capaian,
+                'aktivitas_litabmas' => $each_data->judul_litabmas,
+                'judul_bahan_ajar' => $each_data->judul_buku,
+                'tanggal_terbit' => $each_data->tgl_terbit,
+                'penerbit' => $each_data->penerbit,
+                'isbn' => $each_data->isbn,
+                'sk_penugasan_bukti' => $each_data->sk_tugas,
+                'tgl_sk_penugasan_bukti' => $each_data->tgl_sk_tugas,
+                'penulis_dosen' =>  $buku_ajar_sdm,
+                'penulis_mahasiswa' =>  $buku_ajar_pd,
+                'penulis_lain' =>  $buku_ajar_nonca
+            ];
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'get detail successfully',
-            'data'  => $buku_ajar
+            'data'  => $data
         ], 200);
     }
 
@@ -154,8 +230,8 @@ class BukuAjarController extends Controller
     {
         DB::beginTransaction();
         try {
-            DB::update("UPDATE pdrd.buku_ajar SET soft_delete = 0 WHERE id_buku_ajar = ?", [$request->id_buku_ajar]);
-            DB::update("UPDATE pdrd.tulis_buku_ajar SET soft_delete = 0 WHERE id_buku_ajar = ?", [$request->id_buku_ajar]);
+            DB::update("UPDATE pdrd.buku_ajar SET soft_delete = 1 WHERE id_buku_ajar = ?", [$request->id_buku_ajar]);
+            DB::update("UPDATE pdrd.tulis_buku_ajar SET soft_delete = 1 WHERE id_buku_ajar = ?", [$request->id_buku_ajar]);
             // DB::update("UPDATE pdrd.tulis_buku_ajar SET soft_delete = 1 WHERE id_tulis_buku_ajar = ?", [$request->id_tulis_buku_ajar]);
             DB::commit();
             return response()->json([
