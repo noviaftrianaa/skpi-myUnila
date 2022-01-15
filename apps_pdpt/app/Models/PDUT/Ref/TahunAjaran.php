@@ -3,10 +3,14 @@
 namespace App\Models\PDUT\Ref;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class TahunAjaran extends AbstractionModel
 {
     protected $table = 'ref.tahun_ajaran';
-    protected $primaryKey = 'a_periode_aktif';
+    protected $primaryKey = 'id_thn_ajaran';
+    public $timestamps = false;
+    public $incrementing = false;
+    protected $fillable = [
+	'id_thn_ajaran',	'nm_thn_ajaran',	'a_periode_aktif',	'tgl_mulai',	'tgl_selesai',
+    ];
 }

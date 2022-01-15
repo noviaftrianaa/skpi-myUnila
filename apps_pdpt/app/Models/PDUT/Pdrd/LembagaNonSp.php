@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Models\PDUT\Ref;
+namespace App\Models\PDUT\Pdrd;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class LembagaNonSp extends AbstractionModel
 {
     protected $table = 'pdrd.lembaga_non_sp';
-    protected $primaryKey = 'bujur';
+    protected $primaryKey = 'id_lemb_non_sp';
+    public $timestamps = false;
+    public $incrementing = false;
     protected $fillable = [
-    	'bujur',		'deskripsi',		'ds_kel',		'email',		'id_creator',		'id_induk_lemb_non_sp',		'id_jns_lemb',		'id_lemb_non_sp',		'id_updater',		'id_wil',		'jln',		'kd_kl',		'kd_satker',		'kode_pos',		'level_lemb',		'lintang',		'nm_dsn',		'nm_lemb',		'no_fax',		'no_tel',		'rt',		'rw',		'singkatan',		'soft_delete',		'tgl_akhir_efektif',		'tgl_mulai_efektif',		'website',
+	'id_lemb_non_sp',	'nm_lemb',	'singkatan',	'deskripsi',	'level_lemb',	'tgl_mulai_efektif',	'tgl_akhir_efektif',	'jln',	'rt',	'rw',	'nm_dsn',	'ds_kel',	'kode_pos',	'lintang',	'bujur',	'no_tel',	'no_fax',	'email',	'website',	'kd_kl',	'kd_satker',	'id_jns_lemb',	'id_wil',	'id_induk_lemb_non_sp',	'id_creator',	'id_updater',	'soft_delete',
     ];
 }

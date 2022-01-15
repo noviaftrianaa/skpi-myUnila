@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Models\PDUT\Ref;
+namespace App\Models\PDUT\Pdrd;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class TugasBelajar extends AbstractionModel
 {
     protected $table = 'pdrd.tugas_belajar';
-    protected $primaryKey = 'domisili';
+    protected $primaryKey = 'id_tb';
+    public $timestamps = false;
+    public $incrementing = false;
     protected $fillable = [
-    	'domisili',		'id_creator',		'id_jenj_didik',		'id_negara',		'id_sdm',		'id_sp',		'id_tb',		'id_updater',		'nm_prodi',		'pembiayaan',		'sk_tb',		'soft_delete',		'tgl_lulus',		'tgl_mulai_tb',		'tgl_sk_tb',
+	'id_tb',	'id_sp',	'id_jenj_didik',	'id_sdm',	'nm_prodi',	'tgl_mulai_tb',	'domisili',	'sk_tb',	'tgl_sk_tb',	'pembiayaan',	'tgl_lulus',	'id_negara',	'id_creator',	'id_updater',	'soft_delete',
     ];
 }

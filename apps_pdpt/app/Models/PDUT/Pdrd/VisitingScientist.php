@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Models\PDUT\Ref;
+namespace App\Models\PDUT\Pdrd;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class VisitingScientist extends AbstractionModel
 {
     protected $table = 'pdrd.visiting_scientist';
-    protected $primaryKey = 'id_creator';
+    protected $primaryKey = 'id_visit';
+    public $timestamps = false;
+    public $incrementing = false;
     protected $fillable = [
-    	'id_creator',		'id_kat_capaian',		'id_katgiat',		'id_litabmas',		'id_sdm',		'id_sp',		'id_updater',		'id_visit',		'kegiatan_penting',		'lama_kegiatan',		'pt_pengundang',		'sk_tugas',		'soft_delete',		'tgl_laks',		'tgl_sk_tugas',
+	'id_visit',	'id_sdm',	'id_katgiat',	'id_sp',	'id_litabmas',	'id_kat_capaian',	'pt_pengundang',	'lama_kegiatan',	'kegiatan_penting',	'tgl_laks',	'sk_tugas',	'tgl_sk_tugas',	'id_creator',	'id_updater',	'soft_delete',
     ];
 }

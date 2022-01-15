@@ -113,8 +113,9 @@ Route::group([
         });
 
         Route::prefix('penelitian')->group(function () {
-            Route::get('list', 'PenelitianController@index');
-             Route::post('list', 'PenelitianController@getListPenelitianBySdmId');
+            Route::get('/', 'PenelitianController@getAllListPenelitian');
+            Route::get('list/by', 'PenelitianController@getListPenelitianBySdmId');
+            Route::get('detail/by', 'PenelitianController@getDetailPenelitianByPenelitianId');
         });
 
         Route::prefix('pengabdian')->group(function() {
@@ -129,6 +130,7 @@ Route::group([
         });
     });
 
+<<<<<<< Updated upstream
     Route::group([
         'namespace' => 'Tracer',
         'prefix' => 'tracer'
@@ -136,6 +138,15 @@ Route::group([
         Route::get('hasil_tracer_study', 'TracerStudyController@index');
         Route::post('hasil_tracer_study/simpan', 'TracerStudyController@store');
     });
+=======
+    // Route::group([
+    //     'namespace' => 'Tracer',
+    //     'prefix' => 'tracer'
+    // ], function () {
+    //     Route::get('hasil_tracer_study', 'Tracer\TracerStudyController@index');
+    //     Route::post('hasil_tracer_study/simpan', 'Tracer\TracerStudyController@store');
+    // });
+>>>>>>> Stashed changes
 
 });
 

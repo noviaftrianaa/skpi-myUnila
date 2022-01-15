@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Models\PDUT\Ref;
+namespace App\Models\PDUT\Pdrd;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class LembagaIptek extends AbstractionModel
 {
     protected $table = 'pdrd.lembaga_iptek';
-    protected $primaryKey = 'bujur';
+    protected $primaryKey = 'id_lemb_iptek';
+    public $timestamps = false;
+    public $incrementing = false;
     protected $fillable = [
-    	'bujur',		'ds_kel',		'email',		'hub_lemb_iptek',		'id_creator',		'id_lemb_iptek',		'id_updater',		'jln',		'kode_pos',		'lintang',		'nm_dsn',		'nm_lemb',		'nm_singkat',		'no_fax',		'no_tel',		'nrli',		'rt',		'rw',		'soft_delete',		'website',
+	'id_lemb_iptek',	'nm_lemb',	'nrli',	'hub_lemb_iptek',	'nm_singkat',	'lintang',	'bujur',	'no_tel',	'no_fax',	'email',	'website',	'jln',	'rt',	'rw',	'nm_dsn',	'ds_kel',	'kode_pos',	'id_creator',	'id_updater',	'soft_delete',
     ];
 }

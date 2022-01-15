@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Models\PDUT\Ref;
+namespace App\Models\PDUT\Pdrd;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class PengelolaJurnal extends AbstractionModel
 {
     protected $table = 'pdrd.pengelola_jurnal';
-    protected $primaryKey = 'a_aktif';
+    protected $primaryKey = 'id_kelola_jurnal';
+    public $timestamps = false;
+    public $incrementing = false;
     protected $fillable = [
-    	'a_aktif',		'id_creator',		'id_katgiat',		'id_kelola_jurnal',		'id_media_pub',		'id_sdm',		'id_updater',		'peran',		'sk_tugas',		'soft_delete',		'tmt_sk_tugas',		'tst_sk_tugas',
+	'id_kelola_jurnal',	'id_media_pub',	'id_sdm',	'id_katgiat',	'peran',	'sk_tugas',	'tmt_sk_tugas',	'tst_sk_tugas',	'a_aktif',	'id_creator',	'id_updater',	'soft_delete',
     ];
 }

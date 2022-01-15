@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Models\PDUT\Ref;
+namespace App\Models\PDUT\Pdrd;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class Diklat extends AbstractionModel
 {
     protected $table = 'pdrd.diklat';
-    protected $primaryKey = 'id_creator';
+    protected $primaryKey = 'id_diklat';
+    public $timestamps = false;
+    public $incrementing = false;
     protected $fillable = [
-    	'id_creator',		'id_diklat',		'id_jns_diklat',		'id_katgiat',		'id_kel_bidang',		'id_sdm',		'id_updater',		'jml_jam',		'nm_diklat',		'no_sert',		'penyelenggara',		'peran',		'sk_tugas',		'soft_delete',		'tempat',		'tgl_mulai',		'tgl_selesai',		'tgl_sert',		'tgl_sk_tugas',		'thn',		'tkt',
+	'id_diklat',	'id_sdm',	'id_kel_bidang',	'id_katgiat',	'id_jns_diklat',	'nm_diklat',	'penyelenggara',	'thn',	'peran',	'tkt',	'jml_jam',	'no_sert',	'tgl_sert',	'tempat',	'tgl_mulai',	'tgl_selesai',	'sk_tugas',	'tgl_sk_tugas',	'id_creator',	'id_updater',	'soft_delete',
     ];
 }

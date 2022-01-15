@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Models\PDUT\Ref;
+namespace App\Models\PDUT\Pdrd;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class NonCaAnggotaLitabmas extends AbstractionModel
 {
     protected $table = 'pdrd.non_ca_anggota_litabmas';
-    protected $primaryKey = 'id_creator';
+    protected $primaryKey = 'id_litabmas';
+    public $timestamps = false;
+    public $incrementing = false;
     protected $fillable = [
-    	'id_creator',		'id_litabmas',		'id_orang',		'id_updater',		'peran_litabmas',		'soft_delete',		'stat_aktif',
+	'id_litabmas',	'id_orang',	'peran_litabmas',	'stat_aktif',	'id_creator',	'id_updater',	'soft_delete',
     ];
 }

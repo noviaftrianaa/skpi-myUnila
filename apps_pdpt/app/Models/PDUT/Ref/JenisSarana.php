@@ -3,10 +3,14 @@
 namespace App\Models\PDUT\Ref;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class JenisSarana extends AbstractionModel
 {
     protected $table = 'ref.jenis_sarana';
-    protected $primaryKey = 'a_penempatan';
+    protected $primaryKey = 'id_jns_sarana';
+    public $timestamps = false;
+    public $incrementing = false;
+    protected $fillable = [
+	'id_jns_sarana',	'nm_jns_sarana',	'kel',	'a_penempatan',	'ket',
+    ];
 }

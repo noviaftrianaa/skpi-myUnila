@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Models\PDUT\Ref;
+namespace App\Models\PDUT\Pdrd;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class Detasering extends AbstractionModel
 {
     protected $table = 'pdrd.detasering';
-    protected $primaryKey = 'bid_tgs';
+    protected $primaryKey = 'id_detasering';
+    public $timestamps = false;
+    public $incrementing = false;
     protected $fillable = [
-    	'bid_tgs',		'desk_keg',		'id_creator',		'id_detasering',		'id_katgiat',		'id_sdm',		'id_sp_sasaran',		'id_sp_sumber',		'id_updater',		'metode_laks',		'sk_tugas',		'soft_delete',		'tgl_mulai',		'tgl_selesai',		'tgl_sk_tugas',
+	'id_detasering',	'id_sdm',	'id_sp_sumber',	'id_sp_sasaran',	'id_katgiat',	'tgl_mulai',	'tgl_selesai',	'bid_tgs',	'desk_keg',	'metode_laks',	'sk_tugas',	'tgl_sk_tugas',	'id_creator',	'id_updater',	'soft_delete',
     ];
 }

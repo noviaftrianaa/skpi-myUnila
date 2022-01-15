@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Models\PDUT\Ref;
+namespace App\Models\PDUT\Pdrd;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class RwyKepangkatan extends AbstractionModel
 {
     protected $table = 'pdrd.rwy_kepangkatan';
-    protected $primaryKey = 'id_creator';
+    protected $primaryKey = 'id_rwy_pangkat';
+    public $timestamps = false;
+    public $incrementing = false;
     protected $fillable = [
-    	'id_creator',		'id_pangkat_gol',		'id_rwy_pangkat',		'id_sdm',		'id_updater',		'masa_kerja_gol_bln',		'masa_kerja_gol_thn',		'sk_pangkat',		'soft_delete',		'tgl_sk_pangkat',		'tmt_sk_pangkat',
+	'id_rwy_pangkat',	'id_sdm',	'id_pangkat_gol',	'sk_pangkat',	'tgl_sk_pangkat',	'tmt_sk_pangkat',	'masa_kerja_gol_thn',	'masa_kerja_gol_bln',	'id_creator',	'id_updater',	'soft_delete',
     ];
 }

@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Models\PDUT\Ref;
+namespace App\Models\PDUT\Pdrd;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class Publikasi extends AbstractionModel
 {
     protected $table = 'pdrd.publikasi';
-    protected $primaryKey = 'a_komersialisasi';
+    protected $primaryKey = 'id_publikasi';
+    public $timestamps = false;
+    public $incrementing = false;
     protected $fillable = [
-    	'a_komersialisasi',		'a_prosiding',		'a_seminar',		'abstrak',		'bahasa',		'dimensi',		'doi',		'e_issn',		'edisi',		'hal',		'id_creator',		'id_jns_pub',		'id_kat_capaian',		'id_litabmas',		'id_media_pub',		'id_publikasi',		'id_updater',		'impact_jurnal',		'isbn',		'issn',		'jml_hal',		'judul',		'judul_asli',		'judul_chapter',		'ket',		'kota',		'laman_jurnal',		'nama_jurnal',		'no',		'no_paten',		'pemberi_paten',		'penerbit',		'pengguna_produk_jasa',		'quartile',		'soft_delete',		'stat_impor_sinta',		'tgl_terbit',		'url',		'vol',
+	'id_publikasi',	'id_jns_pub',	'judul',	'judul_chapter',	'judul_asli',	'abstrak',	'nama_jurnal',	'laman_jurnal',	'tgl_terbit',	'edisi',	'impact_jurnal',	'vol',	'no',	'hal',	'jml_hal',	'penerbit',	'kota',	'a_seminar',	'a_prosiding',	'dimensi',	'bahasa',	'no_paten',	'pemberi_paten',	'doi',	'isbn',	'issn',	'e_issn',	'url',	'ket',	'pengguna_produk_jasa',	'a_komersialisasi',	'stat_impor_sinta',	'quartile',	'id_kat_capaian',	'id_media_pub',	'id_litabmas',	'id_creator',	'id_updater',	'soft_delete',
     ];
 }

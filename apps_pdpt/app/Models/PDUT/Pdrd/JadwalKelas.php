@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Models\PDUT\Ref;
+namespace App\Models\PDUT\Pdrd;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class JadwalKelas extends AbstractionModel
 {
     protected $table = 'pdrd.jadwal_kelas';
-    protected $primaryKey = 'id_creator';
+    protected $primaryKey = 'id_jdwl_kls';
+    public $timestamps = false;
+    public $incrementing = false;
     protected $fillable = [
-    	'id_creator',		'id_jdwl_kls',		'id_kls',		'id_smt',		'id_updater',		'lokasi',		'pertemuan',		'soft_delete',		'status',		'tgl_jadwal',		'waktu_mulai',		'waktu_selesai',
+	'id_jdwl_kls',	'id_kls',	'id_smt',	'pertemuan',	'tgl_jadwal',	'waktu_mulai',	'waktu_selesai',	'lokasi',	'status',	'id_creator',	'id_updater',	'soft_delete',
     ];
 }

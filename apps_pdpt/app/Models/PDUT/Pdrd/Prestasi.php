@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Models\PDUT\Ref;
+namespace App\Models\PDUT\Pdrd;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class Prestasi extends AbstractionModel
 {
     protected $table = 'pdrd.prestasi';
-    protected $primaryKey = 'id_creator';
+    protected $primaryKey = 'id_prestasi';
+    public $timestamps = false;
+    public $incrementing = false;
     protected $fillable = [
-    	'id_creator',		'id_jenis_prestasi',		'id_pd',		'id_prestasi',		'id_sp',		'id_tkt_prestasi',		'id_updater',		'nm_prestasi',		'penyelenggara',		'peringkat',		'soft_delete',		'thn_prestasi',
+	'id_prestasi',	'id_jenis_prestasi',	'nm_prestasi',	'thn_prestasi',	'penyelenggara',	'peringkat',	'id_sp',	'id_pd',	'id_tkt_prestasi',	'id_creator',	'id_updater',	'soft_delete',
     ];
 }

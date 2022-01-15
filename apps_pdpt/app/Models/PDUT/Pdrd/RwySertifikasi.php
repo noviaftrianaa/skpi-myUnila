@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Models\PDUT\Ref;
+namespace App\Models\PDUT\Pdrd;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class RwySertifikasi extends AbstractionModel
 {
     protected $table = 'pdrd.rwy_sertifikasi';
-    protected $primaryKey = 'id_bid_studi';
+    protected $primaryKey = 'id_rwy_sert';
+    public $timestamps = false;
+    public $incrementing = false;
     protected $fillable = [
-    	'id_bid_studi',		'id_creator',		'id_jns_sert',		'id_rwy_sert',		'id_sdm',		'id_updater',		'no_peserta',		'nrg',		'sk_sert',		'soft_delete',		'thn_sert',
+	'id_rwy_sert',	'id_jns_sert',	'id_bid_studi',	'id_sdm',	'thn_sert',	'sk_sert',	'nrg',	'no_peserta',	'id_creator',	'id_updater',	'soft_delete',
     ];
 }

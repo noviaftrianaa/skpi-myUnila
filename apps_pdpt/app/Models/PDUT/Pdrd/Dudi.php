@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Models\PDUT\Ref;
+namespace App\Models\PDUT\Pdrd;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class Dudi extends AbstractionModel
 {
     protected $table = 'pdrd.dudi';
-    protected $primaryKey = 'alamat_kanpus';
+    protected $primaryKey = 'id_dudi';
+    public $timestamps = false;
+    public $incrementing = false;
     protected $fillable = [
-    	'alamat_kanpus',		'bujur',		'ds_kel',		'email',		'email_kanpus',		'fax_kanpus',		'id_bu',		'id_creator',		'id_dudi',		'id_updater',		'id_wil',		'jln',		'jml_pasien_rawat_inap',		'jml_pasien_rawat_jln',		'jml_tmpt_tidur',		'kip',		'kode_pos',		'lintang',		'nm_dsn',		'nm_lemb',		'nm_wp',		'no_fax',		'no_tel',		'npwp',		'rt',		'rw',		'soft_delete',		'telp_kanpus',		'variasi_kasus',		'website',		'website_kanpus',
+	'id_dudi',	'jln',	'rt',	'rw',	'nm_dsn',	'ds_kel',	'kode_pos',	'nm_lemb',	'lintang',	'bujur',	'no_tel',	'no_fax',	'email',	'website',	'npwp',	'nm_wp',	'kip',	'alamat_kanpus',	'email_kanpus',	'telp_kanpus',	'website_kanpus',	'fax_kanpus',	'jml_tmpt_tidur',	'jml_pasien_rawat_inap',	'jml_pasien_rawat_jln',	'variasi_kasus',	'id_wil',	'id_bu',	'id_creator',	'id_updater',	'soft_delete',
     ];
 }
