@@ -43,21 +43,15 @@ class TracerStudyController extends Controller
     {
         $listdata = DB::SELECT("
             SELECT TOP 50
-                tc_study.id_thn_ajaran,
-                tc_study.id_reg_pd,
-                tc_study.id_smt,
-                tc_study.wkt_pengisian,
-                tc_study.wkt_tunggu,
-                tc_study.status_lulusan,
-                tc_study.jns_tmpt_bekerja,
-                tc_study.nm_tmpt_bekerja,
-                tc_study.income_per_bln,
-                wilayah.nm_wil,
-                reg.nipd AS npm,
-                pd.nm_pd,
-                pd.jk,
-                kul.ipk,
-            CONCAT(sms.nm_lemb, '(',jenjang.nm_jenj_didik,')')  AS nm_prodi
+                tc_study.id_reg_pd, reg.nipd AS npm, pd.nm_pd, pd.jk,
+                CONCAT(sms.nm_lemb, '(',jenjang.nm_jenj_didik,')')  AS nm_prodi,
+                kul.ipk, tc_study.id_thn_ajaran, tc_study.id_smt,
+                tc_study.wkt_pengisian, tc_study.wkt_tunggu,
+                tc_study.status_lulusan, tc_study.jns_tmpt_bekerja,
+                wilayah.nm_wil, tc_study.nm_tmpt_bekerja,
+                tc_study.income_per_bln, tc_study_ats.email_atasan,
+                tc_study_ats.nm_atasan, tc_study_ats.jabatan_atasan,
+                tc_study_ats.saran, tc_study_ats.harapan
             FROM tracer.hasil_tracer_study AS tc_study WITH(NOLOCK)
             JOIN ref.wilayah AS wilayah WITH(NOLOCK) ON wilayah.id_wil = tc_study.id_wil
                 AND wilayah.expired_date IS NULL
@@ -76,6 +70,8 @@ class TracerStudyController extends Controller
             JOIN ref.jenjang_pendidikan AS jenjang WITH(NOLOCK) ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
             JOIN pdrd.peserta_didik AS pd WITH(NOLOCK) ON pd.id_pd = reg.id_pd
+                AND reg.soft_delete = 0
+            JOIN tracer.hasil_tracer_atasan AS tc_study_ats ON tc_study.id_hasil_tracer_study = tc_study_ats.id_hasil_tracer_study
                 AND reg.soft_delete = 0
             WHERE tc_study.soft_delete = 0;
         ");
@@ -124,7 +120,7 @@ class TracerStudyController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
@@ -133,6 +129,7 @@ class TracerStudyController extends Controller
         $id_hasil_tracer_atasan = guid();
         $id_updater = guid();
         $id_creator = guid();
+
         DB::beginTransaction();
         try {
             $data = HasilTracerStudy::create([
@@ -155,6 +152,26 @@ class TracerStudyController extends Controller
                 'soft_delete' => 0
             ]);
 
+            HasilTracerAtasan::create([
+                'id_hasil_tracer_atasan' => $id_hasil_tracer_atasan,
+                'id_hasil_tracer_study' => $data->id_hasil_tracer_study,
+                'id_negara' => $request->id_negara,
+                'id_wil' => $request->id_wil,
+                'email_atasan' => $request->email_atasan,
+                'nm_atasan' => $request->nm_atasan,
+                'jabatan_atasan' => $request->jabatan_atasan,
+                'nm_tmpt_bekerja' => $request->nm_tmpt_bekerja,
+                'bidang_tempat_bekerja' => $request->bidang_tempat_bekerja,
+                'saran' => $request->saran,
+                'harapan' => $request->harapan,
+                'id_creator' => $id_creator,
+                'id_updater' => $id_updater,
+                'create_date' => $data->create_date,
+                'last_update' => $data->last_update,
+                'last_sync' => $data->last_sync,
+                'soft_delete' => 0
+            ]);
+
 
             DB::commit();
             return response()->json([
@@ -162,7 +179,7 @@ class TracerStudyController extends Controller
                 'message' => 'Tersimpan'
             ], 201);
         } catch (\Exception $e) {
-            // Log::error('Message ' . $e->getMessage() . ' - ' . $e->getLine());
+            Log::error('Message ' . $e->getMessage() . ' - ' . $e->getLine());
             DB::rollback();
             return response()->json([
                 'success' => false,

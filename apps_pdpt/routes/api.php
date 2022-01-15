@@ -123,14 +123,14 @@ Route::group([
         });
 
         Route::prefix('mahasiswa')->group(function () {
-            Route::get('list', 'MahasiswaController@list');
-            Route::get('detail/{id_mahasiswa}', 'MahasiswaController@detail');
-            Route::get('list/{status}', 'MahasiswaController@status');
-            Route::get('regis{jenis_daftar}', 'MahasiswaController@regis');
+            Route::get('list_mahasiswa', 'MahasiswaController@list');
+            Route::get('detail', 'MahasiswaController@detail');
+            Route::get('list_status', 'MahasiswaController@status');
+            Route::get('list_regis', 'MahasiswaController@regis');
+            Route::get('smt_keaktifan', 'MahasiswaController@semester_keaktifan');
         });
     });
 
-<<<<<<< Updated upstream
     Route::group([
         'namespace' => 'Tracer',
         'prefix' => 'tracer'
@@ -138,15 +138,6 @@ Route::group([
         Route::get('hasil_tracer_study', 'TracerStudyController@index');
         Route::post('hasil_tracer_study/simpan', 'TracerStudyController@store');
     });
-=======
-    // Route::group([
-    //     'namespace' => 'Tracer',
-    //     'prefix' => 'tracer'
-    // ], function () {
-    //     Route::get('hasil_tracer_study', 'Tracer\TracerStudyController@index');
-    //     Route::post('hasil_tracer_study/simpan', 'Tracer\TracerStudyController@store');
-    // });
->>>>>>> Stashed changes
 
 });
 
