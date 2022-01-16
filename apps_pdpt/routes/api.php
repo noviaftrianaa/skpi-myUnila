@@ -129,6 +129,7 @@ Route::group([
             Route::get('list_status', 'MahasiswaController@status');
             Route::get('list_regis', 'MahasiswaController@regis');
             Route::get('smt_keaktifan', 'MahasiswaController@semester_keaktifan');
+            Route::get('list_alumni', 'MahasiswaController@alumni');
         });
     });
 
@@ -138,6 +139,8 @@ Route::group([
     ], function () {
         Route::get('hasil_tracer_study', 'TracerStudyController@index');
         Route::post('hasil_tracer_study/simpan', 'TracerStudyController@store');
+        Route::put('hasil_tracer_study/update', 'TracerStudyController@update');
+        Route::delete('hasil_tracer_study/hapus', 'TracerStudyController@destroy');
     });
 
 });

@@ -41,22 +41,20 @@ class TracerStudyController extends Controller
      */
     public function index()
     {
-        $listdata = DB::SELECT("
-            SELECT TOP 50
-                tc_study.id_reg_pd, reg.nipd AS npm, pd.nm_pd, pd.jk,
-                CONCAT(sms.nm_lemb, '(',jenjang.nm_jenj_didik,')')  AS nm_prodi,
-                kul.ipk, tc_study.id_thn_ajaran, tc_study.id_smt,
-                tc_study.wkt_pengisian, tc_study.wkt_tunggu,
-                tc_study.status_lulusan, tc_study.jns_tmpt_bekerja,
-                wilayah.nm_wil, tc_study.nm_tmpt_bekerja,
-                tc_study.income_per_bln, tc_study_ats.email_atasan,
-                tc_study_ats.nm_atasan, tc_study_ats.jabatan_atasan,
-                tc_study_ats.saran, tc_study_ats.harapan
+        $data_alumni = DB::SELECT("
+            SELECT DISTINCT
+                reg.id_reg_pd, pd.id_pd, pd.nm_pd, reg.nipd AS npm, CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi,
+                ts.id_thn_ajaran AS angkatan, kul.biaya_smt, kul.ipk, kul.total_sks, pd.nik, pd.jk, pd.tlpn_hp, jd.nm_jalur_daftar,
+                reg.tgl_keluar AS tgl_lulus, reg.tgl_sk_yudisium AS tgl_wisuda
             FROM tracer.hasil_tracer_study AS tc_study WITH(NOLOCK)
             JOIN ref.wilayah AS wilayah WITH(NOLOCK) ON wilayah.id_wil = tc_study.id_wil
                 AND wilayah.expired_date IS NULL
-            JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_reg_pd = tc_study.id_reg_pd
+            LEFT JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_reg_pd = tc_study.id_reg_pd
                 AND reg.soft_delete = 0
+            JOIN ref.jalur_daftar AS jd WITH(NOLOCK) ON jd.id_jalur_daftar = reg.id_jalur_daftar
+                AND jd.expired_date IS NULL
+            JOIN pdrd.peserta_didik AS pd WITH(NOLOCK) ON pd.id_pd = reg.id_pd
+                AND pd.soft_delete = 0
             LEFT JOIN (
                 SELECT MAX(id_smt) as smt, id_reg_pd FROM pdrd.kuliah_mhs WITH(NOLOCK)
                 WHERE soft_delete = 0
@@ -66,21 +64,84 @@ class TracerStudyController extends Controller
                 AND kul.id_reg_pd = kuliah.id_reg_pd
                 AND kul.soft_delete = 0
             JOIN pdrd.sms AS sms WITH(NOLOCK) ON  sms.id_sms = reg.id_sms
-                AND reg.soft_delete = 0
+                AND sms.soft_delete = 0
             JOIN ref.jenjang_pendidikan AS jenjang WITH(NOLOCK) ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
-            JOIN pdrd.peserta_didik AS pd WITH(NOLOCK) ON pd.id_pd = reg.id_pd
-                AND reg.soft_delete = 0
-            JOIN tracer.hasil_tracer_atasan AS tc_study_ats ON tc_study.id_hasil_tracer_study = tc_study_ats.id_hasil_tracer_study
-                AND reg.soft_delete = 0
+            JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt=reg.id_semester_masuk
+                AND ts.expired_date IS NULL
             WHERE tc_study.soft_delete = 0;
         ");
+
+        $hasil_tracer_study = DB::SELECT("
+            SELECT
+                tc_study.id_hasil_tracer_study, tc_study.id_thn_ajaran, tc_study.id_smt,
+                tc_study.wkt_pengisian, tc_study.wkt_tunggu,
+                tc_study.status_lulusan, tc_study.jns_tmpt_bekerja,
+                wilayah.nm_wil, tc_study.nm_tmpt_bekerja,
+                tc_study.income_per_bln
+                FROM tracer.hasil_tracer_study AS tc_study WITH(NOLOCK)
+            JOIN ref.wilayah AS wilayah WITH(NOLOCK) ON wilayah.id_wil = tc_study.id_wil
+                AND wilayah.expired_date IS NULL
+            WHERE tc_study.id_reg_pd = '".$data_alumni[0]->id_reg_pd."'
+                AND tc_study.soft_delete = 0;
+        ");
+
+        // foreach ($tracer_study as $each_data) {
+        //     $hasil_tracer_study[] = [
+        //         'id_hasil_tracer_study' => $each_data->id_hasil_tracer_study,
+        //         'id_thn_ajaran' => $each_data->id_thn_ajaran,
+        //         'id_smt' => $each_data->id_smt,
+        //         'wkt_pengisian' => $each_data->wkt_pengisian,
+        //         'wkt_tunggu' => $each_data->wkt_tunggu,
+        //         'status_lulusan' => $each_data->status_lulusan,
+        //         'jns_tmpt_bekerja' => $each_data->jns_tmpt_bekerja,
+        //         'nm_wil' => $each_data->nm_wil,
+        //         'nm_tmpt_bekerja' => $each_data->nm_tmpt_bekerja,
+        //         'income_per_bln' => $each_data->income_per_bln
+        //     ];
+        // }
+
+        $tracer_study_atasan = DB::SELECT("
+            SELECT
+                tc_study_ats.id_hasil_tracer_atasan, tc_study_ats.email_atasan, tc_study_ats.nm_atasan,
+                wilayah.nm_wil, negara.nm_negara, tc_study_ats.jabatan_atasan, tc_study_ats.nm_tmpt_bekerja,
+                tc_study_ats.bidang_tempat_bekerja, tc_study_ats.saran, tc_study_ats.harapan
+            FROM tracer.hasil_tracer_atasan AS tc_study_ats WITH(NOLOCK)
+            JOIN ref.wilayah AS wilayah WITH(NOLOCK) ON wilayah.id_wil = tc_study_ats.id_wil
+                AND wilayah.expired_date IS NULL
+            JOIN ref.negara AS negara WITH(NOLOCK) ON negara.id_negara = tc_study_ats.id_negara
+                AND wilayah.expired_date IS NULL
+            WHERE tc_study_ats.id_hasil_tracer_study = '".$hasil_tracer_study[0]->id_hasil_tracer_study."'
+                AND tc_study_ats.soft_delete = 0;
+        ");
+
+        foreach ($data_alumni as $each_data) {
+            $data[] = [
+                'id_pd' => $each_data->id_pd,
+                'id_reg_pd' => $each_data->id_reg_pd,
+                'nm_pd' => $each_data->nm_pd,
+                'npm' => $each_data->npm,
+                'nm_prodi' => $each_data->nm_prodi,
+                'angkatan' => $each_data->angkatan,
+                'biaya_smt' => $each_data->biaya_smt,
+                'ipk' => $each_data->ipk,
+                'total_sks' => $each_data->total_sks,
+                'nik' => $each_data->nik,
+                'jk' => $each_data->jk,
+                'tlpn_hp' => $each_data->tlpn_hp,
+                'nm_jalur_daftar' => $each_data->nm_jalur_daftar,
+                'tgl_lulus' => $each_data->tgl_lulus,
+                'tgl_wisuda' => $each_data->tgl_wisuda,
+                'hasil_tracer_study' => $hasil_tracer_study,
+                'hasil_tracer_study_atasan' => $tracer_study_atasan
+            ];
+        }
 
 
         return response()->json([
             'status' => true,
             'message' => 'success',
-            'data'  => $listdata
+            'data'  => $data
         ]);
     }
 
@@ -100,7 +161,7 @@ class TracerStudyController extends Controller
      *      operationId="postTracerStudy",
      *      tags={"Tracer Study"},
      *      summary="Simpan hasil Tracer Study",
-     *      description="Menampilkan daftar data TracerStudy",
+     *      description="Menyimpan data Hasil TracerStudy",
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -156,11 +217,11 @@ class TracerStudyController extends Controller
                 'id_hasil_tracer_atasan' => $id_hasil_tracer_atasan,
                 'id_hasil_tracer_study' => $data->id_hasil_tracer_study,
                 'id_negara' => $request->id_negara,
-                'id_wil' => $request->id_wil,
+                'id_wil' => $request->id_wil_atasan,
                 'email_atasan' => $request->email_atasan,
                 'nm_atasan' => $request->nm_atasan,
                 'jabatan_atasan' => $request->jabatan_atasan,
-                'nm_tmpt_bekerja' => $request->nm_tmpt_bekerja,
+                'nm_tmpt_bekerja' => $request->nm_tmpt_bekerja_atasan,
                 'bidang_tempat_bekerja' => $request->bidang_tempat_bekerja,
                 'saran' => $request->saran,
                 'harapan' => $request->harapan,
@@ -218,16 +279,97 @@ class TracerStudyController extends Controller
     }
 
     /**
+     * @OA\Post(
+     *      path="/hasil_tracer_study/update",
+     *      operationId="putHasilTracerStudy",
+     *      tags={"Tracer Study"},
+     *      summary="Memperbaharui hasil Tracer Study",
+     *      description="Memperbaharui  data Hasil TracerStudy",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
+
+    /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
-        //
+        DB::beginTransaction();
+        try {
+
+            $hasil_tracer_study = HasilTracerStudy::where('id_hasil_tracer_study', $request->id_hasil_tracer_study)->first();
+            $hasil_tracer_study->update([
+                'wkt_pengisian' => $request->wkt_pengisian,
+                'wkt_tunggu' => $request->wkt_tunggu,
+                'status_lulusan' => $request->status_lulusan,
+                'jns_tmpt_bekerja' => $request->jns_tmpt_bekerja,
+                'nm_tmpt_bekerja' => $request->nm_tmpt_bekerja,
+                'income_per_bln' => $request->income_per_bln,
+                ]);
+
+            $hasil_tracer_study_atasan = HasilTracerAtasan::where('id_hasil_tracer_study', $hasil_tracer_study->id_hasil_tracer_study)->first();
+            $hasil_tracer_study_atasan->update([
+                'email_atasan' => $request->email_atasan,
+                'nm_atasan' => $request->nm_atasan,
+                'jabatan_atasan' => $request->jabatan_atasan,
+                'nm_tmpt_bekerja' => $request->nm_tmpt_bekerja_atasan,
+                'bidang_tempat_bekerja' => $request->bidang_tempat_bekerja,
+                'saran' => $request->saran,
+                'harapan' => $request->harapan,
+            ]);
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => 'Data berhasil diupdate'
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Data gagal diupdate'
+            ], 400);
+        }
     }
+
+    /**
+     * @OA\Post(
+     *      path="/hasil_tracer_study/delete",
+     *      operationId="deleteTracerStudy",
+     *      tags={"Tracer Study"},
+     *      summary="Menghapus hasil Tracer Study",
+     *      description="Menghapus data hasil TracerStudy",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
 
     /**
      * Remove the specified resource from storage.
@@ -235,8 +377,28 @@ class TracerStudyController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request)
     {
-        //
+        DB::beginTransaction();
+        try {
+
+        $hasil_tracer_study = HasilTracerStudy::where('id_hasil_tracer_study', $request->id_hasil_tracer_study)->first();
+        $hasil_tracer_study->update([ 'soft_delete' => 1 ]);
+
+        $hasil_tracer_study_atasan = HasilTracerAtasan::where('id_hasil_tracer_study', $hasil_tracer_study->id_hasil_tracer_study)->first();
+        $hasil_tracer_study_atasan->update([ 'soft_delete' => 1 ]);
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => 'Data berhasil dihapus'
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Data gagal dihapus'
+            ], 400);
+        }
     }
 }
