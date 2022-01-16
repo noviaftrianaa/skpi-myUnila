@@ -116,6 +116,7 @@ Route::group([
             Route::get('/', 'PenelitianController@getAllListPenelitian');
             Route::get('list/by', 'PenelitianController@getListPenelitianBySdmId');
             Route::get('detail/by', 'PenelitianController@getDetailPenelitianByPenelitianId');
+            Route::post('create', 'PenelitianController@storeNewPenelitian');
         });
 
         Route::prefix('pengabdian')->group(function() {

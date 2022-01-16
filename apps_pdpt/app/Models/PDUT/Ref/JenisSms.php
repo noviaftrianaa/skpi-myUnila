@@ -2,15 +2,15 @@
 
 namespace App\Models\PDUT\Ref;
 
-use App\Models\AbstractionModel;
+use Illuminate\Database\Eloquent\Model;
 
-class JenisSms extends AbstractionModel
+class JenisSms extends Model
 {
     protected $table = 'ref.jenis_sms';
     protected $primaryKey = 'id_jns_sms';
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_jns_sms',	'nm_jns_sms',
+	'id_jns_sms',	'nm_jns_sms',	'create_date',	'last_update',	'expired_date',	'last_sync',
     ];
 }

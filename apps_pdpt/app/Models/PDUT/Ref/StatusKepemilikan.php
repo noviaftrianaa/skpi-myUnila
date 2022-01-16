@@ -2,15 +2,15 @@
 
 namespace App\Models\PDUT\Ref;
 
-use App\Models\AbstractionModel;
+use Illuminate\Database\Eloquent\Model;
 
-class StatusKepemilikan extends AbstractionModel
+class StatusKepemilikan extends Model
 {
     protected $table = 'ref.status_kepemilikan';
     protected $primaryKey = 'id_stat_milik';
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_stat_milik',	'nm_stat_milik',
+	'id_stat_milik',	'nm_stat_milik',	'create_date',	'last_update',	'expired_date',	'last_sync',
     ];
 }
