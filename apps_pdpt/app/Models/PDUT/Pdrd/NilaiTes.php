@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Models\PDUT\Ref;
+namespace App\Models\PDUT\Pdrd;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class NilaiTes extends AbstractionModel
 {
     protected $table = 'pdrd.nilai_tes';
-    protected $primaryKey = 'id_creator';
+    protected $primaryKey = 'id_nilai_tes';
+    public $timestamps = false;
+    public $incrementing = false;
     protected $fillable = [
-    	'id_creator',		'id_jns_tes',		'id_nilai_tes',		'id_sdm',		'id_updater',		'nm_nilai_tes',		'penyelenggara',		'skor',		'soft_delete',		'tgl_tes',		'thn',
+	'id_nilai_tes',	'id_sdm',	'id_jns_tes',	'nm_nilai_tes',	'penyelenggara',	'thn',	'skor',	'tgl_tes',	'id_creator',	'id_updater',	'soft_delete',
     ];
 }

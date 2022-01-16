@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Models\PDUT\Ref;
+namespace App\Models\PDUT\Pdrd;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class ProfilPt extends AbstractionModel
 {
     protected $table = 'pdrd.profil_pt';
-    protected $primaryKey = 'alasan_transfer_mhs';
+    protected $primaryKey = 'id_sp';
+    public $timestamps = false;
+    public $incrementing = false;
     protected $fillable = [
-    	'alasan_transfer_mhs',		'desk_singkat',		'eval_lulusan',		'id_creator',		'id_sp',		'id_thn_ajaran',		'id_updater',		'manfaat_tik',		'mekanisme_eval_lulusan',		'misi',		'peran_ajar',		'peran_suasana_akad',		'peran_susun_kur',		'pola_pimpin',		'renc_kembang_si',		'sasaran',		'sebar_info',		'seleksi_terima',		'sistem_jamin_mutu',		'sistem_kelola',		'soft_delete',		'tujuan',		'visi',
+	'id_sp',	'id_thn_ajaran',	'desk_singkat',	'visi',	'misi',	'tujuan',	'sasaran',	'seleksi_terima',	'pola_pimpin',	'sistem_kelola',	'sistem_jamin_mutu',	'alasan_transfer_mhs',	'peran_ajar',	'peran_susun_kur',	'peran_suasana_akad',	'manfaat_tik',	'sebar_info',	'renc_kembang_si',	'eval_lulusan',	'mekanisme_eval_lulusan',	'id_creator',	'id_updater',	'soft_delete',
     ];
 }

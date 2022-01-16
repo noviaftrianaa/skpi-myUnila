@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Models\PDUT\Ref;
+namespace App\Models\PDUT\Pdrd;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class MitraLitabmas extends AbstractionModel
 {
     protected $table = 'pdrd.mitra_litabmas';
-    protected $primaryKey = 'id_creator';
+    protected $primaryKey = 'id_dudi';
+    public $timestamps = false;
+    public $incrementing = false;
     protected $fillable = [
-    	'id_creator',		'id_dudi',		'id_litabmas',		'id_updater',		'soft_delete',
+	'id_dudi',	'id_litabmas',	'id_creator',	'id_updater',	'soft_delete',
     ];
 }

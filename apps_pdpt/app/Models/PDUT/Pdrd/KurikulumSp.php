@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Models\PDUT\Ref;
+namespace App\Models\PDUT\Pdrd;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class KurikulumSp extends AbstractionModel
 {
     protected $table = 'pdrd.kurikulum_sp';
-    protected $primaryKey = 'a_digunakan';
+    protected $primaryKey = 'id_kurikulum_sp';
+    public $timestamps = false;
+    public $incrementing = false;
     protected $fillable = [
-    	'a_digunakan',		'id_creator',		'id_jenj_didik',		'id_kurikulum_sp',		'id_updater',		'jmlh_sks_lulus',		'jmlh_sks_pilihan',		'jmlh_sks_wajib',		'jmlh_smt_normal',		'nm_kurikulum_sp',		'soft_delete',
+	'id_kurikulum_sp',	'id_jenj_didik',	'nm_kurikulum_sp',	'jmlh_smt_normal',	'a_digunakan',	'jmlh_sks_lulus',	'jmlh_sks_wajib',	'jmlh_sks_pilihan',	'id_creator',	'id_updater',	'soft_delete',
     ];
 }

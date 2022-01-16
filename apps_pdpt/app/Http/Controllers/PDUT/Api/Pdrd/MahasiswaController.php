@@ -5,6 +5,7 @@ namespace App\Http\Controllers\PDUT\Api\Pdrd;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use PackageVersions\FallbackVersions;
 
 class MahasiswaController extends Controller
 {
@@ -32,7 +33,7 @@ class MahasiswaController extends Controller
      */
     public function list()
     {
-        $listdata = DB::SELECT("
+        $query = DB::SELECT("
             SELECT TOP 50
                 pd.id_pd, reg.nipd AS npm, pd.nm_pd,
                 CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi,
@@ -62,10 +63,25 @@ class MahasiswaController extends Controller
             ORDER BY ts.id_thn_ajaran DESC, pd.nm_pd ASC;
         ");
 
+        $list_mahasiswa = [];
+        foreach ($query as $each_data) {
+            $list_mahasiswa[] = [
+                'id_peserta_didik' => $each_data->id_pd,
+                'NPM' => $each_data->npm,
+                'nama_mahasiswa' => $each_data->nm_pd,
+                'program_study' => $each_data->nm_prodi,
+                'semester_masuk' => $each_data->id_semester_masuk,
+                'status_sekarang' => $each_data->status_sekarang,
+                'semester_sekarang,' => $each_data->smt,
+                'ips' => $each_data->ips,
+                'ipk' => $each_data->ipk
+            ];
+        }
+
         return response()->json([
             'status' => true,
-            'message' => 'success',
-            'data'  => $listdata
+            'message' => 'Berhasil mengambil data list Mahasiswa',
+            'data'  => $list_mahasiswa
         ]);
     }
 
@@ -92,10 +108,17 @@ class MahasiswaController extends Controller
      *      security={{"bearer_token":{}}}
      *     )
      */
-    public function detail($id_mahasiswa)
+    public function detail(Request $request)
     {
-        $listdata = DB::SELECT("
-            SELECT TOP 10
+        if (empty($request->id_reg_pd)) {
+            return response()->json([
+                'status' => False,
+                'message' => "Parameter tidak sesuai"
+            ]);
+        }
+
+        $detail_mahasiswa = DB::SELECT("
+            SELECT
                     reg.id_reg_pd, reg.nipd AS npm, pd.nm_pd, CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi, reg.id_semester_masuk, kul.id_stat_mhs AS status_sekarang, reg.tgl_masuk_sp, reg.id_semester_masuk, reg.id_pt_asal, reg.nm_pt_asal, reg.id_prodi_asal, reg.nm_prodi_asal,
                     reg.id_jns_keluar, reg.tgl_keluar, reg.ket, reg.skhun, reg.no_peserta_ujian, reg.no_seri_ijazah, reg.asal_data_ijazah, reg.bidang_mayor,
                     reg.bidang_minor, reg.sks_diakui, reg.jalur_skripsi, reg.judul_skripsi, reg.bln_awal_bimbingan, reg.bln_akhir_bimbingan, reg.sk_yudisium,
@@ -128,13 +151,21 @@ class MahasiswaController extends Controller
                     AND jd.expired_date IS NULL
                 JOIN ref.pembiayaan AS pmb WITH(NOLOCK) ON pmb.id_pembiayaan = reg.id_pembiayaan
                     AND jd.expired_date IS NULL
-                WHERE reg.id_reg_pd = '".$id_mahasiswa."' AND reg.soft_delete = 0;
+                WHERE reg.id_reg_pd = '".$request->id_reg_pd."'
+                    AND reg.soft_delete = 0;
         ");
+
+        if (empty($detail_mahasiswa)) {
+            return response()->json([
+                'status' => False,
+                'message' => "Data tidak ditemukan"
+            ]);
+        }
 
         return response()->json([
             'status' => true,
             'message' => 'success',
-            'data'  => $listdata
+            'data'  => $detail_mahasiswa
         ]);
     }
 
@@ -160,10 +191,17 @@ class MahasiswaController extends Controller
      *      security={{"bearer_token":{}}}
      *     )
      */
-    public function status($status)
+    public function status(Request $request)
     {
-        $listdata = DB::SELECT("
-            SELECT TOP 5
+        if (empty($request->id_stat_mhs)) {
+            return response()->json([
+                'status' => False,
+                'message' => "Parameter tidak sesuai"
+            ]);
+        }
+
+        $list_status_mahasiswa = DB::SELECT("
+            SELECT TOP 50
                 pd.id_pd, reg.nipd AS npm, pd.nm_pd,
                 CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi,
                 reg.id_semester_masuk, kul.id_stat_mhs AS status_sekarang,
@@ -181,7 +219,7 @@ class MahasiswaController extends Controller
             )AS kuliah ON kuliah.id_reg_pd = reg.id_reg_pd
             JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_smt = kuliah.smt
                 AND kul.id_reg_pd = kuliah.id_reg_pd
-                AND kul.id_stat_mhs = '".$status."'
+                AND kul.id_stat_mhs = '".$request->id_stat_mhs."'
                 AND kul.soft_delete = 0
             JOIN pdrd.sms AS sms WITH(NOLOCK) ON  sms.id_sms = reg.id_sms
                 AND sms.soft_delete = 0
@@ -193,10 +231,17 @@ class MahasiswaController extends Controller
             ORDER BY ts.id_thn_ajaran DESC, pd.nm_pd ASC;
         ");
 
+        if (empty($list_status_mahasiswa)) {
+            return response()->json([
+                'status' => False,
+                'message' => "Data tidak ditemukan"
+            ]);
+        }
+
         return response()->json([
             'status' => true,
             'message' => 'success',
-            'data'  => $listdata
+            'data'  => $list_status_mahasiswa
         ]);
     }
 
@@ -222,19 +267,28 @@ class MahasiswaController extends Controller
      *      security={{"bearer_token":{}}}
      *     )
      */
-    public function regis($jenis_daftar)
+    public function regis(Request $request)
     {
-        $listdata = DB::SELECT("
+        if (empty($request->id_jns_daftar)) {
+            return response()->json([
+                'status' => False,
+                'message' => "Parameter tidak sesuai"
+            ]);
+        }
+
+        $query = DB::SELECT("
             SELECT TOP 50
-                pd.id_pd, reg.nipd AS npm, pd.nm_pd,
+                pd.id_pd, daftar.nm_jns_daftar, reg.nipd AS npm, pd.nm_pd,
                 CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi,
                 reg.id_semester_masuk, kul.id_stat_mhs AS status_sekarang,
                 ts.smt, kul.ips, kul.ipk
             FROM pdrd.peserta_didik AS pd WITH(NOLOCK)
             JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
-                AND reg.id_jns_daftar = '".$jenis_daftar."'
+                AND reg.id_jns_daftar = '".$request->id_jns_daftar."'
                 AND reg.soft_delete = 0
                 AND reg.id_jns_keluar IS NULL
+            JOIN ref.jenis_pendaftaran AS daftar WITH(NOLOCK) ON daftar.id_jns_daftar = reg.id_jns_daftar
+                AND daftar.expired_date IS NULL
             JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = reg.id_semester_masuk
                 AND smt.expired_date IS NULL
                 LEFT JOIN (
@@ -255,11 +309,33 @@ class MahasiswaController extends Controller
             ORDER BY ts.id_thn_ajaran DESC, pd.nm_pd ASC;
         ");
 
+        if (empty($query)) {
+            return response()->json([
+                'status' => False,
+                'message' => "Data tidak ditemukan"
+            ]);
+        }
+
+        $list_jns_daftar = [];
+        foreach ($query as $each_data) {
+            $list_jns_daftar[] = [
+                'id_peserta_didik' => $each_data->id_pd,
+                'jenis_pendaftaran' => $each_data->nm_jns_daftar,
+                'NPM' => $each_data->npm,
+                'nama_mahasiswa' => $each_data->nm_pd,
+                'program_study' => $each_data->nm_prodi,
+                'semester_masuk' => $each_data->id_semester_masuk,
+                'status_sekarang' => $each_data->status_sekarang,
+                'semester_sekarang,' => $each_data->smt,
+                'ips' => $each_data->ips,
+                'ipk' => $each_data->ipk
+            ];
+        }
 
         return response()->json([
             'status' => true,
             'message' => 'success',
-            'data'  => $listdata
+            'data'  => $list_jns_daftar
         ]);
     }
 
@@ -285,17 +361,87 @@ class MahasiswaController extends Controller
      *      security={{"bearer_token":{}}}
      *     )
      */
-    public function semester_keaktifan()
+    public function semester_keaktifan(Request $request)
     {
-        $listdata = DB::SELECT("
+        if (empty($request->id_pd)) {
+            return response()->json([
+                'status' => False,
+                'message' => "Parameter tidak sesuai"
+            ]);
+        }
 
+        $data_mahasiswa = DB::SELECT("
+            SELECT
+                pd.id_pd, reg.id_reg_pd, reg.nipd AS npm, pd.nm_pd,
+                CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi,
+                kul.id_stat_mhs AS status_sekarang,
+                ts.smt, kul.ips, kul.ipk, ts.id_thn_ajaran as angkatan
+            FROM pdrd.peserta_didik AS pd WITH(NOLOCK)
+            JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
+                AND reg.id_pd = '".$request->id_pd."'
+                AND reg.soft_delete = 0
+                AND reg.id_jns_keluar IS NULL
+            JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = reg.id_semester_masuk
+                AND smt.expired_date IS NULL
+                LEFT JOIN (
+                SELECT MAX(id_smt) as smt, id_reg_pd FROM pdrd.kuliah_mhs WITH(NOLOCK)
+                WHERE soft_delete = 0
+                GROUP BY id_reg_pd
+            )AS kuliah ON kuliah.id_reg_pd = reg.id_reg_pd
+            JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_smt = kuliah.smt
+                AND kul.id_reg_pd = kuliah.id_reg_pd
+                AND kul.soft_delete = 0
+            JOIN pdrd.sms AS sms WITH(NOLOCK) ON  sms.id_sms = reg.id_sms
+                AND sms.soft_delete = 0
+            JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = sms.id_jenj_didik
+                AND jenjang.expired_date IS NULL
+            JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt=reg.id_semester_masuk
+                AND ts.expired_date IS NULL
+            WHERE reg.soft_delete = 0;
         ");
 
+        $semester = DB::SELECT("
+            SELECT
+                ts.nm_smt AS periode,
+                kul.id_stat_mhs,
+                kul.sks_semester,
+                kul.ips,
+                kul.ipk,
+                kul.total_sks AS sks_lulus
+            FROM pdrd.kuliah_mhs as kul
+            JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_reg_pd = kul. id_reg_pd
+            JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt=kul.id_smt
+                AND ts.expired_date IS NULL
+            WHERE kul.id_reg_pd = '".$data_mahasiswa[0]->id_reg_pd."';
+        ");
+
+        foreach ($data_mahasiswa as $each_data) {
+            $data[] = [
+                'id_pd' => $each_data->id_pd,
+                'id_reg_pd' => $each_data->id_reg_pd,
+                'npm' => $each_data->npm,
+                'nm_pd' => $each_data->nm_pd,
+                'nm_prodi' => $each_data->nm_prodi,
+                'status_sekarang' => $each_data->status_sekarang,
+                'smt ' => $each_data->smt,
+                'ips ' => $each_data->ips,
+                'ipk' => $each_data->ipk,
+                'angkatan' => $each_data->angkatan,
+                'semester' => $semester
+            ];
+        }
+
+        if (empty($data_mahasiswa)) {
+            return response()->json([
+                'status' => False,
+                'message' => "Data tidak ditemukan"
+            ]);
+        }
 
         return response()->json([
             'status' => true,
             'message' => 'success',
-            'data'  => $listdata
+            'data'  => $data
         ]);
     }
 }

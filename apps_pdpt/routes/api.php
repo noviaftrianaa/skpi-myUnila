@@ -113,8 +113,9 @@ Route::group([
         });
 
         Route::prefix('penelitian')->group(function () {
-            Route::get('list', 'PenelitianController@index');
-             Route::post('list', 'PenelitianController@getListPenelitianBySdmId');
+            Route::get('/', 'PenelitianController@getAllListPenelitian');
+            Route::get('list/by', 'PenelitianController@getListPenelitianBySdmId');
+            Route::get('detail/by', 'PenelitianController@getDetailPenelitianByPenelitianId');
         });
 
         Route::prefix('pengabdian')->group(function() {
@@ -122,10 +123,11 @@ Route::group([
         });
 
         Route::prefix('mahasiswa')->group(function () {
-            Route::get('list', 'MahasiswaController@list');
-            Route::get('detail/{id_mahasiswa}', 'MahasiswaController@detail');
-            Route::get('list/{status}', 'MahasiswaController@status');
-            Route::get('regis{jenis_daftar}', 'MahasiswaController@regis');
+            Route::get('list_mahasiswa', 'MahasiswaController@list');
+            Route::get('detail', 'MahasiswaController@detail');
+            Route::get('list_status', 'MahasiswaController@status');
+            Route::get('list_regis', 'MahasiswaController@regis');
+            Route::get('smt_keaktifan', 'MahasiswaController@semester_keaktifan');
         });
     });
 

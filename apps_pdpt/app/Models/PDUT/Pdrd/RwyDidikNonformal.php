@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Models\PDUT\Ref;
+namespace App\Models\PDUT\Pdrd;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class RwyDidikNonformal extends AbstractionModel
 {
     protected $table = 'pdrd.rwy_didik_nonformal';
-    protected $primaryKey = 'id_creator';
+    protected $primaryKey = 'id_rwy_didik_nonformal';
+    public $timestamps = false;
+    public $incrementing = false;
     protected $fillable = [
-    	'id_creator',		'id_rwy_didik_formal',		'id_rwy_didik_nonformal',		'id_sms',		'id_updater',		'level_kkni',		'nm_prodi_penyetara',		'no_sk_setara',		'soft_delete',		'tgl_sk_setara',		'tmt_sk_setara',
+	'id_rwy_didik_nonformal',	'id_sms',	'id_rwy_didik_formal',	'no_sk_setara',	'tgl_sk_setara',	'tmt_sk_setara',	'level_kkni',	'nm_prodi_penyetara',	'id_creator',	'id_updater',	'soft_delete',
     ];
 }

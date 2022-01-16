@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Models\PDUT\Ref;
+namespace App\Models\PDUT\Pdrd;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class Penghargaan extends AbstractionModel
 {
     protected $table = 'pdrd.penghargaan';
-    protected $primaryKey = 'id_creator';
+    protected $primaryKey = 'id_penghargaan';
+    public $timestamps = false;
+    public $incrementing = false;
     protected $fillable = [
-    	'id_creator',		'id_jns_penghargaan',		'id_katgiat',		'id_penghargaan',		'id_sdm',		'id_tkt_penghargaan',		'id_updater',		'instansi',		'nm_penghargaan',		'soft_delete',		'tgl_penghargaan',		'thn_penghargaan',
+	'id_penghargaan',	'id_sdm',	'id_jns_penghargaan',	'id_tkt_penghargaan',	'id_katgiat',	'nm_penghargaan',	'tgl_penghargaan',	'thn_penghargaan',	'instansi',	'id_creator',	'id_updater',	'soft_delete',
     ];
 }

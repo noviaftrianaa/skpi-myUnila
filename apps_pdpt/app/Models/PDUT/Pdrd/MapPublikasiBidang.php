@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Models\PDUT\Ref;
+namespace App\Models\PDUT\Pdrd;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class MapPublikasiBidang extends AbstractionModel
 {
     protected $table = 'pdrd.map_publikasi_bidang';
-    protected $primaryKey = 'id_creator';
+    protected $primaryKey = 'id_kel_bidang';
+    public $timestamps = false;
+    public $incrementing = false;
     protected $fillable = [
-    	'id_creator',		'id_kel_bidang',		'id_publikasi',		'id_updater',		'soft_delete',		'urutan',
+	'id_kel_bidang',	'id_publikasi',	'urutan',	'id_creator',	'id_updater',	'soft_delete',
     ];
 }

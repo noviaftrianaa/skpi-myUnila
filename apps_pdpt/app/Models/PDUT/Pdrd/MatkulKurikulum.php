@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Models\PDUT\Ref;
+namespace App\Models\PDUT\Pdrd;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class MatkulKurikulum extends AbstractionModel
 {
     protected $table = 'pdrd.matkul_kurikulum';
-    protected $primaryKey = 'a_wajib';
+    protected $primaryKey = 'id_kurikulum_sp';
+    public $timestamps = false;
+    public $incrementing = false;
     protected $fillable = [
-    	'a_wajib',		'id_creator',		'id_kurikulum_sp',		'id_mk',		'id_updater',		'sks_mk',		'sks_prak',		'sks_prak_lap',		'sks_sim',		'sks_tm',		'smt',		'soft_delete',
+	'id_kurikulum_sp',	'id_mk',	'smt',	'sks_mk',	'sks_tm',	'sks_prak',	'sks_prak_lap',	'sks_sim',	'a_wajib',	'id_creator',	'id_updater',	'soft_delete',
     ];
 }

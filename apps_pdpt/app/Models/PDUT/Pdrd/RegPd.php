@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Models\PDUT\Ref;
+namespace App\Models\PDUT\Pdrd;
 
 use App\Models\AbstractionModel;
-use Illuminate\Database\Eloquent\Model;
 
 class RegPd extends AbstractionModel
 {
     protected $table = 'pdrd.reg_pd';
-    protected $primaryKey = 'a_pindah_mhs_asing';
+    protected $primaryKey = 'id_reg_pd';
+    public $timestamps = false;
+    public $incrementing = false;
     protected $fillable = [
-    	'a_pindah_mhs_asing',		'asal_data_ijazah',		'biaya_masuk_kuliah',		'bidang_mayor',		'bidang_minor',		'bln_akhir_bimbingan',		'bln_awal_bimbingan',		'id_creator',		'id_jalur_daftar',		'id_jns_daftar',		'id_jns_keluar',		'id_pd',		'id_pembiayaan',		'id_prodi_asal',		'id_pt_asal',		'id_reg_pd',		'id_semester_masuk',		'id_sms',		'id_smt',		'id_sp',		'id_updater',		'ipk',		'jalur_skripsi',		'judul_skripsi',		'ket',		'nipd',		'nm_prodi_asal',		'nm_pt_asal',		'no_peserta_ujian',		'no_seri_ijazah',		'sert_prof',		'sk_yudisium',		'skhun',		'sks_diakui',		'soft_delete',		'tgl_keluar',		'tgl_masuk_sp',		'tgl_sk_yudisium',
+	'id_reg_pd',	'id_sp',	'id_sms',	'id_pd',	'id_jns_daftar',	'id_jalur_daftar',	'id_pembiayaan',	'id_smt',	'tgl_masuk_sp',	'nipd',	'id_semester_masuk',	'id_pt_asal',	'nm_pt_asal',	'id_prodi_asal',	'nm_prodi_asal',	'id_jns_keluar',	'tgl_keluar',	'ket',	'skhun',	'no_peserta_ujian',	'no_seri_ijazah',	'asal_data_ijazah',	'bidang_mayor',	'bidang_minor',	'sks_diakui',	'jalur_skripsi',	'judul_skripsi',	'bln_awal_bimbingan',	'bln_akhir_bimbingan',	'sk_yudisium',	'tgl_sk_yudisium',	'ipk',	'sert_prof',	'a_pindah_mhs_asing',	'biaya_masuk_kuliah',	'id_creator',	'id_updater',	'soft_delete',
     ];
 }

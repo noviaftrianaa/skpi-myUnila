@@ -8,9 +8,9 @@ use Illuminate\Support\Str;
 
 class TemplatePdrdCommand extends Command
 {
-    protected $signature = 'make:pdrd';
+    protected $signature = 'generate:pdrd';
 
-    protected $description = 'Create Pdrd Controller From Template';
+    protected $description = 'Create Pdrd Controller And Model From Template';
 
     public function __construct()
     {
@@ -33,20 +33,22 @@ class TemplatePdrdCommand extends Command
                 t.modify_date
             FROM sys.tables t
             WHERE SCHEMA_NAME(t.schema_id) =" . "'" . $schema_name . "'" . "
-            ORDER by table_name
+            ORDER BY table_name ASC
         ");
-
+ 
         $data = [];
         foreach ($getTable as $t) {
             $getColumn = DB::select("
                 SELECT c.name AS column_name,c.column_id
                 FROM sys.columns AS c
-                JOIN sys.tables AS t ON c.object_id=t.object_id
+                JOIN sys.tables AS t ON c.object_id = t.object_id
                 WHERE c.object_id = OBJECT_ID(" . "'" . $schema_name . "." . $t->table_name . "'" . ") 
                     AND c.name != 'create_date'
                     AND c.name != 'last_sync'
                     AND c.name != 'last_update'
                     AND c.name != 'expired_date'
+                ORDER BY
+                    c.column_id ASC
             ");
 
             $separateTableName = Str::replace(' ', '', $t->table_name);
@@ -55,18 +57,18 @@ class TemplatePdrdCommand extends Command
             $summaryAndDesc = $operation;
             $operation = 'get' . $operation;
 
-
             $selectQText = '';
             $inArray = '';
             $fillable = '';
             foreach ($getColumn as $c) {
                 $selectQText .= "'" . $c->column_name . "',";
                 $inArray .= "'" . $c->column_name . "' => " . '$each_data->' . $c->column_name . ',' . "\r";
-                $fillable .= "\t" . "'" . $c->column_name . "'" . ',' . "\r\t";
+                $fillable .= "\t" . "'" . $c->column_name . "'" . ',' . "\r";
             }
 
             $data = [
-                'path' => $t->table_name,
+                'path' => "/$schema_name/".$t->table_name,
+                'tag' => ucfirst($schema_name),
                 'operation' => $operation,
                 'summary' => "Dapatkan daftar $summaryAndDesc",
                 'description' => "Menampilkan daftar data $summaryAndDesc",
@@ -74,15 +76,16 @@ class TemplatePdrdCommand extends Command
                 'table' => $schema_name . "." . $t->table_name,
                 'select' => rtrim($selectQText, ','),
                 'array' => $inArray,
-                'fillable' => rtrim($fillable, "\r\t"),
+                'fillable' => $fillable,
                 'class' => $className,
-                'primarykey' => current($getColumn)->column_name
+                'primarykey' => current($getColumn)->column_name,
+                'namespace' =>  ucfirst($schema_name)
             ];
 
-            $templateFunction = "ewogICAgLyoqCiAgICAgKiBAT0FcR2V0KAogICAgICogICAgICBwYXRoPSIvcmVmZXJlbnNpLz09PT1wYXRoPT09PSIsCiAgICAgKiAgICAgIG9wZXJhdGlvbklkPSI9PT09b3BlcmF0aW9uPT09PSIsCiAgICAgKiAgICAgIHRhZ3M9eyJSZWZlcmVuc2kifSwKICAgICAqICAgICAgc3VtbWFyeT0iPT09PXN1bW1hcnk9PT09IiwKICAgICAqICAgICAgZGVzY3JpcHRpb249Ij09PT1kZXNjcmlwdGlvbj09PT0iLAogICAgICogICAgICBAT0FcUmVzcG9uc2UoCiAgICAgKiAgICAgICAgICByZXNwb25zZT0yMDAsCiAgICAgKiAgICAgICAgICBkZXNjcmlwdGlvbj0iU3VjY2Vzc2Z1bCBvcGVyYXRpb24iLAogICAgICogICAgICAgKSwKICAgICAqICAgICAgQE9BXFJlc3BvbnNlKAogICAgICogICAgICAgICAgcmVzcG9uc2U9NDAxLAogICAgICogICAgICAgICAgZGVzY3JpcHRpb249IlVuYXV0aGVudGljYXRlZCIsCiAgICAgKiAgICAgICksCiAgICAgKiAgICAgIEBPQVxSZXNwb25zZSgKICAgICAqICAgICAgICAgIHJlc3BvbnNlPTQwMywKICAgICAqICAgICAgICAgIGRlc2NyaXB0aW9uPSJGb3JiaWRkZW4iCiAgICAgKiAgICAgICksCiAgICAgKiAgICAgIHNlY3VyaXR5PXt7ImJlYXJlcl90b2tlbiI6e319fQogICAgICogICAgICkKICAgICAqLwogICAgcHVibGljIGZ1bmN0aW9uID09PT1mdW5jdGlvbj09PT0oUmVxdWVzdCAkcmVxdWVzdCkKICAgIHsKICAgICAgICAkbGlzdGRhdGEgPSBEQjo6dGFibGUoJz09PT10YWJsZT09PT0nKS0+c2VsZWN0KD09PT1zZWxlY3Q9PT09KS0+Z2V0KCk7CiAgICAgICAgZm9yZWFjaCAoJGxpc3RkYXRhIEFTICRlYWNoX2RhdGEpIHsKICAgICAgICAgICAgJGRhdGFbXSA9IFsKICAgICAgICAgICAgPT09PWFycmF5PT09PQogICAgICAgICAgICBdOwogICAgICAgIH0KICAgICAgICByZXR1cm4gcmVzcG9uc2UoKS0+anNvbihbCiAgICAgICAgICAgICdzdGF0dXMnID0+IHRydWUsCiAgICAgICAgICAgICdtZXNzYWdlJz0+ICdzdWNjZXNzJywKICAgICAgICAgICAgJ2RhdGEnICA9PiAkZGF0YQogICAgICAgIF0pOwogICAgfQ==";
+            $templateFunction = "ewogICAgLyoqCiAgICAgKiBAT0FcR2V0KAogICAgICogICAgICBwYXRoPSI9PT09cGF0aD09PT0iLAogICAgICogICAgICBvcGVyYXRpb25JZD0iPT09PW9wZXJhdGlvbj09PT0iLAogICAgICogICAgICB0YWdzPXsiPT09PXRhZz09PT0ifSwKICAgICAqICAgICAgc3VtbWFyeT0iPT09PXN1bW1hcnk9PT09IiwKICAgICAqICAgICAgZGVzY3JpcHRpb249Ij09PT1kZXNjcmlwdGlvbj09PT0iLAogICAgICogICAgICBAT0FcUmVzcG9uc2UoCiAgICAgKiAgICAgICAgICByZXNwb25zZT0yMDAsCiAgICAgKiAgICAgICAgICBkZXNjcmlwdGlvbj0iU3VjY2Vzc2Z1bCBvcGVyYXRpb24iLAogICAgICogICAgICAgKSwKICAgICAqICAgICAgQE9BXFJlc3BvbnNlKAogICAgICogICAgICAgICAgcmVzcG9uc2U9NDAxLAogICAgICogICAgICAgICAgZGVzY3JpcHRpb249IlVuYXV0aGVudGljYXRlZCIsCiAgICAgKiAgICAgICksCiAgICAgKiAgICAgIEBPQVxSZXNwb25zZSgKICAgICAqICAgICAgICAgIHJlc3BvbnNlPTQwMywKICAgICAqICAgICAgICAgIGRlc2NyaXB0aW9uPSJGb3JiaWRkZW4iCiAgICAgKiAgICAgICksCiAgICAgKiAgICAgIHNlY3VyaXR5PXt7ImJlYXJlcl90b2tlbiI6e319fQogICAgICogICAgICkKICAgICAqLwogICAgcHVibGljIGZ1bmN0aW9uID09PT1mdW5jdGlvbj09PT0oUmVxdWVzdCAkcmVxdWVzdCkKICAgIHsKICAgICAgICAkbGlzdGRhdGEgPSBEQjo6dGFibGUoJz09PT10YWJsZT09PT0nKS0+c2VsZWN0KD09PT1zZWxlY3Q9PT09KS0+Z2V0KCk7CiAgICAgICAgZm9yZWFjaCAoJGxpc3RkYXRhIEFTICRlYWNoX2RhdGEpIHsKICAgICAgICAgICAgJGRhdGFbXSA9IFsKICAgICAgICAgICAgPT09PWFycmF5PT09PQogICAgICAgICAgICBdOwogICAgICAgIH0KICAgICAgICByZXR1cm4gcmVzcG9uc2UoKS0+anNvbihbCiAgICAgICAgICAgICdzdGF0dXMnID0+IHRydWUsCiAgICAgICAgICAgICdtZXNzYWdlJz0+ICdzdWNjZXNzJywKICAgICAgICAgICAgJ2RhdGEnICA9PiAkZGF0YQogICAgICAgIF0pOwogICAgfQ==";
             $templateFunction = @base64_decode($templateFunction);
 
-            $templateModel = "PD9waHAKCm5hbWVzcGFjZSBBcHBcTW9kZWxzXFBEVVRcUmVmOwoKdXNlIEFwcFxNb2RlbHNcQWJzdHJhY3Rpb25Nb2RlbDsKdXNlIElsbHVtaW5hdGVcRGF0YWJhc2VcRWxvcXVlbnRcTW9kZWw7CgpjbGFzcyA9PT09Y2xhc3M9PT09IGV4dGVuZHMgQWJzdHJhY3Rpb25Nb2RlbAp7CiAgICBwcm90ZWN0ZWQgJHRhYmxlID0gJz09PT10YWJsZT09PT0nOwogICAgcHJvdGVjdGVkICRwcmltYXJ5S2V5ID0gJz09PT1wcmltYXJ5a2V5PT09PSc7CiAgICBwcm90ZWN0ZWQgJGZpbGxhYmxlID0gWwogICAgPT09PWZpbGxhYmxlPT09PQogICAgXTsKfQo=";
+            $templateModel = "PD9waHAKCm5hbWVzcGFjZSBBcHBcTW9kZWxzXFBEVVRcPT09PW5hbWVzcGFjZT09PT07Cgp1c2UgQXBwXE1vZGVsc1xBYnN0cmFjdGlvbk1vZGVsOwoKY2xhc3MgPT09PWNsYXNzPT09PSBleHRlbmRzIEFic3RyYWN0aW9uTW9kZWwKewogICAgcHJvdGVjdGVkICR0YWJsZSA9ICc9PT09dGFibGU9PT09JzsKICAgIHByb3RlY3RlZCAkcHJpbWFyeUtleSA9ICc9PT09cHJpbWFyeWtleT09PT0nOwogICAgcHVibGljICR0aW1lc3RhbXBzID0gZmFsc2U7CiAgICBwdWJsaWMgJGluY3JlbWVudGluZyA9IGZhbHNlOwogICAgcHJvdGVjdGVkICRmaWxsYWJsZSA9IFsKPT09PWZpbGxhYmxlPT09PQogICAgXTsKfQ==";
             $templateModel = @base64_decode($templateModel);
 
             foreach ($data as $key => $value) {
@@ -108,10 +111,6 @@ class TemplatePdrdCommand extends Command
 
                 $this->info('Success Create Function ' . $data['path']);
             } elseif ($createModel == 2) {
-                if (file_exists($modelNamePath)) {
-                    $this->info("Model $modelNamePath is Available");
-                }
-
                 $reContentOfModel = $templateModel;
                 $file = fopen($modelNamePath, 'w');
                 flock($file, LOCK_EX);
