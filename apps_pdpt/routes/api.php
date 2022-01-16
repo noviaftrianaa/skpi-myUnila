@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PDUT\Api\Pdrd\BukuReferensiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -108,7 +109,12 @@ Route::group([
             });
 
             Route::prefix('referensi')->group(function() {
-                // Buku Referesensi
+                Route::get('list', 'BukuReferensiController@list');
+                Route::get('list_id', 'BukuReferensiController@listById');
+                Route::get('detail', 'BukuReferensiController@detail');
+                Route::post('add', 'BukuReferensiController@add');
+                Route::put('update', 'BukuReferensiController@update');
+                Route::delete('delete', 'BukuReferensiController@delete');
             });
         });
 
@@ -130,6 +136,7 @@ Route::group([
             Route::get('smt_keaktifan', 'MahasiswaController@semester_keaktifan');
         });
     });
+
 
     Route::group([
         'namespace' => 'Tracer',
