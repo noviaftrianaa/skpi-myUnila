@@ -2,15 +2,15 @@
 
 namespace App\Models\PDUT\Ref;
 
-use App\Models\AbstractionModel;
+use Illuminate\Database\Eloquent\Model;
 
-class Pembiayaan extends AbstractionModel
+class Pembiayaan extends Model
 {
     protected $table = 'ref.pembiayaan';
     protected $primaryKey = 'id_pembiayaan';
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_pembiayaan',	'nm_pembiayaan',
+	'id_pembiayaan',	'nm_pembiayaan',	'create_date',	'last_update',	'expired_date',	'last_sync',
     ];
 }

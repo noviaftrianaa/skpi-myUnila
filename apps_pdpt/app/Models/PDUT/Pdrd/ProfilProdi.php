@@ -2,15 +2,15 @@
 
 namespace App\Models\PDUT\Pdrd;
 
-use App\Models\AbstractionModel;
+use Illuminate\Database\Eloquent\Model;
 
-class ProfilProdi extends AbstractionModel
+class ProfilProdi extends Model
 {
     protected $table = 'pdrd.profil_prodi';
     protected $primaryKey = 'id_thn_ajaran';
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_thn_ajaran',	'id_sms',	'desk_singkat',	'visi',	'misi',	'tujuan',	'sasaran',	'kompetensi',	'capaian_belajar',	'upaya_sebar',	'keberlanjutan',	'frek_kur',	'laks_kur',	'himp_alumni',	'id_creator',	'id_updater',	'soft_delete',
+	'id_thn_ajaran',	'id_sms',	'desk_singkat',	'visi',	'misi',	'tujuan',	'sasaran',	'kompetensi',	'capaian_belajar',	'upaya_sebar',	'keberlanjutan',	'frek_kur',	'laks_kur',	'himp_alumni',	'create_date',	'id_creator',	'last_update',	'id_updater',	'soft_delete',	'last_sync',
     ];
 }

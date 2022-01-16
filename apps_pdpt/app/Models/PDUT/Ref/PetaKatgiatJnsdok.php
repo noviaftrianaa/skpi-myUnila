@@ -2,15 +2,15 @@
 
 namespace App\Models\PDUT\Ref;
 
-use App\Models\AbstractionModel;
+use Illuminate\Database\Eloquent\Model;
 
-class PetaKatgiatJnsdok extends AbstractionModel
+class PetaKatgiatJnsdok extends Model
 {
     protected $table = 'ref.peta_katgiat_jnsdok';
     protected $primaryKey = 'id_katgiat';
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_katgiat',	'id_jns_dok',	'a_wajib',	'no_urut',
+	'id_katgiat',	'id_jns_dok',	'a_wajib',	'no_urut',	'create_date',	'last_update',	'expired_date',	'last_sync',
     ];
 }
