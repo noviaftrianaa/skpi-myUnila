@@ -1,9 +1,11 @@
 <?php
 
 namespace App\Models\PDUT\Pdrd;
+
 use App\Models\AbstractionModel;
 
-class NonCaAnggotaLitabmas extends AbstractionModel
+
+class NonCaAnggotaLitabmas extends Model
 {
     protected $table = 'pdrd.non_ca_anggota_litabmas';
     protected $primaryKey = 'id_litabmas';
@@ -17,5 +19,6 @@ class NonCaAnggotaLitabmas extends AbstractionModel
 	'id_creator',
 	'id_updater',
 	'soft_delete',
+
     ];
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PDUT\Api\Pdrd\BukuReferensiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -108,7 +109,12 @@ Route::group([
             });
 
             Route::prefix('referensi')->group(function() {
-                // Buku Referesensi
+                Route::get('list', 'BukuReferensiController@list');
+                Route::get('list_id', 'BukuReferensiController@listById');
+                Route::get('detail', 'BukuReferensiController@detail');
+                Route::post('add', 'BukuReferensiController@add');
+                Route::put('update', 'BukuReferensiController@update');
+                Route::delete('delete', 'BukuReferensiController@delete');
             });
         });
 
@@ -116,6 +122,7 @@ Route::group([
             Route::get('/', 'PenelitianController@getAllListPenelitian');
             Route::get('list/by', 'PenelitianController@getListPenelitianBySdmId');
             Route::get('detail/by', 'PenelitianController@getDetailPenelitianByPenelitianId');
+            Route::post('create', 'PenelitianController@storeNewPenelitian');
         });
 
         Route::prefix('pengabdian')->group(function() {
@@ -132,8 +139,10 @@ Route::group([
             Route::get('list_status', 'MahasiswaController@status');
             Route::get('list_regis', 'MahasiswaController@regis');
             Route::get('smt_keaktifan', 'MahasiswaController@semester_keaktifan');
+            Route::get('list_alumni', 'MahasiswaController@alumni');
         });
     });
+
 
     Route::group([
         'namespace' => 'Tracer',
@@ -141,6 +150,8 @@ Route::group([
     ], function () {
         Route::get('hasil_tracer_study', 'TracerStudyController@index');
         Route::post('hasil_tracer_study/simpan', 'TracerStudyController@store');
+        Route::put('hasil_tracer_study/update', 'TracerStudyController@update');
+        Route::delete('hasil_tracer_study/hapus', 'TracerStudyController@destroy');
     });
 
     //Tridarma

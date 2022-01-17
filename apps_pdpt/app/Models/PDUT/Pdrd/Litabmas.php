@@ -2,9 +2,9 @@
 
 namespace App\Models\PDUT\Pdrd;
 
-use App\Models\AbstractionModel;
+use Illuminate\Database\Eloquent\Model;
 
-class Litabmas extends AbstractionModel
+class Litabmas extends Model
 {
     protected $table = 'pdrd.litabmas';
     protected $primaryKey = 'id_litabmas';
@@ -37,5 +37,6 @@ class Litabmas extends AbstractionModel
 	'id_creator',
 	'id_updater',
 	'soft_delete',
+
     ];
 }

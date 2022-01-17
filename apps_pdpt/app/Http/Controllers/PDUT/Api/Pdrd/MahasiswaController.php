@@ -11,7 +11,7 @@ class MahasiswaController extends Controller
 {
     /**
      * @OA\Get(
-     *      path="/pdrd/mahasiswa/list",
+     *      path="/pdrd/mahasiswa/list_mahasiswa",
      *      operationId="getListMahasiswa",
      *      tags={"Mahasiwa"},
      *      summary="Dapatkan daftar Mahasiswa",
@@ -38,7 +38,8 @@ class MahasiswaController extends Controller
                 pd.id_pd, reg.nipd AS npm, pd.nm_pd,
                 CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi,
                 reg.id_semester_masuk, kul.id_stat_mhs AS status_sekarang,
-                ts.smt, kul.ips, kul.ipk
+                ts.smt, kul.ips, kul.ipk, pd.create_date AS waktu_data_ditambahkan,
+                pd.last_update AS terakhir_diubah
             FROM pdrd.peserta_didik AS pd WITH(NOLOCK)
             JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
                 AND reg.soft_delete = 0
@@ -74,7 +75,9 @@ class MahasiswaController extends Controller
                 'status_sekarang' => $each_data->status_sekarang,
                 'semester_sekarang,' => $each_data->smt,
                 'ips' => $each_data->ips,
-                'ipk' => $each_data->ipk
+                'ipk' => $each_data->ipk,
+                'waktu_data_ditambahkan' => date('Y-m-d H:i:s', strtotime($each_data->waktu_data_ditambahkan)),
+                'terakhir_diubah' => date('Y-m-d H:i:s', strtotime($each_data->terakhir_diubah))
             ];
         }
 
@@ -140,11 +143,11 @@ class MahasiswaController extends Controller
                 JOIN pdrd.satuan_pendidikan AS sp WITH(NOLOCK) ON sp.id_sp = reg.id_sp
                     AND sp.soft_delete = 0
                 JOIN pdrd.sms AS sms WITH(NOLOCK) ON  sms.id_sms = reg.id_sms
-                    AND reg.soft_delete = 0
+                    AND sms.soft_delete = 0
                 JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = sms.id_jenj_didik
                     AND jenjang.expired_date IS NULL
                 JOIN pdrd.peserta_didik AS pd WITH(NOLOCK) ON pd.id_pd = reg.id_pd
-                    AND reg.soft_delete = 0
+                    AND pd.soft_delete = 0
                 JOIN ref.jenis_pendaftaran AS jp WITH(NOLOCK) ON jp.id_jns_daftar = reg.id_jns_daftar
                     AND jp.expired_date IS NULL
                 JOIN ref.jalur_daftar AS jd WITH(NOLOCK) ON jd.id_jalur_daftar = reg.id_jalur_daftar
@@ -442,6 +445,79 @@ class MahasiswaController extends Controller
             'status' => true,
             'message' => 'success',
             'data'  => $data
+        ]);
+    }
+
+        /**
+     * @OA\Get(
+     *      path="/pdrd/mahasiswa/list_alumni",
+     *      operationId="getAlumni",
+     *      tags={"Mahasiwa"},
+     *      summary="Dapatkan list alumni berdasarkan prodi",
+     *      description="Menampilkan list alumni berdasarkan prodi",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
+    public function alumni(Request $request)
+    {
+        if (empty($request->id_sms)) {
+            return response()->json([
+                'status' => False,
+                'message' => "Parameter tidak sesuai"
+            ]);
+        }
+
+        $alumni = DB::SELECT("
+            SELECT TOP 50
+                pd.id_pd, pd.nm_pd, reg.nipd AS npm, CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi,
+                ts.id_thn_ajaran AS angkatan, kul.biaya_smt, kul.ipk, kul.total_sks, pd.nik, pd.jk, pd.tlpn_hp, jd.nm_jalur_daftar,
+                reg.tgl_keluar AS tgl_lulus, reg.tgl_sk_yudisium AS tgl_wisuda
+            FROM pdrd.peserta_didik AS pd WITH(NOLOCK)
+            JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd=pd.id_pd
+                AND reg.soft_delete=0 AND reg.id_jns_keluar='1'
+                AND reg.id_sms='".$request->id_sms."'
+            JOIN pdrd.sms AS sms WITH(NOLOCK) ON  sms.id_sms = reg.id_sms
+                AND sms.soft_delete = 0
+            JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = sms.id_jenj_didik
+                AND jenjang.expired_date IS NULL
+            JOIN ref.jalur_daftar AS jd WITH(NOLOCK) ON jd.id_jalur_daftar = reg.id_jalur_daftar
+                AND jd.expired_date IS NULL
+            JOIN (
+                SELECT MAX(id_smt) AS smt, id_reg_pd FROM pdrd.kuliah_mhs WITH(NOLOCK)
+                WHERE soft_delete=0
+                GROUP BY id_reg_pd
+            ) AS tk ON tk.id_reg_pd=reg.id_reg_pd
+            JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_reg_pd=reg.id_reg_pd
+                AND tk.smt=kul.id_smt
+            JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt=reg.id_semester_masuk
+                AND ts.expired_date IS NULL
+            WHERE pd.soft_delete=0
+            ORDER BY reg.id_semester_masuk ASC, pd.nm_pd ASC
+        ");
+
+        if (empty($alumni)) {
+            return response()->json([
+                'status' => False,
+                'message' => "Data tidak ditemukan"
+            ]);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'success',
+            'data'  => $alumni
         ]);
     }
 }

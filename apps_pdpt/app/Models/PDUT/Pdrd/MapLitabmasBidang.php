@@ -2,15 +2,15 @@
 
 namespace App\Models\PDUT\Pdrd;
 
-use App\Models\AbstractionModel;
+use Illuminate\Database\Eloquent\Model;
 
-class MapLitabmasBidang extends AbstractionModel
+class MapLitabmasBidang extends Model
 {
     protected $table = 'pdrd.map_litabmas_bidang';
     protected $primaryKey = 'id_kel_bidang';
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_kel_bidang',	'id_litabmas',	'urutan2',	'id_creator',	'id_updater',	'soft_delete',
+	'id_kel_bidang',	'id_litabmas',	'urutan2',	'create_date',	'id_creator',	'last_update',	'id_updater',	'soft_delete',	'last_sync',
     ];
 }

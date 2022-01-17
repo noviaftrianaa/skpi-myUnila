@@ -92,10 +92,10 @@
         <div style="width: 50%; float:left">
         <div class="container-fluid">
           <div class="page-header min-height-100 border-radius-xl mt-4" style="background-image: url('../assets/img/curved-images/curved0.jpg'); background-position-y: 50%;">
-            <span class="mask bg-gradient-primary opacity-6"></span>
+            <span class="mask bg-gradient-info opacity-6"></span>
           </div>
           <div class="card card-body blur shadow-blur mx-4 mt-n6 overflow-hidden">
-            <div class="row gx-4">
+            <div class="row gx-3">
               <div class="col-auto">
                 <div class="avatar avatar-xl position-relative">
                   <img src="../assets/img/ily.jpeg" alt="profile_image" class="w-100 border-radius-lg shadow-sm">
@@ -124,7 +124,11 @@
                     </div>
                     <div class="col-md-4 text-end">
                       <a href="{{url('alumni/edit-profil')}}">
-                        <i class="fas fa-user-edit text-secondary text-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Profile"></i>
+                        <i class="fas fa-user-edit text-secondary text-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah Profil"></i>
+                      </a>
+                      |
+                      <a href="{{url('alumni/print_cv')}}" target="_blank">
+                        <i class="fas fa-download text-secondary text-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Cetak CV"></i>
                       </a>
                     </div>
                   </div>
@@ -195,7 +199,7 @@
     <div style="width: 50%; float:right">
       <div class="container-fluid">
         <div class="page-header min-height-100 border-radius-xl mt-4" style="background-image: url('../assets/img/curved-images/curved0.jpg'); background-position-y: 50%;">
-          <span class="mask bg-gradient-primary opacity-6"></span>
+          <span class="mask bg-gradient-info opacity-6"></span>
         </div>
         <div class="card card-body blur shadow-blur mx-4 mt-n6 overflow-hidden">
       {{-- <div class="container-fluid py-4"> --}}
@@ -218,7 +222,7 @@
               <div class="timeline timeline-one-side">
                 <div class="timeline-block mb-3">
                   <span class="timeline-step">
-                    <i class="ni ni-building text-warning text-gradient"></i>
+                    <i class="ni ni-building text-success text-gradient"></i>
                   </span>
                   <div class="timeline-content">
                     <h6 class="text-dark text-sm font-weight-bold mb-0">UPT TIK UNILA</h6>
@@ -227,7 +231,7 @@
                 </div>
                 <div class="timeline-block mb-3">
                   <span class="timeline-step">
-                      <i class="ni ni-building text-primary text-gradient"></i>
+                      <i class="ni ni-building text-success text-gradient"></i>
                   </span>
                   <div class="timeline-content">
                     <h6 class="text-dark text-sm font-weight-bold mb-0">The Summit Bistro
@@ -247,7 +251,7 @@
                 </div>
                 <div class="timeline-block mb-3">
                   <span class="timeline-step">
-                      <i class="ni ni-building text-primary text-gradient"></i>
+                      <i class="ni ni-building text-success text-gradient"></i>
                   </span>
                   <div class="timeline-content">
                       <h6 class="text-dark text-sm font-weight-bold mb-0">PT. Angkasa Pura II (persero) cabang 601, IT staff
@@ -257,7 +261,7 @@
                 </div>
                 <div class="timeline-block mb-3">
                   <span class="timeline-step">
-                      <i class="ni ni-building text-warning text-gradient"></i>
+                      <i class="ni ni-building text-success text-gradient"></i>
                   </span>
                   <div class="timeline-content">
                       <h6 class="text-dark text-sm font-weight-bold mb-0">MooMooBee</h6>

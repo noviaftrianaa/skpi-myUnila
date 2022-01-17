@@ -2,15 +2,15 @@
 
 namespace App\Models\PDUT\Ref;
 
-use App\Models\AbstractionModel;
+use Illuminate\Database\Eloquent\Model;
 
-class JenisDokumen extends AbstractionModel
+class JenisDokumen extends Model
 {
     protected $table = 'ref.jenis_dokumen';
     protected $primaryKey = 'id_jns_dok';
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_jns_dok',	'nm_jns_dok',
+	'id_jns_dok',	'nm_jns_dok',	'create_date',	'last_update',	'expired_date',	'last_sync',
     ];
 }
