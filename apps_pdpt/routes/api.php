@@ -123,6 +123,7 @@ Route::group([
             Route::get('list/by', 'PenelitianController@getListPenelitianBySdmId');
             Route::get('detail/by', 'PenelitianController@getDetailPenelitianByPenelitianId');
             Route::post('create', 'PenelitianController@storeNewPenelitian');
+            Route::delete('delete', 'PenelitianController@deletePenelitian');
         });
 
         Route::prefix('pengabdian')->group(function() {
