@@ -2,7 +2,8 @@
 
 namespace App\Models\PDUT\Pdrd;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\AbstractionModel;
+
 
 class NonCaAnggotaLitabmas extends Model
 {
@@ -11,6 +12,13 @@ class NonCaAnggotaLitabmas extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_litabmas',	'id_orang',	'peran_litabmas',	'stat_aktif',	'create_date',	'id_creator',	'last_update',	'id_updater',	'soft_delete',	'last_sync',
+	'id_litabmas',
+	'id_orang',
+	'peran_litabmas',
+	'stat_aktif',
+	'id_creator',
+	'id_updater',
+	'soft_delete',
+
     ];
 }
