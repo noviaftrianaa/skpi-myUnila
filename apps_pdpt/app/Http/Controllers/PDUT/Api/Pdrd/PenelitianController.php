@@ -16,7 +16,6 @@ use Illuminate\Support\Facades\Log;
 use Exception;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule as ValidationRule;
 
 class PenelitianController extends Controller
@@ -42,21 +41,14 @@ class PenelitianController extends Controller
 
     public function getAllListPenelitian()
     {
-        $validator = Validator::make($this->request->all(), [
-            'sortby' => ['alpha', ValidationRule::in(['ASC', 'DESC'])]
-        ], [
-            'sortby.alpha' => 'input penyortiran harus kata',
-            'sortby.in' => 'input pernyortiran hanya ASC dan DESC'
+        $validator = InputValidator([
+            'sortby' => [
+                'alpha',
+                ValidationRule::in(['ASC', 'DESC'])
+            ]
         ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => FALSE,
-                'message' => 'request gagal',
-                'error' => $validator->errors()
-            ]);
-        }
 
-        $validateInput = $validator->validate();
+        $validateInput = $validator;
         $sortBy = empty($validateInput['sortby']) ? "" : $validateInput['sortby'];
         if (empty($sortBy)) {
             $sortBy = 'DESC';
@@ -92,15 +84,12 @@ class PenelitianController extends Controller
         $query = DB::select($query);
 
         if (empty($query)) {
-            return response()->json([
-                'status' => FALSE,
-                'message' => "Not Found Data"
-            ]);
+            return WrapResponse([], 'data penelitian tidak ditemukan', FALSE);
         }
 
-        $get_list_penelitian = [];
+        $data = [];
         foreach ($query as $value) {
-            $get_list_penelitian[] = [
+            $data[] = [
                 'id_penelitian' => $value->id_penelitian,
                 'judul_penelitian' => $value->judul_penelitian,
                 'bidang_keilmuan' => $value->bidang_keilmuan,
@@ -111,16 +100,12 @@ class PenelitianController extends Controller
             ];
         }
 
-        return response()->json([
-            'status' => true,
-            'message' => 'success',
-            'data'  => $get_list_penelitian
-        ], 200);
+        return WrapResponse(compact('data'), 'success');
     }
 
     public function getListPenelitianBySdmId()
     {
-        $validator = Validator::make($this->request->all(), [
+        $validator = InputValidator([
             'sdmid' => 'required|regex:/^[a-z0-9\-]+$/',
             'sortby' => ['alpha', ValidationRule::in(['ASC', 'DESC'])]
         ], [
@@ -129,22 +114,12 @@ class PenelitianController extends Controller
             'sortby.alpha' => 'input penyortiran harus kata',
             'sortby.in' => 'input pernyortiran hanya ASC dan DESC'
         ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => FALSE,
-                'message' => 'request gagal',
-                'error' => $validator->errors()
-            ]);
-        }
 
-        $validateInput = $validator->validate();
+        $validateInput = $validator;
         $sdmId = $validateInput['sdmid'];
         $sortBy = empty($validateInput['sortby']) ? "" : $validateInput['sortby'];
         if (empty($sdmId)) {
-            return response()->json([
-                'status' => FALSE,
-                'message' => "Empty Field sdmid"
-            ]);
+            return WrapResponse([], 'sdmid tidak boleh kosong', FALSE);
         }
 
         if (empty($sortBy)) {
@@ -176,22 +151,19 @@ class PenelitianController extends Controller
                 AND sdm.id_sdm = '" . $sdmId . "'
             WHERE
                 litabmas.soft_delete = 0
-            ORDER BY 
+            ORDER BY
                 litabmas.id_thn_laks " . $sortBy . "
         ";
 
         $query = DB::select($query);
 
         if (empty($query)) {
-            return response()->json([
-                'status' => FALSE,
-                'message' => "Not Found data for SDM id : $sdmId"
-            ]);
+            return WrapResponse([], "tidak ditemukan data penelitian dari sdm id $sdmId", FALSE);
         }
 
-        $get_list_penelitian = [];
+        $data = [];
         foreach ($query as $value) {
-            $get_list_penelitian[] = [
+            $data[] = [
                 'id_penelitian' => $value->id_penelitian,
                 'judul_penelitian' => $value->judul_penelitian,
                 'bidang_keilmuan' => $value->bidang_keilmuan,
@@ -202,32 +174,21 @@ class PenelitianController extends Controller
             ];
         }
 
-        return response()->json([
-            'status' => TRUE,
-            'message' => 'success',
-            'data'  => $get_list_penelitian
-        ], 200);
+        return WrapResponse(compact('data'), 'success');
     }
 
     public function getDetailPenelitianByPenelitianId()
     {
         $reformatGetDetailPenelitian = [];
 
-        $validator = Validator::make($this->request->all(), [
+        $validator = InputValidator([
             'penelitianid' => 'required|regex:/^[a-z0-9\-]+$/',
         ], [
             'penelitianid.required' => 'field ini harus diisi',
             'penelitianid.regex' => 'input harus berupa alpa_numeric dan dash',
         ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => FALSE,
-                'message' => 'request gagal',
-                'error' => $validator->errors()
-            ]);
-        }
 
-        $validateInput = $validator->validate();
+        $validateInput = $validator;
         $penelitianId = $validateInput['penelitianid'];
 
         try {
@@ -348,17 +309,12 @@ class PenelitianController extends Controller
             $getDaftarDokumenPenelitian = DB::select($query);
             $reformatGetDetailPenelitian = Arr::add($reformatGetDetailPenelitian, 'dokumen_penelitian', $getDaftarDokumenPenelitian);
 
-            return response()->json([
-                'status' => TRUE,
-                'message' => 'success',
-                'data'  => $reformatGetDetailPenelitian
-            ], 200);
+            $data = $reformatGetDetailPenelitian;
+
+            return WrapResponse(compact('data'), 'success');
         } catch (Exception $e) {
             Log::error(__FUNCTION__ . ' - ' . $e->getMessage());
-            return response()->json([
-                'status' => FALSE,
-                'message' => "Detail Penelitian Tidak Ditemukan atau Penelitian Tidak Terdaftar"
-            ]);
+            return WrapResponse([], "detail penelitian tidak ditemukan atau penelitian tidak terdaftar", FALSE);
         }
     }
 
@@ -494,10 +450,7 @@ class PenelitianController extends Controller
 
                         @unlink($filePath);
                     } else {
-                        return response()->json([
-                            'status' => FALSE,
-                            'message' => "gagal upload dokumen $fileName"
-                        ]);
+                        return WrapResponse([], 'gagal upload dokumen', FALSE);
                     }
                 }
             }
@@ -524,7 +477,7 @@ class PenelitianController extends Controller
                 foreach ($anggota_mahasiswa as $index => $idMahasiswa) {
                     $dataMahasiswa = DB::select("
                         SELECT
-                            TOP 1 
+                            TOP 1
                             pd.nm_pd AS nama_mahasiswa,
                             reg_pd.nipd AS nipd
                         FROM
@@ -572,17 +525,11 @@ class PenelitianController extends Controller
             }
 
             DB::commit();
-            return response()->json([
-                'status' => TRUE,
-                'message' => 'sukses menambahkan penelitian - '. $penelitian->id_litabmas,
-            ], 200);
+            return WrapResponse([], 'sukses menambahkan penelitian - ' . $penelitian->id_litabmas);
         } catch (Exception $e) {
             Log::error($e->getMessage());
             DB::rollBack();
-            return response()->json([
-                'status' => FALSE,
-                'message' => "gagal menambahkan penelitian - " . $e->getMessage()
-            ]);
+            return WrapResponse([], "gagal menambahkan penelitian");
         }
     }
 
@@ -591,8 +538,27 @@ class PenelitianController extends Controller
         //
     }
 
-    public function destroy($id)
+    public function deletePenelitian()
     {
-        //
+        $validator = InputValidator([
+            'penelitianid' => 'required|regex:/^[a-z0-9\-]+$/',
+        ], [
+            'penelitianid.required' => 'field ini harus diisi',
+            'penelitianid.regex' => 'input harus berupa alpa_numeric dan dash',
+        ]);
+
+        $validateInput = $validator;
+        $penelitianId = $validateInput['penelitianid'];
+
+        DB::beginTransaction();
+        try {
+            DB::update("UPDATE pdrd.litabmas SET soft_delete = 1 WHERE id_litabmas = $penelitianId");
+            DB::commit();
+            return WrapResponse([], 'berhasial menghapus data penelitian');
+        } catch (Exception $e) {
+            Log::error('Error on ' . $e->getMessage() . ' in line ' . $e->getLine());
+            DB::rollBack();
+            return WrapResponse([], 'gagal menghapus data penelitian', FALSE);
+        }
     }
 }

@@ -123,6 +123,7 @@ Route::group([
             Route::get('list/by', 'PenelitianController@getListPenelitianBySdmId');
             Route::get('detail/by', 'PenelitianController@getDetailPenelitianByPenelitianId');
             Route::post('create', 'PenelitianController@storeNewPenelitian');
+            Route::delete('delete', 'PenelitianController@deletePenelitian');
         });
 
         Route::prefix('pengabdian')->group(function() {
@@ -140,6 +141,11 @@ Route::group([
             Route::get('list_regis', 'MahasiswaController@regis');
             Route::get('smt_keaktifan', 'MahasiswaController@semester_keaktifan');
             Route::get('list_alumni', 'MahasiswaController@alumni');
+        });
+
+        Route::prefix('akreditasiprodi')->group(function () {
+            Route::get('list', 'AkreditasiProdiController@index');
+            
         });
     });
 
