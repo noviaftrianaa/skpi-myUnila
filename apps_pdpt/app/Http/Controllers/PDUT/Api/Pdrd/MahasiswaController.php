@@ -38,7 +38,8 @@ class MahasiswaController extends Controller
                 pd.id_pd, reg.nipd AS npm, pd.nm_pd,
                 CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi,
                 reg.id_semester_masuk, kul.id_stat_mhs AS status_sekarang,
-                ts.smt, kul.ips, kul.ipk
+                ts.smt, kul.ips, kul.ipk, pd.create_date AS waktu_data_ditambahkan,
+                pd.last_update AS terakhir_diubah
             FROM pdrd.peserta_didik AS pd WITH(NOLOCK)
             JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
                 AND reg.soft_delete = 0
@@ -74,7 +75,9 @@ class MahasiswaController extends Controller
                 'status_sekarang' => $each_data->status_sekarang,
                 'semester_sekarang,' => $each_data->smt,
                 'ips' => $each_data->ips,
-                'ipk' => $each_data->ipk
+                'ipk' => $each_data->ipk,
+                'waktu_data_ditambahkan' => date('Y-m-d H:i:s', strtotime($each_data->waktu_data_ditambahkan)),
+                'terakhir_diubah' => date('Y-m-d H:i:s', strtotime($each_data->terakhir_diubah))
             ];
         }
 
