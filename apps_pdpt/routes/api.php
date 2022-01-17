@@ -137,6 +137,11 @@ Route::group([
             Route::get('smt_keaktifan', 'MahasiswaController@semester_keaktifan');
             Route::get('list_alumni', 'MahasiswaController@alumni');
         });
+
+        Route::prefix('akreditasiprodi')->group(function () {
+            Route::get('list', 'AkreditasiProdiController@index');
+            
+        });
     });
 
 
