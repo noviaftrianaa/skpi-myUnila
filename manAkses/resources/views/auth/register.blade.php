@@ -9,10 +9,11 @@
                     <p class="mb-1 mb-sm-0 h-1 mt-auto">Silahkan hubungi Admin untuk mendaftarkan akun baru.</p>
                 </div>
                 <div class="mt-3 text1">
-                    <a type="button" href="helpdesktik.unila.ac.id" class="btn btn-primary btn-block">
+                    <a type="button" href="http://helpdesktik.unila.ac.id" class="btn btn-info btn-block">
                         <i class="fa fa-question"></i>&nbsp;Helpdesk TIK Universitas Lampung
                     </a>
                 </div>
+                <div class="mt-4 text-center">Kembali Ke Halaman <a href="{{ route('auth.login') }}" title="Login">Login</a></div>
                 <div class="mt-4 text-muted text-center">Situs ini dikelola oleh Tim <a href="http://tik.unila.ac.id" title="">TIK Universitas Lampung</a></div>
             </div>
         </div>
