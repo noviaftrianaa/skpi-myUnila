@@ -176,7 +176,7 @@ class PenelitianController extends Controller
                 AND sdm.id_sdm = '" . $sdmId . "'
             WHERE
                 litabmas.soft_delete = 0
-            ORDER BY 
+            ORDER BY
                 litabmas.id_thn_laks " . $sortBy . "
         ";
 
@@ -214,7 +214,7 @@ class PenelitianController extends Controller
         $reformatGetDetailPenelitian = [];
 
         $validator = Validator::make($this->request->all(), [
-            'penelitianid' => 'required|regex:/^[a-z0-9\-]+$/',
+            'penelitianid' => 'required|regex:/^[a-zA-Z0-9\-]+$/',
         ], [
             'penelitianid.required' => 'field ini harus diisi',
             'penelitianid.regex' => 'input harus berupa alpa_numeric dan dash',
@@ -524,7 +524,7 @@ class PenelitianController extends Controller
                 foreach ($anggota_mahasiswa as $index => $idMahasiswa) {
                     $dataMahasiswa = DB::select("
                         SELECT
-                            TOP 1 
+                            TOP 1
                             pd.nm_pd AS nama_mahasiswa,
                             reg_pd.nipd AS nipd
                         FROM
