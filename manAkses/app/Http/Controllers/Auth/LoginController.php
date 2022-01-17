@@ -55,6 +55,7 @@ class LoginController extends Controller
 
     public function showLoginForm()
     {
+        // dd(Session::all(), Cookie::get());
         return view('auth.login');
     }
 
@@ -66,7 +67,7 @@ class LoginController extends Controller
                 $check = User::where('username', SSO::getUser()->username)->first();
                 if(!is_null($check)) {
                     Auth::loginUsingId($check->id_pengguna);
-                    // session()->flash('success', 'You are logged in!');
+                    alert()->success('You are logged in!');
                     $role = RolePengguna::where('id_pengguna', $check->id_pengguna)->orderBy('last_active','DESC')->first();
                     Session::put('login.log_address', get_client_ip());
                     Session::put('login.role', (!is_null($role)) ? $role->id_pengguna : NULL);
@@ -118,11 +119,6 @@ class LoginController extends Controller
             alert()->error('Username dan Password tidak ditemukan','Silahkan coba kembali')->persistent('Coba lagi');
             return redirect()->back()->withInput(['username'=>$username]);
         }
-    }
-
-    private function ssoLogout()
-    {
-        SSO::logout();
     }
 
     public function logout(){

@@ -11,6 +11,7 @@
         <div class="card-header">
             <h3 class="card-title"><i class="fa fa-list"></i> Data Aplikasi</h3>
             <div class="card-tools">
+                <a type="button" class="btn btn-default btn-xs btn-flat" href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Table Aplikasi</a>
                 <a type="button" data-toggle="modal" class="btn btn-secondary btn-xs btn-flat" href="#editAplikasi{{$data->id_aplikasi}}"><i class="fa fa-edit"></i> Edit</a>
             </div>
         </div><!-- /.card-header -->
@@ -442,15 +443,15 @@
                             <div class="col-sm-12 col-12">
                                 <div class="form-group form-group-default">
                                     <label>Apakah Bisa:</label><br>
-                                    <input type="checkbox" id="a_boleh_insert" name="a_boleh_insert" value="1">
+                                    <input type="checkbox" id="a_boleh_insert" name="a_boleh_insert">
                                     <label for="a_boleh_insert"> Insert</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_show" name="a_boleh_show" value="1">
+                                    <input type="checkbox" id="a_boleh_show" name="a_boleh_show">
                                     <label for="a_boleh_show"> Show</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_delete" name="a_boleh_delete" value="1">
+                                    <input type="checkbox" id="a_boleh_delete" name="a_boleh_delete">
                                     <label for="a_boleh_delete"> Delete</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_update" name="a_boleh_update" value="1">
+                                    <input type="checkbox" id="a_boleh_update" name="a_boleh_update">
                                     <label for="a_boleh_update"> Update</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_sanggah" name="a_boleh_sanggah" value="1">
+                                    <input type="checkbox" id="a_boleh_sanggah" name="a_boleh_sanggah">
                                     <label for="a_boleh_sanggah"> Sanggah</label>
                                 </div>
                             </div>
@@ -538,7 +539,10 @@
                                     <label>Peran</label>
                                     <select class="form-control select2" name="id_peran[]" data-placeholder="Pilih" multiple required>
                                         @foreach($peran as $item)
-                                        <option value="{{$item->id_peran}}">{{$item->nm_peran}}</option>
+                                            <?php
+                                                $checkRole = DB::table('man_akses.menu_role')->where('id_menu', $items->id_menu)->where('soft_delete',0)->get()->toArray();
+                                            ?>
+                                            <option value="{{$item->id_peran}}" {{(in_array($item->id_peran, array_column($checkRole, "id_peran"))==true)?'selected':''}}>{{$item->nm_peran}}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -547,15 +551,15 @@
                                 <div class="form-group form-group-default">
                                     <?php $menurole = DB::table('man_akses.menu_role')->where('id_menu', $items->id_menu)->first(); ?>
                                     <label>Apakah Bisa:</label><br>
-                                    <input type="checkbox" id="a_boleh_insert" name="a_boleh_insert" value="1" {{($menurole->a_boleh_insert==1)?'checked':''}}>
+                                    <input type="checkbox" id="a_boleh_insert" name="a_boleh_insert" {{($menurole->a_boleh_insert==1)?'checked':''}}>
                                     <label for="a_boleh_insert"> Insert</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_show" name="a_boleh_show" value="1" {{($menurole->a_boleh_show==1)?'checked':''}}>
+                                    <input type="checkbox" id="a_boleh_show" name="a_boleh_show" {{($menurole->a_boleh_show==1)?'checked':''}}>
                                     <label for="a_boleh_show"> Show</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_delete" name="a_boleh_delete" value="1" {{($menurole->a_boleh_delete==1)?'checked':''}}>
+                                    <input type="checkbox" id="a_boleh_delete" name="a_boleh_delete" {{($menurole->a_boleh_delete==1)?'checked':''}}>
                                     <label for="a_boleh_delete"> Delete</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_update" name="a_boleh_update" value="1" {{($menurole->a_boleh_update==1)?'checked':''}}>
+                                    <input type="checkbox" id="a_boleh_update" name="a_boleh_update" {{($menurole->a_boleh_update==1)?'checked':''}}>
                                     <label for="a_boleh_update"> Update</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_sanggah" name="a_boleh_sanggah" value="1" {{($menurole->a_boleh_sanggah==1)?'checked':''}}>
+                                    <input type="checkbox" id="a_boleh_sanggah" name="a_boleh_sanggah" {{($menurole->a_boleh_sanggah==1)?'checked':''}}>
                                     <label for="a_boleh_sanggah"> Sanggah</label>
                                 </div>
                             </div>

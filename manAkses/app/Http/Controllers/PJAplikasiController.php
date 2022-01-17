@@ -46,7 +46,7 @@ class PJAplikasiController extends Controller
 
         $array = $request->all();
         $aplikasi = Aplikasi::lock('WITH(NOLOCK)')->where('id_aplikasi', $array['id_aplikasi'])->first();
-        $pengguna = User::create([
+        $pengguna = User::lock('WITH(NOLOCK)')->create([
             'id_pengguna' => guid(),
             'username' => $array['username'],
             'password' => sha1('12345678'),
@@ -64,7 +64,7 @@ class PJAplikasiController extends Controller
             'id_updater' => Auth::user()->id_pengguna
         ]);
 
-        $pj = PJAplikasi::create([
+        $pj = PJAplikasi::lock('WITH(NOLOCK)')->create([
             'id_pj_aplikasi' => guid(),
             'id_aplikasi' => $aplikasi->id_aplikasi,
             'id_pengguna' => $pengguna->id_pengguna,

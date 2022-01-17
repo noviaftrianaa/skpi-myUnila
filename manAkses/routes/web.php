@@ -5,7 +5,7 @@ use App\Http\Controllers\Auth\{
     LoginController, RegisterController, ForgotPasswordController
 };
 use App\Http\Controllers\{
-    HomeController, UserController, PeranController, UnitOrganisasiController, AplikasiController, TokenController, PJAplikasiController, MenuController, RolePenggunaController
+    HomeController, UserController, PeranController, UnitOrganisasiController, AplikasiController, TokenController, PJAplikasiController, MenuController, RolePenggunaController, TableAplikasiController, PengaturanTableAplikasiController
 };
 /*
 |--------------------------------------------------------------------------
@@ -87,6 +87,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
             Route::get('/pj_aplikasi', [AplikasiController::class, 'pj_aplikasi'])->name('pj_aplikasi');
             Route::put('/store_menu/{id}', [AplikasiController::class, 'store_menu'])->name('store_menu');
             Route::delete('/destroy/{id}', [AplikasiController::class, 'destroy'])->name('destroy');
+
+            Route::get('/table/{id}', [TableAplikasiController::class, 'index'])->name('table');
+            Route::put('/table/{id}/store', [TableAplikasiController::class, 'store'])->name('table.store');
+            Route::patch('/table/{id}/update', [TableAplikasiController::class, 'update'])->name('table.update');
         });
         Route::namespace('token')->prefix('token')->name('token.')->group(function () {
             Route::get('/', [TokenController::class, 'index'])->name('index');
