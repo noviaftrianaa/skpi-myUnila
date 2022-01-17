@@ -96,26 +96,23 @@ Route::group([
 
     Route::group([
         'namespace' => 'Pdrd',
-        'prefix' => 'pdrd'
     ], function () {
-        Route::prefix('buku')->group(function() {
-            Route::prefix('ajar')->group(function() {
-                Route::get('list','BukuAjarController@list');
-                Route::get('list_id','BukuAjarController@listById');
-                Route::get('detail','BukuAjarController@detail');
-                Route::post('add','BukuAjarController@add');
-                Route::put('update','BukuAjarController@update');
-                Route::delete('delete','BukuAjarController@delete');
-            });
+        Route::prefix('buku_ajar')->group(function () {
+            Route::get('list', 'BukuAjarController@list');
+            Route::get('list_id', 'BukuAjarController@listById');
+            Route::get('detail', 'BukuAjarController@detail');
+            Route::post('add', 'BukuAjarController@add');
+            Route::put('update', 'BukuAjarController@update');
+            Route::delete('delete', 'BukuAjarController@delete');
+        });
 
-            Route::prefix('referensi')->group(function() {
-                Route::get('list', 'BukuReferensiController@list');
-                Route::get('list_id', 'BukuReferensiController@listById');
-                Route::get('detail', 'BukuReferensiController@detail');
-                Route::post('add', 'BukuReferensiController@add');
-                Route::put('update', 'BukuReferensiController@update');
-                Route::delete('delete', 'BukuReferensiController@delete');
-            });
+        Route::prefix('buku_referensi')->group(function () {
+            Route::get('list', 'BukuReferensiController@list');
+            Route::get('list_id', 'BukuReferensiController@listById');
+            Route::get('detail', 'BukuReferensiController@detail');
+            Route::post('add', 'BukuReferensiController@add');
+            Route::put('update', 'BukuReferensiController@update');
+            Route::delete('delete', 'BukuReferensiController@delete');
         });
 
         Route::prefix('penelitian')->group(function () {
@@ -126,8 +123,7 @@ Route::group([
             Route::delete('delete', 'PenelitianController@deletePenelitian');
         });
 
-        Route::prefix('pengabdian')->group(function() {
-            // Pengabdian
+        Route::prefix('pengabdian')->group(function () {
             Route::get('litabmas', 'PengabdianController@getAllListPengabdian');
             Route::get('litabmas_by', 'PengabdianController@getListPengabdianBySdmId');
             Route::get('detail_by', 'PengabdianController@getDetailPengabdianByPengabdianId');
@@ -145,14 +141,11 @@ Route::group([
 
         Route::prefix('akreditasiprodi')->group(function () {
             Route::get('list', 'AkreditasiProdiController@index');
-            
         });
     });
 
-
     Route::group([
         'namespace' => 'Tracer',
-        'prefix' => 'tracer'
     ], function () {
         Route::get('hasil_tracer_study', 'TracerStudyController@index');
         Route::post('hasil_tracer_study/simpan', 'TracerStudyController@store');
@@ -160,16 +153,8 @@ Route::group([
         Route::delete('hasil_tracer_study/hapus', 'TracerStudyController@destroy');
     });
 
-    //Tridarma
-    Route::get('buku_ajar','Tridarma\BukuAjarController@index');
-    Route::post('buku_ajar/simpan','Tridarma\BukuAjarController@store');
-
-    //Pengabdian
-    // Route::get('litabmas', 'Pdrd\PengabdianController@getAllListPengabdian');
-    // Route::get('litabmas_by', 'Pdrd\PengabdianController@getListPengabdianBySdmId');
-    // Route::get('detail_by', 'Pdrd\PengabdianController@getDetailPengabdianByPengabdianId');
-    // Route::post('litabmas/simpan', 'Pdrd\PengabdianController@store');
-
+    Route::get('buku_ajar', 'Tridarma\BukuAjarController@index');
+    Route::post('buku_ajar/simpan', 'Tridarma\BukuAjarController@store');
 });
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

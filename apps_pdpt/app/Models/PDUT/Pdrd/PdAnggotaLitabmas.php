@@ -11,16 +11,6 @@ class PdAnggotaLitabmas extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-
-	'id_pd_ang_litabmas',
-	'id_litabmas',
-	'id_pd',
-	'peran_litabmas',
-	'stat_aktif',
-	'nm_pd',
-	'nipd',
-	'id_creator',
-	'id_updater',
-	'soft_delete',
- ];
+	'id_pd_ang_litabmas',	'id_litabmas',	'id_pd',	'peran_litabmas',	'stat_aktif',	'nm_pd',	'nipd',	'create_date',	'id_creator',	'last_update',	'id_updater',	'soft_delete',	'last_sync',
+    ];
 }
