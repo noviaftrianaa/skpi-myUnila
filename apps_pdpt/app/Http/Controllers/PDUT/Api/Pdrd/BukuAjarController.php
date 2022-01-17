@@ -185,7 +185,7 @@ class BukuAjarController extends Controller
     /**
      * @OA\Get (
      *      path="/buku_ajar/detail",
-     *      operationId="getBukuAjarById",
+     *      operationId="getDetailBukuAjar",
      *      tags={"Buku Ajar"},
      *      summary="Mendapatkan Detail Buku Ajar",
      *      description="Menampilkan Detail Buku Ajar",
