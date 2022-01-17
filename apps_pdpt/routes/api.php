@@ -120,6 +120,10 @@ Route::group([
 
         Route::prefix('pengabdian')->group(function() {
             // Pengabdian
+            Route::get('litabmas', 'PengabdianController@getAllListPengabdian');
+            Route::get('litabmas_by', 'PengabdianController@getListPengabdianBySdmId');
+            Route::get('detail_by', 'PengabdianController@getDetailPengabdianByPengabdianId');
+            Route::post('litabmas/simpan', 'PengabdianController@store');
         });
 
         Route::prefix('mahasiswa')->group(function () {
@@ -138,6 +142,16 @@ Route::group([
         Route::get('hasil_tracer_study', 'TracerStudyController@index');
         Route::post('hasil_tracer_study/simpan', 'TracerStudyController@store');
     });
+
+    //Tridarma
+    Route::get('buku_ajar','Tridarma\BukuAjarController@index');
+    Route::post('buku_ajar/simpan','Tridarma\BukuAjarController@store');
+
+    //Pengabdian
+    // Route::get('litabmas', 'Pdrd\PengabdianController@getAllListPengabdian');
+    // Route::get('litabmas_by', 'Pdrd\PengabdianController@getListPengabdianBySdmId');
+    // Route::get('detail_by', 'Pdrd\PengabdianController@getDetailPengabdianByPengabdianId');
+    // Route::post('litabmas/simpan', 'Pdrd\PengabdianController@store');
 
 });
 

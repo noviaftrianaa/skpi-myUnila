@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Models\PDUT\Pdrd;
-
 use App\Models\AbstractionModel;
 
 class NonCaAnggotaLitabmas extends AbstractionModel
@@ -11,6 +10,12 @@ class NonCaAnggotaLitabmas extends AbstractionModel
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_litabmas',	'id_orang',	'peran_litabmas',	'stat_aktif',	'id_creator',	'id_updater',	'soft_delete',
+	'id_litabmas',
+	'id_orang',
+	'peran_litabmas',
+	'stat_aktif',
+	'id_creator',
+	'id_updater',
+	'soft_delete',
     ];
 }
