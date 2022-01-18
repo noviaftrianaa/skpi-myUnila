@@ -91,6 +91,7 @@ class MahasiswaSeeder extends Seeder
                         'tmpt_lahir'        => $each_data['tempat_lahir'],
                         'tgl_lahir'         => $each_data['tanggal_lahir'],
                         'jln'               => $each_data['jalan'],
+                        'email'             => $each_data['email'],
                         'rt'                => $each_data['rt'],
                         'rw'                => $each_data['rw'],
                         'nm_dsn'            => $each_data['dusun'],
@@ -194,43 +195,43 @@ class MahasiswaSeeder extends Seeder
                         ]);
                     }
                 }
-//                $get_data_keaktifan = $this->curl_api_feeder($url, $this->data_form('GetListPerkuliahanMahasiswa',$token,'id_registrasi_mahasiswa',$each_data['id_registrasi_mahasiswa']));
-//                if (count($get_data_keaktifan)>0) {
-//                    foreach ($get_data_keaktifan AS $each_keaktifan) {
-//                        $cari_dftr_keaktifan = DB::table('pdrd.kuliah_mhs')->where('id_reg_pd',$each_keaktifan['id_registrasi_mahasiswa'])
-//                            ->where('id_smt',$each_keaktifan['id_semester'])->where('soft_delete',0)->first();
-//                        if (is_null($cari_dftr_keaktifan)) {
-//                            DB::table('pdrd.kuliah_mhs')->insert([
-//                                'id_reg_pd'         => $each_keaktifan['id_registrasi_mahasiswa'],
-//                                'id_smt'            => $each_keaktifan['id_semester'],
-//                                'id_stat_mhs'       => $each_keaktifan['id_status_mahasiswa'],
-//                                'ips'               => $each_keaktifan['ips'],
-//                                'ipk'               => $each_keaktifan['ipk'],
-//                                'sks_semester'      => $each_keaktifan['sks_semester'],
-//                                'total_sks'         => $each_keaktifan['sks_total'],
-//                                'biaya_smt'         => $each_keaktifan['biaya_kuliah_smt'],
-//                                'create_date'       => currDateTime(),
-//                                'id_creator'        => '443701e4-e814-48f3-9528-251bccee8af1',
-//                                'last_update'       => currDateTime(),
-//                                'id_updater'        => '443701e4-e814-48f3-9528-251bccee8af1',
-//                                'soft_delete'       => 0,
-//                                'last_sync'         => currDateTime()
-//                            ]);
-//                        } else {
-//                            DB::table('pdrd.kuliah_mhs')
-//                                ->where('id_reg_pd',$each_keaktifan['id_registrasi_mahasiswa'])
-//                                ->where('id_smt',$each_keaktifan['id_semester'])->update([
-//                                    'id_stat_mhs'       => $each_keaktifan['id_status_mahasiswa'],
-//                                    'ips'               => $each_keaktifan['ips'],
-//                                    'ipk'               => $each_keaktifan['ipk'],
-//                                    'sks_semester'      => $each_keaktifan['sks_semester'],
-//                                    'total_sks'         => $each_keaktifan['sks_total'],
-//                                    'last_update'       => currDateTime(),
-//                                    'id_updater'        => '443701e4-e814-48f3-9528-251bccee8af1',
-//                                ]);
-//                        }
-//                    }
-//                }
+                $get_data_keaktifan = $this->curl_api_feeder($url, $this->data_form('GetListPerkuliahanMahasiswa',$token,'id_registrasi_mahasiswa',$each_data['id_registrasi_mahasiswa']));
+                if (count($get_data_keaktifan)>0) {
+                    foreach ($get_data_keaktifan AS $each_keaktifan) {
+                        $cari_dftr_keaktifan = DB::table('pdrd.kuliah_mhs')->where('id_reg_pd',$each_keaktifan['id_registrasi_mahasiswa'])
+                            ->where('id_smt',$each_keaktifan['id_semester'])->where('soft_delete',0)->first();
+                        if (is_null($cari_dftr_keaktifan)) {
+                            DB::table('pdrd.kuliah_mhs')->insert([
+                                'id_reg_pd'         => $each_keaktifan['id_registrasi_mahasiswa'],
+                                'id_smt'            => $each_keaktifan['id_semester'],
+                                'id_stat_mhs'       => $each_keaktifan['id_status_mahasiswa'],
+                                'ips'               => $each_keaktifan['ips'],
+                                'ipk'               => $each_keaktifan['ipk'],
+                                'sks_semester'      => $each_keaktifan['sks_semester'],
+                                'total_sks'         => $each_keaktifan['sks_total'],
+                                'biaya_smt'         => $each_keaktifan['biaya_kuliah_smt'],
+                                'create_date'       => currDateTime(),
+                                'id_creator'        => '443701e4-e814-48f3-9528-251bccee8af1',
+                                'last_update'       => currDateTime(),
+                                'id_updater'        => '443701e4-e814-48f3-9528-251bccee8af1',
+                                'soft_delete'       => 0,
+                                'last_sync'         => currDateTime()
+                            ]);
+                        } else {
+                            DB::table('pdrd.kuliah_mhs')
+                                ->where('id_reg_pd',$each_keaktifan['id_registrasi_mahasiswa'])
+                                ->where('id_smt',$each_keaktifan['id_semester'])->update([
+                                    'id_stat_mhs'       => $each_keaktifan['id_status_mahasiswa'],
+                                    'ips'               => $each_keaktifan['ips'],
+                                    'ipk'               => $each_keaktifan['ipk'],
+                                    'sks_semester'      => $each_keaktifan['sks_semester'],
+                                    'total_sks'         => $each_keaktifan['sks_total'],
+                                    'last_update'       => currDateTime(),
+                                    'id_updater'        => '443701e4-e814-48f3-9528-251bccee8af1',
+                                ]);
+                        }
+                    }
+                }
                 $no++;
             }
         }

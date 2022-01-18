@@ -35,12 +35,12 @@ class ReferensiSeeder extends Seeder
 //            'Kebutuhan Khusus'      => 'GetKebutuhanKhusus',
 //            'Jalur Masuk'           => 'GetJalurMasuk',
 //            'Status Mahasiswa'      => 'GetStatusMahasiswa',
-            'Alat Transportasi'     => 'GetAlatTransportasi',
+//            'Alat Transportasi'     => 'GetAlatTransportasi',
 //            'Jenis Tinggal'         => 'GetJenisTinggal',
 //            'Penghasilan'           => 'GetPenghasilan',
 //            'Pembiayaan'            => 'GetPembiayaan',
-//            'Jenis Prestasi'        => 'GetJenisPrestasi',
-            'Tingkat Prestasi'      => 'GetTingkatPrestasi',
+            'Jenis Prestasi'        => 'GetJenisPrestasi',
+//            'Tingkat Prestasi'      => 'GetTingkatPrestasi',
         ];
         foreach ($method_alias AS $name_alias=>$each_method) {
             echo "Mendapatkan data Referensi ".$name_alias."\n";
