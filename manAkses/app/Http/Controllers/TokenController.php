@@ -4,6 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\AccessToken;
+use App\Models\TokenUser;
+use DB;
+use Auth;
+use Crypt;
+use DataTables;
 
 class TokenController extends Controller
 {
@@ -13,10 +18,26 @@ class TokenController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $data = AccessToken::all();
-        return view('manajemen.token.index', ['data'=>$data]);
+        if($request->ajax()) {
+            $data = DB::SELECT('
+                SELECT *
+                FROM man_akses.access_token AS token
+                JOIN man_akses.token_user AS token_user ON token_user.id_token=token.id_token
+                ORDER BY token_user.wkt_create DESC
+            ');
+
+            return DataTables::of($data)
+                ->addIndexColumn()
+                ->addColumn('action', function($data) {
+                    $button = '<a type="button" class="btn btn-primary btn-xs" title="Show" href="'.route('token.detail', [Crypt::encrypt($item->id_token)]).'"><i class="fas fa-eye"></i></a>';
+                    return $button;
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+        return view('manajemen.token.index');
     }
 
     /**
@@ -46,9 +67,15 @@ class TokenController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function detail($id)
     {
-        //
+        $id = Crypt::decrypt($id);
+        $data = DB::SELECT('
+            SELECT *
+            FROM man_akses.token_uri_sequence
+            ORDER BY last_hit DESC
+        ');
+        return view('manajemen.token.show', ['data'=>$data]);
     }
 
     /**

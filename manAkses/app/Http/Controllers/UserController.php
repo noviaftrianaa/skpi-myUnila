@@ -16,7 +16,13 @@ class UserController extends Controller
 
     public function index()
     {
-        $user = User::lock('WITH(NOLOCK)')->where('soft_delete', 0)->orderBy('a_aktif','DESC')->orderBy('nm_pengguna', 'ASC')->get();
+        // $user = User::lock('WITH(NOLOCK)')->where('soft_delete', 0)->orderBy('a_aktif','DESC')->orderBy('nm_pengguna', 'ASC')->get();
+        $user = DB::SELECT('
+            SELECT *
+            FROM man_akses.pengguna WITH(NOLOCK)
+            WHERE soft_delete=0
+            ORDER BY a_aktif DESC, nm_pengguna ASC
+        ');
 
         return view('manajemen.pengguna.index', [
             'user'=>$user

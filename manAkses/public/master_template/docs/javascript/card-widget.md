@@ -18,7 +18,7 @@ This plugin provides two data-api attributes. Any element using one of the follo
 This attribute, when attached to a button, allows the box to be collapsed/expanded when clicked. 
 <div class="row">
   <div class="col-12 col-md-4">
-     <div class="card">
+     <div class="card card-info">
       <div class="card-header">
         <h3 class="card-title">Collapsible Card Example</h3>
         <div class="card-tools">
@@ -32,7 +32,7 @@ This attribute, when attached to a button, allows the box to be collapsed/expand
   </div>
   <div class="col-12 col-md-8" markdown="1">
 ```html
-<div class="card">
+<div class="card card-info">
   <div class="card-header">
     <h3 class="card-title">Collapsible Card Example</h3>
     <div class="card-tools">
@@ -58,7 +58,7 @@ This attribute, when attached to a button, allows the box to be collapsed/expand
 This attribute, when attached to a button, allows the box to be removed when clicked. 
 <div class="row">
   <div class="col-12 col-md-4">
-     <div class="card">
+     <div class="card card-info">
       <div class="card-header">
         <h3 class="card-title">Removable Card Example</h3>
         <div class="card-tools">
@@ -72,7 +72,7 @@ This attribute, when attached to a button, allows the box to be removed when cli
   </div>
   <div class="col-12 col-md-8" markdown="1">
 ```html
-<div class="card">
+<div class="card card-info">
   <div class="card-header">
     <h3 class="card-title">Removable Card Example</h3>
     <div class="card-tools">
@@ -98,7 +98,7 @@ This attribute, when attached to a button, allows the box to be removed when cli
 This attribute, when attached to a button, allows the box to be maximize/minimize when clicked. 
 <div class="row">
   <div class="col-12 col-md-4">
-     <div class="card">
+     <div class="card card-info">
       <div class="card-header">
         <h3 class="card-title">Maximizable Card Example</h3>
         <div class="card-tools">
@@ -112,7 +112,7 @@ This attribute, when attached to a button, allows the box to be maximize/minimiz
   </div>
   <div class="col-12 col-md-8" markdown="1">
 ```html
-<div class="card">
+<div class="card card-info">
   <div class="card-header">
     <h3 class="card-title">Maximizable Card Example</h3>
     <div class="card-tools">

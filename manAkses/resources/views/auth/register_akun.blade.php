@@ -150,7 +150,7 @@
 
         <div class="row mt-2">
 
-            <a  href="{{ route('auth.login') }}" class="btn btn-outline-primary btn-block">Login</a>
+            <a  href="{{ route('auth.login') }}" class="btn btn-primary btn-block">Login</a>
 
         </div>
 

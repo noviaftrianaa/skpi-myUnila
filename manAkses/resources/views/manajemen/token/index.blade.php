@@ -1,9 +1,58 @@
 @extends('template.default.app')
 @section('title','Data Token')
-@extends('__partial.datatable')
+
+@push('css')
+<link href="{{asset('bower_components/datatables/media/css/dataTables.bootstrap4.css')}}" rel="stylesheet">
+@endpush
+
+@push('js')
+<script type="text/javascript" src="{{ asset('bower_components/datatables/media/js/jquery.dataTables.min.js')}}"></script>
+<script type="text/javascript" src="{{ asset('bower_components/datatables/media/js/dataTables.bootstrap4.min.js')}}"></script>
+<script>
+    $(document).ready( function () {
+        $('#table-data').DataTable({
+            processing: true,
+            ajax: window.location.href,
+            columns: [
+                { data: 'DT_RowIndex', orderable: false, searchable: false },
+                { data: 'token' },
+                { data: 'passkey' },
+                { data: 'waktu_create' },
+                { data: 'waktu_expired' },
+                { data: 'base_url' },
+                { data: 'action', orderable: false, searchable: false }
+            ],
+            "language": {
+                "decimal":        "",
+                "emptyTable":     "Tidak ada data pada tabel",
+                "info":           "Menampilkan _START_ sampai _END_ dari _TOTAL_ total data",
+                "infoEmpty":      "Tidak ada yang ditampilkan",
+                "infoFiltered":   "(Terfilter dari  _MAX_ total entitas)",
+                "infoPostFix":    "",
+                "thousands":      ",",
+                "lengthMenu":     "Menampilkan _MENU_ entitas",
+                "loadingRecords": "Loading...",
+                "processing":     "Sedang dalam proses...",
+                "search":         "Pencarian:",
+                "zeroRecords":    "Tidak ada data yang cocok",
+                "paginate": {
+                    "first":      "Pertama",
+                    "last":       "Terakhir",
+                    "next":       "Selanjutnya",
+                    "previous":   "Sebelumnya"
+                },
+                "aria": {
+                    "sortAscending":  ": activate to sort column ascending",
+                    "sortDescending": ": activate to sort column descending"
+                }
+            }
+        } );
+    });
+</script>
+@endpush
 
 @section('content')
-    <div class="card">
+    <div class="card card-info">
         <div class="card-header">
             <h3 class="card-title"><i class="fa fa-list"></i> Data Token</h3>
         </div><!-- /.card-header -->
@@ -14,67 +63,16 @@
                       <tr>
                         <th>No.</th>
                         <th>Token</th>
-                        <th>Keterangan</th>
+                        <th>Passkey</th>
                         <th>Created Date</th>
                         <th>Expired Date</th>
                         <th>Base URL</th>
                         <th>Aksi</th>
                       </tr>
                     </thead>
-                    <tbody>
-                        @foreach($data as $no=>$item)
-                        <tr>
-                            <td>{{$no+1}}</td>
-                            <td>{{$item->token_value}}</td>
-                            <td>{{$item->keterangan}}</td>
-                            <td>{{$item->waktu_create}}</td>
-                            <td>{{$item->waktu_expired}}</td>
-                            <td>{{$item->base_url}}</td>
-                            <td>
-                                <button class="btn btn-outline-danger btn-xs" title="Reset" data-toggle="modal" data-target="#deleteItem{{$item->id_token}}"> <i class="fas fa-trash-alt"></i></button>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
                 </table>
             </div>
         </div>
     </div>
-
-    @foreach($data as $items)
-    <div class="modal fade" id="deleteItem{{$items->id_token}}" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header no-bd">
-                    <h5 class="modal-title">
-                        <span class="fw-mediumbold">
-                        Tambah</span> 
-                        <span class="fw-light">
-                            PJ
-                        </span>
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form action="#" method="post" enctype="multipart/form-data">
-                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                        <input type="hidden" name="_method" value="DELETE">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                Yakin ingin menghapus Token?
-                            </div>
-                        </div>
-                        <div class="modal-footer no-bd">
-                            <button type="submit" class="btn btn-danger">Hapus</button>
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-    @endforeach
 
 @endsection

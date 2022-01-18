@@ -3,7 +3,7 @@
 @extends('__partial.datatable')
 
 @section('content')
-    <div class="card">
+    <div class="card card-info">
         <div class="card-header">
             <h3 class="card-title"><i class="fa fa-list"></i> Data Pengguna</h3>
             <div class="card-tools">
@@ -38,9 +38,9 @@
                                 @endif
                             </td>
                             <td>
-                                <a class="btn btn-outline-warning btn-xs" title="Reset" data-toggle="modal" href="#resetItem{{$item->id_pengguna}}"> <i class="fas fa-key"></i></a>
-                                <a class="btn btn-outline-primary btn-xs" title="Show User" href="{{ route('user.detail', [Crypt::encrypt($item->id_pengguna)]) }}"> <i class="fas fa-eye"></i></a>
-                                <a class="btn btn-outline-danger btn-xs" title="Delete" data-toggle="modal" href="#deleteItem{{$item->id_pengguna}}"> <i class="fas fa-trash-alt"></i></a>
+                                <a class="btn btn-warning btn-xs" title="Reset" data-toggle="modal" href="#resetItem{{$item->id_pengguna}}"> <i class="fas fa-key"></i></a>
+                                <a class="btn btn-primary btn-xs" title="Show User" href="{{ route('user.detail', [Crypt::encrypt($item->id_pengguna)]) }}"> <i class="fas fa-eye"></i></a>
+                                <a class="btn btn-danger btn-xs" title="Delete" data-toggle="modal" href="#deleteItem{{$item->id_pengguna}}"> <i class="fas fa-trash-alt"></i></a>
                             </td>
                         </tr>
                         @endforeach
