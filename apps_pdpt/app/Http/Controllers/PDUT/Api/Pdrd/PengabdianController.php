@@ -38,7 +38,7 @@ class PengabdianController extends Controller
         $this->dokLitabmas = new DokLitabmas();
         $this->dokumen = new Dokumen();
     }
-    public function getAllListPengabdian()
+    public function list()
     {
         // if (empty($sortBy)) {
         //     $sortBy = 'DESC';
@@ -62,11 +62,11 @@ class PengabdianController extends Controller
         if (empty($sortBy)) {
             $sortBy = 'DESC';
         }
-    
+
         $query =  "
-        SELECT TOP 50 
+        SELECT TOP 50
             lm.id_litabmas AS id_penelitian,
-            lm.judul_litabmas AS judul_penelitian, 
+            lm.judul_litabmas AS judul_penelitian,
             kb.nm_kel_bidang AS bidang_keilmuan,
                 lm.id_thn_laks AS tahun_pelaksanaan,
                 lm.lama_kegiatan AS lama_kegiatan,
@@ -86,10 +86,10 @@ class PengabdianController extends Controller
                 JOIN ref.kelompok_bidang AS kb ON kb.id_kel_bidang = lm.id_kel_bidang
                 AND kb.expired_date IS NULL
 
-        WHERE 
+        WHERE
             lm.soft_delete = 0
         ORDER BY lm.id_thn_laks " . $sortBy . "
-        
+
         ";
         $query = DB::select($query);
 
@@ -164,7 +164,7 @@ class PengabdianController extends Controller
         if (empty($sortBy)) {
             $sortBy = 'DESC';
         }
-    
+
         $query = "
         SELECT
                 TOP 50 litabmas.id_litabmas AS id_penelitian,
@@ -190,9 +190,9 @@ class PengabdianController extends Controller
                 AND sdm.id_sdm = '" . $sdmId . "'
             WHERE
                 litabmas.soft_delete = 0
-            // ORDER BY 
+            // ORDER BY
             //     litabmas.id_thn_laks " . $sortBy . "
-        
+
         ";
         $query = DB::select($query);
 
@@ -246,7 +246,7 @@ class PengabdianController extends Controller
         $validateInput = $validator->validate();
         $pengabdianId = $validateInput['pengabdianid'];
 
-        try {    
+        try {
             $query = "
                 SELECT
                     skim_kegiatan.nm_skim AS nama_skim,
@@ -273,7 +273,7 @@ class PengabdianController extends Controller
                 WHERE
                     litabmas.id_litabmas = '" . $pengabdianId . "'
                     AND litabmas.soft_delete = 0
-                
+
                 ";
 
         $getDetailPengabdian = DB::select($query);
@@ -371,7 +371,7 @@ class PengabdianController extends Controller
                 'message' => 'success',
                 'data'  => $reformatGetDetailPengabdian
             ], 200);
-        
+
     }
         catch (Exception $e) {
             Log::error(__FUNCTION__ . ' - ' . $e->getMessage());
@@ -381,7 +381,7 @@ class PengabdianController extends Controller
             ]);
         }
     }
-    
+
     public function store(Request $request)
     {
         $litabmasId = guid();
@@ -546,7 +546,7 @@ class PengabdianController extends Controller
                 foreach ($anggota_mahasiswa as $index => $idMahasiswa) {
                     $dataMahasiswa = DB::select("
                         SELECT
-                            TOP 1 
+                            TOP 1
                             pd.nm_pd AS nama_mahasiswa,
                             reg_pd.nipd AS nipd
                         FROM
