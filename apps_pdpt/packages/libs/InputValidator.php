@@ -23,7 +23,7 @@ if (!function_exists('InputValidator')) {
                 ]));
             }
 
-            return $validator->validate();
+            return TRUE;
         }
     }
 }

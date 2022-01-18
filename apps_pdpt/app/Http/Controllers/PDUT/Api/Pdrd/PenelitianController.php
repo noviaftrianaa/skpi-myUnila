@@ -10,15 +10,16 @@ use App\Models\PDUT\Pdrd\NonCaAnggotaLitabmas;
 use App\Models\PDUT\Pdrd\PdAnggotaLitabmas;
 use App\Models\PDUT\Pdrd\SdmAnggotaLitabmas;
 
-use Exception;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
+
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rule as ValidationRule;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Exception;
 
 class PenelitianController extends Controller
 {
@@ -341,6 +342,40 @@ class PenelitianController extends Controller
             File::makeDirectory($dok_tmp_path, 0755, true, true);
         }
 
+        $rule = [
+            'judul_kegiatan' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
+            'afiliasi' => 'required|regex:/^[a-z0-9\-]+$/',
+            'kel_bidang' => 'regex:/^[a-z0-9\-]+$/',
+            'litabmas_lanjutan' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'jenis_skim' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'lokasi_kegiatan' => 'string',
+            'tahun_usulan' => 'required|date_format:Y',
+            'tahun_pelaksanaan' => 'required|date_format:Y',
+            'tahun_kegiatan' => 'required|date_format:Y',
+            'lama_kegiatan' => 'required|numeric|min:1|max:10',
+            'dana_dikti' => 'required|numeric|gte:0',
+            'dana_pt' => 'required|numeric|gte:0',
+            'dana_institusi_lain' => 'required|numeric|gte:0',
+            'in_kind' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'no_sk_penugasan' => 'regex:/^[A-Z0-9\/\.]+$/',
+            'tgl_sk_penugasan' => 'date_format:Y-m-d',
+            'dok_penelitian.*' => 'file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx,txt|max:2048',
+            'nama_dok.*' => 'required_with:dok_penelitian|string',
+            'keterangan_dok.*' => 'required_with:dok_penelitian|string',
+            'jenis_dok.*' => 'nullable|numeric',
+            'url_dok.*' => 'required_without:dok_penelitian.*|nullable|url',
+            'anggota_dosen.*' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'peran_dosen.*' => ['alpha', 'nullable', ValidationRule::in(['A', 'K'])],
+            'status_dosen.*' => ['numeric', 'nullable', ValidationRule::in(['0', '1'])],
+            'anggota_mahasiswa.*' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'peran_mahasiswa.*' => ['alpha', 'nullable', ValidationRule::in(['A', 'K'])],
+            'status_mahasiswa.*' => ['numeric', 'nullable', ValidationRule::in(['0', '1'])],
+            'anggota_non_ca.*' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'peran_non_ca.*' => ['alpha', 'nullable', ValidationRule::in(['A', 'K'])],
+            'status_non_ca.*' => ['numeric', 'nullable', ValidationRule::in(['0', '1'])]
+        ];
+        InputValidator($rule);
+
         $judul_kegiatan = $this->request->input('judul_kegiatan');
         $afiliasi =  $this->request->input('afiliasi');
         $kel_bidang = $this->request->input('kel_bidang');
@@ -354,17 +389,11 @@ class PenelitianController extends Controller
         $dana_dikti = $this->request->input('dana_dikti');
         $dana_pt = $this->request->input('dana_pt');
         $dana_institusi_lain = $this->request->input('dana_institusi_lain');
-
         $in_kind = $this->request->input('in_kind');
-        if (empty($in_kind)) {
-            $in_kind = NULL;
-        }
-
         $no_sk_penugasan = $this->request->input('no_sk_penugasan');
         $tgl_sk_penugasan = $this->request->input('tgl_sk_penugasan');
-        $mitra_litabmas = $this->request->input('mitra_litabmas');
 
-        $dok_penelitian = $this->request->file('dok_penelitian');
+        $dok_penelitian = $this->request->input('dok_penelitian');
         $nama_dok = $this->request->input('nama_dok');
         $keterangan_dok = $this->request->input('keterangan_dok');
         $jenis_dok = $this->request->input('jenis_dok');
@@ -547,6 +576,42 @@ class PenelitianController extends Controller
 
     public function updatePenelitian()
     {
+        $rule = [
+            'id_penelitian' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
+            'judul_kegiatan' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
+            'afiliasi' => 'required|regex:/^[a-z0-9\-]+$/',
+            'kel_bidang' => 'regex:/^[a-z0-9\-]+$/',
+            'litabmas_lanjutan' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'jenis_skim' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'lokasi_kegiatan' => 'string',
+            'tahun_usulan' => 'required|date_format:Y',
+            'tahun_pelaksanaan' => 'required|date_format:Y',
+            'tahun_kegiatan' => 'required|date_format:Y',
+            'lama_kegiatan' => 'required|numeric|min:1|max:10',
+            'dana_dikti' => 'required|numeric|gte:0',
+            'dana_pt' => 'required|numeric|gte:0',
+            'dana_institusi_lain' => 'required|numeric|gte:0',
+            'in_kind' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'no_sk_penugasan' => 'regex:/^[A-Z0-9\/\.]+$/',
+            'tgl_sk_penugasan' => 'date_format:Y-m-d',
+            'dok_penelitian.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx,txt|max:2048',
+            'nama_dok.*' => 'required_with:dok_penelitian|string',
+            'keterangan_dok.*' => 'required_with:dok_penelitian|string',
+            'jenis_dok.*' => 'nullable|numeric',
+            'url_dok.*' => 'required_without:dok_penelitian.*|nullable|url',
+            'anggota_dosen.*' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'peran_dosen.*' => ['alpha', 'nullable', ValidationRule::in(['A', 'K'])],
+            'status_dosen.*' => ['numeric', 'nullable', ValidationRule::in(['0', '1'])],
+            'pd_litabmas_mahasiswa_id.*' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'anggota_mahasiswa.*' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'peran_mahasiswa.*' => ['alpha', 'nullable', ValidationRule::in(['A', 'K'])],
+            'status_mahasiswa.*' => ['numeric', 'nullable', ValidationRule::in(['0', '1'])],
+            'anggota_non_ca.*' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'peran_non_ca.*' => ['alpha', 'nullable', ValidationRule::in(['A', 'K'])],
+            'status_non_ca.*' => ['numeric', 'nullable', ValidationRule::in(['0', '1'])]
+        ];
+        InputValidator($rule);
+
         $litabmasId = $this->request->input('id_penelitian');
         $creatorId = $updateId = 'bc62ca9c-4e6e-4462-89b6-ff246512734f';
         $kat_kegiatan = 121300;
@@ -569,17 +634,12 @@ class PenelitianController extends Controller
         $dana_dikti = $this->request->input('dana_dikti');
         $dana_pt = $this->request->input('dana_pt');
         $dana_institusi_lain = $this->request->input('dana_institusi_lain');
-
         $in_kind = $this->request->input('in_kind');
-        if (empty($in_kind)) {
-            $in_kind = NULL;
-        }
 
         $no_sk_penugasan = $this->request->input('no_sk_penugasan');
         $tgl_sk_penugasan = $this->request->input('tgl_sk_penugasan');
-        $mitra_litabmas = $this->request->input('mitra_litabmas');
 
-        $dok_penelitian = $this->request->file('dok_penelitian');
+        $dok_penelitian = $this->request->input('dok_penelitian');
         $nama_dok = $this->request->input('nama_dok');
         $keterangan_dok = $this->request->input('keterangan_dok');
         $jenis_dok = $this->request->input('jenis_dok');
@@ -591,8 +651,6 @@ class PenelitianController extends Controller
 
         $anggota_mahasiswa = $this->request->input('anggota_mahasiswa');
         $pdLitabmasId = $this->request->input('pd_litabmas_mahasiswa_id');
-        $nama_mahasiswa = $this->request->input('nama_mahasiswa');
-        $nidn_mahasiswa = $this->request->input('nidn_mahasiswa');
         $peran_mahasiswa = $this->request->input('peran_mahasiswa');
         $status_mahasiswa = $this->request->input('status_mahasiswa');
 
@@ -602,41 +660,37 @@ class PenelitianController extends Controller
 
         DB::beginTransaction();
         try {
-            try {
-                $this->litabmas
-                    ->where('id_litabmas', $litabmasId)
-                    ->update([
-                        'id_litabmas' => $litabmasId,
-                        'id_lemb_iptek' => $afiliasi,
-                        'judul_litabmas' => $judul_kegiatan,
-                        'lama_kegiatan' => $lama_kegiatan,
-                        'thn_laks_ke' => $tahun_pelaksanaan,
-                        'dana_dikti' => $dana_dikti,
-                        'dana_pt' => $dana_pt,
-                        'dana_institusi_lain' => $dana_institusi_lain,
-                        'in_kind' => $in_kind,
-                        'stat_aktif' => 1,
-                        'jns_litabmas' => 'M',
-                        'sk_tugas' => $no_sk_penugasan,
-                        'tgl_sk_tugas' => $tgl_sk_penugasan,
-                        'lokasi_kegiatan' => $lokasi_kegiatan,
-                        'id_skim' => $jenis_skim,
-                        'id_thn_usulan' => $tahun_usulan,
-                        'id_thn_kegiatan' => $tahun_kegiatan,
-                        'id_thn_laks' => $tahun_pelaksanaan,
-                        'id_lanjutan_litabmas' => $litabmas_lanjutan,
-                        'id_kel_bidang' => $kel_bidang,
-                        'id_tse' => NULL,
-                        'id_smi' => NULL,
-                        'id_jns_lit' => NULL,
-                        'last_update' => currDateTime(),
-                        'id_updater' => $updateId,
-                        'soft_delete' => 0,
-                    ]);
-            } catch (ModelNotFoundException $mnfe) {
-                Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
-                return WrapResponse([], 'penelitian tidak ditemukan atau penelitian tidak terdaftar', FALSE);
-            }
+            $penelitian = $this->litabmas->where('id_litabmas', $litabmasId)->first();
+            if (!$penelitian) return WrapResponse([], 'penelitian tidak ditemukan atau penelitian tidak terdaftar', FALSE);
+
+            $penelitian->update([
+                'id_litabmas' => $litabmasId,
+                'id_lemb_iptek' => $afiliasi,
+                'judul_litabmas' => $judul_kegiatan,
+                'lama_kegiatan' => $lama_kegiatan,
+                'thn_laks_ke' => $tahun_pelaksanaan,
+                'dana_dikti' => $dana_dikti,
+                'dana_pt' => $dana_pt,
+                'dana_institusi_lain' => $dana_institusi_lain,
+                'in_kind' => $in_kind,
+                'stat_aktif' => 1,
+                'jns_litabmas' => 'M',
+                'sk_tugas' => $no_sk_penugasan,
+                'tgl_sk_tugas' => $tgl_sk_penugasan,
+                'lokasi_kegiatan' => $lokasi_kegiatan,
+                'id_skim' => $jenis_skim,
+                'id_thn_usulan' => $tahun_usulan,
+                'id_thn_kegiatan' => $tahun_kegiatan,
+                'id_thn_laks' => $tahun_pelaksanaan,
+                'id_lanjutan_litabmas' => $litabmas_lanjutan,
+                'id_kel_bidang' => $kel_bidang,
+                'id_tse' => NULL,
+                'id_smi' => NULL,
+                'id_jns_lit' => NULL,
+                'last_update' => currDateTime(),
+                'id_updater' => $updateId,
+                'soft_delete' => 0,
+            ]);
 
             if (!empty($dok_penelitian)) {
                 foreach ($dok_penelitian as $index => $dok) {
@@ -691,77 +745,79 @@ class PenelitianController extends Controller
 
             if (!empty($anggota_dosen)) {
                 foreach ($anggota_dosen as $index => $idDosen) {
-                    try {
-                        $this->sdmLitabmas
-                            ->where('id_litabmas', $litabmasId)
-                            ->where('id_sdm', $idDosen)
-                            ->update([
-                                'id_litabmas' => $litabmasId,
-                                'id_sdm' => $idDosen,
-                                'id_katgiat' => $kat_kegiatan,
-                                'peran_litabmas' => $peran_dosen[$index],
-                                'stat_aktif' => $status_dosen[$index],
-                                'last_update' => currDateTime(),
-                                'id_updater' => $updateId,
-                                'soft_delete' => 0,
-                            ]);
-                    } catch (ModelNotFoundException $mnfe) {
-                        Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
-                        return WrapResponse([], 'penelitian tidak ditemukan atau dosen anggota tidak terdaftar', FALSE);
-                    }
+                    $anggota_dosen = $this->sdmLitabmas->where('id_litabmas', $litabmasId)->where('id_sdm', $idDosen)->first();
+                    if (!$anggota_dosen) return WrapResponse([], 'penelitian tidak ditemukan atau dosen anggota tidak terdaftar', FALSE);
+
+                    $anggota_dosen->update([
+                        'id_litabmas' => $litabmasId,
+                        'id_sdm' => $idDosen,
+                        'id_katgiat' => $kat_kegiatan,
+                        'peran_litabmas' => $peran_dosen[$index],
+                        'stat_aktif' => $status_dosen[$index],
+                        'last_update' => currDateTime(),
+                        'id_updater' => $updateId,
+                        'soft_delete' => 0,
+                    ]);
                 }
             }
 
             if (!empty($anggota_mahasiswa)) {
                 foreach ($anggota_mahasiswa as $index => $idMahasiswa) {
-                    try {
-                        $this->pdLitabmas
-                            ->where('id_pd_ang_litabmas', $pdLitabmasId[$index])
-                            ->where('id_litabmas', $litabmasId)
-                            ->where('id_pd', $idMahasiswa)
-                            ->update([
-                                'id_pd_ang_litabmas' => $pdLitabmasId[$index],
-                                'id_litabmas' => $litabmasId,
-                                'id_pd' => $idMahasiswa,
-                                'peran_litabmas' => $peran_mahasiswa[$index],
-                                'stat_aktif' => $status_mahasiswa[$index],
-                                'nm_pd' => $nama_mahasiswa[$index],
-                                'nipd' => $nidn_mahasiswa[$index],
-                                'last_update' => currDateTime(),
-                                'id_updater' => $updateId,
-                                'soft_delete' => 0,
-                            ]);
-                    } catch (ModelNotFoundException $mnfe) {
-                        Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
-                        return WrapResponse([], 'penelitian tidak ditemukan atau mahasiswa anggota tidak terdaftar', FALSE);
-                    }
+                    $anggota_mahasiswa = $this->pdLitabmas->where('id_pd_ang_litabmas', $pdLitabmasId[$index])->where('id_litabmas', $litabmasId)->where('id_pd', $idMahasiswa)->first();
+                    if (!$anggota_mahasiswa) return WrapResponse([], 'penelitian tidak ditemukan atau mahasiswa anggota tidak terdaftar', FALSE);
+
+                    $dataMahasiswa = DB::select("
+                        SELECT
+                            TOP 1
+                            pd.nm_pd AS nama_mahasiswa,
+                            reg_pd.nipd AS nipd
+                        FROM
+                            pdrd.peserta_didik AS pd
+                            LEFT JOIN pdrd.reg_pd AS reg_pd ON reg_pd.id_pd = pd.id_pd
+                            AND reg_pd.soft_delete = 0
+                        WHERE
+                            pd.id_pd = '" . $idMahasiswa . "'
+                            AND pd.soft_delete = 0
+                    ");
+
+                    $anggota_mahasiswa->update([
+                        'id_pd_ang_litabmas' => $pdLitabmasId[$index],
+                        'id_litabmas' => $litabmasId,
+                        'id_pd' => $idMahasiswa,
+                        'peran_litabmas' => $peran_mahasiswa[$index],
+                        'stat_aktif' => $status_mahasiswa[$index],
+                        'nm_pd' => $dataMahasiswa[0]->nama_mahasiswa,
+                        'nipd' => $dataMahasiswa[0]->nipd,
+                        'last_update' => currDateTime(),
+                        'id_updater' => $updateId,
+                        'soft_delete' => 0,
+                    ]);
                 }
             }
 
             if (!empty($anggota_non_ca)) {
                 foreach ($anggota_non_ca as $index => $idNonCa) {
-                    try {
-                        $this->nonCaLitabmas
-                            ->where('id_litabmas', $litabmasId)
-                            ->where('id_orang', $idNonCa)
-                            ->update([
-                                'id_litabmas' => $litabmasId,
-                                'id_orang' => $idNonCa,
-                                'peran_litabmas' => $peran_non_ca[$index],
-                                'stat_aktif' => $status_non_ca[$index],
-                                'last_update' => currDateTime(),
-                                'id_updater' => $updateId,
-                                'soft_delete' => 0,
-                            ]);
-                    } catch (ModelNotFoundException $mnfe) {
-                        Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
-                        return WrapResponse([], 'penelitian tidak ditemukan atau nonca anggota tidak terdaftar', FALSE);
-                    }
+                    $anggota_non_ca = $this->nonCaLitabmas->where('id_litabmas', $litabmasId)->where('id_orang', $idNonCa)->first();
+                    if (!$anggota_non_ca) return WrapResponse([], 'penelitian tidak ditemukan atau nonca anggota tidak terdaftar', FALSE);
+
+                    $anggota_non_ca->update([
+                        'id_litabmas' => $litabmasId,
+                        'id_orang' => $idNonCa,
+                        'peran_litabmas' => $peran_non_ca[$index],
+                        'stat_aktif' => $status_non_ca[$index],
+                        'last_update' => currDateTime(),
+                        'id_updater' => $updateId,
+                        'soft_delete' => 0,
+                    ]);
                 }
             }
 
             DB::commit();
             return WrapResponse([], 'sukses mengupdate penelitian - ' . $litabmasId);
+        } catch (ModelNotFoundException $mnfe) {
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+            DB::rollBack();
+            return WrapResponse([], 'penelitian tidak ditemukan atau penelitian tidak terdaftar', FALSE);
         } catch (Exception $e) {
             Log::error('error on Function ' . __FUNCTION__ . ' with ' . $e->getMessage() . ' on ' . $e->getLine());
             DB::rollBack();
