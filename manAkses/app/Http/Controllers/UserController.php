@@ -16,7 +16,13 @@ class UserController extends Controller
 
     public function index()
     {
-        $user = User::where('soft_delete', 0)->orderBy('a_aktif','DESC')->orderBy('nm_pengguna', 'ASC')->get();
+        // $user = User::lock('WITH(NOLOCK)')->where('soft_delete', 0)->orderBy('a_aktif','DESC')->orderBy('nm_pengguna', 'ASC')->get();
+        $user = DB::SELECT('
+            SELECT *
+            FROM man_akses.pengguna WITH(NOLOCK)
+            WHERE soft_delete=0
+            ORDER BY a_aktif DESC, nm_pengguna ASC
+        ');
 
         return view('manajemen.pengguna.index', [
             'user'=>$user
@@ -25,7 +31,7 @@ class UserController extends Controller
 
     public function create()
     {
-        $unit = UnitOrganisasi::where('a_aktif',1)->get();
+        $unit = UnitOrganisasi::lock('WITH(NOLOCK)')->where('a_aktif',1)->get();
         $peran = Peran::all();
         return view('manajemen.pengguna.create', [
             'unit'=>$unit,
@@ -44,7 +50,7 @@ class UserController extends Controller
         $array = $request->all();
 
         $uuid = guid();
-        $data = User::create([
+        $data = User::lock('WITH(NOLOCK)')->create([
             'id_pengguna'   => $uuid,
             'nm_pengguna'   => $array['nm_pengguna'],
             'username'      => $array['username'],
@@ -101,9 +107,9 @@ class UserController extends Controller
     {
         $id = Crypt::decrypt($id);
         $data = User::findOrFail($id);
-        $role = RolePengguna::with('Peran')->where('soft_delete',0)->where('id_pengguna', $id)->get();
+        $role = RolePengguna::with('Peran')->lock('WITH(NOLOCK)')->where('soft_delete',0)->where('id_pengguna', $id)->get();
         $peran = Peran::all();
-        $unit = UnitOrganisasi::where('soft_delete', 0)->get();
+        $unit = UnitOrganisasi::lock('WITH(NOLOCK)')->where('soft_delete', 0)->get();
         
         return view('manajemen.pengguna.show', [
             'data'=>$data,
@@ -122,16 +128,16 @@ class UserController extends Controller
     public function edit($id)
     {
         $id = Crypt::decrypt($id);
-        $pengguna = User::where('id_pengguna', $id)->first();
+        $pengguna = User::lock('WITH(NOLOCK)')->where('id_pengguna', $id)->first();
         if($pengguna->a_aktif==1) {
-            $data = User::where('id_pengguna', $id)->update([
+            $data = User::lock('WITH(NOLOCK)')->where('id_pengguna', $id)->update([
                 'a_aktif'=>0,
                 'disable' => 1,
                 'last_update'=>currDateTime(),
                 'last_sync'=>currDateTime()
             ]);
         } else {
-            $data = User::where('id_pengguna', $id)->update([
+            $data = User::lock('WITH(NOLOCK)')->where('id_pengguna', $id)->update([
                 'a_aktif'=>1,
                 'disable' => 0,
                 'last_update'=>currDateTime(),
@@ -159,7 +165,7 @@ class UserController extends Controller
         $id = Crypt::decrypt($id);
         $array = $request->all();
 
-        $data = User::where('id_pengguna',$id)->update([
+        $data = User::lock('WITH(NOLOCK)')->where('id_pengguna',$id)->update([
             'nm_pengguna'   => $array['nm_pengguna'],
             'username'      => $array['username'],
             'jenis_kelamin' => $array['jenis_kelamin'],
@@ -194,7 +200,7 @@ class UserController extends Controller
     public function destroy($id)
     {
         $id = Crypt::decrypt($id);
-        $data = User::where('id_pengguna', $id)->update([
+        $data = User::lock('WITH(NOLOCK)')->where('id_pengguna', $id)->update([
             'soft_delete' => 1,
             'last_update' => currDateTime(),
             'last_sync' => currDateTime(),
@@ -216,7 +222,7 @@ class UserController extends Controller
     public function reset(Request $request, $id)
     {
         $id = Crypt::decrypt($id);
-        $data = User::where('id_pengguna', $id)->update([
+        $data = User::lock('WITH(NOLOCK)')->where('id_pengguna', $id)->update([
             'password'         => sha1('12345678'),
             'last_update'      => currDateTime(),
             'id_updater'       => Auth::user()->id_pengguna
@@ -246,7 +252,7 @@ class UserController extends Controller
 
         if($array['password']==$array['confirm_password']) {
             $pengguna = User::findOrFail(Auth::user()->id_pengguna);
-            $pengguna = User::where('id_pengguna', $pengguna->id_pengguna)->update([
+            $pengguna = User::lock('WITH(NOLOCK)')->where('id_pengguna', $pengguna->id_pengguna)->update([
                 'password'  => sha1($array['password'])
             ]);
             alert()->success('Password Berhasil Diupdate!');

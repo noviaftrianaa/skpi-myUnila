@@ -40,46 +40,69 @@ class PJAplikasiController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'username' => ['required', 'string', 'max:60', 'unique:sqlsrv.man_akses.pengguna'],
-        ]);
-
+        
         $array = $request->all();
         $aplikasi = Aplikasi::lock('WITH(NOLOCK)')->where('id_aplikasi', $array['id_aplikasi'])->first();
-        $pengguna = User::create([
-            'id_pengguna' => guid(),
-            'username' => $array['username'],
-            'password' => sha1('12345678'),
-            'nm_pengguna' => $array['nm_pj'],
-            'jenis_kelamin' => $array['jenis_kelamin'],
-            'no_hp' => $array['no_hp'],
-            'approval_pengguna' => 1,
-            'a_aktif' => 1,
-            'jabatan' => $array['jabatan_pj'],
-            'disable' => 0,
-            'tgl_create' => currDateTime(),
-            'last_update' => currDateTime(),
-            'soft_delete' => 0,
-            'last_sync' => currDateTime(),
-            'id_updater' => Auth::user()->id_pengguna
-        ]);
-
-        $pj = PJAplikasi::create([
-            'id_pj_aplikasi' => guid(),
-            'id_aplikasi' => $aplikasi->id_aplikasi,
-            'id_pengguna' => $pengguna->id_pengguna,
-            'nm_pj' => $pengguna->nm_pengguna,
-            'jabatan_pj' => $pengguna->jabatan,
-            'no_hp' => $pengguna->no_hp,
-            'email' => $pengguna->username,
-            'a_masih' => $array['a_masih'],
-            'wkt_selesai' => $array['wkt_selesai'],
-            'tgl_create' => currDateTime(),
-            'last_update' => currDateTime(),
-            'soft_delete' => 0,
-            'last_sync' => currDateTime(),
-            'id_updater' => Auth::user()->id_pengguna
-        ]);
+        if(!empty($array['id_pengguna'])) {
+            foreach($array['id_pengguna'] AS $item) {
+                $pengguna = User::where('id_pengguna', $item)->first();
+                $pj = PJAplikasi::lock('WITH(NOLOCK)')->create([
+                    'id_pj_aplikasi' => guid(),
+                    'id_aplikasi' => $aplikasi->id_aplikasi,
+                    'id_pengguna' => $pengguna->id_pengguna,
+                    'nm_pj' => $pengguna->nm_pengguna,
+                    'jabatan_pj' => $pengguna->jabatan,
+                    'no_hp' => $pengguna->no_hp,
+                    'email' => $pengguna->username,
+                    'a_masih' => $array['a_masih'],
+                    'wkt_selesai' => $array['wkt_selesai'],
+                    'tgl_create' => currDateTime(),
+                    'last_update' => currDateTime(),
+                    'soft_delete' => 0,
+                    'last_sync' => currDateTime(),
+                    'id_updater' => Auth::user()->id_pengguna
+                ]);
+            }
+        } else {
+            $request->validate([
+                'username' => ['required', 'string', 'max:60', 'unique:sqlsrv.man_akses.pengguna'],
+            ]);
+            $pengguna = User::lock('WITH(NOLOCK)')->create([
+                'id_pengguna' => guid(),
+                'username' => $array['username'],
+                'password' => sha1('12345678'),
+                'nm_pengguna' => $array['nm_pj'],
+                'jenis_kelamin' => $array['jenis_kelamin'],
+                'no_hp' => $array['no_hp'],
+                'approval_pengguna' => 1,
+                'a_aktif' => 1,
+                'jabatan' => $array['jabatan_pj'],
+                'disable' => 0,
+                'tgl_create' => currDateTime(),
+                'last_update' => currDateTime(),
+                'soft_delete' => 0,
+                'last_sync' => currDateTime(),
+                'id_updater' => Auth::user()->id_pengguna
+            ]);
+    
+            $pj = PJAplikasi::lock('WITH(NOLOCK)')->create([
+                'id_pj_aplikasi' => guid(),
+                'id_aplikasi' => $aplikasi->id_aplikasi,
+                'id_pengguna' => $pengguna->id_pengguna,
+                'nm_pj' => $pengguna->nm_pengguna,
+                'jabatan_pj' => $pengguna->jabatan,
+                'no_hp' => $pengguna->no_hp,
+                'email' => $pengguna->username,
+                'a_masih' => $array['a_masih'],
+                'wkt_selesai' => $array['wkt_selesai'],
+                'tgl_create' => currDateTime(),
+                'last_update' => currDateTime(),
+                'soft_delete' => 0,
+                'last_sync' => currDateTime(),
+                'id_updater' => Auth::user()->id_pengguna
+            ]);
+        }
+        
         
         if(!$pj) {
             alert()->error('Data gagal disimpan!');

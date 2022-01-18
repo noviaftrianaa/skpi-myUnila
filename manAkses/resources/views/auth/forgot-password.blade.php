@@ -23,6 +23,7 @@
                         </a>
                     </div>
                 </form>
+                <div class="mt-4 text-center">Kembali Ke Halaman <a href="{{ route('auth.login') }}" title="Login">Login</a></div>
                 <div class="mt-4 text-muted text-center">Situs ini dikelola oleh Tim <a href="http://tik.unila.ac.id" title="">TIK Universitas Lampung</a></div>
             </div>
         </div>

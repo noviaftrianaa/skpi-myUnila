@@ -5,7 +5,7 @@ use App\Http\Controllers\Auth\{
     LoginController, RegisterController, ForgotPasswordController
 };
 use App\Http\Controllers\{
-    HomeController, UserController, PeranController, UnitOrganisasiController, AplikasiController, TokenController, PJAplikasiController, MenuController, RolePenggunaController
+    HomeController, UserController, PeranController, UnitOrganisasiController, AplikasiController, TokenController, PJAplikasiController, MenuController, RolePenggunaController, TableAplikasiController, PengaturanTableAplikasiController
 };
 /*
 |--------------------------------------------------------------------------
@@ -78,7 +78,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         });
         Route::namespace('aplikasi')->prefix('aplikasi')->name('aplikasi.')->group(function () {
             Route::get('/', [AplikasiController::class, 'index'])->name('index');
-            Route::get('/show/{id}', [AplikasiController::class, 'show'])->name('show');
+            Route::get('/{id}', [AplikasiController::class, 'detail'])->name('detail');
             Route::get('/create', [AplikasiController::class, 'create'])->name('create');
             Route::put('/store', [AplikasiController::class, 'store'])->name('store');
             Route::get('/edit/{id}', [AplikasiController::class, 'edit'])->name('edit');
@@ -87,12 +87,14 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
             Route::get('/pj_aplikasi', [AplikasiController::class, 'pj_aplikasi'])->name('pj_aplikasi');
             Route::put('/store_menu/{id}', [AplikasiController::class, 'store_menu'])->name('store_menu');
             Route::delete('/destroy/{id}', [AplikasiController::class, 'destroy'])->name('destroy');
+
+            Route::get('/table/{id}', [TableAplikasiController::class, 'index'])->name('table');
+            Route::put('/table/{id}/store', [TableAplikasiController::class, 'store'])->name('table.store');
+            Route::patch('/table/{id}/update', [TableAplikasiController::class, 'update'])->name('table.update');
         });
         Route::namespace('token')->prefix('token')->name('token.')->group(function () {
             Route::get('/', [TokenController::class, 'index'])->name('index');
-            Route::put('/store', [TokenController::class, 'store'])->name('store');
-            Route::patch('/{id}/update', [TokenController::class, 'update'])->name('update');
-            Route::delete('/{id}/destroy', [TokenController::class, 'destroy'])->name('destroy');
+            Route::get('/{id}', [TokenController::class, 'detail'])->name('detail');
         });
         Route::prefix('pj_aplikasi')->name('pj_aplikasi.')->group(function() {
             Route::put('/', [PJAplikasiController::class, 'store'])->name('store');

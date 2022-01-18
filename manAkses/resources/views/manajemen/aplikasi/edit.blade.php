@@ -3,7 +3,7 @@
 @extends('__partial.datatable')
 
 @section('content')
-    <div class="card">
+    <div class="card card-info">
         <div class="card-header">
             <h3 class="card-title"><i class="fa fa-list"></i> Edit Aplikasi</h3>
         </div><!-- /.card-header -->

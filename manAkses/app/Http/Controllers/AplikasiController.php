@@ -105,7 +105,7 @@ class AplikasiController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function detail($id)
     {
         $id = Crypt::decrypt($id);
         $data = Aplikasi::with('UnitOrganisasi')->lock('WITH(NOLOCK)')->where('id_aplikasi', $id)->first();

@@ -42,9 +42,9 @@ class RolePenggunaController extends Controller
     public function store(Request $request)
     {
         $array = $request->all();
-        $pengguna = User::where('id_pengguna', $array['id_pengguna'])->first();
+        $pengguna = User::lock('WITH(NOLOCK)')->where('id_pengguna', $array['id_pengguna'])->first();
         foreach($array['id_peran'] as $item) {
-            $role = RolePengguna::create([
+            $role = RolePengguna::lock('WITH(NOLOCK)')->create([
                 'id_role_pengguna' => guid(),
                 'id_pengguna' => $pengguna->id_pengguna,
                 'id_organisasi' => $array['id_organisasi'],
@@ -102,7 +102,7 @@ class RolePenggunaController extends Controller
     {
         $id = Crypt::decrypt($id);
         $array = $request->all();
-        $role = RolePengguna::where('id_role_pengguna', $id)->update([
+        $role = RolePengguna::lock('WITH(NOLOCK)')->where('id_role_pengguna', $id)->update([
             'id_organisasi' => $array['id_organisasi'],
             'id_peran' => $array['id_peran'],
             'sk_penugasan' => (!empty($array['sk_penugasan'])) ? $array['sk_penugasan'] : null,

@@ -7,11 +7,12 @@
 
     @include('error.list')
 
-    <div class="card">
+    <div class="card card-info">
         <div class="card-header">
             <h3 class="card-title"><i class="fa fa-list"></i> Data Aplikasi</h3>
             <div class="card-tools">
-                <a type="button" data-toggle="modal" class="btn btn-secondary btn-xs btn-flat" href="#editAplikasi{{$data->id_aplikasi}}"><i class="fa fa-edit"></i> Edit</a>
+                <a type="button" class="btn btn-success btn-xs btn-flat" href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Table Aplikasi</a>
+                <a type="button" data-toggle="modal" class="btn btn-primary btn-xs btn-flat" href="#editAplikasi{{$data->id_aplikasi}}"><i class="fa fa-edit"></i> Edit</a>
             </div>
         </div><!-- /.card-header -->
         <div class="card-body" style="margin: 0;padding: 0">
@@ -33,11 +34,11 @@
         </div>
     </div>
     
-    <div class="card">
+    <div class="card card-info">
         <div class="card-header">
             <h3 class="card-title"><i class="fa fa-list"></i> PJ Aplikasi</h3>
             <div class="card-tools">
-                <a type="button" data-toggle="modal" class="btn btn-secondary btn-xs btn-flat" href="#pjCreate"><i class="fa fa-plus"></i> Tambah</a>
+                <a type="button" data-toggle="modal" class="btn btn-primary btn-xs btn-flat" href="#pjCreate"><i class="fa fa-plus"></i> Tambah</a>
             </div>
         </div>
         <div class="card-body">
@@ -72,11 +73,11 @@
     </div>
 
     @if($data->a_generate_menu==1)
-    <div class="card">
+    <div class="card card-info">
         <div class="card-header">
             <h3 class="card-title"><i class="fa fa-list"></i> Menu Aplikasi</h3>
             <div class="card-tools">
-                <a type="button" data-toggle="modal" class="btn btn-secondary btn-xs btn-flat" href="#createMenu"><i class="fa fa-plus"></i> Tambah</a>
+                <a type="button" data-toggle="modal" class="btn btn-primary btn-xs btn-flat" href="#createMenu"><i class="fa fa-plus"></i> Tambah</a>
             </div>
         </div>
         <div class="card-body">
@@ -197,7 +198,7 @@
                         <span class="fw-mediumbold">
                         Tambah </span> 
                         <span class="fw-light">
-                            Aplikasi
+                            PJ APlikasi
                         </span>
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -212,20 +213,44 @@
                         <div class="row">
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
+                                    <label>Select</label>
+                                    <select id="code" class="form-control">
+                                        <option selected disabled>Select</option>
+                                        <option value="0">New</option>
+                                        <option value="1">Existing</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" id="existingPJ">
+                            <div class="col-sm-12">
+                                <div class="form-group form-group-default">
+                                    <label>Pengguna</label>
+                                    <select name="id_pengguna[]" id="id_pengguna" class="form-control select2" data-placeholder="Pilih" multiple>
+                                    @foreach($pengguna as $value)
+                                    <option value="{{$value->id_pengguna}}">{{$value->nm_pengguna}}</option>
+                                    @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" id="newPJ">
+                            <div class="col-sm-12">
+                                <div class="form-group form-group-default">
                                     <label>Nama PJ</label>
-                                    <input name="nm_pj" type="text" class="form-control" placeholder="Masukkan Nama PJ" required>
+                                    <input name="nm_pj" id="nm_pj" type="text" class="form-control" placeholder="Masukkan Nama PJ">
                                 </div>
                             </div>
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Email</label>
-                                    <input name="username" type="email" class="form-control" placeholder="Masukkan Email" required>
+                                    <input name="username" id="username" type="email" class="form-control" placeholder="Masukkan Email">
                                 </div>
                             </div>
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Jenis Kelamin</label>
-                                    <select name="jenis_kelamin" class="form-control" required>
+                                    <select name="jenis_kelamin" id="jenis_kelamin" class="form-control">
                                         <option selected disabled>Pilih</option>
                                         <option value="L">Laki-laki</option>
                                         <option value="P">Perempuan</option>
@@ -235,15 +260,17 @@
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Jabatan</label>
-                                    <input name="jabatan_pj" type="text" class="form-control" placeholder="Masukkan Jabatan" required>
+                                    <input name="jabatan_pj" id="jabatan_pj" type="text" class="form-control" placeholder="Masukkan Jabatan">
                                 </div>
                             </div>
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>No. HP</label>
-                                    <input name="no_hp" type="number" class="form-control" placeholder="Masukkan Nomor HP" required>
+                                    <input name="no_hp" id="no_hp" type="number" class="form-control" placeholder="Masukkan Nomor HP">
                                 </div>
                             </div>
+                        </div>
+                        <div class="row">
                             <div class="col-sm-6 col-12">
                                 <div class="form-group form-group-default">
                                     <label>Apakah Masih ?</label>
@@ -442,15 +469,15 @@
                             <div class="col-sm-12 col-12">
                                 <div class="form-group form-group-default">
                                     <label>Apakah Bisa:</label><br>
-                                    <input type="checkbox" id="a_boleh_insert" name="a_boleh_insert" value="1">
+                                    <input type="checkbox" id="a_boleh_insert" name="a_boleh_insert">
                                     <label for="a_boleh_insert"> Insert</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_show" name="a_boleh_show" value="1">
+                                    <input type="checkbox" id="a_boleh_show" name="a_boleh_show">
                                     <label for="a_boleh_show"> Show</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_delete" name="a_boleh_delete" value="1">
+                                    <input type="checkbox" id="a_boleh_delete" name="a_boleh_delete">
                                     <label for="a_boleh_delete"> Delete</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_update" name="a_boleh_update" value="1">
+                                    <input type="checkbox" id="a_boleh_update" name="a_boleh_update">
                                     <label for="a_boleh_update"> Update</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_sanggah" name="a_boleh_sanggah" value="1">
+                                    <input type="checkbox" id="a_boleh_sanggah" name="a_boleh_sanggah">
                                     <label for="a_boleh_sanggah"> Sanggah</label>
                                 </div>
                             </div>
@@ -538,7 +565,10 @@
                                     <label>Peran</label>
                                     <select class="form-control select2" name="id_peran[]" data-placeholder="Pilih" multiple required>
                                         @foreach($peran as $item)
-                                        <option value="{{$item->id_peran}}">{{$item->nm_peran}}</option>
+                                            <?php
+                                                $checkRole = DB::table('man_akses.menu_role')->where('id_menu', $items->id_menu)->where('soft_delete',0)->get()->toArray();
+                                            ?>
+                                            <option value="{{$item->id_peran}}" {{(in_array($item->id_peran, array_column($checkRole, "id_peran"))==true)?'selected':''}}>{{$item->nm_peran}}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -547,15 +577,15 @@
                                 <div class="form-group form-group-default">
                                     <?php $menurole = DB::table('man_akses.menu_role')->where('id_menu', $items->id_menu)->first(); ?>
                                     <label>Apakah Bisa:</label><br>
-                                    <input type="checkbox" id="a_boleh_insert" name="a_boleh_insert" value="1" {{($menurole->a_boleh_insert==1)?'checked':''}}>
+                                    <input type="checkbox" id="a_boleh_insert" name="a_boleh_insert" {{($menurole->a_boleh_insert==1)?'checked':''}}>
                                     <label for="a_boleh_insert"> Insert</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_show" name="a_boleh_show" value="1" {{($menurole->a_boleh_show==1)?'checked':''}}>
+                                    <input type="checkbox" id="a_boleh_show" name="a_boleh_show" {{($menurole->a_boleh_show==1)?'checked':''}}>
                                     <label for="a_boleh_show"> Show</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_delete" name="a_boleh_delete" value="1" {{($menurole->a_boleh_delete==1)?'checked':''}}>
+                                    <input type="checkbox" id="a_boleh_delete" name="a_boleh_delete" {{($menurole->a_boleh_delete==1)?'checked':''}}>
                                     <label for="a_boleh_delete"> Delete</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_update" name="a_boleh_update" value="1" {{($menurole->a_boleh_update==1)?'checked':''}}>
+                                    <input type="checkbox" id="a_boleh_update" name="a_boleh_update" {{($menurole->a_boleh_update==1)?'checked':''}}>
                                     <label for="a_boleh_update"> Update</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_sanggah" name="a_boleh_sanggah" value="1" {{($menurole->a_boleh_sanggah==1)?'checked':''}}>
+                                    <input type="checkbox" id="a_boleh_sanggah" name="a_boleh_sanggah" {{($menurole->a_boleh_sanggah==1)?'checked':''}}>
                                     <label for="a_boleh_sanggah"> Sanggah</label>
                                 </div>
                             </div>
@@ -571,4 +601,39 @@
     </div>
     @endforeach
 
+    @push('js')
+    <script>
+        $(document).ready( function () {
+            $('#newPJ').hide();
+            $('#existingPJ').hide();
+            $('#code').on('change', function() {
+                if(this.value==0) {
+                    $('#existingPJ').hide();
+                    $('#id_pengguna').val(null).trigger("change");
+                    $('#id_pengguna').removeAttr('required', '');
+                    $('#newPJ').show();
+                    $('#nm_pj').attr('required', '');
+                    $('#username').attr('required', '');
+                    $('#jenis_kelamin').attr('required', '');
+                    $('#jabatan_pj').attr('required', '');
+                    $('#no_hp').attr('required', '');
+                } else {
+                    $('#newPJ').hide();
+                    $('#existingPJ').show();
+                    $('#id_pengguna').attr('required', '');
+                    $('#nm_pj').removeAttr('required', '');
+                    $('#username').removeAttr('required', '');
+                    $('#jenis_kelamin').removeAttr('required', '');
+                    $('#jabatan_pj').removeAttr('required', '');
+                    $('#no_hp').removeAttr('required', '');
+                    $('#nm_pj').val(null);
+                    $('#username').val(null);
+                    $('#jenis_kelamin').val(null);
+                    $('#jabatan_pj').val(null);
+                    $('#no_hp').val(null);
+                }
+            });
+        });
+    </script>
+    @endpush
 @endsection

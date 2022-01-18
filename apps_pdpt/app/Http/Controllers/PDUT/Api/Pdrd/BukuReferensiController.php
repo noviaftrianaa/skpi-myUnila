@@ -5,6 +5,9 @@ namespace App\Http\Controllers\PDUT\Api\Pdrd;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\PDUT\Pdrd\Publikasi;
+use App\Models\PDUT\Pdrd\TulisPub;
+use Illuminate\Support\Facades\Log;
 
 
 class BukuReferensiController extends Controller
@@ -61,7 +64,7 @@ class BukuReferensiController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Get all data',
+            'message' => 'Mendapatkan data',
             'page' => $page,
             'count' => $count,
             'data'  => $data
@@ -74,7 +77,7 @@ class BukuReferensiController extends Controller
         if (empty($id)) {
             return response()->json([
                 'status' => FALSE,
-                'message' => "Empty Field id_sdm"
+                'message' => "id_sdm kosong"
             ]);
         }
 
@@ -99,7 +102,7 @@ class BukuReferensiController extends Controller
         
         return response()->json([
             'success' => true,
-            'message' => 'get list id successfully',
+            'message' => 'Berhasil mendapatkan data',
             'data'  => $data
         ], 200);
     }
@@ -110,7 +113,7 @@ class BukuReferensiController extends Controller
         if (empty($id)) {
             return response()->json([
                 'status' => FALSE,
-                'message' => "Empty Field id_tulis_buku_referensi"
+                'message' => "id_tulis_buku_referensi kosong"
             ]);
         }
 
@@ -183,80 +186,243 @@ class BukuReferensiController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'get detail successfully',
+            'message' => 'Berhasil mendapatkan data',
             'data'  => $data
         ], 200);
     }
 
-   
     public function add(Request $request)
     {
         $id_publikasi = guid();
         $id_tulis_pub = guid();
+        $id_jns_pub = guid();
+        $id_kat_capaian = guid();
+        $id_media_pub = guid();
+        $id_litabmas = guid();
+       
+        $id_updater = guid();
+        $id_creator = guid();
         $id_katgiat = 120102;
 
         DB::beginTransaction();
         try {
-            DB::insert("INSERT INTO pdrd.publikasi (id_publikasi, id_kat_capaian, 
-            id_jns_pub, id_litabmas, judul, penerbit, isbn, tgl_terbit)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            [$id_publikasi, $request->id_kat_capaian, $request->id_jns_pub, 
-            $request->id_litabmas, $request->judul, $request->penerbit, 
-            $request->isbn, $request->tgl_terbit]);
+            $data = Publikasi::create([
+                'id_publikasi' => $id_publikasi,
+                'id_jns_pub' => $request->id_jns_pub,
+                'judul' => $request->judul,
+                'judul_chapter' => $request->judul_chapter,
+                'judul_asli' => $request->judul_asli,
+                'abstrak' => $request->abstrak,
+                'nama_jurnal' => $request->nama_jurnal,
+                'laman_jurnal' => $request->laman_jurnal,
+                'tgl_terbit' => $request->tgl_terbit,
+                'edisi' => $request->edisi,
+                'impact_jurnal' => $request->impact_jurnal,
+                'vol' => $request->vol,
+                'no' => $request->no,
+                'hal' => $request->hal,
+                'jml_hal' => $request->jml_hal,
+                'penerbit' => $request->penerbit,
+                'kota' => $request->kota,
+                'a_seminar' => $request->a_seminar,
+                'a_prosiding' => $request->a_prosiding,
+                'dimensi' => $request->dimensi,
+                'bahasa' => $request->bahasa,
+                'no_paten' => $request->no_paten,
+                'pemberi_paten' => $request->pemberi_paten,
+                'doi' => $request->doi,
+                'isbn' => $request->isbn,
+                'issn' => $request->issn,
+                'e_issn' => $request->e_issn,
+                'url' => $request->url,
+                'ket' => $request->ket,
+                'pengguna_produk_jasa' => $request->pengguna_produk_jasa,
+                'a_komersialisasi' => $request->a_komersialisasi,
+                'stat_impor_sinta' => $request->stat_impor_sinta,
+                'quartile' => $request->quartile,
+                'id_kat_capaian' => $request->id_kat_capaian,
+                'id_media_pub' => $request->id_media_pub,
+                'id_litabmas' => $request->id_litabmas,
+                'id_creator' => $id_creator,
+                'id_updater' => $id_updater,
+                'create_date' => currDateTime(),
+                'last_update' => currDateTime(),
+                'last_sync' => currDateTime(),
+                'soft_delete' => 0
+            ]);
 
-            DB::insert("INSERT INTO pdrd.tulis_pub (id_tulis_pub, id_katgiat, 
-            id_publikasi, id_sdm, id_pd, id_orang, urutan2, afiliasi, peran_tulis, 
-            jns_penulis, nm_pd, nipd) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [$id_tulis_pub, $id_katgiat, $id_publikasi, $request->id_sdm, $request->id_pd, 
-            $request->id_orang, $request->urutan2, $request->afiliasi, $request->peran_tulis, 
-            $request->jns_penulis, $request->nm_pd, $request->nipd]);
+            TulisPub::create([
+                'id_tulis_pub' => $id_tulis_pub,
+                'id_publikasi' => $data->id_publikasi,
+                'id_sdm' => $request->id_sdm,
+                'id_katgiat' => $request->id_katgiat,
+                'id_pd' => $request->id_pd,
+                'id_orang' => $request->id_orang,
+                'urutan2' => $request->urutan2,
+                'afiliasi' => $request->afiliasi,
+                'peran_tulis' => $request->peran_tulis,
+                'jns_penulis' => $request->jns_penulis,
+                'a_corr_author' => $request->a_corr_author,
+                'nm_pd' => $request->nm_pd,
+                'nipd' => $request->nipd,
+                'id_afiliasi' => $request->id_afiliasi,
+                'jns_afiliasi' => $request->jns_afiliasi,
+                'id_creator' => $id_creator,
+                'id_updater' => $id_updater,
+                'create_date' => $data->create_date,
+                'last_update' => $data->last_update,
+                'last_sync' => $data->last_sync,
+                'soft_delete' => 0
+            ]);
+
 
             DB::commit();
             return response()->json([
                 'success' => true,
-                'message' => 'add data successfully'
-            ], 200);
+                'message' => 'Tersimpan'
+            ], 201);
         } catch (\Exception $e) {
+            Log::error('Message ' . $e->getMessage() . ' - ' . $e->getLine());
             DB::rollback();
             return response()->json([
                 'success' => false,
-                'message' => 'failed add data'
+                'message' => 'Gagal Tersimpan'
             ], 400);
         }
+        
     }
+    // public function add(Request $request)
+    // {
+    //     $id_publikasi = guid();
+    //     $id_tulis_pub = guid();
+    //     $id_katgiat = 120102;
 
+    //     DB::beginTransaction();
+    //     try {
+    //         DB::insert("INSERT INTO pdrd.publikasi (id_publikasi, id_kat_capaian, 
+    //         id_jns_pub, id_litabmas, judul, penerbit, isbn, tgl_terbit)
+    //         VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    //         [$id_publikasi, $request->id_kat_capaian, $request->id_jns_pub, 
+    //         $request->id_litabmas, $request->judul, $request->penerbit, 
+    //         $request->isbn, $request->tgl_terbit]);
 
-    public function update(Request $request, $id)
+    //         DB::insert("INSERT INTO pdrd.tulis_pub (id_tulis_pub, id_katgiat, 
+    //         id_publikasi, id_sdm, id_pd, id_orang, urutan2, afiliasi, peran_tulis, 
+    //         jns_penulis, nm_pd, nipd) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    //         [$id_tulis_pub, $id_katgiat, $id_publikasi, $request->id_sdm, $request->id_pd, 
+    //         $request->id_orang, $request->urutan2, $request->afiliasi, $request->peran_tulis, 
+    //         $request->jns_penulis, $request->nm_pd, $request->nipd]);
+
+    //         DB::commit();
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Tambah data berhasil'
+    //         ], 200);
+    //     } catch (\Exception $e) {
+    //         DB::rollback();
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Gagal tambaH data'
+    //         ], 400);
+    //     }
+    // }
+
+    public function update(Request $request)
     {
         DB::beginTransaction();
         try {
-            DB::update("UPDATE pdrd.publikasi SET id_kat_capaian = ?, 
-            SET id_jns_pub = ?, SET id_litabmas = ?, SET judul = ?, 
-            SET penerbit = ?, SET isbn = ?, SET tgl_terbit = ?,
-           WHERE id_publikasi = ?", [$request->id_kat_capaian, 
-            $request->id_jns_pub, $request->id_litabmas, $request->judul, 
-            $request->penerbit, $request->isbn, $request->tgl_terbit, 
-            $request->id_publikasi]);
-    
-            DB::update("UPDATE pdrd.tulis_pub SET id_publikasi = ?, SET id_sdm = ?, 
-            SET id_pd = ?, SET id_orang = ?, SET urutan2 = ?, SET afiliasi = ?, SET peran_tulis = ?,
-            SET jns_penulis = ?, SET nm_pd = ?, SET nipd = ? WHERE id_tulis_pub = ?",[$request->id_publikasi, 
-            $request->id_sdm, $request->id_pd, $request->id_orang, $request->urutan2, $request->afiliasi, 
-            $request->peran_tulis, $request->jns_penulis, $request->nm_pd, $request->nipd, $request->id_tulis_pub]);
+
+            $publikasi = Publikasi::where('id_publikasi', $request->id_publikasi)->first();
+            $publikasi->update([
+                'judul' => $request->judul,
+                'judul_chapter' => $request->judul_chapter,
+                'judul_asli' => $request->judul_asli,
+                'abstrak' => $request->abstrak,
+                'nama_jurnal' => $request->nama_jurnal,
+                'laman_jurnal' => $request->laman_jurnal,
+                'tgl_terbit' => $request->tgl_terbit,
+                'edisi' => $request->edisi,
+                'impact_jurnal' => $request->impact_jurnal,
+                'vol' => $request->vol,
+                'no' => $request->no,
+                'hal' => $request->hal,
+                'jml_hal' => $request->jml_hal,
+                'penerbit' => $request->penerbit,
+                'kota' => $request->kota,
+                'a_seminar' => $request->a_seminar,
+                'a_prosiding' => $request->a_prosiding,
+                'dimensi' => $request->dimensi,
+                'bahasa' => $request->bahasa,
+                'no_paten' => $request->no_paten,
+                'pemberi_paten' => $request->pemberi_paten,
+                'doi' => $request->doi,
+                'isbn' => $request->isbn,
+                'issn' => $request->issn,
+                'e_issn' => $request->e_issn,
+                'url' => $request->url,
+                'ket' => $request->ket,
+                'pengguna_produk_jasa' => $request->pengguna_produk_jasa,
+                'a_komersialisasi' => $request->a_komersialisasi,
+                'stat_impor_sinta' => $request->stat_impor_sinta,
+                'quartile' => $request->quartile,
+                ]);
+
+            $tulis_pub = TulisPub::where('id_publikasi', $publikasi->id_publikasi)->first();
+            $tulis_pub->update([
+                'urutan2' => $request->urutan2,
+                'afiliasi' => $request->afiliasi,
+                'peran_tulis' => $request->peran_tulis,
+                'jns_penulis' => $request->jns_penulis,
+                'a_corr_author' => $request->a_corr_author,
+                'nm_pd' => $request->nm_pd,
+                'nipd' => $request->nipd,
+            ]);
 
             DB::commit();
             return response()->json([
                 'success' => true,
-                'message' => 'updated data successfully'
+                'message' => 'Data berhasil diubah'
             ], 200);
         } catch (\Exception $e) {
             DB::rollback();
             return response()->json([
                 'success' => false,
-                'message' => 'failed updated data'
+                'message' => 'Data gagal diubah'
             ], 400);
         }
     }
+
+    // public function update(Request $request)
+    // {
+    //     DB::beginTransaction();
+    //     try {
+    //         DB::update("UPDATE pdrd.publikasi SET id_kat_capaian = ?, 
+    //         SET id_jns_pub = ?, SET id_litabmas = ?, SET judul = ?, 
+    //         SET penerbit = ?, SET isbn = ?, SET tgl_terbit = ?,
+    //        WHERE id_publikasi = ?", [$request->id_kat_capaian, 
+    //         $request->id_jns_pub, $request->id_litabmas, $request->judul, 
+    //         $request->penerbit, $request->isbn, $request->tgl_terbit, 
+    //         $request->id_publikasi]);
+    
+    //         DB::update("UPDATE pdrd.tulis_pub SET id_publikasi = ?, SET id_sdm = ?, 
+    //         SET id_pd = ?, SET id_orang = ?, SET urutan2 = ?, SET afiliasi = ?, SET peran_tulis = ?,
+    //         SET jns_penulis = ?, SET nm_pd = ?, SET nipd = ? WHERE id_tulis_pub = ?",[$request->id_publikasi, 
+    //         $request->id_sdm, $request->id_pd, $request->id_orang, $request->urutan2, $request->afiliasi, 
+    //         $request->peran_tulis, $request->jns_penulis, $request->nm_pd, $request->nipd, $request->id_tulis_pub]);
+
+    //         DB::commit();
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'berhasil ubah data'
+    //         ], 200);
+    //     } catch (\Exception $e) {
+    //         DB::rollback();
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'gagal ubah data'
+    //         ], 400);
+    //     }
+    // }
 
     /**
      * Remove the specified resource from storage.
@@ -274,13 +440,13 @@ class BukuReferensiController extends Controller
             DB::commit();
             return response()->json([
                 'success' => true,
-                'message' => 'deleted data successfully'
+                'message' => 'Berhasil hapus data'
             ], 200);
         } catch (\Exception $e) {
             DB::rollback();
             return response()->json([
                 'success' => false,
-                'message' => 'failed deleted data'
+                'message' => 'Gagal hapus data'
             ], 400);
         }
     }

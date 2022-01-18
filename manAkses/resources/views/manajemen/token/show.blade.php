@@ -1,11 +1,11 @@
 @extends('template.default.app')
-@section('title','Data Unit Organisasi')
+@section('title','Token URI Sequence')
 @extends('__partial.datatable')
 
 @section('content')
     <div class="card card-info">
         <div class="card-header">
-            <h3 class="card-title"><i class="fa fa-list"></i> Data Unit Organisasi</h3>
+            <h3 class="card-title"><i class="fa fa-list"></i> Token URI Sequence</h3>
         </div><!-- /.card-header -->
         <div class="card-body">
             <div class="table-responsive">
@@ -13,22 +13,22 @@
                     <thead>
                       <tr>
                         <th>No.</th>
-                        <th>Nama Lembaga</th>
-                        <th>Email</th>
-                        <th>No Telp.</th>
-                        <th>Jalan</th>
-                        <th>Status</th>
+                        <th>Accessed URI</th>
+                        <th>Sequence</th>
+                        <th>Hit Count</th>
+                        <th>First Hit</th>
+                        <th>Last Hit</th>
                       </tr>
                     </thead>
                     <tbody>
                         @foreach($data as $no=>$item)
                         <tr>
                             <td>{{$no+1}}</td>
-                            <td>{{$item->nm_lemb}}</td>
-                            <td>{{$item->email}}</td>
-                            <td>{{$item->no_telp}}</td>
-                            <td>{{$item->jalan}}</td>
-                            <td>{{($item->a_aktif==1)?'Aktif':'Tidak Aktif'}}</td>
+                            <td>{{$item->accessed_uri}}</td>
+                            <td>{{$item->sequence}}</td>
+                            <td>{{$item->hit_count}}</td>
+                            <td>{{$item->first_hit}}</td>
+                            <td>{{$item->last_hit}}</td>
                         </tr>
                         @endforeach
                     </tbody>

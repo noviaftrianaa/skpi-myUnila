@@ -7,6 +7,8 @@ use DB;
 use DataTables;
 use App\Models\User;
 use App\Models\Aplikasi;
+use Session;
+use Cookie;
 
 class HomeController extends Controller
 {

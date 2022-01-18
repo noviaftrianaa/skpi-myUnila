@@ -8,7 +8,7 @@
         <input type="hidden" name="_token" value="{{ csrf_token() }}">
         <input type="hidden" name="_method" value="PUT">
 
-        <div class="card">
+        <div class="card card-info">
             <div class="card-header">
                 <h3 class="card-title"><i class="fa fa-list"></i> Tambah Pengguna</h3>
             </div><!-- /.card-header -->
@@ -76,7 +76,7 @@
             </div>
         </div>
 
-        <div class="card">
+        <div class="card card-info">
             <div class="card-header">
                 <h3 class="card-title"><i class="fa fa-list"></i> Role Pengguna</h3>
             </div><!-- /.card-header -->

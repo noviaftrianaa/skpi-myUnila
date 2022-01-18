@@ -16,7 +16,7 @@ class PeranController extends Controller
      */
     public function index()
     {
-        $peran = Peran::whereNull('expired_date')->orderBy('nm_peran','ASC')->get();
+        $peran = Peran::lock('WITH(NOLOCK)')->whereNull('expired_date')->orderBy('nm_peran','ASC')->get();
 
         return view('manajemen.peran.index', [
             'peran'=>$peran
@@ -44,7 +44,7 @@ class PeranController extends Controller
         $array = $request->all();
         $sum = Peran::get()->count();
 
-        $data = Peran::create([
+        $data = Peran::lock('WITH(NOLOCK)')->create([
             'id_peran'=>($sum+1),
             'nm_peran'=>$array['nm_peran'],
             'a_perlu_sk'=>$array['a_perlu_sk'],
@@ -95,7 +95,7 @@ class PeranController extends Controller
         $id = Crypt::decrypt($id);
         $array = $request->all();
 
-        $data = Peran::where('id_peran', $id)->update([
+        $data = Peran::lock('WITH(NOLOCK)')->where('id_peran', $id)->update([
             'nm_peran'=>$array['nm_peran'],
             'a_perlu_sk'=>$array['a_perlu_sk'],
             'last_update'=>currDateTime(),
@@ -119,7 +119,7 @@ class PeranController extends Controller
     public function destroy($id)
     {
         $id = Crypt::decrypt($id);
-        $data = Peran::where('id_peran', $id)->update([
+        $data = Peran::lock('WITH(NOLOCK)')->where('id_peran', $id)->update([
             'expired_date' => currDateTime(),
             'id_updater' => Auth::user()->id_pengguna
         ]);

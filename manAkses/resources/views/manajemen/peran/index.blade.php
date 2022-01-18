@@ -3,7 +3,7 @@
 @extends('__partial.datatable')
 
 @section('content')
-    <div class="card">
+    <div class="card card-info">
         <div class="card-header">
             <h3 class="card-title"><i class="fa fa-list"></i> Data Peran</h3>
             <div class="card-tools">
@@ -28,8 +28,8 @@
                             <td>{{ $item->nm_peran }}</td>
                             <td>{{ ($item->a_perlu_sk==1) ? 'Ya' : 'Tidak'}}</td>
                             <td>
-                                <!-- <button class="btn btn-outline-warning btn-xs" title="Reset" data-toggle="modal" data-target="#resetItem{{$item->id_peran}}"> <i class="fas fa-key"></i></button> -->
-                                <button class="btn btn-outline-info btn-xs" title="Edit" data-toggle="modal" data-target="#editItem{{$item->id_peran}}"> <i class="fas fa-edit"></i></button>
+                                <!-- <button class="btn btn-warning btn-xs" title="Reset" data-toggle="modal" data-target="#resetItem{{$item->id_peran}}"> <i class="fas fa-key"></i></button> -->
+                                <button class="btn btn-info btn-xs" title="Edit" data-toggle="modal" data-target="#editItem{{$item->id_peran}}"> <i class="fas fa-edit"></i></button>
                             </td>
                         </tr>
                         @endforeach
