@@ -42,7 +42,7 @@
 
     <!-- /.login-logo -->
 
-    <div class="card">
+    <div class="card card-info">
 
         <div class="card-body login-card-body">
 

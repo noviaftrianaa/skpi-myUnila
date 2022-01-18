@@ -57,7 +57,7 @@
 <body class="hold-transition sidebar-mini layout-fixed control-sidebar-slide-open text-sm">
 <div class="wrapper">
     <!-- Navbar -->
-    <nav class="main-header navbar navbar-expand navbar-white navbar-light border-bottom-0">
+    <nav class="main-header navbar navbar-expand navbar-info navbar-dark border-bottom-0">
         <!-- Left navbar links -->
         <ul class="navbar-nav">
             <li class="nav-item">
@@ -185,7 +185,7 @@
     </div>
 
     <!-- Main Sidebar Container -->
-    <aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <aside class="main-sidebar sidebar-dark-info elevation-4">
         <!-- Brand Logo -->
         <a href="{!! url('/') !!}" class="brand-link">
             <img src="{{ asset('images/logo-unila.png') }}" alt="Logo Aplikasi" class="brand-image img-circle elevation-3" style="opacity: .8">
@@ -205,7 +205,7 @@
                     </div>
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-right">
-                            @{!! auto_breadcrumb() !!}
+                            {!! auto_breadcrumb() !!}
                         </ol>
                     </div>
                 </div>

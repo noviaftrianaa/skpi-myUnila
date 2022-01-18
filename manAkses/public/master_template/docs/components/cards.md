@@ -9,7 +9,7 @@ The card component is the most widely used component through out this template. 
 {: .text-bold .text-dark .mt-5}
 
 
-<div class="card">
+<div class="card card-info">
   <div class="card-header">
     <h3 class="card-title">Default Card Example</h3>
     <div class="card-tools">
@@ -25,7 +25,7 @@ The card component is the most widely used component through out this template. 
 </div>
 
 ```html
-<div class="card">
+<div class="card card-info">
   <div class="card-header">
     <h3 class="card-title">Default Card Example</h3>
     <div class="card-tools">
@@ -58,7 +58,7 @@ You can change the style of the card by adding any of the contextual classes.
 
 <div class="row">
   <div class="col-sm-3">
-    <div class="card">
+    <div class="card card-info">
       <div class="card-header">
         <h3 class="card-title">Default Card Example</h3>
       </div>
@@ -166,7 +166,7 @@ You can change the style of the card by adding any of the contextual classes.
 </div>
 
 ```html
-<div class="card">...</div>
+<div class="card card-info">...</div>
 <div class="card card-primary">...</div>
 <div class="card card-secondary">...</div>
 <div class="card card-success">...</div>

@@ -3,7 +3,7 @@
 @extends('__partial.datatable')
 
 @section('content')
-    <div class="card">
+    <div class="card card-info">
         <div class="card-header">
             <h3 class="card-title"><i class="fa fa-list"></i> Data Aplikasi</h3>
             <div class="card-tools">
@@ -32,7 +32,7 @@
                             <td>{{$item->url}}</td>
                             <td>{{$item->last_sync}}</td>
                             <td>
-                                <a class="btn btn-outline-info btn-xs" title="Show" href="{{ route('aplikasi.show', [Crypt::encrypt($item->id_aplikasi)]) }}"> <i class="fas fa-eye"></i></a>
+                                <a class="btn btn-info btn-xs" title="Show" href="{{ route('aplikasi.detail', [Crypt::encrypt($item->id_aplikasi)]) }}"> <i class="fas fa-eye"></i></a>
                             </td>
                         </tr>
                         @endforeach

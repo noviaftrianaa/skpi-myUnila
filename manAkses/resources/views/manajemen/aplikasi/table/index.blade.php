@@ -3,11 +3,11 @@
 @extends('__partial.datatable')
 
 @section('content')
-    <div class="card">
+    <div class="card card-info">
         <div class="card-header">
             <h3 class="card-title"><i class="fa fa-list"></i> Table Aplikasi {!! $data->nm_aplikasi !!}</h3>
             <div class="card-tools">
-                <a type="button" data-toggle="modal" class="btn btn-primary btn-sm btn-flat" href="#tambahTable"><i class="fa fa-plus"></i> Tambah</a>
+                <a type="button" data-toggle="modal" class="btn btn-primary btn-xs btn-flat" href="#tambahTable"><i class="fa fa-plus"></i> Tambah</a>
             </div>
         </div><!-- /.card-header -->
         <div class="card-body">
@@ -39,7 +39,7 @@
                             <td>{{ $item->table_aplikasi->expired_date }}</td>
                             <td>{{ $item->table_aplikasi->last_sync }}</td>
                             <td>
-                                <a type="button" data-toggle="modal" class="btn btn-outline-primary btn-xs" href="#editTable{{$item->id_table_app}}"><i class="fas fa-edit"></i></a>
+                                <a type="button" data-toggle="modal" class="btn btn-primary btn-xs" href="#editTable{{$item->id_table_app}}"><i class="fas fa-edit"></i></a>
                             </td>
                         </tr>
                         @endforeach
