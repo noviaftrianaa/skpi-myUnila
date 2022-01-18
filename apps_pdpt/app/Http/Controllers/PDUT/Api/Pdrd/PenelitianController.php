@@ -9,12 +9,14 @@ use App\Models\PDUT\Pdrd\Litabmas;
 use App\Models\PDUT\Pdrd\NonCaAnggotaLitabmas;
 use App\Models\PDUT\Pdrd\PdAnggotaLitabmas;
 use App\Models\PDUT\Pdrd\SdmAnggotaLitabmas;
+
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
-use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Validation\Rule as ValidationRule;
 
@@ -27,6 +29,7 @@ class PenelitianController extends Controller
     protected $nonCaLitabmas;
     protected $dokLitabmas;
     protected $dokumen;
+    protected $cacheLifeTime;
 
     public function __construct(Request $request)
     {
@@ -37,6 +40,7 @@ class PenelitianController extends Controller
         $this->nonCaLitabmas = new NonCaAnggotaLitabmas();
         $this->dokLitabmas = new DokLitabmas();
         $this->dokumen = new Dokumen();
+        $this->cacheLifeTime = 3600;
     }
 
     public function getAllListPenelitian()
@@ -87,18 +91,22 @@ class PenelitianController extends Controller
             return WrapResponse([], 'data penelitian tidak ditemukan', FALSE);
         }
 
-        $data = [];
-        foreach ($query as $value) {
-            $data[] = [
-                'id_penelitian' => $value->id_penelitian,
-                'judul_penelitian' => $value->judul_penelitian,
-                'bidang_keilmuan' => $value->bidang_keilmuan,
-                'tahun_pelaksanaan' => $value->tahun_pelaksanaan,
-                'lama_kegiatan' => $value->lama_kegiatan,
-                'waktu_data_ditambahkan' => date('Y-m-d H:i:s', strtotime($value->waktu_data_ditambahkan)),
-                'terakhir_diubah' => date('Y-m-d H:i:s', strtotime($value->terakhir_diubah))
-            ];
-        }
+
+        $data = Cache::remember(__FUNCTION__, $this->cacheLifeTime, function () use ($query) {
+            $data = [];
+            foreach ($query as $value) {
+                $data[] = [
+                    'id_penelitian' => $value->id_penelitian,
+                    'judul_penelitian' => $value->judul_penelitian,
+                    'bidang_keilmuan' => $value->bidang_keilmuan,
+                    'tahun_pelaksanaan' => $value->tahun_pelaksanaan,
+                    'lama_kegiatan' => $value->lama_kegiatan,
+                    'waktu_data_ditambahkan' => date('Y-m-d H:i:s', strtotime($value->waktu_data_ditambahkan)),
+                    'terakhir_diubah' => date('Y-m-d H:i:s', strtotime($value->terakhir_diubah))
+                ];
+            }
+            return $data;
+        });
 
         return WrapResponse(compact('data'), 'success');
     }
@@ -239,6 +247,7 @@ class PenelitianController extends Controller
 
             $query = "
                 SELECT
+                    sal.id_sdm AS id_anggota_dosen,
                     sdm.nm_sdm AS nama_dosen,
                     sal.peran_litabmas AS peran_dosen,
                     sal.stat_aktif AS keaktifan
@@ -257,6 +266,7 @@ class PenelitianController extends Controller
 
             $query = "
                 SELECT
+                    pal.id_pd_ang_litabmas AS id_anggota_mahasiswa,  
                     pd.nm_pd AS nama_mahasiswa,
                     pal.peran_litabmas AS peran_mahasiswa,
                     pal.stat_aktif AS keaktifan
@@ -273,6 +283,7 @@ class PenelitianController extends Controller
 
             $query = "
                 SELECT
+                    nca_litabmas.id_orang AS id_anggota_nonca,
                     nca.nm_orang AS nama_nonca,
                     nca_litabmas.peran_litabmas AS peran_nonca,
                     nca_litabmas.stat_aktif AS keaktifan
@@ -289,6 +300,7 @@ class PenelitianController extends Controller
 
             $query = "
                 SELECT
+                    dok_dokumen.id_dok AS id_dokumen,
                     dok_dokumen.nm_dok AS nama_dok,
                     dok_dokumen.file_name AS nama_file,
                     dok_dokumen.media_type AS jenis_file,
@@ -533,9 +545,228 @@ class PenelitianController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+    public function updatePenelitian()
     {
-        //
+        $litabmasId = $this->request->input('id_penelitian');
+        $creatorId = $updateId = 'bc62ca9c-4e6e-4462-89b6-ff246512734f';
+        $kat_kegiatan = 121300;
+
+        $dok_tmp_path = storage_path('uploads');
+        if (!File::isDirectory($dok_tmp_path)) {
+            File::makeDirectory($dok_tmp_path, 0755, true, true);
+        }
+
+        $judul_kegiatan = $this->request->input('judul_kegiatan');
+        $afiliasi =  $this->request->input('afiliasi');
+        $kel_bidang = $this->request->input('kel_bidang');
+        $litabmas_lanjutan = $this->request->input('litabmas_lanjutan');
+        $jenis_skim = $this->request->input('jenis_skim');
+        $lokasi_kegiatan = $this->request->input('lokasi_kegiatan');
+        $tahun_usulan = $this->request->input('tahun_usulan');
+        $tahun_kegiatan = $this->request->input('tahun_kegiatan');
+        $lama_kegiatan = $this->request->input('lama_kegiatan');
+        $tahun_pelaksanaan = $this->request->input('tahun_pelaksanaan');
+        $dana_dikti = $this->request->input('dana_dikti');
+        $dana_pt = $this->request->input('dana_pt');
+        $dana_institusi_lain = $this->request->input('dana_institusi_lain');
+
+        $in_kind = $this->request->input('in_kind');
+        if (empty($in_kind)) {
+            $in_kind = NULL;
+        }
+
+        $no_sk_penugasan = $this->request->input('no_sk_penugasan');
+        $tgl_sk_penugasan = $this->request->input('tgl_sk_penugasan');
+        $mitra_litabmas = $this->request->input('mitra_litabmas');
+
+        $dok_penelitian = $this->request->file('dok_penelitian');
+        $nama_dok = $this->request->input('nama_dok');
+        $keterangan_dok = $this->request->input('keterangan_dok');
+        $jenis_dok = $this->request->input('jenis_dok');
+        $url_dok = $this->request->input('url_dok');
+
+        $anggota_dosen = $this->request->input('anggota_dosen');
+        $peran_dosen = $this->request->input('peran_dosen');
+        $status_dosen = $this->request->input('status_dosen');
+
+        $anggota_mahasiswa = $this->request->input('anggota_mahasiswa');
+        $pdLitabmasId = $this->request->input('pd_litabmas_mahasiswa_id');
+        $nama_mahasiswa = $this->request->input('nama_mahasiswa');
+        $nidn_mahasiswa = $this->request->input('nidn_mahasiswa');
+        $peran_mahasiswa = $this->request->input('peran_mahasiswa');
+        $status_mahasiswa = $this->request->input('status_mahasiswa');
+
+        $anggota_non_ca = $this->request->input('anggota_non_ca');
+        $peran_non_ca = $this->request->input('peran_non_ca');
+        $status_non_ca = $this->request->input('status_non_ca');
+
+        DB::beginTransaction();
+        try {
+            try {
+                $this->litabmas
+                    ->where('id_litabmas', $litabmasId)
+                    ->update([
+                        'id_litabmas' => $litabmasId,
+                        'id_lemb_iptek' => $afiliasi,
+                        'judul_litabmas' => $judul_kegiatan,
+                        'lama_kegiatan' => $lama_kegiatan,
+                        'thn_laks_ke' => $tahun_pelaksanaan,
+                        'dana_dikti' => $dana_dikti,
+                        'dana_pt' => $dana_pt,
+                        'dana_institusi_lain' => $dana_institusi_lain,
+                        'in_kind' => $in_kind,
+                        'stat_aktif' => 1,
+                        'jns_litabmas' => 'M',
+                        'sk_tugas' => $no_sk_penugasan,
+                        'tgl_sk_tugas' => $tgl_sk_penugasan,
+                        'lokasi_kegiatan' => $lokasi_kegiatan,
+                        'id_skim' => $jenis_skim,
+                        'id_thn_usulan' => $tahun_usulan,
+                        'id_thn_kegiatan' => $tahun_kegiatan,
+                        'id_thn_laks' => $tahun_pelaksanaan,
+                        'id_lanjutan_litabmas' => $litabmas_lanjutan,
+                        'id_kel_bidang' => $kel_bidang,
+                        'id_tse' => NULL,
+                        'id_smi' => NULL,
+                        'id_jns_lit' => NULL,
+                        'last_update' => currDateTime(),
+                        'id_updater' => $updateId,
+                        'soft_delete' => 0,
+                    ]);
+            } catch (ModelNotFoundException $mnfe) {
+                Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+                return WrapResponse([], 'penelitian tidak ditemukan atau penelitian tidak terdaftar', FALSE);
+            }
+
+            if (!empty($dok_penelitian)) {
+                foreach ($dok_penelitian as $index => $dok) {
+                    $fileInfo = explode('.', $dok->getClientOriginalName());
+                    $fileOriginalName = $fileInfo[0];
+                    $fileExtension = $dok->getClientOriginalExtension();
+                    $fileMime = $dok->getClientMimeType();
+                    $fileName = str_replace(' ', '_', trim($nama_dok[$index])) . '.' . $fileExtension;
+                    if ($dok->move($dok_tmp_path, $fileName)) {
+                        $filePath = $dok_tmp_path . DIRECTORY_SEPARATOR . $fileName;
+                        $openFile = fopen($filePath, 'r');
+                        flock($openFile, LOCK_EX);
+                        $fileContent = base64_encode(fread($openFile, filesize($filePath)));
+                        flock($openFile, LOCK_UN);
+                        fclose($openFile);
+
+                        $dokumen = $this->dokumen->create([
+                            'id_dok' => guid(),
+                            'id_jns_dok' => $jenis_dok[$index],
+                            'nm_dok' => $fileOriginalName,
+                            'ket_dok' => $keterangan_dok[$index],
+                            'wkt_unggah' => currDateTime(),
+                            'url' => $url_dok[$index],
+                            'media_type' => $fileMime,
+                            'file_name' => $fileName,
+                            'create_date' => currDateTime(),
+                            'id_creator' => $creatorId,
+                            'last_update' => currDateTime(),
+                            'id_updater' => $updateId,
+                            'soft_delete' => 0,
+                            'last_sync' => currDateTime(),
+                            'file_dok' => DB::raw("CONVERT(VARBINARY(MAX), '" . $fileContent . "')"),
+                        ]);
+
+                        $this->dokLitabmas->create([
+                            'id_litabmas' => $litabmasId,
+                            'id_dok' => $dokumen->id_dok,
+                            'create_date' => currDateTime(),
+                            'id_creator' => $creatorId,
+                            'last_update' => currDateTime(),
+                            'id_updater' => $updateId,
+                            'soft_delete' => 0,
+                            'last_sync' => currDateTime(),
+                        ]);
+
+                        @unlink($filePath);
+                    } else {
+                        return WrapResponse([], 'gagal upload dokumen', FALSE);
+                    }
+                }
+            }
+
+            if (!empty($anggota_dosen)) {
+                foreach ($anggota_dosen as $index => $idDosen) {
+                    try {
+                        $this->sdmLitabmas
+                            ->where('id_litabmas', $litabmasId)
+                            ->where('id_sdm', $idDosen)
+                            ->update([
+                                'id_litabmas' => $litabmasId,
+                                'id_sdm' => $idDosen,
+                                'id_katgiat' => $kat_kegiatan,
+                                'peran_litabmas' => $peran_dosen[$index],
+                                'stat_aktif' => $status_dosen[$index],
+                                'last_update' => currDateTime(),
+                                'id_updater' => $updateId,
+                                'soft_delete' => 0,
+                            ]);
+                    } catch (ModelNotFoundException $mnfe) {
+                        Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+                        return WrapResponse([], 'penelitian tidak ditemukan atau dosen anggota tidak terdaftar', FALSE);
+                    }
+                }
+            }
+
+            if (!empty($anggota_mahasiswa)) {
+                foreach ($anggota_mahasiswa as $index => $idMahasiswa) {
+                    try {
+                        $this->pdLitabmas
+                            ->where('id_pd_ang_litabmas', $pdLitabmasId[$index])
+                            ->where('id_litabmas', $litabmasId)
+                            ->where('id_pd', $idMahasiswa)
+                            ->update([
+                                'id_pd_ang_litabmas' => $pdLitabmasId[$index],
+                                'id_litabmas' => $litabmasId,
+                                'id_pd' => $idMahasiswa,
+                                'peran_litabmas' => $peran_mahasiswa[$index],
+                                'stat_aktif' => $status_mahasiswa[$index],
+                                'nm_pd' => $nama_mahasiswa[$index],
+                                'nipd' => $nidn_mahasiswa[$index],
+                                'last_update' => currDateTime(),
+                                'id_updater' => $updateId,
+                                'soft_delete' => 0,
+                            ]);
+                    } catch (ModelNotFoundException $mnfe) {
+                        Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+                        return WrapResponse([], 'penelitian tidak ditemukan atau mahasiswa anggota tidak terdaftar', FALSE);
+                    }
+                }
+            }
+
+            if (!empty($anggota_non_ca)) {
+                foreach ($anggota_non_ca as $index => $idNonCa) {
+                    try {
+                        $this->nonCaLitabmas
+                            ->where('id_litabmas', $litabmasId)
+                            ->where('id_orang', $idNonCa)
+                            ->update([
+                                'id_litabmas' => $litabmasId,
+                                'id_orang' => $idNonCa,
+                                'peran_litabmas' => $peran_non_ca[$index],
+                                'stat_aktif' => $status_non_ca[$index],
+                                'last_update' => currDateTime(),
+                                'id_updater' => $updateId,
+                                'soft_delete' => 0,
+                            ]);
+                    } catch (ModelNotFoundException $mnfe) {
+                        Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+                        return WrapResponse([], 'penelitian tidak ditemukan atau nonca anggota tidak terdaftar', FALSE);
+                    }
+                }
+            }
+
+            DB::commit();
+            return WrapResponse([], 'sukses mengupdate penelitian - ' . $litabmasId);
+        } catch (Exception $e) {
+            Log::error('error on Function ' . __FUNCTION__ . ' with ' . $e->getMessage() . ' on ' . $e->getLine());
+            DB::rollBack();
+            return WrapResponse([], "gagal mengupdate penelitian $litabmasId", FALSE);
+        }
     }
 
     public function deletePenelitian()
