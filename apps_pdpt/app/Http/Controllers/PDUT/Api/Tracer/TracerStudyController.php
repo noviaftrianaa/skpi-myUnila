@@ -41,47 +41,42 @@ class TracerStudyController extends Controller
      */
     public function index()
     {
-        $data_alumni = DB::SELECT("
-            SELECT DISTINCT
-                reg.id_reg_pd, pd.id_pd, pd.nm_pd, reg.nipd AS npm, CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi,
-                ts.id_thn_ajaran AS angkatan, kul.biaya_smt, kul.ipk, kul.total_sks, pd.nik, pd.jk, pd.tlpn_hp, jd.nm_jalur_daftar,
-                reg.tgl_keluar AS tgl_lulus, reg.tgl_sk_yudisium AS tgl_wisuda, tc_study.create_date AS waktu_data_ditambahkan,
-                tc_study.last_update AS terakhir_diubah
-            FROM tracer.hasil_tracer_study AS tc_study WITH(NOLOCK)
-            JOIN ref.wilayah AS wilayah WITH(NOLOCK) ON wilayah.id_wil = tc_study.id_wil
-                AND wilayah.expired_date IS NULL
-
-            LEFT JOIN (
-                SELECT
-                    DISTINCT id_reg_pd, id_pd
-                FROM pdrd.reg_pd
-            ) AS regis ON regis.id_reg_pd = tc_study.id_reg_pd
-
-            JOIN pdrd.reg_pd as reg WITH(NOLOCK) ON reg.id_reg_pd = regis.id_reg_pd
-                AND reg.soft_delete = 0
-
-            JOIN pdrd.peserta_didik AS pd WITH(NOLOCK) ON pd.id_pd = regis.id_pd
-                AND pd.soft_delete = 0
-
-            JOIN ref.jalur_daftar AS jd WITH(NOLOCK) ON jd.id_jalur_daftar = reg.id_jalur_daftar
-                AND jd.expired_date IS NULL
-
-            LEFT JOIN (
-                SELECT MAX(id_smt) as smt, id_reg_pd FROM pdrd.kuliah_mhs WITH(NOLOCK)
-                WHERE soft_delete = 0
-                GROUP BY id_reg_pd
-            )AS kuliah ON kuliah.id_reg_pd = reg.id_reg_pd
-            JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_smt = kuliah.smt
-                AND kul.id_reg_pd = kuliah.id_reg_pd
-                AND kul.soft_delete = 0
-            JOIN pdrd.sms AS sms WITH(NOLOCK) ON  sms.id_sms = reg.id_sms
-                AND sms.soft_delete = 0
-            JOIN ref.jenjang_pendidikan AS jenjang WITH(NOLOCK) ON jenjang.id_jenj_didik = sms.id_jenj_didik
-                AND jenjang.expired_date IS NULL
-            JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt=reg.id_semester_masuk
-                AND ts.expired_date IS NULL
-            WHERE tc_study.soft_delete = 0;
-        ");
+        $data_alumni = collect(DB::SELECT("
+        SELECT
+            reg.id_reg_pd, pd.id_pd, pd.nm_pd, reg.nipd AS npm, CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi,
+            ts.id_thn_ajaran AS angkatan, kul.biaya_smt, kul.ipk, kul.total_sks, pd.nik, pd.jk, pd.tlpn_hp, jd.nm_jalur_daftar,
+            reg.tgl_keluar AS tgl_lulus, reg.tgl_sk_yudisium AS tgl_wisuda, tc_study.id_hasil_tracer_study, tc_study.create_date AS waktu_data_ditambahkan,
+            tc_study.last_update AS terakhir_diubah
+        FROM tracer.hasil_tracer_study AS tc_study WITH(NOLOCK)
+        JOIN ref.wilayah AS wilayah WITH(NOLOCK) ON wilayah.id_wil = tc_study.id_wil
+            AND wilayah.expired_date IS NULL
+        LEFT JOIN (
+            SELECT DISTINCT id_reg_pd, id_pd
+            FROM pdrd.reg_pd WITH(NOLOCK)
+            WHERE soft_delete = 0
+        ) AS regis ON regis.id_reg_pd = tc_study.id_reg_pd
+        JOIN pdrd.reg_pd as reg WITH(NOLOCK) ON reg.id_reg_pd = regis.id_reg_pd
+            AND reg.soft_delete = 0
+        JOIN pdrd.peserta_didik AS pd WITH(NOLOCK) ON pd.id_pd = regis.id_pd
+            AND pd.soft_delete = 0
+        JOIN ref.jalur_daftar AS jd WITH(NOLOCK) ON jd.id_jalur_daftar = reg.id_jalur_daftar
+            AND jd.expired_date IS NULL
+        LEFT JOIN (
+            SELECT MAX(id_smt) as smt, id_reg_pd FROM pdrd.kuliah_mhs WITH(NOLOCK)
+            WHERE soft_delete = 0
+            GROUP BY id_reg_pd
+        )AS kuliah ON kuliah.id_reg_pd = reg.id_reg_pd
+        JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_smt = kuliah.smt
+            AND kul.id_reg_pd = kuliah.id_reg_pd
+            AND kul.soft_delete = 0
+        JOIN pdrd.sms AS sms WITH(NOLOCK) ON  sms.id_sms = reg.id_sms
+            AND sms.soft_delete = 0
+        JOIN ref.jenjang_pendidikan AS jenjang WITH(NOLOCK) ON jenjang.id_jenj_didik = sms.id_jenj_didik
+            AND jenjang.expired_date IS NULL
+        JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt=reg.id_semester_masuk
+            AND ts.expired_date IS NULL
+        WHERE tc_study.soft_delete = 0;
+    "))->unique('id_reg_pd');
 
         $hasil_tracer_study = [];
         foreach ($data_alumni as $each_data) {
@@ -96,28 +91,28 @@ class TracerStudyController extends Controller
                 FROM tracer.hasil_tracer_study AS tc_study WITH(NOLOCK)
             JOIN ref.wilayah AS wilayah WITH(NOLOCK) ON wilayah.id_wil = tc_study.id_wil
                 AND wilayah.expired_date IS NULL
-            WHERE tc_study.id_reg_pd = '" . $id . "'
+            WHERE tc_study.id_reg_pd = '".$id."'
                 AND tc_study.soft_delete = 0;
         ");
         }
 
         $hasil_tracer_study_atasan = [];
-        foreach ($hasil_tracer_study as $each_data){
+        foreach ($data_alumni as $each_data) {
             $id =  $each_data->id_hasil_tracer_study;
-            $tracer_study_atasan[$id] = DB::SELECT("
-            SELECT
-                tc_study_ats.id_hasil_tracer_atasan, tc_study_ats.email_atasan, tc_study_ats.nm_atasan,
-                wilayah.nm_wil, negara.nm_negara, tc_study_ats.jabatan_atasan, tc_study_ats.nm_tmpt_bekerja,
-                tc_study_ats.bidang_tempat_bekerja, tc_study_ats.saran, tc_study_ats.harapan
-            FROM tracer.hasil_tracer_atasan AS tc_study_ats WITH(NOLOCK)
-            JOIN ref.wilayah AS wilayah WITH(NOLOCK) ON wilayah.id_wil = tc_study_ats.id_wil
-                AND wilayah.expired_date IS NULL
-            JOIN ref.negara AS negara WITH(NOLOCK) ON negara.id_negara = tc_study_ats.id_negara
-                AND wilayah.expired_date IS NULL
-            WHERE tc_study_ats.id_hasil_tracer_study = '".$id."'
-                AND tc_study_ats.soft_delete = 0;
-        ");
-    }
+            $hasil_tracer_study_atasan[$id] = DB::SELECT("
+                SELECT
+                    tc_study_ats.id_hasil_tracer_study, tc_study_ats.id_hasil_tracer_atasan, tc_study_ats.email_atasan, tc_study_ats.nm_atasan,
+                    wilayah.nm_wil, negara.nm_negara, tc_study_ats.jabatan_atasan, tc_study_ats.nm_tmpt_bekerja,
+                    tc_study_ats.bidang_tempat_bekerja, tc_study_ats.saran, tc_study_ats.harapan
+                FROM tracer.hasil_tracer_atasan AS tc_study_ats WITH(NOLOCK)
+                JOIN ref.wilayah AS wilayah WITH(NOLOCK) ON wilayah.id_wil = tc_study_ats.id_wil
+                    AND wilayah.expired_date IS NULL
+                JOIN ref.negara AS negara WITH(NOLOCK) ON negara.id_negara = tc_study_ats.id_negara
+                    AND wilayah.expired_date IS NULL
+                WHERE tc_study_ats.id_hasil_tracer_study = '".$id."'
+                    AND tc_study_ats.soft_delete = 0;
+            ");
+        }
 
         foreach ($data_alumni as $each_data) {
             $data[] = [
@@ -139,7 +134,7 @@ class TracerStudyController extends Controller
                 'waktu_data_ditambahkan' => date('Y-m-d H:i:s', strtotime($each_data->waktu_data_ditambahkan)),
                 'terakhir_diubah' => date('Y-m-d H:i:s', strtotime($each_data->terakhir_diubah)),
                 'hasil_tracer_study' => $hasil_tracer_study[$each_data->id_reg_pd],
-                'hasil_tracer_study' => $hasil_tracer_study_atasan[$each_data->id_hasil_tracer_study],
+                'hasil_tracer_study_atasan' => $hasil_tracer_study_atasan[$each_data->id_hasil_tracer_study]
 
             ];
         }
@@ -396,6 +391,7 @@ class TracerStudyController extends Controller
             $hasil_tracer_study_atasan->update(['soft_delete' => 1]);
 
             DB::commit();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Data berhasil dihapus'
