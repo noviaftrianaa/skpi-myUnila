@@ -167,7 +167,7 @@ class MahasiswaController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'success',
+            'message' => 'Berhasil mengambil data detail Mahasiswa',
             'data'  => $detail_mahasiswa
         ]);
     }
@@ -243,7 +243,7 @@ class MahasiswaController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'success',
+            'message' => 'Berhasil mendapatkan data list mahasiswa',
             'data'  => $list_status_mahasiswa
         ]);
     }
@@ -337,7 +337,7 @@ class MahasiswaController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'success',
+            'message' => 'Berhasil mengambil data list Mahasiswa',
             'data'  => $list_jns_daftar
         ]);
     }
@@ -443,7 +443,7 @@ class MahasiswaController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'success',
+            'message' => 'Berhasil mengambil data keaktifan semester mahasiswa',
             'data'  => $data
         ]);
     }
@@ -501,6 +501,7 @@ class MahasiswaController extends Controller
             ) AS tk ON tk.id_reg_pd=reg.id_reg_pd
             JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_reg_pd=reg.id_reg_pd
                 AND tk.smt=kul.id_smt
+                AND kul.soft_delete=0
             JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt=reg.id_semester_masuk
                 AND ts.expired_date IS NULL
             WHERE pd.soft_delete=0
@@ -516,7 +517,7 @@ class MahasiswaController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'success',
+            'message' => 'Berhasil mengambil data list alumni',
             'data'  => $alumni
         ]);
     }
