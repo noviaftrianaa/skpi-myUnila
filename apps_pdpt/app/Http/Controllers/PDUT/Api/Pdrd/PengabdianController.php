@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Http\Controllers\PDUT\Api\Pdrd;
+
 use App\Http\Controllers\Controller;
 use App\Models\PDUT\Dok\DokLitabmas;
 use App\Models\PDUT\Dok\Dokumen;
@@ -7,15 +9,17 @@ use App\Models\PDUT\Pdrd\Litabmas;
 use App\Models\PDUT\Pdrd\NonCaAnggotaLitabmas;
 use App\Models\PDUT\Pdrd\PdAnggotaLitabmas;
 use App\Models\PDUT\Pdrd\SdmAnggotaLitabmas;
-use Illuminate\Http\Request;
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
-// use Exception;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Validator;
+
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rule as ValidationRule;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Exception;
 
 
 class PengabdianController extends Controller
@@ -27,6 +31,7 @@ class PengabdianController extends Controller
     protected $nonCaLitabmas;
     protected $dokLitabmas;
     protected $dokumen;
+    protected $cacheLifeTime;
 
     public function __construct(Request $request)
     {
@@ -37,27 +42,19 @@ class PengabdianController extends Controller
         $this->nonCaLitabmas = new NonCaAnggotaLitabmas();
         $this->dokLitabmas = new DokLitabmas();
         $this->dokumen = new Dokumen();
+        $this->cacheLifeTime = 3600;
     }
-    public function list()
-    {
-        // if (empty($sortBy)) {
-        //     $sortBy = 'DESC';
-        // }
-        $validator = Validator::make($this->request->all(), [
-            'sortby' => ['alpha', ValidationRule::in(['ASC', 'DESC'])]
-        ], [
-            'sortby.alpha' => 'input penyortiran harus kata',
-            'sortby.in' => 'input pernyortiran hanya ASC dan DESC'
-        ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => FALSE,
-                'message' => 'request gagal',
-                'error' => $validator->errors()
-            ]);
-        }
+    public function getAllListPengabdian()
 
-        $validateInput = $validator->validate();
+    {
+        $validator = InputValidator([
+            'sortby' => [
+                'alpha',
+                ValidationRule::in(['ASC', 'DESC'])
+            ]
+        ]);
+
+        $validateInput = $validator;
         $sortBy = empty($validateInput['sortby']) ? "" : $validateInput['sortby'];
         if (empty($sortBy)) {
             $sortBy = 'DESC';
@@ -65,26 +62,27 @@ class PengabdianController extends Controller
 
         $query =  "
         SELECT TOP 50
+
             lm.id_litabmas AS id_penelitian,
             lm.judul_litabmas AS judul_penelitian,
             kb.nm_kel_bidang AS bidang_keilmuan,
-                lm.id_thn_laks AS tahun_pelaksanaan,
-                lm.lama_kegiatan AS lama_kegiatan,
-                lm.create_date AS waktu_data_ditambahkan,
-                lm.last_update AS terakhir_diubah
-            FROM
-                pdrd.litabmas AS lm WITH(NOLOCK)
-                LEFT JOIN (
-                    SELECT
-                        DISTINCT id_litabmas
-                    FROM
-                        pdrd.sdm_anggota_litabmas
-                    WHERE
-                        id_katgiat IN (130201,130202,130203,130204,130401 ,130402,130403)
-                        AND soft_delete = 0
-                ) AS sal ON sal.id_litabmas = lm.id_litabmas
-                JOIN ref.kelompok_bidang AS kb ON kb.id_kel_bidang = lm.id_kel_bidang
-                AND kb.expired_date IS NULL
+            lm.id_thn_laks AS tahun_pelaksanaan,
+            lm.lama_kegiatan AS lama_kegiatan,
+            lm.create_date AS waktu_data_ditambahkan,
+            lm.last_update AS terakhir_diubah
+        FROM
+            pdrd.litabmas AS lm WITH(NOLOCK)
+            LEFT JOIN (
+                SELECT
+                    DISTINCT id_litabmas
+                FROM
+                    pdrd.sdm_anggota_litabmas
+                WHERE
+                    id_katgiat IN (130201,130202,130203,130204,130401 ,130402,130403)
+                    AND soft_delete = 0
+            ) AS sal ON sal.id_litabmas = lm.id_litabmas
+            JOIN ref.kelompok_bidang AS kb ON kb.id_kel_bidang = lm.id_kel_bidang
+            AND kb.expired_date IS NULL
 
         WHERE
             lm.soft_delete = 0
@@ -94,10 +92,7 @@ class PengabdianController extends Controller
         $query = DB::select($query);
 
         if (empty($query)) {
-            return response()->json([
-                'status' => FALSE,
-                'message' => "Not Found Data"
-            ]);
+            return WrapResponse([], 'data penelitian tidak ditemukan', FALSE);
         }
 
         $list_pengabdian = [];
@@ -113,28 +108,17 @@ class PengabdianController extends Controller
             ];
         }
 
+
         return response()->json([
             'status' => true,
             'message' => 'Berhasil mengambil data list Pengabdian',
-            'data'  => $list_pengabdian
-        ], 200);
+            'data'  => $query
+        ]);
     }
 
     public function getListPengabdianBySdmId()
     {
-
-        // if (empty($sdmId)) {
-        //     return response()->json([
-        //         'status' => FALSE,
-        //         'message' => "Empty Field sdmid"
-        //     ]);
-        // }
-
-        // if (empty($sortBy)) {
-        //     $sortBy = 'DESC';
-        // }
-
-        $validator = Validator::make($this->request->all(), [
+        $validator = InputValidator([
             'sdmid' => 'required|regex:/^[a-z0-9\-]+$/',
             'sortby' => ['alpha', ValidationRule::in(['ASC', 'DESC'])]
         ], [
@@ -143,22 +127,12 @@ class PengabdianController extends Controller
             'sortby.alpha' => 'input penyortiran harus kata',
             'sortby.in' => 'input pernyortiran hanya ASC dan DESC'
         ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => FALSE,
-                'message' => 'request gagal',
-                'error' => $validator->errors()
-            ]);
-        }
 
-        $validateInput = $validator->validate();
+        $validateInput = $validator;
         $sdmId = $validateInput['sdmid'];
         $sortBy = empty($validateInput['sortby']) ? "" : $validateInput['sortby'];
         if (empty($sdmId)) {
-            return response()->json([
-                'status' => FALSE,
-                'message' => "Empty Field sdmid"
-            ]);
+            return WrapResponse([], 'sdmid tidak boleh kosong', FALSE);
         }
 
         if (empty($sortBy)) {
@@ -169,15 +143,15 @@ class PengabdianController extends Controller
         SELECT
                 TOP 50 litabmas.id_litabmas AS id_penelitian,
                 litabmas.judul_litabmas AS judul_penelitian,
-                kb.nm_kel_bidang AS bidang_keilmuan,,
-                litabmas.create_date AS waktu_data_ditambahkan,
-                litabmas.last_update AS terakhir_diubah
+                kb.nm_kel_bidang AS bidang_keilmuan,
                 CONCAT(
                     (litabmas.id_thn_laks - 1),
                     '/',
                     litabmas.id_thn_laks
                 ) AS tahun_pelaksanaan,
-                litabmas.lama_kegiatan AS lama_kegiatan
+                litabmas.lama_kegiatan AS lama_kegiatan,
+                litabmas.create_date AS waktu_data_ditambahkan,
+                litabmas.last_update AS terakhir_diubah
             FROM
                 pdrd.litabmas AS litabmas
                 JOIN pdrd.sdm_anggota_litabmas AS sal ON sal.id_litabmas = litabmas.id_litabmas
@@ -206,7 +180,7 @@ class PengabdianController extends Controller
 
         $list_pengabdian = [];
         foreach ($query as $value) {
-            $list_pengabdian[] = [
+            $data[] = [
                 'id_penelitian' => $value->id_penelitian,
                 'judul_penelitian' => $value->judul_penelitian,
                 'bidang_keilmuan' => $value->bidang_keilmuan,
@@ -221,29 +195,22 @@ class PengabdianController extends Controller
         return response()->json([
             'status' => TRUE,
             'message' => 'Berhasil mengambil data Pengabdian bySdmId',
-            'data'  => $list_pengabdian
-        ], 200);
+            'data'  => $data
+        ]);
     }
 
     public function getDetailPengabdianByPengabdianId()
     {
         $reformatGetDetailPengabdian = [];
 
-        $validator = Validator::make($this->request->all(), [
+        $validator = InputValidator([
             'pengabdianid' => 'required|regex:/^[a-z0-9\-]+$/',
         ], [
             'pengabdianid.required' => 'field ini harus diisi',
             'pengabdianid.regex' => 'input harus berupa alpa_numeric dan dash',
         ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => FALSE,
-                'message' => 'request gagal',
-                'error' => $validator->errors()
-            ]);
-        }
 
-        $validateInput = $validator->validate();
+        $validateInput = $validator;
         $pengabdianId = $validateInput['pengabdianid'];
 
         try {
@@ -276,6 +243,7 @@ class PengabdianController extends Controller
 
                 ";
 
+
         $getDetailPengabdian = DB::select($query);
             foreach ($getDetailPengabdian as $value) {
                 $reformatGetDetailPengabdian = [
@@ -294,20 +262,20 @@ class PengabdianController extends Controller
                 ];
             }
 
-            $query = "
-            SELECT
-                sdm.nm_sdm AS nama_dosen,
-                sal.peran_litabmas AS peran_dosen,
-                sal.stat_aktif AS keaktifan
-            FROM
-                pdrd.sdm_anggota_litabmas AS sal
-                JOIN pdrd.sdm AS sdm ON sdm.id_sdm = sal.id_sdm
-                AND sdm.id_jns_sdm = 12
-                AND sdm.soft_delete = 0
-            WHERE
-                sal.id_litabmas = '" . $pengabdianId . "'
-                AND sal.id_katgiat IN ('130201','130202','130203','130204','130401','130402','130403')
-                AND sal.soft_delete = 0
+                $query = "
+                SELECT
+                    sdm.nm_sdm AS nama_dosen,
+                    sal.peran_litabmas AS peran_dosen,
+                    sal.stat_aktif AS keaktifan
+                FROM
+                    pdrd.sdm_anggota_litabmas AS sal
+                    JOIN pdrd.sdm AS sdm ON sdm.id_sdm = sal.id_sdm
+                    AND sdm.id_jns_sdm = 12
+                    AND sdm.soft_delete = 0
+                WHERE
+                    sal.id_litabmas = '" . $pengabdianId . "'
+                    AND sal.id_katgiat IN ('130201','130202','130203','130204','130401','130402','130403')
+                    AND sal.soft_delete = 0
             ";
             $getDaftarAnggotaDosen = DB::select($query);
             $reformatGetDetailPengabdian = Arr::add($reformatGetDetailPengabdian, 'anggota_dosen', $getDaftarAnggotaDosen);
@@ -346,7 +314,7 @@ class PengabdianController extends Controller
 
             $query = "
                 SELECT
-                    dok_dokumen.nm_dok AS nama_dok,
+                    refj_dokumen.nm_jns_dok AS nama_dokumen,
                     dok_dokumen.file_name AS nama_file,
                     dok_dokumen.media_type AS jenis_file,
                     dok_litabmas.create_date AS tanggal_upload,
@@ -366,6 +334,8 @@ class PengabdianController extends Controller
             $getDaftarDokumenPengabdian = DB::select($query);
             $reformatGetDetailPengabdian = Arr::add($reformatGetDetailPengabdian, 'dokumen_penelitian', $getDaftarDokumenPengabdian);
 
+            $data = $reformatGetDetailPengabdian;
+
             return response()->json([
                 'status' => TRUE,
                 'message' => 'success',
@@ -382,7 +352,8 @@ class PengabdianController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function storePengabdian(Request $request)
+
     {
         $litabmasId = guid();
         $creatorId = $updateId = 'bc62ca9c-4e6e-4462-89b6-ff246512734f';
@@ -392,6 +363,40 @@ class PengabdianController extends Controller
         if (!File::isDirectory($dok_tmp_path)) {
             File::makeDirectory($dok_tmp_path, 0755, true, true);
         }
+
+        $rule = [
+            'judul_kegiatan' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
+            'afiliasi' => 'required|regex:/^[a-z0-9\-]+$/',
+            'kel_bidang' => 'regex:/^[a-z0-9\-]+$/',
+            'litabmas_lanjutan' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'jenis_skim' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'lokasi_kegiatan' => 'string',
+            'tahun_usulan' => 'required|date_format:Y',
+            'tahun_pelaksanaan' => 'required|date_format:Y',
+            'tahun_kegiatan' => 'required|date_format:Y',
+            'lama_kegiatan' => 'required|numeric|min:1|max:10',
+            'dana_dikti' => 'required|numeric|gte:0',
+            'dana_pt' => 'required|numeric|gte:0',
+            'dana_institusi_lain' => 'required|numeric|gte:0',
+            'in_kind' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'no_sk_penugasan' => 'regex:/^[A-Z0-9\/\.]+$/',
+            'tgl_sk_penugasan' => 'date_format:Y-m-d',
+            'dok_penelitian.*' => 'file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx,txt|max:2048',
+            'nama_dok.*' => 'required_with:dok_penelitian|string',
+            'keterangan_dok.*' => 'required_with:dok_penelitian|string',
+            'jenis_dok.*' => 'nullable|numeric',
+            'url_dok.*' => 'required_without:dok_penelitian.*|nullable|url',
+            'anggota_dosen.*' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'peran_dosen.*' => ['alpha', 'nullable', ValidationRule::in(['A', 'K'])],
+            'status_dosen.*' => ['numeric', 'nullable', ValidationRule::in(['0', '1'])],
+            'anggota_mahasiswa.*' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'peran_mahasiswa.*' => ['alpha', 'nullable', ValidationRule::in(['A', 'K'])],
+            'status_mahasiswa.*' => ['numeric', 'nullable', ValidationRule::in(['0', '1'])],
+            'anggota_non_ca.*' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'peran_non_ca.*' => ['alpha', 'nullable', ValidationRule::in(['A', 'K'])],
+            'status_non_ca.*' => ['numeric', 'nullable', ValidationRule::in(['0', '1'])]
+        ];
+        InputValidator($rule);
 
         $judul_kegiatan = $this->request->input('judul_kegiatan');
         $afiliasi =  $this->request->input('afiliasi');
@@ -406,18 +411,11 @@ class PengabdianController extends Controller
         $dana_dikti = $this->request->input('dana_dikti');
         $dana_pt = $this->request->input('dana_pt');
         $dana_institusi_lain = $this->request->input('dana_institusi_lain');
-
-
         $in_kind = $this->request->input('in_kind');
-        if (empty($in_kind)) {
-            $in_kind = NULL;
-        }
-
         $no_sk_penugasan = $this->request->input('no_sk_penugasan');
         $tgl_sk_penugasan = $this->request->input('tgl_sk_penugasan');
-        $mitra_litabmas = $this->request->input('mitra_litabmas');
 
-        $dok_penelitian = $this->request->file('dok_penelitian');
+        $dok_penelitian = $this->request->input('dok_penelitian');
         $nama_dok = $this->request->input('nama_dok');
         $keterangan_dok = $this->request->input('keterangan_dok');
         $jenis_dok = $this->request->input('jenis_dok');
@@ -435,10 +433,9 @@ class PengabdianController extends Controller
         $peran_non_ca = $this->request->input('peran_non_ca');
         $status_non_ca = $this->request->input('status_non_ca');
 
-
         DB::beginTransaction();
         try {
-            $pengabdian = $this->litabmas->create([
+            $pengabdian = $this->litabmasModel->create([
                 'dana_dikti' => $dana_dikti,
                 'dana_institusi_lain' => $dana_institusi_lain,
                 'dana_pt' => $dana_pt,
@@ -516,16 +513,14 @@ class PengabdianController extends Controller
 
                         @unlink($filePath);
                     } else {
-                        return response()->json([
-                            'status' => FALSE,
-                            'message' => "gagal upload dokumen $fileName"
-                        ]);
+                        return WrapResponse([], 'gagal upload dokumen', FALSE);
                     }
                 }
             }
 
+
             if (!empty($anggota_dosen)) {
-                foreach ($anggota_dosen as $key => $idDosen) {
+                foreach ($anggota_dosen as $index => $idDosen) {
                     $this->sdmLitabmas->create([
                         'id_litabmas' => $pengabdian->id_litabmas,
                         'id_sdm' => $idDosen,
@@ -557,7 +552,6 @@ class PengabdianController extends Controller
                             pd.id_pd = '" . $idMahasiswa . "'
                             AND pd.soft_delete = 0
                     ");
-
                     $this->pdLitabmas->create([
                         'id_pd_ang_litabmas' => guid(),
                         'id_litabmas' => $pengabdian->id_litabmas,
@@ -566,6 +560,7 @@ class PengabdianController extends Controller
                         'stat_aktif' => $status_mahasiswa[$index],
                         'nm_pd' => $dataMahasiswa[0]->nama_mahasiswa,
                         'nipd' => $dataMahasiswa[0]->nipd,
+                        'create_date' => currDateTime(),
                         'id_creator' => $creatorId,
                         'last_update' => currDateTime(),
                         'id_updater' => $updateId,
@@ -578,7 +573,7 @@ class PengabdianController extends Controller
             if (!empty($anggota_non_ca)) {
                 foreach ($anggota_non_ca as $index => $idNonCa) {
                     $this->nonCaLitabmas->create([
-                        'id_litabmas' => $pengabdian->id_litabmas,
+                        'id_litabmas' => $penelitian->id_litabmas,
                         'id_orang' => $idNonCa,
                         'peran_litabmas' => $peran_non_ca[$index],
                         'stat_aktif' => $status_non_ca[$index],
@@ -591,31 +586,67 @@ class PengabdianController extends Controller
                     ]);
                 }
             }
+
             DB::commit();
-            return response()->json([
-                'status' => true,
-                'message' => 'Success Add Pengabdian - '. $pengabdian->id_litabmas,
-            ], 200);
+            return WrapResponse([], 'sukses menambahkan data pengabdian - ' . $pengabdian->id_litabmas);
         } catch (Exception $e) {
             Log::error($e->getMessage());
             DB::rollBack();
-            return response()->json([
-                'status' => FALSE,
-                'message' => "Failed Add Pengabdian". $e->getMessage()
-            ]);
+            return WrapResponse([], "gagal menambahkan data pengabdian");
         }
     }
-
-    public function update(Request $request, $id)
+   
+    public function updatePengabdian()
     {
-        $litabmasId = guid();
+        $rule = [
+            'id_penelitian' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
+            'judul_kegiatan' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
+            'afiliasi' => 'required|regex:/^[a-z0-9\-]+$/',
+            'kel_bidang' => 'regex:/^[a-z0-9\-]+$/',
+            'litabmas_lanjutan' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'jenis_skim' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'lokasi_kegiatan' => 'string',
+            'tahun_usulan' => 'required|date_format:Y',
+            'tahun_pelaksanaan' => 'required|date_format:Y',
+            'tahun_kegiatan' => 'required|date_format:Y',
+            'lama_kegiatan' => 'required|numeric|min:1|max:10',
+            'dana_dikti' => 'required|numeric|gte:0',
+            'dana_pt' => 'required|numeric|gte:0',
+            'dana_institusi_lain' => 'required|numeric|gte:0',
+            'in_kind' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'no_sk_penugasan' => 'regex:/^[A-Z0-9\/\.]+$/',
+            'tgl_sk_penugasan' => 'date_format:Y-m-d',
+            'dok_penelitian.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx,txt|max:2048',
+            'nama_dok.*' => 'required_with:dok_penelitian|string',
+            'keterangan_dok.*' => 'required_with:dok_penelitian|string',
+            'jenis_dok.*' => 'nullable|numeric',
+            'url_dok.*' => 'required_without:dok_penelitian.*|nullable|url',
+            'anggota_dosen.*' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'peran_dosen.*' => ['alpha', 'nullable', ValidationRule::in(['A', 'K'])],
+            'status_dosen.*' => ['numeric', 'nullable', ValidationRule::in(['0', '1'])],
+            'pd_litabmas_mahasiswa_id.*' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'anggota_mahasiswa.*' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'peran_mahasiswa.*' => ['alpha', 'nullable', ValidationRule::in(['A', 'K'])],
+            'status_mahasiswa.*' => ['numeric', 'nullable', ValidationRule::in(['0', '1'])],
+            'anggota_non_ca.*' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'peran_non_ca.*' => ['alpha', 'nullable', ValidationRule::in(['A', 'K'])],
+            'status_non_ca.*' => ['numeric', 'nullable', ValidationRule::in(['0', '1'])]
+        ];
+        InputValidator($rule);
+
+        $litabmasId = $this->request->input('id_penelitian');
         $creatorId = $updateId = 'bc62ca9c-4e6e-4462-89b6-ff246512734f';
         $kat_kegiatan = ['130201','130202','130203','130204','130401','130402','130403'];
+
+        $dok_tmp_path = storage_path('uploads');
+        if (!File::isDirectory($dok_tmp_path)) {
+            File::makeDirectory($dok_tmp_path, 0755, true, true);
+        }
 
         $judul_kegiatan = $this->request->input('judul_kegiatan');
         $afiliasi =  $this->request->input('afiliasi');
         $kel_bidang = $this->request->input('kel_bidang');
-        $litabmas_sebelumnya = $this->request->input('litabmas_sebelumnya');
+        $litabmas_lanjutan = $this->request->input('litabmas_lanjutan');
         $jenis_skim = $this->request->input('jenis_skim');
         $lokasi_kegiatan = $this->request->input('lokasi_kegiatan');
         $tahun_usulan = $this->request->input('tahun_usulan');
@@ -625,250 +656,218 @@ class PengabdianController extends Controller
         $dana_dikti = $this->request->input('dana_dikti');
         $dana_pt = $this->request->input('dana_pt');
         $dana_institusi_lain = $this->request->input('dana_institusi_lain');
-
         $in_kind = $this->request->input('in_kind');
-        if (empty($in_kind)) {
-            $in_kind = NULL;
-        }
 
         $no_sk_penugasan = $this->request->input('no_sk_penugasan');
         $tgl_sk_penugasan = $this->request->input('tgl_sk_penugasan');
-        $mitra_litabmas = $this->request->input('mitra_litabmas');
-        $dok_penelitian = $this->request->file('dok_penelitian');
+
+        $dok_penelitian = $this->request->input('dok_penelitian');
+        $nama_dok = $this->request->input('nama_dok');
+        $keterangan_dok = $this->request->input('keterangan_dok');
+        $jenis_dok = $this->request->input('jenis_dok');
+        $url_dok = $this->request->input('url_dok');
 
         $anggota_dosen = $this->request->input('anggota_dosen');
         $peran_dosen = $this->request->input('peran_dosen');
         $status_dosen = $this->request->input('status_dosen');
 
         $anggota_mahasiswa = $this->request->input('anggota_mahasiswa');
+        $pdLitabmasId = $this->request->input('pd_litabmas_mahasiswa_id');
         $peran_mahasiswa = $this->request->input('peran_mahasiswa');
         $status_mahasiswa = $this->request->input('status_mahasiswa');
 
-        $id_non_ca = $this->request->input('id_non_ca');
-        $peran_ca = $this->request->input('peran_ca');
-        $status_ca = $this->request->input('status_ca');
+        $anggota_non_ca = $this->request->input('anggota_non_ca');
+        $peran_non_ca = $this->request->input('peran_non_ca');
+        $status_non_ca = $this->request->input('status_non_ca');
 
-        DB::transaction();
+        DB::beginTransaction();
         try {
-            $this->litabmasModel->update([
-                'dana_dikti' => $dana_dikti,
-                'dana_institusi_lain' => $dana_institusi_lain,
-                'dana_pt' => $dana_pt,
-                'id_creator' => $creatorId,
-                'id_jns_lit' => NULL,
-                'id_kel_bidang' => $kel_bidang,
-                'id_lanjutan_litabmas' => $litabmas_sebelumnya,
-                'id_lemb_iptek' => NULL,
+            $pengabdian = $this->litabmas->where('id_litabmas', $litabmasId)->first();
+            if (!$pengabdian) return WrapResponse([], 'pengabdian tidak ditemukan atau pengabdian tidak terdaftar', FALSE);
+           
+            $pengabdian->update([
                 'id_litabmas' => $litabmasId,
-                'id_skim' => $jenis_skim,
-                'id_smi' => NULL,
-                'id_thn_kegiatan' => $tahun_kegiatan,
-                'id_thn_laks' => $tahun_pelaksanaan,
-                'id_thn_usulan' => $tahun_usulan,
-                'id_tse' => NULL,
-                'id_updater' => $updateId,
-                'in_kind' => $in_kind,
-                'jns_litabmas' => 'M',
+                'id_lemb_iptek' => $afiliasi,
                 'judul_litabmas' => $judul_kegiatan,
                 'lama_kegiatan' => $lama_kegiatan,
-                'lokasi_kegiatan' => $lokasi_kegiatan,
+                'thn_laks_ke' => $tahun_pelaksanaan,
+                'dana_dikti' => $dana_dikti,
+                'dana_pt' => $dana_pt,
+                'dana_institusi_lain' => $dana_institusi_lain,
+                'in_kind' => $in_kind,
+                'stat_aktif' => 1,
+                'jns_litabmas' => 'M',
                 'sk_tugas' => $no_sk_penugasan,
                 'tgl_sk_tugas' => $tgl_sk_penugasan,
+                'lokasi_kegiatan' => $lokasi_kegiatan,
+                'id_skim' => $jenis_skim,
+                'id_thn_usulan' => $tahun_usulan,
+                'id_thn_kegiatan' => $tahun_kegiatan,
+                'id_thn_laks' => $tahun_pelaksanaan,
+                'id_lanjutan_litabmas' => $litabmas_lanjutan,
+                'id_kel_bidang' => $kel_bidang,
+                'id_tse' => NULL,
+                'id_smi' => NULL,
+                'id_jns_lit' => NULL,
+                'last_update' => currDateTime(),
+                'id_updater' => $updateId,
                 'soft_delete' => 0,
-                'stat_aktif' => 1,
-                'thn_laks_ke' => $tahun_pelaksanaan,
             ]);
 
+            if (!empty($dok_penelitian)) {
+                foreach ($dok_penelitian as $index => $dok) {
+                    $fileInfo = explode('.', $dok->getClientOriginalName());
+                    $fileOriginalName = $fileInfo[0];
+                    $fileExtension = $dok->getClientOriginalExtension();
+                    $fileMime = $dok->getClientMimeType();
+                    $fileName = str_replace(' ', '_', trim($nama_dok[$index])) . '.' . $fileExtension;
+                    if ($dok->move($dok_tmp_path, $fileName)) {
+                        $filePath = $dok_tmp_path . DIRECTORY_SEPARATOR . $fileName;
+                        $openFile = fopen($filePath, 'r');
+                        flock($openFile, LOCK_EX);
+                        $fileContent = base64_encode(fread($openFile, filesize($filePath)));
+                        flock($openFile, LOCK_UN);
+                        fclose($openFile);
+
+                        $dokumen = $this->dokumen->create([
+                            'id_dok' => guid(),
+                            'id_jns_dok' => $jenis_dok[$index],
+                            'nm_dok' => $fileOriginalName,
+                            'ket_dok' => $keterangan_dok[$index],
+                            'wkt_unggah' => currDateTime(),
+                            'url' => $url_dok[$index],
+                            'media_type' => $fileMime,
+                            'file_name' => $fileName,
+                            'create_date' => currDateTime(),
+                            'id_creator' => $creatorId,
+                            'last_update' => currDateTime(),
+                            'id_updater' => $updateId,
+                            'soft_delete' => 0,
+                            'last_sync' => currDateTime(),
+                            'file_dok' => DB::raw("CONVERT(VARBINARY(MAX), '" . $fileContent . "')"),
+                        ]);
+
+                        $this->dokLitabmas->create([
+                            'id_litabmas' => $litabmasId,
+                            'id_dok' => $dokumen->id_dok,
+                            'create_date' => currDateTime(),
+                            'id_creator' => $creatorId,
+                            'last_update' => currDateTime(),
+                            'id_updater' => $updateId,
+                            'soft_delete' => 0,
+                            'last_sync' => currDateTime(),
+                        ]);
+
+                        @unlink($filePath);
+                    } else {
+                        return WrapResponse([], 'gagal upload dokumen', FALSE);
+                    }
+                }
+            }
 
             if (!empty($anggota_dosen)) {
-                foreach ($anggota_dosen as $key => $anggotaDosen) {
-                    $this->sdmLitabmas->update([
-                        'id_creator' => $creatorId,
-                        'id_katgiat' => $kat_kegiatan,
+                foreach ($anggota_dosen as $index => $idDosen) {
+                    $anggota_dosen = $this->sdmLitabmas->where('id_litabmas', $litabmasId)->where('id_sdm', $idDosen)->first();
+                    if (!$anggota_dosen) return WrapResponse([], 'pengabdian tidak ditemukan atau dosen anggota tidak terdaftar', FALSE);
+
+                    $anggota_dosen->update([
                         'id_litabmas' => $litabmasId,
-                        'id_sdm' => $anggotaDosen,
+                        'id_sdm' => $idDosen,
+                        'id_katgiat' => $kat_kegiatan,
+                        'peran_litabmas' => $peran_dosen[$index],
+                        'stat_aktif' => $status_dosen[$index],
+                        'last_update' => currDateTime(),
                         'id_updater' => $updateId,
-                        'peran_litabmas' => $peran_dosen[$key],
                         'soft_delete' => 0,
-                        'stat_aktif' => $status_dosen[$key],
                     ]);
                 }
             }
 
             if (!empty($anggota_mahasiswa)) {
-                foreach ($anggota_mahasiswa as $key => $anggotaMahasiswa) {
-                    $this->sdmLitabmas->update([
-                        'id_creator' => $creatorId,
-                        'id_katgiat' => $kat_kegiatan,
+                foreach ($anggota_mahasiswa as $index => $idMahasiswa) {
+                    $anggota_mahasiswa = $this->pdLitabmas->where('id_pd_ang_litabmas', $pdLitabmasId[$index])->where('id_litabmas', $litabmasId)->where('id_pd', $idMahasiswa)->first();
+                    if (!$anggota_mahasiswa) return WrapResponse([], 'pengabdian tidak ditemukan atau mahasiswa anggota tidak terdaftar', FALSE);
+
+                    $dataMahasiswa = DB::select("
+                        SELECT
+                            TOP 1
+                            pd.nm_pd AS nama_mahasiswa,
+                            reg_pd.nipd AS nipd
+                        FROM
+                            pdrd.peserta_didik AS pd
+                            LEFT JOIN pdrd.reg_pd AS reg_pd ON reg_pd.id_pd = pd.id_pd
+                            AND reg_pd.soft_delete = 0
+                        WHERE
+                            pd.id_pd = '" . $idMahasiswa . "'
+                            AND pd.soft_delete = 0
+                    ");
+
+                    $anggota_mahasiswa->update([
+                        'id_pd_ang_litabmas' => $pdLitabmasId[$index],
                         'id_litabmas' => $litabmasId,
-                        'id_sdm' => $anggotaMahasiswa,
+                        'id_pd' => $idMahasiswa,
+                        'peran_litabmas' => $peran_mahasiswa[$index],
+                        'stat_aktif' => $status_mahasiswa[$index],
+                        'nm_pd' => $dataMahasiswa[0]->nama_mahasiswa,
+                        'nipd' => $dataMahasiswa[0]->nipd,
+                        'last_update' => currDateTime(),
                         'id_updater' => $updateId,
-                        'peran_litabmas' => $peran_mahasiswa[$key],
                         'soft_delete' => 0,
-                        'stat_aktif' => $status_mahasiswa[$key],
                     ]);
                 }
             }
 
-            if (!empty($id_non_ca)) {
-                foreach ($id_non_ca as $key => $idNonCa) {
-                    $this->sdmLitabmas->update([
-                        'id_creator' => $creatorId,
-                        'id_katgiat' => $kat_kegiatan,
+            if (!empty($anggota_non_ca)) {
+                foreach ($anggota_non_ca as $index => $idNonCa) {
+                    $anggota_non_ca = $this->nonCaLitabmas->where('id_litabmas', $litabmasId)->where('id_orang', $idNonCa)->first();
+                    if (!$anggota_non_ca) return WrapResponse([], 'pengabdian tidak ditemukan atau nonca anggota tidak terdaftar', FALSE);
+
+                    $anggota_non_ca->update([
                         'id_litabmas' => $litabmasId,
-                        'id_sdm' => $idNonCa,
+                        'id_orang' => $idNonCa,
+                        'peran_litabmas' => $peran_non_ca[$index],
+                        'stat_aktif' => $status_non_ca[$index],
+                        'last_update' => currDateTime(),
                         'id_updater' => $updateId,
-                        'peran_litabmas' => $peran_ca[$key],
                         'soft_delete' => 0,
-                        'stat_aktif' => $status_ca[$key],
                     ]);
                 }
             }
 
             DB::commit();
-            return response()->json([
-                'status' => true,
-                'message' => 'Success update Pengabdian',
-            ], 200);
-        } catch (Exception $e) {
-            Log::error($e->getMessage());
+            return WrapResponse([], 'sukses mengupdate data pengabdian - ' . $litabmasId);
+        } catch (ModelNotFoundException $mnfe) {
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
             DB::rollBack();
-            return response()->json([
-                'status' => FALSE,
-                'message' => "Failed update Pengabdian"
-            ]);
+            return WrapResponse([], 'pengabdian tidak ditemukan atau pengabdian tidak terdaftar', FALSE);
+        } catch (Exception $e) {
+            Log::error('error on Function ' . __FUNCTION__ . ' with ' . $e->getMessage() . ' on ' . $e->getLine());
+            DB::rollBack();
+            return WrapResponse([], "gagal mengupdate data pengabdian $litabmasId", FALSE);
         }
     }
-    public function delete(Request $request){
-        $litabmasId = guid();
-        $creatorId = $updateId = 'bc62ca9c-4e6e-4462-89b6-ff246512734f';
-        $kat_kegiatan = ['130201','130202','130203','130204','130401','130402','130403'];
 
-        $judul_kegiatan = $this->request->input('judul_kegiatan');
-        $afiliasi =  $this->request->input('afiliasi');
-        $kel_bidang = $this->request->input('kel_bidang');
-        $litabmas_sebelumnya = $this->request->input('litabmas_sebelumnya');
-        $jenis_skim = $this->request->input('jenis_skim');
-        $lokasi_kegiatan = $this->request->input('lokasi_kegiatan');
-        $tahun_usulan = $this->request->input('tahun_usulan');
-        $tahun_kegiatan = $this->request->input('tahun_kegiatan');
-        $lama_kegiatan = $this->request->input('lama_kegiatan');
-        $tahun_pelaksanaan = $this->request->input('tahun_pelaksanaan');
-        $dana_dikti = $this->request->input('dana_dikti');
-        $dana_pt = $this->request->input('dana_pt');
-        $dana_institusi_lain = $this->request->input('dana_institusi_lain');
+    public function deletePenelitian()
+    {
+        $validator = InputValidator([
+            'pengabdianid' => 'required|regex:/^[a-z0-9\-]+$/',
+        ], [
+            'pengabdianid.required' => 'field ini harus diisi',
+            'pengabdianid.regex' => 'input harus berupa alpa_numeric dan dash',
+        ]);
 
-        $in_kind = $this->request->input('in_kind');
-        if (empty($in_kind)) {
-            $in_kind = NULL;
-        }
+        $validateInput = $validator;
+        $pengabdianid = $validateInput['pengabdianid'];
 
-        $no_sk_penugasan = $this->request->input('no_sk_penugasan');
-        $tgl_sk_penugasan = $this->request->input('tgl_sk_penugasan');
-        $mitra_litabmas = $this->request->input('mitra_litabmas');
-        $dok_penelitian = $this->request->file('dok_penelitian');
-
-        $anggota_dosen = $this->request->input('anggota_dosen');
-        $peran_dosen = $this->request->input('peran_dosen');
-        $status_dosen = $this->request->input('status_dosen');
-
-        $anggota_mahasiswa = $this->request->input('anggota_mahasiswa');
-        $peran_mahasiswa = $this->request->input('peran_mahasiswa');
-        $status_mahasiswa = $this->request->input('status_mahasiswa');
-
-        $id_non_ca = $this->request->input('id_non_ca');
-        $peran_ca = $this->request->input('peran_ca');
-        $status_ca = $this->request->input('status_ca');
-
-        DB::transaction();
+        DB::beginTransaction();
         try {
-            $this->litabmasModel->delete([
-                'dana_dikti' => $dana_dikti,
-                'dana_institusi_lain' => $dana_institusi_lain,
-                'dana_pt' => $dana_pt,
-                'id_creator' => $creatorId,
-                'id_jns_lit' => NULL,
-                'id_kel_bidang' => $kel_bidang,
-                'id_lanjutan_litabmas' => $litabmas_sebelumnya,
-                'id_lemb_iptek' => NULL,
-                'id_litabmas' => $litabmasId,
-                'id_skim' => $jenis_skim,
-                'id_smi' => NULL,
-                'id_thn_kegiatan' => $tahun_kegiatan,
-                'id_thn_laks' => $tahun_pelaksanaan,
-                'id_thn_usulan' => $tahun_usulan,
-                'id_tse' => NULL,
-                'id_updater' => $updateId,
-                'in_kind' => $in_kind,
-                'jns_litabmas' => 'M',
-                'judul_litabmas' => $judul_kegiatan,
-                'lama_kegiatan' => $lama_kegiatan,
-                'lokasi_kegiatan' => $lokasi_kegiatan,
-                'sk_tugas' => $no_sk_penugasan,
-                'tgl_sk_tugas' => $tgl_sk_penugasan,
-                'soft_delete' => 0,
-                'stat_aktif' => 1,
-                'thn_laks_ke' => $tahun_pelaksanaan,
-            ]);
-
-
-            if (!empty($anggota_dosen)) {
-                foreach ($anggota_dosen as $key => $anggotaDosen) {
-                    $this->sdmLitabmas->delete([
-                        'id_creator' => $creatorId,
-                        'id_katgiat' => $kat_kegiatan,
-                        'id_litabmas' => $litabmasId,
-                        'id_sdm' => $anggotaDosen,
-                        'id_updater' => $updateId,
-                        'peran_litabmas' => $peran_dosen[$key],
-                        'soft_delete' => 0,
-                        'stat_aktif' => $status_dosen[$key],
-                    ]);
-                }
-            }
-
-            if (!empty($anggota_mahasiswa)) {
-                foreach ($anggota_mahasiswa as $key => $anggotaMahasiswa) {
-                    $this->sdmLitabmas->delete([
-                        'id_creator' => $creatorId,
-                        'id_katgiat' => $kat_kegiatan,
-                        'id_litabmas' => $litabmasId,
-                        'id_sdm' => $anggotaMahasiswa,
-                        'id_updater' => $updateId,
-                        'peran_litabmas' => $peran_mahasiswa[$key],
-                        'soft_delete' => 0,
-                        'stat_aktif' => $status_mahasiswa[$key],
-                    ]);
-                }
-            }
-
-            if (!empty($id_non_ca)) {
-                foreach ($id_non_ca as $key => $idNonCa) {
-                    $this->sdmLitabmas->delete([
-                        'id_creator' => $creatorId,
-                        'id_katgiat' => $kat_kegiatan,
-                        'id_litabmas' => $litabmasId,
-                        'id_sdm' => $idNonCa,
-                        'id_updater' => $updateId,
-                        'peran_litabmas' => $peran_ca[$key],
-                        'soft_delete' => 0,
-                        'stat_aktif' => $status_ca[$key],
-                    ]);
-                }
-            }
-
+            DB::update("UPDATE pdrd.litabmas SET soft_delete = 1 WHERE id_litabmas = $pengabdianid");
             DB::commit();
-            return response()->json([
-                'status' => true,
-                'message' => 'Success Add Pengabdian',
-            ], 200);
+            return WrapResponse([], 'berhasial menghapus data pengabdian');
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            Log::error('Error on ' . $e->getMessage() . ' in line ' . $e->getLine());
             DB::rollBack();
-            return response()->json([
-                'status' => FALSE,
-                'message' => "Failed Add Pengabdian"
-            ]);
+            return WrapResponse([], 'gagal menghapus data pengabdian', FALSE);
         }
     }
 }

@@ -125,10 +125,12 @@ Route::group([
         });
 
         Route::prefix('pengabdian')->group(function () {
-            Route::get('litabmas', 'PengabdianController@getAllListPengabdian');
-            Route::get('litabmas_by', 'PengabdianController@getListPengabdianBySdmId');
+            Route::get('list', 'PengabdianController@getAllListPengabdian');
+            Route::get('list_by', 'PengabdianController@getListPengabdianBySdmId');
             Route::get('detail_by', 'PengabdianController@getDetailPengabdianByPengabdianId');
-            Route::post('litabmas/simpan', 'PengabdianController@store');
+            Route::post('create', 'PengabdianController@storePengabdian');
+            Route::delete('update', 'PengabdianController@updatePengabdian');
+            Route::delete('delete', 'PengabdianController@deletePengabdian');
         });
 
         Route::prefix('mahasiswa')->group(function () {
@@ -142,6 +144,13 @@ Route::group([
 
         Route::prefix('akreditasiprodi')->group(function () {
             Route::get('list', 'AkreditasiProdiController@index');
+
+        });
+            
+        Route::prefix('sms')->group(function () {
+            Route::get('list', 'SmsController@index');
+            
+
         });
     });
 
