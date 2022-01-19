@@ -65,6 +65,7 @@ class SmsController extends Controller
                 
             WHERE
                 sms.soft_delete = 0 
+                ORDER BY sms.nm_lemb ASC
                 ");
 
             foreach ($listdata as $each_data) {

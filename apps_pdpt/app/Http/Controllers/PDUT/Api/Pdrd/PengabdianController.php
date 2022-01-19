@@ -21,7 +21,6 @@ use Illuminate\Validation\Rule as ValidationRule;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Exception;
 
-
 class PengabdianController extends Controller
 {
     protected $request;
@@ -44,9 +43,38 @@ class PengabdianController extends Controller
         $this->dokumen = new Dokumen();
         $this->cacheLifeTime = 3600;
     }
-    public function getAllListPengabdian()
 
+    /**
+     * @OA\Get(
+     *      path="/pengabdian/list/{sortby}",
+     *      operationId="getListPengabdian",
+     *      tags={"Pengabdian"},
+     *      summary="Dapatkan daftar Pengabdian",
+     *      description="Menampilkan daftar data Pengabdian",
+     *      @OA\Parameter(
+     *         description="Sorting Data Pengabdian",
+     *         in="path",
+     *         name="sortby",
+     *         @OA\Schema(type="string"),
+     *       ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
+    public function getAllListPengabdian()
     {
+        request()->merge(['sortby' => $sortby]);
         $validator = InputValidator([
             'sortby' => [
                 'alpha',
@@ -61,33 +89,31 @@ class PengabdianController extends Controller
         }
 
         $query =  "
-        SELECT TOP 50
+            SELECT TOP 50
+                lm.id_litabmas AS id_penelitian,
+                lm.judul_litabmas AS judul_penelitian,
+                kb.nm_kel_bidang AS bidang_keilmuan,
+                lm.id_thn_laks AS tahun_pelaksanaan,
+                lm.lama_kegiatan AS lama_kegiatan,
+                lm.create_date AS waktu_data_ditambahkan,
+                lm.last_update AS terakhir_diubah
+            FROM
+                pdrd.litabmas AS lm WITH(NOLOCK)
+                LEFT JOIN (
+                    SELECT
+                        DISTINCT id_litabmas
+                    FROM
+                        pdrd.sdm_anggota_litabmas
+                    WHERE
+                        id_katgiat IN (130201,130202,130203,130204,130401 ,130402,130403)
+                        AND soft_delete = 0
+                ) AS sal ON sal.id_litabmas = lm.id_litabmas
+                JOIN ref.kelompok_bidang AS kb ON kb.id_kel_bidang = lm.id_kel_bidang
+                AND kb.expired_date IS NULL
 
-            lm.id_litabmas AS id_penelitian,
-            lm.judul_litabmas AS judul_penelitian,
-            kb.nm_kel_bidang AS bidang_keilmuan,
-            lm.id_thn_laks AS tahun_pelaksanaan,
-            lm.lama_kegiatan AS lama_kegiatan,
-            lm.create_date AS waktu_data_ditambahkan,
-            lm.last_update AS terakhir_diubah
-        FROM
-            pdrd.litabmas AS lm WITH(NOLOCK)
-            LEFT JOIN (
-                SELECT
-                    DISTINCT id_litabmas
-                FROM
-                    pdrd.sdm_anggota_litabmas
-                WHERE
-                    id_katgiat IN (130201,130202,130203,130204,130401 ,130402,130403)
-                    AND soft_delete = 0
-            ) AS sal ON sal.id_litabmas = lm.id_litabmas
-            JOIN ref.kelompok_bidang AS kb ON kb.id_kel_bidang = lm.id_kel_bidang
-            AND kb.expired_date IS NULL
-
-        WHERE
-            lm.soft_delete = 0
-        ORDER BY lm.id_thn_laks " . $sortBy . "
-
+            WHERE
+                lm.soft_delete = 0
+            ORDER BY lm.id_thn_laks " . $sortBy . "
         ";
         $query = DB::select($query);
 
@@ -95,6 +121,7 @@ class PengabdianController extends Controller
             return WrapResponse([], 'data penelitian tidak ditemukan', FALSE);
         }
 
+        $data = Cache::remember(__FUNCTION__, $this->cacheLifeTime, function () use ($query) {
         $list_pengabdian = [];
         foreach ($query as $value) {
             $list_pengabdian[] = [
@@ -105,9 +132,10 @@ class PengabdianController extends Controller
                 'lama_kegiatan' => $value->lama_kegiatan,
                 'waktu_data_ditambahkan' => date('Y-m-d H:i:s', strtotime($value->waktu_data_ditambahkan)),
                 'terakhir_diubah' => date('Y-m-d H:i:s', strtotime($value->terakhir_diubah))
-            ];
-        }
-
+                ];
+            }
+            return $data;
+        });
 
         return response()->json([
             'status' => true,
@@ -115,6 +143,38 @@ class PengabdianController extends Controller
             'data'  => $query
         ]);
     }
+
+    /**
+     * @OA\Post(
+     *      path="/pengabdian/list_id",
+     *      operationId="getListPengabdianById",
+     *      tags={"Pengabdian"},
+     *      summary="Dapatkan daftar Pengabdian Berdasarkan ID",
+     *      description="Menampilkan daftar data Pengabdian Berdasarkan ID",
+     *      @OA\RequestBody(
+     *      required=true,
+     *      description="Daftar Pengabdian Berdasarkan ID",
+     *      @OA\JsonContent(
+     *          required={"sdmid"},
+     *          @OA\Property(property="sdmid", type="string", format="text", example="bcb6de9a-2e7c-43c7-b192-029750754fe7"),
+     *          @OA\Property(property="sortby", type="string", format="text", example="DESC")
+     *          ),
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
 
     public function getListPengabdianBySdmId()
     {
@@ -173,7 +233,7 @@ class PengabdianController extends Controller
         if (empty($query)) {
             return response()->json([
                 'status' => FALSE,
-                'message' => "Not Found data for SDM id : $sdmId"
+                'message' => "Tidak ditemukan data penelitian dari SDM id : $sdmId"
             ]);
         }
 
@@ -198,11 +258,39 @@ class PengabdianController extends Controller
             'data'  => $data
         ]);
     }
+    /**
+     * @OA\Get(
+     *      path="/pengabdian/detail/{id}",
+     *      operationId="getPengabdianDetail",
+     *      tags={"Pengabdian"},
+     *      summary="Dapatkan Detail Pengabdian By ID",
+     *      description="Menampilkan Detail Pengabdian By ID",
+     *      @OA\Parameter(
+     *         description="Pengabdian ID",
+     *         in="path",
+     *         name="id",
+     *         @OA\Schema(type="string"),
+     *       ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
 
     public function getDetailPengabdianByPengabdianId()
     {
         $reformatGetDetailPengabdian = [];
-
+        request()->merge(['pengabdianid' => $id]);
         $validator = InputValidator([
             'pengabdianid' => 'required|regex:/^[a-z0-9\-]+$/',
         ], [
@@ -243,27 +331,27 @@ class PengabdianController extends Controller
 
                 ";
 
-
-        $getDetailPengabdian = DB::select($query);
-            foreach ($getDetailPengabdian as $value) {
-                $reformatGetDetailPengabdian = [
-                    'tahun_anggaran' => $value->tahun_anggaran,
-                    'afiliasi' => $value->afiliasi,
-                    'kelompok_bidang' => $value->kelompok_bidang,
-                    'no_sk_penugasan' => $value->no_sk_penugasan,
-                    'tgl_sk_penugasan' => $value->tgl_sk_penugasan,
-                    'lama_kegiatan' => $value->lama_kegiatan,
-                    'judul_penelitian' => $value->judul_penelitian,
-                    'lokasi_kegiatan' => $value->lokasi_kegiatan,
-                    'tahun_pelaksanaan' => $value->tahun_anggaran,
-                    'dana_dikti' => $value->dana_dikti,
-                    'data_pt' => $value->dana_pt,
-                    'dana_institusi_lain' => $value->dana_il,
-                ];
-            }
+                $getDetailPengabdian = DB::select($query);
+                foreach ($getDetailPengabdian as $value) {
+                    $reformatGetDetailPengabdian = [
+                        'tahun_anggaran' => $value->tahun_anggaran,
+                        'afiliasi' => $value->afiliasi,
+                        'kelompok_bidang' => $value->kelompok_bidang,
+                        'no_sk_penugasan' => $value->no_sk_penugasan,
+                        'tgl_sk_penugasan' => $value->tgl_sk_penugasan,
+                        'lama_kegiatan' => $value->lama_kegiatan,
+                        'judul_penelitian' => $value->judul_penelitian,
+                        'lokasi_kegiatan' => $value->lokasi_kegiatan,
+                        'tahun_pelaksanaan' => $value->tahun_anggaran,
+                        'dana_dikti' => $value->dana_dikti,
+                        'data_pt' => $value->dana_pt,
+                        'dana_institusi_lain' => $value->dana_il,
+                    ];
+                }
 
                 $query = "
                 SELECT
+                    sal.id_sdm AS id_anggota_dosen,
                     sdm.nm_sdm AS nama_dosen,
                     sal.peran_litabmas AS peran_dosen,
                     sal.stat_aktif AS keaktifan
@@ -284,6 +372,7 @@ class PengabdianController extends Controller
                 SELECT
                     pd.nm_pd AS nama_mahasiswa,
                     pal.peran_litabmas AS peran_mahasiswa,
+                    pal.stat_aktif AS keaktifan,
                     pal.stat_aktif AS keaktifan
                 FROM
                     pdrd.pd_anggota_litabmas AS pal
@@ -300,6 +389,7 @@ class PengabdianController extends Controller
                 SELECT
                     nca.nm_orang AS nama_nonca,
                     nca_litabmas.peran_litabmas AS peran_nonca,
+                    nca_litabmas.stat_aktif AS keaktifan,
                     nca_litabmas.stat_aktif AS keaktifan
                 FROM
                     pdrd.non_ca_anggota_litabmas AS nca_litabmas
@@ -314,7 +404,8 @@ class PengabdianController extends Controller
 
             $query = "
                 SELECT
-                    refj_dokumen.nm_jns_dok AS nama_dokumen,
+                    dok_dokumen.id_dok AS id_dokumen,
+                    dok_dokumen.nm_dok AS nama_dok,
                     dok_dokumen.file_name AS nama_file,
                     dok_dokumen.media_type AS jenis_file,
                     dok_litabmas.create_date AS tanggal_upload,
@@ -353,17 +444,7 @@ class PengabdianController extends Controller
     }
 
     public function storePengabdian(Request $request)
-
-    {
-        $litabmasId = guid();
-        $creatorId = $updateId = 'bc62ca9c-4e6e-4462-89b6-ff246512734f';
-        $kat_kegiatan = ['130201','130202','130203','130204','130401','130402','130403'];
-
-        $dok_tmp_path = storage_path('uploads');
-        if (!File::isDirectory($dok_tmp_path)) {
-            File::makeDirectory($dok_tmp_path, 0755, true, true);
-        }
-
+    {   
         $rule = [
             'judul_kegiatan' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
             'afiliasi' => 'required|regex:/^[a-z0-9\-]+$/',
@@ -396,46 +477,57 @@ class PengabdianController extends Controller
             'peran_non_ca.*' => ['alpha', 'nullable', ValidationRule::in(['A', 'K'])],
             'status_non_ca.*' => ['numeric', 'nullable', ValidationRule::in(['0', '1'])]
         ];
-        InputValidator($rule);
+        $validator = InputValidator($rule);
+        $validateInput = $validator;
 
-        $judul_kegiatan = $this->request->input('judul_kegiatan');
-        $afiliasi =  $this->request->input('afiliasi');
-        $kel_bidang = $this->request->input('kel_bidang');
-        $litabmas_lanjutan = $this->request->input('litabmas_lanjutan');
-        $jenis_skim = $this->request->input('jenis_skim');
-        $lokasi_kegiatan = $this->request->input('lokasi_kegiatan');
-        $tahun_usulan = $this->request->input('tahun_usulan');
-        $tahun_kegiatan = $this->request->input('tahun_kegiatan');
-        $lama_kegiatan = $this->request->input('lama_kegiatan');
-        $tahun_pelaksanaan = $this->request->input('tahun_pelaksanaan');
-        $dana_dikti = $this->request->input('dana_dikti');
-        $dana_pt = $this->request->input('dana_pt');
-        $dana_institusi_lain = $this->request->input('dana_institusi_lain');
-        $in_kind = $this->request->input('in_kind');
-        $no_sk_penugasan = $this->request->input('no_sk_penugasan');
-        $tgl_sk_penugasan = $this->request->input('tgl_sk_penugasan');
+        $litabmasId = guid();
+        $creatorId = $updateId = 'bc62ca9c-4e6e-4462-89b6-ff246512734f';
+        $kat_kegiatan = ['130201','130202','130203','130204','130401','130402','130403'];
 
-        $dok_penelitian = $this->request->input('dok_penelitian');
-        $nama_dok = $this->request->input('nama_dok');
-        $keterangan_dok = $this->request->input('keterangan_dok');
-        $jenis_dok = $this->request->input('jenis_dok');
-        $url_dok = $this->request->input('url_dok');
+        $dok_tmp_path = storage_path('uploads');
+        if (!File::isDirectory($dok_tmp_path)) {
+            File::makeDirectory($dok_tmp_path, 0755, true, true);
+        }
 
-        $anggota_dosen = $this->request->input('anggota_dosen');
-        $peran_dosen = $this->request->input('peran_dosen');
-        $status_dosen = $this->request->input('status_dosen');
 
-        $anggota_mahasiswa = $this->request->input('anggota_mahasiswa');
-        $peran_mahasiswa = $this->request->input('peran_mahasiswa');
-        $status_mahasiswa = $this->request->input('status_mahasiswa');
+        $judul_kegiatan = $validateInput['judul_kegiatan'];
+        $afiliasi =  $validateInput['afiliasi'];
+        $kel_bidang = $validateInput['kel_bidang'];
+        $litabmas_lanjutan = $validateInput['litabmas_lanjutan'];
+        $jenis_skim = $validateInput['jenis_skim'];
+        $lokasi_kegiatan = $validateInput['lokasi_kegiatan'];
+        $tahun_usulan = $validateInput['tahun_usulan'];
+        $tahun_kegiatan = $validateInput['tahun_kegiatan'];
+        $lama_kegiatan = $validateInput['lama_kegiatan'];
+        $tahun_pelaksanaan = $validateInput['tahun_pelaksanaan'];
+        $dana_dikti = $validateInput['dana_dikti'];
+        $dana_pt = $validateInput['dana_pt'];
+        $dana_institusi_lain = $validateInput['dana_institusi_lain'];
+        $in_kind = $validateInput['in_kind'];
+        $no_sk_penugasan = $validateInput['no_sk_penugasan'];
+        $tgl_sk_penugasan = $validateInput['tgl_sk_penugasan'];
 
-        $anggota_non_ca = $this->request->input('anggota_non_ca');
-        $peran_non_ca = $this->request->input('peran_non_ca');
-        $status_non_ca = $this->request->input('status_non_ca');
+        $dok_penelitian = $validateInput['dok_penelitian'];
+        $nama_dok = $validateInput['nama_dok'];
+        $keterangan_dok = $validateInput['keterangan_dok'];
+        $jenis_dok = $validateInput['jenis_dok'];
+        $url_dok = $validateInput['url_dok'];
+
+        $anggota_dosen = $validateInput['anggota_dosen'];
+        $peran_dosen = $validateInput['peran_dosen'];
+        $status_dosen = $validateInput['status_dosen'];
+
+        $anggota_mahasiswa = $validateInput['anggota_mahasiswa'];
+        $peran_mahasiswa = $validateInput['peran_mahasiswa'];
+        $status_mahasiswa = $validateInput['status_mahasiswa'];
+
+        $anggota_non_ca = $validateInput['anggota_non_ca'];
+        $peran_non_ca = $validateInput['peran_non_ca'];
+        $status_non_ca = $validateInput['status_non_ca'];
 
         DB::beginTransaction();
         try {
-            $pengabdian = $this->litabmasModel->create([
+            $pengabdian = $this->litabmas->create([
                 'dana_dikti' => $dana_dikti,
                 'dana_institusi_lain' => $dana_institusi_lain,
                 'dana_pt' => $dana_pt,
@@ -589,8 +681,12 @@ class PengabdianController extends Controller
 
             DB::commit();
             return WrapResponse([], 'sukses menambahkan data pengabdian - ' . $pengabdian->id_litabmas);
+        } catch (ModelNotFoundException $mnfe) {
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+            DB::rollBack();
+            return WrapResponse([], 'pengabdian tidak ditemukan atau pengabdian tidak terdaftar', FALSE);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
             DB::rollBack();
             return WrapResponse([], "gagal menambahkan data pengabdian");
         }
@@ -632,9 +728,10 @@ class PengabdianController extends Controller
             'peran_non_ca.*' => ['alpha', 'nullable', ValidationRule::in(['A', 'K'])],
             'status_non_ca.*' => ['numeric', 'nullable', ValidationRule::in(['0', '1'])]
         ];
-        InputValidator($rule);
+        $validator = InputValidator($rule);
+        $validateInput = $validator;
 
-        $litabmasId = $this->request->input('id_penelitian');
+        $litabmasId = $validateInput['id_penelitian'];
         $creatorId = $updateId = 'bc62ca9c-4e6e-4462-89b6-ff246512734f';
         $kat_kegiatan = ['130201','130202','130203','130204','130401','130402','130403'];
 
@@ -643,42 +740,42 @@ class PengabdianController extends Controller
             File::makeDirectory($dok_tmp_path, 0755, true, true);
         }
 
-        $judul_kegiatan = $this->request->input('judul_kegiatan');
-        $afiliasi =  $this->request->input('afiliasi');
-        $kel_bidang = $this->request->input('kel_bidang');
-        $litabmas_lanjutan = $this->request->input('litabmas_lanjutan');
-        $jenis_skim = $this->request->input('jenis_skim');
-        $lokasi_kegiatan = $this->request->input('lokasi_kegiatan');
-        $tahun_usulan = $this->request->input('tahun_usulan');
-        $tahun_kegiatan = $this->request->input('tahun_kegiatan');
-        $lama_kegiatan = $this->request->input('lama_kegiatan');
-        $tahun_pelaksanaan = $this->request->input('tahun_pelaksanaan');
-        $dana_dikti = $this->request->input('dana_dikti');
-        $dana_pt = $this->request->input('dana_pt');
-        $dana_institusi_lain = $this->request->input('dana_institusi_lain');
-        $in_kind = $this->request->input('in_kind');
+        $judul_kegiatan = $validateInput['judul_kegiatan'];
+        $afiliasi =  $validateInput['afiliasi'];
+        $kel_bidang = $validateInput['kel_bidang'];
+        $litabmas_lanjutan = $validateInput['litabmas_lanjutan'];
+        $jenis_skim = $validateInput['jenis_skim'];
+        $lokasi_kegiatan = $validateInput['lokasi_kegiatan'];
+        $tahun_usulan = $validateInput['tahun_usulan'];
+        $tahun_kegiatan = $validateInput['tahun_kegiatan'];
+        $lama_kegiatan = $validateInput['lama_kegiatan'];
+        $tahun_pelaksanaan = $validateInput['tahun_pelaksanaan'];
+        $dana_dikti = $validateInput['dana_dikti'];
+        $dana_pt = $validateInput['dana_pt'];
+        $dana_institusi_lain = $validateInput['dana_institusi_lain'];
+        $in_kind = $validateInput['in_kind'];
 
-        $no_sk_penugasan = $this->request->input('no_sk_penugasan');
-        $tgl_sk_penugasan = $this->request->input('tgl_sk_penugasan');
+        $no_sk_penugasan = $validateInput['no_sk_penugasan'];
+        $tgl_sk_penugasan = $validateInput['tgl_sk_penugasan'];
 
-        $dok_penelitian = $this->request->input('dok_penelitian');
-        $nama_dok = $this->request->input('nama_dok');
-        $keterangan_dok = $this->request->input('keterangan_dok');
-        $jenis_dok = $this->request->input('jenis_dok');
-        $url_dok = $this->request->input('url_dok');
+        $dok_penelitian = $validateInput['dok_penelitian'];
+        $nama_dok = $validateInput['nama_dok'];
+        $keterangan_dok = $validateInput['keterangan_dok'];
+        $jenis_dok = $validateInput['jenis_dok'];
+        $url_dok = $validateInput['url_dok'];
 
-        $anggota_dosen = $this->request->input('anggota_dosen');
-        $peran_dosen = $this->request->input('peran_dosen');
-        $status_dosen = $this->request->input('status_dosen');
+        $anggota_dosen = $validateInput['anggota_dosen'];
+        $peran_dosen = $validateInput['peran_dosen'];
+        $status_dosen = $validateInput['status_dosen'];
 
-        $anggota_mahasiswa = $this->request->input('anggota_mahasiswa');
-        $pdLitabmasId = $this->request->input('pd_litabmas_mahasiswa_id');
-        $peran_mahasiswa = $this->request->input('peran_mahasiswa');
-        $status_mahasiswa = $this->request->input('status_mahasiswa');
+        $anggota_mahasiswa = $validateInput['anggota_mahasiswa'];
+        $pdLitabmasId = $validateInput['pd_litabmas_mahasiswa_id'];
+        $peran_mahasiswa = $validateInput['peran_mahasiswa'];
+        $status_mahasiswa = $validateInput['status_mahasiswa'];
 
-        $anggota_non_ca = $this->request->input('anggota_non_ca');
-        $peran_non_ca = $this->request->input('peran_non_ca');
-        $status_non_ca = $this->request->input('status_non_ca');
+        $anggota_non_ca = $validateInput['anggota_non_ca'];
+        $peran_non_ca = $validateInput['peran_non_ca'];
+        $status_non_ca = $validateInput['status_non_ca'];
 
         DB::beginTransaction();
         try {
@@ -716,6 +813,8 @@ class PengabdianController extends Controller
 
             if (!empty($dok_penelitian)) {
                 foreach ($dok_penelitian as $index => $dok) {
+                    if (is_null($dok)) continue;
+
                     $fileInfo = explode('.', $dok->getClientOriginalName());
                     $fileOriginalName = $fileInfo[0];
                     $fileExtension = $dok->getClientOriginalExtension();
@@ -728,6 +827,7 @@ class PengabdianController extends Controller
                         $fileContent = base64_encode(fread($openFile, filesize($filePath)));
                         flock($openFile, LOCK_UN);
                         fclose($openFile);
+
 
                         $dokumen = $this->dokumen->create([
                             'id_dok' => guid(),
