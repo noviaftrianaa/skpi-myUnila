@@ -7,10 +7,22 @@ if (!function_exists('InputValidator')) {
     {
         static $validator = null;
 
+        $inputs = [];
+        foreach (request()->all() as $key => $value) {
+            if (!is_array($value) && !is_bool($value) && !is_null($value)) {
+                $varTemp = trim($value);
+                $varTemp = stripslashes($varTemp);
+                $varTemp = htmlspecialchars($varTemp);
+                $inputs[$key] = $varTemp;
+            } else {
+                $inputs[$key] = $value;
+            }
+        }
+
         if (empty($messages)) {
-            $validator = Validator::make(request()->all(), $rules);
+            $validator = Validator::make($inputs, $rules);
         } else {
-            $validator = Validator::make(request()->all(), $rules, $messages);
+            $validator = Validator::make($inputs, $rules, $messages);
         }
 
         if (!is_null($validator)) {
@@ -23,7 +35,7 @@ if (!function_exists('InputValidator')) {
                 ]));
             }
 
-            return TRUE;
+            return $inputs;
         }
     }
 }
