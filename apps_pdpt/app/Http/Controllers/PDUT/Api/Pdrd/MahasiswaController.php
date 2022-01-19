@@ -11,7 +11,7 @@ class MahasiswaController extends Controller
 {
     /**
      * @OA\Get(
-     *      path="/pdrd/mahasiswa/list_mahasiswa",
+     *      path="/mahasiswa/list_mahasiswa",
      *      operationId="getListMahasiswa",
      *      tags={"Mahasiwa"},
      *      summary="Dapatkan daftar Mahasiswa",
@@ -91,7 +91,7 @@ class MahasiswaController extends Controller
 
     /**
      * @OA\Get(
-     *      path="/pdrd/mahasiswa/detail",
+     *      path="/mahasiswa/detail",
      *      operationId="getDetailMahasiswa",
      *      tags={"Mahasiwa"},
      *      summary="Dapatkan detail profil Mahasiswa",
@@ -174,7 +174,7 @@ class MahasiswaController extends Controller
 
     /**
      * @OA\Get(
-     *      path="/pdrd/mahasiswa/{status}",
+     *      path="/mahasiswa/{status}",
      *      operationId="getListStatusMahasiswa",
      *      tags={"Mahasiwa"},
      *      summary="Dapatkan daftar Mahasiswa sesuai Status Mahasiswa",
@@ -250,7 +250,7 @@ class MahasiswaController extends Controller
 
         /**
      * @OA\Get(
-     *      path="/pdrd/mahasiswa/regis",
+     *      path="/mahasiswa/regis",
      *      operationId="getRegisMahasiswa",
      *      tags={"Mahasiwa"},
      *      summary="Dapatkan daftar Mahasiswa Berdasarkan Jenis Pendaftaran",
@@ -344,7 +344,7 @@ class MahasiswaController extends Controller
 
     /**
      * @OA\Get(
-     *      path="/pdrd/mahasiswa/semester",
+     *      path="/mahasiswa/semester",
      *      operationId="getSemesterKeaktifan",
      *      tags={"Mahasiwa"},
      *      summary="Dapatkan daftar Semester Keaktifan Mahasiswa",
@@ -450,7 +450,7 @@ class MahasiswaController extends Controller
 
         /**
      * @OA\Get(
-     *      path="/pdrd/mahasiswa/list_alumni",
+     *      path="/mahasiswa/list_alumni",
      *      operationId="getAlumni",
      *      tags={"Mahasiwa"},
      *      summary="Dapatkan list alumni berdasarkan prodi",
