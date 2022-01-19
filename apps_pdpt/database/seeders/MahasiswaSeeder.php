@@ -91,6 +91,7 @@ class MahasiswaSeeder extends Seeder
                         'tmpt_lahir'        => $each_data['tempat_lahir'],
                         'tgl_lahir'         => $each_data['tanggal_lahir'],
                         'jln'               => $each_data['jalan'],
+                        'email'             => $each_data['email'],
                         'rt'                => $each_data['rt'],
                         'rw'                => $each_data['rw'],
                         'nm_dsn'            => $each_data['dusun'],
@@ -133,67 +134,73 @@ class MahasiswaSeeder extends Seeder
                         'soft_delete'       => 0,
                         'last_sync'         => currDateTime()
                     ]);
-                }
-                $carireg = DB::table('pdrd.reg_pd')->where('id_reg_pd',$each_data['id_registrasi_mahasiswa'])->first();
-                if (is_null($carireg)) {
-                    DB::table('pdrd.reg_pd')->insert([
-                        'id_reg_pd'         => $each_data['id_registrasi_mahasiswa'],
-                        'id_sp'             => $cari_prodi->id_sp,
-                        'id_sms'            => $each_data['id_prodi'],
-                        'id_pd'             => $each_data['id_mahasiswa'],
-                        'id_jns_daftar'     => is_null($get_data_reg[0]['id_jenis_daftar'])?1:$get_data_reg[0]['id_jenis_daftar'],
-                        'id_jalur_daftar'   => is_null($get_data_reg[0]['id_jalur_daftar'])?5:$get_data_reg[0]['id_jalur_daftar'],
-                        'id_pembiayaan'     => is_null($get_data_reg[0]['id_pembiayaan'])?1:$get_data_reg[0]['id_pembiayaan'],
-                        'id_semester_masuk' => $get_data_reg[0]['id_periode_masuk'],
-                        'id_jns_keluar'     => $get_data_reg[0]['id_jenis_keluar'],
-                        'nipd'              => $get_data_reg[0]['nim'],
-                        'tgl_masuk_sp'      => $get_data_reg[0]['tanggal_daftar'],
-                        'sks_diakui'        => $get_data_reg[0]['sks_diakui'],
-                        'id_pt_asal'        => $get_data_reg[0]['id_perguruan_tinggi_asal'],
-                        'nm_pt_asal'        => $get_data_reg[0]['nama_perguruan_tinggi_asal'],
-                        'id_prodi_asal'     => $get_data_reg[0]['id_prodi_asal'],
-                        'nm_prodi_asal'     => $get_data_reg[0]['nama_program_studi_asal'],
-                        'create_date'       => currDateTime(),
-                        'id_creator'        => '443701e4-e814-48f3-9528-251bccee8af1',
+                } else {
+                    DB::table('pdrd.peserta_didik')->where('id_pd',$carimhs->id_pd)->update([
+                        'email'             => $each_data['email'],
                         'last_update'       => currDateTime(),
                         'id_updater'        => '443701e4-e814-48f3-9528-251bccee8af1',
-                        'soft_delete'       => 0,
-                        'last_sync'         => currDateTime()
                     ]);
-                } else {
-                    if (!is_null($carireg->id_jns_keluar)) {
-                        $get_data_lulus_do = $this->curl_api_feeder($url, $this->data_form('GetDetailMahasiswaLulusDO',$token,'id_registrasi_mahasiswa',$each_data['id_registrasi_mahasiswa']));
-                        DB::table('pdrd.reg_pd')->where('id_reg_pd',$carireg->id_reg_pd)->update([
-                            'id_jns_keluar'     => $get_data_lulus_do[0]['id_jenis_keluar'],
-                            'tgl_keluar'        => $get_data_lulus_do[0]['tanggal_keluar'],
-                            'ket'               => $get_data_lulus_do[0]['keterangan'],
-                            'sk_yudisium'       => $get_data_lulus_do[0]['nomor_sk_yudisium'],
-                            'tgl_sk_yudisium'   => $get_data_lulus_do[0]['tanggal_sk_yudisium'],
-                            'ipk'               => $get_data_lulus_do[0]['ipk'],
-                            'no_seri_ijazah'    => $get_data_lulus_do[0]['nomor_ijazah'],
-                            'jalur_skripsi'     => $get_data_lulus_do[0]['jalur_skripsi'],
-                            'judul_skripsi'     => $get_data_lulus_do[0]['judul_skripsi'],
-                            'bln_awal_bimbingan'=> $get_data_lulus_do[0]['bulan_awal_bimbingan'],
-                            'bln_akhir_bimbingan'=> $get_data_lulus_do[0]['bulan_akhir_bimbingan'],
-                            'asal_data_ijazah'  => $get_data_lulus_do[0]['asal_ijazah'],
-                            'last_update'       => currDateTime(),
-                            'id_updater'        => '443701e4-e814-48f3-9528-251bccee8af1',
-                        ]);
-                    } else {
-                        DB::table('pdrd.reg_pd')->where('id_reg_pd',$carireg->id_reg_pd)->update([
-                            'id_jns_keluar'     => $get_data_reg[0]['id_jenis_keluar'],
-                            'nipd'              => $get_data_reg[0]['nim'],
-                            'tgl_masuk_sp'      => $get_data_reg[0]['tanggal_daftar'],
-                            'sks_diakui'        => $get_data_reg[0]['sks_diakui'],
-                            'id_pt_asal'        => $get_data_reg[0]['id_perguruan_tinggi_asal'],
-                            'nm_pt_asal'        => $get_data_reg[0]['nama_perguruan_tinggi_asal'],
-                            'id_prodi_asal'     => $get_data_reg[0]['id_prodi_asal'],
-                            'nm_prodi_asal'     => $get_data_reg[0]['nama_program_studi_asal'],
-                            'last_update'       => currDateTime(),
-                            'id_updater'        => '443701e4-e814-48f3-9528-251bccee8af1',
-                        ]);
-                    }
                 }
+//                $carireg = DB::table('pdrd.reg_pd')->where('id_reg_pd',$each_data['id_registrasi_mahasiswa'])->first();
+//                if (is_null($carireg)) {
+//                    DB::table('pdrd.reg_pd')->insert([
+//                        'id_reg_pd'         => $each_data['id_registrasi_mahasiswa'],
+//                        'id_sp'             => $cari_prodi->id_sp,
+//                        'id_sms'            => $each_data['id_prodi'],
+//                        'id_pd'             => $each_data['id_mahasiswa'],
+//                        'id_jns_daftar'     => is_null($get_data_reg[0]['id_jenis_daftar'])?1:$get_data_reg[0]['id_jenis_daftar'],
+//                        'id_jalur_daftar'   => is_null($get_data_reg[0]['id_jalur_daftar'])?5:$get_data_reg[0]['id_jalur_daftar'],
+//                        'id_pembiayaan'     => is_null($get_data_reg[0]['id_pembiayaan'])?1:$get_data_reg[0]['id_pembiayaan'],
+//                        'id_semester_masuk' => $get_data_reg[0]['id_periode_masuk'],
+//                        'id_jns_keluar'     => $get_data_reg[0]['id_jenis_keluar'],
+//                        'nipd'              => $get_data_reg[0]['nim'],
+//                        'tgl_masuk_sp'      => $get_data_reg[0]['tanggal_daftar'],
+//                        'sks_diakui'        => $get_data_reg[0]['sks_diakui'],
+//                        'id_pt_asal'        => $get_data_reg[0]['id_perguruan_tinggi_asal'],
+//                        'nm_pt_asal'        => $get_data_reg[0]['nama_perguruan_tinggi_asal'],
+//                        'id_prodi_asal'     => $get_data_reg[0]['id_prodi_asal'],
+//                        'nm_prodi_asal'     => $get_data_reg[0]['nama_program_studi_asal'],
+//                        'create_date'       => currDateTime(),
+//                        'id_creator'        => '443701e4-e814-48f3-9528-251bccee8af1',
+//                        'last_update'       => currDateTime(),
+//                        'id_updater'        => '443701e4-e814-48f3-9528-251bccee8af1',
+//                        'soft_delete'       => 0,
+//                        'last_sync'         => currDateTime()
+//                    ]);
+//                } else {
+//                    if (!is_null($carireg->id_jns_keluar)) {
+//                        $get_data_lulus_do = $this->curl_api_feeder($url, $this->data_form('GetDetailMahasiswaLulusDO',$token,'id_registrasi_mahasiswa',$each_data['id_registrasi_mahasiswa']));
+//                        DB::table('pdrd.reg_pd')->where('id_reg_pd',$carireg->id_reg_pd)->update([
+//                            'id_jns_keluar'     => $get_data_lulus_do[0]['id_jenis_keluar'],
+//                            'tgl_keluar'        => $get_data_lulus_do[0]['tanggal_keluar'],
+//                            'ket'               => $get_data_lulus_do[0]['keterangan'],
+//                            'sk_yudisium'       => $get_data_lulus_do[0]['nomor_sk_yudisium'],
+//                            'tgl_sk_yudisium'   => $get_data_lulus_do[0]['tanggal_sk_yudisium'],
+//                            'ipk'               => $get_data_lulus_do[0]['ipk'],
+//                            'no_seri_ijazah'    => $get_data_lulus_do[0]['nomor_ijazah'],
+//                            'jalur_skripsi'     => $get_data_lulus_do[0]['jalur_skripsi'],
+//                            'judul_skripsi'     => $get_data_lulus_do[0]['judul_skripsi'],
+//                            'bln_awal_bimbingan'=> $get_data_lulus_do[0]['bulan_awal_bimbingan'],
+//                            'bln_akhir_bimbingan'=> $get_data_lulus_do[0]['bulan_akhir_bimbingan'],
+//                            'asal_data_ijazah'  => $get_data_lulus_do[0]['asal_ijazah'],
+//                            'last_update'       => currDateTime(),
+//                            'id_updater'        => '443701e4-e814-48f3-9528-251bccee8af1',
+//                        ]);
+//                    } else {
+//                        DB::table('pdrd.reg_pd')->where('id_reg_pd',$carireg->id_reg_pd)->update([
+//                            'id_jns_keluar'     => $get_data_reg[0]['id_jenis_keluar'],
+//                            'nipd'              => $get_data_reg[0]['nim'],
+//                            'tgl_masuk_sp'      => $get_data_reg[0]['tanggal_daftar'],
+//                            'sks_diakui'        => $get_data_reg[0]['sks_diakui'],
+//                            'id_pt_asal'        => $get_data_reg[0]['id_perguruan_tinggi_asal'],
+//                            'nm_pt_asal'        => $get_data_reg[0]['nama_perguruan_tinggi_asal'],
+//                            'id_prodi_asal'     => $get_data_reg[0]['id_prodi_asal'],
+//                            'nm_prodi_asal'     => $get_data_reg[0]['nama_program_studi_asal'],
+//                            'last_update'       => currDateTime(),
+//                            'id_updater'        => '443701e4-e814-48f3-9528-251bccee8af1',
+//                        ]);
+//                    }
+//                }
 //                $get_data_keaktifan = $this->curl_api_feeder($url, $this->data_form('GetListPerkuliahanMahasiswa',$token,'id_registrasi_mahasiswa',$each_data['id_registrasi_mahasiswa']));
 //                if (count($get_data_keaktifan)>0) {
 //                    foreach ($get_data_keaktifan AS $each_keaktifan) {

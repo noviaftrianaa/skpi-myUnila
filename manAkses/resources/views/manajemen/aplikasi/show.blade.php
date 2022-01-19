@@ -198,7 +198,7 @@
                         <span class="fw-mediumbold">
                         Tambah </span> 
                         <span class="fw-light">
-                            Aplikasi
+                            PJ APlikasi
                         </span>
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -213,20 +213,44 @@
                         <div class="row">
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
+                                    <label>Select</label>
+                                    <select id="code" class="form-control">
+                                        <option selected disabled>Select</option>
+                                        <option value="0">New</option>
+                                        <option value="1">Existing</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" id="existingPJ">
+                            <div class="col-sm-12">
+                                <div class="form-group form-group-default">
+                                    <label>Pengguna</label>
+                                    <select name="id_pengguna[]" id="id_pengguna" class="form-control select2" data-placeholder="Pilih" multiple>
+                                    @foreach($pengguna as $value)
+                                    <option value="{{$value->id_pengguna}}">{{$value->nm_pengguna}}</option>
+                                    @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" id="newPJ">
+                            <div class="col-sm-12">
+                                <div class="form-group form-group-default">
                                     <label>Nama PJ</label>
-                                    <input name="nm_pj" type="text" class="form-control" placeholder="Masukkan Nama PJ" required>
+                                    <input name="nm_pj" id="nm_pj" type="text" class="form-control" placeholder="Masukkan Nama PJ">
                                 </div>
                             </div>
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Email</label>
-                                    <input name="username" type="email" class="form-control" placeholder="Masukkan Email" required>
+                                    <input name="username" id="username" type="email" class="form-control" placeholder="Masukkan Email">
                                 </div>
                             </div>
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Jenis Kelamin</label>
-                                    <select name="jenis_kelamin" class="form-control" required>
+                                    <select name="jenis_kelamin" id="jenis_kelamin" class="form-control">
                                         <option selected disabled>Pilih</option>
                                         <option value="L">Laki-laki</option>
                                         <option value="P">Perempuan</option>
@@ -236,15 +260,17 @@
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Jabatan</label>
-                                    <input name="jabatan_pj" type="text" class="form-control" placeholder="Masukkan Jabatan" required>
+                                    <input name="jabatan_pj" id="jabatan_pj" type="text" class="form-control" placeholder="Masukkan Jabatan">
                                 </div>
                             </div>
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>No. HP</label>
-                                    <input name="no_hp" type="number" class="form-control" placeholder="Masukkan Nomor HP" required>
+                                    <input name="no_hp" id="no_hp" type="number" class="form-control" placeholder="Masukkan Nomor HP">
                                 </div>
                             </div>
+                        </div>
+                        <div class="row">
                             <div class="col-sm-6 col-12">
                                 <div class="form-group form-group-default">
                                     <label>Apakah Masih ?</label>
@@ -575,4 +601,39 @@
     </div>
     @endforeach
 
+    @push('js')
+    <script>
+        $(document).ready( function () {
+            $('#newPJ').hide();
+            $('#existingPJ').hide();
+            $('#code').on('change', function() {
+                if(this.value==0) {
+                    $('#existingPJ').hide();
+                    $('#id_pengguna').val(null).trigger("change");
+                    $('#id_pengguna').removeAttr('required', '');
+                    $('#newPJ').show();
+                    $('#nm_pj').attr('required', '');
+                    $('#username').attr('required', '');
+                    $('#jenis_kelamin').attr('required', '');
+                    $('#jabatan_pj').attr('required', '');
+                    $('#no_hp').attr('required', '');
+                } else {
+                    $('#newPJ').hide();
+                    $('#existingPJ').show();
+                    $('#id_pengguna').attr('required', '');
+                    $('#nm_pj').removeAttr('required', '');
+                    $('#username').removeAttr('required', '');
+                    $('#jenis_kelamin').removeAttr('required', '');
+                    $('#jabatan_pj').removeAttr('required', '');
+                    $('#no_hp').removeAttr('required', '');
+                    $('#nm_pj').val(null);
+                    $('#username').val(null);
+                    $('#jenis_kelamin').val(null);
+                    $('#jabatan_pj').val(null);
+                    $('#no_hp').val(null);
+                }
+            });
+        });
+    </script>
+    @endpush
 @endsection

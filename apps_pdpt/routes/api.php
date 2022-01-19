@@ -120,6 +120,7 @@ Route::group([
             Route::get('list/by', 'PenelitianController@getListPenelitianBySdmId');
             Route::get('detail/by', 'PenelitianController@getDetailPenelitianByPenelitianId');
             Route::post('create', 'PenelitianController@storeNewPenelitian');
+            Route::put('update', 'PenelitianController@updatePenelitian');
             Route::delete('delete', 'PenelitianController@deletePenelitian');
         });
 

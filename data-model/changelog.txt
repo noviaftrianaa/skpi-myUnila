@@ -22,4 +22,221 @@ Tambah field pada ref.tahun_ajaran
 
 ---versi 0.3--- 11 Januari 2022
 Tambah field id_katgiat referensi ke ref.katgiat ke tabel:
-- pdrd.
+- pdrd.bimbing_mhs
+- pdrd.uji_mhs
+- pdrd.rwy_pend_formal
+- pdrd.anggota_orgprof
+- pdrd.detasering
+- pdrd.diklat
+- pdrd.rwy_struktural
+- pdrd.bimbing_dosen
+- pdrd.pembicara
+- pdrd.pengelola_jurnal
+- pdrd.penghargaan
+- pdrd.tugas_tambahan
+- pdrd.visiting_scientist
+- pdrd.akt_ajar_dosen
+- pdrd.anggota_panitia
+- pdrd.sdm_anggota_litabmas
+- pdrd.tulis_pub
+- pdrd.tulis_buku_ajar
+- pdrd.kategori_tabel
+- pdrd.kelola_unit_fungsi
+
+Tambah tabel ref.basis_evaluasi
++ id_basis_evaluasi    	(numeric(2) PK not null)
++ nm_basis_evaluasi    	(varchar(50) not null)
+
+Tambah tabel pdrd.jadwal_kelas
++ id_jdwl_kls          	(uniqueidentifier PK not null)
++ id_kls				(uniqueidentifier not null)
++ id_smt	       		(char(5) not null)
++ pertemuan	       		(numeric(2))
++ tgl_jadwal	       	(datetime)
++ waktu_mulai	       	(varchar(5))
++ waktu_selesai	       	(varchar(5))
++ lokasi               	(varchar(100))
++ status	       		(varchar(20))
+
+Tambah tabel pdrd.re_mk
++ id_basis_evaluasi     (numeric(2) PK not null)
++ id_mk					(uniqueidentifier PK not null)
++ komponen_evaluasi	    (char(3) not null)
++ desk_indo	       		(varchar(1000) not null)
++ desk_ing	       		(varchar(1000))
++ bobot_evaluasi	    (numeric(5,2))
+
+Tambah tabel pdrd.rencana_ajar
++ id_renc_ajar     		(uniqueidentifier PK not null)
++ id_mk					(uniqueidentifiernot null)
++ pertemuan	    		(numeric(2) not null)
++ materi_indonesia	    (varchar(1000))
++ materi_inggris	    (varchar(1000))
+
+Tambah tabel man_akses.pengaturan_table_aplikasi
++ id_pengaturan_table_app	(uniqueidentifier PK not null)
++ id_table_app				(uniqueidentifier not null)
++ id_aplikasi				(uniqueidentifier not null)
++ a_enable					(numeric (1))
++ a_boleh_insert			(numeric (1))
++ a_boleh_show				(numeric (1))
++ a_boleh_delete			(numeric (1))
++ a_boleh_update			(numeric (1))
+
+Tambah tabel ref.peta_katgiat_jabfung
++ id_katgiat    	(int PK not null)
++ id_jabfung    	(numeric(5) PK not null)
+
+Tambah tabel ref.peta_katgiat_jnspub
++ id_katgiat    	(int PK not null)
++ id_jns_pub    	(int PK not null)
+
+Tambah tabel ref.peta_katgiat_jnsdok
++ id_katgiat    	(int PK not null)
++ id_jns_dok    	(int PK not null)
++ a_wajib			(numeric (1))
++ no_urut    		(int)
+
+Tambah tabel man_akses.table_aplikasi
++ id_table_app    	(uniqueidentifier PK not null)
++ skema_tbl    		(varchar(100) not null)
++ nm_tbl    		(varchar(100) not null)
++ kode_primary    	(varchar(100))
+
+---versi 0.4--- 18 Januari 2022
+Tambah tabel man_akses.akses_table_aplikasi
++ id_akses_table_app		(uniqueidentifier PK not null)
++ id_table_app				(uniqueidentifier not null)
++ id_aplikasi				(uniqueidentifier not null)
++ a_boleh_get				(numeric (1))
++ a_boleh_insert			(numeric (1))
++ a_boleh_show				(numeric (1))
++ a_boleh_delete			(numeric (1))
++ a_boleh_update			(numeric (1))
++ a_aktif					(numeric (1))
+
+Tambah tabel mbkm.daftar_kampus_merdeka
++ id_daftar_kampus_merdeka		(uniqueidentifier PK not null)
++ id_periode_mbkm				(uniqueidentifier not null)
++ id_reg_pd						(uniqueidentifier)
++ id_sp							(uniqueidentifier)
++ lokasi_mbkm					(varchar(100))
++ nm_pd							(varchar(120))
++ nipd							(varchar(24))
++ a_diluar_pt					(numeric (1))
+
+Tambah tabel mbkm.konversi_kampus_merdeka
++ id_konversi_aktivitas			(uniqueidentifier PK not null)
++ id_mk							(uniqueidentifier not null)
++ id_ang_akt_mhs				(uniqueidentifier)
++ id_akt_mhs					(uniqueidentifier not null)
++ id_daftar_kampus_merdeka		(uniqueidentifier)
++ nilai_angka					(numeric(4,1))
++ nilai_huruf					(char(3))
++ nilai_indeks					(numeric(4,2))
++ sks_mk						(numeric(5,2))
+
+Tambah tabel mbkm.log_book_mbkm
++ id_log_book_mbkm				(uniqueidentifier PK not null)
++ id_mk_konversi				(uniqueidentifier not null)
++ nm_verifikator				(varchar(200))
++ wkt_selesai_ver				(datetime)
++ ket_periksa					(varchar(500))
++ judul_log_book				(varchar(100) not null)
++ aktivitas_kegiatan			(varchar(500) not null)
++ lokasi_kegiatan				(varchar(80))
++ tgl_kegiatan					(datetime)
++ stat_ajuan					(char(1))
++ wkt_ajuan						(datetime)
+
+Tambah tabel mbkm.mk_konversi
++ id_mk_konversi				(uniqueidentifier PK not null)
++ id_sp							(uniqueidentifier)
++ id_daftar_kampus_merdeka		(uniqueidentifier not null)
++ nm_verifikator				(varchar(200))
++ wkt_selesai_ver				(datetime)
++ ket_periksa					(varchar(500))
++ nm_mk							(varchar(120))
++ kode_mk						(varchar(20))
++ sks_mk						(numeric(5,2))
++ stat_ajuan					(char(1))
++ wkt_ajuan						(datetime)
+
+Tambah tabel mbkm.periode_kampus_merdeka
++ id_periode_mbkm				(uniqueidentifier PK not null)
++ id_smt						(char(5) not null)
++ id_jns_akt_mhs				(numeric(2) not null)
++ nm_periode_mbkm				(varchar(120) not null)
++ nm_penyelenggara				(varchar(100))
++ waktu_mulai					(varchar(5))
++ waktu_selesai					(varchar(5))
++ a_aktif						(numeric(1))
+
+Tambah tabel keuangan.rwy_gaji_berkala
++ id_rwy_gaji_berkala			(uniqueidentifier PK not null)
++ id_sdm						(uniqueidentifier not null)
++ id_pangkat_gol				(numeric(2))
++ sk_gaji_berkala				(varchar(80))
++ tgl_sk_gaji_berkala			(datetime)
++ tmt_kgb						(datetime)
++ masa_kerja_thn				(numeric(2))
++ masa_kerja_bln				(numeric(2))
++ gaji_pokok					(numeric(16,2))
+
+Tambah tabel tracer.umr_wilayah
++ id_umr_wil					(uniqueidentifier PK not null)
++ id_wil						(char(8) not null)
++ id_tahun_anggaran				(numeric(4) not null)
++ besaran_umr					(numeric(16,2))
+
+Ubah nama tabel pdrd.anggota_aktivitas_mahasiswa menjadi pdrd.anggota_akt_mhs
+
+Tambah tabel ref.bidang_pekerjaan
++ id_bid_kerja    		(numeric(2) PK not null)
++ nm_bid_kerja    		(varchar(120) not null)
+
+Tambah tabel ref.jenis_jalur_pekerjaan
++ id_jns_jalur_kerja    (numeric(2) PK not null)
++ nm_jns_jalur_kerja    (varchar(80) not null)
+
+Tambah tabel ref.sumber_air
++ id_sumber_air    (numeric(2) PK not null)
++ nm_sumber_air    (varchar(50) not null)
+
+Tambah tabel ref.sumber_gaji
++ id_sumber_gaji    (numeric(2) PK not null)
++ nm_sumber_gaji    (varchar(50) not null)
+
+Tambah tabel ref.sumber_listrik
++ id_sumber_listrik    (numeric(2) PK not null)
++ nm_sumber_listrik    (varchar(50) not null)
+
+Tambah field pada pdrd.peserta_didik
++ email					(varchar(60))
+
+Tambah field pada pdrd.sdm
++ id_sumber_gaji		(numeric(2))
+
+Tambah field pada pdrd.kelas_kuliah
++ kode_vclass			(varchar(120))
++ url_vclass			(varchar(256))
+
+Tambah field pada man_akses.table_aplikasi
++ tabel_alias			(varchar(100))
++ sync_type				(char(1))
++ sync_seq				(numeric(4) not null)
++ kolom_kecuali			(varchar(200))
++ table_status			(smallint)
++ table_ket				(varchar(100))
++ jml_thread			(smallint)
++ baris_per_thread		(int)
++ order_ekstra			(varchar(100))
++ a_table_aktif			(numeric(1))
+
+Tambah field pada tracer.hasil_tracer_study
++ id_bid_kerja			(numeric(2))
++ id_jns_jalur_kerja	(numeric(2))
++ total_instansi_dilamar(numeric(3))
++ hub_bidang_kerja		(numeric(1))
++ tkt_kesesuaian		(numeric(1))
++ alasan_tidak_sesuai	(varchar(250))
