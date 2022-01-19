@@ -116,10 +116,10 @@ Route::group([
         });
 
         Route::prefix('penelitian')->group(function () {
-            Route::get('/', 'PenelitianController@getAllListPenelitian');
-            Route::get('list/by', 'PenelitianController@getListPenelitianBySdmId');
-            Route::get('detail/by', 'PenelitianController@getDetailPenelitianByPenelitianId');
-            Route::post('create', 'PenelitianController@storeNewPenelitian');
+            Route::get('list/{sortby}', 'PenelitianController@getAllListPenelitian');
+            Route::post('list_id', 'PenelitianController@getListPenelitianBySdmId');
+            Route::get('detail/{id}', 'PenelitianController@getDetailPenelitianByPenelitianId');
+            Route::post('add', 'PenelitianController@storeNewPenelitian');
             Route::put('update', 'PenelitianController@updatePenelitian');
             Route::delete('delete', 'PenelitianController@deletePenelitian');
         });

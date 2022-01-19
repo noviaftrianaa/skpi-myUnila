@@ -44,8 +44,37 @@ class PenelitianController extends Controller
         $this->cacheLifeTime = 3600;
     }
 
-    public function getAllListPenelitian()
+    /**
+     * @OA\Get(
+     *      path="/penelitian/list/{sortby}",
+     *      operationId="getListPenelitian",
+     *      tags={"Penelitian"},
+     *      summary="Dapatkan daftar Penelitian",
+     *      description="Menampilkan daftar data Penelitian",
+     *      @OA\Parameter(
+     *         description="Sorting Data Penelitian",
+     *         in="path",
+     *         name="sortby",
+     *         @OA\Schema(type="string"),
+     *       ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
+    public function getAllListPenelitian($sortby)
     {
+        request()->merge(['sortby' => $sortby]);
         $validator = InputValidator([
             'sortby' => [
                 'alpha',
@@ -112,6 +141,37 @@ class PenelitianController extends Controller
         return WrapResponse(compact('data'), 'success');
     }
 
+    /**
+     * @OA\Post(
+     *      path="/penelitian/list_id",
+     *      operationId="getListPenelitianById",
+     *      tags={"Penelitian"},
+     *      summary="Dapatkan daftar Penelitian Berdasarkan ID",
+     *      description="Menampilkan daftar data Penelitian Berdasarkan ID",
+     *      @OA\RequestBody(
+     *      required=true,
+     *      description="Daftar Penelitian Berdasarkan ID",
+     *      @OA\JsonContent(
+     *          required={"sdmid"},
+     *          @OA\Property(property="sdmid", type="string", format="text", example="bcb6de9a-2e7c-43c7-b192-029750754fe7"),
+     *          @OA\Property(property="sortby", type="string", format="text", example="DESC")
+     *          ),
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function getListPenelitianBySdmId()
     {
         $validator = InputValidator([
@@ -186,10 +246,38 @@ class PenelitianController extends Controller
         return WrapResponse(compact('data'), 'success');
     }
 
-    public function getDetailPenelitianByPenelitianId()
+    /**
+     * @OA\Get(
+     *      path="/penelitian/detail/{id}",
+     *      operationId="getPenelitianDetail",
+     *      tags={"Penelitian"},
+     *      summary="Dapatkan Detail Penelitian By ID",
+     *      description="Menampilkan Detail Penelitian By ID",
+     *      @OA\Parameter(
+     *         description="Penelitian ID",
+     *         in="path",
+     *         name="id",
+     *         @OA\Schema(type="string"),
+     *       ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
+    public function getDetailPenelitianByPenelitianId($id)
     {
         $reformatGetDetailPenelitian = [];
-
+        request()->merge(['penelitianid' => $id]);
         $validator = InputValidator([
             'penelitianid' => 'required|regex:/^[a-z0-9\-]+$/',
         ], [
