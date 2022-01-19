@@ -72,7 +72,7 @@ class PengabdianController extends Controller
      *      security={{"bearer_token":{}}}
      *     )
      */
-    public function getAllListPengabdian()
+    public function getAllListPengabdian($sortby)
     {
         request()->merge(['sortby' => $sortby]);
         $validator = InputValidator([
@@ -118,13 +118,13 @@ class PengabdianController extends Controller
         $query = DB::select($query);
 
         if (empty($query)) {
-            return WrapResponse([], 'data penelitian tidak ditemukan', FALSE);
+            return WrapResponse([], 'data pengabdian tidak ditemukan', FALSE);
         }
 
         $data = Cache::remember(__FUNCTION__, $this->cacheLifeTime, function () use ($query) {
-        $list_pengabdian = [];
+        $data = [];
         foreach ($query as $value) {
-            $list_pengabdian[] = [
+            $data[] = [
                 'id_penelitian' => $value->id_penelitian,
                 'judul_penelitian' => $value->judul_penelitian,
                 'bidang_keilmuan' => $value->bidang_keilmuan,
@@ -224,8 +224,8 @@ class PengabdianController extends Controller
                 AND sdm.id_sdm = '" . $sdmId . "'
             WHERE
                 litabmas.soft_delete = 0
-            // ORDER BY
-            //     litabmas.id_thn_laks " . $sortBy . "
+            ORDER BY
+             litabmas.id_thn_laks " . $sortBy . "
 
         ";
         $query = DB::select($query);
@@ -233,12 +233,12 @@ class PengabdianController extends Controller
         if (empty($query)) {
             return response()->json([
                 'status' => FALSE,
-                'message' => "Tidak ditemukan data penelitian dari SDM id : $sdmId"
+                'message' => "Tidak ditemukan data pengabdian dari SDM id : $sdmId"
             ]);
         }
 
 
-        $list_pengabdian = [];
+        $data = [];
         foreach ($query as $value) {
             $data[] = [
                 'id_penelitian' => $value->id_penelitian,
@@ -287,7 +287,7 @@ class PengabdianController extends Controller
      *     )
      */
 
-    public function getDetailPengabdianByPengabdianId()
+    public function getDetailPengabdianByPengabdianId($id)
     {
         $reformatGetDetailPengabdian = [];
         request()->merge(['pengabdianid' => $id]);
@@ -442,8 +442,36 @@ class PengabdianController extends Controller
             ]);
         }
     }
+     /**
+     * @OA\Post(
+     *      path="/pengabdian/add",
+     *      operationId="storePengabdian",
+     *      tags={"Pengabdian"},
+     *      summary="Menambahkan Data Pengabdian",
+     *      description="Menampilkan Data Pengabdian",
+     *      @OA\Parameter(
+     *         description="Pengabdian ID",
+     *         in="path",
+     *         name="id",
+     *         @OA\Schema(type="string"),
+     *       ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
 
-    public function storePengabdian(Request $request)
+    public function storePengabdian()
     {   
         $rule = [
             'judul_kegiatan' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
@@ -691,6 +719,34 @@ class PengabdianController extends Controller
             return WrapResponse([], "gagal menambahkan data pengabdian");
         }
     }
+    /**
+     * @OA\Put(
+     *      path="/pengabdian/update",
+     *      operationId="updatePengabdian",
+     *      tags={"Pengabdian"},
+     *      summary="Update Data Pengabdian",
+     *      description="Menampilkan Update Data Pengabdian",
+     *      @OA\Parameter(
+     *         description="Pengabdian ID",
+     *         in="path",
+     *         name="id",
+     *         @OA\Schema(type="string"),
+     *       ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
    
     public function updatePengabdian()
     {
@@ -946,8 +1002,37 @@ class PengabdianController extends Controller
             return WrapResponse([], "gagal mengupdate data pengabdian $litabmasId", FALSE);
         }
     }
+    /**
+     * @OA\Delete(
+     *      path="/pengabdian/delete",
+     *      operationId="deletePengabdian",
+     *      tags={"Pengabdian"},
+     *      summary="Delete Data Pengabdian",
+     *      description="Delete Data Pengabdian",
+     *      @OA\Parameter(
+     *         description="Pengabdian ID",
+     *         in="path",
+     *         name="id",
+     *         @OA\Schema(type="string"),
+     *       ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
+    
 
-    public function deletePenelitian()
+    public function deletePengabdian()
     {
         $validator = InputValidator([
             'pengabdianid' => 'required|regex:/^[a-z0-9\-]+$/',

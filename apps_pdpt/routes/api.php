@@ -125,11 +125,11 @@ Route::group([
         });
 
         Route::prefix('pengabdian')->group(function () {
-            Route::get('list', 'PengabdianController@getAllListPengabdian');
-            Route::get('list_by', 'PengabdianController@getListPengabdianBySdmId');
-            Route::get('detail_by', 'PengabdianController@getDetailPengabdianByPengabdianId');
-            Route::post('create', 'PengabdianController@storePengabdian');
-            Route::delete('update', 'PengabdianController@updatePengabdian');
+            Route::get('list/{sortby}', 'PengabdianController@getAllListPengabdian');
+            Route::post('list_id', 'PengabdianController@getListPengabdianBySdmId');
+            Route::get('detail/{id}', 'PengabdianController@getDetailPengabdianByPengabdianId');
+            Route::post('add', 'PengabdianController@storePengabdian');
+            Route::put('update', 'PengabdianController@updatePengabdian');
             Route::delete('delete', 'PengabdianController@deletePengabdian');
         });
 

@@ -10,9 +10,9 @@ class SmsController extends Controller
 {
     /**
      * @OA\Get(
-     *      path="/pdrd/sms",
+     *      path="/kelembagaan/sms",
      *      operationId="getSms",
-     *      tags={"Pdrd"},
+     *      tags={"Kelembagaan"},
      *      summary="Dapatkan daftar Sms",
      *      description="Menampilkan daftar data Sms",
      *      @OA\Response(
