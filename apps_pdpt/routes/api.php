@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\PDUT\Api\Pdrd\BukuReferensiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +20,11 @@ Route::group([
     'namespace' => 'App\Http\Controllers\PDUT\Api',
     // 'middleware' => ['auth.api']
 ], function () {
+
+    // TESTING
+    Route::post('auth/login', 'LoginController@login');
+    Route::post('auth/token', 'LoginController@token');
+
     Route::get('referensi/agama', 'ReferensiController@agama');
     Route::get('referensi/bentuk_pendidikan', 'ReferensiController@bentuk_pendidikan');
     Route::get('referensi/bidang_studi', 'ReferensiController@bidang_studi');
@@ -97,10 +101,16 @@ Route::group([
     Route::group([
         'namespace' => 'Pdrd',
     ], function () {
+
+        Route::prefix('dosen')->group(function () {
+            Route::get('/list', 'SdmDosenController@list');
+            Route::get('/detail', 'SdmDosenController@detail');
+        });
+
         Route::prefix('buku_ajar')->group(function () {
-            Route::get('list', 'BukuAjarController@list');
-            Route::get('list_id', 'BukuAjarController@listById');
-            Route::get('detail', 'BukuAjarController@detail');
+            Route::post('list', 'BukuAjarController@list');
+            Route::post('list_id', 'BukuAjarController@listById');
+            Route::post('detail', 'BukuAjarController@detail');
             Route::post('add', 'BukuAjarController@add');
             Route::put('update', 'BukuAjarController@update');
             Route::delete('delete', 'BukuAjarController@delete');

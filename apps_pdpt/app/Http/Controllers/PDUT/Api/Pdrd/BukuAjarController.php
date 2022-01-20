@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 class BukuAjarController extends Controller
 {
     /**
-     * @OA\Get (
+     * @OA\Post (
      *      path="/buku_ajar/list",
      *      operationId="getBukuAjar",
      *      tags={"Buku Ajar"},
@@ -75,7 +75,6 @@ class BukuAjarController extends Controller
                 'isbn' => $each_data->isbn,
                 'tanggal_terbit' => $each_data->tgl_terbit,
                 'penerbit' => $each_data->penerbit,
-                'rubrik_bkd' => null,
                 'waktu_data_ditambahkan' => $each_data->create_date,
                 'terakhir_diubah' => $each_data->last_update
             ];
@@ -91,7 +90,7 @@ class BukuAjarController extends Controller
     }
 
     /**
-     * @OA\Get (
+     * @OA\Post (
      *      path="/buku_ajar/list_id",
      *      operationId="getBukuAjarById",
      *      tags={"Buku Ajar"},
@@ -102,7 +101,7 @@ class BukuAjarController extends Controller
      *      description="Daftar Buku Ajar Berdasarkan ID",
      *      @OA\JsonContent(
      *          required={"id_sdm"},
-     *          @OA\Property(property="id_sdm", type="string", format="text", example="1"),
+     *          @OA\Property(property="id_sdm", type="string", format="text", example="9C466255-68E3-4476-97A4-A42CED793202"),
      *          @OA\Property(property="page", type="number", format="number", example="1"),
      *          @OA\Property(property="count", type="number", format="number", example="10"),
      *          @OA\Property(property="sortby", type="string", format="text", example="DESC")
@@ -167,7 +166,6 @@ class BukuAjarController extends Controller
                 'isbn' => $each_data->isbn,
                 'tanggal_terbit' => $each_data->tgl_terbit,
                 'penerbit' => $each_data->penerbit,
-                'rubrik_bkd' => null,
                 'waktu_data_ditambahkan' => $each_data->create_date,
                 'terakhir_diubah' => $each_data->last_update
             ];
@@ -183,7 +181,7 @@ class BukuAjarController extends Controller
     }
 
     /**
-     * @OA\Get (
+     * @OA\Post (
      *      path="/buku_ajar/detail",
      *      operationId="getDetailBukuAjar",
      *      tags={"Buku Ajar"},
@@ -194,7 +192,7 @@ class BukuAjarController extends Controller
      *      description="Detail Buku Ajar",
      *      @OA\JsonContent(
      *          required={"id_tulis_buku_ajar"},
-     *          @OA\Property(property="id_tulis_buku_ajar", type="string", format="text", example="1")
+     *          @OA\Property(property="id_tulis_buku_ajar", type="string", format="text", example="EDA7D486-8C66-4171-84F0-8F46C7D4FD65")
      *          ),
      *      ),
      *      @OA\Response(
@@ -463,7 +461,7 @@ class BukuAjarController extends Controller
      *      description="Menghapus Buku Ajar",
      *      @OA\JsonContent(
      *          required={"id_buku_ajar"},
-     *          @OA\Property(property="id_buku_ajar", type="string", format="text", example="1")
+     *          @OA\Property(property="id_buku_ajar", type="string", format="text", example="7C8621CC-35FA-408E-AC5D-BCFB6436DBD2")
      *          ),
      *      ),
      *      @OA\Response(
@@ -487,7 +485,6 @@ class BukuAjarController extends Controller
         try {
             DB::update("UPDATE pdrd.buku_ajar SET soft_delete = 1 WHERE id_buku_ajar = ?", [$request->id_buku_ajar]);
             DB::update("UPDATE pdrd.tulis_buku_ajar SET soft_delete = 1 WHERE id_buku_ajar = ?", [$request->id_buku_ajar]);
-            // DB::update("UPDATE pdrd.tulis_buku_ajar SET soft_delete = 1 WHERE id_tulis_buku_ajar = ?", [$request->id_tulis_buku_ajar]);
             DB::commit();
             return response()->json([
                 'success' => true,
