@@ -149,8 +149,6 @@ Route::group([
 
         Route::prefix('sms')->group(function () {
             Route::get('list', 'SmsController@index');
-
-
         });
     });
 

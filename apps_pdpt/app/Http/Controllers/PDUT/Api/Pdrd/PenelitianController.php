@@ -75,17 +75,15 @@ class PenelitianController extends Controller
     public function getAllListPenelitian($sortby)
     {
         request()->merge(['sortby' => $sortby]);
-        $validator = InputValidator([
+        InputValidator([
             'sortby' => [
                 'alpha',
-                ValidationRule::in(['ASC', 'DESC'])
+                ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])
             ]
         ]);
 
-        $validateInput = $validator;
-        $sortBy = empty($validateInput['sortby']) ? "" : $validateInput['sortby'];
-        if (empty($sortBy)) {
-            $sortBy = 'DESC';
+        if (empty($sortby)) {
+            $sortby = 'DESC';
         }
 
         $query = "
@@ -112,11 +110,10 @@ class PenelitianController extends Controller
                 AND kb.expired_date IS NULL
             WHERE
                 lm.soft_delete = 0
-            ORDER BY lm.id_thn_laks " . $sortBy . "
+            ORDER BY lm.id_thn_laks " . $sortby . "
         ";
 
         $query = DB::select($query);
-
         if (empty($query)) {
             return WrapResponse([], 'data penelitian tidak ditemukan', FALSE);
         }
@@ -174,7 +171,7 @@ class PenelitianController extends Controller
      */
     public function getListPenelitianBySdmId()
     {
-        $validator = InputValidator([
+        InputValidator([
             'sdmid' => 'required|regex:/^[a-z0-9\-]+$/',
             'sortby' => ['alpha', ValidationRule::in(['ASC', 'DESC'])]
         ], [
@@ -184,13 +181,8 @@ class PenelitianController extends Controller
             'sortby.in' => 'input pernyortiran hanya ASC dan DESC'
         ]);
 
-        $validateInput = $validator;
-        $sdmId = $validateInput['sdmid'];
-        $sortBy = empty($validateInput['sortby']) ? "" : $validateInput['sortby'];
-        if (empty($sdmId)) {
-            return WrapResponse([], 'sdmid tidak boleh kosong', FALSE);
-        }
-
+        $sdmId = $this->request->input('sdmid');
+        $sortBy = $this->request->input('sortby');
         if (empty($sortBy)) {
             $sortBy = 'DESC';
         }
@@ -225,7 +217,6 @@ class PenelitianController extends Controller
         ";
 
         $query = DB::select($query);
-
         if (empty($query)) {
             return WrapResponse([], "tidak ditemukan data penelitian dari sdm id $sdmId", FALSE);
         }
@@ -277,16 +268,16 @@ class PenelitianController extends Controller
     public function getDetailPenelitianByPenelitianId($id)
     {
         $reformatGetDetailPenelitian = [];
+
         request()->merge(['penelitianid' => $id]);
-        $validator = InputValidator([
+        InputValidator([
             'penelitianid' => 'required|regex:/^[a-z0-9\-]+$/',
         ], [
             'penelitianid.required' => 'field ini harus diisi',
             'penelitianid.regex' => 'input harus berupa alpa_numeric dan dash',
         ]);
 
-        $validateInput = $validator;
-        $penelitianId = $validateInput['penelitianid'];
+        $penelitianId = $this->request->input('penelitianid');
 
         try {
             $query = "
@@ -313,10 +304,10 @@ class PenelitianController extends Controller
                     LEFT JOIN ref.skim_kegiatan AS skim_kegiatan ON skim_kegiatan.id_skim = litabmas.id_skim
                     AND skim_kegiatan.expired_date IS NULL
                 WHERE
-                    litabmas.id_litabmas = '" . $penelitianId . "'
+                    litabmas.id_litabmas = ?
                     AND litabmas.soft_delete = 0
             ";
-            $getDetailPenelitian = DB::select($query);
+            $getDetailPenelitian = DB::select($query, [$penelitianId]);
             foreach ($getDetailPenelitian as $value) {
                 $reformatGetDetailPenelitian = [
                     'tahun_anggaran' => $value->tahun_anggaran,
@@ -346,11 +337,11 @@ class PenelitianController extends Controller
                     AND sdm.id_jns_sdm = 12
                     AND sdm.soft_delete = 0
                 WHERE
-                    sal.id_litabmas = '" . $penelitianId . "'
+                    sal.id_litabmas = ?
                     AND sal.id_katgiat = 121300
                     AND sal.soft_delete = 0
             ";
-            $getDaftarAnggotaDosen = DB::select($query);
+            $getDaftarAnggotaDosen = DB::select($query, [$penelitianId]);
             $reformatGetDetailPenelitian = Arr::add($reformatGetDetailPenelitian, 'anggota_dosen', $getDaftarAnggotaDosen);
 
             $query = "
@@ -364,10 +355,10 @@ class PenelitianController extends Controller
                     JOIN pdrd.peserta_didik AS pd ON pd.id_pd = pal.id_pd
                     AND pd.soft_delete = 0
                 WHERE
-                    pal.id_litabmas = '" . $penelitianId . "'
+                    pal.id_litabmas = ?
                     AND pal.soft_delete = 0
             ";
-            $getDaftarAnggotaMahasiswa = DB::select($query);
+            $getDaftarAnggotaMahasiswa = DB::select($query, [$penelitianId]);
             $reformatGetDetailPenelitian = Arr::add($reformatGetDetailPenelitian, 'anggota_mahasiswa', $getDaftarAnggotaMahasiswa);
 
             $query = "
@@ -381,10 +372,10 @@ class PenelitianController extends Controller
                     JOIN pdrd.non_ca AS nca ON nca.id_orang = nca_litabmas.id_orang
                     AND nca.soft_delete = 0
                 WHERE
-                    nca_litabmas.id_litabmas = '" . $penelitianId . "'
+                    nca_litabmas.id_litabmas = ?
                     AND nca_litabmas.soft_delete = 0
             ";
-            $getDaftarAnggotaNonCA = DB::select($query);
+            $getDaftarAnggotaNonCA = DB::select($query, [$penelitianId]);
             $reformatGetDetailPenelitian = Arr::add($reformatGetDetailPenelitian, 'anggota_non_ca', $getDaftarAnggotaNonCA);
 
             $query = "
@@ -404,10 +395,10 @@ class PenelitianController extends Controller
                     LEFT JOIN ref.jenis_dokumen AS refj_dokumen ON refj_dokumen.id_jns_dok = dok_dokumen.id_jns_dok
                     AND refj_dokumen.expired_date IS NULL
                 WHERE
-                    litabmas.id_litabmas = '" . $penelitianId . "'
+                    litabmas.id_litabmas = ?
                     AND litabmas.soft_delete = 0
             ";
-            $getDaftarDokumenPenelitian = DB::select($query);
+            $getDaftarDokumenPenelitian = DB::select($query, [$penelitianId]);
             $reformatGetDetailPenelitian = Arr::add($reformatGetDetailPenelitian, 'dokumen_penelitian', $getDaftarDokumenPenelitian);
 
             $data = $reformatGetDetailPenelitian;
@@ -419,9 +410,196 @@ class PenelitianController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(
+     *      path="/penelitian/add/",
+     *      operationId="ceratePenelitian",
+     *      tags={"Penelitian"},
+     *      summary="Menambahkan Penelitian Baru",
+     *      description="Menambahkan Penelitian Baru",
+     *    @OA\RequestBody(
+     *         @OA\MediaType(
+     *             mediaType="applicatin/json",
+     *             @OA\Schema(
+     *                 @OA\Property(
+     *                     property="judul_kegiatan",
+     *                     type="string",
+     *                     format="text",
+     *                     example="Test Input Litabmas Bagian Penelitian 12"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="afiliasi",
+     *                     type="string",
+     *                     format="text",
+     *                     example="e2b705a7-173e-464a-9fac-509128709515"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="kel_bidang",
+     *                     type="string",
+     *                     format="text",
+     *                     example="e7377434-ed85-4f5b-9e7c-feb08d4c39e0"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="litabmas_lanjutan",
+     *                     type="string",
+     *                     format="text",
+     *                     example=NULL
+     *                 ),
+     *                 @OA\Property(
+     *                     property="jenis_skim",
+     *                     type="string",
+     *                     format="text",
+     *                     example=NULL
+     *                 ),
+     *                 @OA\Property(
+     *                     property="lokasi_kegiatan",
+     *                     type="string",
+     *                     format="text",
+     *                     example="upt tik universitas lampung"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="lama_kegiatan",
+     *                     type="string",
+     *                     format="text",
+     *                     example="1"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="tahun_usulan",
+     *                     type="string",
+     *                     format="text",
+     *                     example="2022"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="tahun_pelaksanaan",
+     *                     type="string",
+     *                     format="text",
+     *                     example="2022"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="tahun_kegiatan",
+     *                     type="string",
+     *                     format="text",
+     *                     example="2022"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="dana_dikti",
+     *                     type="string",
+     *                     format="text",
+     *                     example="0"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="dana_pt",
+     *                     type="string",
+     *                     format="text",
+     *                     example="6000000"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="dana_institusi_lain",
+     *                     type="string",
+     *                     format="text",
+     *                     example="0"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="in_kind",
+     *                     type="string",
+     *                     format="text",
+     *                     example=NULL
+     *                 ),
+     *                 @OA\Property(
+     *                     property="no_sk_penugasan",
+     *                     type="string",
+     *                     format="text",
+     *                     example="1234/TIK03.03/TIK/2022"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="tgl_sk_penugasan",
+     *                     type="string",
+     *                     format="text",
+     *                     example="2022-01-01"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="anggota_dosen",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="id", example="bcb6de9a-2e7c-43c7-b192-029750754fe7"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="peran_dosen",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="id", example="K"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="status_dosen",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="int", format="id", example=1),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="anggota_mahasiswa",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="id", example="1327d056-ed42-4e11-9d20-d4040441998a"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="peran_mahasiswa",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="id", example="A"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="status_mahasiswa",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="int", format="id", example=1),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="anggota_non_ca",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     nullable="true",
+     *                     @OA\Items(type="string", format="id", example=null),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="peran_non_ca",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="id", example="A"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="status_non_ca",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="int", format="id", example=1),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="dok_penelitian",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     nullable="true",
+     *                     @OA\Items(type="string", format="id", example=null),
+     *                 ),
+     *              )
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function storeNewPenelitian()
     {
-        $rule = [
+        InputValidator([
             'judul_kegiatan' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
             'afiliasi' => 'required|regex:/^[a-z0-9\-]+$/',
             'kel_bidang' => 'nullable|regex:/^[a-z0-9\-]+$/',
@@ -438,7 +616,7 @@ class PenelitianController extends Controller
             'in_kind' => 'nullable|regex:/^[a-z0-9\-]+$/',
             'no_sk_penugasan' => 'nullable|regex:/^[A-Z0-9\/\.]+$/',
             'tgl_sk_penugasan' => 'nullable|date_format:Y-m-d',
-            'dok_penelitian.*' => 'file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx,txt|max:2048',
+            'dok_penelitian.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx,txt|max:2048',
             'nama_dok.*' => 'required_with:dok_penelitian|string',
             'keterangan_dok.*' => 'required_with:dok_penelitian|string',
             'jenis_dok.*' => 'nullable|numeric',
@@ -452,10 +630,7 @@ class PenelitianController extends Controller
             'anggota_non_ca.*' => 'nullable|regex:/^[a-z0-9\-]+$/',
             'peran_non_ca.*' => ['alpha', 'nullable', ValidationRule::in(['A', 'K'])],
             'status_non_ca.*' => ['numeric', 'nullable', ValidationRule::in(['0', '1'])]
-        ];
-
-        $validator = InputValidator($rule);
-        $validateInput = $validator;
+        ]);
 
         $litabmasId = guid();
         $creatorId = $updateId = 'bc62ca9c-4e6e-4462-89b6-ff246512734f';
@@ -466,40 +641,40 @@ class PenelitianController extends Controller
             File::makeDirectory($dok_tmp_path, 0755, true, true);
         }
 
-        $judul_kegiatan = $validateInput['judul_kegiatan'];
-        $afiliasi =  $validateInput['afiliasi'];
-        $kel_bidang = $validateInput['kel_bidang'];
-        $litabmas_lanjutan = $validateInput['litabmas_lanjutan'];
-        $jenis_skim = $validateInput['jenis_skim'];
-        $lokasi_kegiatan = $validateInput['lokasi_kegiatan'];
-        $tahun_usulan = $validateInput['tahun_usulan'];
-        $tahun_kegiatan = $validateInput['tahun_kegiatan'];
-        $lama_kegiatan = $validateInput['lama_kegiatan'];
-        $tahun_pelaksanaan = $validateInput['tahun_pelaksanaan'];
-        $dana_dikti = $validateInput['dana_dikti'];
-        $dana_pt = $validateInput['dana_pt'];
-        $dana_institusi_lain = $validateInput['dana_institusi_lain'];
-        $in_kind = $validateInput['in_kind'];
-        $no_sk_penugasan = $validateInput['no_sk_penugasan'];
-        $tgl_sk_penugasan = $validateInput['tgl_sk_penugasan'];
+        $judul_kegiatan = $this->request->input('judul_kegiatan');
+        $afiliasi =  $this->request->input('afiliasi');
+        $kel_bidang = $this->request->input('kel_bidang');
+        $litabmas_lanjutan = $this->request->input('litabmas_lanjutan');
+        $jenis_skim = $this->request->input('jenis_skim');
+        $lokasi_kegiatan = $this->request->input('lokasi_kegiatan');
+        $tahun_usulan = $this->request->input('tahun_usulan');
+        $tahun_kegiatan = $this->request->input('tahun_kegiatan');
+        $lama_kegiatan = $this->request->input('lama_kegiatan');
+        $tahun_pelaksanaan = $this->request->input('tahun_pelaksanaan');
+        $dana_dikti = $this->request->input('dana_dikti');
+        $dana_pt = $this->request->input('dana_pt');
+        $dana_institusi_lain = $this->request->input('dana_institusi_lain');
+        $in_kind = $this->request->input('in_kind');
+        $no_sk_penugasan = $this->request->input('no_sk_penugasan');
+        $tgl_sk_penugasan = $this->request->input('tgl_sk_penugasan');
 
-        $dok_penelitian = $validateInput['dok_penelitian'];
-        $nama_dok = $validateInput['nama_dok'];
-        $keterangan_dok = $validateInput['keterangan_dok'];
-        $jenis_dok = $validateInput['jenis_dok'];
-        $url_dok = $validateInput['url_dok'];
+        $dok_penelitian = $this->request->input('dok_penelitian');
+        $nama_dok = $this->request->input('nama_dok');
+        $keterangan_dok = $this->request->input('keterangan_dok');
+        $jenis_dok = $this->request->input('jenis_dok');
+        $url_dok = $this->request->input('url_dok');
 
-        $anggota_dosen = $validateInput['anggota_dosen'];
-        $peran_dosen = $validateInput['peran_dosen'];
-        $status_dosen = $validateInput['status_dosen'];
+        $anggota_dosen = $this->request->input('anggota_dosen');
+        $peran_dosen = $this->request->input('peran_dosen');
+        $status_dosen = $this->request->input('status_dosen');
 
-        $anggota_mahasiswa = $validateInput['anggota_mahasiswa'];
-        $peran_mahasiswa = $validateInput['peran_mahasiswa'];
-        $status_mahasiswa = $validateInput['status_mahasiswa'];
+        $anggota_mahasiswa = $this->request->input('anggota_mahasiswa');
+        $peran_mahasiswa = $this->request->input('peran_mahasiswa');
+        $status_mahasiswa = $this->request->input('status_mahasiswa');
 
-        $anggota_non_ca = $validateInput['anggota_non_ca'];
-        $peran_non_ca = $validateInput['peran_non_ca'];
-        $status_non_ca = $validateInput['status_non_ca'];
+        $anggota_non_ca = $this->request->input('anggota_non_ca');
+        $peran_non_ca = $this->request->input('peran_non_ca');
+        $status_non_ca = $this->request->input('status_non_ca');
 
         DB::beginTransaction();
         try {
@@ -537,7 +712,7 @@ class PenelitianController extends Controller
 
             if (!empty($dok_penelitian)) {
                 foreach ($dok_penelitian as $index => $dok) {
-                    if (is_null($dok)) continue;
+                    if (is_null($dok)) break;
 
                     $fileInfo = explode('.', $dok->getClientOriginalName());
                     $fileOriginalName = $fileInfo[0];
@@ -590,6 +765,8 @@ class PenelitianController extends Controller
 
             if (!empty($anggota_dosen)) {
                 foreach ($anggota_dosen as $index => $idDosen) {
+                    if (is_null($idDosen)) break;
+
                     $this->sdmLitabmas->create([
                         'id_litabmas' => $penelitian->id_litabmas,
                         'id_sdm' => $idDosen,
@@ -608,6 +785,8 @@ class PenelitianController extends Controller
 
             if (!empty($anggota_mahasiswa)) {
                 foreach ($anggota_mahasiswa as $index => $idMahasiswa) {
+                    if (is_null($idMahasiswa)) break;
+
                     $dataMahasiswa = DB::select("
                         SELECT
                             TOP 1
@@ -618,9 +797,13 @@ class PenelitianController extends Controller
                             LEFT JOIN pdrd.reg_pd AS reg_pd ON reg_pd.id_pd = pd.id_pd
                             AND reg_pd.soft_delete = 0
                         WHERE
-                            pd.id_pd = '" . $idMahasiswa . "'
+                            pd.id_pd = ?
                             AND pd.soft_delete = 0
-                    ");
+                    ", [$idMahasiswa]);
+
+                    if (empty($dataMahasiswa)) {
+                        return WrapResponse([], 'tidak ditemukan data mahasiswa anggota pnelitian', FALSE);
+                    }
 
                     $this->pdLitabmas->create([
                         'id_pd_ang_litabmas' => guid(),
@@ -642,6 +825,8 @@ class PenelitianController extends Controller
 
             if (!empty($anggota_non_ca)) {
                 foreach ($anggota_non_ca as $index => $idNonCa) {
+                    if (is_null($idNonCa)) break;
+
                     $this->nonCaLitabmas->create([
                         'id_litabmas' => $penelitian->id_litabmas,
                         'id_orang' => $idNonCa,
@@ -660,19 +845,19 @@ class PenelitianController extends Controller
             DB::commit();
             return WrapResponse([], 'sukses menambahkan penelitian - ' . $penelitian->id_litabmas);
         } catch (ModelNotFoundException $mnfe) {
-            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
             DB::rollBack();
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
             return WrapResponse([], 'penelitian tidak ditemukan atau penelitian tidak terdaftar', FALSE);
         } catch (Exception $e) {
-            Log::error($e->getMessage() . ' on line ' . $e->getLine());
             DB::rollBack();
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
             return WrapResponse([], "gagal menambahkan penelitian");
         }
     }
 
     public function updatePenelitian()
     {
-        $rule = [
+        InputValidator([
             'id_penelitian' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
             'judul_kegiatan' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
             'afiliasi' => 'required|regex:/^[a-z0-9\-]+$/',
@@ -705,12 +890,9 @@ class PenelitianController extends Controller
             'anggota_non_ca.*' => 'nullable|regex:/^[a-z0-9\-]+$/',
             'peran_non_ca.*' => ['alpha', 'nullable', ValidationRule::in(['A', 'K'])],
             'status_non_ca.*' => ['numeric', 'nullable', ValidationRule::in(['0', '1'])]
-        ];
+        ]);
 
-        $validator = InputValidator($rule);
-        $validateInput = $validator;
-
-        $litabmasId = $validateInput['id_penelitian'];
+        $litabmasId = $this->request->input('id_penelitian');
         $creatorId = $updateId = 'bc62ca9c-4e6e-4462-89b6-ff246512734f';
         $kat_kegiatan = 121300;
 
@@ -719,42 +901,42 @@ class PenelitianController extends Controller
             File::makeDirectory($dok_tmp_path, 0755, true, true);
         }
 
-        $judul_kegiatan = $validateInput['judul_kegiatan'];
-        $afiliasi =  $validateInput['afiliasi'];
-        $kel_bidang = $validateInput['kel_bidang'];
-        $litabmas_lanjutan = $validateInput['litabmas_lanjutan'];
-        $jenis_skim = $validateInput['jenis_skim'];
-        $lokasi_kegiatan = $validateInput['lokasi_kegiatan'];
-        $tahun_usulan = $validateInput['tahun_usulan'];
-        $tahun_kegiatan = $validateInput['tahun_kegiatan'];
-        $lama_kegiatan = $validateInput['lama_kegiatan'];
-        $tahun_pelaksanaan = $validateInput['tahun_pelaksanaan'];
-        $dana_dikti = $validateInput['dana_dikti'];
-        $dana_pt = $validateInput['dana_pt'];
-        $dana_institusi_lain = $validateInput['dana_institusi_lain'];
-        $in_kind = $validateInput['in_kind'];
+        $judul_kegiatan = $this->request->input('judul_kegiatan');
+        $afiliasi =  $this->request->input('afiliasi');
+        $kel_bidang = $this->request->input('kel_bidang');
+        $litabmas_lanjutan = $this->request->input('litabmas_lanjutan');
+        $jenis_skim = $this->request->input('jenis_skim');
+        $lokasi_kegiatan = $this->request->input('lokasi_kegiatan');
+        $tahun_usulan = $this->request->input('tahun_usulan');
+        $tahun_kegiatan = $this->request->input('tahun_kegiatan');
+        $lama_kegiatan = $this->request->input('lama_kegiatan');
+        $tahun_pelaksanaan = $this->request->input('tahun_pelaksanaan');
+        $dana_dikti = $this->request->input('dana_dikti');
+        $dana_pt = $this->request->input('dana_pt');
+        $dana_institusi_lain = $this->request->input('dana_institusi_lain');
+        $in_kind = $this->request->input('in_kind');
 
-        $no_sk_penugasan = $validateInput['no_sk_penugasan'];
-        $tgl_sk_penugasan = $validateInput['tgl_sk_penugasan'];
+        $no_sk_penugasan = $this->request->input('no_sk_penugasan');
+        $tgl_sk_penugasan = $this->request->input('tgl_sk_penugasan');
 
-        $dok_penelitian = $validateInput['dok_penelitian'];
-        $nama_dok = $validateInput['nama_dok'];
-        $keterangan_dok = $validateInput['keterangan_dok'];
-        $jenis_dok = $validateInput['jenis_dok'];
-        $url_dok = $validateInput['url_dok'];
+        $dok_penelitian = $this->request->input('dok_penelitian');
+        $nama_dok = $this->request->input('nama_dok');
+        $keterangan_dok = $this->request->input('keterangan_dok');
+        $jenis_dok = $this->request->input('jenis_dok');
+        $url_dok = $this->request->input('url_dok');
 
-        $anggota_dosen = $validateInput['anggota_dosen'];
-        $peran_dosen = $validateInput['peran_dosen'];
-        $status_dosen = $validateInput['status_dosen'];
+        $anggota_dosen = $this->request->input('anggota_dosen');
+        $peran_dosen = $this->request->input('peran_dosen');
+        $status_dosen = $this->request->input('status_dosen');
 
-        $anggota_mahasiswa = $validateInput['anggota_mahasiswa'];
-        $pdLitabmasId = $validateInput['pd_litabmas_mahasiswa_id'];
-        $peran_mahasiswa = $validateInput['peran_mahasiswa'];
-        $status_mahasiswa = $validateInput['status_mahasiswa'];
+        $anggota_mahasiswa = $this->request->input('anggota_mahasiswa');
+        $pdLitabmasId = $this->request->input('pd_litabmas_mahasiswa_id');
+        $peran_mahasiswa = $this->request->input('peran_mahasiswa');
+        $status_mahasiswa = $this->request->input('status_mahasiswa');
 
-        $anggota_non_ca = $validateInput['anggota_non_ca'];
-        $peran_non_ca = $validateInput['peran_non_ca'];
-        $status_non_ca = $validateInput['status_non_ca'];
+        $anggota_non_ca = $this->request->input('anggota_non_ca');
+        $peran_non_ca = $this->request->input('peran_non_ca');
+        $status_non_ca = $this->request->input('status_non_ca');
 
         DB::beginTransaction();
         try {
@@ -845,6 +1027,8 @@ class PenelitianController extends Controller
 
             if (!empty($anggota_dosen)) {
                 foreach ($anggota_dosen as $index => $idDosen) {
+                    if (is_null($idDosen)) continue;
+
                     $anggota_dosen = $this->sdmLitabmas->where('id_litabmas', $litabmasId)->where('id_sdm', $idDosen)->first();
                     if (!$anggota_dosen) return WrapResponse([], 'penelitian tidak ditemukan atau dosen anggota tidak terdaftar', FALSE);
 
@@ -863,6 +1047,8 @@ class PenelitianController extends Controller
 
             if (!empty($anggota_mahasiswa)) {
                 foreach ($anggota_mahasiswa as $index => $idMahasiswa) {
+                    if (is_null($idMahasiswa)) continue;
+
                     $anggota_mahasiswa = $this->pdLitabmas->where('id_pd_ang_litabmas', $pdLitabmasId[$index])->where('id_litabmas', $litabmasId)->where('id_pd', $idMahasiswa)->first();
                     if (!$anggota_mahasiswa) return WrapResponse([], 'penelitian tidak ditemukan atau mahasiswa anggota tidak terdaftar', FALSE);
 
@@ -876,9 +1062,9 @@ class PenelitianController extends Controller
                             LEFT JOIN pdrd.reg_pd AS reg_pd ON reg_pd.id_pd = pd.id_pd
                             AND reg_pd.soft_delete = 0
                         WHERE
-                            pd.id_pd = '" . $idMahasiswa . "'
+                            pd.id_pd = ?
                             AND pd.soft_delete = 0
-                    ");
+                    ", [$idMahasiswa]);
 
                     $anggota_mahasiswa->update([
                         'id_pd_ang_litabmas' => $pdLitabmasId[$index],
@@ -897,6 +1083,8 @@ class PenelitianController extends Controller
 
             if (!empty($anggota_non_ca)) {
                 foreach ($anggota_non_ca as $index => $idNonCa) {
+                    if (is_null($idNonCa)) continue;
+
                     $anggota_non_ca = $this->nonCaLitabmas->where('id_litabmas', $litabmasId)->where('id_orang', $idNonCa)->first();
                     if (!$anggota_non_ca) return WrapResponse([], 'penelitian tidak ditemukan atau nonca anggota tidak terdaftar', FALSE);
 
@@ -915,27 +1103,26 @@ class PenelitianController extends Controller
             DB::commit();
             return WrapResponse([], 'sukses mengupdate penelitian - ' . $litabmasId);
         } catch (ModelNotFoundException $mnfe) {
-            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
             DB::rollBack();
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
             return WrapResponse([], 'penelitian tidak ditemukan atau penelitian tidak terdaftar', FALSE);
         } catch (Exception $e) {
-            Log::error('error on Function ' . __FUNCTION__ . ' with ' . $e->getMessage() . ' on ' . $e->getLine());
             DB::rollBack();
+            Log::error('error on Function ' . __FUNCTION__ . ' with ' . $e->getMessage() . ' on ' . $e->getLine());
             return WrapResponse([], "gagal mengupdate penelitian $litabmasId", FALSE);
         }
     }
 
     public function deletePenelitian()
     {
-        $validator = InputValidator([
+        InputValidator([
             'penelitianid' => 'required|regex:/^[a-z0-9\-]+$/',
         ], [
             'penelitianid.required' => 'field ini harus diisi',
             'penelitianid.regex' => 'input harus berupa alpa_numeric dan dash',
         ]);
 
-        $validateInput = $validator;
-        $penelitianId = $validateInput['penelitianid'];
+        $penelitianId = $this->request->input('penelitianid');
 
         DB::beginTransaction();
         try {
@@ -943,8 +1130,8 @@ class PenelitianController extends Controller
             DB::commit();
             return WrapResponse([], 'berhasial menghapus data penelitian');
         } catch (Exception $e) {
-            Log::error('Error on ' . $e->getMessage() . ' in line ' . $e->getLine());
             DB::rollBack();
+            Log::error('Error on ' . $e->getMessage() . ' in line ' . $e->getLine());
             return WrapResponse([], 'gagal menghapus data penelitian', FALSE);
         }
     }
