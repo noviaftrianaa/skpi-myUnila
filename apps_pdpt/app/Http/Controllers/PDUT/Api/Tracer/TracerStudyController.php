@@ -13,7 +13,7 @@ class TracerStudyController extends Controller
 {
     /**
      * @OA\Get(
-     *      path="/hasil_tracer_study/",
+     *      path="/tracer_study/list",
      *      operationId="getTracerStudy",
      *      tags={"Tracer Study"},
      *      summary="Data hasil Tracer Study",
@@ -44,7 +44,7 @@ class TracerStudyController extends Controller
         $data_alumni = collect(DB::SELECT("
         SELECT
             reg.id_reg_pd, pd.id_pd, pd.nm_pd, reg.nipd AS npm, CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi,
-            ts.id_thn_ajaran AS angkatan, kul.biaya_smt, kul.ipk, kul.total_sks, pd.nik, pd.jk, pd.tlpn_hp, jd.nm_jalur_daftar,
+            ts.id_thn_ajaran AS angkatan, kul.biaya_smt, kul.ipk, kul.total_sks, pd.nik, pd.jk, pd.tlpn_hp, pd.email, jd.nm_jalur_daftar,
             reg.tgl_keluar AS tgl_lulus, reg.tgl_sk_yudisium AS tgl_wisuda, tc_study.id_hasil_tracer_study, tc_study.create_date AS waktu_data_ditambahkan,
             tc_study.last_update AS terakhir_diubah
         FROM tracer.hasil_tracer_study AS tc_study WITH(NOLOCK)
@@ -159,7 +159,7 @@ class TracerStudyController extends Controller
 
     /**
      * @OA\Post(
-     *      path="/hasil_tracer_study/simpan",
+     *      path="/tracer_study/add",
      *      operationId="postTracerStudy",
      *      tags={"Tracer Study"},
      *      summary="Simpan hasil Tracer Study",
@@ -239,23 +239,16 @@ class TracerStudyController extends Controller
             DB::commit();
             return response()->json([
                 'success' => true,
-                'message' => 'Tersimpan'
+                'message' => 'Data berhasil tersimpan'
             ], 201);
         } catch (\Exception $e) {
             Log::error('Message ' . $e->getMessage() . ' - ' . $e->getLine());
             DB::rollback();
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal Tersimpan'
+                'message' => 'Data gagal tersimpan'
             ], 400);
         }
-
-
-        // return response()->json([
-        //     'status' => true,
-        //     'message' => 'success',
-        //     'data'  => $data
-        // ]);
     }
 
     /**
@@ -281,8 +274,8 @@ class TracerStudyController extends Controller
     }
 
     /**
-     * @OA\Post(
-     *      path="/hasil_tracer_study/update",
+     * @OA\Put(
+     *      path="/tracer_study/update",
      *      operationId="putHasilTracerStudy",
      *      tags={"Tracer Study"},
      *      summary="Memperbaharui hasil Tracer Study",
@@ -339,7 +332,7 @@ class TracerStudyController extends Controller
             DB::commit();
             return response()->json([
                 'success' => true,
-                'message' => 'Data berhasil diupdate'
+                'message' => 'Data berhasil diperbaharui'
             ], 200);
         } catch (\Exception $e) {
             DB::rollback();
@@ -351,8 +344,8 @@ class TracerStudyController extends Controller
     }
 
     /**
-     * @OA\Post(
-     *      path="/hasil_tracer_study/delete",
+     * @OA\Delete(
+     *      path="/tracer_study/delete",
      *      operationId="deleteTracerStudy",
      *      tags={"Tracer Study"},
      *      summary="Menghapus hasil Tracer Study",

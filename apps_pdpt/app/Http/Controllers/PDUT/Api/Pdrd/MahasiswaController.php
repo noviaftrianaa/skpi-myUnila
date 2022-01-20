@@ -34,7 +34,7 @@ class MahasiswaController extends Controller
     public function list()
     {
         $query = DB::SELECT("
-            SELECT TOP 50
+            SELECT TOP 5
                 pd.id_pd, reg.nipd AS npm, pd.nm_pd,
                 CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi,
                 reg.id_semester_masuk, kul.id_stat_mhs AS status_sekarang,
@@ -91,11 +91,17 @@ class MahasiswaController extends Controller
 
     /**
      * @OA\Get(
-     *      path="/mahasiswa/detail",
+     *      path="/mahasiswa/detail/{$id_peserta_didik}",
      *      operationId="getDetailMahasiswa",
      *      tags={"Mahasiwa"},
      *      summary="Dapatkan detail profil Mahasiswa",
      *      description="Menampilkan detail data profil Mahasiswa",
+     * @OA\Parameter(
+     *         description="Sorting Data Penelitian",
+     *         in="path",
+     *         name="sortby",
+     *         @OA\Schema(type="string"),
+     *       ),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -127,7 +133,7 @@ class MahasiswaController extends Controller
                     reg.bidang_minor, reg.sks_diakui, reg.jalur_skripsi, reg.judul_skripsi, reg.bln_awal_bimbingan, reg.bln_akhir_bimbingan, reg.sk_yudisium,
                     reg.tgl_sk_yudisium, reg.ipk, reg.sert_prof, reg.a_pindah_mhs_asing, reg.biaya_masuk_kuliah, sp.nm_lemb,
                     pd.nm_pd, pd.nik, pd.id_kk, pd.id_agama,
-                    pd.tlpn_hp, pd.tlpn_rumah, pd.tmpt_lahir, pd.tgl_lahir, pd.jln, pd.rt, pd.rw, pd.ds_kel, jp.nm_jns_daftar,
+                    pd.tlpn_hp, pd.tlpn_rumah, pd.email, pd.tmpt_lahir, pd.tgl_lahir, pd.jln, pd.rt, pd.rw, pd.ds_kel, jp.nm_jns_daftar,
                     jd.nm_jalur_daftar, pmb.nm_pembiayaan
                 FROM pdrd.reg_pd as reg WITH(NOLOCK)
                 JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = reg.id_semester_masuk
@@ -482,8 +488,9 @@ class MahasiswaController extends Controller
         $alumni = DB::SELECT("
             SELECT TOP 50
                 pd.id_pd, pd.nm_pd, reg.nipd AS npm, CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi,
-                ts.id_thn_ajaran AS angkatan, kul.biaya_smt, kul.ipk, kul.total_sks, pd.nik, pd.jk, pd.tlpn_hp, jd.nm_jalur_daftar,
-                reg.tgl_keluar AS tgl_lulus, reg.tgl_sk_yudisium AS tgl_wisuda
+                ts.id_thn_ajaran AS angkatan, kul.biaya_smt, kul.ipk, kul.total_sks, pd.nik, pd.jk, pd.tlpn_hp, pd.email, jd.nm_jalur_daftar,
+                reg.tgl_keluar AS tgl_lulus, reg.tgl_sk_yudisium AS tgl_wisuda, pd.create_date AS waktu_data_ditambahkan,
+                pd.last_update AS terakhir_diubah
             FROM pdrd.peserta_didik AS pd WITH(NOLOCK)
             JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd=pd.id_pd
                 AND reg.soft_delete=0 AND reg.id_jns_keluar='1'

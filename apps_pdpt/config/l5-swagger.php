@@ -256,7 +256,7 @@ return [
          */
         'constants' => [
             'L5_SWAGGER_CONST_HOST' => env('L5_SWAGGER_CONST_HOST', 'http://onedata.unila.ac.id'),
-            'L5_SWAGGER_CONST_HOST_DEV' => env('L5_SWAGGER_CONST_HOST_DEV', 'http://onedata.unila.ac.id'),
+            'L5_SWAGGER_CONST_HOST_DEV' => env('L5_SWAGGER_CONST_HOST_DEV', 'http://upt.test/api/0.1'),
         ],
     ],
 ];

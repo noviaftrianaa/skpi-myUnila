@@ -146,25 +146,31 @@ Route::group([
             Route::get('list', 'AkreditasiProdiController@index');
 
         });
-            
+
         Route::prefix('sms')->group(function () {
             Route::get('list', 'SmsController@index');
-            
+
 
         });
     });
 
     Route::group([
         'namespace' => 'Tracer',
+        'prefix' => 'tracer_study'
     ], function () {
-        Route::get('hasil_tracer_study', 'TracerStudyController@index');
-        Route::post('hasil_tracer_study/simpan', 'TracerStudyController@store');
-        Route::put('hasil_tracer_study/update', 'TracerStudyController@update');
-        Route::delete('hasil_tracer_study/hapus', 'TracerStudyController@destroy');
+        Route::get('umr_wilayah', 'UmrController@index');
+        Route::post('add', 'UmrController@store');
+        Route::put('update', 'UmrController@update');
+        Route::delete('delete', 'UmrController@destroy');
+
+        Route::get('list', 'TracerStudyController@index');
+        Route::post('add', 'TracerStudyController@store');
+        Route::put('update', 'TracerStudyController@update');
+        Route::delete('delete', 'TracerStudyController@destroy');
     });
 
-    Route::get('buku_ajar', 'Tridarma\BukuAjarController@index');
-    Route::post('buku_ajar/simpan', 'Tridarma\BukuAjarController@store');
+    // Route::get('buku_ajar', 'Tridarma\BukuAjarController@index');
+    // Route::post('buku_ajar/simpan', 'Tridarma\BukuAjarController@store');
 });
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

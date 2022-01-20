@@ -472,7 +472,7 @@ class PengabdianController extends Controller
      */
 
     public function storePengabdian()
-    {   
+    {
         $rule = [
             'judul_kegiatan' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
             'afiliasi' => 'required|regex:/^[a-z0-9\-]+$/',
@@ -693,7 +693,7 @@ class PengabdianController extends Controller
             if (!empty($anggota_non_ca)) {
                 foreach ($anggota_non_ca as $index => $idNonCa) {
                     $this->nonCaLitabmas->create([
-                        'id_litabmas' => $penelitian->id_litabmas,
+                        'id_litabmas' => $pengabdian->id_litabmas,
                         'id_orang' => $idNonCa,
                         'peran_litabmas' => $peran_non_ca[$index],
                         'stat_aktif' => $status_non_ca[$index],
@@ -747,7 +747,7 @@ class PengabdianController extends Controller
      *      security={{"bearer_token":{}}}
      *     )
      */
-   
+
     public function updatePengabdian()
     {
         $rule = [
@@ -837,7 +837,7 @@ class PengabdianController extends Controller
         try {
             $pengabdian = $this->litabmas->where('id_litabmas', $litabmasId)->first();
             if (!$pengabdian) return WrapResponse([], 'pengabdian tidak ditemukan atau pengabdian tidak terdaftar', FALSE);
-           
+
             $pengabdian->update([
                 'id_litabmas' => $litabmasId,
                 'id_lemb_iptek' => $afiliasi,
@@ -1030,7 +1030,7 @@ class PengabdianController extends Controller
      *      security={{"bearer_token":{}}}
      *     )
      */
-    
+
 
     public function deletePengabdian()
     {
