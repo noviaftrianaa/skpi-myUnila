@@ -40,6 +40,7 @@ include $path.'GetBrowser.php';
 include $path.'GetClientIP.php';
 include $path.'GetIDUser.php';
 include $path.'GetOS.php';
+include $path.'GetTahunAjaran.php';
 include $path.'Guid.php';
 include $path.'Judul.php';
 include $path.'JudulDokumen.php';
