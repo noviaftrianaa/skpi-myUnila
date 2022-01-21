@@ -5,7 +5,7 @@ if (!function_exists('WrapResponse')) {
     {
         $start = constant('LARAVEL_START');
         $end = microtime(true);
-        $exec = ($end - $start);
+        $exec = ceil($end - $start);
 
         $return = array_merge(
             [
