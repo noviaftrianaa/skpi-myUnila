@@ -29,14 +29,19 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $datas = User::all();
-        $apps = Aplikasi::all();
-        $db = DB::table('man_akses.versi_db')->first();
-
-        return view('manajemen.index', [
-            'data'  => $datas,
-            'apps'  => $apps,
-            'db'    => $db
-        ]);
+        if(is_null(Session::get('login.role'))) {
+            $aplikasi = Aplikasi::all();
+            return view('manajemen.index2', ['aplikasi'=>$aplikasi]);
+        } else {
+            $datas = User::all();
+            $apps = Aplikasi::all();
+            $db = DB::table('man_akses.versi_db')->first();
+    
+            return view('manajemen.index', [
+                'data'  => $datas,
+                'apps'  => $apps,
+                'db'    => $db
+            ]);
+        }
     }
 }

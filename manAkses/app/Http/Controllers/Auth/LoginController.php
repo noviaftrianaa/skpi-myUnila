@@ -68,9 +68,9 @@ class LoginController extends Controller
                 if(!is_null($check)) {
                     Auth::loginUsingId($check->id_pengguna);
                     alert()->success('You are logged in!');
-                    $role = RolePengguna::where('id_pengguna', $check->id_pengguna)->orderBy('last_active','DESC')->first();
+                    $role = RolePengguna::where('id_pengguna', $check->id_pengguna)->where('id_peran',1)->first();
                     Session::put('login.log_address', get_client_ip());
-                    Session::put('login.role', (!is_null($role)) ? $role->id_pengguna : NULL);
+                    Session::put('login.role', (!is_null($role)) ? $role : NULL);
                     return redirect()->route('index');
                 } else {
                     alert()->error('Data pengguna tidak ditemukan, silahkan hubungi administrator.')->html(true);
@@ -98,10 +98,10 @@ class LoginController extends Controller
             if ($cari->a_aktif==1) {
                 if (Auth::loginUsingId($cari->id_pengguna)) {
 
-                    $role = RolePengguna::where('id_pengguna', $cari->id_pengguna)->orderBy('last_active','DESC')->first();
+                    $role = RolePengguna::where('id_pengguna', $cari->id_pengguna)->where('id_peran',1)->first();
 
                     Session::put('login.log_address', get_client_ip());
-                    Session::put('login.role', (!is_null($role)) ? $role->id_pengguna : NULL);
+                    Session::put('login.role', (!is_null($role)) ? $role : NULL);
 
                     alert()->success(Auth::user()->nm_pengguna, 'Selamat Datang')->persistent("OK");
 

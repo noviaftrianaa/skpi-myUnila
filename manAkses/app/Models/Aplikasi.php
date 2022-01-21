@@ -22,8 +22,8 @@ class Aplikasi extends Model
         return $this->hasMany('App\Models\PJAplikasi','id_aplikasi','id_aplikasi');
     }
 
-    public function pengaturan_table_aplikasi()
+    public function akses_table_aplikasi()
     {   
-    	return $this->hasMany('App\Models\PengaturanTableAplikasi','id_aplikasi','id_aplikasi');
+    	return $this->hasMany('App\Models\AksesTableAplikasi','id_aplikasi','id_aplikasi');
     }
 }
