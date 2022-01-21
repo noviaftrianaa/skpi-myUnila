@@ -34,7 +34,7 @@ class MahasiswaController extends Controller
     public function list()
     {
         $query = DB::SELECT("
-            SELECT TOP 5
+            SELECT TOP 50
                 pd.id_pd, reg.nipd AS npm, pd.nm_pd,
                 CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi,
                 reg.id_semester_masuk, kul.id_stat_mhs AS status_sekarang,
@@ -90,18 +90,20 @@ class MahasiswaController extends Controller
 
 
     /**
-     * @OA\Get(
-     *      path="/mahasiswa/detail/{$id_peserta_didik}",
+     * @OA\Post(
+     *      path="/mahasiswa/detail",
      *      operationId="getDetailMahasiswa",
      *      tags={"Mahasiwa"},
      *      summary="Dapatkan detail profil Mahasiswa",
      *      description="Menampilkan detail data profil Mahasiswa",
-     * @OA\Parameter(
-     *         description="Sorting Data Penelitian",
-     *         in="path",
-     *         name="sortby",
-     *         @OA\Schema(type="string"),
-     *       ),
+     *      @OA\RequestBody(
+     *      required=true,
+     *      description="Detail Mahasiswa Berdasarkan id_peserta_didik",
+     *      @OA\JsonContent(
+     *          required={"id_peserta_didik"},
+     *          @OA\Property(property="id_peserta_didik", type="string", format="text", example="4C7DB8EA-B6F7-4DF9-9F4D-312487D16854"),
+     *          ),
+     *      ),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -119,7 +121,7 @@ class MahasiswaController extends Controller
      */
     public function detail(Request $request)
     {
-        if (empty($request->id_reg_pd)) {
+        if (empty($request->id_peserta_didik)) {
             return response()->json([
                 'status' => False,
                 'message' => "Parameter tidak sesuai"
@@ -160,7 +162,7 @@ class MahasiswaController extends Controller
                     AND jd.expired_date IS NULL
                 JOIN ref.pembiayaan AS pmb WITH(NOLOCK) ON pmb.id_pembiayaan = reg.id_pembiayaan
                     AND jd.expired_date IS NULL
-                WHERE reg.id_reg_pd = '".$request->id_reg_pd."'
+                WHERE reg.id_pd = '".$request->id_peserta_didik."'
                     AND reg.soft_delete = 0;
         ");
 
@@ -179,12 +181,20 @@ class MahasiswaController extends Controller
     }
 
     /**
-     * @OA\Get(
-     *      path="/mahasiswa/{status}",
+     * @OA\Post(
+     *      path="/mahasiswa/list_status",
      *      operationId="getListStatusMahasiswa",
      *      tags={"Mahasiwa"},
      *      summary="Dapatkan daftar Mahasiswa sesuai Status Mahasiswa",
      *      description="Menampilkan daftar data Mahasiswa sesuai Status Mahasiswa",
+     *      @OA\RequestBody(
+     *      required=true,
+     *      description="Daftar data Mahasiswa sesuai Status Mahasiswa contoh A = Aktif, N = Nonaktif",
+     *      @OA\JsonContent(
+     *          required={"id_stat_mhs"},
+     *          @OA\Property(property="id_stat_mhs", type="string", format="text", example="a"),
+     *          ),
+     *      ),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -255,12 +265,20 @@ class MahasiswaController extends Controller
     }
 
         /**
-     * @OA\Get(
-     *      path="/mahasiswa/regis",
+     * @OA\Post(
+     *      path="/mahasiswa/list_regis",
      *      operationId="getRegisMahasiswa",
      *      tags={"Mahasiwa"},
      *      summary="Dapatkan daftar Mahasiswa Berdasarkan Jenis Pendaftaran",
      *      description="Menampilkan daftar data List Mahasiswa Berdasarkan Jenis Pendaftaran",
+    *      @OA\RequestBody(
+     *      required=true,
+     *      description="Daftar data Mahasiswa sesuai Jenis Pendaftaran Mahasiswa contoh id_jns_pendaftara 1 = Peserta didik baru",
+     *      @OA\JsonContent(
+     *          required={"id_jns_daftar"},
+     *          @OA\Property(property="id_jns_daftar", type="string", format="text", example="12"),
+     *          ),
+     *      ),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -349,12 +367,20 @@ class MahasiswaController extends Controller
     }
 
     /**
-     * @OA\Get(
-     *      path="/mahasiswa/semester",
+     * @OA\Post(
+     *      path="/mahasiswa/smt_keaktifan",
      *      operationId="getSemesterKeaktifan",
      *      tags={"Mahasiwa"},
      *      summary="Dapatkan daftar Semester Keaktifan Mahasiswa",
      *      description="Menampilkan daftar Semester Keaktifan Mahasiswa",
+     *      @OA\RequestBody(
+     *      required=true,
+     *      description="Daftar keaktifan semester Mahasiswa Berdasarkan id_peserta_didik",
+     *      @OA\JsonContent(
+     *          required={"id_peserta_didik"},
+     *          @OA\Property(property="id_peserta_didik", type="string", format="text", example="11D42109-7F99-49EA-96E3-15F314C40523"),
+     *          ),
+     *      ),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -372,7 +398,7 @@ class MahasiswaController extends Controller
      */
     public function semester_keaktifan(Request $request)
     {
-        if (empty($request->id_pd)) {
+        if (empty($request->id_peserta_didik)) {
             return response()->json([
                 'status' => False,
                 'message' => "Parameter tidak sesuai"
@@ -387,7 +413,7 @@ class MahasiswaController extends Controller
                 ts.smt, kul.ips, kul.ipk, ts.id_thn_ajaran as angkatan
             FROM pdrd.peserta_didik AS pd WITH(NOLOCK)
             JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
-                AND reg.id_pd = '".$request->id_pd."'
+                AND reg.id_pd = '".$request->id_peserta_didik."'
                 AND reg.soft_delete = 0
                 AND reg.id_jns_keluar IS NULL
             JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = reg.id_semester_masuk
@@ -455,12 +481,20 @@ class MahasiswaController extends Controller
     }
 
         /**
-     * @OA\Get(
+     * @OA\Post(
      *      path="/mahasiswa/list_alumni",
      *      operationId="getAlumni",
      *      tags={"Mahasiwa"},
      *      summary="Dapatkan list alumni berdasarkan prodi",
      *      description="Menampilkan list alumni berdasarkan prodi",
+     *      @OA\RequestBody(
+     *      required=true,
+     *      description="Daftar Alumni Berdasarkan id_prodi Contoh Ilmu Komputer = 54BBD27B-2376-4CAE-9951-76EF54BD2CA2",
+     *      @OA\JsonContent(
+     *          required={"id_prodi"},
+     *          @OA\Property(property="id_prodi", type="string", format="text", example="54BBD27B-2376-4CAE-9951-76EF54BD2CA2"),
+     *          ),
+     *      ),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -478,7 +512,7 @@ class MahasiswaController extends Controller
      */
     public function alumni(Request $request)
     {
-        if (empty($request->id_sms)) {
+        if (empty($request->id_prodi)) {
             return response()->json([
                 'status' => False,
                 'message' => "Parameter tidak sesuai"
@@ -494,7 +528,7 @@ class MahasiswaController extends Controller
             FROM pdrd.peserta_didik AS pd WITH(NOLOCK)
             JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd=pd.id_pd
                 AND reg.soft_delete=0 AND reg.id_jns_keluar='1'
-                AND reg.id_sms='".$request->id_sms."'
+                AND reg.id_sms='".$request->id_prodi."'
             JOIN pdrd.sms AS sms WITH(NOLOCK) ON  sms.id_sms = reg.id_sms
                 AND sms.soft_delete = 0
             JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = sms.id_jenj_didik

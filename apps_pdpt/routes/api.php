@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\PDUT\Api\Pdrd\BukuReferensiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +20,11 @@ Route::group([
     'namespace' => 'App\Http\Controllers\PDUT\Api',
     // 'middleware' => ['auth.api']
 ], function () {
+
+    // TESTING
+    Route::post('auth/login', 'LoginController@login');
+    Route::post('auth/token', 'LoginController@token');
+
     Route::get('referensi/agama', 'ReferensiController@agama');
     Route::get('referensi/bentuk_pendidikan', 'ReferensiController@bentuk_pendidikan');
     Route::get('referensi/bidang_studi', 'ReferensiController@bidang_studi');
@@ -97,10 +101,16 @@ Route::group([
     Route::group([
         'namespace' => 'Pdrd',
     ], function () {
+
+        Route::prefix('dosen')->group(function () {
+            Route::get('/list', 'SdmDosenController@list');
+            Route::get('/detail', 'SdmDosenController@detail');
+        });
+
         Route::prefix('buku_ajar')->group(function () {
-            Route::get('list', 'BukuAjarController@list');
-            Route::get('list_id', 'BukuAjarController@listById');
-            Route::get('detail', 'BukuAjarController@detail');
+            Route::post('list', 'BukuAjarController@list');
+            Route::post('list_id', 'BukuAjarController@listById');
+            Route::post('detail', 'BukuAjarController@detail');
             Route::post('add', 'BukuAjarController@add');
             Route::put('update', 'BukuAjarController@update');
             Route::delete('delete', 'BukuAjarController@delete');
@@ -135,11 +145,11 @@ Route::group([
 
         Route::prefix('mahasiswa')->group(function () {
             Route::get('list_mahasiswa', 'MahasiswaController@list');
-            Route::get('detail', 'MahasiswaController@detail');
-            Route::get('list_status', 'MahasiswaController@status');
-            Route::get('list_regis', 'MahasiswaController@regis');
-            Route::get('smt_keaktifan', 'MahasiswaController@semester_keaktifan');
-            Route::get('list_alumni', 'MahasiswaController@alumni');
+            Route::post('detail', 'MahasiswaController@detail');
+            Route::post('list_status', 'MahasiswaController@status');
+            Route::post('list_regis', 'MahasiswaController@regis');
+            Route::post('smt_keaktifan', 'MahasiswaController@semester_keaktifan');
+            Route::post('list_alumni', 'MahasiswaController@alumni');
         });
 
         Route::prefix('akreditasiprodi')->group(function () {
@@ -157,9 +167,9 @@ Route::group([
         'prefix' => 'tracer_study'
     ], function () {
         Route::get('umr_wilayah', 'UmrController@index');
-        Route::post('add', 'UmrController@store');
-        Route::put('update', 'UmrController@update');
-        Route::delete('delete', 'UmrController@destroy');
+        Route::post('umr_wilayah/add', 'UmrController@store');
+        Route::put('umr_wilayah/update', 'UmrController@update');
+        Route::delete('umr_wilayah/delete', 'UmrController@destroy');
 
         Route::get('list', 'TracerStudyController@index');
         Route::post('add', 'TracerStudyController@store');

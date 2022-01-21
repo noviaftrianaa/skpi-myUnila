@@ -5,7 +5,7 @@ namespace App\Http\Controllers\PDUT\Api\Tracer;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Models\PDUT\Tracer\Umr;
+use App\Models\PDUT\Tracer\UmrWilayah;
 use Illuminate\Support\Facades\Log;
 
 class UmrController extends Controller
@@ -42,12 +42,12 @@ class UmrController extends Controller
     public function index()
     {
         $data_umr = DB::SELECT("
-            SELECT
+            SELECT 5
                 umr.id_umr_wil, wil.nm_wil, ta.id_tahun_anggaran,
                 umr.besaran_umr, umr.create_date AS waktu_data_ditambahkan,
                 umr.last_update AS terakhir_diubah
             FROM tracer.umr_wilayah AS umr WITH(NOLOCK)
-            JOIN ref.wilayah AS wil WITH(NOLOCK) ON wil.id_wil = umr.id_umr_wil
+            JOIN ref.wilayah AS wil WITH(NOLOCK) ON wil.id_wil = umr.id_wil
                 AND wil.expired_date IS NULL
             JOIN ref.tahun_anggaran AS ta WITH(NOLOCK) ON ta.id_tahun_anggaran = umr.id_tahun_anggaran
                 AND wil.expired_date IS NULL
@@ -90,8 +90,33 @@ class UmrController extends Controller
      *      path="/tracer_study/umr_wilayah/add",
      *      operationId="postTracerStudy",
      *      tags={"Tracer Study"},
-     *      summary="Simpan data umr wilayah",
-     *      description="Menyimpan data umr wilayah",
+     *      summary="Menambahkan data umr wilayah",
+     *      description="Menambahkan data umr wilayah",
+     *    @OA\RequestBody(
+     *         @OA\MediaType(
+     *             mediaType="applicatin/json",
+     *             @OA\Schema(
+     *                 @OA\Property(
+     *                     property="id_wilayah",
+     *                     type="string",
+     *                     format="number",
+     *                     example="126000"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="id_tahun_anggaran",
+     *                     type="string",
+     *                     format="number",
+     *                     example="2021"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="besaran_umr",
+     *                     type="string",
+     *                     format="number",
+     *                     example="2770794"
+     *                 )
+     *              )
+     *          )
+     *      ),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -122,10 +147,10 @@ class UmrController extends Controller
 
         DB::beginTransaction();
         try {
-            Umr::create([
+            UmrWilayah::create([
                 'id_umr_wil' => $id_umr_wil,
-                'id_wil' => $request->id_wil,
-                'id_tahung_anggaran' => $request->id_tahung_anggaran,
+                'id_wil' => $request->id_wilayah,
+                'id_tahun_anggaran' => $request->id_tahun_anggaran,
                 'besaran_umr' => $request->besaran_umr,
                 'id_creator' => $id_creator,
                 'id_updater' => $id_updater,
@@ -208,7 +233,7 @@ class UmrController extends Controller
         DB::beginTransaction();
         try {
 
-            $data_umr = Umr::where('id_umr_wil', $request->id_umr_wil)->first();
+            $data_umr = UmrWilayah::where('id_umr_wil', $request->id_umr_wil)->first();
             $data_umr->update([
                 'id_wil' => $request->id_wil,
                 'id_tahung_anggaran' => $request->id_tahung_anggaran,
@@ -242,6 +267,14 @@ class UmrController extends Controller
      *      tags={"Tracer Study"},
      *      summary="Menghapus data umr wilayah",
      *      description="Menghapus data umr wilayah",
+     *@OA\RequestBody(
+     *      required=true,
+     *      description="Menghapus data umr wilayah berdasarkan id_umr_wil",
+     *      @OA\JsonContent(
+     *          required={"id_umr_wil"},
+     *          @OA\Property(property="id_umr_wil", type="string", format="text"),
+     *          ),
+     *      ),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -269,7 +302,7 @@ class UmrController extends Controller
         DB::beginTransaction();
         try {
 
-            $data_umr = Umr::where('id_umr_wil', $request->id_umr_wil)->first();
+            $data_umr = UmrWilayah::where('id_umr_wil', $request->id_umr_wil)->first();
             $data_umr->update(['soft_delete' => 1]);
 
             DB::commit();

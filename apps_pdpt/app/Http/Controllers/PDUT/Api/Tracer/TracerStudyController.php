@@ -82,17 +82,21 @@ class TracerStudyController extends Controller
         foreach ($data_alumni as $each_data) {
             $id =  $each_data->id_reg_pd;
             $hasil_tracer_study[$id] = DB::SELECT("
-            SELECT
-                tc_study.id_hasil_tracer_study, tc_study.id_thn_ajaran, tc_study.id_smt,
-                tc_study.wkt_pengisian, tc_study.wkt_tunggu,
-                tc_study.status_lulusan, tc_study.jns_tmpt_bekerja,
-                wilayah.nm_wil, tc_study.nm_tmpt_bekerja,
-                tc_study.income_per_bln
-                FROM tracer.hasil_tracer_study AS tc_study WITH(NOLOCK)
-            JOIN ref.wilayah AS wilayah WITH(NOLOCK) ON wilayah.id_wil = tc_study.id_wil
-                AND wilayah.expired_date IS NULL
-            WHERE tc_study.id_reg_pd = '".$id."'
-                AND tc_study.soft_delete = 0;
+                SELECT
+                    tc_study.id_hasil_tracer_study, tc_study.id_thn_ajaran, tc_study.id_smt,
+                    tc_study.wkt_pengisian, tc_study.wkt_tunggu, tc_study.status_lulusan, tc_study.total_instansi_dilamar,
+                    tc_study.jns_tmpt_bekerja, wilayah.nm_wil, tc_study.nm_tmpt_bekerja, b_kerja.nm_bid_kerja,
+                    j_kerja.nm_jns_jalur_kerja, tc_study.income_per_bln, tc_study.hub_bidang_kerja, tc_study.tkt_kesesuaian,
+                    tc_study.alasan_tidak_sesuai
+                    FROM tracer.hasil_tracer_study AS tc_study WITH(NOLOCK)
+                JOIN ref.wilayah AS wilayah WITH(NOLOCK) ON wilayah.id_wil = tc_study.id_wil
+                    AND wilayah.expired_date IS NULL
+                JOIN ref.bidang_pekerjaan AS b_kerja WITH(NOLOCK) ON b_kerja.id_bid_kerja = tc_study.id_bid_kerja
+                    AND b_kerja.expired_date IS NULL
+                JOIN ref.jenis_jalur_pekerjaan AS j_kerja WITH(NOLOCK) ON j_kerja.id_jns_jalur_kerja = tc_study.id_jns_jalur_kerja
+                    AND j_kerja.expired_date IS NULL
+                WHERE tc_study.id_reg_pd = '".$id."'
+                    AND tc_study.soft_delete = 0;
         ");
         }
 
@@ -164,6 +168,32 @@ class TracerStudyController extends Controller
      *      tags={"Tracer Study"},
      *      summary="Simpan hasil Tracer Study",
      *      description="Menyimpan data Hasil TracerStudy",
+     *    @OA\RequestBody(
+     *         @OA\MediaType(
+     *             mediaType="applicatin/json",
+     *             @OA\Schema(
+     *                 @OA\Property( property="id_thn_ajaran", type="string", format="number", example="2022"),
+     *                 @OA\Property( property="id_bid_kerja", type="string", format="number", example="10"),
+     *                 @OA\Property( property="id_wil", type="string", format="number", example="126000"),
+     *                 @OA\Property( property="id_reg_pd", type="string", format="text", example="830C07C0-BC64-4193-B6AD-0000EEB6FC87"),
+     *                 @OA\Property( property="id_smt", type="string", format="number", example="20213"),
+     *                 @OA\Property( property="id_jns_jalur_kerja", type="string", format="number", example="12"),
+     *                 @OA\Property( property="wkt_pengisian", type="string", format="date", example="2022-01-01"),
+     *                 @OA\Property( property="wkt_tunggu", type="string", format="number", example="3"),
+     *                 @OA\Property( property="status_lulusan", type="string", format="number", example="1"),
+     *                 @OA\Property( property="jns_tmpt_bekerja", type="string", format="text", example="Institusi"),
+     *                 @OA\Property( property="nm_tmpt_bekerja", type="string", format="text", example="Honda"),
+     *                 @OA\Property( property="income_per_bln", type="string", format="number", example="2085000"),
+     *                 @OA\Property( property="total_instansi_dilamar", type="string", format="number", example="1"),
+     *                 @OA\Property( property="hub_bidang_kerja", type="string", format="number", example="1"),
+     *                 @OA\Property( property="tkt_kesesuaian", type="string", format="number", example="1"),
+     *                 @OA\Property( property="alasan_tidak_sesuai", type="string", format="text", example=" "),
+     *                 @OA\Property( property="ket", type="string", format="text", example=" "),
+     *                 @OA\Property( property="nm_atasan", type="string", format="text", example="nama bos antum"),
+     *                 @OA\Property( property="email_atasan", type="email", format="email", example="emailbos@gmail.com")
+     *              )
+     *          )
+     *      ),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -198,15 +228,22 @@ class TracerStudyController extends Controller
             $data = HasilTracerStudy::create([
                 'id_hasil_tracer_study' => $id_hasil_tracer_study,
                 'id_thn_ajaran' => $request->id_thn_ajaran,
-                'id_wil' => $request->id_wil,
-                'id_reg_pd' => $request->id_reg_pd,
-                'id_smt' => $request->id_smt,
-                'wkt_pengisian' => $request->wkt_pengisian,
-                'wkt_tunggu' => $request->wkt_tunggu,
-                'status_lulusan' => $request->status_lulusan,
-                'jns_tmpt_bekerja' => $request->jns_tmpt_bekerja,
-                'nm_tmpt_bekerja' => $request->nm_tmpt_bekerja,
-                'income_per_bln' => $request->income_per_bln,
+                'id_bid_kerja'=> $request->id_bid_kerja,
+                'id_wil'=> $request->id_wil,
+                'id_reg_pd'=> $request->id_reg_pd,
+                'id_smt'=> $request->id_smt,
+                'id_jns_jalur_kerja'=> $request->id_jns_jalur_kerja,
+                'wkt_pengisian'=> $request->wkt_pengisian,
+                'wkt_tunggu'=> $request->wkt_tunggu,
+                'status_lulusan'=> $request->status_lulusan,
+                'jns_tmpt_bekerja'=> $request->jns_tmpt_bekerja,
+                'nm_tmpt_bekerja'=> $request->nm_tmpt_bekerja,
+                'income_per_bln'=> $request->income_per_bln,
+                'total_instansi_dilamar'=> $request->total_instansi_dilamar,
+                'hub_bidang_kerja'=> $request->hub_bidang_kerja,
+                'tkt_kesesuaian'=> $request->tkt_kesesuaian,
+                'alasan_tidak_sesuai'=> $request->alasan_tidak_sesuai,
+                'ket'=> $request->ket,
                 'id_creator' => $id_creator,
                 'id_updater' => $id_updater,
                 'create_date' => currDateTime(),
@@ -278,8 +315,25 @@ class TracerStudyController extends Controller
      *      path="/tracer_study/update",
      *      operationId="putHasilTracerStudy",
      *      tags={"Tracer Study"},
-     *      summary="Memperbaharui hasil Tracer Study",
-     *      description="Memperbaharui  data Hasil TracerStudy",
+     *      summary="Memperbaharui hasil Tracer Study Atasan",
+     *      description="Memperbaharui data Hasil Tracer Study Atasan berdasarkan id_hasil_tracer_study",
+     *    @OA\RequestBody(
+     *         @OA\MediaType(
+     *             mediaType="applicatin/json",
+     *             @OA\Schema(
+     *                 @OA\Property( property="id_hasil_tracer_study", type="string", format="text", example="0530FAB5-2E52-4A8C-BE03-285A101062B2"),
+     *                 @OA\Property( property="nm_atasan", type="string", format="text", example="nama bos antum"),
+     *                 @OA\Property( property="email_atasan", type="email", format="email", example="emailbos@gmail.com"),
+     *                 @OA\Property( property="id_negara", type="number", format="number", example="ID"),
+     *                 @OA\Property( property="id_wilayah", type="number", format="number", example="126000"),
+     *                 @OA\Property( property="nm_tmpt_bekerja_atasan", type="string", format="text", example="Honda"),
+     *                 @OA\Property( property="jabatan_atasan", type="string", format="text", example="Kepala Divisi IT"),
+     *                 @OA\Property( property="bidang_tempat_bekerja", type="string", format="text", example="Teknologi Informasi"),
+     *                 @OA\Property( property="saran", type="string", format="text", example="Jangan deadline terus ya"),
+     *                 @OA\Property( property="harapan", type="string", format="text", example="Berani mencoba hal baru")
+     *              )
+     *          )
+     *      ),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -310,20 +364,17 @@ class TracerStudyController extends Controller
 
             $hasil_tracer_study = HasilTracerStudy::where('id_hasil_tracer_study', $request->id_hasil_tracer_study)->first();
             $hasil_tracer_study->update([
-                'wkt_pengisian' => $request->wkt_pengisian,
-                'wkt_tunggu' => $request->wkt_tunggu,
-                'status_lulusan' => $request->status_lulusan,
-                'jns_tmpt_bekerja' => $request->jns_tmpt_bekerja,
-                'nm_tmpt_bekerja' => $request->nm_tmpt_bekerja,
-                'income_per_bln' => $request->income_per_bln,
+                'last_update' => currDateTime()
             ]);
 
             $hasil_tracer_study_atasan = HasilTracerAtasan::where('id_hasil_tracer_study', $hasil_tracer_study->id_hasil_tracer_study)->first();
             $hasil_tracer_study_atasan->update([
-                'email_atasan' => $request->email_atasan,
                 'nm_atasan' => $request->nm_atasan,
-                'jabatan_atasan' => $request->jabatan_atasan,
+                'email_atasan' => $request->email_atasan,
+                'id_negara' => $request->id_negara,
+                'id_wil' => $request->id_wilayah,
                 'nm_tmpt_bekerja' => $request->nm_tmpt_bekerja_atasan,
+                'jabatan_atasan' => $request->jabatan_atasan,
                 'bidang_tempat_bekerja' => $request->bidang_tempat_bekerja,
                 'saran' => $request->saran,
                 'harapan' => $request->harapan,
@@ -350,6 +401,14 @@ class TracerStudyController extends Controller
      *      tags={"Tracer Study"},
      *      summary="Menghapus hasil Tracer Study",
      *      description="Menghapus data hasil TracerStudy",
+     *@OA\RequestBody(
+     *      required=true,
+     *      description="Menghapus data hasil TracerStudy berdasarkan id_hasil_tracer_study",
+     *      @OA\JsonContent(
+     *          required={"id_hasil_tracer_study"},
+     *          @OA\Property(property="id_hasil_tracer_study", type="string", format="text"),
+     *          ),
+     *      ),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
