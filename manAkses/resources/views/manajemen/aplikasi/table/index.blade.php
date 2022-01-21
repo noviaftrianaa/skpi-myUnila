@@ -28,16 +28,16 @@
                         @foreach($table as $no=>$item)
                         <tr>
                             <td>{{$no+1}}</td>
-                            <td>{{ $item->table_aplikasi->skema_tbl }}</td>
-                            <td>{{ $item->table_aplikasi->nm_tbl }}</td>
+                            <td>{{ $item->skema_tbl }}</td>
+                            <td>{{ $item->nm_tbl }}</td>
                             <td>
                                 {{ ($item->a_boleh_insert==1) ? 'Insert, ' : '' }}
                                 {{ ($item->a_boleh_show==1) ? 'Show, ' : '' }}
                                 {{ ($item->a_boleh_delete==1) ? 'Delete, ' : '' }}
                                 {{ ($item->a_boleh_update==1) ? 'Update' : '' }}
                             </td>
-                            <td>{{ $item->table_aplikasi->expired_date }}</td>
-                            <td>{{ $item->table_aplikasi->last_sync }}</td>
+                            <td>{{ $item->expired_date }}</td>
+                            <td>{{ $item->last_sync }}</td>
                             <td>
                                 <a type="button" data-toggle="modal" class="btn btn-primary btn-xs" href="#editTable{{$item->id_table_app}}"><i class="fas fa-edit"></i></a>
                             </td>
@@ -150,19 +150,19 @@
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Skema Table</label>
-                                    <input name="skema_tbl" type="text" class="form-control" value="{{$items->table_aplikasi->skema_tbl}}" required>
+                                    <input name="skema_tbl" type="text" class="form-control" value="{{$items->skema_tbl}}" required>
                                 </div>
                             </div>
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Nama Table</label>
-                                    <input name="nm_tbl" type="text" class="form-control" value="{{$items->table_aplikasi->nm_tbl}}" required>
+                                    <input name="nm_tbl" type="text" class="form-control" value="{{$items->nm_tbl}}" required>
                                 </div>
                             </div>
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Kode Primary</label>
-                                    <input name="kode_primary" type="text" class="form-control" value="{{$items->table_aplikasi->kode_primary}}">
+                                    <input name="kode_primary" type="text" class="form-control" value="{{$items->kode_primary}}">
                                 </div>
                             </div>
                             <div class="col-sm-12">
@@ -190,7 +190,7 @@
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Expired Date</label>
-                                    <input name="expired_date" type="date" class="form-control" value="{{$items->table_aplikasi->expired_date}}">
+                                    <input name="expired_date" type="date" class="form-control" value="{{$items->expired_date}}">
                                 </div>
                             </div>
                         </div>
