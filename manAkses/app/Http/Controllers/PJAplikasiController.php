@@ -40,7 +40,6 @@ class PJAplikasiController extends Controller
      */
     public function store(Request $request)
     {
-        
         $array = $request->all();
         $aplikasi = Aplikasi::lock('WITH(NOLOCK)')->where('id_aplikasi', $array['id_aplikasi'])->first();
         if(!empty($array['id_pengguna'])) {

@@ -42,7 +42,7 @@ if (!function_exists('auto_breadcrumb')) {
 
                 foreach (explode('.', $page) as $num => $link) {
 
-                    if (match($array_list,$link)) {
+                    if (matchs($array_list,$link)) {
 
                         $url = '';
 
@@ -150,7 +150,7 @@ if (!function_exists('auto_breadcrumb')) {
 
 
 
-    function match($needles, $haystack)
+    function matchs($needles, $haystack)
 
     {
 

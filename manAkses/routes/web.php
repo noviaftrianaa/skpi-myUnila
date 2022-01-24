@@ -5,7 +5,7 @@ use App\Http\Controllers\Auth\{
     LoginController, RegisterController, ForgotPasswordController
 };
 use App\Http\Controllers\{
-    HomeController, UserController, PeranController, UnitOrganisasiController, AplikasiController, TokenController, PJAplikasiController, MenuController, RolePenggunaController, TableAplikasiController, PengaturanTableAplikasiController
+    HomeController, UserController, PeranController, UnitOrganisasiController, AplikasiController, TokenController, PJAplikasiController, MenuController, RolePenggunaController, TableAplikasiController
 };
 /*
 |--------------------------------------------------------------------------
@@ -39,13 +39,14 @@ Route::namespace('Auth')->group(function () {
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     
-    Route::get('/otorisasi', function() {
-        return view('error.pages');
+    Route::group(['middleware' => ['main']], function() {
+        Route::get('/', [HomeController::class, 'index'])->name('index');
+        Route::get('/otorisasi', function() {
+            return view('error.pages');
+        });
     });
 
     Route::group(['middleware' => ['admin']], function() {
-
-        Route::get('/', [HomeController::class, 'index'])->name('index');
         
         Route::namespace('user')->prefix('user')->name('user.')->group(function () {
             Route::get('/', [UserController::class, 'index'])->name('index');
