@@ -32,6 +32,8 @@ class PenelitianController extends Controller
     protected $dokumen;
     protected $cacheLifeTime;
 
+    protected $getAllListPenelitian;
+
     public function __construct(Request $request)
     {
         $this->request = $request;
@@ -42,6 +44,7 @@ class PenelitianController extends Controller
         $this->dokLitabmas = new DokLitabmas();
         $this->dokumen = new Dokumen();
         $this->cacheLifeTime = 3600;
+        $this->getAllListPenelitian = [];
     }
 
     /**
@@ -86,6 +89,11 @@ class PenelitianController extends Controller
             $sortby = 'DESC';
         }
 
+        if (!empty($this->getAllListPenelitian)) {
+            $data = $this->getAllListPenelitian;
+            return WrapResponse(compact('data'), 'sukses');
+        }
+
         $query = "
             SELECT
                 TOP 50 lm.id_litabmas AS id_penelitian,
@@ -113,13 +121,12 @@ class PenelitianController extends Controller
             ORDER BY lm.id_thn_laks " . $sortby . "
         ";
 
-        $query = DB::select($query);
-        if (empty($query)) {
-            return WrapResponse([], 'data penelitian tidak ditemukan', FALSE);
-        }
+        $this->getAllListPenelitian = Cache::remember(__FUNCTION__, $this->cacheLifeTime, function () use ($query) {
+            $query = DB::select($query);
+            if (empty($query)) {
+                return [];
+            }
 
-
-        $data = Cache::remember(__FUNCTION__, $this->cacheLifeTime, function () use ($query) {
             $data = [];
             foreach ($query as $value) {
                 $data[] = [
@@ -135,7 +142,9 @@ class PenelitianController extends Controller
             return $data;
         });
 
-        return WrapResponse(compact('data'), 'success');
+        $data = $this->getAllListPenelitian;
+
+        return WrapResponse(compact('data'), 'sukses');
     }
 
     /**
@@ -172,13 +181,13 @@ class PenelitianController extends Controller
     public function getListPenelitianBySdmId()
     {
         InputValidator([
-            'sdmid' => 'required|regex:/^[a-z0-9\-]+$/',
-            'sortby' => ['alpha', ValidationRule::in(['ASC', 'DESC'])]
+            'sdmid' => 'required|uuid',
+            'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
         ], [
-            'sdmid.required' => 'field ini harus diisi',
-            'sdmid.regex' => 'input harus berupa campuran alpa_numeric dan dash',
-            'sortby.alpha' => 'input penyortiran harus kata',
-            'sortby.in' => 'input pernyortiran hanya ASC dan DESC'
+            'sdmid.required' => 'field sdmid ini harus diisi',
+            'sdmid.uuid' => 'input sdmid harus berupa uuid yang valid',
+            'sortby.alpha' => 'input sortby penyortiran tidak sesuai',
+            'sortby.in' => 'input sortby penyortiran hanya ASC,asc atau DESC,desc'
         ]);
 
         $sdmId = $this->request->input('sdmid');
@@ -234,7 +243,7 @@ class PenelitianController extends Controller
             ];
         }
 
-        return WrapResponse(compact('data'), 'success');
+        return WrapResponse(compact('data'), 'sukses');
     }
 
     /**
@@ -271,10 +280,10 @@ class PenelitianController extends Controller
 
         request()->merge(['penelitianid' => $id]);
         InputValidator([
-            'penelitianid' => 'required|regex:/^[a-z0-9\-]+$/',
+            'penelitianid' => 'required|uuid',
         ], [
-            'penelitianid.required' => 'field ini harus diisi',
-            'penelitianid.regex' => 'input harus berupa alpa_numeric dan dash',
+            'penelitianid.required' => 'field penelitianid ini harus diisi',
+            'penelitianid.uuid' => 'input penelitian id harus berupa uuid yang valid',
         ]);
 
         $penelitianId = $this->request->input('penelitianid');
@@ -403,7 +412,7 @@ class PenelitianController extends Controller
 
             $data = $reformatGetDetailPenelitian;
 
-            return WrapResponse(compact('data'), 'success');
+            return WrapResponse(compact('data'), 'sukses');
         } catch (Exception $e) {
             Log::error(__FUNCTION__ . ' - ' . $e->getMessage());
             return WrapResponse([], "detail penelitian tidak ditemukan atau penelitian tidak terdaftar", FALSE);
@@ -1116,10 +1125,10 @@ class PenelitianController extends Controller
     public function deletePenelitian()
     {
         InputValidator([
-            'penelitianid' => 'required|regex:/^[a-z0-9\-]+$/',
+            'penelitianid' => 'required|uuid',
         ], [
-            'penelitianid.required' => 'field ini harus diisi',
-            'penelitianid.regex' => 'input harus berupa alpa_numeric dan dash',
+            'penelitianid.required' => 'field penelitianid ini harus diisi',
+            'penelitianid.uuid' => 'input penelitianid harus berupa uuid yang valid',
         ]);
 
         $penelitianId = $this->request->input('penelitianid');

@@ -1,11 +1,11 @@
 <?php
 
-class Controller
+class LiveController
 {
     /**
      * @OA\Info(
      *      version="0.1.0",
-     *      title="One Data UNILA - Web Service",
+     *      title="One Data UNILA - Live Web Service",
      *      description="Versi 0.1.0",
      *      @OA\Contact(
      *          email="mahendra.pratama15@eng.unila.ac.id"
@@ -13,13 +13,8 @@ class Controller
      * )
      *
      * @OA\Server(
-     *      url=L5_SWAGGER_CONST_HOST,
-     *      description="Server Production",
-     * )
-     *
-     * @OA\Server(
-     *      url=L5_SWAGGER_CONST_HOST_DEV,
-     *      description="Server Sandbox"
+     *      url=L5_SWAGGER_CONST_HOST_PRODUCTION,
+     *      description="Server Live",
      * )
 
      *
