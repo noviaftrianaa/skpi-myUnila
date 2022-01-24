@@ -22,6 +22,7 @@ class AuthApi
                 'detail'    => 'Token tidak ditemukan'
             ],401);
         } else {
+            // dd($request->header('authorization'));
             return $next($request);
         }
     }

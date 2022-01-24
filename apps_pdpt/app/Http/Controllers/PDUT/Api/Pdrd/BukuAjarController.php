@@ -69,7 +69,7 @@ class BukuAjarController extends Controller
 
         foreach ($buku_ajar as $each_data) {
             $data[] = [
-                'id_tulis_buku_ajar' => $each_data->id_tulis_buku_ajar,
+                // 'id_tulis_buku_ajar' => $each_data->id_tulis_buku_ajar,
                 'id_buku_ajar' => $each_data->id_buku_ajar,
                 'judul_buku' => $each_data->judul_buku,
                 'isbn' => $each_data->isbn,
@@ -80,13 +80,7 @@ class BukuAjarController extends Controller
             ];
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Get all data Buku Ajar',
-            'page' => $page,
-            'count' => $count,
-            'data'  => $data
-        ], 200);
+        return WrapResponse(['page' => $page, 'count' => $count, 'data' => $data], 'Daftar Buku Ajar By All', TRUE);
     }
 
     /**
@@ -160,7 +154,7 @@ class BukuAjarController extends Controller
 
         foreach ($buku_ajar as $each_data) {
             $data[] = [
-                'id_tulis_buku_ajar' => $each_data->id_tulis_buku_ajar,
+                // 'id_tulis_buku_ajar' => $each_data->id_tulis_buku_ajar,
                 'id_buku_ajar' => $each_data->id_buku_ajar,
                 'judul_buku' => $each_data->judul_buku,
                 'isbn' => $each_data->isbn,
@@ -171,13 +165,7 @@ class BukuAjarController extends Controller
             ];
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'get list id successfully',
-            'page' => $page,
-            'count' => $count,
-            'data'  => $data
-        ], 200);
+        return WrapResponse(['page' => $page, 'count' => $count, 'data' => $data], 'Daftar Buku Ajar By id_sdm', TRUE);
     }
 
     /**
@@ -286,11 +274,8 @@ class BukuAjarController extends Controller
             ];
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'get detail successfully',
-            'data'  => $data
-        ], 200);
+        return WrapResponse(['data' => $data], 'Detail Buku Ajar By id_buku_ajar', TRUE);
+
     }
 
     /**
@@ -304,16 +289,121 @@ class BukuAjarController extends Controller
      *      required=true,
      *      description="Menambah Buku Ajar",
      *      @OA\JsonContent(
-     *          required={"id_jns_bhn_ajar", "id_litabmas", "judul_buku", "penulis", "penerbit", "tgl_terbit"},
-     *          @OA\Property(property="id_jns_bhn_ajar", type="string", format="text", example="1"),
-     *          @OA\Property(property="id_litabmas", type="string", format="text", example="1"),
+     *          required={"id_litabmas", "judul_buku", "penulis", "penerbit", "tgl_terbit"},
+     *          @OA\Property(property="id_litabmas", type="string", format="text", example="bb96579f-e5d4-40d2-81b3-f4886aa32a09"),
      *          @OA\Property(property="judul_buku", type="string", format="text", example="Judul Buku"),
      *          @OA\Property(property="penulis", type="string", format="text", example="Penulis"),
      *          @OA\Property(property="penerbit", type="string", format="text", example="Penerbit"),
      *          @OA\Property(property="isbn", type="string", format="text", example="1"),
      *          @OA\Property(property="tgl_terbit", type="date", format="date", example="2022-01-25"),
-     *          @OA\Property(property="sk_tugas", type="string", format="text", example="1"),
+     *          @OA\Property(property="sk_tugas", type="string", format="text", example="SK TUGAS"),
      *          @OA\Property(property="tgl_sk_tugas", type="date", format="date", example="2022-01-25"),
+     *
+     *                 @OA\Property(
+     *                     property="id_dosen",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="9c466255-68e3-4476-97a4-a42ced793202"),
+     *                 ),
+     *                  @OA\Property(
+     *                     property="urutan_dosen",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="1"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="afiliasi_dosen",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="Universitas Lampung"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="peran_tulis_dosen",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="A"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="jns_penulis_dosen",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="1"),
+     *                 ),
+     *
+     *                 @OA\Property(
+     *                     property="id_mahasiswa",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="faae58b0-d2b2-4b88-9966-0000458f9fcd"),
+     *                 ),
+     *                  @OA\Property(
+     *                     property="urutan_mahasiswa",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="1"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="afiliasi_mahasiswa",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="Universitas Lampung"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="peran_tulis_mahasiswa",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="A"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="jns_penulis_mahasiswa",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="1"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="nm_pd_mahasiswa",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="Nama Mahasiswa"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="nipd_mahasiswa",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     nullable="true",
+     *                     @OA\Items(type="string", format="string", example="null"),
+     *                 ),
+     *
+     *                 @OA\Property(
+     *                     property="id_orang",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="9878daeb-7c52-41be-afa0-28bd6f6c6ddf"),
+     *                 ),
+     *                  @OA\Property(
+     *                     property="urutan_orang",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="1"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="afiliasi_orang",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="Universitas Lampung"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="peran_tulis_orang",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="A"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="jns_penulis_orang",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="1"),
+     *                 ),
      *          ),
      *      ),
      *      @OA\Response(
@@ -334,44 +424,83 @@ class BukuAjarController extends Controller
     public function add(Request $request)
     {
         $id_buku_ajar = guid();
-        $id_tulis_buku_ajar = guid();
         $id_katgiat = 110801;
+        $creatorId = $updateId = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
+        $id_jns_bhn_ajar = 1;
+        $id_kat_capaian = 5;
 
         DB::beginTransaction();
         try {
-            DB::insert(
+
+            $buku = DB::insert(
                 "INSERT INTO pdrd.buku_ajar (id_buku_ajar, id_kat_capaian,
             id_jns_bhn_ajar, id_litabmas, judul_buku, penulis, penerbit, isbn,
-            tgl_terbit, sk_tugas, tgl_sk_tugas) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            tgl_terbit, sk_tugas, tgl_sk_tugas, create_date, id_creator, last_update, id_updater, soft_delete, last_sync)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 [
-                    $id_buku_ajar, $request->id_kat_capaian, $request->id_jns_bhn_ajar,
+                    $id_buku_ajar, $id_kat_capaian, $id_jns_bhn_ajar,
                     $request->id_litabmas, $request->judul_buku, $request->penulis, $request->penerbit,
-                    $request->isbn, $request->tgl_terbit, $request->sk_tugas, $request->tgl_sk_tugas
+                    $request->isbn, $request->tgl_terbit, $request->sk_tugas, $request->tgl_sk_tugas, currDateTime(), $creatorId, currDateTime(), $updateId, 0, currDateTime()
                 ]
             );
 
-            DB::insert(
-                "INSERT INTO pdrd.tulis_buku_ajar (id_tulis_buku_ajar, id_katgiat,
-            id_buku_ajar, id_sdm, id_pd, id_orang, urutan2, afiliasi, peran_tulis,
-            jns_penulis, nm_pd, nipd) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                [
-                    $id_tulis_buku_ajar, $id_katgiat, $id_buku_ajar, $request->id_sdm, $request->id_pd,
-                    $request->id_orang, $request->urutan2, $request->afiliasi, $request->peran_tulis,
-                    $request->jns_penulis, $request->nm_pd, $request->nipd
-                ]
-            );
+
+            if (!empty($request->id_dosen)) {
+                foreach ($request->id_dosen as $index => $id_dosen) {
+                    if (is_null($id_dosen)) break;
+                    $dosen = DB::insert(
+                        "INSERT INTO pdrd.tulis_buku_ajar (id_tulis_buku_ajar, id_katgiat,
+                    id_buku_ajar, id_sdm, id_pd, id_orang, urutan2, afiliasi, peran_tulis,
+                    jns_penulis, nm_pd, nipd, create_date, id_creator, last_update, id_updater, soft_delete, last_sync)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        [
+                            guid(), $id_katgiat, $id_buku_ajar, $request->id_dosen[$index], NULL,
+                            NULL, $request->urutan_dosen[$index], $request->afiliasi_dosen[$index], $request->peran_tulis_dosen[$index],
+                            $request->jns_penulis_dosen[$index], NULL,  NULL, currDateTime(), $creatorId, currDateTime(), $updateId, 0, currDateTime()
+                        ]
+                    );
+                }
+            }
+
+            if (!empty($request->id_mahasiswa)) {
+                foreach ($request->id_mahasiswa as $index => $id_mahasiswa) {
+                    if (is_null($id_mahasiswa)) break;
+                    $mahasiswa = DB::insert(
+                        "INSERT INTO pdrd.tulis_buku_ajar (id_tulis_buku_ajar, id_katgiat,
+                    id_buku_ajar, id_sdm, id_pd, id_orang, urutan2, afiliasi, peran_tulis,
+                    jns_penulis, nm_pd, nipd, create_date, id_creator, last_update, id_updater, soft_delete, last_sync)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        [
+                            guid(), $id_katgiat, $id_buku_ajar, NULL, $request->id_mahasiswa[$index],
+                            NULL, $request->urutan_mahasiswa[$index], $request->afiliasi_mahasiswa[$index], $request->peran_tulis_mahasiswa[$index],
+                            $request->jns_penulis_mahasiswa[$index], $request->nm_pd_mahasiswa[$index], $request->nipd_mahasiswa[$index], currDateTime(), $creatorId, currDateTime(), $updateId, 0, currDateTime()
+                        ]
+                    );
+                }
+            }
+
+            if (!empty($request->id_orang)) {
+                foreach ($request->id_orang as $index => $id_orang) {
+                    if (is_null($id_orang)) break;
+                    $orang = DB::insert(
+                        "INSERT INTO pdrd.tulis_buku_ajar (id_tulis_buku_ajar, id_katgiat,
+                    id_buku_ajar, id_sdm, id_pd, id_orang, urutan2, afiliasi, peran_tulis,
+                    jns_penulis, nm_pd, nipd, create_date, id_creator, last_update, id_updater, soft_delete, last_sync)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        [
+                            guid(), $id_katgiat, $id_buku_ajar, NULL,
+                            NULL, $request->id_orang[$index], $request->urutan_orang[$index], $request->afiliasi_orang[$index], $request->peran_tulis_orang[$index],
+                            $request->jns_penulis_orang[$index], NULL,  NULL, currDateTime(), $creatorId, currDateTime(), $updateId, 0, currDateTime()
+                        ]
+                    );
+                }
+            }
 
             DB::commit();
-            return response()->json([
-                'success' => true,
-                'message' => 'add data successfully'
-            ], 200);
+            return WrapResponse(['id_buku_ajar' => $id_buku_ajar], 'Buku Ajar Berhasil Ditambahkan', TRUE);
         } catch (\Exception $e) {
             DB::rollback();
-            return response()->json([
-                'success' => false,
-                'message' => 'failed add data'
-            ], 400);
+            return WrapResponse(['id_buku_ajar' => $id_buku_ajar], 'Buku Ajar Gagal Ditambahkan', FALSE);
         }
     }
 
@@ -386,16 +515,122 @@ class BukuAjarController extends Controller
      *      required=true,
      *      description="Mengubah Buku Ajar",
      *      @OA\JsonContent(
-     *          required={"id_jns_bhn_ajar", "id_litabmas", "judul_buku", "penulis", "penerbit", "tgl_terbit"},
-     *          @OA\Property(property="id_jns_bhn_ajar", type="string", format="text", example="1"),
-     *          @OA\Property(property="id_litabmas", type="string", format="text", example="1"),
+     *          required={"id_buku_ajar", "id_litabmas", "judul_buku", "penulis", "penerbit", "tgl_terbit"},
+     *          @OA\Property(property="id_buku_ajar", type="string", format="text", example="5157d30e-e1e7-482a-989c-008524536862"),
+     *          @OA\Property(property="id_litabmas", type="string", format="text", example="bb96579f-e5d4-40d2-81b3-f4886aa32a09"),
      *          @OA\Property(property="judul_buku", type="string", format="text", example="Judul Buku"),
      *          @OA\Property(property="penulis", type="string", format="text", example="Penulis"),
      *          @OA\Property(property="penerbit", type="string", format="text", example="Penerbit"),
      *          @OA\Property(property="isbn", type="string", format="text", example="1"),
      *          @OA\Property(property="tgl_terbit", type="date", format="date", example="2022-01-25"),
-     *          @OA\Property(property="sk_tugas", type="string", format="text", example="1"),
+     *          @OA\Property(property="sk_tugas", type="string", format="text", example="SK TUGAS"),
      *          @OA\Property(property="tgl_sk_tugas", type="date", format="date", example="2022-01-25"),
+     *
+     *                 @OA\Property(
+     *                     property="id_dosen",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="9c466255-68e3-4476-97a4-a42ced793202"),
+     *                 ),
+     *                  @OA\Property(
+     *                     property="urutan_dosen",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="1"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="afiliasi_dosen",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="Universitas Lampung"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="peran_tulis_dosen",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="A"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="jns_penulis_dosen",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="1"),
+     *                 ),
+     *
+     *                 @OA\Property(
+     *                     property="id_mahasiswa",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="faae58b0-d2b2-4b88-9966-0000458f9fcd"),
+     *                 ),
+     *                  @OA\Property(
+     *                     property="urutan_mahasiswa",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="1"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="afiliasi_mahasiswa",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="Universitas Lampung"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="peran_tulis_mahasiswa",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="A"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="jns_penulis_mahasiswa",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="1"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="nm_pd_mahasiswa",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="Nama Mahasiswa"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="nipd_mahasiswa",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     nullable="true",
+     *                     @OA\Items(type="string", format="string", example="null"),
+     *                 ),
+     *
+     *                 @OA\Property(
+     *                     property="id_orang",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="9878daeb-7c52-41be-afa0-28bd6f6c6ddf"),
+     *                 ),
+     *                  @OA\Property(
+     *                     property="urutan_orang",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="1"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="afiliasi_orang",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="Universitas Lampung"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="peran_tulis_orang",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="A"),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="jns_penulis_orang",
+     *                     type="array",
+     *                     collectionFormat="multi",
+     *                     @OA\Items(type="string", format="string", example="1"),
+     *                 ),
      *          ),
      *      ),
      *      @OA\Response(
@@ -415,37 +650,77 @@ class BukuAjarController extends Controller
      */
     public function update(Request $request)
     {
+        $id_updater = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
+        $id_katgiat = 110801;
+        $id_jns_bhn_ajar = 1;
+        $id_kat_capaian = 5;
+
         DB::beginTransaction();
         try {
-            DB::update("UPDATE pdrd.buku_ajar SET id_kat_capaian = ?,
-            SET id_jns_bhn_ajar = ?, SET id_litabmas = ?, SET judul_buku = ?,
-            SET penulis = ?, SET penerbit = ?, SET isbn = ?, SET tgl_terbit = ?, SET sk_tugas = ?,
-            SET tgl_sk_tugas = ? WHERE id_buku_ajar = ?", [
-                $request->id_kat_capaian,
-                $request->id_jns_bhn_ajar, $request->id_litabmas, $request->judul_buku,
+            $buku = DB::update("UPDATE pdrd.buku_ajar SET id_kat_capaian = ?,
+             id_jns_bhn_ajar = ?, id_litabmas = ?, judul_buku = ?,
+             penulis = ?, penerbit = ?, isbn = ?, tgl_terbit = ?, sk_tugas = ?,
+             tgl_sk_tugas = ?, last_update = ?, id_updater = ? WHERE id_buku_ajar = ?", [
+                $id_kat_capaian, $id_jns_bhn_ajar, $request->id_litabmas, $request->judul_buku,
                 $request->penulis, $request->penerbit, $request->isbn, $request->tgl_terbit,
-                $request->sk_tugas, $request->tgl_sk_tugas, $request->id_buku_ajar
+                $request->sk_tugas, $request->tgl_sk_tugas, currDateTime(), $id_updater, $request->id_buku_ajar
             ]);
-
-            DB::update("UPDATE pdrd.tulis_buku_ajar SET id_buku_ajar = ?, SET id_sdm = ?,
-            SET id_pd = ?, SET id_orang = ?, SET urutan2 = ?, SET afiliasi = ?, SET peran_tulis = ?,
-            SET jns_penulis = ?, SET nm_pd = ?, SET nipd = ? WHERE id_tulis_buku_ajar = ?", [
-                $request->id_buku_ajar,
-                $request->id_sdm, $request->id_pd, $request->id_orang, $request->urutan2, $request->afiliasi,
-                $request->peran_tulis, $request->jns_penulis, $request->nm_pd, $request->nipd, $request->id_tulis_buku_ajar
-            ]);
-
+            if (!empty($request->id_dosen)) {
+                foreach ($request->id_dosen as $index => $id_dosen) {
+                    if (is_null($id_dosen)) break;
+                    $dosen = DB::insert(
+                        "UPDATE pdrd.tulis_buku_ajar SET  id_katgiat = ?,
+                    id_sdm = ?, id_pd = NULL, id_orang = NULL, urutan2 = ?, afiliasi = ?, peran_tulis = ?,
+                    jns_penulis = ?, nm_pd = NULL, nipd = NULL, last_update = ?, id_updater= ?, soft_delete = 0
+                    WHERE id_buku_ajar = ? AND id_sdm =  ?",
+                        [
+                            $id_katgiat, $request->id_dosen[$index], $request->urutan_dosen[$index], $request->afiliasi_dosen[$index],
+                            $request->peran_tulis_dosen[$index], $request->jns_penulis_dosen[$index], currDateTime(), $id_updater,
+                            $request->id_buku_ajar, $request->id_dosen[$index]
+                        ]
+                    );
+                }
+            }
+            if (!empty($request->id_mahasiswa)) {
+                foreach ($request->id_mahasiswa as $index => $id_mahasiswa) {
+                    if (is_null($id_mahasiswa)) break;
+                    $mahasiswa = DB::insert(
+                        "UPDATE pdrd.tulis_buku_ajar SET  id_katgiat = ?,
+                    id_sdm = NULL, id_pd = ?, id_orang = NULL, urutan2 = ?, afiliasi = ?, peran_tulis = ?,
+                    jns_penulis = ?, nm_pd = ?, nipd = ?, last_update = ?, id_updater= ?, soft_delete = 0
+                    WHERE id_buku_ajar = ? AND id_sdm =  ?",
+                        [
+                            $id_katgiat, $request->id_mahasiswa[$index], $request->urutan_mahasiswa[$index],
+                            $request->afiliasi_mahasiswa[$index], $request->peran_tulis_mahasiswa[$index],
+                            $request->jns_penulis_mahasiswa[$index], $request->nm_pd_mahasiswa[$index], $request->nipd_mahasiswa[$index],
+                            currDateTime(), $id_updater, $request->id_buku_ajar,
+                            $request->id_mahasiswa[$index]
+                        ]
+                    );
+                }
+            }
+            if (!empty($request->id_orang)) {
+                foreach ($request->id_orang as $index => $id_orang) {
+                    if (is_null($id_orang)) break;
+                    $orang = DB::insert(
+                        "UPDATE pdrd.tulis_buku_ajar SET  id_katgiat = ?,
+                    id_sdm = NULL, id_pd = NULL, id_orang = ?, urutan2 = ?, afiliasi = ?, peran_tulis = ?,
+                    jns_penulis = ?, nm_pd = NULL, nipd = NULL, last_update = ?, id_updater= ?, soft_delete = 0
+                    WHERE id_buku_ajar = ? AND id_sdm =  ?",
+                        [
+                            $id_katgiat, $request->id_orang[$index], $request->urutan_orang[$index],
+                            $request->afiliasi_orang[$index], $request->peran_tulis_orang[$index],
+                            $request->jns_penulis_orang[$index], currDateTime(), $id_updater,
+                            $request->id_buku_ajar, $request->id_orang[$index]
+                        ]
+                    );
+                }
+            }
             DB::commit();
-            return response()->json([
-                'success' => true,
-                'message' => 'updated data successfully'
-            ], 200);
+            return WrapResponse(['id_buku_ajar' => $request->id_buku_ajar], 'Buku Ajar Berhasil Diubah', TRUE);
         } catch (\Exception $e) {
             DB::rollback();
-            return response()->json([
-                'success' => false,
-                'message' => 'failed updated data'
-            ], 400);
+            return WrapResponse(['id_buku_ajar' => $request->id_buku_ajar], 'Buku Ajar Gagal Diubah', FALSE);
         }
     }
 
@@ -486,16 +761,10 @@ class BukuAjarController extends Controller
             DB::update("UPDATE pdrd.buku_ajar SET soft_delete = 1 WHERE id_buku_ajar = ?", [$request->id_buku_ajar]);
             DB::update("UPDATE pdrd.tulis_buku_ajar SET soft_delete = 1 WHERE id_buku_ajar = ?", [$request->id_buku_ajar]);
             DB::commit();
-            return response()->json([
-                'success' => true,
-                'message' => 'deleted data successfully'
-            ], 200);
+            return WrapResponse(['id_buku_ajar' => $request->id_buku_ajar], 'Buku Ajar Berhasil Dihapus', FALSE);
         } catch (\Exception $e) {
             DB::rollback();
-            return response()->json([
-                'success' => false,
-                'message' => 'failed deleted data'
-            ], 400);
+            return WrapResponse(['id_buku_ajar' => $request->id_buku_ajar], 'Buku Ajar Gagal Dihapus', FALSE);
         }
     }
 }
