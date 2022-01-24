@@ -42,7 +42,7 @@ class UmrController extends Controller
     public function index()
     {
         $data_umr = DB::SELECT("
-            SELECT 5
+            SELECT
                 umr.id_umr_wil, wil.nm_wil, ta.id_tahun_anggaran,
                 umr.besaran_umr, umr.create_date AS waktu_data_ditambahkan,
                 umr.last_update AS terakhir_diubah
@@ -66,6 +66,12 @@ class UmrController extends Controller
             ];
         }
 
+        if (empty($data)) {
+            return response()->json([
+                'status' => False,
+                'message' => "Data tidak ditemukan"
+            ]);
+        }
 
         return response()->json([
             'status' => true,
@@ -87,7 +93,7 @@ class UmrController extends Controller
 
     /**
      * @OA\Post(
-     *      path="/tracer_study/umr_wilayah/add",
+     *      path="/tracer_study/umr_wilayah/tambah",
      *      operationId="postTracerStudy",
      *      tags={"Tracer Study"},
      *      summary="Menambahkan data umr wilayah",
@@ -200,11 +206,30 @@ class UmrController extends Controller
 
      /**
      * @OA\Put(
-     *      path="/tracer_study/umr_wilayah/update",
-     *      operationId="postTracerStudy",
+     *      path="/tracer_study/umr_wilayah/ubah",
+     *      operationId="postUmrWilayah",
      *      tags={"Tracer Study"},
-     *      summary="Update data umr wilayah",
+     *      summary="Ubah data umr wilayah",
      *      description="Memperbaharui data umr wilayah",
+     *    @OA\RequestBody(
+     *         @OA\MediaType(
+     *             mediaType="applicatin/json",
+     *             @OA\Schema(
+     *                 @OA\Property(
+     *                     property="id_umr_wil",
+     *                     type="string",
+     *                     format="number",
+     *                     example="737116AB-29DE-47A5-BE15-19A30701F653"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="besaran_umr",
+     *                     type="string",
+     *                     format="number",
+     *                     example="2770794"
+     *                 )
+     *              )
+     *          )
+     *      ),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -235,8 +260,6 @@ class UmrController extends Controller
 
             $data_umr = UmrWilayah::where('id_umr_wil', $request->id_umr_wil)->first();
             $data_umr->update([
-                'id_wil' => $request->id_wil,
-                'id_tahung_anggaran' => $request->id_tahung_anggaran,
                 'besaran_umr' => $request->besaran_umr,
                 'create_date' => currDateTime(),
                 'last_update' => currDateTime(),
@@ -262,7 +285,7 @@ class UmrController extends Controller
 
      /**
      * @OA\Delete(
-     *      path="/tracer_study/umr_wilayah/delete",
+     *      path="/tracer_study/umr_wilayah/hapus",
      *      operationId="delete umr wilayah",
      *      tags={"Tracer Study"},
      *      summary="Menghapus data umr wilayah",

@@ -144,7 +144,7 @@ Route::group([
         });
 
         Route::prefix('mahasiswa')->group(function () {
-            Route::get('list_mahasiswa', 'MahasiswaController@list');
+            Route::post('list_mahasiswa', 'MahasiswaController@list');
             Route::post('detail', 'MahasiswaController@detail');
             Route::post('list_status', 'MahasiswaController@status');
             Route::post('list_regis', 'MahasiswaController@regis');
@@ -167,14 +167,14 @@ Route::group([
         'prefix' => 'tracer_study'
     ], function () {
         Route::get('umr_wilayah', 'UmrController@index');
-        Route::post('umr_wilayah/add', 'UmrController@store');
-        Route::put('umr_wilayah/update', 'UmrController@update');
-        Route::delete('umr_wilayah/delete', 'UmrController@destroy');
+        Route::post('umr_wilayah/tambah', 'UmrController@store');
+        Route::put('umr_wilayah/ubah', 'UmrController@update');
+        Route::delete('umr_wilayah/hapus', 'UmrController@destroy');
 
         Route::get('list', 'TracerStudyController@index');
-        Route::post('add', 'TracerStudyController@store');
-        Route::put('update', 'TracerStudyController@update');
-        Route::delete('delete', 'TracerStudyController@destroy');
+        Route::post('tambah', 'TracerStudyController@store');
+        Route::put('ubah', 'TracerStudyController@update');
+        Route::delete('hapus', 'TracerStudyController@destroy');
     });
 
     // Route::get('buku_ajar', 'Tridarma\BukuAjarController@index');

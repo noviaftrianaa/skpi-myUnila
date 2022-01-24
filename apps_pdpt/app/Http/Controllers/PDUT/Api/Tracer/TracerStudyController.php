@@ -143,6 +143,13 @@ class TracerStudyController extends Controller
             ];
         }
 
+        if (empty($data)) {
+            return response()->json([
+                'status' => False,
+                'message' => "Data tidak ditemukan"
+            ]);
+        }
+
 
         return response()->json([
             'status' => true,
@@ -163,7 +170,7 @@ class TracerStudyController extends Controller
 
     /**
      * @OA\Post(
-     *      path="/tracer_study/add",
+     *      path="/tracer_study/tambah",
      *      operationId="postTracerStudy",
      *      tags={"Tracer Study"},
      *      summary="Simpan hasil Tracer Study",
@@ -312,7 +319,7 @@ class TracerStudyController extends Controller
 
     /**
      * @OA\Put(
-     *      path="/tracer_study/update",
+     *      path="/tracer_study/ubah",
      *      operationId="putHasilTracerStudy",
      *      tags={"Tracer Study"},
      *      summary="Memperbaharui hasil Tracer Study Atasan",
@@ -396,7 +403,7 @@ class TracerStudyController extends Controller
 
     /**
      * @OA\Delete(
-     *      path="/tracer_study/delete",
+     *      path="/tracer_study/hapus",
      *      operationId="deleteTracerStudy",
      *      tags={"Tracer Study"},
      *      summary="Menghapus hasil Tracer Study",

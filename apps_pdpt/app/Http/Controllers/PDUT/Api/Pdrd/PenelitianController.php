@@ -346,7 +346,7 @@ class PenelitianController extends Controller
 
             $query = "
                 SELECT
-                    pal.id_pd_ang_litabmas AS id_anggota_mahasiswa,  
+                    pal.id_pd_ang_litabmas AS id_anggota_mahasiswa,
                     pd.nm_pd AS nama_mahasiswa,
                     pal.peran_litabmas AS peran_mahasiswa,
                     pal.stat_aktif AS keaktifan
