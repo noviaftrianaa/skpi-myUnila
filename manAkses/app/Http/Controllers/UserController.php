@@ -240,7 +240,7 @@ class UserController extends Controller
         $array = $request->all();
         $role = RolePengguna::where('id_pengguna', Auth::user()->id_pengguna)->where('id_peran',$array['id_peran'])->first();
         session()->put('login.role', $role);
-        return redirect()->back();
+        return redirect()->to('/');
     }
 
     public function password(Request $request)
