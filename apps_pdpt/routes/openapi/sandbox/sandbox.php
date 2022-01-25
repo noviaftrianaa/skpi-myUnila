@@ -21,7 +21,6 @@ Route::group([
     'middleware' => ['openapi_sandbox']
 ], function () {
 
-    // TESTING
     Route::post('auth/login', 'LoginController@login');
     Route::post('auth/token', 'LoginController@token');
 
@@ -104,7 +103,12 @@ Route::group([
 
         Route::prefix('dosen')->group(function () {
             Route::get('/list', 'SdmDosenController@list');
-            Route::get('/detail', 'SdmDosenController@detail');
+            Route::post('/detail', 'SdmDosenController@detail');
+        });
+
+        Route::prefix('tendik')->group(function () {
+            Route::get('/list', 'SdmTendikController@list');
+            Route::get('/detail', 'SdmTendikController@detail');
         });
 
         Route::prefix('buku_ajar')->group(function () {
@@ -175,9 +179,6 @@ Route::group([
         Route::put('ubah', 'TracerStudyController@update');
         Route::delete('hapus', 'TracerStudyController@destroy');
     });
-
-    // Route::get('buku_ajar', 'Tridarma\BukuAjarController@index');
-    // Route::post('buku_ajar/simpan', 'Tridarma\BukuAjarController@store');
 });
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

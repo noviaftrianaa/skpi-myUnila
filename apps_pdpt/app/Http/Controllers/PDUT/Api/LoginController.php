@@ -46,10 +46,10 @@ class LoginController extends Controller
             'username'    => 'required',
             'password'    => 'required'
         ], [
-            'id_aplikasi.required'  => 'Id aplikasi harus diisi.',
-            'id_aplikasi.uuid'      => 'Id aplikasi harus berupa UUID yang valid.',
-            'username.required'     => 'Username harus diisi.',
-            'password.required'     => 'Password harus diisi.'
+            'id_aplikasi.required'  => 'id aplikasi harus diisi.',
+            'id_aplikasi.uuid'      => 'id aplikasi harus berupa UUID yang valid.',
+            'username.required'     => 'username harus diisi.',
+            'password.required'     => 'password harus diisi.'
         ]);
 
         $origin      = $request->getSchemeAndHttpHost();
@@ -62,13 +62,13 @@ class LoginController extends Controller
             SELECT apk.id_aplikasi, apk.url FROM man_akses.aplikasi AS apk
             WHERE apk.id_aplikasi = ?", [$id_aplikasi]);
             if (empty($apk)) {
-                return WrapResponse([], 'Id aplikasi tidak terdaftar.', FALSE);
+                return WrapResponse([], 'id aplikasi tidak terdaftar.', FALSE);
             }
             // if ($apk[0]->url != $origin) {
             //     return WrapResponse([], 'Domain aplikasi tidak terdaftar.', FALSE);
             // }
         } catch (\Throwable $th) {
-            return WrapResponse([], 'Id aplikasi tidak ditemukan.', FALSE);
+            return WrapResponse([], 'id aplikasi tidak ditemukan.', FALSE);
         }
 
         try {
@@ -79,7 +79,7 @@ class LoginController extends Controller
                 return WrapResponse([], 'username atau password tidak valid.', FALSE);
             }
         } catch (\Throwable $th) {
-            return WrapResponse([], 'Pengguna tidak ditemukan.', FALSE);
+            return WrapResponse([], 'pengguna tidak ditemukan.', FALSE);
         }
 
         try {
@@ -90,7 +90,7 @@ class LoginController extends Controller
                 return WrapResponse([], 'pengguna tidak terdaftar sebagai penanggung jawab aplikasi.', FALSE);
             }
         } catch (\Throwable $th) {
-            return WrapResponse([], 'Pengguna bukan penanggung jawab aplikasi.', FALSE);
+            return WrapResponse([], 'pengguna bukan penanggung jawab aplikasi.', FALSE);
         }
 
         try {
