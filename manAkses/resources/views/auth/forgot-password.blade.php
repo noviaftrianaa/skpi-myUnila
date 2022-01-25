@@ -12,7 +12,11 @@
 
         <div class="card-mobile d-flex flex-column">
             <div class="input-field d-flex flex-column">
-                <form action="" method="post">
+                Silahkan Hubungi Helpdesk Universitas Lampung untuk Meminta Reset Password<br>
+                <div class="mt-4 text-center">
+                    <a href="http://helpdesktik.unila.ac.id" title="Helpdesk TIK Universitas Lampung" type="button" class="btn btn-primary" target=new>Helpdesk TIK Universitas Lampung</a>
+                </div>
+                <!-- <form action="" method="post">
                     {!! csrf_field() !!}
                     <div class="mt-3">
                         <input type="email" name="username" class="form-control text-center" placeholder="Masukkan Email Anda" required focuses>
@@ -22,8 +26,8 @@
                             <i class="fa fa-arrow-circle-right"></i>&nbsp;Submit
                         </a>
                     </div>
-                </form>
-                <div class="mt-4 text-center">Kembali Ke Halaman <a href="{{ route('auth.login') }}" title="Login">Login</a></div>
+                </form> -->
+                <div class="mt-4 text-center">Kembali Ke Halaman<a href="{{ route('auth.login') }}" title="Login" type="button" class="btn btn-warning">Login</a></div>
                 <div class="mt-4 text-muted text-center">Situs ini dikelola oleh Tim <a href="http://tik.unila.ac.id" title="">TIK Universitas Lampung</a></div>
             </div>
         </div>

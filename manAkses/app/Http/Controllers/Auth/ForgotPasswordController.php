@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\SendsPasswordResetEmails;
-use App\Models\Login;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -37,10 +37,10 @@ class ForgotPasswordController extends Controller
     public function create(Request $request)
     {
         $email = $request->username;
-        $data = Login::where('username', $email)->first();
+        $data = User::where('username', $email)->first();
 
         if (is_null($data)) {
-            alert()->error('Email anda <b>'.$request->username.'</b><br>tidak terdaftar di Aplikasi Palaseko.Id.','Forgot Password Gagal!')->persistent("OK")->html(true);
+            alert()->error('Email anda <b>'.$request->username.'</b><br>tidak terdaftar di Universitas Lampung','Forgot Password Gagal!')->persistent("OK")->html(true);
         } else {
             $waktu_expired = date("Y-m-d H:i:s", strtotime("+30 minutes"));
 
@@ -60,12 +60,10 @@ class ForgotPasswordController extends Controller
     public function show($id)
     {
         $data = Crypt::decrypt($id);
-        $pengguna = Login::where('username', $data['email'])->first();
+        $pengguna = User::where('username', $data['email'])->first();
         if ($data['created']<=currDateTime() && $data['expired']>=currDateTime() && !is_null($pengguna)) {
 
-            $pwd = Str::random(8);
-
-            $pengguna->password = sha1($pwd);
+            $pengguna->password = sha1('unilajaya');
             $pengguna->save();
 
             Mail::to($pengguna->username)->send(new InformasiAkun($pengguna, $pwd));

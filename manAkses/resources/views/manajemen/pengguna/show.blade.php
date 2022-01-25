@@ -19,7 +19,7 @@
                         {!! tablerow('Alamat',$data->alamat) !!}
                         {!! tablerow('Tempat Lahir',$data->tempat_lahir) !!}
                         {!! tablerow('Tgl Lahir',$data->tgl_lahir) !!}
-                        {!! tablerow('Jenis Kelamin', ($data->jenis_kelamin=="l") ? "Laki-laki" : "Perempuan") !!}
+                        {!! tablerow('Jenis Kelamin', ($data->jenis_kelamin=="L") ? "Laki-laki" : "Perempuan") !!}
                         {!! tablerow('Jabatan',$data->jabatan) !!}
                         {!! tablerow('No. Telepon',$data->no_tel) !!}
                         {!! tablerow('No. HP',$data->no_hp) !!}

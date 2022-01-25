@@ -5003,12 +5003,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/muhammadikhsan94/sso-unila.git",
-                "reference": "47b1700dbb0054fdaffa1315bde9f77384516e6c"
+                "reference": "a52eeb99ca19b73a8daa6365d5cb4950a7d5bcce"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/muhammadikhsan94/sso-unila/zipball/47b1700dbb0054fdaffa1315bde9f77384516e6c",
-                "reference": "47b1700dbb0054fdaffa1315bde9f77384516e6c",
+                "url": "https://api.github.com/repos/muhammadikhsan94/sso-unila/zipball/a52eeb99ca19b73a8daa6365d5cb4950a7d5bcce",
+                "reference": "a52eeb99ca19b73a8daa6365d5cb4950a7d5bcce",
                 "shasum": ""
             },
             "require": {
@@ -5042,7 +5042,7 @@
                 "issues": "https://github.com/muhammadikhsan94/sso-unila/issues",
                 "source": "https://github.com/muhammadikhsan94/sso-unila/tree/master"
             },
-            "time": "2022-01-14T02:25:13+00:00"
+            "time": "2022-01-25T01:43:06+00:00"
         },
         {
             "name": "uxweb/sweet-alert",

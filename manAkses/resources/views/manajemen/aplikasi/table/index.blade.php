@@ -18,7 +18,7 @@
                             <th>No.</th>
                             <th>Skema Table</th>
                             <th>Nama Table</th>
-                            <th>Bisa ?</th>
+                            <th>Akses Table ?</th>
                             <th>Expired Date</th>
                             <th>Last Sync</th>
                             <th>Aksi</th>
