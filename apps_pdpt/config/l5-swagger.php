@@ -11,6 +11,12 @@ return [
                 'api' => 'api/sandbox/0.1',
                 'docs' => 'sandbox',
                 'oauth2_callback' => 'api/sandbox/oauth2-callback',
+                'middleware' => [
+                    'api' => ['openapi_sandbox'],
+                    'asset' => [],
+                    'docs' => [],
+                    'oauth2_callback' => [],
+                ],
             ],
             'paths' => [
                 'docs' => storage_path('api-docs'),
@@ -40,6 +46,12 @@ return [
                 'api' => 'api/live/0.1',
                 'docs' => 'live',
                 'oauth2_callback' => 'api/live/oauth2-callback',
+                'middleware' => [
+                    'api' => ['openapi_live'],
+                    'asset' => [],
+                    'docs' => [],
+                    'oauth2_callback' => [],
+                ],
             ],
             'paths' => [
                 'docs' => storage_path('api-docs'),
@@ -58,7 +70,7 @@ return [
             'validator_url' => null,
             'persist_authorization' => true,
             'constants' => [
-                'L5_SWAGGER_CONST_HOST_PRODUCTION' => env('L5_SWAGGER_CONST_HOST_PRODUCTION', 'http://onedata.unila.ac.id'),
+                'L5_SWAGGER_CONST_HOST_LIVE' => env('L5_SWAGGER_CONST_HOST_LIVE', 'http://onedata.unila.ac.id'),
             ]
         ],
     ]

@@ -15,7 +15,7 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'mysql'),
+    'default' => env('DB_CONNECTION', 'sqlsrv_sandbox'),
 
     /*
     |--------------------------------------------------------------------------
@@ -106,14 +106,27 @@ return [
             'prefix_indexes' => true,
         ],
 
+        'sqlsrv_live' => [
+            'driver' => 'sqlsrv',
+            'url' => env('DATABASE_URL'),
+            'host' => env('DB_LIVE_HOST', 'localhost'),
+            'port' => env('DB_LIVE_PORT', '1433'),
+            'database' => env('DB_LIVE_DATABASE', 'forge'),
+            'username' => env('DB_LIVE_USERNAME', 'forge'),
+            'password' => env('DB_LIVE_PASSWORD', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+        ],
+
         'sqlsrv_sandbox' => [
             'driver' => 'sqlsrv',
             'url' => env('DATABASE_URL'),
-            'host' => env('DB_HOST', 'localhost'),
-            'port' => env('DB_PORT', '1433'),
-            'database' => env('DB_DATABASE_SANDBOX', 'forge'),
-            'username' => env('DB_USERNAME', 'forge'),
-            'password' => env('DB_PASSWORD', ''),
+            'host' => env('DB_SANDBOX_HOST', 'localhost'),
+            'port' => env('DB_SANDBOX_PORT', '1433'),
+            'database' => env('DB_SANDBOX_DATABASE', 'forge'),
+            'username' => env('DB_SANDBOX_USERNAME', 'forge'),
+            'password' => env('DB_SANDBOX_PASSWORD', ''),
             'charset' => 'utf8',
             'prefix' => '',
             'prefix_indexes' => true,

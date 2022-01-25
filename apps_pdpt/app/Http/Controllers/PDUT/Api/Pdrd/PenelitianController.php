@@ -13,7 +13,6 @@ use App\Models\PDUT\Pdrd\SdmAnggotaLitabmas;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 
 use Illuminate\Http\Request;
@@ -48,18 +47,21 @@ class PenelitianController extends Controller
     }
 
     /**
-     * @OA\Get(
-     *      path="/penelitian/list/{sortby}",
+     * @OA\Post(
+     *      path="/penelitian/list",
      *      operationId="getListPenelitian",
      *      tags={"Penelitian"},
      *      summary="Dapatkan daftar Penelitian",
      *      description="Menampilkan daftar data Penelitian",
-     *      @OA\Parameter(
-     *         description="Sorting Data Penelitian",
-     *         in="path",
-     *         name="sortby",
-     *         @OA\Schema(type="string"),
-     *       ),
+     *      @OA\RequestBody(
+     *      required=true,
+     *      description="Daftar Penelitian Berdasarkan",
+     *      @OA\JsonContent(
+     *          @OA\Property(property="sortby", type="string", format="text", example="DESC"),
+     *          @OA\Property(property="page", type="integer", format="text", example="1"),
+     *          @OA\Property(property="count", type="integer", format="text", example="10")
+     *          ),
+     *      ),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -75,14 +77,15 @@ class PenelitianController extends Controller
      *      security={{"bearer_token":{}}}
      *     )
      */
-    public function getAllListPenelitian($sortby)
+    public function getAllListPenelitian()
     {
-        request()->merge(['sortby' => $sortby]);
         InputValidator([
             'sortby' => [
                 'alpha',
                 ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])
-            ]
+            ],
+            'page' => 'numeric',
+            'count' => 'numeric'
         ]);
 
         if (empty($sortby)) {
@@ -96,7 +99,7 @@ class PenelitianController extends Controller
 
         $query = "
             SELECT
-                TOP 50 lm.id_litabmas AS id_penelitian,
+                lm.id_litabmas AS id_penelitian,
                 lm.judul_litabmas AS judul_penelitian,
                 kb.nm_kel_bidang AS bidang_keilmuan,
                 lm.id_thn_laks AS tahun_pelaksanaan,
@@ -121,30 +124,32 @@ class PenelitianController extends Controller
             ORDER BY lm.id_thn_laks " . $sortby . "
         ";
 
-        $this->getAllListPenelitian = Cache::remember(__FUNCTION__, $this->cacheLifeTime, function () use ($query) {
-            $query = DB::select($query);
-            if (empty($query)) {
-                return [];
-            }
+        $pagination = CustomPagination($query);
+        $query = $pagination['query'];
 
-            $data = [];
-            foreach ($query as $value) {
-                $data[] = [
-                    'id_penelitian' => $value->id_penelitian,
-                    'judul_penelitian' => $value->judul_penelitian,
-                    'bidang_keilmuan' => $value->bidang_keilmuan,
-                    'tahun_pelaksanaan' => $value->tahun_pelaksanaan,
-                    'lama_kegiatan' => $value->lama_kegiatan,
-                    'waktu_data_ditambahkan' => date('Y-m-d H:i:s', strtotime($value->waktu_data_ditambahkan)),
-                    'terakhir_diubah' => date('Y-m-d H:i:s', strtotime($value->terakhir_diubah))
-                ];
-            }
-            return $data;
-        });
+        $query = DB::select($query);
+        if (empty($query)) {
+            return WrapResponse([], 'tidak ditemukan penelitian', FALSE);
+        }
 
-        $data = $this->getAllListPenelitian;
+        $data = [];
+        foreach ($query as $value) {
+            $data[] = [
+                'id_penelitian' => $value->id_penelitian,
+                'judul_penelitian' => $value->judul_penelitian,
+                'bidang_keilmuan' => $value->bidang_keilmuan,
+                'tahun_pelaksanaan' => $value->tahun_pelaksanaan,
+                'lama_kegiatan' => $value->lama_kegiatan,
+                'waktu_data_ditambahkan' => date('Y-m-d H:i:s', strtotime($value->waktu_data_ditambahkan)),
+                'terakhir_diubah' => date('Y-m-d H:i:s', strtotime($value->terakhir_diubah))
+            ];
+        }
 
-        return WrapResponse(compact('data'), 'sukses');
+        return WrapResponse([
+            'page' => $pagination['page'],
+            'count' => $pagination['count'],
+            'data' => $data
+        ], 'sukses');
     }
 
     /**
@@ -160,7 +165,9 @@ class PenelitianController extends Controller
      *      @OA\JsonContent(
      *          required={"sdmid"},
      *          @OA\Property(property="sdmid", type="string", format="text", example="bcb6de9a-2e7c-43c7-b192-029750754fe7"),
-     *          @OA\Property(property="sortby", type="string", format="text", example="DESC")
+     *          @OA\Property(property="sortby", type="string", format="text", example="DESC"),
+     *          @OA\Property(property="page", type="integer", format="text", example="1"),
+     *          @OA\Property(property="count", type="integer", format="text", example="10")
      *          ),
      *      ),
      *      @OA\Response(
@@ -198,7 +205,7 @@ class PenelitianController extends Controller
 
         $query = "
             SELECT
-                TOP 50 litabmas.id_litabmas AS id_penelitian,
+                litabmas.id_litabmas AS id_penelitian,
                 litabmas.judul_litabmas AS judul_penelitian,
                 kb.nm_kel_bidang AS bidang_keilmuan,
                 CONCAT(
@@ -225,6 +232,9 @@ class PenelitianController extends Controller
                 litabmas.id_thn_laks " . $sortBy . "
         ";
 
+        $pagination = CustomPagination($query);
+        $query = $pagination['query'];
+
         $query = DB::select($query);
         if (empty($query)) {
             return WrapResponse([], "tidak ditemukan data penelitian dari sdm id $sdmId", FALSE);
@@ -243,7 +253,11 @@ class PenelitianController extends Controller
             ];
         }
 
-        return WrapResponse(compact('data'), 'sukses');
+        return WrapResponse([
+            'page' => $pagination['page'],
+            'count' => $pagination['count'],
+            'data' => $data
+        ], 'sukses');
     }
 
     /**
@@ -317,6 +331,9 @@ class PenelitianController extends Controller
                     AND litabmas.soft_delete = 0
             ";
             $getDetailPenelitian = DB::select($query, [$penelitianId]);
+            if (empty($getDetailPenelitian)) {
+                return WrapResponse([], "penelitian $penelitianId tidak ditemukan", FALSE);
+            }
             foreach ($getDetailPenelitian as $value) {
                 $reformatGetDetailPenelitian = [
                     'tahun_anggaran' => $value->tahun_anggaran,
@@ -610,10 +627,10 @@ class PenelitianController extends Controller
     {
         InputValidator([
             'judul_kegiatan' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
-            'afiliasi' => 'required|regex:/^[a-z0-9\-]+$/',
-            'kel_bidang' => 'nullable|regex:/^[a-z0-9\-]+$/',
-            'litabmas_lanjutan' => 'nullable|regex:/^[a-z0-9\-]+$/',
-            'jenis_skim' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'afiliasi' => 'required|uuid',
+            'kel_bidang' => 'nullable|uuid',
+            'litabmas_lanjutan' => 'nullable|uuid',
+            'jenis_skim' => 'nullable|uuid',
             'lokasi_kegiatan' => 'nullable|string',
             'tahun_usulan' => 'required|date_format:Y',
             'tahun_pelaksanaan' => 'required|date_format:Y',
@@ -622,7 +639,7 @@ class PenelitianController extends Controller
             'dana_dikti' => 'required|numeric|gte:0',
             'dana_pt' => 'required|numeric|gte:0',
             'dana_institusi_lain' => 'required|numeric|gte:0',
-            'in_kind' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'in_kind' => 'nullable|uuid',
             'no_sk_penugasan' => 'nullable|regex:/^[A-Z0-9\/\.]+$/',
             'tgl_sk_penugasan' => 'nullable|date_format:Y-m-d',
             'dok_penelitian.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx,txt|max:2048',
@@ -630,13 +647,13 @@ class PenelitianController extends Controller
             'keterangan_dok.*' => 'required_with:dok_penelitian|string',
             'jenis_dok.*' => 'nullable|numeric',
             'url_dok.*' => 'nullable|url',
-            'anggota_dosen.*' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'anggota_dosen.*' => 'nullable|uuid',
             'peran_dosen.*' => ['alpha', 'nullable', ValidationRule::in(['A', 'K'])],
             'status_dosen.*' => ['numeric', 'nullable', ValidationRule::in(['0', '1'])],
-            'anggota_mahasiswa.*' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'anggota_mahasiswa.*' => 'nullable|uuid',
             'peran_mahasiswa.*' => ['alpha', 'nullable', ValidationRule::in(['A', 'K'])],
             'status_mahasiswa.*' => ['numeric', 'nullable', ValidationRule::in(['0', '1'])],
-            'anggota_non_ca.*' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'anggota_non_ca.*' => 'nullable|uuid',
             'peran_non_ca.*' => ['alpha', 'nullable', ValidationRule::in(['A', 'K'])],
             'status_non_ca.*' => ['numeric', 'nullable', ValidationRule::in(['0', '1'])]
         ]);
@@ -667,7 +684,7 @@ class PenelitianController extends Controller
         $no_sk_penugasan = $this->request->input('no_sk_penugasan');
         $tgl_sk_penugasan = $this->request->input('tgl_sk_penugasan');
 
-        $dok_penelitian = $this->request->input('dok_penelitian');
+        $dok_penelitian = $this->request->file('dok_penelitian');
         $nama_dok = $this->request->input('nama_dok');
         $keterangan_dok = $this->request->input('keterangan_dok');
         $jenis_dok = $this->request->input('jenis_dok');
@@ -867,12 +884,12 @@ class PenelitianController extends Controller
     public function updatePenelitian()
     {
         InputValidator([
-            'id_penelitian' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
+            'id_penelitian' => 'required|uuid',
             'judul_kegiatan' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
-            'afiliasi' => 'required|regex:/^[a-z0-9\-]+$/',
-            'kel_bidang' => 'regex:/^[a-z0-9\-]+$/',
-            'litabmas_lanjutan' => 'nullable|regex:/^[a-z0-9\-]+$/',
-            'jenis_skim' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'afiliasi' => 'required|uuid',
+            'kel_bidang' => 'uuid',
+            'litabmas_lanjutan' => 'nullable|uuid',
+            'jenis_skim' => 'nullable|uuid',
             'lokasi_kegiatan' => 'string',
             'tahun_usulan' => 'required|date_format:Y',
             'tahun_pelaksanaan' => 'required|date_format:Y',
@@ -881,7 +898,7 @@ class PenelitianController extends Controller
             'dana_dikti' => 'required|numeric|gte:0',
             'dana_pt' => 'required|numeric|gte:0',
             'dana_institusi_lain' => 'required|numeric|gte:0',
-            'in_kind' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'in_kind' => 'nullable|uuid',
             'no_sk_penugasan' => 'regex:/^[A-Z0-9\/\.]+$/',
             'tgl_sk_penugasan' => 'date_format:Y-m-d',
             'dok_penelitian.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx,txt|max:2048',
@@ -889,14 +906,14 @@ class PenelitianController extends Controller
             'keterangan_dok.*' => 'required_with:dok_penelitian.*|nullable|string',
             'jenis_dok.*' => 'nullable|numeric',
             'url_dok.*' => 'nullable|url',
-            'anggota_dosen.*' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'anggota_dosen.*' => 'nullable|uuid',
             'peran_dosen.*' => ['alpha', 'nullable', ValidationRule::in(['A', 'K'])],
             'status_dosen.*' => ['numeric', 'nullable', ValidationRule::in(['0', '1'])],
-            'pd_litabmas_mahasiswa_id.*' => 'nullable|regex:/^[a-z0-9\-]+$/',
-            'anggota_mahasiswa.*' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'pd_litabmas_mahasiswa_id.*' => 'nullable|uuid',
+            'anggota_mahasiswa.*' => 'nullable|uuid',
             'peran_mahasiswa.*' => ['alpha', 'nullable', ValidationRule::in(['A', 'K'])],
             'status_mahasiswa.*' => ['numeric', 'nullable', ValidationRule::in(['0', '1'])],
-            'anggota_non_ca.*' => 'nullable|regex:/^[a-z0-9\-]+$/',
+            'anggota_non_ca.*' => 'nullable|uuid',
             'peran_non_ca.*' => ['alpha', 'nullable', ValidationRule::in(['A', 'K'])],
             'status_non_ca.*' => ['numeric', 'nullable', ValidationRule::in(['0', '1'])]
         ]);
@@ -928,7 +945,7 @@ class PenelitianController extends Controller
         $no_sk_penugasan = $this->request->input('no_sk_penugasan');
         $tgl_sk_penugasan = $this->request->input('tgl_sk_penugasan');
 
-        $dok_penelitian = $this->request->input('dok_penelitian');
+        $dok_penelitian = $this->request->file('dok_penelitian');
         $nama_dok = $this->request->input('nama_dok');
         $keterangan_dok = $this->request->input('keterangan_dok');
         $jenis_dok = $this->request->input('jenis_dok');
@@ -983,7 +1000,7 @@ class PenelitianController extends Controller
 
             if (!empty($dok_penelitian)) {
                 foreach ($dok_penelitian as $index => $dok) {
-                    if (is_null($dok)) continue;
+                    if (is_null($dok)) break;
 
                     $fileInfo = explode('.', $dok->getClientOriginalName());
                     $fileOriginalName = $fileInfo[0];
@@ -1036,7 +1053,7 @@ class PenelitianController extends Controller
 
             if (!empty($anggota_dosen)) {
                 foreach ($anggota_dosen as $index => $idDosen) {
-                    if (is_null($idDosen)) continue;
+                    if (is_null($idDosen)) break;
 
                     $anggota_dosen = $this->sdmLitabmas->where('id_litabmas', $litabmasId)->where('id_sdm', $idDosen)->first();
                     if (!$anggota_dosen) return WrapResponse([], 'penelitian tidak ditemukan atau dosen anggota tidak terdaftar', FALSE);
@@ -1056,7 +1073,7 @@ class PenelitianController extends Controller
 
             if (!empty($anggota_mahasiswa)) {
                 foreach ($anggota_mahasiswa as $index => $idMahasiswa) {
-                    if (is_null($idMahasiswa)) continue;
+                    if (is_null($idMahasiswa)) break;
 
                     $anggota_mahasiswa = $this->pdLitabmas->where('id_pd_ang_litabmas', $pdLitabmasId[$index])->where('id_litabmas', $litabmasId)->where('id_pd', $idMahasiswa)->first();
                     if (!$anggota_mahasiswa) return WrapResponse([], 'penelitian tidak ditemukan atau mahasiswa anggota tidak terdaftar', FALSE);
@@ -1092,7 +1109,7 @@ class PenelitianController extends Controller
 
             if (!empty($anggota_non_ca)) {
                 foreach ($anggota_non_ca as $index => $idNonCa) {
-                    if (is_null($idNonCa)) continue;
+                    if (is_null($idNonCa)) break;
 
                     $anggota_non_ca = $this->nonCaLitabmas->where('id_litabmas', $litabmasId)->where('id_orang', $idNonCa)->first();
                     if (!$anggota_non_ca) return WrapResponse([], 'penelitian tidak ditemukan atau nonca anggota tidak terdaftar', FALSE);

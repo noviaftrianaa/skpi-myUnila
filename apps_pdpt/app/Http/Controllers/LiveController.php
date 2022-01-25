@@ -13,7 +13,7 @@ class LiveController
      * )
      *
      * @OA\Server(
-     *      url=L5_SWAGGER_CONST_HOST_PRODUCTION,
+     *      url=L5_SWAGGER_CONST_HOST_LIVE,
      *      description="Server Live",
      * )
 

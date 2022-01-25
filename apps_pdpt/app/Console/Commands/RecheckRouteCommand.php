@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Artisan;
 
 class RecheckRouteCommand extends Command
 {
@@ -17,6 +18,9 @@ class RecheckRouteCommand extends Command
 
     public function handle()
     {
+        $this->info('Clear Config and Cache');
+        Artisan::call('optimize:clear');
+
         $routeApiPath = base_path('routes') . DIRECTORY_SEPARATOR . 'api.php';
         $routeOpenApiSandbox = base_path('routes/openapi/sandbox') . DIRECTORY_SEPARATOR . 'sandbox.php';
         $routeOpenApiLive = base_path('routes/openapi/live') . DIRECTORY_SEPARATOR . 'live.php';
@@ -33,6 +37,7 @@ class RecheckRouteCommand extends Command
             if ($findString) {
                 $replaceFile = str_replace("'prefix' => '0.1',", "'prefix' => '" . $file . "/0.1',", $readFile);
                 $replaceFile = str_replace("'as' => 'api.',", "'as' => 'api_" . $file . "',", $replaceFile);
+                $replaceFile = str_replace("'middleware' => ['auth']", "'middleware' => ['openapi_" . $file . "']", $replaceFile);
 
                 $writeFile = fopen($path, 'w');
                 flock($writeFile, LOCK_EX);
@@ -42,7 +47,7 @@ class RecheckRouteCommand extends Command
 
                 $this->info("Recheck Route Done and Create/Edit $path");
             } else {
-                $this->error("Recheck Route Failed, Notfound Word");
+                $this->error("Recheck Route Failed");
             }
         }
     }

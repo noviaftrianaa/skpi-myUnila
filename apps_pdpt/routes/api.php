@@ -18,6 +18,7 @@ Route::group([
     'prefix' => '0.1',
     'as' => 'api.',
     'namespace' => 'App\Http\Controllers\PDUT\Api',
+    'middleware' => ['auth']
 ], function () {
 
     // TESTING
@@ -125,7 +126,7 @@ Route::group([
         });
 
         Route::prefix('penelitian')->group(function () {
-            Route::get('list/{sortby}', 'PenelitianController@getAllListPenelitian');
+            Route::post('list', 'PenelitianController@getAllListPenelitian');
             Route::post('list_id', 'PenelitianController@getListPenelitianBySdmId');
             Route::get('detail/{id}', 'PenelitianController@getDetailPenelitianByPenelitianId');
             Route::post('add', 'PenelitianController@storeNewPenelitian');
