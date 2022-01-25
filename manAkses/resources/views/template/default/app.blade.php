@@ -126,7 +126,7 @@
                                     <select name="id_peran" class="form-control" required>
                                         <option selected disabled>Pilih</option>
                                         @foreach($prole as $item)
-                                        <option value="{{$item->id_peran}}" {{($item->id_peran==session()->get('login.role')) ? 'selected':''}}>{{$item->nm_peran}}</option>
+                                        <option value="{{$item->id_peran}}" {{($item->id_peran==session()->get('login.role')->id_peran) ? 'selected':''}}>{{$item->nm_peran}}</option>
                                         @endforeach
                                     </select>
                                 </div>

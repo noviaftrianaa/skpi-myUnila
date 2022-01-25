@@ -21,16 +21,16 @@ class AdminMiddleware
     public function handle(Request $request, Closure $next)
     {
         //CHECK ADMIN
-        $check = RolePengguna::where('id_pengguna', auth()->user()->id_pengguna)->where('id_peran', 1)->first();
-        if(!is_null($check)) {
-            if(SSO::check()==true) {
-                return $next($request);
-            } else {
-                return redirect()->route('auth.logout');
-            }
+        // $check = RolePengguna::where('id_pengguna', auth()->user()->id_pengguna)->where('id_peran', 1)->first();
+        // if(!is_null($check)) {
+        if(SSO::check()==true) {
+            return $next($request);
         } else {
-            // alert()->error('Anda tidak memiliki otorisasi untuk mengakses halaman ini','Otorisasi Gagal');
-            return redirect()->to('/otorisasi');
+            return redirect()->route('auth.logout');
         }
+        // } else {
+        //     // alert()->error('Anda tidak memiliki otorisasi untuk mengakses halaman ini','Otorisasi Gagal');
+        //     return redirect()->to('/otorisasi');
+        // }
     }
 }

@@ -238,7 +238,8 @@ class UserController extends Controller
     public function role(Request $request)
     {
         $array = $request->all();
-        session()->put('login.role', $array['id_peran']);
+        $role = RolePengguna::where('id_pengguna', Auth::user()->id_pengguna)->where('id_peran',$array['id_peran'])->first();
+        session()->put('login.role', $role);
         return redirect()->back();
     }
 

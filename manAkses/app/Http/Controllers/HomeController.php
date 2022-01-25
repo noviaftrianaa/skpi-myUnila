@@ -29,7 +29,7 @@ class HomeController extends Controller
      */
     public function index()
     {
-        if(is_null(Session::get('login.role'))) {
+        if(Session::get('login.role')->id_peran != 1) {
             $aplikasi = Aplikasi::all();
             return view('manajemen.index2', ['aplikasi'=>$aplikasi]);
         } else {

@@ -25,11 +25,18 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <div class="container">
       <a href="{{url('/')}}" class="navbar-brand">
         <img src="{{ asset('auth/img/logo.png') }}" alt="Universitas Lampung" class="brand-image img-circle">
-        <span class="brand-text font-weight-light">Sistem Informasi Manajemen Akses</span>
+        <span class="brand-text font-weight-light">SIMA UNILA</span>
       </a>
 
       <!-- Right navbar links -->
       <ul class="order-1 order-md-3 navbar-nav navbar-no-expand ml-auto">
+          @if(auth()->check())
+          <li class="nav-item d-sm-inline-block">
+            <a class="nav-link" data-toggle="modal" href="#roleItem">
+              <i class="fas fa-users"></i> Ubah Peran
+            </a>
+          </li>
+          @endif
         <!-- Messages Dropdown Menu -->
         <li class="nav-item d-sm-inline-block">
             <a class="nav-link" href="{{ route('auth.logout') }}">
@@ -40,6 +47,55 @@ scratch. This page gets rid of all links and provides the needed markup only.
     </div>
   </nav>
   <!-- /.navbar -->
+
+  <!-- Modal -->
+  <div class="modal fade" id="roleItem" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+          <div class="modal-content">
+              <div class="modal-header no-bd">
+                  <h5 class="modal-title">
+                      <span class="fw-mediumbold">
+                      Ubah</span> 
+                      <span class="fw-light">
+                          Peran
+                      </span>
+                  </h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                  </button>
+              </div>
+              <div class="modal-body">
+                  <form action="{{ route('user.role') }}" method="post" enctype="multipart/form-data">
+                      <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                      <input type="hidden" name="_method" value="PUT">
+                      <div class="row">
+                          <div class="col-sm-12">
+                              <div class="form-group form-group-default">
+                                  
+                                  <?php $prole = DB::table('man_akses.peran as peran')
+                                      ->join('man_akses.role_pengguna as role','role.id_peran','=','peran.id_peran')
+                                      ->where('role.id_pengguna', auth()->user()->id_pengguna)
+                                      ->select('peran.id_peran','peran.nm_peran')
+                                      ->get(); ?>
+
+                                  <select name="id_peran" class="form-control" required>
+                                      <option selected disabled>Pilih</option>
+                                      @foreach($prole as $item)
+                                      <option value="{{$item->id_peran}}" {{($item->id_peran==session()->get('login.role')->id_peran) ? 'selected':''}}>{{$item->nm_peran}}</option>
+                                      @endforeach
+                                  </select>
+                              </div>
+                          </div>
+                      </div>
+                      <div class="modal-footer no-bd">
+                          <button type="submit" class="btn btn-primary">Ubah</button>
+                          <button type="button" class="btn btn-danger" data-dismiss="modal">Tutup</button>
+                      </div>
+                  </form>
+              </div>
+          </div>
+      </div>
+  </div>
 
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
