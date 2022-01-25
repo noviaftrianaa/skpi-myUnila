@@ -245,14 +245,28 @@ class UserController extends Controller
 
     public function password(Request $request)
     {
-        $request->validate([
-            'password' => ['required','max:8']
-        ]);
+        $request->validate(
+            [
+                'password' => 'required|min:8',
+                'old_password' => 'required|min:8',
+                'confirm_password' => 'required|min:8'
+            ],
+            [
+                'password.min' => "Atribut :attribute harus terdiri dari 8 karakter.",
+                'old_password.min' => "Atribut :attribute harus terdiri dari 8 karakter.",
+                'confirm_password.min' => "Atribut :attribute harus terdiri dari 8 karakter."
+            ]
+        );
 
         $array = $request->all();
+        $pengguna = User::findOrFail(Auth::user()->id_pengguna);
+
+        if($pengguna->password != sha1($array['old_password'])) {
+            alert()->error('Password Lama Anda Salah!');
+            return redirect()->back();
+        }
 
         if($array['password']==$array['confirm_password']) {
-            $pengguna = User::findOrFail(Auth::user()->id_pengguna);
             $pengguna = User::lock('WITH(NOLOCK)')->where('id_pengguna', $pengguna->id_pengguna)->update([
                 'password'  => sha1($array['password'])
             ]);

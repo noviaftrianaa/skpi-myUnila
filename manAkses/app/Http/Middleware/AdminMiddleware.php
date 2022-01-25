@@ -8,6 +8,7 @@ use App\Models\RolePengguna;
 use DB;
 use Auth;
 use SSO\SSO;
+use Session;
 
 class AdminMiddleware
 {
@@ -22,15 +23,15 @@ class AdminMiddleware
     {
         //CHECK ADMIN
         // $check = RolePengguna::where('id_pengguna', auth()->user()->id_pengguna)->where('id_peran', 1)->first();
-        // if(!is_null($check)) {
-        if(SSO::check()==true) {
-            return $next($request);
+        if(Session::get('login.role')->id_peran==1) {
+            if(SSO::check()==true) {
+                return $next($request);
+            } else {
+                return redirect()->route('auth.logout');
+            }
         } else {
-            return redirect()->route('auth.logout');
+            alert()->error('Anda tidak memiliki otorisasi untuk mengakses halaman ini','Otorisasi Gagal');
+            return redirect()->back();
         }
-        // } else {
-        //     // alert()->error('Anda tidak memiliki otorisasi untuk mengakses halaman ini','Otorisasi Gagal');
-        //     return redirect()->to('/otorisasi');
-        // }
     }
 }

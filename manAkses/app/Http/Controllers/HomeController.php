@@ -7,8 +7,10 @@ use DB;
 use DataTables;
 use App\Models\User;
 use App\Models\Aplikasi;
+use App\Models\RolePengguna;
 use Session;
 use Cookie;
+use Auth;
 
 class HomeController extends Controller
 {

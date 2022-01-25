@@ -21,7 +21,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
 <div class="wrapper">
 
   <!-- Navbar -->
-  <nav class="main-header navbar navbar-expand-md navbar-light navbar-white">
+  <nav class="main-header navbar navbar-expand navbar-info navbar-dark border-bottom-0">
     <div class="container">
       <a href="{{url('/')}}" class="navbar-brand">
         <img src="{{ asset('auth/img/logo.png') }}" alt="Universitas Lampung" class="brand-image img-circle">
@@ -30,13 +30,22 @@ scratch. This page gets rid of all links and provides the needed markup only.
 
       <!-- Right navbar links -->
       <ul class="order-1 order-md-3 navbar-nav navbar-no-expand ml-auto">
-          @if(auth()->check())
-          <li class="nav-item d-sm-inline-block">
-            <a class="nav-link" data-toggle="modal" href="#roleItem">
+        @if(auth()->check())
+        <li class="nav-item dropdown">
+          <a class="nav-link" data-toggle="dropdown" href="#">
+            <i class="fas fa-cog"></i> Pengaturan
+          </a>
+          <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+            <!-- route password -->
+            <a class="dropdown-item" data-toggle="modal" href="#roleItem">
               <i class="fas fa-users"></i> Ubah Peran
             </a>
-          </li>
-          @endif
+            <a class="dropdown-item" data-toggle="modal" href="#passwordItem">
+              <i class="fas fa-key mr-2"></i> Ubah Password
+            </a>
+          </div>
+        </li>
+        @endif
         <!-- Messages Dropdown Menu -->
         <li class="nav-item d-sm-inline-block">
             <a class="nav-link" href="{{ route('auth.logout') }}">
@@ -48,7 +57,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
   </nav>
   <!-- /.navbar -->
 
-  <!-- Modal -->
+  <!-- Modal Role -->
   <div class="modal fade" id="roleItem" tabindex="-1" role="dialog" aria-hidden="true">
       <div class="modal-dialog" role="document">
           <div class="modal-content">
@@ -65,7 +74,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                   </button>
               </div>
               <div class="modal-body">
-                  <form action="{{ route('user.role') }}" method="post" enctype="multipart/form-data">
+                  <form action="{{ url('changeRole') }}" method="post" enctype="multipart/form-data">
                       <input type="hidden" name="_token" value="{{ csrf_token() }}">
                       <input type="hidden" name="_method" value="PUT">
                       <div class="row">
@@ -96,6 +105,52 @@ scratch. This page gets rid of all links and provides the needed markup only.
           </div>
       </div>
   </div>
+  <!-- Modal Change Password -->
+  <div class="modal fade" id="passwordItem" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header no-bd">
+                    <h5 class="modal-title">
+                        <span class="fw-mediumbold">
+                        Ubah</span> 
+                        <span class="fw-light">
+                            Password
+                        </span>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ url('changePassword') }}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="_method" value="PUT">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group form-group-default">
+                                    <input name="old_password" type="password" class="form-control" placeholder="Kata Sandi Lama Anda" required>
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <div class="form-group form-group-default">
+                                    <input name="password" type="password" class="form-control" placeholder="Kata Sandi Baru Anda" required>
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <div class="form-group form-group-default">
+                                    <input name="confirm_password" type="password" class="form-control" placeholder="Tuliskan Kata Sandi Baru Lagi" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer no-bd">
+                            <button type="submit" class="btn btn-primary">Simpan</button>
+                            <button type="button" class="btn btn-danger" data-dismiss="modal">Tutup</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
@@ -103,7 +158,9 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <!-- Main content -->
     <div class="content">
       <div class="container">
-        <div class="content-header"></div>
+        <div class="content-header">
+          @include('error.list')
+        </div>
         @yield('content')
       </div><!-- /.container-fluid -->
     </div>
@@ -137,5 +194,10 @@ scratch. This page gets rid of all links and provides the needed markup only.
 <script src="{{ asset('master_template/dist/js/adminlte.min.js') }}"></script>
 <!-- AdminLTE for demo purposes -->
 <script src="{{ asset('master_template/dist/js/demo.js') }}"></script>
+<script src="{!! asset('node_modules/sweetalert/dist/sweetalert.min.js') !!}"></script>
+
+@stack('js')
+
+@include('sweet::alert')
 </body>
 </html>

@@ -38,6 +38,9 @@ Route::namespace('Auth')->group(function () {
 });
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+
+    Route::put('/changeRole', [UserController::class, 'role'])->name('role');
+    Route::put('/changePassword', [UserController::class, 'password'])->name('password');
     
     Route::group(['middleware' => ['main']], function() {
         Route::get('/', [HomeController::class, 'index'])->name('index');
@@ -55,8 +58,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
             Route::get('/{id}', [UserController::class, 'detail'])->name('detail');
             Route::patch('/{id}/update', [UserController::class, 'update'])->name('update');
             Route::patch('/{id}/reset', [UserController::class, 'reset'])->name('reset');
-            Route::put('/role', [UserController::class, 'role'])->name('role');
-            Route::put('/password', [UserController::class, 'password'])->name('password');
             Route::patch('/edit/{id}', [UserController::class, 'edit'])->name('edit');
             Route::delete('/delete/{id}', [UserController::class, 'destroy'])->name('destroy');
         });

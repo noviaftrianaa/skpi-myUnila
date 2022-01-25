@@ -68,7 +68,6 @@
         <!-- Right navbar links -->
         <ul class="navbar-nav ml-auto">
             @if(auth()->check())
-
             <li class="nav-item dropdown">
                 <a class="nav-link" data-toggle="dropdown" href="#">
                     <i class="fas fa-gears"></i> Pengaturan
@@ -110,7 +109,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form action="{{ route('user.role') }}" method="post" enctype="multipart/form-data">
+                    <form action="{{ url('changeRole') }}" method="post" enctype="multipart/form-data">
                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="_method" value="PUT">
                         <div class="row">
@@ -159,18 +158,23 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form action="{{ route('user.password') }}" method="post" enctype="multipart/form-data">
+                    <form action="{{ url('changePassword') }}" method="post" enctype="multipart/form-data">
                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="_method" value="PUT">
                         <div class="row">
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
-                                    <input name="password" type="password" class="form-control" placeholder="Kata Sandi Baru" required>
+                                    <input name="old_password" type="password" class="form-control" placeholder="Kata Sandi Lama Anda" required>
                                 </div>
                             </div>
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
-                                    <input name="confirm_password" type="password" class="form-control" placeholder="Konfirmasi Kata Sandi Baru" required>
+                                    <input name="password" type="password" class="form-control" placeholder="Kata Sandi Baru Anda" required>
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <div class="form-group form-group-default">
+                                    <input name="confirm_password" type="password" class="form-control" placeholder="Tuliskan Kata Sandi Baru Lagi" required>
                                 </div>
                             </div>
                         </div>
@@ -215,6 +219,7 @@
         <!-- Main content -->
         <section class="content">
             <div class="container-fluid">
+                @include('error.list')
                 @yield('content')
             </div>
         </section>
