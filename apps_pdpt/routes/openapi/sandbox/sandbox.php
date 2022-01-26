@@ -154,12 +154,12 @@ Route::group([
         });
 
         Route::prefix('mahasiswa')->group(function () {
-            Route::post('list_mahasiswa', 'MahasiswaController@list');
-            Route::post('detail', 'MahasiswaController@detail');
-            Route::post('list_status', 'MahasiswaController@status');
-            Route::post('list_regis', 'MahasiswaController@regis');
-            Route::post('smt_keaktifan', 'MahasiswaController@semester_keaktifan');
-            Route::post('list_alumni', 'MahasiswaController@alumni');
+            Route::get('list_mahasiswa', 'MahasiswaController@list');
+            Route::get('detail', 'MahasiswaController@detail');
+            Route::get('list_status', 'MahasiswaController@status');
+            Route::get('list_regis', 'MahasiswaController@regis');
+            Route::get('smt_keaktifan', 'MahasiswaController@semester_keaktifan');
+            Route::get('list_alumni', 'MahasiswaController@alumni');
         });
 
         Route::prefix('akreditasiprodi')->group(function () {
@@ -184,6 +184,7 @@ Route::group([
         Route::post('tambah', 'TracerStudyController@store');
         Route::put('ubah', 'TracerStudyController@update');
         Route::delete('hapus', 'TracerStudyController@destroy');
+        Route::delete('hapus_atasan', 'TracerStudyController@destroyAtasan');
     });
 });
 

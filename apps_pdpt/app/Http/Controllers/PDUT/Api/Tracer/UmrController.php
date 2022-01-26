@@ -19,6 +19,12 @@ class UmrController extends Controller
      *      tags={"Tracer Study"},
      *      summary="Data list UMR wilayah",
      *      description="Menampilkan List UMR Wilayah",
+     *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
+     *          @OA\Schema(type="number")),
+     *      @OA\Parameter( name="item", description="masukan jumlah data", example="10", required=false, in="query",
+     *          @OA\Schema(type="number")),
+     *      @OA\Parameter( name="sortby", description="Masukan urutan by ASC/DESC", example="ASC", required=false, in="query",
+     *          @OA\Schema(type="string")),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -40,9 +46,31 @@ class UmrController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $query = DB::SELECT("
+        $currentPage = $request->input('page', 1);
+        $itemsPerPage = $request->input('item', 10);
+        $sortBy = $request->input('sortby', 'ASC');
+
+        InputValidator([
+            'sortby' => ['alpha', ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])],
+        ], [
+            'sortby.alpha' => 'input penyortiran harus kata',
+            'sortby.in' => 'input pernyortiran hanya ASC atau DESC'
+        ]);
+
+        if (!empty($itemsPerPage)) {
+            if ($itemsPerPage > 50) {
+                $itemsPerPage = 50;
+            }
+        }
+
+        $query = DB::SELECT(
+            "
+            DECLARE @PageNumber AS INT
+            DECLARE @RowsOfPage AS INT
+            SET @PageNumber= ?
+            SET @RowsOfPage= ?
             SELECT
                 umr.id_umr_wil, wil.nm_wil, ta.id_tahun_anggaran,
                 umr.besaran_umr, umr.create_date AS waktu_data_ditambahkan,
@@ -53,8 +81,12 @@ class UmrController extends Controller
             JOIN ref.tahun_anggaran AS ta WITH(NOLOCK) ON ta.id_tahun_anggaran = umr.id_tahun_anggaran
                 AND wil.expired_date IS NULL
             WHERE umr.soft_delete = 0
-            ORDER BY wil.nm_wil ASC;
-    ");
+            ORDER BY wil.nm_wil " . $sortBy . "
+            OFFSET (@PageNumber-1)*@RowsOfPage ROWS
+            FETCH NEXT @RowsOfPage ROWS ONLY
+            ",
+            [$currentPage, $itemsPerPage]
+        );
 
         if (empty($query)) {
             return WrapResponse([], "Data tidak ditemukan", FALSE);
@@ -72,7 +104,7 @@ class UmrController extends Controller
             ];
         }
 
-        return WrapResponse(compact('data'), 'Berhasil mengambil data list UMR wilayah');
+        return WrapResponse(compact('currentPage', 'itemsPerPage', 'sortBy', 'data'), 'Berhasil mengambil data list UMR wilayah');
     }
 
 

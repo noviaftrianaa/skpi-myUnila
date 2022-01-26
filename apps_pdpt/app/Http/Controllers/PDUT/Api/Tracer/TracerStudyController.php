@@ -14,20 +14,18 @@ use Illuminate\Validation\Rule as ValidationRule;
 class TracerStudyController extends Controller
 {
     /**
-     * @OA\Post(
+     * @OA\Get(
      *      path="/tracer_study/list",
      *      operationId="getTracerStudy",
      *      tags={"Tracer Study"},
      *      summary="Data hasil Tracer Study",
      *      description="Menampilkan Hasil TracerStudy",
-     *      @OA\RequestBody(
-     *      description="Daftar daftar list tracer study berdasarkan idProdi menggunakan parameter berikut :",
-     *      @OA\JsonContent(
-     *          @OA\Property(property="page", type="number", format="number", example="1"),
-     *          @OA\Property(property="item", type="number", format="number", example="10"),
-     *          @OA\Property(property="idProdi", type="string", format="text", example="54BBD27B-2376-4CAE-9951-76EF54BD2CA2")
-     *          ),
-     *      ),
+     *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
+     *          @OA\Schema(type="number")),
+     *      @OA\Parameter( name="item", description="masukan jumlah data", example="10", required=false, in="query",
+     *          @OA\Schema(type="number")),
+     *      @OA\Parameter( name="idProdi", description="Masukan idProdi", example="54BBD27B-2376-4CAE-9951-76EF54BD2CA2", required=true, in="query",
+     *          @OA\Schema(type="string")),
      *      @OA\Response(
      *          response=401,
      *          description="Unauthenticated",

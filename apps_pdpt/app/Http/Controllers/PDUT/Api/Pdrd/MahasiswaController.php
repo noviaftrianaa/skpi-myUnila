@@ -11,21 +11,20 @@ use Illuminate\Validation\Rule as ValidationRule;
 class MahasiswaController extends Controller
 {
     /**
-     * @OA\Post(
+     * @OA\Get(
      *      path="/mahasiswa/list_mahasiswa",
      *      operationId="getListMahasiswa",
      *      tags={"Mahasiwa"},
      *      summary="Dapatkan daftar Mahasiswa",
      *      description="Menampilkan daftar data Mahasiswa",
-     *      @OA\RequestBody(
-     *      description="Daftar daftar list mahasiswa berdasarkan idProdi menggunakan parameter berikut :",
-     *      @OA\JsonContent(
-     *          @OA\Property(property="page", type="number", format="number", example="1"),
-     *          @OA\Property(property="item", type="number", format="number", example="10"),
-     *          @OA\Property(property="sortby", type="string", format="text", example="asc"),
-     *          @OA\Property(property="idProdi", type="string", format="text", example="54BBD27B-2376-4CAE-9951-76EF54BD2CA2")
-     *          ),
-     *      ),
+     *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
+     *          @OA\Schema(type="number")),
+     *      @OA\Parameter( name="item", description="masukan jumlah data", example="10", required=false, in="query",
+     *          @OA\Schema(type="number")),
+     *      @OA\Parameter( name="sortby", description="Masukan urutan by ASC/DESC", example="ASC", required=false, in="query",
+     *          @OA\Schema(type="string")),
+     *      @OA\Parameter( name="idProdi", description="Masukan idProdi", example="54BBD27B-2376-4CAE-9951-76EF54BD2CA2", required=true, in="query",
+     *          @OA\Schema(type="string")),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -130,20 +129,14 @@ class MahasiswaController extends Controller
 
 
     /**
-     * @OA\Post(
+     * @OA\Get(
      *      path="/mahasiswa/detail",
      *      operationId="getDetailMahasiswa",
      *      tags={"Mahasiwa"},
      *      summary="Dapatkan detail profil Mahasiswa",
-     *      description="Menampilkan detail data profil Mahasiswa",
-     *      @OA\RequestBody(
-     *      required=true,
      *      description="Detail Mahasiswa Berdasarkan idPesertaDidik",
-     *      @OA\JsonContent(
-     *          required={"idPesertaDidik"},
-     *          @OA\Property(property="idPesertaDidik", type="string", format="text", example="11D42109-7F99-49EA-96E3-15F314C40523"),
-     *          ),
-     *      ),
+     *      @OA\Parameter( name="idPesertaDidik", description="masukan idPesertaDidik", example="11D42109-7F99-49EA-96E3-15F314C40523", required=true, in="query",
+     *          @OA\Schema(type="string")),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -265,13 +258,11 @@ class MahasiswaController extends Controller
     }
 
     /**
-     * @OA\Post(
+     * @OA\Get(
      *      path="/mahasiswa/list_status",
      *      operationId="getListStatusMahasiswa",
      *      tags={"Mahasiwa"},
      *      summary="Dapatkan daftar Mahasiswa sesuai Status Mahasiswa",
-     *      description="Menampilkan daftar data Mahasiswa sesuai Status Mahasiswa",
-     *      @OA\RequestBody(
      *      description="Daftar daftar list mahasiswa berdasarkan idProdi dan status mahasiswa sebagai berikut : <br><br>
      *       A : Aktif <br>
      *       C : Cuti <br>
@@ -285,14 +276,16 @@ class MahasiswaController extends Controller
      *       T : Transfer <br>
      *       U : Unknown <br>
      *       W : Wafat <br>",
-     *      @OA\JsonContent(
-     *          @OA\Property(property="page", type="number", format="number", example="1"),
-     *          @OA\Property(property="item", type="number", format="number", example="10"),
-     *          @OA\Property(property="sortby", type="string", format="text", example="asc"),
-     *          @OA\Property(property="statMhs", type="string", format="text", example="A"),
-     *          @OA\Property(property="idProdi", type="string", format="text", example="54BBD27B-2376-4CAE-9951-76EF54BD2CA2")
-     *          ),
-     *      ),
+     *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
+     *          @OA\Schema(type="number")),
+     *      @OA\Parameter( name="item", description="masukan jumlah data", example="10", required=false, in="query",
+     *          @OA\Schema(type="number")),
+     *      @OA\Parameter( name="sortby", description="Masukan urutan by ASC/DESC", example="ASC", required=false, in="query",
+     *          @OA\Schema(type="string")),
+     *      @OA\Parameter( name="statMhs", description="Masukan status mahasiswa", example="A", required=true, in="query",
+     *          @OA\Schema(type="string")),
+     *      @OA\Parameter( name="idProdi", description="Masukan idProdi", example="54BBD27B-2376-4CAE-9951-76EF54BD2CA2", required=true, in="query",
+     *          @OA\Schema(type="string")),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -402,13 +395,11 @@ class MahasiswaController extends Controller
     }
 
     /**
-     * @OA\Post(
+     * @OA\Get(
      *      path="/mahasiswa/list_regis",
      *      operationId="getRegisMahasiswa",
      *      tags={"Mahasiwa"},
      *      summary="Dapatkan daftar Mahasiswa Berdasarkan Jenis Pendaftaran",
-     *      description="Menampilkan daftar data List Mahasiswa Berdasarkan Jenis Pendaftaran",
-     *      @OA\RequestBody(
      *      description="Daftar daftar list mahasiswa berdasarkan idProdi dan status idJenisDaftar sebagai berikut : <br><br>
      *      1 : Peserta didik baru <br>
      *      2 : Pindahan <br>
@@ -422,14 +413,16 @@ class MahasiswaController extends Controller
      *      13 : Rekognisi Pembelajaran Lampau (RPL) <br>
      *      14 : Course <br>
      *      15 : Fast Track <br>",
-     *      @OA\JsonContent(
-     *          @OA\Property(property="page", type="number", format="number", example="1"),
-     *          @OA\Property(property="item", type="number", format="number", example="10"),
-     *          @OA\Property(property="sortby", type="string", format="text", example="asc"),
-     *          @OA\Property(property="idJenisDaftar", type="number", format="number", example="1"),
-     *          @OA\Property(property="idProdi", type="string", format="text", example="54BBD27B-2376-4CAE-9951-76EF54BD2CA2")
-     *          ),
-     *      ),
+     *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
+     *          @OA\Schema(type="number")),
+     *      @OA\Parameter( name="item", description="masukan jumlah data", example="10", required=false, in="query",
+     *          @OA\Schema(type="number")),
+     *      @OA\Parameter( name="sortby", description="Masukan urutan by ASC/DESC", example="ASC", required=false, in="query",
+     *          @OA\Schema(type="string")),
+     *      @OA\Parameter( name="idJenisDaftar", description="Masukan id jenis daftar mahasiswa", example="1", required=true, in="query",
+     *          @OA\Schema(type="number")),
+     *      @OA\Parameter( name="idProdi", description="Masukan idProdi", example="54BBD27B-2376-4CAE-9951-76EF54BD2CA2", required=true, in="query",
+     *          @OA\Schema(type="string")),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -539,20 +532,15 @@ class MahasiswaController extends Controller
     }
 
     /**
-     * @OA\Post(
+     * @OA\Get(
      *      path="/mahasiswa/smt_keaktifan",
      *      operationId="getSemesterKeaktifan",
      *      tags={"Mahasiwa"},
      *      summary="Dapatkan daftar Semester Keaktifan Mahasiswa",
      *      description="Menampilkan daftar Semester Keaktifan Mahasiswa",
-     *      @OA\RequestBody(
-     *      required=true,
      *      description="Daftar keaktifan semester Mahasiswa Berdasarkan idPesertaDidik",
-     *      @OA\JsonContent(
-     *          required={"idPesertaDidik"},
-     *          @OA\Property(property="idPesertaDidik", type="string", format="text", example="11D42109-7F99-49EA-96E3-15F314C40523"),
-     *          ),
-     *      ),
+     *      @OA\Parameter( name="idPesertaDidik", description="masukan idPesertaDidik", example="11D42109-7F99-49EA-96E3-15F314C40523", required=true, in="query",
+     *          @OA\Schema(type="string")),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -648,22 +636,21 @@ class MahasiswaController extends Controller
     }
 
     /**
-     * @OA\Post(
+     * @OA\Get(
      *      path="/mahasiswa/list_alumni",
      *      operationId="getAlumni",
      *      tags={"Mahasiwa"},
      *      summary="Dapatkan list alumni berdasarkan prodi",
      *      description="Menampilkan list alumni berdasarkan prodi",
-     *      @OA\RequestBody(
-     *      required=true,
      *      description="Daftar Alumni Berdasarkan id_prodi Contoh Ilmu Komputer = 54BBD27B-2376-4CAE-9951-76EF54BD2CA2",
-     *      @OA\JsonContent(
-     *          @OA\Property(property="page", type="number", format="number", example="1"),
-     *          @OA\Property(property="item", type="number", format="number", example="10"),
-     *          @OA\Property(property="sortby", type="string", format="text", example="asc"),
-     *          @OA\Property(property="idProdi", type="string", format="text", example="54BBD27B-2376-4CAE-9951-76EF54BD2CA2")
-     *          ),
-     *      ),
+     *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
+     *          @OA\Schema(type="number")),
+     *      @OA\Parameter( name="item", description="masukan jumlah data", example="10", required=false, in="query",
+     *          @OA\Schema(type="number")),
+     *      @OA\Parameter( name="sortby", description="Masukan urutan by ASC/DESC", example="ASC", required=false, in="query",
+     *          @OA\Schema(type="string")),
+     *      @OA\Parameter( name="idProdi", description="Masukan idProdi", example="54BBD27B-2376-4CAE-9951-76EF54BD2CA2", required=true, in="query",
+     *          @OA\Schema(type="string")),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
