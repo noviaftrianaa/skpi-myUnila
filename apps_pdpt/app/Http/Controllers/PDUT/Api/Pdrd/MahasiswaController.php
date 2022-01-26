@@ -175,8 +175,7 @@ class MahasiswaController extends Controller
                 smt.nm_smt AS periode_masuk, reg.nm_pt_asal, reg.nm_prodi_asal, reg.tgl_keluar, reg.ket, reg.skhun, reg.no_peserta_ujian, reg.no_seri_ijazah, reg.asal_data_ijazah,
                 reg.bidang_mayor, reg.bidang_minor, reg.sks_diakui, reg.jalur_skripsi, reg.judul_skripsi, reg.bln_awal_bimbingan, reg.bln_akhir_bimbingan, reg.sk_yudisium,
                 reg.tgl_sk_yudisium, reg.ipk, reg.sert_prof, reg.a_pindah_mhs_asing, reg.biaya_masuk_kuliah, sp.nm_lemb, pd.nm_pd, pd.nik, pd.id_kk, agama.nm_agama, pd.jk,
-                pd.tlpn_hp, pd.tlpn_rumah, pd.tmpt_lahir, pd.tgl_lahir, pd.jln, pd.rt, pd.rw, pd.ds_kel, jp.nm_jns_daftar,
-                jd.nm_jalur_daftar, pmb.nm_pembiayaan
+                pd.tlpn_hp, pd.tlpn_rumah, pd.tmpt_lahir, pd.tgl_lahir, pd.jln, pd.rt, pd.rw, pd.ds_kel, jp.nm_jns_daftar, pd.email, jd.nm_jalur_daftar, pmb.nm_pembiayaan
             FROM pdrd.reg_pd as reg WITH(NOLOCK)
             JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = reg.id_semester_masuk
                 AND smt.expired_date IS NULL
@@ -215,16 +214,16 @@ class MahasiswaController extends Controller
         $data = [];
         foreach ($query as $each_data) {
             $data[] = [
-                'npm' => $each_data->npm,
+                'NPM' => $each_data->npm,
                 'nama' => $each_data->nm_pd,
                 'program_studi' => $each_data->nm_prodi,
                 'status_sekarang' => $each_data->status_sekarang,
-                'tgl_masuk' => $each_data->tgl_masuk_sp,
+                'tanggal_masuk' => $each_data->tgl_masuk_sp,
                 'periode_masuk' => $each_data->periode_masuk,
                 'nm_pt_asal' => $each_data->nm_pt_asal,
                 'nm_prodi_asal' => $each_data->nm_prodi_asal,
                 'tgl_keluar' => $each_data->tgl_keluar,
-                'ket' => $each_data->ket,
+                'keterangan' => $each_data->ket,
                 'skhun' => $each_data->skhun,
                 'no_peserta_ujian' => $each_data->no_peserta_ujian,
                 'no_seri_ijazah' => $each_data->no_seri_ijazah,
@@ -245,19 +244,20 @@ class MahasiswaController extends Controller
                 'nm_lemb' => $each_data->nm_lemb,
                 'nik' => $each_data->nik,
                 'id_kk' => $each_data->id_kk,
-                'nm_agama' => $each_data->nm_agama,
-                'jk' => $each_data->jk,
-                'tlpn_hp' => $each_data->tlpn_hp,
-                'tlpn_rumah' => $each_data->tlpn_rumah,
-                'tmpt_lahir' => $each_data->tmpt_lahir,
-                'tgl_lahir' => $each_data->tgl_lahir,
+                'agama' => $each_data->nm_agama,
+                'jenis_kelamin' => $each_data->jk,
+                'email' => $each_data->email,
+                'no_telepon' => $each_data->tlpn_hp,
+                'telepon_rumah' => $each_data->tlpn_rumah,
+                'tempat_lahir' => $each_data->tmpt_lahir,
+                'tanggal_lahir' => $each_data->tgl_lahir,
                 'jln' => $each_data->jln,
                 'rt' => $each_data->rt,
                 'rw' => $each_data->rw,
-                'ds_kel' => $each_data->ds_kel,
+                'desa_kelurahan' => $each_data->ds_kel,
                 'nm_jns_daftar,' => $each_data->nm_jns_daftar,
-                'nm_jalur_daftar' => $each_data->nm_jalur_daftar,
-                'nm_pembiayaan' => $each_data->nm_pembiayaan
+                'jalur daftar' => $each_data->nm_jalur_daftar,
+                'biaya_kuliah' => $each_data->nm_pembiayaan
             ];
         }
 
@@ -658,8 +658,10 @@ class MahasiswaController extends Controller
      *      required=true,
      *      description="Daftar Alumni Berdasarkan id_prodi Contoh Ilmu Komputer = 54BBD27B-2376-4CAE-9951-76EF54BD2CA2",
      *      @OA\JsonContent(
-     *          required={"id_prodi"},
-     *          @OA\Property(property="id_prodi", type="string", format="text", example="54BBD27B-2376-4CAE-9951-76EF54BD2CA2"),
+     *          @OA\Property(property="page", type="number", format="number", example="1"),
+     *          @OA\Property(property="item", type="number", format="number", example="10"),
+     *          @OA\Property(property="sortby", type="string", format="text", example="asc"),
+     *          @OA\Property(property="idProdi", type="string", format="text", example="54BBD27B-2376-4CAE-9951-76EF54BD2CA2")
      *          ),
      *      ),
      *      @OA\Response(
@@ -707,9 +709,9 @@ class MahasiswaController extends Controller
             SET @PageNumber= ?
             SET @RowsOfPage= ?
             SELECT
-                pd.id_pd, pd.nm_pd, reg.nipd AS npm, CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi,
+                pd.id_pd, pd.nm_pd, reg.nipd AS npm, CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi, pd.email,
                 ts.id_thn_ajaran AS angkatan, kul.biaya_smt, kul.ipk, kul.total_sks, pd.nik, pd.jk, pd.tlpn_hp, jd.nm_jalur_daftar,
-                reg.tgl_keluar AS tgl_lulus, reg.tgl_sk_yudisium AS tgl_wisuda, pd.create_date AS waktu_data_ditambahkan,
+                reg.tgl_keluar AS tgl_lulus, reg.tgl_sk_yudisium AS tgl_wisuda, pd.create_date AS waktu_data_ditambahkan, pmb.nm_pembiayaan,
                 pd.last_update AS terakhir_diubah
             FROM pdrd.peserta_didik AS pd WITH(NOLOCK)
             JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd=pd.id_pd
@@ -721,6 +723,8 @@ class MahasiswaController extends Controller
             JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
             JOIN ref.jalur_daftar AS jd WITH(NOLOCK) ON jd.id_jalur_daftar = reg.id_jalur_daftar
+                AND jd.expired_date IS NULL
+            JOIN ref.pembiayaan AS pmb WITH(NOLOCK) ON pmb.id_pembiayaan = reg.id_pembiayaan
                 AND jd.expired_date IS NULL
             JOIN (
                 SELECT MAX(id_smt) AS smt, id_reg_pd FROM pdrd.kuliah_mhs WITH(NOLOCK)
@@ -757,8 +761,10 @@ class MahasiswaController extends Controller
                 'total_sks' => $each_data->total_sks,
                 'nik' => $each_data->nik,
                 'jenis_kelamin' => $each_data->jk,
+                'email' => $each_data->email,
                 'no_telepon' => $each_data->tlpn_hp,
                 'jalur_daftar' => $each_data->nm_jalur_daftar,
+                'biaya_kuliah' => $each_data->nm_pembiayaan,
                 'tanggal_lulus' => $each_data->tgl_lulus,
                 'tanggal_wisuda' => $each_data->tgl_wisuda,
                 'waktu_data_ditambahkan' => date('Y-m-d H:i:s', strtotime($each_data->waktu_data_ditambahkan)),

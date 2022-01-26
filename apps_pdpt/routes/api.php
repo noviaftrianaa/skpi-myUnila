@@ -180,10 +180,11 @@ Route::group([
         Route::put('umr_wilayah/ubah', 'UmrController@update');
         Route::delete('umr_wilayah/hapus', 'UmrController@destroy');
 
-        Route::get('list', 'TracerStudyController@index');
+        Route::post('list', 'TracerStudyController@index');
         Route::post('tambah', 'TracerStudyController@store');
         Route::put('ubah', 'TracerStudyController@update');
         Route::delete('hapus', 'TracerStudyController@destroy');
+        Route::delete('hapus_atasan', 'TracerStudyController@destroyAtasan');
     });
 });
 
