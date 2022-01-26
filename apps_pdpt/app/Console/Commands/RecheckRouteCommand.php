@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
+use Log;
 
 class RecheckRouteCommand extends Command
 {
@@ -18,8 +19,8 @@ class RecheckRouteCommand extends Command
 
     public function handle()
     {
-        $this->info('Clear Config and Cache');
         Artisan::call('optimize:clear');
+        $this->info(Artisan::output());
 
         $routeApiPath = base_path('routes') . DIRECTORY_SEPARATOR . 'api.php';
         $routeOpenApiSandbox = base_path('routes/openapi/sandbox') . DIRECTORY_SEPARATOR . 'sandbox.php';
@@ -45,10 +46,29 @@ class RecheckRouteCommand extends Command
                 flock($writeFile, LOCK_UN);
                 fclose($writeFile);
 
-                $this->info("Recheck Route Done and Create/Edit $path");
+                $this->info("Recheck Route Done and Create/Edit $path \r\n");
             } else {
                 $this->error("Recheck Route Failed");
+                exit();
             }
+        }
+
+        Artisan::call('l5-swagger:generate sandbox');
+        $generateSanboxDoc = Artisan::output();
+        if (strpos($generateSanboxDoc, "Regenerating docs sandbox")) {
+            $this->error('Failed Regenerating docs Sandbox');
+            exit();
+        } else {
+            $this->info($generateSanboxDoc);
+        }
+
+        Artisan::call('l5-swagger:generate live');
+        $generateLiveDoc = Artisan::output();
+        if (strpos($generateLiveDoc, "Regenerating docs sandbox")) {
+            $this->error('Failed Regenerating docs Live');
+            exit();
+        } else {
+            $this->info($generateLiveDoc);
         }
     }
 }

@@ -111,6 +111,10 @@ Route::group([
             Route::get('/detail', 'SdmTendikController@detail');
         });
 
+        Route::prefix('tendik')->group(function () {
+            Route::post('/list', 'SdmTendikController@list');
+        });
+
         Route::prefix('buku_ajar')->group(function () {
             Route::post('list', 'BukuAjarController@list');
             Route::post('list_id', 'BukuAjarController@listById');

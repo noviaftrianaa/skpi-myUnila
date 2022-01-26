@@ -92,11 +92,6 @@ class PenelitianController extends Controller
             $sortby = 'DESC';
         }
 
-        if (!empty($this->getAllListPenelitian)) {
-            $data = $this->getAllListPenelitian;
-            return WrapResponse(compact('data'), 'sukses');
-        }
-
         $query = "
             SELECT
                 lm.id_litabmas AS id_penelitian,
@@ -135,7 +130,7 @@ class PenelitianController extends Controller
         $data = [];
         foreach ($query as $value) {
             $data[] = [
-                'id_penelitian' => $value->id_penelitian,
+                'id' => $value->id_penelitian,
                 'judul_penelitian' => $value->judul_penelitian,
                 'bidang_keilmuan' => $value->bidang_keilmuan,
                 'tahun_pelaksanaan' => $value->tahun_pelaksanaan,
