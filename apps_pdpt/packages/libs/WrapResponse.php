@@ -11,8 +11,7 @@ if (!function_exists('WrapResponse')) {
             [
                 'status' => $isSuccess ? true : false,
                 'message' => $message,
-                'latency' => $exec,
-                'db_connection' => config('database.default')
+                'latency' => $exec
             ],
             $response
         );

@@ -101,9 +101,11 @@ Route::group([
         'namespace' => 'Pdrd',
     ], function () {
 
-        Route::prefix('dosen')->group(function () {
-            Route::get('/list', 'SdmDosenController@list');
-            Route::post('/detail', 'SdmDosenController@detail');
+        Route::prefix('sdm')->group(function () {
+            Route::get('/dosen/list', 'SdmDosenController@list');
+            Route::get('/dosen/detail', 'SdmDosenController@detail');
+            Route::get('/tendik/list', 'SdmTendikController@list');
+            Route::get('/tendik/detail', 'SdmTendikController@detail');
         });
 
         Route::prefix('tendik')->group(function () {
@@ -116,9 +118,9 @@ Route::group([
         });
 
         Route::prefix('buku_ajar')->group(function () {
-            Route::post('list', 'BukuAjarController@list');
-            Route::post('list_id', 'BukuAjarController@listById');
-            Route::post('detail', 'BukuAjarController@detail');
+            Route::get('list', 'BukuAjarController@list');
+            Route::get('list_id', 'BukuAjarController@listById');
+            Route::get('detail', 'BukuAjarController@detail');
             Route::post('add', 'BukuAjarController@add');
             Route::put('update', 'BukuAjarController@update');
             Route::delete('delete', 'BukuAjarController@delete');

@@ -9,20 +9,42 @@ use Illuminate\Support\Facades\DB;
 class BukuAjarController extends Controller
 {
     /**
-     * @OA\Post (
-     *      path="/buku_ajar/list",
-     *      operationId="getBukuAjar",
-     *      tags={"Buku Ajar"},
-     *      summary="Mendapatkan Daftar Buku Ajar",
-     *      description="Menampilkan Daftar Buku Ajar",
-     *      @OA\RequestBody(
-     *      description="Daftar Buku Ajar",
-     *      @OA\JsonContent(
-     *          @OA\Property(property="page", type="number", format="number", example="1"),
-     *          @OA\Property(property="count", type="number", format="number", example="10"),
-     *          @OA\Property(property="sortby", type="string", format="text", example="DESC")
-     *          ),
-     *      ),
+     * @OA\Get(
+     *     path="/buku_ajar/list",
+     *     tags={"Buku Ajar"},
+     *     summary="Mendapatkan Daftar Buku Ajar",
+     *     description="Menampilkan Daftar Buku Ajar",
+     *     operationId="getBukuAjar",
+     *     @OA\Parameter(
+     *          name="page",
+     *          description="",
+     *          example="1",
+     *          required=false,
+     *          in="query",
+     *          @OA\Schema(
+     *              type="number"
+     *          )
+     *     ),
+     *     @OA\Parameter(
+     *          name="count",
+     *          description="",
+     *          example="25",
+     *          required=false,
+     *          in="query",
+     *          @OA\Schema(
+     *              type="number"
+     *          )
+     *     ),
+     *     @OA\Parameter(
+     *          name="sortby",
+     *          description="",
+     *          example="DESC",
+     *          required=false,
+     *          in="query",
+     *          @OA\Schema(
+     *              type="string"
+     *          )
+     *     ),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -37,6 +59,7 @@ class BukuAjarController extends Controller
      *      ),
      *      security={{"bearer_token":{}}}
      *     )
+     * )
      */
     public function list(Request $request)
     {
@@ -84,23 +107,52 @@ class BukuAjarController extends Controller
     }
 
     /**
-     * @OA\Post (
-     *      path="/buku_ajar/list_id",
-     *      operationId="getBukuAjarById",
-     *      tags={"Buku Ajar"},
-     *      summary="Mendapatkan Daftar Buku Ajar Berdasarkan ID",
-     *      description="Menampilkan Daftar Buku Ajar Berdasarkan ID",
-     *      @OA\RequestBody(
-     *      required=true,
-     *      description="Daftar Buku Ajar Berdasarkan ID",
-     *      @OA\JsonContent(
-     *          required={"id_sdm"},
-     *          @OA\Property(property="id_sdm", type="string", format="text", example="9C466255-68E3-4476-97A4-A42CED793202"),
-     *          @OA\Property(property="page", type="number", format="number", example="1"),
-     *          @OA\Property(property="count", type="number", format="number", example="10"),
-     *          @OA\Property(property="sortby", type="string", format="text", example="DESC")
-     *          ),
-     *      ),
+     * @OA\Get(
+     *     path="/buku_ajar/list_id",
+     *     tags={"Buku Ajar"},
+     *     summary="Mendapatkan Daftar Buku Ajar Berdasarkan id_sdm",
+     *     description="Menampilkan Daftar Buku Ajar Berdasarkan id_sdm",
+     *     operationId="getBukuAjarById",
+     *     @OA\Parameter(
+     *          name="page",
+     *          description="",
+     *          example="1",
+     *          required=false,
+     *          in="query",
+     *          @OA\Schema(
+     *              type="number"
+     *          )
+     *     ),
+     *     @OA\Parameter(
+     *          name="count",
+     *          description="",
+     *          example="25",
+     *          required=false,
+     *          in="query",
+     *          @OA\Schema(
+     *              type="number"
+     *          )
+     *     ),
+     *     @OA\Parameter(
+     *          name="sortby",
+     *          description="",
+     *          example="DESC",
+     *          required=false,
+     *          in="query",
+     *          @OA\Schema(
+     *              type="string"
+     *          )
+     *     ),
+     *     @OA\Parameter(
+     *          name="id_sdm",
+     *          description="",
+     *          example="9C466255-68E3-4476-97A4-A42CED793202",
+     *          required=false,
+     *          in="query",
+     *          @OA\Schema(
+     *              type="string"
+     *          )
+     *     ),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -115,6 +167,7 @@ class BukuAjarController extends Controller
      *      ),
      *      security={{"bearer_token":{}}}
      *     )
+     * )
      */
     public function listById(Request $request)
     {
@@ -169,20 +222,22 @@ class BukuAjarController extends Controller
     }
 
     /**
-     * @OA\Post (
-     *      path="/buku_ajar/detail",
-     *      operationId="getDetailBukuAjar",
-     *      tags={"Buku Ajar"},
-     *      summary="Mendapatkan Detail Buku Ajar",
-     *      description="Menampilkan Detail Buku Ajar",
-     *      @OA\RequestBody(
-     *      required=true,
-     *      description="Detail Buku Ajar",
-     *      @OA\JsonContent(
-     *          required={"id_tulis_buku_ajar"},
-     *          @OA\Property(property="id_tulis_buku_ajar", type="string", format="text", example="EDA7D486-8C66-4171-84F0-8F46C7D4FD65")
-     *          ),
-     *      ),
+     * @OA\Get(
+     *     path="/buku_ajar/detail",
+     *     tags={"Buku Ajar"},
+     *     summary="Mendapatkan Detail Buku Ajar Berdasarkan id_tulis_buku_ajar",
+     *     description="Menampilkan Detail Buku Ajar Berdasarkan id_tulis_buku_ajar",
+     *     operationId="getDetailBukuAjar",
+     *     @OA\Parameter(
+     *          name="id_tulis_buku_ajar",
+     *          description="",
+     *          example="EDA7D486-8C66-4171-84F0-8F46C7D4FD65",
+     *          required=false,
+     *          in="query",
+     *          @OA\Schema(
+     *              type="string"
+     *          )
+     *     ),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -197,6 +252,7 @@ class BukuAjarController extends Controller
      *      ),
      *      security={{"bearer_token":{}}}
      *     )
+     * )
      */
     public function detail(Request $request)
     {
