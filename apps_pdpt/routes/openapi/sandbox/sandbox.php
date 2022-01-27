@@ -130,8 +130,8 @@ Route::group([
         });
 
         Route::prefix('penelitian')->group(function () {
-            Route::post('list', 'PenelitianController@getAllListPenelitian');
-            Route::post('list_id', 'PenelitianController@getListPenelitianBySdmId');
+            Route::get('list', 'PenelitianController@getAllListPenelitian');
+            Route::get('list_id', 'PenelitianController@getListPenelitianBySdmId');
             Route::get('detail/{id}', 'PenelitianController@getDetailPenelitianByPenelitianId');
             Route::post('add', 'PenelitianController@storeNewPenelitian');
             Route::put('update', 'PenelitianController@updatePenelitian');
@@ -139,11 +139,11 @@ Route::group([
         });
 
         Route::prefix('pengabdian')->group(function () {
-            Route::get('list/{sortby}', 'PengabdianController@getAllListPengabdian');
-            Route::post('list_id', 'PengabdianController@getListPengabdianBySdmId');
+            Route::get('list', 'PengabdianController@getAllListPengabdian');
+            Route::get('list_id', 'PengabdianController@getListPengabdianBySdmId');
             Route::get('detail/{id}', 'PengabdianController@getDetailPengabdianByPengabdianId');
-            Route::post('add', 'PengabdianController@storePengabdian');
-            Route::put('update', 'PengabdianController@updatePengabdian');
+            Route::post('tambah', 'PengabdianController@storePengabdian');
+            Route::put('ubah', 'PengabdianController@updatePengabdian');
             Route::delete('delete', 'PengabdianController@deletePengabdian');
         });
 

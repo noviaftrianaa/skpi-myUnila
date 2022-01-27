@@ -47,21 +47,18 @@ class PenelitianController extends Controller
     }
 
     /**
-     * @OA\Post(
+     * @OA\Get(
      *      path="/penelitian/list",
      *      operationId="getListPenelitian",
      *      tags={"Penelitian"},
      *      summary="Dapatkan daftar Penelitian",
      *      description="Menampilkan daftar data Penelitian",
-     *      @OA\RequestBody(
-     *      required=true,
-     *      description="Daftar Penelitian Berdasarkan",
-     *      @OA\JsonContent(
-     *          @OA\Property(property="sortby", type="string", format="text", example="DESC"),
-     *          @OA\Property(property="page", type="integer", format="text", example="1"),
-     *          @OA\Property(property="count", type="integer", format="text", example="10")
-     *          ),
-     *      ),
+     *      @OA\Parameter( name="sortby", description="Masukan urutan by ASC/DESC", example="DESC", required=false, in="query",
+     *          @OA\Schema(type="string")),
+     *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
+     *          @OA\Schema(type="number")),
+     *      @OA\Parameter( name="count", description="masukan jumlah data", example="10", required=false, in="query",
+     *          @OA\Schema(type="number")),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -148,23 +145,20 @@ class PenelitianController extends Controller
     }
 
     /**
-     * @OA\Post(
+     * @OA\Get(
      *      path="/penelitian/list_id",
      *      operationId="getListPenelitianById",
      *      tags={"Penelitian"},
      *      summary="Dapatkan daftar Penelitian Berdasarkan ID",
      *      description="Menampilkan daftar data Penelitian Berdasarkan ID",
-     *      @OA\RequestBody(
-     *      required=true,
-     *      description="Daftar Penelitian Berdasarkan ID",
-     *      @OA\JsonContent(
-     *          required={"sdmid"},
-     *          @OA\Property(property="sdmid", type="string", format="text", example="bcb6de9a-2e7c-43c7-b192-029750754fe7"),
-     *          @OA\Property(property="sortby", type="string", format="text", example="DESC"),
-     *          @OA\Property(property="page", type="integer", format="text", example="1"),
-     *          @OA\Property(property="count", type="integer", format="text", example="10")
-     *          ),
-     *      ),
+     *      @OA\Parameter( name="sdmid", description="masukan id sdm", example="bcb6de9a-2e7c-43c7-b192-029750754fe7", required=false, in="query",
+     *          @OA\Schema(type="string")),
+     *      @OA\Parameter( name="sortby", description="Masukan urutan by ASC/DESC", example="DESC", required=false, in="query",
+     *          @OA\Schema(type="string")),
+     *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
+     *          @OA\Schema(type="number")),
+     *      @OA\Parameter( name="count", description="masukan jumlah data", example="10", required=false, in="query",
+     *          @OA\Schema(type="number")),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
