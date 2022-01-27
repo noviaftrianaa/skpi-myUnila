@@ -101,20 +101,14 @@ Route::group([
         'namespace' => 'Pdrd',
     ], function () {
 
-        Route::prefix('sdm')->group(function () {
-            Route::get('/dosen/list', 'SdmDosenController@list');
-            Route::get('/dosen/detail', 'SdmDosenController@detail');
-            Route::get('/tendik/list', 'SdmTendikController@list');
-            Route::get('/tendik/detail', 'SdmTendikController@detail');
+        Route::prefix('dosen')->group(function () {
+            Route::get('/list', 'SdmDosenController@list');
+            Route::get('/detail', 'SdmDosenController@detail');
         });
 
         Route::prefix('tendik')->group(function () {
             Route::get('/list', 'SdmTendikController@list');
             Route::get('/detail', 'SdmTendikController@detail');
-        });
-
-        Route::prefix('tendik')->group(function () {
-            Route::post('/list', 'SdmTendikController@list');
         });
 
         Route::prefix('buku_ajar')->group(function () {
