@@ -18,7 +18,7 @@ Route::group([
     'prefix' => 'sandbox/0.1',
     'as' => 'api_sandbox',
     'namespace' => 'App\Http\Controllers\PDUT\Api',
-    'middleware' => ['openapi_sandbox']
+    'middleware' => ['openapi_sandbox','dbaccess']
 ], function () {
 
     Route::post('auth/login', 'LoginController@login');

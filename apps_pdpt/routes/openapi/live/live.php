@@ -18,7 +18,7 @@ Route::group([
     'prefix' => 'live/0.1',
     'as' => 'api_live',
     'namespace' => 'App\Http\Controllers\PDUT\Api',
-    'middleware' => ['openapi_live']
+    'middleware' => ['openapi_live','dbaccess']
 ], function () {
 
     Route::post('auth/login', 'LoginController@login');

@@ -3,6 +3,7 @@
 namespace App\Http;
 
 use App\Http\Middleware\AuthApi;
+use App\Http\Middleware\DBAccess;
 use App\Http\Middleware\OpenApiLive;
 use App\Http\Middleware\OpenApiSandbox;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
@@ -68,6 +69,7 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'openapi_sandbox' => OpenApiSandbox::class,
-        'openapi_live' => OpenApiLive::class
+        'openapi_live' => OpenApiLive::class,
+        'dbaccess' => DBAccess::class
     ];
 }
