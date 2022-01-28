@@ -8,37 +8,6 @@ use Illuminate\Support\Facades\DB;
 
 class LoginController extends Controller
 {
-    /**
-     * @OA\Post(
-     * path="/auth/login",
-     * summary="Authentication",
-     * description="Mendapatkan token untuk otorisasi",
-     * operationId="authLogin",
-     * tags={"Auth"},
-     * @OA\RequestBody(
-     *    required=true,
-     *    description="Pass user credentials",
-     *    @OA\JsonContent(
-     *       required={"email","password"},
-     *       @OA\Property(property="id_aplikasi", type="uuid", format="text", example="948df317-78f7-4b92-a53f-0a56215e07de"),
-     *       @OA\Property(property="username", type="string", format="email", example="rio.ananda@staff.unila.ac.id"),
-     *       @OA\Property(property="password", type="string", format="password", example="12345678"),
-     *    ),
-     * ),
-     * @OA\Response(
-     *    response=200,
-     *    description="successful operation",
-     * ),
-     * @OA\Response(
-     *    response=404,
-     *    description="page not found",
-     *    @OA\JsonContent(
-     *       @OA\Property(property="message", type="string", example="Maaf, halaman tidak ditemukan")
-     *        )
-     *     )
-     * )
-     *
-     **/
     public function login(Request $request)
     {
         InputValidator([
@@ -124,103 +93,74 @@ class LoginController extends Controller
                 return response()->json(['message' => 'Terjadi kesalahan', 'detail' => 'Token tidak bisa dibuat'], 500);
             }
             return response()->json(['token' => $token, 'role' => $peran[0]->nm_peran]);
-
         } catch (\Throwable $th) {
             return WrapResponse([], 'Peran pengguna tidak ditemukan.', FALSE);
         }
 
         // if (empty($aplikasi)) {
-            //     return WrapResponse([], 'id aplikasi tidak terdaftar.', FALSE);
-            // }
-            // // if ($aplikasi[0]->url != $origin) {
-            // //     return WrapResponse([], 'akses ditolak, domain tidak terdaftar.', FALSE);
-            // // }
-            // foreach ($aplikasi as $key) {
-            //     if ($key->id_pengguna == $user[0]->id_pengguna) {
-            //         echo "penanggung jawab aplikasi";
-            //         // break;
-            //     }
-            //     // return WrapResponse([], 'pengguna tidak terdaftar sebagai penanggung jawab aplikasi.', FALSE);
-            // }
-            // // return WrapResponse(['data' => $aplikasi], 'success');
-            // if (empty($cek)) {
-            //     return WrapResponse([], 'id aplikasi tidak terdaftar.', FALSE);
-            // }
-            // if ($cek[0]->url != $origin) {
-            //     return WrapResponse([], 'akses ditolak, domain tidak terdaftar.', FALSE);
-            // }
-            // foreach ($cek as $data) {
-            //     if ($data->email1 != $username || $data->email2 != $username) {
-            //         return WrapResponse([], 'Pengguna tidak ditemukan.', FALSE);
-            //     }
-            //     if ($data->password != $password) {
-            //         return WrapResponse([], 'Password tidak valid.', FALSE);
-            //     }
-            // }
-            // echo array_search("rio.ananda@staff.unila.ac.id", $cek[0]->email1);
-            // print_r($cek[0]);
-            // $aplikasi   = DB::SELECT("SELECT apk.id_aplikasi, apk.url FROM man_akses.aplikasi AS apk WHERE apk.id_aplikasi = ?", [$id_aplikasi]);
-            // $user       = DB::SELECT("SELECT usr.id_pengguna FROM man_akses.pengguna AS usr WHERE usr.username = ? AND usr.password = ? AND usr.a_aktif = 1", [$username, $password]);
-            // $pjaplikasi = DB::SELECT("SELECT pjapk.id_aplikasi FROM man_akses.pj_aplikasi AS pjapk WHERE pjapk.id_aplikasi = ? AND pjapk.id_pengguna = ?", [$id_aplikasi, $user[0]->id_pengguna]);
-            // if (empty($aplikasi)) {
-            //     return WrapResponse([], 'id aplikasi tidak terdaftar.', FALSE);
-            // } elseif ($origin != $aplikasi[0]->url) {
-            //     return WrapResponse([], 'akses ditolak, domain tidak terdaftar.', FALSE);
-            // } elseif (empty($user)) {
-            //     return WrapResponse([], 'username atau password salah.', FALSE);
-            // } elseif (empty($pjaplikasi)) {
-            //     return WrapResponse([], 'pengguna tidak terdaftar sebagai penanggung jawab aplikasi.', FALSE);
-            // } else {
-            //     return WrapResponse(['data' => $aplikasi[0]->url], 'success');
-            // }
-            // $user = DB::SELECT("
-            // SELECT pjap.id_aplikasi, akpg.id_pengguna, akpg.username
-            // FROM man_akses.pj_aplikasi AS pjap
-            // JOIN man_akses.pengguna AS akpg ON akpg.id_pengguna = pjap.id_pengguna
-            // WHERE pjap.id_aplikasi = ? AND akpg.username = ? AND akpg.password = ?",
+        //     return WrapResponse([], 'id aplikasi tidak terdaftar.', FALSE);
+        // }
+        // // if ($aplikasi[0]->url != $origin) {
+        // //     return WrapResponse([], 'akses ditolak, domain tidak terdaftar.', FALSE);
+        // // }
+        // foreach ($aplikasi as $key) {
+        //     if ($key->id_pengguna == $user[0]->id_pengguna) {
+        //         echo "penanggung jawab aplikasi";
+        //         // break;
+        //     }
+        //     // return WrapResponse([], 'pengguna tidak terdaftar sebagai penanggung jawab aplikasi.', FALSE);
+        // }
+        // // return WrapResponse(['data' => $aplikasi], 'success');
+        // if (empty($cek)) {
+        //     return WrapResponse([], 'id aplikasi tidak terdaftar.', FALSE);
+        // }
+        // if ($cek[0]->url != $origin) {
+        //     return WrapResponse([], 'akses ditolak, domain tidak terdaftar.', FALSE);
+        // }
+        // foreach ($cek as $data) {
+        //     if ($data->email1 != $username || $data->email2 != $username) {
+        //         return WrapResponse([], 'Pengguna tidak ditemukan.', FALSE);
+        //     }
+        //     if ($data->password != $password) {
+        //         return WrapResponse([], 'Password tidak valid.', FALSE);
+        //     }
+        // }
+        // echo array_search("rio.ananda@staff.unila.ac.id", $cek[0]->email1);
+        // print_r($cek[0]);
+        // $aplikasi   = DB::SELECT("SELECT apk.id_aplikasi, apk.url FROM man_akses.aplikasi AS apk WHERE apk.id_aplikasi = ?", [$id_aplikasi]);
+        // $user       = DB::SELECT("SELECT usr.id_pengguna FROM man_akses.pengguna AS usr WHERE usr.username = ? AND usr.password = ? AND usr.a_aktif = 1", [$username, $password]);
+        // $pjaplikasi = DB::SELECT("SELECT pjapk.id_aplikasi FROM man_akses.pj_aplikasi AS pjapk WHERE pjapk.id_aplikasi = ? AND pjapk.id_pengguna = ?", [$id_aplikasi, $user[0]->id_pengguna]);
+        // if (empty($aplikasi)) {
+        //     return WrapResponse([], 'id aplikasi tidak terdaftar.', FALSE);
+        // } elseif ($origin != $aplikasi[0]->url) {
+        //     return WrapResponse([], 'akses ditolak, domain tidak terdaftar.', FALSE);
+        // } elseif (empty($user)) {
+        //     return WrapResponse([], 'username atau password salah.', FALSE);
+        // } elseif (empty($pjaplikasi)) {
+        //     return WrapResponse([], 'pengguna tidak terdaftar sebagai penanggung jawab aplikasi.', FALSE);
+        // } else {
+        //     return WrapResponse(['data' => $aplikasi[0]->url], 'success');
+        // }
+        // $user = DB::SELECT("
+        // SELECT pjap.id_aplikasi, akpg.id_pengguna, akpg.username
+        // FROM man_akses.pj_aplikasi AS pjap
+        // JOIN man_akses.pengguna AS akpg ON akpg.id_pengguna = pjap.id_pengguna
+        // WHERE pjap.id_aplikasi = ? AND akpg.username = ? AND akpg.password = ?",
         // [$id_aplikasi, $username, $password]);
     }
 
-        /**
-     * @OA\Post(
-     * path="/auth/token",
-     * summary="Authentication",
-     * description="Cek token kadarluasa",
-     * operationId="authToken",
-     * tags={"Auth"},
-     * @OA\RequestBody(
-     *    required=true,
-     *    description="Masukan token",
-     *    @OA\JsonContent(
-     *       required={"token"},
-     *       @OA\Property(property="token", type="string", format="string", example="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJCMTM5QzA5RS01QzkzLTQyRjEtOTYzOS01MTFDMTY0RDg3REUiLCJpc3MiOiJodHRwOlwvXC9wZHV0LXVuaWxhLnRlc3RcL2FwaVwvMC4xXC9hdXRoXC9sb2dpbiIsImlhdCI6MTY0MjcwODc5MSwiZXhwIjoxNjQyNzEyMzkxLCJuYmYiOjE2NDI3MDg3OTEsImp0aSI6ImQ4OWEwYjYzYjExZTI4YjkifQ.HLk1XnC95YAAvzM28BbRbrSVmbFtzvIla0hjSuT1FE0")
-     *    ),
-     * ),
-     * @OA\Response(
-     *    response=200,
-     *    description="successful operation",
-     * ),
-     * @OA\Response(
-     *    response=404,
-     *    description="page not found",
-     *    @OA\JsonContent(
-     *       @OA\Property(property="message", type="string", example="Maaf, halaman tidak ditemukan")
-     *        )
-     *     )
-     * )
-     *
-     **/
-    public function token(Request $request){
+    public function token(Request $request)
+    {
         InputValidator([
             'token'    => 'required'
         ], [
             'token.required'     => 'Token harus diisi.'
         ]);
 
-        $token = json_decode(base64_decode(str_replace('_', '/', str_replace('-','+',explode('.', $request->token)[1]))));
+        $token = json_decode(base64_decode(str_replace('_', '/', str_replace('-', '+', explode('.', $request->token)[1]))));
         if ($token->exp < time()) {
             return WrapResponse([], 'Token tidak aktif.', FALSE);
-        } else{
+        } else {
             return WrapResponse([], 'Token aktif.', FALSE);
         }
     }

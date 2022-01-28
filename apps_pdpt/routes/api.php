@@ -130,7 +130,7 @@ Route::group([
         });
 
         Route::prefix('penelitian')->group(function () {
-            Route::get('list', 'PenelitianController@getAllListPenelitian');
+            Route::get('list', 'PenelitianController@getAllListPenelitian')->name('penelitian.list');
             Route::get('list_id', 'PenelitianController@getListPenelitianBySdmId');
             Route::get('detail/{id}', 'PenelitianController@getDetailPenelitianByPenelitianId');
             Route::post('add', 'PenelitianController@storeNewPenelitian');
