@@ -111,6 +111,11 @@ Route::group([
             Route::get('/detail', 'SdmTendikController@detail');
         });
 
+        Route::prefix('nonca')->group(function () {
+            Route::get('/list', 'NonCaController@list');
+            // Route::get('/detail', 'NonCaController@detail');
+        });
+
         Route::prefix('buku_ajar')->group(function () {
             Route::get('list', 'BukuAjarController@list');
             Route::get('list_id', 'BukuAjarController@listById');

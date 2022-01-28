@@ -16,59 +16,6 @@ class SdmTendikController extends Controller
         $this->request = $request;
     }
 
-    /**
-     * @OA\Get(
-     *     path="/tendik/list",
-     *     tags={"Tendik"},
-     *     summary="Mendapatkan Daftar Tendik",
-     *     description="Menampilkan Daftar Tendik",
-     *     operationId="getTendik",
-     *     @OA\Parameter(
-     *          name="page",
-     *          description="",
-     *          example="1",
-     *          required=false,
-     *          in="query",
-     *          @OA\Schema(
-     *              type="number"
-     *          )
-     *     ),
-     *     @OA\Parameter(
-     *          name="count",
-     *          description="",
-     *          example="25",
-     *          required=false,
-     *          in="query",
-     *          @OA\Schema(
-     *              type="number"
-     *          )
-     *     ),
-     *     @OA\Parameter(
-     *          name="sortby",
-     *          description="",
-     *          example="DESC",
-     *          required=false,
-     *          in="query",
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *     ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     * )
-     */
     public function list()
     {
         InputValidator([
@@ -143,39 +90,6 @@ class SdmTendikController extends Controller
         ], 'sukses');
     }
 
-    /**
-     * @OA\Get(
-     *     path="/tendik/detail",
-     *     tags={"Tendik"},
-     *     summary="Mendapatkan Detail Tendik",
-     *     description="Menampilkan Detail Tendik",
-     *     operationId="getDetailTendik",
-     *     @OA\Parameter(
-     *          name="id_sdm",
-     *          description="",
-     *          example="219EE6A1-CE97-4151-932B-2C924F8F6FB2",
-     *          required=true,
-     *          in="query",
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *     ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     * )
-     */
     public function detail(Request $request)
     {
         InputValidator([
@@ -317,24 +231,8 @@ class SdmTendikController extends Controller
             ];
 
         } catch (\Throwable $th) {
-            return WrapResponse([$th], 'gagal mendapatkan detail tendik berdasarkan id_sdm', FALSE);
+            return WrapResponse([], 'gagal mendapatkan detail tendik berdasarkan id_sdm', FALSE);
         }
         return WrapResponse(['data' => $data], 'detail tendik berdasarkan id_sdm', TRUE);
-    }
-
-    public function getDetailTendikBySdmId($id)
-    {
-        request()->merge(['tendikid' => $id]);
-        InputValidator([
-            'tendikid' => 'required|uuid'
-        ]);
-
-        $tendikId = $this->request->input('tendikid');
-
-        try {
-            $query = "";
-        } catch (\Throwable $th) {
-            //throw $th;
-        }
     }
 }
