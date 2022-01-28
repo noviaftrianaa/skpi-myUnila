@@ -113,7 +113,9 @@ Route::group([
 
         Route::prefix('nonca')->group(function () {
             Route::get('/list', 'NonCaController@list');
-            // Route::get('/detail', 'NonCaController@detail');
+            Route::post('/add', 'NonCaController@add');
+            Route::put('/update', 'NonCaController@update');
+            Route::delete('/delete', 'NonCaController@delete');
         });
 
         Route::prefix('buku_ajar')->group(function () {

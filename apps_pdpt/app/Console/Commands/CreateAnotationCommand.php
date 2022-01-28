@@ -22,7 +22,7 @@ class CreateAnotationCommand extends Command
 
     public function handle()
     {
-        exit();
+        // exit();
         $routeList = Route::getRoutes();
         foreach ($routeList as $route) {
             if (is_null($route->action['middleware'])) {

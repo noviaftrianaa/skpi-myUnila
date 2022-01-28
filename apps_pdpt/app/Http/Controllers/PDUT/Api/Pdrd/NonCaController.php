@@ -6,63 +6,24 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule as ValidationRule;
+use App\Models\PDUT\Pdrd\NonCa;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Exception;
+use Illuminate\Support\Facades\Log;
 
 class NonCaController extends Controller
 {
+    protected $request;
+    protected $nonca;
+    protected $cacheLifeTime;
 
-    /**
-     * @OA\Get(
-     *     path="/nonca/list",
-     *     tags={"Non Citivitas Akademik"},
-     *     summary="Mendapatkan Daftar Non Citivitas Akademik",
-     *     description="Menampilkan Daftar Non Citivitas Akademik",
-     *     operationId="getNonCa",
-     *     @OA\Parameter(
-     *          name="page",
-     *          description="",
-     *          example="1",
-     *          required=false,
-     *          in="query",
-     *          @OA\Schema(
-     *              type="number"
-     *          )
-     *     ),
-     *     @OA\Parameter(
-     *          name="count",
-     *          description="",
-     *          example="25",
-     *          required=false,
-     *          in="query",
-     *          @OA\Schema(
-     *              type="number"
-     *          )
-     *     ),
-     *     @OA\Parameter(
-     *          name="sortby",
-     *          description="",
-     *          example="DESC",
-     *          required=false,
-     *          in="query",
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *     ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     * )
-     */
+    public function __construct(Request $request)
+    {
+        $this->request = $request;
+        $this->nonca = new NonCa();
+        $this->cacheLifeTime = 3600;
+    }
+
     public function list(Request $request)
     {
         InputValidator([
@@ -108,7 +69,7 @@ class NonCaController extends Controller
             FROM pdrd.non_ca AS nc WITH(NOLOCK)
             LEFT JOIN ref.negara AS ng WITH(NOLOCK) ON ng.id_negara = nc.id_negara  AND ng.expired_date IS NULL
             WHERE nc.soft_delete = 0
-            ORDER BY nc.nm_orang ". $sortby . " ";
+            ORDER BY nc.nm_orang " . $sortby . " ";
 
             $pagination = CustomPagination($query);
             $query = $pagination['query'];
@@ -142,10 +103,227 @@ class NonCaController extends Controller
                     'terakhir_diubah' => $value->last_update
                 ];
             }
-
         } catch (\Throwable $th) {
             return WrapResponse(['data' => null], 'gagal mendapatkan daftar Non Citivitas Akademik', FALSE);
         }
         return WrapResponse(['data' => $data], 'daftar Non Citivitas Akademik', TRUE);
+    }
+
+    public function add()
+    {
+        $creatorId = $updateId = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
+        $id_orang = guid();
+        $id_negara = $this->request->input('id_negara');
+        $jln = $this->request->input('jln');
+        $rt = $this->request->input('rt');
+        $rw = $this->request->input('rw');
+        $nm_dsn = $this->request->input('nm_dsn');
+        $ds_kel = $this->request->input('ds_kel');
+        $kode_pos = $this->request->input('kode_pos');
+        $nm_orang = $this->request->input('nm_orang');
+        $jk = $this->request->input('jk');
+        $nik = $this->request->input('nik');
+        $tmpt_lahir = $this->request->input('tmpt_lahir');
+        $tgl_lahir = $this->request->input('tgl_lahir');
+        $no_tel_rmh = $this->request->input('no_tel_rmh');
+        $no_hp = $this->request->input('no_hp');
+        $email = $this->request->input('email');
+        $npwp = $this->request->input('npwp');
+
+        InputValidator([
+            'id_negara' => 'required',
+            'jln' => 'required',
+            'rt' => 'required',
+            'rw' => 'required',
+            'nm_dsn' => 'required',
+            'ds_kel' => 'required',
+            'kode_pos' => 'required',
+            'nm_orang' => 'required',
+            'jk' => 'required',
+            'nik' => 'required',
+            'tmpt_lahir' => 'required',
+            'tgl_lahir' => 'required',
+            'no_tel_rmh' => 'required',
+            'no_hp' => 'required',
+            'email' => 'required',
+            'npwp' => 'required'
+        ], [
+            'id_negara.required' => 'id_negara .....',
+            'jln.required' => 'jln .....',
+            'rt.required' => 'rt .....',
+            'rw.required' => 'rw .....',
+            'nm_dsn.required' => 'nm_dsn .....',
+            'ds_kel.required' => 'ds_kel .....',
+            'kode_pos.required' => 'kode_pos .....',
+            'nm_orang.required' => 'nm_orang .....',
+            'jk.required' => 'jk .....',
+            'nik.required' => 'nik .....',
+            'tmpt_lahir.required' => 'tmpt_lahir .....',
+            'tgl_lahir.required' => 'tgl_lahir .....',
+            'no_tel_rmh.required' => 'no_tel_rmh .....',
+            'no_hp.required' => 'no_hp .....',
+            'email.required' => 'email .....',
+            'npwp.required' => 'npwp .....'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $non_ca = $this->nonca->create([
+                'id_orang' => $id_orang,
+                'id_negara' => $id_negara,
+                'jln' => $jln,
+                'rt' => $rt,
+                'rw' => $rw,
+                'nm_dsn' => $nm_dsn,
+                'ds_kel' => $ds_kel,
+                'kode_pos' => $kode_pos,
+                'nm_orang' => $nm_orang,
+                'jk' => $jk,
+                'nik' => $nik,
+                'tmpt_lahir' => $tmpt_lahir,
+                'tgl_lahir' => $tgl_lahir,
+                'no_tel_rmh' => $no_tel_rmh,
+                'no_hp' => $no_hp,
+                'email' => $email,
+                'npwp' => $npwp,
+                'soft_delete' => 0,
+                'create_date' => currDateTime(),
+                'id_creator' => $creatorId,
+                'last_update' => currDateTime(),
+                'last_sync' => currDateTime(),
+            ]);
+
+            DB::commit();
+            return WrapResponse(array('data' => array('id_orang' => $id_orang)), 'sukses menambahkan non citivitas akademik', TRUE);
+        } catch (ModelNotFoundException $mnfe) {
+            DB::rollBack();
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+            return WrapResponse(['data' => null], 'non citivitas akademik tidak dapat ditambahkan', FALSE);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
+            return WrapResponse(['data' => null], 'gagal menambahkan non citivitas akademik', FALSE);
+        }
+    }
+
+    public function update()
+    {
+        $id_orang = $this->request->input('id_orang');
+        $id_negara = $this->request->input('id_negara');
+        $jln = $this->request->input('jln');
+        $rt = $this->request->input('rt');
+        $rw = $this->request->input('rw');
+        $nm_dsn = $this->request->input('nm_dsn');
+        $ds_kel = $this->request->input('ds_kel');
+        $kode_pos = $this->request->input('kode_pos');
+        $nm_orang = $this->request->input('nm_orang');
+        $jk = $this->request->input('jk');
+        $nik = $this->request->input('nik');
+        $tmpt_lahir = $this->request->input('tmpt_lahir');
+        $tgl_lahir = $this->request->input('tgl_lahir');
+        $no_tel_rmh = $this->request->input('no_tel_rmh');
+        $no_hp = $this->request->input('no_hp');
+        $email = $this->request->input('email');
+        $npwp = $this->request->input('npwp');
+
+        InputValidator([
+            'id_negara' => 'required',
+            'jln' => 'required',
+            'rt' => 'required',
+            'rw' => 'required',
+            'nm_dsn' => 'required',
+            'ds_kel' => 'required',
+            'kode_pos' => 'required',
+            'nm_orang' => 'required',
+            'jk' => 'required',
+            'nik' => 'required',
+            'tmpt_lahir' => 'required',
+            'tgl_lahir' => 'required',
+            'no_tel_rmh' => 'required',
+            'no_hp' => 'required',
+            'email' => 'required',
+            'npwp' => 'required'
+        ], [
+            'id_negara.required' => 'id_negara .....',
+            'jln.required' => 'jln .....',
+            'rt.required' => 'rt .....',
+            'rw.required' => 'rw .....',
+            'nm_dsn.required' => 'nm_dsn .....',
+            'ds_kel.required' => 'ds_kel .....',
+            'kode_pos.required' => 'kode_pos .....',
+            'nm_orang.required' => 'nm_orang .....',
+            'jk.required' => 'jk .....',
+            'nik.required' => 'nik .....',
+            'tmpt_lahir.required' => 'tmpt_lahir .....',
+            'tgl_lahir.required' => 'tgl_lahir .....',
+            'no_tel_rmh.required' => 'no_tel_rmh .....',
+            'no_hp.required' => 'no_hp .....',
+            'email.required' => 'email .....',
+            'npwp.required' => 'npwp .....'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $non_ca = $this->nonca->where('id_orang', $id_orang)->first();
+            if (!$non_ca) return WrapResponse(['data' => null], 'non citivitas akademik tidak ditemukan atau tidak terdaftar', FALSE);
+
+            $non_ca->update([
+                'id_orang' => $id_orang,
+                'id_negara' => $id_negara,
+                'jln' => $jln,
+                'rt' => $rt,
+                'rw' => $rw,
+                'nm_dsn' => $nm_dsn,
+                'ds_kel' => $ds_kel,
+                'kode_pos' => $kode_pos,
+                'nm_orang' => $nm_orang,
+                'jk' => $jk,
+                'nik' => $nik,
+                'tmpt_lahir' => $tmpt_lahir,
+                'tgl_lahir' => $tgl_lahir,
+                'no_tel_rmh' => $no_tel_rmh,
+                'no_hp' => $no_hp,
+                'email' => $email,
+                'npwp' => $npwp,
+                'last_update' => currDateTime()
+            ]);
+
+            DB::commit();
+            return WrapResponse(array('data' => array('id_orang' => $id_orang)), 'sukses mengubah non citivitas akademik', TRUE);
+        } catch (ModelNotFoundException $mnfe) {
+            DB::rollBack();
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+            return WrapResponse(['data' => null], 'non citivitas akademik tidak dapat diubah', FALSE);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
+            return WrapResponse(['data' => null], 'gagal mengubah non citivitas akademik', FALSE);
+        }
+    }
+
+    public function delete()
+    {
+        InputValidator([
+            'id_orang' => 'required|uuid',
+        ], [
+            'id_orang.required' => 'input id_orang harus diisi',
+            'id_orang.uuid' => 'input id_orang harus berupa UUID yang valid',
+        ]);
+
+        $id_orang = $this->request->input('id_orang');
+
+        DB::beginTransaction();
+        try {
+            $non_ca = $this->nonca->where('id_orang', $id_orang)->update([
+                'soft_delete' => 1,
+                'last_update' => currDateTime()
+            ]);
+            DB::commit();
+            return WrapResponse(array('data' => array('id_orang' => $id_orang)), 'berhasil menghapus data non citivitas akademik');
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Error on ' . $e->getMessage() . ' in line ' . $e->getLine());
+            return WrapResponse(['data' => null], 'gagal menghapus data non citivitas akademik', FALSE);
+        }
     }
 }
