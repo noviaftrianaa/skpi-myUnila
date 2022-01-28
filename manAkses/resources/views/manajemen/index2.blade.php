@@ -2,8 +2,8 @@
 @section('title','Dashboard')
 
 @section('content')
-    <h3 class="text-muted">Integrated Apps</h3>
-    <div class="row">
+    <h3 class="text-muted text-bold">Integrated Apps</h3>
+    <div class="row mb-3">
         @foreach($aplikasi AS $items)
         <div class="col-6 col-sm-4 col-md-2 d-flex align-items-stretch flex-column">
             <a href="{{ $items->url }}">
@@ -22,8 +22,9 @@
         @endforeach
     </div>
     
-    <h3 class="text-muted">Non-Integrated Apps</h3>
+    <h3 class="text-muted text-bold">Non-Integrated Apps</h3>
     <div class="row">
+        @if(!is_null($aplikasi))
         @foreach($aplikasi AS $items)
         <div class="col-6 col-sm-4 col-md-2 d-flex align-items-stretch flex-column">
             <a href="{{ $items->url }}">
@@ -40,6 +41,11 @@
             </a>
         </div>
         @endforeach
+        @else
+        <div class="col-12 col-sm-12 col-md-12 d-flex align-items-stretch flex-column">
+            === Tidak Ada Data ===
+        </div>
+        @endif
     </div>
 
 @endsection
