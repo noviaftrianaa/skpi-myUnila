@@ -168,8 +168,13 @@ Route::group([
             Route::get('list', 'AkreditasiProdiController@index');
         });
 
-        Route::prefix('sms')->group(function () {
-            Route::get('list', 'SmsController@index');
+        Route::prefix('lembaga')->group(function () {
+            Route::get('profilpt/detail', 'LembagaController@detailProfilPt');
+            Route::get('akreditasipt', 'LembagaController@listAkreditasiPt');
+            Route::get('daftarprodi/detail', 'LembagaController@detailDaftarProdi');
+            Route::get('profilprodi/list', 'LembagaController@listProfilProdi');
+            Route::get('profilprodi/list_id', 'LembagaController@listProfilProdiById');
+            Route::get('daftarsms', 'LembagaController@listSms');
         });
     });
 

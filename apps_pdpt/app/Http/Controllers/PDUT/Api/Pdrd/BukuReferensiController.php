@@ -5,6 +5,7 @@ namespace App\Http\Controllers\PDUT\Api\Pdrd;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 
 
@@ -571,7 +572,9 @@ class BukuReferensiController extends Controller
         DB::commit();
         return WrapResponse(['id_publikasi' => $id_publikasi], 'Buku Referensi Berhasil Ditambahkan', TRUE);
     } catch (\Exception $e) {
+        Log::error('Message ' . $e->getMessage() . ' - ' . $e->getLine());
         DB::rollback();
+        Log::error($e->getMessage() . ' on line ' . $e->getLine());
         return WrapResponse(['id_publikasi' => $id_publikasi], 'Buku Referensi Gagal Ditambahkan', FALSE);
     }
 }
