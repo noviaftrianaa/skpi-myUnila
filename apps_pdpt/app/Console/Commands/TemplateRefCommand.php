@@ -42,7 +42,9 @@ class TemplateRefCommand extends Command
                 SELECT c.name AS column_name,c.column_id
                 FROM sys.columns AS c
                 JOIN sys.tables AS t ON c.object_id = t.object_id
-                WHERE c.object_id = OBJECT_ID(" . "'" . $schema_name . "." . $t->table_name . "'" . ") 
+                WHERE c.object_id = OBJECT_ID(" . "'" . $schema_name . "." . $t->table_name . "'" . ")
+                    AND c.name != 'last_sync'
+                    AND c.name != 'expired_date'
                 ORDER BY c.column_id ASC
             ");
 
@@ -52,19 +54,24 @@ class TemplateRefCommand extends Command
             $summaryAndDesc = $operation;
             $operation = 'get' . $operation;
 
-
             $selectQText = '';
             $inArray = '';
             $fillable = '';
             foreach ($getColumn as $c) {
                 $selectQText .= "'" . $c->column_name . "',";
-                $inArray .= "'" . $c->column_name . "' => " . '$each_data->' . $c->column_name . ',' . "\r";
+                if ($c->column_name =='create_date') {
+                    $inArray .= "'waktu_data_ditambahkan' => " . '$each_data->' . $c->column_name . ',' . "\r";
+                } elseif ($c->column_name == 'last_update') {
+                    $inArray .= "'terakhir_diubah' => " . '$each_data->' . $c->column_name . ',' . "\r";
+                } else {
+                    $inArray .= "'" . $c->column_name . "' => " . '$each_data->' . $c->column_name . ',' . "\r";
+                }
                 $fillable .= "\t" . "'" . $c->column_name . "'" . ',' . "\r";
             }
 
             $data = [
-                'path' => "/$schema_name/".$t->table_name,
-                'tag' => ucfirst($schema_name),
+                'path' => "/referensi/".$t->table_name,
+                'tag' => 'Referensi',
                 'operation' => $operation,
                 'summary' => "Dapatkan daftar $summaryAndDesc",
                 'description' => "Menampilkan daftar data $summaryAndDesc",
