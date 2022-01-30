@@ -3,149 +3,151 @@
 namespace App\Http\Controllers\PDUT\Api\Pdrd;
 
 use App\Http\Controllers\Controller;
+use App\Models\PDUT\Pdrd\BukuAjar;
+use App\Models\PDUT\Pdrd\TulisBukuAjar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule as ValidationRule;
+use Exception;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class BukuAjarController extends Controller
 {
-    public function list(Request $request)
+    protected $request;
+    protected $buku_ajar;
+    protected $tulis_buku_ajar;
+
+    public function __construct(Request $request)
+    {
+        $this->request = $request;
+        $this->buku_ajar = new BukuAjar();
+        $this->tulis_buku_ajar = new TulisBukuAjar();
+    }
+
+    public function list()
     {
         InputValidator([
             'page' => 'numeric|min:1',
             'count'    => 'numeric|min:1|max:50',
             'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
-        ], [
-            'page.numeric'  => 'input page hanya berupa angka',
-            'page.min'      => 'input count hanya berupa angka minimal 1',
-            'count.numeric' => 'input count hanya berupa angka',
-            'count.min'     => 'input count hanya berupa angka minimal 1',
-            'count.max'     => 'input count hanya berupa angka tidak boleh lebih dari 50',
-            'sortby.alpha'  => 'input sortby penyortiran tidak sesuai',
-            'sortby.in'     => 'input sortby penyortiran hanya ASC,asc atau DESC,desc'
         ]);
 
-        $page = 1;
-        $count = 10;
         $sortby = "ASC";
+        $sortby = $this->request->input('sortby');
 
-        if (!empty($request->sortby)) {
-            $sortby = $request->sortby;
+        if (!empty($sortby)) {
+            $sortby = $sortby;
         }
-        if (!empty($request->page)) {
-            $page = $request->page;
-        }
-        if (!empty($request->count)) {
-            if ($request->count > 50) {
-                $count = 50;
-            } else {
-                $count = $request->count;
+
+        try {
+            $query = "SELECT
+                buku.id_buku_ajar,
+                buku.judul_buku,
+                buku.isbn,
+                buku.tgl_terbit,
+                buku.penerbit,
+                buku.create_date,
+                buku.last_update
+            FROM
+                pdrd.buku_ajar AS buku WITH(NOLOCK)
+            WHERE
+                buku.soft_delete = 0
+            ORDER BY
+                buku.judul_buku " . $sortby . " ";
+
+            $pagination = CustomPagination($query);
+            $query = $pagination['query'];
+
+            $bukus = DB::select($query);
+            if (empty($bukus)) {
+                return WrapResponse(['data' => null], 'tidak ada daftar buku ajar yang ditampilkan', FALSE);
             }
+
+            $data = [];
+            foreach ($bukus as $value) {
+                $data[] = [
+                    'id_buku_ajar' => $value->id_buku_ajar,
+                    'judul_buku' => $value->judul_buku,
+                    'isbn' => $value->isbn,
+                    'tanggal_terbit' => $value->tgl_terbit,
+                    'penerbit' => $value->penerbit,
+                    'waktu_data_ditambahkan' => $value->create_date,
+                    'terakhir_diubah' => $value->last_update
+                ];
+            }
+        } catch (\Throwable $th) {
+            return WrapResponse(['data' => null], 'gagal mendapatkan daftar buku ajar', FALSE);
         }
-
-        $buku_ajar = DB::select("
-        DECLARE @PageNumber AS INT
-        DECLARE @RowsOfPage AS INT
-        SET @PageNumber= ?
-        SET @RowsOfPage= ?
-        SELECT tsbuku.id_tulis_buku_ajar, tsbuku.create_date, tsbuku.last_update, buku.id_buku_ajar, buku.judul_buku, buku.isbn, buku.tgl_terbit, buku.penerbit
-        FROM pdrd.tulis_buku_ajar AS tsbuku WITH(NOLOCK)
-        LEFT JOIN pdrd.buku_ajar AS buku WITH(NOLOCK) ON buku.id_buku_ajar = tsbuku.id_buku_ajar AND buku.soft_delete = 0
-        WHERE tsbuku.soft_delete = 0
-        ORDER BY tsbuku.create_date " . $sortby . "
-        OFFSET (@PageNumber-1)*@RowsOfPage ROWS
-        FETCH NEXT @RowsOfPage ROWS ONLY
-        ", [$page, $count]);
-
-        foreach ($buku_ajar as $each_data) {
-            $data[] = [
-                'id_buku_ajar' => $each_data->id_buku_ajar,
-                'judul_buku' => $each_data->judul_buku,
-                'isbn' => $each_data->isbn,
-                'tanggal_terbit' => $each_data->tgl_terbit,
-                'penerbit' => $each_data->penerbit,
-                'waktu_data_ditambahkan' => $each_data->create_date,
-                'terakhir_diubah' => $each_data->last_update
-            ];
-        }
-
-        return WrapResponse(['page' => $page, 'count' => $count, 'data' => $data], 'Daftar Buku Ajar By All', TRUE);
+        return WrapResponse(['data' => $data], 'daftar buku ajar', TRUE);
     }
 
-    public function listById(Request $request)
+    public function listById()
     {
-
         InputValidator([
             'id_sdm' => 'required|uuid',
             'page' => 'numeric|min:1',
             'count'    => 'numeric|min:1|max:50',
             'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
-        ], [
-            'page.numeric'  => 'input page hanya berupa angka',
-            'page.min'      => 'input count hanya berupa angka minimal 1',
-            'count.numeric' => 'input count hanya berupa angka',
-            'count.min'     => 'input count hanya berupa angka minimal 1',
-            'count.max'     => 'input count hanya berupa angka tidak boleh lebih dari 50',
-            'sortby.alpha'  => 'input sortby penyortiran tidak sesuai',
-            'sortby.in'     => 'input sortby penyortiran hanya ASC,asc atau DESC,desc',
-            'id_sdm.required'  => 'input id_sdm harus diisi',
-            'id_sdm.uuid'  => 'input id_sdm harus berupa UUID yang valid'
         ]);
 
-        $page = 1;
-        $count = 10;
         $sortby = "ASC";
+        $sortby = $this->request->input('sortby');
+        $id_sdm = $this->request->input('id_sdm');
 
-        if (!empty($request->sortby)) {
-            $sortby = $request->sortby;
+        if (!empty($sortby)) {
+            $sortby = $sortby;
         }
-        if (!empty($request->page)) {
-            $page = $request->page;
-        }
-        if (!empty($request->count)) {
-            if ($request->count > 50) {
-                $count = 50;
-            } else {
-                $count = $request->count;
+
+        try {
+            $query = "SELECT
+                tsbuku.id_sdm,
+                buku.id_buku_ajar,
+                buku.judul_buku,
+                buku.isbn,
+                buku.tgl_terbit,
+                buku.penerbit,
+                buku.create_date,
+                buku.last_update
+            FROM
+                pdrd.tulis_buku_ajar AS tsbuku WITH(NOLOCK)
+            LEFT JOIN pdrd.buku_ajar AS buku WITH(NOLOCK) ON buku.id_buku_ajar = tsbuku.id_buku_ajar AND buku.soft_delete = 0
+            WHERE tsbuku.soft_delete = 0 AND tsbuku.id_sdm = '" . $id_sdm . "' ORDER BY buku.judul_buku " . $sortby . " ";
+
+            $pagination = CustomPagination($query);
+            $query = $pagination['query'];
+
+            $bukus = DB::select($query);
+            if (empty($bukus)) {
+                return WrapResponse(['data' => null], 'tidak ada daftar buku ajar yang ditampilkan', FALSE);
             }
+
+            $data = [];
+            foreach ($bukus as $value) {
+                $data[] = [
+                    'id_sdm' => $value->id_sdm,
+                    'id_buku_ajar' => $value->id_buku_ajar,
+                    'judul_buku' => $value->judul_buku,
+                    'isbn' => $value->isbn,
+                    'tanggal_terbit' => $value->tgl_terbit,
+                    'penerbit' => $value->penerbit,
+                    'waktu_data_ditambahkan' => $value->create_date,
+                    'terakhir_diubah' => $value->last_update
+                ];
+            }
+        } catch (\Throwable $th) {
+            return WrapResponse(['data' => null], 'gagal mendapatkan daftar buku ajar', FALSE);
         }
-
-        $buku_ajar = DB::select("
-        DECLARE @PageNumber AS INT
-        DECLARE @RowsOfPage AS INT
-        SET @PageNumber= ?
-        SET @RowsOfPage= ?
-        SELECT tsbuku.id_tulis_buku_ajar, tsbuku.create_date, tsbuku.last_update, buku.id_buku_ajar, buku.judul_buku, buku.isbn, buku.tgl_terbit, buku.penerbit
-        FROM pdrd.tulis_buku_ajar AS tsbuku WITH(NOLOCK)
-        LEFT JOIN pdrd.buku_ajar AS buku WITH(NOLOCK) ON buku.id_buku_ajar = tsbuku.id_buku_ajar AND buku.soft_delete = 0
-        WHERE tsbuku.soft_delete = 0 AND tsbuku.id_sdm = ?
-        ORDER BY tsbuku.create_date " . $sortby . "
-        OFFSET (@PageNumber-1)*@RowsOfPage ROWS
-        FETCH NEXT @RowsOfPage ROWS ONLY", [$page, $count, $request->id_sdm]);
-
-        foreach ($buku_ajar as $each_data) {
-            $data[] = [
-                'id_buku_ajar' => $each_data->id_buku_ajar,
-                'judul_buku' => $each_data->judul_buku,
-                'isbn' => $each_data->isbn,
-                'tanggal_terbit' => $each_data->tgl_terbit,
-                'penerbit' => $each_data->penerbit,
-                'waktu_data_ditambahkan' => $each_data->create_date,
-                'terakhir_diubah' => $each_data->last_update
-            ];
-        }
-
-        return WrapResponse(['page' => $page, 'count' => $count, 'data' => $data], 'Daftar Buku Ajar By id_sdm', TRUE);
+        return WrapResponse(['data' => $data], 'daftar buku ajar', TRUE);
     }
 
-    public function detail(Request $request)
+    public function detail()
     {
         InputValidator([
             'id_buku_ajar' => 'required|uuid'
-        ], [
-            'id_buku_ajar.required'  => 'input id_buku_ajar harus diisi',
-            'id_buku_ajar.uuid'  => 'input id_buku_ajar harus berupa UUID yang valid'
         ]);
+
+        $id_buku_ajar = $this->request->input('id_buku_ajar');
 
         try {
             $buku_ajar = DB::select("SELECT TOP 1
@@ -155,28 +157,28 @@ class BukuAjarController extends Controller
             LEFT JOIN ref.jenis_bahan_ajar AS jnbajr WITH(NOLOCK) ON jnbajr.id_jns_bhn_ajar = buku.id_jns_bhn_ajar AND jnbajr.expired_date IS NULL
             LEFT JOIN pdrd.litabmas AS lbms WITH(NOLOCK) ON lbms.id_litabmas = buku.id_litabmas AND lbms.soft_delete = 0
             LEFT JOIN ref.kategori_capaian_luaran AS kacap WITH(NOLOCK) ON kacap.id_kat_capaian = buku.id_kat_capaian AND kacap.expired_date IS NULL
-            WHERE buku.soft_delete = 0 AND buku.id_buku_ajar = ?", [$request->id_buku_ajar]);
+            WHERE buku.soft_delete = 0 AND buku.id_buku_ajar = ?", [$id_buku_ajar]);
 
             $buku_ajar_sdm = DB::select("SELECT
             sdm.id_sdm, sdm.nm_sdm, tsbuku.urutan2, tsbuku.afiliasi, tsbuku.peran_tulis
             FROM pdrd.tulis_buku_ajar AS tsbuku
             JOIN pdrd.sdm AS sdm ON sdm.id_sdm = tsbuku.id_sdm
             WHERE tsbuku.id_buku_ajar = ?
-            ORDER BY tsbuku.urutan2 ASC", [$request->id_buku_ajar]);
+            ORDER BY tsbuku.urutan2 ASC", [$id_buku_ajar]);
 
             $buku_ajar_pd = DB::select("SELECT
             pd.id_pd, pd.nm_pd, tsbuku.urutan2, tsbuku.afiliasi, tsbuku.peran_tulis
             FROM pdrd.tulis_buku_ajar AS tsbuku
             JOIN pdrd.peserta_didik AS pd ON pd.id_pd = tsbuku.id_pd
             WHERE tsbuku.id_buku_ajar = ?
-            ORDER BY tsbuku.urutan2 ASC", [$request->id_buku_ajar]);
+            ORDER BY tsbuku.urutan2 ASC", [$id_buku_ajar]);
 
             $buku_ajar_nonca = DB::select("SELECT
             nonca.id_orang, nonca.nm_orang, tsbuku.urutan2, tsbuku.afiliasi, tsbuku.peran_tulis
             FROM pdrd.tulis_buku_ajar AS tsbuku
             JOIN pdrd.non_ca AS nonca ON nonca.id_orang = tsbuku.id_orang
             WHERE tsbuku.id_buku_ajar = ?
-            ORDER BY tsbuku.urutan2 ASC", [$request->id_buku_ajar]);
+            ORDER BY tsbuku.urutan2 ASC", [$id_buku_ajar]);
 
             $buku_ajar_dok = DB::select("SELECT
             dok_dokumen.nm_dok AS nama_dok,
@@ -191,7 +193,7 @@ class BukuAjarController extends Controller
             AND dok_dokumen.soft_delete = 0
             LEFT JOIN ref.jenis_dokumen AS refj_dokumen ON refj_dokumen.id_jns_dok = dok_dokumen.id_jns_dok
             AND refj_dokumen.expired_date IS NULL
-            WHERE buku.id_buku_ajar = ? AND buku.soft_delete = 0", [$request->id_buku_ajar]);
+            WHERE buku.id_buku_ajar = ? AND buku.soft_delete = 0", [$id_buku_ajar]);
 
             foreach ($buku_ajar as $each_data) {
                 $data[] = [
@@ -217,183 +219,382 @@ class BukuAjarController extends Controller
         return WrapResponse(['data' => $data], 'Detail Buku Ajar', TRUE);
     }
 
-    public function add(Request $request)
+    public function add()
     {
+        InputValidator([
+            'id_litabmas' => 'required|uuid',
+            'judul_buku' => 'required',
+            'penulis' => 'required',
+            'penerbit' => 'required',
+            'isbn' => 'required',
+            'tgl_terbit' => 'required|date',
+            'sk_tugas' => 'required',
+            'tgl_sk_tugas' => 'required|date',
+            'urutan_dosen.*' => 'nullable|numeric',
+            'afiliasi_dosen.*' => 'nullable',
+            'peran_tulis_dosen.*' => ['nullable', ValidationRule::in(['A', 'B', 'C', 'D'])],
+            'jns_penulis_dosen.*' => 'nullable|numeric',
+            'urutan_mahasiswa.*' => 'nullable|numeric',
+            'afiliasi_mahasiswa.*' => 'nullable',
+            'peran_tulis_mahasiswa.*' => ['nullable', ValidationRule::in(['A', 'B', 'C', 'D'])],
+            'jns_penulis_mahasiswa.*' => 'nullable|numeric',
+            'nm_pd_mahasiswa.*' => 'nullable',
+            'nipd_mahasiswa.*' => 'nullable',
+            'urutan_orang.*' => 'nullable|numeric',
+            'afiliasi_orang.*' => 'nullable',
+            'peran_tulis_orang.*' => ['nullable', ValidationRule::in(['A', 'B', 'C', 'D'])],
+            'jns_penulis_orang.*' => 'nullable|numeric'
+        ]);
+
         $id_buku_ajar = guid();
         $id_katgiat = 110801;
         $creatorId = $updateId = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
         $id_jns_bhn_ajar = 1;
         $id_kat_capaian = 5;
 
-        DB::beginTransaction();
-        try {
+        $id_litabmas = $this->request->input('id_litabmas');
+        $judul_buku = $this->request->input('judul_buku');
+        $penulis = $this->request->input('penulis');
+        $penerbit = $this->request->input('penerbit');
+        $isbn = $this->request->input('isbn');
+        $tgl_terbit = $this->request->input('tgl_terbit');
+        $sk_tugas = $this->request->input('sk_tugas');
+        $tgl_sk_tugas = $this->request->input('tgl_sk_tugas');
 
-            $buku = DB::insert(
-                "INSERT INTO pdrd.buku_ajar (id_buku_ajar, id_kat_capaian,
-            id_jns_bhn_ajar, id_litabmas, judul_buku, penulis, penerbit, isbn,
-            tgl_terbit, sk_tugas, tgl_sk_tugas, create_date, id_creator, last_update, id_updater, soft_delete, last_sync)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                [
-                    $id_buku_ajar, $id_kat_capaian, $id_jns_bhn_ajar,
-                    $request->id_litabmas, $request->judul_buku, $request->penulis, $request->penerbit,
-                    $request->isbn, $request->tgl_terbit, $request->sk_tugas, $request->tgl_sk_tugas, currDateTime(), $creatorId, currDateTime(), $updateId, 0, currDateTime()
-                ]
-            );
+        $id_dosen = $this->request->input('id_dosen');
+        $urutan_dosen = $this->request->input('urutan_dosen');
+        $afiliasi_dosen = $this->request->input('afiliasi_dosen');
+        $peran_tulis_dosen = $this->request->input('peran_tulis_dosen');
+        $jns_penulis_dosen = $this->request->input('jns_penulis_dosen');
 
+        $id_mahasiswa = $this->request->input('id_mahasiswa');
+        $urutan_mahasiswa = $this->request->input('urutan_mahasiswa');
+        $afiliasi_mahasiswa = $this->request->input('afiliasi_mahasiswa');
+        $peran_tulis_mahasiswa = $this->request->input('peran_tulis_mahasiswa');
+        $jns_penulis_mahasiswa = $this->request->input('jns_penulis_mahasiswa');
+        $nm_pd_mahasiswa = $this->request->input('nm_pd_mahasiswa');
+        $nipd_mahasiswa = $this->request->input('nipd_mahasiswa');
 
-            if (!empty($request->id_dosen)) {
-                foreach ($request->id_dosen as $index => $id_dosen) {
-                    if (is_null($id_dosen)) break;
-                    $dosen = DB::insert(
-                        "INSERT INTO pdrd.tulis_buku_ajar (id_tulis_buku_ajar, id_katgiat,
-                    id_buku_ajar, id_sdm, id_pd, id_orang, urutan2, afiliasi, peran_tulis,
-                    jns_penulis, nm_pd, nipd, create_date, id_creator, last_update, id_updater, soft_delete, last_sync)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                        [
-                            guid(), $id_katgiat, $id_buku_ajar, $request->id_dosen[$index], NULL,
-                            NULL, $request->urutan_dosen[$index], $request->afiliasi_dosen[$index], $request->peran_tulis_dosen[$index],
-                            $request->jns_penulis_dosen[$index], NULL,  NULL, currDateTime(), $creatorId, currDateTime(), $updateId, 0, currDateTime()
-                        ]
-                    );
-                }
-            }
-
-            if (!empty($request->id_mahasiswa)) {
-                foreach ($request->id_mahasiswa as $index => $id_mahasiswa) {
-                    if (is_null($id_mahasiswa)) break;
-                    $mahasiswa = DB::insert(
-                        "INSERT INTO pdrd.tulis_buku_ajar (id_tulis_buku_ajar, id_katgiat,
-                    id_buku_ajar, id_sdm, id_pd, id_orang, urutan2, afiliasi, peran_tulis,
-                    jns_penulis, nm_pd, nipd, create_date, id_creator, last_update, id_updater, soft_delete, last_sync)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                        [
-                            guid(), $id_katgiat, $id_buku_ajar, NULL, $request->id_mahasiswa[$index],
-                            NULL, $request->urutan_mahasiswa[$index], $request->afiliasi_mahasiswa[$index], $request->peran_tulis_mahasiswa[$index],
-                            $request->jns_penulis_mahasiswa[$index], $request->nm_pd_mahasiswa[$index], $request->nipd_mahasiswa[$index], currDateTime(), $creatorId, currDateTime(), $updateId, 0, currDateTime()
-                        ]
-                    );
-                }
-            }
-
-            if (!empty($request->id_orang)) {
-                foreach ($request->id_orang as $index => $id_orang) {
-                    if (is_null($id_orang)) break;
-                    $orang = DB::insert(
-                        "INSERT INTO pdrd.tulis_buku_ajar (id_tulis_buku_ajar, id_katgiat,
-                    id_buku_ajar, id_sdm, id_pd, id_orang, urutan2, afiliasi, peran_tulis,
-                    jns_penulis, nm_pd, nipd, create_date, id_creator, last_update, id_updater, soft_delete, last_sync)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                        [
-                            guid(), $id_katgiat, $id_buku_ajar, NULL,
-                            NULL, $request->id_orang[$index], $request->urutan_orang[$index], $request->afiliasi_orang[$index], $request->peran_tulis_orang[$index],
-                            $request->jns_penulis_orang[$index], NULL,  NULL, currDateTime(), $creatorId, currDateTime(), $updateId, 0, currDateTime()
-                        ]
-                    );
-                }
-            }
-
-            DB::commit();
-            return WrapResponse(array('data' => array('id_buku_ajar' => $id_buku_ajar)), 'Buku Ajar Berhasil Ditambahkan', TRUE);
-        } catch (\Exception $e) {
-            DB::rollback();
-            return WrapResponse(['data' => null], 'Buku Ajar Gagal Ditambahkan', FALSE);
-        }
-    }
-
-    public function update(Request $request)
-    {
-        $id_updater = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
-        $id_katgiat = 110801;
-        $id_jns_bhn_ajar = 1;
-        $id_kat_capaian = 5;
+        $id_orang = $this->request->input('id_orang');
+        $urutan_orang = $this->request->input('urutan_orang');
+        $afiliasi_orang = $this->request->input('afiliasi_orang');
+        $peran_tulis_orang = $this->request->input('peran_tulis_orang');
+        $jns_penulis_orang = $this->request->input('jns_penulis_orang');
 
         DB::beginTransaction();
         try {
-            $buku = DB::update("UPDATE pdrd.buku_ajar SET id_kat_capaian = ?,
-             id_jns_bhn_ajar = ?, id_litabmas = ?, judul_buku = ?,
-             penulis = ?, penerbit = ?, isbn = ?, tgl_terbit = ?, sk_tugas = ?,
-             tgl_sk_tugas = ?, last_update = ?, id_updater = ? WHERE id_buku_ajar = ?", [
-                $id_kat_capaian, $id_jns_bhn_ajar, $request->id_litabmas, $request->judul_buku,
-                $request->penulis, $request->penerbit, $request->isbn, $request->tgl_terbit,
-                $request->sk_tugas, $request->tgl_sk_tugas, currDateTime(), $id_updater, $request->id_buku_ajar
+            $this->buku_ajar->create([
+                'id_buku_ajar' => $id_buku_ajar,
+                'id_kat_capaian' => $id_kat_capaian,
+                'id_jns_bhn_ajar' => $id_jns_bhn_ajar,
+                'id_litabmas' => $id_litabmas,
+                'judul_buku' => $judul_buku,
+                'penulis' => $penulis,
+                'penerbit' => $penerbit,
+                'isbn' => $isbn,
+                'tgl_terbit' => $tgl_terbit,
+                'sk_tugas' => $sk_tugas,
+                'tgl_sk_tugas' => $tgl_sk_tugas,
+                'create_date' => currDateTime(),
+                'id_creator' => $creatorId,
+                'last_update' => currDateTime(),
+                'id_updater' => $updateId,
+                'soft_delete' => 0,
+                'last_sync' => currDateTime(),
             ]);
-            if (!empty($request->id_dosen)) {
-                foreach ($request->id_dosen as $index => $id_dosen) {
-                    if (is_null($id_dosen)) break;
-                    $dosen = DB::insert(
-                        "UPDATE pdrd.tulis_buku_ajar SET  id_katgiat = ?,
-                    id_sdm = ?, id_pd = NULL, id_orang = NULL, urutan2 = ?, afiliasi = ?, peran_tulis = ?,
-                    jns_penulis = ?, nm_pd = NULL, nipd = NULL, last_update = ?, id_updater= ?, soft_delete = 0
-                    WHERE id_buku_ajar = ? AND id_sdm =  ?",
-                        [
-                            $id_katgiat, $request->id_dosen[$index], $request->urutan_dosen[$index], $request->afiliasi_dosen[$index],
-                            $request->peran_tulis_dosen[$index], $request->jns_penulis_dosen[$index], currDateTime(), $id_updater,
-                            $request->id_buku_ajar, $request->id_dosen[$index]
-                        ]
-                    );
+
+            if (!empty($id_dosen)) {
+                foreach ($id_dosen as $index => $iddsn) {
+                    if (is_null($iddsn)) break;
+                    $this->tulis_buku_ajar->create([
+                        'id_tulis_buku_ajar' => guid(),
+                        'id_katgiat' => $id_katgiat,
+                        'id_buku_ajar' => $id_buku_ajar,
+                        'id_sdm' => $iddsn,
+                        'id_pd' => NULL,
+                        'id_orang' => NULL,
+                        'urutan2' => $urutan_dosen[$index],
+                        'afiliasi' => $afiliasi_dosen[$index],
+                        'peran_tulis' => $peran_tulis_dosen[$index],
+                        'jns_penulis' => $jns_penulis_dosen[$index],
+                        'nm_pd' => NULL,
+                        'nipd' => NULL,
+                        'create_date' => currDateTime(),
+                        'id_creator' => $creatorId,
+                        'last_update' => currDateTime(),
+                        'id_updater' => $updateId,
+                        'soft_delete' => 0,
+                        'last_sync' => currDateTime()
+                    ]);
                 }
             }
-            if (!empty($request->id_mahasiswa)) {
-                foreach ($request->id_mahasiswa as $index => $id_mahasiswa) {
-                    if (is_null($id_mahasiswa)) break;
-                    $mahasiswa = DB::insert(
-                        "UPDATE pdrd.tulis_buku_ajar SET  id_katgiat = ?,
-                    id_sdm = NULL, id_pd = ?, id_orang = NULL, urutan2 = ?, afiliasi = ?, peran_tulis = ?,
-                    jns_penulis = ?, nm_pd = ?, nipd = ?, last_update = ?, id_updater= ?, soft_delete = 0
-                    WHERE id_buku_ajar = ? AND id_sdm =  ?",
-                        [
-                            $id_katgiat, $request->id_mahasiswa[$index], $request->urutan_mahasiswa[$index],
-                            $request->afiliasi_mahasiswa[$index], $request->peran_tulis_mahasiswa[$index],
-                            $request->jns_penulis_mahasiswa[$index], $request->nm_pd_mahasiswa[$index], $request->nipd_mahasiswa[$index],
-                            currDateTime(), $id_updater, $request->id_buku_ajar,
-                            $request->id_mahasiswa[$index]
-                        ]
-                    );
+
+            if (!empty($id_mahasiswa)) {
+                foreach ($id_mahasiswa as $index => $idmhs) {
+                    if (is_null($idmhs)) break;
+                    $this->tulis_buku_ajar->create([
+                        'id_tulis_buku_ajar' => guid(),
+                        'id_katgiat' => $id_katgiat,
+                        'id_buku_ajar' => $id_buku_ajar,
+                        'id_sdm' => NULL,
+                        'id_pd' => $idmhs,
+                        'id_orang' => NULL,
+                        'urutan2' => $urutan_mahasiswa[$index],
+                        'afiliasi' => $afiliasi_mahasiswa[$index],
+                        'peran_tulis' => $peran_tulis_mahasiswa[$index],
+                        'jns_penulis' => $jns_penulis_mahasiswa[$index],
+                        'nm_pd' => $nm_pd_mahasiswa[$index],
+                        'nipd' => $nipd_mahasiswa[$index],
+                        'create_date' => currDateTime(),
+                        'id_creator' => $creatorId,
+                        'last_update' => currDateTime(),
+                        'id_updater' => $updateId,
+                        'soft_delete' => 0,
+                        'last_sync' => currDateTime()
+                    ]);
                 }
             }
-            if (!empty($request->id_orang)) {
-                foreach ($request->id_orang as $index => $id_orang) {
-                    if (is_null($id_orang)) break;
-                    $orang = DB::insert(
-                        "UPDATE pdrd.tulis_buku_ajar SET  id_katgiat = ?,
-                    id_sdm = NULL, id_pd = NULL, id_orang = ?, urutan2 = ?, afiliasi = ?, peran_tulis = ?,
-                    jns_penulis = ?, nm_pd = NULL, nipd = NULL, last_update = ?, id_updater= ?, soft_delete = 0
-                    WHERE id_buku_ajar = ? AND id_sdm =  ?",
-                        [
-                            $id_katgiat, $request->id_orang[$index], $request->urutan_orang[$index],
-                            $request->afiliasi_orang[$index], $request->peran_tulis_orang[$index],
-                            $request->jns_penulis_orang[$index], currDateTime(), $id_updater,
-                            $request->id_buku_ajar, $request->id_orang[$index]
-                        ]
-                    );
+
+            if (!empty($id_orang)) {
+                foreach ($id_orang as $index => $idorg) {
+                    if (is_null($idorg)) break;
+                    $this->tulis_buku_ajar->create([
+                        'id_tulis_buku_ajar' => guid(),
+                        'id_katgiat' => $id_katgiat,
+                        'id_buku_ajar' => $id_buku_ajar,
+                        'id_sdm' => NULL,
+                        'id_pd' => NULL,
+                        'id_orang' => $id_orang[$index],
+                        'urutan2' => $urutan_orang[$index],
+                        'afiliasi' => $afiliasi_orang[$index],
+                        'peran_tulis' => $peran_tulis_orang[$index],
+                        'jns_penulis' => $jns_penulis_orang[$index],
+                        'nm_pd' => NULL,
+                        'nipd' => NULL,
+                        'create_date' => currDateTime(),
+                        'id_creator' => $creatorId,
+                        'last_update' => currDateTime(),
+                        'id_updater' => $updateId,
+                        'soft_delete' => 0,
+                        'last_sync' => currDateTime()
+                    ]);
                 }
             }
+
             DB::commit();
-            return WrapResponse(array('data' => array('id_buku_ajar' => $request->id_buku_ajar)), 'Buku Ajar Berhasil Diubah', TRUE);
-        } catch (\Exception $e) {
-            DB::rollback();
-            return WrapResponse(['data' => null], 'Buku Ajar Gagal Diubah', FALSE);
+            return WrapResponse(array('data' => array('id_buku_ajar' => $id_buku_ajar)), 'sukses menambahkan buku ajar', TRUE);
+        } catch (ModelNotFoundException $mnfe) {
+            DB::rollBack();
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+            return WrapResponse(['data' => null], 'buku ajar tidak dapat ditambahkan', FALSE);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
+            return WrapResponse(['data' => null], 'gagal menambahkan buku ajar', FALSE);
         }
     }
 
-    public function delete(Request $request)
+    public function update()
     {
         InputValidator([
-            'id_buku_ajar' => 'required|uuid'
-        ], [
-            'id_buku_ajar.required'  => 'input id_buku_ajar harus diisi',
-            'id_buku_ajar.uuid'  => 'input id_buku_ajar harus berupa UUID yang valid'
+            'id_buku_ajar' => 'required|uuid',
+            'id_litabmas' => 'required|uuid',
+            'judul_buku' => 'required',
+            'penulis' => 'required',
+            'penerbit' => 'required',
+            'isbn' => 'required',
+            'tgl_terbit' => 'required|date',
+            'sk_tugas' => 'required',
+            'tgl_sk_tugas' => 'required|date',
+            'urutan_dosen.*' => 'nullable|numeric',
+            'afiliasi_dosen.*' => 'nullable',
+            'peran_tulis_dosen.*' => ['nullable', ValidationRule::in(['A', 'B', 'C', 'D'])],
+            'jns_penulis_dosen.*' => 'nullable|numeric',
+            'urutan_mahasiswa.*' => 'nullable|numeric',
+            'afiliasi_mahasiswa.*' => 'nullable',
+            'peran_tulis_mahasiswa.*' => ['nullable', ValidationRule::in(['A', 'B', 'C', 'D'])],
+            'jns_penulis_mahasiswa.*' => 'nullable|numeric',
+            'nm_pd_mahasiswa.*' => 'nullable',
+            'nipd_mahasiswa.*' => 'nullable',
+            'urutan_orang.*' => 'nullable|numeric',
+            'afiliasi_orang.*' => 'nullable',
+            'peran_tulis_orang.*' => ['nullable', ValidationRule::in(['A', 'B', 'C', 'D'])],
+            'jns_penulis_orang.*' => 'nullable|numeric'
+        ]);
+
+        $id_katgiat = 110801;
+        $creatorId = $updateId = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
+
+        $id_buku_ajar = $this->request->input('id_buku_ajar');
+        $id_litabmas = $this->request->input('id_litabmas');
+        $judul_buku = $this->request->input('judul_buku');
+        $penulis = $this->request->input('penulis');
+        $penerbit = $this->request->input('penerbit');
+        $isbn = $this->request->input('isbn');
+        $tgl_terbit = $this->request->input('tgl_terbit');
+        $sk_tugas = $this->request->input('sk_tugas');
+        $tgl_sk_tugas = $this->request->input('tgl_sk_tugas');
+
+        $id_dosen = $this->request->input('id_dosen');
+        $urutan_dosen = $this->request->input('urutan_dosen');
+        $afiliasi_dosen = $this->request->input('afiliasi_dosen');
+        $peran_tulis_dosen = $this->request->input('peran_tulis_dosen');
+        $jns_penulis_dosen = $this->request->input('jns_penulis_dosen');
+
+        $id_mahasiswa = $this->request->input('id_mahasiswa');
+        $urutan_mahasiswa = $this->request->input('urutan_mahasiswa');
+        $afiliasi_mahasiswa = $this->request->input('afiliasi_mahasiswa');
+        $peran_tulis_mahasiswa = $this->request->input('peran_tulis_mahasiswa');
+        $jns_penulis_mahasiswa = $this->request->input('jns_penulis_mahasiswa');
+        $nm_pd_mahasiswa = $this->request->input('nm_pd_mahasiswa');
+        $nipd_mahasiswa = $this->request->input('nipd_mahasiswa');
+
+        $id_orang = $this->request->input('id_orang');
+        $urutan_orang = $this->request->input('urutan_orang');
+        $afiliasi_orang = $this->request->input('afiliasi_orang');
+        $peran_tulis_orang = $this->request->input('peran_tulis_orang');
+        $jns_penulis_orang = $this->request->input('jns_penulis_orang');
+
+        DB::beginTransaction();
+        try {
+            $buku_ajar = $this->buku_ajar->where('id_buku_ajar', $id_buku_ajar)->first();
+            if (!$buku_ajar) return WrapResponse(['data' => null], 'buku ajar tidak ditemukan atau tidak terdaftar', FALSE);
+
+            $buku_ajar->update([
+                'id_litabmas' => $id_litabmas,
+                'judul_buku' => $judul_buku,
+                'penulis' => $penulis,
+                'penerbit' => $penerbit,
+                'isbn' => $isbn,
+                'tgl_terbit' => $tgl_terbit,
+                'sk_tugas' => $sk_tugas,
+                'tgl_sk_tugas' => $tgl_sk_tugas,
+                'last_update' => currDateTime(),
+                'id_updater' => $updateId
+            ]);
+
+            $penulis_x = $this->tulis_buku_ajar->where('id_buku_ajar', $id_buku_ajar)->delete();
+            if ($penulis_x) :
+
+                if (!empty($id_dosen)) {
+                    foreach ($id_dosen as $index => $iddsn) {
+                        if (is_null($iddsn)) break;
+                        $this->tulis_buku_ajar->create([
+                            'id_tulis_buku_ajar' => guid(),
+                            'id_katgiat' => $id_katgiat,
+                            'id_buku_ajar' => $id_buku_ajar,
+                            'id_sdm' => $iddsn,
+                            'id_pd' => NULL,
+                            'id_orang' => NULL,
+                            'urutan2' => $urutan_dosen[$index],
+                            'afiliasi' => $afiliasi_dosen[$index],
+                            'peran_tulis' => $peran_tulis_dosen[$index],
+                            'jns_penulis' => $jns_penulis_dosen[$index],
+                            'nm_pd' => NULL,
+                            'nipd' => NULL,
+                            'create_date' => currDateTime(),
+                            'id_creator' => $creatorId,
+                            'last_update' => currDateTime(),
+                            'id_updater' => $updateId,
+                            'soft_delete' => 0,
+                            'last_sync' => currDateTime()
+                        ]);
+                    }
+                }
+
+                if (!empty($id_mahasiswa)) {
+                    foreach ($id_mahasiswa as $index => $idmhs) {
+                        if (is_null($idmhs)) break;
+                        $this->tulis_buku_ajar->create([
+                            'id_tulis_buku_ajar' => guid(),
+                            'id_katgiat' => $id_katgiat,
+                            'id_buku_ajar' => $id_buku_ajar,
+                            'id_sdm' => NULL,
+                            'id_pd' => $idmhs,
+                            'id_orang' => NULL,
+                            'urutan2' => $urutan_mahasiswa[$index],
+                            'afiliasi' => $afiliasi_mahasiswa[$index],
+                            'peran_tulis' => $peran_tulis_mahasiswa[$index],
+                            'jns_penulis' => $jns_penulis_mahasiswa[$index],
+                            'nm_pd' => $nm_pd_mahasiswa[$index],
+                            'nipd' => $nipd_mahasiswa[$index],
+                            'create_date' => currDateTime(),
+                            'id_creator' => $creatorId,
+                            'last_update' => currDateTime(),
+                            'id_updater' => $updateId,
+                            'soft_delete' => 0,
+                            'last_sync' => currDateTime()
+                        ]);
+                    }
+                }
+
+                if (!empty($id_orang)) {
+                    foreach ($id_orang as $index => $idorg) {
+                        if (is_null($idorg)) break;
+                        $this->tulis_buku_ajar->create([
+                            'id_tulis_buku_ajar' => guid(),
+                            'id_katgiat' => $id_katgiat,
+                            'id_buku_ajar' => $id_buku_ajar,
+                            'id_sdm' => NULL,
+                            'id_pd' => NULL,
+                            'id_orang' => $id_orang[$index],
+                            'urutan2' => $urutan_orang[$index],
+                            'afiliasi' => $afiliasi_orang[$index],
+                            'peran_tulis' => $peran_tulis_orang[$index],
+                            'jns_penulis' => $jns_penulis_orang[$index],
+                            'nm_pd' => NULL,
+                            'nipd' => NULL,
+                            'create_date' => currDateTime(),
+                            'id_creator' => $creatorId,
+                            'last_update' => currDateTime(),
+                            'id_updater' => $updateId,
+                            'soft_delete' => 0,
+                            'last_sync' => currDateTime()
+                        ]);
+                    }
+                }
+            endif;
+
+            DB::commit();
+            return WrapResponse(array('data' => array('id_buku_ajar' => $id_buku_ajar)), 'sukses mengubah buku ajar', TRUE);
+        } catch (ModelNotFoundException $mnfe) {
+            DB::rollBack();
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+            return WrapResponse(['data' => null], 'buku ajar tidak dapat diubah', FALSE);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
+            return WrapResponse(['data' => null], 'gagal mengubah buku ajar', FALSE);
+        }
+    }
+
+    public function delete()
+    {
+        $creatorId = $updateId = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
+        $id_buku_ajar = $this->request->input('id_buku_ajar');
+
+        InputValidator([
+            'id_buku_ajar' => 'required|uuid',
         ]);
 
         DB::beginTransaction();
         try {
-            DB::update("UPDATE pdrd.buku_ajar SET soft_delete = 1 WHERE id_buku_ajar = ?", [$request->id_buku_ajar]);
-            DB::update("UPDATE pdrd.tulis_buku_ajar SET soft_delete = 1 WHERE id_buku_ajar = ?", [$request->id_buku_ajar]);
+            $this->buku_ajar->where('id_buku_ajar', $id_buku_ajar)->update([
+                'soft_delete' => 1,
+                'last_update' => currDateTime(),
+                'id_updater' => $updateId
+            ]);
+            $this->tulis_buku_ajar->where('id_buku_ajar', $id_buku_ajar)->update([
+                'soft_delete' => 1,
+                'last_update' => currDateTime(),
+                'id_updater' => $updateId
+            ]);
             DB::commit();
-            return WrapResponse(array('data' => array('id_buku_ajar' => $request->id_buku_ajar)), 'Buku Ajar Berhasil Dihapus', FALSE);
-        } catch (\Exception $e) {
-            DB::rollback();
-            return WrapResponse(['data' => null], 'Buku Ajar Gagal Dihapus', FALSE);
+            return WrapResponse(array('data' => array('id_buku_ajar' => $id_buku_ajar)), 'berhasil menghapus data buku ajar', TRUE);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Error on ' . $e->getMessage() . ' in line ' . $e->getLine());
+            return WrapResponse(['data' => null], 'gagal menghapus data buku ajar', FALSE);
         }
     }
 }

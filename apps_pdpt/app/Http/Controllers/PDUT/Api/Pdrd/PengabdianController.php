@@ -164,7 +164,7 @@ class PengabdianController extends Controller
      *          @OA\Schema(type="number")),
      *      @OA\Parameter( name="count", description="masukan jumlah data", example="10", required=false, in="query",
      *          @OA\Schema(type="number")),
-     * 
+     *
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -226,7 +226,7 @@ class PengabdianController extends Controller
         ORDER BY
             litabmas.id_thn_laks " . $sortBy . "
     ";
-       
+
     $pagination = CustomPagination($query);
         $query = $pagination['query'];
 
@@ -438,7 +438,7 @@ class PengabdianController extends Controller
      *      tags={"Pengabdian"},
      *      summary="Menambahkan Data Pengabdian",
      *      description="Menambahkan data pengabdian baru berdasarkan ID Katgiat berikut: <br><br>
-     *      1. 130201 <br> 
+     *      1. 130201 <br>
      *      2. 130202 <br>
      *      3. 130203 <br>
      *      4. 130204 <br>
@@ -1095,7 +1095,7 @@ class PengabdianController extends Controller
         $kat_kegiatan = 130401;
         $kat_kegiatan = 130402;
         $kat_kegiatan = 130403;
-       
+
         $dok_tmp_path = storage_path('uploads');
         if (!File::isDirectory($dok_tmp_path)) {
             File::makeDirectory($dok_tmp_path, 0755, true, true);
@@ -1313,40 +1313,12 @@ class PengabdianController extends Controller
             return WrapResponse([], "gagal mengupdate data pengabdian $litabmasId", FALSE);
         }
     }
-    /**
-     * @OA\Delete(
-     *      path="/pengabdian/delete",
-     *      operationId="deletePengabdian",
-     *      tags={"Pengabdian"},
-     *      summary="Delete Data Pengabdian",
-     *      description="Delete Data Pengabdian",
-     *      @OA\Parameter(
-     *         description="Pengabdian ID",
-     *         in="path",
-     *         name="id",
-     *         required=true,
-     *         @OA\Schema(type="string"),
-     *       ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     */
+
 
 
     public function deletePengabdian()
     {
-       
+
         InputValidator([
             'pengabdianid' => 'required|uuid',
         ], [

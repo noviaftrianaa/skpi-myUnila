@@ -152,7 +152,7 @@ Route::group([
             Route::get('detail/{id}', 'PengabdianController@getDetailPengabdianByPengabdianId');
             Route::post('tambah', 'PengabdianController@storePengabdian');
             Route::put('ubah', 'PengabdianController@updatePengabdian');
-            Route::delete('delete', 'PengabdianController@deletePengabdian');
+            Route::delete('hapus', 'PengabdianController@deletePengabdian');
         });
 
         Route::prefix('mahasiswa')->group(function () {
