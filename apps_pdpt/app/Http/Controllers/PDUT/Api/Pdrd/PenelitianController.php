@@ -592,7 +592,9 @@ class PenelitianController extends Controller
 
     public function updatePenelitian()
     {
+        // return $this->request->all();
         InputValidator([
+
             'id_penelitian' => 'required|uuid',
             'judul_kegiatan' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
             'afiliasi' => 'required|uuid',

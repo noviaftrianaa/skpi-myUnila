@@ -159,6 +159,7 @@ Route::group([
             Route::get('list', 'PublikasiController@getAllListPublikasi');
             Route::get('list_id', 'PublikasiController@getListPublikasiById');
             Route::post('add', 'PublikasiController@storeNewPublikasi');
+
         });
 
         Route::prefix('mahasiswa')->group(function () {
@@ -198,6 +199,14 @@ Route::group([
         Route::put('ubah', 'TracerStudyController@update');
         Route::delete('hapus', 'TracerStudyController@destroy');
         Route::delete('hapus_atasan', 'TracerStudyController@destroyAtasan');
+    });
+
+    Route::group([
+        'namespace' => 'Presensi',
+        'prefix' => 'presensi'
+    ], function () {
+        Route::get('list_id', 'KehadiranSdmController@getListKehadiranBySdmId');
+        Route::get('tambah', 'KehadiranSdmController@store');
     });
 });
 
