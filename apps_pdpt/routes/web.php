@@ -15,3 +15,4 @@ use App\Http\Controllers\DashboardController;
 
 Route::get('/',  [DashboardController::class,'index'])->name('home');
 Route::get('/akreditasi',  [DashboardController::class,'akreditasi'])->name('akreditasi');
+Route::get('/iku',  [DashboardController::class,'iku'])->name('iku');
