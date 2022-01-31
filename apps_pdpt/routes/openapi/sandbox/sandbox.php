@@ -138,8 +138,8 @@ Route::group([
         });
 
         Route::prefix('penelitian')->group(function () {
-            Route::get('list', 'PenelitianController@getAllListPenelitian')->name('penelitian.list');
-            Route::get('list_id', 'PenelitianController@getListPenelitianBySdmId');
+            Route::get('list', 'PenelitianController@list');
+            Route::get('list_id', 'PenelitianController@listById');
             Route::get('detail/{id}', 'PenelitianController@getDetailPenelitianByPenelitianId');
             Route::post('add', 'PenelitianController@storeNewPenelitian');
             Route::put('update', 'PenelitianController@updatePenelitian');
@@ -155,6 +155,12 @@ Route::group([
             Route::delete('hapus', 'PengabdianController@deletePengabdian');
         });
 
+        Route::prefix('publikasi')->group(function () {
+            Route::get('list', 'PublikasiController@getAllListPublikasi');
+            Route::get('list_id', 'PublikasiController@getListPublikasiById');
+            Route::post('add', 'PublikasiController@storeNewPublikasi');
+        });
+
         Route::prefix('mahasiswa')->group(function () {
             Route::get('list_mahasiswa', 'MahasiswaController@list');
             Route::get('detail', 'MahasiswaController@detail');
@@ -164,7 +170,7 @@ Route::group([
             Route::get('list_alumni', 'MahasiswaController@alumni');
         });
 
-        Route::prefix('akreditasiprodi')->group(function () {
+        Route::prefix('akreditasi_prodi')->group(function () {
             Route::get('list', 'AkreditasiProdiController@index');
         });
 

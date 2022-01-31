@@ -29,9 +29,6 @@ class PenelitianController extends Controller
     protected $nonCaLitabmas;
     protected $dokLitabmas;
     protected $dokumen;
-    protected $cacheLifeTime;
-
-    protected $getAllListPenelitian;
 
     public function __construct(Request $request)
     {
@@ -42,11 +39,9 @@ class PenelitianController extends Controller
         $this->nonCaLitabmas = new NonCaAnggotaLitabmas();
         $this->dokLitabmas = new DokLitabmas();
         $this->dokumen = new Dokumen();
-        $this->cacheLifeTime = 3600;
-        $this->getAllListPenelitian = [];
     }
 
-    public function getAllListPenelitian()
+    public function list()
     {
         InputValidator([
             'sortby' => [
@@ -57,6 +52,7 @@ class PenelitianController extends Controller
             'count' => 'numeric'
         ]);
 
+        $sortby = $this->request->input('sortby');
         if (empty($sortby)) {
             $sortby = 'DESC';
         }
@@ -93,7 +89,7 @@ class PenelitianController extends Controller
 
         $query = DB::select($query);
         if (empty($query)) {
-            return WrapResponse([], 'tidak ditemukan penelitian', FALSE);
+            return WrapResponse(['data' => NULL], 'tidak ada daftar penelitian yang ditampilkan', FALSE);
         }
 
         $data = [];
@@ -116,16 +112,13 @@ class PenelitianController extends Controller
         ], 'sukses');
     }
 
-    public function getListPenelitianBySdmId()
+    public function listById()
     {
         InputValidator([
             'sdmid' => 'required|uuid',
+            'page' => 'numeric|min:1',
+            'count'    => 'numeric|min:1|max:50',
             'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
-        ], [
-            'sdmid.required' => 'field sdmid ini harus diisi',
-            'sdmid.uuid' => 'input sdmid harus berupa uuid yang valid',
-            'sortby.alpha' => 'input sortby penyortiran tidak sesuai',
-            'sortby.in' => 'input sortby penyortiran hanya ASC,asc atau DESC,desc'
         ]);
 
         $sdmId = $this->request->input('sdmid');
@@ -772,18 +765,32 @@ class PenelitianController extends Controller
                     if (is_null($idDosen)) break;
 
                     $anggota_dosen = $this->sdmLitabmas->where('id_litabmas', $litabmasId)->where('id_sdm', $idDosen)->first();
-                    if (!$anggota_dosen) return WrapResponse([], 'penelitian tidak ditemukan atau dosen anggota tidak terdaftar', FALSE);
-
-                    $anggota_dosen->update([
-                        'id_litabmas' => $litabmasId,
-                        'id_sdm' => $idDosen,
-                        'id_katgiat' => $kat_kegiatan,
-                        'peran_litabmas' => $peran_dosen[$index],
-                        'stat_aktif' => $status_dosen[$index],
-                        'last_update' => currDateTime(),
-                        'id_updater' => $updateId,
-                        'soft_delete' => 0,
-                    ]);
+                    if (!$anggota_dosen) {
+                        $this->sdmLitabmas->create([
+                            'id_litabmas' => $litabmasId,
+                            'id_sdm' => $idDosen,
+                            'id_katgiat' => $kat_kegiatan,
+                            'peran_litabmas' => $peran_dosen[$index],
+                            'stat_aktif' => $status_dosen[$index],
+                            'create_date' => currDateTime(),
+                            'id_creator' => $creatorId,
+                            'last_update' => currDateTime(),
+                            'id_updater' => $updateId,
+                            'soft_delete' => 0,
+                            'last_sync' => currDateTime(),
+                        ]);
+                    } else {
+                        $anggota_dosen->update([
+                            'id_litabmas' => $litabmasId,
+                            'id_sdm' => $idDosen,
+                            'id_katgiat' => $kat_kegiatan,
+                            'peran_litabmas' => $peran_dosen[$index],
+                            'stat_aktif' => $status_dosen[$index],
+                            'last_update' => currDateTime(),
+                            'id_updater' => $updateId,
+                            'soft_delete' => 0,
+                        ]);
+                    }
                 }
             }
 
