@@ -18,7 +18,7 @@ Route::group([
     'prefix' => 'sandbox/0.1',
     'as' => 'api_sandbox',
     'namespace' => 'App\Http\Controllers\PDUT\Api',
-    'middleware' => ['openapi_sandbox']
+    'middleware' => ['openapi_sandbox','dbaccess']
 ], function () {
 
     Route::post('auth/login', 'LoginController@login');
@@ -103,7 +103,7 @@ Route::group([
 
         Route::prefix('dosen')->group(function () {
             Route::get('/list', 'SdmDosenController@list');
-            Route::post('/detail', 'SdmDosenController@detail');
+            Route::get('/detail', 'SdmDosenController@detail');
         });
 
         Route::prefix('tendik')->group(function () {
@@ -111,10 +111,18 @@ Route::group([
             Route::get('/detail', 'SdmTendikController@detail');
         });
 
+        Route::prefix('nonca')->group(function () {
+            Route::get('/list', 'NonCaController@list');
+            Route::get('/detail', 'NonCaController@detail');
+            Route::post('/add', 'NonCaController@add');
+            Route::put('/update', 'NonCaController@update');
+            Route::delete('/delete', 'NonCaController@delete');
+        });
+
         Route::prefix('buku_ajar')->group(function () {
-            Route::post('list', 'BukuAjarController@list');
-            Route::post('list_id', 'BukuAjarController@listById');
-            Route::post('detail', 'BukuAjarController@detail');
+            Route::get('list', 'BukuAjarController@list');
+            Route::get('list_id', 'BukuAjarController@listById');
+            Route::get('detail', 'BukuAjarController@detail');
             Route::post('add', 'BukuAjarController@add');
             Route::put('update', 'BukuAjarController@update');
             Route::delete('delete', 'BukuAjarController@delete');
@@ -130,8 +138,8 @@ Route::group([
         });
 
         Route::prefix('penelitian')->group(function () {
-            Route::post('list', 'PenelitianController@getAllListPenelitian');
-            Route::post('list_id', 'PenelitianController@getListPenelitianBySdmId');
+            Route::get('list', 'PenelitianController@list');
+            Route::get('list_id', 'PenelitianController@listById');
             Route::get('detail/{id}', 'PenelitianController@getDetailPenelitianByPenelitianId');
             Route::post('add', 'PenelitianController@storeNewPenelitian');
             Route::put('update', 'PenelitianController@updatePenelitian');
@@ -139,29 +147,41 @@ Route::group([
         });
 
         Route::prefix('pengabdian')->group(function () {
-            Route::get('list/{sortby}', 'PengabdianController@getAllListPengabdian');
-            Route::post('list_id', 'PengabdianController@getListPengabdianBySdmId');
+            Route::get('list', 'PengabdianController@getAllListPengabdian');
+            Route::get('list_id', 'PengabdianController@getListPengabdianBySdmId');
             Route::get('detail/{id}', 'PengabdianController@getDetailPengabdianByPengabdianId');
-            Route::post('add', 'PengabdianController@storePengabdian');
-            Route::put('update', 'PengabdianController@updatePengabdian');
-            Route::delete('delete', 'PengabdianController@deletePengabdian');
+            Route::post('tambah', 'PengabdianController@storePengabdian');
+            Route::put('ubah', 'PengabdianController@updatePengabdian');
+            Route::delete('hapus', 'PengabdianController@deletePengabdian');
+        });
+
+        Route::prefix('publikasi')->group(function () {
+            Route::get('list', 'PublikasiController@getAllListPublikasi');
+            Route::get('list_id', 'PublikasiController@getListPublikasiById');
+            Route::post('add', 'PublikasiController@storeNewPublikasi');
+
         });
 
         Route::prefix('mahasiswa')->group(function () {
-            Route::post('list_mahasiswa', 'MahasiswaController@list');
-            Route::post('detail', 'MahasiswaController@detail');
-            Route::post('list_status', 'MahasiswaController@status');
-            Route::post('list_regis', 'MahasiswaController@regis');
-            Route::post('smt_keaktifan', 'MahasiswaController@semester_keaktifan');
-            Route::post('list_alumni', 'MahasiswaController@alumni');
+            Route::get('list_mahasiswa', 'MahasiswaController@list');
+            Route::get('detail', 'MahasiswaController@detail');
+            Route::get('list_status', 'MahasiswaController@status');
+            Route::get('list_regis', 'MahasiswaController@regis');
+            Route::get('smt_keaktifan', 'MahasiswaController@semester_keaktifan');
+            Route::get('list_alumni', 'MahasiswaController@alumni');
         });
 
-        Route::prefix('akreditasiprodi')->group(function () {
+        Route::prefix('akreditasi_prodi')->group(function () {
             Route::get('list', 'AkreditasiProdiController@index');
         });
 
-        Route::prefix('sms')->group(function () {
-            Route::get('list', 'SmsController@index');
+        Route::prefix('lembaga')->group(function () {
+            Route::get('profilpt/detail', 'LembagaController@detailProfilPt');
+            Route::get('akreditasipt', 'LembagaController@listAkreditasiPt');
+            Route::get('daftarprodi/detail', 'LembagaController@detailDaftarProdi');
+            Route::get('profilprodi/list', 'LembagaController@listProfilProdi');
+            Route::get('profilprodi/list_id', 'LembagaController@listProfilProdiById');
+            Route::get('daftarsms', 'LembagaController@listSms');
         });
     });
 
@@ -178,6 +198,15 @@ Route::group([
         Route::post('tambah', 'TracerStudyController@store');
         Route::put('ubah', 'TracerStudyController@update');
         Route::delete('hapus', 'TracerStudyController@destroy');
+        Route::delete('hapus_atasan', 'TracerStudyController@destroyAtasan');
+    });
+
+    Route::group([
+        'namespace' => 'Presensi',
+        'prefix' => 'presensi'
+    ], function () {
+        Route::get('list_id', 'KehadiranSdmController@getListKehadiranBySdmId');
+        Route::get('tambah', 'KehadiranSdmController@store');
     });
 });
 

@@ -29,9 +29,10 @@ return [
                 'annotations' => [
                     base_path('app') . '/Http/Controllers/SandboxController.php',
                     base_path('app') . '/Http/Controllers/PDUT/',
+                    base_path('app/Anotations')
                 ],
             ],
-            'generate_always' => true,
+            'generate_always' => false,
             'validator_url' => null,
             'persist_authorization' => true,
             'constants' => [
@@ -64,9 +65,10 @@ return [
                 'annotations' => [
                     base_path('app') . '/Http/Controllers/LiveController.php',
                     base_path('app') . '/Http/Controllers/PDUT/',
+                    base_path('app/Anotations')
                 ],
             ],
-            'generate_always' => true,
+            'generate_always' => false,
             'validator_url' => null,
             'persist_authorization' => true,
             'constants' => [

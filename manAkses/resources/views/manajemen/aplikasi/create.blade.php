@@ -55,13 +55,17 @@
                         </div>
                     </div>
                 </div>
+                <div class="modal-footer">
+                    <a type="button" class="btn btn-link" href="{{route('aplikasi.index')}}">Kembali</a>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
             </div>
         </div>
 
-        <div class="card card-info">
+        <!-- <div class="card card-info">
             <div class="card-header">
                 <h3 class="card-title"><i class="fa fa-list"></i> Penanggung Jawab Aplikasi</h3>
-            </div><!-- /.card-header -->
+            </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-sm-12">
@@ -119,7 +123,7 @@
                     <button type="submit" class="btn btn-primary">Simpan</button>
                 </div>
             </div>
-        </div>
+        </div> -->
 
     </form>
 

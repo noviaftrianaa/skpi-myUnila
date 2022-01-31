@@ -11,13 +11,11 @@ class SandboxController
      *          email="mahendra.pratama15@eng.unila.ac.id"
      *      )
      * )
-     *
      * @OA\Server(
      *      url=L5_SWAGGER_CONST_HOST_SANDBOX,
      *      description="Server Sandbox",
      * )
-
-     *
+  
      * @OA\Tag(
      *     name="Overview",
      *     description="Web service ini digunakan oleh pengembang perangkat lunak atau admin perguruan tinggi untuk mengakses data pada PDUT. Web service ini tidak ditujukan untuk individu dosen karena menggunakan hak akses admin dan dapat mengakses data seluruh dosen pada perguruan tinggi yang bersangkutan."
