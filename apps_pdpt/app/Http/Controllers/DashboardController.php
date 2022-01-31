@@ -22,6 +22,11 @@ class DashboardController extends Controller
         return view('dashboard.public');
     }
 
+    public function iku()
+    {
+        return view('dashboard.iku');
+    }
+
     /**
      * Show the form for creating a new resource.
      *
