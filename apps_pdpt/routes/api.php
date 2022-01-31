@@ -103,11 +103,13 @@ Route::group([
 
         Route::prefix('dosen')->group(function () {
             Route::get('/list', 'SdmDosenController@list');
+            Route::get('/list_id', 'SdmDosenController@listByIdProdi');
             Route::get('/detail', 'SdmDosenController@detail');
         });
 
         Route::prefix('tendik')->group(function () {
             Route::get('/list', 'SdmTendikController@list');
+            Route::get('/list_id', 'SdmTendikController@listByIdProdi');
             Route::get('/detail', 'SdmTendikController@detail');
         });
 

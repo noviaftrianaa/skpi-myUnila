@@ -25,14 +25,6 @@ class SdmTendikController extends Controller
             'page' => 'numeric|min:1',
             'count'    => 'numeric|min:1|max:50',
             'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
-        ], [
-            'page.numeric'  => 'input page hanya berupa angka',
-            'page.min'      => 'input count hanya berupa angka minimal 1',
-            'count.numeric' => 'input count hanya berupa angka',
-            'count.min'     => 'input count hanya berupa angka minimal 1',
-            'count.max'     => 'input count hanya berupa angka tidak boleh lebih dari 50',
-            'sortby.alpha'  => 'input sortby penyortiran tidak sesuai',
-            'sortby.in'     => 'input sortby penyortiran hanya ASC,asc atau DESC,desc'
         ]);
 
         $sortby = "ASC";
@@ -53,6 +45,10 @@ class SdmTendikController extends Controller
                     aktf.nm_stat_aktif AS nama_status_aktif,
                     skep.nm_stat_pegawai AS nama_status_pegawai,
                     jsdm.nm_jns_sdm AS jenis_sdm,
+                    prodi.id_sms,
+                    prodi.nm_lemb AS prodi,
+                    jur.nm_jur AS jurusan,
+                    fak.nm_lemb AS fakultas,
                     sdm.create_date,
                     sdm.last_update
                 FROM pdrd.sdm AS sdm
@@ -63,6 +59,9 @@ class SdmTendikController extends Controller
                         ptk.tgl_ptk_keluar IS NULL
                         OR ptk.tgl_ptk_keluar > GETDATE()
                     )
+                LEFT JOIN pdrd.sms AS prodi ON prodi.id_sms = ptk.id_sms
+                LEFT JOIN pdrd.sms AS fak ON fak.id_sms = prodi.id_induk_sms
+                LEFT JOIN ref.jurusan AS jur ON jur.id_jur = prodi.id_jur
                 JOIN ref.status_kepegawaian AS skep ON skep.id_stat_pegawai = ptk.id_stat_pegawai
                 JOIN pdrd.keaktifan_ptk AS aktfptk ON aktfptk.id_reg_ptk = ptk.id_reg_ptk
                     AND aktfptk.soft_delete = 0
@@ -86,12 +85,15 @@ class SdmTendikController extends Controller
                 $data[] = [
                     'id_sdm' => $value->id_sdm,
                     'nama_sdm' => $value->nama_sdm,
-                    'jk' => $value->jk,
+                    'jenis_kelamin' => $value->jk,
                     'nidn' => $value->nidn,
                     'nip' => $value->nip,
                     'nama_status_aktif' => $value->nama_status_aktif,
                     'nama_status_pegawai' => $value->nama_status_pegawai,
-                    'jenis_sdm' => $value->jenis_sdm,
+                    'id_sms' => $value->id_sms,
+                    'prodi' => $value->prodi,
+                    'jurusan' => $value->jurusan,
+                    'fakultas' => $value->fakultas,
                     'waktu_data_ditambahkan' => $value->create_date,
                     'terakhir_diubah' => $value->last_update
                 ];
@@ -102,13 +104,98 @@ class SdmTendikController extends Controller
         return WrapResponse(['data' => $data], 'daftar tendik', TRUE);
     }
 
+    public function listByIdProdi()
+    {
+        InputValidator([
+            'id_prodi' => 'required|uuid',
+            'page' => 'numeric|min:1',
+            'count'    => 'numeric|min:1|max:50',
+            'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
+        ]);
+
+        $sortby = "ASC";
+        $id_prodi = $this->request->input('id_prodi');
+        $sortby = $this->request->input('sortby');
+
+        if (!empty($sortby)) {
+            $sortby = $sortby;
+        }
+
+        try {
+
+            $query = "
+                SELECT
+                    sdm.id_sdm,
+                    sdm.nm_sdm AS nama_sdm,
+                    sdm.jk,
+                    sdm.nidn,
+                    sdm.nip,
+                    aktf.nm_stat_aktif AS nama_status_aktif,
+                    skep.nm_stat_pegawai AS nama_status_pegawai,
+                    jsdm.nm_jns_sdm AS jenis_sdm,
+                    prodi.nm_lemb AS prodi,
+                    jur.nm_jur AS jurusan,
+                    fak.nm_lemb AS fakultas,
+                    sdm.create_date,
+                    sdm.last_update
+                FROM pdrd.sdm AS sdm
+                JOIN pdrd.reg_ptk AS ptk ON ptk.id_sdm = sdm.id_sdm
+                    AND ptk.soft_delete = 0
+                    AND ptk.id_jns_keluar IS NULL
+                    AND (
+                        ptk.tgl_ptk_keluar IS NULL
+                        OR ptk.tgl_ptk_keluar > GETDATE()
+                    )
+                LEFT JOIN pdrd.sms AS prodi ON prodi.id_sms = ptk.id_sms
+                LEFT JOIN pdrd.sms AS fak ON fak.id_sms = prodi.id_induk_sms
+                LEFT JOIN ref.jurusan AS jur ON jur.id_jur = prodi.id_jur
+                JOIN ref.status_kepegawaian AS skep ON skep.id_stat_pegawai = ptk.id_stat_pegawai
+                JOIN pdrd.keaktifan_ptk AS aktfptk ON aktfptk.id_reg_ptk = ptk.id_reg_ptk
+                    AND aktfptk.soft_delete = 0
+                    AND aktfptk.a_sp_homebase = 1
+                    AND aktfptk.id_thn_ajaran = '" . get_tahun_keaktifan() . "'
+                LEFT JOIN ref.jenis_sdm AS jsdm ON jsdm.id_jns_sdm = sdm.id_jns_sdm
+                LEFT JOIN ref.status_keaktifan_pegawai AS aktf ON aktf.id_stat_aktif = sdm.id_stat_aktif
+                WHERE sdm.id_jns_sdm = 13 AND sdm.soft_delete = 0
+                AND prodi.id_sms = '" . $id_prodi . "'
+                ORDER BY sdm.nm_sdm " . $sortby . " ";
+
+            $pagination = CustomPagination($query);
+            $query = $pagination['query'];
+
+            $sdms = DB::select($query);
+            if (empty($sdms)) {
+                return WrapResponse(array('data' => array('id_prodi' => $id_prodi)), 'daftar tendik dengan id prodi tidak ditemukan', FALSE);
+            }
+
+            $data = [];
+            foreach ($sdms as $value) {
+                $data[] = [
+                    'id_sdm' => $value->id_sdm,
+                    'nama_sdm' => $value->nama_sdm,
+                    'jenis_kelamin' => $value->jk,
+                    'nidn' => $value->nidn,
+                    'nip' => $value->nip,
+                    'nama_status_aktif' => $value->nama_status_aktif,
+                    'nama_status_pegawai' => $value->nama_status_pegawai,
+                    'prodi' => $value->prodi,
+                    'jurusan' => $value->jurusan,
+                    'fakultas' => $value->fakultas,
+                    'waktu_data_ditambahkan' => $value->create_date,
+                    'terakhir_diubah' => $value->last_update
+                ];
+            }
+        } catch (\Throwable $th) {
+            return WrapResponse(array('data' => array('id_prodi' => $id_prodi)), 'gagal mendapatkan daftar tendik dengan id prodi', FALSE);
+        }
+        return WrapResponse(['data' => $data], 'daftar tendik dengan id prodi', TRUE);
+    }
+
+
     public function detail()
     {
         InputValidator([
             'id_sdm' => 'required|uuid'
-        ], [
-            'id_sdm.required'  => 'input id_sdm harus diisi',
-            'id_sdm.uuid'  => 'input id_sdm harus berupa UUID yang valid'
         ]);
 
         $id_sdm = $this->request->input('id_sdm');
@@ -189,7 +276,7 @@ class SdmTendikController extends Controller
 
             $sdms = DB::select($query);
             if (empty($sdms)) {
-                return WrapResponse(['data' => null], 'tidak ada detail tendik yang ditampilkan', FALSE);
+                return WrapResponse(array('data' => array('id_sdm' => $id_sdm)), 'detail tendik dengan id sdm tidak ditemukan', FALSE);
             }
 
             $data = [];
@@ -248,8 +335,8 @@ class SdmTendikController extends Controller
                 ];
             }
         } catch (\Throwable $th) {
-            return WrapResponse(['data' => null], 'gagal mendapatkan detail tendik', FALSE);
+            return WrapResponse(array('data' => array('id_sdm' => $id_sdm)), 'gagal mendapatkan detail tendik dengan id sdm', FALSE);
         }
-        return WrapResponse(['data' => $data], 'detail tendik', TRUE);
+        return WrapResponse(['data' => $data], 'detail tendik dengan id sdm', TRUE);
     }
 }

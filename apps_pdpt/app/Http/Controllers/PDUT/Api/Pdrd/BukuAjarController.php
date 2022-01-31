@@ -159,12 +159,20 @@ class BukuAjarController extends Controller
             LEFT JOIN ref.kategori_capaian_luaran AS kacap WITH(NOLOCK) ON kacap.id_kat_capaian = buku.id_kat_capaian AND kacap.expired_date IS NULL
             WHERE buku.soft_delete = 0 AND buku.id_buku_ajar = ?", [$id_buku_ajar]);
 
+            if (empty($buku_ajar)) {
+                return WrapResponse(array('data' => array('id_buku_ajar' => $id_buku_ajar)), 'detail buku ajar tidak ditemukan', TRUE);
+            }
+
             $buku_ajar_sdm = DB::select("SELECT
             sdm.id_sdm, sdm.nm_sdm, tsbuku.urutan2, tsbuku.afiliasi, tsbuku.peran_tulis
             FROM pdrd.tulis_buku_ajar AS tsbuku
             JOIN pdrd.sdm AS sdm ON sdm.id_sdm = tsbuku.id_sdm
             WHERE tsbuku.id_buku_ajar = ?
             ORDER BY tsbuku.urutan2 ASC", [$id_buku_ajar]);
+
+            if (empty($buku_ajar_sdm)) {
+                $buku_ajar_sdm = [];
+            }
 
             $buku_ajar_pd = DB::select("SELECT
             pd.id_pd, pd.nm_pd, tsbuku.urutan2, tsbuku.afiliasi, tsbuku.peran_tulis
@@ -173,12 +181,20 @@ class BukuAjarController extends Controller
             WHERE tsbuku.id_buku_ajar = ?
             ORDER BY tsbuku.urutan2 ASC", [$id_buku_ajar]);
 
+            if (empty($buku_ajar_pd)) {
+                $buku_ajar_pd = [];
+            }
+
             $buku_ajar_nonca = DB::select("SELECT
             nonca.id_orang, nonca.nm_orang, tsbuku.urutan2, tsbuku.afiliasi, tsbuku.peran_tulis
             FROM pdrd.tulis_buku_ajar AS tsbuku
             JOIN pdrd.non_ca AS nonca ON nonca.id_orang = tsbuku.id_orang
             WHERE tsbuku.id_buku_ajar = ?
             ORDER BY tsbuku.urutan2 ASC", [$id_buku_ajar]);
+
+            if (empty($buku_ajar_nonca)) {
+                $buku_ajar_nonca = [];
+            }
 
             $buku_ajar_dok = DB::select("SELECT
             dok_dokumen.nm_dok AS nama_dok,
@@ -194,6 +210,10 @@ class BukuAjarController extends Controller
             LEFT JOIN ref.jenis_dokumen AS refj_dokumen ON refj_dokumen.id_jns_dok = dok_dokumen.id_jns_dok
             AND refj_dokumen.expired_date IS NULL
             WHERE buku.id_buku_ajar = ? AND buku.soft_delete = 0", [$id_buku_ajar]);
+
+            if (empty($buku_ajar_dok)) {
+                $buku_ajar_dok = [];
+            }
 
             foreach ($buku_ajar as $each_data) {
                 $data[] = [
