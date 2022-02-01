@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Validation\Rule as ValidationRule;
 
 
 class BukuReferensiController extends Controller
@@ -66,8 +66,27 @@ class BukuReferensiController extends Controller
      */
     public function list(Request $request)
     {
+        InputValidator([
+            'page' => 'numeric|min:1',
+            'count'    => 'numeric|min:1|max:50',
+            'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
+        ], [
+            'page.numeric'  => 'input page hanya berupa angka',
+            'page.min'      => 'input count hanya berupa angka minimal 1',
+            'count.numeric' => 'input count hanya berupa angka',
+            'count.min'     => 'input count hanya berupa angka minimal 1',
+            'count.max'     => 'input count hanya berupa angka tidak boleh lebih dari 50',
+            'sortby.alpha'  => 'input sortby penyortiran tidak sesuai',
+            'sortby.in'     => 'input sortby penyortiran hanya ASC,asc atau DESC,desc'
+        ]);
+
         $page = 1;
         $count = 10;
+        $sortby = "ASC";
+
+        if (!empty($request->sortby)) {
+            $sortby = $request->sortby;
+        }
         if (!empty($request->page)) {
             $page = $request->page;
         }
@@ -96,7 +115,7 @@ class BukuReferensiController extends Controller
         FROM pdrd.tulis_pub AS tspub WITH(NOLOCK)
         LEFT JOIN pdrd.publikasi AS pub WITH(NOLOCK) ON pub.id_publikasi = tspub.id_publikasi AND pub.soft_delete = 0
         WHERE tspub.soft_delete = 0
-        ORDER BY tspub.create_date DESC
+        ORDER BY tspub.create_date " . $sortby . "
         OFFSET (@PageNumber-1)*@RowsOfPage ROWS
         FETCH NEXT @RowsOfPage ROWS ONLY
         ",  [$page, $count]);
@@ -183,8 +202,30 @@ class BukuReferensiController extends Controller
      */
     public function listById(Request $request)
     {
+        InputValidator([
+            'id_sdm' => 'required|uuid',
+            'page' => 'numeric|min:1',
+            'count'    => 'numeric|min:1|max:50',
+            'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
+        ], [
+            'page.numeric'  => 'input page hanya berupa angka',
+            'page.min'      => 'input count hanya berupa angka minimal 1',
+            'count.numeric' => 'input count hanya berupa angka',
+            'count.min'     => 'input count hanya berupa angka minimal 1',
+            'count.max'     => 'input count hanya berupa angka tidak boleh lebih dari 50',
+            'sortby.alpha'  => 'input sortby penyortiran tidak sesuai',
+            'sortby.in'     => 'input sortby penyortiran hanya ASC,asc atau DESC,desc',
+            'id_sdm.required'  => 'input id_sdm harus diisi',
+            'id_sdm.uuid'  => 'input id_sdm harus berupa UUID yang valid'
+        ]);
+
         $page = 1;
         $count = 10;
+        $sortby = "ASC";
+
+        if (!empty($request->sortby)) {
+            $sortby = $request->sortby;
+        }
         if (!empty($request->page)) {
             $page = $request->page;
         }
@@ -194,14 +235,6 @@ class BukuReferensiController extends Controller
             } else {
                 $count = $request->count;
             }
-        }
-
-        $id = $request->id_sdm;
-        if (empty($id)) {
-            return response()->json([
-                'status' => FALSE,
-                'message' => "id_sdm kosong"
-            ]);
         }
 
         $buku_referensi = DB::select("
@@ -221,9 +254,9 @@ class BukuReferensiController extends Controller
         FROM pdrd.tulis_pub AS tspub WITH(NOLOCK)
         LEFT JOIN pdrd.publikasi AS pub WITH(NOLOCK) ON pub.id_publikasi = tspub.id_publikasi AND pub.soft_delete = 0
         WHERE tspub.soft_delete = 0 AND tspub.id_sdm = ?
-        ORDER BY tspub.create_date DESC
+        ORDER BY tspub.create_date " . $sortby . "
         OFFSET (@PageNumber-1)*@RowsOfPage ROWS
-        FETCH NEXT @RowsOfPage ROWS ONLY", [$page, $count, $id]);
+        FETCH NEXT @RowsOfPage ROWS ONLY", [$page, $count, $request->id_sdm]);
         
         $data = [];
         foreach ($buku_referensi as $each_data) {
@@ -277,30 +310,23 @@ class BukuReferensiController extends Controller
      */
     public function detail(Request $request)
     {
-        $id = $request->id_tulis_pub;
-        if (empty($id)) {
-            return response()->json([
-                'status' => FALSE,
-                'message' => "id_tulis_pub kosong"
-            ]);
-        }
+        InputValidator([
+            'id_publikasi' => 'required|uuid'
+        ], [
+            'id_publikasi.required'  => 'input id_publikasi harus diisi',
+            'id_publikasi.uuid'  => 'input id_publikasi harus berupa UUID yang valid'
+        ]);
 
-        $buku_referensi = DB::select("SELECT 
-            tspub.id_tulis_pub, 
-            tspub.id_publikasi, 
-            jepub.nm_jns_pub,  
-            kacaplu.nm_kat_capaian, 
-            lbms.judul_litabmas,
-            pub.judul, 
-            pub.tgl_terbit, 
-            pub.penerbit, 
-            pub.isbn
-            FROM pdrd.tulis_pub AS tspub WITH(NOLOCK)
+    try{
+        $buku_referensi = DB::select("SELECT TOP 1
+            pub.id_publikasi, pub.judul, pub.isbn, jepub.nm_jns_pub,pub.penerbit,
+           pub.tgl_terbit, lbms.judul_litabmas, kacaplu.nm_kat_capaian
+            FROM pdrd.publikasi AS pub WITH(NOLOCK)
             LEFT JOIN pdrd.publikasi AS pub WITH(NOLOCK) ON pub.id_publikasi = tspub.id_publikasi AND pub.soft_delete = 0
             LEFT JOIN ref.jenis_publikasi AS jepub WITH(NOLOCK) ON jepub.id_jns_pub = pub.id_jns_pub AND jepub.expired_date IS NULL
             LEFT JOIN ref.kategori_capaian_luaran AS kacaplu WITH(NOLOCK) ON kacaplu.id_kat_capaian = pub.id_kat_capaian AND kacaplu.expired_date IS NULL
             LEFT JOIN pdrd.litabmas AS lbms WITH(NOLOCK) ON lbms.id_litabmas = pub.id_litabmas AND lbms.soft_delete = 0
-            WHERE tspub.soft_delete = 0 AND tspub.id_tulis_pub = ? ", [$id]);
+            WHERE pub.soft_delete = 0 AND pub.id_publikasi = ? ", [$request->id_publikasi]);
         
         $buku_referensi_sdm = DB::select("SELECT 
             sdm.id_sdm, 
@@ -311,7 +337,7 @@ class BukuReferensiController extends Controller
             FROM pdrd.tulis_pub AS tspub
             JOIN pdrd.sdm AS sdm ON sdm.id_sdm = tspub.id_sdm
             WHERE tspub.id_publikasi = ? 
-            ORDER BY tspub.urutan2 ASC", [$buku_referensi[0]->id_publikas]);
+            ORDER BY tspub.urutan2 ASC", [$request->id_publikasi]);
 
         $buku_referensi_pd= DB::select("SELECT 
             pd.id_pd, 
@@ -322,7 +348,7 @@ class BukuReferensiController extends Controller
             FROM pdrd.tulis_pub AS tspub
             JOIN pdrd.peserta_didik AS pd ON pd.id_pd = tspub.id_pd
             WHERE tspub.id_publikasi = ? 
-            ORDER BY tspub.urutan2 ASC", [$buku_referensi[0]->id_publikasi]);
+            ORDER BY tspub.urutan2 ASC", [$request->id_publikasi]);
         
         $buku_referensi_nonca= DB::select("SELECT 
             nonca.id_orang, 
@@ -333,12 +359,11 @@ class BukuReferensiController extends Controller
             FROM pdrd.tulis_pub AS tspub
             JOIN pdrd.non_ca AS nonca ON nonca.id_orang = tspub.id_orang
             WHERE tspub.id_publikasi = ? 
-            ORDER BY tspub.urutan2 ASC", [$buku_referensi[0]->id_publikasi]);
+            ORDER BY tspub.urutan2 ASC", [$request->id_publikasi]);
 
             $data = [];
         foreach ($buku_referensi as $each_data) {
             $data[] = [
-                'id_tulis_pub' => $each_data->id_tulis_pub,
                 'id_publikasi' => $each_data->id_publikasi,
                 'jenis_publikasi' => $each_data->nm_jns_pub,
                 'kategori_capaian' => $each_data->nm_kat_capaian,
@@ -353,8 +378,11 @@ class BukuReferensiController extends Controller
             ];
         }
 
-        return WrapResponse(['data' => $data], 'Detail Buku Referensi By id_publikasi', TRUE);
+    } catch (\Throwable $th) {
+        return WrapResponse(['data' => null], 'Tidak Dapat Menampilkan Detail Buku Referensi', FALSE);
     }
+    return WrapResponse(['data' => $data], 'Detail Buku Referensi', TRUE);
+}
 
      /**
      * @OA\Post(
@@ -544,9 +572,9 @@ class BukuReferensiController extends Controller
                     jns_penulis, nm_pd, nipd, create_date, id_creator, last_update, id_updater, soft_delete, last_sync)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     [
-                        guid(), $id_katgiat, $id_publikasi, $request->id_dosen[$index], NULL,
-                        NULL, $request->urutan_dosen[$index], $request->afiliasi_dosen[$index], $request->peran_tulis_dosen[$index],
-                        $request->jns_penulis_dosen[$index], NULL,  NULL, currDateTime(), $creatorId, currDateTime(), $updateId, 0, currDateTime()
+                        guid(), $id_katgiat, $id_publikasi, $request->id_mahasiswa[$index], NULL,
+                        NULL, $request->urutan_mahasiswa[$index], $request->afiliasi_mahasiswa[$index], $request->peran_tulis_mahasiswa[$index],
+                        $request->jns_penulis_mahasiswa[$index], NULL,  NULL, currDateTime(), $creatorId, currDateTime(), $updateId, 0, currDateTime()
                     ]
                 );
             }
@@ -561,21 +589,21 @@ class BukuReferensiController extends Controller
                     jns_penulis, nm_pd, nipd, create_date, id_creator, last_update, id_updater, soft_delete, last_sync)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     [
-                        guid(), $id_katgiat, $id_publikasi, $request->id_dosen[$index], NULL,
-                        NULL, $request->urutan_dosen[$index], $request->afiliasi_dosen[$index], $request->peran_tulis_dosen[$index],
-                        $request->jns_penulis_dosen[$index], NULL,  NULL, currDateTime(), $creatorId, currDateTime(), $updateId, 0, currDateTime()
+                        guid(), $id_katgiat, $id_publikasi, $request->id_orang[$index], NULL,
+                        NULL, $request->urutan_orang[$index], $request->afiliasi_orang[$index], $request->peran_tulis_orang[$index],
+                        $request->jns_penulis_orang[$index], NULL,  NULL, currDateTime(), $creatorId, currDateTime(), $updateId, 0, currDateTime()
                     ]
                 );
             }
         }
 
         DB::commit();
-        return WrapResponse(['id_publikasi' => $id_publikasi], 'Buku Referensi Berhasil Ditambahkan', TRUE);
+        return WrapResponse(array('data' => array('id_publikasi' => $id_publikasi)), 'Buku Referensi Berhasil Ditambahkan', TRUE);
     } catch (\Exception $e) {
         Log::error('Message ' . $e->getMessage() . ' - ' . $e->getLine());
         DB::rollback();
         Log::error($e->getMessage() . ' on line ' . $e->getLine());
-        return WrapResponse(['id_publikasi' => $id_publikasi], 'Buku Referensi Gagal Ditambahkan', FALSE);
+        return WrapResponse(['data' => null], 'Buku Referensi Gagal Ditambahkan', FALSE);
     }
 }
 
@@ -763,9 +791,9 @@ class BukuReferensiController extends Controller
                     jns_penulis = ?, nm_pd = NULL, nipd = NULL, last_update = ?, id_updater= ?, soft_delete = 0
                     WHERE id_publikasi = ? AND id_sdm =  ?",
                         [
-                            $id_katgiat, $request->id_dosen[$index], $request->urutan_dosen[$index], $request->afiliasi_dosen[$index],
-                            $request->peran_tulis_dosen[$index], $request->jns_penulis_dosen[$index], currDateTime(), $id_updater,
-                            $request->id_publikasi, $request->id_dosen[$index]
+                            $id_katgiat, $request->id_mahasiswa[$index], $request->urutan_mahasiswa[$index], $request->afiliasi_mahasiswa[$index],
+                            $request->peran_tulis_mahasiswa[$index], $request->jns_penulis_mahasiswa[$index], currDateTime(), $id_updater,
+                            $request->id_publikasi, $request->id_mahasiswa[$index]
                         ]
                     );
                 }
@@ -779,18 +807,18 @@ class BukuReferensiController extends Controller
                         jns_penulis = ?, nm_pd = NULL, nipd = NULL, last_update = ?, id_updater= ?, soft_delete = 0
                         WHERE id_publikasi = ? AND id_sdm =  ?",
                             [
-                                $id_katgiat, $request->id_dosen[$index], $request->urutan_dosen[$index], $request->afiliasi_dosen[$index],
-                                $request->peran_tulis_dosen[$index], $request->jns_penulis_dosen[$index], currDateTime(), $id_updater,
-                                $request->id_publikasi, $request->id_dosen[$index]
+                                $id_katgiat, $request->id_orang[$index], $request->urutan_orang[$index], $request->afiliasi_orang[$index],
+                                $request->peran_tulis_orang[$index], $request->jns_penulis_orang[$index], currDateTime(), $id_updater,
+                                $request->id_publikasi, $request->id_orang[$index]
                             ]
                     );
                 }
             }
             DB::commit();
-            return WrapResponse(['id_publikasi' => $request->id_publikasi], 'Buku Referensi Berhasil Diubah', TRUE);
+            return WrapResponse(array('data' => array('id_publikasi' => $request->id_publikasi)), 'Buku Referensi Berhasil Diubah', TRUE);
         } catch (\Exception $e) {
             DB::rollback();
-            return WrapResponse(['id_publikasi' => $request->id_publikasi], 'Buku Referensi Gagal Diubah', FALSE);
+            return WrapResponse(['data' => null], 'Buku Referensi Gagal Diubah', FALSE);
         }
     }
 
@@ -826,16 +854,23 @@ class BukuReferensiController extends Controller
      */
     public function delete(Request $request)
     {
+        InputValidator([
+            'id_publikasi' => 'required|uuid'
+        ], [
+            'id_publikasi.required'  => 'input id_publikasi harus diisi',
+            'id_publikasi.uuid'  => 'input id_publikasi harus berupa UUID yang valid'
+        ]);
+
         DB::beginTransaction();
         try {
             DB::update("UPDATE pdrd.publikasi SET soft_delete = 1 WHERE id_publikasi = ?", [$request->id_publikasi]);
             DB::update("UPDATE pdrd.tulis_pub SET soft_delete = 1 WHERE id_publikasi = ?", [$request->id_publikasi]);
            
             DB::commit();
-            return WrapResponse(['id_publikasi' => $request->id_publikasi], 'Buku Ajar Berhasil Dihapus', FALSE);
+            return WrapResponse(array('data' => array('id_publikasi' => $request->id_publikasi)), 'Buku Referensi Berhasil Dihapus', FALSE);
         } catch (\Exception $e) {
             DB::rollback();
-            return WrapResponse(['id_publikasi' => $request->id_publikasi], 'Buku Ajar Gagal Dihapus', FALSE);
+            return WrapResponse(['data' => null], 'Buku Referensi Gagal Dihapus', FALSE);
         }
     }
 }

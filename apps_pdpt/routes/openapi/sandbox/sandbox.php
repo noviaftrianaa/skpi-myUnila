@@ -174,6 +174,7 @@ Route::group([
             Route::get('daftarprodi/detail', 'LembagaController@detailDaftarProdi');
             Route::get('profilprodi/list', 'LembagaController@listProfilProdi');
             Route::get('profilprodi/list_id', 'LembagaController@listProfilProdiById');
+            Route::put('profilprodi/ubah', 'LembagaController@update');
             Route::get('daftarsms', 'LembagaController@listSms');
         });
     });
