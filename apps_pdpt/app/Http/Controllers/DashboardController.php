@@ -24,7 +24,7 @@ class DashboardController extends Controller
 
     public function iku()
     {
-        $data = DB::table('dashboard.dashboard_power_bi')->where('kode_dashboard','IKU')->first();
+        $data = DB::table('dashboard.dashboard_power_bi')->where('kode_dashboard','=','IKU')->first();
         return view('dashboard.iku',compact('data'));
     }
 
