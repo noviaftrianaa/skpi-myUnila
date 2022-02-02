@@ -103,11 +103,13 @@ Route::group([
 
         Route::prefix('dosen')->group(function () {
             Route::get('/list', 'SdmDosenController@list');
+            Route::get('/list_id', 'SdmDosenController@listByIdProdi');
             Route::get('/detail', 'SdmDosenController@detail');
         });
 
         Route::prefix('tendik')->group(function () {
             Route::get('/list', 'SdmTendikController@list');
+            Route::get('/list_id', 'SdmTendikController@listByIdProdi');
             Route::get('/detail', 'SdmTendikController@detail');
         });
 
@@ -138,8 +140,8 @@ Route::group([
         });
 
         Route::prefix('penelitian')->group(function () {
-            Route::get('list', 'PenelitianController@getAllListPenelitian')->name('penelitian.list');
-            Route::get('list_id', 'PenelitianController@getListPenelitianBySdmId');
+            Route::get('list', 'PenelitianController@list');
+            Route::get('list_id', 'PenelitianController@listById');
             Route::get('detail/{id}', 'PenelitianController@getDetailPenelitianByPenelitianId');
             Route::post('add', 'PenelitianController@storeNewPenelitian');
             Route::put('update', 'PenelitianController@updatePenelitian');
@@ -152,7 +154,14 @@ Route::group([
             Route::get('detail/{id}', 'PengabdianController@getDetailPengabdianByPengabdianId');
             Route::post('tambah', 'PengabdianController@storePengabdian');
             Route::put('ubah', 'PengabdianController@updatePengabdian');
-            Route::delete('delete', 'PengabdianController@deletePengabdian');
+            Route::delete('hapus', 'PengabdianController@deletePengabdian');
+        });
+
+        Route::prefix('publikasi')->group(function () {
+            Route::get('list', 'PublikasiController@getAllListPublikasi');
+            Route::get('list_id', 'PublikasiController@getListPublikasiById');
+            Route::post('add', 'PublikasiController@storeNewPublikasi');
+
         });
 
         Route::prefix('mahasiswa')->group(function () {
@@ -164,7 +173,7 @@ Route::group([
             Route::get('list_alumni', 'MahasiswaController@alumni');
         });
 
-        Route::prefix('akreditasiprodi')->group(function () {
+        Route::prefix('akreditasi_prodi')->group(function () {
             Route::get('list', 'AkreditasiProdiController@index');
         });
 
@@ -193,6 +202,14 @@ Route::group([
         Route::put('ubah', 'TracerStudyController@update');
         Route::delete('hapus', 'TracerStudyController@destroy');
         Route::delete('hapus_atasan', 'TracerStudyController@destroyAtasan');
+    });
+
+    Route::group([
+        'namespace' => 'Presensi',
+        'prefix' => 'presensi'
+    ], function () {
+        Route::get('list_id', 'KehadiranSdmController@getListKehadiranBySdmId');
+        Route::get('tambah', 'KehadiranSdmController@store');
     });
 });
 

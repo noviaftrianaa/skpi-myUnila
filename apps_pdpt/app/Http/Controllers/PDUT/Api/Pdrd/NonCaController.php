@@ -28,14 +28,6 @@ class NonCaController extends Controller
             'page' => 'numeric|min:1',
             'count'    => 'numeric|min:1|max:50',
             'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
-        ], [
-            'page.numeric'  => 'input page hanya berupa angka',
-            'page.min'      => 'input count hanya berupa angka minimal 1',
-            'count.numeric' => 'input count hanya berupa angka',
-            'count.min'     => 'input count hanya berupa angka minimal 1',
-            'count.max'     => 'input count hanya berupa angka tidak boleh lebih dari 50',
-            'sortby.alpha'  => 'input sortby penyortiran tidak sesuai',
-            'sortby.in'     => 'input sortby penyortiran hanya ASC,asc atau DESC,desc'
         ]);
 
         $sortby = "ASC";
@@ -113,9 +105,6 @@ class NonCaController extends Controller
     {
         InputValidator([
             'id_orang' => 'required|uuid'
-        ], [
-            'id_orang.required' => 'input id_orang harus diisi',
-            'id_orang.uuid' => 'input id_orang harus berupa UUID yang valid'
         ]);
 
         $id_orang = $this->request->input('id_orang');
@@ -200,24 +189,6 @@ class NonCaController extends Controller
             'no_hp' => 'required',
             'email' => 'required|email',
             'npwp' => 'required'
-        ], [
-            'id_negara.required' => 'input id_negara harus diisi',
-            'jln.required' => 'input jln harus diisi',
-            'rt.required' => 'input rt harus diisi',
-            'rw.required' => 'input rw harus diisi',
-            'nm_dsn.required' => 'input nm_dsn harus diisi',
-            'ds_kel.required' => 'input ds_kel harus diisi',
-            'kode_pos.required' => 'input kode_pos harus diisi',
-            'nm_orang.required' => 'input nm_orang harus diisi',
-            'jk.required' => 'input jk harus diisi',
-            'nik.required' => 'input nik harus diisi',
-            'tmpt_lahir.required' => 'input tmpt_lahir harus diisi',
-            'tgl_lahir.required' => 'input tgl_lahir harus diisi',
-            'no_tel_rmh.required' => 'input no_tel_rmh harus diisi',
-            'no_hp.required' => 'input no_hp harus diisi',
-            'email.required' => 'input email harus diisi',
-            'email.email' => 'input email harus berupa email yang valid',
-            'npwp.required' => 'input npwp harus diisi'
         ]);
 
         $creatorId = $updateId = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
@@ -318,24 +289,6 @@ class NonCaController extends Controller
             'no_hp' => 'required',
             'email' => 'required|email',
             'npwp' => 'required'
-        ], [
-            'id_negara.required' => 'input id_negara harus diisi',
-            'jln.required' => 'input jln harus diisi',
-            'rt.required' => 'input rt harus diisi',
-            'rw.required' => 'input rw harus diisi',
-            'nm_dsn.required' => 'input nm_dsn harus diisi',
-            'ds_kel.required' => 'input ds_kel harus diisi',
-            'kode_pos.required' => 'input kode_pos harus diisi',
-            'nm_orang.required' => 'input nm_orang harus diisi',
-            'jk.required' => 'input jk harus diisi',
-            'nik.required' => 'input nik harus diisi',
-            'tmpt_lahir.required' => 'input tmpt_lahir harus diisi',
-            'tgl_lahir.required' => 'input tgl_lahir harus diisi',
-            'no_tel_rmh.required' => 'input no_tel_rmh harus diisi',
-            'no_hp.required' => 'input no_hp harus diisi',
-            'email.required' => 'input email harus diisi',
-            'email.email' => 'input email harus berupa email yang valid',
-            'npwp.required' => 'input npwp harus diisi'
         ]);
 
         DB::beginTransaction();
@@ -344,7 +297,7 @@ class NonCaController extends Controller
             if (!$non_ca) return WrapResponse(['data' => null], 'non citivitas akademik tidak ditemukan atau tidak terdaftar', FALSE);
 
             $non_ca->update([
-                'id_orang' => $id_orang,
+                // 'id_orang' => $id_orang,
                 'id_negara' => $id_negara,
                 'jln' => $jln,
                 'rt' => $rt,
@@ -385,9 +338,6 @@ class NonCaController extends Controller
 
         InputValidator([
             'id_orang' => 'required|uuid',
-        ], [
-            'id_orang.required' => 'input id_orang harus diisi',
-            'id_orang.uuid' => 'input id_orang harus berupa UUID yang valid'
         ]);
 
         DB::beginTransaction();

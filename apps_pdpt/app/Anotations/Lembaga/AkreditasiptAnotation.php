@@ -1,4 +1,5 @@
 <?php
+<<<<<<< HEAD
 /**
      * @OA\Get(
      *      path="/lembaga/akreditasipt",
@@ -36,6 +37,22 @@
      *              type="string"
      *          )
      *     ),
+=======
+    /**
+     * @OA\Delete(
+     *      path="/pengabdian/hapus",
+     *      operationId="deletePengabdian",
+     *      tags={"Pengabdian"},
+     *      summary="Delete Data Pengabdian",
+     *      description="Delete Data Pengabdian",
+     *      @OA\Parameter(
+     *         description="Pengabdian ID",
+     *         in="path",
+     *         name="id",
+     *         required=true,
+     *         @OA\Schema(type="string"),
+     *       ),
+>>>>>>> 411b5f3c9a8d278cf5c4f6a105f3b50322040169
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -50,5 +67,9 @@
      *      ),
      *      security={{"bearer_token":{}}}
      *     )
+<<<<<<< HEAD
      * )
      */
+=======
+     */
+>>>>>>> 411b5f3c9a8d278cf5c4f6a105f3b50322040169

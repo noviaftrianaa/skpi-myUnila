@@ -23,15 +23,20 @@ class TokenController extends Controller
         if($request->ajax()) {
             $data = DB::SELECT('
                 SELECT *
-                FROM man_akses.access_token AS token
-                JOIN man_akses.token_user AS token_user ON token_user.id_token=token.id_token
-                ORDER BY token_user.wkt_create DESC
+                FROM man_akses.access_token
+                ORDER BY waktu_create DESC
             ');
 
             return DataTables::of($data)
                 ->addIndexColumn()
+                ->editColumn('waktu_create', function($data) {
+                    return TglWaktuIndonesia($data->waktu_create);
+                })
+                ->editColumn('waktu_expired', function($data) {
+                    return TglWaktuIndonesia($data->waktu_expired);
+                })
                 ->addColumn('action', function($data) {
-                    $button = '<a type="button" class="btn btn-primary btn-xs" title="Show" href="'.route('token.detail', [Crypt::encrypt($item->id_token)]).'"><i class="fas fa-eye"></i></a>';
+                    $button = '<a type="button" class="btn btn-primary btn-xs" title="Show" href="'.route('token.detail', [Crypt::encrypt($data->id_token)]).'"><i class="fas fa-eye"></i></a>';
                     return $button;
                 })
                 ->rawColumns(['action'])

@@ -3,16 +3,21 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Str;
 
 class CreateAnotationCommand extends Command
 {
-    protected $signature = 'make:anotation {--scan} {--r}';
+    protected $signature = 'make:anotation';
 
     protected $description = 'Create Anotation OpenApi l5-Swagger';
 
     protected $anotationPath = "";
+
+    const CACHEKEY = 'route_list_anotation';
 
     public function __construct()
     {
@@ -22,7 +27,8 @@ class CreateAnotationCommand extends Command
 
     public function handle()
     {
-        // exit();
+        $cacheRoute = [];
+
         $routeList = Route::getRoutes();
         foreach ($routeList as $route) {
             if (is_null($route->action['middleware'])) {
@@ -34,14 +40,32 @@ class CreateAnotationCommand extends Command
                 $getPrefix = explode("/", $route->uri);
 
                 $folderName = $this->makeFolderName($getPrefix[2]);
-                $fileName = $this->makeFileName($getPrefix[3]);
+                // $fileName = $this->makeFileName($getPrefix[3]);
 
-                $filePath  = $this->anotationPath . DIRECTORY_SEPARATOR . $folderName . DIRECTORY_SEPARATOR . $fileName . 'Anotation.php';
                 $folderPath = $this->anotationPath . DIRECTORY_SEPARATOR . $folderName;
+                // $filePath  = $folderPath . DIRECTORY_SEPARATOR . $fileName . 'Anotation.php';
+                $filePath  = $folderPath . DIRECTORY_SEPARATOR . $folderName . 'Anotation.php';
 
+                $cacheRoute[] = $filePath;
+                
                 $this->makeFolder($folderPath);
                 $this->makeFile($filePath);
+                // $this->scanAndDeleteUndefinedAnotation($filePath);
             }
+        }
+
+        // Cache::put(self::CACHEKEY, $cacheRoute);
+
+        $this->info('Scan Done, Creating Annotation');
+    }
+
+    public function scanAndDeleteUndefinedAnotation($filePath = "")
+    {
+        $oldRoute = Cache::get(self::CACHEKEY);
+        if (empty($oldRoute)) return;
+        if (!in_array($filePath, $oldRoute)) {
+            Log::info('delete path: '.$filePath);
+            File::delete($filePath);
         }
     }
 

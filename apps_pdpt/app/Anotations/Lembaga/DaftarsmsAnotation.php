@@ -1,4 +1,5 @@
 <?php
+<<<<<<< HEAD
  /**
      * @OA\Get(
      *      path="/lembaga/daftarsms",
@@ -69,3 +70,5 @@
      *      security={{"bearer_token":{}}}
      *     )
      */
+=======
+>>>>>>> 411b5f3c9a8d278cf5c4f6a105f3b50322040169

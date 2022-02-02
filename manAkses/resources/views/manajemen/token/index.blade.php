@@ -15,11 +15,11 @@
             ajax: window.location.href,
             columns: [
                 { data: 'DT_RowIndex', orderable: false, searchable: false },
-                { data: 'token' },
-                { data: 'passkey' },
+                { data: 'token_value' },
+                { data: 'base_url' },
                 { data: 'waktu_create' },
                 { data: 'waktu_expired' },
-                { data: 'base_url' },
+                { data: 'keterangan' },
                 { data: 'action', orderable: false, searchable: false }
             ],
             "language": {
@@ -63,10 +63,10 @@
                       <tr>
                         <th>No.</th>
                         <th>Token</th>
-                        <th>Passkey</th>
+                        <th>Base URL</th>
                         <th>Created Date</th>
                         <th>Expired Date</th>
-                        <th>Base URL</th>
+                        <th>Notes</th>
                         <th>Aksi</th>
                       </tr>
                     </thead>
