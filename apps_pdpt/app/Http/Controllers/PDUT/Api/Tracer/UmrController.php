@@ -21,7 +21,7 @@ class UmrController extends Controller
      *      description="Menampilkan List UMR Wilayah",
      *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
      *          @OA\Schema(type="number")),
-     *      @OA\Parameter( name="item", description="masukan jumlah data", example="10", required=false, in="query",
+     *      @OA\Parameter( name="item", description="masukan jumlah data", example="50", required=false, in="query",
      *          @OA\Schema(type="number")),
      *      @OA\Parameter( name="sortby", description="Masukan urutan by ASC/DESC", example="ASC", required=false, in="query",
      *          @OA\Schema(type="string")),
@@ -49,7 +49,7 @@ class UmrController extends Controller
     public function index(Request $request)
     {
         $currentPage = $request->input('page', 1);
-        $itemsPerPage = $request->input('item', 10);
+        $itemsPerPage = $request->input('item', 50);
         $sortBy = $request->input('sortby', 'ASC');
 
         InputValidator([
@@ -125,16 +125,22 @@ class UmrController extends Controller
      *      tags={"Tracer Study"},
      *      summary="Menambahkan data umr wilayah",
      *      description="Menambahkan data umr wilayah",
-     *    @OA\RequestBody(
-     *         @OA\MediaType(
-     *             mediaType="applicatin/json",
-     *             @OA\Schema(
-     *                 @OA\Property( property="id_wilayah", type="number", format="number", example="126000"),
+     *    *  @OA\RequestBody(
+     *      required=true,
+     *      description="Simpan data array UMR wilayah",
+     *        @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                property="data",
+     *                type="array",
+     *                @OA\Items(
+     *                 @OA\Property( property="id_wilayah", type="string", format="string", example="126000"),
      *                 @OA\Property( property="id_tahun_anggaran", type="number", format="number", example="2021"),
      *                 @OA\Property( property="besaran_umr", type="number", format="number", example="2770794")
-     *              )
-     *          )
-     *      ),
+     *                ),
+     *             ),
+     *        ),
+     *     ),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -159,40 +165,30 @@ class UmrController extends Controller
      */
     public function store(Request $request)
     {
-        $id_wilayah = $request->input('id_wilayah');
-        $id_tahun_anggaran = $request->input('id_tahun_anggaran');
-        $besaran_umr = $request->input('besaran_umr');
+        $get_data = $request->all();
 
-        InputValidator([
-            'id_wilayah' => 'required|numeric',
-            'id_tahun_anggaran' => 'required|numeric',
-            'besaran_umr' => 'required|numeric'
-        ], [
-            'id_wilayah.regex' => 'input harus numerik',
-            'id_tahun_anggaran.regex' => 'input harus numerik',
-            'besaran_umr.regex' => 'input harus numerik',
-        ]);
 
         DB::beginTransaction();
         try {
-            $umr = UmrWilayah::create([
-                'id_umr_wil' => guid(),
-                'id_wil' => $id_wilayah,
-                'id_tahun_anggaran' => $id_tahun_anggaran,
-                'besaran_umr' => $besaran_umr,
-                'id_creator' => guid(),
-                'id_updater' => guid(),
-                'create_date' => currDateTime(),
-                'last_update' => currDateTime(),
-                'last_sync' => currDateTime(),
-                'soft_delete' => 0
-            ]);
-
+            foreach ($get_data['data'] as $each_data) {
+                UmrWilayah::updateOrInsert([
+                    'id_wil' => $each_data['id_wilayah'],
+                    'id_tahun_anggaran' => $each_data['id_tahun_anggaran'],
+                ],[
+                    'id_umr_wil' => guid(),
+                    'besaran_umr' => $each_data['besaran_umr'],
+                    'id_creator' => guid(),
+                    'id_updater' => guid(),
+                    'create_date' => currDateTime(),
+                    'last_update' => currDateTime(),
+                    'last_sync' => currDateTime(),
+                    'soft_delete' => 0
+                ]);
+            }
 
             DB::commit();
-            return WrapResponse([], 'sukses menambahkan umr wilayah - ' . $umr->id_umr_wil);
+            return WrapResponse([], 'sukses menambahkan umr wilayah');
         } catch (\Exception $e) {
-            Log::error('Message ' . $e->getMessage() . ' - ' . $e->getLine());
             DB::rollback();
             Log::error($e->getMessage() . ' on line ' . $e->getLine());
             return WrapResponse([], "gagal menambahkan umr wilayah");
@@ -293,7 +289,6 @@ class UmrController extends Controller
             DB::commit();
             return WrapResponse([], 'sukses memperbaharui umr wilayah - ' . $data_umr->id_umr_wil);
         } catch (\Exception $e) {
-            Log::error('Message ' . $e->getMessage() . ' - ' . $e->getLine());
             DB::rollback();
             Log::error($e->getMessage() . ' on line ' . $e->getLine());
             return WrapResponse([], "gagal memperbaharui umr wilayah");

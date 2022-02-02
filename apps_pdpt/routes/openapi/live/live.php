@@ -103,11 +103,13 @@ Route::group([
 
         Route::prefix('dosen')->group(function () {
             Route::get('/list', 'SdmDosenController@list');
+            Route::get('/list_id', 'SdmDosenController@listByIdProdi');
             Route::get('/detail', 'SdmDosenController@detail');
         });
 
         Route::prefix('tendik')->group(function () {
             Route::get('/list', 'SdmTendikController@list');
+            Route::get('/list_id', 'SdmTendikController@listByIdProdi');
             Route::get('/detail', 'SdmTendikController@detail');
         });
 
@@ -181,8 +183,8 @@ Route::group([
             Route::get('daftarprodi/detail', 'LembagaController@detailDaftarProdi');
             Route::get('profilprodi/list', 'LembagaController@listProfilProdi');
             Route::get('profilprodi/list_id', 'LembagaController@listProfilProdiById');
+            Route::put('profilprodi/ubah', 'LembagaController@update');
             Route::get('daftarsms', 'LembagaController@listSms');
-        });
     });
 
     Route::group([
@@ -212,4 +214,5 @@ Route::group([
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
+});
 });

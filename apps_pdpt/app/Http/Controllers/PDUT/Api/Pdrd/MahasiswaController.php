@@ -10,40 +10,10 @@ use Illuminate\Validation\Rule as ValidationRule;
 
 class MahasiswaController extends Controller
 {
-    /**
-     * @OA\Get(
-     *      path="/mahasiswa/list_mahasiswa",
-     *      operationId="getListMahasiswa",
-     *      tags={"Mahasiwa"},
-     *      summary="Dapatkan daftar Mahasiswa",
-     *      description="Menampilkan daftar data Mahasiswa",
-     *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
-     *          @OA\Schema(type="number")),
-     *      @OA\Parameter( name="item", description="masukan jumlah data", example="10", required=false, in="query",
-     *          @OA\Schema(type="number")),
-     *      @OA\Parameter( name="sortby", description="Masukan urutan by ASC/DESC", example="ASC", required=false, in="query",
-     *          @OA\Schema(type="string")),
-     *      @OA\Parameter( name="idProdi", description="Masukan idProdi", example="54BBD27B-2376-4CAE-9951-76EF54BD2CA2", required=true, in="query",
-     *          @OA\Schema(type="string")),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     */
     public function list(Request $request)
     {
         $currentPage = $request->input('page', 1);
-        $itemsPerPage = $request->input('item', 10);
+        $itemsPerPage = $request->input('item', 50);
         $sortBy = $request->input('sortby', 'ASC');
         $idProdi = $request->input('idProdi');
 
@@ -128,30 +98,6 @@ class MahasiswaController extends Controller
     }
 
 
-    /**
-     * @OA\Get(
-     *      path="/mahasiswa/detail",
-     *      operationId="getDetailMahasiswa",
-     *      tags={"Mahasiwa"},
-     *      summary="Dapatkan detail profil Mahasiswa",
-     *      description="Detail Mahasiswa Berdasarkan idPesertaDidik",
-     *      @OA\Parameter( name="idPesertaDidik", description="masukan idPesertaDidik", example="11D42109-7F99-49EA-96E3-15F314C40523", required=true, in="query",
-     *          @OA\Schema(type="string")),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     */
     public function detail(Request $request)
     {
         $idPesertaDidik = $request->input('idPesertaDidik');
@@ -257,54 +203,11 @@ class MahasiswaController extends Controller
         return WrapResponse(compact('data'), 'Berhasil mengambil data detail Mahasiswa');
     }
 
-    /**
-     * @OA\Get(
-     *      path="/mahasiswa/list_status",
-     *      operationId="getListStatusMahasiswa",
-     *      tags={"Mahasiwa"},
-     *      summary="Dapatkan daftar Mahasiswa sesuai Status Mahasiswa",
-     *      description="Daftar daftar list mahasiswa berdasarkan idProdi dan status mahasiswa sebagai berikut : <br><br>
-     *       A : Aktif <br>
-     *       C : Cuti <br>
-     *       D : Drop Out / Dikeluarkan <br>
-     *       G : Sedang Double Degree <br>
-     *       H : Hilang <br>
-     *       K : Mengundurkan Diri / Keluar <br>
-     *       L : Lulus <br>
-     *       M : Mutasi <br>
-     *       N : Non Aktif <br>
-     *       T : Transfer <br>
-     *       U : Unknown <br>
-     *       W : Wafat <br>",
-     *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
-     *          @OA\Schema(type="number")),
-     *      @OA\Parameter( name="item", description="masukan jumlah data", example="10", required=false, in="query",
-     *          @OA\Schema(type="number")),
-     *      @OA\Parameter( name="sortby", description="Masukan urutan by ASC/DESC", example="ASC", required=false, in="query",
-     *          @OA\Schema(type="string")),
-     *      @OA\Parameter( name="statMhs", description="Masukan status mahasiswa", example="A", required=true, in="query",
-     *          @OA\Schema(type="string")),
-     *      @OA\Parameter( name="idProdi", description="Masukan idProdi", example="54BBD27B-2376-4CAE-9951-76EF54BD2CA2", required=true, in="query",
-     *          @OA\Schema(type="string")),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     */
+
     public function status(Request $request)
     {
         $currentPage = $request->input('page', 1);
-        $itemsPerPage = $request->input('item', 10);
+        $itemsPerPage = $request->input('item', 50);
         $sortBy = $request->input('sortby', 'ASC');
         $idProdi = $request->input('idProdi');
         $statMhs = $request->input('statMhs', 'A');
@@ -394,54 +297,10 @@ class MahasiswaController extends Controller
         return WrapResponse(compact('currentPage', 'itemsPerPage', 'sortBy', 'data'), 'Berhasil mengambil data list Mahasiswa');
     }
 
-    /**
-     * @OA\Get(
-     *      path="/mahasiswa/list_regis",
-     *      operationId="getRegisMahasiswa",
-     *      tags={"Mahasiwa"},
-     *      summary="Dapatkan daftar Mahasiswa Berdasarkan Jenis Pendaftaran",
-     *      description="Daftar daftar list mahasiswa berdasarkan idProdi dan status idJenisDaftar sebagai berikut : <br><br>
-     *      1 : Peserta didik baru <br>
-     *      2 : Pindahan <br>
-     *      3 : Naik kelas <br>
-     *      4 : Akselerasi <br>
-     *      5 : Mengulang <br>
-     *      6 : Lanjutan semester <br>
-     *      8 : Pindahan Alih Bentuk <br>
-     *      11 : Alih Jenjang <br>
-     *      12 : Lintas Jalur <br>
-     *      13 : Rekognisi Pembelajaran Lampau (RPL) <br>
-     *      14 : Course <br>
-     *      15 : Fast Track <br>",
-     *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
-     *          @OA\Schema(type="number")),
-     *      @OA\Parameter( name="item", description="masukan jumlah data", example="10", required=false, in="query",
-     *          @OA\Schema(type="number")),
-     *      @OA\Parameter( name="sortby", description="Masukan urutan by ASC/DESC", example="ASC", required=false, in="query",
-     *          @OA\Schema(type="string")),
-     *      @OA\Parameter( name="idJenisDaftar", description="Masukan id jenis daftar mahasiswa", example="1", required=true, in="query",
-     *          @OA\Schema(type="number")),
-     *      @OA\Parameter( name="idProdi", description="Masukan idProdi", example="54BBD27B-2376-4CAE-9951-76EF54BD2CA2", required=true, in="query",
-     *          @OA\Schema(type="string")),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     */
     public function regis(Request $request)
     {
         $currentPage = $request->input('page', 1);
-        $itemsPerPage = $request->input('item', 10);
+        $itemsPerPage = $request->input('item', 50);
         $sortBy = $request->input('sortby', 'ASC');
         $idProdi = $request->input('idProdi');
         $idJenisDaftar = $request->input('idJenisDaftar', '1');
@@ -531,31 +390,6 @@ class MahasiswaController extends Controller
         return WrapResponse(compact('currentPage', 'itemsPerPage', 'sortBy', 'data'), 'Berhasil mengambil data list Mahasiswa');
     }
 
-    /**
-     * @OA\Get(
-     *      path="/mahasiswa/smt_keaktifan",
-     *      operationId="getSemesterKeaktifan",
-     *      tags={"Mahasiwa"},
-     *      summary="Dapatkan daftar Semester Keaktifan Mahasiswa",
-     *      description="Menampilkan daftar Semester Keaktifan Mahasiswa",
-     *      description="Daftar keaktifan semester Mahasiswa Berdasarkan idPesertaDidik",
-     *      @OA\Parameter( name="idPesertaDidik", description="masukan idPesertaDidik", example="11D42109-7F99-49EA-96E3-15F314C40523", required=true, in="query",
-     *          @OA\Schema(type="string")),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     */
     public function semester_keaktifan(Request $request)
     {
         $idPesertaDidik = $request->input('idPesertaDidik');
@@ -635,43 +469,13 @@ class MahasiswaController extends Controller
         return WrapResponse(compact('data'), 'Berhasil mengambil data keaktifan semester Mahasiswa');
     }
 
-    /**
-     * @OA\Get(
-     *      path="/mahasiswa/list_alumni",
-     *      operationId="getAlumni",
-     *      tags={"Mahasiwa"},
-     *      summary="Dapatkan list alumni berdasarkan prodi",
-     *      description="Menampilkan list alumni berdasarkan prodi",
-     *      description="Daftar Alumni Berdasarkan id_prodi Contoh Ilmu Komputer = 54BBD27B-2376-4CAE-9951-76EF54BD2CA2",
-     *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
-     *          @OA\Schema(type="number")),
-     *      @OA\Parameter( name="item", description="masukan jumlah data", example="10", required=false, in="query",
-     *          @OA\Schema(type="number")),
-     *      @OA\Parameter( name="sortby", description="Masukan urutan by ASC/DESC", example="ASC", required=false, in="query",
-     *          @OA\Schema(type="string")),
-     *      @OA\Parameter( name="idProdi", description="Masukan idProdi", example="54BBD27B-2376-4CAE-9951-76EF54BD2CA2", required=true, in="query",
-     *          @OA\Schema(type="string")),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     */
     public function alumni(Request $request)
     {
         $currentPage = $request->input('page', 1);
         $itemsPerPage = $request->input('item', 10);
         $sortBy = $request->input('sortby', 'ASC');
         $idProdi = $request->input('idProdi');
+        // $idProdi = '54BBD27B-2376-4CAE-9951-76EF54BD2CA2';
 
         InputValidator([
             'sortby' => ['alpha', ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])],
@@ -696,8 +500,8 @@ class MahasiswaController extends Controller
             SET @PageNumber= ?
             SET @RowsOfPage= ?
             SELECT
-                pd.id_pd, pd.nm_pd, reg.nipd AS npm, CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi, pd.email,
-                ts.id_thn_ajaran AS angkatan, kul.biaya_smt, kul.ipk, kul.total_sks, pd.nik, pd.jk, pd.tlpn_hp, jd.nm_jalur_daftar,
+                pd.id_pd, pd.nm_pd, reg.id_reg_pd, reg.nipd AS npm, CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi, pd.email,
+                ts.id_thn_ajaran AS angkatan, kul.biaya_smt, kul.ipk, kul.total_sks, pd.nik, pd.jk, pd.tlpn_hp, jd.nm_jalur_daftar, sms.id_sms,
                 reg.tgl_keluar AS tgl_lulus, reg.tgl_sk_yudisium AS tgl_wisuda, pd.create_date AS waktu_data_ditambahkan, pmb.nm_pembiayaan,
                 pd.last_update AS terakhir_diubah
             FROM pdrd.peserta_didik AS pd WITH(NOLOCK)
@@ -738,10 +542,10 @@ class MahasiswaController extends Controller
         $data = [];
         foreach ($query as $each_data) {
             $data[] = [
-                'id_peserta_didik' => $each_data->id_pd,
+                'id_reg_pd' => $each_data->id_reg_pd,
                 'nama_alumni' => $each_data->nm_pd,
                 'NPM' => $each_data->npm,
-                'program_studi' => $each_data->nm_prodi,
+                'id_prodi' => $each_data->id_sms,
                 'angkatan' => $each_data->angkatan,
                 'biaya_semester' => $each_data->biaya_smt,
                 'ipk' => $each_data->ipk,
@@ -758,8 +562,6 @@ class MahasiswaController extends Controller
                 'terakhir_diubah' => date('Y-m-d H:i:s', strtotime($each_data->terakhir_diubah))
             ];
         }
-
-
 
         return WrapResponse(compact('currentPage', 'itemsPerPage', 'sortBy', 'data'), 'Berhasil mengambil data list Alumni');
     }

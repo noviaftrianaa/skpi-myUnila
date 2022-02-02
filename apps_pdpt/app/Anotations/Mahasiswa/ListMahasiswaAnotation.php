@@ -1,13 +1,12 @@
 <?php
 
- /**
+/**
      * @OA\Get(
-     *      path="/mahasiswa/list_alumni",
-     *      operationId="getAlumni",
+     *      path="/mahasiswa/list_mahasiswa",
+     *      operationId="getListMahasiswa",
      *      tags={"Mahasiswa"},
-     *      summary="Dapatkan list alumni berdasarkan prodi",
-     *      description="Menampilkan list alumni berdasarkan prodi",
-     *      description="Daftar Alumni Berdasarkan id_prodi Contoh Ilmu Komputer = 54BBD27B-2376-4CAE-9951-76EF54BD2CA2",
+     *      summary="Dapatkan daftar Mahasiswa",
+     *      description="Menampilkan daftar data Mahasiswa",
      *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
      *          @OA\Schema(type="number")),
      *      @OA\Parameter( name="item", description="masukan jumlah data", example="50", required=false, in="query",
