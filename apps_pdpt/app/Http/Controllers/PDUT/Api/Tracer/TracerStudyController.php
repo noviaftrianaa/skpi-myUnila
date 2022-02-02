@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\PDUT\Api\Tracer;
 
 use App\Http\Controllers\Controller;
+use App\Models\PDUT\Pdrd\RegPd;
 use App\Models\PDUT\Ref\BidangPekerjaan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,30 +14,6 @@ use Illuminate\Validation\Rule as ValidationRule;
 
 class TracerStudyController extends Controller
 {
-    /**
-     * @OA\Get(
-     *      path="/tracer_study/list",
-     *      operationId="getTracerStudy",
-     *      tags={"Tracer Study"},
-     *      summary="Data hasil Tracer Study",
-     *      description="Menampilkan Hasil TracerStudy",
-     *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
-     *          @OA\Schema(type="number")),
-     *      @OA\Parameter( name="item", description="masukan jumlah data", example="10", required=false, in="query",
-     *          @OA\Schema(type="number")),
-     *      @OA\Parameter( name="idProdi", description="Masukan idProdi", example="54BBD27B-2376-4CAE-9951-76EF54BD2CA2", required=true, in="query",
-     *          @OA\Schema(type="string")),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     */
 
     /**
      * Display a listing of the resource.
@@ -46,7 +23,7 @@ class TracerStudyController extends Controller
     public function index(Request $request)
     {
         $currentPage = $request->input('page', 1);
-        $itemsPerPage = $request->input('item', 10);
+        $itemsPerPage = $request->input('item', 50);
         $idProdi = $request->input('idProdi', NULL);
 
         InputValidator(
@@ -198,64 +175,6 @@ class TracerStudyController extends Controller
         //
     }
 
-    /**
-     * @OA\Post(
-     *      path="/tracer_study/tambah",
-     *      operationId="postTracerStudy",
-     *      tags={"Tracer Study"},
-     *      summary="Simpan hasil Tracer Study",
-     *      description="Menyimpan data Hasil TracerStudy",
-     *    *  @OA\RequestBody(
-     *      required=true,
-     *      description="Simpan data array tracer study",
-     *        @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(
-     *                property="data",
-     *                type="array",
-     *                @OA\Items(
-     *                 @OA\Property( property="id_thn_ajaran", type="string", format="number", example="2022"),
-     *                 @OA\Property( property="id_bid_kerja", type="string", format="number", example="10"),
-     *                 @OA\Property( property="id_wil", type="string", format="number", example="126000"),
-     *                 @OA\Property( property="id_reg_pd", type="string", format="text", example="E8E6146C-D8AF-414C-8293-7A39EFE06713"),
-     *                 @OA\Property( property="id_smt", type="string", format="number", example=" "),
-     *                 @OA\Property( property="id_jns_jalur_kerja", type="string", format="number", example="12"),
-     *                 @OA\Property( property="wkt_pengisian", type="string", format="date", example="2022-01-01"),
-     *                 @OA\Property( property="wkt_tunggu", type="string", format="number", example="3"),
-     *                 @OA\Property( property="status_lulusan", type="string", format="number", example="1"),
-     *                 @OA\Property( property="jns_tmpt_bekerja", type="string", format="text", example="Institusi"),
-     *                 @OA\Property( property="nm_tmpt_bekerja", type="string", format="text", example="Honda"),
-     *                 @OA\Property( property="income_per_bln", type="string", format="number", example="2085000"),
-     *                 @OA\Property( property="total_instansi_dilamar", type="string", format="number", example="1"),
-     *                 @OA\Property( property="hub_bidang_kerja", type="string", format="number", example="1"),
-     *                 @OA\Property( property="tkt_kesesuaian", type="string", format="number", example="1"),
-     *                 @OA\Property( property="alasan_tidak_sesuai", type="string", format="text", example=" "),
-     *                 @OA\Property( property="ket", type="string", format="text", example=" "),
-     *                 @OA\Property( property="id_negara", type="string", format="text", example="ID"),
-     *                 @OA\Property( property="nm_atasan", type="string", format="text", example="nama bos antum"),
-     *                 @OA\Property( property="email_atasan", type="email", format="email", example="emailbos@gmail.com"),
-     *                 @OA\Property( property="jabatan_atasan", type="string", format="text", example="kepala upt"),
-     *                 @OA\Property( property="saran", type="string", format="text", example="makin rajin kerjanya"),
-     *                 @OA\Property( property="harapan", type="string", format="text", example="semoga sukses selalu")
-     *                ),
-     *             ),
-     *        ),
-     *     ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     */
 
     /**
      * Store a newly created resource in storage.
@@ -266,22 +185,34 @@ class TracerStudyController extends Controller
     public function store(Request $request)
     {
 
-        $get_data = $request->input('data');
+        $get_data = $request->all();
 
-        if (empty($get_data)) {
+        if (empty($get_data['data'])) {
             return WrapResponse([], 'Data kosonng silahkan diisi', FALSE);
         }
 
         DB::beginTransaction();
         try {
             $tracer = [];
-            foreach ($get_data as $each_data) {
+            foreach ($get_data['data'] as $each_data) {
+
+                $dataRegPd = DB::select("
+                    SELECT
+                        reg.id_reg_pd,
+                        reg.nipd AS npm
+                    FROM
+                        pdrd.reg_pd AS reg
+                    WHERE
+                        reg.nipd = ?
+                        AND reg.soft_delete = 0
+                ", [$each_data['npm']]);
+
                 $tracer = HasilTracerStudy::create([
                     'id_hasil_tracer_study' => guid(),
                     'id_thn_ajaran' => $each_data['id_thn_ajaran'],
+                    'id_reg_pd' => $dataRegPd[0]->id_reg_pd,
                     'id_bid_kerja' => $each_data['id_bid_kerja'],
                     'id_wil' => $each_data['id_wil'],
-                    'id_reg_pd' => $each_data['id_reg_pd'],
                     'id_smt' => $each_data['id_smt'],
                     'id_jns_jalur_kerja' => $each_data['id_jns_jalur_kerja'],
                     'wkt_pengisian' => $each_data['wkt_pengisian'],
@@ -303,18 +234,28 @@ class TracerStudyController extends Controller
                     'soft_delete' => 0
                 ]);
 
+                //     $dataBidangKerja = DB::select("
+                //         SELECT
+                //             bp.nm_bid_kerja
+                //         FROM
+                //             ref.bidang_pekerjaan AS bp
+                //         WHERE
+                //             bp.id_bid_kerja = ?
+                //             AND bp.expired_date IS NULL
+                //     ", [$each_data['id_bid_kerja']]);
+
                 HasilTracerAtasan::create([
                     'id_hasil_tracer_atasan' => guid(),
                     'id_hasil_tracer_study' => $tracer->id_hasil_tracer_study,
-                    'id_negara' => $each_data['id_negara'],
-                    'id_wil' => $tracer->id_wil,
-                    'email_atasan' => $each_data['email_atasan'],
-                    'nm_atasan' => $each_data['nm_atasan'],
-                    'jabatan_atasan' => $each_data['jabatan_atasan'],
-                    'nm_tmpt_bekerja' => $tracer->nm_tmpt_bekerja,
-                    'bidang_tempat_bekerja' => $each_data['id_bid_kerja'],
-                    'saran' => $each_data['saran'],
-                    'harapan' => $each_data['harapan'],
+                    // 'id_negara' => $each_data['id_negara'],
+                    // 'id_wil' => $tracer->id_wil,
+                    // 'email_atasan' => $each_data['email_atasan'],
+                    // 'nm_atasan' => $each_data['nm_atasan'],
+                    // 'jabatan_atasan' => $each_data['jabatan_atasan'],
+                    // 'nm_tmpt_bekerja' => $dataBidangKerja[0]->nm_bid_kerja,
+                    // 'bidang_tempat_bekerja' => $tracer->id_bid_kerja,
+                    // 'saran' => $each_data['saran'],
+                    // 'harapan' => $each_data['harapan'],
                     'id_creator' => $tracer->id_creator,
                     'id_updater' => $tracer->id_updater,
                     'create_date' => $tracer->create_date,
@@ -327,7 +268,6 @@ class TracerStudyController extends Controller
             DB::commit();
             return WrapResponse([], 'sukses menambahkan tracer study');
         } catch (\Exception $e) {
-            Log::error('Message ' . $e->getMessage() . ' - ' . $e->getLine());
             DB::rollback();
             Log::error($e->getMessage() . ' on line ' . $e->getLine());
             return WrapResponse([], "gagal menambahkan tracer study");
@@ -356,58 +296,6 @@ class TracerStudyController extends Controller
         //
     }
 
-    /**
-     * @OA\Put(
-     *      path="/tracer_study/ubah",
-     *      operationId="putHasilTracerStudy",
-     *      tags={"Tracer Study"},
-     *      summary="Memperbaharui hasil Tracer Study Atasan",
-     *      description="Memperbaharui data Hasil Tracer Study Atasan berdasarkan id_hasil_tracer_study",
-     *    @OA\RequestBody(
-     *         @OA\MediaType(
-     *             mediaType="applicatin/json",
-     *             @OA\Schema(
-     *                 @OA\Property( property="id_hasil_tracer_study", type="string", format="text", example="masukan id_hasil_tracer_study disini"),
-     *                 @OA\Property( property="id_thn_ajaran", type="string", format="number", example="2022"),
-     *                 @OA\Property( property="id_bid_kerja", type="string", format="number", example="10"),
-     *                 @OA\Property( property="id_wil", type="string", format="number", example="126000"),
-     *                 @OA\Property( property="id_smt", type="string", format="number", example=" "),
-     *                 @OA\Property( property="id_jns_jalur_kerja", type="string", format="number", example="12"),
-     *                 @OA\Property( property="wkt_pengisian", type="string", format="date", example="2022-01-01"),
-     *                 @OA\Property( property="wkt_tunggu", type="string", format="number", example="3"),
-     *                 @OA\Property( property="status_lulusan", type="string", format="number", example="1"),
-     *                 @OA\Property( property="jns_tmpt_bekerja", type="string", format="text", example="Institusi"),
-     *                 @OA\Property( property="nm_tmpt_bekerja", type="string", format="text", example="Honda"),
-     *                 @OA\Property( property="income_per_bln", type="string", format="number", example="2085000"),
-     *                 @OA\Property( property="total_instansi_dilamar", type="string", format="number", example="1"),
-     *                 @OA\Property( property="hub_bidang_kerja", type="string", format="number", example="1"),
-     *                 @OA\Property( property="tkt_kesesuaian", type="string", format="number", example="1"),
-     *                 @OA\Property( property="alasan_tidak_sesuai", type="string", format="text", example=" "),
-     *                 @OA\Property( property="ket", type="string", format="text", example=" "),
-     *                 @OA\Property( property="id_negara", type="string", format="text", example="ID"),
-     *                 @OA\Property( property="nm_atasan", type="string", format="text", example="nama bos antum"),
-     *                 @OA\Property( property="email_atasan", type="email", format="email", example="emailbos@gmail.com"),
-     *                 @OA\Property( property="jabatan_atasan", type="string", format="text", example="kepala upt"),
-     *                 @OA\Property( property="saran", type="string", format="text", example="makin rajin kerjanya"),
-     *                 @OA\Property( property="harapan", type="string", format="text", example="semoga sukses selalu")
-     *              )
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     */
 
     /**
      * Update the specified resource in storage.
@@ -477,43 +365,12 @@ class TracerStudyController extends Controller
             DB::commit();
             return WrapResponse([], 'sukses memperbaharui tracer study - ' . $hasil_tracer_study->id_hasil_tracer_study);
         } catch (\Exception $e) {
-            Log::error('Message ' . $e->getMessage() . ' - ' . $e->getLine());
             DB::rollback();
             Log::error($e->getMessage() . ' on line ' . $e->getLine());
             return WrapResponse([], "gagal memperbaharui tracer study");
         }
     }
 
-    /**
-     * @OA\Delete(
-     *      path="/tracer_study/hapus",
-     *      operationId="deleteTracerStudy",
-     *      tags={"Tracer Study"},
-     *      summary="Menghapus hasil Tracer Study",
-     *      description="Menghapus data hasil TracerStudy",
-     *@OA\RequestBody(
-     *      required=true,
-     *      description="Menghapus data hasil Tracer Study berdasarkan id_hasil_tracer_study",
-     *      @OA\JsonContent(
-     *          required={"id_hasil_tracer_study"},
-     *          @OA\Property(property="id_hasil_tracer_study", type="string", format="text", example="masukan id_hasil_tracer_study disini"),
-     *          ),
-     *      ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     */
 
     /**
      * Remove the specified resource from storage.
@@ -555,36 +412,6 @@ class TracerStudyController extends Controller
         }
     }
 
-    /**
-     * @OA\Delete(
-     *      path="/tracer_study/hapus_atasan",
-     *      operationId="deleteTracerStudyAtasan",
-     *      tags={"Tracer Study"},
-     *      summary="Menghapus hasil Tracer Study Atasan",
-     *      description="Menghapus data hasil Tracer Study Atasan",
-     *@OA\RequestBody(
-     *      required=true,
-     *      description="Menghapus data hasil Tracer Study Atasan berdasarkan id_hasil_tracer_atasan",
-     *      @OA\JsonContent(
-     *          required={"id_hasil_tracer_atasan"},
-     *          @OA\Property(property="id_hasil_tracer_atasan", type="string", format="text", example="masukan id_hasil_tracer_atasan disini"),
-     *          ),
-     *      ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     */
 
     /**
      * Remove the specified resource from storage.

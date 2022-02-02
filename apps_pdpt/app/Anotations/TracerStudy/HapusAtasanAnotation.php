@@ -1,17 +1,17 @@
 <?php
  /**
      * @OA\Delete(
-     *      path="/tracer_study/hapus",
-     *      operationId="deleteTracerStudy",
+     *      path="/tracer_study/hapus_atasan",
+     *      operationId="deleteTracerStudyAtasan",
      *      tags={"Tracer Study"},
-     *      summary="Menghapus hasil Tracer Study",
-     *      description="Menghapus data hasil TracerStudy",
+     *      summary="Menghapus hasil Tracer Study Atasan",
+     *      description="Menghapus data hasil Tracer Study Atasan",
      *@OA\RequestBody(
      *      required=true,
-     *      description="Menghapus data hasil Tracer Study berdasarkan id_hasil_tracer_study",
+     *      description="Menghapus data hasil Tracer Study Atasan berdasarkan id_hasil_tracer_atasan",
      *      @OA\JsonContent(
-     *          required={"id_hasil_tracer_study"},
-     *          @OA\Property(property="id_hasil_tracer_study", type="string", format="text", example="masukan id_hasil_tracer_study disini"),
+     *          required={"id_hasil_tracer_atasan"},
+     *          @OA\Property(property="id_hasil_tracer_atasan", type="string", format="text", example="masukan id_hasil_tracer_atasan disini"),
      *          ),
      *      ),
      *      @OA\Response(
