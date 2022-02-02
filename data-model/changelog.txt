@@ -240,3 +240,111 @@ Tambah field pada tracer.hasil_tracer_study
 + hub_bidang_kerja		(numeric(1))
 + tkt_kesesuaian		(numeric(1))
 + alasan_tidak_sesuai	(varchar(250))
+
+---versi 0.5--- 31 Januari 2022
+Ubah dari urutan3 dan urutan2 menjadi field urutan (numeric(2)) pada tabel:
++ pdrd.map_litabmas_bidang
++ pdrd.map_publikasi_bidang
++ pdrd.map_abmas_tse
++ pdrd.tulis_buku_ajar
++ pdrd.tulis_pub
+
+Tambah tabel pdrd.kinerja_dosen
++ id_reg_ptk           	(uniqueidentifier PK not null)
++ id_smt                (char(5) PK not null)
++ id_jabfung            (numeric(5))
++ stat_tugas            (char(1))
++ stat_belajar          (char(1))
++ masa_laks_tgs_awal    (datetime)
++ masa_laks_tgs_akhir   (datetime)
++ sks_total             (numeric(7,4) not null default 0)
++ sks_kinerja           (numeric(7,4) not null default 0)
++ sks_lebih             (numeric(7,4) not null default 0)
++ sks_kinerja_didik     (numeric(7,4) not null default 0)
++ sks_kinerja_ajar      (numeric(7,4))
++ sks_kinerja_lit       (numeric(7,4) not null default 0)
++ sks_kinerja_pengmas   (numeric(7,4) not null default 0)
++ sks_kinerja_penunjang (numeric(7,4))
++ sks_kinerja_tambahan  (numeric(7,4) not null default 0)
++ sks_lebih_didik       (numeric(7,4) not null default 0)
++ sks_lebih_ajar        (numeric(7,4))
++ sks_lebih_lit         (numeric(7,4) not null default 0)
++ sks_lebih_pengmas     (numeric(7,4) not null default 0)
++ sks_lebih_tunjang     (numeric(7,4))
++ sks_lebih_tambahan    (numeric(7,4))
++ ewmp                  (numeric(7,4))
++ simpulan_asesor       (char(1) ('M','T'))
++ stat_kewajiban        (numeric(1))
++ penilai_1             (varchar(200))
++ penilai_2             (varchar(200))
+
+
+Tambah tabel dashboard.detail_iku_1
++ id_detail_iku_1		(uniqueidentifier PK not null)
++ id_sms                (uniqueidentifier not null)
++ id_tahun_anggaran     (numeric(4) not null)
++ total_bekerja         (numeric(8))
++ total_tidak_bekerja   (numeric(8))
++ total_wirausaha       (numeric(8))
++ total_studi           (numeric(8))
++ total_lulusan         (numeric(8))
++ total_per_kategori    (numeric(8))
++ persentase_iku        (numeric(7,4))
+
+Tambah tabel dashboard.detail_iku_2
++ id_detail_iku_1		(uniqueidentifier PK not null)
++ id_sms                (uniqueidentifier not null)
++ id_tahun_anggaran     (numeric(4) not null)
++ total_mahasiswa       (numeric(8))
++ total_tidak_masuk_kategori (numeric(8))
++ total_mbkm            (numeric(8))
++ total_prestasi        (numeric(8))
++ total_mbkm_berprestasi(numeric(8))
++ total_lebih_20sks     (numeric(8))
++ total_luar_pt         (numeric(8))
++ total_dalam_pt        (numeric(8))
+
+Tambah tabel keuangan.spp_mhs
++ id_spp_mhs            (uniqueidentifier PK not null)
++ id_smt                (char(5) not null)
++ id_reg_pd             (uniqueidentifier not null)
++ tgl_bayar             (datetime not null)
++ nominal               (numeric(16,2) not null)
++ kode_pembayaran       (varchar(15) not null)
++ nomor_pin             (varchar(12))
++ kode_akses            (varchar(8))
++ bill_ref              (varchar(40))
++ flag_by               (varchar(10))
++ ket                   (varchar(250))
+
+Tambah tabel ref.bidang_kerjasama
++ id_bid_kerjasama		(numeric(2) PK not null)
++ nm_bid_kerjasama		(varchar(60))
+
+Tambah tabel ref.tingkat_kerjasama
++ id_tingkat_kerjasama  (numeric(2) PK not null)
++ nm_tingkat_kerjasama  (varchar(60))
+
+Tambah field pada kerjasama.sms_kerjasama
++ id_bid_kerjasama		(numeric(2))
++ id_tingkat_kerjasama  (numeric(2))
+
+Tambah field pada pdrd.sdm
++ jln                   (varchar(255))
++ rt                    (numeric(3))
++ rw                    (numeric(3))
++ nm_dsn                (varchar(60))
++ ds_kel                (varchar(60))
++ kode_pos              (char(5))
++ no_tel_rmh            (varchar(20))
+
+Tambah field pada pdrd.prestasi
++ id_akt_mhs			(uniqueidentifier)
+
+Tambah field pada tracer.hasil_tracer_study
++ a_kerja_sblm_lulus	(numeric(1) default 0)
+
+Tambah field pada man_akses.aplikasi
++ id_blob				(uniqueidentifier)
++ a_integrasi_cas		(numeric(1))
++ a_sistem_internal_pt	(numeric(1))
