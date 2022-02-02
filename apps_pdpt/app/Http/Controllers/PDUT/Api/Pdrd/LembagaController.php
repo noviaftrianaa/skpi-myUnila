@@ -51,8 +51,8 @@ class LembagaController extends Controller
             ]);
         }
 
-        $profilpt= DB::select(" SELECT 
-            sp.id_sp, sp.nm_lemb, ppt.visi, 
+        $profilpt= DB::select(" SELECT
+            sp.id_sp, sp.nm_lemb, ppt.visi,
             ppt.misi, ppt.tujuan, ppt.sasaran
         FROM pdrd.profil_pt AS ppt WITH(NOLOCK)
         JOIN pdrd.satuan_pendidikan AS sp WITH(NOLOCK) ON sp.id_sp = ppt.id_sp AND sp.soft_delete = 0
@@ -130,13 +130,13 @@ class LembagaController extends Controller
     {
         $page = 1; $count = 10;
         if(!empty($request->page)) {
-            $page = $request->page; 
-        } 
+            $page = $request->page;
+        }
         if (!empty($request->count)) {
             if ($request->count > 50) {
                 $count = 50;
             } else {
-                $count = $request->count; 
+                $count = $request->count;
             }
         }
 
@@ -145,8 +145,8 @@ class LembagaController extends Controller
         DECLARE @RowsOfPage AS INT
         SET @PageNumber= ?
         SET @RowsOfPage= ?
-        SELECT 
-            asp.id_akred_sp, 
+        SELECT
+            asp.id_akred_sp,
             asp.id_sp,
             asp.id_akred,
 			sp.nm_lemb,
@@ -240,13 +240,13 @@ class LembagaController extends Controller
     {
         $page = 1; $count = 10;
         if(!empty($request->page)) {
-            $page = $request->page; 
-        } 
+            $page = $request->page;
+        }
         if (!empty($request->count)) {
             if ($request->count > 50) {
                 $count = 50;
             } else {
-                $count = $request->count; 
+                $count = $request->count;
             }
         }
 
@@ -255,8 +255,8 @@ class LembagaController extends Controller
         DECLARE @RowsOfPage AS INT
         SET @PageNumber= ?
         SET @RowsOfPage= ?
-        SELECT 
-            sms.id_sms, 
+        SELECT
+            sms.id_sms,
             sms.nm_lemb,
             sms.kode_prodi,
             sms.stat_prodi,
@@ -286,7 +286,7 @@ class LembagaController extends Controller
             'data'  => $data
         ], 200);
     }
-   
+
      /**
      * @OA\Get(
      *      path="/lembaga/profilprodi/list",
@@ -344,13 +344,13 @@ class LembagaController extends Controller
     {
         $page = 1; $count = 10;
         if(!empty($request->page)) {
-            $page = $request->page; 
-        } 
+            $page = $request->page;
+        }
         if (!empty($request->count)) {
             if ($request->count > 50) {
                 $count = 50;
             } else {
-                $count = $request->count; 
+                $count = $request->count;
             }
         }
 
@@ -360,10 +360,10 @@ class LembagaController extends Controller
         SET @PageNumber= ?
         SET @RowsOfPage= ?
         SELECT
-            sms.id_sms, 
-            akredpd.id_akreditasi_prodi, 
-            akredpd.sk_akreditasi_prodi, 
-            akredpd.tanggal_sk_akreditasi_prodi, 
+            sms.id_sms,
+            akredpd.id_akreditasi_prodi,
+            akredpd.sk_akreditasi_prodi,
+            akredpd.tanggal_sk_akreditasi_prodi,
             sms.nm_lemb,
 			akreditasi.nm_akred,
             lembak.nm_lemb,
@@ -398,7 +398,7 @@ class LembagaController extends Controller
                 'tujuan' => $each_data->sasaran,
                 'kompetensi' => $each_data->kompetensi,
                 'himp_alumni' => $each_data->himp_alumni
-               
+
             ];
         }
 
@@ -456,10 +456,10 @@ class LembagaController extends Controller
         }
 
         $profilprodi = DB::select("SELECT
-            sms.id_sms, 
-            akredpd.id_akreditasi_prodi, 
-            akredpd.sk_akreditasi_prodi, 
-            akredpd.tanggal_sk_akreditasi_prodi, 
+            sms.id_sms,
+            akredpd.id_akreditasi_prodi,
+            akredpd.sk_akreditasi_prodi,
+            akredpd.tanggal_sk_akreditasi_prodi,
             sms.nm_lemb,
 			akreditasi.nm_akred,
             lembak.nm_lemb,
@@ -475,7 +475,7 @@ class LembagaController extends Controller
             LEFT JOIN ref.lembaga_akred AS lembak WITH(NOLOCK) ON lembak.id_lemb_akred = akredpd.id_lemb_akred AND lembak.expired_date IS NULL
             LEFT JOIN ref.nilai_akred AS akreditasi WITH(NOLOCK) ON akreditasi.id_akred = akredpd.id_akred AND akreditasi.expired_date IS NULL
         WHERE sms.soft_delete = 0 AND sms.id_sms = ? ", [$id]);
-        
+
         $data = [];
         foreach ($profilprodi as $each_data) {
             $data[] = [
@@ -491,68 +491,19 @@ class LembagaController extends Controller
                 'tujuan' => $each_data->sasaran,
                 'kompetensi' => $each_data->kompetensi,
                 'himp_alumni' => $each_data->himp_alumni
-               
+
             ];
         }
 
         return WrapResponse(['data' => $data], 'Detail Profil Prodi By id_sms', TRUE);
     }
-
-    /**
+        /**
      * @OA\Get(
-     *      path="/lembaga/daftarsms",
+     *      path="/referensi/daftar_sms",
      *      operationId="getSms",
      *      tags={"Lembaga"},
      *      summary="Dapatkan daftar Sms",
-     *      description="Menampilkan daftar data Sms berdasarkan id berikut : <br>
-     *      -. 1 = Fakultas <br> 
-     *      -. 2 = Jurusan <br>
-     *      -. 3 = Program Studi <br>
-     *      -. 4 = Laboratorium <br>
-     *      -. 5 = UPT <br>
-     *      -. 6 = Penyelenggara MKU <br>
-     *      -. 7 = Rektorat <br>
-     *      -. 8 = Unit Kerja <br>",
-     *     @OA\Parameter(
-     *          name="id_jns_sms",
-     *          description="",
-     *          example="1",
-     *          required=false,
-     *          in="query",
-     *          @OA\Schema(
-     *              type="number"
-     *          )
-     *     ),
-     *     @OA\Parameter(
-     *          name="page",
-     *          description="",
-     *          example="1",
-     *          required=false,
-     *          in="query",
-     *          @OA\Schema(
-     *              type="number"
-     *          )
-     *     ),
-     *     @OA\Parameter(
-     *          name="count",
-     *          description="",
-     *          example="25",
-     *          required=false,
-     *          in="query",
-     *          @OA\Schema(
-     *              type="number"
-     *          )
-     *     ),
-     *     @OA\Parameter(
-     *          name="sortby",
-     *          description="",
-     *          example="DESC",
-     *          required=false,
-     *          in="query",
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *     ),
+     *      description="Menampilkan daftar data Sms <br>
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -570,27 +521,19 @@ class LembagaController extends Controller
      */
     public function listSms(Request $request)
     {
-        $page = 1; $count = 10;
+        $page = 1; $count = 1000;
         if(!empty($request->page)) {
-            $page = $request->page; 
-        } 
+            $page = $request->page;
+        }
         if (!empty($request->count)) {
             if ($request->count > 50) {
                 $count = 50;
             } else {
-                $count = $request->count; 
+                $count = $request->count;
             }
         }
 
-        $id = $request->id_jns_sms;
-        if (empty($id)) {
-            return response()->json([
-                'status' => FALSE,
-                'message' => "id_jns_sms kosong"
-            ]);
-        }
-
-        $listdata = DB::SELECT("SELECT 	
+        $listdata = DB::SELECT("SELECT
                 sms.id_sms,
                 js.nm_jns_sms,
                 sms.nm_lemb,
@@ -600,30 +543,28 @@ class LembagaController extends Controller
                 sms.no_fax,
                 sms.email,
                 sms.tgl_berdiri,
-                sms.sk_selenggara,
-                sms.tgl_sk_selenggara,
                 sms.sks_lulus,
                 sms.gelar_lulusan,
                 sms.stat_prodi,
-                jp.id_jenj_didik AS id_jenj_didik,
+                sms.create_date,
+                sms.last_update,
+                jp.nm_jenj_didik AS nm_jenj_didik,
                 js.id_jns_sms AS id_jns_sms,
                 wil.id_wil AS id_wil,
-                jur.id_jur AS id_jur,
                 sms.id_induk_sms AS id_induk_sms
             FROM
                 pdrd.sms AS sms WITH(NOLOCK)
-                JOIN ref.jenjang_pendidikan AS jp ON jp.id_jenj_didik = sms.id_jenj_didik
+                LEFT JOIN ref.jenjang_pendidikan AS jp ON jp.id_jenj_didik = sms.id_jenj_didik
                 AND jp.expired_date IS NULL
                 JOIN ref.jenis_sms AS js ON js.id_jns_sms = sms.id_jns_sms
                 AND js.expired_date IS NULL
-                JOIN ref.wilayah AS wil ON wil.id_wil = sms.id_wil
+                LEFT JOIN ref.wilayah AS wil ON wil.id_wil = sms.id_wil
                 AND wil.expired_date IS NULL
-                JOIN ref.jurusan AS jur ON jur.id_jur = sms.id_jur
+                LEFT JOIN ref.jurusan AS jur ON jur.id_jur = sms.id_jur
                 AND jur.expired_date IS NULL
-                
-            WHERE
-                sms.soft_delete = 0 AND sms.id_jns_sms = ? ", [$id]);
-               
+
+            WHERE sms.soft_delete = 0 ");
+
 
             foreach ($listdata as $each_data) {
                 $data[] = [
@@ -635,16 +576,15 @@ class LembagaController extends Controller
                     'no_fax' => $each_data->no_fax,
                     'email' => $each_data->email,
                     'tgl_berdiri' => $each_data->tgl_berdiri,
-                    'sk_selenggara' => $each_data->sk_selenggara,
-                    'tgl_sk_selenggara' => $each_data->tgl_sk_selenggara,
                     'sks_lulus' => $each_data->sks_lulus,
                     'gelar_lulusan' => $each_data->gelar_lulusan,
                     'stat_prodi' => $each_data->stat_prodi,
-                    'id_jenj_didik' => $each_data->id_jenj_didik,
+                    'nm_jenj_didik' => $each_data->nm_jenj_didik,
                     'id_jns_sms' => $each_data->id_jns_sms,
                     'id_wil' => $each_data->id_wil,
-                    'id_jur' => $each_data->id_jur,
                     'id_induk_sms' => $each_data->id_induk_sms,
+                    'waktu_data_ditambahkan' => $each_data->create_date,
+                    'terakhir_diubah' => $each_data->last_update,
                 ];
             }
            return response()->json([
@@ -700,28 +640,28 @@ class LembagaController extends Controller
     {
         DB::beginTransaction();
         try {
-            DB::update("UPDATE pdrd.akreditasi_prodi 
+            DB::update("UPDATE pdrd.akreditasi_prodi
                 SET id_akreditasi_prodi = ?,
-                SET id_sms = ?, 
-                SET id_lemb_akred = ?, 
+                SET id_sms = ?,
+                SET id_lemb_akred = ?,
                 SET id_akred = ?,
-                SET sk_akreditasi_prodi = ?, 
-                SET tanggal_sk_akreditasi_prodi' = ?, 
-                SET isbn = ?, 
-                SET tgl_terbit = ?, 
+                SET sk_akreditasi_prodi = ?,
+                SET tanggal_sk_akreditasi_prodi' = ?,
+                SET isbn = ?,
+                SET tgl_terbit = ?,
                 SET sk_tugas = ?,
-                SET tgl_sk_tugas = ? 
+                SET tgl_sk_tugas = ?
             WHERE id_publikasi = ?", [
                 $request->id_kat_capaian,
-                $request->id_jns_pub, 
-                $request->id_litabmas, 
+                $request->id_jns_pub,
+                $request->id_litabmas,
                 $request->judul,
-                $request->penulis, 
-                $request->penerbit, 
-                $request->isbn, 
+                $request->penulis,
+                $request->penerbit,
+                $request->isbn,
                 $request->tgl_terbit,
-                $request->sk_tugas, 
-                $request->tgl_sk_tugas, 
+                $request->sk_tugas,
+                $request->tgl_sk_tugas,
                 $request->id_publikasi
             ]);
 
@@ -729,15 +669,15 @@ class LembagaController extends Controller
             SET id_pd = ?, SET id_orang = ?, SET urutan2 = ?, SET afiliasi = ?, SET peran_tulis = ?,
             SET jns_penulis = ?, SET nm_pd = ?, SET nipd = ? WHERE id_tulis_pub = ?", [
                 $request->id_publikasi,
-                $request->id_sdm, 
-                $request->id_pd, 
-                $request->id_orang, 
-                $request->urutan2, 
+                $request->id_sdm,
+                $request->id_pd,
+                $request->id_orang,
+                $request->urutan2,
                 $request->afiliasi,
-                $request->peran_tulis, 
-                $request->jns_penulis, 
-                $request->nm_pd, 
-                $request->nipd, 
+                $request->peran_tulis,
+                $request->jns_penulis,
+                $request->nm_pd,
+                $request->nipd,
                 $request->id_tulis_pub
             ]);
 

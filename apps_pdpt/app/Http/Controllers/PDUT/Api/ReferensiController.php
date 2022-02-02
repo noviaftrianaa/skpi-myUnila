@@ -11,7 +11,17 @@ class ReferensiController extends Controller
    
     public function wilayah(Request $request)
     {
-        $listdata = DB::table('ref.wilayah')->select('id_wil', 'id_negara', 'nm_wil', 'asal_wil', 'kode_bps', 'kode_dagri', 'kode_keu', 'id_induk_wilayah', 'id_level_wil', 'create_date', 'last_update')->limit(50)->get();
+
+        $listdata = DB::SELECT("
+            SELECT
+                wil.id_wil, wil.id_negara, wil.nm_wil, level.nm_level_wilayah, wil.asal_wil, wil.kode_bps,
+                wil.kode_dagri, wil.kode_keu, wil.id_induk_wilayah, wil.id_level_wil, wil.create_date, wil.last_update
+                FROM ref.wilayah AS wil WITH(NOLOCK)
+                JOIN ref.level_wilayah AS level WITH(NOLOCK) ON level.id_level_wil = wil.id_level_wil
+                    AND level.expired_date IS NULL
+                WHERE wil.expired_date IS NULL
+        ");
+
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_wil' => $each_data->id_wil,
@@ -21,8 +31,9 @@ class ReferensiController extends Controller
                 'kode_bps' => $each_data->kode_bps,
                 'kode_dagri' => $each_data->kode_dagri,
                 'kode_keu' => $each_data->kode_keu,
-                'id_induk_wilayah' => $each_data->id_induk_wilayah,
                 'id_level_wil' => $each_data->id_level_wil,
+                'id_induk_wilayah' => $each_data->id_induk_wilayah,
+                'nm_level_wilayah' => $each_data->nm_level_wilayah,
                 'waktu_data_ditambahkan' => $each_data->create_date,
                 'terakhir_diubah' => $each_data->last_update,
             ];
@@ -429,7 +440,7 @@ class ReferensiController extends Controller
 
     public function negara(Request $request)
     {
-        $listdata = DB::table('ref.negara')->select('id_negara', 'nm_negara', 'a_ln', 'benua', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.negara')->select('id_negara', 'nm_negara', 'a_ln', 'benua', 'create_date', 'last_update')->get();
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_negara' => $each_data->id_negara,
