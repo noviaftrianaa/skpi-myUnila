@@ -75,7 +75,7 @@ class PublikasiController extends Controller
                 JOIN pdrd.tulis_pub AS tls_publikasi ON tls_publikasi.id_publikasi = publikasi.id_publikasi
                 AND tls_publikasi.soft_delete = 0
                 JOIN ref.kategori_kegiatan AS kk ON kk.id_katgiat = tls_publikasi.id_katgiat
-                // AND kk.id_katgiat IN (" . Str::replace("\n", "", $this->idKatgiat) . ")
+                AND kk.id_katgiat IN (" . Str::replace("\n", "", $this->idKatgiat) . ")
                 AND kk.expired_date IS NOT NULL
                 JOIN ref.jenis_publikasi AS jp ON jp.id_jns_pub = publikasi.id_jns_pub
                 AND jp.expired_date IS NOT NULL

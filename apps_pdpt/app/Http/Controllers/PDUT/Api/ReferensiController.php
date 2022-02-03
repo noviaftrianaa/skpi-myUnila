@@ -8,20 +8,36 @@ use Illuminate\Support\Facades\DB;
 
 class ReferensiController extends Controller
 {
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/wilayah",
+     *      operationId="getWilayah",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar Wilayah",
+     *      description="Menampilkan daftar data Wilayah",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function wilayah(Request $request)
     {
+        $listdata = DB::table('ref.wilayah')->select('id_wil', 'id_negara', 'nm_wil', 'asal_wil', 'kode_bps', 'kode_dagri', 'kode_keu', 'id_induk_wilayah', 'id_level_wil', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar wilayah yang ditampilkan');
+        }
 
-        $listdata = DB::SELECT("
-            SELECT
-                wil.id_wil, wil.id_negara, wil.nm_wil, level.nm_level_wilayah, wil.asal_wil, wil.kode_bps,
-                wil.kode_dagri, wil.kode_keu, wil.id_induk_wilayah, wil.id_level_wil, wil.create_date, wil.last_update
-                FROM ref.wilayah AS wil WITH(NOLOCK)
-                JOIN ref.level_wilayah AS level WITH(NOLOCK) ON level.id_level_wil = wil.id_level_wil
-                    AND level.expired_date IS NULL
-                WHERE wil.expired_date IS NULL
-        ");
-
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_wil' => $each_data->id_wil,
@@ -40,10 +56,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/tse",
+     *      operationId="getTse",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar Tse",
+     *      description="Menampilkan daftar data Tse",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function tse(Request $request)
     {
-        $listdata = DB::table('ref.tse')->select('id_tse', 'kode_tse', 'nm_tse', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.tse')->select('id_tse', 'kode_tse', 'nm_tse', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar tse yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_tse' => $each_data->id_tse,
@@ -55,10 +97,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/tingkat_prestasi",
+     *      operationId="getTingkatPrestasi",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar TingkatPrestasi",
+     *      description="Menampilkan daftar data TingkatPrestasi",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function tingkat_prestasi(Request $request)
     {
-        $listdata = DB::table('ref.tingkat_prestasi')->select('id_tkt_prestasi', 'nm_tkt_prestasi', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.tingkat_prestasi')->select('id_tkt_prestasi', 'nm_tkt_prestasi', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar tingkat_prestasi yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_tkt_prestasi' => $each_data->id_tkt_prestasi,
@@ -69,10 +137,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/tingkat_penghargaan",
+     *      operationId="getTingkatPenghargaan",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar TingkatPenghargaan",
+     *      description="Menampilkan daftar data TingkatPenghargaan",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function tingkat_penghargaan(Request $request)
     {
-        $listdata = DB::table('ref.tingkat_penghargaan')->select('id_tkt_penghargaan', 'nm_tkt_penghargaan', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.tingkat_penghargaan')->select('id_tkt_penghargaan', 'nm_tkt_penghargaan', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar tingkat_penghargaan yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_tkt_penghargaan' => $each_data->id_tkt_penghargaan,
@@ -83,10 +177,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/tahun_anggaran",
+     *      operationId="getTahunAnggaran",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar TahunAnggaran",
+     *      description="Menampilkan daftar data TahunAnggaran",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function tahun_anggaran(Request $request)
     {
-        $listdata = DB::table('ref.tahun_anggaran')->select('id_tahun_anggaran', 'nm_tahun_anggaran', 'a_periode_aktif', 'tgl_mulai', 'tgl_selesai', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.tahun_anggaran')->select('id_tahun_anggaran', 'nm_tahun_anggaran', 'a_periode_aktif', 'tgl_mulai', 'tgl_selesai', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar tahun_anggaran yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_tahun_anggaran' => $each_data->id_tahun_anggaran,
@@ -100,10 +220,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/tahun_ajaran",
+     *      operationId="getTahunAjaran",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar TahunAjaran",
+     *      description="Menampilkan daftar data TahunAjaran",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function tahun_ajaran(Request $request)
     {
-        $listdata = DB::table('ref.tahun_ajaran')->select('id_thn_ajaran', 'nm_thn_ajaran', 'a_periode_aktif', 'tgl_mulai', 'tgl_selesai', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.tahun_ajaran')->select('id_thn_ajaran', 'nm_thn_ajaran', 'a_periode_aktif', 'tgl_mulai', 'tgl_selesai', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar tahun_ajaran yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_thn_ajaran' => $each_data->id_thn_ajaran,
@@ -117,10 +263,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/sumber_listrik",
+     *      operationId="getSumberListrik",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar SumberListrik",
+     *      description="Menampilkan daftar data SumberListrik",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function sumber_listrik(Request $request)
     {
-        $listdata = DB::table('ref.sumber_listrik')->select('id_sumber_listrik', 'create_date', 'last_update', 'nm_sumber_listrik')->limit(50)->get();
+        $listdata = DB::table('ref.sumber_listrik')->select('id_sumber_listrik', 'create_date', 'last_update', 'nm_sumber_listrik')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar sumber_listrik yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_sumber_listrik' => $each_data->id_sumber_listrik,
@@ -131,10 +303,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-    
+    /**
+     * @OA\Get(
+     *      path="/referensi/sumber_gaji",
+     *      operationId="getSumberGaji",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar SumberGaji",
+     *      description="Menampilkan daftar data SumberGaji",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function sumber_gaji(Request $request)
     {
-        $listdata = DB::table('ref.sumber_gaji')->select('id_sumber_gaji', 'create_date', 'last_update', 'nm_sumber_gaji')->limit(50)->get();
+        $listdata = DB::table('ref.sumber_gaji')->select('id_sumber_gaji', 'create_date', 'last_update', 'nm_sumber_gaji')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar sumber_gaji yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_sumber_gaji' => $each_data->id_sumber_gaji,
@@ -145,10 +343,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-  
+    /**
+     * @OA\Get(
+     *      path="/referensi/sumber_dana",
+     *      operationId="getSumberDana",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar SumberDana",
+     *      description="Menampilkan daftar data SumberDana",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function sumber_dana(Request $request)
     {
-        $listdata = DB::table('ref.sumber_dana')->select('id_sumber_dana', 'nm_sumber_dana', 'u_blockgrant', 'u_beasiswa', 'u_lit', 'u_unit_usaha', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.sumber_dana')->select('id_sumber_dana', 'nm_sumber_dana', 'u_blockgrant', 'u_beasiswa', 'u_lit', 'u_unit_usaha', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar sumber_dana yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_sumber_dana' => $each_data->id_sumber_dana,
@@ -163,10 +387,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/sumber_air",
+     *      operationId="getSumberAir",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar SumberAir",
+     *      description="Menampilkan daftar data SumberAir",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function sumber_air(Request $request)
     {
-        $listdata = DB::table('ref.sumber_air')->select('id_sumber_air', 'create_date', 'last_update', 'nm_sumber_air')->limit(50)->get();
+        $listdata = DB::table('ref.sumber_air')->select('id_sumber_air', 'create_date', 'last_update', 'nm_sumber_air')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar sumber_air yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_sumber_air' => $each_data->id_sumber_air,
@@ -177,10 +427,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-    
+    /**
+     * @OA\Get(
+     *      path="/referensi/status_milik_sarpras",
+     *      operationId="getStatusMilikSarpras",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar StatusMilikSarpras",
+     *      description="Menampilkan daftar data StatusMilikSarpras",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function status_milik_sarpras(Request $request)
     {
-        $listdata = DB::table('ref.status_milik_sarpras')->select('id_stat_milik_sarpras', 'nm_stat_milik_sarpras', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.status_milik_sarpras')->select('id_stat_milik_sarpras', 'nm_stat_milik_sarpras', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar status_milik_sarpras yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_stat_milik_sarpras' => $each_data->id_stat_milik_sarpras,
@@ -191,10 +467,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/status_mahasiswa",
+     *      operationId="getStatusMahasiswa",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar StatusMahasiswa",
+     *      description="Menampilkan daftar data StatusMahasiswa",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function status_mahasiswa(Request $request)
     {
-        $listdata = DB::table('ref.status_mahasiswa')->select('id_stat_mhs', 'nm_stat_mhs', 'ket_stat_mhs', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.status_mahasiswa')->select('id_stat_mhs', 'nm_stat_mhs', 'ket_stat_mhs', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar status_mahasiswa yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_stat_mhs' => $each_data->id_stat_mhs,
@@ -206,10 +508,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-    
+    /**
+     * @OA\Get(
+     *      path="/referensi/status_kepemilikan",
+     *      operationId="getStatusKepemilikan",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar StatusKepemilikan",
+     *      description="Menampilkan daftar data StatusKepemilikan",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function status_kepemilikan(Request $request)
     {
-        $listdata = DB::table('ref.status_kepemilikan')->select('id_stat_milik', 'nm_stat_milik', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.status_kepemilikan')->select('id_stat_milik', 'nm_stat_milik', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar status_kepemilikan yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_stat_milik' => $each_data->id_stat_milik,
@@ -220,10 +548,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/status_kepegawaian",
+     *      operationId="getStatusKepegawaian",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar StatusKepegawaian",
+     *      description="Menampilkan daftar data StatusKepegawaian",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function status_kepegawaian(Request $request)
     {
-        $listdata = DB::table('ref.status_kepegawaian')->select('id_stat_pegawai', 'nm_stat_pegawai', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.status_kepegawaian')->select('id_stat_pegawai', 'nm_stat_pegawai', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar status_kepegawaian yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_stat_pegawai' => $each_data->id_stat_pegawai,
@@ -234,10 +588,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/status_keaktifan_pegawai",
+     *      operationId="getStatusKeaktifanPegawai",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar StatusKeaktifanPegawai",
+     *      description="Menampilkan daftar data StatusKeaktifanPegawai",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function status_keaktifan_pegawai(Request $request)
     {
-        $listdata = DB::table('ref.status_keaktifan_pegawai')->select('id_stat_aktif', 'nm_stat_aktif', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.status_keaktifan_pegawai')->select('id_stat_aktif', 'nm_stat_aktif', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar status_keaktifan_pegawai yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_stat_aktif' => $each_data->id_stat_aktif,
@@ -248,10 +628,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-    
+    /**
+     * @OA\Get(
+     *      path="/referensi/status_anak",
+     *      operationId="getStatusAnak",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar StatusAnak",
+     *      description="Menampilkan daftar data StatusAnak",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function status_anak(Request $request)
     {
-        $listdata = DB::table('ref.status_anak')->select('id_stat_anak', 'nm_stat_anak', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.status_anak')->select('id_stat_anak', 'nm_stat_anak', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar status_anak yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_stat_anak' => $each_data->id_stat_anak,
@@ -262,10 +668,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/skim_kegiatan",
+     *      operationId="getSkimKegiatan",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar SkimKegiatan",
+     *      description="Menampilkan daftar data SkimKegiatan",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function skim_kegiatan(Request $request)
     {
-        $listdata = DB::table('ref.skim_kegiatan')->select('id_skim', 'id_jenj_didik', 'nm_skim', 'nm_singkat_skim', 'kd_skim', 'tst_skim', 'jml_min_personil', 'jml_maks_personil', 'jml_maks_keikutsertaan', 'jml_maks_sbg_ketua', 'dana_min_thn_berjalan', 'dana_maks_thn_berjalan', 'ket_skim', 'deviasi_nilai', 'passing_grade', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.skim_kegiatan')->select('id_skim', 'id_jenj_didik', 'nm_skim', 'nm_singkat_skim', 'kd_skim', 'tst_skim', 'jml_min_personil', 'jml_maks_personil', 'jml_maks_keikutsertaan', 'jml_maks_sbg_ketua', 'dana_min_thn_berjalan', 'dana_maks_thn_berjalan', 'ket_skim', 'deviasi_nilai', 'passing_grade', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar skim_kegiatan yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_skim' => $each_data->id_skim,
@@ -289,10 +721,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/semester",
+     *      operationId="getSemester",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar Semester",
+     *      description="Menampilkan daftar data Semester",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function semester(Request $request)
     {
-        $listdata = DB::table('ref.semester')->select('id_smt', 'id_thn_ajaran', 'nm_smt', 'smt', 'a_periode_aktif', 'tgl_mulai', 'tgl_selesai', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.semester')->select('id_smt', 'id_thn_ajaran', 'nm_smt', 'smt', 'a_periode_aktif', 'tgl_mulai', 'tgl_selesai', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar semester yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_smt' => $each_data->id_smt,
@@ -308,10 +766,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/satuan",
+     *      operationId="getSatuan",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar Satuan",
+     *      description="Menampilkan daftar data Satuan",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function satuan(Request $request)
     {
-        $listdata = DB::table('ref.satuan')->select('kd_satuan', 'nm_satuan', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.satuan')->select('kd_satuan', 'nm_satuan', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar satuan yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'kd_satuan' => $each_data->kd_satuan,
@@ -322,10 +806,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-    
+    /**
+     * @OA\Get(
+     *      path="/referensi/peta_katgiat_jnspub",
+     *      operationId="getPetaKatgiatJnspub",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar PetaKatgiatJnspub",
+     *      description="Menampilkan daftar data PetaKatgiatJnspub",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function peta_katgiat_jnspub(Request $request)
     {
-        $listdata = DB::table('ref.peta_katgiat_jnspub')->select('id_katgiat', 'id_jns_pub', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.peta_katgiat_jnspub')->select('id_katgiat', 'id_jns_pub', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar peta_katgiat_jnspub yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_katgiat' => $each_data->id_katgiat,
@@ -336,10 +846,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-    
+    /**
+     * @OA\Get(
+     *      path="/referensi/peta_katgiat_jnsdok",
+     *      operationId="getPetaKatgiatJnsdok",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar PetaKatgiatJnsdok",
+     *      description="Menampilkan daftar data PetaKatgiatJnsdok",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function peta_katgiat_jnsdok(Request $request)
     {
-        $listdata = DB::table('ref.peta_katgiat_jnsdok')->select('id_katgiat', 'id_jns_dok', 'a_wajib', 'no_urut', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.peta_katgiat_jnsdok')->select('id_katgiat', 'id_jns_dok', 'a_wajib', 'no_urut', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar peta_katgiat_jnsdok yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_katgiat' => $each_data->id_katgiat,
@@ -352,10 +888,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/peta_katgiat_jabfung",
+     *      operationId="getPetaKatgiatJabfung",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar PetaKatgiatJabfung",
+     *      description="Menampilkan daftar data PetaKatgiatJabfung",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function peta_katgiat_jabfung(Request $request)
     {
-        $listdata = DB::table('ref.peta_katgiat_jabfung')->select('id_katgiat', 'id_jabfung', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.peta_katgiat_jabfung')->select('id_katgiat', 'id_jabfung', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar peta_katgiat_jabfung yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_katgiat' => $each_data->id_katgiat,
@@ -366,10 +928,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-    
+    /**
+     * @OA\Get(
+     *      path="/referensi/penghasilan",
+     *      operationId="getPenghasilan",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar Penghasilan",
+     *      description="Menampilkan daftar data Penghasilan",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function penghasilan(Request $request)
     {
-        $listdata = DB::table('ref.penghasilan')->select('id_penghasilan', 'nm_penghasilan', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.penghasilan')->select('id_penghasilan', 'nm_penghasilan', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar penghasilan yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_penghasilan' => $each_data->id_penghasilan,
@@ -380,10 +968,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-    
+    /**
+     * @OA\Get(
+     *      path="/referensi/pembiayaan",
+     *      operationId="getPembiayaan",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar Pembiayaan",
+     *      description="Menampilkan daftar data Pembiayaan",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function pembiayaan(Request $request)
     {
-        $listdata = DB::table('ref.pembiayaan')->select('id_pembiayaan', 'nm_pembiayaan', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.pembiayaan')->select('id_pembiayaan', 'nm_pembiayaan', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar pembiayaan yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_pembiayaan' => $each_data->id_pembiayaan,
@@ -394,10 +1008,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-    
+    /**
+     * @OA\Get(
+     *      path="/referensi/pekerjaan",
+     *      operationId="getPekerjaan",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar Pekerjaan",
+     *      description="Menampilkan daftar data Pekerjaan",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function pekerjaan(Request $request)
     {
-        $listdata = DB::table('ref.pekerjaan')->select('id_pekerjaan', 'nm_pekerjaan', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.pekerjaan')->select('id_pekerjaan', 'nm_pekerjaan', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar pekerjaan yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_pekerjaan' => $each_data->id_pekerjaan,
@@ -408,10 +1048,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/pangkat_golongan",
+     *      operationId="getPangkatGolongan",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar PangkatGolongan",
+     *      description="Menampilkan daftar data PangkatGolongan",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function pangkat_golongan(Request $request)
     {
-        $listdata = DB::table('ref.pangkat_golongan')->select('id_pangkat_gol', 'kode_gol', 'nm_pangkat', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.pangkat_golongan')->select('id_pangkat_gol', 'kode_gol', 'nm_pangkat', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar pangkat_golongan yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_pangkat_gol' => $each_data->id_pangkat_gol,
@@ -423,10 +1089,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/nilai_akred",
+     *      operationId="getNilaiAkred",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar NilaiAkred",
+     *      description="Menampilkan daftar data NilaiAkred",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function nilai_akred(Request $request)
     {
-        $listdata = DB::table('ref.nilai_akred')->select('id_akred', 'nm_akred', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.nilai_akred')->select('id_akred', 'nm_akred', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar nilai_akred yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_akred' => $each_data->id_akred,
@@ -437,10 +1129,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-
+    /**
+     * @OA\Get(
+     *      path="/referensi/negara",
+     *      operationId="getNegara",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar Negara",
+     *      description="Menampilkan daftar data Negara",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function negara(Request $request)
     {
-        $listdata = DB::table('ref.negara')->select('id_negara', 'nm_negara', 'a_ln', 'benua', 'create_date', 'last_update')->get();
+        $listdata = DB::table('ref.negara')->select('id_negara', 'nm_negara', 'a_ln', 'benua', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar negara yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_negara' => $each_data->id_negara,
@@ -453,10 +1171,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/media_publikasi",
+     *      operationId="getMediaPublikasi",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar MediaPublikasi",
+     *      description="Menampilkan daftar data MediaPublikasi",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function media_publikasi(Request $request)
     {
-        $listdata = DB::table('ref.media_publikasi')->select('id_media_pub', 'id_jns_media', 'id_kel_bidang', 'id_sp', 'id_negara', 'nm_media_pub', 'bentuk_media_pub', 'grade_sinta', 'jns_penerbit', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.media_publikasi')->select('id_media_pub', 'id_jns_media', 'id_kel_bidang', 'id_sp', 'id_negara', 'nm_media_pub', 'bentuk_media_pub', 'grade_sinta', 'jns_penerbit', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar media_publikasi yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_media_pub' => $each_data->id_media_pub,
@@ -474,10 +1218,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-  
+    /**
+     * @OA\Get(
+     *      path="/referensi/level_wilayah",
+     *      operationId="getLevelWilayah",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar LevelWilayah",
+     *      description="Menampilkan daftar data LevelWilayah",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function level_wilayah(Request $request)
     {
-        $listdata = DB::table('ref.level_wilayah')->select('id_level_wil', 'nm_level_wilayah', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.level_wilayah')->select('id_level_wil', 'nm_level_wilayah', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar level_wilayah yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_level_wil' => $each_data->id_level_wil,
@@ -488,10 +1258,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/lembaga_pengangkat",
+     *      operationId="getLembagaPengangkat",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar LembagaPengangkat",
+     *      description="Menampilkan daftar data LembagaPengangkat",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function lembaga_pengangkat(Request $request)
     {
-        $listdata = DB::table('ref.lembaga_pengangkat')->select('id_lemb_angkat', 'nm_lemb_angkat', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.lembaga_pengangkat')->select('id_lemb_angkat', 'nm_lemb_angkat', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar lembaga_pengangkat yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_lemb_angkat' => $each_data->id_lemb_angkat,
@@ -502,10 +1298,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/lembaga_akred",
+     *      operationId="getLembagaAkred",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar LembagaAkred",
+     *      description="Menampilkan daftar data LembagaAkred",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function lembaga_akred(Request $request)
     {
-        $listdata = DB::table('ref.lembaga_akred')->select('id_lemb_akred', 'nm_lemb', 'jln', 'rt', 'rw', 'nm_dsn', 'ds_kel', 'kode_pos', 'lintang', 'bujur', 'no_tel', 'no_fax', 'email', 'website', 'kd_kl', 'kd_satker', 'tgl_mulai_beroperasi', 'ket', 'target_akred', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.lembaga_akred')->select('id_lemb_akred', 'nm_lemb', 'jln', 'rt', 'rw', 'nm_dsn', 'ds_kel', 'kode_pos', 'lintang', 'bujur', 'no_tel', 'no_fax', 'email', 'website', 'kd_kl', 'kd_satker', 'tgl_mulai_beroperasi', 'ket', 'target_akred', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar lembaga_akred yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_lemb_akred' => $each_data->id_lemb_akred,
@@ -533,10 +1355,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/kelompok_usaha",
+     *      operationId="getKelompokUsaha",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar KelompokUsaha",
+     *      description="Menampilkan daftar data KelompokUsaha",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function kelompok_usaha(Request $request)
     {
-        $listdata = DB::table('ref.kelompok_usaha')->select('id_kel_usaha', 'nm_kel_usaha', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.kelompok_usaha')->select('id_kel_usaha', 'nm_kel_usaha', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar kelompok_usaha yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_kel_usaha' => $each_data->id_kel_usaha,
@@ -547,10 +1395,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-  
+    /**
+     * @OA\Get(
+     *      path="/referensi/kelompok_profesi",
+     *      operationId="getKelompokProfesi",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar KelompokProfesi",
+     *      description="Menampilkan daftar data KelompokProfesi",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function kelompok_profesi(Request $request)
     {
-        $listdata = DB::table('ref.kelompok_profesi')->select('id_kel_prof', 'nm_kel_prof', 'ket_kel_prof', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.kelompok_profesi')->select('id_kel_prof', 'nm_kel_prof', 'ket_kel_prof', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar kelompok_profesi yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_kel_prof' => $each_data->id_kel_prof,
@@ -562,10 +1436,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-    
+    /**
+     * @OA\Get(
+     *      path="/referensi/kelompok_bidang",
+     *      operationId="getKelompokBidang",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar KelompokBidang",
+     *      description="Menampilkan daftar data KelompokBidang",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function kelompok_bidang(Request $request)
     {
-        $listdata = DB::table('ref.kelompok_bidang')->select('id_kel_bidang', 'kode_kel_bidang', 'nm_kel_bidang', 'u_sma', 'u_smk', 'u_pt', 'u_iptek', 'u_kepakaran', 'kat_kel', 'ket_kel_bidang', 'a_leaf_node', 'id_induk_bidang', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.kelompok_bidang')->select('id_kel_bidang', 'kode_kel_bidang', 'nm_kel_bidang', 'u_sma', 'u_smk', 'u_pt', 'u_iptek', 'u_kepakaran', 'kat_kel', 'ket_kel_bidang', 'a_leaf_node', 'id_induk_bidang', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar kelompok_bidang yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_kel_bidang' => $each_data->id_kel_bidang,
@@ -586,10 +1486,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-    
+    /**
+     * @OA\Get(
+     *      path="/referensi/kebutuhan_khusus",
+     *      operationId="getKebutuhanKhusus",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar KebutuhanKhusus",
+     *      description="Menampilkan daftar data KebutuhanKhusus",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function kebutuhan_khusus(Request $request)
     {
-        $listdata = DB::table('ref.kebutuhan_khusus')->select('id_kk', 'nm_kk', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.kebutuhan_khusus')->select('id_kk', 'nm_kk', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar kebutuhan_khusus yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_kk' => $each_data->id_kk,
@@ -600,10 +1526,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/keahlian_lab",
+     *      operationId="getKeahlianLab",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar KeahlianLab",
+     *      description="Menampilkan daftar data KeahlianLab",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function keahlian_lab(Request $request)
     {
-        $listdata = DB::table('ref.keahlian_lab')->select('id_keahlian_lab', 'nm_keahlian_lab', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.keahlian_lab')->select('id_keahlian_lab', 'nm_keahlian_lab', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar keahlian_lab yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_keahlian_lab' => $each_data->id_keahlian_lab,
@@ -614,10 +1566,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/kbli",
+     *      operationId="getKbli",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar Kbli",
+     *      description="Menampilkan daftar data Kbli",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function kbli(Request $request)
     {
-        $listdata = DB::table('ref.kbli')->select('id_kbli', 'id_induk_kbli', 'kategori', 'kode', 'judul', 'lv_kbli', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.kbli')->select('id_kbli', 'id_induk_kbli', 'kategori', 'kode', 'judul', 'lv_kbli', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar kbli yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_kbli' => $each_data->id_kbli,
@@ -632,10 +1610,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/kategori_tabel",
+     *      operationId="getKategoriTabel",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar KategoriTabel",
+     *      description="Menampilkan daftar data KategoriTabel",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function kategori_tabel(Request $request)
     {
-        $listdata = DB::table('ref.kategori_tabel')->select('id_kat_tabel', 'id_katgiat', 'nm_schema', 'nm_tbl', 'konfig_kolom', 'ket', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.kategori_tabel')->select('id_kat_tabel', 'id_katgiat', 'nm_schema', 'nm_tbl', 'konfig_kolom', 'ket', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar kategori_tabel yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_kat_tabel' => $each_data->id_kat_tabel,
@@ -650,10 +1654,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/kategori_kegiatan",
+     *      operationId="getKategoriKegiatan",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar KategoriKegiatan",
+     *      description="Menampilkan daftar data KategoriKegiatan",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function kategori_kegiatan(Request $request)
     {
-        $listdata = DB::table('ref.kategori_kegiatan')->select('id_katgiat', 'id_induk_katgiat', 'id_jns_sdm', 'kode_kat_pak', 'kode_kat_bkd', 'nm_kat', 'kat_unsur', 'teks_judul', 'teks_sk', 'teks_tgl_sk', 'teks_lokasi', 'level_kat', 'sks_bkd', 'ak', 'ak_maks', 'satuan_nilai', 'ket', 'a_aktif', 'a_anak_bimb', 'a_judul', 'a_sk', 'a_peer_review', 'acuan_waktu', 'u_bkd', 'u_pak', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.kategori_kegiatan')->select('id_katgiat', 'id_induk_katgiat', 'id_jns_sdm', 'kode_kat_pak', 'kode_kat_bkd', 'nm_kat', 'kat_unsur', 'teks_judul', 'teks_sk', 'teks_tgl_sk', 'teks_lokasi', 'level_kat', 'sks_bkd', 'ak', 'ak_maks', 'satuan_nilai', 'ket', 'a_aktif', 'a_anak_bimb', 'a_judul', 'a_sk', 'a_peer_review', 'acuan_waktu', 'u_bkd', 'u_pak', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar kategori_kegiatan yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_katgiat' => $each_data->id_katgiat,
@@ -687,10 +1717,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/kategori_capaian_luaran",
+     *      operationId="getKategoriCapaianLuaran",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar KategoriCapaianLuaran",
+     *      description="Menampilkan daftar data KategoriCapaianLuaran",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function kategori_capaian_luaran(Request $request)
     {
-        $listdata = DB::table('ref.kategori_capaian_luaran')->select('id_kat_capaian', 'nm_kat_capaian', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.kategori_capaian_luaran')->select('id_kat_capaian', 'nm_kat_capaian', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar kategori_capaian_luaran yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_kat_capaian' => $each_data->id_kat_capaian,
@@ -701,10 +1757,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/jurusan",
+     *      operationId="getJurusan",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar Jurusan",
+     *      description="Menampilkan daftar data Jurusan",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jurusan(Request $request)
     {
-        $listdata = DB::table('ref.jurusan')->select('id_jur', 'nm_jur', 'nm_intl_jur', 'u_sma', 'u_smk', 'u_pt', 'u_slb', 'id_induk_jurusan', 'id_jenj_didik', 'id_kel_bidang', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jurusan')->select('id_jur', 'nm_jur', 'nm_intl_jur', 'u_sma', 'u_smk', 'u_pt', 'u_slb', 'id_induk_jurusan', 'id_jenj_didik', 'id_kel_bidang', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jurusan yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jur' => $each_data->id_jur,
@@ -723,10 +1805,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenjang_pendidikan",
+     *      operationId="getJenjangPendidikan",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenjangPendidikan",
+     *      description="Menampilkan daftar data JenjangPendidikan",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenjang_pendidikan(Request $request)
     {
-        $listdata = DB::table('ref.jenjang_pendidikan')->select('id_jenj_didik', 'nm_jenj_didik', 'u_jenj_lemb', 'u_jenj_org', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenjang_pendidikan')->select('id_jenj_didik', 'nm_jenj_didik', 'u_jenj_lemb', 'u_jenj_org', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenjang_pendidikan yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jenj_didik' => $each_data->id_jenj_didik,
@@ -739,10 +1847,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_tunjangan",
+     *      operationId="getJenisTunjangan",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisTunjangan",
+     *      description="Menampilkan daftar data JenisTunjangan",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_tunjangan(Request $request)
     {
-        $listdata = DB::table('ref.jenis_tunjangan')->select('id_jns_tunj', 'nm_jns_tunj', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_tunjangan')->select('id_jns_tunj', 'nm_jns_tunj', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_tunjangan yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_tunj' => $each_data->id_jns_tunj,
@@ -753,10 +1887,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_tinggal",
+     *      operationId="getJenisTinggal",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisTinggal",
+     *      description="Menampilkan daftar data JenisTinggal",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_tinggal(Request $request)
     {
-        $listdata = DB::table('ref.jenis_tinggal')->select('id_jns_tinggal', 'nm_jns_tinggal', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_tinggal')->select('id_jns_tinggal', 'nm_jns_tinggal', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_tinggal yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_tinggal' => $each_data->id_jns_tinggal,
@@ -767,10 +1927,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_tes",
+     *      operationId="getJenisTes",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisTes",
+     *      description="Menampilkan daftar data JenisTes",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_tes(Request $request)
     {
-        $listdata = DB::table('ref.jenis_tes')->select('id_jns_tes', 'nm_jns_tes', 'ket', 'nilai_maks', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_tes')->select('id_jns_tes', 'nm_jns_tes', 'ket', 'nilai_maks', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_tes yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_tes' => $each_data->id_jns_tes,
@@ -783,10 +1969,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-    
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_subst",
+     *      operationId="getJenisSubst",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisSubst",
+     *      description="Menampilkan daftar data JenisSubst",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_subst(Request $request)
     {
-        $listdata = DB::table('ref.jenis_subst')->select('id_jns_subst', 'nm_jns_subst', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_subst')->select('id_jns_subst', 'nm_jns_subst', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_subst yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_subst' => $each_data->id_jns_subst,
@@ -797,10 +2009,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_sms",
+     *      operationId="getJenisSms",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisSms",
+     *      description="Menampilkan daftar data JenisSms",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_sms(Request $request)
     {
-        $listdata = DB::table('ref.jenis_sms')->select('id_jns_sms', 'nm_jns_sms', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_sms')->select('id_jns_sms', 'nm_jns_sms', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_sms yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_sms' => $each_data->id_jns_sms,
@@ -811,10 +2049,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-    
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_sert",
+     *      operationId="getJenisSert",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisSert",
+     *      description="Menampilkan daftar data JenisSert",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_sert(Request $request)
     {
-        $listdata = DB::table('ref.jenis_sert')->select('id_jns_sert', 'nm_jns_sert', 'u_prof_guru', 'u_kepsek', 'u_laboran', 'u_prof_dosen', 'u_lembaga', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_sert')->select('id_jns_sert', 'nm_jns_sert', 'u_prof_guru', 'u_kepsek', 'u_laboran', 'u_prof_dosen', 'u_lembaga', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_sert yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_sert' => $each_data->id_jns_sert,
@@ -830,10 +2094,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_sdm",
+     *      operationId="getJenisSdm",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisSdm",
+     *      description="Menampilkan daftar data JenisSdm",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_sdm(Request $request)
     {
-        $listdata = DB::table('ref.jenis_sdm')->select('id_jns_sdm', 'nm_jns_sdm', 'a_guru_kelas', 'a_guru_mapel', 'a_guru_bk', 'a_guru_inklusi', 'a_pengawas_sp', 'a_pengawas_plb', 'a_pengawas_mapel', 'a_pengawas_bid', 'a_tas', 'a_formal', 'a_dosen', 'a_peneliti', 'a_perekayasa', 'a_pranata_1', 'a_pranata_2', 'a_pranata_3', 'a_pranata_4', 'a_pranata_5', 'a_pranata_6', 'a_pranata_7', 'a_pranata_8', 'a_pranata_9', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_sdm')->select('id_jns_sdm', 'nm_jns_sdm', 'a_guru_kelas', 'a_guru_mapel', 'a_guru_bk', 'a_guru_inklusi', 'a_pengawas_sp', 'a_pengawas_plb', 'a_pengawas_mapel', 'a_pengawas_bid', 'a_tas', 'a_formal', 'a_dosen', 'a_peneliti', 'a_perekayasa', 'a_pranata_1', 'a_pranata_2', 'a_pranata_3', 'a_pranata_4', 'a_pranata_5', 'a_pranata_6', 'a_pranata_7', 'a_pranata_8', 'a_pranata_9', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_sdm yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_sdm' => $each_data->id_jns_sdm,
@@ -866,10 +2156,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-    
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_sarana",
+     *      operationId="getJenisSarana",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisSarana",
+     *      description="Menampilkan daftar data JenisSarana",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_sarana(Request $request)
     {
-        $listdata = DB::table('ref.jenis_sarana')->select('id_jns_sarana', 'nm_jns_sarana', 'kel', 'a_penempatan', 'ket', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_sarana')->select('id_jns_sarana', 'nm_jns_sarana', 'kel', 'a_penempatan', 'ket', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_sarana yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_sarana' => $each_data->id_jns_sarana,
@@ -883,10 +2199,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_publikasi",
+     *      operationId="getJenisPublikasi",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisPublikasi",
+     *      description="Menampilkan daftar data JenisPublikasi",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_publikasi(Request $request)
     {
-        $listdata = DB::table('ref.jenis_publikasi')->select('id_jns_pub', 'nm_jns_pub', 'a_pub_prestasi', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_publikasi')->select('id_jns_pub', 'nm_jns_pub', 'a_pub_prestasi', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_publikasi yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_pub' => $each_data->id_jns_pub,
@@ -898,10 +2240,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_prestasi",
+     *      operationId="getJenisPrestasi",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisPrestasi",
+     *      description="Menampilkan daftar data JenisPrestasi",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_prestasi(Request $request)
     {
-        $listdata = DB::table('ref.jenis_prestasi')->select('id_jenis_prestasi', 'nm_jenis_prestasi', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_prestasi')->select('id_jenis_prestasi', 'nm_jenis_prestasi', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_prestasi yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jenis_prestasi' => $each_data->id_jenis_prestasi,
@@ -912,10 +2280,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_prasarana",
+     *      operationId="getJenisPrasarana",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisPrasarana",
+     *      description="Menampilkan daftar data JenisPrasarana",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_prasarana(Request $request)
     {
-        $listdata = DB::table('ref.jenis_prasarana')->select('id_jns_prasarana', 'nm_jns_prasarana', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_prasarana')->select('id_jns_prasarana', 'nm_jns_prasarana', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_prasarana yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_prasarana' => $each_data->id_jns_prasarana,
@@ -926,10 +2320,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-    
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_penghargaan",
+     *      operationId="getJenisPenghargaan",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisPenghargaan",
+     *      description="Menampilkan daftar data JenisPenghargaan",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_penghargaan(Request $request)
     {
-        $listdata = DB::table('ref.jenis_penghargaan')->select('id_jns_penghargaan', 'nm_jns_penghargaan', 'u_sdm', 'u_lembaga', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_penghargaan')->select('id_jns_penghargaan', 'nm_jns_penghargaan', 'u_sdm', 'u_lembaga', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_penghargaan yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_penghargaan' => $each_data->id_jns_penghargaan,
@@ -942,10 +2362,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-    
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_penelitian",
+     *      operationId="getJenisPenelitian",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisPenelitian",
+     *      description="Menampilkan daftar data JenisPenelitian",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_penelitian(Request $request)
     {
-        $listdata = DB::table('ref.jenis_penelitian')->select('id_jns_lit', 'nm_jns_lit', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_penelitian')->select('id_jns_lit', 'nm_jns_lit', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_penelitian yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_lit' => $each_data->id_jns_lit,
@@ -956,10 +2402,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_pendaftaran",
+     *      operationId="getJenisPendaftaran",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisPendaftaran",
+     *      description="Menampilkan daftar data JenisPendaftaran",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_pendaftaran(Request $request)
     {
-        $listdata = DB::table('ref.jenis_pendaftaran')->select('id_jns_daftar', 'nm_jns_daftar', 'u_daftar_sekolah', 'u_daftar_rombel', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_pendaftaran')->select('id_jns_daftar', 'nm_jns_daftar', 'u_daftar_sekolah', 'u_daftar_rombel', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_pendaftaran yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_daftar' => $each_data->id_jns_daftar,
@@ -972,10 +2444,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-    
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_media_pub",
+     *      operationId="getJenisMediaPub",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisMediaPub",
+     *      description="Menampilkan daftar data JenisMediaPub",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_media_pub(Request $request)
     {
-        $listdata = DB::table('ref.jenis_media_pub')->select('id_jns_media', 'nm_jns_media', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_media_pub')->select('id_jns_media', 'nm_jns_media', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_media_pub yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_media' => $each_data->id_jns_media,
@@ -986,10 +2484,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_lembaga",
+     *      operationId="getJenisLembaga",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisLembaga",
+     *      description="Menampilkan daftar data JenisLembaga",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_lembaga(Request $request)
     {
-        $listdata = DB::table('ref.jenis_lembaga')->select('id_jns_lemb', 'nm_jns_lemb', 'a_sp', 'a_lemb_akred', 'a_pengelola_pendidikan', 'a_sms', 'a_tmpt_pengawas', 'a_lemb_iptek', 'a_smi', 'sort', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_lembaga')->select('id_jns_lemb', 'nm_jns_lemb', 'a_sp', 'a_lemb_akred', 'a_pengelola_pendidikan', 'a_sms', 'a_tmpt_pengawas', 'a_lemb_iptek', 'a_smi', 'sort', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_lembaga yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_lemb' => $each_data->id_jns_lemb,
@@ -1008,10 +2532,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_keuangan",
+     *      operationId="getJenisKeuangan",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisKeuangan",
+     *      description="Menampilkan daftar data JenisKeuangan",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_keuangan(Request $request)
     {
-        $listdata = DB::table('ref.jenis_keuangan')->select('id_jns_keuangan', 'nm_jns_keuangan', 'a_pengeluaran', 'a_pemasukan', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_keuangan')->select('id_jns_keuangan', 'nm_jns_keuangan', 'a_pengeluaran', 'a_pemasukan', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_keuangan yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_keuangan' => $each_data->id_jns_keuangan,
@@ -1024,10 +2574,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_kesejahteraan",
+     *      operationId="getJenisKesejahteraan",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisKesejahteraan",
+     *      description="Menampilkan daftar data JenisKesejahteraan",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_kesejahteraan(Request $request)
     {
-        $listdata = DB::table('ref.jenis_kesejahteraan')->select('id_jns_sejahtera', 'nm_jns_sejahtera', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_kesejahteraan')->select('id_jns_sejahtera', 'nm_jns_sejahtera', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_kesejahteraan yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_sejahtera' => $each_data->id_jns_sejahtera,
@@ -1038,10 +2614,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_kepanitiaan",
+     *      operationId="getJenisKepanitiaan",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisKepanitiaan",
+     *      description="Menampilkan daftar data JenisKepanitiaan",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_kepanitiaan(Request $request)
     {
-        $listdata = DB::table('ref.jenis_kepanitiaan')->select('id_jns_panitia', 'nm_jns_panitia', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_kepanitiaan')->select('id_jns_panitia', 'nm_jns_panitia', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_kepanitiaan yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_panitia' => $each_data->id_jns_panitia,
@@ -1052,10 +2654,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_keluar",
+     *      operationId="getJenisKeluar",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisKeluar",
+     *      description="Menampilkan daftar data JenisKeluar",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_keluar(Request $request)
     {
-        $listdata = DB::table('ref.jenis_keluar')->select('id_jns_keluar', 'ket_keluar', 'a_pd', 'a_ptk', 'a_sdm_iptek', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_keluar')->select('id_jns_keluar', 'ket_keluar', 'a_pd', 'a_ptk', 'a_sdm_iptek', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_keluar yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_keluar' => $each_data->id_jns_keluar,
@@ -1069,10 +2697,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-    
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_jalur_pekerjaan",
+     *      operationId="getJenisJalurPekerjaan",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisJalurPekerjaan",
+     *      description="Menampilkan daftar data JenisJalurPekerjaan",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_jalur_pekerjaan(Request $request)
     {
-        $listdata = DB::table('ref.jenis_jalur_pekerjaan')->select('id_jns_jalur_kerja', 'nm_jns_jalur_kerja', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_jalur_pekerjaan')->select('id_jns_jalur_kerja', 'nm_jns_jalur_kerja', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_jalur_pekerjaan yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_jalur_kerja' => $each_data->id_jns_jalur_kerja,
@@ -1083,10 +2737,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_hapus_buku",
+     *      operationId="getJenisHapusBuku",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisHapusBuku",
+     *      description="Menampilkan daftar data JenisHapusBuku",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_hapus_buku(Request $request)
     {
-        $listdata = DB::table('ref.jenis_hapus_buku')->select('id_hapus_buku', 'ket_hapus_buku', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_hapus_buku')->select('id_hapus_buku', 'ket_hapus_buku', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_hapus_buku yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_hapus_buku' => $each_data->id_hapus_buku,
@@ -1097,10 +2777,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-    
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_evaluasi",
+     *      operationId="getJenisEvaluasi",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisEvaluasi",
+     *      description="Menampilkan daftar data JenisEvaluasi",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_evaluasi(Request $request)
     {
-        $listdata = DB::table('ref.jenis_evaluasi')->select('id_jns_eval', 'nm_jns_eval', 'ket_jns_eval', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_evaluasi')->select('id_jns_eval', 'nm_jns_eval', 'ket_jns_eval', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_evaluasi yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_eval' => $each_data->id_jns_eval,
@@ -1112,10 +2818,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-  
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_dokumen",
+     *      operationId="getJenisDokumen",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisDokumen",
+     *      description="Menampilkan daftar data JenisDokumen",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_dokumen(Request $request)
     {
-        $listdata = DB::table('ref.jenis_dokumen')->select('id_jns_dok', 'nm_jns_dok', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_dokumen')->select('id_jns_dok', 'nm_jns_dok', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_dokumen yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_dok' => $each_data->id_jns_dok,
@@ -1126,10 +2858,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_diklat",
+     *      operationId="getJenisDiklat",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisDiklat",
+     *      description="Menampilkan daftar data JenisDiklat",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_diklat(Request $request)
     {
-        $listdata = DB::table('ref.jenis_diklat')->select('id_jns_diklat', 'nm_jns_diklat', 'u_guru', 'u_dosen', 'u_tendik', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_diklat')->select('id_jns_diklat', 'nm_jns_diklat', 'u_guru', 'u_dosen', 'u_tendik', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_diklat yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_diklat' => $each_data->id_jns_diklat,
@@ -1143,10 +2901,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_beasiswa",
+     *      operationId="getJenisBeasiswa",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisBeasiswa",
+     *      description="Menampilkan daftar data JenisBeasiswa",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_beasiswa(Request $request)
     {
-        $listdata = DB::table('ref.jenis_beasiswa')->select('id_jns_beasiswa', 'id_sumber_dana', 'nm_jns_beasiswa', 'u_pd', 'u_ptk', 'u_non_ca', 'kat_beasiswa', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_beasiswa')->select('id_jns_beasiswa', 'id_sumber_dana', 'nm_jns_beasiswa', 'u_pd', 'u_ptk', 'u_non_ca', 'kat_beasiswa', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_beasiswa yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_beasiswa' => $each_data->id_jns_beasiswa,
@@ -1162,10 +2946,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_bahan_ajar",
+     *      operationId="getJenisBahanAjar",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisBahanAjar",
+     *      description="Menampilkan daftar data JenisBahanAjar",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_bahan_ajar(Request $request)
     {
-        $listdata = DB::table('ref.jenis_bahan_ajar')->select('id_jns_bhn_ajar', 'nm_jns_bhn_ajar', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_bahan_ajar')->select('id_jns_bhn_ajar', 'nm_jns_bhn_ajar', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_bahan_ajar yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_bhn_ajar' => $each_data->id_jns_bhn_ajar,
@@ -1176,10 +2986,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-    
+    /**
+     * @OA\Get(
+     *      path="/referensi/jenis_akt_mhs",
+     *      operationId="getJenisAktMhs",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JenisAktMhs",
+     *      description="Menampilkan daftar data JenisAktMhs",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jenis_akt_mhs(Request $request)
     {
-        $listdata = DB::table('ref.jenis_akt_mhs')->select('id_jns_akt_mhs', 'nm_jns_akt_mhs', 'ket_jns_akt_mhs', 'a_kegiatan_kampus_merdeka', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jenis_akt_mhs')->select('id_jns_akt_mhs', 'nm_jns_akt_mhs', 'ket_jns_akt_mhs', 'a_kegiatan_kampus_merdeka', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jenis_akt_mhs yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jns_akt_mhs' => $each_data->id_jns_akt_mhs,
@@ -1192,10 +3028,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-    
+    /**
+     * @OA\Get(
+     *      path="/referensi/jalur_daftar",
+     *      operationId="getJalurDaftar",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JalurDaftar",
+     *      description="Menampilkan daftar data JalurDaftar",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jalur_daftar(Request $request)
     {
-        $listdata = DB::table('ref.jalur_daftar')->select('id_jalur_daftar', 'nm_jalur_daftar', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jalur_daftar')->select('id_jalur_daftar', 'nm_jalur_daftar', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jalur_daftar yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jalur_daftar' => $each_data->id_jalur_daftar,
@@ -1206,10 +3068,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/jabfung",
+     *      operationId="getJabfung",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar Jabfung",
+     *      description="Menampilkan daftar data Jabfung",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jabfung(Request $request)
     {
-        $listdata = DB::table('ref.jabfung')->select('id_jabfung', 'id_kel_prof', 'nm_jabfung', 'angka_kredit', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jabfung')->select('id_jabfung', 'id_kel_prof', 'nm_jabfung', 'angka_kredit', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jabfung yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jabfung' => $each_data->id_jabfung,
@@ -1222,10 +3110,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/jab_tgs",
+     *      operationId="getJabTgs",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar JabTgs",
+     *      description="Menampilkan daftar data JabTgs",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function jab_tgs(Request $request)
     {
-        $listdata = DB::table('ref.jab_tgs')->select('id_jab_tgs', 'id_kel_prof', 'nm_jab_tgs', 'a_jab_utama_sek', 'a_jab_utama_pt', 'a_jab_utama_lpnk', 'a_jab_utama_lpk', 'jml_jam_diakui', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.jab_tgs')->select('id_jab_tgs', 'id_kel_prof', 'nm_jab_tgs', 'a_jab_utama_sek', 'a_jab_utama_pt', 'a_jab_utama_lpnk', 'a_jab_utama_lpk', 'jml_jam_diakui', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar jab_tgs yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_jab_tgs' => $each_data->id_jab_tgs,
@@ -1242,10 +3156,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/ikatan_kerja_sdm",
+     *      operationId="getIkatanKerjaSdm",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar IkatanKerjaSdm",
+     *      description="Menampilkan daftar data IkatanKerjaSdm",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function ikatan_kerja_sdm(Request $request)
     {
-        $listdata = DB::table('ref.ikatan_kerja_sdm')->select('id_ikatan_kerja', 'nm_ikatan_kerja', 'ket_ikatan_kerja', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.ikatan_kerja_sdm')->select('id_ikatan_kerja', 'nm_ikatan_kerja', 'ket_ikatan_kerja', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar ikatan_kerja_sdm yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_ikatan_kerja' => $each_data->id_ikatan_kerja,
@@ -1257,10 +3197,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-    
+    /**
+     * @OA\Get(
+     *      path="/referensi/gelar_akademik",
+     *      operationId="getGelarAkademik",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar GelarAkademik",
+     *      description="Menampilkan daftar data GelarAkademik",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function gelar_akademik(Request $request)
     {
-        $listdata = DB::table('ref.gelar_akademik')->select('id_gelar_akad', 'singkat_gelar', 'nm_gelar_akad', 'posisi_gelar', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.gelar_akademik')->select('id_gelar_akad', 'singkat_gelar', 'nm_gelar_akad', 'posisi_gelar', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar gelar_akademik yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_gelar_akad' => $each_data->id_gelar_akad,
@@ -1273,10 +3239,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-    
+    /**
+     * @OA\Get(
+     *      path="/referensi/fungsi_lab",
+     *      operationId="getFungsiLab",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar FungsiLab",
+     *      description="Menampilkan daftar data FungsiLab",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function fungsi_lab(Request $request)
     {
-        $listdata = DB::table('ref.fungsi_lab')->select('id_fungsi_lab', 'nm_fungsi_lab', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.fungsi_lab')->select('id_fungsi_lab', 'nm_fungsi_lab', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar fungsi_lab yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_fungsi_lab' => $each_data->id_fungsi_lab,
@@ -1287,10 +3279,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/bidang_usaha",
+     *      operationId="getBidangUsaha",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar BidangUsaha",
+     *      description="Menampilkan daftar data BidangUsaha",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function bidang_usaha(Request $request)
     {
-        $listdata = DB::table('ref.bidang_usaha')->select('id_bu', 'nm_bu', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.bidang_usaha')->select('id_bu', 'nm_bu', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar bidang_usaha yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_bu' => $each_data->id_bu,
@@ -1301,10 +3319,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-
+    /**
+     * @OA\Get(
+     *      path="/referensi/bidang_studi",
+     *      operationId="getBidangStudi",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar BidangStudi",
+     *      description="Menampilkan daftar data BidangStudi",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function bidang_studi(Request $request)
     {
-        $listdata = DB::table('ref.bidang_studi')->select('id_bid_studi', 'id_induk_bidang_studi', 'kode_bid_studi', 'nm_bid_studi', 'a_kel', 'a_jenj_paud', 'a_jenj_tk', 'a_jenj_sd', 'a_jenj_smp', 'a_jenj_sma', 'a_jenj_tinggi', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.bidang_studi')->select('id_bid_studi', 'id_induk_bidang_studi', 'kode_bid_studi', 'nm_bid_studi', 'a_kel', 'a_jenj_paud', 'a_jenj_tk', 'a_jenj_sd', 'a_jenj_smp', 'a_jenj_sma', 'a_jenj_tinggi', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar bidang_studi yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_bid_studi' => $each_data->id_bid_studi,
@@ -1324,10 +3368,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/bidang_pekerjaan",
+     *      operationId="getBidangPekerjaan",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar BidangPekerjaan",
+     *      description="Menampilkan daftar data BidangPekerjaan",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function bidang_pekerjaan(Request $request)
     {
-        $listdata = DB::table('ref.bidang_pekerjaan')->select('id_bid_kerja', 'nm_bid_kerja', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.bidang_pekerjaan')->select('id_bid_kerja', 'nm_bid_kerja', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar bidang_pekerjaan yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_bid_kerja' => $each_data->id_bid_kerja,
@@ -1338,10 +3408,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/bentuk_pendidikan",
+     *      operationId="getBentukPendidikan",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar BentukPendidikan",
+     *      description="Menampilkan daftar data BentukPendidikan",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function bentuk_pendidikan(Request $request)
     {
-        $listdata = DB::table('ref.bentuk_pendidikan')->select('id_bp', 'nm_bp', 'a_jenj_paud', 'a_jenj_tk', 'a_jenj_sd', 'a_jenj_smp', 'a_jenj_sma', 'a_jenj_tinggi', 'dir_bina', 'a_aktif', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.bentuk_pendidikan')->select('id_bp', 'nm_bp', 'a_jenj_paud', 'a_jenj_tk', 'a_jenj_sd', 'a_jenj_smp', 'a_jenj_sma', 'a_jenj_tinggi', 'dir_bina', 'a_aktif', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar bentuk_pendidikan yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_bp' => $each_data->id_bp,
@@ -1360,10 +3456,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-    
+    /**
+     * @OA\Get(
+     *      path="/referensi/basis_evaluasi",
+     *      operationId="getBasisEvaluasi",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar BasisEvaluasi",
+     *      description="Menampilkan daftar data BasisEvaluasi",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function basis_evaluasi(Request $request)
     {
-        $listdata = DB::table('ref.basis_evaluasi')->select('id_basis_evaluasi', 'nm_basis_evaluasi', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.basis_evaluasi')->select('id_basis_evaluasi', 'nm_basis_evaluasi', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar basis_evaluasi yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_basis_evaluasi' => $each_data->id_basis_evaluasi,
@@ -1374,10 +3496,36 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
-   
+    /**
+     * @OA\Get(
+     *      path="/referensi/agama",
+     *      operationId="getAgama",
+     *      tags={"Referensi"},
+     *      summary="Dapatkan daftar Agama",
+     *      description="Menampilkan daftar data Agama",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
     public function agama(Request $request)
     {
-        $listdata = DB::table('ref.agama')->select('id_agama', 'nm_agama', 'create_date', 'last_update')->limit(50)->get();
+        $listdata = DB::table('ref.agama')->select('id_agama', 'nm_agama', 'create_date', 'last_update')->limit(50)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar agama yang ditampilkan');
+        }
+
+        $data = [];
         foreach ($listdata as $each_data) {
             $data[] = [
                 'id_agama' => $each_data->id_agama,

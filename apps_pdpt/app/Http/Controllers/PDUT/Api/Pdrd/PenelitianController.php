@@ -67,7 +67,7 @@ class PenelitianController extends Controller
                 lm.create_date AS waktu_data_ditambahkan,
                 lm.last_update AS terakhir_diubah
             FROM
-                pdrd.litabmas AS lm WITH(NOLOCK)
+                pdrd.litabmas AS lm
                 LEFT JOIN (
                     SELECT
                         DISTINCT id_litabmas
@@ -141,13 +141,13 @@ class PenelitianController extends Controller
                 litabmas.create_date AS waktu_data_ditambahkan,
                 litabmas.last_update AS terakhir_diubah
             FROM
-                pdrd.litabmas AS litabmas
-                JOIN pdrd.sdm_anggota_litabmas AS sal ON sal.id_litabmas = litabmas.id_litabmas
+                pdrd.litabmas AS litabmas WITH(NOLOCK)
+                JOIN pdrd.sdm_anggota_litabmas AS sal WITH(NOLOCK) ON sal.id_litabmas = litabmas.id_litabmas
                 AND sal.id_katgiat = 121300
                 AND sal.soft_delete = 0
-                JOIN ref.kelompok_bidang AS kb ON kb.id_kel_bidang = litabmas.id_kel_bidang
+                JOIN ref.kelompok_bidang AS kb WITH(NOLOCK) ON kb.id_kel_bidang = litabmas.id_kel_bidang
                 AND kb.expired_date IS NULL
-                JOIN pdrd.sdm AS sdm ON sdm.id_sdm = sal.id_sdm
+                JOIN pdrd.sdm AS sdm WITH(NOLOCK) ON sdm.id_sdm = sal.id_sdm
                 AND sdm.soft_delete = 0
                 AND sdm.id_sdm = '" . $sdmId . "'
             WHERE
@@ -215,12 +215,12 @@ class PenelitianController extends Controller
                     litabmas.dana_pt AS dana_pt,
                     litabmas.dana_institusi_lain AS dana_il
                 FROM
-                    pdrd.litabmas AS litabmas
-                    LEFT JOIN pdrd.lembaga_iptek AS lembaga_iptek ON lembaga_iptek.id_lemb_iptek = litabmas.id_lemb_iptek
+                    pdrd.litabmas AS litabmas WITH(NOLOCK)
+                    LEFT JOIN pdrd.lembaga_iptek AS lembaga_iptek WITH(NOLOCK) ON lembaga_iptek.id_lemb_iptek = litabmas.id_lemb_iptek
                     AND lembaga_iptek.soft_delete = 0
-                    LEFT JOIN ref.kelompok_bidang AS kb ON kb.id_kel_bidang = litabmas.id_kel_bidang
+                    LEFT JOIN ref.kelompok_bidang AS kb WITH(NOLOCK) ON kb.id_kel_bidang = litabmas.id_kel_bidang
                     AND kb.expired_date IS NULL
-                    LEFT JOIN ref.skim_kegiatan AS skim_kegiatan ON skim_kegiatan.id_skim = litabmas.id_skim
+                    LEFT JOIN ref.skim_kegiatan AS skim_kegiatan WITH(NOLOCK) ON skim_kegiatan.id_skim = litabmas.id_skim
                     AND skim_kegiatan.expired_date IS NULL
                 WHERE
                     litabmas.id_litabmas = ?
@@ -254,8 +254,8 @@ class PenelitianController extends Controller
                     sal.peran_litabmas AS peran_dosen,
                     sal.stat_aktif AS keaktifan
                 FROM
-                    pdrd.sdm_anggota_litabmas AS sal
-                    JOIN pdrd.sdm AS sdm ON sdm.id_sdm = sal.id_sdm
+                    pdrd.sdm_anggota_litabmas AS sal WITH(NOLOCK)
+                    JOIN pdrd.sdm AS sdm WITH(NOLOCK) ON sdm.id_sdm = sal.id_sdm
                     AND sdm.id_jns_sdm = 12
                     AND sdm.soft_delete = 0
                 WHERE
@@ -273,8 +273,8 @@ class PenelitianController extends Controller
                     pal.peran_litabmas AS peran_mahasiswa,
                     pal.stat_aktif AS keaktifan
                 FROM
-                    pdrd.pd_anggota_litabmas AS pal
-                    JOIN pdrd.peserta_didik AS pd ON pd.id_pd = pal.id_pd
+                    pdrd.pd_anggota_litabmas AS pal WITH(NOLOCK)
+                    JOIN pdrd.peserta_didik AS pd WITH(NOLOCK) ON pd.id_pd = pal.id_pd
                     AND pd.soft_delete = 0
                 WHERE
                     pal.id_litabmas = ?
@@ -290,8 +290,8 @@ class PenelitianController extends Controller
                     nca_litabmas.peran_litabmas AS peran_nonca,
                     nca_litabmas.stat_aktif AS keaktifan
                 FROM
-                    pdrd.non_ca_anggota_litabmas AS nca_litabmas
-                    JOIN pdrd.non_ca AS nca ON nca.id_orang = nca_litabmas.id_orang
+                    pdrd.non_ca_anggota_litabmas AS nca_litabmas WITH(NOLOCK)
+                    JOIN pdrd.non_ca AS nca WITH(NOLOCK) ON nca.id_orang = nca_litabmas.id_orang
                     AND nca.soft_delete = 0
                 WHERE
                     nca_litabmas.id_litabmas = ?
@@ -309,12 +309,12 @@ class PenelitianController extends Controller
                     dok_litabmas.create_date AS tanggal_upload,
                     refj_dokumen.nm_jns_dok AS jenis_dokumen
                 FROM
-                    pdrd.litabmas AS litabmas
-                    JOIN dok.dok_litabmas AS dok_litabmas ON dok_litabmas.id_litabmas = litabmas.id_litabmas
+                    pdrd.litabmas AS litabmas WITH(NOLOCK)
+                    JOIN dok.dok_litabmas AS dok_litabmas WITH(NOLOCK) ON dok_litabmas.id_litabmas = litabmas.id_litabmas
                     AND dok_litabmas.soft_delete = 0
-                    LEFT JOIN dok.dokumen AS dok_dokumen ON dok_dokumen.id_dok = dok_litabmas.id_dok
+                    LEFT JOIN dok.dokumen AS dok_dokumen WITH(NOLOCK) ON dok_dokumen.id_dok = dok_litabmas.id_dok
                     AND dok_dokumen.soft_delete = 0
-                    LEFT JOIN ref.jenis_dokumen AS refj_dokumen ON refj_dokumen.id_jns_dok = dok_dokumen.id_jns_dok
+                    LEFT JOIN ref.jenis_dokumen AS refj_dokumen WITH(NOLOCK) ON refj_dokumen.id_jns_dok = dok_dokumen.id_jns_dok
                     AND refj_dokumen.expired_date IS NULL
                 WHERE
                     litabmas.id_litabmas = ?
@@ -528,8 +528,8 @@ class PenelitianController extends Controller
                             pd.nm_pd AS nama_mahasiswa,
                             reg_pd.nipd AS nipd
                         FROM
-                            pdrd.peserta_didik AS pd
-                            LEFT JOIN pdrd.reg_pd AS reg_pd ON reg_pd.id_pd = pd.id_pd
+                            pdrd.peserta_didik AS pd WITH(NOLOCK)
+                            LEFT JOIN pdrd.reg_pd AS reg_pd WITH(NOLOCK) ON reg_pd.id_pd = pd.id_pd
                             AND reg_pd.soft_delete = 0
                         WHERE
                             pd.id_pd = ?
@@ -592,9 +592,7 @@ class PenelitianController extends Controller
 
     public function updatePenelitian()
     {
-        // return $this->request->all();
         InputValidator([
-
             'id_penelitian' => 'required|uuid',
             'judul_kegiatan' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
             'afiliasi' => 'required|uuid',
@@ -667,7 +665,6 @@ class PenelitianController extends Controller
         $status_dosen = $this->request->input('status_dosen');
 
         $anggota_mahasiswa = $this->request->input('anggota_mahasiswa');
-        $pdLitabmasId = $this->request->input('pd_litabmas_mahasiswa_id');
         $peran_mahasiswa = $this->request->input('peran_mahasiswa');
         $status_mahasiswa = $this->request->input('status_mahasiswa');
 
@@ -766,7 +763,7 @@ class PenelitianController extends Controller
                 foreach ($anggota_dosen as $index => $idDosen) {
                     if (is_null($idDosen)) break;
 
-                    $anggota_dosen = $this->sdmLitabmas->where('id_litabmas', $litabmasId)->where('id_sdm', $idDosen)->first();
+                    $anggota_dosen = $this->sdmLitabmas->where('id_litabmas', $litabmasId)->where('id_sdm', $idDosen)->exists();
                     if (!$anggota_dosen) {
                         $this->sdmLitabmas->create([
                             'id_litabmas' => $litabmasId,
@@ -800,35 +797,72 @@ class PenelitianController extends Controller
                 foreach ($anggota_mahasiswa as $index => $idMahasiswa) {
                     if (is_null($idMahasiswa)) break;
 
-                    $anggota_mahasiswa = $this->pdLitabmas->where('id_pd_ang_litabmas', $pdLitabmasId[$index])->where('id_litabmas', $litabmasId)->where('id_pd', $idMahasiswa)->first();
-                    if (!$anggota_mahasiswa) return WrapResponse([], 'penelitian tidak ditemukan atau mahasiswa anggota tidak terdaftar', FALSE);
+                    $anggota_mahasiswa = $this->pdLitabmas->where('id_litabmas', $litabmasId)->where('id_pd', $idMahasiswa)->exists();
+                    if (!$anggota_mahasiswa) {
+                        $dataMahasiswa = DB::select("
+                            SELECT
+                                TOP 1
+                                pd.nm_pd AS nama_mahasiswa,
+                                reg_pd.nipd AS nipd
+                            FROM
+                                pdrd.peserta_didik AS pd WITH(NOLOCK)
+                                LEFT JOIN pdrd.reg_pd AS reg_pd WITH(NOLOCK) ON reg_pd.id_pd = pd.id_pd
+                                AND reg_pd.soft_delete = 0
+                            WHERE
+                                pd.id_pd = ?
+                                AND pd.soft_delete = 0
+                        ", [$idMahasiswa]);
 
-                    $dataMahasiswa = DB::select("
-                        SELECT
-                            TOP 1
-                            pd.nm_pd AS nama_mahasiswa,
-                            reg_pd.nipd AS nipd
-                        FROM
-                            pdrd.peserta_didik AS pd
-                            LEFT JOIN pdrd.reg_pd AS reg_pd ON reg_pd.id_pd = pd.id_pd
-                            AND reg_pd.soft_delete = 0
-                        WHERE
-                            pd.id_pd = ?
-                            AND pd.soft_delete = 0
-                    ", [$idMahasiswa]);
+                        if (empty($dataMahasiswa)) {
+                            return WrapResponse([], 'tidak ditemukan data mahasiswa anggota penelitian', FALSE);
+                        }
 
-                    $anggota_mahasiswa->update([
-                        'id_pd_ang_litabmas' => $pdLitabmasId[$index],
-                        'id_litabmas' => $litabmasId,
-                        'id_pd' => $idMahasiswa,
-                        'peran_litabmas' => $peran_mahasiswa[$index],
-                        'stat_aktif' => $status_mahasiswa[$index],
-                        'nm_pd' => $dataMahasiswa[0]->nama_mahasiswa,
-                        'nipd' => $dataMahasiswa[0]->nipd,
-                        'last_update' => currDateTime(),
-                        'id_updater' => $updateId,
-                        'soft_delete' => 0,
-                    ]);
+                        $this->pdLitabmas->create([
+                            'id_pd_ang_litabmas' => guid(),
+                            'id_litabmas' => $penelitian->id_litabmas,
+                            'id_pd' => $idMahasiswa,
+                            'peran_litabmas' => $peran_mahasiswa[$index],
+                            'stat_aktif' => $status_mahasiswa[$index],
+                            'nm_pd' => $dataMahasiswa[0]->nama_mahasiswa,
+                            'nipd' => $dataMahasiswa[0]->nipd,
+                            'create_date' => currDateTime(),
+                            'id_creator' => $creatorId,
+                            'last_update' => currDateTime(),
+                            'id_updater' => $updateId,
+                            'soft_delete' => 0,
+                            'last_sync' => currDateTime(),
+                        ]);
+                    } else {
+                        $dataMahasiswa = DB::select("
+                            SELECT
+                                TOP 1
+                                pd.nm_pd AS nama_mahasiswa,
+                                reg_pd.nipd AS nipd
+                            FROM
+                                pdrd.peserta_didik AS pd WITH(NOLOCK)
+                                LEFT JOIN pdrd.reg_pd AS reg_pd WITH(NOLOCK) ON reg_pd.id_pd = pd.id_pd
+                                AND reg_pd.soft_delete = 0
+                            WHERE
+                                pd.id_pd = ?
+                                AND pd.soft_delete = 0
+                        ", [$idMahasiswa]);
+
+                        if (empty($dataMahasiswa)) {
+                            return WrapResponse([], 'tidak ditemukan data mahasiswa anggota penelitian', FALSE);
+                        }
+
+                        $anggota_mahasiswa->update([
+                            'id_litabmas' => $litabmasId,
+                            'id_pd' => $idMahasiswa,
+                            'peran_litabmas' => $peran_mahasiswa[$index],
+                            'stat_aktif' => $status_mahasiswa[$index],
+                            'nm_pd' => $dataMahasiswa[0]->nama_mahasiswa,
+                            'nipd' => $dataMahasiswa[0]->nipd,
+                            'last_update' => currDateTime(),
+                            'id_updater' => $updateId,
+                            'soft_delete' => 0,
+                        ]);
+                    }
                 }
             }
 
@@ -836,18 +870,31 @@ class PenelitianController extends Controller
                 foreach ($anggota_non_ca as $index => $idNonCa) {
                     if (is_null($idNonCa)) break;
 
-                    $anggota_non_ca = $this->nonCaLitabmas->where('id_litabmas', $litabmasId)->where('id_orang', $idNonCa)->first();
-                    if (!$anggota_non_ca) return WrapResponse([], 'penelitian tidak ditemukan atau nonca anggota tidak terdaftar', FALSE);
-
-                    $anggota_non_ca->update([
-                        'id_litabmas' => $litabmasId,
-                        'id_orang' => $idNonCa,
-                        'peran_litabmas' => $peran_non_ca[$index],
-                        'stat_aktif' => $status_non_ca[$index],
-                        'last_update' => currDateTime(),
-                        'id_updater' => $updateId,
-                        'soft_delete' => 0,
-                    ]);
+                    $anggota_non_ca = $this->nonCaLitabmas->where('id_litabmas', $litabmasId)->where('id_orang', $idNonCa)->exists();
+                    if (!$anggota_non_ca) {
+                        $this->nonCaLitabmas->create([
+                            'id_litabmas' => $litabmasId,
+                            'id_orang' => $idNonCa,
+                            'peran_litabmas' => $peran_non_ca[$index],
+                            'stat_aktif' => $status_non_ca[$index],
+                            'create_date' => currDateTime(),
+                            'id_creator' => $creatorId,
+                            'last_update' => currDateTime(),
+                            'id_updater' => $updateId,
+                            'soft_delete' => 0,
+                            'last_sync' => currDateTime(),
+                        ]);
+                    } else {
+                        $anggota_non_ca->update([
+                            'id_litabmas' => $litabmasId,
+                            'id_orang' => $idNonCa,
+                            'peran_litabmas' => $peran_non_ca[$index],
+                            'stat_aktif' => $status_non_ca[$index],
+                            'last_update' => currDateTime(),
+                            'id_updater' => $updateId,
+                            'soft_delete' => 0,
+                        ]);
+                    }
                 }
             }
 

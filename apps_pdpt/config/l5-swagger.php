@@ -28,7 +28,6 @@ return [
                 'format_to_use_for_docs' => env('L5_FORMAT_TO_USE_FOR_DOCS', 'json'),
                 'annotations' => [
                     base_path('app') . '/Http/Controllers/SandboxController.php',
-                    base_path('app') . '/Http/Controllers/PDUT/',
                     base_path('app/Anotations')
                 ],
             ],
@@ -64,7 +63,6 @@ return [
                 'format_to_use_for_docs' => env('L5_FORMAT_TO_USE_FOR_DOCS', 'json'),
                 'annotations' => [
                     base_path('app') . '/Http/Controllers/LiveController.php',
-                    base_path('app') . '/Http/Controllers/PDUT/',
                     base_path('app/Anotations')
                 ],
             ],

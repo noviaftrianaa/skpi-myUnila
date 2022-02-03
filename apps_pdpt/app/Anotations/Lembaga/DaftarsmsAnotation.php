@@ -6,7 +6,7 @@
      *      tags={"Lembaga"},
      *      summary="Dapatkan daftar Sms",
      *      description="Menampilkan daftar data Sms berdasarkan id berikut : <br>
-     *      -. 1 = Fakultas <br> 
+     *      -. 1 = Fakultas <br>
      *      -. 2 = Jurusan <br>
      *      -. 3 = Program Studi <br>
      *      -. 4 = Laboratorium <br>
