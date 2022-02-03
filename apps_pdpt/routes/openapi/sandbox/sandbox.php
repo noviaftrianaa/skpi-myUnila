@@ -18,7 +18,7 @@ Route::group([
     'prefix' => 'sandbox/0.1',
     'as' => 'api_sandbox',
     'namespace' => 'App\Http\Controllers\PDUT\Api',
-    // 'middleware' => ['openapi_sandbox','dbaccess']
+    'middleware' => ['openapi_sandbox','dbaccess']
 ], function () {
 
     Route::post('auth/login', 'LoginController@login');
@@ -183,8 +183,9 @@ Route::group([
             Route::get('daftarprodi/detail', 'LembagaController@detailDaftarProdi');
             Route::get('profilprodi/list', 'LembagaController@listProfilProdi');
             Route::get('profilprodi/list_id', 'LembagaController@listProfilProdiById');
-            Route::get('daftar_sms', 'LembagaController@listSms');
-        });
+            Route::put('profilprodi/ubah', 'LembagaController@update');
+            Route::get('daftarsms', 'LembagaController@listSms');
+
     });
 
     Route::group([
@@ -214,4 +215,5 @@ Route::group([
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
+});
 });

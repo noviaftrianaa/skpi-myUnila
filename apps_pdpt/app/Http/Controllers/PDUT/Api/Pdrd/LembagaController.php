@@ -5,42 +5,14 @@ namespace App\Http\Controllers\PDUT\Api\Pdrd;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\PDUT\Pdrd\AkreditasiProdi;
+use App\Models\PDUT\Pdrd\ProfilProdi;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule as ValidationRule;
 
 class LembagaController extends Controller
 {
-    /**
-     * @OA\Get(
-     *      path="/lembaga/profilpt/detail",
-     *      tags={"Lembaga"},
-     *      summary="Mendapatkan Detail Profil Perguruan Tinggi berdasarkan id_sp",
-     *      description="Menampilkan Detail Profil Perguruan Tinggi berdasarkan id_sp",
-     *      operationId="getDetailProfilPt",
-     *    @OA\Parameter(
-     *          name="id_sp",
-     *          description="",
-     *          example="C3319E33-8F0F-451E-9FF3-00160F4C4D61",
-     *          required=false,
-     *          in="query",
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *     ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     * )
-     */
+    
     public function detailProfilPt(Request $request)
     {
         $id = $request->id_sp;
@@ -73,59 +45,7 @@ class LembagaController extends Controller
         return WrapResponse(['data' => $data], 'Detail Perguruan Tinggi berdasarkan id_sp', TRUE);
     }
 
-    /**
-     * @OA\Get(
-     *      path="/lembaga/akreditasipt",
-     *      tags={"Lembaga"},
-     *      summary="Mendapatkan Daftar Akreditasi Perguruan Tinggi",
-     *      description="Menampilkan Daftar Akreditasi Perguruan Tinggi",
-     *      operationId="getDaftarAkreditasiPt",
-     *   @OA\Parameter(
-     *          name="page",
-     *          description="",
-     *          example="1",
-     *          required=false,
-     *          in="query",
-     *          @OA\Schema(
-     *              type="number"
-     *          )
-     *     ),
-     *     @OA\Parameter(
-     *          name="count",
-     *          description="",
-     *          example="25",
-     *          required=false,
-     *          in="query",
-     *          @OA\Schema(
-     *              type="number"
-     *          )
-     *     ),
-     *     @OA\Parameter(
-     *          name="sortby",
-     *          description="",
-     *          example="DESC",
-     *          required=false,
-     *          in="query",
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *     ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     * )
-     */
+   
     public function listAkreditasiPt(Request $request)
     {
         $page = 1; $count = 10;
@@ -182,60 +102,6 @@ class LembagaController extends Controller
         ], 200);
     }
 
-
-    /**
-     * @OA\Get(
-     *      path="/lembaga/daftarprodi/detail",
-     *      tags={"Lembaga"},
-     *      summary="Mendapatkan Detail Daftar Prodi",
-     *      description="Menampilkan Detail Daftar Prodi",
-     *      operationId="getDetailDaftarProdi",
-     *   @OA\Parameter(
-     *          name="page",
-     *          description="",
-     *          example="1",
-     *          required=false,
-     *          in="query",
-     *          @OA\Schema(
-     *              type="number"
-     *          )
-     *     ),
-     *     @OA\Parameter(
-     *          name="count",
-     *          description="",
-     *          example="25",
-     *          required=false,
-     *          in="query",
-     *          @OA\Schema(
-     *              type="number"
-     *          )
-     *     ),
-     *     @OA\Parameter(
-     *          name="sortby",
-     *          description="",
-     *          example="DESC",
-     *          required=false,
-     *          in="query",
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *     ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     * )
-     */
     public function detailDaftarProdi(Request $request)
     {
         $page = 1; $count = 10;
@@ -287,59 +153,6 @@ class LembagaController extends Controller
         ], 200);
     }
 
-     /**
-     * @OA\Get(
-     *      path="/lembaga/profilprodi/list",
-     *      tags={"Lembaga"},
-     *      summary="Mendapatkan Daftar Prodi",
-     *      description="Menampilkan Daftar Prodi",
-     *      operationId="getDaftarProdi",
-     *   @OA\Parameter(
-     *          name="page",
-     *          description="",
-     *          example="1",
-     *          required=false,
-     *          in="query",
-     *          @OA\Schema(
-     *              type="number"
-     *          )
-     *     ),
-     *     @OA\Parameter(
-     *          name="count",
-     *          description="",
-     *          example="25",
-     *          required=false,
-     *          in="query",
-     *          @OA\Schema(
-     *              type="number"
-     *          )
-     *     ),
-     *     @OA\Parameter(
-     *          name="sortby",
-     *          description="",
-     *          example="DESC",
-     *          required=false,
-     *          in="query",
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *     ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     * )
-     */
     public function listProfilProdi(Request $request)
     {
         $page = 1; $count = 10;
@@ -411,39 +224,7 @@ class LembagaController extends Controller
         ], 200);
     }
 
-    /**
-     * @OA\Get(
-     *      path="/lembaga/profilprodi/list_id",
-     *      tags={"Lembaga"},
-     *      summary="Mendapatkan Detail Profil Prodi berdasarkan id_sms",
-     *      description="Menampilkan Detail Profil Prodi berdasarkan id_sms",
-     *      operationId="getDetailProfilProdi",
-     *    @OA\Parameter(
-     *          name="id_sms",
-     *          description="",
-     *          example="A31F9448-2E48-4991-AEC6-0630F9801A09",
-     *          required=false,
-     *          in="query",
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *     ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     * )
-     */
+    
     public function listProfilProdiById(Request $request)
     {
 
@@ -497,28 +278,69 @@ class LembagaController extends Controller
 
         return WrapResponse(['data' => $data], 'Detail Profil Prodi By id_sms', TRUE);
     }
-        /**
-     * @OA\Get(
-     *      path="/referensi/daftar_sms",
-     *      operationId="getSms",
-     *      tags={"Lembaga"},
-     *      summary="Dapatkan daftar Sms",
-     *      description="Menampilkan daftar data Sms <br>
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     */
+
+    public function update(Request $request)
+    {
+        $id_sms = $request->input('id_sms');
+        InputValidator([
+            'id_sms' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
+        ], [
+            'id_sms.required' => 'field ini harus diisi',
+            'id_sms.regex' => 'input harus berupa campuran alpa_numeric dan dash',
+        ]);
+
+        DB::beginTransaction();
+        try {
+
+            $profil_prodi = ProfilProdi::where('id_sms')->first();
+
+            if (empty($profil_prodi)) {
+                return WrapResponse([], "Data tidak ditemukan", FALSE);
+            }
+
+            $profil_prodi->update([
+                'id_sms' => $request->id_sms,
+                'desk_singkat' => $request->desk_singkat,
+                'visi' => $request->visi,
+                'misi' => $request->misi,
+                'tujuan' => $request->tujuan,
+                'sasaran' => $request->sasaran,
+                'kompetensi' => $request->kompetensi,
+                'capaian_belajar' => $request->capaian_belajar,
+                'upaya_sebar' => $request->upaya_sebar,
+                'keberlanjutan' => $request->keberlanjutan,
+                'frek_kur' => $request->frek_kur,
+                'laks_kur' => $request->laks_kur,
+                'himp_alumni' => $request->himp_alumni,
+                'id_updater' => guid(),
+                'create_date' => currDateTime(),
+                'last_update' => currDateTime(),
+                'last_sync' => currDateTime(),
+            ]);
+
+            $akreditasi_prodi = AkreditasiProdi::where('id_sms', $profil_prodi->id_sms)->first();
+            $akreditasi_prodi->update([
+                'id_lemb_akred' => $request->id_lemb_akred,
+                'id_akred' => $request->id_akred,
+                'sk_akreditasi_prodi' => $request->sk_akreditasi_prodi,
+                'tanggal_sk_akreditasi_prodi' => $request->tanggal_sk_akreditasi_prodi,
+                'tst_sk_akreditasi_prodi' => $request->tst_sk_akreditasi_prodi,
+                'asal_data' => $request->asal_data,
+                'id_updater' => guid(),
+                'last_update' => currDateTime(),
+                'last_sync' => currDateTime(),
+            ]);
+
+            DB::commit();
+            return WrapResponse([], 'sukses memperbaharui profil prodi - ' . $profil_prodi->id_sms);
+        } catch (\Exception $e) {
+            Log::error('Message ' . $e->getMessage() . ' - ' . $e->getLine());
+            DB::rollback();
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
+            return WrapResponse([], "gagal memperbaharui profil prodi");
+        }
+    }
+    
     public function listSms(Request $request)
     {
         $page = 1; $count = 1000;
