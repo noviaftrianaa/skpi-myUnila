@@ -207,12 +207,14 @@ class TracerStudyController extends Controller
                         AND reg.soft_delete = 0
                 ", [$each_data['npm']]);
 
+                if(is_null($dataRegPd)) continue;
+                
                 $tracer = HasilTracerStudy::create([
                     'id_hasil_tracer_study' => guid(),
                     'id_thn_ajaran' => $each_data['id_thn_ajaran'],
                     'id_reg_pd' => $dataRegPd[0]->id_reg_pd,
                     'id_bid_kerja' => $each_data['id_bid_kerja'],
-                    'id_wil' => $each_data['id_wil'],
+                    // 'id_wil' => $each_data['id_wil'],
                     'id_smt' => $each_data['id_smt'],
                     'id_jns_jalur_kerja' => $each_data['id_jns_jalur_kerja'],
                     'wkt_pengisian' => $each_data['wkt_pengisian'],
@@ -266,7 +268,8 @@ class TracerStudyController extends Controller
             }
 
             DB::commit();
-            return WrapResponse([], 'sukses menambahkan tracer study');
+            $config = config('database.default');
+            return WrapResponse([$config], 'sukses menambahkan tracer study');
         } catch (\Exception $e) {
             DB::rollback();
             Log::error($e->getMessage() . ' on line ' . $e->getLine());

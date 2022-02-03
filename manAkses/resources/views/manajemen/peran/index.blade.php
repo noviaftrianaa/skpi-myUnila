@@ -7,7 +7,7 @@
         <div class="card-header">
             <h3 class="card-title"><i class="fa fa-list"></i> Data Peran</h3>
             <div class="card-tools">
-                <button class="btn btn-primary btn-sm btn-flat" data-toggle="modal" data-target="#addItem"><i class="fa fa-plus"></i> Tambah</button>
+                <button class="btn btn-dark btn-xs rounded-pill" data-toggle="modal" data-target="#addItem"><i class="fa fa-plus"></i> Tambah</button>
             </div>
         </div><!-- /.card-header -->
         <div class="card-body">

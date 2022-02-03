@@ -7,7 +7,7 @@
         <div class="card-header">
             <h3 class="card-title"><i class="fa fa-list"></i> Table Aplikasi {!! $data->nm_aplikasi !!}</h3>
             <div class="card-tools">
-                <a type="button" data-toggle="modal" class="btn btn-primary btn-xs btn-flat" href="#tambahTable"><i class="fa fa-plus"></i> Tambah</a>
+                <a type="button" data-toggle="modal" class="btn btn-dark btn-xs rounded-pill" href="#tambahTable"><i class="fa fa-plus"></i> Tambah</a>
             </div>
         </div><!-- /.card-header -->
         <div class="card-body">

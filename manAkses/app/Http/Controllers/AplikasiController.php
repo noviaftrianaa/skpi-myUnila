@@ -10,7 +10,10 @@ use App\Models\User;
 use App\Models\PJAplikasi;
 use App\Models\Menu;
 use App\Models\Peran;
+use App\Models\LargeObject;
 use Auth;
+use Illuminate\Support\Facades\Storage;
+use DB;
 
 class AplikasiController extends Controller
 {
@@ -42,15 +45,43 @@ class AplikasiController extends Controller
     public function store(Request $request)
     {
         $array = $request->all();
-        $uuid = guid();
+
+        if(!empty($array['file'])) {
+            $file = $array['file'];
+            $size = $file->getSize();
+            if ($size <= 1000000) {
+                $path = Storage::putFile('app', $file);
+                $mime = $file->getClientMimeType();
+                $nama_asli = $file->getClientOriginalName();
+                $bytea = base64_encode(file_get_contents($file->getPathName()));
+                
+                $dok                = new LargeObject();
+                $dok->id_blob       = guid();
+                $dok->blob_content  = DB::raw("CONVERT(VARBINARY(MAX), '" . $bytea . "')");
+                $dok->file_name     = $nama_asli;
+                $dok->mime_type     = $mime;
+                $dok->create_date   = currDateTime();
+                $dok->id_creator    = Auth::user()->id_pengguna;
+                $dok->last_update   = currDateTime();
+                $dok->soft_delete   = 0;
+                $dok->last_sync     = currDateTime();
+                $dok->save();
+            } else {
+                alert()->error('Foto melebihi 1MB')->persistent('OK');
+                return redirect()->back();
+            }
+        }
 
         $aplikasi = Aplikasi::create([
-            'id_aplikasi' => $uuid,
+            'id_aplikasi' => guid(),
+            'id_blob' => $dok->id_blob ?? NULL,
             'id_organisasi' => $array['id_organisasi'],
             'nm_aplikasi' => $array['nm_aplikasi'],
             'ket_aplikasi' => $array['ket_aplikasi'],
             'url' => $array['url'],
-            'a_generate_menu' => $array['a_generate_menu'],
+            'a_generate_menu' => (!empty($array['a_generate_menu'])) ? 1 : 0,
+            'a_integrasi_cas' => (!empty($array['a_integrasi_cas'])) ? 1 : 0,
+            'a_sistem_internal_pt' => (!empty($array['a_sistem_internal_pt'])) ? 1 : 0,
             'tgl_create' => currDateTime(),
             'last_update' => currDateTime(),
             'last_sync' => currDateTime()
@@ -108,7 +139,7 @@ class AplikasiController extends Controller
     public function detail($id)
     {
         $id = Crypt::decrypt($id);
-        $data = Aplikasi::with('UnitOrganisasi')->lock('WITH(NOLOCK)')->where('id_aplikasi', $id)->first();
+        $data = Aplikasi::with('UnitOrganisasi','LargeObject')->lock('WITH(NOLOCK)')->where('id_aplikasi', $id)->first();
         $pj = PJAplikasi::lock('WITH(NOLOCK)')->where('id_aplikasi', $id)->where('soft_delete',0)->get();
         $menu = Menu::lock('WITH(NOLOCK)')->where('id_aplikasi', $id)->get();
         $unit = UnitOrganisasi::all();
@@ -154,14 +185,45 @@ class AplikasiController extends Controller
     {
         $id = Crypt::decrypt($id);
         $array = $request->all();
+        $aplikasi = Aplikasi::where('id_aplikasi',$id)->first();
+
+        if(!empty($array['file'])) {
+            $file = $array['file'];
+            $size = $file->getSize();
+            if ($size <= 1000000) {
+                $path = Storage::putFile('app', $file);
+                $mime = $file->getClientMimeType();
+                $nama_asli = $file->getClientOriginalName();
+                $bytea = base64_encode(file_get_contents($file->getPathName()));
+                
+                $dok                = new LargeObject();
+                $dok->id_blob       = guid();
+                $dok->blob_content  = DB::raw("CONVERT(VARBINARY(MAX), '" . $bytea . "')");
+                $dok->file_name     = $nama_asli;
+                $dok->mime_type     = $mime;
+                $dok->create_date   = currDateTime();
+                $dok->id_creator    = Auth::user()->id_pengguna;
+                $dok->last_update   = currDateTime();
+                $dok->soft_delete   = 0;
+                $dok->last_sync     = currDateTime();
+                $dok->save();
+            } else {
+                alert()->error('Foto melebihi 1MB')->persistent('OK');
+                return redirect()->back();
+            }
+        }
 
         $store = Aplikasi::lock('WITH(NOLOCK)')->where('id_aplikasi', $id)->update([
             'nm_aplikasi' => $array['nm_aplikasi'],
             'ket_aplikasi' => $array['ket_aplikasi'],
             'url' => $array['url'],
-            'a_generate_menu' => $array['a_generate_menu'],
             'last_update' => currDateTime(),
-            'last_sync' => currDateTime()
+            'last_sync' => currDateTime(),
+            'id_blob' => $dok->id_blob ?? $aplikasi->id_blob,
+            'id_organisasi' => $array['id_organisasi'],
+            'a_generate_menu' => (!empty($array['a_generate_menu'])) ? 1 : 0,
+            'a_integrasi_cas' => (!empty($array['a_integrasi_cas'])) ? 1 : 0,
+            'a_sistem_internal_pt' => (!empty($array['a_sistem_internal_pt'])) ? 1 : 0
         ]);
 
         if(!$store) {
