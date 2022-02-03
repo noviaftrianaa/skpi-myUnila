@@ -208,8 +208,9 @@ Route::group([
         'namespace' => 'Presensi',
         'prefix' => 'presensi'
     ], function () {
-        Route::get('list_id', 'KehadiranSdmController@getListKehadiranBySdmId');
-        Route::get('tambah', 'KehadiranSdmController@store');
+        Route::get('list_id', 'BukuAjarController@list');
+        Route::post('tambah', 'KehadiranSdmController@store');
+        Route::put('ubah', 'KehadiranSdmController@update');
     });
 });
 
