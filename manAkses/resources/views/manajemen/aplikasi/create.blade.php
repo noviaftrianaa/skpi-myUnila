@@ -47,11 +47,21 @@
                     </div>
                     <div class="col-sm-12">
                         <div class="form-group form-group-default">
-                            <label>Apakah Bisa Generate Menu ?</label>
-                            <select class="form-control" name="a_generate_menu" required>
-                                <option value="0">Tidak</option>
-                                <option value="1">Ya</option>
-                            </select>
+                            <label>Icon</label>
+                            <div class="input-group">
+                                <input name="file" type="file" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-12">
+                        <div class="form-group form-group-default">
+                            <label>Option<sup style="color:red">*</sup> :</label><br>
+                            <input type="checkbox" id="a_generate_menu" name="a_generate_menu">
+                            <label for="a_generate_menu">&nbsp;&nbsp;Apakah Bisa Generate Menu ?</label><br>
+                            <input type="checkbox" id="a_integrasi_cas" name="a_integrasi_cas">
+                            <label for="a_integrasi_cas">&nbsp;&nbsp;Apakah Telah Ter-integrasi SSO ?</label><br>
+                            <input type="checkbox" id="a_sistem_internal_pt" name="a_sistem_internal_pt">
+                            <label for="a_sistem_internal_pt">&nbsp;&nbsp;Apakah Sistem Internal PT ?</label>
                         </div>
                     </div>
                 </div>

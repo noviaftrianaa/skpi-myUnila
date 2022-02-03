@@ -8,6 +8,7 @@ use DataTables;
 use App\Models\User;
 use App\Models\Aplikasi;
 use App\Models\RolePengguna;
+use App\Models\LargeObject;
 use Session;
 use Cookie;
 use Auth;
@@ -32,8 +33,9 @@ class HomeController extends Controller
     public function index()
     {
         if(Session::get('login.role')->id_peran != 1) {
-            $aplikasi = Aplikasi::all();
-            return view('manajemen.index2', ['aplikasi'=>$aplikasi]);
+            $app_inter = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->where('a_integrasi_cas',1)->get();
+            $app_non_inter = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->where('a_integrasi_cas',0)->get();
+            return view('manajemen.index2', ['app_inter'=>$app_inter,'app_non_inter'=>$app_non_inter]);
         } else {
             $datas = User::all();
             $apps = Aplikasi::all();

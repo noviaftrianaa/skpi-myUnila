@@ -16,21 +16,29 @@
             </div>
         </div><!-- /.card-header -->
         <div class="card-body" style="margin: 0;padding: 0">
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <tbody>
-                        {!! tablerow('Nama Aplikasi',$data->nm_aplikasi) !!}
-                        {!! tablerow('Nama Unit Organisasi',$data->unitorganisasi->nm_lemb) !!}
-                        {!! tablerow('Keterangan Aplikasi',$data->ket_aplikasi) !!}
-                        {!! tablerow('URL','<a href="'.$data->url.'" target=new>'.$data->url.'</a>') !!}
-                        {!! tablerow('Apakah Bisa Generate Menu ?',($data->a_generate_menu==1)?'Bisa':'Tidak Bisa') !!}
-                        {!! tablerow('Tgl Buat', TglWaktuIndonesia($data->tgl_create)) ?? '-' !!}
-                        {!! tablerow('Tgl Update', TglWaktuIndonesia($data->last_update)) ?? '-' !!}
-                        {!! tablerow('Last Sync', TglWaktuIndonesia($data->last_sync)) ?? '-' !!}
-                        {!! tablerow('Tgl Expired', TglWaktuIndonesia($data->expired_date)) ?? '-' !!}
-                    </tbody>
-                </table>
+            <div class="row">
+            <div class="col-md-2 col-12 p-3">
+                <img src="{!! (!is_null($data->largeobject)) ? 'data:image/' . $data->largeobject->mime_type . ';base64,' . $data->largeobject->blob_content : asset('auth/img/logo.png') !!}" class="img-fluid" />
             </div>
+            <div class="col-md-10 col-12">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <tbody>
+                            {!! tablerow('Nama Aplikasi',$data->nm_aplikasi) !!}
+                            {!! tablerow('Nama Unit Organisasi',$data->unitorganisasi->nm_lemb) !!}
+                            {!! tablerow('Keterangan Aplikasi',$data->ket_aplikasi) !!}
+                            {!! tablerow('URL','<a href="'.$data->url.'" target=new>'.$data->url.'</a>') !!}
+                            {!! tablerow('Apakah Bisa Generate Menu ?',($data->a_generate_menu==1)?'Ya':'Tidak') !!}
+                            {!! tablerow('Apakah Telah Ter-integrasi SSO ?',($data->a_integrasi_cas==1)?'Ya':'Tidak') !!}
+                            {!! tablerow('Apakah Sistem Internal PT ?',($data->a_sistem_internal_pt==1)?'Ya':'Tidak') !!}
+                            {!! tablerow('Tgl Buat', TglWaktuIndonesia($data->tgl_create)) ?? '-' !!}
+                            {!! tablerow('Tgl Update', TglWaktuIndonesia($data->last_update)) ?? '-' !!}
+                            {!! tablerow('Last Sync', TglWaktuIndonesia($data->last_sync)) ?? '-' !!}
+                            {!! tablerow('Tgl Expired', TglWaktuIndonesia($data->expired_date)) ?? '-' !!}
+                        </tbody>
+                    </table>
+                </div>
+            </div></div>
         </div>
     </div>
     
@@ -172,11 +180,21 @@
                             </div>
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
-                                    <label>Apakah Bisa Generate Menu ?</label>
-                                    <select class="form-control" name="a_generate_menu" required>
-                                        <option value="0" {{($data->a_generate_menu==0)?'selected':''}}>Tidak</option>
-                                        <option value="1" {{($data->a_generate_menu==1)?'selected':''}}>Ya</option>
-                                    </select>
+                                    <label>Icon</label>
+                                    <div class="input-group">
+                                        <input name="file" type="file" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-12">
+                                <div class="form-group form-group-default">
+                                    <label>Option<sup style="color:red">*</sup> :</label><br>
+                                    <input type="checkbox" id="a_generate_menu" name="a_generate_menu" {{($data->a_generate_menu==1)?'checked':''}}>
+                                    <label for="a_generate_menu">&nbsp;&nbsp;Apakah Bisa Generate Menu ?</label><br>
+                                    <input type="checkbox" id="a_integrasi_cas" name="a_integrasi_cas" {{($data->a_integrasi_cas==1)?'checked':''}}>
+                                    <label for="a_integrasi_cas">&nbsp;&nbsp;Apakah Telah Ter-integrasi SSO ?</label><br>
+                                    <input type="checkbox" id="a_sistem_internal_pt" name="a_sistem_internal_pt" {{($data->a_sistem_internal_pt==1)?'checked':''}}>
+                                    <label for="a_sistem_internal_pt">&nbsp;&nbsp;Apakah Sistem Internal PT ?</label>
                                 </div>
                             </div>
                         </div>
