@@ -34,7 +34,7 @@ class DBAccess
                 $checkUrlRequest[] = true;
             } else {
                 foreach ($urls as $url) {
-                    if (strpos($url, $value)) {
+                    if (strpos($url, $value) > -1) {
                         $checkUrlRequest[] = true;
                     } else {
                         $checkUrlRequest[] = false;

@@ -101,6 +101,14 @@ Route::group([
         'namespace' => 'Pdrd',
     ], function () {
 
+
+        Route::prefix('keuangan')->group(function () {
+            Route::get('/list_kelasukt', 'KeuanganKelasUktController@list');
+            Route::post('/add_kelasukt', 'KeuanganKelasUktController@add');
+            Route::put('/update_kelasukt', 'KeuanganKelasUktController@update');
+            Route::delete('/delete_kelasukt', 'KeuanganKelasUktController@delete');
+        });
+
         Route::prefix('dosen')->group(function () {
             Route::get('/list', 'SdmDosenController@list');
             Route::get('/list_id', 'SdmDosenController@listByIdProdi');

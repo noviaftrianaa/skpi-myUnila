@@ -342,7 +342,7 @@ class NonCaController extends Controller
 
         DB::beginTransaction();
         try {
-            $non_ca = $this->nonca->where('id_orang', $id_orang)->update([
+           $this->nonca->where('id_orang', $id_orang)->update([
                 'soft_delete' => 1,
                 'last_update' => currDateTime(),
                 'id_updater' => $updateId

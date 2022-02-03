@@ -101,6 +101,24 @@ Route::group([
         'namespace' => 'Pdrd',
     ], function () {
 
+
+        Route::prefix('keuangan')->group(function () {
+            Route::get('/list_kelasukt', 'KeuanganKelasUktController@list');
+            Route::post('/add_kelasukt', 'KeuanganKelasUktController@add');
+            Route::put('/update_kelasukt', 'KeuanganKelasUktController@update');
+            Route::delete('/delete_kelasukt', 'KeuanganKelasUktController@delete');
+
+            Route::get('/list_uktmhs', 'KeuanganUktMhsController@list');
+            Route::post('/add_uktmhs', 'KeuanganUktMhsController@add');
+            Route::put('/update_uktmhs', 'KeuanganUktMhsController@update');
+            Route::delete('/delete_uktmhs', 'KeuanganUktMhsController@delete');
+
+            Route::get('/list_gajisdm', 'KeuanganGajiSdmController@list');
+            Route::post('/add_gajisdm', 'KeuanganGajiSdmController@add');
+            Route::put('/update_gajisdm', 'KeuanganGajiSdmController@update');
+            Route::delete('/delete_gajisdm', 'KeuanganGajiSdmController@delete');
+        });
+
         Route::prefix('dosen')->group(function () {
             Route::get('/list', 'SdmDosenController@list');
             Route::get('/list_id', 'SdmDosenController@listByIdProdi');
