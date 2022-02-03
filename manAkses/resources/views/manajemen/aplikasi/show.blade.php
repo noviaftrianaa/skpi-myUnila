@@ -11,8 +11,8 @@
         <div class="card-header">
             <h3 class="card-title"><i class="fa fa-list"></i> Data Aplikasi</h3>
             <div class="card-tools">
-                <a type="button" class="btn btn-success btn-xs btn-flat" href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Table Aplikasi</a>
-                <a type="button" data-toggle="modal" class="btn btn-primary btn-xs btn-flat" href="#editAplikasi{{$data->id_aplikasi}}"><i class="fa fa-edit"></i> Edit</a>
+                <a type="button" class="btn btn-primary btn-xs rounded-pill" href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Table Aplikasi</a>
+                <a type="button" data-toggle="modal" class="btn btn-secondary btn-xs rounded-pill" href="#editAplikasi{{$data->id_aplikasi}}"><i class="fa fa-edit"></i> Edit</a>
             </div>
         </div><!-- /.card-header -->
         <div class="card-body" style="margin: 0;padding: 0">
@@ -46,7 +46,7 @@
         <div class="card-header">
             <h3 class="card-title"><i class="fa fa-list"></i> PJ Aplikasi</h3>
             <div class="card-tools">
-                <a type="button" data-toggle="modal" class="btn btn-primary btn-xs btn-flat" href="#pjCreate"><i class="fa fa-plus"></i> Tambah</a>
+                <a type="button" data-toggle="modal" class="btn btn-dark btn-xs rounded-pill" href="#pjCreate"><i class="fa fa-plus"></i> Tambah</a>
             </div>
         </div>
         <div class="card-body">
@@ -85,7 +85,7 @@
         <div class="card-header">
             <h3 class="card-title"><i class="fa fa-list"></i> Menu Aplikasi</h3>
             <div class="card-tools">
-                <a type="button" data-toggle="modal" class="btn btn-primary btn-xs btn-flat" href="#createMenu"><i class="fa fa-plus"></i> Tambah</a>
+                <a type="button" data-toggle="modal" class="btn btn-dark btn-xs rounded-pill" href="#createMenu"><i class="fa fa-plus"></i> Tambah</a>
             </div>
         </div>
         <div class="card-body">

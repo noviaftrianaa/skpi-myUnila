@@ -41,6 +41,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::put('/changeRole', [UserController::class, 'role'])->name('role');
     Route::put('/changePassword', [UserController::class, 'password'])->name('password');
+    Route::get('/biodata', [HomeController::class, 'biodata'])->name('biodata');
     
     Route::group(['middleware' => ['main']], function() {
         Route::get('/', [HomeController::class, 'index'])->name('index');

@@ -35,7 +35,7 @@ class HomeController extends Controller
         if(Session::get('login.role')->id_peran != 1) {
             $app_inter = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->where('a_integrasi_cas',1)->get();
             $app_non_inter = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->where('a_integrasi_cas',0)->get();
-            return view('manajemen.index2', ['app_inter'=>$app_inter,'app_non_inter'=>$app_non_inter]);
+            return view('default.index', ['app_inter'=>$app_inter,'app_non_inter'=>$app_non_inter]);
         } else {
             $datas = User::all();
             $apps = Aplikasi::all();
@@ -47,5 +47,14 @@ class HomeController extends Controller
                 'db'    => $db
             ]);
         }
+    }
+
+    public function biodata()
+    {
+        $data = User::findOrFail(Auth::user()->id_pengguna);
+
+        return view('default.biodata.index', [
+            'data'=>$data
+        ]);
     }
 }

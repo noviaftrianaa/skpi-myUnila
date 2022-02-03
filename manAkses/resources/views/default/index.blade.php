@@ -6,7 +6,7 @@
     <div class="row mb-3">
         @foreach($app_inter AS $items)
         <div class="col-6 col-sm-4 col-md-2 d-flex align-items-stretch flex-column">
-            <a href="{{ $items->url }}">
+            <a href="{!! $items->url !!}">
                 <div class="card bg-info d-flex flex-fill">
                     <div class="card-body">
                         <div class="row">

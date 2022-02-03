@@ -73,13 +73,18 @@
                     <i class="fas fa-gears"></i> Pengaturan
                 </a>
                 <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                <!-- route password -->
-                    <button class="dropdown-item" data-toggle="modal" data-target="#roleItem">
+                    <!-- route peran -->
+                    <a class="dropdown-item" data-toggle="modal" href="#roleItem">
                         <i class="fas fa-users"></i> Ubah Peran
-                    </button>
-                    <button class="dropdown-item" data-toggle="modal" data-target="#passwordItem">
+                    </a>
+                    <!-- route peran -->
+                    <a class="dropdown-item" href="{{ route('biodata') }}">
+                        <i class="fas fa-users"></i> Biodata
+                    </a>
+                    <!-- route password -->
+                    <a class="dropdown-item" data-toggle="modal" href="#passwordItem">
                         <i class="fas fa-key mr-2"></i> Ubah Password
-                    </button>
+                    </a>
                 </div>
             </li>
             @endif
