@@ -87,6 +87,7 @@ class KehadiranSdmController extends Controller
                 'id_kehadiran_sdm' => $value->id_kehadiran_sdm,
                 'sdm' => $value->sdm,
                 'nip' => $value->nip,
+                'waktu_presensi'=> $value->waktu_presensi,
                 'lokasi_presensi' => $value->lokasi_presensi,
                 'waktu_pulang' => $value->waktu_pulang,
                 'lokasi_pulang' => $value->lokasi_pulang,
@@ -114,40 +115,50 @@ class KehadiranSdmController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store()
+    public function store(Request $request)
     {
-        InputValidator([
-            'id_sdm' =>'required|uuid',
-            'lokasi_presensi' => 'required|string',
-            'rencana_hari_ini' => 'nullable|string',
-            'realisasi_hari_ini' => 'nullable|string',
-        ]);
 
-        $kehadiransdmId = guid();
+        $get_data = $request->all();
+        // if (empty($get_data['data'])) {
+        //     return WrapResponse([], 'Data kosong silahkan diisi', FALSE);
+        // }
+
+        // InputValidator([
+        //     'id_sdm' =>'required|uuid',
+        //     'lokasi_presensi' => 'required|string',
+        //     'rencana_hari_ini' => 'nullable|string',
+        //     'realisasi_hari_ini' => 'nullable|string',
+        // ]);
+
         $creatorId = $updateId = 'bc62ca9c-4e6e-4462-89b6-ff246512734f';
         
-        $id_sdm = $this->request->input('id_sdm');
-        $lokasi_presensi = $this->request->input('lokasi_presensi');
-        $rencana_hari_ini = $this->request->input('rencana_hari_ini');
-        $realisasi_hari_ini = $this->request->input('realisasi_hari_ini');
+        // $id_sdm = $this->request->input('id_sdm');
+        // $lokasi_presensi = $this->request->input('lokasi_presensi');
+        // $rencana_hari_ini = $this->request->input('rencana_hari_ini');
+        // $realisasi_hari_ini = $this->request->input('realisasi_hari_ini');
 
         DB::beginTransaction();
         try {
+            $presensi = [];
+            foreach ($get_data['data'] as $each_data) {
+
             $presensi = $this->kehadiransdm->create([
-                'id_kehadiran_sdm' => $kehadiransdmId,
-                'id_sdm' => $id_sdm,
+                'id_kehadiran_sdm' => guid(),
+                'id_sdm' => $each_data['id_sdm'],
                 'tgl_hadir' => currDateTime(),
                 'id_creator' => $creatorId,
-                'id_updater' => $updateId,
+                'id_updater' => $creatorId,
                 'waktu_presensi' => currDateTime(),
-                'lokasi_presensi' => $lokasi_presensi,
-                'rencana_hari_ini' => $rencana_hari_ini,
-                'realisasi_hari_ini' => $realisasi_hari_ini,                
+                'lokasi_presensi'=> $each_data['lokasi_presensi'],
+                'rencana_hari_ini' => $each_data['rencana_hari_ini'],
+                'realisasi_hari_ini' => $each_data['realisasi_hari_ini'],               
                 'soft_delete' => 0,
                 'create_date' => currDateTime(),
                 'last_update' => currDateTime(),
-                'last_sync' => currDateTime(),
+                'last_sync' => currDateTime()
+                
             ]);
+        }
             DB::commit();
             return WrapResponse([], 'sukses menambahkan data kehadiran - ' . $presensi->id_kehadiran_sdm);
         } catch (ModelNotFoundException $mnfe) {

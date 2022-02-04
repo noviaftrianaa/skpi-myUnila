@@ -75,41 +75,36 @@
 
 
 /**
-* @OA\Put(
-* path="/presensi/ubah",
-* operationId="ubahKehadiranSdm", 
-* tags={"Presensi"},
-* summary="Mengubah Data Kehadiran",
+ * @OA\Put (
+ *      path="/presensi/ubah",
+ *      operationId="ubahKehadiranSdm", 
+ *      tags={"Presensi"},
+ *      summary= "Mengubah Data Kehadiran",
+ *      description="Mengubah Data Kehadiran",
  *      @OA\RequestBody(
  *      required=true,
  *      description="Mengubah Data Kehadiran",
- *        @OA\JsonContent(
- *             type="object",
- *             @OA\Property(
- *                property="data",
- *                type="array",
- *                @OA\Items(
- *                 @OA\Property( property="id_hehadiran_sdm", type="string", format="text", example="BD7129F5-8B55-4A03-9829-0BE2A27F60EC"),
- *                 @OA\Property( property="id_sdm", type="string", format="text", example="bcb6de9a-2e7c-43c7-b192-029750754fe7"),
- *                 @OA\Property( property="lokasi_pulang", type="string", format="text", example="UPT TIK UNILA"),
- *                 @OA\Property( property="rencana_hari_ini", type="string", format="text", example=NULL),
- *                 @OA\Property( property="realisasi_hari_ini", type="string", format="text", example= NULL)
- *                ),
- *             ),
- *         ),
- *     ),
-*        @OA\Response(
-*        response=200,
-*        description="Successful operation",
-*        ),
-*        @OA\Response(
-*        response=401,
-*        description="Unauthenticated",
-*        ),
-*        @OA\Response(
-*        response=403,
-*        description="Forbidden"
-*        ),
-*       security={{"bearer_token":{}}}
-* )
-*/
+ *      @OA\JsonContent(
+ *          required={"id_kehadiran_sdm", "id_sdm", "lokasi_pulang"},
+ *          @OA\Property( property="id_kehadiran_sdm", type="string", format="text", example="BD7129F5-8B55-4A03-9829-0BE2A27F60EC"),
+ *          @OA\Property( property="id_sdm", type="string", format="text", example="bcb6de9a-2e7c-43c7-b192-029750754fe7"),
+ *          @OA\Property( property="lokasi_pulang", type="string", format="text", example="UPT TIK UNILA"),
+ *          @OA\Property( property="rencana_hari_ini", type="string", format="text", example=NULL),
+ *          @OA\Property( property="realisasi_hari_ini", type="string", format="text", example= NULL)
+ *          ),
+ *      ),
+ *      @OA\Response(
+ *          response=200,
+ *          description="Successful operation",
+ *       ),
+ *      @OA\Response(
+ *          response=401,
+ *          description="Unauthenticated",
+ *      ),
+ *      @OA\Response(
+ *          response=403,
+ *          description="Forbidden"
+ *      ),
+ *      security={{"bearer_token":{}}}
+ *     )
+ */
