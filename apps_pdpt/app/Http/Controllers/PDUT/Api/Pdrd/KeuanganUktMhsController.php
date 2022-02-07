@@ -22,166 +22,305 @@ class KeuanganUktMhsController extends Controller
         $this->sppmhs = new SppMhs();
     }
 
-    // public function list()
-    // {
-    //     InputValidator([
-    //         'page' => 'numeric|min:1',
-    //         'count'    => 'numeric|min:1|max:50',
-    //         'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
-    //     ]);
+    public function daftar(){
+        InputValidator([
+            'page' => 'required|integer',
+            'limit' => 'required|integer',
+            'sort' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])],
+        ]);
 
-    //     $sortby = "ASC";
-    //     $sortby = $this->request->input('sortby');
+        $sort = 'ASC';
+        $sort = $this->request->input('sort');
+        if (!empty($sort)) {
+            $sort = $sort;
+        }
 
-    //     if (!empty($sortby)) {
-    //         $sortby = $sortby;
-    //     }
+        try {
+            $query = "SELECT
+            spp.id_spp_mhs,
+            spp.tgl_bayar,
+            spp.nominal,
+            spp.kode_pembayaran,
+            spp.nomor_pin,
+            spp.kode_akses,
+            spp.bill_ref,
+            spp.flag_by,
+            spp.ket,
+            kls.nm_kelas_ukt,
+            kls.nominal_ukt,
+            smt.nm_smt,
+            pd.nm_pd,
+            reg.nipd,
+            sms.nm_lemb
+            FROM keuangan.spp_mhs AS spp WITH(NOLOCK)
+            LEFT JOIN keuangan.kelas_ukt AS kls WITH(NOLOCK) ON spp.id_kelas_ukt = kls.id_kelas_ukt AND kls.soft_delete = 0
+            LEFT JOIN ref.semester AS smt WITH(NOLOCK) ON spp.id_smt = smt.id_smt AND smt.expired_date IS NULL
+            LEFT JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON spp.id_reg_pd = reg.id_reg_pd AND reg.soft_delete = 0
+            LEFT JOIN pdrd.peserta_didik AS pd WITH(NOLOCK) ON reg.id_pd = pd.id_pd AND pd.soft_delete = 0
+            LEFT JOIN pdrd.sms AS sms WITH(NOLOCK) ON reg.id_sms = sms.id_sms AND sms.soft_delete = 0
+            WHERE spp.soft_delete = 0
+            ORDER BY pd.nm_pd " . $sort . " ";
 
-    //     try {
-    //         $query = "SELECT
-    //         kls.nm_kls_ukt,
+            $pagination = CustomPagination($query);
+            $query = $pagination['query'];
 
+            $uktmhs = DB::select($query);
+            if (empty($uktmhs)) {
+                return WrapResponse(['data' => null], 'tidak ada daftar ukt mahasiswa yang ditampilkan', FALSE);
+            }
 
+            $data = [];
+            foreach ($uktmhs as $value) {
+                $data[] = [
+                    'id_spp_mhs' => $value->id_spp_mhs,
+                    'nama_mahasiswa' => $value->nm_pd,
+                    'npm' => $value->nipd,
+                    'program_studi' => $value->nm_lemb,
+                    'kelas_ukt' => $value->nm_kelas_ukt,
+                    'nominal_kelas_ukt' => $value->nominal_ukt,
+                    'semester' => $value->nm_smt,
+                    'tgl_bayar' => $value->tgl_bayar,
+                    'nominal' => $value->nominal,
+                    'kode_pembayaran' => $value->kode_pembayaran,
+                    'nomor_pin' => $value->nomor_pin,
+                    'kode_akses' => $value->kode_akses,
+                    'bill_ref' => $value->bill_ref,
+                    'flag_by' => $value->flag_by,
+                    'keterangan' => $value->ket
+                ];
+            }
+        } catch (\Throwable $th) {
+            return WrapResponse([], $th->getMessage(), FALSE);
+        }
+        return WrapResponse(['data' => $data], 'berhasil menampilkan daftar ukt mahasiswa', TRUE);
+    }
 
+    public function daftar_id()
+    {
+        InputValidator([
+            'npm' => 'required|numeric',
+        ]);
 
+        $npm = $this->request->input('npm');
 
-    //         FROM keuangan.spp_mhs AS spp WITH(NOLOCK)
-    //         JOIN pdrd.reg_pd AS rpd WITH(NOLOCK) ON spp.id_reg_pd = rpd.id_reg_pd AND rpd.soft_delete = 0
-    //         JOIN keuangan.kelas_ukt AS kls WITH(NOLOCK) ON spp.id_kelas_ukt = kls.id_kelas_ukt AND kls.soft_delete = 0
-    //         JOIN ref.semester AS smt WITH(NOLOCK) ON spp.id_smt = smt.id_smt AND smt.expired_date IS NULL
+        try {
+            $query = "SELECT
+            spp.id_spp_mhs,
+            spp.tgl_bayar,
+            spp.nominal,
+            spp.kode_pembayaran,
+            spp.nomor_pin,
+            spp.kode_akses,
+            spp.bill_ref,
+            spp.flag_by,
+            spp.ket,
+            kls.nm_kelas_ukt,
+            kls.nominal_ukt,
+            smt.nm_smt,
+            pd.nm_pd,
+            reg.nipd,
+            sms.nm_lemb
+            FROM keuangan.spp_mhs AS spp WITH(NOLOCK)
+            LEFT JOIN keuangan.kelas_ukt AS kls WITH(NOLOCK) ON spp.id_kelas_ukt = kls.id_kelas_ukt AND kls.soft_delete = 0
+            LEFT JOIN ref.semester AS smt WITH(NOLOCK) ON spp.id_smt = smt.id_smt AND smt.expired_date IS NULL
+            LEFT JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON spp.id_reg_pd = reg.id_reg_pd AND reg.soft_delete = 0
+            LEFT JOIN pdrd.peserta_didik AS pd WITH(NOLOCK) ON reg.id_pd = pd.id_pd AND pd.soft_delete = 0
+            LEFT JOIN pdrd.sms AS sms WITH(NOLOCK) ON reg.id_sms = sms.id_sms AND sms.soft_delete = 0
+            WHERE spp.soft_delete = 0 AND reg.nipd = " . $npm . " ";
 
-    //         WHERE spp.soft_delete = 0
-    //         ORDER BY rpd.nm_kelas_ukt " . $sortby . " ";
+            $uktmhs = DB::select($query);
+            if (empty($uktmhs)){
+                return WrapResponse(array('data' => array('npm' => $npm)), 'tidak ada daftar ukt mahasiswa yang ditampilkan berdasarkan npm', FALSE);
+            }
 
-    //         $pagination = CustomPagination($query);
-    //         $query = $pagination['query'];
+            $data = [];
+            foreach ($uktmhs as $value) {
+                $data[] = [
+                    'id_spp_mhs' => $value->id_spp_mhs,
+                    'nama_mahasiswa' => $value->nm_pd,
+                    'npm' => $value->nipd,
+                    'program_studi' => $value->nm_lemb,
+                    'kelas_ukt' => $value->nm_kelas_ukt,
+                    'nominal_kelas_ukt' => $value->nominal_ukt,
+                    'semester' => $value->nm_smt,
+                    'tgl_bayar' => $value->tgl_bayar,
+                    'nominal' => $value->nominal,
+                    'kode_pembayaran' => $value->kode_pembayaran,
+                    'nomor_pin' => $value->nomor_pin,
+                    'kode_akses' => $value->kode_akses,
+                    'bill_ref' => $value->bill_ref,
+                    'flag_by' => $value->flag_by,
+                    'keterangan' => $value->ket
+                ];
+            }
+        } catch (\Throwable $th) {
+            return WrapResponse(array('data' => array('npm' => $npm)), 'gagal  menampilkan daftar ukt mahasiswa berdasarkan npm', FALSE);
+        }
+        return WrapResponse(['data' => $data], 'berhasil menampilkan daftar ukt mahasiswa berdasarkan npm', TRUE);
+    }
 
-    //         $noncas = DB::select($query);
-    //         if (empty($noncas)) {
-    //             return WrapResponse(['data' => null], 'tidak ada daftar kelas ukt yang ditampilkan', FALSE);
-    //         }
+    public function tambah()
+    {
+        InputValidator([
+            'id_kelas_ukt' => 'required|uuid',
+            'id_smt' => 'required|numeric',
+            'id_reg_pd' => 'required|uuid',
+            'tgl_bayar' => 'required|date',
+            'nominal' => 'required|numeric',
+            'kode_pembayaran' => 'required|string',
+            'nomor_pin' => 'required|string',
+            'kode_akses' => 'required|string',
+            'bill_ref' => 'required|string',
+            'flag_by' => 'required|string',
+            'ket' => 'required|string'
+        ]);
 
-    //         $data = [];
-    //         foreach ($noncas as $value) {
-    //             $data[] = [
-    //                 'id_kelas_ukt' => $value->id_kelas_ukt,
-    //                 'nm_kelas_ukt' => $value->nm_kelas_ukt,
-    //                 'nominal_ukt' => $value->nominal_ukt,
-    //                 'create_date' => $value->create_date,
-    //                 'id_creator' => $value->id_creator,
-    //                 'last_update' => $value->last_update,
-    //                 'id_updater' => $value->id_updater,
-    //                 'soft_delete' => $value->soft_delete,
-    //                 'last_sync' => $value->last_sync,
-    //             ];
-    //         }
-    //     } catch (\Throwable $th) {
-    //         return WrapResponse(['data' => null], 'gagal mendapatkan daftar kelas ukt', FALSE);
-    //     }
-    //     return WrapResponse(['data' => $data], 'daftar kelas ukt', TRUE);
-    // }
+        $creatorId = $updateId = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
+        $id_spp_mhs = guid();
+        $id_kelas_ukt = $this->request->input('id_kelas_ukt');
+        $id_smt = $this->request->input('id_smt');
+        $id_reg_pd = $this->request->input('id_reg_pd');
+        $tgl_bayar = $this->request->input('tgl_bayar');
+        $nominal = $this->request->input('nominal');
+        $kode_pembayaran = $this->request->input('kode_pembayaran');
+        $nomor_pin = $this->request->input('nomor_pin');
+        $kode_akses = $this->request->input('kode_akses');
+        $bill_ref = $this->request->input('bill_ref');
+        $flag_by = $this->request->input('flag_by');
+        $ket = $this->request->input('ket');
 
-    // public function add()
-    // {
-    //     InputValidator([
-    //         'nm_kelas_ukt' => 'required',
-    //         'nominal_ukt' => 'required',
-    //     ]);
+        DB::beginTransaction();
+        try {
+            $this->sppmhs->create([
+                'id_spp_mhs' => $id_spp_mhs,
+                'id_kelas_ukt' => $id_kelas_ukt,
+                'id_smt' => $id_smt,
+                'id_reg_pd' => $id_reg_pd,
+                'tgl_bayar' => $tgl_bayar,
+                'nominal' => $nominal,
+                'kode_pembayaran' => $kode_pembayaran,
+                'nomor_pin' => $nomor_pin,
+                'kode_akses' => $kode_akses,
+                'bill_ref' => $bill_ref,
+                'flag_by' => $flag_by,
+                'ket' => $ket,
+                'soft_delete' => 0,
+                'create_date' => currDateTime(),
+                'id_creator' => $creatorId,
+                'last_update' => currDateTime(),
+                'id_updater' => $updateId,
+                'last_sync' => currDateTime(),
+            ]);
+            DB::commit();
+            return WrapResponse(array('data' => array('id_spp_mhs' => $id_spp_mhs)), 'sukses menambahkan ukt mahasiswa', TRUE);
+        } catch (ModelNotFoundException $mnfe) {
+            DB::rollBack();
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+            return WrapResponse(array('data' => array('id_spp_mhs' => $id_spp_mhs)), 'ukt mahasiswa tidak bisa ditambahkan', FALSE);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
+            return WrapResponse(['data' => null], 'gagal menambahkan ukt mahasiwa', FALSE);
+        }
+    }
 
-    //     $id_kelas_ukt = guid();
-    //     $nm_kelas_ukt = $this->request->input('nm_kelas_ukt');
-    //     $nominal_ukt = $this->request->input('nominal_ukt');
-    //     $id_creator = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
-    //     $id_updater = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
+    public function ubah()
+    {
+        InputValidator([
+            'id_spp_mhs' => 'required|uuid',
+            'id_kelas_ukt' => 'required|uuid',
+            'id_smt' => 'required|numeric',
+            'id_reg_pd' => 'required|uuid',
+            'tgl_bayar' => 'required|date',
+            'nominal' => 'required|numeric',
+            'kode_pembayaran' => 'required|string',
+            'nomor_pin' => 'required|string',
+            'kode_akses' => 'required|string',
+            'bill_ref' => 'required|string',
+            'flag_by' => 'required|string',
+            'ket' => 'required|string'
+        ]);
 
-    //     DB::beginTransaction();
-    //     try {
-    //         $this->kelasukt->create([
-    //             'id_kelas_ukt' => $id_kelas_ukt,
-    //             'nm_kelas_ukt' => $nm_kelas_ukt,
-    //             'nominal_ukt' => $nominal_ukt,
-    //             'soft_delete' => 0,
-    //             'create_date' => currDateTime(),
-    //             'id_creator' => $id_creator,
-    //             'last_update' => currDateTime(),
-    //             'id_updater' => $id_updater,
-    //             'last_sync' => currDateTime(),
-    //         ]);
+        $creatorId = $updateId = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
+        $id_spp_mhs = $this->request->input('id_spp_mhs');
+        $id_kelas_ukt = $this->request->input('id_kelas_ukt');
+        $id_smt = $this->request->input('id_smt');
+        $id_reg_pd = $this->request->input('id_reg_pd');
+        $tgl_bayar = $this->request->input('tgl_bayar');
+        $nominal = $this->request->input('nominal');
+        $kode_pembayaran = $this->request->input('kode_pembayaran');
+        $nomor_pin = $this->request->input('nomor_pin');
+        $kode_akses = $this->request->input('kode_akses');
+        $bill_ref = $this->request->input('bill_ref');
+        $flag_by = $this->request->input('flag_by');
+        $ket = $this->request->input('ket');
 
-    //         DB::commit();
-    //         return WrapResponse(array('data' => array('id_kelas_ukt' => $id_kelas_ukt)), 'sukses menambahkan kelas ukt', TRUE);
-    //     } catch (ModelNotFoundException $mnfe) {
-    //         DB::rollBack();
-    //         Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
-    //         return WrapResponse(['data' => null], 'kelas ukt tidak dapat ditambahkan', FALSE);
-    //     } catch (Exception $e) {
-    //         DB::rollBack();
-    //         Log::error($e->getMessage() . ' on line ' . $e->getLine());
-    //         return WrapResponse(['data' => null], 'gagal menambahkan kelas ukt', FALSE);
-    //     }
-    // }
+        DB::beginTransaction();
+        try {
+            $uktmhs = $this->sppmhs->where('id_spp_mhs', $id_spp_mhs)->first();
+            if (!$uktmhs) return WrapResponse(['data' => null], 'daftar ukt mahasiswa tidak ditemukan atau tidak terdaftar', FALSE);
 
-    // public function update()
-    // {
-    //     InputValidator([
-    //         'id_kelas_ukt' => 'required|uuid',
-    //         'nm_kelas_ukt' => 'required',
-    //         'nominal_ukt' => 'required|numeric',
-    //     ]);
+            $uktmhs->update([
+                'id_kelas_ukt' => $id_kelas_ukt,
+                'id_smt' => $id_smt,
+                'id_reg_pd' => $id_reg_pd,
+                'tgl_bayar' => $tgl_bayar,
+                'nominal' => $nominal,
+                'kode_pembayaran' => $kode_pembayaran,
+                'nomor_pin' => $nomor_pin,
+                'kode_akses' => $kode_akses,
+                'bill_ref' => $bill_ref,
+                'flag_by' => $flag_by,
+                'ket' => $ket,
+                'last_update' => currDateTime(),
+                'id_updater' => $updateId,
+                'last_sync' => currDateTime(),
+            ]);
 
-    //     $id_kelas_ukt = $this->request->input('id_kelas_ukt');
-    //     $nm_kelas_ukt = $this->request->input('nm_kelas_ukt');
-    //     $nominal_ukt = $this->request->input('nominal_ukt');
-    //     $id_updater = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
+            DB::commit();
+            return WrapResponse(['data' => null], 'sukses mengubah ukt mahasiswa', TRUE);
+        } catch (ModelNotFoundException $mnfe) {
+            DB::rollBack();
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+            return WrapResponse(['data' => null], 'ukt mahasiswa tidak bisa diubah', FALSE);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
+            return WrapResponse(['data' => null], 'gagal mengubah ukt mahasiwa', FALSE);
+        }
+    }
 
-    //     DB::beginTransaction();
-    //     try {
-    //         $kelasukt = $this->kelasukt->where('id_kelas_ukt', $id_kelas_ukt)->first();
-    //         if (!$kelasukt) return WrapResponse(['data' => null], 'kelas ukt tidak ditemukan atau tidak terdaftar', FALSE);
+    public function hapus()
+    {
+        InputValidator([
+            'id_spp_mhs' => 'required|uuid'
+        ]);
 
-    //         $this->kelasukt->update([
-    //             'nm_kelas_ukt' => $nm_kelas_ukt,
-    //             'nominal_ukt' => $nominal_ukt,
-    //             'soft_delete' => 0,
-    //             'last_update' => currDateTime(),
-    //             'id_updater' => $id_updater,
-    //         ]);
+        $creatorId = $updateId = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
+        $id_spp_mhs = $this->request->input('id_spp_mhs');
 
-    //         DB::commit();
-    //         return WrapResponse(array('data' => array('id_kelas_ukt' => $id_kelas_ukt)), 'sukses menambahkan kelas ukt', TRUE);
-    //     } catch (ModelNotFoundException $mnfe) {
-    //         DB::rollBack();
-    //         Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
-    //         return WrapResponse(['data' => null], 'kelas ukt tidak dapat ditambahkan', FALSE);
-    //     } catch (Exception $e) {
-    //         DB::rollBack();
-    //         Log::error($e->getMessage() . ' on line ' . $e->getLine());
-    //         return WrapResponse(['data' => null], 'gagal menambahkan kelas ukt', FALSE);
-    //     }
-    // }
+        DB::beginTransaction();
+        try {
+            $uktmhs = $this->sppmhs->where('id_spp_mhs', $id_spp_mhs)->first();
+            if (!$uktmhs) return WrapResponse(['data' => null], 'daftar ukt mahasiswa tidak ditemukan atau tidak terdaftar', FALSE);
 
-    // public function delete()
-    // {
-    //     $id_updater = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
-    //     $id_kelas_ukt = $this->request->input('id_kelas_ukt');
+            $uktmhs->update([
+                'soft_delete' => 1,
+                'last_update' => currDateTime(),
+                'id_updater' => $updateId,
+                'last_sync' => currDateTime(),
+            ]);
 
-    //     InputValidator([
-    //         'id_kelas_ukt' => 'required|uuid',
-    //     ]);
-
-    //     DB::beginTransaction();
-    //     try {
-    //         $this->kelasukt->where('id_kelas_ukt', $id_kelas_ukt)->update([
-    //             'soft_delete' => 1,
-    //             'last_update' => currDateTime(),
-    //             'id_updater' => $id_updater
-    //         ]);
-    //         DB::commit();
-    //         return WrapResponse(array('data' => array('id_kelas_ukt' => $id_kelas_ukt)), 'berhasil menghapus data kelas ukt akademik', TRUE);
-    //     } catch (Exception $e) {
-    //         DB::rollBack();
-    //         Log::error('Error on ' . $e->getMessage() . ' in line ' . $e->getLine());
-    //         return WrapResponse(['data' => null], 'gagal menghapus data kelas ukt akademik', FALSE);
-    //     }
-    // }
+            DB::commit();
+            return WrapResponse(['data' => null], 'sukses menghapus ukt mahasiswa', TRUE);
+        } catch (ModelNotFoundException $mnfe) {
+            DB::rollBack();
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+            return WrapResponse(['data' => null], 'ukt mahasiswa tidak bisa dihapus', FALSE);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
+            return WrapResponse(['data' => null], 'gagal menghapus ukt mahasiwa', FALSE);
+        }
+    }
 }

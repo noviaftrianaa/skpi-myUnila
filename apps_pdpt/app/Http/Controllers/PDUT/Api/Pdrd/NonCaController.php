@@ -22,7 +22,7 @@ class NonCaController extends Controller
         $this->nonca = new NonCa();
     }
 
-    public function list()
+    public function daftar()
     {
         InputValidator([
             'page' => 'numeric|min:1',
@@ -170,7 +170,7 @@ class NonCaController extends Controller
         return WrapResponse(['data' => $data], 'detail non citivitas akademik', TRUE);
     }
 
-    public function add()
+    public function tambah()
     {
         InputValidator([
             'id_negara' => 'required|alpha',
@@ -251,7 +251,7 @@ class NonCaController extends Controller
         }
     }
 
-    public function update()
+    public function ubah()
     {
         $creatorId = $updateId = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
         $id_orang = $this->request->input('id_orang');
@@ -331,7 +331,7 @@ class NonCaController extends Controller
         }
     }
 
-    public function delete()
+    public function hapus()
     {
         $creatorId = $updateId = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
         $id_orang = $this->request->input('id_orang');

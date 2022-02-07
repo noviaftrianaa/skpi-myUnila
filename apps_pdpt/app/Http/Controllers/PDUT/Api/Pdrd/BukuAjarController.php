@@ -25,7 +25,7 @@ class BukuAjarController extends Controller
         $this->tulis_buku_ajar = new TulisBukuAjar();
     }
 
-    public function list()
+    public function daftar()
     {
         InputValidator([
             'page' => 'numeric|min:1',
@@ -82,7 +82,7 @@ class BukuAjarController extends Controller
         return WrapResponse(['data' => $data], 'daftar buku ajar', TRUE);
     }
 
-    public function listById()
+    public function daftar_id()
     {
         InputValidator([
             'id_sdm' => 'required|uuid',
@@ -239,7 +239,7 @@ class BukuAjarController extends Controller
         return WrapResponse(['data' => $data], 'Detail Buku Ajar', TRUE);
     }
 
-    public function add()
+    public function tambah()
     {
         InputValidator([
             'id_litabmas' => 'required|uuid',
@@ -414,7 +414,7 @@ class BukuAjarController extends Controller
         }
     }
 
-    public function update()
+    public function ubah()
     {
         InputValidator([
             'id_buku_ajar' => 'required|uuid',
@@ -588,7 +588,7 @@ class BukuAjarController extends Controller
         }
     }
 
-    public function delete()
+    public function hapus()
     {
         $creatorId = $updateId = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
         $id_buku_ajar = $this->request->input('id_buku_ajar');

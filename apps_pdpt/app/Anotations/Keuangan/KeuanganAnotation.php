@@ -1,14 +1,12 @@
 <?php
 
-//  KELAS UKT //
-
 /**
  * @OA\Get(
- *     path="/keuangan/list_kelasukt",
+ *     path="/keuangan/kelasukt/daftar",
  *     tags={"Keuangan"},
  *     summary="Mendapatkan Daftar Kelas UKT",
  *     description="Menampilkan Daftar Kelas UKT",
- *     operationId="getKelasUkt",
+ *     operationId="daftarKelasUkt",
  *     @OA\Parameter(
  *          name="page",
  *          description="",
@@ -56,10 +54,10 @@
  * )
  */
 
- /**
+/**
  * @OA\Post (
- *      path="/keuangan/add_kelasukt",
- *      operationId="addKelasUkt",
+ *      path="/keuangan/kelasukt/tambah",
+ *      operationId="tambahKelasUkt",
  *      tags={"Keuangan"},
  *      summary="Tambah Kelas UKT",
  *      description="Menambah Kelas UKT",
@@ -88,10 +86,10 @@
  *     )
  */
 
- /**
+/**
  * @OA\Put (
- *      path="/keuangan/update_kelasukt",
- *      operationId="updateKelasUkt",
+ *      path="/keuangan/kelasukt/ubah",
+ *      operationId="ubahKelasUkt",
  *      tags={"Keuangan"},
  *      summary="Ubah Kelas UKT",
  *      description="Mengubah Kelas UKT",
@@ -121,10 +119,10 @@
  *     )
  */
 
- /**
+/**
  * @OA\Delete (
- *      path="/keuangan/delete_kelasukt",
- *      operationId="deleteKelasUkt",
+ *      path="/keuangan/kelasukt/hapus",
+ *      operationId="hapusKelasUkt",
  *      tags={"Keuangan"},
  *      summary="Hapus Kelas UKT",
  *      description="Menghapus Kelas UKT",
@@ -152,15 +150,13 @@
  *     )
  */
 
-//  GAJI SDM //
-
- /**
+/**
  * @OA\Get(
- *     path="/keuangan/list_gajisdm",
+ *     path="/keuangan/gajisdm/daftar",
  *     tags={"Keuangan"},
  *     summary="Mendapatkan Daftar Riwayat Gaji Berkala SDM",
  *     description="Menampilkan Daftar Riwayat Gaji Berkala SDM",
- *     operationId="getGajiSdm",
+ *     operationId="daftarGajiSdm",
  *     @OA\Parameter(
  *          name="page",
  *          description="",
@@ -208,10 +204,10 @@
  * )
  */
 
-  /**
+/**
  * @OA\Post (
- *      path="/keuangan/add_gajisdm",
- *      operationId="addGajiSdm",
+ *      path="/keuangan/gajisdm/tambah",
+ *      operationId="tambahGajiSdm",
  *      tags={"Keuangan"},
  *      summary="Tambah Riwayat Gaji Berkala SDM",
  *      description="Menambah Riwayat Gaji Berkala SDM",
@@ -246,10 +242,10 @@
  *     )
  */
 
- /**
+/**
  * @OA\Put (
- *      path="/keuangan/update_gajisdm",
- *      operationId="updateGajiSdm",
+ *      path="/keuangan/gajisdm/ubah",
+ *      operationId="ubahGajiSdm",
  *      tags={"Keuangan"},
  *      summary="Ubah Riwayat Gaji Berkala SDM",
  *      description="Mengubah Riwayat Gaji Berkala SDM",
@@ -285,10 +281,10 @@
  *     )
  */
 
- /**
+/**
  * @OA\Delete (
- *      path="/keuangan/delete_gajisdm",
- *      operationId="deleteGajiSdm",
+ *      path="/keuangan/gajisdm/hapus",
+ *      operationId="hapusGajiSdm",
  *      tags={"Keuangan"},
  *      summary="Hapus Riwayat Gaji Berkala SDM",
  *      description="Menghapus Riwayat Gaji Berkala SDM",
@@ -298,6 +294,210 @@
  *      @OA\JsonContent(
  *          required={"id_rwy_gaji_berkala"},
  *          @OA\Property(property="id_rwy_gaji_berkala", type="string", format="text", example="94b5352e-e352-4e6b-83cc-a1e5737b1545")
+ *          ),
+ *      ),
+ *      @OA\Response(
+ *          response=200,
+ *          description="Successful operation",
+ *       ),
+ *      @OA\Response(
+ *          response=401,
+ *          description="Unauthenticated",
+ *      ),
+ *      @OA\Response(
+ *          response=403,
+ *          description="Forbidden"
+ *      ),
+ *      security={{"bearer_token":{}}}
+ *     )
+ */
+
+
+/**
+ * @OA\Get(
+ *     path="/keuangan/uktmhs/daftar",
+ *     tags={"Keuangan"},
+ *     summary="Mendapatkan Daftar UKT Mahasiswa",
+ *     description="Menampilkan Daftar UKT Mahasiswa",
+ *     operationId="daftarUktMhs",
+ *     @OA\Parameter(
+ *          name="page",
+ *          description="",
+ *          example="1",
+ *          required=false,
+ *          in="query",
+ *          @OA\Schema(
+ *              type="number"
+ *          )
+ *     ),
+ *     @OA\Parameter(
+ *          name="limit",
+ *          description="",
+ *          example="25",
+ *          required=false,
+ *          in="query",
+ *          @OA\Schema(
+ *              type="number"
+ *          )
+ *     ),
+ *     @OA\Parameter(
+ *          name="sort",
+ *          description="",
+ *          example="DESC",
+ *          required=false,
+ *          in="query",
+ *          @OA\Schema(
+ *              type="string"
+ *          )
+ *     ),
+ *      @OA\Response(
+ *          response=200,
+ *          description="Successful operation",
+ *       ),
+ *      @OA\Response(
+ *          response=401,
+ *          description="Unauthenticated",
+ *      ),
+ *      @OA\Response(
+ *          response=403,
+ *          description="Forbidden"
+ *      ),
+ *      security={{"bearer_token":{}}}
+ *     )
+ * )
+ */
+
+/**
+ * @OA\Get(
+ *      path="/keuangan/uktmhs/daftar_id/",
+ *      tags={"Keuangan"},
+ *      summary="Mendapatkan Daftar UKT Mahasiswa Berdasarkan NPM",
+ *      description="Menampilkan Daftar UKT Mahasiswa Berdasarkan NPM",
+ *      operationId="daftar_idUktMhs",
+ * @OA\Parameter(
+ *      name="npm",
+ *      description="",
+ *      example="1705110111",
+ *      required=true,
+ *      in="query",
+ *     @OA\Schema(
+ *        type="string"
+ *    )
+ * ),
+ * @OA\Response(
+ *    response=200,
+ *   description="Successful operation",
+ * ),
+ *
+ * @OA\Response(
+ *   response=401,
+ *  description="Unauthenticated",
+ * ),
+ * @OA\Response(
+ *  response=403,
+ * description="Forbidden"
+ * ),
+ * security={{"bearer_token":{}}}
+ *
+ * )
+ */
+
+/**
+ * @OA\Post (
+ *      path="/keuangan/uktmhs/tambah",
+ *      operationId="tambahUktMhs",
+ *      tags={"Keuangan"},
+ *      summary="Tambah UKT Mahasiswa",
+ *      description="Menambah UKT Mahasiswa",
+ *      @OA\RequestBody(
+ *      required=true,
+ *      description="Menambah UKT Mahasiswa",
+ *      @OA\JsonContent(
+ *          required={"id_kelas_ukt","id_smt","id_reg_pd","tgl_bayar","nominal","kode_pembayaran","nomor_pin","kode_akses","bill_ref","flag_by","ket"},
+ *               @OA\Property(property="id_kelas_ukt", type="string", format="text", example="5e37d177-cd63-4421-bfb3-a34390589087"),
+ *               @OA\Property(property="id_smt", type="string", format="text", example="20221"),
+ *               @OA\Property(property="id_reg_pd", type="string", format="text", example="830c07c0-bc64-4193-b6ad-0000eeb6fc87"),
+ *               @OA\Property(property="tgl_bayar", type="string", format="text", example="2022-01-11 12:23:24.000"),
+ *               @OA\Property(property="nominal", type="number", format="number", example="3000000"),
+ *               @OA\Property(property="kode_pembayaran", type="string", format="text", example="11"),
+ *               @OA\Property(property="nomor_pin", type="string", format="text", example="11"),
+ *               @OA\Property(property="kode_akses", type="string", format="text", example="11"),
+ *               @OA\Property(property="bill_ref", type="string", format="text", example="11"),
+ *               @OA\Property(property="flag_by", type="string", format="text", example="11"),
+ *               @OA\Property(property="ket", type="string", format="text", example="11"),
+ *          ),
+ *      ),
+ *      @OA\Response(
+ *          response=200,
+ *          description="Successful operation",
+ *       ),
+ *      @OA\Response(
+ *          response=401,
+ *          description="Unauthenticated",
+ *      ),
+ *      @OA\Response(
+ *          response=403,
+ *          description="Forbidden"
+ *      ),
+ *      security={{"bearer_token":{}}}
+ *     )
+ */
+
+/**
+ * @OA\Put (
+ *      path="/keuangan/uktmhs/ubah",
+ *      operationId="ubahUktMhs",
+ *      tags={"Keuangan"},
+ *      summary="Ubah UKT Mahasiswa",
+ *      description="Mengubah UKT Mahasiswa",
+ *      @OA\RequestBody(
+ *      required=true,
+ *      description="Mengubah UKT Mahasiswa",
+ *      @OA\JsonContent(
+ *          required={"id_spp_mhs","id_kelas_ukt","id_smt","id_reg_pd","tgl_bayar","nominal","kode_pembayaran","nomor_pin","kode_akses","bill_ref","flag_by","ket"},
+ *           @OA\Property(property="id_spp_mhs", type="string", format="text", example=""),
+ *              @OA\Property(property="id_kelas_ukt", type="string", format="text", example=""),
+ *               @OA\Property(property="id_smt", type="string", format="text", example=""),
+ *               @OA\Property(property="id_reg_pd", type="string", format="text", example=""),
+ *               @OA\Property(property="tgl_bayar", type="string", format="text", example=""),
+ *               @OA\Property(property="nominal", type="number", format="number", example=""),
+ *               @OA\Property(property="kode_pembayaran", type="string", format="text", example=""),
+ *               @OA\Property(property="nomor_pin", type="string", format="text", example=""),
+ *               @OA\Property(property="kode_akses", type="string", format="text", example=""),
+ *               @OA\Property(property="bill_ref", type="string", format="text", example=""),
+ *               @OA\Property(property="flag_by", type="string", format="text", example=""),
+ *               @OA\Property(property="ket", type="string", format="text", example=""),
+ *          ),
+ *      ),
+ *      @OA\Response(
+ *          response=200,
+ *          description="Successful operation",
+ *       ),
+ *      @OA\Response(
+ *          response=401,
+ *          description="Unauthenticated",
+ *      ),
+ *      @OA\Response(
+ *          response=403,
+ *          description="Forbidden"
+ *      ),
+ *      security={{"bearer_token":{}}}
+ *     )
+ */
+
+/**
+ * @OA\Delete (
+ *      path="/keuangan/uktmhs/hapus",
+ *      operationId="hapusUktMhs",
+ *      tags={"Keuangan"},
+ *      summary="Hapus UKT Mahasiswa",
+ *      description="Menghapus UKT Mahasiswa",
+ *      @OA\RequestBody(
+ *      required=true,
+ *      description="Menghapus UKT Mahasiswa",
+ *      @OA\JsonContent(
+ *          required={"id_spp_mhs"},
+ *          @OA\Property(property="id_spp_mhs", type="string", format="text", example="")
  *          ),
  *      ),
  *      @OA\Response(

@@ -19,7 +19,7 @@ class SdmDosenController extends Controller
         $this->sdm = new Sdm();
     }
 
-    public function list()
+    public function daftar()
     {
         InputValidator([
             'page' => 'numeric|min:1',
@@ -102,7 +102,7 @@ class SdmDosenController extends Controller
         return WrapResponse(['data' => $data], 'daftar dosen', TRUE);
     }
 
-    public function listByIdProdi()
+    public function daftar_id()
     {
         InputValidator([
             'id_prodi' => 'required|uuid',

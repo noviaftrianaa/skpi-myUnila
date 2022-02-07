@@ -23,67 +23,60 @@ Route::group([
 
     Route::post('auth/login', 'LoginController@login');
     Route::post('auth/token', 'LoginController@token');
-
     Route::prefix('referensi')->group(base_path('routes/onedata/referensi.php'));
 
     Route::group([
         'namespace' => 'Pdrd',
     ], function () {
 
-
         Route::prefix('keuangan')->group(function () {
-            Route::get('/list_kelasukt', 'KeuanganKelasUktController@list');
-            Route::post('/add_kelasukt', 'KeuanganKelasUktController@add');
-            Route::put('/update_kelasukt', 'KeuanganKelasUktController@update');
-            Route::delete('/delete_kelasukt', 'KeuanganKelasUktController@delete');
+            Route::get('/kelasukt/daftar', 'KeuanganKelasUktController@daftar');
+            Route::post('/kelasukt/tambah', 'KeuanganKelasUktController@tambah');
+            Route::put('/kelasukt/ubah', 'KeuanganKelasUktController@ubah');
+            Route::delete('/kelasukt/hapus', 'KeuanganKelasUktController@hapus');
 
-            Route::get('/list_uktmhs', 'KeuanganUktMhsController@list');
-            Route::post('/add_uktmhs', 'KeuanganUktMhsController@add');
-            Route::put('/update_uktmhs', 'KeuanganUktMhsController@update');
-            Route::delete('/delete_uktmhs', 'KeuanganUktMhsController@delete');
+            Route::get('/uktmhs/daftar', 'KeuanganUktMhsController@daftar');
+            Route::get('/uktmhs/daftar_id', 'KeuanganUktMhsController@daftar_id');
+            Route::post('/uktmhs/tambah', 'KeuanganUktMhsController@tambah');
+            Route::put('/uktmhs/ubah', 'KeuanganUktMhsController@ubah');
+            Route::delete('/uktmhs/hapus', 'KeuanganUktMhsController@hapus');
 
-            Route::get('/list_gajisdm', 'KeuanganGajiSdmController@list');
-            Route::post('/add_gajisdm', 'KeuanganGajiSdmController@add');
-            Route::put('/update_gajisdm', 'KeuanganGajiSdmController@update');
-            Route::delete('/delete_gajisdm', 'KeuanganGajiSdmController@delete');
+            Route::get('/gajisdm/daftar', 'KeuanganGajiSdmController@daftar');
+            Route::post('/gajisdm/tambah', 'KeuanganGajiSdmController@tambah');
+            Route::put('/gajisdm/ubah', 'KeuanganGajiSdmController@ubah');
+            Route::delete('/gajisdm/hapus', 'KeuanganGajiSdmController@hapus');
         });
 
-        Route::prefix('dosen')->group(function () {
-            Route::get('/list', 'SdmDosenController@list');
-            Route::get('/list_id', 'SdmDosenController@listByIdProdi');
-            Route::get('/detail', 'SdmDosenController@detail');
+        Route::prefix('sdm')->group(function () {
+            Route::get('dosen/daftar', 'SdmDosenController@daftar');
+            Route::get('dosen/daftar_id', 'SdmDosenController@daftar_id');
+            Route::get('dosen/detail', 'SdmDosenController@detail');
+
+            Route::get('tendik/daftar', 'SdmTendikController@daftar');
+            Route::get('tendik/daftar_id', 'SdmTendikController@daftar_id');
+            Route::get('tendik/detail', 'SdmTendikController@detail');
+
+            Route::get('nonca/daftar', 'NonCaController@daftar');
+            Route::get('nonca/detail', 'NonCaController@detail');
+            Route::post('nonca/tambah', 'NonCaController@tambah');
+            Route::put('nonca/ubah', 'NonCaController@ubah');
+            Route::delete('nonca/hapus', 'NonCaController@hapus');
         });
 
-        Route::prefix('tendik')->group(function () {
-            Route::get('/list', 'SdmTendikController@list');
-            Route::get('/list_id', 'SdmTendikController@listByIdProdi');
-            Route::get('/detail', 'SdmTendikController@detail');
-        });
+        Route::prefix('buku')->group(function () {
+            Route::get('ajar/daftar', 'BukuAjarController@daftar');
+            Route::get('ajar/daftar_id', 'BukuAjarController@listById');
+            Route::get('ajar/detail', 'BukuAjarController@detail');
+            Route::post('ajar/tambah', 'BukuAjarController@tambah');
+            Route::put('ajar/ubah', 'BukuAjarController@ubah');
+            Route::delete('ajar/hapus', 'BukuAjarController@hapus');
 
-        Route::prefix('nonca')->group(function () {
-            Route::get('/list', 'NonCaController@list');
-            Route::get('/detail', 'NonCaController@detail');
-            Route::post('/add', 'NonCaController@add');
-            Route::put('/update', 'NonCaController@update');
-            Route::delete('/delete', 'NonCaController@delete');
-        });
-
-        Route::prefix('buku_ajar')->group(function () {
-            Route::get('list', 'BukuAjarController@list');
-            Route::get('list_id', 'BukuAjarController@listById');
-            Route::get('detail', 'BukuAjarController@detail');
-            Route::post('add', 'BukuAjarController@add');
-            Route::put('update', 'BukuAjarController@update');
-            Route::delete('delete', 'BukuAjarController@delete');
-        });
-
-        Route::prefix('buku_referensi')->group(function () {
-            Route::get('list', 'BukuReferensiController@list');
-            Route::get('list_id', 'BukuReferensiController@listById');
-            Route::get('detail', 'BukuReferensiController@detail');
-            Route::post('add', 'BukuReferensiController@add');
-            Route::put('update', 'BukuReferensiController@update');
-            Route::delete('delete', 'BukuReferensiController@delete');
+            Route::get('referensi/daftar', 'BukuReferensiController@daftar');
+            Route::get('referensi/daftar_id', 'BukuReferensiController@daftar_id');
+            Route::get('referensi/detail', 'BukuReferensiController@detail');
+            Route::post('referensi/tambah', 'BukuReferensiController@tambah');
+            Route::put('referensi/ubah', 'BukuReferensiController@ubah');
+            Route::delete('referensi/hapus', 'BukuReferensiController@hapus');
         });
 
         Route::prefix('penelitian')->group(function () {

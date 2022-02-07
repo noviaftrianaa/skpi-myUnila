@@ -3,10 +3,10 @@
 /**
  * @OA\Post(
  *  path="/auth/login",
- *  summary="Authentication",
- *  description="Mendapatkan token untuk otorisasi",
+ *  summary="Mendapatkan token untuk otorisasi",
+ *  description="Dapatkan token otorisasi",
  *  operationId="authLogin",
- *  tags={"Auth"},
+ *  tags={"Akses"},
  *  @OA\RequestBody(
  *      required=true,
  *      description="Pass user credentials",
@@ -34,10 +34,10 @@
 /**
  * @OA\Post(
  * path="/auth/token",
- * summary="Authentication",
+ * summary="Mengecek Waktu Kadarluasa Token",
  * description="Cek token kadarluasa",
  * operationId="authToken",
- * tags={"Auth"},
+ * tags={"Akses"},
  * @OA\RequestBody(
  *    required=true,
  *    description="Masukan token",

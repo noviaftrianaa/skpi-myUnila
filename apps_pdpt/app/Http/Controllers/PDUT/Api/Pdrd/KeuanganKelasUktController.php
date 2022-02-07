@@ -22,7 +22,7 @@ class KeuanganKelasUktController extends Controller
         $this->kelasukt = new KelasUkt();
     }
 
-    public function list()
+    public function daftar()
     {
         InputValidator([
             'page' => 'numeric|min:1',
@@ -72,7 +72,7 @@ class KeuanganKelasUktController extends Controller
         return WrapResponse(['data' => $data], 'daftar kelas ukt', TRUE);
     }
 
-    public function add()
+    public function tambah()
     {
         InputValidator([
             'nm_kelas_ukt' => 'required',
@@ -112,7 +112,7 @@ class KeuanganKelasUktController extends Controller
         }
     }
 
-    public function update()
+    public function ubah()
     {
         InputValidator([
             'id_kelas_ukt' => 'required|uuid',
@@ -150,7 +150,7 @@ class KeuanganKelasUktController extends Controller
         }
     }
 
-    public function delete()
+    public function hapus()
     {
         $id_updater = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
         $id_kelas_ukt = $this->request->input('id_kelas_ukt');

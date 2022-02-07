@@ -22,7 +22,7 @@ class KeuanganGajiSdmController extends Controller
         $this->rwygaji = new RwyGajiBerkala();
     }
 
-    public function list()
+    public function daftar()
     {
         InputValidator([
             'page' => 'numeric|min:1',
@@ -126,7 +126,7 @@ class KeuanganGajiSdmController extends Controller
         return WrapResponse(['data' => $data], 'daftar gaji sdm', TRUE);
     }
 
-    public function add()
+    public function tambah()
     {
         InputValidator([
             'id_sdm' => 'required|uuid',
@@ -187,7 +187,7 @@ class KeuanganGajiSdmController extends Controller
         }
     }
 
-    public function update()
+    public function ubah()
     {
         InputValidator([
             'id_rwy_gaji_berkala' => 'required|uuid',
@@ -218,7 +218,7 @@ class KeuanganGajiSdmController extends Controller
             $rwygaji = $this->rwygaji->where('id_rwy_gaji_berkala', $id_rwy_gaji_berkala)->first();
             if (!$rwygaji) return WrapResponse(['data' => null], 'gaji sdm tidak ditemukan atau tidak terdaftar', FALSE);
 
-            $gaji = $this->rwygaji->update([
+            $rwygaji->update([
                 'id_sdm' => $id_sdm,
                 'id_pangkat_gol' => $id_pangkat_gol,
                 'sk_gaji_berkala' => $sk_gaji_berkala,
@@ -243,7 +243,7 @@ class KeuanganGajiSdmController extends Controller
         }
     }
 
-    public function delete()
+    public function hapus()
     {
         $id_rwy_gaji_berkala = $this->request->input('id_rwy_gaji_berkala');
         $id_updater = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
