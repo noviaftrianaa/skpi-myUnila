@@ -6,7 +6,7 @@
 		<div class="col-md-4 col-sm-6 col-12">
 			<div class="info-box bg-light">
 				<div class="info-box-content text-bold">
-					<span class="info-box-text text-center text-muted">Pengguna Aktif</span>
+					<span class="info-box-text text-center text-muted">Pengguna</span>
 					<span class="info-box-number text-center text-muted mb-0">{{$data->count()}}</span>
 				</div>
 			</div>
