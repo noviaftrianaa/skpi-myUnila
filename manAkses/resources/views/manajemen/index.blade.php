@@ -3,19 +3,51 @@
 
 @section('content')
     <div class="row">
-		<div class="col-md-4 col-sm-6 col-12">
-			<div class="info-box bg-light">
-				<div class="info-box-content text-bold">
-					<span class="info-box-text text-center text-muted">Pengguna</span>
-					<span class="info-box-number text-center text-muted mb-0">{{$data->count()}}</span>
+		<div class="col-lg-3 col-6">
+			<!-- small card -->
+			<div class="small-box bg-warning">
+				<div class="inner">
+					<h3>{{$apps->count()}}</h3>
+					<p>Application</p>
+				</div>
+				<div class="icon">
+					<i class="fab fa-app-store"></i>
 				</div>
 			</div>
 		</div>
-		<div class="col-md-4 col-sm-6 col-12">
-			<div class="info-box bg-light">
-				<div class="info-box-content text-bold">
-					<span class="info-box-text text-center text-muted">Aplikasi</span>
-					<span class="info-box-number text-center text-muted mb-0">{{$apps->count()}}</span>
+		<div class="col-lg-3 col-6">
+			<!-- small card -->
+			<div class="small-box bg-warning">
+				<div class="inner">
+					<h3>{{$data->count()}}</h3>
+					<p>User Registrations</p>
+				</div>
+				<div class="icon">
+					<i class="fas fa-user-plus"></i>
+				</div>
+			</div>
+		</div>
+		<div class="col-lg-3 col-6">
+			<!-- small card -->
+			<div class="small-box bg-warning">
+				<div class="inner">
+					<h3>{{$role->count()}}</h3>
+					<p>Roles</p>
+				</div>
+				<div class="icon">
+					<i class="fab fa-critical-role"></i>
+				</div>
+			</div>
+		</div>
+		<div class="col-lg-3 col-6">
+			<!-- small card -->
+			<div class="small-box bg-warning">
+				<div class="inner">
+					<h3>{{$unit->count()}}</h3>
+					<p>Units</p>
+				</div>
+				<div class="icon">
+					<i class="fas fa-sitemap"></i>
 				</div>
 			</div>
 		</div>

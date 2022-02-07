@@ -8,6 +8,7 @@ use DataTables;
 use App\Models\User;
 use App\Models\Aplikasi;
 use App\Models\RolePengguna;
+use App\Models\UnitOrganisasi;
 use App\Models\LargeObject;
 use Session;
 use Cookie;
@@ -39,12 +40,16 @@ class HomeController extends Controller
         } else {
             $datas = User::all();
             $apps = Aplikasi::all();
+            $unit = UnitOrganisasi::all();
+            $role = Rolepengguna::all();
             $db = DB::table('man_akses.versi_db')->first();
     
             return view('manajemen.index', [
                 'data'  => $datas,
                 'apps'  => $apps,
-                'db'    => $db
+                'db'    => $db,
+                'role'  => $role,
+                'unit'  => $unit
             ]);
         }
     }
