@@ -1,6 +1,18 @@
 @extends('template.main.app')
 @section('title','Dashboard')
 
+@push('css')
+<style>
+    .card {
+        height: 175px;
+    }
+    .img-fluid {
+      width: auto;
+      height: auto;
+    }
+</style>
+@endpush
+
 @section('content')
     <h3 class="text-muted text-bold">Integrated Apps</h3>
     <div class="row mb-3">
@@ -11,11 +23,13 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-12 text-center">
-                                <img src="{{ (!is_null($items->largeobject)) ? 'data:image/' . $items->largeobject->mime_type . ';base64,' . $items->largeobject->blob_content : asset('auth/img/logo.png') }}" class="img-fluid" alt="apps">
-                                <p class="text-light text-md"><b>{{$items->nm_aplikasi}}</b></p>
+                                <img src="{{ (!is_null($items->largeobject)) ? 'data:image/' . $items->largeobject->mime_type . ';base64,' . $items->largeobject->blob_content : asset('auth/img/logo.png') }}" class="img-fluid mb-2" alt="apps">
                             </div>
                         </div>
                     </div>
+                </div>
+                <div class="text-center">
+                    <p class="text-sm"><b>{{$items->nm_aplikasi}}</b></p>
                 </div>
             </a>
         </div>
@@ -32,11 +46,13 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-12 text-center">
-                                <img src="{{ (!is_null($items->largeobject)) ? 'data:image/' . $items->largeobject->mime_type . ';base64,' . $items->largeobject->blob_content : asset('auth/img/logo.png') }}" class="img-fluid" alt="apps">
-                                <p class="text-muted text-sm"><b>{{$items->nm_aplikasi}}</b></p>
+                                <img src="{{ (!is_null($items->largeobject)) ? 'data:image/' . $items->largeobject->mime_type . ';base64,' . $items->largeobject->blob_content : asset('auth/img/logo.png') }}" class="img-fluid mb-2" alt="apps">
                             </div>
                         </div>
                     </div>
+                </div>
+                <div class="text-center">
+                    <p class="text-sm"><b>{{$items->nm_aplikasi}}</b></p>
                 </div>
             </a>
         </div>
