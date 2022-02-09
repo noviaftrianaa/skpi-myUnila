@@ -343,17 +343,6 @@ class LembagaController extends Controller
     
     public function listSms(Request $request)
     {
-        $page = 1; $count = 1000;
-        if(!empty($request->page)) {
-            $page = $request->page;
-        }
-        if (!empty($request->count)) {
-            if ($request->count > 50) {
-                $count = 50;
-            } else {
-                $count = $request->count;
-            }
-        }
 
         $listdata = DB::SELECT("SELECT
                 sms.id_sms,
@@ -412,8 +401,6 @@ class LembagaController extends Controller
            return response()->json([
             'success' => true,
             'message' => 'Mendapatkan data',
-            'page' => $page,
-            'count' => $count,
             'data'  => $data
         ], 200);
     }

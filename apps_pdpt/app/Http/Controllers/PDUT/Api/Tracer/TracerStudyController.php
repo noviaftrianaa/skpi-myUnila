@@ -49,28 +49,28 @@ class TracerStudyController extends Controller
                 reg.tgl_keluar AS tgl_lulus, reg.tgl_sk_yudisium AS tgl_wisuda, tc_study.id_hasil_tracer_study, tc_study.create_date AS waktu_data_ditambahkan,
                 tc_study.last_update AS terakhir_diubah, pmb.nm_pembiayaan
             FROM tracer.hasil_tracer_study AS tc_study WITH(NOLOCK)
-            JOIN ref.wilayah AS wilayah WITH(NOLOCK) ON wilayah.id_wil = tc_study.id_wil
+            LEFT JOIN ref.wilayah AS wilayah WITH(NOLOCK) ON wilayah.id_wil = tc_study.id_wil
                 AND wilayah.expired_date IS NULL
             LEFT JOIN (
                 SELECT DISTINCT id_reg_pd, id_pd
                 FROM pdrd.reg_pd WITH(NOLOCK)
                 WHERE soft_delete = 0
             ) AS regis ON regis.id_reg_pd = tc_study.id_reg_pd
-            JOIN pdrd.reg_pd as reg WITH(NOLOCK) ON reg.id_reg_pd = regis.id_reg_pd
+            LEFT JOIN pdrd.reg_pd as reg WITH(NOLOCK) ON reg.id_reg_pd = regis.id_reg_pd
                 AND reg.id_sms= '" . $idProdi . "'
                 AND reg.soft_delete = 0
             JOIN pdrd.peserta_didik AS pd WITH(NOLOCK) ON pd.id_pd = regis.id_pd
                 AND pd.soft_delete = 0
-            JOIN ref.jalur_daftar AS jd WITH(NOLOCK) ON jd.id_jalur_daftar = reg.id_jalur_daftar
+            LEFT JOIN ref.jalur_daftar AS jd WITH(NOLOCK) ON jd.id_jalur_daftar = reg.id_jalur_daftar
                 AND jd.expired_date IS NULL
-            JOIN ref.pembiayaan AS pmb WITH(NOLOCK) ON pmb.id_pembiayaan = reg.id_pembiayaan
+            LEFT JOIN ref.pembiayaan AS pmb WITH(NOLOCK) ON pmb.id_pembiayaan = reg.id_pembiayaan
                 AND jd.expired_date IS NULL
             LEFT JOIN (
                 SELECT MAX(id_smt) as smt, id_reg_pd FROM pdrd.kuliah_mhs WITH(NOLOCK)
                 WHERE soft_delete = 0
                 GROUP BY id_reg_pd
             )AS kuliah ON kuliah.id_reg_pd = reg.id_reg_pd
-            JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_smt = kuliah.smt
+            LEFT JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_smt = kuliah.smt
                 AND kul.id_reg_pd = kuliah.id_reg_pd
                 AND kul.soft_delete = 0
             JOIN pdrd.sms AS sms WITH(NOLOCK) ON  sms.id_sms = reg.id_sms
@@ -96,11 +96,11 @@ class TracerStudyController extends Controller
                     j_kerja.nm_jns_jalur_kerja, tc_study.income_per_bln, tc_study.hub_bidang_kerja, tc_study.tkt_kesesuaian,
                     tc_study.alasan_tidak_sesuai
                     FROM tracer.hasil_tracer_study AS tc_study WITH(NOLOCK)
-                JOIN ref.wilayah AS wilayah WITH(NOLOCK) ON wilayah.id_wil = tc_study.id_wil
+                LEFT JOIN ref.wilayah AS wilayah WITH(NOLOCK) ON wilayah.id_wil = tc_study.id_wil
                     AND wilayah.expired_date IS NULL
-                JOIN ref.bidang_pekerjaan AS b_kerja WITH(NOLOCK) ON b_kerja.id_bid_kerja = tc_study.id_bid_kerja
+                LEFT JOIN ref.bidang_pekerjaan AS b_kerja WITH(NOLOCK) ON b_kerja.id_bid_kerja = tc_study.id_bid_kerja
                     AND b_kerja.expired_date IS NULL
-                JOIN ref.jenis_jalur_pekerjaan AS j_kerja WITH(NOLOCK) ON j_kerja.id_jns_jalur_kerja = tc_study.id_jns_jalur_kerja
+                LEFT JOIN ref.jenis_jalur_pekerjaan AS j_kerja WITH(NOLOCK) ON j_kerja.id_jns_jalur_kerja = tc_study.id_jns_jalur_kerja
                     AND j_kerja.expired_date IS NULL
                 WHERE tc_study.id_reg_pd = '" . $id . "'
                     AND tc_study.soft_delete = 0
@@ -117,11 +117,11 @@ class TracerStudyController extends Controller
                     wilayah.nm_wil, negara.nm_negara, tc_study_ats.jabatan_atasan, tc_study_ats.nm_tmpt_bekerja,
                     tc_study_ats.bidang_tempat_bekerja, tc_study_ats.saran, tc_study_ats.harapan
                 FROM tracer.hasil_tracer_atasan AS tc_study_ats WITH(NOLOCK)
-                JOIN ref.wilayah AS wilayah WITH(NOLOCK) ON wilayah.id_wil = tc_study_ats.id_wil
+                LEFT JOIN ref.wilayah AS wilayah WITH(NOLOCK) ON wilayah.id_wil = tc_study_ats.id_wil
                     AND wilayah.expired_date IS NULL
-                JOIN ref.negara AS negara WITH(NOLOCK) ON negara.id_negara = tc_study_ats.id_negara
+                LEFT JOIN ref.negara AS negara WITH(NOLOCK) ON negara.id_negara = tc_study_ats.id_negara
                     AND wilayah.expired_date IS NULL
-                JOIN tracer.hasil_tracer_study AS tc_study WITH(NOLOCK) ON tc_study.id_hasil_tracer_study = tc_study_ats.id_hasil_tracer_study
+                LEFT JOIN tracer.hasil_tracer_study AS tc_study WITH(NOLOCK) ON tc_study.id_hasil_tracer_study = tc_study_ats.id_hasil_tracer_study
                     AND tc_study.id_reg_pd = '" . $id . "'
                     AND tc_study.soft_delete = 0
                 WHERE tc_study_ats.soft_delete = 0
@@ -134,7 +134,7 @@ class TracerStudyController extends Controller
         $data = [];
         foreach ($data_alumni as $each_data) {
             $data[] = [
-                'id_peserta_didik' => $each_data->id_pd,
+                'id_reg_pd' => $each_data->id_reg_pd,
                 'nama_alumni' => $each_data->nm_pd,
                 'NPM' => $each_data->npm,
                 'program_studi' => $each_data->nm_prodi,
@@ -196,37 +196,42 @@ class TracerStudyController extends Controller
             $tracer = [];
             foreach ($get_data['data'] as $each_data) {
 
-                $dataRegPd = DB::select("
-                    SELECT
-                        reg.id_reg_pd,
-                        reg.nipd AS npm
-                    FROM
-                        pdrd.reg_pd AS reg
-                    WHERE
-                        reg.nipd = ?
-                        AND reg.soft_delete = 0
-                ", [$each_data['npm']]);
-
-                if(is_null($dataRegPd)) continue;
+                // $dataRegPd = DB::select("
+                //     SELECT
+                //         reg.id_reg_pd,
+                //         reg.nipd AS npm
+                //     FROM
+                //         pdrd.reg_pd AS reg
+                //     WHERE
+                //         reg.nipd = ?
+                //         AND reg.soft_delete = 0
+                // ", [$each_data['npm']]);
                 
-                $tracer = HasilTracerStudy::create([
-                    'id_hasil_tracer_study' => guid(),
+                $tracer = HasilTracerStudy::updateOrInsert([
+                    'id_reg_pd' => $each_data['id_reg_pd'],
                     'id_thn_ajaran' => $each_data['id_thn_ajaran'],
-                    'id_reg_pd' => $dataRegPd[0]->id_reg_pd,
+                ],[
+                    'id_hasil_tracer_study' => guid(),
                     'id_bid_kerja' => $each_data['id_bid_kerja'],
-                    // 'id_wil' => $each_data['id_wil'],
+                    'id_wil' => $each_data['id_wil'],
                     'id_smt' => $each_data['id_smt'],
                     'id_jns_jalur_kerja' => $each_data['id_jns_jalur_kerja'],
                     'wkt_pengisian' => $each_data['wkt_pengisian'],
                     'wkt_tunggu' => $each_data['wkt_tunggu'],
+                    'a_kerja_sblm_lulus' => $each_data['a_kerja_sblm_lulus'],
                     'status_lulusan' => $each_data['status_lulusan'],
                     'jns_tmpt_bekerja' => $each_data['jns_tmpt_bekerja'],
+                    'level_perusahaan' => $each_data['level_perusahaan'],
                     'nm_tmpt_bekerja' => $each_data['nm_tmpt_bekerja'],
                     'income_per_bln' => $each_data['income_per_bln'],
+                    'status_jabatan' => $each_data['status_jabatan'],
                     'total_instansi_dilamar' => $each_data['total_instansi_dilamar'],
                     'hub_bidang_kerja' => $each_data['hub_bidang_kerja'],
                     'tkt_kesesuaian' => $each_data['tkt_kesesuaian'],
                     'alasan_tidak_sesuai' => $each_data['alasan_tidak_sesuai'],
+                    'nm_pt_lnjt' => $each_data['nm_pt_lnjt'],
+                    'nm_prodi_lnjt' => $each_data['nm_prodi_lnjt'],
+                    'wkt_masuk' => $each_data['wkt_masuk'],
                     'ket' => $each_data['ket'],
                     'id_creator' => guid(),
                     'id_updater' => guid(),
@@ -246,25 +251,25 @@ class TracerStudyController extends Controller
                 //             AND bp.expired_date IS NULL
                 //     ", [$each_data['id_bid_kerja']]);
 
-                HasilTracerAtasan::create([
-                    'id_hasil_tracer_atasan' => guid(),
-                    'id_hasil_tracer_study' => $tracer->id_hasil_tracer_study,
-                    // 'id_negara' => $each_data['id_negara'],
-                    // 'id_wil' => $tracer->id_wil,
-                    // 'email_atasan' => $each_data['email_atasan'],
-                    // 'nm_atasan' => $each_data['nm_atasan'],
-                    // 'jabatan_atasan' => $each_data['jabatan_atasan'],
-                    // 'nm_tmpt_bekerja' => $dataBidangKerja[0]->nm_bid_kerja,
-                    // 'bidang_tempat_bekerja' => $tracer->id_bid_kerja,
-                    // 'saran' => $each_data['saran'],
-                    // 'harapan' => $each_data['harapan'],
-                    'id_creator' => $tracer->id_creator,
-                    'id_updater' => $tracer->id_updater,
-                    'create_date' => $tracer->create_date,
-                    'last_update' => $tracer->last_update,
-                    'last_sync' => $tracer->last_sync,
-                    'soft_delete' => 0
-                ]);
+                // HasilTracerAtasan::create([
+                //     'id_hasil_tracer_atasan' => guid(),
+                //     'id_hasil_tracer_study' => $tracer->id_hasil_tracer_study,
+                //     // 'id_negara' => $each_data['id_negara'],
+                //     'id_wil' => $tracer->id_wil,
+                //     // 'email_atasan' => $each_data['email_atasan'],
+                //     // 'nm_atasan' => $each_data['nm_atasan'],
+                //     // 'jabatan_atasan' => $each_data['jabatan_atasan'],
+                //     'nm_tmpt_bekerja' => $dataBidangKerja[0]->nm_bid_kerja,
+                //     'bidang_tempat_bekerja' => $dataBidangKerja[0]->nm_bid_kerja,
+                //     // 'saran' => $each_data['saran'],
+                //     // 'harapan' => $each_data['harapan'],
+                //     'id_creator' => $tracer->id_creator,
+                //     'id_updater' => $tracer->id_updater,
+                //     'create_date' => $tracer->create_date,
+                //     'last_update' => $tracer->last_update,
+                //     'last_sync' => $tracer->last_sync,
+                //     'soft_delete' => 0
+                // ]);
             }
 
             DB::commit();

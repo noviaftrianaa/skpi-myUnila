@@ -33,42 +33,62 @@ class MahasiswaController extends Controller
             }
         }
 
-        $query = DB::SELECT(
-            "
-            DECLARE @PageNumber AS INT
+        $query = DB::SELECT("
+            DECLARE @PageNumber AS INT 
             DECLARE @RowsOfPage AS INT
-            SET @PageNumber= ?
-            SET @RowsOfPage= ?
+            SET
+                @PageNumber = ?
+            SET
+                @RowsOfPage = ?
             SELECT
-                pd.id_pd, reg.nipd AS npm, pd.nm_pd,
-                CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi,
-                ts.nm_smt AS periode_masuk, kul.ips, kul.ipk, pd.create_date AS waktu_data_ditambahkan,
-                pd.last_update AS terakhir_diubah, kuliah.smt_skrng, kul.id_stat_mhs AS status
-            FROM pdrd.peserta_didik AS pd WITH(NOLOCK)
-            JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
-                AND reg.id_sms='" . $idProdi . "'
+                pd.id_pd,
+                reg.nipd AS npm,
+                pd.nm_pd,
+                CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS nm_prodi,
+                ts.nm_smt AS periode_masuk,
+                kul.ips,
+                kul.ipk,
+                pd.create_date AS waktu_data_ditambahkan,
+                pd.last_update AS terakhir_diubah,
+                kuliah.smt_skrng,
+                kul.id_stat_mhs AS status
+            FROM
+                pdrd.peserta_didik AS pd WITH(NOLOCK)
+                JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
+                AND reg.id_sms = '" . $idProdi . "'
                 AND reg.id_jns_keluar IS NULL
                 AND reg.soft_delete = 0
-            JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = reg.id_semester_masuk
+                JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = reg.id_semester_masuk
                 AND smt.expired_date IS NULL
-            LEFT JOIN (
-                SELECT MAX(id_smt) as smt, COUNT(*) as smt_skrng, id_reg_pd FROM pdrd.kuliah_mhs WITH(NOLOCK)
-                WHERE soft_delete = 0
-                GROUP BY id_reg_pd
-            )AS kuliah ON kuliah.id_reg_pd = reg.id_reg_pd
-            JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_smt = kuliah.smt
+                LEFT JOIN (
+                    SELECT
+                        MAX(id_smt) as smt,
+                        COUNT(*) as smt_skrng,
+                        id_reg_pd
+                    FROM
+                        pdrd.kuliah_mhs WITH(NOLOCK)
+                    WHERE
+                        soft_delete = 0
+                    GROUP BY
+                        id_reg_pd
+                ) AS kuliah ON kuliah.id_reg_pd = reg.id_reg_pd
+                JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_smt = kuliah.smt
                 AND kul.id_reg_pd = kuliah.id_reg_pd
                 AND kul.soft_delete = 0
-            JOIN pdrd.sms AS sms WITH(NOLOCK) ON  sms.id_sms = reg.id_sms
+                JOIN pdrd.sms AS sms WITH(NOLOCK) ON sms.id_sms = reg.id_sms
                 AND sms.soft_delete = 0
-            JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = sms.id_jenj_didik
+                JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
-            JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt=reg.id_semester_masuk
+                JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt = reg.id_semester_masuk
                 AND ts.expired_date IS NULL
-            WHERE pd.soft_delete = 0
-            ORDER BY ts.id_thn_ajaran DESC, pd.nm_pd " . $sortBy . "
-            OFFSET (@PageNumber-1)*@RowsOfPage ROWS
-            FETCH NEXT @RowsOfPage ROWS ONLY
+            WHERE
+                pd.soft_delete = 0
+            ORDER BY
+                ts.id_thn_ajaran DESC,
+                pd.nm_pd " . $sortBy . " 
+            OFFSET (@PageNumber -1) * 
+            @RowsOfPage ROWS FETCH NEXT 
+            @RowsOfPage ROWS ONLY
             ",
             [$currentPage, $itemsPerPage]
         );
@@ -110,39 +130,88 @@ class MahasiswaController extends Controller
 
         $query = DB::SELECT("
             SELECT
-                reg.id_reg_pd, reg.nipd AS npm, pd.nm_pd, CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi, kul.id_stat_mhs AS status_sekarang, reg.tgl_masuk_sp,
-                smt.nm_smt AS periode_masuk, reg.nm_pt_asal, reg.nm_prodi_asal, reg.tgl_keluar, reg.ket, reg.skhun, reg.no_peserta_ujian, reg.no_seri_ijazah, reg.asal_data_ijazah,
-                reg.bidang_mayor, reg.bidang_minor, reg.sks_diakui, reg.jalur_skripsi, reg.judul_skripsi, reg.bln_awal_bimbingan, reg.bln_akhir_bimbingan, reg.sk_yudisium,
-                reg.tgl_sk_yudisium, reg.ipk, reg.sert_prof, reg.a_pindah_mhs_asing, reg.biaya_masuk_kuliah, sp.nm_lemb, pd.nm_pd, pd.nik, pd.id_kk, agama.nm_agama, pd.jk,
-                pd.tlpn_hp, pd.tlpn_rumah, pd.tmpt_lahir, pd.tgl_lahir, pd.jln, pd.rt, pd.rw, pd.ds_kel, jp.nm_jns_daftar, pd.email, jd.nm_jalur_daftar, pmb.nm_pembiayaan
-            FROM pdrd.reg_pd as reg WITH(NOLOCK)
-            JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = reg.id_semester_masuk
+                reg.id_reg_pd,
+                reg.nipd AS npm,
+                pd.nm_pd,
+                CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS nm_prodi,
+                kul.id_stat_mhs AS status_sekarang,
+                reg.tgl_masuk_sp,
+                smt.nm_smt AS periode_masuk,
+                reg.nm_pt_asal,
+                reg.nm_prodi_asal,
+                reg.tgl_keluar,
+                reg.ket,
+                reg.skhun,
+                reg.no_peserta_ujian,
+                reg.no_seri_ijazah,
+                reg.asal_data_ijazah,
+                reg.bidang_mayor,
+                reg.bidang_minor,
+                reg.sks_diakui,
+                reg.jalur_skripsi,
+                reg.judul_skripsi,
+                reg.bln_awal_bimbingan,
+                reg.bln_akhir_bimbingan,
+                reg.sk_yudisium,
+                reg.tgl_sk_yudisium,
+                reg.ipk,
+                reg.sert_prof,
+                reg.a_pindah_mhs_asing,
+                reg.biaya_masuk_kuliah,
+                sp.nm_lemb,
+                pd.nm_pd,
+                pd.nik,
+                pd.id_kk,
+                agama.nm_agama,
+                pd.jk,
+                pd.tlpn_hp,
+                pd.tlpn_rumah,
+                pd.tmpt_lahir,
+                pd.tgl_lahir,
+                pd.jln,
+                pd.rt,
+                pd.rw,
+                pd.ds_kel,
+                jp.nm_jns_daftar,
+                pd.email,
+                jd.nm_jalur_daftar,
+                pmb.nm_pembiayaan
+            FROM
+                pdrd.reg_pd as reg WITH(NOLOCK)
+                JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = reg.id_semester_masuk
                 AND smt.expired_date IS NULL
                 LEFT JOIN (
-                SELECT MAX(id_smt) as smt, id_reg_pd FROM pdrd.kuliah_mhs WITH(NOLOCK)
-                WHERE soft_delete = 0
-                GROUP BY id_reg_pd
-            )AS kuliah ON kuliah.id_reg_pd = reg.id_reg_pd
-            JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_smt = kuliah.smt
+                    SELECT
+                        MAX(id_smt) as smt,
+                        id_reg_pd
+                    FROM
+                        pdrd.kuliah_mhs WITH(NOLOCK)
+                    WHERE
+                        soft_delete = 0
+                    GROUP BY
+                        id_reg_pd
+                ) AS kuliah ON kuliah.id_reg_pd = reg.id_reg_pd
+                JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_smt = kuliah.smt
                 AND kul.id_reg_pd = kuliah.id_reg_pd
                 AND kul.soft_delete = 0
-            JOIN pdrd.satuan_pendidikan AS sp WITH(NOLOCK) ON sp.id_sp = reg.id_sp
+                JOIN pdrd.satuan_pendidikan AS sp WITH(NOLOCK) ON sp.id_sp = reg.id_sp
                 AND sp.soft_delete = 0
-            JOIN pdrd.sms AS sms WITH(NOLOCK) ON  sms.id_sms = reg.id_sms
+                JOIN pdrd.sms AS sms WITH(NOLOCK) ON sms.id_sms = reg.id_sms
                 AND sms.soft_delete = 0
-            JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = sms.id_jenj_didik
+                JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
-            JOIN pdrd.peserta_didik AS pd WITH(NOLOCK) ON pd.id_pd = reg.id_pd
+                JOIN pdrd.peserta_didik AS pd WITH(NOLOCK) ON pd.id_pd = reg.id_pd
                 AND pd.soft_delete = 0
-            JOIN ref.jenis_pendaftaran AS jp WITH(NOLOCK) ON jp.id_jns_daftar = reg.id_jns_daftar
+                JOIN ref.jenis_pendaftaran AS jp WITH(NOLOCK) ON jp.id_jns_daftar = reg.id_jns_daftar
                 AND jp.expired_date IS NULL
-            JOIN ref.jalur_daftar AS jd WITH(NOLOCK) ON jd.id_jalur_daftar = reg.id_jalur_daftar
+                JOIN ref.jalur_daftar AS jd WITH(NOLOCK) ON jd.id_jalur_daftar = reg.id_jalur_daftar
                 AND jd.expired_date IS NULL
-            JOIN ref.pembiayaan AS pmb WITH(NOLOCK) ON pmb.id_pembiayaan = reg.id_pembiayaan
+                JOIN ref.pembiayaan AS pmb WITH(NOLOCK) ON pmb.id_pembiayaan = reg.id_pembiayaan
                 AND jd.expired_date IS NULL
-            JOIN ref.agama AS agama WITH(NOLOCK) ON agama.id_agama = pd.id_agama
+                JOIN ref.agama AS agama WITH(NOLOCK) ON agama.id_agama = pd.id_agama
                 AND agama.expired_date IS NULL
-            WHERE reg.id_pd = '" . $idPesertaDidik . "'
+            WHERE
+                reg.id_pd = '" . $idPesertaDidik . "'
                 AND reg.soft_delete = 0;
         ");
 
@@ -233,43 +302,63 @@ class MahasiswaController extends Controller
             }
         }
 
-        $query = DB::SELECT(
-            "
-            DECLARE @PageNumber AS INT
+        $query = DB::SELECT("
+            DECLARE @PageNumber AS INT 
             DECLARE @RowsOfPage AS INT
-            SET @PageNumber= ?
-            SET @RowsOfPage= ?
+            SET
+                @PageNumber = ?
+            SET
+                @RowsOfPage = ?
             SELECT
-                pd.id_pd, reg.nipd AS npm, pd.nm_pd,
-                CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi,
-                ts.nm_smt AS periode_masuk, kul.ips, kul.ipk, pd.create_date AS waktu_data_ditambahkan,
-                pd.last_update AS terakhir_diubah, kuliah.smt_skrng, kul.id_stat_mhs AS status
-            FROM pdrd.peserta_didik AS pd WITH(NOLOCK)
-            JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
-                AND reg.id_sms='" . $idProdi . "'
+                pd.id_pd,
+                reg.nipd AS npm,
+                pd.nm_pd,
+                CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS nm_prodi,
+                ts.nm_smt AS periode_masuk,
+                kul.ips,
+                kul.ipk,
+                pd.create_date AS waktu_data_ditambahkan,
+                pd.last_update AS terakhir_diubah,
+                kuliah.smt_skrng,
+                kul.id_stat_mhs AS status
+            FROM
+                pdrd.peserta_didik AS pd WITH(NOLOCK)
+                JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
+                AND reg.id_sms = '" . $idProdi . "'
                 AND reg.id_jns_keluar IS NULL
                 AND reg.soft_delete = 0
-            JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = reg.id_semester_masuk
+                JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = reg.id_semester_masuk
                 AND smt.expired_date IS NULL
-            LEFT JOIN (
-                SELECT MAX(id_smt) as smt, COUNT(*) as smt_skrng, id_reg_pd FROM pdrd.kuliah_mhs WITH(NOLOCK)
-                WHERE soft_delete = 0
-                GROUP BY id_reg_pd
-            )AS kuliah ON kuliah.id_reg_pd = reg.id_reg_pd
-            JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_smt = kuliah.smt
+                LEFT JOIN (
+                    SELECT
+                        MAX(id_smt) as smt,
+                        COUNT(*) as smt_skrng,
+                        id_reg_pd
+                    FROM
+                        pdrd.kuliah_mhs WITH(NOLOCK)
+                    WHERE
+                        soft_delete = 0
+                    GROUP BY
+                        id_reg_pd
+                ) AS kuliah ON kuliah.id_reg_pd = reg.id_reg_pd
+                JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_smt = kuliah.smt
                 AND kul.id_reg_pd = kuliah.id_reg_pd
-				AND kul.id_stat_mhs = '" . $statMhs . "'
+                AND kul.id_stat_mhs = '" . $statMhs . "'
                 AND kul.soft_delete = 0
-            JOIN pdrd.sms AS sms WITH(NOLOCK) ON  sms.id_sms = reg.id_sms
+                JOIN pdrd.sms AS sms WITH(NOLOCK) ON sms.id_sms = reg.id_sms
                 AND sms.soft_delete = 0
-            JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = sms.id_jenj_didik
+                JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
-            JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt=reg.id_semester_masuk
+                JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt = reg.id_semester_masuk
                 AND ts.expired_date IS NULL
-            WHERE pd.soft_delete = 0
-            ORDER BY ts.id_thn_ajaran DESC, pd.nm_pd " . $sortBy . "
-            OFFSET (@PageNumber-1)*@RowsOfPage ROWS
-            FETCH NEXT @RowsOfPage ROWS ONLY
+            WHERE
+                pd.soft_delete = 0
+            ORDER BY
+                ts.id_thn_ajaran DESC,
+                pd.nm_pd " . $sortBy . " 
+                OFFSET (@PageNumber -1) * 
+                @RowsOfPage ROWS FETCH NEXT 
+                @RowsOfPage ROWS ONLY
             ",
             [$currentPage, $itemsPerPage]
         );
@@ -323,45 +412,66 @@ class MahasiswaController extends Controller
             }
         }
 
-        $query = DB::SELECT(
-            "
-            DECLARE @PageNumber AS INT
+        $query = DB::SELECT("
+            DECLARE @PageNumber AS INT 
             DECLARE @RowsOfPage AS INT
-            SET @PageNumber= ?
-            SET @RowsOfPage= ?
+            SET
+                @PageNumber = ?
+            SET
+                @RowsOfPage = ?
             SELECT
-                pd.id_pd, reg.nipd AS npm, pd.nm_pd, daftar.nm_jns_daftar,
-                CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi,
-                ts.nm_smt AS periode_masuk, kul.ips, kul.ipk, pd.create_date AS waktu_data_ditambahkan,
-                pd.last_update AS terakhir_diubah, kuliah.smt_skrng, kul.id_stat_mhs AS status
-            FROM pdrd.peserta_didik AS pd WITH(NOLOCK)
-            JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
-                AND reg.id_sms='" . $idProdi . "'
+                pd.id_pd,
+                reg.nipd AS npm,
+                pd.nm_pd,
+                daftar.nm_jns_daftar,
+                CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS nm_prodi,
+                ts.nm_smt AS periode_masuk,
+                kul.ips,
+                kul.ipk,
+                pd.create_date AS waktu_data_ditambahkan,
+                pd.last_update AS terakhir_diubah,
+                kuliah.smt_skrng,
+                kul.id_stat_mhs AS status
+            FROM
+                pdrd.peserta_didik AS pd WITH(NOLOCK)
+                JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
+                AND reg.id_sms = '" . $idProdi . "'
                 AND reg.id_jns_daftar = '" . $idJenisDaftar . "'
                 AND reg.id_jns_keluar IS NULL
                 AND reg.soft_delete = 0
-            JOIN ref.jenis_pendaftaran AS daftar WITH(NOLOCK) ON daftar.id_jns_daftar = reg.id_jns_daftar
+                JOIN ref.jenis_pendaftaran AS daftar WITH(NOLOCK) ON daftar.id_jns_daftar = reg.id_jns_daftar
                 AND daftar.expired_date IS NULL
-            JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = reg.id_semester_masuk
+                JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = reg.id_semester_masuk
                 AND smt.expired_date IS NULL
-            LEFT JOIN (
-                SELECT MAX(id_smt) as smt, COUNT(*) as smt_skrng, id_reg_pd FROM pdrd.kuliah_mhs WITH(NOLOCK)
-                WHERE soft_delete = 0
-                GROUP BY id_reg_pd
-            )AS kuliah ON kuliah.id_reg_pd = reg.id_reg_pd
-            JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_smt = kuliah.smt
+                LEFT JOIN (
+                    SELECT
+                        MAX(id_smt) as smt,
+                        COUNT(*) as smt_skrng,
+                        id_reg_pd
+                    FROM
+                        pdrd.kuliah_mhs WITH(NOLOCK)
+                    WHERE
+                        soft_delete = 0
+                    GROUP BY
+                        id_reg_pd
+                ) AS kuliah ON kuliah.id_reg_pd = reg.id_reg_pd
+                JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_smt = kuliah.smt
                 AND kul.id_reg_pd = kuliah.id_reg_pd
                 AND kul.soft_delete = 0
-            JOIN pdrd.sms AS sms WITH(NOLOCK) ON  sms.id_sms = reg.id_sms
+                JOIN pdrd.sms AS sms WITH(NOLOCK) ON sms.id_sms = reg.id_sms
                 AND sms.soft_delete = 0
-            JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = sms.id_jenj_didik
+                JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
-            JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt=reg.id_semester_masuk
+                JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt = reg.id_semester_masuk
                 AND ts.expired_date IS NULL
-            WHERE pd.soft_delete = 0
-            ORDER BY ts.id_thn_ajaran DESC, pd.nm_pd " . $sortBy . "
-            OFFSET (@PageNumber-1)*@RowsOfPage ROWS
-            FETCH NEXT @RowsOfPage ROWS ONLY
+            WHERE
+                pd.soft_delete = 0
+            ORDER BY
+                ts.id_thn_ajaran DESC,
+                pd.nm_pd " . $sortBy . " 
+                OFFSET (@PageNumber -1) * 
+                @RowsOfPage ROWS FETCH NEXT 
+                @RowsOfPage ROWS ONLY
             ",
             [$currentPage, $itemsPerPage]
         );
@@ -402,33 +512,54 @@ class MahasiswaController extends Controller
 
         $query = DB::SELECT("
             SELECT
-                pd.id_pd, reg.id_reg_pd, reg.nipd AS npm, pd.nm_pd,
-                CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi,
-                kul.id_stat_mhs AS status_sekarang, kuliah.smt_skrng, ts.nm_smt AS periode_masuk,
-                kul.ips, kul.ipk, ts.id_thn_ajaran as angkatan,  kul.id_stat_mhs AS status
-            FROM pdrd.peserta_didik AS pd WITH(NOLOCK)
-            JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
+                pd.id_pd,
+                reg.id_reg_pd,
+                reg.nipd AS npm,
+                pd.nm_pd,
+                CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS nm_prodi,
+                kul.id_stat_mhs AS status_sekarang,
+                kuliah.smt_skrng,
+                ts.nm_smt AS periode_masuk,
+                kul.ips,
+                kul.ipk,
+                ts.id_thn_ajaran as angkatan,
+                kul.id_stat_mhs AS status
+            FROM
+                pdrd.peserta_didik AS pd WITH(NOLOCK)
+                JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
                 AND reg.id_pd = '" . $idPesertaDidik . "'
                 AND reg.soft_delete = 0
                 AND reg.id_jns_keluar IS NULL
-            JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = reg.id_semester_masuk
+                JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = reg.id_semester_masuk
                 AND smt.expired_date IS NULL
                 LEFT JOIN (
-                SELECT MAX(id_smt) as smt, COUNT(*) as smt_skrng, id_reg_pd FROM pdrd.kuliah_mhs WITH(NOLOCK)
-                WHERE soft_delete = 0
-                GROUP BY id_reg_pd
-            )AS kuliah ON kuliah.id_reg_pd = reg.id_reg_pd
-            JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_smt = kuliah.smt
+                    SELECT
+                        MAX(id_smt) as smt,
+                        COUNT(*) as smt_skrng,
+                        id_reg_pd
+                    FROM
+                        pdrd.kuliah_mhs WITH(NOLOCK)
+                    WHERE
+                        soft_delete = 0
+                    GROUP BY
+                        id_reg_pd
+                ) AS kuliah ON kuliah.id_reg_pd = reg.id_reg_pd
+                JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_smt = kuliah.smt
                 AND kul.id_reg_pd = kuliah.id_reg_pd
                 AND kul.soft_delete = 0
-            JOIN pdrd.sms AS sms WITH(NOLOCK) ON  sms.id_sms = reg.id_sms
+                JOIN pdrd.sms AS sms WITH(NOLOCK) ON sms.id_sms = reg.id_sms
                 AND sms.soft_delete = 0
-            JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = sms.id_jenj_didik
+                JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
-            JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt=reg.id_semester_masuk
+                JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt = reg.id_semester_masuk
                 AND ts.expired_date IS NULL
-            WHERE reg.soft_delete = 0;
+            WHERE
+                reg.soft_delete = 0;
         ");
+
+        if (empty($query)) {
+            return WrapResponse([], "Data tidak ditemukan", FALSE);
+        }
 
         $semester = DB::SELECT("
             SELECT
@@ -438,19 +569,19 @@ class MahasiswaController extends Controller
                 kul.ips,
                 kul.ipk,
                 kul.total_sks AS sks_lulus
-            FROM pdrd.kuliah_mhs as kul
-            JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_reg_pd = kul.id_reg_pd
+            FROM
+                pdrd.kuliah_mhs as kul
+                JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_reg_pd = kul.id_reg_pd
                 AND reg.soft_delete = 0
-            JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt=kul.id_smt
+                JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt = kul.id_smt
                 AND ts.expired_date IS NULL
-            WHERE kul.id_reg_pd = '" . $query[0]->id_reg_pd . "'
+            WHERE
+                kul.id_reg_pd = '" . $query[0]->id_reg_pd . "'
                 AND kul.soft_delete = 0
-            ORDER BY ts.id_smt DESC;
+            ORDER BY
+                ts.id_smt DESC;
         ");
 
-        if (empty($query)) {
-            return WrapResponse([], "Data tidak ditemukan", FALSE);
-        }
 
         $data = [];
         foreach ($query as $each_data) {
@@ -472,65 +603,102 @@ class MahasiswaController extends Controller
     public function alumni(Request $request)
     {
         $currentPage = $request->input('page', 1);
-        $itemsPerPage = $request->input('item', 10);
+        $itemsPerPage = $request->input('item', 100000);
         $sortBy = $request->input('sortby', 'ASC');
         $idProdi = $request->input('idProdi');
         // $idProdi = '54BBD27B-2376-4CAE-9951-76EF54BD2CA2';
 
-        InputValidator([
-            'sortby' => ['alpha', ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])],
-            'idProdi' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
-        ], [
-            'idProdi.required' => 'field ini harus diisi',
-            'idProdi.regex' => 'input harus berupa campuran alpa_numeric dan dash',
-            'sortby.alpha' => 'input penyortiran harus kata',
-            'sortby.in' => 'input pernyortiran hanya ASC atau DESC'
-        ]);
+        // InputValidator([
+        //     'sortby' => ['alpha', ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])],
+        //     'idProdi' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
+        // ], [
+        //     'idProdi.required' => 'field ini harus diisi',
+        //     'idProdi.regex' => 'input harus berupa campuran alpa_numeric dan dash',
+        //     'sortby.alpha' => 'input penyortiran harus kata',
+        //     'sortby.in' => 'input pernyortiran hanya ASC atau DESC'
+        // ]);
 
-        if (!empty($itemsPerPage)) {
-            if ($itemsPerPage > 50) {
-                $itemsPerPage = 50;
-            }
-        }
+        // if (!empty($itemsPerPage)) {
+        //     if ($itemsPerPage > 50) {
+        //         $itemsPerPage = 50;
+        //     }
+        // }
 
-        $query = DB::SELECT(
-            "
-            DECLARE @PageNumber AS INT
+        $query = DB::SELECT("
+            DECLARE @PageNumber AS INT 
             DECLARE @RowsOfPage AS INT
-            SET @PageNumber= ?
-            SET @RowsOfPage= ?
+            SET
+                @PageNumber = ?
+            SET
+                @RowsOfPage = ?
             SELECT
-                pd.id_pd, pd.nm_pd, reg.id_reg_pd, reg.nipd AS npm, CONCAT(sms.nm_lemb, ' (',jenjang.nm_jenj_didik,')')  AS nm_prodi, pd.email,
-                ts.id_thn_ajaran AS angkatan, kul.biaya_smt, kul.ipk, kul.total_sks, pd.nik, pd.jk, pd.tlpn_hp, jd.nm_jalur_daftar, sms.id_sms,
-                reg.tgl_keluar AS tgl_lulus, reg.tgl_sk_yudisium AS tgl_wisuda, pd.create_date AS waktu_data_ditambahkan, pmb.nm_pembiayaan,
-                pd.last_update AS terakhir_diubah
-            FROM pdrd.peserta_didik AS pd WITH(NOLOCK)
-            JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd=pd.id_pd
-                AND reg.id_jns_keluar='1'
-                AND reg.id_sms='" . $idProdi . "'
-                AND reg.soft_delete=0
-            JOIN pdrd.sms AS sms WITH(NOLOCK) ON  sms.id_sms = reg.id_sms
+                pd.id_pd,
+                pd.nm_pd,
+                reg.id_reg_pd,
+                reg.nipd AS npm,
+                CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS nm_prodi,
+                pd.email,
+                ts.id_thn_ajaran AS angkatan,
+                kul.biaya_smt,
+                reg.ipk,
+                kul.total_sks,
+                pd.nik,
+                pd.jk,
+                pd.tlpn_hp,
+                jd.nm_jalur_daftar,
+                sms.id_sms,
+                reg.tgl_keluar AS tgl_lulus,
+                reg.tgl_sk_yudisium AS tgl_wisuda,
+                pd.create_date AS waktu_data_ditambahkan,
+                pmb.nm_pembiayaan,
+                pd.last_update AS terakhir_diubah,
+                agama.nm_agama,
+                pd.tmpt_lahir,
+                pd.tgl_lahir,
+                wil.id_wil,
+                pd.jln,
+                pd.rt,
+                pd.rw,
+                pd.ds_kel,
+                pd.nm_dsn
+            FROM
+                pdrd.peserta_didik AS pd WITH(NOLOCK)
+                JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
+                AND reg.id_jns_keluar = '1'
+                AND reg.soft_delete = 0
+                JOIN pdrd.sms AS sms WITH(NOLOCK) ON sms.id_sms = reg.id_sms
                 AND sms.soft_delete = 0
-            JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = sms.id_jenj_didik
+                JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
-            JOIN ref.jalur_daftar AS jd WITH(NOLOCK) ON jd.id_jalur_daftar = reg.id_jalur_daftar
+                LEFT JOIN ref.jalur_daftar AS jd WITH(NOLOCK) ON jd.id_jalur_daftar = reg.id_jalur_daftar
                 AND jd.expired_date IS NULL
-            JOIN ref.pembiayaan AS pmb WITH(NOLOCK) ON pmb.id_pembiayaan = reg.id_pembiayaan
+                LEFT JOIN ref.pembiayaan AS pmb WITH(NOLOCK) ON pmb.id_pembiayaan = reg.id_pembiayaan
                 AND jd.expired_date IS NULL
-            JOIN (
-                SELECT MAX(id_smt) AS smt, id_reg_pd FROM pdrd.kuliah_mhs WITH(NOLOCK)
-                WHERE soft_delete=0
-                GROUP BY id_reg_pd
-            ) AS tk ON tk.id_reg_pd=reg.id_reg_pd
-            JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_reg_pd=reg.id_reg_pd
-                AND tk.smt=kul.id_smt
-                AND kul.soft_delete=0
-            JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt=reg.id_semester_masuk
+                LEFT JOIN ref.agama AS agama WITH(NOLOCK) ON agama.id_agama = pd.id_agama
+                AND agama.expired_date IS NULL
+                LEFT JOIN ref.wilayah AS wil WITH(NOLOCK) ON wil.id_wil = pd.id_wil
+                AND wil.expired_date IS NULL
+                JOIN (
+                    SELECT
+                        MAX(id_smt) AS smt,
+                        id_reg_pd
+                    FROM
+                        pdrd.kuliah_mhs WITH(NOLOCK)
+                    WHERE
+                        soft_delete = 0
+                    GROUP BY
+                        id_reg_pd
+                ) AS tk ON tk.id_reg_pd = reg.id_reg_pd
+                JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_reg_pd = reg.id_reg_pd
+                AND tk.smt = kul.id_smt
+                AND kul.soft_delete = 0
+                JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt = reg.id_semester_masuk
                 AND ts.expired_date IS NULL
-            WHERE pd.soft_delete=0
-            ORDER BY reg.id_semester_masuk DESC, pd.nm_pd " . $sortBy . "
-            OFFSET (@PageNumber-1)*@RowsOfPage ROWS
-            FETCH NEXT @RowsOfPage ROWS ONLY
+            WHERE
+                pd.soft_delete = 0
+            ORDER BY
+                reg.id_semester_masuk DESC,
+                pd.nm_pd " . $sortBy . " OFFSET (@PageNumber -1) * @RowsOfPage ROWS FETCH NEXT @RowsOfPage ROWS ONLY
             ",
             [$currentPage, $itemsPerPage]
         );
@@ -544,7 +712,17 @@ class MahasiswaController extends Controller
             $data[] = [
                 'id_reg_pd' => $each_data->id_reg_pd,
                 'nama_alumni' => $each_data->nm_pd,
-                'NPM' => $each_data->npm,
+                'agama' => $each_data->nm_agama,
+                'jenis_kelamin' => $each_data->jk,
+                'tempat_lahir' => $each_data->tmpt_lahir,
+                'tanggal_lahir' => $each_data->tgl_lahir,
+                'id_wil' => $each_data->id_wil,
+                'jln' => $each_data->jln,
+                'rt' => $each_data->rt,
+                'rw' => $each_data->rw,
+                'desa_kelurahan' => $each_data->ds_kel,
+                'dusun' => $each_data->nm_dsn,
+                'npm' => $each_data->npm,
                 'id_prodi' => $each_data->id_sms,
                 'angkatan' => $each_data->angkatan,
                 'biaya_semester' => $each_data->biaya_smt,

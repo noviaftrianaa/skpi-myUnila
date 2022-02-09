@@ -118,12 +118,12 @@ Route::group([
 
         Route::prefix('lembaga')->group(function () {
             Route::get('profilpt/detail', 'LembagaController@detailProfilPt');
-            Route::get('akreditasipt', 'LembagaController@listAkreditasiPt');
-            Route::get('daftarprodi/detail', 'LembagaController@detailDaftarProdi');
-            Route::get('profilprodi/list', 'LembagaController@listProfilProdi');
-            Route::get('profilprodi/list_id', 'LembagaController@listProfilProdiById');
-            Route::put('profilprodi/ubah', 'LembagaController@update');
-            Route::get('daftarsms', 'LembagaController@listSms');
+            Route::get('akreditasi_pt', 'LembagaController@listAkreditasiPt');
+            Route::get('daftar_prodi/detail', 'LembagaController@detailDaftarProdi');
+            Route::get('profil_prodi/list', 'LembagaController@listProfilProdi');
+            Route::get('profil_prodi/list_id', 'LembagaController@listProfilProdiById');
+            Route::put('profil_prodi/ubah', 'LembagaController@update');
+            Route::get('daftar_sms', 'LembagaController@listSms');
         });
     });
 

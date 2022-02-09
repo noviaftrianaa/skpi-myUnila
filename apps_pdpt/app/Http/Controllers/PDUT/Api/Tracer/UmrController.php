@@ -13,35 +13,6 @@ class UmrController extends Controller
 {
 
     /**
-     * @OA\Get(
-     *      path="/tracer_study/umr_wilayah",
-     *      operationId="getListUmr",
-     *      tags={"Tracer Study"},
-     *      summary="Data list UMR wilayah",
-     *      description="Menampilkan List UMR Wilayah",
-     *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
-     *          @OA\Schema(type="number")),
-     *      @OA\Parameter( name="item", description="masukan jumlah data", example="50", required=false, in="query",
-     *          @OA\Schema(type="number")),
-     *      @OA\Parameter( name="sortby", description="Masukan urutan by ASC/DESC", example="ASC", required=false, in="query",
-     *          @OA\Schema(type="string")),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     */
-
-    /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
@@ -119,45 +90,6 @@ class UmrController extends Controller
     }
 
     /**
-     * @OA\Post(
-     *      path="/tracer_study/umr_wilayah/tambah",
-     *      operationId="postUmrWilayah",
-     *      tags={"Tracer Study"},
-     *      summary="Menambahkan data umr wilayah",
-     *      description="Menambahkan data umr wilayah",
-     *    *  @OA\RequestBody(
-     *      required=true,
-     *      description="Simpan data array UMR wilayah",
-     *        @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(
-     *                property="data",
-     *                type="array",
-     *                @OA\Items(
-     *                 @OA\Property( property="id_wilayah", type="string", format="string", example="126000"),
-     *                 @OA\Property( property="id_tahun_anggaran", type="number", format="number", example="2021"),
-     *                 @OA\Property( property="besaran_umr", type="number", format="number", example="2770794")
-     *                ),
-     *             ),
-     *        ),
-     *     ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     */
-
-    /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request
@@ -218,38 +150,6 @@ class UmrController extends Controller
     }
 
     /**
-     * @OA\Put(
-     *      path="/tracer_study/umr_wilayah/ubah",
-     *      operationId="updateUmrWilayah",
-     *      tags={"Tracer Study"},
-     *      summary="Ubah data umr wilayah",
-     *      description="Memperbaharui data umr wilayah",
-     *    @OA\RequestBody(
-     *         @OA\MediaType(
-     *             mediaType="applicatin/json",
-     *             @OA\Schema(
-     *                 @OA\Property( property="id_umr_wil", type="string", format="text", example="masukan id_umr_wil disini"),
-     *                 @OA\Property( property="besaran_umr", type="number", format="number", example="2770794")
-     *              )
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     */
-
-    /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request
@@ -295,36 +195,6 @@ class UmrController extends Controller
         }
     }
 
-    /**
-     * @OA\Delete(
-     *      path="/tracer_study/umr_wilayah/hapus",
-     *      operationId="delete umr wilayah",
-     *      tags={"Tracer Study"},
-     *      summary="Menghapus data umr wilayah",
-     *      description="Menghapus data umr wilayah",
-     *@OA\RequestBody(
-     *      required=true,
-     *      description="Menghapus data umr wilayah berdasarkan id_umr_wil",
-     *      @OA\JsonContent(
-     *          required={"id_umr_wil"},
-     *          @OA\Property(property="id_umr_wil", type="string", format="text", example="masukan id_umr_wil disini"),
-     *          ),
-     *      ),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"bearer_token":{}}}
-     *     )
-     */
 
     /**
      * Remove the specified resource from storage.
