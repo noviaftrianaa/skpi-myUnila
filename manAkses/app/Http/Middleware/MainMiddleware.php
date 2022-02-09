@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use SSO\SSO;
+use Auth;
 
 class MainMiddleware
 {
