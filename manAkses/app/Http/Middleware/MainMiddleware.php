@@ -17,7 +17,7 @@ class MainMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        if(SSO::check()==true) {
+        if( ( SSO::check() && Auth::check() ) || Auth::check() ) {
             return $next($request);
         } else {
             return redirect()->route('auth.logout');

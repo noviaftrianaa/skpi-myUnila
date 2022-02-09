@@ -61,9 +61,9 @@ class LoginController extends Controller
 
     public function signing_process()
     {
-        if(SSO::authenticate() == true)
+        if(SSO::authenticate())
         {
-            if(SSO::check() == true) {
+            if(SSO::check()) {
                 $check = User::where('username', SSO::getUser()->username)->first();
                 if(!is_null($check)) {
                     Auth::loginUsingId($check->id_pengguna);
