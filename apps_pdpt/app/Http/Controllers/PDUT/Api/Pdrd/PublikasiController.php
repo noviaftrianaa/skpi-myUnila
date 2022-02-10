@@ -4,9 +4,11 @@ namespace App\Http\Controllers\PDUT\Api\Pdrd;
 
 use App\Http\Controllers\Controller;
 use App\Models\PDUT\Pdrd\Publikasi;
+use App\Models\PDUT\Pdrd\TulisPub;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule as ValidationRule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -16,7 +18,9 @@ class PublikasiController extends Controller
 {
     protected $request;
     protected $publikasi;
-    protected $idKatgiat = [];
+    protected $tulisPublikasi;
+    protected $mappingIdKatgiat = [];
+    protected $mappingJenisPenulis = [];
 
     const DOSEN = 'dosen';
     const TENDIK = 'tendik';
@@ -25,7 +29,10 @@ class PublikasiController extends Controller
     public function __construct(Request $request)
     {
         $this->request = $request;
-        $this->idKatgiat = "
+
+        $this->mappingIdKatgiat = '';
+
+        $mappingIdKatgiat = [
             120101, 120102, 120103,
             120104, 120105, 120106,
             120107, 120108, 120109,
@@ -39,9 +46,24 @@ class PublikasiController extends Controller
             120120, 120121, 120122,
             120200, 120300, 121300,
             130500, 130600
-        ";
+        ];
+
+        $this->mappingIdKatgiat = Cache::rememberForever('mappingIdKatgiat', function() use ($mappingIdKatgiat) {
+            foreach ($mappingIdKatgiat as $idKatgiat) {
+                $this->mappingIdKatgiat .= "'" . $idKatgiat . "',";
+            }
+            return $this->mappingIdKatgiat = rtrim($this->mappingIdKatgiat, ',');
+        });
+
+        $this->mappingJenisPenulis = [
+            'A' => 'Penulis',
+            'B' => 'Editor',
+            'C' => 'Penerjemahan',
+            'D' => 'Penemu/Inventor'
+        ];
 
         $this->publikasi = new Publikasi();
+        $this->tulisPublikasi = new TulisPub();
     }
 
     public function getAllListPublikasi()
@@ -61,33 +83,31 @@ class PublikasiController extends Controller
 
         $query = "
             SELECT
-                publikasi.judul AS judul,
-                kk.nm_kat AS kategori_kegiatan,
-                publikasi.quartile,
-                kb.nm_kel_bidang AS bidang_keilmuan,
-                jp.nm_jns_pub AS jenis_publikasi,
-                publikasi.stat_impor_sinta AS asal_data,
-                publikasi.tgl_terbit AS tanggal_terbit,
-                publikasi.create_date AS waktu_data_ditambahkan,
-                publikasi.last_update AS terakhir_diubah
+                pub.id_Publikasi AS id,
+                pub.judul,
+                tpub.nm_kat AS kategori_kegiatan,
+                jpub.nm_jns_pub AS jenis_publikasi,
+                pub.quartile,
+                pub.tgl_terbit,
+                pub.stat_impor_sinta,
+                pub.create_date AS waktu_data_ditambahkan,
+                pub.last_update AS terakhir_diubah
             FROM
-                pdrd.publikasi AS publikasi
-                JOIN pdrd.tulis_pub AS tls_publikasi ON tls_publikasi.id_publikasi = publikasi.id_publikasi
-                AND tls_publikasi.soft_delete = 0
-                JOIN ref.kategori_kegiatan AS kk ON kk.id_katgiat = tls_publikasi.id_katgiat
-                AND kk.id_katgiat IN (" . Str::replace("\n", "", $this->idKatgiat) . ")
-                AND kk.expired_date IS NOT NULL
-                JOIN ref.jenis_publikasi AS jp ON jp.id_jns_pub = publikasi.id_jns_pub
-                AND jp.expired_date IS NOT NULL
-                JOIN ref.media_publikasi AS mp ON mp.id_media_pub = publikasi.id_media_pub
-                AND mp.expired_date IS NOT NULL
-                JOIN pdrd.map_publikasi_bidang AS mpb ON mpb.id_publikasi = publikasi.id_publikasi
-                AND mpb.soft_delete = 0
-                JOIN ref.kelompok_bidang AS kb ON kb.id_kel_bidang = mpb.id_kel_bidang
-                AND kb.expired_date IS NOT NULL
-            WHERE
-                tls_publikasi.soft_delete NOT IN (1, 4, 5)
-            ORDER BY publikasi.tgl_terbit $sortby
+                pdrd.publikasi AS pub
+            JOIN (
+                SELECT
+                    DISTINCT id_publikasi,
+                    kk.*
+                from
+                    pdrd.tulis_pub AS tp
+                    JOIN ref.kategori_kegiatan AS kk ON kk.id_katgiat = tp.id_katgiat
+                where
+                    tp.id_katgiat IN (" . $this->mappingIdKatgiat . ")
+                    AND tp.soft_delete = 0
+            ) AS tpub ON tpub.id_publikasi = pub.id_publikasi
+            JOIN ref.jenis_publikasi AS jpub ON jpub.id_jns_pub = pub.id_jns_pub
+            ORDER BY
+                pub.create_date DESC
         ";
 
         $pagination = CustomPagination($query);
@@ -101,13 +121,13 @@ class PublikasiController extends Controller
         $data = [];
         foreach ($query as $value) {
             $data[] = [
-                'id' => $value->judul,
-                'judul' => $value->kategori_kegiatan,
-                'quartile' => $value->quartile,
-                'bidang_keilmuan' => $value->bidang_keilmuan,
+                'id' => $value->id,
+                'judul' => $value->judul,
+                'kategori_kegiatan' => $value->kategori_kegiatan,
                 'jenis_publikasi' => $value->jenis_publikasi,
-                'tanggal_terbit' => $value->tanggal_terbit,
-                'asal_data' => ($value->asal_data == 0) ? 'SISTER' : 'SINTA',
+                'quartile' => $value->quartile,
+                'tanggal_terbit' => $value->tgl_terbit,
+                'asal_data' => (!is_null($value->stat_impor_sinta)) ? 'SISTER' : 'SINTA',
                 'waktu_data_ditambahkan' => $value->waktu_data_ditambahkan,
                 'terakhir_diubah' => $value->terakhir_diubah
             ];
@@ -179,18 +199,14 @@ class PublikasiController extends Controller
         ";
 
         if (isset($selectedIdProcess) && ($selectedIdProcess == self::DOSEN || $selectedIdProcess == self::TENDIK)) {
-            $query .= "
-                AND tls_publikasi.id_sdm = '" . $id . "'
-            ";
+            $query .= "AND tls_publikasi.id_sdm = '" . $id . "'";
         } else {
-            $query .= "
-                AND tls_publikasi.id_pd = '" . $id . "'
-            ";
+            $query .= "AND tls_publikasi.id_pd = '" . $id . "'";
         }
 
         $query .= "
             JOIN ref.kategori_kegiatan AS kk ON kk.id_katgiat = tls_publikasi.id_katgiat
-                AND kk.id_katgiat IN (" . Str::replace("\n", "", $this->idKatgiat) . ")
+                AND kk.id_katgiat IN (" . $this->mappingIdKatgiat . ")
                 AND kk.expired_date IS NOT NULL
                 JOIN ref.jenis_publikasi AS jp ON jp.id_jns_pub = publikasi.id_jns_pub
                 AND jp.expired_date IS NOT NULL
@@ -201,9 +217,11 @@ class PublikasiController extends Controller
                 JOIN ref.kelompok_bidang AS kb ON kb.id_kel_bidang = mpb.id_kel_bidang
                 AND kb.expired_date IS NOT NULL
             WHERE
-                tls_publikasi.soft_delete NOT IN (1, 4, 5)
+                tls_publikasi.soft_delete = 0
             ORDER BY publikasi.tgl_terbit $sortby
         ";
+
+        return 
 
         $pagination = CustomPagination($query);
         $query = $pagination['query'];
@@ -241,6 +259,7 @@ class PublikasiController extends Controller
         $creatorId = $updateId = 'bc62ca9c-4e6e-4462-89b6-ff246512734f';
 
         $judul = $this->request->input('judul');
+        $id_katgiat = $this->request->input('id_katgiat');
         $id_jenis_publikasi = $this->request->input('id_jenis_publikasi');
         $id_kategori_capaian = $this->request->input('id_kategori_capaian');
         $id_litabmas = $this->request->input('id_litabmas');
@@ -263,11 +282,24 @@ class PublikasiController extends Controller
         $a_prosiding = $this->request->input('a_prosiding');
         $e_issn = $this->request->input('e_issn');
         $tgl_terbit = $this->request->input('tgl_terbit');
+
         $penulis_dosen = $this->request->input('penulis_dosen');
         $urutan_dosen = $this->request->input('urutan_dosen');
         $afiliasi_dosen = $this->request->input('afiliasi_dosen');
         $peran_dosen = $this->request->input('peran_dosen');
         $dsn_a_corresponding_author = $this->request->input('dsn_a_corresponding_author');
+
+        $penulis_mahasiswa = $this->request->input('penulis_mahasiswa');
+        $urutan_mahasiswa = $this->request->input('urutan_mahasiswa');
+        $afiliasi_mahasiswa = $this->request->input('afiliasi_mahasiswa');
+        $peran_tulis_mahasiswa = $this->request->input('peran_tulis_mahasiswa');
+        $mhs_a_corresponding_author = $this->request->input('dsn_a_corresponding_author');
+
+        $penulis_non_ca = $this->request->input('penulis_non_ca');
+        $urutan_non_ca = $this->request->input('urutan_non_ca');
+        $afiliasi_non_ca = $this->request->input('afiliasi_non_ca');
+        $peran_tulis_non_ca = $this->request->input('peran_tulis_non_ca');
+        $non_ca_a_corresponding_author = $this->request->input('non_ca_a_corresponding_author');
 
         DB::beginTransaction();
         try {
@@ -316,21 +348,129 @@ class PublikasiController extends Controller
                 'last_sync' => currDateTime(),
             ]);
 
-            if ($publikasi && !empty($publikasi)) {
-                DB::commit();
-                return WrapResponse([], 'sukses menambahkan publikasi - ' . $publikasi->id_publikasi);
-            } else {
-                DB::rollBack();
-                return WrapResponse([], "gagal menambahkan publikasi");
+            if (!empty($penulis_dosen)) {
+                foreach ($penulis_dosen as $index => $iddsn) {
+                    if (is_null($iddsn)) break;
+
+                    $reformatJenisPenulisDsn = 1;
+
+                    $this->tulisPublikasi->create([
+                        'id_tulis_pub' => guid(),
+                        'id_publikasi' => $publikasi->id_publikasi,
+                        'id_sdm' => $iddsn,
+                        'id_katgiat' => $id_katgiat,
+                        'id_pd' => NULL,
+                        'id_orang' => NULL,
+                        'urutan' => $urutan_dosen[$index],
+                        'afiliasi' => $afiliasi_dosen[$index],
+                        'peran_tulis' => $peran_dosen[$index],
+                        'jns_penulis' => $reformatJenisPenulisDsn,
+                        'a_corr_author' => $dsn_a_corresponding_author[$index],
+                        'nm_pd' => NULL,
+                        'nipd' => NULL,
+                        'id_afiliasi' => NULL,
+                        'jns_afiliasi' => NULL,
+                        'create_date' => currDateTime(),
+                        'id_creator' => $creatorId,
+                        'last_update' => currDateTime(),
+                        'id_updater' => $updateId,
+                        'soft_delete' => 0,
+                        'last_sync' => currDateTime(),
+                    ]);
+                }
             }
+
+            if (!empty($penulis_mahasiswa)) {
+                foreach ($penulis_mahasiswa as $index => $idmhs) {
+                    if (is_null($idmhs)) break;
+
+                    $reformatJenisPenulisMhs = 1;
+                    $dataMahasiswa = DB::select("
+                        SELECT
+                            TOP 1
+                            pd.nm_pd AS nama_mahasiswa,
+                            reg_pd.nipd AS nipd
+                        FROM
+                            pdrd.peserta_didik AS pd WITH(NOLOCK)
+                            LEFT JOIN pdrd.reg_pd AS reg_pd WITH(NOLOCK) ON reg_pd.id_pd = pd.id_pd
+                            AND reg_pd.soft_delete = 0
+                        WHERE
+                            pd.id_pd = ?
+                            AND pd.soft_delete = 0
+                    ", [$idmhs]);
+
+                    if (empty($dataMahasiswa)) {
+                        return WrapResponse([], 'tidak ditemukan data mahasiswa anggota publikasi', FALSE);
+                    }
+
+                    $this->tulisPublikasi->create([
+                        'id_tulis_pub' => guid(),
+                        'id_publikasi' => $publikasi->id_publikasi,
+                        'id_sdm' => NULL,
+                        'id_katgiat' => $id_katgiat,
+                        'id_pd' => $idmhs,
+                        'id_orang' => NULL,
+                        'urutan' => $urutan_mahasiswa[$index],
+                        'afiliasi' => $afiliasi_mahasiswa[$index],
+                        'peran_tulis' => $peran_tulis_mahasiswa[$index],
+                        'jns_penulis' => $reformatJenisPenulisMhs,
+                        'a_corr_author' => $mhs_a_corresponding_author[$index],
+                        'nm_pd' => $dataMahasiswa[0]->nama_mahasiswa,
+                        'nipd' => $dataMahasiswa[0]->nipd,
+                        'id_afiliasi' => NULL,
+                        'jns_afiliasi' => NULL,
+                        'create_date' => currDateTime(),
+                        'id_creator' => $creatorId,
+                        'last_update' => currDateTime(),
+                        'id_updater' => $updateId,
+                        'soft_delete' => 0,
+                        'last_sync' => currDateTime(),
+                    ]);
+                }
+            }
+
+            if (!empty($penulis_non_ca)) {
+                foreach ($penulis_non_ca as $index => $idNonCa) {
+                    if (is_null($idNonCa)) break;
+
+                    $reformatJenisPenulisNonCa = 1;
+
+                    $this->tulisPublikasi->create([
+                        'id_tulis_pub' => guid(),
+                        'id_publikasi' => $publikasi->id_publikasi,
+                        'id_sdm' => NULL,
+                        'id_katgiat' => $id_katgiat,
+                        'id_pd' => NULL,
+                        'id_orang' => $idNonCa,
+                        'urutan' => $urutan_non_ca[$index],
+                        'afiliasi' => $afiliasi_non_ca[$index],
+                        'peran_tulis' => $peran_tulis_non_ca[$index],
+                        'jns_penulis' => $reformatJenisPenulisNonCa,
+                        'a_corr_author' => $non_ca_a_corresponding_author[$index],
+                        'nm_pd' => NULL,
+                        'nipd' => NULL,
+                        'id_afiliasi' => NULL,
+                        'jns_afiliasi' => NULL,
+                        'create_date' => currDateTime(),
+                        'id_creator' => $creatorId,
+                        'last_update' => currDateTime(),
+                        'id_updater' => $updateId,
+                        'soft_delete' => 0,
+                        'last_sync' => currDateTime(),
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return WrapResponse(['id' => $publikasi->id_publikasi], 'sukses');
         } catch (ModelNotFoundException $mnfe) {
             DB::rollBack();
             Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
-            return WrapResponse([], 'publikasi tidak ditemukan atau publikasi tidak terdaftar', FALSE);
+            return WrapResponse([], 'gagal menambahkan publikasi', FALSE);
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e->getMessage() . ' on line ' . $e->getLine());
-            return WrapResponse([], "gagal menambahkan publikasi");
+            return WrapResponse([], "gagal menambahkan publikasi", FALSE);
         }
     }
 }

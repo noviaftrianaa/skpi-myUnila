@@ -11,6 +11,6 @@ class MapLitabmasBidang extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_kel_bidang',	'id_litabmas',	'urutan2',	'create_date',	'id_creator',	'last_update',	'id_updater',	'soft_delete',	'last_sync',
+	'id_kel_bidang',	'id_litabmas',	'create_date',	'id_creator',	'last_update',	'id_updater',	'soft_delete',	'last_sync',
     ];
 }
