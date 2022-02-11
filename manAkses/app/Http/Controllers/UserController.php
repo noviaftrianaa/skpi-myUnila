@@ -11,13 +11,13 @@ use App\Models\Peran;
 use App\Models\RolePengguna;
 use Illuminate\Support\Facades\Crypt;
 use Session;
+use DataTables;
 
 class UserController extends Controller
 {
 
-    public function index()
+    public function index(Request $request)
     {
-        // $user = User::lock('WITH(NOLOCK)')->where('soft_delete', 0)->orderBy('a_aktif','DESC')->orderBy('nm_pengguna', 'ASC')->get();
         $user = DB::SELECT('
             SELECT *
             FROM man_akses.pengguna WITH(NOLOCK)
@@ -25,9 +25,31 @@ class UserController extends Controller
             ORDER BY a_aktif DESC, nm_pengguna ASC
         ');
 
-        return view('manajemen.pengguna.index', [
-            'user'=>$user
-        ]);
+        if($request->ajax()) {
+            return DataTables::of($user)
+                ->addIndexColumn()
+                ->editColumn('jenis_kelamin', function($user) {
+                    return ($user->jenis_kelamin=="L") ? "Laki-laki" : "Perempuan";
+                })
+                ->addColumn('status', function($user) {
+                    if($user->a_aktif==1) {
+                        $button = '<a data-toggle="modal" href="#changeItem'.$user->id_pengguna.'" type="button" class="btn btn-success btn-xs">Aktif</a>';
+                    } else {
+                        $button = '<a data-toggle="modal" href="#changeItem'.$user->id_pengguna.'" type="button" class="btn btn-danger btn-xs">Tidak Aktif</a>';
+                    }
+                    return $button;
+                })
+                ->addColumn('aksi', function($user) {
+                    $button = '<a class="btn btn-warning btn-xs" title="Reset" data-toggle="modal" href="#resetItem'.$user->id_pengguna.'"> <i class="fas fa-key"></i></a>
+                    <a class="btn btn-primary btn-xs" title="Show User" href="'.route('user.detail', [Crypt::encrypt($user->id_pengguna)]).'"> <i class="fas fa-eye"></i></a>
+                    <a class="btn btn-danger btn-xs" title="Delete" data-toggle="modal" href="#deleteItem'.$user->id_pengguna.'"> <i class="fas fa-trash-alt"></i></a>';
+                    return $button;
+                })
+                ->rawColumns(['status','aksi'])
+                ->make(true);
+        }
+
+        return view('manajemen.pengguna.index', ['user'=>$user]);
     }
 
     public function create()
@@ -55,7 +77,7 @@ class UserController extends Controller
             'id_pengguna'   => $uuid,
             'nm_pengguna'   => $array['nm_pengguna'],
             'username'      => $array['username'],
-            'password'      => sha1('12345678'),
+            'password'      => sha1('unilajaya'),
             'jenis_kelamin' => $array['jenis_kelamin'],
             'tempat_lahir'  => $array['tempat_lahir'],
             'tgl_lahir'     => $array['tgl_lahir'],

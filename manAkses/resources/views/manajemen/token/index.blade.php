@@ -12,6 +12,7 @@
     $(document).ready( function () {
         $('#table-data').DataTable({
             processing: true,
+            serverSide: true,
             ajax: window.location.href,
             columns: [
                 { data: 'DT_RowIndex', orderable: false, searchable: false },
@@ -19,8 +20,8 @@
                 { data: 'base_url' },
                 { data: 'waktu_create' },
                 { data: 'waktu_expired' },
-                { data: 'keterangan' },
-                { data: 'action', orderable: false, searchable: false }
+                { data: 'keterangan' }
+                // { data: 'action', orderable: false, searchable: false }
             ],
             "language": {
                 "decimal":        "",
@@ -67,7 +68,7 @@
                         <th>Created Date</th>
                         <th>Expired Date</th>
                         <th>Notes</th>
-                        <th>Aksi</th>
+                        <!-- <th>Aksi</th> -->
                       </tr>
                     </thead>
                 </table>

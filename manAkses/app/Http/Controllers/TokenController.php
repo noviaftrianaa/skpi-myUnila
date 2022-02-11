@@ -35,11 +35,11 @@ class TokenController extends Controller
                 ->editColumn('waktu_expired', function($data) {
                     return TglWaktuIndonesia($data->waktu_expired);
                 })
-                ->addColumn('action', function($data) {
-                    $button = '<a type="button" class="btn btn-primary btn-xs" title="Show" href="'.route('token.detail', [Crypt::encrypt($data->id_token)]).'"><i class="fas fa-eye"></i></a>';
-                    return $button;
-                })
-                ->rawColumns(['action'])
+                // ->addColumn('action', function($data) {
+                //     $button = '<a type="button" class="btn btn-primary btn-xs" title="Show" href="'.route('token.detail', [Crypt::encrypt($data->id_token)]).'"><i class="fas fa-eye"></i></a>';
+                //     return $button;
+                // })
+                // ->rawColumns(['action'])
                 ->make(true);
         }
         return view('manajemen.token.index');

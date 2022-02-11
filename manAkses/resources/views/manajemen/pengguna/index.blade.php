@@ -1,6 +1,55 @@
 @extends('template.default.app')
 @section('title','Data Pengguna')
-@extends('__partial.datatable')
+
+@push('css')
+<link href="{{asset('bower_components/datatables/media/css/dataTables.bootstrap4.css')}}" rel="stylesheet">
+@endpush
+
+@push('js')
+<script type="text/javascript" src="{{ asset('bower_components/datatables/media/js/jquery.dataTables.min.js')}}"></script>
+<script type="text/javascript" src="{{ asset('bower_components/datatables/media/js/dataTables.bootstrap4.min.js')}}"></script>
+<script>
+    $(document).ready( function () {
+        $('#table-data').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: window.location.href,
+            columns: [
+                { data: 'DT_RowIndex', orderable: false, searchable: false },
+                { data: 'nm_pengguna' },
+                { data: 'username' },
+                { data: 'jenis_kelamin', searchable: false },
+                { data: 'status', searchable: false },
+                { data: 'aksi', orderable: false, searchable: false }
+            ],
+            "language": {
+                "decimal":        "",
+                "emptyTable":     "Tidak ada data pada tabel",
+                "info":           "Menampilkan _START_ sampai _END_ dari _TOTAL_ total data",
+                "infoEmpty":      "Tidak ada yang ditampilkan",
+                "infoFiltered":   "(Terfilter dari  _MAX_ total entitas)",
+                "infoPostFix":    "",
+                "thousands":      ",",
+                "lengthMenu":     "Menampilkan _MENU_ entitas",
+                "loadingRecords": "Loading...",
+                "processing":     "Sedang dalam proses...",
+                "search":         "Pencarian:",
+                "zeroRecords":    "Tidak ada data yang cocok",
+                "paginate": {
+                    "first":      "Pertama",
+                    "last":       "Terakhir",
+                    "next":       "Selanjutnya",
+                    "previous":   "Sebelumnya"
+                },
+                "aria": {
+                    "sortAscending":  ": activate to sort column ascending",
+                    "sortDescending": ": activate to sort column descending"
+                }
+            }
+        } );
+    });
+</script>
+@endpush
 
 @section('content')
     <div class="card card-info">
@@ -23,28 +72,6 @@
                         <th>Aksi</th>
                       </tr>
                     </thead>
-                    <tbody>
-                        @foreach($user as $no=>$item)
-                        <tr>
-                            <td>{{$no+1}}</td>
-                            <td>{{$item->nm_pengguna}}</td>
-                            <td>{{$item->username}}</td>
-                            <td>{{($item->jenis_kelamin=="L")?'Laki-laki':'Perempuan'}}</td>
-                            <td>
-                                @if($item->a_aktif==1)
-                                <a data-toggle="modal" href="#changeItem{{$item->id_pengguna}}" type="button" class="btn btn-success btn-xs">Aktif</a>
-                                @else
-                                <a data-toggle="modal" href="#changeItem{{$item->id_pengguna}}" type="button" class="btn btn-danger btn-xs">Tidak Aktif</a>
-                                @endif
-                            </td>
-                            <td>
-                                <a class="btn btn-warning btn-xs" title="Reset" data-toggle="modal" href="#resetItem{{$item->id_pengguna}}"> <i class="fas fa-key"></i></a>
-                                <a class="btn btn-primary btn-xs" title="Show User" href="{{ route('user.detail', [Crypt::encrypt($item->id_pengguna)]) }}"> <i class="fas fa-eye"></i></a>
-                                <a class="btn btn-danger btn-xs" title="Delete" data-toggle="modal" href="#deleteItem{{$item->id_pengguna}}"> <i class="fas fa-trash-alt"></i></a>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
                 </table>
             </div>
         </div>
@@ -72,7 +99,7 @@
                         <input type="hidden" name="_method" value="PATCH">
                         <div class="row">
                             <div class="col-sm-12">
-                                <p>Apakah yakin ingin mereset password atas nama <b>{{$items->nm_pengguna}}</b> menjadi "<strong>12345678</strong>" ?</p>
+                                <p>Apakah yakin ingin mereset password atas nama <b>{{$items->nm_pengguna}}</b> menjadi "<strong>unilajaya</strong>" ?</p>
                             </div>
                         </div>
                         <div class="modal-footer no-bd">

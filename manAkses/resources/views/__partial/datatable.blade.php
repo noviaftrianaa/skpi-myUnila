@@ -9,6 +9,7 @@
     $(document).ready( function () {
         $('#table-data').DataTable({
             stateSave: true,
+            // processing: true,
             "language": {
                 "decimal":        "",
                 "emptyTable":     "Tidak ada data pada tabel",
