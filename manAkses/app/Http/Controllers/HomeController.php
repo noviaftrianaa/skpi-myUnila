@@ -33,11 +33,7 @@ class HomeController extends Controller
      */
     public function index()
     {
-        if(Session::get('login.role')->id_peran != 1) {
-            $app_inter = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->where('a_integrasi_cas',1)->get();
-            $app_non_inter = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->where('a_integrasi_cas',0)->get();
-            return view('default.index', ['app_inter'=>$app_inter,'app_non_inter'=>$app_non_inter]);
-        } else {
+        if(Session::has('login.role') && Session::get('login.role')->id_peran == 1) {
             $datas = User::all();
             $apps = Aplikasi::all();
             $unit = UnitOrganisasi::all();
@@ -51,6 +47,10 @@ class HomeController extends Controller
                 'role'  => $role,
                 'unit'  => $unit
             ]);
+        } else {
+            $app_inter = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->where('a_integrasi_cas',1)->get();
+            $app_non_inter = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->where('a_integrasi_cas',0)->get();
+            return view('default.index', ['app_inter'=>$app_inter,'app_non_inter'=>$app_non_inter]);
         }
     }
 

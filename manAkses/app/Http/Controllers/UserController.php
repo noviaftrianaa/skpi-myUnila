@@ -18,14 +18,13 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
-        $user = DB::SELECT('
-            SELECT *
-            FROM man_akses.pengguna WITH(NOLOCK)
-            WHERE soft_delete=0
-            ORDER BY a_aktif DESC, nm_pengguna ASC
-        ');
-
         if($request->ajax()) {
+            $user = DB::SELECT('
+                SELECT *
+                FROM man_akses.pengguna WITH(NOLOCK)
+                WHERE soft_delete=0
+                ORDER BY a_aktif DESC, nm_pengguna ASC
+            ');
             return DataTables::of($user)
                 ->addIndexColumn()
                 ->editColumn('jenis_kelamin', function($user) {
@@ -33,23 +32,21 @@ class UserController extends Controller
                 })
                 ->addColumn('status', function($user) {
                     if($user->a_aktif==1) {
-                        $button = '<a data-toggle="modal" href="#changeItem'.$user->id_pengguna.'" type="button" class="btn btn-success btn-xs">Aktif</a>';
+                        $button = '<span class="alert alert-success" style="padding:3px;color:white">Aktif</span>';
                     } else {
-                        $button = '<a data-toggle="modal" href="#changeItem'.$user->id_pengguna.'" type="button" class="btn btn-danger btn-xs">Tidak Aktif</a>';
+                        $button = '<span class="alert alert-danger" style="padding:3px;color:white">Tidak Aktif</span>';
                     }
                     return $button;
                 })
                 ->addColumn('aksi', function($user) {
-                    $button = '<a class="btn btn-warning btn-xs" title="Reset" data-toggle="modal" href="#resetItem'.$user->id_pengguna.'"> <i class="fas fa-key"></i></a>
-                    <a class="btn btn-primary btn-xs" title="Show User" href="'.route('user.detail', [Crypt::encrypt($user->id_pengguna)]).'"> <i class="fas fa-eye"></i></a>
-                    <a class="btn btn-danger btn-xs" title="Delete" data-toggle="modal" href="#deleteItem'.$user->id_pengguna.'"> <i class="fas fa-trash-alt"></i></a>';
+                    $button = '<a class="btn btn-primary btn-xs" title="Show User" href="'.route('user.detail', [Crypt::encrypt($user->id_pengguna)]).'"> <i class="fas fa-eye"></i></a>';
                     return $button;
                 })
                 ->rawColumns(['status','aksi'])
                 ->make(true);
         }
 
-        return view('manajemen.pengguna.index', ['user'=>$user]);
+        return view('manajemen.pengguna.index');
     }
 
     public function create()
@@ -234,7 +231,7 @@ class UserController extends Controller
         } else {
             alert()->success('Data berhasil dihapus!');
         }
-        return redirect()->back();
+        return redirect()->route('user.index');
     }
     
     /**
@@ -246,7 +243,7 @@ class UserController extends Controller
     {
         $id = Crypt::decrypt($id);
         $data = User::lock('WITH(NOLOCK)')->where('id_pengguna', $id)->update([
-            'password'         => sha1('12345678'),
+            'password'         => sha1('unilajaya'),
             'last_update'      => currDateTime(),
             'id_updater'       => Auth::user()->id_pengguna
         ]);

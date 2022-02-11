@@ -126,11 +126,11 @@ class LoginController extends Controller
 
     public function logout(){
         if(Auth::check()) {
-            Auth::logout();
-            Session::invalidate();
-            alert()->success('Berhasil logout');
-            if(SSO::check()) {
-                SSO::logout(url('/'));
+            Auth::logout(); //Destroy Auth
+            Session::flush(); //Destroy Session
+            alert()->success('Berhasil logout'); //Alert
+            if(SSO::check()) { //SSO Check
+                SSO::logout(url('/')); //Logout with redirect to index page
             } else {
                 return redirect('auth/login')->with('pesan', 'berhasil logout');
             }

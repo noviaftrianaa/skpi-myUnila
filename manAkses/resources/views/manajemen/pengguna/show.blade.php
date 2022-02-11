@@ -6,11 +6,16 @@
     <div class="card card-info">
         <div class="card-header">
             <h3 class="card-title"><i class="fa fa-list"></i> Data Pengguna</h3>
-            <div class="card-tools">
-                <a data-toggle="modal" class="btn btn-secondary btn-xs rounded-pill" href="#editUser"><i class="fa fa-edit"></i> Edit</a>
-            </div>
         </div><!-- /.card-header -->
         <div class="card-body" style="margin: 0;padding: 0">
+            <div class="row col-12 p-2">
+                <div class="m-auto">
+                    <a data-toggle="modal" class="btn btn-default btn-sm" href="#editUser"><i class="fa fa-edit"></i> Edit</a>
+                    <a data-toggle="modal" class="btn btn-secondary btn-sm" href="#changeItem"><i class="fa fa-edit"></i> Status</a>
+                    <a class="btn btn-warning btn-sm" data-toggle="modal" href="#resetItem"> <i class="fas fa-key"></i> Reset</a>
+                    <a class="btn btn-danger btn-sm" data-toggle="modal" href="#deleteItem"> <i class="fas fa-trash-alt"></i> Delete</a>
+                </div>
+            </div>
             <div class="table-responsive">
                 <table class="table table-striped">
                     <tbody>
@@ -24,7 +29,7 @@
                         {!! tablerow('No. Telepon',$data->no_tel) !!}
                         {!! tablerow('No. HP',$data->no_hp) !!}
                         {!! tablerow('Approval Pengguna ?', ($data->approval_pengguna==1) ? 'Disetujui':'Tidak Disetujui') !!}
-                        {!! tablerow('Apakah Aktif ?',($data->a_aktif==1) ? 'Aktif':'Tidak Aktif') !!}
+                        {!! tablerow('Apakah Aktif ?', ($data->a_aktif==1) ? 'Aktif' : 'Tidak Aktif') !!}
                         {!! tablerow('Disable ?',($data->disable==1) ? 'Aktif':'Tidak Aktif') !!}
                     </tbody>
                 </table>
@@ -328,5 +333,107 @@
         </div>
     </div>
     @endforeach
+
+    <div class="modal fade" id="resetItem" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header no-bd">
+                    <h5 class="modal-title">
+                        <span class="fw-mediumbold">
+                        Reset </span> 
+                        <span class="fw-light">
+                            Password Pengguna
+                        </span>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ route('user.reset', [Crypt::encrypt($data->id_pengguna)]) }}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="_method" value="PATCH">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <p>Apakah yakin ingin mereset password atas nama <b>{{$data->nm_pengguna}}</b> menjadi "<strong>unilajaya</strong>" ?</p>
+                            </div>
+                        </div>
+                        <div class="modal-footer no-bd">
+                            <button type="submit" class="btn btn-primary">Simpan</button>
+                            <button type="button" class="btn btn-danger" data-dismiss="modal">Tutup</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="changeItem" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header no-bd">
+                    <h5 class="modal-title">
+                        <span class="fw-mediumbold">
+                        Ubah Status </span> 
+                        <span class="fw-light">
+                            Aktif Pengguna
+                        </span>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ route('user.edit', [Crypt::encrypt($data->id_pengguna)]) }}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="_method" value="PATCH">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <p>Apakah yakin ingin {{($data->a_aktif==1)?'menonaktifkan':'mengaktifkan kembali'}} pengguna atas nama <b>{{$data->nm_pengguna}}</b> ?</p>
+                            </div>
+                        </div>
+                        <div class="modal-footer no-bd">
+                            <button type="submit" class="btn btn-primary">Simpan</button>
+                            <button type="button" class="btn btn-danger" data-dismiss="modal">Tutup</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteItem" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header no-bd">
+                    <h5 class="modal-title">
+                        <span class="fw-mediumbold">
+                        Hapus </span> 
+                        <span class="fw-light">
+                            Pengguna
+                        </span>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ route('user.destroy', [Crypt::encrypt($data->id_pengguna)]) }}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <p>Apakah yakin ingin menghapus pengguna atas nama <b>{{$data->nm_pengguna}}</b> ?</p>
+                            </div>
+                        </div>
+                        <div class="modal-footer no-bd">
+                            <button type="submit" class="btn btn-primary">Simpan</button>
+                            <button type="button" class="btn btn-danger" data-dismiss="modal">Tutup</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
 @endsection
