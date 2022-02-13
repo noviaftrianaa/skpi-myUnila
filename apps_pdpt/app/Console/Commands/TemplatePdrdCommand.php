@@ -26,8 +26,8 @@ class TemplatePdrdCommand extends Command
         }
 
         $getTable = DB::select("
-            SELECT 
-                SCHEMA_NAME(t.schema_id) as schema_name, 
+            SELECT
+                SCHEMA_NAME(t.schema_id) as schema_name,
                 t.name as table_name,
                 t.create_date,
                 t.modify_date
@@ -35,14 +35,14 @@ class TemplatePdrdCommand extends Command
             WHERE SCHEMA_NAME(t.schema_id) =" . "'" . $schema_name . "'" . "
             ORDER BY table_name ASC
         ");
- 
+
         $data = [];
         foreach ($getTable as $t) {
             $getColumn = DB::select("
                 SELECT c.name AS column_name,c.column_id
                 FROM sys.columns AS c
                 JOIN sys.tables AS t ON c.object_id = t.object_id
-                WHERE c.object_id = OBJECT_ID(" . "'" . $schema_name . "." . $t->table_name . "'" . ") 
+                WHERE c.object_id = OBJECT_ID(" . "'" . $schema_name . "." . $t->table_name . "'" . ")
                 ORDER BY c.column_id ASC
             ");
 
