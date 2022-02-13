@@ -9,7 +9,7 @@ use App\Models\PDUT\Temp_iku\TempDosenTridharma;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Seeder;
 
-class Iku3Seeder extends Seeder
+class TempDosenSeeder extends Seeder
 {
     public function run()
     {
