@@ -34,7 +34,7 @@ class MahasiswaController extends Controller
         }
 
         $query = DB::SELECT("
-            DECLARE @PageNumber AS INT 
+            DECLARE @PageNumber AS INT
             DECLARE @RowsOfPage AS INT
             SET
                 @PageNumber = ?
@@ -85,9 +85,9 @@ class MahasiswaController extends Controller
                 pd.soft_delete = 0
             ORDER BY
                 ts.id_thn_ajaran DESC,
-                pd.nm_pd " . $sortBy . " 
-            OFFSET (@PageNumber -1) * 
-            @RowsOfPage ROWS FETCH NEXT 
+                pd.nm_pd " . $sortBy . "
+            OFFSET (@PageNumber -1) *
+            @RowsOfPage ROWS FETCH NEXT
             @RowsOfPage ROWS ONLY
             ",
             [$currentPage, $itemsPerPage]
@@ -303,7 +303,7 @@ class MahasiswaController extends Controller
         }
 
         $query = DB::SELECT("
-            DECLARE @PageNumber AS INT 
+            DECLARE @PageNumber AS INT
             DECLARE @RowsOfPage AS INT
             SET
                 @PageNumber = ?
@@ -355,9 +355,9 @@ class MahasiswaController extends Controller
                 pd.soft_delete = 0
             ORDER BY
                 ts.id_thn_ajaran DESC,
-                pd.nm_pd " . $sortBy . " 
-                OFFSET (@PageNumber -1) * 
-                @RowsOfPage ROWS FETCH NEXT 
+                pd.nm_pd " . $sortBy . "
+                OFFSET (@PageNumber -1) *
+                @RowsOfPage ROWS FETCH NEXT
                 @RowsOfPage ROWS ONLY
             ",
             [$currentPage, $itemsPerPage]
@@ -413,7 +413,7 @@ class MahasiswaController extends Controller
         }
 
         $query = DB::SELECT("
-            DECLARE @PageNumber AS INT 
+            DECLARE @PageNumber AS INT
             DECLARE @RowsOfPage AS INT
             SET
                 @PageNumber = ?
@@ -468,9 +468,9 @@ class MahasiswaController extends Controller
                 pd.soft_delete = 0
             ORDER BY
                 ts.id_thn_ajaran DESC,
-                pd.nm_pd " . $sortBy . " 
-                OFFSET (@PageNumber -1) * 
-                @RowsOfPage ROWS FETCH NEXT 
+                pd.nm_pd " . $sortBy . "
+                OFFSET (@PageNumber -1) *
+                @RowsOfPage ROWS FETCH NEXT
                 @RowsOfPage ROWS ONLY
             ",
             [$currentPage, $itemsPerPage]
@@ -625,7 +625,7 @@ class MahasiswaController extends Controller
         // }
 
         $query = DB::SELECT("
-            DECLARE @PageNumber AS INT 
+            DECLARE @PageNumber AS INT
             DECLARE @RowsOfPage AS INT
             SET
                 @PageNumber = ?
@@ -649,6 +649,7 @@ class MahasiswaController extends Controller
                 sms.id_sms,
                 reg.tgl_keluar AS tgl_lulus,
                 reg.tgl_sk_yudisium AS tgl_wisuda,
+                reg.no_seri_ijazah,
                 pd.create_date AS waktu_data_ditambahkan,
                 pmb.nm_pembiayaan,
                 pd.last_update AS terakhir_diubah,
@@ -736,6 +737,7 @@ class MahasiswaController extends Controller
                 'biaya_kuliah' => $each_data->nm_pembiayaan,
                 'tanggal_lulus' => $each_data->tgl_lulus,
                 'tanggal_wisuda' => $each_data->tgl_wisuda,
+                'no_seri_ijazah' => $each_data->no_seri_ijazah,
                 'waktu_data_ditambahkan' => date('Y-m-d H:i:s', strtotime($each_data->waktu_data_ditambahkan)),
                 'terakhir_diubah' => date('Y-m-d H:i:s', strtotime($each_data->terakhir_diubah))
             ];

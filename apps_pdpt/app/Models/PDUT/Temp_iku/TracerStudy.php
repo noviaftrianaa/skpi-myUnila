@@ -5,13 +5,14 @@ namespace App\Models\PDUT\Temp_iku;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TempTracerStudy extends Model
+class TracerStudy extends Model
 {
     protected $table = 'temp_iku.tracer_study';
-    protected $primaryKey = 'id_reg_pd';
+    protected $primaryKey = 'id_tracer_study';
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
+        'id_tracer_study',
         'id_reg_pd',
         'id_thn_ajaran',
         'nm_alumni',

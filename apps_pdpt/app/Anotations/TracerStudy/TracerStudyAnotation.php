@@ -25,7 +25,7 @@
      *     )
      */
 
-   
+
     /**
      * @OA\Post(
      *      path="/tracer_study/tambah",
@@ -50,21 +50,21 @@
      *                 @OA\Property( property="id_jns_jalur_kerja", type="string", format="number", example="12"),
      *                 @OA\Property( property="wkt_pengisian", type="string", format="date", example="2022-01-01"),
      *                 @OA\Property( property="wkt_tunggu", type="string", format="number", example="3"),
+     *                 @OA\Property( property="a_kerja_sblm_lulus", type="string", format="number", example="1"),
      *                 @OA\Property( property="status_lulusan", type="string", format="number", example="1"),
      *                 @OA\Property( property="jns_tmpt_bekerja", type="string", format="text", example="Institusi"),
      *                 @OA\Property( property="nm_tmpt_bekerja", type="string", format="text", example="Honda"),
+     *                 @OA\Property( property="level_perusahaan", type="string", format="text", example="Perusahaan Nasional"),
      *                 @OA\Property( property="income_per_bln", type="string", format="number", example="2085000"),
      *                 @OA\Property( property="total_instansi_dilamar", type="string", format="number", example="1"),
      *                 @OA\Property( property="hub_bidang_kerja", type="string", format="number", example="1"),
      *                 @OA\Property( property="tkt_kesesuaian", type="string", format="number", example="1"),
      *                 @OA\Property( property="alasan_tidak_sesuai", type="string", format="text", example=" "),
-     *                 @OA\Property( property="ket", type="string", format="text", example=" "),
-     *                 @OA\Property( property="id_negara", type="string", format="text", example="ID"),
-     *                 @OA\Property( property="nm_atasan", type="string", format="text", example="nama bos antum"),
-     *                 @OA\Property( property="email_atasan", type="email", format="email", example="emailbos@gmail.com"),
-     *                 @OA\Property( property="jabatan_atasan", type="string", format="text", example="kepala upt"),
-     *                 @OA\Property( property="saran", type="string", format="text", example="makin rajin kerjanya"),
-     *                 @OA\Property( property="harapan", type="string", format="text", example="semoga sukses selalu")
+     *                 @OA\Property( property="status_jabatan", type="string", format="text", example="non PNS"),
+     *                 @OA\Property( property="nm_pt_lnjt", type="string", format="text", example=" "),
+     *                 @OA\Property( property="nm_prodi_lnjt", type="string", format="text", example=" "),
+     *                 @OA\Property( property="wkt_masuk", type="string", format="date", example=" "),
+     *                 @OA\Property( property="ket", type="string", format="text", example=" ")
      *                ),
      *             ),
      *        ),
@@ -85,7 +85,7 @@
      *     )
      */
 
-   
+
     /**
      * @OA\Put(
      *      path="/tracer_study/ubah",
@@ -139,7 +139,7 @@
      *     )
      */
 
-   
+
     /**
      * @OA\Delete(
      *      path="/tracer_study/hapus",
@@ -204,7 +204,7 @@
      *     )
      */
 
-   
+
        /**
      * @OA\Get(
      *      path="/tracer_study/umr_wilayah",

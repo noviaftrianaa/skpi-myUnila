@@ -108,27 +108,27 @@ class TracerStudyController extends Controller
         ");
         }
 
-        $hasil_tracer_study_atasan = [];
-        foreach ($data_alumni as $each_data) {
-            $id =  $each_data->id_reg_pd;
-            $hasil_tracer_study_atasan[$id] = DB::SELECT("
-                SELECT
-                    tc_study_ats.id_hasil_tracer_study, tc_study_ats.id_hasil_tracer_atasan, tc_study_ats.email_atasan, tc_study_ats.nm_atasan,
-                    wilayah.nm_wil, negara.nm_negara, tc_study_ats.jabatan_atasan, tc_study_ats.nm_tmpt_bekerja,
-                    tc_study_ats.bidang_tempat_bekerja, tc_study_ats.saran, tc_study_ats.harapan
-                FROM tracer.hasil_tracer_atasan AS tc_study_ats WITH(NOLOCK)
-                LEFT JOIN ref.wilayah AS wilayah WITH(NOLOCK) ON wilayah.id_wil = tc_study_ats.id_wil
-                    AND wilayah.expired_date IS NULL
-                LEFT JOIN ref.negara AS negara WITH(NOLOCK) ON negara.id_negara = tc_study_ats.id_negara
-                    AND wilayah.expired_date IS NULL
-                LEFT JOIN tracer.hasil_tracer_study AS tc_study WITH(NOLOCK) ON tc_study.id_hasil_tracer_study = tc_study_ats.id_hasil_tracer_study
-                    AND tc_study.id_reg_pd = '" . $id . "'
-                    AND tc_study.soft_delete = 0
-                WHERE tc_study_ats.soft_delete = 0
-                ORDER BY tc_study_ats.create_date ASC
+        // $hasil_tracer_study_atasan = [];
+        // foreach ($data_alumni as $each_data) {
+        //     $id =  $each_data->id_reg_pd;
+        //     $hasil_tracer_study_atasan[$id] = DB::SELECT("
+        //         SELECT
+        //             tc_study_ats.id_hasil_tracer_study, tc_study_ats.id_hasil_tracer_atasan, tc_study_ats.email_atasan, tc_study_ats.nm_atasan,
+        //             wilayah.nm_wil, negara.nm_negara, tc_study_ats.jabatan_atasan, tc_study_ats.nm_tmpt_bekerja,
+        //             tc_study_ats.bidang_tempat_bekerja, tc_study_ats.saran, tc_study_ats.harapan
+        //         FROM tracer.hasil_tracer_atasan AS tc_study_ats WITH(NOLOCK)
+        //         LEFT JOIN ref.wilayah AS wilayah WITH(NOLOCK) ON wilayah.id_wil = tc_study_ats.id_wil
+        //             AND wilayah.expired_date IS NULL
+        //         LEFT JOIN ref.negara AS negara WITH(NOLOCK) ON negara.id_negara = tc_study_ats.id_negara
+        //             AND wilayah.expired_date IS NULL
+        //         LEFT JOIN tracer.hasil_tracer_study AS tc_study WITH(NOLOCK) ON tc_study.id_hasil_tracer_study = tc_study_ats.id_hasil_tracer_study
+        //             AND tc_study.id_reg_pd = '" . $id . "'
+        //             AND tc_study.soft_delete = 0
+        //         WHERE tc_study_ats.soft_delete = 0
+        //         ORDER BY tc_study_ats.create_date ASC
 
-            ");
-        }
+        //     ");
+        // }
 
 
         $data = [];
@@ -151,8 +151,8 @@ class TracerStudyController extends Controller
                 'tanggal_wisuda' => $each_data->tgl_wisuda,
                 'waktu_data_ditambahkan' => date('Y-m-d H:i:s', strtotime($each_data->waktu_data_ditambahkan)),
                 'terakhir_diubah' => date('Y-m-d H:i:s', strtotime($each_data->terakhir_diubah)),
-                'hasil_tracer_study' => $hasil_tracer_study[$each_data->id_reg_pd],
-                'hasil_tracer_study_atasan' => $hasil_tracer_study_atasan[$each_data->id_reg_pd]
+                'hasil_tracer_study' => $hasil_tracer_study[$each_data->id_reg_pd]
+                // 'hasil_tracer_study_atasan' => $hasil_tracer_study_atasan[$each_data->id_reg_pd]
 
             ];
         }
@@ -206,7 +206,7 @@ class TracerStudyController extends Controller
                 //         reg.nipd = ?
                 //         AND reg.soft_delete = 0
                 // ", [$each_data['npm']]);
-                
+
                 $tracer = HasilTracerStudy::updateOrInsert([
                     'id_reg_pd' => $each_data['id_reg_pd'],
                     'id_thn_ajaran' => $each_data['id_thn_ajaran'],
