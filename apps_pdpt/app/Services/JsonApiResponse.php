@@ -1,0 +1,87 @@
+<?php
+
+namespace App\Services;
+
+class JsonApiResponse
+{
+    private $statusCode;
+    private $message;
+    private $error;
+    private $isSuccess;
+    private $pagination;
+    private $transform;
+
+    public function __construct()
+    {
+        $this->statusCode = 200;
+        $this->isSuccess = TRUE;
+        $this->pagination = [];
+    }
+
+    public function setTransformer(object $transform, string $func): object
+    {
+        $this->transform = new $transform($func);
+        return $this;
+    }
+
+    public function setStatusCode(int $statusCode): object
+    {
+        $this->statusCode = $statusCode;
+        return $this;
+    }
+
+    public function setMessage(string $message = NULL): object
+    {
+        $this->message = $message;
+        return $this;
+    }
+
+    public function setError(array $error = NULL): object
+    {
+        $this->error = $error;
+        $this->isSuccess = FALSE;
+        return $this;
+    }
+
+    public function withPagination(array $pagination = []): object
+    {
+        if (!isset($pagination)) {
+            $setPagination['pagination'] = [
+                'page' => request()->input('page'),
+                'count' => request()->input('count')
+            ];
+        } else {
+            $setPagination['pagination'] = $pagination;
+        }
+
+        $this->pagination = $setPagination;
+        return $this;
+    }
+
+    public function render($data = NULL): object
+    {
+        if (is_null($data)) {
+            $meta = NULL;
+        } else {
+            if (isset($this->transform) && is_object($this->transform)) {
+                $meta['data'] = $this->transform->setData($data)->process();
+            } else {
+                $meta['data'] = $data;
+            }
+        }
+
+        if (isset($this->pagination) && is_array($meta)) {
+            $meta = array_merge($meta, $this->pagination);
+        }
+
+        $return = [
+            'status' => $this->isSuccess ? true : false,
+            'message' => $this->message,
+            'latency' => AppLatency(),
+            'error' => is_null($this->error) ? NULL : $this->error,
+            'response' => is_null($meta) ? NULL : $meta,
+        ];
+
+        return response()->json($return, $this->statusCode);
+    }
+}

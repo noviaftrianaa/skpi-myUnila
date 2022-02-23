@@ -10,4 +10,10 @@ use Illuminate\Routing\Controller as BaseController;
 class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
+
+    const FAILED_UPLOAD = 'FailedUpload';
+    const QUERY_RESULT_EMPTY = 'QueryResultEmpty';
+    const INSERT_FAILED = 'InsertFailed';
+    const UPDATE_FAILED = 'UpdateFailed';
+    const DELETE_FAILED = 'DeleteFailed';
 }

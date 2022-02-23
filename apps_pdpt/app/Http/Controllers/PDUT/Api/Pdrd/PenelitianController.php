@@ -9,7 +9,6 @@ use App\Models\PDUT\Pdrd\Litabmas;
 use App\Models\PDUT\Pdrd\NonCaAnggotaLitabmas;
 use App\Models\PDUT\Pdrd\PdAnggotaLitabmas;
 use App\Models\PDUT\Pdrd\SdmAnggotaLitabmas;
-
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Arr;
@@ -18,10 +17,20 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule as ValidationRule;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Response;
+
+use App\Services\JsonApiResponse as WrapResponse;
+use App\Services\QueryPagination;
+
+use App\Traits\ApiTrait;
+use App\Transformers\PenelitianTransformer;
+
 use Exception;
 
 class PenelitianController extends Controller
 {
+	use ApiTrait;
+
     protected $request;
     protected $litabmas;
     protected $sdmLitabmas;
@@ -30,15 +39,21 @@ class PenelitianController extends Controller
     protected $dokLitabmas;
     protected $dokumen;
 
+    protected $wrapResponse;
+
     public function __construct(Request $request)
     {
-        $this->request = $request;
+        $this->setRequest($request);
+        $this->sanitizeRequest();
+
         $this->litabmas = new Litabmas();
         $this->sdmLitabmas = new SdmAnggotaLitabmas();
         $this->pdLitabmas = new PdAnggotaLitabmas();
         $this->nonCaLitabmas = new NonCaAnggotaLitabmas();
         $this->dokLitabmas = new DokLitabmas();
         $this->dokumen = new Dokumen();
+
+        $this->wrapResponse = new WrapResponse;
     }
 
     public function list()
@@ -84,32 +99,19 @@ class PenelitianController extends Controller
             ORDER BY lm.id_thn_laks " . $sortby . "
         ";
 
-        $pagination = CustomPagination($query);
-        $query = $pagination['query'];
-
-        $query = DB::select($query);
-        if (empty($query)) {
-            return WrapResponse(['data' => NULL], 'tidak ada daftar penelitian yang ditampilkan', FALSE);
+        $result = new QueryPagination($query);
+        if (empty($result->query())) {
+            return $this->wrapResponse
+                ->setMessage(static::QUERY_RESULT_EMPTY)
+                ->setError(['query' => 'tidak ada daftar penelitian yang ditampilkan'])
+                ->render();
         }
 
-        $data = [];
-        foreach ($query as $value) {
-            $data[] = [
-                'id' => $value->id_penelitian,
-                'judul_penelitian' => $value->judul_penelitian,
-                'bidang_keilmuan' => $value->bidang_keilmuan,
-                'tahun_pelaksanaan' => $value->tahun_pelaksanaan,
-                'lama_kegiatan' => $value->lama_kegiatan,
-                'waktu_data_ditambahkan' => date('Y-m-d H:i:s', strtotime($value->waktu_data_ditambahkan)),
-                'terakhir_diubah' => date('Y-m-d H:i:s', strtotime($value->terakhir_diubah))
-            ];
-        }
-
-        return WrapResponse([
-            'page' => $pagination['page'],
-            'count' => $pagination['count'],
-            'data' => $data
-        ], 'sukses');
+        return $this->wrapResponse
+            ->setTransformer(new PenelitianTransformer, __FUNCTION__)
+            ->setStatusCode(Response::HTTP_ACCEPTED)
+            ->withPagination($result->pagination())
+            ->render($result->query());
     }
 
     public function listById()
@@ -156,32 +158,19 @@ class PenelitianController extends Controller
                 litabmas.id_thn_laks " . $sortBy . "
         ";
 
-        $pagination = CustomPagination($query);
-        $query = $pagination['query'];
-
-        $query = DB::select($query);
-        if (empty($query)) {
-            return WrapResponse([], "tidak ditemukan data penelitian dari sdm id $sdmId", FALSE);
+        $result = new QueryPagination($query);
+        if (empty($result->query())) {
+            return $this->wrapResponse
+                ->setMessage(static::QUERY_RESULT_EMPTY)
+                ->setError(['query' => 'tidak ada daftar penelitian yang ditampilkan'])
+                ->render();
         }
 
-        $data = [];
-        foreach ($query as $value) {
-            $data[] = [
-                'id_penelitian' => $value->id_penelitian,
-                'judul_penelitian' => $value->judul_penelitian,
-                'bidang_keilmuan' => $value->bidang_keilmuan,
-                'tahun_pelaksanaan' => $value->tahun_pelaksanaan,
-                'lama_kegiatan' => $value->lama_kegiatan,
-                'waktu_data_ditambahkan' => date('Y-m-d H:i:s', strtotime($value->waktu_data_ditambahkan)),
-                'terakhir_diubah' => date('Y-m-d H:i:s', strtotime($value->terakhir_diubah))
-            ];
-        }
-
-        return WrapResponse([
-            'page' => $pagination['page'],
-            'count' => $pagination['count'],
-            'data' => $data
-        ], 'sukses');
+        return $this->wrapResponse
+            ->setTransformer(new PenelitianTransformer, __FUNCTION__)
+            ->setStatusCode(Response::HTTP_ACCEPTED)
+            ->withPagination($result->pagination())
+            ->render($result->query());
     }
 
     public function getDetailPenelitianByPenelitianId($id)
@@ -228,8 +217,12 @@ class PenelitianController extends Controller
             ";
             $getDetailPenelitian = DB::select($query, [$penelitianId]);
             if (empty($getDetailPenelitian)) {
-                return WrapResponse([], "penelitian $penelitianId tidak ditemukan", FALSE);
+                return $this->wrapResponse
+                    ->setMessage(static::QUERY_RESULT_EMPTY)
+                    ->setError(['query' => "penelitian $penelitianId tidak ditemukan"])
+                    ->render();
             }
+
             foreach ($getDetailPenelitian as $value) {
                 $reformatGetDetailPenelitian = [
                     'tahun_anggaran' => $value->tahun_anggaran,
@@ -325,10 +318,13 @@ class PenelitianController extends Controller
 
             $data = $reformatGetDetailPenelitian;
 
-            return WrapResponse(compact('data'), 'sukses');
+            return $this->wrapResponse->setStatusCode(Response::HTTP_ACCEPTED)->render($data);
         } catch (Exception $e) {
             Log::error(__FUNCTION__ . ' - ' . $e->getMessage());
-            return WrapResponse([], "detail penelitian tidak ditemukan atau penelitian tidak terdaftar", FALSE);
+            return $this->wrapResponse
+                ->setMessage(static::QUERY_RESULT_EMPTY)
+                ->setError(['query' => "detail penelitian $penelitianId tidak ditemukan atau penelitian tidak terdaftar"])
+                ->render();
         }
     }
 
@@ -493,7 +489,7 @@ class PenelitianController extends Controller
 
                         @unlink($filePath);
                     } else {
-                        return WrapResponse([], 'gagal upload dokumen', FALSE);
+                        return $this->wrapResponse->setMessage(static::FAILED_UPLOAD)->setError(['upload' => "gagal upload dokumen"])->render();
                     }
                 }
             }
@@ -537,7 +533,7 @@ class PenelitianController extends Controller
                     ", [$idMahasiswa]);
 
                     if (empty($dataMahasiswa)) {
-                        return WrapResponse([], 'tidak ditemukan data mahasiswa anggota pnelitian', FALSE);
+                        return $this->wrapResponse->setMessage(static::QUERY_RESULT_EMPTY)->setError(['query' => "tidak ditemukan data mahasiswa"])->render();
                     }
 
                     $this->pdLitabmas->create([
@@ -578,15 +574,15 @@ class PenelitianController extends Controller
             }
 
             DB::commit();
-            return WrapResponse([], 'sukses menambahkan penelitian - ' . $penelitian->id_litabmas);
+            return $this->wrapResponse->setStatusCode(Response::HTTP_ACCEPTED)->setMessage('sukses menambahkan penelitian - ' . $penelitian->id_litabmas)->render();
         } catch (ModelNotFoundException $mnfe) {
             DB::rollBack();
             Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
-            return WrapResponse([], 'penelitian tidak ditemukan atau penelitian tidak terdaftar', FALSE);
+            return $this->wrapResponse->setMessage(static::QUERY_RESULT_EMPTY)->setError(['query' => "penelitian tidak ditemukan atau penelitian tidak terdaftar"])->render();
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e->getMessage() . ' on line ' . $e->getLine());
-            return WrapResponse([], "gagal menambahkan penelitian");
+            return $this->wrapResponse->setMessage(static::INSERT_FAILED)->setError(['query' => "gagal menambahkan penelitian"])->render();
         }
     }
 
@@ -675,7 +671,9 @@ class PenelitianController extends Controller
         DB::beginTransaction();
         try {
             $penelitian = $this->litabmas->where('id_litabmas', $litabmasId)->first();
-            if (!$penelitian) return WrapResponse([], 'penelitian tidak ditemukan atau penelitian tidak terdaftar', FALSE);
+            if (!$penelitian) {
+                return $this->wrapResponse->setMessage(static::QUERY_RESULT_EMPTY)->setError(['query' => 'penelitian tidak ditemukan atau penelitian tidak terdaftar']);
+            }
 
             $penelitian->update([
                 'id_litabmas' => $litabmasId,
@@ -754,7 +752,7 @@ class PenelitianController extends Controller
 
                         @unlink($filePath);
                     } else {
-                        return WrapResponse([], 'gagal upload dokumen', FALSE);
+                        return $this->wrapResponse->setMessage(static::FAILED_UPLOAD)->setMessage(['upload' => 'gagal upload dokumen']);
                     }
                 }
             }
@@ -814,7 +812,7 @@ class PenelitianController extends Controller
                         ", [$idMahasiswa]);
 
                         if (empty($dataMahasiswa)) {
-                            return WrapResponse([], 'tidak ditemukan data mahasiswa anggota penelitian', FALSE);
+                            return $this->wrapResponse->setMessage(static::QUERY_RESULT_EMPTY)->setError(['query' => 'tidak ditemukan data mahasiswa anggota penelitian']);
                         }
 
                         $this->pdLitabmas->create([
@@ -848,7 +846,7 @@ class PenelitianController extends Controller
                         ", [$idMahasiswa]);
 
                         if (empty($dataMahasiswa)) {
-                            return WrapResponse([], 'tidak ditemukan data mahasiswa anggota penelitian', FALSE);
+                            return $this->wrapResponse->setMessage(static::QUERY_RESULT_EMPTY)->setError(['query' => 'tidak ditemukan data mahasiswa anggota penelitian']);
                         }
 
                         $anggota_mahasiswa->update([
@@ -899,15 +897,15 @@ class PenelitianController extends Controller
             }
 
             DB::commit();
-            return WrapResponse([], 'sukses mengupdate penelitian - ' . $litabmasId);
+            return $this->wrapResponse->setStatusCode(Response::HTTP_ACCEPTED)->setMessage('sukses mengupdate penelitian - ' . $litabmasId)->render();
         } catch (ModelNotFoundException $mnfe) {
             DB::rollBack();
             Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
-            return WrapResponse([], 'penelitian tidak ditemukan atau penelitian tidak terdaftar', FALSE);
+            return $this->wrapResponse->setMessage(static::QUERY_RESULT_EMPTY)->setError(['query' => 'penelitian tidak ditemukan atau penelitian tidak terdaftar']);
         } catch (Exception $e) {
             DB::rollBack();
             Log::error('error on Function ' . __FUNCTION__ . ' with ' . $e->getMessage() . ' on ' . $e->getLine());
-            return WrapResponse([], "gagal mengupdate penelitian $litabmasId", FALSE);
+            return $this->wrapResponse->setMessage(static::UPDATE_FAILED)->setError(['query' => "gagal mengupdate penelitian $litabmasId"]);
         }
     }
 
@@ -926,11 +924,11 @@ class PenelitianController extends Controller
         try {
             DB::update("UPDATE pdrd.litabmas SET soft_delete = 1 WHERE id_litabmas = $penelitianId");
             DB::commit();
-            return WrapResponse([], 'berhasial menghapus data penelitian');
+            return $this->wrapResponse->setStatusCode(Response::HTTP_ACCEPTED)->setMessage('berhasial menghapus data penelitian - ' . $penelitianId)->render();
         } catch (Exception $e) {
             DB::rollBack();
             Log::error('Error on ' . $e->getMessage() . ' in line ' . $e->getLine());
-            return WrapResponse([], 'gagal menghapus data penelitian', FALSE);
+            return $this->wrapResponse->setMessage(static::DELETE_FAILED)->setError(['query' => "gagal menghapus penelitian $penelitianId"]);
         }
     }
 }

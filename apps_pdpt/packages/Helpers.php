@@ -57,3 +57,4 @@ include $path.'WeekOfMonth.php';
 include $path.'InputValidator.php';
 include $path.'WrapResponse.php';
 include $path.'CustomPagination.php';
+include $path.'AppLatency.php';

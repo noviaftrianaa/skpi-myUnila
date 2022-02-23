@@ -19,7 +19,9 @@ if (!function_exists('InputValidator')) {
                 exit(json_encode([
                     'status' => FALSE,
                     'message' => 'request gagal',
-                    'error' => $validator->errors()
+                    'error' => $validator->errors(),
+                    'latency' => AppLatency(),
+                    'response' => NULL
                 ]));
             }
 
