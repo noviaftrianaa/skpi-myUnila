@@ -7,17 +7,21 @@
         <div class="row">
             <div class="col-sm-6">
                 <div class="card">
-                    <div class="card-header bg-primary"><h3 class="card-title">Akreditasi PT</h3></div>
+                    <div class="card-header bg-primary">
+                        <h3 class="card-title">Akreditasi PT</h3>
+                    </div>
                     <div class="card-body">
-                        <img src="{{ asset('asset/logo/logo_unila.png') }}" alt="logo_unila" class="img-thumbnail rounded mx-auto d-block" width="200px">
+                        <img src="{{ asset('asset/logo/logo_unila.png') }}" alt="logo_unila"
+                            class="img-thumbnail rounded mx-auto d-block" width="200px">
+                        <br>
                         <table class="table table-striped">
                             <tbody>
-                            {!! tableRow('Nama PT',$sp->nm_lemb) !!}
-                            {!! tableRow('Kode PT',$sp->npsn) !!}
-                            {!! tableRow('Status Akreditasi',$sp->nm_akred) !!}
-                            {!! tableRow('SK Akreditasi',$sp->sk_akred_sp) !!}
-                            {!! tableRow('Tanggal SK Akreditasi',tglIndonesia($sp->tgl_sk_akred_sp)) !!}
-                            {!! tableRow('Expired SK Akreditasi','sampai <spap class="text-danger">'.tglIndonesia($sp->tst_sk_akred_sp).'</span>') !!}
+                                {!! tableRow('Nama PT', $sp->nm_lemb) !!}
+                                {!! tableRow('Kode PT', $sp->npsn) !!}
+                                {!! tableRow('Status Akreditasi', $sp->nm_akred) !!}
+                                {!! tableRow('SK Akreditasi', $sp->sk_akred_sp) !!}
+                                {!! tableRow('Tanggal SK Akreditasi', tglIndonesia($sp->tgl_sk_akred_sp)) !!}
+                                {!! tableRow('Expired SK Akreditasi', 'sampai <spap class="text-danger">' . tglIndonesia($sp->tst_sk_akred_sp) . '</span>') !!}
                             </tbody>
                         </table>
                     </div>
@@ -25,7 +29,9 @@
             </div>
             <div class="col-sm-6">
                 <div class="card">
-                    <div class="card-header bg-primary"><h3 class="card-title">Akreditasi Prodi</h3></div>
+                    <div class="card-header bg-primary">
+                        <h3 class="card-title">Akreditasi Prodi</h3>
+                    </div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6 col-sm-6 col-12">
@@ -33,7 +39,7 @@
                                     <span class="info-box-icon bg-success"><i class="far fa-check-square"></i></span>
                                     <div class="info-box-content">
                                         <span class="info-box-text">Terakreditasi</span>
-                                        <span class="info-box-number">{{ $total['sudah'].' Prodi' }}</span>
+                                        <span class="info-box-number">{{ $total['sudah'] . ' Prodi' }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -42,7 +48,7 @@
                                     <span class="info-box-icon bg-danger"><i class="far fa-square"></i></span>
                                     <div class="info-box-content">
                                         <span class="info-box-text">Belum Terakreditasi</span>
-                                        <span class="info-box-number">{{ $total['belum'].' Prodi' }}</span>
+                                        <span class="info-box-number">{{ $total['belum'] . ' Prodi' }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -61,16 +67,19 @@
                             Data terakhir diambil pada tanggal: {{ tglWaktuIndonesia($last_sync->last_sync) }}
                         </div>
                         <ul class="nav nav-pills nav-fill" id="pills-tab" role="tablist">
-                            @foreach($list_akreditasi AS $key_akred=>$each_akred)
+                            @foreach ($list_akreditasi as $key_akred => $each_akred)
                                 <li class="nav-item" role="presentation">
-                                    <a class="nav-link{{ $key_akred==0?' active':'' }}" id="akreditasi_{{ $key_akred }}_tab" data-toggle="pill" href="#akreditasi_{{ $key_akred }}" role="tab">{{ $each_akred=='Tidak ada akreditasi'?$each_akred:'Akreditasi '.$each_akred }}</a>
+                                    <a class="nav-link{{ $key_akred == 0 ? ' active' : '' }}"
+                                        id="akreditasi_{{ $key_akred }}_tab" data-toggle="pill"
+                                        href="#akreditasi_{{ $key_akred }}"
+                                        role="tab">{{ $each_akred == 'Tidak ada akreditasi' ? $each_akred : 'Akreditasi ' . $each_akred }}</a>
                                 </li>
                             @endforeach
                         </ul>
                         <hr>
                         <div class="tab-content" id="pills-tabContent">
-                        @foreach($list_akreditasi AS $key_akreditasi=>$each_akreditasi)
-                            <?php
+                            @foreach ($list_akreditasi as $key_akreditasi => $each_akreditasi)
+                                <?php
                                 $data_akred_prodi = DB::SELECT("
                                     SELECT
                                         tprodi.id_sms,
@@ -84,8 +93,8 @@
                                     JOIN ref.jenjang_pendidikan AS tjenj ON tjenj.id_jenj_didik=tprodi.id_jenj_didik
                                     LEFT JOIN (
                                         SELECT id_sms, MAX(tst_sk_akreditasi_prodi) AS max_tst FROM pdrd.akreditasi_prodi
-                                      WHERE soft_delete=0
-                                      GROUP BY id_sms
+                                        WHERE soft_delete=0
+                                        GROUP BY id_sms
                                     ) AS tap ON tap.id_sms=tprodi.id_sms
                                     LEFT JOIN pdrd.akreditasi_prodi AS takred ON takred.id_sms=tprodi.id_sms AND takred.soft_delete=0
                                         AND takred.tst_sk_akreditasi_prodi=tap.max_tst
@@ -102,39 +111,49 @@
                                     WHERE tprodi.soft_delete=0
                                     AND tprodi.id_jns_sms=3
                                     AND tprodi.stat_prodi='A'
-                                    AND tn.nm_akred ".($key_akreditasi==0?"IS NULL":"='".$each_akreditasi."'")."
-                                    ORDER BY takred.tst_sk_akreditasi_prodi ASC
-                                ");
-                            ?>
-                            <div class="tab-pane fade{{ $key_akreditasi==0?' show active':'' }}" id="akreditasi_{{ $key_akreditasi }}" role="tabpanel" aria-labelledby="akreditasi_{{ $key_akreditasi }}_tab">
-                                <div class="table-responsive">
-                                    <table class="table table-hover table-striped table-data">
-                                        <thead>
-                                        <tr>
-                                            <th>No</th>
-                                            <th>Nama Program Studi</th>
-                                            <th>SK Akreditasi</th>
-                                            <th>Tanggal Akreditasi</th>
-                                            <th>Waktu Expired</th>
-                                            <th>Akreditasi</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        @foreach($data_akred_prodi AS $no_data=>$each_data_akred)
-                                            <tr>
-                                                <td>{{ $no_data+1 }}</td>
-                                                <td>{{ $each_data_akred->asal_prodi }}</td>
-                                                <td>{{ $each_data_akred->sk_akreditasi_prodi }}</td>
-                                                <td>{{ $each_data_akred->tanggal_sk_akreditasi_prodi }}</td>
-                                                <td>{{ $each_data_akred->tst_sk_akreditasi_prodi }}</td>
-                                                <td>{{ $each_data_akred->nm_akred }}</td>
-                                            </tr>
-                                        @endforeach
-                                        </tbody>
-                                    </table>
+                                    AND tn.nm_akred " .
+                                        ($key_akreditasi == 0 ? 'IS NULL' : "='" . $each_akreditasi . "'") .
+                                        "
+                                            ORDER BY takred.tst_sk_akreditasi_prodi ASC
+                                        ",
+                                );
+                                ?>
+                                <div class="tab-pane fade{{ $key_akreditasi == 0 ? ' show active' : '' }}"
+                                    id="akreditasi_{{ $key_akreditasi }}" role="tabpanel"
+                                    aria-labelledby="akreditasi_{{ $key_akreditasi }}_tab">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover table-striped table-data">
+                                            <thead>
+                                                <tr>
+                                                    <th>No</th>
+                                                    <th>Nama Program Studi</th>
+                                                    <th>SK Akreditasi</th>
+                                                    <th>Tanggal Akreditasi</th>
+                                                    <th>Waktu Expired</th>
+                                                    <th>Akreditasi</th>
+                                                    <th>Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($data_akred_prodi as $no_data => $each_data_akred)
+                                                    <tr>
+                                                        <td>{{ $no_data + 1 }}</td>
+                                                        <td>{{ $each_data_akred->asal_prodi }}</td>
+                                                        <td>{{ $each_data_akred->sk_akreditasi_prodi }}</td>
+                                                        <td>{{ $each_data_akred->tanggal_sk_akreditasi_prodi }}</td>
+                                                        <td>{{ $each_data_akred->tst_sk_akreditasi_prodi }}</td>
+                                                        <td>{{ $each_data_akred->nm_akred }}</td>
+                                                        <td style="text-align: center;">
+                                                            <button type="button" class="btn btn-primary"
+                                                                onclick="window.location='{{ route('detail_akreditasi', $each_data_akred->id_sms) }}'">Detail</button>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
-                            </div>
-                        @endforeach
+                            @endforeach
                         </div>
                     </div>
                 </div>
@@ -145,11 +164,11 @@
 
 @push('js')
     <script>
-        $(document).ready( function () {
+        $(document).ready(function() {
             var akred = {!! $akred !!};
             var data_akred = [];
             var kategori_akred = [];
-            $.each(akred,function (i, k) {
+            $.each(akred, function(i, k) {
                 kategori_akred.push(i);
                 data_akred.push([
                     i, parseInt(k)

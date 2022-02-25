@@ -15,4 +15,5 @@ use App\Http\Controllers\DashboardController;
 
 Route::get('/',  [DashboardController::class,'index'])->name('home');
 Route::get('/akreditasi',  [DashboardController::class,'akreditasi'])->name('akreditasi');
+Route::get('/akreditasi/{id_prodi}/detail',  [DashboardController::class,'detail_akreditasi_prodi'])->name('detail_akreditasi');
 Route::get('/iku',  [DashboardController::class,'iku'])->name('iku');
