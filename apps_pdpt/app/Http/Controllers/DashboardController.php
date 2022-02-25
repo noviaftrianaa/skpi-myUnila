@@ -86,6 +86,9 @@ class DashboardController extends Controller
         $akred = json_encode($akred);
         return view('dashboard.akreditasi.index_akreditasi', compact('akred', 'sp', 'list_akreditasi', 'last_sync', 'total'));
     }
+    function add_penggunaan_dana (){
+        return view ('dashboard.penggunaan_dana');
+    }
 
     public function detail_akreditasi_prodi($id_prodi)
     {
