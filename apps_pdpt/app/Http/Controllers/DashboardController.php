@@ -28,7 +28,47 @@ class DashboardController extends Controller
         $data = DB::table('dashboard.dashboard_power_bi')->where('kode_dashboard', '=', 'IKU')->first();
         return view('dashboard.iku', compact('data'));
     }
+    public function standar_akreditasi()
+    {
+        return view('dashboard.standar_akreditasi');
+    }
 
+    public function detail_standar1()
+    {
+        return view('dashboard.detail_standar1');
+    }
+    public function detail_standar2()
+    {
+        return view('dashboard.detail_standar2');
+    }
+    public function detail_standar3()
+    {
+        return view('dashboard.detail_standar3');
+    }
+    public function detail_standar4()
+    {
+        return view('dashboard.detail_standar4');
+    }
+    public function detail_standar5()
+    {
+        return view('dashboard.detail_standar5');
+    }
+    public function detail_standar6()
+    {
+        return view('dashboard.detail_standar6');
+    }
+    public function detail_standar7()
+    {
+        return view('dashboard.detail_standar7');
+    }
+    public function detail_standar8()
+    {
+        return view('dashboard.detail_standar8');
+    }
+    public function detail_standar9()
+    {
+        return view('dashboard.detail_standar9');
+    }
     /**
      * Show the form for creating a new resource.
      *
@@ -145,7 +185,7 @@ class DashboardController extends Controller
 
         $detail_akred = Cache::remember(__FUNCTION__ . 'detail_akred' . $id_prodi, rand(5, 10), function () use ($query, $id_prodi) {
             $result = DB::select(DB::raw($query), [$id_prodi]);
-            
+
             $rearange = [];
             foreach ($result as $value) {
                 $akred = match ($value->nm_akred) {
