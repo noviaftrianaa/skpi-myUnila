@@ -13,7 +13,7 @@ class TracerStudy extends Model
     public $incrementing = false;
     protected $fillable = [
         'id_tracer_study',
-        'id_reg_pd',
+        'id_pd',
         'id_thn_ajaran',
         'nm_alumni',
         'nm_fakultas',
@@ -31,6 +31,7 @@ class TracerStudy extends Model
         'nm_prodi_lnjt',
         'wkt_masuk',
         'nm_wil',
+        'status_iku',
         'create_date',
         'id_creator',
         'last_update',

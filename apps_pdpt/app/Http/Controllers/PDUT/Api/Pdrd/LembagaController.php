@@ -12,7 +12,7 @@ use Illuminate\Validation\Rule as ValidationRule;
 
 class LembagaController extends Controller
 {
-    
+
     public function detailProfilPt(Request $request)
     {
         $id = $request->id_sp;
@@ -45,7 +45,7 @@ class LembagaController extends Controller
         return WrapResponse(['data' => $data], 'Detail Perguruan Tinggi berdasarkan id_sp', TRUE);
     }
 
-   
+
     public function listAkreditasiPt(Request $request)
     {
         $page = 1; $count = 10;
@@ -95,7 +95,7 @@ class LembagaController extends Controller
         }
         return response()->json([
             'success' => true,
-            'message' => 'Mendapatkan data',
+            'message' => 'Berhasil mendapatkan data',
             'page' => $page,
             'count' => $count,
             'data'  => $data
@@ -146,7 +146,7 @@ class LembagaController extends Controller
         }
         return response()->json([
             'success' => true,
-            'message' => 'Mendapatkan data',
+            'message' => 'Berhasil mendapatkan data',
             'page' => $page,
             'count' => $count,
             'data'  => $data
@@ -224,7 +224,7 @@ class LembagaController extends Controller
         ], 200);
     }
 
-    
+
     public function listProfilProdiById(Request $request)
     {
 
@@ -340,7 +340,7 @@ class LembagaController extends Controller
             return WrapResponse([], "gagal memperbaharui profil prodi");
         }
     }
-    
+
     public function listSms(Request $request)
     {
 
@@ -400,7 +400,7 @@ class LembagaController extends Controller
             }
            return response()->json([
             'success' => true,
-            'message' => 'Mendapatkan data',
+            'message' => 'Berhasil mendapatkan data',
             'data'  => $data
         ], 200);
     }

@@ -13,7 +13,7 @@ class PengalamanMhs extends Model
     public $incrementing = false;
     protected $fillable = [
         'id_pengalaman_mhs',
-        'id_reg_pd',
+        'id_pd',
         'id_thn_ajaran',
         'nm_mhs',
         'nm_fakultas',

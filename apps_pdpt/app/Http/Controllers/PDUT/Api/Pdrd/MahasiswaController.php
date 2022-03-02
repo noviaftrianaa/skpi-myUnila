@@ -606,17 +606,16 @@ class MahasiswaController extends Controller
         $itemsPerPage = $request->input('item', 100000);
         $sortBy = $request->input('sortby', 'ASC');
         $idProdi = $request->input('idProdi');
-        // $idProdi = '54BBD27B-2376-4CAE-9951-76EF54BD2CA2';
 
-        // InputValidator([
-        //     'sortby' => ['alpha', ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])],
-        //     'idProdi' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
-        // ], [
-        //     'idProdi.required' => 'field ini harus diisi',
-        //     'idProdi.regex' => 'input harus berupa campuran alpa_numeric dan dash',
-        //     'sortby.alpha' => 'input penyortiran harus kata',
-        //     'sortby.in' => 'input pernyortiran hanya ASC atau DESC'
-        // ]);
+        InputValidator([
+            'sortby' => ['alpha', ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])],
+            'idProdi' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
+        ], [
+            'idProdi.required' => 'field ini harus diisi',
+            'idProdi.regex' => 'input harus berupa campuran alpa_numeric dan dash',
+            'sortby.alpha' => 'input penyortiran harus kata',
+            'sortby.in' => 'input pernyortiran hanya ASC atau DESC'
+        ]);
 
         // if (!empty($itemsPerPage)) {
         //     if ($itemsPerPage > 50) {
@@ -665,6 +664,7 @@ class MahasiswaController extends Controller
             FROM
                 pdrd.peserta_didik AS pd WITH(NOLOCK)
                 JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
+                AND reg.id_sms = '" . $idProdi . "'
                 AND reg.id_jns_keluar = '1'
                 AND reg.soft_delete = 0
                 JOIN pdrd.sms AS sms WITH(NOLOCK) ON sms.id_sms = reg.id_sms
