@@ -66,14 +66,14 @@
                                 <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
 
                                     <li class="nav-item">
-                                        <a class="nav-link" id="pills-profile-tab" data-toggle="pill"
-                                            href="#pills-profile" role="tab" aria-controls="pills-profile"
+                                        <a class="nav-link" id="pkm-tab" data-toggle="pill"
+                                            href="#pkm" role="tab" aria-controls="pills-profile"
                                             aria-selected="false">PKM DTPS yang melibatkan Mahasiswa</a>
                                     </li>
                                 </ul>
                                 <div class="tab-content" id="pills-tabContent">
-                                    <div class="tab-pane fade show active" id="pills-home" role="tabpanel"
-                                        aria-labelledby="pills-home-tab">
+                                    <div class="tab-pane fade show active" id="pkm" role="tabpanel"
+                                        aria-labelledby="pkm-tab">
                                         <style type="text/css">
                                             .tg {
                                                 border-collapse: collapse;
@@ -121,78 +121,6 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                    <td class="tg-0lax"></td>
-                                                </tr>
                                             </tbody>
                                         </table>
                                     </div>

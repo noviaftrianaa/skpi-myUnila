@@ -34,41 +34,38 @@ class DashboardController extends Controller
         return view('dashboard.standar_akreditasi');
     }
 
-    public function detail_standar1()
+
+    public function kriteria2()
     {
-        return view('dashboard.detail_standar1');
+        return view('dashboard.kriteria2');
     }
-    public function detail_standar2()
+    public function kriteria3()
     {
-        return view('dashboard.detail_standar2');
+        return view('dashboard.kriteria3');
     }
-    public function detail_standar3()
+    public function kriteria4()
     {
-        return view('dashboard.detail_standar3');
+        return view('dashboard.kriteria4');
     }
-    public function detail_standar4()
+    public function kriteria5()
     {
-        return view('dashboard.detail_standar4');
+        return view('dashboard.kriteria5');
     }
-    public function detail_standar5()
+    public function kriteria6()
     {
-        return view('dashboard.detail_standar5');
+        return view('dashboard.kriteria6');
     }
-    public function detail_standar6()
+    public function kriteria7()
     {
-        return view('dashboard.detail_standar6');
+        return view('dashboard.kriteria7');
     }
-    public function detail_standar7()
+    public function kriteria8()
     {
-        return view('dashboard.detail_standar7');
+        return view('dashboard.kriteria8');
     }
-    public function detail_standar8()
+    public function kriteria9()
     {
-        return view('dashboard.detail_standar8');
-    }
-    public function detail_standar9()
-    {
-        return view('dashboard.detail_standar9');
+        return view('dashboard.kriteria9');
     }
     /**
      * Show the form for creating a new resource.
