@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PDUT\Pdrd\AkreditasiProdi;
+use Faker\Provider\Lorem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -126,8 +127,9 @@ class DashboardController extends Controller
         $akred = json_encode($akred);
         return view('dashboard.akreditasi.index_akreditasi', compact('akred', 'sp', 'list_akreditasi', 'last_sync', 'total'));
     }
-    function add_penggunaan_dana (){
-        return view ('dashboard.penggunaan_dana');
+    function add_penggunaan_dana()
+    {
+        return view('dashboard.penggunaan_dana');
     }
 
     public function detail_akreditasi_prodi($id_prodi)
@@ -180,7 +182,7 @@ class DashboardController extends Controller
             where
                 ap.id_sms = ?
             ORDER BY
-                tanggal_sk_akreditasi_prodi DESC
+                tanggal_sk_akreditasi_prodi ASC
         ";
 
         $detail_akred = Cache::remember(__FUNCTION__ . 'detail_akred' . $id_prodi, rand(5, 10), function () use ($query, $id_prodi) {
@@ -189,12 +191,12 @@ class DashboardController extends Controller
             $rearange = [];
             foreach ($result as $value) {
                 $akred = match ($value->nm_akred) {
-                    'A' => 5,
-                    'B' => 4,
+                    'Unggul' => 5,
+                    'Baik Sekali' => 4,
                     'Baik' => 3,
-                    'Baik Sekali' => 2,
-                    'C' => 1,
-                    'Unggul' => 0
+                    'A' => 2,
+                    'B' => 1,
+                    'C' => 0,
                 };
                 $rearange[date('Y', strtotime($value->tanggal_sk_akreditasi_prodi))] = [
                     $value->nm_akred,
@@ -205,20 +207,132 @@ class DashboardController extends Controller
             return $rearange;
         });
 
-        // $detail_akred = [
-        //     2017 => ['C', 1],
-        //     2018 => ['B', 4],
-        //     2019 => ['B', 4],
-        //     2019 => ['A', 5],
-        //     2020 => ['A', 5],
-        //     2021 => ['A', 5],
-        // ];
         $detail_akred = json_encode($detail_akred);
 
-        $rank_akred = ['A', 'B', 'Baik', 'Baik Sekali', 'C', 'Unggul'];
+        $rank_akred = [
+            'Unggul',
+            'Baik Sekali',
+            'Baik',
+            'A',
+            'B',
+            'C',
+        ];
         $rank_akred = array_reverse($rank_akred);
         $rank_akred = json_encode($rank_akred);
 
-        return view('dashboard.akreditasi.detail_akreditasi', compact('detail_prodi', 'detail_akred', 'rank_akred'));
+        $list_kriteria = [];
+        for ($i = 1; $i < 10; $i++) {
+            $list_kriteria[] = 'Kriteria ' . $i;
+        }
+
+        $kriteria1['Visi, Misi, Tujuan, dan Strategi'] = [
+            'Latar Belakang' => \Faker\Factory::create()->paragraphs(9, true),
+            'Kebijakan' => \Faker\Factory::create()->paragraphs(9, true),
+            'Strategi Pencapaian VMTS' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Utama (IKU)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Tambahan (IKT)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Evaluasi Capaian VMTS' => \Faker\Factory::create()->paragraphs(9, true),
+            'Kesimpulan Hasil Evaluasi Ketercapaian VMTS dan Tindaklanjut' => \Faker\Factory::create()->paragraphs(9, true)
+        ];
+
+        $kriteria2['Tata Pamong, Tata Kelola dan Kerjasama'] = [
+            'Latar Belakang' => \Faker\Factory::create()->paragraphs(9, true),
+            'Kebijakan' => \Faker\Factory::create()->paragraphs(9, true),
+            'Strategi Pencapaian Standar' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Utama (IKU)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Tambahan (IKT)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Evaluasi Capaian Kinerja' => \Faker\Factory::create()->paragraphs(9, true),
+            'Penjaminan Mutu Tata Pamong, Tata Kelola, dan Kerjasama' => \Faker\Factory::create()->paragraphs(9, true),
+            'Kepuasan Pengguna' => \Faker\Factory::create()->paragraphs(9, true),
+            'Simpulan Hasil Evaluasi dan Tindak lanjut' => \Faker\Factory::create()->paragraphs(9, true),
+        ];
+
+        $kriteria3['Mahasiswa'] = [
+            'Latar Belakang' => \Faker\Factory::create()->paragraphs(9, true),
+            'Kebijakan' => \Faker\Factory::create()->paragraphs(9, true),
+            'Strategi Pencapaian Standar' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Utama (IKU)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Tambahan (IKT)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Evaluasi Capaian Kinerja' => \Faker\Factory::create()->paragraphs(9, true),
+            'Penjaminan Mutu Mahasiswa' => \Faker\Factory::create()->paragraphs(9, true),
+            'Kepuasan Pengguna' => \Faker\Factory::create()->paragraphs(9, true),
+            'Simpulan Hasil Evaluasi dan Tindak lanjut' => \Faker\Factory::create()->paragraphs(9, true),
+        ];
+
+        $kriteria4['Sumber Daya Manusia'] = [
+            'Latar Belakang' => \Faker\Factory::create()->paragraphs(9, true),
+            'Kebijakan' => \Faker\Factory::create()->paragraphs(9, true),
+            'Strategi Pencapaian Standar' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Utama (IKU)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Tambahan (IKT)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Evaluasi Capaian Kinerja' => \Faker\Factory::create()->paragraphs(9, true),
+            'Penjaminan Mutu SDM' => \Faker\Factory::create()->paragraphs(9, true),
+            'Kepuasan Pengguna' => \Faker\Factory::create()->paragraphs(9, true),
+            'Simpulan Hasil Evaluasi dan Tindak lanjut' => \Faker\Factory::create()->paragraphs(9, true),
+        ];
+
+        $kriteria5['Keuangan, Sarana, dan Prasarana'] = [
+            'Latar Belakang' => \Faker\Factory::create()->paragraphs(9, true),
+            'Kebijakan' => \Faker\Factory::create()->paragraphs(9, true),
+            'Strategi Pencapaian Standar' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Utama (IKU)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Tambahan (IKT)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Evaluasi Capaian Kinerja' => \Faker\Factory::create()->paragraphs(9, true),
+            'Penjaminan Mutu Keuangan, Sarana, dan Prasarana' => \Faker\Factory::create()->paragraphs(9, true),
+            'Kepuasan Pengguna' => \Faker\Factory::create()->paragraphs(9, true),
+            'Simpulan Hasil Evaluasi dan Tindak lanjut' => \Faker\Factory::create()->paragraphs(9, true),
+        ];
+
+        $kriteria6['Pendidikan'] = [
+            'Latar Belakang' => \Faker\Factory::create()->paragraphs(9, true),
+            'Kebijakan' => \Faker\Factory::create()->paragraphs(9, true),
+            'Strategi Pencapaian Standar' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Utama (IKU)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Tambahan (IKT)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Evaluasi Capaian Kinerja' => \Faker\Factory::create()->paragraphs(9, true),
+            'Penjaminan Mutu Pendidikan' => \Faker\Factory::create()->paragraphs(9, true),
+            'Kepuasan Pengguna' => \Faker\Factory::create()->paragraphs(9, true),
+            'Simpulan Hasil Evaluasi dan Tindak lanjut' => \Faker\Factory::create()->paragraphs(9, true),
+        ];
+
+        $kriteria7['Penelitian'] = [
+            'Latar Belakang' => \Faker\Factory::create()->paragraphs(9, true),
+            'Kebijakan' => \Faker\Factory::create()->paragraphs(9, true),
+            'Strategi Pencapaian Standar' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Utama (IKU)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Tambahan (IKT)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Evaluasi Capaian Kinerja' => \Faker\Factory::create()->paragraphs(9, true),
+            'Penjaminan Mutu Proses Penelitian' => \Faker\Factory::create()->paragraphs(9, true),
+            'Kepuasan Pengguna' => \Faker\Factory::create()->paragraphs(9, true),
+            'Simpulan Hasil Evaluasi dan Tindak lanjut' => \Faker\Factory::create()->paragraphs(9, true),
+        ];
+
+        $kriteria8['Pengabdian kepada Masyarakat'] = [
+            'Latar Belakang' => \Faker\Factory::create()->paragraphs(9, true),
+            'Kebijakan' => \Faker\Factory::create()->paragraphs(9, true),
+            'Strategi Pencapaian Standar' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Utama (IKU)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Tambahan (IKT)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Evaluasi Capaian Kinerja' => \Faker\Factory::create()->paragraphs(9, true),
+            'Penjaminan Mutu PkM' => \Faker\Factory::create()->paragraphs(9, true),
+            'Kepuasan Pengguna' => \Faker\Factory::create()->paragraphs(9, true),
+            'Simpulan Hasil Evaluasi dan Tindak lanjut' => \Faker\Factory::create()->paragraphs(9, true),
+        ];
+
+        $kriteria9['Luaran dan Capaian Tridharma'] = [
+            'Indikator Kinerja Utama (IKU)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Tambahan (IKT)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Evaluasi Capaian Kinerja' => \Faker\Factory::create()->paragraphs(9, true),
+            'Penjaminan Mutu Luaran' => \Faker\Factory::create()->paragraphs(9, true),
+            'Kepuasan Pengguna' => \Faker\Factory::create()->paragraphs(9, true),
+            'Simpulan Hasil Evaluasi dan Tindak lanjut' => \Faker\Factory::create()->paragraphs(9, true),
+        ];
+
+        $kriteria = [];
+        for ($i = 1; $i < 10; $i++) {
+            $kriteria["kriteria_$i"] = eval('return $kriteria' . $i . ';');
+        }
+
+        return view('dashboard.akreditasi.detail_akreditasi', compact('detail_prodi', 'detail_akred', 'rank_akred', 'list_kriteria', 'kriteria'));
     }
 }

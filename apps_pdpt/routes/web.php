@@ -17,6 +17,7 @@ Route::get('/',  [DashboardController::class,'index'])->name('home');
 Route::get('/akreditasi',  [DashboardController::class,'akreditasi'])->name('akreditasi');
 Route::get('/akreditasi/{id_prodi}/detail',  [DashboardController::class,'detail_akreditasi_prodi'])->name('detail_akreditasi');
 Route::get('/iku',  [DashboardController::class,'iku'])->name('iku');
+
 Route::get('/akreditasi/penggunaan_dana',  [DashboardController::class,'add_penggunaan_dana'])->name('penggunaan_dana');
 Route::get('/akreditasi/standar_akreditasi',  [DashboardController::class,'standar_akreditasi'])->name('standar_akreditasi');
 Route::get('/akreditasi/detail_standar1',  [DashboardController::class,'detail_standar1'])->name('detail_standar1');
