@@ -223,8 +223,13 @@ class DashboardController extends Controller
         }
 
         $kriteria1['Visi, Misi, Tujuan, dan Strategi'] = [
-            'Latar Belakang' => \Faker\Factory::create()->paragraphs(9, true),
-            'Kebijakan' => \Faker\Factory::create()->paragraphs(9, true),
+            'Latar Belakang' => 'Bagian ini menjelaskan latar belakang, tujuan, rasional, dan
+                mekanisme penetapan visi, misi, tujuan, dan strategi (VMTS) UPPS
+                yang mencerminkan visi perguruan tinggi dan memayungi visi keilmuan
+                program studi yang diakreditasi, serta rencana strategisnya.',
+            'Kebijakan' => 'Berisi deskripsi dokumen formal kebijakan yang mencakup:
+                penyusunan, penetapan, evaluasi, sosialisasi, dan implementasiVMTS
+                ke dalam program pengembanganUPPS dan program studi.',
             'Strategi Pencapaian VMTS' => \Faker\Factory::create()->paragraphs(9, true),
             'Indikator Kinerja Utama (IKU)' => \Faker\Factory::create()->paragraphs(9, true),
             'Indikator Kinerja Tambahan (IKT)' => \Faker\Factory::create()->paragraphs(9, true),
@@ -236,7 +241,12 @@ class DashboardController extends Controller
             'Latar Belakang' => \Faker\Factory::create()->paragraphs(9, true),
             'Kebijakan' => \Faker\Factory::create()->paragraphs(9, true),
             'Strategi Pencapaian Standar' => \Faker\Factory::create()->paragraphs(9, true),
-            'Indikator Kinerja Utama (IKU)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Utama (IKU)' => [
+                'Sistem Tata Pamong' => \Faker\Factory::create()->paragraphs(9, true),
+                'Kepemimpinan' => \Faker\Factory::create()->paragraphs(9, true),
+                'Sistem Penjamin Mutu' => \Faker\Factory::create()->paragraphs(9, true),
+                'Kerjasama' => \Faker\Factory::create()->paragraphs(9, true)
+            ],
             'Indikator Kinerja Tambahan (IKT)' => \Faker\Factory::create()->paragraphs(9, true),
             'Evaluasi Capaian Kinerja' => \Faker\Factory::create()->paragraphs(9, true),
             'Penjaminan Mutu Tata Pamong, Tata Kelola, dan Kerjasama' => \Faker\Factory::create()->paragraphs(9, true),
@@ -248,7 +258,11 @@ class DashboardController extends Controller
             'Latar Belakang' => \Faker\Factory::create()->paragraphs(9, true),
             'Kebijakan' => \Faker\Factory::create()->paragraphs(9, true),
             'Strategi Pencapaian Standar' => \Faker\Factory::create()->paragraphs(9, true),
-            'Indikator Kinerja Utama (IKU)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Utama (IKU)' => [
+                'Kualitas Input Mahasiswa' => \Faker\Factory::create()->paragraphs(9, true),
+                'Daya Tarik Program Studi' => \Faker\Factory::create()->paragraphs(9, true),
+                'Layanan Kemahasiswaan' => \Faker\Factory::create()->paragraphs(9, true)
+            ],
             'Indikator Kinerja Tambahan (IKT)' => \Faker\Factory::create()->paragraphs(9, true),
             'Evaluasi Capaian Kinerja' => \Faker\Factory::create()->paragraphs(9, true),
             'Penjaminan Mutu Mahasiswa' => \Faker\Factory::create()->paragraphs(9, true),
@@ -260,7 +274,12 @@ class DashboardController extends Controller
             'Latar Belakang' => \Faker\Factory::create()->paragraphs(9, true),
             'Kebijakan' => \Faker\Factory::create()->paragraphs(9, true),
             'Strategi Pencapaian Standar' => \Faker\Factory::create()->paragraphs(9, true),
-            'Indikator Kinerja Utama (IKU)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Utama (IKU)' => [
+                'Profil Dosen' => \Faker\Factory::create()->paragraphs(9, true),
+                'Kinerja Dosen' => \Faker\Factory::create()->paragraphs(9, true),
+                'Pengembangan Dosen' => \Faker\Factory::create()->paragraphs(9, true),
+                'Tenaga Pendidik' => \Faker\Factory::create()->paragraphs(9, true)
+            ],
             'Indikator Kinerja Tambahan (IKT)' => \Faker\Factory::create()->paragraphs(9, true),
             'Evaluasi Capaian Kinerja' => \Faker\Factory::create()->paragraphs(9, true),
             'Penjaminan Mutu SDM' => \Faker\Factory::create()->paragraphs(9, true),
@@ -272,7 +291,11 @@ class DashboardController extends Controller
             'Latar Belakang' => \Faker\Factory::create()->paragraphs(9, true),
             'Kebijakan' => \Faker\Factory::create()->paragraphs(9, true),
             'Strategi Pencapaian Standar' => \Faker\Factory::create()->paragraphs(9, true),
-            'Indikator Kinerja Utama (IKU)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Utama (IKU)' => [
+                'Keuangan' => \Faker\Factory::create()->paragraphs(9, true),
+                'Sarana' => \Faker\Factory::create()->paragraphs(9, true),
+                'Prasarana' => \Faker\Factory::create()->paragraphs(9, true)
+            ],
             'Indikator Kinerja Tambahan (IKT)' => \Faker\Factory::create()->paragraphs(9, true),
             'Evaluasi Capaian Kinerja' => \Faker\Factory::create()->paragraphs(9, true),
             'Penjaminan Mutu Keuangan, Sarana, dan Prasarana' => \Faker\Factory::create()->paragraphs(9, true),
@@ -284,7 +307,11 @@ class DashboardController extends Controller
             'Latar Belakang' => \Faker\Factory::create()->paragraphs(9, true),
             'Kebijakan' => \Faker\Factory::create()->paragraphs(9, true),
             'Strategi Pencapaian Standar' => \Faker\Factory::create()->paragraphs(9, true),
-            'Indikator Kinerja Utama (IKU)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Utama (IKU)' => [
+                'Kurikulum' => \Faker\Factory::create()->paragraphs(9, true),
+                'Pembelajaran' => \Faker\Factory::create()->paragraphs(9, true),
+                'Suasana Akademik' => \Faker\Factory::create()->paragraphs(9, true)
+            ],
             'Indikator Kinerja Tambahan (IKT)' => \Faker\Factory::create()->paragraphs(9, true),
             'Evaluasi Capaian Kinerja' => \Faker\Factory::create()->paragraphs(9, true),
             'Penjaminan Mutu Pendidikan' => \Faker\Factory::create()->paragraphs(9, true),
@@ -296,7 +323,10 @@ class DashboardController extends Controller
             'Latar Belakang' => \Faker\Factory::create()->paragraphs(9, true),
             'Kebijakan' => \Faker\Factory::create()->paragraphs(9, true),
             'Strategi Pencapaian Standar' => \Faker\Factory::create()->paragraphs(9, true),
-            'Indikator Kinerja Utama (IKU)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Utama (IKU)' => [
+                'Relevansi Penelitian' => \Faker\Factory::create()->paragraphs(9, true),
+                'Keterlibatan Mahasiswa dalam Penelitian' => \Faker\Factory::create()->paragraphs(9, true)
+            ],
             'Indikator Kinerja Tambahan (IKT)' => \Faker\Factory::create()->paragraphs(9, true),
             'Evaluasi Capaian Kinerja' => \Faker\Factory::create()->paragraphs(9, true),
             'Penjaminan Mutu Proses Penelitian' => \Faker\Factory::create()->paragraphs(9, true),
@@ -308,7 +338,10 @@ class DashboardController extends Controller
             'Latar Belakang' => \Faker\Factory::create()->paragraphs(9, true),
             'Kebijakan' => \Faker\Factory::create()->paragraphs(9, true),
             'Strategi Pencapaian Standar' => \Faker\Factory::create()->paragraphs(9, true),
-            'Indikator Kinerja Utama (IKU)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Utama (IKU)' => [
+                'Relevansi Pengabdian kepada Masyarakat' => \Faker\Factory::create()->paragraphs(9, true),
+                'Keterlibatan Mahasiswa dalam PkM' => \Faker\Factory::create()->paragraphs(9, true)
+            ],
             'Indikator Kinerja Tambahan (IKT)' => \Faker\Factory::create()->paragraphs(9, true),
             'Evaluasi Capaian Kinerja' => \Faker\Factory::create()->paragraphs(9, true),
             'Penjaminan Mutu PkM' => \Faker\Factory::create()->paragraphs(9, true),
@@ -317,7 +350,11 @@ class DashboardController extends Controller
         ];
 
         $kriteria9['Luaran dan Capaian Tridharma'] = [
-            'Indikator Kinerja Utama (IKU)' => \Faker\Factory::create()->paragraphs(9, true),
+            'Latar Belakang' => \Faker\Factory::create()->paragraphs(9, true),
+            'Indikator Kinerja Utama (IKU)' => [
+                'Luaran Dharma Pendidikan' => \Faker\Factory::create()->paragraphs(9, true),
+                'Luaran Dharma Penelitian dan Pengabdian kepada Masyarakat' => \Faker\Factory::create()->paragraphs(9, true)
+            ],
             'Indikator Kinerja Tambahan (IKT)' => \Faker\Factory::create()->paragraphs(9, true),
             'Evaluasi Capaian Kinerja' => \Faker\Factory::create()->paragraphs(9, true),
             'Penjaminan Mutu Luaran' => \Faker\Factory::create()->paragraphs(9, true),

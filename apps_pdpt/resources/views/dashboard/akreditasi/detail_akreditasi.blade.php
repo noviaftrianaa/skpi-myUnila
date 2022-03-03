@@ -78,7 +78,6 @@
                     </div>
                     <div class="card-body">
                         <div class="tab-content" id="tabs-kriteria-tabContent">
-
                             @forelse ($kriteria as $judul => $value)
                                 @if ($judul == 'kriteria_1')
                                     <div class="tab-pane fade show active"
@@ -135,7 +134,12 @@
                                                                             role="tabpanel"
                                                                             aria-labelledby="vert-tabs-{{ strtolower(Str::replace('_', '-', $judul)) . '-' . $urutan }}-tab"
                                                                             style="text-align: justify;">
-                                                                            {{ $isi[$value] }}
+
+                                                                            @if (is_array($isi[$value]))
+                                                                                ini array
+                                                                            @else
+                                                                                {{ $isi[$value] }}
+                                                                            @endif
                                                                         </div>
                                                                     @endif
                                                                 @endforeach
@@ -202,7 +206,40 @@
                                                                             role="tabpanel"
                                                                             aria-labelledby="vert-tabs-{{ strtolower(Str::replace('_', '-', $judul)) . '-' . $urutan }}-tab"
                                                                             style="text-align: justify;">
-                                                                            {{ $isi[$value] }}
+                                                                            @if (is_array($isi[$value]))
+                                                                                @foreach (array_keys($isi[$value]) as $judulChild => $valueChild)
+                                                                                    <div id="accordion">
+                                                                                        <div class="card">
+                                                                                            <div class="card-header"
+                                                                                                id="headingOne">
+                                                                                                <h3 class="mb-0">
+                                                                                                    <button
+                                                                                                        class="btn"
+                                                                                                        data-toggle="collapse"
+                                                                                                        data-target="#collapse-{{ strtolower(Str::replace(' ', '-', $valueChild)) . '-' . $judulChild }}"
+                                                                                                        aria-expanded="true"
+                                                                                                        aria-controls="collapse-{{ strtolower(Str::replace(' ', '-', $valueChild)) . '-' . $judulChild }}"
+                                                                                                        style="color: white;">
+                                                                                                        {{ $judulChild + 1 }}.
+                                                                                                        {{ $valueChild }}
+                                                                                                    </button>
+                                                                                                </h3>
+                                                                                            </div>
+
+                                                                                            <div id="collapse-{{ strtolower(Str::replace(' ', '-', $valueChild)) . '-' . $judulChild }}"
+                                                                                                class="collapse"
+                                                                                                aria-labelledby="heading-{{ strtolower(Str::replace(' ', '-', $valueChild)) . '-' . $judulChild }}"
+                                                                                                data-parent="#accordion">
+                                                                                                <div class="card-body">
+                                                                                                    {{ $isi[$value][$valueChild] }}
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                @endforeach
+                                                                            @else
+                                                                                {{ $isi[$value] }}
+                                                                            @endif
                                                                         </div>
                                                                     @endif
                                                                 @endforeach
