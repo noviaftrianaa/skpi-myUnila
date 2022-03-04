@@ -5,33 +5,28 @@ namespace App\Models\PDUT\Temp_iku;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class PengalamanMhs extends Model
+class Iku7Matkul extends Model
 {
-    protected $table = 'temp_iku.pengalaman_mhs';
-    protected $primaryKey = 'id_pengalaman_mhs';
+    protected $table = 'temp_iku.matkul';
+    protected $primaryKey = 'id_temp_matkul';
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-        'id_pengalaman_mhs',
-        'id_pd',
+        'id_temp_matkul',
+        'id_mk',
         'id_thn_ajaran',
-        'nm_mhs',
-        'nm_fakultas',
         'nm_prodi',
-        'stat_kegiatan',
-        'nm_kegiatan',
-        'nm_aktivitas',
-        'nm_lokasi',
-        'kat_kegiatan',
+        'nm_fakultas',
+        'nm_mk',
         'sks_mk',
-        'peringkat',
+        'nm_dosen',
         'nidn',
-        'nm_pembimbing',
+        'status_iku',
         'create_date',
         'id_creator',
         'last_update',
         'id_updater',
         'soft_delete',
-        'last_sync'
+        'last_sync	'
     ];
 }

@@ -9,13 +9,13 @@ use App\Models\PDUT\Mbkm\PeriodeKampusMerdeka;
 use App\Models\PDUT\Pdrd\AktMhs;
 use App\Models\PDUT\Pdrd\BimbingMhs;
 use App\Models\PDUT\Pdrd\Prestasi;
-use App\Models\PDUT\Temp_iku\PengalamanMhs;
+use App\Models\PDUT\Temp_iku\Iku2PengalamanMhs;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Rap2hpoutre\FastExcel\FastExcel;
 
-class TempPengalamanMhsSeeder extends Seeder
+class Iku2PengalamanMhsSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -27,7 +27,7 @@ class TempPengalamanMhsSeeder extends Seeder
         // $this->importDataPrestasi();
         // $this->importDataMbkm();
         $this->tempIku();
-        $this->total_dashboard();
+        $this->totalDashborad();
     }
 
     public function tempIku()
@@ -154,7 +154,7 @@ class TempPengalamanMhsSeeder extends Seeder
         ");
 
         foreach ($query as $each_data) {
-            $temp_iku_2 = PengalamanMhs::UpdateOrInsert([
+            $temp_iku_2 = Iku2PengalamanMhs::UpdateOrInsert([
                 'id_pd' => $each_data->id_pd,
                 'id_thn_ajaran' => $each_data->id_thn_ajaran,
                 'nm_kegiatan' => $each_data->nm_kegiatan,
@@ -184,7 +184,7 @@ class TempPengalamanMhsSeeder extends Seeder
         echo " Data temp_iku2 berhasil diperbaharui\n";
     }
 
-    public function total_dashboard()
+    public function totalDashborad()
     {
         $dashboard_iku2 = DB::SELECT("
             SELECT

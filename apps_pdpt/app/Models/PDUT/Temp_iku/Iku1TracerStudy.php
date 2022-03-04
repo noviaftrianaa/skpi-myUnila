@@ -5,7 +5,7 @@ namespace App\Models\PDUT\Temp_iku;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TracerStudy extends Model
+class Iku1TracerStudy extends Model
 {
     protected $table = 'temp_iku.tracer_study';
     protected $primaryKey = 'id_tracer_study';

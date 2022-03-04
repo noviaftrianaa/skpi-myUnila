@@ -2,13 +2,13 @@
 
 namespace Database\Seeders;
 
-use App\Models\PDUT\Temp_iku\TracerStudy;
 use App\Models\PDUT\Dashboard\DetailIku1;
+use App\Models\PDUT\Temp_iku\Iku1TracerStudy;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class TempTracerStudySeeder extends Seeder
+class Iku1TracerStudySeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -17,11 +17,11 @@ class TempTracerStudySeeder extends Seeder
      */
     public function run()
     {
-        $this->temp_iku();
-        $this->total_dashboard();
+        $this->tempIku();
+        $this->totalDashboard();
     }
 
-    public function temp_iku()
+    public function tempIku()
     {
 
         $mengisi_tracer = DB::SELECT("
@@ -115,7 +115,7 @@ class TempTracerStudySeeder extends Seeder
 
         if (!empty($mengisi_tracer)) {
             foreach ($mengisi_tracer as $each_data) {
-                TracerStudy::updateOrInsert([
+                Iku1TracerStudy::updateOrInsert([
                     'id_pd' => $each_data->id_pd,
                     'id_thn_ajaran' => $each_data->id_thn_ajaran,
                 ], [
@@ -149,7 +149,7 @@ class TempTracerStudySeeder extends Seeder
 
         // if (!empty($tidak_mengisi_tracer)) {
         //     foreach ($tidak_mengisi_tracer as $each_data) {
-        //         TracerStudy::updateOrInsert([
+        //         Iku1TracerStudy::updateOrInsert([
         //             'id_pd' => $each_data->id_pd,
         //             'id_thn_ajaran' => $each_data->id_thn_ajaran,
         //         ], [
@@ -173,7 +173,7 @@ class TempTracerStudySeeder extends Seeder
         echo " Data temp_iku1 berhasil diperbaharui\n";
     }
 
-    public function total_dashboard()
+    public function totalDashboard()
     {
 
         $dashboard_iku1 = DB::SELECT("
