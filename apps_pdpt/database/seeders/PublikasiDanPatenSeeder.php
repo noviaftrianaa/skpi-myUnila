@@ -319,13 +319,19 @@ class PublikasiDanPatenSeeder extends Seeder
                 ->where('id_publikasi',$each_pub_sister->id_publikasi)
                 ->whereIn('id_sdm',$sdm_collect_id)->get();
             if (count($cari_penulis_sister)>0) {
-                $input_pub = (array) $each_pub_sister;
-                $publikasi = new Publikasi();
-                $publikasi->fill($input_pub)->save();
+                $cari_pub_od = Publikasi::find($each_pub_sister->id_publikasi);
+                if (is_null($cari_pub_od)) {
+                    $input_pub = (array) $each_pub_sister;
+                    $publikasi = new Publikasi();
+                    $publikasi->fill($input_pub)->save();
+                }
                 foreach ($cari_penulis_sister AS $each_penulis) {
-                    $input_tulis = (array) $each_penulis;
-                    $tulis_pub = new TulisPub();
-                    $tulis_pub->fill($input_tulis)->save();
+                    $cari_tulis_od = TulisPub::find($each_penulis->id_tulis_pub);
+                    if (is_null($cari_tulis_od)) {
+                        $input_tulis = (array) $each_penulis;
+                        $tulis_pub = new TulisPub();
+                        $tulis_pub->fill($input_tulis)->save();
+                    }
                 }
             }
             echo " (OK)\n";
