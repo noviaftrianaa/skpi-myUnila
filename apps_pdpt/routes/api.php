@@ -3,28 +3,15 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
-
 Route::group([
     'prefix' => '0.1',
     'as' => 'api.',
     'namespace' => 'App\Http\Controllers\PDUT\Api',
     'middleware' => ['auth']
 ], function () {
-
     Route::post('auth/login', 'LoginController@login');
     Route::post('auth/token', 'LoginController@token');
     Route::prefix('referensi')->group(base_path('routes/onedata/referensi.php'));
-
     Route::group([
         'namespace' => 'Pdrd',
     ], function () {
@@ -34,13 +21,11 @@ Route::group([
             Route::post('/kelasukt/tambah', 'KeuanganKelasUktController@tambah');
             Route::put('/kelasukt/ubah', 'KeuanganKelasUktController@ubah');
             Route::delete('/kelasukt/hapus', 'KeuanganKelasUktController@hapus');
-
             Route::get('/uktmhs/daftar', 'KeuanganUktMhsController@daftar');
             Route::get('/uktmhs/daftar_id', 'KeuanganUktMhsController@daftar_id');
             Route::post('/uktmhs/tambah', 'KeuanganUktMhsController@tambah');
             Route::put('/uktmhs/ubah', 'KeuanganUktMhsController@ubah');
             Route::delete('/uktmhs/hapus', 'KeuanganUktMhsController@hapus');
-
             Route::get('/gajisdm/daftar', 'KeuanganGajiSdmController@daftar');
             Route::post('/gajisdm/tambah', 'KeuanganGajiSdmController@tambah');
             Route::put('/gajisdm/ubah', 'KeuanganGajiSdmController@ubah');
@@ -51,11 +36,9 @@ Route::group([
             Route::get('dosen/daftar', 'SdmDosenController@daftar');
             Route::get('dosen/daftar_id', 'SdmDosenController@daftar_id');
             Route::get('dosen/detail', 'SdmDosenController@detail');
-
             Route::get('tendik/daftar', 'SdmTendikController@daftar');
             Route::get('tendik/daftar_id', 'SdmTendikController@daftar_id');
             Route::get('tendik/detail', 'SdmTendikController@detail');
-
             Route::get('nonca/daftar', 'NonCaController@daftar');
             Route::get('nonca/detail', 'NonCaController@detail');
             Route::post('nonca/tambah', 'NonCaController@tambah');
@@ -70,7 +53,6 @@ Route::group([
             Route::post('ajar/tambah', 'BukuAjarController@tambah');
             Route::put('ajar/ubah', 'BukuAjarController@ubah');
             Route::delete('ajar/hapus', 'BukuAjarController@hapus');
-
             Route::get('referensi/daftar', 'BukuReferensiController@daftar');
             Route::get('referensi/daftar_id', 'BukuReferensiController@daftar_id');
             Route::get('referensi/detail', 'BukuReferensiController@detail');
@@ -142,6 +124,43 @@ Route::group([
         Route::delete('hapus', 'TracerStudyController@destroy');
         Route::delete('hapus_atasan', 'TracerStudyController@destroyAtasan');
     });
+
+
+    Route::group([
+        'namespace' => 'Sarpras',
+        'prefix' => 'sarpras'
+    ], function () {
+        Route::get('daftar/alat', 'AlatController@daftar');
+        Route::get('daftar/alat_long', 'AlatLongController@daftar');
+        Route::get('daftar/alat_transportasi', 'AlatTransportasiController@daftar');
+        Route::get('daftar/angkutan', 'AngkutanController@daftar');
+        Route::get('daftar/bangunan', 'BangunanController@daftar');
+        Route::get('daftar/dbr', 'DbrController@daftar');
+        Route::get('daftar/ruang', 'RuangController@daftar');
+        Route::get('daftar/tanah', 'TanahController@daftar');
+        Route::post('tambah/alat', 'AlatController@tambah');
+        Route::post('tambah/alat_long', 'AlatLongController@tambah');
+        Route::post('tambah/angkutan', 'AngkutanController@tambah');
+        Route::post('tambah/bangunan', 'BangunanController@tambah');
+        Route::post('tambah/dbr', 'DbrController@tambah');
+        Route::post('tambah/ruang', 'RuangController@tambah');
+        Route::post('tambah/tanah', 'TanahController@tambah');
+        Route::put('ubah/alat', 'AlatController@ubah');
+        Route::put('ubah/alat_long', 'AlatLongController@ubah');
+        Route::put('ubah/angkutan', 'AngkutanController@ubah');
+        Route::put('ubah/bangunan', 'BangunanController@ubah');
+        Route::put('ubah/dbr', 'DbrController@ubah');
+        Route::put('ubah/ruang', 'RuangController@ubah');
+        Route::put('ubah/tanah', 'TanahController@ubah');
+        Route::delete('hapus/alat', 'AlatController@hapus');
+        Route::delete('hapus/alat_long', 'AlatLongController@hapus');
+        Route::delete('hapus/angkutan', 'AngkutanController@hapus');
+        Route::delete('hapus/bangunan', 'BangunanController@hapus');
+        Route::delete('hapus/dbr', 'DbrController@hapus');
+        Route::delete('hapus/ruang', 'RuangController@hapus');
+        Route::delete('hapus/tanah', 'TanahController@hapus');
+    });
+
 
     Route::group([
         'namespace' => 'Presensi',

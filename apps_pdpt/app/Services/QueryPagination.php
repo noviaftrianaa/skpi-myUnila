@@ -12,7 +12,7 @@ class QueryPagination
     {
         $this->execute();
     }
-    
+
     public function execute()
     {
         $page = 1;
@@ -39,7 +39,7 @@ class QueryPagination
         SET @PageNumber= $page
         SET @RowsOfPage= $count";
 
-        $paginationBottom = "OFFSET (@PageNumber-1)*@RowsOfPage ROWS
+        $paginationBottom = " OFFSET (@PageNumber-1)*@RowsOfPage ROWS
         FETCH NEXT @RowsOfPage ROWS ONLY";
 
         $query = $paginationTop . $this->query . $paginationBottom;

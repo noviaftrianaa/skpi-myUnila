@@ -8,30 +8,29 @@ use Illuminate\Database\Eloquent\Model;
 class Iku3Tridharma extends Model
 {
     use HasFactory;
-    protected $table = 'temp_iku.iku3_tridharma';
-    protected $primaryKey = 'id_iku3_tridharma';
+    protected $table = 'temp_iku.iku3tridharma';
+    protected $primaryKey = 'id_tridharma';
     public $incrementing = false;
     public $timestamps = false;
 
     protected $fillable = [
-        'id_iku3_tridharma',
-        'id_litabmas',
+        'id_tridharma',
+        'id_sms',
         'id_sdm',
-        'tahun_anggaran',
-        'jenis_kegiatan',
-        'kategori_kegiatan',
-        'keaktifan_kegiatan',
-        'skim_kegiatan',
+        'id_thn_laks',
+        'id_litabmas',
+        'thn_laks_ke',
+        'peran_litabmas',
+        'jns_litabmas',
+        'nm_kat',
+        'nm_skim',
         'afiliasi',
-        'kelompok_bidang',
-        'nomor_sk_penugasan',
-        'tanggal_sk_penugasan',
+        'nm_kel_bidang',
+        'sk_tugas',
+        'tgl_sk_tugas',
         'lama_kegiatan',
-        'judul_kegiatan',
+        'judul_litabmas',
         'lokasi_kegiatan',
-        'tahun_pelaksanaan_ke',
-        'peran_kegiatan_dosen',
-        'keaktifan_kegiatan_dosen',
-        'last_sync'
+        'last_sync',
     ];
 }

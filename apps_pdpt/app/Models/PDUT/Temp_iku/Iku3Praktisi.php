@@ -8,25 +8,26 @@ use Illuminate\Database\Eloquent\Model;
 class Iku3Praktisi extends Model
 {
     use HasFactory;
-    protected $table = 'temp_iku.iku3_praktisi';
-    protected $primaryKey = 'id_iku3_praktisi';
+    protected $table = 'temp_iku.iku3praktisi';
+    protected $primaryKey = 'id_praktisi';
     public $incrementing = false;
     public $timestamps = false;
 
     protected $fillable = [
-        'id_iku3_praktisi',
-        'id_rwy_kerja',
+        'id_praktisi',
+        'id_sms',
         'id_sdm',
-        'bidang_usaha',
-        'jenis_pekerjaan',
-        'jabatan',
+        'id_rwy_kerja',
+        'jns_pkrj',
+        'bid_usaha',
+        'area_kerja',
+        'nm_jabatan',
         'instansi',
         'divisi',
-        'deskripsi_kerja',
-        'mulai_bekerja',
-        'selesai_bekerja',
+        'desk_kerja',
+        'tgl_mulai',
+        'tgl_selesai',
         'lama_bekerja',
-        'area_pekerjaan',
-        'last_sync'
+        'last_sync',
     ];
 }
