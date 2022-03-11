@@ -46,6 +46,9 @@ class Iku1TracerStudySeeder extends Seeder
                 tc_study.wkt_masuk,
                 tc_study.wkt_tunggu,
                 CASE
+                    WHEN tc_study.id_reg_pd = tc_study.id_reg_pd THEN 1
+                END AS status_mengisi,
+                CASE
                     WHEN tc_study.status_lulusan IN ('1', '2')
                     AND tc_study.income_per_bln > 1.2 * umr.besaran_umr
                     AND tc_study.wkt_tunggu < 6 THEN 1
@@ -74,43 +77,70 @@ class Iku1TracerStudySeeder extends Seeder
                 AND umr.soft_delete = 0
             WHERE
                 tc_study.soft_delete = 0
-            ORDER BY
-                tc_study.id_thn_ajaran DESC
+            UNION
+            SELECT
+                reg.id_pd,
+                YEAR(reg.tgl_sk_yudisium) AS id_thn_ajaran,
+                pd.nm_pd AS nm_alumni,
+                fak.nm_lemb AS nm_fakultas,
+                CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS nm_prodi,
+                reg.tgl_sk_yudisium AS tgl_wisuda,
+                CASE
+                    WHEN reg.id_reg_pd = reg.id_reg_pd THEN 9
+                END AS status_lulusan,
+                tc_study.a_kerja_sblm_lulus,
+                tc_study.nm_tmpt_bekerja,
+                tc_study.level_perusahaan,
+                bdg_kerja.nm_bid_kerja,
+                tc_study.status_jabatan,
+                tc_study.income_per_bln,
+                wil.nm_wil,
+                umr.besaran_umr,
+                tc_study.nm_pt_lnjt,
+                tc_study.nm_prodi_lnjt,
+                tc_study.wkt_masuk,
+                tc_study.wkt_tunggu,
+                CASE
+                    WHEN reg.id_reg_pd = reg.id_reg_pd THEN 0
+                END AS status_mengisi,
+                CASE
+                    WHEN reg.id_pd = reg.id_pd THEN 0
+                END AS status_iku
+            FROM
+                pdrd.reg_pd AS reg(NOLOCK)
+                JOIN pdrd.peserta_didik AS pd WITH(NOLOCK) ON pd.id_pd = reg.id_pd
+                AND pd.soft_delete = 0
+                LEFT JOIN pdrd.sms AS sms WITH(NOLOCK) ON sms.id_sms = reg.id_sms
+                AND sms.soft_delete = 0
+                LEFT JOIN pdrd.sms AS fak WITH(NOLOCK) ON fak.id_sms = sms.id_induk_sms
+                AND fak.soft_delete = 0
+                JOIN ref.jenjang_pendidikan AS jenjang WITH(NOLOCK) ON jenjang.id_jenj_didik = sms.id_jenj_didik
+                AND jenjang.nm_jenj_didik IN ('D2', 'D3', 'D4', 'S1')
+                AND jenjang.expired_date IS NULL
+                LEFT JOIN tracer.hasil_tracer_study AS tc_study WITH(NOLOCK) ON tc_study.id_reg_pd = reg.id_reg_pd
+                AND tc_study.soft_delete = 0
+                LEFT JOIN ref.bidang_pekerjaan AS bdg_kerja WITH(NOLOCK) ON bdg_kerja.id_bid_kerja = tc_study.id_bid_kerja
+                AND bdg_kerja.expired_date IS NULL
+                LEFT JOIN ref.wilayah AS wil WITH(NOLOCK) ON wil.id_wil = tc_study.id_wil
+                AND wil.expired_date IS NULL
+                LEFT JOIN tracer.umr_wilayah AS umr WITH(NOLOCK) ON umr.id_wil = wil.id_wil
+                AND umr.id_tahun_anggaran = tc_study.id_thn_ajaran
+                AND umr.soft_delete = 0
+            WHERE
+                NOT EXISTS (
+                    SELECT
+                        tc.id_reg_pd
+                    FROM
+                        tracer.hasil_tracer_study AS tc WITH(NOLOCK)
+                    WHERE
+                        tc.id_reg_pd = reg.id_reg_pd
+                        AND tc.soft_delete = 0
+                )
+                AND YEAR(reg.tgl_sk_yudisium) BETWEEN 2019
+                AND YEAR(GETDATE())
+                AND reg.id_jns_keluar = '1'
+                AND reg.soft_delete = 0
         ");
-
-        // $tidak_mengisi_tracer = DB::SELECT("
-        //     SELECT
-        //         reg.id_pd,
-        //         YEAR(reg.tgl_sk_yudisium) AS id_thn_ajaran,
-        //         pd.nm_pd AS nm_alumni,
-        //         fak.nm_lemb AS nm_fakultas,
-        //         CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS nm_prodi,
-        //         reg.tgl_sk_yudisium AS tgl_wisuda
-        //     FROM
-        //         pdrd.reg_pd AS reg(NOLOCK)
-        //         JOIN pdrd.peserta_didik AS pd WITH(NOLOCK) ON pd.id_pd = reg.id_pd
-        //         AND pd.soft_delete = 0
-        //         LEFT JOIN pdrd.sms AS sms WITH(NOLOCK) ON sms.id_sms = reg.id_sms
-        //         AND sms.soft_delete = 0
-        //         LEFT JOIN pdrd.sms AS fak WITH(NOLOCK) ON fak.id_sms = sms.id_induk_sms
-        //         AND fak.soft_delete = 0
-        //         JOIN ref.jenjang_pendidikan AS jenjang WITH(NOLOCK) ON jenjang.id_jenj_didik = sms.id_jenj_didik
-        //         AND jenjang.nm_jenj_didik IN ('D2', 'D3', 'D4', 'S1')
-        //         AND jenjang.expired_date IS NULL
-        //     WHERE
-        //         NOT EXISTS (
-        //             SELECT
-        //                 tc.id_reg_pd
-        //             FROM
-        //                 tracer.hasil_tracer_study AS tc WITH(NOLOCK)
-        //             WHERE
-        //                 tc.id_reg_pd = reg.id_reg_pd
-        //                 AND tc.soft_delete = 0
-        //         )
-        //         AND YEAR(reg.tgl_sk_yudisium) IN ('2019', '2020')
-        //         AND reg.id_jns_keluar = '1'
-        //         AND reg.soft_delete = 0
-        // ");
 
 
         if (!empty($mengisi_tracer)) {
@@ -136,6 +166,7 @@ class Iku1TracerStudySeeder extends Seeder
                     'nm_prodi_lnjt' => $each_data->nm_prodi_lnjt,
                     'wkt_masuk' => $each_data->wkt_masuk,
                     'nm_wil' => $each_data->nm_wil,
+                    'status_mengisi' => $each_data->status_mengisi,
                     'status_iku' => $each_data->status_iku,
                     'id_creator' => guid(),
                     'id_updater' => guid(),
@@ -146,29 +177,6 @@ class Iku1TracerStudySeeder extends Seeder
                 ]);
             }
         }
-
-        // if (!empty($tidak_mengisi_tracer)) {
-        //     foreach ($tidak_mengisi_tracer as $each_data) {
-        //         Iku1TracerStudy::updateOrInsert([
-        //             'id_pd' => $each_data->id_pd,
-        //             'id_thn_ajaran' => $each_data->id_thn_ajaran,
-        //         ], [
-        //             'id_tracer_study' => guid(),
-        //             'nm_alumni' => $each_data->nm_alumni,
-        //             'nm_fakultas' => $each_data->nm_fakultas,
-        //             'nm_prodi' => $each_data->nm_prodi,
-        //             'tgl_wisuda' => $each_data->tgl_wisuda,
-        //             'status_lulusan' => 9,
-        //             'status_iku' => 0,
-        //             'id_creator' => guid(),
-        //             'id_updater' => guid(),
-        //             'create_date' => currDateTime(),
-        //             'last_update' => currDateTime(),
-        //             'last_sync' => currDateTime(),
-        //             'soft_delete' => 0
-        //         ]);
-        //     }
-        // }
 
         echo " Data temp_iku1 berhasil diperbaharui\n";
     }

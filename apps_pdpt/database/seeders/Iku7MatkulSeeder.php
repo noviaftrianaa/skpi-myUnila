@@ -137,7 +137,58 @@ class Iku7MatkulSeeder extends Seeder
 
     public function totalDashboard()
     {
-        # code...
+        $total_dashboard7 = DB::SELECT("
+            SELECT
+                DISTINCT mk.nm_prodi,
+                sms.id_sms,
+                mk.id_thn_ajaran,
+                (
+                    SELECT
+                        DISTINCT COUNT(re_mk.id_mk)
+                    FROM
+                        pdrd.re_mk AS re_mk WITH(NOLOCK)
+                    WHERE
+                        re_mk.komponen_evaluasi = 'AKP'
+                        AND re_mk.soft_delete = 0
+                ) AS total_mk_case_method,
+                (
+                    SELECT
+                        DISTINCT COUNT(re_mk.id_mk)
+                    FROM
+                        pdrd.re_mk AS re_mk WITH(NOLOCK)
+                    WHERE
+                        re_mk.komponen_evaluasi = 'HSP'
+                        AND re_mk.soft_delete = 0
+                ) AS total_mk_team_base_project
+            FROM
+                temp_iku.matkul AS mk
+                LEFT JOIN pdrd.kelas_kuliah as kk WITH(NOLOCK) ON kk.id_mk = mk.id_mk
+                AND kk.soft_delete = 0
+                JOIN ref.semester AS smt ON smt.id_smt = kk.id_smt
+                AND smt.id_thn_ajaran = mk.id_thn_ajaran
+                AND smt.expired_date IS NULL
+                JOIN pdrd.sms AS sms WITH(NOLOCK) ON sms.id_sms = kk.id_sms
+                AND sms.soft_delete = 0
+            ORDER BY
+                mk.nm_prodi ASC
+        ");
+
+        foreach ($total_dashboard7 as $each_data) {
+            DetailIku7::updateOrInsert([
+                'id_sms' => $each_data->id_sms,
+                'id_tahun_anggaran' => $each_data->id_thn_ajaran,
+            ], [
+                'id_detail_iku_7' => guid(),
+                'total_mk_case_method' => $each_data->total_mk_case_method,
+                'total_mk_team_base_project' => $each_data->total_mk_team_base_project,
+                'create_date' => currDateTime(),
+                'last_update' => currDateTime(),
+                'expired_date' => currDateTime(),
+                'last_sync' => currDateTime()
+            ]);
+        }
+
+        echo " Data Dashboard iku 7 berhasil diperbaharui\n";
     }
 
     public function importDataMatkul()

@@ -31,6 +31,7 @@ class Iku1TracerStudy extends Model
         'nm_prodi_lnjt',
         'wkt_masuk',
         'nm_wil',
+        'status_mengisi',
         'status_iku',
         'create_date',
         'id_creator',
