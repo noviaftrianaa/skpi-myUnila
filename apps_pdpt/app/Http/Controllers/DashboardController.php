@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PDUT\Pdrd\AkreditasiProdi;
+use App\Models\PDUT\Pdrd\Sdm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +21,9 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        return view('dashboard.public');
+        $total_dosen = json_encode(Sdm::dashboard_dosen('nomor_induk',get_tahun_keaktifan()));
+        $total_dosen_jabfung = json_encode(Sdm::dashboard_dosen('dosen_jabfung',get_tahun_keaktifan()));
+        return view('dashboard.public', compact('total_dosen','total_dosen_jabfung'));
     }
 
     public function iku()
@@ -29,11 +32,26 @@ class DashboardController extends Controller
         return view('dashboard.iku', compact('data'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    public function dosen(Request $request)
+    {
+        ini_set('max_execution_time', 0);
+        ini_set('memory_limit', '-1');
+        $tahun = [];
+        $maks_tahun = '';
+        for ($thn=(date('Y')-5);$thn<=get_tahun_keaktifan();$thn++) {
+            $tahun[$thn] = (int) $thn;
+            $maks_tahun = $thn;
+        }
+        if ($request->has('tahun')) {
+            $tahun_pilih = $request->tahun;
+        } else {
+            $tahun_pilih = $maks_tahun;
+        }
+        $dosen_jk = Sdm::dashboard_dosen('dosen_jk',$tahun_pilih);
+        $dosen_jabfung_detail = Sdm::dashboard_dosen('dosen_jabfung_all',$tahun_pilih);
+        return view('dashboard.dosen',compact('tahun','tahun_pilih'));
+    }
+
     public function akreditasi()
     {
         $sp = collect(DB::SELECT("
@@ -142,22 +160,22 @@ class DashboardController extends Controller
 
         $detail_akred = Cache::remember(__FUNCTION__ . 'detail_akred' . $id_prodi, rand(5, 10), function () use ($query, $id_prodi) {
             $result = DB::select(DB::raw($query), [$id_prodi]);
-            
+
             $rearange = [];
-            foreach ($result as $value) {
-                $akred = match ($value->nm_akred) {
-                    'A' => 5,
-                    'B' => 4,
-                    'Baik' => 3,
-                    'Baik Sekali' => 2,
-                    'C' => 1,
-                    'Unggul' => 0
-                };
-                $rearange[date('Y', strtotime($value->tanggal_sk_akreditasi_prodi))] = [
-                    $value->nm_akred,
-                    $akred
-                ];
-            }
+//            foreach ($result as $value) {
+//                $akred = match ($value->nm_akred) {
+//                    'A' => 5,
+//                    'B' => 4,
+//                    'Baik' => 3,
+//                    'Baik Sekali' => 2,
+//                    'C' => 1,
+//                    'Unggul' => 0
+//                };
+//                $rearange[date('Y', strtotime($value->tanggal_sk_akreditasi_prodi))] = [
+//                    $value->nm_akred,
+//                    $akred
+//                ];
+//            }
 
             return $rearange;
         });

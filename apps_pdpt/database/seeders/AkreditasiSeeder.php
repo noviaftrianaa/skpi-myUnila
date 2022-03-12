@@ -19,14 +19,17 @@ class AkreditasiSeeder extends Seeder
         $id_sp = 'e2b705a7-173e-464a-9fac-509128709515';
         $kode_sp = '001026';
         $token = 'a934b2aa-ec1d-32a1-9d41-e982b6b1426c';
-        $cari_sms = Sms::where('id_sp',$id_sp)->where('id_jns_sms',3)->get();
+        $cari_sms = Sms::where('id_sp',$id_sp)->where('id_jns_sms',3)->where('id_sms','BFFE8C02-A6B8-4626-B7F2-C0A7326037CC')->get();
         $url = 'https://api.kemdikbud.go.id:8243/pddikti/1.2/pt';
         $akred = [];
         $belum_akred = [];
         foreach ($cari_sms AS $each_sms) {
-            echo 'Mencari akreditasi prodi: '.($each_sms->nm_lemb.' ('.$each_sms->jenjang->nm_jenj_didik.')').' dari BAN-PT:PDDIKTI';
+            echo 'Mencari akreditasi prodi: '.$each_sms->id_sms.' - '.($each_sms->nm_lemb.' ('.$each_sms->jenjang->nm_jenj_didik.')').' dari BAN-PT:PDDIKTI';
             $get_data = $this->curl_api_feeder($url.'/'.$kode_sp.'/prodi/'.strtoupper($each_sms->id_sms).'/akreditasi',$token);
             if (count($get_data)>0) {
+                if ($each_sms->id_sms=='BFFE8C02-A6B8-4626-B7F2-C0A7326037CC') {
+                    dd($get_data);
+                }
                 foreach ($get_data AS $each_data) {
                     if (key_exists($each_data['nilai'],$akred)) {
                         $akred[$each_data['nilai']] = ($akred[$each_data['nilai']]+1);
@@ -53,7 +56,7 @@ class AkreditasiSeeder extends Seeder
                         $simpan->save();
                         echo " berhasil disimpan\n";
                     } else {
-                        echo " gagal disimpan\n";
+                        echo " sudah ada\n";
                     }
                 }
             } else {

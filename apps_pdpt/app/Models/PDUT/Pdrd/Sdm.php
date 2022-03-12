@@ -61,4 +61,63 @@ class Sdm extends AbstractionModel
 	'soft_delete',
 	'last_sync',
     ];
+
+    public static function dashboard_dosen($tipe,$tahun)
+    {
+        if ($tipe=='nomor_induk') {
+            $select = "SELECT SUM(CASE WHEN LEFT(tsdm.nidn,2)<=88 THEN 1 ELSE 0 END) AS NIDN,
+                SUM(CASE WHEN LEFT(tsdm.nidn,2) IN (88,89) THEN 1 ELSE 0 END) AS NIDK,
+                SUM(CASE WHEN LEFT(tsdm.nidn,2)=99 THEN 1 ELSE 0 END) AS NUP
+                ";
+            $alternative_where = '';
+        } elseif ($tipe=='dosen_jabfung') {
+            $select = "SELECT SUM(CASE WHEN tjab.id_jabfung IS NULL THEN 1 ELSE 0 END) AS 'Tidak ada Fungsional',
+                SUM(CASE WHEN tjab.id_jabfung IN (41,42) THEN 1 ELSE 0 END) AS 'Asisten Ahli',
+                SUM(CASE WHEN tjab.id_jabfung IN (43,44) THEN 1 ELSE 0 END) AS 'Lektor',
+                SUM(CASE WHEN tjab.id_jabfung IN (46,47,48) THEN 1 ELSE 0 END) AS 'Lektor Kepala',
+                SUM(CASE WHEN tjab.id_jabfung IN (50,51) THEN 1 ELSE 0 END) AS 'Profesor'
+                ";
+            $alternative_where = '';
+        } elseif ($tipe=='dosen_jabfung_all') {
+            $select = "SELECT SUM(CASE WHEN tjab.id_jabfung IS NULL THEN 1 ELSE 0 END) AS 'Tidak ada Fungsional',
+                SUM(CASE WHEN tjab.id_jabfung IN (41,42) THEN 1 ELSE 0 END) AS 'Asisten Ahli',
+                SUM(CASE WHEN tjab.id_jabfung IN (43,44) THEN 1 ELSE 0 END) AS 'Lektor',
+                SUM(CASE WHEN tjab.id_jabfung IN (46,47,48) THEN 1 ELSE 0 END) AS 'Lektor Kepala',
+                SUM(CASE WHEN tjab.id_jabfung IN (50,51) THEN 1 ELSE 0 END) AS 'Profesor'
+                ";
+            $alternative_where = '';
+        } elseif ($tipe=='dosen_jk') {
+            $select = "SELECT SUM(CASE WHEN tsdm.jk='L' THEN 1 ELSE 0 END) AS 'Laki-laki',
+                SUM(CASE WHEN tsdm.jk='P' THEN 1 ELSE 0 END) AS 'Perempuan'
+                ";
+            $alternative_where = '';
+        }
+        $from   = "FROM pdrd.sdm AS tsdm WITH (NOLOCK)
+        ";
+        $join = "JOIN pdrd.reg_ptk AS tr WITH (NOLOCK) ON tr.id_sdm=tsdm.id_sdm AND tr.soft_delete=0
+                AND tr.id_jns_keluar IS NULL AND (tr.tgl_ptk_keluar IS NULL OR tr.tgl_ptk_keluar>GETDATE())
+                JOIN pdrd.keaktifan_ptk AS tak WITH (NOLOCK) ON tak.id_reg_ptk=tr.id_reg_ptk AND tak.soft_delete=0
+                AND tak.a_sp_homebase=1 AND tak.id_thn_ajaran='".$tahun."'
+                JOIN ref.status_kepegawaian AS tsk WITH (NOLOCK) ON tsk.id_stat_pegawai=tr.id_stat_pegawai
+                JOIN ref.status_keaktifan_pegawai AS ta WITH (NOLOCK) ON ta.id_stat_aktif=tsdm.id_stat_aktif
+                ";
+
+        if (in_array($tipe,['dosen_jabfung','dosen_jabfung_all'])) {
+            $join .= " LEFT JOIN (
+                SELECT id_sdm, MAX(id_jabfung) AS id_jabfung
+                FROM pdrd.rwy_fungsional WITH (NOLOCK)
+                WHERE soft_delete=0
+                AND (tmt_sk_jabfung!='1970-01-01' OR tmt_sk_jabfung<=GETDATE())
+                GROUP BY id_sdm
+            ) AS trj ON trj.id_sdm=tsdm.id_sdm
+            LEFT JOIN ref.jabfung AS tjab WITH (NOLOCK) ON tjab.id_jabfung=trj.id_jabfung
+            ";
+        }
+        $where = " WHERE tsdm.soft_delete=0
+                AND tsdm.id_jns_sdm=12
+                AND tsdm.id_stat_aktif IN (1,20,24,25,27)
+                ";
+        $data = \DB::SELECT($select.$from.$join.$where.$alternative_where);
+        return collect($data)->first();
+    }
 }

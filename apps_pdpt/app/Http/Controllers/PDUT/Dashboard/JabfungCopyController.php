@@ -1,0 +1,548 @@
+<?php
+
+namespace App\Http\Controllers\PDUT\Dashboard;
+
+use App\Http\Controllers\Controller;
+use App\Models\PDUT\Pdrd\LembagaNonSp;
+use App\Models\PDUT\Ref\Jabfung;
+use App\Models\PDUT\Ref\TahunAjaran;
+use App\Models\Repositories\Report;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+
+class JabfungCopyController extends Controller
+{
+    private $reportName = 'Jabatan Fungsional';
+    private $title = '';
+
+    public function __construct()
+    {
+        $this->sp = DB::table('pdrd.satuan_pendidikan')->where('id_sp',env('APP_ID_SP'))->first();
+    }
+
+    public function index()
+    {
+        return view('dashboard.jabfung', [
+            'pageName'  =>  'Rekap '.$this->title.$this->reportName,
+            'info'      =>  [
+                'Dosen yang ditampilkan berstatus Aktif, Cuti, Ijin Belajar, Tugas di Instansi Lain dan Tugas Belajar',
+                'Dosen yang tidak memiliki atau tidak memutakhirkan riwayat Jabatan Fungsional dianggap sebagai Tanpa Jabatan',
+                'Dosen yang TMT Fungsional kosong atau 1 Januari 1970 dianggap Fungsional tersebut tidak berlaku'
+            ],
+        ]);
+    }
+
+    public function chart(Request $request)
+    {
+        ini_set('max_execution_time', 300);
+//        dd($request->all());
+        /**
+         * Parameter Input
+         */
+        $drillDown = $request->drillDown;
+        $currentLevel = $request->level;
+        $lastLevelID = $request->lastLevelID;
+        $currentType = $request->type;
+        $requestType = $request->requestType;
+        $currentYear = get_tahun_keaktifan();
+
+        /**  Selected Params :: */
+        $selectedPoint = $request->selectedPoint;
+        $selectedPointID = $request->selectedPointID;
+
+        $char = $request->char;
+
+        if($drillDown=='true')
+        {
+            if ($currentLevel=='Fakultas') {
+                $currentID = $selectedPointID;
+            } else {
+                $currentID = $selectedPointID;
+            }
+        }
+        else
+        {
+            $currentID = $lastLevelID;
+        }
+
+        if($currentLevel=='Universitas Lampung')
+        {
+            $namaWilayah = '';
+        }
+        else
+        {
+            $namaWilayah = $selectedPoint;
+        }
+
+        /**
+         * Generate Daftar Kategori & Wilayah berdasarkan level Drilldown
+         * Hanya dieksekusi jika Request !== table
+         */
+        if($requestType!=='table')
+        {
+            /**
+             * Menampilkan List Kategori
+             */
+            $where = "";
+
+            if($currentLevel!=='Universitas Lampung' && $selectedPoint!=="")
+            {
+                $where = " AND id_jabfung='".$selectedPointID."'";
+            } elseif (in_array($currentLevel,['Program Studi','Fakultas'])) {
+                $where = " AND id_jabfung='".$selectedPointID."'";
+            }
+
+            $listCategories = DB::SELECT("
+                SELECT id_jabfung as id,
+                concat(nm_jabfung , CASE WHEN angka_kredit>0 THEN concat(' (' , convert(int,angka_kredit),')') ELSE '' END) as nama
+                FROM ref.jabfung WITH (NOLOCK)
+                WHERE (expired_date IS NULL OR expired_date>GETDATE())
+                AND id_jabfung>=31
+                AND id_kel_prof=2
+             ".$where);
+            /**
+             * Menampilkan list Wilayah berdasarkan Level drillDown
+             */
+            $result         = Report::getWilayah($currentLevel,$currentType,$currentID,$listCategories);
+            $currentLevel   = $result['currentLevel'];
+            $nextLevel      = $result['nextLevel'];
+            $listWilayah    = $result['listWilayah'];
+
+            /**
+             * Menentukan Categories X-Axis berdasarkan Jenis drillDown
+             */
+            $categories = $listWilayah;
+        } /** End of Generate Berdasarkan Drilldown */
+
+        /**
+         * Looping Query Report untuk Trend Tahun
+         */
+        $tgl = TahunAjaran::tglSelesai(get_tahun_keaktifan());
+
+        /** SELECT fields */
+        $query_select   = "
+        SELECT
+            COUNT(*) as total,
+            CASE WHEN tjabfung.id_jabfung IS NULL THEN 999 ELSE tjabfung.id_jabfung END AS id,
+            tkeaktifan.id_thn_ajaran as tahun
+        ";
+
+        /** FROM tabel */
+        $query_from     = " FROM pdrd.sdm tsdm WITH (NOLOCK) ";
+
+        /** JOIN with tabel */
+        $query_join     = " JOIN pdrd.reg_ptk treg WITH (NOLOCK) ON treg.id_sdm = tsdm.id_sdm AND treg.soft_delete=0
+                AND treg.id_jns_keluar IS NULL
+                AND (treg.tgl_ptk_keluar IS NULL OR treg.tgl_ptk_keluar>GETDATE())
+            JOIN pdrd.keaktifan_ptk tkeaktifan WITH (NOLOCK) ON tkeaktifan.id_reg_ptk=treg.id_reg_ptk AND tkeaktifan.soft_delete=0
+                AND tkeaktifan.a_sp_homebase = 1 AND tkeaktifan.id_thn_ajaran = ".get_tahun_keaktifan()."
+            JOIN pdrd.satuan_pendidikan tsp WITH (NOLOCK) ON tsp.id_sp=treg.id_sp AND tsp.soft_delete=0 AND tsp.stat_sp = 'A'
+                AND tsp.id_sp='".env('APP_ID_SP')."'
+            JOIN pdrd.sms tsms WITH (NOLOCK) ON tsms.id_sms=treg.id_sms AND tsms.soft_delete=0 AND tsms.id_jns_sms = 3
+            LEFT JOIN (
+                SELECT MAX(rwy_fungsional.id_jabfung) AS id_jabfung, id_sdm
+                FROM pdrd.rwy_fungsional
+                LEFT JOIN ref.jabfung ON jabfung.id_jabfung = rwy_fungsional.id_jabfung
+                WHERE (tmt_sk_jabfung>'1970-01-01' OR tmt_sk_jabfung <= '".$tgl."')
+                AND jabfung.expired_date IS NULL
+                AND jabfung.id_kel_prof = '2'
+                AND soft_delete = 0
+                GROUP BY id_sdm
+            ) AS tjabfung ON tjabfung.id_sdm=tsdm.id_sdm
+        ";
+
+        /** WHERE params */
+        $query_where    = " WHERE tsdm.soft_delete = 0
+                                AND tsdm.id_jns_sdm = 12
+                                AND tsdm.id_stat_aktif IN (1,20,24,25,27)
+                                ";
+
+        /** GROUP BY */
+        $query_group    = " GROUP BY tjabfung.id_jabfung, id_thn_ajaran ";
+
+        /** ORDER BY */
+        if($currentLevel=='Universitas Lampung')
+        {
+            $query_order    = " ORDER BY id ASC ";
+        }
+        else
+        {
+            $query_order    = " ORDER BY total DESC ";
+        }
+
+        /** Filter Berdasarkan Kategori terpilih */
+        if($currentLevel!=='Universitas Lampung')
+        {
+            /** Jika Kategori terplih adalah 999 (kosong), maka tampilkan id_jabfung  NULL */
+            if($selectedPointID=='999')
+            {
+                $query_where .= " AND tjabfung.id_jabfung IS NULL ";
+            }
+            else
+            {
+                $query_where .= " AND tjabfung.id_jabfung='".$selectedPointID."' ";
+            }
+        }
+
+        /** Level Drilldown Fakultas */
+        if($currentLevel=='Fakultas')
+        {
+            $query_join  .= " JOIN pdrd.sms tfak ON tfak.id_sms=tsms.id_induk_sms ";
+
+            if($requestType!=='table')
+            {
+                $query_select  = "SELECT COUNT(*) as total, tfak.id_sms as id, tkeaktifan.id_thn_ajaran as tahun ";
+                $query_group  = " GROUP BY tfak.id_sms, id_thn_ajaran ";
+            }
+            else
+            {
+                $query_where .= " AND tfak.id_sms = '".$selectedPointID."' ";
+            }
+        }
+        /** Level Drilldown Program Studi */
+        elseif($currentLevel=='Program Studi')
+        {
+            if($requestType!=='table')
+            {
+                $query_select = "
+                                            SELECT
+                                            COUNT(*) as total,
+                                            tsms.id_sms as id,
+                                            tkeaktifan.id_thn_ajaran as tahun
+                                        ";
+                $checkFakultas = DB::SELECT("SELECT COUNT(*) as jml
+                                                        FROM [pdrd].[sms]
+                                                        WHERE soft_delete=0
+                                                        AND id_jns_sms=1
+                                                        AND id_sms='".$currentID."'
+                                                    ")[0];
+                if($checkFakultas->jml>0)
+                {
+                    $query_join  .= " JOIN pdrd.sms tfak ON tfak.id_sms=tsms.id_induk_sms ";
+                }
+                else
+                {
+                    $query_where .= " AND tsms.id_sp='".env('APP_ID_SP')."' " ;
+                }
+                $query_group = " GROUP BY tsms.id_sms, id_thn_ajaran ";
+            }
+            else
+            {
+                $query_where .= " AND tsms.id_sms = '".$selectedPointID."' ";
+            }
+        }
+
+        $yearList       = [];
+        $chartData      = [];
+        $chartResults   = [];
+
+        if($requestType=='table')
+        {
+            $yearList[]                 = $currentYear;
+            $chartData[$currentYear]    = [];
+        }
+        else
+        {
+            for($y = (get_tahun_keaktifan()-5); $y <= get_tahun_keaktifan(); $y++)
+            {
+                $yearList[]     = $y;
+                $chartData[$y]  = [];
+            }
+        }
+
+        /** Eksekusi Query */
+        /** Jika Request Tabel Daftar Dosen */
+        if($requestType=='table')
+        {
+            $query_select = "SELECT tsdm.nm_sdm as nm_dosen, tsdm.nidn,tsdm.nip, tsdm.jk, tsdm.tgl_lahir, tsp.nm_lemb as pt, tsms.nm_lemb as prodi, tsdm.id_sdm ";
+
+            $currentCategory = $selectedPointID;
+
+            /** Jika Kategori terplih adalah Dosen, maka tampilkan id_jabfung NULL */
+            if($currentCategory=='999')
+            {
+                $query_where .= " AND tjabfung.id_jabfung IS NULL ";
+            }
+            else
+            {
+                $query_where .= " AND tjabfung.id_jabfung='".$currentCategory."' ";
+            }
+
+            /** Menggabungkan Query */
+            $query = $query_select.$query_from.$query_join.$query_where;
+
+            /** Eksekusi Query */
+            $results = DB::table(DB::raw("($query) as results"));
+
+            /** Filter Hasil Query berdasaran Abjad */
+            if($char!=='all')
+            {
+                $results = $results->where('nm_dosen','LIKE',$char.'%');
+            }
+
+            $results = $results->select(['nm_dosen', 'nidn','nip', 'jk', 'tgl_lahir', 'pt', 'prodi','id_sdm']);
+            /** Menampilkan hasil dalam Datatable */
+            return Datatables::of($results)
+                ->editColumn('nm_dosen',function($model) use($year){
+                    return '<a href="'.route('dosen.profil',['id'=>Crypt::encrypt($model->id_sdm),'year'=>$year]).'" target="_blank">'.$model->nm_dosen.'</a>';
+                })
+                ->editColumn('tgl_lahir',function($model){
+                    return tglIndonesia($model->tgl_lahir);
+                })
+                ->make(true);
+        }
+        /** Eksekusi Query untuk Grafik */
+        else
+        {
+            $query = $query_select.$query_from.$query_join.$query_where.$query_group.$query_order;
+            $results = DB::select($query);
+
+            /** Generate ChartResult */
+            foreach($results as $r)
+            {
+                if(array_key_exists($r->id, $chartResults))
+                {
+                    if(array_key_exists($r->tahun, $chartResults[$r->id]))
+                    {
+                        $chartResults[$r->id][$r->tahun] += (int)$r->total;
+                    }
+                    else
+                    {
+                        $chartResults[$r->id][$r->tahun] = (int)$r->total;
+                    }
+                }
+                else
+                {
+                    $chartResults[$r->id][$r->tahun] = (int)$r->total;
+                }
+            }
+        }/** End of Eksekusi Query */
+
+        /** Hanya jika Request !== Tabel */
+        if($requestType!=='table')
+        {
+            $listCategory = [];
+            foreach($categories as $r)
+            {
+                $listCategory[$r->id] = $r->nama;
+            }
+            $listCategory[999] = 'Tanpa Jabatan';
+            /** Inisiasi Tabel hasil Grafik */
+            $resTable = '<table class="table table-bordered tresults" id="resultTable">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" class="text-center">Deskripsi</th>
+                                    <th colspan="'.count($yearList).'" class="text-center">Tahun</th>
+                                </tr>
+                                <tr>';
+            foreach($yearList as $y)
+            {
+                $resTable .= '<th class="text-center">'.$y.'</th>';
+            }
+            $resTable .= '      </tr>
+                            </thead>
+                            <tbody>
+                         ';
+
+            $list_ID                = [];
+            $chartCategoriesText    = [];
+            $listGroup              = [];
+
+            if($currentType=='Kategori')
+            {
+                $listGroup[] = ['id' => 'all', 'text' => 'Semua'];
+            }
+
+            /** Generate Grafik & Tabel */
+            foreach($results as $r)
+            {
+                if(!in_array($r->id, $list_ID))
+                {
+                    $list_ID[]              = $r->id;
+                    $chartCategoriesText[]  = $listCategory[$r->id];
+                    $listGroup[]            = ['id' => $r->id, 'text' => $listCategory[$r->id]];
+                    $resTable               .= '<tr><td>'.$listCategory[$r->id].'</td>';
+
+                    foreach($yearList as $y)
+                    {
+                        if(isset($chartResults[$r->id][$y]))
+                        {
+                            $tot = $chartResults[$r->id][$y];
+                        }
+                        else
+                        {
+                            $tot = 0;
+                        }
+
+                        $resTable       .= '<td class="text-right">'.number_format($tot).'</td>';
+                        $chartData[$y][] =  [
+                            'id'    => $r->id,
+                            'name'  => $listCategory[$r->id],
+                            'y'     => $tot
+                        ];
+                    }
+
+                    $resTable               .= '</tr>';
+                }
+            }
+            dd($chartResults);
+
+            if($filterWilayah=='all' or $currentType=='Wilayah')
+            {
+                foreach($categories as $r)
+                {
+                    if(!in_array($r->id, $list_ID))
+                    {
+                        $chartCategoriesText[]  = $listCategory[$r->id];
+                        $listGroup[]            = ['id' => $r->id, 'text' => $listCategory[$r->id]];
+                        $resTable               .= '<tr><td>'.$listCategory[$r->id].'</td>';
+
+                        foreach($yearList as $y)
+                        {
+                            $resTable       .= '<td class="text-right">'.number_format(0).'</td>';
+                            $chartData[$y][] =  [
+                                'id'    => $r->id,
+                                'name'  => $listCategory[$r->id],
+                                'y'     => 0
+                            ];
+                        }
+
+                        $resTable               .= '</tr>';
+                    }
+                }
+            }
+
+            $resTable .= '  </tbody>
+                            </table>
+                         ';
+
+            /** Generate Grafik untuk Trend Tahun */
+            $chartSeries = [];
+
+            foreach($yearList as $y)
+            {
+                $chartSeries[] = [
+                    'name' => $y,
+                    'data' => $chartData[$y],
+                ];
+            }
+
+            /** Generate Wilayah berdasarkan Level */
+            if($currentLevel=='Universitas Lampung')
+            {
+                $wilayah = [['id' => 'all', 'text' => 'Indonesia']];
+            }
+            else
+            {
+                $wilayah = [['id' => 'all', 'text' => 'SEMUA']];
+
+                foreach($listWilayah as $r)
+                {
+                    $wilayah[] = ['id' => $r->id, 'text' => $r->nama];
+                }
+            }
+
+
+            /** Inisiasi nilai batas tampilan Kolom Chart */
+            if($currentType=='Wilayah')
+            {
+                $chartMax = count($categories)-1;
+            }
+            elseif(count($list_ID)<=10)
+            {
+                $chartMax = count($list_ID)-1;
+            }
+            else
+            {
+                $chartMax = 10;
+            }
+
+            if($currentLevel=='Universitas Lampung' or $currentLevel=='Wilayah')
+            {
+                $selectedPoint = '';
+            }
+
+            /** Result Chart */
+            return json_encode([
+                'chartLevel'      => $currentLevel,
+                'chartNextLevel'  => $nextLevel,
+                'chartTitle'      => $this->title.$this->reportName,
+                'chartSubtitle'   => 'Tingkat '.$currentLevel.' '.$namaWilayah,
+                'chartCategories' => $chartCategoriesText,
+                'chartSeries'     => $chartSeries,
+                'chartUnit'       => 'orang',
+                'chartMax'        => $chartMax,
+                'resultTable'     => $resTable,
+                'filterWilayah'   => $filterWilayah,
+                'wilayah'         => $wilayah,
+            ]);
+        }
+    }
+
+    /** Load from Temp */
+    public function load()
+    {
+        $fileLocation   = 'Sdid/Back/Report/';
+        $filename       = sha1('DosenJabFung');
+        $file           = Storage::disk('local')->exists($fileLocation.$filename);
+
+        if($file)
+        {
+            $temp =  Storage::disk('local')->get($fileLocation.$filename);
+        }
+        else
+        {
+            Storage::put($fileLocation.$filename, '');
+            $temp = '';
+        }
+
+        if($temp)
+        {
+            $temp = Crypt::decrypt($temp);
+        }
+        else
+        {
+            $temp = json_encode('error');
+        }
+
+        return $temp;
+    }
+
+    /** Reload file Temp */
+    public function reload(Request $request)
+    {
+        $fileLocation               = 'Sdid/Back/Report/';
+        $filename                   = sha1('DosenJabFung');
+        $tahun                      = TahunAjaran::getAktif();
+        $request->level             = 'Universitas Lampung';
+        $request->type              = 'Kategori';
+        $request->year              = $tahun;
+        $request->yearStart         = $tahun;
+        $request->yearEnd           = $tahun;
+        $request->kategoriPT        = 'all';
+        $request->bentukPendidikan  = 'all';
+        $request->jenjangPendidikan = 'all';
+        $request->ikatanKerja       = 'all';
+        $request->rentangUsia       = 'all';
+        $request->jabfung           = 'all';
+        $getChart                   = json_decode($this->chart($request));
+
+        $result = [
+            'last_update'     => tglWaktuIndonesia(currDateTime()),
+            'chartLevel'      => $getChart->chartLevel,
+            'chartNextLevel'  => $getChart->chartNextLevel,
+            'chartTitle'      => $getChart->chartTitle,
+            'chartSubtitle'   => $getChart->chartSubtitle,
+            'chartCategories' => $getChart->chartCategories,
+            'chartSeries'     => $getChart->chartSeries,
+            'chartUnit'       => $getChart->chartUnit,
+            'chartMax'        => $getChart->chartMax,
+            'resultTable'     => $getChart->resultTable,
+        ];
+
+        Storage::disk('local')->put($fileLocation.$filename,Crypt::encrypt(json_encode($result, JSON_PRETTY_PRINT)));
+        return redirect()->back();
+    }
+}

@@ -74,4 +74,9 @@ class Sms extends AbstractionModel
 	'soft_delete',
 	'last_sync',
     ];
+
+    public function jenjang()
+    {
+        return $this->belongsTo('App\Models\PDUT\Ref\JenjangPendidikan','id_jenj_didik','id_jenj_didik');
+    }
 }
