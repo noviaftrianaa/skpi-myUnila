@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use DataTables;
 
 class JabfungController extends Controller
 {
@@ -24,7 +25,7 @@ class JabfungController extends Controller
 
     public function index()
     {
-        return view('dashboard.jabfung', [
+        return view('dashboard.dosen.jabatan_fungsional.index', [
             'pageName'  =>  'Rekap '.$this->title.$this->reportName,
             'info'      =>  [
                 'Dosen yang ditampilkan berstatus Aktif, Cuti, Ijin Belajar, Tugas di Instansi Lain dan Tugas Belajar',
@@ -82,9 +83,17 @@ class JabfungController extends Controller
             $where = "";
             if($currentLevel=='Fakultas')
             {
-                $where = " AND id_jabfung='".$selectedPointID."'";
+                if ($selectedPointID=='999') {
+                    $where = " AND id_jabfung IS NULL";
+                } else {
+                    $where = " AND id_jabfung='".$selectedPointID."'";
+                }
             } elseif ($currentLevel=='Program Studi') {
-                $where = " AND id_jabfung='".$lastLevelID."'";
+                if ($lastLevelID=='999') {
+                    $where = " AND id_jabfung IS NULL";
+                } else {
+                    $where = " AND id_jabfung='".$lastLevelID."'";
+                }
             }
 
             $listCategories = DB::SELECT("
@@ -170,7 +179,7 @@ class JabfungController extends Controller
         if($currentLevel!=='Perguruan Tinggi')
         {
             /** Jika Kategori terplih adalah 999 (kosong), maka tampilkan id_jabfung  NULL */
-            if($selectedPointID=='999')
+            if($selectedPointID=='999' || $lastLevelID=='999')
             {
                 $query_where .= " AND tjabfung.id_jabfung IS NULL ";
             }
@@ -271,12 +280,13 @@ class JabfungController extends Controller
             $results = $results->select(['nm_dosen', 'nidn','nip', 'jk', 'tgl_lahir', 'pt', 'prodi','id_sdm']);
             /** Menampilkan hasil dalam Datatable */
             return Datatables::of($results)
-                ->editColumn('nm_dosen',function($model) use($year){
-                    return '<a href="'.route('dosen.profil',['id'=>Crypt::encrypt($model->id_sdm),'year'=>$year]).'" target="_blank">'.$model->nm_dosen.'</a>';
+                ->editColumn('nm_dosen',function($model) {
+                    return '<a href="'.route('dashboard.dosen.profil',['id'=>Crypt::encrypt($model->id_sdm),'year'=>get_tahun_keaktifan()]).'" target="_blank">'.$model->nm_dosen.'</a>';
                 })
                 ->editColumn('tgl_lahir',function($model){
                     return tglIndonesia($model->tgl_lahir);
                 })
+                ->rawColumns(['nm_dosen', 'tgl_lahir'])
                 ->make(true);
         }
         /** Eksekusi Query untuk Grafik */

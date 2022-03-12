@@ -1,6 +1,6 @@
 <!-- Modal -->
 <div class="modal fade" id="modal" role="dialog">
-    <div class="modal-dialog"  style="width:90%;">
+    <div class="modal-dialog modal-xl"  style="width:90%;">
         <!-- Modal content-->
         <div class="modal-content">
             <div class="modal-header">
@@ -11,7 +11,7 @@
                 <div class="col-md-12" style="margin-bottom:20px;">
                     <label>Nama Berdasarkan Abjad : </label>
                     <center>
-                        <div id="charList" class="btn-group">
+                        <div id="charList" class="btn-group btn-group-sm">
                             <button type="button" class="btn btn-primary active" data-value="all">Semua</button>
                             @foreach(range('A','Z') as $char)
                                 <button type="button" class="btn btn-default" data-value="{{$char}}">{{$char}}</button>
@@ -27,7 +27,6 @@
                         <th>NIP</th>
                         <th>JK</th>
                         <th>Tgl Lahir</th>
-                        <th>Perguruan Tinggi</th>
                         <th>Program Studi</th>
                     </tr>
                     </thead>
@@ -38,7 +37,6 @@
                         <th>NIP</th>
                         <th>JK</th>
                         <th>Tgl Lahir</th>
-                        <th>Perguruan Tinggi</th>
                         <th>Program Studi</th>
                     </tr>
                     </tfoot>

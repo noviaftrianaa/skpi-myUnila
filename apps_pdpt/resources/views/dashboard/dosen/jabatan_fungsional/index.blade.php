@@ -1,9 +1,9 @@
 @extends('template_public.default')
 
 @include('__partial.select2')
-@include('__partial.datatable')
+@include('__partial.datatable_yajra')
 @include('__partial.highchart')
-@include('dashboard.report-pt-chart')
+@include('dashboard.dosen.jabatan_fungsional.report-pt-chart')
 
 @section('content')
     <div class="container">
@@ -102,7 +102,7 @@
                                     <button id="drilldown" class="btn btn-success btn-sm">
                                         <i class="fa fa-sort-amount-desc"></i> Drill Down
                                     </button>
-                                    <button id="showtable" class="btn btn-primary btn-sm">
+                                    <button id="showtable" class="btn btn-primary btn-sm" data-bs-toggle="offcanvas" data-bs-target="#offcanvasTop" aria-controls="offcanvasTop">
                                         <i class="fa fa-table"></i> Daftar Detail
                                     </button>
                                 </td>
@@ -117,5 +117,5 @@
             </div>
         </div>
     </div>
-    @include('dashboard.list')
+    @include('dashboard.dosen.jabatan_fungsional.list')
 @endsection

@@ -5,3 +5,19 @@
 .breadcrumb {
     background-color: transparent !important;
 }
+
+.sidenav {
+    z-index: auto;
+}
+
+table.dataTable tbody tr {
+    background-color: transparent;
+}
+
+.dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter, .dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_processing, .dataTables_wrapper .dataTables_paginate {
+    color: #FFFFFF;
+}
+
+a.paginate_button.current {
+    color: #0b2e13;
+}

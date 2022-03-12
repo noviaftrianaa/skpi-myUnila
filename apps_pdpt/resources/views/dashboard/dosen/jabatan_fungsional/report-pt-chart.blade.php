@@ -22,7 +22,7 @@
                 var lastFakultasID  = '';
             }
 
-            $(".btn-group > .btn").click(function(){
+            $("#charList.btn-group > .btn").click(function(){
                 $(this).addClass("active").siblings().removeClass("active");
                 $(this).addClass('btn-primary').siblings().removeClass('btn-primary').addClass('btn-default');
                 reloadTable();
@@ -102,6 +102,7 @@
 
             function reloadTable(){
                 var charValue = '';
+                group           = $("#group").val();
                 $("#chartDetail").modal('hide');
                 $('#charList .active').each(function(){
                     charValue= $(this).data('value');
@@ -150,7 +151,6 @@
                         { "data": "nip" },
                         { "data": "jk" },
                         { "data": "tgl_lahir" },
-                        { "data": "pt" },
                         { "data": "prodi" }
                     ]
                 });
@@ -173,7 +173,6 @@
                 if(group==null){
                     group = 'all';
                 }
-                $("#filterModal").modal('hide');
                 $('#resultTable').empty();
                 $.ajax({
                     type: "POST",
@@ -250,7 +249,6 @@
                         });
                         reloadChart(data.chartTitle, data.chartSubtitle, data.chartUnit, data.chartCategories, data.chartMax, data.chartSeries);
                         setBreadcrumbs();
-                        $("#progressBar").hide();
                     }
                 });
             }
@@ -396,6 +394,19 @@
                             scrollbar:{
                                 enabled: false
                             }
+                        }
+                    },
+                    legend: {
+                        itemWidth: 220,
+                        itemStyle: {
+                            font: 'Trebuchet MS, Verdana, sans-serif',
+                            color: '#A0A0A0'
+                        },
+                        itemHoverStyle: {
+                            color: '#FFF'
+                        },
+                        itemHiddenStyle: {
+                            color: '#444'
                         }
                     },
                 });

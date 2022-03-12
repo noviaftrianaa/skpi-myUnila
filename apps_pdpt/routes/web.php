@@ -17,6 +17,7 @@ use App\Http\Controllers\PDUT\Dashboard\JabfungController;
 Route::get('/',  [DashboardController::class,'index'])->name('home');
 Route::get('/akreditasi',  [DashboardController::class,'akreditasi'])->name('akreditasi');
 Route::get('/dashboard/dosen',  [DashboardController::class,'dosen'])->name('dashboard.dosen');
+Route::get('/dashboard/dosen/profil/{id}',  [DashboardController::class,'dosen_profil'])->name('dashboard.dosen.profil');
 Route::get('/dashboard/jabfung_dosen',  [JabfungController::class,'index'])->name('dashboard.jabfung');
 Route::post('/dashboard/jabfung_dosen',  [JabfungController::class,'chart'])->name('dashboard.jabfung.chart');
 Route::get('/dashboard/jabfung_dosen/load',  [JabfungController::class,'load'])->name('dashboard.jabfung.load');
