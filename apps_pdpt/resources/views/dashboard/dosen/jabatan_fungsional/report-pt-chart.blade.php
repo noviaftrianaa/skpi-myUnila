@@ -101,6 +101,7 @@
             });
 
             function reloadTable(){
+                var lastLevelID = getLastLevel();
                 var charValue = '';
                 group           = $("#group").val();
                 $("#chartDetail").modal('hide');
@@ -121,6 +122,7 @@
                             "requestType": "table",
                             "type": $("#typeDrilldown").val(),
                             "level": level,
+                            "lastLevelID": (lastLevelID==''?lastLevelID:lastPTID),
                             "group": group,
                             "selectedCategory": selectedCategory,
                             "selectedCategoryText": selectedCategoryText,
@@ -150,7 +152,6 @@
                         { "data": "nidn" },
                         { "data": "nip" },
                         { "data": "jk" },
-                        { "data": "tgl_lahir" },
                         { "data": "prodi" }
                     ]
                 });

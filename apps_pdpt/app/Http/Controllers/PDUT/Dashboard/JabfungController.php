@@ -176,7 +176,7 @@ class JabfungController extends Controller
         }
 
         /** Filter Berdasarkan Kategori terpilih */
-        if($currentLevel!=='Perguruan Tinggi')
+        if($currentLevel!=='Perguruan Tinggi' && $requestType!=='table')
         {
             /** Jika Kategori terplih adalah 999 (kosong), maka tampilkan id_jabfung  NULL */
             if($selectedPointID=='999' || $lastLevelID=='999')
@@ -262,7 +262,11 @@ class JabfungController extends Controller
             }
             else
             {
-                $query_where .= " AND tjabfung.id_jabfung='".$currentCategory."' ";
+                if ($currentLevel=='Perguruan Tinggi') {
+                    $query_where .= " AND tjabfung.id_jabfung='".$currentCategory."' ";
+                } elseif ($currentLevel!='Perguruan Tinggi') {
+                    $query_where .= " AND tjabfung.id_jabfung='".$lastLevelID."'";
+                }
             }
 
             /** Menggabungkan Query */
@@ -277,16 +281,13 @@ class JabfungController extends Controller
                 $results = $results->where('nm_dosen','LIKE',$char.'%');
             }
 
-            $results = $results->select(['nm_dosen', 'nidn','nip', 'jk', 'tgl_lahir', 'pt', 'prodi','id_sdm']);
+            $results = $results->select(['nm_dosen', 'nidn','nip', 'jk', 'prodi','id_sdm']);
             /** Menampilkan hasil dalam Datatable */
             return Datatables::of($results)
                 ->editColumn('nm_dosen',function($model) {
                     return '<a href="'.route('dashboard.dosen.profil',['id'=>Crypt::encrypt($model->id_sdm),'year'=>get_tahun_keaktifan()]).'" target="_blank">'.$model->nm_dosen.'</a>';
                 })
-                ->editColumn('tgl_lahir',function($model){
-                    return tglIndonesia($model->tgl_lahir);
-                })
-                ->rawColumns(['nm_dosen', 'tgl_lahir'])
+                ->rawColumns(['nm_dosen'])
                 ->make(true);
         }
         /** Eksekusi Query untuk Grafik */
