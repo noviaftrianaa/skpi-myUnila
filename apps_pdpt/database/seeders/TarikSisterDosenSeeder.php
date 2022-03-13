@@ -277,7 +277,7 @@ class TarikSisterDosenSeeder extends Seeder
                 $total_dosen_kepangkatan = count($cari_kepangkatan);
                 foreach ($cari_kepangkatan as $no_kepangkatan => $each_cari_kepangkatan) {
                     echo "--- Proses Kepangkatan " . ($no_kepangkatan + 1) . " dari " . $total_dosen_kepangkatan;
-                    $cek_kepangkatan_pdut = RwyKepangkatan::find($each_cari_kepangkatan->id_rwy_jabfung);
+                    $cek_kepangkatan_pdut = RwyKepangkatan::find($each_cari_kepangkatan->id_rwy_pangkat);
                     if (is_null($cek_kepangkatan_pdut)) {
                         $input_kepangkatan = (array)$each_cari_kepangkatan;
                         $input_kepangkatan['last_update'] = $waktu_sekarang;
@@ -290,7 +290,7 @@ class TarikSisterDosenSeeder extends Seeder
                             $input_kepangkatan = (array) $each_cari_kepangkatan;
                             $input_kepangkatan['last_update'] = $waktu_sekarang;
                             $input_kepangkatan['last_sync'] = $waktu_sekarang;
-                            $simpan_kepangkatan = RwyKepangkatan::find($each_cari_kepangkatan->id_rwy_jabfung);
+                            $simpan_kepangkatan = RwyKepangkatan::find($each_cari_kepangkatan->id_rwy_pangkat);
                             $simpan_kepangkatan->fill($input_kepangkatan)->save();
                             echo " (OK - update)\n";
                         } else {
@@ -338,7 +338,7 @@ class TarikSisterDosenSeeder extends Seeder
                 $total_dosen_pend_formal = count($cari_pend_formal);
                 foreach ($cari_pend_formal as $no_pend_formal => $each_cari_pend_formal) {
                     echo "--- Proses Pendidikan Formal " . ($no_pend_formal + 1) . " dari " . $total_dosen_pend_formal;
-                    $cek_pend_formal_pdut = RwyPendFormal::find($each_cari_pend_formal->id_rwy_jabfung);
+                    $cek_pend_formal_pdut = RwyPendFormal::find($each_cari_pend_formal->id_rwy_didik_formal);
                     if (is_null($cek_pend_formal_pdut)) {
                         $input_pend_formal = (array)$each_cari_pend_formal;
                         $input_pend_formal['last_update'] = $waktu_sekarang;
@@ -351,7 +351,7 @@ class TarikSisterDosenSeeder extends Seeder
                             $input_pend_formal = (array) $each_cari_pend_formal;
                             $input_pend_formal['last_update'] = $waktu_sekarang;
                             $input_pend_formal['last_sync'] = $waktu_sekarang;
-                            $simpan_pend_formal = RwyPendFormal::find($each_cari_pend_formal->id_rwy_jabfung);
+                            $simpan_pend_formal = RwyPendFormal::find($each_cari_pend_formal->id_rwy_didik_formal);
                             $simpan_pend_formal->fill($input_pend_formal)->save();
                             echo " (OK - update)\n";
                         } else {
@@ -385,7 +385,7 @@ class TarikSisterDosenSeeder extends Seeder
                 $total_dosen_sert = count($cari_sert);
                 foreach ($cari_sert as $no_sert => $each_cari_sert) {
                     echo "--- Proses Sertifikasi " . ($no_sert + 1) . " dari " . $total_dosen_sert;
-                    $cek_sert_pdut = RwySertifikasi::find($each_cari_sert->id_rwy_jabfung);
+                    $cek_sert_pdut = RwySertifikasi::find($each_cari_sert->id_rwy_sert);
                     if (is_null($cek_sert_pdut)) {
                         $input_sert = (array)$each_cari_sert;
                         $input_sert['last_update'] = $waktu_sekarang;
@@ -398,7 +398,7 @@ class TarikSisterDosenSeeder extends Seeder
                             $input_sert = (array) $each_cari_sert;
                             $input_sert['last_update'] = $waktu_sekarang;
                             $input_sert['last_sync'] = $waktu_sekarang;
-                            $simpan_sert = RwySertifikasi::find($each_cari_sert->id_rwy_jabfung);
+                            $simpan_sert = RwySertifikasi::find($each_cari_sert->id_rwy_sert);
                             $simpan_sert->fill($input_sert)->save();
                             echo " (OK - update)\n";
                         } else {
@@ -436,7 +436,7 @@ class TarikSisterDosenSeeder extends Seeder
                 $total_dosen_kerja = count($cari_kerja);
                 foreach ($cari_kerja as $no_kerja => $each_cari_kerja) {
                     echo "--- Proses Sertifikasi " . ($no_kerja + 1) . " dari " . $total_dosen_kerja;
-                    $cek_kerja_pdut = RwyPekerjaan::find($each_cari_kerja->id_rwy_jabfung);
+                    $cek_kerja_pdut = RwyPekerjaan::find($each_cari_kerja->id_rwy_kerja);
                     if (is_null($cek_kerja_pdut)) {
                         $input_kerja = (array)$each_cari_kerja;
                         $input_kerja['last_update'] = $waktu_sekarang;
@@ -449,7 +449,7 @@ class TarikSisterDosenSeeder extends Seeder
                             $input_kerja = (array) $each_cari_kerja;
                             $input_kerja['last_update'] = $waktu_sekarang;
                             $input_kerja['last_sync'] = $waktu_sekarang;
-                            $simpan_kerja = RwyPekerjaan::find($each_cari_kerja->id_rwy_jabfung);
+                            $simpan_kerja = RwyPekerjaan::find($each_cari_kerja->id_rwy_kerja);
                             $simpan_kerja->fill($input_kerja)->save();
                             echo " (OK - update)\n";
                         } else {
