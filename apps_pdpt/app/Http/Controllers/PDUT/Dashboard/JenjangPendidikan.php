@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use DataTables;
 
 class JenjangPendidikan extends Controller
 {
@@ -22,12 +23,13 @@ class JenjangPendidikan extends Controller
 
     public function index()
     {
-        return view('dashboard.dosen.jenjang_pendidikan.index', [
+        return view('dashboard.dosen.index', [
             'pageName'  =>  'Rekap '.$this->title.$this->reportName,
+            'judul_layout'=> 'Jenjang Pendidikan Dosen',
+            'side_active'   => 'dashboard.jenj_didik',
             'info'      =>  [
                 'Dosen yang ditampilkan berstatus Aktif, Cuti, Ijin Belajar, Tugas di Instansi Lain dan Tugas Belajar',
-                'Dosen yang tidak memiliki atau tidak memutakhirkan riwayat Jabatan Fungsional dianggap sebagai Tanpa Jabatan',
-                'Dosen yang TMT Fungsional kosong atau 1 Januari 1970 dianggap Fungsional tersebut tidak berlaku'
+                'Dosen yang tidak memiliki atau tidak memutakhirkan riwayat Pendidikan Formal dianggap sebagai Tanpa Pendidikan',
             ],
         ]);
     }
@@ -81,25 +83,25 @@ class JenjangPendidikan extends Controller
             if($currentLevel=='Fakultas')
             {
                 if ($selectedPointID=='999') {
-                    $where = " AND id_jabfung IS NULL";
+                    $where = " AND id_jenj_didik IS NULL";
                 } else {
-                    $where = " AND id_jabfung='".$selectedPointID."'";
+                    $where = " AND id_jenj_didik='".$selectedPointID."'";
                 }
             } elseif ($currentLevel=='Program Studi') {
                 if ($lastLevelID=='999') {
-                    $where = " AND id_jabfung IS NULL";
+                    $where = " AND id_jenj_didik IS NULL";
                 } else {
-                    $where = " AND id_jabfung='".$lastLevelID."'";
+                    $where = " AND id_jenj_didik='".$lastLevelID."'";
                 }
             }
 
             $listCategories = DB::SELECT("
-                SELECT id_jabfung as id,
-                concat(nm_jabfung , CASE WHEN angka_kredit>0 THEN concat(' (' , convert(int,angka_kredit),')') ELSE '' END) as nama
-                FROM ref.jabfung WITH (NOLOCK)
+                SELECT id_jenj_didik as id,
+                nm_jenj_didik as nama
+                FROM ref.jenjang_pendidikan WITH (NOLOCK)
                 WHERE (expired_date IS NULL OR expired_date>GETDATE())
-                AND id_jabfung>=31
-                AND id_kel_prof=2
+                AND u_jenj_org=1
+                AND id_jenj_didik >=20 AND id_jenj_didik != 99
              ".$where);
             /**
              * Menampilkan list Wilayah berdasarkan Level drillDown
@@ -125,7 +127,7 @@ class JenjangPendidikan extends Controller
         $query_select   = "
         SELECT
             COUNT(*) as total,
-            CASE WHEN tjabfung.id_jabfung IS NULL THEN 999 ELSE tjabfung.id_jabfung END AS id,
+            CASE WHEN tjenj.id_jenj_didik IS NULL THEN 999 ELSE tjenj.id_jenj_didik END AS id,
             tkeaktifan.id_thn_ajaran as tahun
         ";
 
@@ -142,15 +144,12 @@ class JenjangPendidikan extends Controller
                 AND tsp.id_sp='".env('APP_ID_SP')."'
             JOIN pdrd.sms tsms WITH (NOLOCK) ON tsms.id_sms=treg.id_sms AND tsms.soft_delete=0 AND tsms.id_jns_sms = 3
             LEFT JOIN (
-                SELECT MAX(rwy_fungsional.id_jabfung) AS id_jabfung, id_sdm
-                FROM pdrd.rwy_fungsional
-                LEFT JOIN ref.jabfung ON jabfung.id_jabfung = rwy_fungsional.id_jabfung
-                WHERE (tmt_sk_jabfung>'1970-01-01' OR tmt_sk_jabfung <= '".$tgl."')
-                AND jabfung.expired_date IS NULL
-                AND jabfung.id_kel_prof = '2'
-                AND soft_delete = 0
+                SELECT id_sdm, MAX(id_jenj_didik) AS id_jenj_didik
+                FROM pdrd.rwy_pend_formal WITH (NOLOCK)
+                WHERE soft_delete=0
+                 AND id_jenj_didik != 99
                 GROUP BY id_sdm
-            ) AS tjabfung ON tjabfung.id_sdm=tsdm.id_sdm
+            ) AS tjenj ON tjenj.id_sdm=tsdm.id_sdm
         ";
 
         /** WHERE params */
@@ -160,7 +159,7 @@ class JenjangPendidikan extends Controller
                                 ";
 
         /** GROUP BY */
-        $query_group    = " GROUP BY tjabfung.id_jabfung, id_thn_ajaran ";
+        $query_group    = " GROUP BY tjenj.id_jenj_didik, id_thn_ajaran ";
 
         /** ORDER BY */
         if($currentLevel=='Perguruan Tinggi')
@@ -175,17 +174,17 @@ class JenjangPendidikan extends Controller
         /** Filter Berdasarkan Kategori terpilih */
         if($currentLevel!=='Perguruan Tinggi' && $requestType!=='table')
         {
-            /** Jika Kategori terplih adalah 999 (kosong), maka tampilkan id_jabfung  NULL */
+            /** Jika Kategori terplih adalah 999 (kosong), maka tampilkan id_jenj_didik  NULL */
             if($selectedPointID=='999' || $lastLevelID=='999')
             {
-                $query_where .= " AND tjabfung.id_jabfung IS NULL ";
+                $query_where .= " AND tjenj.id_jenj_didik IS NULL ";
             }
             else
             {
                 if ($currentLevel=='Program Studi') {
-                    $query_where .= " AND tjabfung.id_jabfung='".$lastLevelID."' AND tfak.id_sms='".$selectedPointID."' ";
+                    $query_where .= " AND tjenj.id_jenj_didik='".$lastLevelID."' AND tfak.id_sms='".$selectedPointID."' ";
                 } else {
-                    $query_where .= " AND tjabfung.id_jabfung = '".$selectedPointID."' ";
+                    $query_where .= " AND tjenj.id_jenj_didik = '".$selectedPointID."' ";
                 }
             }
         }
@@ -252,17 +251,17 @@ class JenjangPendidikan extends Controller
 
             $currentCategory = $selectedPointID;
 
-            /** Jika Kategori terplih adalah Dosen, maka tampilkan id_jabfung NULL */
+            /** Jika Kategori terplih adalah Dosen, maka tampilkan id_jenj_didik NULL */
             if($currentCategory=='999')
             {
-                $query_where .= " AND tjabfung.id_jabfung IS NULL ";
+                $query_where .= " AND tjenj.id_jenj_didik IS NULL ";
             }
             else
             {
                 if ($currentLevel=='Perguruan Tinggi') {
-                    $query_where .= " AND tjabfung.id_jabfung='".$currentCategory."' ";
+                    $query_where .= " AND tjenj.id_jenj_didik='".$currentCategory."' ";
                 } elseif ($currentLevel!='Perguruan Tinggi') {
-                    $query_where .= " AND tjabfung.id_jabfung='".$lastLevelID."'";
+                    $query_where .= " AND tjenj.id_jenj_didik='".$lastLevelID."'";
                 }
             }
 
@@ -322,7 +321,7 @@ class JenjangPendidikan extends Controller
             {
                 $listCategory[$r->id] = $r->nama;
             }
-            $listCategory[999] = 'Tanpa Jabatan';
+            $listCategory[999] = 'Tanpa Pendidikan Fungsional';
 
             /** Inisiasi Tabel hasil Grafik */
             $resTable = '<table class="table table-bordered tresults" id="resultTable">

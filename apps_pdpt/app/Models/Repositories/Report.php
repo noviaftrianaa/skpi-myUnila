@@ -38,7 +38,7 @@ class Report extends Model
             $id_jns_sms = '3';
         }
 
-        $listWilayah = DB::SELECT("SELECT id_sms as id,nm_lemb as nama
+        $listWilayah = DB::SELECT("SELECT id_sms as id,CONCAT('FAKULTAS ',nm_lemb) as nama
                                     FROM [pdrd].[sms]  WITH (NOLOCK)
                                     WHERE soft_delete=0
                                     AND id_jns_sms='".$id_jns_sms."'
@@ -61,15 +61,17 @@ class Report extends Model
 
         if($checkFakultas->jml>0)
         {
-            $listWilayah = DB::SELECT("SELECT id_sms as id,nm_lemb as nama
+            $listWilayah = DB::SELECT("SELECT id_sms as id,CONCAT(nm_lemb,' (',jenjang_pendidikan.nm_jenj_didik,')') as nama
                                         FROM [pdrd].[sms]  WITH (NOLOCK)
+                                        JOIN ref.jenjang_pendidikan ON jenjang_pendidikan.id_jenj_didik=sms.id_jenj_didik
                                         WHERE soft_delete=0
                                         AND id_induk_sms='".$currentID."'
                                         AND id_jns_sms=3 "
             );
         }else{
-            $listWilayah = DB::SELECT("SELECT TOP 1 id_sms as id,nm_lemb as nama
+            $listWilayah = DB::SELECT("SELECT TOP 1 id_sms as id,CONCAT(nm_lemb,' (',jenjang_pendidikan.nm_jenj_didik,')') as nama
                                         FROM [pdrd].[sms]  WITH (NOLOCK)
+                                        JOIN ref.jenjang_pendidikan ON jenjang_pendidikan.id_jenj_didik=sms.id_jenj_didik
                                         WHERE soft_delete=0
                                         AND id_induk_sms='".$currentID."'
                                         AND id_jns_sms=3 "

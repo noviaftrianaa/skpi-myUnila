@@ -30,7 +30,7 @@
         <img src="{{ asset('asset/logo/logo_unila.png') }}" alt="LogoUnilaLoading" height="60" width="60">
     </div>
     @include('template_public.navbar')
-    @include('template_public.sidebar')
+    @include('template_public.sidebar',['side_active'=>$side_active])
 
     <div class="content-wrapper">
         <!-- Content Header (Page header) -->

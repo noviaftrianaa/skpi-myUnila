@@ -1,9 +1,9 @@
-@extends('template_public.default',['judul_layout'=>'Jabatan Fungsional Dosen'])
+@extends('template_public.default',['judul_layout'=>$judul_layout,'side_active'=>$side_active])
 
 @include('__partial.select2')
 @include('__partial.datatable_yajra')
 @include('__partial.highchart')
-@include('dashboard.dosen.jabatan_fungsional.report-pt-chart')
+@include('dashboard.dosen.report-pt-chart')
 
 @section('content')
     <div class="container">
@@ -121,5 +121,5 @@
             </div>
         </div>
     </div>
-    @include('dashboard.dosen.jabatan_fungsional.list')
+    @include('dashboard.dosen.list')
 @endsection

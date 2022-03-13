@@ -65,14 +65,14 @@ class Sdm extends AbstractionModel
     public static function dashboard_dosen($tipe,$tahun)
     {
         if ($tipe=='nomor_induk') {
-            $select = "SELECT SUM(CASE WHEN LEFT(tsdm.nidn,2)<=88 THEN 1 ELSE 0 END) AS NIDN,
+            $select = "SELECT SUM(CASE WHEN LEFT(tsdm.nidn,2)<88 THEN 1 ELSE 0 END) AS NIDN,
                 SUM(CASE WHEN LEFT(tsdm.nidn,2) IN (88,89) THEN 1 ELSE 0 END) AS NIDK,
-                SUM(CASE WHEN LEFT(tsdm.nidn,2)=99 THEN 1 ELSE 0 END) AS NUP
+                SUM(CASE WHEN LEFT(tsdm.nidn,2)>89 THEN 1 ELSE 0 END) AS NUP
                 ";
             $alternative_where = '';
         } elseif ($tipe=='dosen_jabfung') {
             $select = "SELECT SUM(CASE WHEN tjab.id_jabfung IS NULL THEN 1 ELSE 0 END) AS 'Tidak ada Fungsional',
-                SUM(CASE WHEN tjab.id_jabfung IN (41,42) THEN 1 ELSE 0 END) AS 'Asisten Ahli',
+                SUM(CASE WHEN tjab.id_jabfung IN (40,41) THEN 1 ELSE 0 END) AS 'Asisten Ahli',
                 SUM(CASE WHEN tjab.id_jabfung IN (43,44) THEN 1 ELSE 0 END) AS 'Lektor',
                 SUM(CASE WHEN tjab.id_jabfung IN (46,47,48) THEN 1 ELSE 0 END) AS 'Lektor Kepala',
                 SUM(CASE WHEN tjab.id_jabfung IN (50,51) THEN 1 ELSE 0 END) AS 'Profesor'
@@ -80,7 +80,7 @@ class Sdm extends AbstractionModel
             $alternative_where = '';
         } elseif ($tipe=='dosen_jabfung_all') {
             $select = "SELECT SUM(CASE WHEN tjab.id_jabfung IS NULL THEN 1 ELSE 0 END) AS 'Tidak ada Fungsional',
-                SUM(CASE WHEN tjab.id_jabfung IN (41,42) THEN 1 ELSE 0 END) AS 'Asisten Ahli',
+                SUM(CASE WHEN tjab.id_jabfung IN (40,41) THEN 1 ELSE 0 END) AS 'Asisten Ahli',
                 SUM(CASE WHEN tjab.id_jabfung IN (43,44) THEN 1 ELSE 0 END) AS 'Lektor',
                 SUM(CASE WHEN tjab.id_jabfung IN (46,47,48) THEN 1 ELSE 0 END) AS 'Lektor Kepala',
                 SUM(CASE WHEN tjab.id_jabfung IN (50,51) THEN 1 ELSE 0 END) AS 'Profesor'
@@ -104,10 +104,13 @@ class Sdm extends AbstractionModel
 
         if (in_array($tipe,['dosen_jabfung','dosen_jabfung_all'])) {
             $join .= " LEFT JOIN (
-                SELECT id_sdm, MAX(id_jabfung) AS id_jabfung
+                SELECT id_sdm, MAX(rwy_fungsional.id_jabfung) AS id_jabfung
                 FROM pdrd.rwy_fungsional WITH (NOLOCK)
+                LEFT JOIN ref.jabfung WITH (NOLOCK) ON jabfung.id_jabfung = rwy_fungsional.id_jabfung
                 WHERE soft_delete=0
-                AND (tmt_sk_jabfung!='1970-01-01' OR tmt_sk_jabfung<=GETDATE())
+                AND (tmt_sk_jabfung>'1970-01-01' OR tmt_sk_jabfung<=GETDATE())
+                AND jabfung.expired_date IS NULL
+                AND jabfung.id_kel_prof = '2'
                 GROUP BY id_sdm
             ) AS trj ON trj.id_sdm=tsdm.id_sdm
             LEFT JOIN ref.jabfung AS tjab WITH (NOLOCK) ON tjab.id_jabfung=trj.id_jabfung

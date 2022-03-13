@@ -14,13 +14,13 @@
                 <!-- Add icons to the links using the .nav-icon class
                      with font-awesome or any other icon font library -->
                 <li class="nav-item">
-                    <a href="{{ url('/') }}" class="nav-link">
+                    <a href="{{ url('/') }}" class="nav-link {{ $side_active=='home'?'active':'' }}">
                         <i class="nav-icon fas fa-tachometer-alt"></i>
                         <p>Dashboard</p>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
+                <li class="nav-item {{ in_array($side_active,['dashboard.dosen','dashboard.jabfung','dashboard.jenj_didik','dashboard.pangkat_golongan','dashboard.ikatan_kerja'])?'menu-open':'' }}">
+                    <a href="#" class="nav-link {{ in_array($side_active,['dashboard.dosen','dashboard.jabfung','dashboard.jenj_didik','dashboard.pangkat_golongan','dashboard.ikatan_kerja'])?'active':'' }}">
                         <i class="nav-icon fas fa-chalkboard-teacher"></i>
                         <p>
                             Rekap Dosen
@@ -29,31 +29,31 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ route('dashboard.dosen') }}" class="nav-link">
+                            <a href="{{ route('dashboard.dosen') }}" class="nav-link {{ $side_active=='dashboard.dosen'?'active':'' }}">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Dashboard Dosen</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('dashboard.jabfung') }}" class="nav-link">
+                            <a href="{{ route('dashboard.jabfung') }}" class="nav-link {{ $side_active=='dashboard.jabfung'?'active':'' }}">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Jabatan Fungsional</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="{{ route('dashboard.jenj_didik') }}" class="nav-link {{ $side_active=='dashboard.jenj_didik'?'active':'' }}">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Jenjang Pendidikan</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="{{ route('dashboard.pangkat_golongan') }}" class="nav-link {{ $side_active=='dashboard.pangkat_golongan'?'active':'' }}">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Pangkat Golongan</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="{{ route('dashboard.ikatan_kerja') }}" class="nav-link {{ $side_active=='dashboard.ikatan_kerja'?'active':'' }}">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Ikatan Kerja</p>
                             </a>

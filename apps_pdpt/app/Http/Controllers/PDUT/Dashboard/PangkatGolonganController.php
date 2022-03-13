@@ -3,19 +3,17 @@
 namespace App\Http\Controllers\PDUT\Dashboard;
 
 use App\Http\Controllers\Controller;
-use App\Models\PDUT\Pdrd\LembagaNonSp;
-use App\Models\PDUT\Ref\Jabfung;
 use App\Models\PDUT\Ref\TahunAjaran;
 use App\Models\Repositories\Report;
 use Illuminate\Http\Request;
+use DataTables;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use DataTables;
 
-class JabfungController extends Controller
+class PangkatGolonganController extends Controller
 {
-    private $reportName = 'Jabatan Fungsional';
+    private $reportName = 'Pangkat Golongan';
     private $title = '';
 
     public function __construct()
@@ -27,12 +25,12 @@ class JabfungController extends Controller
     {
         return view('dashboard.dosen.index', [
             'pageName'  =>  'Rekap '.$this->title.$this->reportName,
-            'judul_layout'=> 'Jabatan Fungsional Dosen',
-            'side_active'   => 'dashboard.jabfung',
+            'judul_layout'=> 'Pangkat Golongan Dosen',
+            'side_active'   => 'dashboard.pangkat_golongan',
             'info'      =>  [
                 'Dosen yang ditampilkan berstatus Aktif, Cuti, Ijin Belajar, Tugas di Instansi Lain dan Tugas Belajar',
-                'Dosen yang tidak memiliki atau tidak memutakhirkan riwayat Jabatan Fungsional dianggap sebagai Tanpa Jabatan',
-                'Dosen yang TMT Fungsional kosong atau 1 Januari 1970 dianggap Fungsional tersebut tidak berlaku'
+                'Dosen yang tidak memiliki atau tidak memutakhirkan riwayat Kepangkatan dianggap sebagai Tanpa Pangkat Golongan',
+                'Dosen yang TMT Pangkat Golongan kosong atau 1 Januari 1970 dianggap Kepangkatan tersebut tidak berlaku'
             ],
         ]);
     }
@@ -86,25 +84,23 @@ class JabfungController extends Controller
             if($currentLevel=='Fakultas')
             {
                 if ($selectedPointID=='999') {
-                    $where = " AND id_jabfung IS NULL";
+                    $where = " AND id_pangkat_gol IS NULL";
                 } else {
-                    $where = " AND id_jabfung='".$selectedPointID."'";
+                    $where = " AND id_pangkat_gol='".$selectedPointID."'";
                 }
             } elseif ($currentLevel=='Program Studi') {
                 if ($lastLevelID=='999') {
-                    $where = " AND id_jabfung IS NULL";
+                    $where = " AND id_pangkat_gol IS NULL";
                 } else {
-                    $where = " AND id_jabfung='".$lastLevelID."'";
+                    $where = " AND id_pangkat_gol='".$lastLevelID."'";
                 }
             }
 
             $listCategories = DB::SELECT("
-                SELECT id_jabfung as id,
-                concat(nm_jabfung , CASE WHEN angka_kredit>0 THEN concat(' (' , convert(int,angka_kredit),')') ELSE '' END) as nama
-                FROM ref.jabfung WITH (NOLOCK)
+                SELECT id_pangkat_gol as id,
+                kode_gol as nama
+                FROM ref.pangkat_golongan WITH (NOLOCK)
                 WHERE (expired_date IS NULL OR expired_date>GETDATE())
-                AND id_jabfung>=31
-                AND id_kel_prof=2
              ".$where);
             /**
              * Menampilkan list Wilayah berdasarkan Level drillDown
@@ -130,7 +126,7 @@ class JabfungController extends Controller
         $query_select   = "
         SELECT
             COUNT(*) as total,
-            CASE WHEN tjabfung.id_jabfung IS NULL THEN 999 ELSE tjabfung.id_jabfung END AS id,
+            CASE WHEN tpanggol.id_pangkat_gol IS NULL THEN 999 ELSE tpanggol.id_pangkat_gol END AS id,
             tkeaktifan.id_thn_ajaran as tahun
         ";
 
@@ -147,15 +143,14 @@ class JabfungController extends Controller
                 AND tsp.id_sp='".env('APP_ID_SP')."'
             JOIN pdrd.sms tsms WITH (NOLOCK) ON tsms.id_sms=treg.id_sms AND tsms.soft_delete=0 AND tsms.id_jns_sms = 3
             LEFT JOIN (
-                SELECT MAX(rwy_fungsional.id_jabfung) AS id_jabfung, id_sdm
-                FROM pdrd.rwy_fungsional
-                LEFT JOIN ref.jabfung ON jabfung.id_jabfung = rwy_fungsional.id_jabfung
-                WHERE (tmt_sk_jabfung>'1970-01-01' OR tmt_sk_jabfung <= '".$tgl."')
-                AND jabfung.expired_date IS NULL
-                AND jabfung.id_kel_prof = '2'
+                SELECT MAX(rwy_kepangkatan.id_pangkat_gol) AS id_pangkat_gol, id_sdm
+                FROM pdrd.rwy_kepangkatan
+                LEFT JOIN ref.pangkat_golongan ON pangkat_golongan.id_pangkat_gol = rwy_kepangkatan.id_pangkat_gol
+                WHERE (tmt_sk_pangkat>'1970-01-01' OR tmt_sk_pangkat <= '".$tgl."')
+                AND pangkat_golongan.expired_date IS NULL
                 AND soft_delete = 0
                 GROUP BY id_sdm
-            ) AS tjabfung ON tjabfung.id_sdm=tsdm.id_sdm
+            ) AS tpanggol ON tpanggol.id_sdm=tsdm.id_sdm
         ";
 
         /** WHERE params */
@@ -165,7 +160,7 @@ class JabfungController extends Controller
                                 ";
 
         /** GROUP BY */
-        $query_group    = " GROUP BY tjabfung.id_jabfung, id_thn_ajaran ";
+        $query_group    = " GROUP BY tpanggol.id_pangkat_gol, id_thn_ajaran ";
 
         /** ORDER BY */
         if($currentLevel=='Perguruan Tinggi')
@@ -180,17 +175,17 @@ class JabfungController extends Controller
         /** Filter Berdasarkan Kategori terpilih */
         if($currentLevel!=='Perguruan Tinggi' && $requestType!=='table')
         {
-            /** Jika Kategori terplih adalah 999 (kosong), maka tampilkan id_jabfung  NULL */
+            /** Jika Kategori terplih adalah 999 (kosong), maka tampilkan id_pangkat_gol  NULL */
             if($selectedPointID=='999' || $lastLevelID=='999')
             {
-                $query_where .= " AND tjabfung.id_jabfung IS NULL ";
+                $query_where .= " AND tpanggol.id_pangkat_gol IS NULL ";
             }
             else
             {
                 if ($currentLevel=='Program Studi') {
-                    $query_where .= " AND tjabfung.id_jabfung='".$lastLevelID."' AND tfak.id_sms='".$selectedPointID."' ";
+                    $query_where .= " AND tpanggol.id_pangkat_gol='".$lastLevelID."' AND tfak.id_sms='".$selectedPointID."' ";
                 } else {
-                    $query_where .= " AND tjabfung.id_jabfung = '".$selectedPointID."' ";
+                    $query_where .= " AND tpanggol.id_pangkat_gol = '".$selectedPointID."' ";
                 }
             }
         }
@@ -257,17 +252,17 @@ class JabfungController extends Controller
 
             $currentCategory = $selectedPointID;
 
-            /** Jika Kategori terplih adalah Dosen, maka tampilkan id_jabfung NULL */
+            /** Jika Kategori terplih adalah Dosen, maka tampilkan id_pangkat_gol NULL */
             if($currentCategory=='999')
             {
-                $query_where .= " AND tjabfung.id_jabfung IS NULL ";
+                $query_where .= " AND tpanggol.id_pangkat_gol IS NULL ";
             }
             else
             {
                 if ($currentLevel=='Perguruan Tinggi') {
-                    $query_where .= " AND tjabfung.id_jabfung='".$currentCategory."' ";
+                    $query_where .= " AND tpanggol.id_pangkat_gol='".$currentCategory."' ";
                 } elseif ($currentLevel!='Perguruan Tinggi') {
-                    $query_where .= " AND tjabfung.id_jabfung='".$lastLevelID."'";
+                    $query_where .= " AND tpanggol.id_pangkat_gol='".$lastLevelID."'";
                 }
             }
 
@@ -479,7 +474,7 @@ class JabfungController extends Controller
     public function load()
     {
         $fileLocation   = 'Sdid/Back/Report/';
-        $filename       = sha1('DosenJabFung');
+        $filename       = sha1('DosenPangGol');
         $file           = Storage::disk('local')->exists($fileLocation.$filename);
 
         if($file)
@@ -508,7 +503,7 @@ class JabfungController extends Controller
     public function reload(Request $request)
     {
         $fileLocation               = 'Sdid/Back/Report/';
-        $filename                   = sha1('DosenJabFung');
+        $filename                   = sha1('DosenPangGol');
         $tahun                      = get_tahun_keaktifan();
         $request->level             = 'Perguruan Tinggi';
         $request->year              = $tahun;

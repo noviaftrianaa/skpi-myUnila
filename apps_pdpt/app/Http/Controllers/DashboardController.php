@@ -23,7 +23,8 @@ class DashboardController extends Controller
     {
         $total_dosen = json_encode(Sdm::dashboard_dosen('nomor_induk',get_tahun_keaktifan()));
         $total_dosen_jabfung = json_encode(Sdm::dashboard_dosen('dosen_jabfung',get_tahun_keaktifan()));
-        return view('dashboard.public', compact('total_dosen','total_dosen_jabfung'));
+        $side_active   = 'home';
+        return view('dashboard.public', compact('total_dosen','total_dosen_jabfung','side_active'));
     }
 
     public function iku()
@@ -49,7 +50,8 @@ class DashboardController extends Controller
         }
         $dosen_jk = Sdm::dashboard_dosen('dosen_jk',$tahun_pilih);
         $dosen_jabfung_detail = Sdm::dashboard_dosen('dosen_jabfung_all',$tahun_pilih);
-        return view('dashboard.dosen',compact('tahun','tahun_pilih'));
+        $side_active   = 'dashboard.dosen';
+        return view('dashboard.dosen',compact('tahun','tahun_pilih','side_active'));
     }
 
     public function akreditasi()
