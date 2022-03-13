@@ -1,0 +1,465 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\PDUT\Pdrd\KeaktifanPtk;
+use App\Models\PDUT\Pdrd\RegPtk;
+use App\Models\PDUT\Pdrd\RwyFungsional;
+use App\Models\PDUT\Pdrd\RwyKepangkatan;
+use App\Models\PDUT\Pdrd\RwyPekerjaan;
+use App\Models\PDUT\Pdrd\RwyPendFormal;
+use App\Models\PDUT\Pdrd\RwySertifikasi;
+use App\Models\PDUT\Pdrd\Sdm;
+use Illuminate\Database\Seeder;
+
+class TarikSisterDosenSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
+    {
+        $waktu_sekarang = currDateTime();
+        $data_dosen_sister = \DB::connection('pgsql_sister')->table('pdrd.sdm')
+            ->where('id_jns_sdm',12)->where('soft_delete',0)->get();
+        $total_dosen_pdut = count($data_dosen_sister);
+        foreach ($data_dosen_sister AS $no=>$each_dosen_sister) {
+            echo "Memulai sdm:".$each_dosen_sister->id_sdm." ".($no+1)." dari ".$total_dosen_pdut."\n";
+            $cari_sdm = \DB::connection('pgsql_sister')->table('pdrd.sdm')
+                ->select([
+                    'id_sdm',
+                    'nm_sdm',
+                    'jk',
+                    'tmpt_lahir',
+                    'tgl_lahir',
+                    'nik',
+                    'niy_nigk',
+                    'nuptk',
+                    'nidn',
+                    'nsdmi',
+                    'stat_kawin',
+                    'jln',
+                    'rt',
+                    'rw',
+                    'nm_dsn',
+                    'ds_kel',
+                    'kode_pos',
+                    'no_tel_rmh',
+                    'no_hp',
+                    'email',
+                    'nip',
+                    'tmt_pns',
+                    'nm_suami_istri',
+                    'nip_suami_istri',
+                    'sk_cpns',
+                    'tgl_sk_cpns',
+                    'sk_angkat',
+                    'tmt_sk_angkat',
+                    'npwp',
+                    'nm_wp',
+                    'stat_data',
+                    'akta_ijin_ajar',
+                    'nira',
+                    'kewarganegaraan',
+                    'id_jns_sdm',
+                    'id_wil',
+                    'id_stat_aktif',
+                    'id_agama',
+                    'id_keahlian_lab',
+                    'id_pekerjaan_suami_istri',
+                    'id_lemb_angkat',
+                    'id_sumber_gaji',
+                    'tgl_create AS create_date',
+                    'id_updater AS id_creator',
+                    'last_update',
+                    'id_updater',
+                    'soft_delete',
+                    'last_sync'
+                ])
+                ->where('id_sdm',$each_dosen_sister->id_sdm)->first();
+            echo "--- Proses SDM ";
+            $cek_sdm_pdut = Sdm::find($each_dosen_sister->id_sdm);
+            if (is_null($cek_sdm_pdut)) {
+                $input_sdm = (array) $cari_sdm;
+                $input_sdm['last_update']   = $waktu_sekarang;
+                $input_sdm['last_sync']     = $waktu_sekarang;
+                $simpan_sdm = new Sdm();
+                $simpan_sdm->fill($input_sdm)->save();
+                echo " (OK - tambah)\n";
+            } else {
+                if ($cari_sdm->last_update>$cek_sdm_pdut->last_update) {
+                    $input_sdm = (array) $cari_sdm;
+                    $input_sdm['last_update']   = $waktu_sekarang;
+                    $input_sdm['last_sync']     = $waktu_sekarang;
+                    $simpan_sdm = Sdm::find($each_dosen_sister->id_sdm);
+                    $simpan_sdm->fill($input_sdm)->save();
+                    echo " (OK - update)\n";
+                } else {
+                    echo " (Tidak berubah)\n";
+                }
+            }
+            $cari_reg = \DB::connection('pgsql_sister')->table('pdrd.reg_ptk')
+                ->select([
+                    'id_reg_ptk',
+                    'id_jns_keluar',
+                    'id_sdm',
+                    'id_sp',
+                    'id_stat_pegawai',
+                    'id_ikatan_kerja',
+                    'id_sms',
+                    'no_srt_tgs',
+                    'tgl_srt_tgs',
+                    'tmt_srt_tgs',
+                    'tgl_ptk_keluar',
+                    'nidn',
+                    'tgl_create AS create_date',
+                    'id_updater AS id_creator',
+                    'last_update',
+                    'id_updater',
+                    'soft_delete',
+                    'last_sync'
+                ])
+                ->where('id_sdm',$each_dosen_sister->id_sdm)->get();
+            if (count($cari_reg)>0) {
+                $total_dosen_reg = count($cari_reg);
+                foreach ($cari_reg AS $no_reg=>$each_cari_reg) {
+                    echo "--- Proses Register ".($no_reg+1)." dari ".$total_dosen_reg;
+                    $cek_reg_pdut = RegPtk::find($each_cari_reg->id_reg_ptk);
+                    if (is_null($cek_reg_pdut)) {
+                        $input_reg = (array) $each_cari_reg;
+                        $input_reg['last_update']   = $waktu_sekarang;
+                        $input_reg['last_sync']     = $waktu_sekarang;
+                        $simpan_reg = new RegPtk();
+                        $simpan_reg->fill($input_reg)->save();
+                        echo " (OK - tambah)\n";
+                    } else {
+                        if ($each_cari_reg->last_update>$cek_reg_pdut->last_update) {
+                            $input_reg = (array) $each_cari_reg;
+                            $input_reg['last_update'] = $waktu_sekarang;
+                            $input_reg['last_sync'] = $waktu_sekarang;
+                            $simpan_reg = RegPtk::find($each_cari_reg->id_reg_ptk);
+                            $simpan_reg->fill($input_reg)->save();
+                            echo " (OK - update)\n";
+                        } else {
+                            echo " (Tidak berubah)\n";
+                        }
+                    }
+
+                    $cari_keaktifan = \DB::connection('pgsql_sister')->table('pdrd.keaktifan_ptk')
+                        ->select([
+                            'id_reg_ptk',
+                            'id_thn_ajaran',
+                            'a_sp_homebase',
+                            'a_aktif_bln_1',
+                            'a_aktif_bln_2',
+                            'a_aktif_bln_3',
+                            'a_aktif_bln_4',
+                            'a_aktif_bln_5',
+                            'a_aktif_bln_6',
+                            'a_aktif_bln_7',
+                            'a_aktif_bln_8',
+                            'a_aktif_bln_9',
+                            'a_aktif_bln_10',
+                            'a_aktif_bln_11',
+                            'a_aktif_bln_12',
+                            'tgl_create AS create_date',
+                            'id_updater AS id_creator',
+                            'last_update',
+                            'id_updater',
+                            'soft_delete',
+                            'last_sync'
+                        ])->where('id_reg_ptk',$each_cari_reg->id_reg_ptk)->get();
+                    if (count($cari_keaktifan)>0) {
+                        $total_dosen_keaktifan = count($cari_keaktifan);
+                        foreach ($cari_keaktifan as $no_keaktifan => $each_cari_keaktifan) {
+                            echo "------ Proses Keaktifan Register " . ($no_keaktifan + 1) . " dari " . $total_dosen_keaktifan;
+                            $cek_keaktifan_pdut = KeaktifanPtk::where('id_reg_ptk',$each_cari_keaktifan->id_reg_ptk)->where('id_thn_ajaran',$each_cari_keaktifan->id_thn_ajaran)->first();
+                            if (is_null($cek_keaktifan_pdut)) {
+                                $input_keaktifan = (array)$each_cari_keaktifan;
+                                $input_keaktifan['last_update'] = $waktu_sekarang;
+                                $input_keaktifan['last_sync'] = $waktu_sekarang;
+                                $simpan_keaktifan = new KeaktifanPtk();
+                                $simpan_keaktifan->fill($input_keaktifan)->save();
+                                echo " (OK - tambah)\n";
+                            } else {
+                                if ($each_cari_keaktifan->last_update > $cek_keaktifan_pdut->last_update) {
+                                    $input_keaktifan = (array) $each_cari_keaktifan;
+                                    $input_keaktifan['last_update'] = $waktu_sekarang;
+                                    $input_keaktifan['last_sync'] = $waktu_sekarang;
+                                    $simpan_keaktifan = KeaktifanPtk::where('id_reg_ptk',$each_cari_keaktifan->id_reg_ptk)->where('id_thn_ajaran',$each_cari_keaktifan->id_thn_ajaran)->first();
+                                    $simpan_keaktifan->fill($input_keaktifan)->save();
+                                    echo " (OK - update)\n";
+                                } else {
+                                    echo " (Tidak berubah)\n";
+                                }
+                            }
+                        }
+                    } else {
+                        echo " (Keaktifan Register tidak ditemukan)\n";
+                    }
+                }
+            } else {
+                echo " (Register tidak ditemukan)\n";
+            }
+
+            $cari_fungsional = \DB::connection('pgsql_sister')->table('pdrd.rwy_fungsional')
+                ->select([
+                    'id_rwy_jabfung',
+                    'id_sdm',
+                    'id_kel_bidang',
+                    'id_jabfung',
+                    'sk_jabfung',
+                    'tmt_sk_jabfung',
+                    'angka_kredit',
+                    'lebih_ajar',
+                    'lebih_lit',
+                    'lebih_pengmas',
+                    'lebih_tunjang',
+                    'bidang_ilmu',
+                    'tgl_create AS create_date',
+                    'id_updater AS id_creator',
+                    'last_update',
+                    'id_updater',
+                    'soft_delete',
+                    'last_sync'
+                ])
+                ->where('id_sdm',$each_dosen_sister->id_sdm)->get();
+            if (count($cari_fungsional)>0) {
+                $total_dosen_fungsional = count($cari_fungsional);
+                foreach ($cari_fungsional as $no_fungsional => $each_cari_fungsional) {
+                    echo "--- Proses Fungsional " . ($no_fungsional + 1) . " dari " . $total_dosen_fungsional;
+                    $cek_fungsional_pdut = RwyFungsional::find($each_cari_fungsional->id_rwy_jabfung);
+                    if (is_null($cek_fungsional_pdut)) {
+                        $input_fungsional = (array)$each_cari_fungsional;
+                        $input_fungsional['last_update'] = $waktu_sekarang;
+                        $input_fungsional['last_sync'] = $waktu_sekarang;
+                        $simpan_fungsional = new RwyFungsional();
+                        $simpan_fungsional->fill($input_fungsional)->save();
+                        echo " (OK - tambah)\n";
+                    } else {
+                        if ($each_cari_fungsional->last_update > $cek_fungsional_pdut->last_update) {
+                            $input_fungsional = (array) $each_cari_fungsional;
+                            $input_fungsional['last_update'] = $waktu_sekarang;
+                            $input_fungsional['last_sync'] = $waktu_sekarang;
+                            $simpan_fungsional = RwyFungsional::find($each_cari_fungsional->id_rwy_jabfung);
+                            $simpan_fungsional->fill($input_fungsional)->save();
+                            echo " (OK - update)\n";
+                        } else {
+                            echo " (Tidak berubah)\n";
+                        }
+                    }
+                }
+            } else {
+                echo " (Fungsional tidak ditemukan)\n";
+            }
+
+            $cari_kepangkatan = \DB::connection('pgsql_sister')->table('pdrd.rwy_kepangkatan')
+                ->select([
+                    'id_rwy_pangkat',
+                    'id_sdm',
+                    'id_pangkat_gol',
+                    'sk_pangkat',
+                    'tgl_sk_pangkat',
+                    'tmt_sk_pangkat',
+                    'masa_kerja_gol_thn',
+                    'masa_kerja_gol_bln',
+                    'tgl_create AS create_date',
+                    'id_updater AS id_creator',
+                    'last_update',
+                    'id_updater',
+                    'soft_delete',
+                    'last_sync'
+                ])
+                ->where('id_sdm',$each_dosen_sister->id_sdm)->get();
+            if (count($cari_kepangkatan)>0) {
+                $total_dosen_kepangkatan = count($cari_kepangkatan);
+                foreach ($cari_kepangkatan as $no_kepangkatan => $each_cari_kepangkatan) {
+                    echo "--- Proses Kepangkatan " . ($no_kepangkatan + 1) . " dari " . $total_dosen_kepangkatan;
+                    $cek_kepangkatan_pdut = RwyKepangkatan::find($each_cari_kepangkatan->id_rwy_jabfung);
+                    if (is_null($cek_kepangkatan_pdut)) {
+                        $input_kepangkatan = (array)$each_cari_kepangkatan;
+                        $input_kepangkatan['last_update'] = $waktu_sekarang;
+                        $input_kepangkatan['last_sync'] = $waktu_sekarang;
+                        $simpan_kepangkatan = new RwyKepangkatan();
+                        $simpan_kepangkatan->fill($input_kepangkatan)->save();
+                        echo " (OK - tambah)\n";
+                    } else {
+                        if ($each_cari_kepangkatan->last_update > $cek_kepangkatan_pdut->last_update) {
+                            $input_kepangkatan = (array) $each_cari_kepangkatan;
+                            $input_kepangkatan['last_update'] = $waktu_sekarang;
+                            $input_kepangkatan['last_sync'] = $waktu_sekarang;
+                            $simpan_kepangkatan = RwyKepangkatan::find($each_cari_kepangkatan->id_rwy_jabfung);
+                            $simpan_kepangkatan->fill($input_kepangkatan)->save();
+                            echo " (OK - update)\n";
+                        } else {
+                            echo " (Tidak berubah)\n";
+                        }
+                    }
+                }
+            } else {
+                echo " (Kepangkatan tidak ditemukan)\n";
+            }
+
+            $cari_pend_formal = \DB::connection('pgsql_sister')->table('pdrd.rwy_pend_formal')
+                ->select([
+                    'id_rwy_didik_formal',
+                    'id_sms',
+                    'id_katgiat',
+                    'id_sdm',
+                    'id_jenj_didik',
+                    'id_bid_studi',
+                    'id_gelar_akad',
+                    'nm_sp_formal',
+                    'fak',
+                    'a_kependidikan',
+                    'thn_masuk',
+                    'thn_lulus',
+                    'nipd',
+                    'stat_kul',
+                    'smt',
+                    'sks_lulus',
+                    'ipk',
+                    'sk_setara',
+                    'tgl_sk_setara',
+                    'no_ijazah',
+                    'judul_tesis',
+                    'tgl_lulus',
+                    'tgl_create AS create_date',
+                    'id_updater AS id_creator',
+                    'last_update',
+                    'id_updater',
+                    'soft_delete',
+                    'last_sync'
+                ])
+                ->where('id_sdm',$each_dosen_sister->id_sdm)->get();
+            if (count($cari_pend_formal)>0) {
+                $total_dosen_pend_formal = count($cari_pend_formal);
+                foreach ($cari_pend_formal as $no_pend_formal => $each_cari_pend_formal) {
+                    echo "--- Proses Pendidikan Formal " . ($no_pend_formal + 1) . " dari " . $total_dosen_pend_formal;
+                    $cek_pend_formal_pdut = RwyPendFormal::find($each_cari_pend_formal->id_rwy_jabfung);
+                    if (is_null($cek_pend_formal_pdut)) {
+                        $input_pend_formal = (array)$each_cari_pend_formal;
+                        $input_pend_formal['last_update'] = $waktu_sekarang;
+                        $input_pend_formal['last_sync'] = $waktu_sekarang;
+                        $simpan_pend_formal = new RwyPendFormal();
+                        $simpan_pend_formal->fill($input_pend_formal)->save();
+                        echo " (OK - tambah)\n";
+                    } else {
+                        if ($each_cari_pend_formal->last_update > $cek_pend_formal_pdut->last_update) {
+                            $input_pend_formal = (array) $each_cari_pend_formal;
+                            $input_pend_formal['last_update'] = $waktu_sekarang;
+                            $input_pend_formal['last_sync'] = $waktu_sekarang;
+                            $simpan_pend_formal = RwyPendFormal::find($each_cari_pend_formal->id_rwy_jabfung);
+                            $simpan_pend_formal->fill($input_pend_formal)->save();
+                            echo " (OK - update)\n";
+                        } else {
+                            echo " (Tidak berubah)\n";
+                        }
+                    }
+                }
+            } else {
+                echo " (Pendidikan Formal tidak ditemukan)\n";
+            }
+
+            $cari_sert = \DB::connection('pgsql_sister')->table('pdrd.rwy_sertifikasi')
+                ->select([
+                    'id_rwy_sert',
+                    'id_jns_sert',
+                    'id_bid_studi',
+                    'id_sdm',
+                    'thn_sert',
+                    'sk_sert',
+                    'nrg',
+                    'no_peserta',
+                    'tgl_create AS create_date',
+                    'id_updater AS id_creator',
+                    'last_update',
+                    'id_updater',
+                    'soft_delete',
+                    'last_sync'
+                ])
+                ->where('id_sdm',$each_dosen_sister->id_sdm)->get();
+            if (count($cari_sert)>0) {
+                $total_dosen_sert = count($cari_sert);
+                foreach ($cari_sert as $no_sert => $each_cari_sert) {
+                    echo "--- Proses Sertifikasi " . ($no_sert + 1) . " dari " . $total_dosen_sert;
+                    $cek_sert_pdut = RwySertifikasi::find($each_cari_sert->id_rwy_jabfung);
+                    if (is_null($cek_sert_pdut)) {
+                        $input_sert = (array)$each_cari_sert;
+                        $input_sert['last_update'] = $waktu_sekarang;
+                        $input_sert['last_sync'] = $waktu_sekarang;
+                        $simpan_sert = new RwySertifikasi();
+                        $simpan_sert->fill($input_sert)->save();
+                        echo " (OK - tambah)\n";
+                    } else {
+                        if ($each_cari_sert->last_update > $cek_sert_pdut->last_update) {
+                            $input_sert = (array) $each_cari_sert;
+                            $input_sert['last_update'] = $waktu_sekarang;
+                            $input_sert['last_sync'] = $waktu_sekarang;
+                            $simpan_sert = RwySertifikasi::find($each_cari_sert->id_rwy_jabfung);
+                            $simpan_sert->fill($input_sert)->save();
+                            echo " (OK - update)\n";
+                        } else {
+                            echo " (Tidak berubah)\n";
+                        }
+                    }
+                }
+            } else {
+                echo " (Sertifikasi tidak ditemukan)\n";
+            }
+
+            $cari_kerja = \DB::connection('pgsql_sister')->table('pdrd.rwy_pekerjaan')
+                ->select([
+                    'id_rwy_kerja',
+                    'id_sdm',
+                    'id_dudi',
+                    'id_pekerjaan',
+                    'id_kbli',
+                    'nm_jabatan',
+                    'deskripsi_kerja',
+                    'instansi',
+                    'divisi',
+                    'mulai_bekerja',
+                    'selesai_bekerja',
+                    'a_ln',
+                    'tgl_create AS create_date',
+                    'id_updater AS id_creator',
+                    'last_update',
+                    'id_updater',
+                    'soft_delete',
+                    'last_sync'
+                ])
+                ->where('id_sdm',$each_dosen_sister->id_sdm)->get();
+            if (count($cari_kerja)>0) {
+                $total_dosen_kerja = count($cari_kerja);
+                foreach ($cari_kerja as $no_kerja => $each_cari_kerja) {
+                    echo "--- Proses Sertifikasi " . ($no_kerja + 1) . " dari " . $total_dosen_kerja;
+                    $cek_kerja_pdut = RwyPekerjaan::find($each_cari_kerja->id_rwy_jabfung);
+                    if (is_null($cek_kerja_pdut)) {
+                        $input_kerja = (array)$each_cari_kerja;
+                        $input_kerja['last_update'] = $waktu_sekarang;
+                        $input_kerja['last_sync'] = $waktu_sekarang;
+                        $simpan_kerja = new RwyPekerjaan();
+                        $simpan_kerja->fill($input_kerja)->save();
+                        echo " (OK - tambah)\n";
+                    } else {
+                        if ($each_cari_kerja->last_update > $cek_kerja_pdut->last_update) {
+                            $input_kerja = (array) $each_cari_kerja;
+                            $input_kerja['last_update'] = $waktu_sekarang;
+                            $input_kerja['last_sync'] = $waktu_sekarang;
+                            $simpan_kerja = RwyPekerjaan::find($each_cari_kerja->id_rwy_jabfung);
+                            $simpan_kerja->fill($input_kerja)->save();
+                            echo " (OK - update)\n";
+                        } else {
+                            echo " (Tidak berubah)\n";
+                        }
+                    }
+                }
+            } else {
+                echo " (Sertifikasi tidak ditemukan)\n";
+            }
+        }
+    }
+}
