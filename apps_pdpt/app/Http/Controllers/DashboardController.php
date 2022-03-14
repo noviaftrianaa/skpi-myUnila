@@ -22,8 +22,8 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        $total_dosen = json_encode(Sdm::dashboard_dosen('nomor_induk',get_tahun_keaktifan()));
-        $total_dosen_jabfung = json_encode(Sdm::dashboard_dosen('dosen_jabfung',get_tahun_keaktifan()));
+        $total_dosen = json_encode(Sdm::dashboard_dosen('nomor_induk',get_tahun_keaktifan())->first());
+        $total_dosen_jabfung = json_encode(Sdm::dashboard_dosen('dosen_jabfung',get_tahun_keaktifan())->first());
         $side_active   = 'home';
         return view('dashboard.public', compact('total_dosen','total_dosen_jabfung','side_active'));
     }
@@ -50,10 +50,14 @@ class DashboardController extends Controller
         } else {
             $tahun_pilih = $maks_tahun;
         }
-        $dosen_jk = json_encode(Sdm::dashboard_dosen('dosen_jk',$tahun_pilih));
-        $dosen_jabfung_detail = json_encode(Sdm::dashboard_dosen('dosen_jabfung_all',$tahun_pilih));
+        $dosen_jk = json_encode(Sdm::dashboard_dosen('dosen_jk',$tahun_pilih)->first());
+        $dosen_jabfung_detail = json_encode(Sdm::dashboard_dosen('dosen_jabfung_all',$tahun_pilih)->first());
+        $dosen_kepangkatan_detail = json_encode(Sdm::dashboard_dosen('dosen_kepangkatan_all',$tahun_pilih)->first());
+        $dosen_pendidikan_detail = json_encode(Sdm::dashboard_dosen('dosen_pendidikan_all',$tahun_pilih)->first());
+        $dosen_ikatan_detail = json_encode(Sdm::dashboard_dosen('dosen_ikatan_kerja',$tahun_pilih)->first());
+        $dosen_usia_detail = json_encode(Sdm::dashboard_dosen('dosen_usia',$tahun_pilih));
         $side_active   = 'dashboard.dosen';
-        return view('dashboard.dosen',compact('tahun','tahun_pilih','side_active','dosen_jk','dosen_jabfung_detail'));
+        return view('dashboard.dosen',compact('tahun','tahun_pilih','side_active','dosen_jk','dosen_usia_detail','dosen_jabfung_detail','dosen_kepangkatan_detail','dosen_pendidikan_detail','dosen_ikatan_detail'));
     }
 
     public function akreditasi()
