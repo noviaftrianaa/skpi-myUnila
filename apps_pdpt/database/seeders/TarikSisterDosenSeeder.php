@@ -331,6 +331,8 @@ class TarikSisterDosenSeeder extends Seeder
                                     $input_keaktifan = (array) $each_cari_keaktifan;
                                     $input_keaktifan['last_update'] = $waktu_sekarang;
                                     $input_keaktifan['last_sync'] = $waktu_sekarang;
+                                    unset($input_keaktifan['id_reg_ptk']);
+                                    unset($input_keaktifan['id_thn_ajaran']);
                                     $simpan_keaktifan = KeaktifanPtk::where('id_reg_ptk',$each_cari_keaktifan->id_reg_ptk)->where('id_thn_ajaran',$each_cari_keaktifan->id_thn_ajaran)->first();
                                     $simpan_keaktifan->fill($input_keaktifan)->save();
                                     echo " (OK - update)\n";
