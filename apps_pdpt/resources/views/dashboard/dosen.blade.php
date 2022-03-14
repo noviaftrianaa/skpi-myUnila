@@ -61,71 +61,6 @@
             reloadPieChart('dosen_rasio_jk','Sebaran Dosen berdasarkan Jenis Kelamin',data_dosen_jk);
             reloadPieChart('dosen_rasio_jabfung','Sebaran Dosen berdasarkan Jabatan Fungsional',data_dosen_jabfung);
 
-            function reloadChartUsia(target,title,data)
-            {
-                chartUsia = new Highcharts.Chart({
-                    chart: {
-                        renderTo: target,
-                        type: 'bar'
-                    },
-                    title: {
-                        text: title
-                    },
-                    subtitle: {
-                        text: 'Tahun '+$("#selectYear").val()
-                    },
-                    xAxis: [{
-                        categories: categories,
-                        reversed: false,
-                        labels: {
-                            step: 1
-                        }
-                    }, { // mirror axis on right side
-                        opposite: true,
-                        reversed: false,
-                        categories: categories,
-                        linkedTo: 0,
-                        labels: {
-                            step: 1
-                        }
-                    }],
-                    yAxis: {
-                        title: {
-                            text: null
-                        },
-                        labels: {
-                            formatter: function () {
-                                return Math.abs(this.value);
-                            }
-                        }
-                    },
-                    plotOptions: {
-                        series: {
-                            stacking: 'normal',
-                            dataLabels: {
-                                enabled: true,
-                                formatter: function () {
-                                    return Highcharts.numberFormat(Math.abs(this.point.y), 0);
-                                },
-                                crop: false,
-                                inside: false,
-                                overflow: 'none'
-                            }
-                        }
-                    },
-                    tooltip: {
-                        formatter: function () {
-                            return '<b>' + this.series.name + ', usia ' + this.point.category + '</b><br/>' +
-                                'Jumlah: ' + Highcharts.numberFormat(Math.abs(this.point.y), 0);
-                        }
-                    },
-                    series: data,
-                    credits: {
-                        enabled: false
-                    }
-                });
-            }
-
             $("#selectYear").change(function() {
                 loading(id_wil,nm_wil,false,kualifikasi);
             });
@@ -175,7 +110,10 @@
                             innerSize: 35,
                             dataLabels: {
                                 enabled: true,
-                                format: '{point.name}' + '<br/>' + '{point.y} ({point.percentage:.1f} %)'
+                                format: '{point.name}' + '<br/>' + '{point.y} ({point.percentage:.1f} %)',
+                                style: {
+                                    color: "#ffffff"
+                                }
                             },
                             showInLegend: false
                         }
@@ -190,7 +128,7 @@
                         type: 'pie',
                         colorByPoint: true,
                         name: 'Jumlah',
-                        data: data
+                        data: data,
                     }],
                     credits: {
                         enabled: false
