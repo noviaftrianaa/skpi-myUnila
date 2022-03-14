@@ -129,162 +129,164 @@ class TarikSisterDosenSeeder extends Seeder
                 foreach ($cari_reg AS $no_reg=>$each_cari_reg) {
                     echo "--- Proses Register ".($no_reg+1)." dari ".$total_dosen_reg;
                     $cek_reg_pdut = RegPtk::find($each_cari_reg->id_reg_ptk);
-                    $cari_sms = Sms::find($each_cari_reg->id_sms);
-                    if (is_null($cari_sms)) {
-                        $prodi = \DB::connection('pgsql_sister')->table('pdrd.sms')
-                            ->select([
-                                'id_sms',
-                                'nm_lemb',
-                                'kd_kl',
-                                'kd_satker',
-                                'smt_mulai',
-                                'a_selenggara_subst',
-                                'kode_prodi',
-                                'nm_prodi_english',
-                                'jln',
-                                'rt',
-                                'rw',
-                                'nm_dsn',
-                                'ds_kel',
-                                'kode_pos',
-                                'lintang',
-                                'bujur',
-                                'no_tel',
-                                'no_fax',
-                                'email',
-                                'website',
-                                'singkatan',
-                                'tgl_berdiri',
-                                'sk_selenggara',
-                                'tgl_sk_selenggara',
-                                'tmt_sk_selenggara',
-                                'tst_sk_selenggara',
-                                'kpst_pd',
-                                'sks_lulus',
-                                'gelar_lulusan',
-                                'stat_prodi',
-                                'polesei_nilai',
-                                'a_kependidikan',
-                                'sistem_ajar',
-                                'a_pjj',
-                                'a_psdku',
-                                'luas_lab',
-                                'kapasitas_prak_satu_shift',
-                                'jml_mhs_pengguna',
-                                'jml_jam_penggunaan',
-                                'jml_prodi_pengguna',
-                                'jml_modul_prak_sendiri',
-                                'jml_modul_prak_lain',
-                                'fungsi_selain_prak',
-                                'penggunaan_lab',
-                                \DB::RAW('0 AS a_pkl'),
-                                'id_sp',
-                                'id_jenj_didik',
-                                'id_jns_sms',
-                                'id_fungsi_lab',
-                                'id_kel_usaha',
-                                \DB::RAW('NULL AS id_blob'),
-                                'id_wil',
-                                'id_jur',
-                                'id_induk_sms',
-                                'tgl_create AS create_date',
-                                'id_updater AS id_creator',
-                                'last_update',
-                                'id_updater',
-                                'soft_delete',
-                                'last_sync'
-                            ])->where('id_sms',$each_cari_reg->id_sms)
-                            ->first();
-                        if (!is_null($prodi->id_induk_sms)) {
-                            $cek_induk = Sms::find($prodi->id_induk_sms);
-                            if (is_null($cek_induk)) {
-                                $induk = \DB::connection('pgsql_sister')->table('pdrd.sms')
-                                    ->select([
-                                        'id_sms',
-                                        'nm_lemb',
-                                        'kd_kl',
-                                        'kd_satker',
-                                        'smt_mulai',
-                                        'a_selenggara_subst',
-                                        'kode_prodi',
-                                        'nm_prodi_english',
-                                        'jln',
-                                        'rt',
-                                        'rw',
-                                        'nm_dsn',
-                                        'ds_kel',
-                                        'kode_pos',
-                                        'lintang',
-                                        'bujur',
-                                        'no_tel',
-                                        'no_fax',
-                                        'email',
-                                        'website',
-                                        'singkatan',
-                                        'tgl_berdiri',
-                                        'sk_selenggara',
-                                        'tgl_sk_selenggara',
-                                        'tmt_sk_selenggara',
-                                        'tst_sk_selenggara',
-                                        'kpst_pd',
-                                        'sks_lulus',
-                                        'gelar_lulusan',
-                                        'stat_prodi',
-                                        'polesei_nilai',
-                                        'a_kependidikan',
-                                        'sistem_ajar',
-                                        'a_pjj',
-                                        'a_psdku',
-                                        'luas_lab',
-                                        'kapasitas_prak_satu_shift',
-                                        'jml_mhs_pengguna',
-                                        'jml_jam_penggunaan',
-                                        'jml_prodi_pengguna',
-                                        'jml_modul_prak_sendiri',
-                                        'jml_modul_prak_lain',
-                                        'fungsi_selain_prak',
-                                        'penggunaan_lab',
-                                        \DB::RAW('0 AS a_pkl'),
-                                        'id_sp',
-                                        'id_jenj_didik',
-                                        'id_jns_sms',
-                                        'id_fungsi_lab',
-                                        'id_kel_usaha',
-                                        \DB::RAW('NULL AS id_blob'),
-                                        'id_wil',
-                                        'id_jur',
-                                        'id_induk_sms',
-                                        'tgl_create AS create_date',
-                                        'id_updater AS id_creator',
-                                        'last_update',
-                                        'id_updater',
-                                        'soft_delete',
-                                        'last_sync'
-                                    ])->where('id_sms',$prodi->id_induk_sms)
-                                    ->first();
+                    if(!is_null($each_cari_reg->id_sms)) {
+                        $cari_sms = Sms::find($each_cari_reg->id_sms);
+                        if (is_null($cari_sms)) {
+                            $prodi = \DB::connection('pgsql_sister')->table('pdrd.sms')
+                                ->select([
+                                    'id_sms',
+                                    'nm_lemb',
+                                    'kd_kl',
+                                    'kd_satker',
+                                    'smt_mulai',
+                                    'a_selenggara_subst',
+                                    'kode_prodi',
+                                    'nm_prodi_english',
+                                    'jln',
+                                    'rt',
+                                    'rw',
+                                    'nm_dsn',
+                                    'ds_kel',
+                                    'kode_pos',
+                                    'lintang',
+                                    'bujur',
+                                    'no_tel',
+                                    'no_fax',
+                                    'email',
+                                    'website',
+                                    'singkatan',
+                                    'tgl_berdiri',
+                                    'sk_selenggara',
+                                    'tgl_sk_selenggara',
+                                    'tmt_sk_selenggara',
+                                    'tst_sk_selenggara',
+                                    'kpst_pd',
+                                    'sks_lulus',
+                                    'gelar_lulusan',
+                                    'stat_prodi',
+                                    'polesei_nilai',
+                                    'a_kependidikan',
+                                    'sistem_ajar',
+                                    'a_pjj',
+                                    'a_psdku',
+                                    'luas_lab',
+                                    'kapasitas_prak_satu_shift',
+                                    'jml_mhs_pengguna',
+                                    'jml_jam_penggunaan',
+                                    'jml_prodi_pengguna',
+                                    'jml_modul_prak_sendiri',
+                                    'jml_modul_prak_lain',
+                                    'fungsi_selain_prak',
+                                    'penggunaan_lab',
+                                    \DB::RAW('0 AS a_pkl'),
+                                    'id_sp',
+                                    'id_jenj_didik',
+                                    'id_jns_sms',
+                                    'id_fungsi_lab',
+                                    'id_kel_usaha',
+                                    \DB::RAW('NULL AS id_blob'),
+                                    'id_wil',
+                                    'id_jur',
+                                    'id_induk_sms',
+                                    'tgl_create AS create_date',
+                                    'id_updater AS id_creator',
+                                    'last_update',
+                                    'id_updater',
+                                    'soft_delete',
+                                    'last_sync'
+                                ])->where('id_sms',$each_cari_reg->id_sms)
+                                ->first();
+                            if (!is_null($prodi->id_induk_sms)) {
+                                $cek_induk = Sms::find($prodi->id_induk_sms);
+                                if (is_null($cek_induk)) {
+                                    $induk = \DB::connection('pgsql_sister')->table('pdrd.sms')
+                                        ->select([
+                                            'id_sms',
+                                            'nm_lemb',
+                                            'kd_kl',
+                                            'kd_satker',
+                                            'smt_mulai',
+                                            'a_selenggara_subst',
+                                            'kode_prodi',
+                                            'nm_prodi_english',
+                                            'jln',
+                                            'rt',
+                                            'rw',
+                                            'nm_dsn',
+                                            'ds_kel',
+                                            'kode_pos',
+                                            'lintang',
+                                            'bujur',
+                                            'no_tel',
+                                            'no_fax',
+                                            'email',
+                                            'website',
+                                            'singkatan',
+                                            'tgl_berdiri',
+                                            'sk_selenggara',
+                                            'tgl_sk_selenggara',
+                                            'tmt_sk_selenggara',
+                                            'tst_sk_selenggara',
+                                            'kpst_pd',
+                                            'sks_lulus',
+                                            'gelar_lulusan',
+                                            'stat_prodi',
+                                            'polesei_nilai',
+                                            'a_kependidikan',
+                                            'sistem_ajar',
+                                            'a_pjj',
+                                            'a_psdku',
+                                            'luas_lab',
+                                            'kapasitas_prak_satu_shift',
+                                            'jml_mhs_pengguna',
+                                            'jml_jam_penggunaan',
+                                            'jml_prodi_pengguna',
+                                            'jml_modul_prak_sendiri',
+                                            'jml_modul_prak_lain',
+                                            'fungsi_selain_prak',
+                                            'penggunaan_lab',
+                                            \DB::RAW('0 AS a_pkl'),
+                                            'id_sp',
+                                            'id_jenj_didik',
+                                            'id_jns_sms',
+                                            'id_fungsi_lab',
+                                            'id_kel_usaha',
+                                            \DB::RAW('NULL AS id_blob'),
+                                            'id_wil',
+                                            'id_jur',
+                                            'id_induk_sms',
+                                            'tgl_create AS create_date',
+                                            'id_updater AS id_creator',
+                                            'last_update',
+                                            'id_updater',
+                                            'soft_delete',
+                                            'last_sync'
+                                        ])->where('id_sms',$prodi->id_induk_sms)
+                                        ->first();
+                                }
+                                $prodi_induk_lama = (array) $induk;
+                                $simpan_prodi_induk = new Sms();
+                                $simpan_prodi_induk->fill($prodi_induk_lama)->save();
                             }
-                            $prodi_induk_lama = (array) $induk;
-                            $simpan_prodi_induk = new Sms();
-                            $simpan_prodi_induk->fill($prodi_induk_lama)->save();
                         }
-                    }
-                    if (is_null($cek_reg_pdut)) {
-                        $input_reg = (array) $each_cari_reg;
-                        $input_reg['last_update']   = $waktu_sekarang;
-                        $input_reg['last_sync']     = $waktu_sekarang;
-                        $simpan_reg = new RegPtk();
-                        $simpan_reg->fill($input_reg)->save();
-                        echo " (OK - tambah)\n";
-                    } else {
-                        if ($each_cari_reg->last_update>$cek_reg_pdut->last_update) {
+                        if (is_null($cek_reg_pdut)) {
                             $input_reg = (array) $each_cari_reg;
-                            $input_reg['last_update'] = $waktu_sekarang;
-                            $input_reg['last_sync'] = $waktu_sekarang;
-                            $simpan_reg = RegPtk::find($each_cari_reg->id_reg_ptk);
+                            $input_reg['last_update']   = $waktu_sekarang;
+                            $input_reg['last_sync']     = $waktu_sekarang;
+                            $simpan_reg = new RegPtk();
                             $simpan_reg->fill($input_reg)->save();
-                            echo " (OK - update)\n";
+                            echo " (OK - tambah)\n";
                         } else {
-                            echo " (Tidak berubah)\n";
+                            if ($each_cari_reg->last_update>$cek_reg_pdut->last_update) {
+                                $input_reg = (array) $each_cari_reg;
+                                $input_reg['last_update'] = $waktu_sekarang;
+                                $input_reg['last_sync'] = $waktu_sekarang;
+                                $simpan_reg = RegPtk::find($each_cari_reg->id_reg_ptk);
+                                $simpan_reg->fill($input_reg)->save();
+                                echo " (OK - update)\n";
+                            } else {
+                                echo " (Tidak berubah)\n";
+                            }
                         }
                     }
 
