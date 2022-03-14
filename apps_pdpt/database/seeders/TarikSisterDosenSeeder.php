@@ -24,7 +24,8 @@ class TarikSisterDosenSeeder extends Seeder
     {
         $waktu_sekarang = currDateTime();
         $data_dosen_sister = \DB::connection('pgsql_sister')->table('pdrd.sdm')
-            ->where('id_jns_sdm',12)->where('soft_delete',0)->get();
+            ->where('id_jns_sdm',12)->where('soft_delete',0)
+            ->get();
         $total_dosen_pdut = count($data_dosen_sister);
         foreach ($data_dosen_sister AS $no=>$each_dosen_sister) {
             echo "Memulai sdm:".$each_dosen_sister->id_sdm." ".($no+1)." dari ".$total_dosen_pdut."\n";
@@ -269,24 +270,25 @@ class TarikSisterDosenSeeder extends Seeder
                                 $simpan_prodi_induk->fill($prodi_induk_lama)->save();
                             }
                         }
-                        if (is_null($cek_reg_pdut)) {
+                    }
+
+                    if (is_null($cek_reg_pdut)) {
+                        $input_reg = (array) $each_cari_reg;
+                        $input_reg['last_update']   = $waktu_sekarang;
+                        $input_reg['last_sync']     = $waktu_sekarang;
+                        $simpan_reg = new RegPtk();
+                        $simpan_reg->fill($input_reg)->save();
+                        echo " (OK - tambah)\n";
+                    } else {
+                        if ($each_cari_reg->last_update>$cek_reg_pdut->last_update) {
                             $input_reg = (array) $each_cari_reg;
-                            $input_reg['last_update']   = $waktu_sekarang;
-                            $input_reg['last_sync']     = $waktu_sekarang;
-                            $simpan_reg = new RegPtk();
+                            $input_reg['last_update'] = $waktu_sekarang;
+                            $input_reg['last_sync'] = $waktu_sekarang;
+                            $simpan_reg = RegPtk::find($each_cari_reg->id_reg_ptk);
                             $simpan_reg->fill($input_reg)->save();
-                            echo " (OK - tambah)\n";
+                            echo " (OK - update)\n";
                         } else {
-                            if ($each_cari_reg->last_update>$cek_reg_pdut->last_update) {
-                                $input_reg = (array) $each_cari_reg;
-                                $input_reg['last_update'] = $waktu_sekarang;
-                                $input_reg['last_sync'] = $waktu_sekarang;
-                                $simpan_reg = RegPtk::find($each_cari_reg->id_reg_ptk);
-                                $simpan_reg->fill($input_reg)->save();
-                                echo " (OK - update)\n";
-                            } else {
-                                echo " (Tidak berubah)\n";
-                            }
+                            echo " (Tidak berubah)\n";
                         }
                     }
 
