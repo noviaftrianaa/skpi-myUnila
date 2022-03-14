@@ -4,7 +4,7 @@
 @section('content')
     <div class="container">
         <div class="card">
-            <div class="card-header"><h3 class="card-title">Dashboard</h3></div>
+            <div class="card-header"><h3 class="card-title">Dashboard Tahun <span id="selectYear">{{ $tahun_pilih }}</span></h3></div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-sm-6">
@@ -38,6 +38,29 @@
 @push('js')
     <script>
         $(document).ready( function () {
+            var dosen_jk = '{!! $dosen_jk !!}';
+            var data_dosen_jk = [];
+            var kategori_dosen_jk = [];
+            $.each(JSON.parse(dosen_jk),function (i, k) {
+                data_dosen_jk.push([
+                    i, parseInt(k)
+                ]);
+                kategori_dosen_jk.push(i);
+            });
+
+            var dosen_jabfung = '{!! $dosen_jabfung_detail !!}';
+            var data_dosen_jabfung = [];
+            var kategori_dosen_jabfung = [];
+            $.each(JSON.parse(dosen_jabfung),function (i, k) {
+                data_dosen_jabfung.push([
+                    i, parseInt(k)
+                ]);
+                kategori_dosen_jabfung.push(i);
+            });
+
+            reloadPieChart('dosen_rasio_jk','Sebaran Dosen berdasarkan Jenis Kelamin',data_dosen_jk);
+            reloadPieChart('dosen_rasio_jabfung','Sebaran Dosen berdasarkan Jabatan Fungsional',data_dosen_jabfung);
+
             function reloadChartUsia(target,title,data)
             {
                 chartUsia = new Highcharts.Chart({
@@ -49,7 +72,7 @@
                         text: title
                     },
                     subtitle: {
-                        text: $nm_wil+'Tahun '+$("#selectYear").val()
+                        text: 'Tahun '+$("#selectYear").val()
                     },
                     xAxis: [{
                         categories: categories,
@@ -107,63 +130,7 @@
                 loading(id_wil,nm_wil,false,kualifikasi);
             });
 
-            $("#lembaga").change(function() {
-                if($('#lembaga option:selected').text() != 'Semua Unit'){
-                    getPt($("#lembaga").val());
-                }
-                else{
-                    loading(id_wil,nm_wil,false,kualifikasi);
-                }
-            });
-
-            $("#kualifikasi").change(function() {
-                loading(id_wil,nm_wil,false,$(this).val());
-            });
-
-            $("#perguruan_tinggi").change(function() {
-                if($(this).val() != 'all'){
-                    reloading(id_wil,nm_wil);
-                    $('#peta_indonesia').hide();
-                    $('#nama_wilayah').hide();
-                    $('#top_univ').hide();
-                    $('#min_univ').hide();
-                }
-                else{
-                    loading(id_wil,nm_wil,false,kualifikasi);
-                    $('#peta_indonesia').show();
-                    $('#nama_wilayah').show();
-                    $('#top_univ').show();
-                    $('#min_univ').show();
-                }
-            });
-
-            $("#backNasional").click(function() {
-                id_wil          = '';
-                nm_wil          = 'Indonesia';
-                loading(id_wil,nm_wil,false,kualifikasi);
-            });
-
-            $("#reloadTemp").click(function() {
-                reloading(id_wil,nm_wil);
-            });
-
             function reloadPieChart(target,title,data){
-                $nm_wil = $("#nm_wil").html();
-
-                if($nm_wil === undefined){
-                    $nm_wil = '';
-                }
-                else{
-                    $nm_wil = $("#nm_wil").html() + ' ';
-                }
-
-                if(target == 'chartJk'){
-                    $legend = false;
-                }
-                else{
-                    $legend = 220;
-                }
-
                 Highcharts.setOptions({
                     colors: ['#3498DB', '#34495E', '#F1C40F', '#E67E22', '#E74C3C', '#ECF0F1', '#95A5A6', '#1ABC9C', '#2ECC71', '#9B59B6', '#C0392B', '#F39C12','#16A085','#2980B9','#2C3E50']
                 });
@@ -176,13 +143,14 @@
                             enabled: true,
                             alpha: 45,
                             beta: 0
-                        }
+                        },
+                        backgroundColor: 'rgba(0,0,0,0)'
                     },
                     title: {
-                        text: title
-                    },
-                    subtitle: {
-                        text: $nm_wil+'Tahun '+$("#selectYear").val()
+                        text: title,
+                        style: {
+                            color: "#ffffff"
+                        }
                     },
                     tooltip: {
                         pointFormat: '{series.name}: <b>{point.y} ({point.percentage:.1f} %)</b>'
@@ -213,7 +181,7 @@
                         }
                     },
                     legend: {
-                        itemWidth: $legend,
+                        itemWidth: 220,
                         borderWidth: 1,
                         shadow: true
 

@@ -261,7 +261,11 @@ class JenjangPendidikan extends Controller
                 if ($currentLevel=='Perguruan Tinggi') {
                     $query_where .= " AND tjenj.id_jenj_didik='".$currentCategory."' ";
                 } elseif ($currentLevel!='Perguruan Tinggi') {
-                    $query_where .= " AND tjenj.id_jenj_didik='".$lastLevelID."'";
+                    if ($lastLevelID==='999') {
+                        $query_where .= " AND tjenj.id_jenj_didik IS NULL ";
+                    } else {
+                        $query_where .= " AND tjenj.id_jenj_didik='".$lastLevelID."'";
+                    }
                 }
             }
 
@@ -321,7 +325,7 @@ class JenjangPendidikan extends Controller
             {
                 $listCategory[$r->id] = $r->nama;
             }
-            $listCategory[999] = 'Tanpa Pendidikan Fungsional';
+            $listCategory[999] = 'Tanpa Pendidikan Terakhir';
 
             /** Inisiasi Tabel hasil Grafik */
             $resTable = '<table class="table table-bordered tresults" id="resultTable">

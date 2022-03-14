@@ -19,8 +19,8 @@
                         <p>Dashboard</p>
                     </a>
                 </li>
-                <li class="nav-item {{ in_array($side_active,['dashboard.dosen','dashboard.jabfung','dashboard.jenj_didik','dashboard.pangkat_golongan','dashboard.ikatan_kerja'])?'menu-open':'' }}">
-                    <a href="#" class="nav-link {{ in_array($side_active,['dashboard.dosen','dashboard.jabfung','dashboard.jenj_didik','dashboard.pangkat_golongan','dashboard.ikatan_kerja'])?'active':'' }}">
+                <li class="nav-item {{ in_array($side_active,['dashboard.dosen','dashboard.jabfung','dashboard.jenj_didik','dashboard.pangkat_golongan','dashboard.ikatan_kerja','dashboard.jenis_kelamin'])?'menu-open':'' }}">
+                    <a href="#" class="nav-link {{ in_array($side_active,['dashboard.dosen','dashboard.jabfung','dashboard.jenj_didik','dashboard.pangkat_golongan','dashboard.ikatan_kerja','dashboard.jenis_kelamin'])?'active':'' }}">
                         <i class="nav-icon fas fa-chalkboard-teacher"></i>
                         <p>
                             Rekap Dosen
@@ -59,9 +59,32 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="{{ route('dashboard.jenis_kelamin') }}" class="nav-link {{ $side_active=='dashboard.jenis_kelamin'?'active':'' }}">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Jenis Kelamin</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item {{ in_array($side_active,['iku','akreditasi'])?'menu-open':'' }}">
+                    <a href="#" class="nav-link {{ in_array($side_active,['iku','akreditasi'])?'active':'' }}">
+                        <i class="nav-icon fas fa-building"></i>
+                        <p>
+                            Institusi
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('iku') }}" class="nav-link {{ $side_active=='iku'?'active':'' }}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>IKU</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('akreditasi') }}" class="nav-link {{ $side_active=='akreditasi'?'active':'' }}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Akreditasi</p>
                             </a>
                         </li>
                     </ul>

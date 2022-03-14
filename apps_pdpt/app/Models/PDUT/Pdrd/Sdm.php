@@ -80,10 +80,15 @@ class Sdm extends AbstractionModel
             $alternative_where = '';
         } elseif ($tipe=='dosen_jabfung_all') {
             $select = "SELECT SUM(CASE WHEN tjab.id_jabfung IS NULL THEN 1 ELSE 0 END) AS 'Tidak ada Fungsional',
-                SUM(CASE WHEN tjab.id_jabfung IN (40,41) THEN 1 ELSE 0 END) AS 'Asisten Ahli',
-                SUM(CASE WHEN tjab.id_jabfung IN (43,44) THEN 1 ELSE 0 END) AS 'Lektor',
-                SUM(CASE WHEN tjab.id_jabfung IN (46,47,48) THEN 1 ELSE 0 END) AS 'Lektor Kepala',
-                SUM(CASE WHEN tjab.id_jabfung IN (50,51) THEN 1 ELSE 0 END) AS 'Profesor'
+                SUM(CASE WHEN tjab.id_jabfung = 40 THEN 1 ELSE 0 END) AS 'Asisten Ahli (100)',
+                SUM(CASE WHEN tjab.id_jabfung = 41 THEN 1 ELSE 0 END) AS 'Asisten Ahli (150)',
+                SUM(CASE WHEN tjab.id_jabfung = 43 THEN 1 ELSE 0 END) AS 'Lektor (200)',
+                SUM(CASE WHEN tjab.id_jabfung = 44 THEN 1 ELSE 0 END) AS 'Lektor (300)',
+                SUM(CASE WHEN tjab.id_jabfung = 46 THEN 1 ELSE 0 END) AS 'Lektor Kepala (400)',
+                SUM(CASE WHEN tjab.id_jabfung = 47 THEN 1 ELSE 0 END) AS 'Lektor Kepala (550)',
+                SUM(CASE WHEN tjab.id_jabfung = 48 THEN 1 ELSE 0 END) AS 'Lektor Kepala (700)',
+                SUM(CASE WHEN tjab.id_jabfung = 50 THEN 1 ELSE 0 END) AS 'Profesor (850)',
+                SUM(CASE WHEN tjab.id_jabfung = 51 THEN 1 ELSE 0 END) AS 'Profesor (1050)'
                 ";
             $alternative_where = '';
         } elseif ($tipe=='dosen_jk') {

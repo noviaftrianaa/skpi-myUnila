@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PDUT\Pdrd\AkreditasiProdi;
+use App\Models\PDUT\Pdrd\RegPtk;
 use App\Models\PDUT\Pdrd\Sdm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -30,7 +31,8 @@ class DashboardController extends Controller
     public function iku()
     {
         $data = DB::table('dashboard.dashboard_power_bi')->where('kode_dashboard', '=', 'IKU')->first();
-        return view('dashboard.iku', compact('data'));
+        $side_active   = 'iku';
+        return view('dashboard.iku', compact('data','side_active'));
     }
 
     public function dosen(Request $request)
@@ -48,10 +50,10 @@ class DashboardController extends Controller
         } else {
             $tahun_pilih = $maks_tahun;
         }
-        $dosen_jk = Sdm::dashboard_dosen('dosen_jk',$tahun_pilih);
-        $dosen_jabfung_detail = Sdm::dashboard_dosen('dosen_jabfung_all',$tahun_pilih);
+        $dosen_jk = json_encode(Sdm::dashboard_dosen('dosen_jk',$tahun_pilih));
+        $dosen_jabfung_detail = json_encode(Sdm::dashboard_dosen('dosen_jabfung_all',$tahun_pilih));
         $side_active   = 'dashboard.dosen';
-        return view('dashboard.dosen',compact('tahun','tahun_pilih','side_active'));
+        return view('dashboard.dosen',compact('tahun','tahun_pilih','side_active','dosen_jk','dosen_jabfung_detail'));
     }
 
     public function akreditasi()
@@ -104,11 +106,13 @@ class DashboardController extends Controller
         }
         $last_sync = AkreditasiProdi::where('soft_delete', 0)->orderBy('last_sync', 'DESC')->first();
         $akred = json_encode($akred);
-        return view('dashboard.akreditasi.index_akreditasi', compact('akred', 'sp', 'list_akreditasi', 'last_sync', 'total'));
+        $side_active   = 'akreditasi';
+        return view('dashboard.akreditasi.index_akreditasi', compact('akred', 'sp', 'list_akreditasi', 'last_sync', 'total','side_active'));
     }
 
     public function detail_akreditasi_prodi($id_prodi)
     {
+        $side_active   = 'akreditasi';
         $query = "
             select
                 sms.id_sms as id_prodi,
@@ -196,6 +200,24 @@ class DashboardController extends Controller
         $rank_akred = array_reverse($rank_akred);
         $rank_akred = json_encode($rank_akred);
 
-        return view('dashboard.akreditasi.detail_akreditasi', compact('detail_prodi', 'detail_akred', 'rank_akred'));
+        return view('dashboard.akreditasi.detail_akreditasi', compact('side_active','detail_prodi', 'detail_akred', 'rank_akred'));
+    }
+
+    public function dosen_profil($id)
+    {
+        $id_sdm = \Crypt::decrypt($id);
+        $profil_dosen = collect(DB::SELECT("
+            SELECT * FROM pdrd.sdm AS tsdm
+            JOIN pdrd.reg_ptk AS tr ON tsdm.id_sdm=tr.id_sdm AND tr.soft_delete=0
+                AND tr.id_jns_keluar IS NULL AND (tr.tgl_ptk_keluar IS NULL OR tr.tgl_ptk_keluar>GETDATE())
+            JOIN pdrd.keaktifan_ptk AS ta ON ta.id_reg_ptk=tr.id_reg_ptk AND ta.soft_delete=0
+                AND ta.id_thn_ajaran='".get_tahun_keaktifan()."'
+                AND ta.a_sp_homebase=1
+            JOIN pdrd.sms AS tprod ON tprod.id_sms=tr.id_sms AND tprod.soft_delete=0
+            WHERE tsdm.id_sdm='".$id_sdm."'
+        "))->first();
+        dd($profil_dosen);
+        $profil_sdm = Sdm::find($id_sdm);
+        $register_sdm = RegPtk::where('id_sdm',$id_sdm)->where('soft_delete',0)->get();
     }
 }

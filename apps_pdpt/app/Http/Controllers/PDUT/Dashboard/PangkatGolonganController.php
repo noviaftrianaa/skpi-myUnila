@@ -256,13 +256,15 @@ class PangkatGolonganController extends Controller
             if($currentCategory=='999')
             {
                 $query_where .= " AND tpanggol.id_pangkat_gol IS NULL ";
-            }
-            else
-            {
+            } else {
                 if ($currentLevel=='Perguruan Tinggi') {
                     $query_where .= " AND tpanggol.id_pangkat_gol='".$currentCategory."' ";
                 } elseif ($currentLevel!='Perguruan Tinggi') {
-                    $query_where .= " AND tpanggol.id_pangkat_gol='".$lastLevelID."'";
+                    if ($lastLevelID=='999') {
+                        $query_where .= " AND tpanggol.id_pangkat_gol IS NULL ";
+                    } else {
+                        $query_where .= " AND tpanggol.id_pangkat_gol='".$lastLevelID."'";
+                    }
                 }
             }
 
@@ -322,7 +324,7 @@ class PangkatGolonganController extends Controller
             {
                 $listCategory[$r->id] = $r->nama;
             }
-            $listCategory[999] = 'Tanpa Jabatan';
+            $listCategory[999] = 'Tanpa Pangkat Golongan';
 
             /** Inisiasi Tabel hasil Grafik */
             $resTable = '<table class="table table-bordered tresults" id="resultTable">
@@ -474,7 +476,7 @@ class PangkatGolonganController extends Controller
     public function load()
     {
         $fileLocation   = 'Sdid/Back/Report/';
-        $filename       = sha1('DosenPangGol');
+        $filename       = sha1('DosenPangkat');
         $file           = Storage::disk('local')->exists($fileLocation.$filename);
 
         if($file)
@@ -503,7 +505,7 @@ class PangkatGolonganController extends Controller
     public function reload(Request $request)
     {
         $fileLocation               = 'Sdid/Back/Report/';
-        $filename                   = sha1('DosenPangGol');
+        $filename                   = sha1('DosenPangkat');
         $tahun                      = get_tahun_keaktifan();
         $request->level             = 'Perguruan Tinggi';
         $request->year              = $tahun;

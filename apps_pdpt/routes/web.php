@@ -6,6 +6,7 @@ use App\Http\Controllers\PDUT\Dashboard\JabfungController;
 use App\Http\Controllers\PDUT\Dashboard\JenjangPendidikan;
 use App\Http\Controllers\PDUT\Dashboard\PangkatGolonganController;
 use App\Http\Controllers\PDUT\Dashboard\IkatanKerjaController;
+use App\Http\Controllers\PDUT\Dashboard\JenisKelaminController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -38,6 +39,10 @@ Route::get('/dashboard/ikatan_kerja',  [IkatanKerjaController::class,'index'])->
 Route::post('/dashboard/ikatan_kerja',  [IkatanKerjaController::class,'chart'])->name('dashboard.ikatan_kerja.chart');
 Route::get('/dashboard/ikatan_kerja/load',  [IkatanKerjaController::class,'load'])->name('dashboard.ikatan_kerja.load');
 Route::post('/dashboard/ikatan_kerja/reload',  [IkatanKerjaController::class,'reload'])->name('dashboard.ikatan_kerja.reload');
+Route::get('/dashboard/jenis_kelamin',  [JenisKelaminController::class,'index'])->name('dashboard.jenis_kelamin');
+Route::post('/dashboard/jenis_kelamin',  [JenisKelaminController::class,'chart'])->name('dashboard.jenis_kelamin.chart');
+Route::get('/dashboard/jenis_kelamin/load',  [JenisKelaminController::class,'load'])->name('dashboard.jenis_kelamin.load');
+Route::post('/dashboard/jenis_kelamin/reload',  [JenisKelaminController::class,'reload'])->name('dashboard.jenis_kelamin.reload');
 /** End Dashboar Dosen */
 Route::get('/akreditasi',  [DashboardController::class,'akreditasi'])->name('akreditasi');
 Route::get('/akreditasi/{id_prodi}/detail',  [DashboardController::class,'detail_akreditasi_prodi'])->name('detail_akreditasi');
