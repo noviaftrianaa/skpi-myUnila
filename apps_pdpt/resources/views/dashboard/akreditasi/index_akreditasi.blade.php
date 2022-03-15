@@ -108,7 +108,8 @@
                                         AND tak.id_thn_ajaran=2021
                                         GROUP BY tr.id_sms
                                     ) AS tl ON tl.id_sms=tprodi.id_sms
-                                    WHERE tprodi.soft_delete=0
+                                    WHERE tprodi.id_jenj_didik = 30
+                                    AND tprodi.soft_delete=0
                                     AND tprodi.id_jns_sms=3
                                     AND tprodi.stat_prodi='A'
                                     AND tn.nm_akred " .
@@ -145,7 +146,7 @@
                                                         <td>{{ $each_data_akred->nm_akred }}</td>
                                                         <td style="text-align: center;">
                                                             <button type="button" class="btn btn-primary"
-                                                                onclick="window.location='{{ route('detail_akreditasi', $each_data_akred->id_sms) }}'">Detail</button>
+                                                                onclick="window.location='{{ route('detail_akreditasi', Crypt::encrypt($each_data_akred->id_sms)) }}'">Detail</button>
                                                         </td>
                                                     </tr>
                                                 @endforeach
