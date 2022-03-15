@@ -207,21 +207,113 @@ class DashboardController extends Controller
         return view('dashboard.akreditasi.detail_akreditasi', compact('side_active','detail_prodi', 'detail_akred', 'rank_akred'));
     }
 
-    public function dosen_profil($id)
+    public function dosen_profil($id, Request $request)
     {
         $id_sdm = \Crypt::decrypt($id);
+        $side_active = 'dashboard.dosen';
         $profil_dosen = collect(DB::SELECT("
-            SELECT * FROM pdrd.sdm AS tsdm
+            SELECT
+                tsdm.id_sdm,
+                tsdm.nm_sdm,
+                tsdm.nidn,
+                CASE WHEN tsdm.jk='L' THEN 'Laki-laki' ELSE 'Perempuan' END AS jenis_kelamin,
+                tsdm.nip,
+				tsdm.tmt_pns,
+				tsdm.tmt_sk_angkat,
+				tsdm.email,
+                tjns_sdm.nm_jns_sdm,
+                tngr.nm_negara,
+                takp.nm_stat_aktif,
+				tsk.nm_stat_pegawai,
+				ti.nm_ikatan_kerja,
+				tsdm.nira AS id_sinta,
+                tag.nm_agama,
+				tr.no_srt_tgs,
+				tr.tgl_srt_tgs,
+				tr.tmt_srt_tgs,
+				tsp.nm_lemb AS asal_pt,
+				tprodi.prodi,
+				(CASE WHEN tjur.id_jns_sms=2 THEN tjur.nm_lemb ELSE NULL END) AS jurusan,
+				(CASE WHEN tjur.id_jns_sms=1 THEN tjur.nm_lemb
+                    WHEN tfak.id_jns_sms=1 THEN tfak.nm_lemb
+                    ELSE NULL END) AS fakultas
+            FROM pdrd.sdm AS tsdm
             JOIN pdrd.reg_ptk AS tr ON tsdm.id_sdm=tr.id_sdm AND tr.soft_delete=0
                 AND tr.id_jns_keluar IS NULL AND (tr.tgl_ptk_keluar IS NULL OR tr.tgl_ptk_keluar>GETDATE())
             JOIN pdrd.keaktifan_ptk AS ta ON ta.id_reg_ptk=tr.id_reg_ptk AND ta.soft_delete=0
                 AND ta.id_thn_ajaran='".get_tahun_keaktifan()."'
                 AND ta.a_sp_homebase=1
             JOIN pdrd.sms AS tprod ON tprod.id_sms=tr.id_sms AND tprod.soft_delete=0
+            JOIN ref.jenis_sdm AS tjns_sdm ON tjns_sdm.id_jns_sdm=tsdm.id_jns_sdm
+            JOIN ref.negara AS tngr ON tngr.id_negara=tsdm.kewarganegaraan
+            JOIN ref.agama AS tag ON tag.id_agama=tsdm.id_agama
+            JOIN ref.status_keaktifan_pegawai AS takp ON takp.id_stat_aktif=tsdm.id_stat_aktif
+            JOIN ref.status_kepegawaian AS tsk ON tsk.id_stat_pegawai=tr.id_stat_pegawai
+			JOIN ref.ikatan_kerja_sdm AS ti ON ti.id_ikatan_kerja=tr.id_ikatan_kerja
+			JOIN pdrd.satuan_pendidikan AS tsp ON tsp.id_sp=tr.id_sp
+			JOIN (
+			    SELECT id_sms, CONCAT(nm_lemb,' (',tj.nm_jenj_didik,')') AS prodi, id_induk_sms FROM pdrd.sms
+				JOIN ref.jenjang_pendidikan AS tj ON tj.id_jenj_didik=sms.id_jenj_didik
+			) AS tprodi ON tprodi.id_sms=tr.id_sms
+			LEFT JOIN pdrd.sms AS tjur ON tjur.id_sms=tprodi.id_induk_sms
+			LEFT JOIN pdrd.sms AS tfak ON tfak.id_sms=tjur.id_induk_sms
             WHERE tsdm.id_sdm='".$id_sdm."'
         "))->first();
-        dd($profil_dosen);
-        $profil_sdm = Sdm::find($id_sdm);
-        $register_sdm = RegPtk::where('id_sdm',$id_sdm)->where('soft_delete',0)->get();
+        $rwy_pend = DB::SELECT("
+            SELECT
+                trwy.id_rwy_didik_formal,
+                tj.nm_jenj_didik,
+                trwy.nm_sp_formal,
+                trwy.thn_lulus,
+                tg.singkat_gelar
+            FROM pdrd.rwy_pend_formal AS trwy
+            JOIN ref.jenjang_pendidikan AS tj ON tj.id_jenj_didik=trwy.id_jenj_didik
+            JOIN ref.gelar_akademik AS tg ON tg.id_gelar_akad=trwy.id_gelar_akad
+            WHERE trwy.soft_delete=0
+            AND trwy.id_sdm='".$id_sdm."'
+            ORDER BY trwy.id_jenj_didik ASC
+        ");
+        $rwy_pang = DB::SELECT("
+            SELECT
+                trwy.id_rwy_pangkat,
+                tp.nm_pangkat,
+                tp.kode_gol,
+                trwy.tmt_sk_pangkat,
+                trwy.tgl_sk_pangkat,
+                trwy.sk_pangkat
+            FROM pdrd.rwy_kepangkatan AS trwy
+            JOIN ref.pangkat_golongan AS tp ON tp.id_pangkat_gol=trwy.id_pangkat_gol
+            WHERE trwy.soft_delete=0
+            AND trwy.id_sdm='".$id_sdm."'
+            ORDER BY trwy.id_pangkat_gol ASC
+        ");
+        $rwy_jab = DB::SELECT("
+            SELECT
+                trwy.id_rwy_jabfung,
+                tj.nm_jabfung,
+                tj.angka_kredit,
+                trwy.tmt_sk_jabfung,
+                trwy.sk_jabfung
+            FROM pdrd.rwy_fungsional AS trwy
+            JOIN ref.jabfung AS tj ON tj.id_jabfung=trwy.id_jabfung
+            WHERE trwy.soft_delete=0
+            AND trwy.id_sdm='".$id_sdm."'
+            ORDER BY trwy.id_jabfung ASC
+        ");
+        $rwy_struk = DB::SELECT("
+            SELECT
+                trwy.id_rwy_jabstruk,
+                tj.nm_jab_tgs,
+                trwy.sk_jabstruk,
+                trwy.tmt_sk_jabstruk,
+                tk.nm_kat
+            FROM pdrd.rwy_struktural AS trwy
+            JOIN ref.jab_tgs AS tj ON tj.id_jab_tgs=trwy.id_jab_tgs
+            JOIN ref.kategori_kegiatan AS tk ON tk.id_katgiat=trwy.id_katgiat
+            WHERE trwy.soft_delete=0
+            AND trwy.id_sdm='".$id_sdm."'
+            ORDER BY trwy.tmt_sk_jabstruk ASC
+        ");
+        return view('dashboard.dosen_profil',compact('profil_dosen','side_active','rwy_pend','rwy_pang','rwy_jab','rwy_struk'));
     }
 }
