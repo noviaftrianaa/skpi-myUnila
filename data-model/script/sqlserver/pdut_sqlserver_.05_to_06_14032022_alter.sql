@@ -524,8 +524,8 @@ create table pdrd.akreditasi_prodi (
 )
 go
 
-insert into pdrd.akreditasi_prodi (id_akreditasi_prodi, id_sms, id_lemb_akred, id_akred, sk_akreditasi_prodi, tanggal_sk_akreditasi_prodi, tst_sk_akreditasi_prodi, asal_data, create_date, id_creator, last_update, id_updater, soft_delete, last_sync)
-select id_akreditasi_prodi, id_sms, id_lemb_akred, id_akred, sk_akreditasi_prodi, tanggal_sk_akreditasi_prodi, tst_sk_akreditasi_prodi, asal_data, create_date, id_creator, last_update, id_updater, soft_delete, last_sync
+insert into pdrd.akreditasi_prodi (id_akreditasi_prodi, id_sms, id_lemb_akred, id_akred, sk_akreditasi_prodi, tanggal_sk_akreditasi_prodi, tst_sk_akreditasi_prodi, asal_data, a_aktif, create_date, id_creator, last_update, id_updater, soft_delete, last_sync)
+select id_akreditasi_prodi, id_sms, id_lemb_akred, id_akred, sk_akreditasi_prodi, tanggal_sk_akreditasi_prodi, tst_sk_akreditasi_prodi, asal_data, 1, create_date, id_creator, last_update, id_updater, soft_delete, last_sync
 from pdrd.tmp_akreditasi_prodi
 go
 
@@ -1080,3 +1080,4 @@ alter table pdrd.tugas_tambahan
       references pdrd.sms (id_sms)
 go
 
+INSERT INTO man_akses.versi_db (versi,tgl_update) VALUES ('0.6.0',GETDATE());

@@ -348,3 +348,29 @@ Tambah field pada man_akses.aplikasi
 + id_blob				(uniqueidentifier)
 + a_integrasi_cas		(numeric(1))
 + a_sistem_internal_pt	(numeric(1))
+
+---versi 0.6--- 14 Maret 2022
+Tambah field pada pdrd.akreditasi_prodi
++ a_aktif				(numeric(1) default 0)
+
+Tambah tabel ref.bentuk_kegiatan_kerjasama
++ id_bntk_giat_kerjasama(numeric(2) PK NOT NULL)
++ nm_bntk_giat_kerjasama(varchar(60) NOT NULL)
++ ket                  	(varchar(250))
+
+Tambah tabel ref.status_kerjasama
++ id_stat_kerjasama		(numeric(2) PK NOT NULL)
++ nm_stat_kerjasama		(varchar(60) NOT NULL)
++ ket                  	(varchar(250))
+
+Tambah tabel ref.kriteria_mitra
++ id_kriteria_mitra		(numeric(2) PK NOT NULL)
++ nm_kriteria_mitra		(varchar(100) NOT NULL)
++ ket                  	(varchar(250))
+
+Tambah field pada tabel dok.large_object
++ url					(varchar(256))
+
+Tambah field pada tabel pdrd.sms
++ id_fak_unila			(uniqueidentifier)
++ id_jur_unila			(uniqueidentifier)

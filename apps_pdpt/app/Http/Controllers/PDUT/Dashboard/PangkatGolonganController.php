@@ -193,7 +193,7 @@ class PangkatGolonganController extends Controller
         /** Level Drilldown Fakultas */
         if($currentLevel=='Fakultas')
         {
-            $query_join  .= " JOIN pdrd.sms tfak ON tfak.id_sms=tsms.id_induk_sms ";
+            $query_join  .= " JOIN pdrd.sms tfak ON tfak.id_sms=tsms.id_fak_unila ";
 
             if($requestType!=='table')
             {
@@ -224,7 +224,7 @@ class PangkatGolonganController extends Controller
                                                     ")[0];
                 if($checkFakultas->jml>0)
                 {
-                    $query_join  .= " JOIN pdrd.sms tfak ON tfak.id_sms=tsms.id_induk_sms AND tfak.id_sms='".$selectedPointID."'";
+                    $query_join  .= " JOIN pdrd.sms tfak ON tfak.id_sms=tsms.id_fak_unila AND tfak.id_sms='".$selectedPointID."'";
                 }
                 else
                 {
