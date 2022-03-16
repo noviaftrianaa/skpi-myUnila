@@ -303,17 +303,18 @@
       /**
      * @OA\Delete(
      *      path="/pengabdian/hapus",
-     *      operationId="deletePengabdian",
+     *      operationId="hapusPengabdian",
      *      tags={"Pengabdian"},
-     *      summary="Delete Data Pengabdian",
-     *      description="Delete Data Pengabdian",
-     *      @OA\Parameter(
-     *         description="Pengabdian ID",
-     *         in="path",
-     *         name="id",
-     *         required=true,
-     *         @OA\Schema(type="string"),
-     *       ),
+     *      summary="Hapus Data Pengabdian",
+     *      description="Hapus Data Pengabdian",
+     *      @OA\RequestBody(
+     *      required=true,
+     *      description="Hapus Data Pengabdian",
+     *      @OA\JsonContent(
+     *          required={"pengabdianid"},
+     *          @OA\Property(property="pengabdianid", type="string", format="text", example="54DBF3BD-93AB-45D7-AE39-CC074C45E854")
+     *          ),
+     *      ),
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -328,9 +329,4 @@
      *      ),
      *      security={{"bearer_token":{}}}
      *     )
-     * )
      */
-
-
-
-

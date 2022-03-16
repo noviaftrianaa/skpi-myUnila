@@ -29,7 +29,6 @@ class PengabdianController extends Controller
     protected $nonCaLitabmas;
     protected $dokLitabmas;
     protected $dokumen;
-    protected $cacheLifeTime;
 
     protected $getAllListPengabdian;
 
@@ -58,14 +57,11 @@ class PengabdianController extends Controller
             'count' => 'numeric'
         ]);
 
+        $sortby = $this->request->input('sortby');
         if (empty($sortby)) {
             $sortby = 'DESC';
         }
 
-        if (!empty($this->getAllListPengabdian)) {
-            $data = $this->getAllListPengabdian;
-            return WrapResponse(compact('data'), 'sukses');
-        }
 
         $query =  "
             SELECT
@@ -99,7 +95,7 @@ class PengabdianController extends Controller
 
         $query = DB::select($query);
         if (empty($query)) {
-            return WrapResponse([], 'tidak ditemukan data pengabdian', FALSE);
+            return WrapResponse(['data' => NULL], 'tidak ditemukan data pengabdian', FALSE);
         }
 
         $data = [];
@@ -120,19 +116,16 @@ class PengabdianController extends Controller
             'count' => $pagination['count'],
             'data' => $data
         ], 'sukses');
-        }
+    }
 
     public function getListPengabdianBySdmId()
     {
         InputValidator([
             'sdmid' => 'required|uuid',
+            'page' => 'numeric|min:1',
+            'count'    => 'numeric|min:1|max:50',
             'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
-        ], [
-            'sdmid.required' => 'field sdmid ini harus diisi',
-            'sdmid.uuid' => 'input sdmid harus berupa uuid yang valid',
-            'sortby.alpha' => 'input sortby penyortiran tidak sesuai',
-            'sortby.in' => 'input sortby penyortiran hanya ASC,asc atau DESC,desc'
-        ]);
+       ]);
 
         $sdmId = $this->request->input('sdmid');
         $sortBy = $this->request->input('sortby');
@@ -154,13 +147,13 @@ class PengabdianController extends Controller
             litabmas.create_date AS waktu_data_ditambahkan,
             litabmas.last_update AS terakhir_diubah
         FROM
-            pdrd.litabmas AS litabmas
-            JOIN pdrd.sdm_anggota_litabmas AS sal ON sal.id_litabmas = litabmas.id_litabmas
+            pdrd.litabmas AS litabmas WITH(NOLOCK)
+            JOIN pdrd.sdm_anggota_litabmas AS sal WITH(NOLOCK) ON sal.id_litabmas = litabmas.id_litabmas
             AND sal.id_katgiat IN ('130201','130202','130203','130204','130401','130402','130403')
             AND sal.soft_delete = 0
-            JOIN ref.kelompok_bidang AS kb ON kb.id_kel_bidang = litabmas.id_kel_bidang
+            JOIN ref.kelompok_bidang AS kb WITH(NOLOCK) ON kb.id_kel_bidang = litabmas.id_kel_bidang
             AND kb.expired_date IS NULL
-            JOIN pdrd.sdm AS sdm ON sdm.id_sdm = sal.id_sdm
+            JOIN pdrd.sdm AS sdm WITH(NOLOCK) ON sdm.id_sdm = sal.id_sdm
             AND sdm.soft_delete = 0
             AND sdm.id_sdm = '" . $sdmId . "'
         WHERE
@@ -229,12 +222,12 @@ class PengabdianController extends Controller
                     litabmas.dana_pt AS dana_pt,
                     litabmas.dana_institusi_lain AS dana_il
                 FROM
-                    pdrd.litabmas AS litabmas
-                    LEFT JOIN pdrd.lembaga_iptek AS lembaga_iptek ON lembaga_iptek.id_lemb_iptek = litabmas.id_lemb_iptek
+                    pdrd.litabmas AS litabmas WITH(NOLOCK)
+                    LEFT JOIN pdrd.lembaga_iptek AS lembaga_iptek WITH(NOLOCK) ON lembaga_iptek.id_lemb_iptek = litabmas.id_lemb_iptek
                     AND lembaga_iptek.soft_delete = 0
-                    LEFT JOIN ref.kelompok_bidang AS kb ON kb.id_kel_bidang = litabmas.id_kel_bidang
+                    LEFT JOIN ref.kelompok_bidang AS kb WITH(NOLOCK) ON kb.id_kel_bidang = litabmas.id_kel_bidang
                     AND kb.expired_date IS NULL
-                    LEFT JOIN ref.skim_kegiatan AS skim_kegiatan ON skim_kegiatan.id_skim = litabmas.id_skim
+                    LEFT JOIN ref.skim_kegiatan AS skim_kegiatan WITH(NOLOCK) ON skim_kegiatan.id_skim = litabmas.id_skim
                     AND skim_kegiatan.expired_date IS NULL
                 WHERE
                     litabmas.id_litabmas = ?
@@ -262,20 +255,20 @@ class PengabdianController extends Controller
                 }
 
                 $query = "
-                SELECT
-                    sal.id_sdm AS id_anggota_dosen,
-                    sdm.nm_sdm AS nama_dosen,
-                    sal.peran_litabmas AS peran_dosen,
-                    sal.stat_aktif AS keaktifan
-                FROM
-                    pdrd.sdm_anggota_litabmas AS sal
-                    JOIN pdrd.sdm AS sdm ON sdm.id_sdm = sal.id_sdm
-                    AND sdm.id_jns_sdm = 12
-                    AND sdm.soft_delete = 0
-                WHERE
-                    sal.id_litabmas = ?
-                    AND sal.id_katgiat IN ('130201','130202','130203','130204','130401','130402','130403')
-                    AND sal.soft_delete = 0
+                    SELECT
+                        sal.id_sdm AS id_anggota_dosen,
+                        sdm.nm_sdm AS nama_dosen,
+                        sal.peran_litabmas AS peran_dosen,
+                        sal.stat_aktif AS keaktifan
+                    FROM
+                        pdrd.sdm_anggota_litabmas AS sal
+                        JOIN pdrd.sdm AS sdm ON sdm.id_sdm = sal.id_sdm
+                        AND sdm.id_jns_sdm = 12
+                        AND sdm.soft_delete = 0
+                    WHERE
+                        sal.id_litabmas = ?
+                        AND sal.id_katgiat IN ('130201','130202','130203','130204','130401','130402','130403')
+                        AND sal.soft_delete = 0
             ";
             $getDaftarAnggotaDosen = DB::select($query, [$pengabdianId]);
             $reformatGetDetailPengabdian = Arr::add($reformatGetDetailPengabdian, 'anggota_dosen', $getDaftarAnggotaDosen);
@@ -287,8 +280,8 @@ class PengabdianController extends Controller
                     pal.peran_litabmas AS peran_mahasiswa,
                     pal.stat_aktif AS keaktifan
                 FROM
-                    pdrd.pd_anggota_litabmas AS pal
-                    JOIN pdrd.peserta_didik AS pd ON pd.id_pd = pal.id_pd
+                    pdrd.pd_anggota_litabmas AS pal WITH(NOLOCK)
+                    JOIN pdrd.peserta_didik AS pd WITH(NOLOCK) ON pd.id_pd = pal.id_pd
                     AND pd.soft_delete = 0
                 WHERE
                     pal.id_litabmas = ?
@@ -304,8 +297,8 @@ class PengabdianController extends Controller
                     nca_litabmas.peran_litabmas AS peran_nonca,
                     nca_litabmas.stat_aktif AS keaktifan
                 FROM
-                    pdrd.non_ca_anggota_litabmas AS nca_litabmas
-                    JOIN pdrd.non_ca AS nca ON nca.id_orang = nca_litabmas.id_orang
+                    pdrd.non_ca_anggota_litabmas AS nca_litabmas WITH(NOLOCK)
+                    JOIN pdrd.non_ca AS nca WITH(NOLOCK) ON nca.id_orang = nca_litabmas.id_orang
                     AND nca.soft_delete = 0
                 WHERE
                     nca_litabmas.id_litabmas = ?
@@ -323,12 +316,12 @@ class PengabdianController extends Controller
                     dok_litabmas.create_date AS tanggal_upload,
                     refj_dokumen.nm_jns_dok AS jenis_dokumen
                 FROM
-                    pdrd.litabmas AS litabmas
-                    JOIN dok.dok_litabmas AS dok_litabmas ON dok_litabmas.id_litabmas = litabmas.id_litabmas
+                    pdrd.litabmas AS litabmas WITH(NOLOCK)
+                    JOIN dok.dok_litabmas AS dok_litabmas WITH(NOLOCK) ON dok_litabmas.id_litabmas = litabmas.id_litabmas
                     AND dok_litabmas.soft_delete = 0
-                    LEFT JOIN dok.dokumen AS dok_dokumen ON dok_dokumen.id_dok = dok_litabmas.id_dok
+                    LEFT JOIN dok.dokumen AS dok_dokumen WITH(NOLOCK) ON dok_dokumen.id_dok = dok_litabmas.id_dok
                     AND dok_dokumen.soft_delete = 0
-                    LEFT JOIN ref.jenis_dokumen AS refj_dokumen ON refj_dokumen.id_jns_dok = dok_dokumen.id_jns_dok
+                    LEFT JOIN ref.jenis_dokumen AS refj_dokumen WITH(NOLOCK) ON refj_dokumen.id_jns_dok = dok_dokumen.id_jns_dok
                     AND refj_dokumen.expired_date IS NULL
                 WHERE
                     litabmas.id_litabmas = ?
@@ -548,8 +541,8 @@ class PengabdianController extends Controller
                             pd.nm_pd AS nama_mahasiswa,
                             reg_pd.nipd AS nipd
                         FROM
-                            pdrd.peserta_didik AS pd
-                            LEFT JOIN pdrd.reg_pd AS reg_pd ON reg_pd.id_pd = pd.id_pd
+                            pdrd.peserta_didik AS pd WITH(NOLOCK)
+                            LEFT JOIN pdrd.reg_pd AS reg_pd WITH(NOLOCK) ON reg_pd.id_pd = pd.id_pd
                             AND reg_pd.soft_delete = 0
                         WHERE
                             pd.id_pd = ?
@@ -792,18 +785,32 @@ class PengabdianController extends Controller
                     if (is_null($idDosen)) break;
 
                     $anggota_dosen = $this->sdmLitabmas->where('id_litabmas', $litabmasId)->where('id_sdm', $idDosen)->first();
-                    if (!$anggota_dosen) return WrapResponse([], 'pengabdian tidak ditemukan atau dosen anggota tidak terdaftar', FALSE);
-
-                    $anggota_dosen->update([
-                        'id_litabmas' => $litabmasId,
-                        'id_sdm' => $idDosen,
-                        'id_katgiat' => $kat_kegiatan,
-                        'peran_litabmas' => $peran_dosen[$index],
-                        'stat_aktif' => $status_dosen[$index],
-                        'last_update' => currDateTime(),
-                        'id_updater' => $updateId,
-                        'soft_delete' => 0,
-                    ]);
+                    if (!$anggota_dosen) {
+                        $this->sdmLitabmas->create([
+                            'id_litabmas' => $litabmasId,
+                            'id_sdm' => $idDosen,
+                            'id_katgiat' => $kat_kegiatan,
+                            'peran_litabmas' => $peran_dosen[$index],
+                            'stat_aktif' => $status_dosen[$index],
+                            'create_date' => currDateTime(),
+                            'id_creator' => $creatorId,
+                            'last_update' => currDateTime(),
+                            'id_updater' => $updateId,
+                            'soft_delete' => 0,
+                            'last_sync' => currDateTime(),
+                        ]);
+                    } else {
+                        $anggota_dosen->update([
+                            'id_litabmas' => $litabmasId,
+                            'id_sdm' => $idDosen,
+                            'id_katgiat' => $kat_kegiatan,
+                            'peran_litabmas' => $peran_dosen[$index],
+                            'stat_aktif' => $status_dosen[$index],
+                            'last_update' => currDateTime(),
+                            'id_updater' => $updateId,
+                            'soft_delete' => 0,
+                        ]);
+                    }
                 }
             }
 
@@ -812,34 +819,69 @@ class PengabdianController extends Controller
                     if (is_null($idMahasiswa)) break;
 
                     $anggota_mahasiswa = $this->pdLitabmas->where('id_pd_ang_litabmas', $pdLitabmasId[$index])->where('id_litabmas', $litabmasId)->where('id_pd', $idMahasiswa)->first();
-                    if (!$anggota_mahasiswa) return WrapResponse([], 'pengabdian tidak ditemukan atau mahasiswa anggota tidak terdaftar', FALSE);
+                    if (!$anggota_mahasiswa) {
+                        $dataMahasiswa = DB::select("
+                            SELECT
+                                TOP 1
+                                pd.nm_pd AS nama_mahasiswa,
+                                reg_pd.nipd AS nipd
+                            FROM
+                                pdrd.peserta_didik AS pd WITH(NOLOCK)
+                                LEFT JOIN pdrd.reg_pd AS reg_pd WITH(NOLOCK) ON reg_pd.id_pd = pd.id_pd
+                                AND reg_pd.soft_delete = 0
+                            WHERE
+                                pd.id_pd = ?
+                                AND pd.soft_delete = 0
+                        ", [$idMahasiswa]);
 
-                    $dataMahasiswa = DB::select("
-                        SELECT
-                            TOP 1
-                            pd.nm_pd AS nama_mahasiswa,
-                            reg_pd.nipd AS nipd
-                        FROM
-                            pdrd.peserta_didik AS pd
-                            LEFT JOIN pdrd.reg_pd AS reg_pd ON reg_pd.id_pd = pd.id_pd
-                            AND reg_pd.soft_delete = 0
-                        WHERE
-                            pd.id_pd = ?
-                            AND pd.soft_delete = 0
-                    ", [$idMahasiswa]);
+                        if (empty($dataMahasiswa)) {
+                            return WrapResponse([], 'tidak ditemukan data mahasiswa anggota pengabdian', FALSE);
+                        } $this->pdLitabmas->create([
+                            'id_pd_ang_litabmas' => guid(),
+                            'id_litabmas' => $pengabdian->id_litabmas,
+                            'id_pd' => $idMahasiswa,
+                            'peran_litabmas' => $peran_mahasiswa[$index],
+                            'stat_aktif' => $status_mahasiswa[$index],
+                            'nm_pd' => $dataMahasiswa[0]->nama_mahasiswa,
+                            'nipd' => $dataMahasiswa[0]->nipd,
+                            'create_date' => currDateTime(),
+                            'id_creator' => $creatorId,
+                            'last_update' => currDateTime(),
+                            'id_updater' => $updateId,
+                            'soft_delete' => 0,
+                            'last_sync' => currDateTime(),
+                        ]);
+                    } else {
+                        $dataMahasiswa = DB::select("
+                            SELECT
+                                TOP 1
+                                pd.nm_pd AS nama_mahasiswa,
+                                reg_pd.nipd AS nipd
+                            FROM
+                                pdrd.peserta_didik AS pd WITH(NOLOCK)
+                                LEFT JOIN pdrd.reg_pd AS reg_pd WITH(NOLOCK) ON reg_pd.id_pd = pd.id_pd
+                                AND reg_pd.soft_delete = 0
+                            WHERE
+                                pd.id_pd = ?
+                                AND pd.soft_delete = 0
+                        ", [$idMahasiswa]);
 
-                    $anggota_mahasiswa->update([
-                        'id_pd_ang_litabmas' => $pdLitabmasId[$index],
-                        'id_litabmas' => $litabmasId,
-                        'id_pd' => $idMahasiswa,
-                        'peran_litabmas' => $peran_mahasiswa[$index],
-                        'stat_aktif' => $status_mahasiswa[$index],
-                        'nm_pd' => $dataMahasiswa[0]->nama_mahasiswa,
-                        'nipd' => $dataMahasiswa[0]->nipd,
-                        'last_update' => currDateTime(),
-                        'id_updater' => $updateId,
-                        'soft_delete' => 0,
-                    ]);
+                        if (empty($dataMahasiswa)) {
+                            return WrapResponse([], 'tidak ditemukan data mahasiswa anggota pengabdian', FALSE);
+                        }
+
+                        $anggota_mahasiswa->update([
+                            'id_litabmas' => $litabmasId,
+                            'id_pd' => $idMahasiswa,
+                            'peran_litabmas' => $peran_mahasiswa[$index],
+                            'stat_aktif' => $status_mahasiswa[$index],
+                            'nm_pd' => $dataMahasiswa[0]->nama_mahasiswa,
+                            'nipd' => $dataMahasiswa[0]->nipd,
+                            'last_update' => currDateTime(),
+                            'id_updater' => $updateId,
+                            'soft_delete' => 0,
+                        ]);
+                    }
                 }
             }
 
@@ -848,17 +890,30 @@ class PengabdianController extends Controller
                     if (is_null($idNonCa)) break;
 
                     $anggota_non_ca = $this->nonCaLitabmas->where('id_litabmas', $litabmasId)->where('id_orang', $idNonCa)->first();
-                    if (!$anggota_non_ca) return WrapResponse([], 'pengabdian tidak ditemukan atau nonca anggota tidak terdaftar', FALSE);
-
-                    $anggota_non_ca->update([
-                        'id_litabmas' => $litabmasId,
-                        'id_orang' => $idNonCa,
-                        'peran_litabmas' => $peran_non_ca[$index],
-                        'stat_aktif' => $status_non_ca[$index],
-                        'last_update' => currDateTime(),
-                        'id_updater' => $updateId,
-                        'soft_delete' => 0,
-                    ]);
+                    if (!$anggota_non_ca) {
+                        $this->nonCaLitabmas->create([
+                            'id_litabmas' => $litabmasId,
+                            'id_orang' => $idNonCa,
+                            'peran_litabmas' => $peran_non_ca[$index],
+                            'stat_aktif' => $status_non_ca[$index],
+                            'create_date' => currDateTime(),
+                            'id_creator' => $creatorId,
+                            'last_update' => currDateTime(),
+                            'id_updater' => $updateId,
+                            'soft_delete' => 0,
+                            'last_sync' => currDateTime(),
+                        ]);
+                    } else {
+                        $anggota_non_ca->update([
+                            'id_litabmas' => $litabmasId,
+                            'id_orang' => $idNonCa,
+                            'peran_litabmas' => $peran_non_ca[$index],
+                            'stat_aktif' => $status_non_ca[$index],
+                            'last_update' => currDateTime(),
+                            'id_updater' => $updateId,
+                            'soft_delete' => 0,
+                        ]);
+                    }
                 }
             }
 
@@ -878,24 +933,29 @@ class PengabdianController extends Controller
     public function deletePengabdian()
     {
 
-        InputValidator([
-            'pengabdianid' => 'required|uuid',
-        ], [
-            'pengabdianid.required' => 'field pengabdianid ini harus diisi',
-            'pengabdianid.uuid' => 'input pengabdianid harus berupa uuid yang valid',
-        ]);
+        $litabmasId = $this->request->input('id_penelitian');
+        $creatorId = $updateId = 'bc62ca9c-4e6e-4462-89b6-ff246512734f';
+        $last_update = currDateTime();
 
-        $pengabdianId = $this->request->input('pengabdianid');
+        InputValidator([
+            'id_penelitian' => 'required|uuid',
+        ]);
 
         DB::beginTransaction();
         try {
-            DB::update("UPDATE pdrd.litabmas SET soft_delete = 1 WHERE id_litabmas = $pengabdianId");
-            DB::commit();
-            return WrapResponse([], 'berhasil menghapus data pengabdian');
-        } catch (Exception $e) {
-            DB::rollBack();
-            Log::error('Error on ' . $e->getMessage() . ' in line ' . $e->getLine());
-            return WrapResponse([], 'gagal menghapus data pengabdian', FALSE);
-        }
+
+            $this->litabmas->where('id_penelitian',$litabmasId)->update([
+            'soft_delete' => 1,
+            'last_update' => $last_update,
+            'id_updater' => $updateId
+        ]); 
+        
+        DB::commit();
+        return WrapResponse(array('data' => array('id_penelitian' => $litabmasId)), 'berhasil menghapus data pengabdian', TRUE);
+    } catch (Exception $e) {
+        DB::rollBack();
+        Log::error('Error on ' . $e->getMessage() . ' in line ' . $e->getLine());
+        return WrapResponse(['data' => null], 'gagal menghapus data pengabdian', FALSE);
     }
+}
 }
