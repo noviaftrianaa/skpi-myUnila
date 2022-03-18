@@ -1,9 +1,11 @@
 @extends('template_public.default')
 @include('__partial.highchart')
+@include('__partial.leaflet')
 
 @section('content')
     <div class="container">
         <div class="card">
+            <div class="card-header"><h4 class="card-title">Dashboard Dosen</h4></div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-sm-4">
@@ -15,11 +17,35 @@
                 </div>
             </div>
         </div>
+        <div class="card">
+            <div class="card-header"><h4 class="card-title">Dashboard Mahasiswa</h4></div>
+            <div class="card-body">
+                <div class="row">
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header"><h4 class="card-title">Peta Lokasi Pergurusan Tinggi</h4></div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div id="map" style="height: 360px"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection
 
 @push('js')
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDe0k4F4CyrJnchP6Cq7T5iAybq1ISUL6A&callback=initMap&v=weekly&channel=2"
+        async
+    ></script>
     <script>
+        var lat = {!! $pt->lintang !!};
+        var lang = {!! $pt->bujur !!};
+
         $(document).ready( function () {
             var dosen_nomor_induk = '{!! $total_dosen !!}';
             var dosen_jabfung = '{!! $total_dosen_jabfung !!}';
@@ -133,5 +159,19 @@
                 });
             }
         });
+
+        function initMap() {
+            const myLatLng = { lat: lat, lng: lang };
+            const map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 16,
+                center: myLatLng,
+            });
+
+            new google.maps.Marker({
+                position: myLatLng,
+                map,
+                title: "Hello World!",
+            });
+        }
     </script>
 @endpush

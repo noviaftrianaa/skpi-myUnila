@@ -322,6 +322,10 @@ class PublikasiDanPatenSeeder extends Seeder
                 $cari_pub_od = Publikasi::find($each_pub_sister->id_publikasi);
                 if (is_null($cari_pub_od)) {
                     $input_pub = (array) $each_pub_sister;
+                    if (!in_array($input_pub['soft_delete'],[0,1])) {
+                        $input_pub['stat_impor_sinta']  = $input_pub['soft_delete'];
+                        $input_pub['soft_delete']       = (in_array($input_pub['soft_delete'],[4,5])?1:0);
+                    }
                     $publikasi = new Publikasi();
                     $publikasi->fill($input_pub)->save();
                 }

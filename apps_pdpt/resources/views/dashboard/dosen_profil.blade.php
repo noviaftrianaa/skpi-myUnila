@@ -32,7 +32,9 @@
                             {!! tableRow('Fakultas',$profil_dosen->fakultas) !!}
                             {!! tableRow('Jurusan',$profil_dosen->jurusan) !!}
                             {!! tableRow('Program Studi',$profil_dosen->prodi) !!}
+                            {!! tableRow('Ikatan Kerja',$profil_dosen->nm_ikatan_kerja) !!}
                             {!! tableRow('TMT Surat Tugas',(is_null($profil_dosen->tmt_srt_tgs)?null:tglIndonesia($profil_dosen->tmt_srt_tgs))) !!}
+                            {!! tableRow('Status Kepegawaian',$profil_dosen->nm_stat_pegawai) !!}
                             {!! tableRow('Status Keaktifan',$profil_dosen->nm_stat_aktif) !!}
                             {!! tableRow('Tanggal Mulai Menjadi Dosen (TMMD)',(is_null($profil_dosen->tmt_srt_tgs)?null:tglIndonesia($profil_dosen->tmt_srt_tgs))) !!}
                             </tbody>

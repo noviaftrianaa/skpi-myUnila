@@ -65,7 +65,7 @@ class Report extends Model
                                         FROM [pdrd].[sms]  WITH (NOLOCK)
                                         JOIN ref.jenjang_pendidikan ON jenjang_pendidikan.id_jenj_didik=sms.id_jenj_didik
                                         WHERE soft_delete=0
-                                        AND id_induk_sms='".$currentID."'
+                                        AND id_fak_unila='".$currentID."'
                                         AND id_jns_sms=3 "
             );
         }else{
@@ -73,7 +73,7 @@ class Report extends Model
                                         FROM [pdrd].[sms]  WITH (NOLOCK)
                                         JOIN ref.jenjang_pendidikan ON jenjang_pendidikan.id_jenj_didik=sms.id_jenj_didik
                                         WHERE soft_delete=0
-                                        AND id_induk_sms='".$currentID."'
+                                        AND id_fak_unila='".$currentID."'
                                         AND id_jns_sms=3 "
             );
         }

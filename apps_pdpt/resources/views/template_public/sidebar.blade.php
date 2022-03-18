@@ -19,8 +19,8 @@
                         <p>Dashboard</p>
                     </a>
                 </li>
-                <li class="nav-item {{ in_array($side_active,['dashboard.dosen','dashboard.jabfung','dashboard.jenj_didik','dashboard.pangkat_golongan','dashboard.ikatan_kerja','dashboard.jenis_kelamin'])?'menu-open':'' }}">
-                    <a href="#" class="nav-link {{ in_array($side_active,['dashboard.dosen','dashboard.jabfung','dashboard.jenj_didik','dashboard.pangkat_golongan','dashboard.ikatan_kerja','dashboard.jenis_kelamin'])?'active':'' }}">
+                <li class="nav-item {{ in_array($side_active,['dashboard.dosen','dashboard.jabfung','dashboard.jenj_didik','dashboard.pangkat_golongan','dashboard.ikatan_kerja','dashboard.jenis_kelamin','dashboard.status_kepegawaian','dashboard.status_keaktifan'])?'menu-open':'' }}">
+                    <a href="#" class="nav-link {{ in_array($side_active,['dashboard.dosen','dashboard.jabfung','dashboard.jenj_didik','dashboard.pangkat_golongan','dashboard.ikatan_kerja','dashboard.jenis_kelamin','dashboard.status_kepegawaian','dashboard.status_keaktifan'])?'active':'' }}">
                         <i class="nav-icon fas fa-chalkboard-teacher"></i>
                         <p>
                             Rekap Dosen
@@ -62,6 +62,18 @@
                             <a href="{{ route('dashboard.jenis_kelamin') }}" class="nav-link {{ $side_active=='dashboard.jenis_kelamin'?'active':'' }}">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Jenis Kelamin</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard.status_kepegawaian') }}" class="nav-link {{ $side_active=='dashboard.status_kepegawaian'?'active':'' }}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Status Kepegawaian</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard.status_keaktifan') }}" class="nav-link {{ $side_active=='dashboard.status_keaktifan'?'active':'' }}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Status Keaktifan</p>
                             </a>
                         </li>
                     </ul>

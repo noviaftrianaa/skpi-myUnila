@@ -7,6 +7,8 @@ use App\Http\Controllers\PDUT\Dashboard\JenjangPendidikan;
 use App\Http\Controllers\PDUT\Dashboard\PangkatGolonganController;
 use App\Http\Controllers\PDUT\Dashboard\IkatanKerjaController;
 use App\Http\Controllers\PDUT\Dashboard\JenisKelaminController;
+use App\Http\Controllers\PDUT\Dashboard\StatusKeaktifanController;
+use App\Http\Controllers\PDUT\Dashboard\StatusKepegawaianController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -39,6 +41,14 @@ Route::get('/dashboard/ikatan_kerja',  [IkatanKerjaController::class,'index'])->
 Route::post('/dashboard/ikatan_kerja',  [IkatanKerjaController::class,'chart'])->name('dashboard.ikatan_kerja.chart');
 Route::get('/dashboard/ikatan_kerja/load',  [IkatanKerjaController::class,'load'])->name('dashboard.ikatan_kerja.load');
 Route::post('/dashboard/ikatan_kerja/reload',  [IkatanKerjaController::class,'reload'])->name('dashboard.ikatan_kerja.reload');
+Route::get('/dashboard/status_keaktifan',  [StatusKeaktifanController::class,'index'])->name('dashboard.status_keaktifan');
+Route::post('/dashboard/status_keaktifan',  [StatusKeaktifanController::class,'chart'])->name('dashboard.status_keaktifan.chart');
+Route::get('/dashboard/status_keaktifan/load',  [StatusKeaktifanController::class,'load'])->name('dashboard.status_keaktifan.load');
+Route::post('/dashboard/status_keaktifan/reload',  [StatusKeaktifanController::class,'reload'])->name('dashboard.status_keaktifan.reload');
+Route::get('/dashboard/status_kepegawaian',  [StatusKepegawaianController::class,'index'])->name('dashboard.status_kepegawaian');
+Route::post('/dashboard/status_kepegawaian',  [StatusKepegawaianController::class,'chart'])->name('dashboard.status_kepegawaian.chart');
+Route::get('/dashboard/status_kepegawaian/load',  [StatusKepegawaianController::class,'load'])->name('dashboard.status_kepegawaian.load');
+Route::post('/dashboard/status_kepegawaian/reload',  [StatusKepegawaianController::class,'reload'])->name('dashboard.status_kepegawaian.reload');
 Route::get('/dashboard/jenis_kelamin',  [JenisKelaminController::class,'index'])->name('dashboard.jenis_kelamin');
 Route::post('/dashboard/jenis_kelamin',  [JenisKelaminController::class,'chart'])->name('dashboard.jenis_kelamin.chart');
 Route::get('/dashboard/jenis_kelamin/load',  [JenisKelaminController::class,'load'])->name('dashboard.jenis_kelamin.load');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PDUT\Pdrd\AkreditasiProdi;
 use App\Models\PDUT\Pdrd\RegPtk;
+use App\Models\PDUT\Pdrd\SatuanPendidikan;
 use App\Models\PDUT\Pdrd\Sdm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -13,7 +14,7 @@ class DashboardController extends Controller
 {
     public function __construct()
     {
-        $this->id_sp = 'e2b705a7-173e-464a-9fac-509128709515';
+        $this->id_sp = env('APP_ID_SP');
     }
     /**
      * Display a listing of the resource.
@@ -22,10 +23,11 @@ class DashboardController extends Controller
      */
     public function index()
     {
+        $pt = SatuanPendidikan::find($this->id_sp);
         $total_dosen = json_encode(Sdm::dashboard_dosen('nomor_induk',get_tahun_keaktifan())->first());
         $total_dosen_jabfung = json_encode(Sdm::dashboard_dosen('dosen_jabfung',get_tahun_keaktifan())->first());
         $side_active   = 'home';
-        return view('dashboard.public', compact('total_dosen','total_dosen_jabfung','side_active'));
+        return view('dashboard.public', compact('total_dosen','total_dosen_jabfung','side_active','pt'));
     }
 
     public function iku()
