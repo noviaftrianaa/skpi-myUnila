@@ -66,16 +66,16 @@
                             }
 
                         </style>
-                        <table class="tg table-striped">
+                        <table class="tg table-striped eewmp_dosen_tetap_datatable">
                             <thead>
                                 <tr>
-                                    <th class="tg-c3ow" rowspan="4">No</th>
-                                    <th class="tg-c3ow" rowspan="4">Nama Dosen (DT)</th>
-                                    <th class="tg-c3ow" rowspan="4">DTPS</th>
+                                    <th class="tg-c3ow" rowspan="3">No</th>
+                                    <th class="tg-c3ow" rowspan="3">Nama Dosen (DT)</th>
+                                    <th class="tg-c3ow" rowspan="3">DTPS</th>
                                     <th class="tg-c3ow" colspan="6">Jumlah Mahasiswa Yang Dibimbing</th>
-                                    <th class="tg-c3ow" rowspan="4">Jumlah
+                                    <th class="tg-c3ow" rowspan="3">Jumlah
                                         (sks)</th>
-                                    <th class="tg-c3ow" rowspan="4">Rata-rata
+                                    <th class="tg-c3ow" rowspan="3">Rata-rata
                                         per
                                         Semester
                                         (sks)</th>
@@ -83,37 +83,29 @@
                                 <tr>
                                     <th class="tg-c3ow" colspan="3">Pendidikan:
                                         Pembelajaran dan Pembimbingan</th>
-                                    <th class="tg-c3ow" rowspan="3">Penelitian</th>
-                                    <th class="tg-c3ow" rowspan="3">PkM</th>
-                                    <th class="tg-c3ow" rowspan="3">Tugas
+                                    <th class="tg-c3ow" rowspan="2">Penelitian</th>
+                                    <th class="tg-c3ow" rowspan="2">PkM</th>
+                                    <th class="tg-c3ow" rowspan="2">Tugas
                                         Tambahan
                                         dan/atau
                                         Penunjang</th>
                                 </tr>
                                 <tr>
-                                    <th class="tg-c3ow" rowspan="3">PS yang
+                                    <th class="tg-c3ow" rowspan="1">PS yang
                                         Diakreditasi</th>
-                                    <th class="tg-c3ow" rowspan="3">PS Lain di
+                                    <th class="tg-c3ow" rowspan="1">PS Lain di
                                         dalam PT</th>
-                                    <th class="tg-c3ow" rowspan="3">PS Lain di
+                                    <th class="tg-c3ow" rowspan="1">PS Lain di
                                         luar PT</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td class="tg-0pky"></td>
-                                    <td class="tg-0pky"></td>
-                                    <td class="tg-0pky"></td>
-                                    <td class="tg-0pky"></td>
-                                    <td class="tg-0pky"></td>
-                                    <td class="tg-0pky"></td>
-                                    <td class="tg-0pky"></td>
-                                    <td class="tg-0pky"></td>
-                                    <td class="tg-0pky"></td>
-                                    <td class="tg-0pky"></td>
-                                    <td class="tg-0pky"></td>
+                                    @for ($index = 1; $index <= 11; $index++)
+                                        <td class="tg-0pky">{{ $index }}</td>
+                                    @endfor
                                 </tr>
-                                <tr>
+                                {{-- <tr>
                                     <td class="tg-0pky" colspan="9" style="text-align: right;">Rata-Rata DT : </td>
                                     <td class="tg-0pky"></td>
                                     <td class="tg-0pky"></td>
@@ -122,7 +114,7 @@
                                     <td class="tg-0pky" colspan="9" style="text-align: right;">Rata-Rata DTPS : </td>
                                     <td class="tg-0pky"></td>
                                     <td class="tg-0pky"></td>
-                                </tr>
+                                </tr> --}}
                             </tbody>
                         </table>
                     </div>

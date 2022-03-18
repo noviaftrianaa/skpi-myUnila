@@ -16,86 +16,36 @@
                         </h1>
                     </div>
                     <div class="card-body">
-                        <style type="text/css">
-                            .tg {
-                                border-collapse: collapse;
-                                border-color: #ccc;
-                                border-spacing: 0;
-                                width: 100%;
-                            }
-
-                            .tg td {
-                                background-color: #fff;
-                                border-color: #ccc;
-                                border-style: solid;
-                                border-width: 1px;
-                                color: #333;
-                                font-family: Arial, sans-serif;
-                                font-size: 14px;
-                                overflow: hidden;
-                                padding: 10px 5px;
-                                word-break: normal;
-                            }
-
-                            .tg th {
-                                background-color: #f0f0f0;
-                                border-color: #ccc;
-                                border-style: solid;
-                                border-width: 1px;
-                                color: #333;
-                                font-family: Arial, sans-serif;
-                                font-size: 14px;
-                                font-weight: normal;
-                                overflow: hidden;
-                                padding: 10px 5px;
-                                word-break: normal;
-                            }
-
-                            .tg .tg-c3ow {
-                                border-color: inherit;
-                                text-align: center;
-                                vertical-align: middle;
-                                font-weight: bold;
-                            }
-
-                            .tg .tg-0pky {
-                                border-color: inherit;
-                                text-align: center;
-                                vertical-align: middle;
-                                font-weight: bold;
-                            }
-
-                        </style>
-                        <table class="tg table-striped">
+                        <table class="tg table-responsive table-striped dsn_tetap_datatable">
                             <thead>
                                 <tr>
-                                    <th class="tg-c3ow" rowspan="2">No</th>
-                                    <th class="tg-c3ow" rowspan="2">Nama Dosen</th>
-                                    <th class="tg-c3ow" rowspan="2">NIDN</th>
-                                    <th class="tg-c3ow" rowspan="2">Pendidikan Pasca Sarjana</th>
-                                    <th class="tg-c3ow" rowspan="2">Bidang Keahlian</th>
-                                    <th class="tg-c3ow" rowspan="2">Kesesuaian
+                                    <th class="tg-c3ow">No</th>
+                                    <th class="tg-c3ow">Nama Dosen</th>
+                                    <th class="tg-c3ow">NIDN</th>
+                                    <th class="tg-c3ow">Pendidikan Pasca Sarjana</th>
+                                    <th class="tg-c3ow">Bidang Keahlian</th>
+                                    <th class="tg-c3ow">Kesesuaian
                                         dengan Kompetensi
                                         Inti PS</th>
-                                    <th class="tg-c3ow" rowspan="2">Jabatan Akademik</th>
-                                    <th class="tg-c3ow" rowspan="2">Sertifikat
+                                    <th class="tg-c3ow">Jabatan Akademik</th>
+                                    <th class="tg-c3ow">Sertifikat
                                         Pendidik
                                         Profesional</th>
-                                    <th class="tg-c3ow" rowspan="2">Sertifikat
+                                    <th class="tg-c3ow">Sertifikat
                                         Kompetensi/
                                         Profesi/
                                         Industri </th>
-                                    <th class="tg-c3ow" rowspan="2">Mata Kuliah
+                                    <th class="tg-c3ow">Mata Kuliah
                                         yang Diampu
                                         pada PS yang
                                         Diakreditasi</th>
-                                    <th class="tg-c3ow" rowspan="2">Kesesuaian
+                                    <th class="tg-c3ow">Kesesuaian
                                         Bidang
                                         Keahlian
                                         dengan Mata Kuliah
                                         yang
                                         Diampu</th>
-                                    <th class="tg-c3ow" rowspan="2">Mata Kuliah
+                                    <th class="tg-c3ow">Mata Kuliah
                                         yang Diampu
                                         pada PS Lain</th>
                                 </tr>

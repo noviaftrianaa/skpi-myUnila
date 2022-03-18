@@ -225,7 +225,7 @@ class AkreditasController extends Controller
             // 'Strategi Pencapaian Standar' => \Faker\Factory::create()->paragraphs(9, true),
             'Indikator Kinerja Utama (IKU)' => [
                 'Profil Dosen' => 'dashboard.akreditasi.profil_dosen',
-                'Kinerja Dosen' => \Faker\Factory::create()->paragraphs(9, true),
+                'Kinerja Dosen' => 'dashboard.akreditasi.kinerja_dosen',
                 'Pengembangan Dosen' => \Faker\Factory::create()->paragraphs(9, true),
                 'Tenaga Pendidik' => \Faker\Factory::create()->paragraphs(9, true)
             ],
@@ -363,8 +363,7 @@ class AkreditasController extends Controller
 
     public function dosen_tetap()
     {
-        // return view('dashboard.akreditasi.tables.tabel_3_dosen_tetap')->with('judul', 'Dosen Tetap');
-        return view('dashboard.akreditasi.tables.tabel_3_dosen_tetap')->with('judul', $this->id_prodi);
+        return view('dashboard.akreditasi.tables.tabel_3_dosen_tetap')->with('judul', 'Dosen Tetap');
     }
 
     public function dosen_pembimbing_utama_tugas_akhir()
@@ -385,5 +384,35 @@ class AkreditasController extends Controller
     public function dosen_praktisi_industri()
     {
         return view('dashboard.akreditasi.tables.tabel_3_dosen_praktisi_industri')->with('judul', 'Dosen Praktisi / Industri');
+    }
+
+    public function rekognisi_dtps()
+    {
+        return view('dashboard.akreditasi.tables.tabel_3_rekognisi_dtps')->with('judul', 'Pengakuan / Rekognisi DTPS');
+    }
+
+    public function penelitian_dtps()
+    {
+        return view('dashboard.akreditasi.tables.tabel_3_penelitian_dtps')->with('judul', 'Penelitian DTPS');
+    }
+
+    public function pkm_dtps()
+    {
+        return view('dashboard.akreditasi.tables.tabel_3_pkm_dtps')->with('judul', 'Pengabdian kepada Masyarakat (PkM) DTPS');
+    }
+
+    public function publikasi_dtps()
+    {
+        return view('dashboard.akreditasi.tables.tabel_3_publikasi_dtps')->with('judul', 'Publikasi Ilmiah DTPS');
+    }
+
+    public function karya_ilmiah_disitasi()
+    {
+        return view('dashboard.akreditasi.tables.tabel_3_karya_ilmiah_disitasi')->with('judul', 'Karya Ilmiah DTPS yang Disitasi dalam 3 Tahun Terakhir');
+    }
+
+    public function luaran_penelitian_pkm_dtps()
+    {
+        return view('dashboard.akreditasi.tables.tabel_3_luaran_penelitian_pkm_dtps')->with('judul', 'Luaran Penelitian/PkM Lainnya oleh DTPS');
     }
 }

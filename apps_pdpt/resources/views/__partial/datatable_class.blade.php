@@ -9,6 +9,10 @@
             width: 100%;
         }
 
+        .tg thead {
+            width: 100%;
+        }
+
         .tg td {
             background-color: #fff;
             border-color: #ccc;
@@ -20,6 +24,7 @@
             overflow: hidden;
             padding: 10px 5px;
             word-break: normal;
+            width: auto;
         }
 
         .tg th {
@@ -254,6 +259,146 @@
             });
 
             $('.dsn_prakin_datatable').DataTable({
+                stateSave: true,
+                responsive: true,
+                "language": {
+                    "decimal": "",
+                    "emptyTable": "Tidak ada data pada tabel",
+                    "infoEmpty": "Tidak ada yang ditampilkan",
+                    "infoFiltered": "(Terfilter dari  _MAX_ total entitas)",
+                    "infoPostFix": "",
+                    "thousands": ",",
+                    "lengthMenu": "Menampilkan _MENU_ entitas",
+                    "loadingRecords": "Loading...",
+                    "processing": "Sedang dalam proses...",
+                    "search": "Pencarian:",
+                    "zeroRecords": "Tidak ada data yang cocok",
+                    "paginate": {
+                        "first": "Pertama",
+                        "last": "Terakhir",
+                        "next": "Selanjutnya",
+                        "previous": "Sebelumnya"
+                    },
+                    "aria": {
+                        "sortAscending": ": activate to sort column ascending",
+                        "sortDescending": ": activate to sort column descending"
+                    }
+                }
+            });
+
+            $('.dsn_tetap_datatable').DataTable({
+                stateSave: true,
+                responsive: true,
+                "language": {
+                    "decimal": "",
+                    "emptyTable": "Tidak ada data pada tabel",
+                    "infoEmpty": "Tidak ada yang ditampilkan",
+                    "infoFiltered": "(Terfilter dari  _MAX_ total entitas)",
+                    "infoPostFix": "",
+                    "thousands": ",",
+                    "lengthMenu": "Menampilkan _MENU_ entitas",
+                    "loadingRecords": "Loading...",
+                    "processing": "Sedang dalam proses...",
+                    "search": "Pencarian:",
+                    "zeroRecords": "Tidak ada data yang cocok",
+                    "paginate": {
+                        "first": "Pertama",
+                        "last": "Terakhir",
+                        "next": "Selanjutnya",
+                        "previous": "Sebelumnya"
+                    },
+                    "aria": {
+                        "sortAscending": ": activate to sort column ascending",
+                        "sortDescending": ": activate to sort column descending"
+                    }
+                }
+            });
+
+            $('.eewmp_dosen_tetap_datatable').DataTable({
+                stateSave: true,
+                responsive: true,
+                "language": {
+                    "decimal": "",
+                    "emptyTable": "Tidak ada data pada tabel",
+                    "infoEmpty": "Tidak ada yang ditampilkan",
+                    "infoFiltered": "(Terfilter dari  _MAX_ total entitas)",
+                    "infoPostFix": "",
+                    "thousands": ",",
+                    "lengthMenu": "Menampilkan _MENU_ entitas",
+                    "loadingRecords": "Loading...",
+                    "processing": "Sedang dalam proses...",
+                    "search": "Pencarian:",
+                    "zeroRecords": "Tidak ada data yang cocok",
+                    "paginate": {
+                        "first": "Pertama",
+                        "last": "Terakhir",
+                        "next": "Selanjutnya",
+                        "previous": "Sebelumnya"
+                    },
+                    "aria": {
+                        "sortAscending": ": activate to sort column ascending",
+                        "sortDescending": ": activate to sort column descending"
+                    }
+                }
+            });
+
+            $('.dsn_tdk_tetap_datatable').DataTable({
+                stateSave: true,
+                responsive: true,
+                "language": {
+                    "decimal": "",
+                    "emptyTable": "Tidak ada data pada tabel",
+                    "infoEmpty": "Tidak ada yang ditampilkan",
+                    "infoFiltered": "(Terfilter dari  _MAX_ total entitas)",
+                    "infoPostFix": "",
+                    "thousands": ",",
+                    "lengthMenu": "Menampilkan _MENU_ entitas",
+                    "loadingRecords": "Loading...",
+                    "processing": "Sedang dalam proses...",
+                    "search": "Pencarian:",
+                    "zeroRecords": "Tidak ada data yang cocok",
+                    "paginate": {
+                        "first": "Pertama",
+                        "last": "Terakhir",
+                        "next": "Selanjutnya",
+                        "previous": "Sebelumnya"
+                    },
+                    "aria": {
+                        "sortAscending": ": activate to sort column ascending",
+                        "sortDescending": ": activate to sort column descending"
+                    }
+                }
+            });
+
+            $('.rekognisi_dtps_datatable').DataTable({
+                stateSave: true,
+                responsive: true,
+                "language": {
+                    "decimal": "",
+                    "emptyTable": "Tidak ada data pada tabel",
+                    "infoEmpty": "Tidak ada yang ditampilkan",
+                    "infoFiltered": "(Terfilter dari  _MAX_ total entitas)",
+                    "infoPostFix": "",
+                    "thousands": ",",
+                    "lengthMenu": "Menampilkan _MENU_ entitas",
+                    "loadingRecords": "Loading...",
+                    "processing": "Sedang dalam proses...",
+                    "search": "Pencarian:",
+                    "zeroRecords": "Tidak ada data yang cocok",
+                    "paginate": {
+                        "first": "Pertama",
+                        "last": "Terakhir",
+                        "next": "Selanjutnya",
+                        "previous": "Sebelumnya"
+                    },
+                    "aria": {
+                        "sortAscending": ": activate to sort column ascending",
+                        "sortDescending": ": activate to sort column descending"
+                    }
+                }
+            });
+
+            $('.penelitian_dtps_datatable').DataTable({
                 stateSave: true,
                 responsive: true,
                 "language": {

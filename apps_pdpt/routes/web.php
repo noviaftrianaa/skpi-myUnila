@@ -49,5 +49,13 @@ Route::prefix('akreditasi')->group(function () {
             Route::get('dosen_tidak_tetap', [AkreditasController::class, 'dosen_tidak_tetap'])->name('dosen_tidak_tetap');
             Route::get('dosen_praktisi_industri', [AkreditasController::class, 'dosen_praktisi_industri'])->name('dosen_praktisi_industri');
         });
+        Route::prefix('kinerja_dosen')->group(function () {
+            Route::get('dosen_tetap', [AkreditasController::class, 'rekognisi_dtps'])->name('rekognisi_dtps');
+            Route::get('penelitian_dtps', [AkreditasController::class, 'penelitian_dtps'])->name('penelitian_dtps');
+            Route::get('pkm_dtps', [AkreditasController::class, 'pkm_dtps'])->name('pkm_dtps');
+            Route::get('publikasi_dtps', [AkreditasController::class, 'publikasi_dtps'])->name('publikasi_dtps');
+            Route::get('karya_ilmiah_disitasi', [AkreditasController::class, 'karya_ilmiah_disitasi'])->name('karya_ilmiah_disitasi');
+            Route::get('luaran_penelitian_pkm_dtps', [AkreditasController::class, 'luaran_penelitian_pkm_dtps'])->name('luaran_penelitian_pkm_dtps');
+        });
     });
 });
