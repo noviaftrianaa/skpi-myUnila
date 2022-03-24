@@ -5,29 +5,50 @@
 @section('content')
     <div class="container">
         <div class="row">
-            <div class="col-sm-6">
+            <div class="col-sm-12">
                 <div class="card">
                     <div class="card-header bg-primary">
-                        <h3 class="card-title">Akreditasi PT</h3>
+                        <h3 class="card-title">Status Akreditasi PT</h3>
                     </div>
                     <div class="card-body">
                         <img src="{{ asset('asset/logo/logo_unila.png') }}" alt="logo_unila"
                             class="img-thumbnail rounded mx-auto d-block" width="200px">
                         <br>
-                        <table class="table table-striped">
+                        <table class="table table-striped mb-2">
                             <tbody>
-                                {!! tableRow('Nama PT', $sp->nm_lemb) !!}
-                                {!! tableRow('Kode PT', $sp->npsn) !!}
-                                {!! tableRow('Status Akreditasi', $sp->nm_akred) !!}
-                                {!! tableRow('SK Akreditasi', $sp->sk_akred_sp) !!}
-                                {!! tableRow('Tanggal SK Akreditasi', tglIndonesia($sp->tgl_sk_akred_sp)) !!}
-                                {!! tableRow('Expired SK Akreditasi', 'sampai <spap class="text-danger">' . tglIndonesia($sp->tst_sk_akred_sp) . '</span>') !!}
+                                {!! tableRow('Nama PT', $sp->first->nm_lemb) !!}
+                                {!! tableRow('Kode PT', $sp->first->npsn) !!}
+                                {!! tableRow('Status Akreditasi', $sp->first->nm_akred) !!}
+                                {!! tableRow('SK Akreditasi', $sp->first->sk_akred_sp) !!}
+                                {!! tableRow('Tanggal SK Akreditasi', tglIndonesia($sp->first->tgl_sk_akred_sp)) !!}
+                                {!! tableRow('Expired SK Akreditasi', 'sampai <spap class="text-danger">' . tglIndonesia($sp->first->tst_sk_akred_sp) . '</span>') !!}
+                            </tbody>
+                        </table>
+
+                        <table class="tg table-striped">
+                            <thead>
+                                <tr>
+                                    <th class="tg-c3ow">No SK</th>
+                                    <th class="tg-c3ow">Akreditasi</th>
+                                    <th class="tg-c3ow" colspan="2">Masa Berlaku</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($sp->all as $value)
+                                    <tr>
+                                        <td class="tg-0pky">{{ $value->sk_akred_sp }}</td>
+                                        <td class="tg-0pky">{{ $value->nm_akred }}</td>
+                                        <td class="tg-0pky">{{ tglIndonesia($value->tgl_sk_akred_sp) }}</td>
+                                        <td class="tg-0pky">{{ tglIndonesia($value->tst_sk_akred_sp) }}</td>
+                                    </tr>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
-            <div class="col-sm-6">
+
+            <div class="col-sm-12">
                 <div class="card">
                     <div class="card-header bg-primary">
                         <h3 class="card-title">Akreditasi Prodi</h3>
@@ -80,43 +101,44 @@
                         <div class="tab-content" id="pills-tabContent">
                             @foreach ($list_akreditasi as $key_akreditasi => $each_akreditasi)
                                 <?php
-                                $data_akred_prodi = DB::SELECT("
-                                    SELECT
-                                        tprodi.id_sms,
-                                        CONCAT(tprodi.nm_lemb,' (',tjenj.nm_jenj_didik,')') AS asal_prodi,
-                                        tn.nm_akred,
-                                        takred.sk_akreditasi_prodi,
-                                        takred.tanggal_sk_akreditasi_prodi,
-                                        takred.tst_sk_akreditasi_prodi,
-                                        tl.total_prodi
-                                    FROM pdrd.sms AS tprodi
-                                    JOIN ref.jenjang_pendidikan AS tjenj ON tjenj.id_jenj_didik=tprodi.id_jenj_didik
-                                    LEFT JOIN (
-                                        SELECT id_sms, MAX(tst_sk_akreditasi_prodi) AS max_tst FROM pdrd.akreditasi_prodi
-                                        WHERE soft_delete=0
-                                        GROUP BY id_sms
-                                    ) AS tap ON tap.id_sms=tprodi.id_sms
-                                    LEFT JOIN pdrd.akreditasi_prodi AS takred ON takred.id_sms=tprodi.id_sms AND takred.soft_delete=0
-                                        AND takred.tst_sk_akreditasi_prodi=tap.max_tst
-                                    LEFT JOIN ref.nilai_akred AS tn ON tn.id_akred=takred.id_akred
-                                    LEFT JOIN (
-                                        SELECT tr.id_sms, COUNT(tsdm.id_sdm) AS total_prodi FROM pdrd.sdm AS tsdm
-                                        JOIN pdrd.reg_ptk AS tr ON tr.id_sdm=tsdm.id_sdm AND tr.soft_delete=0
-                                            AND (tr.tgl_ptk_keluar IS NULL AND tr.tgl_ptk_keluar>GETDATE())
-                                        JOIN pdrd.keaktifan_ptk AS tak ON tak.id_reg_ptk=tr.id_reg_ptk
-                                        AND tak.soft_delete=0
-                                        AND tak.id_thn_ajaran=2021
-                                        GROUP BY tr.id_sms
-                                    ) AS tl ON tl.id_sms=tprodi.id_sms
-                                    WHERE tprodi.id_jenj_didik = 30
-                                    AND tprodi.soft_delete=0
-                                    AND tprodi.id_jns_sms=3
-                                    AND tprodi.stat_prodi='A'
-                                    AND tn.nm_akred " .
+                                $data_akred_prodi = DB::SELECT(
+                                    "
+                                                                                                    SELECT
+                                                                                                        tprodi.id_sms,
+                                                                                                        CONCAT(tprodi.nm_lemb,' (',tjenj.nm_jenj_didik,')') AS asal_prodi,
+                                                                                                        tn.nm_akred,
+                                                                                                        takred.sk_akreditasi_prodi,
+                                                                                                        takred.tanggal_sk_akreditasi_prodi,
+                                                                                                        takred.tst_sk_akreditasi_prodi,
+                                                                                                        tl.total_prodi
+                                                                                                    FROM pdrd.sms AS tprodi
+                                                                                                    JOIN ref.jenjang_pendidikan AS tjenj ON tjenj.id_jenj_didik=tprodi.id_jenj_didik
+                                                                                                    LEFT JOIN (
+                                                                                                        SELECT id_sms, MAX(tst_sk_akreditasi_prodi) AS max_tst FROM pdrd.akreditasi_prodi
+                                                                                                        WHERE soft_delete=0
+                                                                                                        GROUP BY id_sms
+                                                                                                    ) AS tap ON tap.id_sms=tprodi.id_sms
+                                                                                                    LEFT JOIN pdrd.akreditasi_prodi AS takred ON takred.id_sms=tprodi.id_sms AND takred.soft_delete=0
+                                                                                                        AND takred.tst_sk_akreditasi_prodi=tap.max_tst
+                                                                                                    LEFT JOIN ref.nilai_akred AS tn ON tn.id_akred=takred.id_akred
+                                                                                                    LEFT JOIN (
+                                                                                                        SELECT tr.id_sms, COUNT(tsdm.id_sdm) AS total_prodi FROM pdrd.sdm AS tsdm
+                                                                                                        JOIN pdrd.reg_ptk AS tr ON tr.id_sdm=tsdm.id_sdm AND tr.soft_delete=0
+                                                                                                            AND (tr.tgl_ptk_keluar IS NULL AND tr.tgl_ptk_keluar>GETDATE())
+                                                                                                        JOIN pdrd.keaktifan_ptk AS tak ON tak.id_reg_ptk=tr.id_reg_ptk
+                                                                                                        AND tak.soft_delete=0
+                                                                                                        AND tak.id_thn_ajaran=2021
+                                                                                                        GROUP BY tr.id_sms
+                                                                                                    ) AS tl ON tl.id_sms=tprodi.id_sms
+                                                                                                    WHERE tprodi.id_jenj_didik = 30
+                                                                                                    AND tprodi.soft_delete=0
+                                                                                                    AND tprodi.id_jns_sms=3
+                                                                                                    AND tprodi.stat_prodi='A'
+                                                                                                    AND tn.nm_akred " .
                                         ($key_akreditasi == 0 ? 'IS NULL' : "='" . $each_akreditasi . "'") .
                                         "
-                                            ORDER BY takred.tst_sk_akreditasi_prodi ASC
-                                        ",
+                                                                                                            ORDER BY takred.tst_sk_akreditasi_prodi ASC
+                                                                                                        ",
                                 );
                                 ?>
                                 <div class="tab-pane fade{{ $key_akreditasi == 0 ? ' show active' : '' }}"

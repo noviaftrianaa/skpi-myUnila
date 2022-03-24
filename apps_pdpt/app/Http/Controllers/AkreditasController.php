@@ -6,6 +6,7 @@ use App\Models\PDUT\Pdrd\AkreditasiProdi;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use stdClass;
 
 class AkreditasController extends Controller
 {
@@ -34,7 +35,14 @@ class AkreditasController extends Controller
             JOIN ref.nilai_akred AS tni ON tni.id_akred=ak.id_akred
             WHERE tsp.id_sp = '" . $this->id_sp . "'
             AND tsp.soft_delete=0
-        "))->first();
+        "));
+
+        $sp_all = $sp->unique()->all();
+        $sp_first = $sp->first();
+
+        $sp = new stdClass;
+        $sp->all = $sp_all;
+        $sp->first = $sp_first;
 
         $data_akred = DB::SELECT("
             SELECT tni.nm_akred, COUNT(tprodi.id_sms) AS total_akreditasi
@@ -176,9 +184,9 @@ class AkreditasController extends Controller
         }
 
         $kriteria1['Visi, Misi, Tujuan, dan Strategi'] = [
-            // 'Latar Belakang' => \Faker\Factory::create()->paragraphs(9, true),
-            // 'Kebijakan' => \Faker\Factory::create()->paragraphs(9, true),
-            // 'Strategi Pencapaian VMTS' => \Faker\Factory::create()->paragraphs(9, true),
+            'Latar Belakang' => \Faker\Factory::create()->paragraphs(9, true),
+            'Kebijakan' => \Faker\Factory::create()->paragraphs(9, true),
+            'Strategi Pencapaian VMTS' => \Faker\Factory::create()->paragraphs(9, true),
             'Indikator Kinerja Utama (IKU)' => \Faker\Factory::create()->paragraphs(9, true),
             'Indikator Kinerja Tambahan (IKT)' => \Faker\Factory::create()->paragraphs(9, true),
             'Evaluasi Capaian VMTS' => \Faker\Factory::create()->paragraphs(9, true),
@@ -329,7 +337,7 @@ class AkreditasController extends Controller
         $kerjasama = match (strtolower($jenis_kerjasama)) {
             'pendidikan' => $this->kerjasama_pendidikan(),
             'penelitian' => $this->kerjasama_penelitian(),
-            'pengabdian' => $this->kerjasama_pengabdian()
+            'pengabdian' => $this->kerjasama_pengabdian(),
         };
 
         return $kerjasama;
