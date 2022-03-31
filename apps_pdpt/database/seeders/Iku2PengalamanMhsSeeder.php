@@ -166,9 +166,9 @@ class Iku2PengalamanMhsSeeder extends Seeder
                 'nm_mhs' => $each_data->nm_mahasiswa,
                 'nm_fakultas' => $each_data->nm_fakultas,
                 'nm_prodi' => $each_data->nm_prodi,
-                'stat_kegiatan' => 1,
+                'stat_kegiatan' => $each_data->stat_kegiatan,
                 'sks_mk' => $each_data->total_sks,
-                'peringkat' => NULL,
+                'peringkat' => $each_data->peringkat,
                 'nidn' => $each_data->nidn,
                 'nm_pembimbing' => $each_data->nm_pembimbing,
                 'status_iku' => $each_data->status_iku,
@@ -618,7 +618,6 @@ class Iku2PengalamanMhsSeeder extends Seeder
         // $c = (int)$total_mahasiswa;
         // $total = $a+$b;
         // // $total = $a + $b / $c * 100;
-
         // dd($total);
 
         echo " Data dashboard_iku2 berhasil diperbaharui\n";
@@ -793,10 +792,20 @@ class Iku2PengalamanMhsSeeder extends Seeder
                 'last_sync' => currDateTime()
             ]);
 
+            $akt_mbkm  = DB::select("
+                SELECT
+                    periode.id_jns_akt_mhs
+                FROM
+                    mbkm.periode_kampus_merdeka AS periode
+                WHERE
+                    periode.nm_periode_mbkm = ?
+                    AND periode.soft_delete = 0
+            ", [$each_data['nm_kegiatan']]);
+
             //tambah aktivitas mahasiswa -> mbkm
             $akt_mhs = AktMhs::Create([
                 'id_akt_mhs' => guid(),
-                'id_jns_akt_mhs' => $each_data['id_jns_akt'],
+                'id_jns_akt_mhs' => $akt_mbkm[0]->id_jns_akt_mhs,
                 'id_sms' => $data_mhs[0]->id_sms,
                 'id_smt' => $each_data['id_thn_ajaran'],
                 'judul_akt_mhs' => $each_data['aktivitas'],

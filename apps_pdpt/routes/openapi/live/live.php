@@ -113,15 +113,22 @@ Route::group([
         'namespace' => 'Tracer',
         'prefix' => 'tracer_study'
     ], function () {
+        //umr
         Route::get('umr_wilayah', 'UmrController@index');
         Route::post('umr_wilayah/tambah', 'UmrController@store');
         Route::put('umr_wilayah/ubah', 'UmrController@update');
         Route::delete('umr_wilayah/hapus', 'UmrController@destroy');
 
+        //hasil tracer
         Route::get('list', 'TracerStudyController@index');
         Route::post('tambah', 'TracerStudyController@store');
         Route::put('ubah', 'TracerStudyController@update');
         Route::delete('hapus', 'TracerStudyController@destroy');
+
+        //hasil tracer atasan
+        Route::get('list_atasan', 'TracerStudyController@indexAtasan');
+        Route::post('tambah_atasan', 'TracerStudyController@storeAtasan');
+        Route::put('ubah_atasan', 'TracerStudyController@updateAtasan');
         Route::delete('hapus_atasan', 'TracerStudyController@destroyAtasan');
     });
 

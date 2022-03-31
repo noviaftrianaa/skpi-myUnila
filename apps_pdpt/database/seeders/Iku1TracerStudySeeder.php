@@ -51,7 +51,7 @@ class Iku1TracerStudySeeder extends Seeder
                 CASE
                     WHEN tc_study.status_lulusan IN ('1', '2')
                     AND tc_study.income_per_bln > 1.2 * umr.besaran_umr
-                    AND tc_study.wkt_tunggu < 6 THEN 1
+                    AND tc_study.wkt_tunggu < 6 OR tc_study.a_kerja_sblm_lulus = 1 THEN 1
                     WHEN tc_study.status_lulusan IN ('3')
                     AND DATEDIFF(MONTH, reg.tgl_sk_yudisium, tc_study.wkt_masuk) < 12 THEN 1
                     ELSE 0
@@ -345,10 +345,10 @@ class Iku1TracerStudySeeder extends Seeder
     //         $total_alumni = $each_data->total;
     //     }
 
-    //     $per_kategori = DetailIku1::where('id_tahun_anggaran', 2020)->get()->sum('total_per_kategori');
+        $per_kategori = DetailIku1::where('id_tahun_anggaran', 2020)->get()->sum('total_per_kategori');
     //     $total = $per_kategori / $total_alumni * 100;
 
-    //     dd($total);
+        dd($per_kategori);
         echo " Data dashboard_iku1 berhasil diperbaharui\n";
     }
 }
