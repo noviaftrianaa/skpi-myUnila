@@ -93,11 +93,35 @@
                                 <p>IKU</p>
                             </a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item {{ in_array($side_active,['akreditasi','akreditasi.dashboard','akreditasi.pt','akreditasi.prodi'])?'menu-open':'' }}">
                             <a href="{{ route('akreditasi') }}" class="nav-link {{ $side_active=='akreditasi'?'active':'' }}">
                                 <i class="far fa-circle nav-icon"></i>
-                                <p>Akreditasi</p>
+                                <p>
+                                    Akreditasi
+                                    <i class="right fas fa-angle-left"></i>
+                                </p>
                             </a>
+
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a href="{{ route('dashboard.dosen') }}" class="nav-link {{ $side_active=='dashboard.dosen'?'active':'' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Dashboard Akreditasi</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('dashboard.jabfung') }}" class="nav-link {{ $side_active=='dashboard.jabfung'?'active':'' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Akreditasi PT</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('dashboard.jabfung') }}" class="nav-link {{ $side_active=='dashboard.jabfung'?'active':'' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Akreditasi Prodi</p>
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
                     </ul>
                 </li>
