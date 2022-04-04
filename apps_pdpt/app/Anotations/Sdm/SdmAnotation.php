@@ -2,11 +2,28 @@
 
 /**
  * @OA\Get(
- *     path="/sdm/dosen/daftar",
+ *     path="/sdm/daftar",
  *     tags={"Sumber Daya Manusia"},
- *     summary="Mendapatkan Daftar Dosen",
- *     description="Menampilkan Daftar Dosen",
- *     operationId="daftarDosen",
+ *     summary="Mendapatkan Daftar SDM",
+ *     description="Menampilkan Daftar SDM<br>
+ *    <b>12. Dosen</b> <br>
+ *    <b>13. Tendik</b> <br>",
+ *     operationId="daftarSDM",
+ *       @OA\Parameter(
+ *         name="id_jns_sdm",
+ *         in="query",
+ *         description="ID Jenis SDM",
+ *         required=true,
+ *         @OA\Schema(
+ *         type="array",
+ *           @OA\Items(
+ *               type="integer",
+ *               enum={"12","13"},
+ *               default="available"
+ *           ),
+ *         ),
+ *         style="form"
+ *     ),
  *     @OA\Parameter(
  *          name="page",
  *          description="",
@@ -56,13 +73,31 @@
 
 /**
  * @OA\Get(
- *     path="/sdm/dosen/daftar_id",
+ *     path="/sdm/daftar_id",
  *     tags={"Sumber Daya Manusia"},
- *     summary="Mendapatkan Daftar Dosen Dengan Id Prodi",
- *     description="Menampilkan Daftar Dosen Dengan Id Prodi",
- *     operationId="daftar_idDosen",
-  *     @OA\Parameter(
- *          name="id_prodi",
+ *     summary="Mendapatkan Daftar SDM Dengan Id SMS",
+ *     description="Menampilkan Daftar SDM Dengan Id SMS<br>
+ *    <b>12. Dosen</b> <br>
+ *    <b>13. Tendik</b> <br>",
+ *     operationId="daftarSDM",
+ *       @OA\Parameter(
+ *         name="id_jns_sdm",
+ *         in="query",
+ *         description="ID Jenis SDM",
+ *         required=true,
+ *         @OA\Schema(
+ *         type="array",
+ *           @OA\Items(
+ *               type="integer",
+ *               enum={"12","13"},
+ *               default="available"
+ *           ),
+ *         ),
+ *         style="form"
+ *     ),
+ *     operationId="daftar_idSDM",
+ *     @OA\Parameter(
+ *          name="id_sms",
  *          description="",
  *          example="34bb110b-3d47-4170-bbe0-f4a1527b33cc",
  *          required=true,
@@ -120,11 +155,29 @@
 
 /**
  * @OA\Get(
- *     path="/sdm/dosen/detail",
+ *     path="/sdm/detail",
  *     tags={"Sumber Daya Manusia"},
- *     summary="Mendapatkan Detail Dosen",
- *     description="Menampilkan Detail Dosen",
- *     operationId="detailDosen",
+ *     summary="Mendapatkan Detail SDM",
+ *     description="Menampilkan Detail SDM<br>
+ *    <b>12. Dosen</b> <br>
+ *    <b>13. Tendik</b> <br>",
+ *     operationId="daftarSDM",
+ *       @OA\Parameter(
+ *         name="id_jns_sdm",
+ *         in="query",
+ *         description="ID Jenis SDM",
+ *         required=true,
+ *         @OA\Schema(
+ *         type="array",
+ *           @OA\Items(
+ *               type="integer",
+ *               enum={"12","13"},
+ *               default="available"
+ *           ),
+ *         ),
+ *         style="form"
+ *     ),
+ *     operationId="detailSDM",
  *     @OA\Parameter(
  *          name="id_sdm",
  *          description="",
@@ -151,162 +204,6 @@
  *     )
  * )
  */
-
-
- /**
- * @OA\Get(
- *     path="/sdm/tendik/daftar",
- *     tags={"Sumber Daya Manusia"},
- *     summary="Mendapatkan Daftar Tendik",
- *     description="Menampilkan Daftar Tendik",
- *     operationId="daftarTendik",
- *     @OA\Parameter(
- *          name="page",
- *          description="",
- *          example="1",
- *          required=false,
- *          in="query",
- *          @OA\Schema(
- *              type="number"
- *          )
- *     ),
- *     @OA\Parameter(
- *          name="count",
- *          description="",
- *          example="25",
- *          required=false,
- *          in="query",
- *          @OA\Schema(
- *              type="number"
- *          )
- *     ),
- *     @OA\Parameter(
- *          name="sortby",
- *          description="",
- *          example="DESC",
- *          required=false,
- *          in="query",
- *          @OA\Schema(
- *              type="string"
- *          )
- *     ),
- *      @OA\Response(
- *          response=200,
- *          description="Successful operation",
- *       ),
- *      @OA\Response(
- *          response=401,
- *          description="Unauthenticated",
- *      ),
- *      @OA\Response(
- *          response=403,
- *          description="Forbidden"
- *      ),
- *      security={{"bearer_token":{}}}
- *     )
- * )
- */
-
-/**
- * @OA\Get(
- *     path="/sdm/tendik/daftar_id",
- *     tags={"Sumber Daya Manusia"},
- *     summary="Mendapatkan Daftar Tendik Dengan Id Prodi",
- *     description="Menampilkan Daftar Tendik Dengan Id Prodi",
- *     operationId="daftar_idTendik",
-  *     @OA\Parameter(
- *          name="id_prodi",
- *          description="",
- *          example="34bb110b-3d47-4170-bbe0-f4a1527b33cc",
- *          required=true,
- *          in="query",
- *          @OA\Schema(
- *              type="string"
- *          )
- *     ),
- *     @OA\Parameter(
- *          name="page",
- *          description="",
- *          example="1",
- *          required=false,
- *          in="query",
- *          @OA\Schema(
- *              type="number"
- *          )
- *     ),
- *     @OA\Parameter(
- *          name="count",
- *          description="",
- *          example="25",
- *          required=false,
- *          in="query",
- *          @OA\Schema(
- *              type="number"
- *          )
- *     ),
- *     @OA\Parameter(
- *          name="sortby",
- *          description="",
- *          example="DESC",
- *          required=false,
- *          in="query",
- *          @OA\Schema(
- *              type="string"
- *          )
- *     ),
- *      @OA\Response(
- *          response=200,
- *          description="Successful operation",
- *       ),
- *      @OA\Response(
- *          response=401,
- *          description="Unauthenticated",
- *      ),
- *      @OA\Response(
- *          response=403,
- *          description="Forbidden"
- *      ),
- *      security={{"bearer_token":{}}}
- *     )
- * )
- */
-
-/**
- * @OA\Get(
- *     path="/sdm/tendik/detail",
- *     tags={"Sumber Daya Manusia"},
- *     summary="Mendapatkan Detail Tendik",
- *     description="Menampilkan Detail Tendik",
- *     operationId="detailTendik",
- *     @OA\Parameter(
- *          name="id_sdm",
- *          description="",
- *          example="219EE6A1-CE97-4151-932B-2C924F8F6FB2",
- *          required=true,
- *          in="query",
- *          @OA\Schema(
- *              type="string"
- *          )
- *     ),
- *      @OA\Response(
- *          response=200,
- *          description="Successful operation",
- *       ),
- *      @OA\Response(
- *          response=401,
- *          description="Unauthenticated",
- *      ),
- *      @OA\Response(
- *          response=403,
- *          description="Forbidden"
- *      ),
- *      security={{"bearer_token":{}}}
- *     )
- * )
- */
-
-
-
 /**
  * @OA\Get(
  *     path="/sdm/nonca/daftar",
@@ -360,8 +257,6 @@
  *     )
  * )
  */
-
-
 /**
  * @OA\Get(
  *     path="/sdm/nonca/detail",

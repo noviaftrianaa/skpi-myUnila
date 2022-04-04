@@ -25,6 +25,8 @@ class AlatController extends Controller
 
     public function daftar()
     {
+        $sortby = $this->request->input('sortby');
+
         InputValidator([
             'sortby' => [
                 'alpha',
@@ -33,7 +35,7 @@ class AlatController extends Controller
             'page' => 'required|numeric',
             'limit' => 'required|numeric'
         ]);
-        $sortby = $this->request->input('sortby');
+
         if (empty($sortby)) {
             $sortby = 'DESC';
         }
@@ -100,20 +102,6 @@ class AlatController extends Controller
             WHERE
                 alat.soft_delete = 0
         ";
-
-        $result = new QueryPagination($query);
-        if (empty($result->query())) {
-            return $this->wrapResponse
-                ->setMessage(static::QUERY_RESULT_EMPTY)
-                ->setError(['query' => 'tidak ada daftar alat yang ditampilkan'])
-                ->render();
-        }
-
-        return $this->wrapResponse
-            // ->setTransformer(new AlatTransformer, __FUNCTION__)
-            ->setStatusCode(Response::HTTP_ACCEPTED)
-            ->withPagination($result->pagination())
-            ->render($result->query());
     }
 
     public function tambah()

@@ -33,17 +33,9 @@ Route::group([
         });
 
         Route::prefix('sdm')->group(function () {
-            Route::get('dosen/daftar', 'SdmDosenController@daftar');
-            Route::get('dosen/daftar_id', 'SdmDosenController@daftar_id');
-            Route::get('dosen/detail', 'SdmDosenController@detail');
-            Route::get('tendik/daftar', 'SdmTendikController@daftar');
-            Route::get('tendik/daftar_id', 'SdmTendikController@daftar_id');
-            Route::get('tendik/detail', 'SdmTendikController@detail');
-            Route::get('nonca/daftar', 'NonCaController@daftar');
-            Route::get('nonca/detail', 'NonCaController@detail');
-            Route::post('nonca/tambah', 'NonCaController@tambah');
-            Route::put('nonca/ubah', 'NonCaController@ubah');
-            Route::delete('nonca/hapus', 'NonCaController@hapus');
+            Route::get('daftar', 'SdmController@daftar');
+            Route::get('daftar_id', 'SdmController@daftar_id');
+            Route::get('detail', 'SdmController@detail');
         });
 
         Route::prefix('buku')->group(function () {

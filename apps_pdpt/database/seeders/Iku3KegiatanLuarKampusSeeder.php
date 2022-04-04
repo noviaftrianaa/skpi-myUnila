@@ -410,6 +410,9 @@ class Iku3KegiatanLuarKampusSeeder extends Seeder
             SELECT
                 dosen.id_sms,
                 dosen.id_thn_ajaran AS id_tahun_anggaran,
+                dosen.fakuktas,
+                dosen.jurusan,
+                dosen.prodi,
                 (SELECT COUNT(nidk) FROM temp_iku.iku3dosen WHERE nidk IS NOT NULL AND id_sms = dosen.id_sms) AS total_dosen_nidk,
                 (SELECT COUNT(nidn) FROM temp_iku.iku3dosen WHERE nidn IS NOT NULL AND id_sms = dosen.id_sms) AS total_dosen_nidn,
                 (SELECT COUNT(c3_qs100) FROM temp_iku.iku3dosen WHERE c3_qs100 != 0 AND id_sms = dosen.id_sms) AS total_diklat_qs100,
