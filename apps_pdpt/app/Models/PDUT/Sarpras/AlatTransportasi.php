@@ -11,6 +11,13 @@ class AlatTransportasi extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_alat_transport',	'nm_alat_transport',	'create_date',	'id_creator',	'last_update',	'id_updater',	'soft_delete',	'last_sync',
+        'id_alat_transport',
+        'nm_alat_transport',
+        'create_date',
+        'id_creator',
+        'last_update',
+        'id_updater',
+        'soft_delete',
+        'last_sync',
     ];
 }
