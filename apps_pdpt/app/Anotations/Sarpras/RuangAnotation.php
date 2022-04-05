@@ -2,11 +2,11 @@
 
 /**
  * @OA\Get(
- *     path="/sarpras/alat/daftar",
+ *     path="/sarpras/ruang/daftar",
  *     tags={"Sarana dan Prasarana"},
- *     summary="Mendapatkan Daftar Sarpras Alat",
- *     description="Menampilkan Daftar Sarpras Alat",
- *     operationId="daftarSarprasAlat",
+ *     summary="Mendapatkan Daftar Sarpras Ruang",
+ *     description="Menampilkan Daftar Sarpras Ruang",
+ *     operationId="daftarSarprasRuang",
  *     @OA\Parameter(
  *          name="page",
  *          description="",
@@ -56,14 +56,13 @@
 
 /**
  * @OA\Post (
- *      path="/sarpras/alat/tambah",
- *      operationId="tambahSarprasAlat",
+ *      path="/sarpras/ruang/tambah",
+ *      operationId="tambahSarprasRuang",
  *      tags={"Sarana dan Prasarana"},
- *      summary="Tambah Sarpras Alat",
- *      description="Menambah Sarpras Alat",
+ *      summary="Tambah Sarpras Ruang",
+ *      description="Menambah Sarpras Ruang",
  *      @OA\RequestBody(
  *      required=true,
- *      description="Menambah Sarpras Alat",
  *      @OA\JsonContent(
  *          required={"id_jns_sarana", "id_hapus_buku", "id_sdm", "id_sms", "id_stat_milik_sarpras", "kd_kl", "kd_satker", "kd_brg", "nup", "kode_eselon1", "nama_eselon1", "kode_sub_satker", "nama_sub_satker", "panjang", "lebar", "luas", "alamat", "lintang", "bujur", "bmn_satker", "bmn_kd_barang", "bmn_nup", "nm_prasarana", "spesifikasi", "tgl_perolehan", "thn_produksi", "nilai_perolehan", "nilai_buku", "merk", "kd_kab_kota", "nm_kab_kota", "kd_prov", "nm_prov", "penggunaan", "kondisi", "no_dok_kepemilikan", "dok_kepemilikan", "jns_dok_kepemilikan", "tgl_hapus_buku", "asal_data"},
  *          @OA\Property(property="id_jns_sarana", type="string", format="text", example=""),
@@ -127,14 +126,13 @@
 
 /**
  * @OA\Put (
- *      path="/sarpras/alat/ubah",
+ *      path="/sarpras/ruang/ubah",
  *      operationId="ubahSarprasAlat",
  *      tags={"Sarana dan Prasarana"},
- *      summary="Ubah Sarpras Alat",
- *      description="Mengubah Sarpras Alat",
+ *      summary="Ubah Sarpras Ruang",
+ *      description="Mengubah Sarpras Ruang",
  *      @OA\RequestBody(
  *      required=true,
- *      description="Mengubah Sarpras Alat",
  *      @OA\JsonContent(
  *          required={"id_alat", "id_jns_sarana", "id_hapus_buku", "id_sdm", "id_sms", "id_stat_milik_sarpras", "kd_kl", "kd_satker", "kd_brg", "nup", "kode_eselon1", "nama_eselon1", "kode_sub_satker", "nama_sub_satker", "panjang", "lebar", "luas", "alamat", "lintang", "bujur", "bmn_satker", "bmn_kd_barang", "bmn_nup", "nm_prasarana", "spesifikasi", "tgl_perolehan", "thn_produksi", "nilai_perolehan", "nilai_buku", "merk", "kd_kab_kota", "nm_kab_kota", "kd_prov", "nm_prov", "penggunaan", "kondisi", "no_dok_kepemilikan", "dok_kepemilikan", "jns_dok_kepemilikan", "tgl_hapus_buku", "asal_data"},
  *          @OA\Property(property="id_alat", type="string", format="text", example=""),
@@ -199,14 +197,13 @@
 
 /**
  * @OA\Delete (
- *      path="/sarpras/alat/hapus",
+ *      path="/sarpras/ruang/hapus",
  *      operationId="hapusSarprasAlat",
  *      tags={"Sarana dan Prasarana"},
  *      summary="Hapus Sarpras Alat",
- *      description="Menghapus Sarpras Alat",
+ *      description="Menghapus Sarpras Ruang",
  *      @OA\RequestBody(
  *      required=true,
- *      description="Menghapus Sarpras Alat",
  *      @OA\JsonContent(
  *          required={"id_alat"},
  *          @OA\Property(property="id_alat", type="string", format="text", example="")

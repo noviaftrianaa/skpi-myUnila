@@ -4,7 +4,7 @@ if (!function_exists('CustomPagination')) {
     function CustomPagination($query = "", $maxPage = 50)
     {
         $page = 1;
-        $count = 10;
+        $limit = 10;
 
         if (request()->has('page')) {
             if (!empty(request()->input('page'))) {
@@ -12,12 +12,12 @@ if (!function_exists('CustomPagination')) {
             }
         }
 
-        if (request()->has('count')) {
-            if (!empty(request()->input('count'))) {
-                if (request()->input('count') > $maxPage) {
-                    $count = $maxPage;
+        if (request()->has('limit')) {
+            if (!empty(request()->input('limit'))) {
+                if (request()->input('limit') > $maxPage) {
+                    $limit = $maxPage;
                 } else {
-                    $count = request()->input('count');
+                    $limit = request()->input('limit');
                 }
             }
         }
@@ -25,7 +25,7 @@ if (!function_exists('CustomPagination')) {
         $paginationTop = "DECLARE @PageNumber AS INT
         DECLARE @RowsOfPage AS INT
         SET @PageNumber= $page
-        SET @RowsOfPage= $count";
+        SET @RowsOfPage= $limit";
 
         $paginationBottom = "OFFSET (@PageNumber-1)*@RowsOfPage ROWS
         FETCH NEXT @RowsOfPage ROWS ONLY";
@@ -36,7 +36,7 @@ if (!function_exists('CustomPagination')) {
         return [
             'query' => $query,
             'page' => $page,
-            'count' => $count
+            'limit' => $limit
         ];
     }
 }
