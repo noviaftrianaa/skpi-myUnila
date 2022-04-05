@@ -69,8 +69,8 @@ class AlatLongController extends Controller
         }
 
         $data = [];
-        foreach ($d_alat as $key => $value) {
-            $data[$key] = [
+        foreach ($d_alat as $value) {
+            $data[] = [
                 'id_alat' => $value->id_alat,
                 'id_smt' => $value->id_smt,
                 'nm_smt' => $value->nm_smt,

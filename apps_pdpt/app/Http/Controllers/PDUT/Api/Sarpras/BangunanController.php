@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 class BangunanController extends Controller
 {
     protected $request;
-    protected $alatTransportasi;
+    protected $mBangunan;
     protected $wrapResponse;
     protected $creatorId;
     protected $updateId;
@@ -23,7 +23,7 @@ class BangunanController extends Controller
     public function __construct(Request $request)
     {
         $this->request = $request;
-        $this->alatTransportasi = new Bangunan();
+        $this->mBangunan = new Bangunan();
         $this->wrapResponse = new WrapResponse;
         $this->creatorId = $this->updateId = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
     }
@@ -198,13 +198,390 @@ class BangunanController extends Controller
 
     public function tambah()
     {
+        // InputValidator([
+        //     'id_stat_milik_sarpras' => 'required',
+        //     'id_sms' => 'required',
+        //     'id_jns_prasarana' => 'required',
+        //     'kd_satuan' => 'required',
+        //     'id_hapus_buku' => 'required',
+        //     'id_tanah' => 'required',
+        //     'nm_prasarana' => 'required',
+        //     'kd_kl' => 'required',
+        //     'kd_satker' => 'required',
+        //     'kd_brg' => 'required',
+        //     'nup' => 'required',
+        //     'kode_eselon1' => 'required',
+        //     'nama_eselon1' => 'required',
+        //     'kode_sub_satker' => 'required',
+        //     'nama_sub_satker' => 'required',
+        //     'panjang' => 'required',
+        //     'lebar' => 'required',
+        //     'luas' => 'required',
+        //     'alamat' => 'required',
+        //     'lintang' => 'required',
+        //     'bujur' => 'required',
+        //     'bmn_satker' => 'required',
+        //     'bmn_kd_barang' => 'required',
+        //     'bmn_nup' => 'required',
+        //     'nm_prasarana' => 'required',
+        //     'spesifikasi' => 'required',
+        //     'tgl_perolehan' => 'required',
+        //     'thn_produksi' => 'required',
+        //     'nilai_perolehan' => 'required',
+        //     'nilai_buku' => 'required',
+        //     'merk' => 'required',
+        //     'kd_kab_kota' => 'required',
+        //     'nm_kab_kota' => 'required',
+        //     'kd_prov' => 'required',
+        //     'nm_prov' => 'required',
+        //     'penggunaan' => 'required',
+        //     'kondisi' => 'required',
+        //     'no_dok_kepemilikan' => 'required',
+        //     'dok_kepemilikan' => 'required',
+        //     'jns_dok_kepemilikan' => 'required',
+        //     'tgl_hapus_buku' => 'required',
+        //     'asal_data' => 'required',
+        //     'ket_bangunan' => 'required',
+        //     'kd_satker_tanah' => 'required',
+        //     'nm_satker_tanah' => 'required',
+        //     'kd_brg_tanah' => 'required',
+        //     'nm_brg_tanah' => 'required',
+        //     'nup_brg_tanah' => 'required',
+        //     'tgl_sk_pemakai' => 'required',
+        //     'kapasitas' => 'required'
+        // ]);
+
+        $id_bangunan = guid();
+        $id_stat_milik_sarpras = $this->request->input('id_stat_milik_sarpras');
+        $id_sms = $this->request->input('id_sms');
+        $id_jns_prasarana = $this->request->input('id_jns_prasarana');
+        $kd_satuan = $this->request->input('kd_satuan');
+        $id_hapus_buku = $this->request->input('id_hapus_buku');
+        $id_tanah = $this->request->input('id_tanah');
+        $nm_prasarana = $this->request->input('nm_prasarana');
+        $kd_kl = $this->request->input('kd_kl');
+        $kd_satker = $this->request->input('kd_satker');
+        $kd_brg = $this->request->input('kd_brg');
+        $nup = $this->request->input('nup');
+        $kode_eselon1 = $this->request->input('kode_eselon1');
+        $nama_eselon1 = $this->request->input('nama_eselon1');
+        $kode_sub_satker = $this->request->input('kode_sub_satker');
+        $nama_sub_satker = $this->request->input('nama_sub_satker');
+        $panjang = $this->request->input('panjang');
+        $lebar = $this->request->input('lebar');
+        $luas = $this->request->input('luas');
+        $alamat = $this->request->input('alamat');
+        $lintang = $this->request->input('lintang');
+        $bujur = $this->request->input('bujur');
+        $bmn_satker = $this->request->input('bmn_satker');
+        $bmn_kd_barang = $this->request->input('bmn_kd_barang');
+        $bmn_nup = $this->request->input('bmn_nup');
+        $nm_prasarana = $this->request->input('nm_prasarana');
+        $spesifikasi = $this->request->input('spesifikasi');
+        $tgl_perolehan = $this->request->input('tgl_perolehan');
+        $thn_produksi = $this->request->input('thn_produksi');
+        $nilai_perolehan = $this->request->input('nilai_perolehan');
+        $nilai_buku = $this->request->input('nilai_buku');
+        $merk = $this->request->input('merk');
+        $kd_kab_kota = $this->request->input('kd_kab_kota');
+        $nm_kab_kota = $this->request->input('nm_kab_kota');
+        $kd_prov = $this->request->input('kd_prov');
+        $nm_prov = $this->request->input('nm_prov');
+        $penggunaan = $this->request->input('penggunaan');
+        $kondisi = $this->request->input('kondisi');
+        $no_dok_kepemilikan = $this->request->input('no_dok_kepemilikan');
+        $dok_kepemilikan = $this->request->input('dok_kepemilikan');
+        $jns_dok_kepemilikan = $this->request->input('jns_dok_kepemilikan');
+        $tgl_hapus_buku = $this->request->input('tgl_hapus_buku');
+        $asal_data = $this->request->input('asal_data');
+        $ket_bangunan = $this->request->input('ket_bangunan');
+        $kd_satker_tanah = $this->request->input('kd_satker_tanah');
+        $nm_satker_tanah = $this->request->input('nm_satker_tanah');
+        $kd_brg_tanah = $this->request->input('kd_brg_tanah');
+        $nm_brg_tanah = $this->request->input('nm_brg_tanah');
+        $nup_brg_tanah = $this->request->input('nup_brg_tanah');
+        $tgl_sk_pemakai = $this->request->input('tgl_sk_pemakai');
+        $kapasitas = $this->request->input('kapasitas');
+
+        $data = [
+            'id_bangunan' => $id_bangunan,
+            'id_stat_milik_sarpras' => $id_stat_milik_sarpras,
+            'id_sms' => $id_sms,
+            'id_jns_prasarana' => $id_jns_prasarana,
+            'kd_satuan' => $kd_satuan,
+            'id_hapus_buku' => $id_hapus_buku,
+            'id_tanah' => $id_tanah,
+            'nm_prasarana' => $nm_prasarana,
+            'kd_kl' => $kd_kl,
+            'kd_satker' => $kd_satker,
+            'kd_brg' => $kd_brg,
+            'nup' => $nup,
+            'kode_eselon1' => $kode_eselon1,
+            'nama_eselon1' => $nama_eselon1,
+            'kode_sub_satker' => $kode_sub_satker,
+            'nama_sub_satker' => $nama_sub_satker,
+            'panjang' => $panjang,
+            'lebar' => $lebar,
+            'luas' => $luas,
+            'alamat' => $alamat,
+            'lintang' => $lintang,
+            'bujur' => $bujur,
+            'bmn_satker' => $bmn_satker,
+            'bmn_kd_barang' => $bmn_kd_barang,
+            'bmn_nup' => $bmn_nup,
+            'nm_prasarana' => $nm_prasarana,
+            'spesifikasi' => $spesifikasi,
+            'tgl_perolehan' => $tgl_perolehan,
+            'thn_produksi' => $thn_produksi,
+            'nilai_perolehan' => $nilai_perolehan,
+            'nilai_buku' => $nilai_buku,
+            'merk' => $merk,
+            'kd_kab_kota' => $kd_kab_kota,
+            'nm_kab_kota' => $nm_kab_kota,
+            'kd_prov' => $kd_prov,
+            'nm_prov' => $nm_prov,
+            'penggunaan' => $penggunaan,
+            'kondisi' => $kondisi,
+            'no_dok_kepemilikan' => $no_dok_kepemilikan,
+            'dok_kepemilikan' => $dok_kepemilikan,
+            'jns_dok_kepemilikan' => $jns_dok_kepemilikan,
+            'tgl_hapus_buku' => $tgl_hapus_buku,
+            'asal_data' => $asal_data,
+            'ket_bangunan' => $ket_bangunan,
+            'kd_satker_tanah' => $kd_satker_tanah,
+            'nm_satker_tanah' => $nm_satker_tanah,
+            'kd_brg_tanah' => $kd_brg_tanah,
+            'nm_brg_tanah' => $nm_brg_tanah,
+            'nup_brg_tanah' => $nup_brg_tanah,
+            'tgl_sk_pemakai' => $tgl_sk_pemakai,
+            'kapasitas' => $kapasitas,
+            'soft_delete' => 0,
+            'create_date' => currDateTime(),
+            'id_creator' => $this->creatorId,
+            'last_update' => currDateTime(),
+            'id_updater' => $this->updateId,
+            'last_sync' => currDateTime(),
+        ];
+
+        DB::beginTransaction();
+        try {
+            $this->mBangunan->create($data);
+            DB::commit();
+            return WrapResponse(array('data' => array('id_bangunan' => $id_bangunan)), 'sukses menambahkan sarpras bangunan', TRUE);
+        } catch (ModelNotFoundException $mnfe) {
+            DB::rollBack();
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+            return WrapResponse(['data' => null], 'sarpras bangunan tidak dapat ditambahkan', FALSE);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
+            return WrapResponse(['data' => null], 'gagal menambahkan sarpras bangunan', FALSE);
+        }
     }
 
     public function ubah()
     {
+        // InputValidator([
+        //     'id_bangunan' => 'required',
+        //     'id_stat_milik_sarpras' => 'required',
+        //     'id_sms' => 'required',
+        //     'id_jns_prasarana' => 'required',
+        //     'kd_satuan' => 'required',
+        //     'id_hapus_buku' => 'required',
+        //     'id_tanah' => 'required',
+        //     'nm_prasarana' => 'required',
+        //     'kd_kl' => 'required',
+        //     'kd_satker' => 'required',
+        //     'kd_brg' => 'required',
+        //     'nup' => 'required',
+        //     'kode_eselon1' => 'required',
+        //     'nama_eselon1' => 'required',
+        //     'kode_sub_satker' => 'required',
+        //     'nama_sub_satker' => 'required',
+        //     'panjang' => 'required',
+        //     'lebar' => 'required',
+        //     'luas' => 'required',
+        //     'alamat' => 'required',
+        //     'lintang' => 'required',
+        //     'bujur' => 'required',
+        //     'bmn_satker' => 'required',
+        //     'bmn_kd_barang' => 'required',
+        //     'bmn_nup' => 'required',
+        //     'nm_prasarana' => 'required',
+        //     'spesifikasi' => 'required',
+        //     'tgl_perolehan' => 'required',
+        //     'thn_produksi' => 'required',
+        //     'nilai_perolehan' => 'required',
+        //     'nilai_buku' => 'required',
+        //     'merk' => 'required',
+        //     'kd_kab_kota' => 'required',
+        //     'nm_kab_kota' => 'required',
+        //     'kd_prov' => 'required',
+        //     'nm_prov' => 'required',
+        //     'penggunaan' => 'required',
+        //     'kondisi' => 'required',
+        //     'no_dok_kepemilikan' => 'required',
+        //     'dok_kepemilikan' => 'required',
+        //     'jns_dok_kepemilikan' => 'required',
+        //     'tgl_hapus_buku' => 'required',
+        //     'asal_data' => 'required',
+        //     'ket_bangunan' => 'required',
+        //     'kd_satker_tanah' => 'required',
+        //     'nm_satker_tanah' => 'required',
+        //     'kd_brg_tanah' => 'required',
+        //     'nm_brg_tanah' => 'required',
+        //     'nup_brg_tanah' => 'required',
+        //     'tgl_sk_pemakai' => 'required',
+        //     'kapasitas' => 'required'
+        // ]);
+
+        $id_bangunan = $this->request->input('id_bangunan');
+        $id_stat_milik_sarpras = $this->request->input('id_stat_milik_sarpras');
+        $id_sms = $this->request->input('id_sms');
+        $id_jns_prasarana = $this->request->input('id_jns_prasarana');
+        $kd_satuan = $this->request->input('kd_satuan');
+        $id_hapus_buku = $this->request->input('id_hapus_buku');
+        $id_tanah = $this->request->input('id_tanah');
+        $nm_prasarana = $this->request->input('nm_prasarana');
+        $kd_kl = $this->request->input('kd_kl');
+        $kd_satker = $this->request->input('kd_satker');
+        $kd_brg = $this->request->input('kd_brg');
+        $nup = $this->request->input('nup');
+        $kode_eselon1 = $this->request->input('kode_eselon1');
+        $nama_eselon1 = $this->request->input('nama_eselon1');
+        $kode_sub_satker = $this->request->input('kode_sub_satker');
+        $nama_sub_satker = $this->request->input('nama_sub_satker');
+        $panjang = $this->request->input('panjang');
+        $lebar = $this->request->input('lebar');
+        $luas = $this->request->input('luas');
+        $alamat = $this->request->input('alamat');
+        $lintang = $this->request->input('lintang');
+        $bujur = $this->request->input('bujur');
+        $bmn_satker = $this->request->input('bmn_satker');
+        $bmn_kd_barang = $this->request->input('bmn_kd_barang');
+        $bmn_nup = $this->request->input('bmn_nup');
+        $nm_prasarana = $this->request->input('nm_prasarana');
+        $spesifikasi = $this->request->input('spesifikasi');
+        $tgl_perolehan = $this->request->input('tgl_perolehan');
+        $thn_produksi = $this->request->input('thn_produksi');
+        $nilai_perolehan = $this->request->input('nilai_perolehan');
+        $nilai_buku = $this->request->input('nilai_buku');
+        $merk = $this->request->input('merk');
+        $kd_kab_kota = $this->request->input('kd_kab_kota');
+        $nm_kab_kota = $this->request->input('nm_kab_kota');
+        $kd_prov = $this->request->input('kd_prov');
+        $nm_prov = $this->request->input('nm_prov');
+        $penggunaan = $this->request->input('penggunaan');
+        $kondisi = $this->request->input('kondisi');
+        $no_dok_kepemilikan = $this->request->input('no_dok_kepemilikan');
+        $dok_kepemilikan = $this->request->input('dok_kepemilikan');
+        $jns_dok_kepemilikan = $this->request->input('jns_dok_kepemilikan');
+        $tgl_hapus_buku = $this->request->input('tgl_hapus_buku');
+        $asal_data = $this->request->input('asal_data');
+        $ket_bangunan = $this->request->input('ket_bangunan');
+        $kd_satker_tanah = $this->request->input('kd_satker_tanah');
+        $nm_satker_tanah = $this->request->input('nm_satker_tanah');
+        $kd_brg_tanah = $this->request->input('kd_brg_tanah');
+        $nm_brg_tanah = $this->request->input('nm_brg_tanah');
+        $nup_brg_tanah = $this->request->input('nup_brg_tanah');
+        $tgl_sk_pemakai = $this->request->input('tgl_sk_pemakai');
+        $kapasitas = $this->request->input('kapasitas');
+
+        $data = [
+            'id_bangunan' => $id_bangunan,
+            'id_stat_milik_sarpras' => $id_stat_milik_sarpras,
+            'id_sms' => $id_sms,
+            'id_jns_prasarana' => $id_jns_prasarana,
+            'kd_satuan' => $kd_satuan,
+            'id_hapus_buku' => $id_hapus_buku,
+            'id_tanah' => $id_tanah,
+            'nm_prasarana' => $nm_prasarana,
+            'kd_kl' => $kd_kl,
+            'kd_satker' => $kd_satker,
+            'kd_brg' => $kd_brg,
+            'nup' => $nup,
+            'kode_eselon1' => $kode_eselon1,
+            'nama_eselon1' => $nama_eselon1,
+            'kode_sub_satker' => $kode_sub_satker,
+            'nama_sub_satker' => $nama_sub_satker,
+            'panjang' => $panjang,
+            'lebar' => $lebar,
+            'luas' => $luas,
+            'alamat' => $alamat,
+            'lintang' => $lintang,
+            'bujur' => $bujur,
+            'bmn_satker' => $bmn_satker,
+            'bmn_kd_barang' => $bmn_kd_barang,
+            'bmn_nup' => $bmn_nup,
+            'nm_prasarana' => $nm_prasarana,
+            'spesifikasi' => $spesifikasi,
+            'tgl_perolehan' => $tgl_perolehan,
+            'thn_produksi' => $thn_produksi,
+            'nilai_perolehan' => $nilai_perolehan,
+            'nilai_buku' => $nilai_buku,
+            'merk' => $merk,
+            'kd_kab_kota' => $kd_kab_kota,
+            'nm_kab_kota' => $nm_kab_kota,
+            'kd_prov' => $kd_prov,
+            'nm_prov' => $nm_prov,
+            'penggunaan' => $penggunaan,
+            'kondisi' => $kondisi,
+            'no_dok_kepemilikan' => $no_dok_kepemilikan,
+            'dok_kepemilikan' => $dok_kepemilikan,
+            'jns_dok_kepemilikan' => $jns_dok_kepemilikan,
+            'tgl_hapus_buku' => $tgl_hapus_buku,
+            'asal_data' => $asal_data,
+            'ket_bangunan' => $ket_bangunan,
+            'kd_satker_tanah' => $kd_satker_tanah,
+            'nm_satker_tanah' => $nm_satker_tanah,
+            'kd_brg_tanah' => $kd_brg_tanah,
+            'nm_brg_tanah' => $nm_brg_tanah,
+            'nup_brg_tanah' => $nup_brg_tanah,
+            'tgl_sk_pemakai' => $tgl_sk_pemakai,
+            'kapasitas' => $kapasitas,
+            'last_update' => currDateTime(),
+            'id_updater' => $this->updateId
+        ];
+
+        DB::beginTransaction();
+        try {
+            $this->mBangunan->update($id_bangunan, $data);
+            DB::commit();
+            return WrapResponse(array('data' => array('id_bangunan' => $id_bangunan)), 'sukses mengubah sarpras bangunan', TRUE);
+        } catch (ModelNotFoundException $mnfe) {
+            DB::rollBack();
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+            return WrapResponse(['data' => null], 'sarpras bangunan tidak dapat diubah', FALSE);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
+            return WrapResponse(['data' => null], 'gagal mengubah sarpras bangunan', FALSE);
+        }
+
     }
 
     public function hapus()
     {
+        $id_bangunan = $this->request->input('id_bangunan');
+        $data = [
+            'soft_delete' => 1,
+            'last_update' => currDateTime(),
+            'id_updater' => $this->updateId
+        ];
+
+        DB::beginTransaction();
+        try {
+            $this->mBangunan->update($id_bangunan, $data);
+            DB::commit();
+            return WrapResponse(array('data' => array('id_bangunan' => $id_bangunan)), 'sukses menghapus sarpras bangunan', TRUE);
+        } catch (ModelNotFoundException $mnfe) {
+            DB::rollBack();
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+            return WrapResponse(['data' => null], 'sarpras bangunan tidak dapat dihapus', FALSE);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
+            return WrapResponse(['data' => null], 'gagal menghapus sarpras bangunan', FALSE);
+        }
     }
 }
