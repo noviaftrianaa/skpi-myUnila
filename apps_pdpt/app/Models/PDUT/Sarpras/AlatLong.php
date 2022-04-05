@@ -11,6 +11,15 @@ class AlatLong extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_alat',	'id_smt',	'jml_laik',	'jml_tidak_laik',	'create_date',	'id_creator',	'last_update',	'id_updater',	'soft_delete',	'last_sync',
+        'id_alat',
+        'id_smt',
+        'jml_laik',
+        'jml_tidak_laik',
+        'create_date',
+        'id_creator',
+        'last_update',
+        'id_updater',
+        'soft_delete',
+        'last_sync',
     ];
 }

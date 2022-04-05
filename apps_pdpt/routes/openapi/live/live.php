@@ -32,33 +32,36 @@ Route::group([
             Route::delete('/gajisdm/hapus', 'KeuanganGajiSdmController@hapus');
         });
 
-        Route::prefix('sdm')->group(function () {
-            Route::get('dosen/daftar', 'SdmDosenController@daftar');
-            Route::get('dosen/daftar_id', 'SdmDosenController@daftar_id');
-            Route::get('dosen/detail', 'SdmDosenController@detail');
-            Route::get('tendik/daftar', 'SdmTendikController@daftar');
-            Route::get('tendik/daftar_id', 'SdmTendikController@daftar_id');
-            Route::get('tendik/detail', 'SdmTendikController@detail');
-            Route::get('nonca/daftar', 'NonCaController@daftar');
-            Route::get('nonca/detail', 'NonCaController@detail');
-            Route::post('nonca/tambah', 'NonCaController@tambah');
-            Route::put('nonca/ubah', 'NonCaController@ubah');
-            Route::delete('nonca/hapus', 'NonCaController@hapus');
+        Route::prefix('nonca')->group(function () {
+            Route::get('daftar', 'NonCaController@daftar');
+            Route::get('detail', 'NonCaController@detail');
+            Route::post('tambah', 'NonCaController@tambah');
+            Route::put('ubah', 'NonCaController@ubah');
+            Route::delete('hapus', 'NonCaController@hapus');
         });
 
-        Route::prefix('buku')->group(function () {
-            Route::get('ajar/daftar', 'BukuAjarController@daftar');
-            Route::get('ajar/daftar_id', 'BukuAjarController@listById');
-            Route::get('ajar/detail', 'BukuAjarController@detail');
-            Route::post('ajar/tambah', 'BukuAjarController@tambah');
-            Route::put('ajar/ubah', 'BukuAjarController@ubah');
-            Route::delete('ajar/hapus', 'BukuAjarController@hapus');
-            Route::get('referensi/daftar', 'BukuReferensiController@daftar');
-            Route::get('referensi/daftar_id', 'BukuReferensiController@daftar_id');
-            Route::get('referensi/detail', 'BukuReferensiController@detail');
-            Route::post('referensi/tambah', 'BukuReferensiController@tambah');
-            Route::put('referensi/ubah', 'BukuReferensiController@ubah');
-            Route::delete('referensi/hapus', 'BukuReferensiController@hapus');
+        Route::prefix('sdm')->group(function () {
+            Route::get('daftar', 'SdmController@daftar');
+            Route::get('daftar_id', 'SdmController@daftar_id');
+            Route::get('detail', 'SdmController@detail');
+        });
+
+        Route::prefix('buku_ajar')->group(function () {
+            Route::get('daftar', 'BukuAjarController@daftar');
+            Route::get('daftar_id', 'BukuAjarController@daftar_id');
+            Route::get('detail', 'BukuAjarController@detail');
+            Route::post('tambah', 'BukuAjarController@tambah');
+            Route::put('ubah', 'BukuAjarController@ubah');
+            Route::delete('hapus', 'BukuAjarController@hapus');
+        });
+
+        Route::prefix('buku_referensi')->group(function () {
+            Route::get('daftar', 'BukuReferensiController@daftar');
+            Route::get('daftar_id', 'BukuReferensiController@daftar_id');
+            Route::get('detail', 'BukuReferensiController@detail');
+            Route::post('tambah', 'BukuReferensiController@tambah');
+            Route::put('ubah', 'BukuReferensiController@ubah');
+            Route::delete('hapus', 'BukuReferensiController@hapus');
         });
 
         Route::prefix('penelitian')->group(function () {
@@ -113,54 +116,24 @@ Route::group([
         'namespace' => 'Tracer',
         'prefix' => 'tracer_study'
     ], function () {
+        //umr
         Route::get('umr_wilayah', 'UmrController@index');
         Route::post('umr_wilayah/tambah', 'UmrController@store');
         Route::put('umr_wilayah/ubah', 'UmrController@update');
         Route::delete('umr_wilayah/hapus', 'UmrController@destroy');
 
+        //hasil tracer
         Route::get('list', 'TracerStudyController@index');
         Route::post('tambah', 'TracerStudyController@store');
         Route::put('ubah', 'TracerStudyController@update');
         Route::delete('hapus', 'TracerStudyController@destroy');
+
+        //hasil tracer atasan
+        Route::get('list_atasan', 'TracerStudyController@indexAtasan');
+        Route::post('tambah_atasan', 'TracerStudyController@storeAtasan');
+        Route::put('ubah_atasan', 'TracerStudyController@updateAtasan');
         Route::delete('hapus_atasan', 'TracerStudyController@destroyAtasan');
     });
-
-
-    Route::group([
-        'namespace' => 'Sarpras',
-        'prefix' => 'sarpras'
-    ], function () {
-        Route::get('daftar/alat', 'AlatController@daftar');
-        Route::get('daftar/alat_long', 'AlatLongController@daftar');
-        Route::get('daftar/alat_transportasi', 'AlatTransportasiController@daftar');
-        Route::get('daftar/angkutan', 'AngkutanController@daftar');
-        Route::get('daftar/bangunan', 'BangunanController@daftar');
-        Route::get('daftar/dbr', 'DbrController@daftar');
-        Route::get('daftar/ruang', 'RuangController@daftar');
-        Route::get('daftar/tanah', 'TanahController@daftar');
-        Route::post('tambah/alat', 'AlatController@tambah');
-        Route::post('tambah/alat_long', 'AlatLongController@tambah');
-        Route::post('tambah/angkutan', 'AngkutanController@tambah');
-        Route::post('tambah/bangunan', 'BangunanController@tambah');
-        Route::post('tambah/dbr', 'DbrController@tambah');
-        Route::post('tambah/ruang', 'RuangController@tambah');
-        Route::post('tambah/tanah', 'TanahController@tambah');
-        Route::put('ubah/alat', 'AlatController@ubah');
-        Route::put('ubah/alat_long', 'AlatLongController@ubah');
-        Route::put('ubah/angkutan', 'AngkutanController@ubah');
-        Route::put('ubah/bangunan', 'BangunanController@ubah');
-        Route::put('ubah/dbr', 'DbrController@ubah');
-        Route::put('ubah/ruang', 'RuangController@ubah');
-        Route::put('ubah/tanah', 'TanahController@ubah');
-        Route::delete('hapus/alat', 'AlatController@hapus');
-        Route::delete('hapus/alat_long', 'AlatLongController@hapus');
-        Route::delete('hapus/angkutan', 'AngkutanController@hapus');
-        Route::delete('hapus/bangunan', 'BangunanController@hapus');
-        Route::delete('hapus/dbr', 'DbrController@hapus');
-        Route::delete('hapus/ruang', 'RuangController@hapus');
-        Route::delete('hapus/tanah', 'TanahController@hapus');
-    });
-
 
     Route::group([
         'namespace' => 'Presensi',
@@ -173,5 +146,41 @@ Route::group([
 
     Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
         return $request->user();
+    });
+
+
+    Route::group([
+        'namespace' => 'Sarpras',
+        'prefix' => 'sarpras'
+    ], function () {
+        Route::get('alat/daftar', 'AlatController@daftar');
+        Route::get('alat_long/daftar', 'AlatLongController@daftar');
+        Route::get('alat_transportasi/daftar', 'AlatTransportasiController@daftar');
+        Route::get('angkutan/daftar', 'AngkutanController@daftar');
+        Route::get('bangunan/daftar', 'BangunanController@daftar');
+        Route::get('dbr/daftar', 'DbrController@daftar');
+        Route::get('ruang/daftar', 'RuangController@daftar');
+        Route::get('tanah/daftar', 'TanahController@daftar');
+        Route::post('alat/tambah', 'AlatController@tambah');
+        Route::post('alat_long/tambah', 'AlatLongController@tambah');
+        Route::post('angkutan/tambah', 'AngkutanController@tambah');
+        Route::post('bangunan/tambah', 'BangunanController@tambah');
+        Route::post('dbr/tambah', 'DbrController@tambah');
+        Route::post('ruang/tambah', 'RuangController@tambah');
+        Route::post('tanah/tambah', 'TanahController@tambah');
+        Route::put('alat/ubah', 'AlatController@ubah');
+        Route::put('alat_long/ubah', 'AlatLongController@ubah');
+        Route::put('angkutan/ubah', 'AngkutanController@ubah');
+        Route::put('bangunan/ubah', 'BangunanController@ubah');
+        Route::put('dbr/ubah', 'DbrController@ubah');
+        Route::put('ruang/ubah', 'RuangController@ubah');
+        Route::put('tanah/ubah', 'TanahController@ubah');
+        Route::delete('alat/hapus', 'AlatController@hapus');
+        Route::delete('alat_long/hapus', 'AlatLongController@hapus');
+        Route::delete('angkutan/hapus', 'AngkutanController@hapus');
+        Route::delete('bangunan/hapus', 'BangunanController@hapus');
+        Route::delete('dbr/hapus', 'DbrController@hapus');
+        Route::delete('ruang/hapus', 'RuangController@hapus');
+        Route::delete('tanah/hapus', 'TanahController@hapus');
     });
 });

@@ -157,7 +157,7 @@
      *      description="Daftar Alumni Berdasarkan id_prodi Contoh Ilmu Komputer = 54BBD27B-2376-4CAE-9951-76EF54BD2CA2",
      *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
      *          @OA\Schema(type="number")),
-     *      @OA\Parameter( name="item", description="masukan jumlah data", example="10", required=false, in="query",
+     *      @OA\Parameter( name="item", description="masukan jumlah data", example="50", required=false, in="query",
      *          @OA\Schema(type="number")),
      *      @OA\Parameter( name="sortby", description="Masukan urutan by ASC/DESC", example="ASC", required=false, in="query",
      *          @OA\Schema(type="string")),

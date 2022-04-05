@@ -5,7 +5,7 @@ namespace App\Models\PDUT\Temp_iku;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TempKelas_Kp extends Model
+class TempIku7 extends Model
 {
     protected $table = 'temp_iku.matkul';
     protected $primaryKey = 'id_temp_matkul';

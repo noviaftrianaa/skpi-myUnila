@@ -51,7 +51,20 @@ class MahasiswaController extends Controller
                 pd.create_date AS waktu_data_ditambahkan,
                 pd.last_update AS terakhir_diubah,
                 kuliah.smt_skrng,
-                kul.id_stat_mhs AS status
+            CASE
+                WHEN kul.id_stat_mhs = 'A' THEN 'Aktif'
+                WHEN kul.id_stat_mhs = 'C' THEN 'Cuti'
+                WHEN kul.id_stat_mhs = 'D' THEN 'Drop Out / Dikeluarkan'
+                WHEN kul.id_stat_mhs = 'G' THEN 'Sedang Double Degree'
+                WHEN kul.id_stat_mhs = 'H' THEN 'Hilang'
+                WHEN kul.id_stat_mhs = 'K' THEN 'Mengundurkan Diri / Keluar'
+                WHEN kul.id_stat_mhs = 'L' THEN 'Lulus'
+                WHEN kul.id_stat_mhs = 'M' THEN 'Mutasi'
+                WHEN kul.id_stat_mhs = 'N' THEN 'Non Aktif'
+                WHEN kul.id_stat_mhs = 'T' THEN 'Transfer'
+                WHEN kul.id_stat_mhs = 'U' THEN 'Unknown'
+                WHEN kul.id_stat_mhs = 'W' THEN 'Wafat'
+            END AS status
             FROM
                 pdrd.peserta_didik AS pd WITH(NOLOCK)
                 JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
@@ -134,7 +147,20 @@ class MahasiswaController extends Controller
                 reg.nipd AS npm,
                 pd.nm_pd,
                 CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS nm_prodi,
-                kul.id_stat_mhs AS status_sekarang,
+                CASE
+                    WHEN kul.id_stat_mhs = 'A' THEN  'Aktif'
+                    WHEN kul.id_stat_mhs = 'C' THEN  'Cuti'
+                    WHEN kul.id_stat_mhs = 'D' THEN  'Drop Out / Dikeluarkan'
+                    WHEN kul.id_stat_mhs = 'G' THEN  'Sedang Double Degree'
+                    WHEN kul.id_stat_mhs = 'H' THEN  'Hilang'
+                    WHEN kul.id_stat_mhs = 'K' THEN  'Mengundurkan Diri / Keluar'
+                    WHEN kul.id_stat_mhs = 'L' THEN  'Lulus'
+                    WHEN kul.id_stat_mhs = 'M' THEN  'Mutasi'
+                    WHEN kul.id_stat_mhs = 'N' THEN  'Non Aktif'
+                    WHEN kul.id_stat_mhs = 'T' THEN  'Transfer'
+                    WHEN kul.id_stat_mhs = 'U' THEN  'Unknown'
+                    WHEN kul.id_stat_mhs = 'W' THEN  'Wafat'
+                END AS status_sekarang,
                 reg.tgl_masuk_sp,
                 smt.nm_smt AS periode_masuk,
                 reg.nm_pt_asal,
@@ -320,7 +346,20 @@ class MahasiswaController extends Controller
                 pd.create_date AS waktu_data_ditambahkan,
                 pd.last_update AS terakhir_diubah,
                 kuliah.smt_skrng,
-                kul.id_stat_mhs AS status
+            CASE
+                WHEN kul.id_stat_mhs = 'A' THEN 'Aktif'
+                WHEN kul.id_stat_mhs = 'C' THEN 'Cuti'
+                WHEN kul.id_stat_mhs = 'D' THEN 'Drop Out / Dikeluarkan'
+                WHEN kul.id_stat_mhs = 'G' THEN 'Sedang Double Degree'
+                WHEN kul.id_stat_mhs = 'H' THEN 'Hilang'
+                WHEN kul.id_stat_mhs = 'K' THEN 'Mengundurkan Diri / Keluar'
+                WHEN kul.id_stat_mhs = 'L' THEN 'Lulus'
+                WHEN kul.id_stat_mhs = 'M' THEN 'Mutasi'
+                WHEN kul.id_stat_mhs = 'N' THEN 'Non Aktif'
+                WHEN kul.id_stat_mhs = 'T' THEN 'Transfer'
+                WHEN kul.id_stat_mhs = 'U' THEN 'Unknown'
+                WHEN kul.id_stat_mhs = 'W' THEN 'Wafat'
+            END AS status
             FROM
                 pdrd.peserta_didik AS pd WITH(NOLOCK)
                 JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
@@ -564,7 +603,20 @@ class MahasiswaController extends Controller
         $semester = DB::SELECT("
             SELECT
                 ts.nm_smt AS periode,
-                kul.id_stat_mhs,
+            CASE
+                WHEN kul.id_stat_mhs = 'A' THEN  'Aktif'
+                WHEN kul.id_stat_mhs = 'C' THEN  'Cuti'
+                WHEN kul.id_stat_mhs = 'D' THEN  'Drop Out / Dikeluarkan'
+                WHEN kul.id_stat_mhs = 'G' THEN  'Sedang Double Degree'
+                WHEN kul.id_stat_mhs = 'H' THEN  'Hilang'
+                WHEN kul.id_stat_mhs = 'K' THEN  'Mengundurkan Diri / Keluar'
+                WHEN kul.id_stat_mhs = 'L' THEN  'Lulus'
+                WHEN kul.id_stat_mhs = 'M' THEN  'Mutasi'
+                WHEN kul.id_stat_mhs = 'N' THEN  'Non Aktif'
+                WHEN kul.id_stat_mhs = 'T' THEN  'Transfer'
+                WHEN kul.id_stat_mhs = 'U' THEN  'Unknown'
+                WHEN kul.id_stat_mhs = 'W' THEN  'Wafat'
+            END AS status,
                 kul.sks_semester,
                 kul.ips,
                 kul.ipk,
@@ -603,7 +655,7 @@ class MahasiswaController extends Controller
     public function alumni(Request $request)
     {
         $currentPage = $request->input('page', 1);
-        $itemsPerPage = $request->input('item', 100000);
+        $itemsPerPage = $request->input('item', 50);
         $sortBy = $request->input('sortby', 'ASC');
         $idProdi = $request->input('idProdi');
 
@@ -617,11 +669,11 @@ class MahasiswaController extends Controller
             'sortby.in' => 'input pernyortiran hanya ASC atau DESC'
         ]);
 
-        // if (!empty($itemsPerPage)) {
-        //     if ($itemsPerPage > 50) {
-        //         $itemsPerPage = 50;
-        //     }
-        // }
+        if (!empty($itemsPerPage)) {
+            if ($itemsPerPage > 50) {
+                $itemsPerPage = 50;
+            }
+        }
 
         $query = DB::SELECT("
             DECLARE @PageNumber AS INT

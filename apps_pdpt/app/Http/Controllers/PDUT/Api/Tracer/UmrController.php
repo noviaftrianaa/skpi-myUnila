@@ -99,7 +99,6 @@ class UmrController extends Controller
     {
         $get_data = $request->all();
 
-
         DB::beginTransaction();
         try {
             foreach ($get_data['data'] as $each_data) {
