@@ -147,6 +147,31 @@
      *     )
      */
 
+     /**
+     * @OA\Get(
+     *      path="/mahasiswa/detail",
+     *      operationId="getDetailMahasiswa",
+     *      tags={"Mahasiswa"},
+     *      summary="Dapatkan detail profil Mahasiswa",
+     *      description="Detail Mahasiswa Berdasarkan idPesertaDidik",
+     *      @OA\Parameter( name="idPesertaDidik", description="masukan idPesertaDidik", example="11d42109-7f99-49ea-96e3-15f314c40523", required=true, in="query",
+     *          @OA\Schema(type="string")),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"bearer_token":{}}}
+     *     )
+     */
+
       /**
      * @OA\Get(
      *      path="/mahasiswa/list_alumni",

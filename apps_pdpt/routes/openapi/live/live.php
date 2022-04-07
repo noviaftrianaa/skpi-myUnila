@@ -97,6 +97,12 @@ Route::group([
             Route::get('list_alumni', 'MahasiswaController@alumni');
         });
 
+        Route::prefix('mata_kuliah')->group(function () {
+            Route::get('list_kurikulum', 'MataKuliahController@listKurikulum');
+            Route::get('list_matkul', 'MataKuliahController@listMatkul');
+            Route::get('list_kelas', 'MataKuliahController@listKelas');
+        });
+
         Route::prefix('akreditasi_prodi')->group(function () {
             Route::get('list', 'AkreditasiProdiController@index');
         });
@@ -129,10 +135,26 @@ Route::group([
         Route::delete('hapus', 'TracerStudyController@destroy');
 
         //hasil tracer atasan
-        Route::get('list_atasan', 'TracerStudyController@indexAtasan');
-        Route::post('tambah_atasan', 'TracerStudyController@storeAtasan');
-        Route::put('ubah_atasan', 'TracerStudyController@updateAtasan');
-        Route::delete('hapus_atasan', 'TracerStudyController@destroyAtasan');
+        Route::get('list_atasan', 'TracerStudyAtasanController@index');
+        Route::post('tambah_atasan', 'TracerStudyAtasanController@store');
+        Route::put('ubah_atasan', 'TracerStudyAtasanController@update');
+        Route::delete('hapus_atasan', 'TracerStudyAtasanController@destroy');
+    });
+
+    Route::group([
+        'namespace' => 'Mbkm',
+        'prefix' => 'mbkm'
+    ], function () {
+        Route::get('list_periode', 'PeriodeController@index');
+        Route::post('tambah_periode', 'PeriodeController@store');
+        Route::put('ubah_periode', 'PeriodeController@update');
+        Route::delete('hapus_periode', 'PeriodeController@destroy');
+
+        Route::get('list_peserta', 'PesertaController@index');
+        Route::post('tambah_peserta', 'PesertaController@store');
+        Route::put('ubah_peserta', 'PesertaController@update');
+        Route::delete('hapus_peserta', 'PesertaController@destroy');
+
     });
 
     Route::group([
@@ -182,5 +204,13 @@ Route::group([
         Route::delete('dbr/hapus', 'DbrController@hapus');
         Route::delete('ruang/hapus', 'RuangController@hapus');
         Route::delete('tanah/hapus', 'TanahController@hapus');
+    });
+
+    Route::group([
+        'namespace' => 'Akses',
+        'prefix' => 'man_akses'
+    ], function () {
+        Route::get('peran', 'manAksesController@peran');
+        Route::get('ubah_keaktifan', 'manAksesController@updateLastActive');
     });
 });
