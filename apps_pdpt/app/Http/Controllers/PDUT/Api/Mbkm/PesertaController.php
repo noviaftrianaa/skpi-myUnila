@@ -37,7 +37,7 @@ class PesertaController extends Controller
 
         InputValidator([
             'page' => 'numeric|min:1',
-            'count' => 'numeric|min:1|max:50'
+            'limit' => 'numeric|min:1|max:50'
         ]);
 
         try {
@@ -79,7 +79,7 @@ class PesertaController extends Controller
             $pagination = CustomPagination($query);
             $query = $pagination['query'];
             $page = $pagination['page'];
-            $item = $pagination['count'];
+            $item = $pagination['limit'];
 
             $peserta = DB::select($query);
             if (empty($peserta)) {
@@ -252,9 +252,9 @@ class PesertaController extends Controller
 
     public function destroy()
     {
-        // InputValidator([
-        //     'id_daftar_kampus_merdeka' => 'required',
-        // ]);
+        InputValidator([
+            'id_daftar_kampus_merdeka' => 'required',
+        ]);
 
         $id_daftar_kampus_merdeka = $this->request->input('id_daftar_kampus_merdeka');
         $last_update = currDateTime();

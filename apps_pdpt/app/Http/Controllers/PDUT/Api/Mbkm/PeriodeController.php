@@ -139,4 +139,96 @@ class PeriodeController extends Controller
         }
     }
 
+    public function update()
+    {
+        InputValidator([
+            'id_periode_mbkm' => 'required',
+            'id_smt' => 'required',
+            'id_jns_akt_mhs' => 'required|numeric',
+            'nm_periode_mbkm' => 'required',
+            'nm_penyelenggara' => 'required',
+            'waktu_mulai' => 'required',
+            'waktu_selesai' => 'required',
+        ]);
+
+        $id_periode_mbkm = $this->request->input('id_periode_mbkm');
+        $id_smt = $this->request->input('id_smt');
+        $id_jns_akt_mhs = $this->request->input('id_jns_akt_mhs');
+        $nm_periode_mbkm = $this->request->input('nm_periode_mbkm');
+        $nm_penyelenggara = $this->request->input('nm_penyelenggara');
+        $waktu_mulai = $this->request->input('waktu_mulai');
+        $waktu_selesai = $this->request->input('waktu_selesai');
+        $a_aktif = $this->request->input('a_aktif');
+        $last_update = currDateTime();
+        $id_updater = '26004417-6e92-463c-bf35-f741817121dc';
+
+        DB::beginTransaction();
+        try {
+            $periodeMbkm = $this->periodeMbkm->where('id_periode_mbkm', $id_periode_mbkm)->first();
+            if (!$periodeMbkm) return WrapResponse(['data' => null], 'id_periode_mbkm tidak ditemukan atau tidak terdaftar', FALSE);
+
+            $periodeMbkm->update([
+                'id_smt' => $id_smt,
+                'id_jns_akt_mhs' => $id_jns_akt_mhs,
+                'nm_periode_mbkm' => $nm_periode_mbkm,
+                'id_periode_mbkm' => $id_periode_mbkm,
+                'nm_penyelenggara' => $nm_penyelenggara,
+                'waktu_mulai' => $waktu_mulai,
+                'waktu_selesai' => $waktu_selesai,
+                'a_aktif' => $a_aktif,
+                'last_update' => $last_update,
+                'id_updater' => $id_updater
+            ]);
+
+            DB::commit();
+            return WrapResponse(array('data' => array('id_periode_mbkm' => $id_periode_mbkm)), 'sukses mengubah periode mbkm', TRUE);
+        } catch (ModelNotFoundException $mnfe) {
+            DB::rollBack();
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+            return WrapResponse(['data' => null], 'periode mbkm tidak dapat ditambahkan', FALSE);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
+            return WrapResponse(['data' => null], 'gagal mengubah periode mbkm', FALSE);
+        }
+    }
+
+    public function destroy()
+    {
+        InputValidator([
+            'id_periode_mbkm' => 'required',
+        ]);
+
+        $id_periode_mbkm = $this->request->input('id_periode_mbkm');
+        $last_update = currDateTime();
+        $id_updater = '26004417-6e92-463c-bf35-f741817121dc';
+        $soft_delete = 1;
+        $last_sync = currDateTime();
+
+        DB::beginTransaction();
+
+        try {
+            $daftar_mbkm = $this->periodeMbkm->where('id_periode_mbkm', $id_periode_mbkm)->first();
+            if (!$daftar_mbkm) return WrapResponse(['data' => null], 'daftar mbkm tidak ditemukan atau tidak terdaftar', FALSE);
+
+            //hapus daftar periode mbkm
+            $daftar_mbkm->update([
+                'last_update' => $last_update,
+                'id_updater' => $id_updater,
+                'soft_delete' => $soft_delete,
+                'last_sync' => $last_sync
+            ]);
+
+            DB::commit();
+            return WrapResponse(array('data' => array('id_periode_mbkm' => $id_periode_mbkm)), 'sukses menghapus periode mbkm', TRUE);
+        } catch (ModelNotFoundException $mnfe) {
+            DB::rollBack();
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+            return WrapResponse(['data' => null], 'periode mbkm tidak dapat dihapus', FALSE);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
+            return WrapResponse(['data' => null], 'gagal menghapus periode mbkm', FALSE);
+        }
+    }
 }

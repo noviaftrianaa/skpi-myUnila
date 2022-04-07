@@ -9,7 +9,7 @@
  *      description="Menampilkan Periode MBKM",
  *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
  *          @OA\Schema(type="number")),
- *      @OA\Parameter( name="count", description="masukan jumlah data", example="50", required=false, in="query",
+ *      @OA\Parameter( name="limit", description="masukan jumlah data", example="50", required=false, in="query",
  *          @OA\Schema(type="number")),
  *      @OA\Response(
  *          response=401,
@@ -60,6 +60,74 @@
  */
 
 /**
+ * @OA\Put (
+ *      path="/mbkm/ubah_periode",
+ *      operationId="putPeriodeMbkm",
+ *      tags={"MBKM"},
+ *      summary="Ubah Periode MBKM",
+ *      description="Mengubah Periode MBKM",
+ *      @OA\RequestBody(
+ *      required=true,
+ *      description="Mengubah Periode MBKM",
+ *      @OA\JsonContent(
+ *          required={"id_periode_mbkm","id_smt","id_jns_akt_mhs","nm_periode_mbkm","nm_penyelenggara","waktu_mulai","waktu_selesai"},
+ *          @OA\Property(property="id_periode_mbkm", type="string", format="text", example="masukan id_periode_mbkm disini"),
+ *          @OA\Property(property="id_smt", type="string", format="text", example="20212"),
+ *          @OA\Property(property="id_jns_akt_mhs", type="number", format="number", example="1"),
+ *          @OA\Property(property="nm_periode_mbkm", type="string", format="text", example="Nama Periode Mbkm"),
+ *          @OA\Property(property="nm_penyelenggara", type="string", format="text", example="Nama Penyelenggara"),
+ *          @OA\Property(property="waktu_mulai", type="string", format="string", example="08:00"),
+ *          @OA\Property(property="waktu_selesai", type="string", format="string", example="15:00"),
+ *          ),
+ *      ),
+ *      @OA\Response(
+ *          response=200,
+ *          description="Successful operation",
+ *       ),
+ *      @OA\Response(
+ *          response=401,
+ *          description="Unauthenticated",
+ *      ),
+ *      @OA\Response(
+ *          response=403,
+ *          description="Forbidden"
+ *      ),
+ *      security={{"bearer_token":{}}}
+ *     )
+ */
+
+  /**
+ * @OA\Delete (
+ *      path="/mbkm/hapus_periode",
+ *      operationId="deletePeriodeMbkm",
+ *      tags={"MBKM"},
+ *      summary="Hapus Periode MBKM",
+ *      description="Menghapus Periode MBKM",
+ *      @OA\RequestBody(
+ *      required=true,
+ *      description="Menghapus data Periode MBKM berdasarkan id_periode_mbkm",
+ *      @OA\JsonContent(
+ *          required={"id_periode_mbkm"},
+ *          @OA\Property(property="id_periode_mbkm", type="string", format="text", example="masukan id_periode_mbkm disini")
+ *          ),
+ *      ),
+ *      @OA\Response(
+ *          response=200,
+ *          description="Successful operation",
+ *       ),
+ *      @OA\Response(
+ *          response=401,
+ *          description="Unauthenticated",
+ *      ),
+ *      @OA\Response(
+ *          response=403,
+ *          description="Forbidden"
+ *      ),
+ *      security={{"bearer_token":{}}}
+ *     )
+ */
+
+/**
  * @OA\Get(
  *      path="/mbkm/list_peserta",
  *      operationId="getPesertaMbkm",
@@ -68,7 +136,7 @@
  *      description="Menampilkan Peserta MBKM",
  *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
  *          @OA\Schema(type="number")),
- *      @OA\Parameter( name="count", description="masukan jumlah data", example="50", required=false, in="query",
+ *      @OA\Parameter( name="limit", description="masukan jumlah data", example="50", required=false, in="query",
  *          @OA\Schema(type="number")),
  *      @OA\Response(
  *          response=401,
