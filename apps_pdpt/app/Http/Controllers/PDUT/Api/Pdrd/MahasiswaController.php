@@ -42,6 +42,7 @@ class MahasiswaController extends Controller
                 @RowsOfPage = ?
             SELECT
                 pd.id_pd,
+                reg.id_reg_pd,
                 reg.nipd AS npm,
                 pd.nm_pd,
                 CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS nm_prodi,
@@ -114,6 +115,7 @@ class MahasiswaController extends Controller
         foreach ($query as $each_data) {
             $data[] = [
                 'id_peserta_didik' => $each_data->id_pd,
+                'id_reg_pd' => $each_data->id_reg_pd,
                 'NPM' => $each_data->npm,
                 'nama_mahasiswa' => $each_data->nm_pd,
                 'program_studi' => $each_data->nm_prodi,

@@ -155,6 +155,11 @@ Route::group([
         Route::put('ubah_peserta', 'PesertaController@update');
         Route::delete('hapus_peserta', 'PesertaController@destroy');
 
+        Route::get('detail_konversi', 'KonversiController@index');
+        Route::post('tambah_konversi', 'KonversiController@store');
+        Route::put('ubah_konversi', 'KonversiController@update');
+        Route::delete('hapus_konversi', 'KonversiController@destroy');
+
     });
 
     Route::group([

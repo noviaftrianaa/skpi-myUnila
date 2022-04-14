@@ -185,7 +185,7 @@ class PeriodeController extends Controller
         } catch (ModelNotFoundException $mnfe) {
             DB::rollBack();
             Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
-            return WrapResponse(['data' => null], 'periode mbkm tidak dapat ditambahkan', FALSE);
+            return WrapResponse(['data' => null], 'periode mbkm tidak dapat diubah', FALSE);
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e->getMessage() . ' on line ' . $e->getLine());

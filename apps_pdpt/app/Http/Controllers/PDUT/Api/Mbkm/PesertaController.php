@@ -7,6 +7,7 @@ use App\Models\PDUT\Mbkm\DaftarKampusMerdeka;
 use App\Models\PDUT\Mbkm\KonversiKampusMerdeka;
 use App\Models\PDUT\Mbkm\PeriodeKampusMerdeka;
 use App\Models\PDUT\Pdrd\AktMhs;
+use App\Models\PDUT\Pdrd\AnggotaAktMhs;
 use App\Models\PDUT\Pdrd\BimbingMhs;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule as ValidationRule;
@@ -22,6 +23,7 @@ class PesertaController extends Controller
     protected $daftarMbkm;
     protected $aktMhs;
     protected $bimbingMhs;
+    protected $anggotaAkt;
 
     public function __construct(Request $request)
     {
@@ -29,6 +31,7 @@ class PesertaController extends Controller
         $this->periodeMbkm = new PeriodeKampusMerdeka();
         $this->daftarMbkm = new DaftarKampusMerdeka();
         $this->aktMhs = new AktMhs();
+        $this->anggotaAkt = new AnggotaAktMhs();
         $this->bimbingMhs = new BimbingMhs();
     }
 
@@ -54,7 +57,9 @@ class PesertaController extends Controller
             CASE
                 WHEN d_mbkm.a_diluar_pt = 1 THEN 'di luar PT'
                 WHEN d_mbkm.a_diluar_pt = 0 THEN 'di dalam PT'
-            END AS kat_kegiatan
+            END AS kat_kegiatan,
+            sdm.nidn,
+            sdm.nm_sdm AS nm_pembimbing
         FROM
             mbkm.daftar_kampus_merdeka AS d_mbkm WITH(NOLOCK)
             LEFT JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_reg_pd = d_mbkm.id_reg_pd
@@ -71,6 +76,12 @@ class PesertaController extends Controller
             AND p_mbkm.soft_delete = 0
             JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = p_mbkm.id_smt
             AND smt.expired_date IS NULL
+            LEFT JOIN pdrd.anggota_akt_mhs AS ang_akt WITH(NOLOCK) ON ang_akt.id_reg_pd = reg.id_reg_pd
+            AND ang_akt.soft_delete = 0
+            LEFT JOIN pdrd.bimbing_mhs AS bimbing WITH(NOLOCK) ON bimbing.id_akt_mhs = ang_akt.id_akt_mhs
+            AND bimbing.soft_delete = 0
+            LEFT JOIN pdrd.sdm AS sdm WITH(NOLOCK) ON sdm.id_sdm = bimbing.id_sdm
+            AND sdm.soft_delete = 0
         WHERE
             d_mbkm.soft_delete = 0
         ORDER BY
@@ -98,9 +109,9 @@ class PesertaController extends Controller
                     'nm_prodi' => $each_data->nm_prodi,
                     'nm_kegiatan' => $each_data->nm_kegiatan,
                     'lokasi_kegiatan' => $each_data->lokasi_kegiatan,
-                    'kat_kegiatan' => $each_data->kat_kegiatan
-                    // 'nm_pembimbing' => $each_data->nm_pembimbing,
-                    // 'nidn' => $each_data->nidn,
+                    'kat_kegiatan' => $each_data->kat_kegiatan,
+                    'nm_pembimbing' => $each_data->nm_pembimbing,
+                    'nidn' => $each_data->nidn,
                 ];
             }
         } catch (\Throwable $th) {
@@ -140,6 +151,10 @@ class PesertaController extends Controller
         $tgl_sk_tugas = $this->request->input('tgl_sk_tugas');
         $ket_akt = $this->request->input('ket_akt');
         $a_komunal = $this->request->input('a_komunal');
+
+        //request anggota aktivitas
+        $id_ang_akt_mhs = guid();
+        $jns_peran_mhs = 1;
 
         //request pembimbing
         $id_bimb_mhs = guid();
@@ -184,6 +199,7 @@ class PesertaController extends Controller
         ", [$id_periode_mbkm]);
 
         try {
+
             //tambah daftar mbkm
             $daftar_mbkm = $this->daftarMbkm->create([
                 'id_daftar_kampus_merdeka' => $id_daftar_kampus_merdeka,
@@ -222,7 +238,23 @@ class PesertaController extends Controller
                 'last_sync' => $last_sync
             ]);
 
-            //tambah pembimbing/pembina
+            //tambah anggota aktivitas mahasiswa
+            $ang_akt_mhs = $this->anggotaAkt->create([
+                'id_ang_akt_mhs' => $id_ang_akt_mhs,
+                'id_akt_mhs' => $akt_mhs->id_akt_mhs,
+                'id_reg_pd' => $data_mhs[0]->id_reg_pd,
+                'nm_pd' => $data_mhs[0]->nm_pd,
+                'nipd' => $data_mhs[0]->nipd,
+                'jns_peran_mhs' => $jns_peran_mhs,
+                'create_date' => $create_date,
+                'id_creator' => $id_creator,
+                'last_update' => $last_update,
+                'id_updater' => $id_updater,
+                'soft_delete' => $soft_delete,
+                'last_sync' => $last_sync
+            ]);
+
+            // pembimbing/pembina
             $this->bimbingMhs->create([
                 'id_bimb_mhs' => $id_bimb_mhs,
                 'id_katgiat' => $id_katgiat,
@@ -247,6 +279,72 @@ class PesertaController extends Controller
             DB::rollBack();
             Log::error($e->getMessage() . ' on line ' . $e->getLine());
             return WrapResponse(['data' => null], 'gagal menambahkan peserta mbkm', FALSE);
+        }
+    }
+
+    public function update()
+    {
+        InputValidator([
+            'id_daftar_kampus_merdeka' => 'required|uuid',
+            'id_periode_mbkm' => 'required|uuid',
+            'id_reg_pd' => 'required|uuid',
+            'lokasi_mbkm' => 'required',
+            'a_diluar_pt' => 'required',
+        ]);
+
+        $id_daftar_kampus_merdeka = $this->request->input('id_daftar_kampus_merdeka');
+        $id_periode_mbkm = $this->request->input('id_periode_mbkm');
+        $id_reg_pd = $this->request->input('id_reg_pd');
+        $lokasi_mbkm = $this->request->input('lokasi_mbkm');
+        $a_diluar_pt = $this->request->input('a_diluar_pt');
+
+        $id_sp = 'e2b705a7-173e-464a-9fac-509128709515';
+        $last_update = currDateTime();
+        $id_updater = '26004417-6e92-463c-bf35-f741817121dc';
+
+        DB::beginTransaction();
+        try {
+            $daftarMbkm = $this->daftarMbkm->where('id_daftar_kampus_merdeka', $id_daftar_kampus_merdeka)->first();
+            if (!$daftarMbkm) return WrapResponse(['data' => null], 'id_daftar_kampus_merdeka tidak ditemukan atau tidak terdaftar', FALSE);
+
+            $data_mhs = DB::select("
+                SELECT
+                    reg.nipd,
+                    reg.id_reg_pd,
+                    pd.nm_pd,
+                    reg.id_sms
+                FROM
+                    pdrd.reg_pd AS reg
+                    JOIN pdrd.peserta_didik AS pd WITH(NOLOCK) ON pd.id_pd = reg.id_pd
+                    AND pd.soft_delete = 0
+                WHERE
+                    reg.id_reg_pd = ?
+                    AND reg.soft_delete = 0
+            ", [$id_reg_pd]);
+
+            $daftarMbkm->update([
+                'id_daftar_kampus_merdeka' => $id_daftar_kampus_merdeka,
+                'id_periode_mbkm' => $id_periode_mbkm,
+                'id_reg_pd' => $id_reg_pd,
+                'id_sp' => $id_sp,
+                'lokasi_mbkm' => $lokasi_mbkm,
+                'nm_pd' => $data_mhs[0]->nm_pd,
+                'nipd' => $data_mhs[0]->nipd,
+                'a_diluar_pt' => $a_diluar_pt,
+                'last_update' => $last_update,
+                'id_updater' => $id_updater
+            ]);
+
+            DB::commit();
+            return WrapResponse(array('data' => array('id_daftar_kampus_merdeka' => $id_daftar_kampus_merdeka)), 'sukses mengubah periode mbkm', TRUE);
+        } catch (ModelNotFoundException $mnfe) {
+            DB::rollBack();
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+            return WrapResponse(['data' => null], 'daftar mbkm tidak dapat diubah', FALSE);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
+            return WrapResponse(['data' => null], 'gagal mengubah daftar mbkm', FALSE);
         }
     }
 
