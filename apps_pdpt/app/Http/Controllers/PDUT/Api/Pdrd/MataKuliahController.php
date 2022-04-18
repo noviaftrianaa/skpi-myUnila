@@ -35,6 +35,7 @@ class MataKuliahController extends Controller
             SELECT
                 mk.id_mk,
                 mk.kode_mk,
+                sms.id_sms,
                 CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS nm_prodi,
                 mk.nm_mk,
                 mk.sks_mk,
@@ -70,6 +71,7 @@ class MataKuliahController extends Controller
         foreach ($query as $each_data) {
             $data[] = [
                 'id_mk' => $each_data->id_mk,
+                'id_sms' => $each_data->id_sms,
                 'nm_prodi' => $each_data->nm_prodi,
                 'kode_mk' => $each_data->kode_mk,
                 'nm_mk' => $each_data->nm_mk,

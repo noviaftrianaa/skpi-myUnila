@@ -100,7 +100,7 @@ class PesertaController extends Controller
             $data = [];
             foreach ($peserta as $each_data) {
                 $data[] = [
-                    'id_daftar_kampus_merdeka ' => $each_data->id_daftar_kampus_merdeka ,
+                    'id_daftar_kampus_merdeka ' => $each_data->id_daftar_kampus_merdeka,
                     'id_reg_pd' => $each_data->id_reg_pd,
                     'semester' => $each_data->semester,
                     'npm' => $each_data->npm,

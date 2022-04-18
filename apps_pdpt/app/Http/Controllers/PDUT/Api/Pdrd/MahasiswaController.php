@@ -120,7 +120,7 @@ class MahasiswaController extends Controller
                 'nama_mahasiswa' => $each_data->nm_pd,
                 'program_studi' => $each_data->nm_prodi,
                 'periode_masuk' => $each_data->periode_masuk,
-                'semester_sekarang,' => $each_data->smt_skrng,
+                'semester_sekarang' => $each_data->smt_skrng,
                 'ips' => $each_data->ips,
                 'ipk' => $each_data->ipk,
                 'status' => $each_data->status,
@@ -145,6 +145,7 @@ class MahasiswaController extends Controller
 
         $query = DB::SELECT("
             SELECT
+                pd.id_pd,
                 reg.id_reg_pd,
                 reg.nipd AS npm,
                 pd.nm_pd,
@@ -250,6 +251,8 @@ class MahasiswaController extends Controller
         $data = [];
         foreach ($query as $each_data) {
             $data[] = [
+                'id_peserta_didik' => $each_data->id_pd,
+                'id_reg_pd' => $each_data->id_reg_pd,
                 'NPM' => $each_data->npm,
                 'nama' => $each_data->nm_pd,
                 'program_studi' => $each_data->nm_prodi,
@@ -339,6 +342,7 @@ class MahasiswaController extends Controller
                 @RowsOfPage = ?
             SELECT
                 pd.id_pd,
+                reg.id_reg_pd,
                 reg.nipd AS npm,
                 pd.nm_pd,
                 CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS nm_prodi,
@@ -411,11 +415,13 @@ class MahasiswaController extends Controller
         $data = [];
         foreach ($query as $each_data) {
             $data[] = [
+                'id_peserta_didik' => $each_data->id_pd,
+                'id_reg_pd' => $each_data->id_reg_pd,
                 'NPM' => $each_data->npm,
                 'nama_mahasiswa' => $each_data->nm_pd,
                 'program_studi' => $each_data->nm_prodi,
                 'periode_masuk' => $each_data->periode_masuk,
-                'semester_sekarang,' => $each_data->smt_skrng,
+                'semester_sekarang' => $each_data->smt_skrng,
                 'ips' => $each_data->ips,
                 'ipk' => $each_data->ipk,
                 'status' => $each_data->status,
@@ -462,6 +468,7 @@ class MahasiswaController extends Controller
                 @RowsOfPage = ?
             SELECT
                 pd.id_pd,
+                reg.id_reg_pd,
                 reg.nipd AS npm,
                 pd.nm_pd,
                 daftar.nm_jns_daftar,
@@ -524,12 +531,14 @@ class MahasiswaController extends Controller
         $data = [];
         foreach ($query as $each_data) {
             $data[] = [
+                'id_peserta_didik' => $each_data->id_pd,
+                'id_reg_pd' => $each_data->id_reg_pd,
                 'NPM' => $each_data->npm,
                 'nama_mahasiswa' => $each_data->nm_pd,
                 'program_studi' => $each_data->nm_prodi,
                 'jenis_daftar' => $each_data->nm_jns_daftar,
                 'periode_masuk' => $each_data->periode_masuk,
-                'semester_sekarang,' => $each_data->smt_skrng,
+                'semester_sekarang' => $each_data->smt_skrng,
                 'ips' => $each_data->ips,
                 'ipk' => $each_data->ipk,
                 'status' => $each_data->status,
@@ -563,7 +572,6 @@ class MahasiswaController extends Controller
                 ts.nm_smt AS periode_masuk,
                 kul.ips,
                 kul.ipk,
-                ts.id_thn_ajaran as angkatan,
                 kul.id_stat_mhs AS status
             FROM
                 pdrd.peserta_didik AS pd WITH(NOLOCK)
@@ -640,12 +648,13 @@ class MahasiswaController extends Controller
         $data = [];
         foreach ($query as $each_data) {
             $data[] = [
+                'id_peserta_didik' => $each_data->id_pd,
+                'id_reg_pd' => $each_data->id_reg_pd,
                 'NPM' => $each_data->npm,
                 'nama_mahasiswa' => $each_data->nm_pd,
                 'program_studi' => $each_data->nm_prodi,
                 'periode_masuk' => $each_data->periode_masuk,
                 'semester_sekarang' => $each_data->smt_skrng,
-                'angkatan' => $each_data->angkatan,
                 'status' => $each_data->status,
                 'semester' => $semester
             ];
