@@ -31,7 +31,7 @@ class AlatController extends Controller
     public function daftar()
     {
         InputValidator([
-            'sortby' => [
+            'sort' => [
                 'alpha',
                 ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])
             ],
@@ -39,8 +39,8 @@ class AlatController extends Controller
             'limit' => 'required|numeric'
         ]);
 
-        $sortby = 'DESC';
-        $sortby = $this->request->input('sortby');
+        $sort = 'DESC';
+        $sort = $this->request->input('sort');
 
         $q_alat = "
             SELECT
@@ -103,7 +103,7 @@ class AlatController extends Controller
                 LEFT JOIN ref.status_milik_sarpras AS statmilsar WITH(NOLOCK) ON alat.id_stat_milik_sarpras = statmilsar.id_stat_milik_sarpras
             WHERE
                 alat.soft_delete = 0
-            ORDER BY alat.nm_prasarana " . $sortby . " ";
+            ORDER BY alat.nm_prasarana " . $sort . " ";
 
         $pagination = CustomPagination($q_alat);
         $query = $pagination['query'];

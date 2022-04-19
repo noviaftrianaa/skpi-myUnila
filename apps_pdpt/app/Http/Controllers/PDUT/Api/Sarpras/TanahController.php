@@ -31,7 +31,7 @@ class TanahController extends Controller
     public function daftar()
     {
         InputValidator([
-            'sortby' => [
+            'sort' => [
                 'alpha',
                 ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])
             ],
@@ -39,10 +39,10 @@ class TanahController extends Controller
             'limit' => 'required|numeric'
         ]);
 
-        $sortby = 'DESC';
-        $sortby = $this->request->input('sortby');
+        $sort = 'DESC';
+        $sort = $this->request->input('sort');
 
-        $q_tanah = "SELECT * FROM sarpras.tanah ORDER BY id_tanah $sortby";
+        $q_tanah = "SELECT * FROM sarpras.tanah ORDER BY id_tanah $sort";
 
         $pagination = CustomPagination($q_tanah);
         $query = $pagination['query'];

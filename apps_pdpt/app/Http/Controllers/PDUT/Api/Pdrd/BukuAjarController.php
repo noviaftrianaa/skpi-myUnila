@@ -29,15 +29,15 @@ class BukuAjarController extends Controller
     {
         InputValidator([
             'page' => 'numeric|min:1',
-            'count'    => 'numeric|min:1|max:50',
-            'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
+            'limit'    => 'numeric|min:1|max:50',
+            'sort' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
         ]);
 
-        $sortby = "ASC";
-        $sortby = $this->request->input('sortby');
+        $sort = "ASC";
+        $sort = $this->request->input('sort');
 
-        if (!empty($sortby)) {
-            $sortby = $sortby;
+        if (!empty($sort)) {
+            $sort = $sort;
         }
 
         try {
@@ -54,7 +54,7 @@ class BukuAjarController extends Controller
             WHERE
                 buku.soft_delete = 0
             ORDER BY
-                buku.judul_buku " . $sortby . " ";
+                buku.judul_buku " . $sort . " ";
 
             $pagination = CustomPagination($query);
             $query = $pagination['query'];
@@ -87,16 +87,16 @@ class BukuAjarController extends Controller
         InputValidator([
             'id_sdm' => 'required|uuid',
             'page' => 'numeric|min:1',
-            'count'    => 'numeric|min:1|max:50',
-            'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
+            'limit'    => 'numeric|min:1|max:50',
+            'sort' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
         ]);
 
-        $sortby = "ASC";
-        $sortby = $this->request->input('sortby');
+        $sort = "ASC";
+        $sort = $this->request->input('sort');
         $id_sdm = $this->request->input('id_sdm');
 
-        if (!empty($sortby)) {
-            $sortby = $sortby;
+        if (!empty($sort)) {
+            $sort = $sort;
         }
 
         try {
@@ -112,7 +112,7 @@ class BukuAjarController extends Controller
             FROM
                 pdrd.tulis_buku_ajar AS tsbuku WITH(NOLOCK)
             LEFT JOIN pdrd.buku_ajar AS buku WITH(NOLOCK) ON buku.id_buku_ajar = tsbuku.id_buku_ajar AND buku.soft_delete = 0
-            WHERE tsbuku.soft_delete = 0 AND tsbuku.id_sdm = '" . $id_sdm . "' ORDER BY buku.judul_buku " . $sortby . " ";
+            WHERE tsbuku.soft_delete = 0 AND tsbuku.id_sdm = '" . $id_sdm . "' ORDER BY buku.judul_buku " . $sort . " ";
 
             $pagination = CustomPagination($query);
             $query = $pagination['query'];
@@ -164,33 +164,33 @@ class BukuAjarController extends Controller
             }
 
             $buku_ajar_sdm = DB::select("SELECT
-            sdm.id_sdm, sdm.nm_sdm, tsbuku.urutan2, tsbuku.afiliasi, tsbuku.peran_tulis
+            sdm.id_sdm, sdm.nm_sdm, tsbuku.urutan, tsbuku.afiliasi, tsbuku.peran_tulis
             FROM pdrd.tulis_buku_ajar AS tsbuku
             JOIN pdrd.sdm AS sdm ON sdm.id_sdm = tsbuku.id_sdm
             WHERE tsbuku.id_buku_ajar = ?
-            ORDER BY tsbuku.urutan2 ASC", [$id_buku_ajar]);
+            ORDER BY tsbuku.urutan ASC", [$id_buku_ajar]);
 
             if (empty($buku_ajar_sdm)) {
                 $buku_ajar_sdm = [];
             }
 
             $buku_ajar_pd = DB::select("SELECT
-            pd.id_pd, pd.nm_pd, tsbuku.urutan2, tsbuku.afiliasi, tsbuku.peran_tulis
+            pd.id_pd, pd.nm_pd, tsbuku.urutan, tsbuku.afiliasi, tsbuku.peran_tulis
             FROM pdrd.tulis_buku_ajar AS tsbuku
             JOIN pdrd.peserta_didik AS pd ON pd.id_pd = tsbuku.id_pd
             WHERE tsbuku.id_buku_ajar = ?
-            ORDER BY tsbuku.urutan2 ASC", [$id_buku_ajar]);
+            ORDER BY tsbuku.urutan ASC", [$id_buku_ajar]);
 
             if (empty($buku_ajar_pd)) {
                 $buku_ajar_pd = [];
             }
 
             $buku_ajar_nonca = DB::select("SELECT
-            nonca.id_orang, nonca.nm_orang, tsbuku.urutan2, tsbuku.afiliasi, tsbuku.peran_tulis
+            nonca.id_orang, nonca.nm_orang, tsbuku.urutan, tsbuku.afiliasi, tsbuku.peran_tulis
             FROM pdrd.tulis_buku_ajar AS tsbuku
             JOIN pdrd.non_ca AS nonca ON nonca.id_orang = tsbuku.id_orang
             WHERE tsbuku.id_buku_ajar = ?
-            ORDER BY tsbuku.urutan2 ASC", [$id_buku_ajar]);
+            ORDER BY tsbuku.urutan ASC", [$id_buku_ajar]);
 
             if (empty($buku_ajar_nonca)) {
                 $buku_ajar_nonca = [];
@@ -333,7 +333,7 @@ class BukuAjarController extends Controller
                         'id_sdm' => $iddsn,
                         'id_pd' => NULL,
                         'id_orang' => NULL,
-                        'urutan2' => $urutan_dosen[$index],
+                        'urutan' => $urutan_dosen[$index],
                         'afiliasi' => $afiliasi_dosen[$index],
                         'peran_tulis' => $peran_tulis_dosen[$index],
                         'jns_penulis' => $jns_penulis_dosen[$index],
@@ -359,7 +359,7 @@ class BukuAjarController extends Controller
                         'id_sdm' => NULL,
                         'id_pd' => $idmhs,
                         'id_orang' => NULL,
-                        'urutan2' => $urutan_mahasiswa[$index],
+                        'urutan' => $urutan_mahasiswa[$index],
                         'afiliasi' => $afiliasi_mahasiswa[$index],
                         'peran_tulis' => $peran_tulis_mahasiswa[$index],
                         'jns_penulis' => $jns_penulis_mahasiswa[$index],
@@ -385,7 +385,7 @@ class BukuAjarController extends Controller
                         'id_sdm' => NULL,
                         'id_pd' => NULL,
                         'id_orang' => $id_orang[$index],
-                        'urutan2' => $urutan_orang[$index],
+                        'urutan' => $urutan_orang[$index],
                         'afiliasi' => $afiliasi_orang[$index],
                         'peran_tulis' => $peran_tulis_orang[$index],
                         'jns_penulis' => $jns_penulis_orang[$index],
@@ -506,7 +506,7 @@ class BukuAjarController extends Controller
                             'id_sdm' => $iddsn,
                             'id_pd' => NULL,
                             'id_orang' => NULL,
-                            'urutan2' => $urutan_dosen[$index],
+                            'urutan' => $urutan_dosen[$index],
                             'afiliasi' => $afiliasi_dosen[$index],
                             'peran_tulis' => $peran_tulis_dosen[$index],
                             'jns_penulis' => $jns_penulis_dosen[$index],
@@ -532,7 +532,7 @@ class BukuAjarController extends Controller
                             'id_sdm' => NULL,
                             'id_pd' => $idmhs,
                             'id_orang' => NULL,
-                            'urutan2' => $urutan_mahasiswa[$index],
+                            'urutan' => $urutan_mahasiswa[$index],
                             'afiliasi' => $afiliasi_mahasiswa[$index],
                             'peran_tulis' => $peran_tulis_mahasiswa[$index],
                             'jns_penulis' => $jns_penulis_mahasiswa[$index],
@@ -558,7 +558,7 @@ class BukuAjarController extends Controller
                             'id_sdm' => NULL,
                             'id_pd' => NULL,
                             'id_orang' => $id_orang[$index],
-                            'urutan2' => $urutan_orang[$index],
+                            'urutan' => $urutan_orang[$index],
                             'afiliasi' => $afiliasi_orang[$index],
                             'peran_tulis' => $peran_tulis_orang[$index],
                             'jns_penulis' => $jns_penulis_orang[$index],

@@ -28,7 +28,7 @@ class AlatTransportasiController extends Controller
     public function daftar()
     {
         InputValidator([
-            'sortby' => [
+            'sort' => [
                 'alpha',
                 ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])
             ],
@@ -36,8 +36,8 @@ class AlatTransportasiController extends Controller
             'item' => 'numeric'
         ]);
 
-        $sortby = 'DESC';
-        $sortby = $this->request->input('sortby');
+        $sort = 'DESC';
+        $sort = $this->request->input('sort');
 
         $q_transport = "
             SELECT
@@ -50,7 +50,7 @@ class AlatTransportasiController extends Controller
             WHERE
                 altrans.soft_delete = 0
             ORDER BY
-                altrans.nm_alat_transport " . $sortby . " ";
+                altrans.nm_alat_transport " . $sort . " ";
 
         $pagination = CustomPagination($q_transport);
         $query = $pagination['query'];

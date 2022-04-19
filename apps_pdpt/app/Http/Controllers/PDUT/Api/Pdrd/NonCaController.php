@@ -26,15 +26,15 @@ class NonCaController extends Controller
     {
         InputValidator([
             'page' => 'numeric|min:1',
-            'count'    => 'numeric|min:1|max:50',
-            'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
+            'limit'    => 'numeric|min:1|max:50',
+            'sort' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
         ]);
 
-        $sortby = "ASC";
-        $sortby = $this->request->input('sortby');
+        $sort = "ASC";
+        $sort = $this->request->input('sort');
 
-        if (!empty($sortby)) {
-            $sortby = $sortby;
+        if (!empty($sort)) {
+            $sort = $sort;
         }
 
         try {
@@ -61,7 +61,7 @@ class NonCaController extends Controller
             FROM pdrd.non_ca AS nc WITH(NOLOCK)
             LEFT JOIN ref.negara AS ng WITH(NOLOCK) ON ng.id_negara = nc.id_negara  AND ng.expired_date IS NULL
             WHERE nc.soft_delete = 0
-            ORDER BY nc.nm_orang " . $sortby . " ";
+            ORDER BY nc.nm_orang " . $sort . " ";
 
             $pagination = CustomPagination($query);
             $query = $pagination['query'];

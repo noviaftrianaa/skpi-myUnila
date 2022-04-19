@@ -26,15 +26,15 @@ class KeuanganKelasUktController extends Controller
     {
         InputValidator([
             'page' => 'numeric|min:1',
-            'count'    => 'numeric|min:1|max:50',
-            'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
+            'limit'    => 'numeric|min:1|max:50',
+            'sort' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
         ]);
 
-        $sortby = "ASC";
-        $sortby = $this->request->input('sortby');
+        $sort = "ASC";
+        $sort = $this->request->input('sort');
 
-        if (!empty($sortby)) {
-            $sortby = $sortby;
+        if (!empty($sort)) {
+            $sort = $sort;
         }
 
         try {
@@ -46,7 +46,7 @@ class KeuanganKelasUktController extends Controller
             klsukt.last_update
             FROM keuangan.kelas_ukt AS klsukt WITH(NOLOCK)
             WHERE klsukt.soft_delete = 0
-            ORDER BY klsukt.nm_kelas_ukt " . $sortby . " ";
+            ORDER BY klsukt.nm_kelas_ukt " . $sort . " ";
 
             $pagination = CustomPagination($query);
             $query = $pagination['query'];

@@ -28,7 +28,7 @@
  *          )
  *     ),
  *     @OA\Parameter(
- *          name="sortby",
+ *          name="sort",
  *          description="",
  *          example="DESC",
  *          required=false,

@@ -34,7 +34,7 @@
  *          )
  *     ),
  *     @OA\Parameter(
- *          name="count",
+ *          name="limit",
  *          description="",
  *          example="25",
  *          required=false,
@@ -44,7 +44,7 @@
  *          )
  *     ),
  *     @OA\Parameter(
- *          name="sortby",
+ *          name="sort",
  *          description="",
  *          example="DESC",
  *          required=false,
@@ -116,7 +116,7 @@
  *          )
  *     ),
  *     @OA\Parameter(
- *          name="count",
+ *          name="limit",
  *          description="",
  *          example="25",
  *          required=false,
@@ -126,7 +126,7 @@
  *          )
  *     ),
  *     @OA\Parameter(
- *          name="sortby",
+ *          name="sort",
  *          description="",
  *          example="DESC",
  *          required=false,

@@ -31,7 +31,7 @@ class AngkutanController extends Controller
     public function daftar()
     {
         InputValidator([
-            'sortby' => [
+            'sort' => [
                 'alpha',
                 ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])
             ],
@@ -39,8 +39,8 @@ class AngkutanController extends Controller
             'item' => 'numeric'
         ]);
 
-        $sortby = 'DESC';
-        $sortby = $this->request->input('sortby');
+        $sort = 'DESC';
+        $sort = $this->request->input('sort');
 
         $q_angkutan = "
             SELECT
@@ -94,7 +94,7 @@ class AngkutanController extends Controller
             WHERE
                 aktn.soft_delete = 0
             ORDER BY
-                aktn.nm_prasarana " . $sortby . " ";
+                aktn.nm_prasarana " . $sort . " ";
 
         $pagination = CustomPagination($q_angkutan);
         $query = $pagination['query'];
