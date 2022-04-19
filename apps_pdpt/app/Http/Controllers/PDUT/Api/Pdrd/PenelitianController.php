@@ -9,28 +9,25 @@ use App\Models\PDUT\Pdrd\Litabmas;
 use App\Models\PDUT\Pdrd\NonCaAnggotaLitabmas;
 use App\Models\PDUT\Pdrd\PdAnggotaLitabmas;
 use App\Models\PDUT\Pdrd\SdmAnggotaLitabmas;
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 
-use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Validation\Rule as ValidationRule;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Http\Response;
 
 use App\Services\JsonApiResponse as WrapResponse;
 use App\Services\QueryPagination;
 
-use App\Traits\ApiTrait;
 use App\Transformers\PenelitianTransformer;
 
 use Exception;
 
 class PenelitianController extends Controller
 {
-	use ApiTrait;
-
     protected $request;
     protected $litabmas;
     protected $sdmLitabmas;
@@ -38,12 +35,10 @@ class PenelitianController extends Controller
     protected $nonCaLitabmas;
     protected $dokLitabmas;
     protected $dokumen;
-
     protected $wrapResponse;
 
-    public function __construct(Request $request)
+    public function __construct()
     {
-        $this->setRequest($request);
         $this->sanitizeRequest();
 
         $this->litabmas = new Litabmas();
@@ -52,11 +47,10 @@ class PenelitianController extends Controller
         $this->nonCaLitabmas = new NonCaAnggotaLitabmas();
         $this->dokLitabmas = new DokLitabmas();
         $this->dokumen = new Dokumen();
-
         $this->wrapResponse = new WrapResponse;
     }
 
-    public function list()
+    public function daftar()
     {
         InputValidator([
             'sortby' => [
@@ -103,18 +97,18 @@ class PenelitianController extends Controller
         if (empty($result->query())) {
             return $this->wrapResponse
                 ->setMessage(static::QUERY_RESULT_EMPTY)
-                ->setError(['query' => 'tidak ada daftar penelitian yang ditampilkan'])
+                ->setError('tidak ada daftar penelitian yang ditampilkan')
                 ->render();
         }
 
         return $this->wrapResponse
             ->setTransformer(new PenelitianTransformer, __FUNCTION__)
             ->setStatusCode(Response::HTTP_ACCEPTED)
-            ->withPagination($result->pagination())
+            ->withSimplePagination()
             ->render($result->query());
     }
 
-    public function listById()
+    public function daftar_id()
     {
         InputValidator([
             'sdmid' => 'required|uuid',
@@ -162,22 +156,19 @@ class PenelitianController extends Controller
         if (empty($result->query())) {
             return $this->wrapResponse
                 ->setMessage(static::QUERY_RESULT_EMPTY)
-                ->setError(['query' => 'tidak ada daftar penelitian yang ditampilkan'])
+                ->setError('tidak ada daftar penelitian yang ditampilkan')
                 ->render();
         }
 
         return $this->wrapResponse
             ->setTransformer(new PenelitianTransformer, __FUNCTION__)
             ->setStatusCode(Response::HTTP_ACCEPTED)
-            ->withPagination($result->pagination())
+            ->withSimplePagination()
             ->render($result->query());
     }
 
-    public function getDetailPenelitianByPenelitianId($id)
+    public function detail()
     {
-        $reformatGetDetailPenelitian = [];
-
-        request()->merge(['penelitianid' => $id]);
         InputValidator([
             'penelitianid' => 'required|uuid',
         ], [
@@ -185,6 +176,7 @@ class PenelitianController extends Controller
             'penelitianid.uuid' => 'input penelitian id harus berupa uuid yang valid',
         ]);
 
+        $reformatGetDetailPenelitian = [];
         $penelitianId = $this->request->input('penelitianid');
 
         try {
@@ -323,12 +315,12 @@ class PenelitianController extends Controller
             Log::error(__FUNCTION__ . ' - ' . $e->getMessage());
             return $this->wrapResponse
                 ->setMessage(static::QUERY_RESULT_EMPTY)
-                ->setError(['query' => "detail penelitian $penelitianId tidak ditemukan atau penelitian tidak terdaftar"])
+                ->setError("detail penelitian $penelitianId tidak ditemukan atau penelitian tidak terdaftar")
                 ->render();
         }
     }
 
-    public function storeNewPenelitian()
+    public function tambah()
     {
         InputValidator([
             'judul_kegiatan' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
@@ -410,6 +402,7 @@ class PenelitianController extends Controller
         DB::beginTransaction();
         try {
             $penelitian = $this->litabmas->create([
+                'id_litabmas' => $litabmasId,
                 'dana_dikti' => $dana_dikti,
                 'dana_institusi_lain' => $dana_institusi_lain,
                 'dana_pt' => $dana_pt,
@@ -418,7 +411,6 @@ class PenelitianController extends Controller
                 'id_kel_bidang' => $kel_bidang,
                 'id_lanjutan_litabmas' => $litabmas_lanjutan,
                 'id_lemb_iptek' => $afiliasi,
-                'id_litabmas' => $litabmasId,
                 'id_skim' => $jenis_skim,
                 'id_smi' => NULL,
                 'id_thn_kegiatan' => $tahun_kegiatan,
@@ -489,10 +481,12 @@ class PenelitianController extends Controller
 
                         @unlink($filePath);
                     } else {
-                        return $this->wrapResponse->setMessage(static::FAILED_UPLOAD)->setError(['upload' => "gagal upload dokumen"])->render();
+                        return $this->wrapResponse->setMessage(static::FAILED_UPLOAD)->setError("gagal upload dokumen")->render();
                     }
                 }
             }
+
+            return [$anggota_dosen, $penelitian];
 
             if (!empty($anggota_dosen)) {
                 foreach ($anggota_dosen as $index => $idDosen) {
@@ -578,15 +572,15 @@ class PenelitianController extends Controller
         } catch (ModelNotFoundException $mnfe) {
             DB::rollBack();
             Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
-            return $this->wrapResponse->setMessage(static::QUERY_RESULT_EMPTY)->setError(['query' => "penelitian tidak ditemukan atau penelitian tidak terdaftar"])->render();
+            return $this->wrapResponse->setMessage(static::QUERY_RESULT_EMPTY)->setError("penelitian tidak ditemukan atau penelitian tidak terdaftar")->render();
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e->getMessage() . ' on line ' . $e->getLine());
-            return $this->wrapResponse->setMessage(static::INSERT_FAILED)->setError(['query' => "gagal menambahkan penelitian"])->render();
+            return $this->wrapResponse->setMessage(static::INSERT_FAILED)->setError("gagal menambahkan penelitian")->render();
         }
     }
 
-    public function updatePenelitian()
+    public function ubah()
     {
         InputValidator([
             'id_penelitian' => 'required|uuid',
@@ -909,7 +903,7 @@ class PenelitianController extends Controller
         }
     }
 
-    public function deletePenelitian()
+    public function hapus()
     {
         InputValidator([
             'penelitianid' => 'required|uuid',
@@ -919,10 +913,18 @@ class PenelitianController extends Controller
         ]);
 
         $penelitianId = $this->request->input('penelitianid');
+        $updateId = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
 
         DB::beginTransaction();
         try {
-            DB::update("UPDATE pdrd.litabmas SET soft_delete = 1 WHERE id_litabmas = $penelitianId");
+            DB::update("
+                UPDATE pdrd.litabmas 
+                SET 
+                    soft_delete = 1,
+                    last_update = " . currDateTime() . ",
+                    id_updater = " . $updateId . "
+                WHERE id_litabmas = $penelitianId
+            ");
             DB::commit();
             return $this->wrapResponse->setStatusCode(Response::HTTP_ACCEPTED)->setMessage('berhasial menghapus data penelitian - ' . $penelitianId)->render();
         } catch (Exception $e) {

@@ -65,12 +65,12 @@ Route::group([
         });
 
         Route::prefix('penelitian')->group(function () {
-            Route::get('list', 'PenelitianController@list');
-            Route::get('list_id', 'PenelitianController@listById');
-            Route::get('detail/{id}', 'PenelitianController@getDetailPenelitianByPenelitianId');
-            Route::post('add', 'PenelitianController@storeNewPenelitian');
-            Route::put('update', 'PenelitianController@updatePenelitian');
-            Route::delete('delete', 'PenelitianController@deletePenelitian');
+            Route::get('daftar', 'PenelitianController@daftar');
+            Route::get('daftar_id', 'PenelitianController@daftar_id');
+            Route::get('detail', 'PenelitianController@detail');
+            Route::post('tambah', 'PenelitianController@tambah');
+            Route::put('ubah', 'PenelitianController@ubah');
+            Route::delete('hapus', 'PenelitianController@hapus');
         });
 
         Route::prefix('pengabdian')->group(function () {
@@ -83,9 +83,12 @@ Route::group([
         });
 
         Route::prefix('publikasi')->group(function () {
-            Route::get('list', 'PublikasiController@getAllListPublikasi');
-            Route::get('list_id', 'PublikasiController@getListPublikasiById');
-            Route::post('add', 'PublikasiController@storeNewPublikasi');
+            Route::get('daftar', 'PublikasiController@daftar');
+            Route::get('daftar_id', 'PublikasiController@daftar_id');
+            Route::get('detail', 'PublikasiController@detail');
+            Route::post('tambah', 'PublikasiController@tambah');
+            Route::put('ubah', 'PublikasiController@tambah');
+            Route::delete('hapus', 'PublikasiController@tambah');
         });
 
         Route::prefix('mahasiswa')->group(function () {
