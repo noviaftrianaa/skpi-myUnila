@@ -23,8 +23,8 @@
                     </div>
                     <div class="col-sm-6">
                         <div class="form-group form-group-default">
-                            <label>Username (<i>Email</i>)</label>
-                            <input class="form-control" name="username" type="email" placeholder="Masukkan Username" required>
+                            <label>Username/Email</label>
+                            <input class="form-control" name="username" type="text" placeholder="Masukkan Username" required>
                         </div>
                     </div>
                     <div class="col-sm-12">

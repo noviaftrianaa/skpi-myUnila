@@ -105,8 +105,8 @@
                             </div>
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
-                                    <label>Username (<i>Email</i>)</label>
-                                    <input class="form-control" name="username" type="email" placeholder="Masukkan Username" value="{{$data->username}}" required>
+                                    <label>Username/Email</label>
+                                    <input class="form-control" name="username" type="text" placeholder="Masukkan Username" value="{{$data->username}}" required>
                                 </div>
                             </div>
                             <div class="col-sm-12">
