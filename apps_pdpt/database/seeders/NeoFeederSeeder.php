@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\PDUT\Pdrd\AktMhs;
 use App\Models\PDUT\Pdrd\Sms;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -42,7 +43,9 @@ class NeoFeederSeeder extends Seeder
 
         $func = [
 //            'substansi_kuliah',
-            'akt_mhs'
+//            'akt_mhs',
+            'ang_akt_mhs',
+            'konversi'
         ];
 
         // substansi kuliah
@@ -165,29 +168,64 @@ class NeoFeederSeeder extends Seeder
             }
         }
 
+        // anggota aktivitas mhs
+        if (in_array('ang_akt_mhs',$func)) {
+            $get_data_ang_akt_mhs = $this->curl_api_neo_feeder($url, $this->data_form('GetListAnggotaAktivitasMahasiswa', $token));
+            $total_data_ang_akt_mhs = count($get_data_ang_akt_mhs);
+            if ($total_data_ang_akt_mhs > 0) {
+                foreach ($get_data_ang_akt_mhs AS $no_ang_akt_mhs => $each_data_ang_akt_mhs) {
+                    echo 'Mendapatkan ' . ($no_ang_akt_mhs + 1) . ' dari ' . $total_data_ang_akt_mhs;
+                    $cek_akt = AktMhs::find($each_data_ang_akt_mhs['id_aktivitas']);
+                    if (!is_null($cek_akt)) {
+                        $cek_ang_akt = DB::table('pdrd.anggota_akt_mhs')->where('id_ang_akt_mhs', $each_data_ang_akt_mhs['id_anggota'])->first();
+                        if (is_null($cek_ang_akt)) {
+                            DB::table('pdrd.anggota_akt_mhs')->insert([
+                                'id_ang_akt_mhs' => $each_data_ang_akt_mhs['id_anggota'],
+                                'id_akt_mhs' => $each_data_ang_akt_mhs['id_aktivitas'],
+                                'id_reg_pd' => $each_data_ang_akt_mhs['id_registrasi_mahasiswa'],
+                                'nm_pd' => $each_data_ang_akt_mhs['nama_mahasiswa'],
+                                'nipd' => $each_data_ang_akt_mhs['nim'],
+                                'jns_peran_mhs' => $each_data_ang_akt_mhs['jenis_peran'],
+                                'create_date' => currDateTime(),
+                                'id_creator' => $id_creator,
+                                'last_update' => currDateTime(),
+                                'id_updater' => $id_creator,
+                                'soft_delete' => 0,
+                                'last_sync' => currDateTime()
+                            ]);
+                            echo " (OK)\n";
+                        } else {
+                            echo " (SUDAH ADA)\n";
+                        }
+                    } else {
+                        echo " (LEWATI)\n";
+                    }
+                }
+            }
+        }
+
         // list konversi
         if (in_array('konversi',$func)) {
-            $get_data_akt_mhs = $this->curl_api_neo_feeder($url, $this->data_form('GetListAktivitasMahasiswa', $token));
-            $total_data_akt_mhs = count($get_data_akt_mhs);
-            if ($total_data_akt_mhs > 0) {
-                foreach ($get_data_akt_mhs as $no_akt_mhs => $each_akt_mhs) {
-                    echo 'Mendapatkan ' . ($no_akt_mhs + 1) . ' dari ' . $total_data_akt_mhs;
-                    $cek_akt = DB::table('pdrd.akt_mhs')->where('id_akt_mhs',$each_akt_mhs['id_aktivitas'])->first();
-                    if (is_null($cek_akt)) {
-                        DB::table('pdrd.akt_mhs')->insert([
-                            'id_akt_mhs'    => $each_akt_mhs['id_aktivitas'],
-                            'id_jns_akt_mhs'=> $each_akt_mhs['id_jenis_aktivitas'],
-                            'id_sms'        => $each_akt_mhs['id_prodi'],
-                            'id_smt'        => $each_akt_mhs['id_semester'],
-                            'judul_akt_mhs' => $each_akt_mhs['judul'],
-                            'lokasi_kegiatan' => $each_akt_mhs['lokasi'],
-                            'sk_tugas'      => $each_akt_mhs['sk_tugas'],
-                            'tgl_sk_tugas'  => $each_akt_mhs['tanggal_sk_tugas'],
-                            'ket_akt'       => $each_akt_mhs['keterangan'],
-                            'a_komunal'     => $each_akt_mhs['untuk_kampus_merdeka'],
-                            'create_date'   => date('Y-m-d H:i:s', strtotime($each_akt_mhs['tgl_create'])),
+            $get_data_konversi_mbkm = $this->curl_api_neo_feeder($url, $this->data_form('GetListKonversiKampusMerdeka', $token));
+            $total_data_konversi_mbkm = count($get_data_konversi_mbkm);
+            if ($total_data_konversi_mbkm > 0) {
+                foreach ($get_data_konversi_mbkm as $no_konversi_mbkm => $each_konversi_mbkm) {
+                    echo 'Mendapatkan ' . ($no_konversi_mbkm + 1) . ' dari ' . $total_data_konversi_mbkm;
+                    $cek_konversi = DB::table('mbkm.konversi_kampus_merdeka')->where('id_konversi_aktivitas',$each_data_konversi_mbkm['id_konversi_aktivitas'])->first();
+                    if (is_null($cek_konversi)) {
+                        DB::table('mbkm.konversi_kampus_merdeka')->insert([
+                            'id_konversi_aktivitas'=> $each_data_konversi_mbkm['id_konversi_aktivitas'],
+                            'id_mk'         => $each_data_konversi_mbkm['id_matkul'],
+                            'id_ang_akt_mhs'=> $each_data_konversi_mbkm['id_anggota'],
+                            'id_akt_mhs'    => $each_data_konversi_mbkm['id_aktivitas'],
+//                                        'id_daftar_kampus_merdeka'          => $each_data_konversi_mbkm['nim'],
+                            'nilai_angka'   => $each_data_konversi_mbkm['nilai_angka'],
+                            'nilai_huruf'   => $each_data_konversi_mbkm['nilai_huruf'],
+                            'nilai_indeks'  => $each_data_konversi_mbkm['nilai_indeks'],
+                            'sks_mk'        => $each_data_konversi_mbkm['sks_mata_kuliah'],
+                            'create_date'   => currDateTime(),
                             'id_creator'    => $id_creator,
-                            'last_update'   => date('Y-m-d H:i:s', strtotime($each_akt_mhs['last_update'])),
+                            'last_update'   => currDateTime(),
                             'id_updater'    => $id_creator,
                             'soft_delete'   => 0,
                             'last_sync'     => currDateTime()
