@@ -393,7 +393,7 @@ class NeoFeederSeeder extends Seeder
                     $total_peserta_nilai_kelas = count($get_data_nilai_kelas);
                     if ($total_peserta_nilai_kelas>0) {
                         foreach ($get_data_nilai_kelas AS $no_nilai_kelas=>$each_data_nilai_kelas) {
-                            echo "Memproses ".($no_nilai_kelas+1+(50+$i))." dari halaman ".($i+1);
+                            echo "Memproses ".($no_nilai_kelas+1+(50*$i))." dari halaman ".($i+1);
                             $cari_nilai = NilaiSmtMhs::where('id_reg_pd',$each_data_nilai_kelas['id_registrasi_mahasiswa'])->where('id_kls',$each_data_nilai_kelas['id_kelas_kuliah'])->first();
                             if (is_null($cari_nilai)) {
                                 DB::table('pdrd.nilai_smt_mhs')->insert([
