@@ -411,11 +411,14 @@ class NeoFeederSeeder extends Seeder
                                 ]);
                                 echo " (OK)\n";
                             } else {
-                                $cari_nilai->nilai_angka    = $each_data_nilai_kelas['nilai_angka'];
-                                $cari_nilai->nilai_huruf    = $each_data_nilai_kelas['nilai_huruf'];
-                                $cari_nilai->nilai_indeks   = $each_data_nilai_kelas['nilai_indeks'];
-                                $cari_nilai->last_sync      = currDateTime();
-                                $cari_nilai->save();
+                                DB::table('pdrd.nilai_smt_mhs')->where('id_reg_pd',$each_data_nilai_kelas['id_registrasi_mahasiswa'])
+                                    ->where('id_kls',$each_data_nilai_kelas['id_kelas_kuliah'])->update([
+                                        'nilai_angka'   => $each_data_nilai_kelas['nilai_angka'],
+                                        'nilai_huruf'   => $each_data_nilai_kelas['nilai_huruf'],
+                                        'nilai_indeks'  => $each_data_nilai_kelas['nilai_indeks'],
+                                        'last_update'	=> currDateTime(),
+                                        'last_sync'	    => currDateTime()
+                                    ]);
                                 echo " (SUDAH ADA)\n";
                             }
                         }
