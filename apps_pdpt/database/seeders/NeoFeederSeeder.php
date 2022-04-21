@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\DB;
 
 class NeoFeederSeeder extends Seeder
 {
+    public $token = '';
+    public $expired = '';
     /**
      * Run the database seeds.
      *
@@ -23,28 +25,10 @@ class NeoFeederSeeder extends Seeder
     {
         $nomor_data=0;
         $id_creator = '443701e4-e814-48f3-9528-251bccee8af1';
-        $prodi = DB::table('pdrd.sms')->where('soft_delete',0)->select('id_sms')->groupBy('id_sms')->pluck('id_sms')->toArray();
-        $cari_token = DB::table('man_akses.access_token')->where(function ($token) {
-            $token->where('waktu_create','>=',currDateTime())->where('waktu_expired','<=',currDateTime());
-        })->first();
+        $prodi = DB::table('pdrd.sms')->where('soft_delete',0)->where('stat_prodi','A')->select('id_sms')->orderBy('id_jenj_didik','ASC')->get();
         $url = ENV('URL_WS_NEO_FEEDER');
-        if (is_null($cari_token)) {
-            $form_token = $this->data_get_token_form();
-            $get_token = $this->curl_api_neo_feeder($url,$form_token);
-            $token = $get_token['token'];
-            DB::table('man_akses.access_token')->insert([
-                'id_token'      => guid(),
-                'waktu_create'  => currDateTime(),
-                'waktu_expired' => config('mp.exp_data_row.waktu_expired_token'),
-                'keterangan'    => 'Token Seeder Data Neo Feeder',
-                'token_value'   => $token,
-                'is_seq_uri'    => 0,
-                'is_reg_user'   => 1,
-                'base_url'      => $url
-            ]);
-        } else {
-            $token = $cari_token->token_value;
-        }
+
+        $token = $this->generate_token();
 
         $func = [
 //            'substansi_kuliah',
@@ -385,21 +369,24 @@ class NeoFeederSeeder extends Seeder
         }
 
         if (in_array('nilai_kelas',$func)) {
-            foreach ($prodi AS $id_sms) {
-                $cari_prodi = DB::table('pdrd.sms')->where('id_sms', $id_sms)->first();
+            foreach ($prodi AS $each_prodi) {
+                $cari_prodi = DB::table('pdrd.sms')->where('id_sms', $each_prodi->id_sms)->first();
                 $jenjang = DB::table('ref.jenjang_pendidikan')->where('id_jenj_didik',$cari_prodi->id_jenj_didik)->first();
-                $kelas = KelasKuliah::where('id_sms',$id_sms)->orderBy('id_smt','ASC')->get();
+                $kelas = KelasKuliah::where('id_sms',$each_prodi->id_sms)->whereIn('id_smt',['20201','20202','20211'])->orderBy('id_smt','ASC')->get();
                 $total_kelas = count($kelas);
                 if ($total_kelas>0) {
                     foreach ($kelas AS $each_kelas) {
-                        echo "Mendapatkan data nilai_kelas dari prodi ".($cari_prodi->nm_lemb.' ('.$jenjang->nm_jenj_didik.')')."\n";
+                        if (currDateTime()>$this->expired) {
+                            $token = $this->generate_token();
+                        }
+                        echo "Mendapatkan data nilai_kelas id:".$each_kelas->id_kls." dari prodi ".($cari_prodi->nm_lemb.' ('.$jenjang->nm_jenj_didik.')')."\n";
                         $get_data_nilai_kelas = $this->curl_api_neo_feeder($url, $this->data_form('GetDetailNilaiPerkuliahanKelas',$token,'id_kelas_kuliah',$each_kelas->id_kls));
                         $total_peserta_nilai_kelas = count($get_data_nilai_kelas);
                         if ($total_peserta_nilai_kelas>0) {
                             foreach ($get_data_nilai_kelas AS $no_nilai_kelas=>$each_data_nilai_kelas) {
                                 echo "Memproses ".($no_nilai_kelas+1)." dari total ".$total_peserta_nilai_kelas;
                                 $cari_nilai = DB::table('pdrd.nilai_smt_mhs')->where('id_reg_pd',$each_data_nilai_kelas['id_registrasi_mahasiswa'])
-                                    ->where('id_kls',$each_data_nilai_kelas['id_kelas_kuliah'])
+                                    ->where('id_kls',$each_kelas->id_kls)
                                     ->first();
                                 if (is_null($cari_nilai)) {
                                     DB::table('pdrd.nilai_smt_mhs')->insert([
@@ -484,6 +471,35 @@ class NeoFeederSeeder extends Seeder
                 "offset"=>  $offset,
             ]);
         }
+    }
+
+    function generate_token()
+    {
+        $cari_token = DB::table('man_akses.access_token')->where('keterangan','Token Seeder Data Neo Feeder')->where(function ($token) {
+            $token->where('waktu_create','<=',currDateTime())->where('waktu_expired','>=',currDateTime());
+        })->orderBy('waktu_expired','DESC')->first();
+        $url = ENV('URL_WS_NEO_FEEDER');
+        if (is_null($cari_token)) {
+            $form_token = $this->data_get_token_form();
+            $get_token = $this->curl_api_neo_feeder($url,$form_token);
+            $token = $get_token['token'];
+            DB::table('man_akses.access_token')->insert([
+                'id_token'      => guid(),
+                'waktu_create'  => currDateTime(),
+                'waktu_expired' => config('mp.exp_data_row.waktu_expired_token'),
+                'keterangan'    => 'Token Seeder Data Neo Feeder',
+                'token_value'   => $token,
+                'is_seq_uri'    => 0,
+                'is_reg_user'   => 1,
+                'base_url'      => $url
+            ]);
+            $this->expired = config('mp.exp_data_row.waktu_expired_token');
+        } else {
+            $token = $cari_token->token_value;
+            $this->expired = $cari_token->waktu_expired;
+        }
+        $this->token = $token;
+        return $token;
     }
 
     function data_get_token_form()
