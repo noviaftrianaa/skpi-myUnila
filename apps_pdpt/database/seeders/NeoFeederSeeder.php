@@ -411,6 +411,11 @@ class NeoFeederSeeder extends Seeder
                                 ]);
                                 echo " (OK)\n";
                             } else {
+                                $cari_nilai->nilai_angka    = $each_data_nilai_kelas['nilai_angka'];
+                                $cari_nilai->nilai_huruf    = $each_data_nilai_kelas['nilai_huruf'];
+                                $cari_nilai->nilai_indeks   = $each_data_nilai_kelas['nilai_indeks'];
+                                $cari_nilai->last_sync      = currDateTime();
+                                $cari_nilai->save();
                                 echo " (SUDAH ADA)\n";
                             }
                         }
