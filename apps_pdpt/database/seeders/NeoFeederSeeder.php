@@ -3,7 +3,11 @@
 namespace Database\Seeders;
 
 use App\Models\PDUT\Pdrd\AktMhs;
+use App\Models\PDUT\Pdrd\NilaiSmtMhs;
+use App\Models\PDUT\Pdrd\ReMk;
+use App\Models\PDUT\Pdrd\RencanaAjar;
 use App\Models\PDUT\Pdrd\Sms;
+use App\Models\PDUT\Ref\JenisEvaluasi;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -44,8 +48,13 @@ class NeoFeederSeeder extends Seeder
         $func = [
 //            'substansi_kuliah',
 //            'akt_mhs',
-            'ang_akt_mhs',
-            'konversi'
+//            'ang_akt_mhs',
+//            'konversi'
+//            'kurikulum',
+//            'mk_kurikulum',
+//            'rencana_ajar',
+//            'rencana_evaluasi',
+            'nilai_kelas'
         ];
 
         // substansi kuliah
@@ -209,7 +218,7 @@ class NeoFeederSeeder extends Seeder
             $get_data_konversi_mbkm = $this->curl_api_neo_feeder($url, $this->data_form('GetListKonversiKampusMerdeka', $token));
             $total_data_konversi_mbkm = count($get_data_konversi_mbkm);
             if ($total_data_konversi_mbkm > 0) {
-                foreach ($get_data_konversi_mbkm as $no_konversi_mbkm => $each_konversi_mbkm) {
+                foreach ($get_data_konversi_mbkm as $no_konversi_mbkm => $each_data_konversi_mbkm) {
                     echo 'Mendapatkan ' . ($no_konversi_mbkm + 1) . ' dari ' . $total_data_konversi_mbkm;
                     $cek_konversi = DB::table('mbkm.konversi_kampus_merdeka')->where('id_konversi_aktivitas',$each_data_konversi_mbkm['id_konversi_aktivitas'])->first();
                     if (is_null($cek_konversi)) {
@@ -239,7 +248,7 @@ class NeoFeederSeeder extends Seeder
         }
 
         // Kurikulum
-        if (in_array($func,'kurikulum')) {
+        if (in_array('kurikulum',$func)) {
             $get_data_kurikulum_sp = $this->curl_api_neo_feeder($url, $this->data_form('GetListKurikulum',$token));
             $total_data_kurikulum_sp = count($get_data_kurikulum_sp);
             if ($total_data_kurikulum_sp>0) {
@@ -252,21 +261,167 @@ class NeoFeederSeeder extends Seeder
                         'id_sms'	        => $each_kurikulum_sp['id_prodi'],
                         'nm_kurikulum_sp'   => $each_kurikulum_sp['nama_kurikulum'],
                         'jmlh_smt_normal'	=> $each_kurikulum_sp['jml_sem_normal'],
-                        'a_digunakan'	    => $each_kurikulum_sp['jml_sem_normal'],
                         'jmlh_sks_lulus'	=> $each_kurikulum_sp['jumlah_sks_lulus'],
                         'jmlh_sks_wajib'	=> $each_kurikulum_sp['jumlah_sks_wajib'],
                         'jmlh_sks_pilihan'	=> $each_kurikulum_sp['jumlah_sks_pilihan'],
                         'jmlh_sks_mk_wajib'	=> $each_kurikulum_sp['jumlah_sks_mata_kuliah_wajib'],
                         'jmlh_sks_mk_pilih'	=> $each_kurikulum_sp['jumlah_sks_mata_kuliah_pilihan'],
-                        'create_date'	=> date('Y-m-d H:i:s',strtotime($each_kurikulum_sp['tgl_create'])),
+                        'create_date'	=> currDateTime(),
                         'id_creator'	=> $id_creator,
-                        'last_update'	=> date('Y-m-d H:i:s',strtotime($each_kurikulum_sp['last_update'])),
+                        'last_update'	=> currDateTime(),
                         'id_updater'	=> $id_creator,
                         'soft_delete'	=> 0,
                         'last_sync'	    => currDateTime()
                     ]);
                     echo " (OK)\n";
                 }
+            }
+        }
+
+        // MK Kurikulum
+        if (in_array('mk_kurikulum',$func)) {
+            $get_data_mk_kurikulum = $this->curl_api_neo_feeder($url, $this->data_form('GetMatkulKurikulum',$token));
+            $total_data_mk_kurikulum = count($get_data_mk_kurikulum);
+            if ($total_data_mk_kurikulum>0) {
+                foreach ($get_data_mk_kurikulum AS $no_mk_kurikulum=>$each_mk_kurikulum) {
+                    echo 'Mendapatkan '.($no_mk_kurikulum+1).' dari '.$total_data_mk_kurikulum;
+                    DB::table('pdrd.matkul_kurikulum')->insert([
+                        'id_kurikulum_sp'   => $each_mk_kurikulum['id_kurikulum'],
+                        'id_mk'             => $each_mk_kurikulum['id_matkul'],
+                        'smt'               => $each_mk_kurikulum['semester'],
+                        'sks_mk'            => $each_mk_kurikulum['sks_mata_kuliah'],
+                        'sks_tm'            => $each_mk_kurikulum['sks_tatap_muka'],
+                        'sks_prak'          => $each_mk_kurikulum['sks_praktek'],
+                        'sks_prak_lap'      => $each_mk_kurikulum['sks_praktek_lapangan'],
+                        'sks_sim'           => $each_mk_kurikulum['sks_simulasi'],
+                        'a_wajib'           => $each_mk_kurikulum['apakah_wajib'],
+                        'create_date'	=> currDateTime(),
+                        'id_creator'	=> $id_creator,
+                        'last_update'	=> currDateTime(),
+                        'id_updater'	=> $id_creator,
+                        'soft_delete'	=> 0,
+                        'last_sync'	    => currDateTime()
+                    ]);
+                    echo " (OK)\n";
+                }
+            }
+        }
+
+        // Rencana Pembelajaran
+        if (in_array('rencana_ajar',$func)) {
+            $get_data_renc_ajar = $this->curl_api_neo_feeder($url, $this->data_form('GetListRencanaPembelajaran',$token));
+            $total_data_renc_ajar = count($get_data_renc_ajar);
+            if ($total_data_renc_ajar>0) {
+                foreach ($get_data_renc_ajar AS $no_renc_ajar=>$each_renc_ajar) {
+                    echo 'Mendapatkan '.($no_renc_ajar+1).' dari '.$total_data_renc_ajar;
+                    $cari_renc = RencanaAjar::find($each_renc_ajar->id_rencana_ajar);
+                    if (is_null($cari_renc)) {
+                        DB::table('pdrd.rencana_ajar')->insert([
+                            'id_renc_ajar'      => $each_renc_ajar['id_rencana_ajar'],
+                            'id_mk'             => $each_renc_ajar['id_matkul'],
+                            'pertemuan'         => $each_renc_ajar['pertemuan'],
+                            'materi_indonesia'  => $each_renc_ajar['materi_indonesia'],
+                            'materi_inggris'    => $each_renc_ajar['materi_inggris'],
+                            'create_date'	    => currDateTime(),
+                            'id_creator'	    => $id_creator,
+                            'last_update'	    => currDateTime(),
+                            'id_updater'	    => $id_creator,
+                            'soft_delete'	    => 0,
+                            'last_sync'	        => currDateTime()
+                        ]);
+                        echo " (OK)\n";
+                    } else {
+                        echo " (SUDAH ADA)\n";
+                    }
+                }
+            }
+        }
+
+        // Rencana Evaluasi
+        if (in_array('rencana_evaluasi',$func)) {
+            $get_data_basis_evaluasi = $this->curl_api_neo_feeder($url, $this->data_form('GetJenisEvaluasi',$token));
+            foreach ($get_data_basis_evaluasi AS $each_basis_evaluasi) {
+                $cari_basis = JenisEvaluasi::find($each_basis_evaluasi['id_jenis_evaluasi']);
+                if (is_null($cari_basis)) {
+                    DB::table('ref.jenis_evaluasi')->insert([
+                        'id_jns_eval'   => $each_basis_evaluasi['id_jenis_evaluasi'],
+                        'nm_jns_eval'   => $each_basis_evaluasi['nama_jenis_evaluasi'],
+                        'create_date'   => currDateTime(),
+                        'last_update'   => currDateTime(),
+                        'last_sync'     => currDateTime()
+                    ]);
+                }
+            }
+            $get_data_re_mk = $this->curl_api_neo_feeder($url, $this->data_form('GetListRencanaEvaluasi',$token));
+            $total_data_re_mk = count($get_data_re_mk);
+            if ($total_data_re_mk>0) {
+                foreach ($get_data_re_mk AS $no_re_mk=>$each_re_mk) {
+                    echo 'Mendapatkan '.($no_re_mk+1).' dari '.$total_data_re_mk;
+                    $cari_renc = ReMk::find($each_re_mk['id_rencana_evaluasi']);
+                    if (is_null($cari_renc)) {
+                        DB::table('pdrd.re_mk')->insert([
+                            'id_re_mk'          => $each_re_mk['id_rencana_evaluasi'],
+                            'id_jns_eval'       => $each_re_mk['id_jenis_evaluasi'],
+                            'id_mk'             => $each_re_mk['id_matkul'],
+                            'komponen_evaluasi' => $each_re_mk['nama_evaluasi'],
+                            'desk_indo'         => $each_re_mk['deskripsi_indonesia'],
+                            'desk_ing'          => $each_re_mk['deskrips_inggris'],
+                            'bobot_evaluasi'    => $each_re_mk['bobot_evaluasi'],
+                            'no_urut'           => $each_re_mk['nomor_urut'],
+                            'create_date'	    => currDateTime(),
+                            'id_creator'	    => $id_creator,
+                            'last_update'	    => currDateTime(),
+                            'id_updater'	    => $id_creator,
+                            'soft_delete'	    => 0,
+                            'last_sync'	        => currDateTime()
+                        ]);
+                        echo " (OK)\n";
+                    } else {
+                        echo " (SUDAH ADA)\n";
+                    }
+                }
+            }
+        }
+
+        if (in_array('nilai_kelas',$func)) {
+            foreach ($prodi AS $id_sms) {
+                $cari_prodi = DB::table('pdrd.sms')->where('id_sms', $id_sms)->first();
+                $jenjang = DB::table('ref.jenjang_pendidikan')->where('id_jenj_didik',$cari_prodi->id_jenj_didik)->first();
+                echo "Mendapatkan data nilai_kelas dari prodi ".($cari_prodi->nm_lemb.' ('.$jenjang->nm_jenj_didik.')')."\n";
+                for ($i=0;$i<=200;$i++) {
+                    $get_data_nilai_kelas = $this->curl_api_neo_feeder($url, $this->data_form('GetDetailNilaiPerkuliahanKelas',$token,'id_prodi',$id_sms,50,$i));
+                    $total_peserta_nilai_kelas = count($get_data_nilai_kelas);
+                    if ($total_peserta_nilai_kelas>0) {
+                        foreach ($get_data_nilai_kelas AS $no_nilai_kelas=>$each_data_nilai_kelas) {
+                            echo "Memproses ".($no_nilai_kelas+1+(50+$i))." dari halaman ".($i+1);
+                            $cari_nilai = NilaiSmtMhs::where('id_reg_pd',$each_data_nilai_kelas['id_registrasi_mahasiswa'])->where('id_kls',$each_data_nilai_kelas['id_kelas_kuliah'])->first();
+                            if (is_null($cari_nilai)) {
+                                DB::table('pdrd.nilai_smt_mhs')->insert([
+                                    'id_reg_pd'     => $each_data_nilai_kelas['id_registrasi_mahasiswa'],
+                                    'id_kls'        => $each_data_nilai_kelas['id_kelas_kuliah'],
+                                    'nilai_angka'   => $each_data_nilai_kelas['nilai_angka'],
+                                    'nilai_huruf'   => $each_data_nilai_kelas['nilai_huruf'],
+                                    'nilai_indeks'  => $each_data_nilai_kelas['nilai_indeks'],
+                                    'create_date'	=> currDateTime(),
+                                    'id_creator'	=> $id_creator,
+                                    'last_update'	=> currDateTime(),
+                                    'id_updater'	=> $id_creator,
+                                    'soft_delete'	=> 0,
+                                    'last_sync'	    => currDateTime()
+                                ]);
+                                echo " (OK)\n";
+                            } else {
+                                echo " (SUDAH ADA)\n";
+                            }
+                        }
+                    } else {
+                        if ($i==0) {
+                            echo "Prodi dilewati\n";
+                        }
+                        break;
+                    }
+                }
+
             }
         }
     }
@@ -296,7 +451,7 @@ class NeoFeederSeeder extends Seeder
         return $obj['data'];
     }
 
-    function data_form($act,$token,$filter=null,$param=null)
+    function data_form($act,$token,$filter=null,$param=null,$limit=0,$offset=0)
     {
         if (is_null($filter)) {
             return json_encode([
@@ -308,11 +463,11 @@ class NeoFeederSeeder extends Seeder
             ]);
         } else {
             return json_encode([
-                "act"=> $act,
-                "token"=> $token,
+                "act"   => $act,
+                "token" => $token,
                 "filter"=> "{$filter}='{$param}'",
-                "limit"=>0,
-                "offset"=>0,
+                "limit" =>   $limit,
+                "offset"=>  $offset,
             ]);
         }
     }

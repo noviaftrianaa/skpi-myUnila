@@ -1,6 +1,6 @@
 /*==============================================================*/
 /* DBMS name:      Microsoft SQL Server 2014                    */
-/* Created on:     05/04/2022 12:56:12                          */
+/* Created on:     21/04/2022 00:47:19                          */
 /*==============================================================*/
 
 
@@ -62,6 +62,12 @@ go
 /* User: pdrd                                                   */
 /*==============================================================*/
 create schema pdrd
+go
+
+/*==============================================================*/
+/* User: pmb                                                    */
+/*==============================================================*/
+create schema pmb
 go
 
 /*==============================================================*/
@@ -882,6 +888,36 @@ create table mbkm.daftar_kampus_merdeka (
       constraint ckc_soft_delete_daftar_k check (soft_delete between 0 and 1 and soft_delete in (0,1)),
    last_sync            datetime             not null,
    constraint pk_daftar_kampus_merdeka primary key (id_daftar_kampus_merdeka)
+)
+go
+
+/*==============================================================*/
+/* Table: daya_tampung                                          */
+/*==============================================================*/
+create table pmb.daya_tampung (
+   id_periode_pmb       uniqueidentifier     not null,
+   id_smt               char(5)              not null,
+   id_sms               uniqueidentifier     not null,
+   target_mhs_baru      numeric(6)           null,
+   calon_ikut_seleksi   numeric(6)           null,
+   calon_pilihan_1      numeric(6)           null,
+   calon_pilihan_2      numeric(6)           null,
+   calon_pilihan_3      numeric(6)           null,
+   ketetatan_statistik  numeric(7,4)         null,
+   ketetatan_probabilitas numeric(7,4)         null,
+   calon_lulus_seleksi  numeric(6)           null,
+   daftar_sbg_mhs       numeric(6)           null,
+   pst_undur_diri       numeric(5)           null,
+   tgl_awal_kul         datetime             null,
+   tgl_akhir_kul        datetime             null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_daya_tam check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
+   constraint pk_daya_tampung primary key (id_smt, id_sms, id_periode_pmb)
 )
 go
 
@@ -2867,6 +2903,7 @@ go
 create table pdrd.kurikulum_sp (
    id_kurikulum_sp      uniqueidentifier     not null,
    id_jenj_didik        numeric(2)           not null,
+   id_smt               char(5)              not null,
    id_sms               uniqueidentifier     not null,
    nm_kurikulum_sp      varchar(100)         not null,
    jmlh_smt_normal      numeric(2)           null,
@@ -2875,6 +2912,8 @@ create table pdrd.kurikulum_sp (
    jmlh_sks_lulus       numeric(5,2)         null,
    jmlh_sks_wajib       numeric(5,2)         null,
    jmlh_sks_pilihan     numeric(5,2)         null,
+   jmlh_sks_mk_wajib    numeric(5,2)         null,
+   jmlh_sks_mk_pilih    numeric(5,2)         null,
    create_date          datetime             not null,
    id_creator           uniqueidentifier     not null,
    last_update          datetime             not null,
@@ -3552,7 +3591,7 @@ go
 /* Table: nilai_smt_mhs                                         */
 /*==============================================================*/
 create table pdrd.nilai_smt_mhs (
-   id_reg_ptk           uniqueidentifier     not null,
+   id_reg_pd            uniqueidentifier     not null,
    id_kls               uniqueidentifier     not null,
    nilai_angka          numeric(4,1)         null,
    nilai_huruf          char(3)              null,
@@ -3564,7 +3603,7 @@ create table pdrd.nilai_smt_mhs (
    soft_delete          numeric(1)           not null default 0
       constraint ckc_soft_delete_nilai_sm check (soft_delete between 0 and 1 and soft_delete in (0,1)),
    last_sync            datetime             not null,
-   constraint pk_nilai_smt_mhs primary key (id_reg_ptk, id_kls)
+   constraint pk_nilai_smt_mhs primary key (id_reg_pd, id_kls)
 )
 go
 
@@ -3779,6 +3818,7 @@ create table man_akses.pengguna (
    username             varchar(60)          not null,
    password             varchar(50)          not null,
    nm_pengguna          varchar(200)         null,
+   email                varchar(60)          null,
    tempat_lahir         varchar(60)          null,
    tgl_lahir            date                 null,
    jenis_kelamin        char(1)              not null 
@@ -3884,6 +3924,32 @@ create table mbkm.periode_kampus_merdeka (
       constraint ckc_soft_delete_periode_ check (soft_delete between 0 and 1 and soft_delete in (0,1)),
    last_sync            datetime             not null,
    constraint pk_periode_kampus_merdeka primary key (id_periode_mbkm)
+)
+go
+
+/*==============================================================*/
+/* Table: periode_pmb                                           */
+/*==============================================================*/
+create table pmb.periode_pmb (
+   id_periode_pmb       uniqueidentifier     not null,
+   id_pembiayaan        numeric(2)           not null,
+   id_jenj_didik        numeric(2)           not null,
+   id_jns_daftar        numeric(2)           not null,
+   id_thn_ajaran        numeric(4)           not null,
+   id_jalur_daftar      numeric              not null,
+   nm_periode_pmb       varchar(60)          not null,
+   gelombang            numeric(2)           null,
+   smt                  numeric(2)           null,
+   a_internal           numeric(1)           null default 0
+      constraint ckc_a_internal_periode_ check (a_internal is null or (a_internal between 0 and 1 and a_internal in (0,1))),
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_delete_periode_pmb check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
+   constraint pk_periode_pmb primary key (id_periode_pmb)
 )
 go
 
@@ -5888,6 +5954,24 @@ alter table mbkm.daftar_kampus_merdeka
       references pdrd.reg_pd (id_reg_pd)
 go
 
+alter table pmb.daya_tampung
+   add constraint fk_daya_tam_daya_tamp_periode_ foreign key (id_periode_pmb)
+      references pmb.periode_pmb (id_periode_pmb)
+         on update cascade on delete cascade
+go
+
+alter table pmb.daya_tampung
+   add constraint fk_daya_tam_daya_tamp_sms foreign key (id_sms)
+      references pdrd.sms (id_sms)
+         on update cascade on delete cascade
+go
+
+alter table pmb.daya_tampung
+   add constraint fk_daya_tam_smt_daya__semester foreign key (id_smt)
+      references ref.semester (id_smt)
+         on update cascade on delete cascade
+go
+
 alter table sarpras.dbr
    add constraint fk_dbr_detail_al_alat foreign key (id_alat)
       references sarpras.alat (id_alat)
@@ -6501,6 +6585,12 @@ alter table pdrd.kurikulum_sp
          on update cascade on delete cascade
 go
 
+alter table pdrd.kurikulum_sp
+   add constraint fk_kurikulu_smt_kurik_semester foreign key (id_smt)
+      references ref.semester (id_smt)
+         on update cascade on delete cascade
+go
+
 alter table pdrd.lembaga_non_sp
    add constraint fk_lembaga__induk_lem_lembaga_ foreign key (id_induk_lemb_non_sp)
       references pdrd.lembaga_non_sp (id_lemb_non_sp)
@@ -6763,8 +6853,8 @@ alter table pdrd.nilai_smt_mhs
 go
 
 alter table pdrd.nilai_smt_mhs
-   add constraint fk_nilai_sm_reg_nilai_reg_ptk foreign key (id_reg_ptk)
-      references pdrd.reg_ptk (id_reg_ptk)
+   add constraint fk_nilai_sm_reg_nilai_reg_pd foreign key (id_reg_pd)
+      references pdrd.reg_pd (id_reg_pd)
 go
 
 alter table pdrd.nilai_tes
@@ -6865,6 +6955,36 @@ go
 alter table mbkm.periode_kampus_merdeka
    add constraint fk_periode__smt_perio_semester foreign key (id_smt)
       references ref.semester (id_smt)
+go
+
+alter table pmb.periode_pmb
+   add constraint fk_periode__jalur_daf_jalur_da foreign key (id_jalur_daftar)
+      references ref.jalur_daftar (id_jalur_daftar)
+         on update cascade on delete cascade
+go
+
+alter table pmb.periode_pmb
+   add constraint fk_periode__jenis_pen_jenis_pe foreign key (id_jns_daftar)
+      references ref.jenis_pendaftaran (id_jns_daftar)
+         on update cascade on delete cascade
+go
+
+alter table pmb.periode_pmb
+   add constraint fk_periode__jenjang_p_jenjang_ foreign key (id_jenj_didik)
+      references ref.jenjang_pendidikan (id_jenj_didik)
+         on update cascade on delete cascade
+go
+
+alter table pmb.periode_pmb
+   add constraint fk_periode__pembiayaa_pembiaya foreign key (id_pembiayaan)
+      references ref.pembiayaan (id_pembiayaan)
+         on update cascade on delete cascade
+go
+
+alter table pmb.periode_pmb
+   add constraint fk_periode__thn_ajara_tahun_aj foreign key (id_thn_ajaran)
+      references ref.tahun_ajaran (id_thn_ajaran)
+         on update cascade on delete cascade
 go
 
 alter table pdrd.peserta_didik
@@ -7716,4 +7836,4 @@ alter table ref.wilayah
       references ref.negara (id_negara)
 go
 
-INSERT INTO man_akses.versi_db (versi,tgl_update) VALUES ('0.7.0',GETDATE());
+INSERT INTO man_akses.versi_db (versi,tgl_update) VALUES ('0.8.0',GETDATE());
