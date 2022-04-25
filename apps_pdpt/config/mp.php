@@ -34,7 +34,7 @@ return [
         'tgl_create'   => date('Y-m-d H:i:s'),
         'last_update'   => date('Y-m-d H:i:s'),
         'last_sync'   => date('Y-m-d H:i:s', time()-60),
-        'waktu_expired_token'   => date('Y-m-d H:i:s', strtotime("+60 minutes")),
+        'waktu_expired_token'   => date('Y-m-d H:i:s', strtotime("+20 minutes")),
     ],
     'data_master'   => [
         'smt'   => [
