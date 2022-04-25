@@ -64,7 +64,7 @@ class LoginController extends Controller
         if(SSO::authenticate())
         {
             if(SSO::check()) {
-                $check = User::where('username', SSO::getUser()->username)->first();
+                $check = User::where(DB::raw("SUBSTRING(username,0,CHARINDEX('@',username,0))"), SSO::getUser()->username)->first();
                 if(!is_null($check)) {
                     Auth::loginUsingId($check->id_pengguna);
                     alert()->success('You are logged in!');
