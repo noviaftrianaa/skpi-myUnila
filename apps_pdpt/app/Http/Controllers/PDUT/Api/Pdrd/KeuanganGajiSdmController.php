@@ -26,15 +26,15 @@ class KeuanganGajiSdmController extends Controller
     {
         InputValidator([
             'page' => 'numeric|min:1',
-            'count'    => 'numeric|min:1|max:50',
-            'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
+            'limit'    => 'numeric|min:1|max:50',
+            'sort' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
         ]);
 
-        $sortby = "ASC";
-        $sortby = $this->request->input('sortby');
+        $sort = "ASC";
+        $sort = $this->request->input('sort');
 
-        if (!empty($sortby)) {
-            $sortby = $sortby;
+        if (!empty($sort)) {
+            $sort = $sort;
         }
 
         try {
@@ -85,7 +85,7 @@ class KeuanganGajiSdmController extends Controller
             JOIN ref.pangkat_golongan AS pgkt WITH(NOLOCK) ON rwgaji.id_pangkat_gol = pgkt.id_pangkat_gol
                 AND pgkt.expired_date IS NULL
             WHERE rwgaji.soft_delete = 0
-                ORDER BY sdm.nm_sdm " . $sortby . " ";
+                ORDER BY sdm.nm_sdm " . $sort . " ";
 
             $pagination = CustomPagination($query);
             $query = $pagination['query'];

@@ -31,7 +31,7 @@ class AlatLongController extends Controller
     public function daftar()
     {
         InputValidator([
-            'sortby' => [
+            'sort' => [
                 'alpha',
                 ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])
             ],
@@ -39,8 +39,8 @@ class AlatLongController extends Controller
             'limit' => 'required|numeric'
         ]);
 
-        $sortby = 'DESC';
-        $sortby = $this->request->input('sortby');
+        $sort = 'DESC';
+        $sort = $this->request->input('sort');
 
         $q_alatlong = "
             SELECT
@@ -58,7 +58,7 @@ class AlatLongController extends Controller
             WHERE
                 along.soft_delete = 0
             ORDER BY
-                semes.id_smt " . $sortby . " ";
+                semes.id_smt " . $sort . " ";
 
         $pagination = CustomPagination($q_alatlong);
         $query = $pagination['query'];

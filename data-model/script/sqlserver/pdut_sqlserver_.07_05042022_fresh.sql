@@ -7716,3 +7716,4 @@ alter table ref.wilayah
       references ref.negara (id_negara)
 go
 
+INSERT INTO man_akses.versi_db (versi,tgl_update) VALUES ('0.7.0',GETDATE());

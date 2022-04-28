@@ -21,16 +21,17 @@ class SdmController extends Controller
         InputValidator([
             'id_jns_sdm' => 'required|numeric',
             'page' => 'numeric|min:1',
-            'item'    => 'numeric|min:1|max:50',
-            'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
+            'limit'    => 'numeric|min:1|max:50',
+            'sort' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
         ]);
 
         $id_jns_sdm = $this->request->input('id_jns_sdm');
-        $sortby = "ASC";
-        $sortby = $this->request->input('sortby');
+        $sort = "ASC";
+        $sort = $this->request->input('sort');
 
         $query = "
                 SELECT
+                    ptk.id_reg_ptk,
                     sdm.id_sdm,
                     prodi.id_fak_unila AS id_fakultas,
                     prodi.id_jur_unila AS id_jurusan,
@@ -77,8 +78,8 @@ class SdmController extends Controller
                 LEFT JOIN ref.jenis_sdm AS jsdm ON jsdm.id_jns_sdm = sdm.id_jns_sdm
                 LEFT JOIN ref.status_keaktifan_pegawai AS aktf ON aktf.id_stat_aktif = sdm.id_stat_aktif
                 LEFT JOIN ref.ikatan_kerja_sdm AS iks WITH(NOLOCK) ON iks.id_ikatan_kerja = ptk.id_ikatan_kerja
-                WHERE sdm.id_jns_sdm = '".$id_jns_sdm."' AND sdm.soft_delete = 0
-                ORDER BY sdm.nm_sdm " . $sortby . " ";
+                WHERE sdm.id_jns_sdm = '" . $id_jns_sdm . "' AND sdm.soft_delete = 0
+                ORDER BY sdm.nm_sdm " . $sort . " ";
 
         $pagination = CustomPagination($query);
         $query = $pagination['query'];
@@ -91,6 +92,7 @@ class SdmController extends Controller
         $data = [];
         foreach ($sdms as $value) {
             $data[] = [
+                'id_reg_ptk' => $value->id_reg_ptk,
                 'id_sdm' => $value->id_sdm,
                 'id_fakultas' => $value->id_fakultas,
                 'id_jurusan' => $value->id_jurusan,
@@ -121,18 +123,19 @@ class SdmController extends Controller
             'id_jns_sdm' => 'required|numeric',
             'id_sms' => 'required|uuid',
             'page' => 'numeric|min:1',
-            'item'    => 'numeric|min:1|max:50',
-            'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
+            'limit'    => 'numeric|min:1|max:50',
+            'sort' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
         ]);
 
         $id_jns_sdm = $this->request->input('id_jns_sdm');
         $id_sms = $this->request->input('id_sms');
 
-        $sortby = "ASC";
-        $sortby = $this->request->input('sortby');
+        $sort = "ASC";
+        $sort = $this->request->input('sort');
 
         $query = "
         SELECT
+            pt.id_reg_ptk,
             sdm.id_sdm,
             prodi.id_fak_unila AS id_fakultas,
             prodi.id_jur_unila AS id_jurusan,
@@ -179,9 +182,9 @@ class SdmController extends Controller
         LEFT JOIN ref.jenis_sdm AS jsdm ON jsdm.id_jns_sdm = sdm.id_jns_sdm
         LEFT JOIN ref.status_keaktifan_pegawai AS aktf ON aktf.id_stat_aktif = sdm.id_stat_aktif
         LEFT JOIN ref.ikatan_kerja_sdm AS iks WITH(NOLOCK) ON iks.id_ikatan_kerja = ptk.id_ikatan_kerja
-        WHERE sdm.id_jns_sdm = '".$id_jns_sdm."' AND sdm.soft_delete = 0 AND
+        WHERE sdm.id_jns_sdm = '" . $id_jns_sdm . "' AND sdm.soft_delete = 0 AND
         (prodi.id_sms = '" . $id_sms . "' OR prodi.id_fak_unila = '" . $id_sms . "' OR prodi.id_jur_unila = '" . $id_sms . "')
-        ORDER BY sdm.nm_sdm " . $sortby . " ";
+        ORDER BY sdm.nm_sdm " . $sort . " ";
 
         $pagination = CustomPagination($query);
         $query = $pagination['query'];
@@ -194,6 +197,7 @@ class SdmController extends Controller
         $data = [];
         foreach ($sdms as $value) {
             $data[] = [
+                'id_reg_ptk' => $value->id_reg_ptk,
                 'id_sdm' => $value->id_sdm,
                 'id_fakultas' => $value->id_fakultas,
                 'id_jurusan' => $value->id_jurusan,
@@ -230,6 +234,7 @@ class SdmController extends Controller
 
         $q_sdm = "
             SELECT
+                ptk.id_reg_ptk,
                 sdm.id_sdm,
                 prodi.id_fak_unila AS id_fakultas,
                 prodi.id_jur_unila AS id_jurusan,
@@ -273,7 +278,7 @@ class SdmController extends Controller
                 JOIN pdrd.keaktifan_ptk AS aktfptk ON aktfptk.id_reg_ptk = ptk.id_reg_ptk
                 AND aktfptk.soft_delete = 0
                 AND aktfptk.a_sp_homebase = 1
-                AND aktfptk.id_thn_ajaran = '2021'
+                AND aktfptk.id_thn_ajaran = '" . get_tahun_keaktifan() . "'
                 LEFT JOIN ref.jenis_sdm AS jsdm ON jsdm.id_jns_sdm = sdm.id_jns_sdm
                 LEFT JOIN ref.status_keaktifan_pegawai AS aktf ON aktf.id_stat_aktif = sdm.id_stat_aktif
                 LEFT JOIN ref.ikatan_kerja_sdm AS iks WITH(NOLOCK) ON iks.id_ikatan_kerja = ptk.id_ikatan_kerja
@@ -339,6 +344,7 @@ class SdmController extends Controller
             WHERE
                 fungs.soft_delete = 0
                 AND fungs.id_sdm = '" . $id_sdm . "'
+            ORDER BY fungs.tmt_sk_jabfung DESC
         ";
 
         $q_pangk = "
@@ -359,13 +365,14 @@ class SdmController extends Controller
                 AND pangol.expired_date IS NULL
                 WHERE pang.soft_delete = 0
                 AND pang.id_sdm = '" . $id_sdm . "'
-
+            ORDER BY pang.tmt_sk_pangkat DESC
         ";
 
         $d_sdm = DB::select($q_sdm);
         if (!empty($d_sdm)) {
             foreach ($d_sdm as $value) {
                 $data_sdm[] = [
+                    'id_reg_ptk' => $value->id_reg_ptk,
                     'id_sdm' => $value->id_sdm,
                     'id_fakultas' => $value->id_fakultas,
                     'id_jurusan' => $value->id_jurusan,
@@ -388,6 +395,56 @@ class SdmController extends Controller
             }
         } else {
             return WrapResponse(['data' => null], 'tidak ada daftar SDM yang ditampilkan', FALSE);
+        }
+
+        $q_aktifptk = "
+            SELECT
+                kp.id_thn_ajaran,
+                kp.a_sp_homebase,
+                kp.a_aktif_bln_1,
+                kp.a_aktif_bln_2,
+                kp.a_aktif_bln_3,
+                kp.a_aktif_bln_4,
+                kp.a_aktif_bln_5,
+                kp.a_aktif_bln_6,
+                kp.a_aktif_bln_7,
+                kp.a_aktif_bln_8,
+                kp.a_aktif_bln_9,
+                kp.a_aktif_bln_10,
+                kp.a_aktif_bln_11,
+                kp.a_aktif_bln_12,
+                kp.create_date,
+                kp.last_update
+            FROM
+                pdrd.keaktifan_ptk kp
+            WHERE
+                kp.soft_delete = 0
+                AND kp.id_reg_ptk = '" . $d_sdm[0]->id_reg_ptk . "'";
+
+        $d_aktifptk = DB::select($q_aktifptk);
+        if (!empty($d_aktifptk)) {
+            foreach ($d_aktifptk as $value) {
+                $data_aktifptk[] = [
+                    'id_thn_ajaran' => $value->id_thn_ajaran,
+                    'a_sp_homebase' => $value->a_sp_homebase,
+                    'a_aktif_bln_1' => $value->a_aktif_bln_1,
+                    'a_aktif_bln_2' => $value->a_aktif_bln_2,
+                    'a_aktif_bln_3' => $value->a_aktif_bln_3,
+                    'a_aktif_bln_4' => $value->a_aktif_bln_4,
+                    'a_aktif_bln_5' => $value->a_aktif_bln_5,
+                    'a_aktif_bln_6' => $value->a_aktif_bln_6,
+                    'a_aktif_bln_7' => $value->a_aktif_bln_7,
+                    'a_aktif_bln_8' => $value->a_aktif_bln_8,
+                    'a_aktif_bln_9' => $value->a_aktif_bln_9,
+                    'a_aktif_bln_10' => $value->a_aktif_bln_10,
+                    'a_aktif_bln_11' => $value->a_aktif_bln_11,
+                    'a_aktif_bln_12' => $value->a_aktif_bln_12,
+                    'waktu_data_ditambahkan' => $value->create_date,
+                    'terakhir_diubah' => $value->last_update
+                ];
+            }
+        } else {
+            $data_aktifptk = null;
         }
 
         $d_pend = DB::select($q_pend);
@@ -455,6 +512,7 @@ class SdmController extends Controller
 
         $data = [
             'sdm' => $data_sdm,
+            'keaktifan_ptk' => $data_aktifptk,
             'pendidikan' => $data_pend,
             'fungsional' => $data_fungsi,
             'kepangkatan' => $data_pangk

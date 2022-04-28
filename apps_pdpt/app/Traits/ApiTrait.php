@@ -4,13 +4,14 @@ namespace App\Traits;
 
 trait ApiTrait
 {
-    public function setRequest($request)
+    public function setRequest()
     {
-        $this->request = $request;
+        $this->request = request();
     }
 
     public function sanitizeRequest()
     {
+        $this->setRequest();
         if ($data = $this->request->all()) {
             $reformat = [];
             foreach ($data as $key => $value) {

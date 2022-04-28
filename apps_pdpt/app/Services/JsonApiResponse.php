@@ -9,6 +9,7 @@ class JsonApiResponse
     private $error;
     private $isSuccess;
     private $pagination;
+    private $simplePagination;
     private $transform;
 
     public function __construct()
@@ -16,6 +17,7 @@ class JsonApiResponse
         $this->statusCode = 200;
         $this->isSuccess = TRUE;
         $this->pagination = [];
+        $this->simplePagination = FALSE;
     }
 
     public function setTransformer(object $transform, string $func): object
@@ -36,16 +38,19 @@ class JsonApiResponse
         return $this;
     }
 
-    public function setError(array $error = NULL): object
+    public function setError(string $error = NULL): object
     {
-        $this->error = $error;
+        $this->error = [
+            'type' => $this->message,
+            'message' => $error
+        ];
         $this->isSuccess = FALSE;
         return $this;
     }
 
     public function withPagination(array $pagination = []): object
     {
-        if (!isset($pagination)) {
+        if ($this->simplePagination || !isset($pagination)) {
             $setPagination['pagination'] = [
                 'page' => request()->input('page'),
                 'count' => request()->input('count')
@@ -56,6 +61,12 @@ class JsonApiResponse
 
         $this->pagination = $setPagination;
         return $this;
+    }
+
+    public function withSimplePagination(): object
+    {
+        $this->simplePagination = TRUE;
+        return $this->withPagination();
     }
 
     public function render($data = NULL): object

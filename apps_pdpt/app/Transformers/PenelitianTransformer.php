@@ -28,7 +28,7 @@ class PenelitianTransformer
         return $collection->all();
     }
 
-    public function transform_list(object $value): array
+    public function transform_daftar(object $value): array
     {
         return [
             'id' => $value->id_penelitian,
@@ -41,7 +41,7 @@ class PenelitianTransformer
         ];
     }
 
-    public function transform_listbyid(object $value): array
+    public function transform_daftar_id(object $value): array
     {
         return [
             'id_penelitian' => $value->id_penelitian,

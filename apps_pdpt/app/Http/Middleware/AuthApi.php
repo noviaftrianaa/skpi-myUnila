@@ -16,13 +16,15 @@ class AuthApi
      */
     public function handle(Request $request, Closure $next)
     {
+        return response()->json($request->input('token'));
         if (is_null($request->header('authorization'))) {
             return response()->json([
                 'message'   => 'Terjadi Kesalahan',
-                'detail'    => 'Token tidak ditemukan'
+                'detail'    => 'Token tidak ditemukan',
+                'request'   => $request->all()
             ],401);
         } else {
-            // dd($request->header('authorization'));
+            dd($request->header('authorization'));
             return $next($request);
         }
     }

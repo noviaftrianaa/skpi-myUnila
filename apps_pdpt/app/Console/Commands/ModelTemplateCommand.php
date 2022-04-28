@@ -6,11 +6,11 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-class TemplatePresensiCommand extends Command
+class ModelTemplateCommand extends Command
 {
-    protected $signature = 'generate:presensi';
+    protected $signature = 'generate:app';
 
-    protected $description = 'Create Presensi Controller And Model From Template';
+    protected $description = 'Create Controller And Model From Template';
 
     public function __construct()
     {
@@ -19,7 +19,9 @@ class TemplatePresensiCommand extends Command
 
     public function handle()
     {
-        $schema_name = 'presensi';
+        $schemaSelected = $this->ask('Enter Schema');
+        $schema_name = $schemaSelected;
+
         $createModel = $this->ask('Enter Create Mode (exp. 1 = function or 2 = model');
         if (!in_array($createModel, [1, 2])) {
             $this->error('Please Enter the Correct Create Mode!');
@@ -62,7 +64,7 @@ class TemplatePresensiCommand extends Command
             }
 
             $data = [
-                'path' => "/$schema_name/".$t->table_name,
+                'path' => "/$schema_name/" . $t->table_name,
                 'tag' => ucfirst($schema_name),
                 'operation' => $operation,
                 'summary' => "Dapatkan daftar $summaryAndDesc",
@@ -95,7 +97,7 @@ class TemplatePresensiCommand extends Command
 
             if ($createModel == 1) {
                 $DirPath = app_path() . DIRECTORY_SEPARATOR . 'Http' . DIRECTORY_SEPARATOR . 'Controllers' . DIRECTORY_SEPARATOR . 'PDUT' . DIRECTORY_SEPARATOR . 'Api' . DIRECTORY_SEPARATOR;
-                $controllerNamePath = $DirPath . ucfirst($schema_name)."Controller.php";
+                $controllerNamePath = $DirPath . ucfirst($schema_name) . "Controller.php";
 
                 $getContentOfController = @file($controllerNamePath);
                 $getContentOfController[8] = $templateFunction . "\r\n";

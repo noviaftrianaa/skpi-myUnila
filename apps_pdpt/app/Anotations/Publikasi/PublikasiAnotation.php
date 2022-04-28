@@ -2,17 +2,41 @@
 
 /**
  * @OA\Get(
- *      path="/publikasi/list",
- *      operationId="getListPublikasi",
- *      tags={"Publikasi"},
- *      summary="Dapatkan daftar Publikasi",
- *      description="Menampilkan daftar data Publikasi",
- *      @OA\Parameter( name="sortby", description="Masukan urutan by ASC/DESC", example="DESC", required=false, in="query",
- *          @OA\Schema(type="string")),
- *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
- *          @OA\Schema(type="number")),
- *      @OA\Parameter( name="count", description="masukan jumlah data", example="10", required=false, in="query",
- *          @OA\Schema(type="number")),
+ *     path="/publikasi/daftar",
+ *     tags={"Publikasi"},
+ *     summary="Mendapatkan Daftar Publikasi",
+ *     description="Menampilkan Daftar Publikasi",
+ *     operationId="daftarPublikasi",
+ *     @OA\Parameter(
+ *          name="page",
+ *          description="",
+ *          example="1",
+ *          required=false,
+ *          in="query",
+ *          @OA\Schema(
+ *              type="number"
+ *          )
+ *     ),
+ *     @OA\Parameter(
+ *          name="count",
+ *          description="",
+ *          example="10",
+ *          required=false,
+ *          in="query",
+ *          @OA\Schema(
+ *              type="number"
+ *          )
+ *     ),
+ *     @OA\Parameter(
+ *          name="sortby",
+ *          description="",
+ *          example="DESC",
+ *          required=false,
+ *          in="query",
+ *          @OA\Schema(
+ *              type="string"
+ *          )
+ *     ),
  *      @OA\Response(
  *          response=200,
  *          description="Successful operation",
@@ -27,35 +51,205 @@
  *      ),
  *      security={{"bearer_token":{}}}
  *     )
+ * )
  */
 
-/**
+ /**
  * @OA\Get(
- *      path="/publikasi/list_id",
- *      operationId="getListPublikasiById",
+ *      path="/publikasi/daftar_id",
  *      tags={"Publikasi"},
- *      summary="Dapatkan daftar Publikasi Berdasarkan ID",
- *      description="Menampilkan daftar data Publikasi Berdasarkan ID",
- *      @OA\Parameter( name="id", description="masukan id", example="bcb6de9a-2e7c-43c7-b192-029750754fe7", required=false, in="query",
- *          @OA\Schema(type="string")),
- *      @OA\Parameter( name="sortby", description="Masukan urutan by ASC/DESC", example="DESC", required=false, in="query",
- *          @OA\Schema(type="string")),
- *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
- *          @OA\Schema(type="number")),
- *      @OA\Parameter( name="count", description="masukan jumlah data", example="10", required=false, in="query",
- *          @OA\Schema(type="number")),
- *      @OA\Response(
- *          response=200,
- *          description="Successful operation",
+ *      summary="Mendapatkan Daftar Publikasi Berdasarkan ID SDM",
+ *      description="Menampilkan Daftar Publikasi Berdasarkan ID SDM",
+ *      operationId="daftar_idPublikasi",
+ *      @OA\Parameter(
+ *           name="page",
+ *           description="",
+ *           example="1",
+ *           required=false,
+ *           in="query",
+ *           @OA\Schema(
+ *               type="number"
+ *           )
+ *      ),
+ *      @OA\Parameter(
+ *           name="count",
+ *           description="",
+ *           example="10",
+ *           required=false,
+ *           in="query",
+ *           @OA\Schema(
+ *               type="number"
+ *           )
+ *      ),
+ *      @OA\Parameter(
+ *           name="sortby",
+ *           description="",
+ *           example="DESC",
+ *           required=false,
+ *           in="query",
+ *           @OA\Schema(
+ *               type="string"
+ *           )
+ *      ),
+ *      @OA\Parameter(
+ *           name="sdmid",
+ *           description="",
+ *           example="bcb6de9a-2e7c-43c7-b192-029750754fe7",
+ *           required=false,
+ *           in="query",
+ *           @OA\Schema(
+ *               type="string"
+ *           )
+ *      ),
+ *       @OA\Response(
+ *           response=200,
+ *           description="Successful operation",
+ *        ),
+ *       @OA\Response(
+ *           response=401,
+ *           description="Unauthenticated",
  *       ),
- *      @OA\Response(
- *          response=401,
- *          description="Unauthenticated",
+ *       @OA\Response(
+ *           response=403,
+ *           description="Forbidden"
+ *       ),
+ *       security={{"bearer_token":{}}}
+ *      )
+ * )
+ */
+
+ /**
+ * @OA\Get(
+ *      path="/publikasi/detail",
+ *      tags={"Publikasi"},
+ *      summary="Mendapatkan Detail Publikasi Berdasarkan ID Publikasi",
+ *      description="Menampilkan Detail Publikasi Berdasarkan ID Publikasi",
+ *      operationId="detailPublikasi",
+ *      @OA\Parameter(
+ *           name="publikasiid",
+ *           description="",
+ *           example="80B78EED-7C41-4DE9-93B7-E675369501AD",
+ *           required=false,
+ *           in="query",
+ *           @OA\Schema(
+ *               type="string"
+ *           )
  *      ),
- *      @OA\Response(
- *          response=403,
- *          description="Forbidden"
+ *       @OA\Response(
+ *           response=200,
+ *           description="Successful operation",
+ *        ),
+ *       @OA\Response(
+ *           response=401,
+ *           description="Unauthenticated",
+ *       ),
+ *       @OA\Response(
+ *           response=403,
+ *           description="Forbidden"
+ *       ),
+ *       security={{"bearer_token":{}}}
+ *      )
+ * )
+ */
+
+ /**
+ * @OA\Post(
+ *      path="/publikasi/tambah",
+ *      tags={"Publikasi"},
+ *      summary="Menambahkan Publikasi",
+ *      description="Menambahkan Publikasi",
+ *      operationId="tambahPublikasi",
+ *      @OA\Parameter(
+ *           name="publikasiid",
+ *           description="",
+ *           example="80B78EED-7C41-4DE9-93B7-E675369501AD",
+ *           required=false,
+ *           in="query",
+ *           @OA\Schema(
+ *               type="string"
+ *           )
  *      ),
- *      security={{"bearer_token":{}}}
- *     )
+ *       @OA\Response(
+ *           response=200,
+ *           description="Successful operation",
+ *        ),
+ *       @OA\Response(
+ *           response=401,
+ *           description="Unauthenticated",
+ *       ),
+ *       @OA\Response(
+ *           response=403,
+ *           description="Forbidden"
+ *       ),
+ *       security={{"bearer_token":{}}}
+ *      )
+ * )
+ */
+
+  /**
+ * @OA\Put(
+ *      path="/publikasi/ubah",
+ *      tags={"Publikasi"},
+ *      summary="Ubah Data Publikasi",
+ *      description="Ubah Data Publikasi",
+ *      operationId="ubahPublikasi",
+ *      @OA\Parameter(
+ *           name="publikasiid",
+ *           description="",
+ *           example="80B78EED-7C41-4DE9-93B7-E675369501AD",
+ *           required=false,
+ *           in="query",
+ *           @OA\Schema(
+ *               type="string"
+ *           )
+ *      ),
+ *       @OA\Response(
+ *           response=200,
+ *           description="Successful operation",
+ *        ),
+ *       @OA\Response(
+ *           response=401,
+ *           description="Unauthenticated",
+ *       ),
+ *       @OA\Response(
+ *           response=403,
+ *           description="Forbidden"
+ *       ),
+ *       security={{"bearer_token":{}}}
+ *      )
+ * )
+ */
+
+  /**
+ * @OA\Delete(
+ *      path="/publikasi/hapus",
+ *      tags={"Publikasi"},
+ *      summary="Hapus Publikasi",
+ *      description="Menghapus Publikasi",
+ *      operationId="hapusPublikasi",
+ *      @OA\Parameter(
+ *           name="publikasiid",
+ *           description="",
+ *           example="80B78EED-7C41-4DE9-93B7-E675369501AD",
+ *           required=false,
+ *           in="query",
+ *           @OA\Schema(
+ *               type="string"
+ *           )
+ *      ),
+ *       @OA\Response(
+ *           response=200,
+ *           description="Successful operation",
+ *        ),
+ *       @OA\Response(
+ *           response=401,
+ *           description="Unauthenticated",
+ *       ),
+ *       @OA\Response(
+ *           response=403,
+ *           description="Forbidden"
+ *       ),
+ *       security={{"bearer_token":{}}}
+ *      )
+ * )
  */

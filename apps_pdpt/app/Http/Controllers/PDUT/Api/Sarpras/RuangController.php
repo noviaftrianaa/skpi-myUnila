@@ -31,7 +31,7 @@ class RuangController extends Controller
     public function daftar()
     {
         InputValidator([
-            'sortby' => [
+            'sort' => [
                 'alpha',
                 ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])
             ],
@@ -39,10 +39,10 @@ class RuangController extends Controller
             'limit' => 'required|numeric'
         ]);
 
-        $sortby = 'DESC';
-        $sortby = $this->request->input('sortby');
+        $sort = 'DESC';
+        $sort = $this->request->input('sort');
 
-        $q_ruang = "SELECT * FROM sarpras.ruang ORDER BY id_ruang $sortby";
+        $q_ruang = "SELECT * FROM sarpras.ruang ORDER BY id_ruang $sort";
 
         $pagination = CustomPagination($q_ruang);
         $query = $pagination['query'];

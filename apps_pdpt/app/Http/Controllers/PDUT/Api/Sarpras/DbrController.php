@@ -30,7 +30,7 @@ class DbrController extends Controller
     public function daftar()
     {
         InputValidator([
-            'sortby' => [
+            'sort' => [
                 'alpha',
                 ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])
             ],
@@ -38,10 +38,10 @@ class DbrController extends Controller
             'limit' => 'required|numeric'
         ]);
 
-        $sortby = 'DESC';
-        $sortby = $this->request->input('sortby');
+        $sort = 'DESC';
+        $sort = $this->request->input('sort');
 
-        $q_dbr = "SELECT * FROM sarpras.dbr ORDER BY id_ruang $sortby";
+        $q_dbr = "SELECT * FROM sarpras.dbr ORDER BY id_ruang $sort";
 
         $pagination = CustomPagination($q_dbr);
         $query = $pagination['query'];

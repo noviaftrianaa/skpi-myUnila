@@ -19,31 +19,32 @@ class DBAccess
             'hapus',
             'update',
             'delete',
-            'edit'
+            'edit',
+            'ubah'
         ];
 
-        $checkServerIs = false;
+        $checkServerIs = FALSE;
         $checkUrlRequest = [];
 
         if (in_array('live', $urls)) {
-            $checkServerIs = true;
+            $checkServerIs = TRUE;
         }
 
         foreach ($preventAccess as $value) {
             if (in_array($value, $urls)) {
-                $checkUrlRequest[] = true;
+                $checkUrlRequest[] = TRUE;
             } else {
                 foreach ($urls as $url) {
                     if (strpos($url, $value) > -1) {
-                        $checkUrlRequest[] = true;
+                        $checkUrlRequest[] = TRUE;
                     } else {
-                        $checkUrlRequest[] = false;
+                        $checkUrlRequest[] = FALSE;
                     }
                 }
             }
         }
 
-        if ($checkServerIs && in_array(true, $checkUrlRequest)) {
+        if ($checkServerIs && in_array(TRUE, $checkUrlRequest)) {
             return WrapResponse([], 'tidak dapat memproses masukkan, akses tidak diizinkan', FALSE);
         }
 

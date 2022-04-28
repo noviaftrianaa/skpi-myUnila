@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
-use Log;
 
 class RecheckRouteCommand extends Command
 {
@@ -23,8 +22,8 @@ class RecheckRouteCommand extends Command
         $this->info(Artisan::output());
 
         $routeApiPath = base_path('routes') . DIRECTORY_SEPARATOR . 'api.php';
-        $routeOpenApiSandbox = base_path('routes/openapi/sandbox') . DIRECTORY_SEPARATOR . 'sandbox.php';
-        $routeOpenApiLive = base_path('routes/openapi/live') . DIRECTORY_SEPARATOR . 'live.php';
+        $routeOpenApiSandbox = base_path('routes' . DIRECTORY_SEPARATOR . 'openapi' . DIRECTORY_SEPARATOR . 'sandbox') . DIRECTORY_SEPARATOR . 'sandbox.php';
+        $routeOpenApiLive = base_path('routes' . DIRECTORY_SEPARATOR . 'openapi' . DIRECTORY_SEPARATOR . 'live') . DIRECTORY_SEPARATOR . 'live.php';
 
         $openFile = fopen($routeApiPath, 'r');
         flock($openFile, LOCK_EX);

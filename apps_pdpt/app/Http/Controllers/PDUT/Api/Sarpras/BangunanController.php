@@ -31,7 +31,7 @@ class BangunanController extends Controller
     public function daftar()
     {
         InputValidator([
-            'sortby' => [
+            'sort' => [
                 'alpha',
                 ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])
             ],
@@ -39,8 +39,8 @@ class BangunanController extends Controller
             'item' => 'numeric'
         ]);
 
-        $sortby = 'DESC';
-        $sortby = $this->request->input('sortby');
+        $sort = 'DESC';
+        $sort = $this->request->input('sort');
 
         $q_bangunan = "
             SELECT
@@ -119,7 +119,7 @@ class BangunanController extends Controller
             WHERE
                 bangun.soft_delete = 0
             ORDER BY
-                bangun.nm_prasarana " . $sortby . " ";
+                bangun.nm_prasarana " . $sort . " ";
 
         $pagination = CustomPagination($q_bangunan);
         $query = $pagination['query'];
