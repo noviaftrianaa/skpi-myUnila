@@ -1,4 +1,51 @@
 <?php
+ini_set('display_errors', FALSE);
+ini_set('error_reporting', 0);
+ini_set('max_execution_time', 0);
+
+$app_log_file = '';
+$app_log_id   = '';
+if (!function_exists('app_log')) {
+    function app_log($message = '')
+    {
+        if (!$GLOBALS['app_log_id']) {
+            $GLOBALS['app_log_id'] = uniqid();
+        }
+
+        if (!$GLOBALS['app_log_file']) {
+            if (!file_exists(storage_path('/logs/user'))) {
+                mkdir(storage_path() . '/logs/user');
+            }
+
+            $GLOBALS['app_log_file'] = storage_path() . '/logs/user/' . date('Y-m-d') . '.log';
+        }
+
+        if (!is_string($message)) {
+            $message = json_encode($message);
+        }
+
+        $message = str_replace(array("\r\n", "\r", "\n"), array("\n", "\n", "\r\n\t"), $message);
+
+        $microtime = explode(' ', microtime());
+        file_put_contents(
+            $GLOBALS['app_log_file'],
+            date('H:i:s') . substr($microtime[0], 1) . " $GLOBALS[app_log_id].$GLOBALS[app_request_id] $message\r\n",
+            FILE_APPEND
+        );
+    }
+}
+
+$app_request_id = '';
+if (!function_exists('app_id')) {
+    function app_request_id($new_id = '')
+    {
+        if ($new_id) {
+            $GLOBALS['app_request_id'] = $new_id;
+        }
+
+        return $GLOBALS['app_request_id'];
+    }
+}
 
 /*
 |--------------------------------------------------------------------------

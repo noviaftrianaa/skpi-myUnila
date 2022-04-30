@@ -161,7 +161,7 @@ class PenelitianController extends Controller
         }
 
         return $this->wrapResponse
-            ->setTransformer(new PenelitianTransformer, __FUNCTION__)
+            ->setTransformer(new PenelitianTransformer)
             ->setStatusCode(Response::HTTP_ACCEPTED)
             ->withSimplePagination()
             ->render($result->query());
