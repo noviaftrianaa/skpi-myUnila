@@ -26,7 +26,7 @@ class NeoFeederSeeder extends Seeder
     {
         $nomor_data=0;
         $id_creator = '443701e4-e814-48f3-9528-251bccee8af1';
-        $prodi = DB::table('pdrd.sms')->where('soft_delete',0)->where('stat_prodi','A')->select('id_sms')->orderBy('id_jenj_didik','ASC')->get();
+        $prodi = DB::table('pdrd.sms')->where('soft_delete',0)->select('id_sms')->orderBy('id_jenj_didik','ASC')->get();
         $url = ENV('URL_WS_NEO_FEEDER');
 
         $token = $this->generate_token();
@@ -488,7 +488,9 @@ class NeoFeederSeeder extends Seeder
             foreach ($prodi AS $each_prodi) {
                 $cari_prodi = DB::table('pdrd.sms')->where('id_sms', $each_prodi->id_sms)->first();
                 $jenjang = DB::table('ref.jenjang_pendidikan')->where('id_jenj_didik',$cari_prodi->id_jenj_didik)->first();
-                $kelas = KelasKuliah::where('id_sms',$each_prodi->id_sms)->whereIn('id_smt',['20181','20182','20191','20192','20201','20202','20211'])->orderBy('id_smt','ASC')->get();
+                $kelas = KelasKuliah::where('id_sms',$each_prodi->id_sms)
+//                    ->whereIn('id_smt',['20181','20182','20191','20192','20201','20202','20211'])
+                    ->orderBy('id_smt','ASC')->get();
                 $total_kelas = count($kelas);
                 if ($total_kelas>0) {
                     foreach ($kelas AS $each_kelas) {
