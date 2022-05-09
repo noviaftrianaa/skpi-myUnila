@@ -45,6 +45,13 @@
 					<p>Data Token</p>
 				</a>
 			</li>
+			<li class="nav-item">
+			<!-- route dashboard -->
+				<a href="{{ route('menu.index') }}" class="nav-link {{ (request()->is('menu*')) ? 'active' : '' }}">
+					<i class="nav-icon fas fa-bars"></i>
+					<p>Data Menu</p>
+				</a>
+			</li>
 		</ul>
 	</nav>
 	<!-- /.sidebar-menu -->

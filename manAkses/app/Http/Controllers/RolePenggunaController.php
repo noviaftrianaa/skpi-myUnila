@@ -127,8 +127,21 @@ class RolePenggunaController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
-        //
+        $id = Crypt::decrypt($id);
+        $role = RolePengguna::lock('WITH(NOLOCK)')->where('id_role_pengguna', $id)->update([
+            'soft_delete' => 1,
+            'last_update' => currDateTime(),
+            'last_sync' => currDateTime(),
+            'id_updater' => $request->id_pengguna
+        ]);
+    
+        if(!$role) {
+            alert()->error('Data gagal dihapus!');
+        } else {
+            alert()->success('Data berhasil dihapus!');
+        }
+        return redirect()->back();
     }
 }

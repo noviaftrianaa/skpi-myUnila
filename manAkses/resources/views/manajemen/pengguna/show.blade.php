@@ -318,6 +318,7 @@
                     <form action="{{route('role.destroy', [Crypt::encrypt($items->id_role_pengguna)])}}" method="post" enctype="multipart/form-data">
                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="_method" value="DELETE">
+                        <input type="hidden" name="id_pengguna" value="{{$data->id_pengguna}}">
                         <div class="row">
                             <div class="col-sm-12">
                                 Yakin ingin menghapus peran <strong>{{$items->peran->nm_peran}}</strong> atas nama <strong>{{$data->nm_pengguna}}</strong> ?

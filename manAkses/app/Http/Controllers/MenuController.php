@@ -24,7 +24,8 @@ class MenuController extends Controller
      */
     public function index()
     {
-        //
+        $menu = Menu::lock('WITH(NOLOCK)')->get();
+        return view('manajemen.menu.index', ['menu'=>$menu]);
     }
 
     /**

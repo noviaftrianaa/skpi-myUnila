@@ -105,6 +105,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
             Route::delete('/{id}/destroy', [PJAplikasiController::class, 'destroy'])->name('destroy');
         });
         Route::prefix('menu')->name('menu.')->group(function() {
+            Route::get('', [MenuController::class, 'index'])->name('index');
             Route::put('/', [MenuController::class, 'store'])->name('store');
             Route::patch('/{id}/update', [MenuController::class, 'update'])->name('update');
             Route::delete('/{id}/destroy', [MenuController::class, 'destroy'])->name('destroy');
