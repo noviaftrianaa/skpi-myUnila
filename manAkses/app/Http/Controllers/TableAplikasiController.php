@@ -21,6 +21,7 @@ class TableAplikasiController extends Controller
     {
         $id = Crypt::decrypt($id);
         $data = Aplikasi::lock('WITH(NOLOCK)')->where('id_aplikasi', $id)->first();
+        $data_table = TableAplikasi::lock('WITH(NOLOCK)')->where('a_table_aktif', 1)->get();
         $table = DB::table('man_akses.akses_table_aplikasi AS akses')
             ->where('akses.soft_delete',0)
             ->where('akses.id_aplikasi','=',$id)
@@ -31,7 +32,8 @@ class TableAplikasiController extends Controller
 
         return view('manajemen.aplikasi.table.index', [
             'data'=>$data,
-            'table'=>$table
+            'table'=>$table,
+            'data_table'=>$data_table
         ]);
     }
 
@@ -56,37 +58,39 @@ class TableAplikasiController extends Controller
         $id = Crypt::decrypt($id);
         $array = $request->all();
 
-        $table = TableAplikasi::lock('WITH(NOLOCK)')->create([
-            'id_table_app' => guid(),
-            'skema_tbl' => $array['skema_tbl'],
-            'nm_tbl' => $array['nm_tbl'],
-            'sync_seq' => $array['sync_seq'],
-            'a_table_aktif' => 1,
-            'expired_date' => $array['expired_date'] ?? null,
-            'tgl_create' => currDateTime(),
-            'last_update' => currDateTime(),
-            'last_sync' => currDateTime(),
+        // $table = TableAplikasi::lock('WITH(NOLOCK)')->create([
+        //     'id_table_app' => guid(),
+        //     'skema_tbl' => $array['skema_tbl'],
+        //     'nm_tbl' => $array['nm_tbl'],
+        //     'sync_seq' => $array['sync_seq'],
+        //     'a_table_aktif' => 1,
+        //     'expired_date' => $array['expired_date'] ?? null,
+        //     'tgl_create' => currDateTime(),
+        //     'last_update' => currDateTime(),
+        //     'last_sync' => currDateTime(),
 
-            'tabel_alias' => $array['tabel_alias'] ?? null,
-            'kode_primary' => $array['kode_primary'] ?? null,
-            'kolom_kecuali' => $array['kolom_kecuali'] ?? null,
-            'table_status' => $array['table_status'] ?? null,
-            'table_ket' => $array['table_ket'] ?? null,
-            'jml_thread' => $array['jml_thread'] ?? null,
-            'baris_per_thread' => $array['baris_per_thread'] ?? null,
-            'order_ekstra' => $array['order_ekstra'] ?? null
-        ]);
+        //     'tabel_alias' => $array['tabel_alias'] ?? null,
+        //     'kode_primary' => $array['kode_primary'] ?? null,
+        //     'kolom_kecuali' => $array['kolom_kecuali'] ?? null,
+        //     'table_status' => $array['table_status'] ?? null,
+        //     'table_ket' => $array['table_ket'] ?? null,
+        //     'jml_thread' => $array['jml_thread'] ?? null,
+        //     'baris_per_thread' => $array['baris_per_thread'] ?? null,
+        //     'order_ekstra' => $array['order_ekstra'] ?? null
+        // ]);
 
-        $pengaturan = AksesTableAplikasi::lock('WITH(NOLOCK)')->create([
+        $table = TableAplikasi::find($array['id_table_app']);
+
+        $akses_table = AksesTableAplikasi::lock('WITH(NOLOCK)')->create([
             'id_akses_table_app' => guid(),
-            'id_table_app' => $table->id_table_app,
+            'id_table_app' => $array['id_table_app'],
             'id_aplikasi' => $id,
             'a_boleh_get' => (!empty($array['a_boleh_get'])) ? 1 : 0,
             'a_boleh_insert' => (!empty($array['a_boleh_insert'])) ? 1 : 0,
             'a_boleh_show' => (!empty($array['a_boleh_show'])) ? 1 : 0,
             'a_boleh_delete' => (!empty($array['a_boleh_delete'])) ? 1 : 0,
             'a_boleh_update' => (!empty($array['a_boleh_update'])) ? 1 : 0,
-            'a_aktif' => 1,
+            'a_aktif' => $array['a_aktif'],
             'expired_date' => $array['expired_date'] ?? null,
             'tgl_create' => currDateTime(),
             'last_update' => currDateTime(),
@@ -95,7 +99,7 @@ class TableAplikasiController extends Controller
             'id_updater' => Auth::user()->id_pengguna
         ]);
 
-        if(!$pengaturan) {
+        if(!$akses_table) {
             alert()->error('Data gagal disimpan!');
         } else {
             alert()->success('Data berhasil disimpan!');
@@ -138,38 +142,42 @@ class TableAplikasiController extends Controller
 
         $array = $request->all();
 
-        $table = TableAplikasi::where('id_table_app', $id[0])->update([
-            'skema_tbl' => $array['skema_tbl'],
-            'nm_tbl' => $array['nm_tbl'],
-            'sync_seq' => $array['sync_seq'],
-            'a_table_aktif' => 1,
-            'expired_date' => $array['expired_date'] ?? null,
-            'last_update' => currDateTime(),
-            'last_sync' => currDateTime(),
+        // $table = TableAplikasi::where('id_table_app', $id[0])->update([
+        //     'skema_tbl' => $array['skema_tbl'],
+        //     'nm_tbl' => $array['nm_tbl'],
+        //     'sync_seq' => $array['sync_seq'],
+        //     'a_table_aktif' => 1,
+        //     'expired_date' => $array['expired_date'] ?? null,
+        //     'last_update' => currDateTime(),
+        //     'last_sync' => currDateTime(),
 
-            'tabel_alias' => $array['tabel_alias'] ?? null,
-            'kode_primary' => $array['kode_primary'] ?? null,
-            'kolom_kecuali' => $array['kolom_kecuali'] ?? null,
-            'table_status' => $array['table_status'] ?? null,
-            'table_ket' => $array['table_ket'] ?? null,
-            'jml_thread' => $array['jml_thread'] ?? null,
-            'baris_per_thread' => $array['baris_per_thread'] ?? null,
-            'order_ekstra' => $array['order_ekstra'] ?? null
-        ]);
+        //     'tabel_alias' => $array['tabel_alias'] ?? null,
+        //     'kode_primary' => $array['kode_primary'] ?? null,
+        //     'kolom_kecuali' => $array['kolom_kecuali'] ?? null,
+        //     'table_status' => $array['table_status'] ?? null,
+        //     'table_ket' => $array['table_ket'] ?? null,
+        //     'jml_thread' => $array['jml_thread'] ?? null,
+        //     'baris_per_thread' => $array['baris_per_thread'] ?? null,
+        //     'order_ekstra' => $array['order_ekstra'] ?? null
+        // ]);
 
-        $pengaturan = AksesTableAplikasi::where('id_akses_table_app', $id[1])->update([
+        
+        $table = TableAplikasi::find($array['id_table_app']);
+
+        $akses_table = AksesTableAplikasi::where('id_akses_table_app', $id)->update([
             'a_boleh_get' => (!empty($array['a_boleh_get'])) ? 1 : 0,
             'a_boleh_insert' => (!empty($array['a_boleh_insert'])) ? 1 : 0,
             'a_boleh_show' => (!empty($array['a_boleh_show'])) ? 1 : 0,
             'a_boleh_delete' => (!empty($array['a_boleh_delete'])) ? 1 : 0,
             'a_boleh_update' => (!empty($array['a_boleh_update'])) ? 1 : 0,
-            'a_aktif' => 1,
+            'a_aktif' => $array['a_aktif'],
+            'expired_date' => $array['expired_date'] ?? null,
             'last_update' => currDateTime(),
             'last_sync' => currDateTime(),
             'id_updater' => Auth::user()->id_pengguna
         ]);
 
-        if(!$pengaturan) {
+        if(!$akses_table) {
             alert()->error('Data gagal disimpan!');
         } else {
             alert()->success('Data berhasil disimpan!');

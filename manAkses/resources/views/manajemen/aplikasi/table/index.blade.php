@@ -70,76 +70,24 @@
                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="_method" value="PUT">
                         <div class="row">
-                            <div class="col-sm-4">
+                            <div class="col-sm-12 col-12">
                                 <div class="form-group form-group-default">
-                                    <label>Skema Table<sup style="color:red">*</sup></label>
-                                    <input name="skema_tbl" type="text" class="form-control" placeholder="Schema Table" required>
+                                    <label>Table<sup style="color:red">*</sup></label>
+                                    <select class="form-control select2" name="id_table_app" data-placeholder="Pilih Nama Table" required>
+                                        <!-- <option value="" selected disabled>Choose</option> -->
+                                        @foreach($data_table AS $items)
+                                        <option value="{{ $items->id_table_app }}">{{ $items->nm_table }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
-                            <div class="col-sm-4">
+                            <div class="col-sm-12 col-12">
                                 <div class="form-group form-group-default">
-                                    <label>Nama Table<sup style="color:red">*</sup></label>
-                                    <input name="nm_tbl" type="text" class="form-control" placeholder="Nama Table" required>
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="form-group form-group-default">
-                                    <label>Sync Sequence<sup style="color:red">*</sup></label>
-                                    <input name="sync_seq" type="number" class="form-control" placeholder="Sync Sequence" required>
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="form-group form-group-default">
-                                    <label>Tabel Alias</label>
-                                    <input name="tabel_alias" type="text" class="form-control" placeholder="Tabel Alias">
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="form-group form-group-default">
-                                    <label>Kode Primary</label>
-                                    <input name="kode_primary" type="text" class="form-control" placeholder="Kode Primary">
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="form-group form-group-default">
-                                    <label>Kolom Kecuali</label>
-                                    <input name="kolom_kecuali" type="text" class="form-control" placeholder="Kolom Kecuali">
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="form-group form-group-default">
-                                    <label>Table Keterangan</label>
-                                    <input name="table_ket" type="text" class="form-control" placeholder="Table Keterangan">
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="form-group form-group-default">
-                                    <label>Table Status</label>
-                                    <input name="table_status" type="number" class="form-control" placeholder="Table Status">
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="form-group form-group-default">
-                                    <label>Jumlah Thread</label>
-                                    <input name="jml_thread" type="number" class="form-control" placeholder="Jumlah Thread">
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="form-group form-group-default">
-                                    <label>Baris Per Thread</label>
-                                    <input name="baris_per_thread" type="number" class="form-control" placeholder="Baris Per Thread">
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="form-group form-group-default">
-                                    <label>Order Ekstra</label>
-                                    <input name="order_ekstra" type="text" class="form-control" placeholder="Order Ekstra">
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="form-group form-group-default">
-                                    <label>Expired Date</label>
-                                    <input name="expired_date" type="date" class="form-control">
+                                    <label>Apakah Aktif ?</label>
+                                    <select class="form-control" name="a_aktif" required>
+                                        <option value="1">Aktif</option>
+                                        <option value="0">Tidak Aktif</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="col-sm-12 col-12">
@@ -155,6 +103,12 @@
                                     <label for="a_boleh_delete"> Delete</label>&nbsp;&nbsp;
                                     <input type="checkbox" id="a_boleh_update" name="a_boleh_update">
                                     <label for="a_boleh_update"> Update</label>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-12">
+                                <div class="form-group form-group-default">
+                                    <label>Expired Date</label>
+                                    <input name="expired_date" type="date" class="form-control">
                                 </div>
                             </div>
                         </div>
@@ -185,80 +139,28 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form action="{{route('aplikasi.table.update', [Crypt::encrypt([$items->id_table_app, $items->id_akses_table_app])])}}" method="post" enctype="multipart/form-data">
+                    <form action="{{route('aplikasi.table.update', [Crypt::encrypt($items->id_akses_table_app)])}}" method="post" enctype="multipart/form-data">
                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="_method" value="PATCH">
                         <div class="row">
-                            <div class="col-sm-4">
+                            <div class="col-sm-12 col-12">
                                 <div class="form-group form-group-default">
-                                    <label>Skema Table<sup style="color:red">*</sup></label>
-                                    <input name="skema_tbl" type="text" class="form-control" value="{{$items->skema_tbl}}" required>
+                                    <label>Table<sup style="color:red">*</sup></label>
+                                    <select class="form-control select2" name="id_table_app" data-placeholder="Pilih Nama Table" required>
+                                        <!-- <option value="" selected disabled>Choose</option> -->
+                                        @foreach($data_table AS $values)
+                                        <option value="{{ $items->id_table_app }}" {{ ($items->id_table_app==$values->id_table_app) ? 'selected' : '' }}>{{ $items->nm_table }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
-                            <div class="col-sm-4">
+                            <div class="col-sm-12 col-12">
                                 <div class="form-group form-group-default">
-                                    <label>Nama Table</label>
-                                    <input name="nm_tbl" type="text" class="form-control" value="{{$items->nm_tbl}}" required>
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="form-group form-group-default">
-                                    <label>Sync Sequence<sup style="color:red">*</sup></label>
-                                    <input name="sync_seq" type="number" class="form-control" placeholder="Sync Sequence" value="{{$items->sync_seq}}" required>
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="form-group form-group-default">
-                                    <label>Tabel Alias</label>
-                                    <input name="tabel_alias" type="text" class="form-control" placeholder="Tabel Alias" value="{{$items->tabel_alias}}">
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="form-group form-group-default">
-                                    <label>Kode Primary</label>
-                                    <input name="kode_primary" type="text" class="form-control" value="{{$items->kode_primary}}">
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="form-group form-group-default">
-                                    <label>Kolom Kecuali</label>
-                                    <input name="kolom_kecuali" type="text" class="form-control" placeholder="Kolom Kecuali" value="{{$items->kolom_kecuali}}">
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="form-group form-group-default">
-                                    <label>Table Keterangan</label>
-                                    <input name="table_ket" type="text" class="form-control" placeholder="Table Keterangan" value="{{$items->table_ket}}">
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="form-group form-group-default">
-                                    <label>Table Status</label>
-                                    <input name="table_status" type="number" class="form-control" placeholder="Table Status" value="{{$items->table_status}}">
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="form-group form-group-default">
-                                    <label>Jumlah Thread</label>
-                                    <input name="jml_thread" type="number" class="form-control" placeholder="Jumlah Thread" value="{{$items->jml_thread}}">
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="form-group form-group-default">
-                                    <label>Baris Per Thread</label>
-                                    <input name="baris_per_thread" type="number" class="form-control" placeholder="Baris Per Thread" value="{{$items->baris_per_thread}}">
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="form-group form-group-default">
-                                    <label>Order Ekstra</label>
-                                    <input name="order_ekstra" type="text" class="form-control" placeholder="Order Ekstra" value="{{$items->order_ekstra}}">
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="form-group form-group-default">
-                                    <label>Expired Date</label>
-                                    <input name="expired_date" type="date" class="form-control" value="{{$items->expired_date}}">
+                                    <label>Apakah Aktif ?</label>
+                                    <select class="form-control" name="a_aktif" required>
+                                        <option value="1" {{($items->a_aktif==1)?'selected':''}}</option>Aktif</option>
+                                        <option value="0" {{($items->a_aktif==0)?'selected':''}}>Tidak Aktif</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="col-sm-12 col-12">
@@ -274,6 +176,12 @@
                                     <label for="a_boleh_delete"> Delete</label>&nbsp;&nbsp;
                                     <input type="checkbox" id="a_boleh_update" name="a_boleh_update" {{($items->a_boleh_update==1)?'checked':''}}>
                                     <label for="a_boleh_update"> Update</label>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-12">
+                                <div class="form-group form-group-default">
+                                    <label>Expired Date</label>
+                                    <input name="expired_date" type="date" class="form-control" value="{{$items->expired_date}}">
                                 </div>
                             </div>
                         </div>
