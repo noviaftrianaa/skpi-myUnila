@@ -142,7 +142,7 @@ class MahasiswaSeeder extends Seeder
                         'judul_skripsi'     => (count($get_data_lulus_do)>0)?$get_data_lulus_do[0]['judul_skripsi']:null,
                         'bln_awal_bimbingan'=> (count($get_data_lulus_do)>0)?$get_data_lulus_do[0]['bulan_awal_bimbingan']:null,
                         'bln_akhir_bimbingan'=> (count($get_data_lulus_do)>0)?$get_data_lulus_do[0]['bulan_akhir_bimbingan']:null,
-                        'asal_data_ijazah'  => (count($get_data_lulus_do)>0)?$get_data_lulus_do[0]['asal_ijazah']:null,
+                        'asal_data_ijazah'  => (count($get_data_lulus_do)>0)?$get_data_lulus_do[0]['asal_ijazah']:0,
                         'create_date'       => currDateTime(),
                         'id_creator'        => '443701e4-e814-48f3-9528-251bccee8af1',
                         'last_update'       => currDateTime(),
