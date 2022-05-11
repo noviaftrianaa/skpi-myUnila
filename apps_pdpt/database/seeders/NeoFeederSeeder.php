@@ -40,11 +40,11 @@ class NeoFeederSeeder extends Seeder
 //            'mk_kurikulum',
 //            'rencana_ajar',
 //            'rencana_evaluasi',
-//            'nilai_kelas',
+            'nilai_kelas',
 //            'prestasi',
 //            'ekuivalensi',
 //            'transkrip'
-            'stat_mhs'
+//            'stat_mhs'
         ];
 
         // substansi kuliah
