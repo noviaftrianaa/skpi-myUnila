@@ -126,9 +126,9 @@
  *      description="Menampilkan Detail Buku Referensi",
  *      operationId="detailBukuReferensi",
  *    @OA\Parameter(
- *          name="id_tulis_pub",
+ *          name="id_publikasi",
  *          description="",
- *          example="50414BE3-25D9-492C-B7A0-0017A74245BB",
+ *          example="B0F97900-F8E4-4E05-9018-00076BCAC02F",
  *          required=false,
  *          in="query",
  *          @OA\Schema(
@@ -306,8 +306,8 @@
  *      description="Mengubah Buku Referensi",
  *      @OA\JsonContent(
  *          required={"id_publikasi", "id_litabmas", "judul", "penerbit", "tgl_terbit"},
- *          @OA\Property(property="id_publikasi", type="string", format="text", example="1"),
- *          @OA\Property(property="id_litabmas", type="string", format="text", example="1"),
+ *          @OA\Property(property="id_publikasi", type="string", format="text", example="B0F97900-F8E4-4E05-9018-00076BCAC02F"),
+ *          @OA\Property(property="id_litabmas", type="string", format="text", example="0569FD04-3FF6-4EE7-8623-00010C22A414"),
  *          @OA\Property(property="judul", type="string", format="text", example="Judul Buku"),
  *          @OA\Property(property="penerbit", type="string", format="text", example="Penerbit"),
  *          @OA\Property(property="isbn", type="string", format="text", example="1"),
@@ -448,7 +448,7 @@
  *      description="Menghapus Buku Referensi",
  *      @OA\JsonContent(
  *          required={"id_publikasi"},
- *          @OA\Property(property="id_publikasi", type="string", format="text", example="1")
+ *          @OA\Property(property="id_publikasi", type="string", format="text", example="B0F97900-F8E4-4E05-9018-00076BCAC02F")
  *          ),
  *      ),
  *      @OA\Response(

@@ -26,21 +26,11 @@ class Iku7MatkulSeeder extends Seeder
      */
     public function run()
     {
-        // 1. Aktivitas Partisipatif
-        // 2. Hasil Project
-        // 3. Kognitif atau Pengetahuan
-        // $basis = BasisEvaluasi::Insert([
-        //     'id_basis_evaluasi' => 3,
-        //     'nm_basis_evaluasi' => 'Kognitif atau Pengetahuan',
-        //     'create_date' => currDateTime(),
-        //     'last_update' => currDateTime(),
-        //     'expired_date' => NULL,
-        //     'last_sync' => currDateTime()
-        // ]);
-
-        $this->importDataReMatkul();
-        // $this->tempIku();
-        // $this->totalDashboard();
+        //$this->importDataMatkul();
+        //$this->importDataReMatkul();
+        //$this->tempIku();
+        //$this->totalDashboard();
+        $this->importDataBasisEvaluasi();
     }
 
     public function tempIku()
@@ -76,48 +66,6 @@ class Iku7MatkulSeeder extends Seeder
             WHERE
                 re_mk.komponen_evaluasi IN ('AKP', 'HSP')
                 AND re_mk.soft_delete = 0
-            UNION
-            SELECT
-                DISTINCT mk.id_mk,
-                smt.id_thn_ajaran,
-                fak.nm_lemb AS nm_fakultas,
-                CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS nm_prodi,
-                mk.nm_mk,
-                mk.sks_mk,
-                CASE
-                    WHEN mk.id_mk = mk.id_mk THEN 0
-                    ELSE 0
-                END AS status_iku
-            FROM
-                pdrd.matkul AS mk WITH(NOLOCK)
-                LEFT JOIN pdrd.sms AS sms WITH(NOLOCK) ON sms.id_sms = mk.id_sms
-                AND sms.soft_delete = 0
-                LEFT JOIN pdrd.sms AS fak WITH(NOLOCK) ON fak.id_sms = sms.id_induk_sms
-                AND fak.soft_delete = 0
-                JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = sms.id_jenj_didik
-                AND jenjang.nm_jenj_didik IN ('D2', 'D3', 'D4', 'S1')
-                AND jenjang.expired_date IS NULL
-                LEFT JOIN pdrd.kelas_kuliah AS kk WITH(NOLOCK) ON kk.id_mk = mk.id_mk
-                AND kk.soft_delete = 0 --     LEFT JOIN pdrd.akt_ajar_dosen AS akt_dosen WITH(NOLOCK) ON akt_dosen.id_kls = kk.id_kls
-                --     AND akt_dosen.soft_delete = 0
-                --     LEFT JOIN pdrd.reg_ptk AS ptk WITH(NOLOCK) ON ptk.id_reg_ptk = akt_dosen.id_reg_ptk
-                --     AND ptk.soft_delete = 0
-                --     LEFT JOIN pdrd.sdm AS sdm WITH(NOLOCK) ON sdm.id_sdm = ptk.id_sdm
-                --     AND sdm.soft_delete = 0
-                JOIN ref.semester AS smt ON smt.id_smt = kk.id_smt
-                AND smt.id_thn_ajaran >= YEAR(GETDATE()) -3
-                AND smt.expired_date IS NULL
-            WHERE
-                NOT EXISTS (
-                    SELECT
-                        re_mk.id_mk
-                    FROM
-                        pdrd.re_mk AS re_mk WITH(NOLOCK)
-                    WHERE
-                        re_mk.id_mk = mk.id_mk
-                        AND re_mk.soft_delete = 0
-                )
-                AND mk.soft_delete = 0
             ");
 
         foreach ($temp_iku7 as $each_data) {
@@ -232,6 +180,24 @@ class Iku7MatkulSeeder extends Seeder
                 'last_sync' => currDateTime()
             ]);
 
+            echo " Data berhasil diperbaharui\n";
+        });
+    }
+
+    public function importDataBasisEvaluasi()
+    {
+
+        $file_path = storage_path('uploads/basisEvaluasi.xlsx');
+        $data_basis_evaluasi = (new FastExcel)->configureCsv(';', '#', 'gbk')->sheet(2)->import($file_path, function ($each_data) {
+
+            $basis_evaluasi = BasisEvaluasi::create([
+                'id_basis_evaluasi' => $each_data['id_basis_evaluasi'],
+                'nm_basis_evaluasi' => $each_data['nm_basis_evaluasi'],
+                'create_date' => currDateTime(),
+                'last_update' => currDateTime(),
+                'expired_date' => currDateTime(),
+                'last_sync' => currDateTime()
+            ]);
             echo " Data berhasil diperbaharui\n";
         });
     }

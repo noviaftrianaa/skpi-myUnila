@@ -7,43 +7,93 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\PDUT\Pdrd\AkreditasiProdi;
 use App\Models\PDUT\Pdrd\ProfilProdi;
+use App\Models\PDUT\Pdrd\ProfilPt;
+use App\Models\PDUT\Pdrd\SatuanPendidikan;
+use App\Models\PDUT\Pdrd\Sms;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule as ValidationRule;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Exception;
 
 class LembagaController extends Controller
 {
-
-    public function detailProfilPt(Request $request)
+    protected $request;
+    protected $akreditasi_prodi;
+    protected $profil_prodi;
+    protected $sms;
+    protected $profil_pt;
+    protected $satuan_pendidikan;
+    
+    public function __construct(Request $request)
     {
-        $id = $request->id_sp;
-        if (empty($id)) {
-            return response()->json([
-                'status' => FALSE,
-                'message' => "id_sp tidak ditemukan"
-            ]);
+        $this->request = $request;
+        $this->akreditasiprodi = new AkreditasiProdi();
+        $this->profilprodi = new ProfilProdi();
+        $this->sms = new Sms();
+        $this->profilpt = new ProfilPt();
+        $this->satuanpendidikan = new SatuanPendidikan();
+    }
+
+
+    public function detailProfilPt()
+    {
+        InputValidator([
+            'id_sp' => 'required|uuid',
+            'page' => 'numeric|min:1',
+            'count'    => 'numeric|min:1|max:50',
+            'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
+        ]);
+
+        $sortby = "ASC";
+        $sortby = $this->request->input('sortby');
+        $id_sp = $this->request->input('id_sp');
+
+        if (!empty($sortby)) {
+            $sortby =$sortby;
         }
 
-        $profilpt= DB::select(" SELECT
-            sp.id_sp, sp.nm_lemb, ppt.visi,
-            ppt.misi, ppt.tujuan, ppt.sasaran
-        FROM pdrd.profil_pt AS ppt WITH(NOLOCK)
-        JOIN pdrd.satuan_pendidikan AS sp WITH(NOLOCK) ON sp.id_sp = ppt.id_sp AND sp.soft_delete = 0
-        WHERE sp.soft_delete = 0 AND sp.id_sp = ? ", [$id]);
+        try {
+        $query = "SELECT
+            sp.id_sp, 
+            sp.nm_lemb, 
+            ppt.visi,
+            ppt.misi, 
+            ppt.tujuan, 
+            ppt.sasaran
+        FROM 
+            pdrd.profil_pt AS ppt WITH(NOLOCK)
+        JOIN 
+            pdrd.satuan_pendidikan AS sp WITH(NOLOCK) ON sp.id_sp = ppt.id_sp AND sp.soft_delete = 0
+        WHERE 
+            sp.soft_delete = 0 AND sp.id_sp = '" . $id_sp . "' ORDER BY sp.nm_lemb " .$sortby . " ";
 
+        
+        $pagination = CustomPagination($query);
+        $query = $pagination['query'];
 
+        $profilpt= DB::select($query);
+        if(empty($profilpt)){
+            return WrapResponse(['data' => null], 'tidak ada daftar profil perguruan tinggi yang ditampilkan', FALSE);
+        }
 
-        foreach ($profilpt as $each_data) {
-            $data[] = [
-                'id_sp' => $each_data->id_sp,
-                'nm_lemb' => $each_data->id_publikasi,
-                'visi' => $each_data->visi,
-                'misi' => $each_data->misi,
-                'tujuan' => $each_data->tujuan,
-                'sasaran' => $each_data->sasaran,
+        
+            $data = [];
+            foreach ($profilpt as $value) {
+                $data[] = [
+                'id_sp' => $value->id_sp,
+                'nm_lemb' => $value->id_publikasi,
+                'visi' => $value->visi,
+                'misi' => $value->misi,
+                'tujuan' => $value->tujuan,
+                'sasaran' => $value->sasaran,
             ];
         }
-        return WrapResponse(['data' => $data], 'Detail Perguruan Tinggi berdasarkan id_sp', TRUE);
+        return WrapResponse(compact('data'), 'berhasil');
+    } catch (Exception $e) {
+        Log::error(__FUNCTION__ . '-' . $e->getMessage());
+        return WrapResponse([], "gagal mendapatkan data profil perguruan tinggi", FALSE );
     }
+}
 
 
     public function listAkreditasiPt(Request $request)
