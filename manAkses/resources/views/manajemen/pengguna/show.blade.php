@@ -11,8 +11,8 @@
             <div class="row col-12 p-2">
                 <div class="m-auto">
                     <a data-toggle="modal" class="btn btn-default btn-sm" href="#editUser"><i class="fa fa-edit"></i> Edit</a>
-                    <a data-toggle="modal" class="btn btn-secondary btn-sm" href="#changeItem"><i class="fa fa-edit"></i> Status</a>
                     <a class="btn btn-warning btn-sm" data-toggle="modal" href="#resetItem"> <i class="fas fa-key"></i> Reset</a>
+                    <a data-toggle="modal" class="btn btn-{{($data->a_aktif==1)?'danger':'success'}} btn-sm" href="#changeItem"><i class="fa fa-edit"></i> {{($data->a_aktif==1)?'Disable Account':'Enable Account'}}</a>
                     <a class="btn btn-danger btn-sm" data-toggle="modal" href="#deleteItem"> <i class="fas fa-trash-alt"></i> Delete</a>
                 </div>
             </div>
@@ -318,6 +318,7 @@
                     <form action="{{route('role.destroy', [Crypt::encrypt($items->id_role_pengguna)])}}" method="post" enctype="multipart/form-data">
                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="_method" value="DELETE">
+                        <input type="hidden" name="id_pengguna" value="{{$data->id_pengguna}}">
                         <div class="row">
                             <div class="col-sm-12">
                                 Yakin ingin menghapus peran <strong>{{$items->peran->nm_peran}}</strong> atas nama <strong>{{$data->nm_pengguna}}</strong> ?

@@ -711,6 +711,7 @@ class MahasiswaController extends Controller
                 sms.id_sms,
                 reg.tgl_keluar AS tgl_lulus,
                 reg.tgl_sk_yudisium AS tgl_wisuda,
+                DATEDIFF(MONTH, reg.tgl_masuk_sp, reg.tgl_keluar) AS lama_studi,
                 reg.no_seri_ijazah,
                 pd.create_date AS waktu_data_ditambahkan,
                 pmb.nm_pembiayaan,
@@ -800,6 +801,7 @@ class MahasiswaController extends Controller
                 'biaya_kuliah' => $each_data->nm_pembiayaan,
                 'tanggal_lulus' => $each_data->tgl_lulus,
                 'tanggal_wisuda' => $each_data->tgl_wisuda,
+                'lama_studi' => $each_data->lama_studi,
                 'no_seri_ijazah' => $each_data->no_seri_ijazah,
                 'waktu_data_ditambahkan' => date('Y-m-d H:i:s', strtotime($each_data->waktu_data_ditambahkan)),
                 'terakhir_diubah' => date('Y-m-d H:i:s', strtotime($each_data->terakhir_diubah))

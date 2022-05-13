@@ -7,10 +7,10 @@ Route::group([
     'prefix' => 'live/0.1',
     'as' => 'api_live',
     'namespace' => 'App\Http\Controllers\PDUT\Api',
-    'middleware' => ['openapi_live','dbaccess']
+    'middleware' => ['api']
 ], function () {
-    Route::post('auth/login', 'LoginController@login');
-    Route::post('auth/token', 'LoginController@token');
+    // Route::post('auth/login', 'LoginController@login');
+    // Route::post('auth/token', 'LoginController@token');
     Route::prefix('referensi')->group(base_path('routes/onedata/referensi.php'));
     Route::group([
         'namespace' => 'Pdrd',
@@ -162,7 +162,6 @@ Route::group([
         Route::post('tambah_konversi', 'KonversiController@store');
         Route::put('ubah_konversi', 'KonversiController@update');
         Route::delete('hapus_konversi', 'KonversiController@destroy');
-
     });
 
     Route::group([

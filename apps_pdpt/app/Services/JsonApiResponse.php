@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use Exception;
+
 class JsonApiResponse
 {
     private $statusCode;
@@ -20,10 +22,18 @@ class JsonApiResponse
         $this->simplePagination = FALSE;
     }
 
-    public function setTransformer(object $transform, string $func): object
+    public function setTransformer(object $transform, string $callableFun = NULL): object
     {
-        $this->transform = new $transform($func);
-        return $this;
+        try {
+            if (!is_null($callableFun)) {
+                $callableFun = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1]['function'];
+                logger()->info($callableFun);
+            }
+            $this->transform = new $transform($callableFun);
+            return $this;
+        } catch (Exception $e) {
+            throw new Exception("Error Processing Transformer " . $e->getMessage(), 1);
+        }
     }
 
     public function setStatusCode(int $statusCode): object

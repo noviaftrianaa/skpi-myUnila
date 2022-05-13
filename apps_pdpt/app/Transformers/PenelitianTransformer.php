@@ -9,7 +9,7 @@ class PenelitianTransformer
 
     public function __construct(string $func = "")
     {
-        $this->function = strtolower(str_replace(" ", "", $func));
+        $this->function = strtolower(str_replace(" ", "", $func));;
     }
 
     public function setData($data): object

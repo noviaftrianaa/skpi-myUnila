@@ -22,24 +22,22 @@ class TokenController extends Controller
     {
         if($request->ajax()) {
             $data = DB::SELECT('
-                SELECT *
+                SELECT TOP 5000 SUBSTRING(token_value, 0, 75) AS token_value, base_url, waktu_create, waktu_expired, keterangan
                 FROM man_akses.access_token
                 ORDER BY waktu_create DESC
             ');
 
             return DataTables::of($data)
                 ->addIndexColumn()
+                ->editColumn('token_value', function($data) {
+                    return $data->token_value . "... dst";
+                })
                 ->editColumn('waktu_create', function($data) {
                     return TglWaktuIndonesia($data->waktu_create);
                 })
                 ->editColumn('waktu_expired', function($data) {
                     return TglWaktuIndonesia($data->waktu_expired);
                 })
-                // ->addColumn('action', function($data) {
-                //     $button = '<a type="button" class="btn btn-primary btn-xs" title="Show" href="'.route('token.detail', [Crypt::encrypt($data->id_token)]).'"><i class="fas fa-eye"></i></a>';
-                //     return $button;
-                // })
-                // ->rawColumns(['action'])
                 ->make(true);
         }
         return view('manajemen.token.index');

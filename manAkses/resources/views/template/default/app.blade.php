@@ -124,6 +124,7 @@
                                     <?php $prole = DB::table('man_akses.peran as peran')
                                         ->join('man_akses.role_pengguna as role','role.id_peran','=','peran.id_peran')
                                         ->where('role.id_pengguna', auth()->user()->id_pengguna)
+                                        ->where('role.soft_delete', 0)
                                         ->select('peran.id_peran','peran.nm_peran')
                                         ->get(); ?>
 

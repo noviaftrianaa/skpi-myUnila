@@ -12,7 +12,7 @@
     $(document).ready( function () {
         $('#table-data').DataTable({
             processing: true,
-            serverSide: true,
+            // serverSide: true,
             ajax: window.location.href,
             columns: [
                 { data: 'DT_RowIndex', orderable: false, searchable: false },
@@ -62,12 +62,12 @@
                 <table class="table table-striped table-hover text-xs" id="table-data" style="width: 100% !important">
                     <thead>
                       <tr>
-                        <th>No.</th>
-                        <th>Token</th>
-                        <th>Base URL</th>
-                        <th>Created Date</th>
-                        <th>Expired Date</th>
-                        <th>Notes</th>
+                        <th width="5%">No.</th>
+                        <th width="40%">Token</th>
+                        <th width="15%">Base URL</th>
+                        <th width="10%">Created Date</th>
+                        <th width="10%">Expired Date</th>
+                        <th width="20%">Notes</th>
                         <!-- <th>Aksi</th> -->
                       </tr>
                     </thead>

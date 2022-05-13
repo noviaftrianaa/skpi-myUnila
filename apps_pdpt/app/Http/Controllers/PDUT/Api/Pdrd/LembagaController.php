@@ -397,6 +397,8 @@ class LembagaController extends Controller
         $listdata = DB::SELECT("SELECT
                 sms.id_sms,
                 js.nm_jns_sms,
+                sms.id_fak_unila,
+                sms.id_jur_unila,
                 sms.nm_lemb,
                 sms.smt_mulai,
                 sms.kode_prodi,
@@ -432,6 +434,8 @@ class LembagaController extends Controller
                     'id_sms' => $each_data->id_sms,
                     'nm_jns_sms' => $each_data->nm_jns_sms,
                     'nm_lemb' => $each_data->nm_lemb,
+                    'id_fak_unila' => $each_data->id_fak_unila,
+                    'id_jur_unila' => $each_data->id_jur_unila,
                     'kode_prodi' => $each_data->kode_prodi,
                     'no_tel' => $each_data->no_tel,
                     'no_fax' => $each_data->no_fax,
