@@ -5,6 +5,7 @@ namespace App\Http\Controllers\PDUT\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Log;
 
 class LoginController extends Controller
 {
@@ -49,47 +50,93 @@ class LoginController extends Controller
                 AND apk.expired_date IS NULL
             WHERE
                 usr.soft_delete = 0
-                AND usr.username =  '".$username."'
+                AND usr.username =  '" . $username . "'
         ";
 
         $dPengguna = DB::select($sPengguna);
 
-        if(empty($dPengguna)) {
+        if (empty($dPengguna)) {
             return WrapResponse(['data' => null], 'Pengguna tidak ditemukan!', FALSE);
         }
 
-        if($dPengguna[0]->a_aktif === 0) {
+        if ($dPengguna[0]->a_aktif === 0) {
             return WrapResponse(['data' => null], 'Pengguna tidak aktif!', FALSE);
         }
 
-        if($dPengguna[0]->a_masih === 0) {
+        if ($dPengguna[0]->a_masih === 0) {
             return WrapResponse(['data' => null], 'Pengguna tidak aktif sebagai penanggung jawab aplikasi!', FALSE);
         }
 
-        if($dPengguna[0]->password !== $password) {
+        if ($dPengguna[0]->password !== $password) {
             return WrapResponse(['data' => null], 'Password salah!', FALSE);
         }
 
-        if($dPengguna[0]->id_aplikasi !== $id_aplikasi) {
+        if ($dPengguna[0]->id_aplikasi != \Str::upper($id_aplikasi)) {
             return WrapResponse(['data' => null], 'Id aplikasi tidak valid dengan pengguna', FALSE);
         }
 
-        if(empty($dPengguna[0]->url) !== $url) {
-            return WrapResponse(['data' => null], 'Url aplikasi tidak valid dengan pengguna', FALSE);
+        if ($dPengguna[0]->url != $url) {
+            return WrapResponse(['data' => null], ' Url aplikasi tidak valid dengan pengguna', FALSE);
         }
-    }
 
-    public function generateToken()
-    {
         $header = [
             "alg" => "HS256",
             "typ" => "JWT"
         ];
 
         $payload = [
-            ''
+            'sub' => $dPengguna[0]->id_pengguna,
+            'role' => $dPengguna[0]->nm_peran,
+            'iss' => $this->request->getUri(),
+            'iat' => time(),
+            'exp' => (time() + (60 * 60)),
         ];
 
+        return $this->GenerateJWT($header, $payload);
+    }
 
+    function GenerateJWT($header = [], $payload = [])
+    {
+        $headerEncode = base64_encode(json_encode($header));
+        $payloadEncode = base64_encode(json_encode($payload));
+        $secret = env('JWT_SECRET') || 'secret';
+        $gzdeflate = gzdeflate($secret);
+        $base64encode = base64_encode($gzdeflate);
+        $secret = unpack('H*', gzinflate(base64_decode($base64encode)));
+        $signature = hash_hmac('SHA256', "$headerEncode.$payloadEncode", $secret[1]);
+        $signature = base64_encode($signature);
+        $signature = "$headerEncode.$payloadEncode.$signature";
+
+        return WrapResponse(['data' => ['type' => 'bearer', 'token' => $signature]], 'Berhasil mendapatkan token otorisasi!', TRUE);
+    }
+
+    function ValidateToken()
+    {
+        $tokenAssign = explode(" ", $auth, 2)[1];
+        $tokenPart = explode(".", $tokenAssign, 3);
+
+        $header = base64_decode($tokenPart[0]);
+        $payload = base64_decode($tokenPart[1]);
+        $tokenProvided = $tokenPart[2];
+
+        $expiredToken = json_decode($payload)->exp;
+        $isExpired = ($expiredToken - time()) < 0;
+
+        $passSalt = "";
+        $gzdeflate = gzdeflate($passSalt);
+        $base64encode = base64_encode($gzdeflate);
+        $secret = unpack('H*', gzinflate(base64_decode($base64encode)));
+
+        $body = base64_encode($header) . '.' . base64_encode($payload);
+        $tokenCompared = hash_hmac('SHA256', $body, $secret[1]);
+        $tokenCompared = base64_encode($tokenCompared);
+
+        $isTokenValid = ($tokenCompared === $tokenProvided);
+
+        if ($isExpired || !$isTokenValid) {
+            WrapResponse(['error' => 'Token Not Valid']);
+        } else {
+            return;
+        }
     }
 }

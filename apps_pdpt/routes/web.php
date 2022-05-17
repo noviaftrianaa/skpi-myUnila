@@ -21,17 +21,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::group([
-    'prefix' => 'akreditasi',
-    'namespace' => 'App\Http\Controllers\Akreditasi'
-], function () {
-    Route::get('/', 'AkreditasiController@index');
-
-    Route::get('login', 'AuthController@login_page');
-    Route::post('login', 'AuthController@login');
-    Route::post('logout', 'AuthController@login');
-});
-
 Route::get('/',  [DashboardController::class, 'index'])->name('home');
 
 /** Dashboard Dosen */

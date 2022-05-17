@@ -37,6 +37,16 @@
  *              type="string"
  *          )
  *     ),
+ *     @OA\Parameter(
+ *          name="type",
+ *          description="",
+ *          example="120101",
+ *          required=false,
+ *          in="query",
+ *          @OA\Schema(
+ *              type="string"
+ *          )
+ *     ),
  *      @OA\Response(
  *          response=200,
  *          description="Successful operation",

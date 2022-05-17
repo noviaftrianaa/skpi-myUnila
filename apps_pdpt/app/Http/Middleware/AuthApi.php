@@ -16,7 +16,6 @@ class AuthApi
      */
     public function handle(Request $request, Closure $next)
     {
-        return response()->json($request->input('token'));
         if (is_null($request->header('authorization'))) {
             return response()->json([
                 'message'   => 'Terjadi Kesalahan',
@@ -24,7 +23,6 @@ class AuthApi
                 'request'   => $request->all()
             ],401);
         } else {
-            dd($request->header('authorization'));
             return $next($request);
         }
     }
