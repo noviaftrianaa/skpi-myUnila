@@ -11,7 +11,7 @@ Route::group([
 ], function () {
     Route::prefix('auth')->group(function () {
         Route::post('/login', 'LoginController@login');
-        // Route::post('auth/token', 'LoginController@token');
+        Route::post('/cek_token', 'LoginController@checkToken');
     });
 
     Route::middleware('api', 'auth.api')->group(function () {

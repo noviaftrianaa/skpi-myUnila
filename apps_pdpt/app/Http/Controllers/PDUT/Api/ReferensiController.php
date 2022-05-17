@@ -27,7 +27,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function wilayah(Request $request)
@@ -74,7 +74,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function tse(Request $request)
@@ -115,7 +115,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function tingkat_prestasi(Request $request)
@@ -155,7 +155,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function tingkat_penghargaan(Request $request)
@@ -195,7 +195,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function tahun_anggaran(Request $request)
@@ -238,7 +238,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function tahun_ajaran(Request $request)
@@ -281,7 +281,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function sumber_listrik(Request $request)
@@ -321,7 +321,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function sumber_gaji(Request $request)
@@ -361,7 +361,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function sumber_dana(Request $request)
@@ -405,7 +405,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function sumber_air(Request $request)
@@ -445,7 +445,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function status_milik_sarpras(Request $request)
@@ -485,7 +485,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function status_mahasiswa(Request $request)
@@ -526,7 +526,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function status_kepemilikan(Request $request)
@@ -566,7 +566,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function status_kepegawaian(Request $request)
@@ -606,7 +606,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function status_keaktifan_pegawai(Request $request)
@@ -646,7 +646,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function status_anak(Request $request)
@@ -686,7 +686,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function skim_kegiatan(Request $request)
@@ -739,7 +739,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function semester(Request $request)
@@ -784,7 +784,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function satuan(Request $request)
@@ -824,7 +824,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function peta_katgiat_jnspub(Request $request)
@@ -864,7 +864,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function peta_katgiat_jnsdok(Request $request)
@@ -906,7 +906,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function peta_katgiat_jabfung(Request $request)
@@ -946,7 +946,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function penghasilan(Request $request)
@@ -986,7 +986,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function pembiayaan(Request $request)
@@ -1026,7 +1026,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function pekerjaan(Request $request)
@@ -1066,7 +1066,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function pangkat_golongan(Request $request)
@@ -1107,7 +1107,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function nilai_akred(Request $request)
@@ -1147,7 +1147,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function negara(Request $request)
@@ -1189,7 +1189,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function media_publikasi(Request $request)
@@ -1236,7 +1236,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function level_wilayah(Request $request)
@@ -1276,7 +1276,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function lembaga_pengangkat(Request $request)
@@ -1316,7 +1316,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function lembaga_akred(Request $request)
@@ -1373,7 +1373,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function kelompok_usaha(Request $request)
@@ -1413,7 +1413,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function kelompok_profesi(Request $request)
@@ -1454,7 +1454,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function kelompok_bidang(Request $request)
@@ -1504,7 +1504,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function kebutuhan_khusus(Request $request)
@@ -1544,7 +1544,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function keahlian_lab(Request $request)
@@ -1584,7 +1584,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function kbli(Request $request)
@@ -1628,7 +1628,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function kategori_tabel(Request $request)
@@ -1672,7 +1672,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function kategori_kegiatan(Request $request)
@@ -1735,7 +1735,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function kategori_capaian_luaran(Request $request)
@@ -1775,7 +1775,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jurusan(Request $request)
@@ -1823,7 +1823,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenjang_pendidikan(Request $request)
@@ -1865,7 +1865,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_tunjangan(Request $request)
@@ -1905,7 +1905,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_tinggal(Request $request)
@@ -1945,7 +1945,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_tes(Request $request)
@@ -1987,7 +1987,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_subst(Request $request)
@@ -2027,7 +2027,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_sms(Request $request)
@@ -2067,7 +2067,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_sert(Request $request)
@@ -2112,7 +2112,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_sdm(Request $request)
@@ -2174,7 +2174,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_sarana(Request $request)
@@ -2217,7 +2217,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_publikasi(Request $request)
@@ -2258,7 +2258,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_prestasi(Request $request)
@@ -2298,7 +2298,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_prasarana(Request $request)
@@ -2338,7 +2338,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_penghargaan(Request $request)
@@ -2380,7 +2380,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_penelitian(Request $request)
@@ -2420,7 +2420,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_pendaftaran(Request $request)
@@ -2462,7 +2462,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_media_pub(Request $request)
@@ -2502,7 +2502,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_lembaga(Request $request)
@@ -2550,7 +2550,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_keuangan(Request $request)
@@ -2592,7 +2592,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_kesejahteraan(Request $request)
@@ -2632,7 +2632,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_kepanitiaan(Request $request)
@@ -2672,7 +2672,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_keluar(Request $request)
@@ -2715,7 +2715,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_jalur_pekerjaan(Request $request)
@@ -2755,7 +2755,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_hapus_buku(Request $request)
@@ -2795,7 +2795,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_evaluasi(Request $request)
@@ -2836,7 +2836,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_dokumen(Request $request)
@@ -2876,7 +2876,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_diklat(Request $request)
@@ -2919,7 +2919,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_beasiswa(Request $request)
@@ -2964,7 +2964,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_bahan_ajar(Request $request)
@@ -3004,7 +3004,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jenis_akt_mhs(Request $request)
@@ -3046,7 +3046,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jalur_daftar(Request $request)
@@ -3086,7 +3086,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jabfung(Request $request)
@@ -3128,7 +3128,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function jab_tgs(Request $request)
@@ -3174,7 +3174,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function ikatan_kerja_sdm(Request $request)
@@ -3215,7 +3215,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function gelar_akademik(Request $request)
@@ -3257,7 +3257,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function fungsi_lab(Request $request)
@@ -3297,7 +3297,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function bidang_usaha(Request $request)
@@ -3337,7 +3337,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function bidang_studi(Request $request)
@@ -3386,7 +3386,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function bidang_pekerjaan(Request $request)
@@ -3426,7 +3426,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function bentuk_pendidikan(Request $request)
@@ -3474,7 +3474,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function basis_evaluasi(Request $request)
@@ -3514,7 +3514,7 @@ class ReferensiController extends Controller
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
     public function agama(Request $request)

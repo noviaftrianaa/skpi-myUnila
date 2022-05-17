@@ -49,7 +49,7 @@
  *          response=403,
  *          description="Forbidden"
  *      ),
- *      security={{"bearer_token":{}}}
+ *      security={{"token":{}}}
  *     )
  * )
  */
@@ -113,7 +113,7 @@
  *           response=403,
  *           description="Forbidden"
  *       ),
- *       security={{"bearer_token":{}}}
+ *       security={{"token":{}}}
  *      )
  * )
  */
@@ -147,7 +147,7 @@
  *           response=403,
  *           description="Forbidden"
  *       ),
- *       security={{"bearer_token":{}}}
+ *       security={{"token":{}}}
  *      )
  * )
  */
@@ -182,7 +182,7 @@
  *                      format="text",
  *                      example="e7377434-ed85-4f5b-9e7c-feb08d4c39e0"
  *                  ),
- *                  @OA\Property(    
+ *                  @OA\Property(
  *                      property="litabmas_lanjutan",
  *                      type="string",
  *                      format="text",
@@ -337,7 +337,7 @@
  *          response=403,
  *          description="Forbidden"
  *      ),
- *      security={{"bearer_token":{}}}
+ *      security={{"token":{}}}
  *  )
  */
 
@@ -525,7 +525,7 @@
  *          response=403,
  *          description="Forbidden"
  *      ),
- *      security={{"bearer_token":{}}}
+ *      security={{"token":{}}}
  * )
  */
 
@@ -556,6 +556,6 @@
  *          response=403,
  *          description="Forbidden"
  *      ),
- *      security={{"bearer_token":{}}}
+ *      security={{"token":{}}}
  *     )
  */

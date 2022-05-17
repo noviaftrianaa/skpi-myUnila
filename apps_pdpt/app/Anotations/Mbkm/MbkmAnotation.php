@@ -19,7 +19,7 @@
  *          response=403,
  *          description="Forbidden"
  *      ),
- *      security={{"bearer_token":{}}}
+ *      security={{"token":{}}}
  *     )
  */
 
@@ -55,7 +55,7 @@
  *          response=403,
  *          description="Forbidden"
  *      ),
- *      security={{"bearer_token":{}}}
+ *      security={{"token":{}}}
  *     )
  */
 
@@ -92,7 +92,7 @@
  *          response=403,
  *          description="Forbidden"
  *      ),
- *      security={{"bearer_token":{}}}
+ *      security={{"token":{}}}
  *     )
  */
 
@@ -123,7 +123,7 @@
  *          response=403,
  *          description="Forbidden"
  *      ),
- *      security={{"bearer_token":{}}}
+ *      security={{"token":{}}}
  *     )
  */
 
@@ -146,7 +146,7 @@
  *          response=403,
  *          description="Forbidden"
  *      ),
- *      security={{"bearer_token":{}}}
+ *      security={{"token":{}}}
  *     )
  */
 
@@ -187,7 +187,7 @@
  *          response=403,
  *          description="Forbidden"
  *      ),
- *      security={{"bearer_token":{}}}
+ *      security={{"token":{}}}
  *     )
  */
 
@@ -222,7 +222,7 @@
  *          response=403,
  *          description="Forbidden"
  *      ),
- *      security={{"bearer_token":{}}}
+ *      security={{"token":{}}}
  *     )
  */
 
@@ -253,7 +253,7 @@
  *          response=403,
  *          description="Forbidden"
  *      ),
- *      security={{"bearer_token":{}}}
+ *      security={{"token":{}}}
  *     )
  */
 
@@ -278,7 +278,7 @@
  *          response=403,
  *          description="Forbidden"
  *      ),
- *      security={{"bearer_token":{}}}
+ *      security={{"token":{}}}
  *     )
  */
 
@@ -321,7 +321,7 @@
  *          response=403,
  *          description="Forbidden"
  *      ),
- *      security={{"bearer_token":{}}}
+ *      security={{"token":{}}}
  *     )
  */
 
@@ -357,7 +357,7 @@
  *          response=403,
  *          description="Forbidden"
  *      ),
- *      security={{"bearer_token":{}}}
+ *      security={{"token":{}}}
  *     )
  */
 
@@ -388,6 +388,6 @@
  *          response=403,
  *          description="Forbidden"
  *      ),
- *      security={{"bearer_token":{}}}
+ *      security={{"token":{}}}
  *     )
  */

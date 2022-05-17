@@ -3,13 +3,18 @@
 namespace App\Http\Controllers\PDUT\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\AuthApi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Env;
 use Illuminate\Support\Facades\DB;
 use Log;
+use Exception;
 
 class LoginController extends Controller
 {
     protected $request;
+    protected $AuthApi;
+
     public function __construct(Request $request)
     {
         $this->request = $request;
@@ -92,51 +97,30 @@ class LoginController extends Controller
             'exp' => (time() + (60 * 60)),
         ];
 
-        return $this->GenerateJWT($header, $payload);
+        return $this->generateJwt($header, $payload);
     }
 
-    function GenerateJWT($header = [], $payload = [])
+    public function checkToken()
     {
-        $headerEncode = base64_encode(json_encode($header));
-        $payloadEncode = base64_encode(json_encode($payload));
-        $secret = env('JWT_SECRET') || 'secret';
-        $gzdeflate = gzdeflate($secret);
-        $base64encode = base64_encode($gzdeflate);
-        $secret = unpack('H*', gzinflate(base64_decode($base64encode)));
-        $signature = hash_hmac('SHA256', "$headerEncode.$payloadEncode", $secret[1]);
-        $signature = base64_encode($signature);
-        $signature = "$headerEncode.$payloadEncode.$signature";
-
-        return WrapResponse(['data' => ['type' => 'bearer', 'token' => $signature]], 'Berhasil mendapatkan token otorisasi!', TRUE);
-    }
-
-    function ValidateToken()
-    {
-        $tokenAssign = explode(" ", $auth, 2)[1];
-        $tokenPart = explode(".", $tokenAssign, 3);
-
-        $header = base64_decode($tokenPart[0]);
-        $payload = base64_decode($tokenPart[1]);
-        $tokenProvided = $tokenPart[2];
-
-        $expiredToken = json_decode($payload)->exp;
-        $isExpired = ($expiredToken - time()) < 0;
-
-        $passSalt = "";
-        $gzdeflate = gzdeflate($passSalt);
-        $base64encode = base64_encode($gzdeflate);
-        $secret = unpack('H*', gzinflate(base64_decode($base64encode)));
-
-        $body = base64_encode($header) . '.' . base64_encode($payload);
-        $tokenCompared = hash_hmac('SHA256', $body, $secret[1]);
-        $tokenCompared = base64_encode($tokenCompared);
-
-        $isTokenValid = ($tokenCompared === $tokenProvided);
-
-        if ($isExpired || !$isTokenValid) {
-            WrapResponse(['error' => 'Token Not Valid']);
-        } else {
-            return;
+        $AuthApi = new AuthApi();
+        try {
+            $token = $AuthApi->decodedToken($this->request->input('token'));
+            return WrapResponse(['data' => $token], 'Token aktif', FALSE);
+        } catch (Exception $e) {
+            return WrapResponse(['data' => ['errors' => $e->getMessage()]], 'Token tidak aktif', FALSE);
         }
+    }
+
+    private function generateJwt($headers, $payload)
+    {
+        $secret = env('JWT_SECRET') || 'secret';
+        $headers_encoded = base64url_encode(json_encode($headers));
+        $payload_encoded = base64url_encode(json_encode($payload));
+
+        $signature = hash_hmac('SHA256', "$headers_encoded.$payload_encoded", $secret, true);
+        $signature_encoded = base64url_encode($signature);
+        $jwt = "$headers_encoded.$payload_encoded.$signature_encoded";
+
+        return WrapResponse(['data' => ['type' => 'bearer', 'token' => $jwt]], 'Berhasil mendapatkan token otorisasi!', TRUE);
     }
 }
