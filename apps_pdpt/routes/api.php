@@ -101,9 +101,20 @@ Route::group([
         });
 
         Route::prefix('mata_kuliah')->group(function () {
-            Route::get('list_kurikulum', 'MataKuliahController@listKurikulum');
-            Route::get('list_matkul', 'MataKuliahController@listMatkul');
-            Route::get('list_kelas', 'MataKuliahController@listKelas');
+            Route::get('list_kurikulum', 'KurikulumController@index');
+            Route::post('kurikulum/tambah', 'KurikulumController@store');
+            Route::put('kurikulum/ubah', 'KurikulumController@update');
+            Route::delete('kurikulum/hapus', 'KurikulumController@destroy');
+
+            Route::get('list_matkul', 'MataKuliahController@index');
+            Route::post('matkul/tambah', 'MataKuliahController@store');
+            Route::put('matkul/ubah', 'MataKuliahController@update');
+            Route::delete('matkul/hapus', 'MataKuliahController@destroy');
+
+            Route::get('list_kelas', 'KelasController@index');
+            Route::post('kelas/tambah', 'KelasController@store');
+            Route::put('kelas/ubah', 'KelasController@update');
+            Route::delete('kelas/hapus', 'KelasController@destroy');
         });
 
         Route::prefix('akreditasi_prodi')->group(function () {
