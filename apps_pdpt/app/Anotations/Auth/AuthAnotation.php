@@ -13,8 +13,8 @@
  *      @OA\JsonContent(
  *          required={"email","password"},
  *          @OA\Property(property="id_aplikasi", type="uuid", format="text", example="948df317-78f7-4b92-a53f-0a56215e07de"),
- *          @OA\Property(property="username", type="string", format="email", example="rio.ananda@staff.unila.ac.id"),
- *          @OA\Property(property="password", type="string", format="password", example="12345678"),
+ *          @OA\Property(property="username", type="string", format="email", example=""),
+ *          @OA\Property(property="password", type="string", format="password", example=""),
  *      ),
  *  ),
  *  @OA\Response(
@@ -43,7 +43,7 @@
  *    description="Masukan token",
  *    @OA\JsonContent(
  *       required={"token"},
- *       @OA\Property(property="token", type="string", format="string", example="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJCMTM5QzA5RS01QzkzLTQyRjEtOTYzOS01MTFDMTY0RDg3REUiLCJyb2xlIjoiRGV2ZWxvcGVyIiwiaXNzIjoiaHR0cHM6XC9cL3BkdXQtdW5pbGEudGVzdFwvYXBpXC9zYW5kYm94XC8wLjFcL2F1dGhcL2xvZ2luIiwiaWF0IjoxNjUyODA2NDAzLCJleHAiOjE2NTI4MTAwMDN9.N6FSfA9amGJhcfb4pZmHKYkG24R-Gi13S1_FNBzaZcg")
+ *       @OA\Property(property="token", type="string", format="string", example="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJCMTM5QzA5RS01QzkzLTQyRjEtOTYzOS01MTFDMTY0RDg3REUiLCJyb2xlIjoiRGV2ZWxvcGVyIiwiaXNzIjoiaHR0cHM6XC9cL3BkdXQtdW5pbGEudGVzdFwvYXBpXC9zYW5kYm94XC8wLjFcL2F1dGhcL2xvZ2luIiwiaWF0IjoxNjUyODA5NzYzLCJleHAiOjE2NTI4MTMzNjN9.rgXdi2vbImG8toSQfW_x1f3jmrd-hj2PIXEXjLJC-wE")
  *    ),
  * ),
  * @OA\Response(

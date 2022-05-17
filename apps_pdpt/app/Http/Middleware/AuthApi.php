@@ -56,7 +56,7 @@ class AuthApi
 
     function decodedToken($jwt)
     {
-        $secret = env('JWT_SECRET') || 'secret';
+        $secret = env('JWT_SECRET', 'secret');
         $tokenParts = explode('.', $jwt);
         $header = base64_decode($tokenParts[0]);
         $payload = base64_decode($tokenParts[1]);

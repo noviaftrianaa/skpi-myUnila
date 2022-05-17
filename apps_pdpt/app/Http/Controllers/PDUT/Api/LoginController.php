@@ -102,6 +102,10 @@ class LoginController extends Controller
 
     public function checkToken()
     {
+        InputValidator([
+            'token' => 'required',
+        ]);
+
         $AuthApi = new AuthApi();
         try {
             $token = $AuthApi->decodedToken($this->request->input('token'));
@@ -113,7 +117,7 @@ class LoginController extends Controller
 
     private function generateJwt($headers, $payload)
     {
-        $secret = env('JWT_SECRET') || 'secret';
+        $secret = env('JWT_SECRET', 'secret');
         $headers_encoded = base64url_encode(json_encode($headers));
         $payload_encoded = base64url_encode(json_encode($payload));
 
