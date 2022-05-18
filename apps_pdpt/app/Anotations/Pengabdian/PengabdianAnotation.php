@@ -25,7 +25,7 @@
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
 
@@ -44,7 +44,7 @@
      *          @OA\Schema(type="number")),
      *      @OA\Parameter( name="count", description="masukan jumlah data", example="10", required=false, in="query",
      *          @OA\Schema(type="number")),
-     * 
+     *
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -57,7 +57,7 @@
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
 
@@ -86,7 +86,7 @@
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
 
@@ -97,7 +97,7 @@
      *      tags={"Pengabdian"},
      *      summary="Menambahkan Data Pengabdian",
      *      description="Menambahkan data pengabdian baru berdasarkan ID Katgiat berikut: <br><br>
-     *      1. 130201 <br> 
+     *      1. 130201 <br>
      *      2. 130202 <br>
      *      3. 130203 <br>
      *      4. 130204 <br>
@@ -296,7 +296,7 @@
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */
 
@@ -327,6 +327,6 @@
      *          response=403,
      *          description="Forbidden"
      *      ),
-     *      security={{"bearer_token":{}}}
+     *      security={{"token":{}}}
      *     )
      */

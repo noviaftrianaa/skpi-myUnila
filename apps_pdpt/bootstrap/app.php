@@ -36,7 +36,7 @@ if (!function_exists('app_log')) {
 }
 
 $app_request_id = '';
-if (!function_exists('app_id')) {
+if (!function_exists('app_request_id')) {
     function app_request_id($new_id = '')
     {
         if ($new_id) {

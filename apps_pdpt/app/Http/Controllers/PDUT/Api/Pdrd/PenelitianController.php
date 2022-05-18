@@ -918,8 +918,8 @@ class PenelitianController extends Controller
         DB::beginTransaction();
         try {
             DB::update("
-                UPDATE pdrd.litabmas 
-                SET 
+                UPDATE pdrd.litabmas
+                SET
                     soft_delete = 1,
                     last_update = " . currDateTime() . ",
                     id_updater = " . $updateId . "

@@ -3,12 +3,18 @@
 namespace App\Http\Controllers\PDUT\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\AuthApi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Env;
 use Illuminate\Support\Facades\DB;
+use Log;
+use Exception;
 
 class LoginController extends Controller
 {
     protected $request;
+    protected $AuthApi;
+
     public function __construct(Request $request)
     {
         $this->request = $request;
@@ -49,47 +55,76 @@ class LoginController extends Controller
                 AND apk.expired_date IS NULL
             WHERE
                 usr.soft_delete = 0
-                AND usr.username =  '".$username."'
+                AND usr.username =  '" . $username . "'
         ";
 
         $dPengguna = DB::select($sPengguna);
 
-        if(empty($dPengguna)) {
+        if (empty($dPengguna)) {
             return WrapResponse(['data' => null], 'Pengguna tidak ditemukan!', FALSE);
         }
 
-        if($dPengguna[0]->a_aktif === 0) {
+        if ($dPengguna[0]->a_aktif === 0) {
             return WrapResponse(['data' => null], 'Pengguna tidak aktif!', FALSE);
         }
 
-        if($dPengguna[0]->a_masih === 0) {
+        if ($dPengguna[0]->a_masih === 0) {
             return WrapResponse(['data' => null], 'Pengguna tidak aktif sebagai penanggung jawab aplikasi!', FALSE);
         }
 
-        if($dPengguna[0]->password !== $password) {
+        if ($dPengguna[0]->password !== $password) {
             return WrapResponse(['data' => null], 'Password salah!', FALSE);
         }
 
-        if($dPengguna[0]->id_aplikasi !== $id_aplikasi) {
+        if ($dPengguna[0]->id_aplikasi != \Str::upper($id_aplikasi)) {
             return WrapResponse(['data' => null], 'Id aplikasi tidak valid dengan pengguna', FALSE);
         }
 
-        if(empty($dPengguna[0]->url) !== $url) {
-            return WrapResponse(['data' => null], 'Url aplikasi tidak valid dengan pengguna', FALSE);
+        if ($dPengguna[0]->url != $url) {
+            return WrapResponse(['data' => null], ' Url aplikasi tidak valid dengan pengguna', FALSE);
         }
-    }
 
-    public function generateToken()
-    {
         $header = [
             "alg" => "HS256",
             "typ" => "JWT"
         ];
 
         $payload = [
-            ''
+            'sub' => $dPengguna[0]->id_pengguna,
+            'role' => $dPengguna[0]->nm_peran,
+            'iss' => $this->request->getUri(),
+            'iat' => time(),
+            'exp' => (time() + (60 * 60)),
         ];
 
+        return $this->generateJwt($header, $payload);
+    }
 
+    public function checkToken()
+    {
+        InputValidator([
+            'token' => 'required',
+        ]);
+
+        $AuthApi = new AuthApi();
+        try {
+            $token = $AuthApi->decodedToken($this->request->input('token'));
+            return WrapResponse(['data' => $token], 'Token aktif', FALSE);
+        } catch (Exception $e) {
+            return WrapResponse(['data' => ['errors' => $e->getMessage()]], 'Token tidak aktif', FALSE);
+        }
+    }
+
+    private function generateJwt($headers, $payload)
+    {
+        $secret = env('JWT_SECRET', 'secret');
+        $headers_encoded = base64url_encode(json_encode($headers));
+        $payload_encoded = base64url_encode(json_encode($payload));
+
+        $signature = hash_hmac('SHA256', "$headers_encoded.$payload_encoded", $secret, true);
+        $signature_encoded = base64url_encode($signature);
+        $jwt = "$headers_encoded.$payload_encoded.$signature_encoded";
+
+        return WrapResponse(['data' => ['type' => 'bearer', 'token' => $jwt]], 'Berhasil mendapatkan token otorisasi!', TRUE);
     }
 }

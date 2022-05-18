@@ -27,7 +27,7 @@
  * response=403,
  * description="Forbidden"
  * ),
- * security={{"bearer_token":{}}}
+ * security={{"token":{}}}
  * )
  * )
  */
@@ -37,7 +37,7 @@
 /**
  * @OA\Post(
  *      path="/presensi/tambah",
- *      operationId="tambahKehadiranSdm", 
+ *      operationId="tambahKehadiranSdm",
  *      tags={"Presensi"},
  *      summary="Menambahkan Data Kehadiran Baru",
  *      @OA\RequestBody(
@@ -69,7 +69,7 @@
  *          response=403,
  *          description="Forbidden"
  *      ),
- *      security={{"bearer_token":{}}}
+ *      security={{"token":{}}}
  *     )
  */
 
@@ -77,7 +77,7 @@
 /**
  * @OA\Put (
  *      path="/presensi/ubah",
- *      operationId="ubahKehadiranSdm", 
+ *      operationId="ubahKehadiranSdm",
  *      tags={"Presensi"},
  *      summary= "Mengubah Data Kehadiran",
  *      description="Mengubah Data Kehadiran",
@@ -105,6 +105,6 @@
  *          response=403,
  *          description="Forbidden"
  *      ),
- *      security={{"bearer_token":{}}}
+ *      security={{"token":{}}}
  *     )
  */
