@@ -115,6 +115,16 @@ Route::group([
             Route::post('kelas/tambah', 'KelasController@store');
             Route::put('kelas/ubah', 'KelasController@update');
             Route::delete('kelas/hapus', 'KelasController@destroy');
+
+            Route::get('list_peserta', 'PesertaKelasController@index');
+            Route::post('peserta/tambah', 'PesertaKelasController@store');
+            Route::put('peserta/ubah', 'PesertaKelasController@update');
+            Route::delete('peserta/hapus', 'PesertaKelasController@destroy');
+
+            // Route::get('list_nilai', 'NilaiPesertaKelasController@index');
+            // Route::post('nilai/tambah', 'NilaiPesertaKelasController@store');
+            // Route::put('nilai/ubah', 'NilaiPesertaKelasController@update');
+            // Route::delete('nilai/hapus', 'NilaiPesertaKelasController@destroy');
         });
 
         Route::prefix('akreditasi_prodi')->group(function () {
@@ -173,6 +183,10 @@ Route::group([
         Route::post('tambah_konversi', 'KonversiController@store');
         Route::put('ubah_konversi', 'KonversiController@update');
         Route::delete('hapus_konversi', 'KonversiController@destroy');
+
+        Route::get('cari_pt', 'NonUnilaController@cariPt');
+        Route::get('cari_prodi', 'NonUnilaController@cariProdi');
+        Route::get('cari_mhs', 'NonUnilaController@cariMhs');
     });
 
     Route::group([
@@ -231,4 +245,5 @@ Route::group([
         Route::get('peran', 'manAksesController@peran');
         Route::get('ubah_keaktifan', 'manAksesController@updateLastActive');
     });
+
 });
