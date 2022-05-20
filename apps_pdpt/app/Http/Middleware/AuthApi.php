@@ -4,31 +4,30 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Models\PDUT\Logger\LogJwt;
+use Log;
 
 class AuthApi
 {
+    protected $mLogJwt;
+
     public function handle($request, Closure $next)
     {
         try {
             if (!$token = $this->parseToken($request)) {
                 return WrapResponse(['data' => ['errors' => 'Token kosong!']], 'Otorisasi gagal!', FALSE);
             }
-            $id_pengguna = $this->getIdPengguna($token);
-            $decodedToken = $this->decodedToken($token);
-
-            // simpan token ke database
-            // .............
-            // .............
-            // .............
-            // .............
-
+            $this->decodedToken($token);
+        } catch (ModelNotFoundException $e) {
+            return WrapResponse(['data' => ['errors' => $e->getMessage()]], 'Otorisasi gagal!', FALSE);
         } catch (Exception $e) {
             return WrapResponse(['data' => ['errors' => $e->getMessage()]], 'Otorisasi gagal!', FALSE);
         }
         return $next($request);
     }
 
-    public function parseToken($request, $method = 'bearer', $header = 'authorization', $query = 'token')
+    function parseToken($request, $method = 'bearer', $header = 'authorization', $query = 'token')
     {
         if (!$token = $this->parseAuthHeader($request, $header, $method)) {
             if (!$token = $request->query($query, false)) {
@@ -38,20 +37,13 @@ class AuthApi
         return $token;
     }
 
-    protected function parseAuthHeader($request, $header = 'authorization', $method = 'bearer')
+    function parseAuthHeader($request, $header = 'authorization', $method = 'bearer')
     {
         $header = $request->headers->get($header);
         if (!starts_with(strtolower($header), $method)) {
             return false;
         }
         return trim(str_ireplace($method, '', $header));
-    }
-
-    function getIdPengguna($token)
-    {
-        list($header, $payload, $signature) = explode(".", $token);
-        $payload_decoded = json_decode(base64_decode($payload));
-        return $payload_decoded->sub;
     }
 
     function decodedToken($jwt)
@@ -63,7 +55,7 @@ class AuthApi
         $signature_provided = $tokenParts[2];
         $payload_decoded = json_decode($payload);
 
-        $requred_claims = ['sub', 'role', 'iss', 'iat', 'exp'];
+        $requred_claims = ['app', 'sub', 'role', 'iss', 'iat', 'exp'];
         foreach ($requred_claims as $req) {
             if (!property_exists($payload_decoded, $req)) {
                 throw new Exception("Token tidak valid", 1);
@@ -87,5 +79,15 @@ class AuthApi
         }
 
         return $payload_decoded;
+    }
+
+    function getIdToken($request)
+    {
+        if (!$token = $this->parseAuthHeader($request)) {
+            return NULL;
+        }
+        $mLogJwt = $this->mLogJwt = new LogJwt();
+        $idToken = $mLogJwt->select('id_log_jwt')->where('token_value', $token)->first();
+        return $idToken->id_log_jwt;
     }
 }
