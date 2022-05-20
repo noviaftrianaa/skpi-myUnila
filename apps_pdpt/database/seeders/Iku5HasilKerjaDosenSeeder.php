@@ -33,7 +33,7 @@ class Iku5HasilKerjaDosenSeeder extends Seeder
         $this->rekog($tahun, $conn);
         $this->paten($tahun, $conn);
         $this->iku($tahun, $conn);
-        // $this->dashboard($tahun, $conn);
+        $this->dashboard($tahun, $conn);
     }
 
     public function dosen($tahun, $conn)
@@ -313,7 +313,7 @@ class Iku5HasilKerjaDosenSeeder extends Seeder
         $sql = "
                 SELECT
                     l.id_publikasi,tkeaktifan.id_thn_ajaran,tsdm.nidn,treg.id_reg_ptk,tsdm.id_sdm,tsp.id_sp,tsms.id_sms,l.id_jns_pub,
-                    l.judul,l.tgl_terbit,sal.urutan,sal.peran_tulis,l.id_media_pub
+                    l.judul,l.tgl_terbit,sal.urutan,sal.peran_tulis,l.id_media_pub, sal.id_katgiat
                 FROM pdrd.sdm tsdm WITH (NOLOCK)
                     LEFT JOIN pdrd.reg_ptk treg WITH (NOLOCK) ON treg.id_sdm = tsdm.id_sdm AND treg.soft_delete = 0
                     LEFT JOIN pdrd.keaktifan_ptk tkeaktifan WITH (NOLOCK) ON tkeaktifan.id_reg_ptk = treg.id_reg_ptk AND tkeaktifan.soft_delete = 0
@@ -356,6 +356,7 @@ class Iku5HasilKerjaDosenSeeder extends Seeder
                 
             ], [
                 'nidn' => $each_data->nidn,
+                'id_katgiat' => $each_data->id_katgiat,
                 'id_reg_ptk' => $each_data->id_reg_ptk,
                 'id_kti' => guid(),
                 'id_sp' => $each_data->id_sp,

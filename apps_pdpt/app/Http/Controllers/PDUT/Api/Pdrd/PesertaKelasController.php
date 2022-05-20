@@ -3,102 +3,102 @@
 namespace App\Http\Controllers\PDUT\Api\Pdrd;
 
 use App\Http\Controllers\Controller;
-use App\Models\PDUT\Pdrd\Nilai;
+use App\Models\PDUT\Pdrd\KelasKuliah;
 use App\Models\PDUT\Pdrd\NilaiSmtMhs;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\File;
+
+use Illuminate\Http\Response;
 use Illuminate\Validation\Rule as ValidationRule;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+
+use App\Services\JsonApiResponse as WrapResponse;
+use App\Services\QueryPagination;
+use App\Transformers\PesertaKelasTransformer;
 
 class PesertaKelasController extends Controller
 {
     protected $request;
     protected $kelasKuliah;
     protected $nilaiMhs;
+    protected $wrapResponse;
 
-    public function __construct(Request $request)
+    public function __construct()
     {
-        $this->request = $request;
+        $this->sanitizeRequest();
+
         $this->kelasKuliah = new KelasKuliah();
         $this->nilaiMhs = new NilaiSmtMhs();
+        $this->wrapResponse = new WrapResponse;
     }
 
     public function index()
     {
-        $idProdi = $this->request->input('idProdi', NULL);
+        $idKelas = $this->request->input('idKelas', NULL);
         InputValidator([
             'page' => 'numeric|min:1',
             'count' => 'numeric|min:1|max:50',
-            ['idProdi' => 'regex:/^[a-zA-Z0-9\-\(\)\s]+$/',],
-            ['idProdi.regex' => 'input harus berupa campuran alpa_numeric dan dash',]
+            ['idKelas' => 'regex:/^[a-zA-Z0-9\-\(\)\s]+$/',],
+            ['idKelas.regex' => 'input harus berupa campuran alpa_numeric dan dash',]
         ]);
 
-        DB::beginTransaction();
-        try {
-            $query = "
-            SELECT
-                kk.id_kls,
-                smt.nm_smt,
-                CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS nm_prodi,
-                kk.nm_kls,
-                mk.kode_mk,
-                mk.nm_mk,
-                mk.sks_mk,
-                CASE
-                    WHEN mk.jns_mk = 'A' THEN 'Wajib'
-                    WHEN mk.jns_mk = 'B' THEN 'Pilihan'
-                    WHEN mk.jns_mk = 'C' THEN 'Wajib peminatan'
-                    WHEN mk.jns_mk = 'D' THEN 'Pilihan peminatan'
-                    WHEN mk.jns_mk = 'S' THEN 'Tugas'
-                END AS status,
-                kk.create_date AS waktu_data_ditambahkan,
-                kk.last_update AS terakhir_diubah
-            FROM
-                pdrd.kelas_kuliah AS kk WITH(NOLOCK)
-                LEFT JOIN pdrd.sms AS sms WITH(NOLOCK) ON sms.id_sms = kk.id_sms
-                AND sms.id_sms = '" . $idProdi . "'
-                AND sms.soft_delete = 0
-                JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = sms.id_jenj_didik
-                AND jenjang.expired_date IS NULL
-                LEFT JOIN pdrd.matkul AS mk WITH(NOLOCK) ON mk.id_mk = kk.id_mk
-                AND mk.soft_delete = 0
-                JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = kk.id_smt
-                AND smt.expired_date IS NULL
-            WHERE
-                kk.soft_delete = 0
-            ORDER BY
-                mk.nm_mk ASC ";
+        $query = "
+                SELECT
+                    kk.id_kls,
+                    smt.nm_smt,
+                    nilai.id_reg_pd,
+                    reg.nipd,
+                    pd.nm_pd,
+                    nilai.nilai_angka,
+                    nilai.nilai_huruf,
+                    nilai.nilai_indeks,
+                    CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS nm_prodi,
+                    kk.nm_kls,
+                    mk.nm_mk,
+                    mk.sks_mk,
+                    mk.kode_mk,
+                    nilai.create_date AS waktu_data_ditambahkan,
+                    nilai.last_update AS terakhir_diubah
+                FROM
+                    pdrd.nilai_smt_mhs AS nilai WITH(NOLOCK)
+                    LEFT JOIN pdrd.kelas_kuliah AS kk WITH(NOLOCK) ON kk.id_kls = nilai.id_kls
+                    AND kk.soft_delete = 0
+                    LEFT JOIN pdrd.sms AS sms WITH(NOLOCK) ON sms.id_sms = kk.id_sms
+                    AND sms.soft_delete = 0
+                    JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = sms.id_jenj_didik
+                    AND jenjang.expired_date IS NULL
+                    LEFT JOIN pdrd.matkul AS mk WITH(NOLOCK) ON mk.id_mk = kk.id_mk
+                    AND mk.soft_delete = 0
+                    JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = kk.id_smt
+                    AND smt.expired_date IS NULL
+                    JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_reg_pd = nilai.id_reg_pd
+                    AND reg.soft_delete = 0
+                    JOIN pdrd.peserta_didik AS pd WITH(NOLOCK) ON pd.id_pd = reg.id_pd
+                    AND pd.soft_delete = 0
+                WHERE
+                    nilai.id_kls = '" . $idKelas . "'
+                    AND nilai.soft_delete = 0
+                ORDER BY
+                    pd.nm_pd ASC
+        ";
 
-            // $query = DB::connection('sqlsrv_live')->select($query);
-            $pagination = CustomPagination($query);
-            $query = $pagination['query'];
-            $page = $pagination['page'];
-            $item = $pagination['limit'];
-
-            $kelas = DB::select($query);
-            if (empty($kelas)) {
-                return WrapResponse(['data' => null], 'tidak ada daftar kelas yang ditampilkan', FALSE);
-            }
-
-            $data = [];
-            foreach ($query as $each_data) {
-                $data[] = [
-                    'id_kls' => $each_data->id_kls,
-                    'nm_smt' => $each_data->nm_smt,
-                    'nm_prodi' => $each_data->nm_prodi,
-                    'nm_kls' => $each_data->nm_kls,
-                    'kode_mk' => $each_data->kode_mk,
-                    'nm_mk' => $each_data->nm_mk,
-                    'sks_mk' => $each_data->sks_mk,
-                    'status' => $each_data->status,
-                    'waktu_data_ditambahkan' => date('Y-m-d H:i:s', strtotime($each_data->waktu_data_ditambahkan)),
-                    'terakhir_diubah' => date('Y-m-d H:i:s', strtotime($each_data->terakhir_diubah))
-                ];
-            }
-
-        } catch (\Throwable $th) {
-            return WrapResponse(['data' => null], 'gagal mendapatkan daftar kelas', FALSE);
+        // $result = DB::connection('sqlsrv_live')->select($query);
+        $result = new QueryPagination($query);
+        if (empty($result->query())) {
+            return $this->wrapResponse
+                ->setMessage(static::QUERY_RESULT_EMPTY)
+                ->setError('tidak ada daftar peserta kelas yang ditampilkan')
+                ->render();
         }
-        return WrapResponse(['currentPage' => $page, 'itemsPerPage' => $item, 'data' => $data], 'daftar mata kuliah', TRUE);
+
+        return $this->wrapResponse
+            ->setTransformer(new PesertaKelasTransformer, __FUNCTION__)
+            ->setStatusCode(Response::HTTP_ACCEPTED)
+            ->withSimplePagination()
+            ->render($result->query());
+
     }
 }

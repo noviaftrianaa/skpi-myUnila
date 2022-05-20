@@ -67,7 +67,7 @@ class KelasController extends Controller
             WHERE
                 kk.soft_delete = 0
             ORDER BY
-                mk.nm_mk ASC ";
+                smt.nm_smt DESC ";
 
             // $query = DB::connection('sqlsrv_live')->select($query);
             $pagination = CustomPagination($query);
@@ -103,6 +103,7 @@ class KelasController extends Controller
 
     public function store()
     {
+
         InputValidator([
             'id_smt' => 'required|numeric',
             'id_sms' => 'required',
@@ -113,6 +114,7 @@ class KelasController extends Controller
             'kuota_pditt' => 'required',
         ]);
 
+        //kelas kuliah
         $id_kls = guid();
         $id_smt  = $this->request->input('id_smt');
         $id_sms  = $this->request->input('id_sms');
@@ -139,7 +141,8 @@ class KelasController extends Controller
 
         DB::beginTransaction();
         try {
-            $this->kelasKuliah->create([
+            DB::table('pdrd.kelas_kuliah')->insert([
+                // $this->kelasKuliah->create([
                 'id_kls' => $id_kls,
                 'id_smt' => $id_smt,
                 'id_sms' => $id_sms,
@@ -174,6 +177,121 @@ class KelasController extends Controller
             DB::rollBack();
             Log::error($e->getMessage() . ' on line ' . $e->getLine());
             return WrapResponse(['data' => null], 'gagal menambahkan kelas', FALSE);
+        }
+    }
+
+    public function update()
+    {
+
+        InputValidator([
+            'id_kls' => 'required',
+            'id_smt' => 'required|numeric',
+            'id_sms' => 'required',
+            'id_mk' => 'required',
+            'nm_kls' => 'required',
+            'a_selenggara_pditt' => 'required',
+            'a_pengguna_pditt' => 'required',
+            'kuota_pditt' => 'required',
+        ]);
+
+        //kelas kuliah
+        $id_kls = $this->request->input('id_kls');
+        $id_smt  = $this->request->input('id_smt');
+        $id_sms  = $this->request->input('id_sms');
+        $id_mk = $this->request->input('id_mk');
+        $sks_mk  = $this->request->input('sks_mk');
+        $sks_tm  = $this->request->input('sks_tm');
+        $sks_prak  = $this->request->input('sks_prak');
+        $sks_prak_lap  = $this->request->input('sks_prak_lap');
+        $sks_sim  = $this->request->input('sks_sim');
+        $nm_kls  = $this->request->input('nm_kls');
+        $bahasan_case =  $this->request->input('bahasan_case');
+        $a_selenggara_pditt =  $this->request->input('a_selenggara_pditt');
+        $a_pengguna_pditt =  $this->request->input('a_pengguna_pditt');
+        $kuota_pditt =  $this->request->input('kuota_pditt');
+        $kode_vclass =  $this->request->input('kode_vclass');
+        $url_vclass =  $this->request->input('url_vclass');
+
+        $last_update = currDateTime();
+        $id_updater = '26004417-6e92-463c-bf35-f741817121dc';
+        $last_sync = currDateTime();
+
+        DB::beginTransaction();
+        try {
+            $kelas = $this->kelasKuliah->where('id_kls', $id_kls)->first();
+            if (!$kelas) return WrapResponse(['data' => null], 'id_kls tidak ditemukan atau tidak terdaftar', FALSE);
+
+            $kelas->update([
+                'id_smt' => $id_smt,
+                'id_sms' => $id_sms,
+                'id_mk' => $id_mk,
+                'sks_mk' => $sks_mk,
+                'sks_tm' => $sks_tm,
+                'sks_prak' => $sks_prak,
+                'sks_prak_lap' => $sks_prak_lap,
+                'sks_sim' => $sks_sim,
+                'nm_kls' => $nm_kls,
+                'bahasan_case' => $bahasan_case,
+                'a_selenggara_pditt' => $a_selenggara_pditt,
+                'a_pengguna_pditt' => $a_pengguna_pditt,
+                'kuota_pditt' => $kuota_pditt,
+                'kode_vclass' => $kode_vclass,
+                'url_vclass' => $url_vclass,
+                'last_update' => $last_update,
+                'id_updater' => $id_updater,
+                'last_sync' => $last_sync
+            ]);
+
+            DB::commit();
+            return WrapResponse(array('data' => array('id_kls' => $id_kls)), 'sukses mengubah kelas', TRUE);
+        } catch (ModelNotFoundException $mnfe) {
+            DB::rollBack();
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+            return WrapResponse(['data' => null], 'kelas tidak dapat diubah', FALSE);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
+            return WrapResponse(['data' => null], 'gagal mengubah kelas', FALSE);
+        }
+    }
+
+    public function destroy()
+    {
+
+        InputValidator([
+            'id_kls' => 'required',
+        ]);
+
+        //kelas kuliah
+        $id_kls = $this->request->input('id_kls');
+
+        $soft_delete = 1;
+        $last_update = currDateTime();
+        $id_updater = '26004417-6e92-463c-bf35-f741817121dc';
+        $last_sync = currDateTime();
+
+        DB::beginTransaction();
+        try {
+            $kelas = $this->kelasKuliah->where('id_kls', $id_kls)->first();
+            if (!$kelas) return WrapResponse(['data' => null], 'id_kls tidak ditemukan atau tidak terdaftar', FALSE);
+
+            $kelas->update([
+                'last_update' => $last_update,
+                'id_updater' => $id_updater,
+                'soft_delete' => $soft_delete,
+                'last_sync' => $last_sync
+            ]);
+
+            DB::commit();
+            return WrapResponse(array('data' => array('id_kls' => $id_kls)), 'sukses menghapus kelas', TRUE);
+        } catch (ModelNotFoundException $mnfe) {
+            DB::rollBack();
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+            return WrapResponse(['data' => null], 'kelas tidak dapat diubah', FALSE);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
+            return WrapResponse(['data' => null], 'gagal menghapus kelas', FALSE);
         }
     }
 }
