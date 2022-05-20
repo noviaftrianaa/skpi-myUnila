@@ -87,7 +87,7 @@ class KehadiranSdmController extends Controller
                 'id_kehadiran_sdm' => $value->id_kehadiran_sdm,
                 'sdm' => $value->sdm,
                 'nip' => $value->nip,
-                'waktu_presensi'=> $value->waktu_presensi,
+                'waktu_presensi' => $value->waktu_presensi,
                 'lokasi_presensi' => $value->lokasi_presensi,
                 'waktu_pulang' => $value->waktu_pulang,
                 'lokasi_pulang' => $value->lokasi_pulang,
@@ -96,13 +96,12 @@ class KehadiranSdmController extends Controller
                 'waktu_data_ditambahkan' => date('Y-m-d H:i:s', strtotime($value->waktu_data_ditambahkan)),
                 'terakhir_diubah' => date('Y-m-d H:i:s', strtotime($value->terakhir_diubah))
             ];
-        }        return WrapResponse([
+        }
+        return WrapResponse([
             'page' => $pagination['page'],
             'count' => $pagination['count'],
             'data' => $data
         ], 'sukses');
-
-        
     }
     public function create()
     {
@@ -131,7 +130,7 @@ class KehadiranSdmController extends Controller
         // ]);
 
         $creatorId = $updateId = 'bc62ca9c-4e6e-4462-89b6-ff246512734f';
-        
+
         // $id_sdm = $this->request->input('id_sdm');
         // $lokasi_presensi = $this->request->input('lokasi_presensi');
         // $rencana_hari_ini = $this->request->input('rencana_hari_ini');
@@ -142,25 +141,25 @@ class KehadiranSdmController extends Controller
             $presensi = [];
             foreach ($get_data['data'] as $each_data) {
 
-            $presensi = $this->kehadiransdm->create([
-                'id_kehadiran_sdm' => guid(),
-                'id_sdm' => $each_data['id_sdm'],
-                'tgl_hadir' => currDateTime(),
-                'id_creator' => $creatorId,
-                'id_updater' => $creatorId,
-                'waktu_presensi' => currDateTime(),
-                'lokasi_presensi'=> $each_data['lokasi_presensi'],
-                'rencana_hari_ini' => $each_data['rencana_hari_ini'],
-                'realisasi_hari_ini' => $each_data['realisasi_hari_ini'],               
-                'soft_delete' => 0,
-                'create_date' => currDateTime(),
-                'last_update' => currDateTime(),
-                'last_sync' => currDateTime()
-                
-            ]);
-        }
+                $presensi = $this->kehadiransdm->create([
+                    'id_kehadiran_sdm' => guid(),
+                    'id_sdm' => $each_data['id_sdm'],
+                    'tgl_hadir' => currDateTime(),
+                    'id_creator' => $creatorId,
+                    'id_updater' => $creatorId,
+                    'waktu_presensi' => currDateTime(),
+                    'lokasi_presensi' => $each_data['lokasi_presensi'],
+                    'rencana_hari_ini' => $each_data['rencana_hari_ini'],
+                    'realisasi_hari_ini' => $each_data['realisasi_hari_ini'],
+                    'soft_delete' => 0,
+                    'create_date' => currDateTime(),
+                    'last_update' => currDateTime(),
+                    'last_sync' => currDateTime()
+
+                ]);
+            }
             DB::commit();
-            return WrapResponse([], 'sukses menambahkan data kehadiran - ' . $presensi->id_kehadiran_sdm);
+            return WrapResponse([], 'sukses menambahkan data kehadiran');
         } catch (ModelNotFoundException $mnfe) {
             DB::rollBack();
             Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
@@ -172,22 +171,22 @@ class KehadiranSdmController extends Controller
         }
     }
 
-    
+
     public function update()
     {
         InputValidator([
-            'id_kehadiran_sdm' =>'required|uuid',
-            'id_sdm' =>'required|uuid',
+            'id_kehadiran_sdm' => 'required|uuid',
+            'id_sdm' => 'required|uuid',
             'lokasi_pulang' => 'required|string',
             'rencana_hari_ini' => 'nullable|string',
             'realisasi_hari_ini' => 'nullable|string',
         ]);
 
-        
+
 
         $kehadiransdmId  = $this->request->input('id_kehadiran_sdm');
         $creatorId = $updateId = 'bc62ca9c-4e6e-4462-89b6-ff246512734f';
-        
+
         $id_sdm = $this->request->input('id_sdm');
         $lokasi_pulang = $this->request->input('lokasi_pulang');
         $rencana_hari_ini = $this->request->input('rencana_hari_ini');
@@ -207,14 +206,14 @@ class KehadiranSdmController extends Controller
                 'waktu_pulang' => currDateTime(),
                 'lokasi_pulang' => $lokasi_pulang,
                 'rencana_hari_ini' => $rencana_hari_ini,
-                'realisasi_hari_ini' => $realisasi_hari_ini,                
+                'realisasi_hari_ini' => $realisasi_hari_ini,
                 'soft_delete' => 0,
                 'create_date' => currDateTime(),
                 'last_update' => currDateTime(),
                 'last_sync' => currDateTime(),
             ]);
             DB::commit();
-            return WrapResponse([], 'sukses mengubah data kehadiran - ' . $presensi->id_kehadiran_sdm);
+            return WrapResponse([], 'sukses mengubah data kehadiran');
         } catch (ModelNotFoundException $mnfe) {
             DB::rollBack();
             Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
@@ -224,7 +223,6 @@ class KehadiranSdmController extends Controller
             Log::error($e->getMessage() . ' on line ' . $e->getLine());
             return WrapResponse([], "gagal mengubah data kehadiran");
         }
-
     }
 
     public function destroy($id)

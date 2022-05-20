@@ -103,6 +103,7 @@ Route::group([
                 Route::get('list_alumni', 'MahasiswaController@alumni');
             });
 
+<<<<<<< Updated upstream
             Route::prefix('mata_kuliah')->group(function () {
                 Route::get('list_kurikulum', 'MataKuliahController@listKurikulum');
                 Route::get('list_matkul', 'MataKuliahController@listMatkul');
@@ -118,6 +119,22 @@ Route::group([
                 Route::put('profil_prodi/ubah', 'LembagaController@update');
                 Route::get('daftar_sms', 'LembagaController@listSms');
             });
+=======
+        Route::prefix('diklat')->group(function () {
+            Route::get('list', 'DiklatController@getAllListDiklat');
+            Route::post('tambah', 'DiklatController@tambah');
+            Route::put('ubah', 'DiklatController@ubahDiklat');
+            Route::delete('hapus', 'DiklatController@destroy');
+        });
+
+        Route::prefix('penelitian')->group(function () {
+            Route::get('daftar', 'PenelitianController@daftar');
+            Route::get('daftar_id', 'PenelitianController@daftar_id');
+            Route::get('detail', 'PenelitianController@detail');
+            Route::post('tambah', 'PenelitianController@tambah');
+            Route::put('ubah', 'PenelitianController@ubah');
+            Route::delete('hapus', 'PenelitianController@hapus');
+>>>>>>> Stashed changes
         });
 
         Route::group([
@@ -296,6 +313,19 @@ Route::group([
         Route::post('tambah', 'KehadiranSdmController@store');
         Route::put('ubah', 'KehadiranSdmController@update');
     });
+
+
+    Route::group([
+        'namespace' => 'Pmb',
+        'prefix' => 'pmb'
+    ], function () {
+
+        Route::get('list', 'PeriodePmbController@getAllListPeriodePmb');
+        Route::post('tambah', 'PeriodePmbController@tambah');
+        Route::put('ubah', 'PeriodePmbController@ubahPeriodePmb');
+        Route::delete('hapus', 'PeriodePmbController@destroy');
+    });
+
 
     Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
         return $request->user();

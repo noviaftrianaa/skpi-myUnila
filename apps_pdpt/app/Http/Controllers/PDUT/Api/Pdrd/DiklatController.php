@@ -115,7 +115,7 @@ class DiklatController extends Controller
             return WrapResponse(compact('data'), 'sukses');
         } catch (Exception $e) {
             Log::error(__FUNCTION__ . ' - ' . $e->getMessage());
-            return WrapResponse([], "detail data pengabdian tidak ditemukan atau data pengabdian tidak terdaftar", FALSE);
+            return WrapResponse([], "detail data diklat tidak ditemukan atau data diklat tidak terdaftar", FALSE);
         }
     }
 
