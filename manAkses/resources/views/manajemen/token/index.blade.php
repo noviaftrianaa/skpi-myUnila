@@ -14,6 +14,7 @@
             processing: true,
             serverSide: true,
             pagingType: "simple",
+            info: false,
             lengthChange: false,
             ajax: window.location.href,
             columns: [
