@@ -13,6 +13,7 @@
         $('#table-data').DataTable({
             processing: true,
             serverSide: true,
+            pagingType: "simple",
             ajax: window.location.href,
             columns: [
                 { data: 'DT_RowIndex', orderable: false, searchable: false },

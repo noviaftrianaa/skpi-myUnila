@@ -12,7 +12,9 @@
     $(document).ready( function () {
         $('#table-data').DataTable({
             processing: true,
-            // serverSide: true,
+            serverSide: true,
+            pagingType: "simple",
+            lengthChange: false,
             ajax: window.location.href,
             columns: [
                 { data: 'DT_RowIndex', orderable: false, searchable: false },
