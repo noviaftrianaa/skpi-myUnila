@@ -299,7 +299,7 @@
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Jabatan</label>
-                                    <input name="jabatan_pj" id="jabatan_pj" type="text" class="form-control" placeholder="Masukkan Jabatan">
+                                    <input name="jabatan_pj" id="jabatan_pj" type="text" class="form-control" placeholder="Masukkan Jabatan" required>
                                 </div>
                             </div>
                         </div>
@@ -669,7 +669,6 @@
                     $('#nm_pj').attr('required', '');
                     $('#username').attr('required', '');
                     $('#jenis_kelamin').attr('required', '');
-                    $('#jabatan_pj').attr('required', '');
                     $('#no_hp').attr('required', '');
                 } else {
                     $('#newPJ').hide();
@@ -678,12 +677,10 @@
                     $('#nm_pj').removeAttr('required', '');
                     $('#username').removeAttr('required', '');
                     $('#jenis_kelamin').removeAttr('required', '');
-                    $('#jabatan_pj').removeAttr('required', '');
                     $('#no_hp').removeAttr('required', '');
                     $('#nm_pj').val(null);
                     $('#username').val(null);
                     $('#jenis_kelamin').val(null);
-                    $('#jabatan_pj').val(null);
                     $('#no_hp').val(null);
                 }
             });
