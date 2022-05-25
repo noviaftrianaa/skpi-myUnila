@@ -28,14 +28,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $response = Http::get('http://onedata.unila.ac.id/api/live/0.1/man_akses/peran?id_pengguna=12B25CAC-0482-4BE7-9924-C61E364006DD');
-        $message = $response['message'];
+        view()->composer('*', function($view) {
+            $response = Http::get('http://onedata.unila.ac.id/api/live/0.1/man_akses/peran?id_pengguna='.auth()->user()->id_pengguna);
+            $message = $response['message'];
 
-        if(!empty($message)) {
-            foreach($response['data'] AS $each_data) {
-                // dd($each_data);
-                View::share('users', $each_data);
+            if(!empty($message)) {
+                foreach($response['data'] AS $each_data) {
+                    $view->with('users', $each_data);
+                    // View::share('users', $each_data);
+                }
             }
-        }
+        });
     }
 }

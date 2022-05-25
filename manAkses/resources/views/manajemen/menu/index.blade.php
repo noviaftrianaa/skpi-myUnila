@@ -1,6 +1,56 @@
 @extends('template.default.app')
 @section('title','Data Menu')
-@extends('__partial.datatable')
+
+@push('css')
+<link href="{{asset('bower_components/datatables/media/css/dataTables.bootstrap4.css')}}" rel="stylesheet">
+@endpush
+
+@push('js')
+<script type="text/javascript" src="{{ asset('bower_components/datatables/media/js/jquery.dataTables.min.js')}}"></script>
+<script type="text/javascript" src="{{ asset('bower_components/datatables/media/js/dataTables.bootstrap4.min.js')}}"></script>
+<script>
+    $(document).ready( function () {
+        $('#table-data').DataTable({
+            processing: true,
+            serverSide: true,
+            pagingType: "simple",
+            ajax: window.location.href,
+            columns: [
+                { data: 'DT_RowIndex', orderable: false, searchable: false },
+                { data: 'nm_menu' },
+                { data: 'nm_file' },
+                { data: 'icon', searchable: false },
+                { data: 'a_aktif', searchable: false },
+                { data: 'aksi', orderable: false, searchable: false }
+            ],
+            "language": {
+                "decimal":        "",
+                "emptyTable":     "Tidak ada data pada tabel",
+                "info":           "Menampilkan _START_ sampai _END_ dari _TOTAL_ total data",
+                "infoEmpty":      "Tidak ada yang ditampilkan",
+                "infoFiltered":   "(Terfilter dari  _MAX_ total entitas)",
+                "infoPostFix":    "",
+                "thousands":      ",",
+                "lengthMenu":     "Menampilkan _MENU_ entitas",
+                "loadingRecords": "Loading...",
+                "processing":     "Sedang dalam proses...",
+                "search":         "Pencarian:",
+                "zeroRecords":    "Tidak ada data yang cocok",
+                "paginate": {
+                    "first":      "Pertama",
+                    "last":       "Terakhir",
+                    "next":       "Selanjutnya",
+                    "previous":   "Sebelumnya"
+                },
+                "aria": {
+                    "sortAscending":  ": activate to sort column ascending",
+                    "sortDescending": ": activate to sort column descending"
+                }
+            }
+        } );
+    });
+</script>
+@endpush
 
 @section('content')
     <div class="card card-info">
@@ -23,20 +73,6 @@
                         <th width="5%">Aksi</th>
                       </tr>
                     </thead>
-                    <tbody>
-                        @foreach($menu as $no=>$item)
-                        <tr>
-                            <td>{{ $no+1 }}</td>
-                            <td>{{ $item->nm_menu }}</td>
-                            <td>{{ $item->nm_file }}</td>
-                            <td>{{ $item->icon ?? '-' }}</td>
-                            <td>{{ ($item->a_aktif==1) ? 'Ya' : 'Tidak'}}</td>
-                            <td>
-                                <button class="btn btn-info btn-xs" title="Edit" data-toggle="modal" data-target="#editItem{{$item->id_menu}}"> <i class="fas fa-edit"></i></button>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
                 </table>
             </div>
         </div>

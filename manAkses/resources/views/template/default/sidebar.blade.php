@@ -31,6 +31,35 @@
 						<p>Dashboard</p>
 				</a>
 			</li>
+			<li class="nav-item {{ 
+					(request()->is('biodata')) ? 'menu-open' : ''
+				 }}">
+				<!-- route dashboard -->
+				<a href="#" class="nav-link {{ 
+					(request()->is('biodata')) ? 'active' : ''
+				 }}">
+					<i class="nav-icon fas fa-user"></i>
+					<p>Profile <i class="fas fa-angle-left right"></i></p>
+				</a>
+				<ul class="nav nav-treeview">
+					<li class="nav-item">
+						<a href="{{ route('biodata') }}" class="nav-link {{ (request()->is('biodata')) ? 'active' : '' }}">
+							<i class="far fa-circle nav-icon"></i>
+							<p>Biodata</p>
+						</a>
+					</li>
+				</ul>
+			</li>
+			<li class="nav-item">
+			<!-- route dashboard -->
+				<a href="{{ route('auth.logout') }}" class="nav-link">
+					<i class="nav-icon fas fa-power-off"></i>
+					<p>Logout</p>
+				</a>
+			</li>
+
+			@if(session()->get('login.role')->id_peran==1)
+			<!-- Administrator Menus -->
 			<li class="nav-header">Master</li>
 			<li class="nav-item">
 			<!-- route dashboard -->
@@ -74,6 +103,7 @@
 					<p>Data Menu</p>
 				</a>
 			</li>
+			@endif
 		</ul>
 	</nav>
 	<!-- /.sidebar-menu -->

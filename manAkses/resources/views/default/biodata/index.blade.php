@@ -1,4 +1,4 @@
-@extends('template.main.app')
+@extends('template.default.app')
 @section('title','Dashboard')
 
 @section('content')

@@ -8,8 +8,9 @@
 <script>
     $(document).ready( function () {
         $('#table-data').DataTable({
-            stateSave: true,
-            // processing: true,
+            // stateSave: true,
+            processing: true,
+            pagingType: "simple",
             "language": {
                 "decimal":        "",
                 "emptyTable":     "Tidak ada data pada tabel",
