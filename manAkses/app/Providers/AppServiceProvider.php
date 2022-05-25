@@ -29,13 +29,15 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         view()->composer('*', function($view) {
-            $response = Http::get('http://onedata.unila.ac.id/api/live/0.1/man_akses/peran?id_pengguna='.auth()->user()->id_pengguna);
-            $message = $response['message'];
-
-            if(!empty($message)) {
-                foreach($response['data'] AS $each_data) {
-                    $view->with('users', $each_data);
-                    // View::share('users', $each_data);
+            if(auth()->check()) {
+                $response = Http::get('http://onedata.unila.ac.id/api/live/0.1/man_akses/peran?id_pengguna='.auth()->user()->id_pengguna);
+                $message = $response['message'];
+    
+                if(!empty($message)) {
+                    foreach($response['data'] AS $each_data) {
+                        $view->with('users', $each_data);
+                        // View::share('users', $each_data);
+                    }
                 }
             }
         });
