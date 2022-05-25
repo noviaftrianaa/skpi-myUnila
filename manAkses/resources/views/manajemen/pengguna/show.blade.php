@@ -5,7 +5,7 @@
 @section('content')
     <div class="card card-info">
         <div class="card-header">
-            <h3 class="card-title"><i class="fa fa-list"></i> Data Pengguna</h3>
+            <h3 class="card-title mt-1"><i class="fa fa-list"></i> Data Pengguna</h3>
         </div><!-- /.card-header -->
         <div class="card-body" style="margin: 0;padding: 0">
             <div class="row col-12 p-2">
@@ -39,9 +39,9 @@
 
     <div class="card card-info">
         <div class="card-header">
-            <h3 class="card-title"><i class="fa fa-list"></i> Role Pengguna</h3>
+            <h3 class="card-title mt-1"><i class="fa fa-list"></i> Role Pengguna</h3>
             <div class="card-tools">
-                <a type="button" data-toggle="modal" class="btn btn-dark btn-xs rounded-pill" href="#createRole"><i class="fa fa-plus"></i> Tambah</a>
+                <a type="button" data-toggle="modal" class="btn btn-default btn-xs text-dark" href="#createRole"><i class="fa fa-plus"></i> Tambah</a>
             </div>
         </div>
         <div class="card-body">
@@ -325,8 +325,8 @@
                             </div>
                         </div>
                         <div class="modal-footer no-bd">
-                            <button type="button" class="btn btn-link" data-dismiss="modal">Tutup</button>
                             <button type="submit" class="btn btn-danger">Hapus</button>
+                            <button type="button" class="btn btn-link" data-dismiss="modal">Tutup</button>
                         </div>
                     </form>
                 </div>
@@ -360,7 +360,7 @@
                             </div>
                         </div>
                         <div class="modal-footer no-bd">
-                            <button type="submit" class="btn btn-primary">Simpan</button>
+                            <button type="submit" class="btn btn-warning">Reset</button>
                             <button type="button" class="btn btn-danger" data-dismiss="modal">Tutup</button>
                         </div>
                     </form>
@@ -428,8 +428,8 @@
                             </div>
                         </div>
                         <div class="modal-footer no-bd">
-                            <button type="submit" class="btn btn-primary">Simpan</button>
-                            <button type="button" class="btn btn-danger" data-dismiss="modal">Tutup</button>
+                            <button type="submit" class="btn btn-danger">Hapus</button>
+                            <button type="button" class="btn btn-link" data-dismiss="modal">Tutup</button>
                         </div>
                     </form>
                 </div>

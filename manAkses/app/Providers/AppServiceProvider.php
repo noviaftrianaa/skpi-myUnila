@@ -36,6 +36,7 @@ class AppServiceProvider extends ServiceProvider
                 if(!empty($message)) {
                     foreach($response['data'] AS $each_data) {
                         $view->with('users', $each_data);
+                        // dd($each_data, session()->get('login.role')->toArray());
                         // View::share('users', $each_data);
                     }
                 }

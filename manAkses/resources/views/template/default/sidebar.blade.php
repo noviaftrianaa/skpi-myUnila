@@ -43,18 +43,85 @@
 				</a>
 				<ul class="nav nav-treeview">
 					<li class="nav-item">
-						<a href="{{ route('profile.biodata') }}" class="nav-link {{ (request()->is('*biodata')) ? 'active' : '' }}">
-							<i class="far fa-circle nav-icon"></i>
+						<a href="{{ route('profile.biodata') }}" class="nav-link {{ (request()->is('profile/biodata*')) ? 'active' : '' }}">
+							<i class="nav-icon fas fa-caret-right ml-4"></i>
 							<p>Biodata</p>
 						</a>
 					</li>
 					<li class="nav-item">
-						<a href="{{ route('profile.ubah_password') }}" class="nav-link {{ (request()->is('*ubah_password')) ? 'active' : '' }}">
-							<i class="far fa-circle nav-icon"></i>
-							<p>Ubah Password</p>
+						<a href="{{ route('profile.ubah_password') }}" class="nav-link {{ (request()->is('#')) ? 'active' : '' }}">
+							<i class="nav-icon fas fa-caret-right ml-4"></i>
+							<p>Riwayat Pendidikan</p>
 						</a>
 					</li>
 				</ul>
+			</li>
+
+			@if(session()->get('login.role')->id_peran==1)
+			<!-- Administrator Menus -->
+			<li class="nav-item {{ 
+					(request()->is('master*')) ? 'menu-open' : ''
+				 }}">
+				<!-- route dashboard -->
+				<a href="#" class="nav-link {{ 
+					(request()->is('master*')) ? 'active' : ''
+				 }}">
+					<i class="nav-icon fas fa-cog"></i>
+					<p>Master Data <i class="fas fa-angle-left right"></i></p>
+				</a>
+				<ul class="nav nav-treeview">
+					<li class="nav-item">
+					<!-- route dashboard -->
+						<a href="{{ route('user.index') }}" class="nav-link {{ (request()->is('master/user*')) ? 'active' : '' }}">
+							<i class="nav-icon fas fa-caret-right ml-4"></i>
+							<p>Data Pengguna</p>
+						</a>
+					</li>
+					<li class="nav-item">
+					<!-- route dashboard -->
+						<a href="{{ route('peran.index') }}" class="nav-link {{ (request()->is('master/peran*')) ? 'active' : '' }}">
+							<i class="nav-icon fas fa-caret-right ml-4"></i>
+							<p>Data Peran</p>
+						</a>
+					</li>
+					<li class="nav-item">
+					<!-- route dashboard -->
+						<a href="{{ route('unit.index') }}" class="nav-link {{ (request()->is('master/unit*')) ? 'active' : '' }}">
+							<i class="nav-icon fas fa-caret-right ml-4"></i>
+							<p>Data Unit Organisasi</p>
+						</a>
+					</li>
+					<li class="nav-item">
+					<!-- route dashboard -->
+						<a href="{{ route('aplikasi.index') }}" class="nav-link {{ (request()->is('master/aplikasi*')) ? 'active' : '' }}">
+							<i class="nav-icon fa fa-caret-right ml-4"></i>
+							<p>Data Aplikasi</p>
+						</a>
+					</li>
+					<li class="nav-item">
+					<!-- route dashboard -->
+						<a href="{{ route('token.index') }}" class="nav-link {{ (request()->is('master/token*')) ? 'active' : '' }}">
+							<i class="nav-icon fas fa-caret-right ml-4"></i>
+							<p>Data Token</p>
+						</a>
+					</li>
+					<li class="nav-item">
+					<!-- route dashboard -->
+						<a href="{{ route('menu.index') }}" class="nav-link {{ (request()->is('master/menu*')) ? 'active' : '' }}">
+							<i class="nav-icon fas fa-caret-right ml-4"></i>
+							<p>Data Menu</p>
+						</a>
+					</li>
+				</ul>
+			</li>
+			@endif
+
+			<!-- CHANGE PASSWORD & LOGOUT -->
+			<li class="nav-item">
+				<a href="{{ route('ubah_password') }}" class="nav-link {{ (request()->is('ubah_password')) ? 'active' : '' }}">
+					<i class="fas fa-key nav-icon"></i>
+					<p>Ubah Password</p>
+				</a>
 			</li>
 			<li class="nav-item">
 			<!-- route dashboard -->
@@ -63,53 +130,6 @@
 					<p>Logout</p>
 				</a>
 			</li>
-
-			@if(session()->get('login.role')->id_peran==1)
-			<!-- Administrator Menus -->
-			<li class="nav-header">Master</li>
-			<li class="nav-item">
-			<!-- route dashboard -->
-				<a href="{{ route('user.index') }}" class="nav-link {{ (request()->is('user*')) ? 'active' : '' }}">
-					<i class="nav-icon fas fa-user"></i>
-					<p>Data Pengguna</p>
-				</a>
-			</li>
-			<li class="nav-item">
-			<!-- route dashboard -->
-				<a href="{{ route('peran.index') }}" class="nav-link {{ (request()->is('peran*')) ? 'active' : '' }}">
-					<i class="nav-icon fas fa-users"></i>
-					<p>Data Peran</p>
-				</a>
-			</li>
-			<li class="nav-item">
-			<!-- route dashboard -->
-				<a href="{{ route('unit.index') }}" class="nav-link {{ (request()->is('unit*')) ? 'active' : '' }}">
-					<i class="nav-icon fas fa-users"></i>
-					<p>Data Unit Organisasi</p>
-				</a>
-			</li>
-			<li class="nav-item">
-			<!-- route dashboard -->
-				<a href="{{ route('aplikasi.index') }}" class="nav-link {{ (request()->is('aplikasi*')) ? 'active' : '' }}">
-					<i class="nav-icon fa fa-microchip"></i>
-					<p>Data Aplikasi</p>
-				</a>
-			</li>
-			<li class="nav-item">
-			<!-- route dashboard -->
-				<a href="{{ route('token.index') }}" class="nav-link {{ (request()->is('token*')) ? 'active' : '' }}">
-					<i class="nav-icon fas fa-key"></i>
-					<p>Data Token</p>
-				</a>
-			</li>
-			<li class="nav-item">
-			<!-- route dashboard -->
-				<a href="{{ route('menu.index') }}" class="nav-link {{ (request()->is('menu*')) ? 'active' : '' }}">
-					<i class="nav-icon fas fa-bars"></i>
-					<p>Data Menu</p>
-				</a>
-			</li>
-			@endif
 		</ul>
 	</nav>
 	<!-- /.sidebar-menu -->

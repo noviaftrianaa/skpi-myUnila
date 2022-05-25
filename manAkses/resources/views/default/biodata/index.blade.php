@@ -7,7 +7,7 @@
         <div class="card-header">
             <h3 class="card-title"><i class="fa fa-user"></i>&nbsp;&nbsp;Biodata</h3>
             <div class="card-tools">
-                <a data-toggle="modal" class="btn btn-primary btn-xs rounded-pill" href="#editUser"><i class="fa fa-edit"></i> Edit</a>
+                <a data-toggle="modal" class="btn btn-primary btn-xs " href="#editUser"><i class="fa fa-edit"></i> Edit</a>
             </div>
         </div><!-- /.card-header -->
         <div class="card-body" style="margin: 0;padding: 0">

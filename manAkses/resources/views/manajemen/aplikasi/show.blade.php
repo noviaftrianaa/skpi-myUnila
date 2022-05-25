@@ -9,10 +9,10 @@
 
     <div class="card card-info">
         <div class="card-header">
-            <h3 class="card-title"><i class="fa fa-list"></i> Data Aplikasi</h3>
+            <h3 class="card-title mt-1"><i class="fa fa-list"></i> Data Aplikasi</h3>
             <div class="card-tools">
-                <a type="button" class="btn btn-primary btn-xs rounded-pill" href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Table Aplikasi</a>
-                <a type="button" data-toggle="modal" class="btn btn-secondary btn-xs rounded-pill" href="#editAplikasi{{$data->id_aplikasi}}"><i class="fa fa-edit"></i> Edit</a>
+                <a type="button" class="btn btn-primary btn-xs " href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Table Aplikasi</a>
+                <a type="button" data-toggle="modal" class="btn btn-secondary btn-xs " href="#editAplikasi{{$data->id_aplikasi}}"><i class="fa fa-edit"></i> Edit</a>
             </div>
         </div><!-- /.card-header -->
         <div class="card-body" style="margin: 0;padding: 0">
@@ -44,9 +44,9 @@
     
     <div class="card card-info">
         <div class="card-header">
-            <h3 class="card-title"><i class="fa fa-list"></i> PJ Aplikasi</h3>
+            <h3 class="card-title mt-1"><i class="fa fa-list"></i> PJ Aplikasi</h3>
             <div class="card-tools">
-                <a type="button" data-toggle="modal" class="btn btn-dark btn-xs rounded-pill" href="#pjCreate"><i class="fa fa-plus"></i> Tambah</a>
+                <a type="button" data-toggle="modal" class="btn btn-default btn-xs text-dark" href="#pjCreate"><i class="fa fa-plus"></i> Tambah</a>
             </div>
         </div>
         <div class="card-body">
@@ -83,9 +83,9 @@
     @if($data->a_generate_menu==1)
     <div class="card card-info">
         <div class="card-header">
-            <h3 class="card-title"><i class="fa fa-list"></i> Menu Aplikasi</h3>
+            <h3 class="card-title mt-1"><i class="fa fa-list"></i> Menu Aplikasi</h3>
             <div class="card-tools">
-                <a type="button" data-toggle="modal" class="btn btn-dark btn-xs rounded-pill" href="#createMenu"><i class="fa fa-plus"></i> Tambah</a>
+                <a type="button" data-toggle="modal" class="btn btn-default btn-xs text-dark" href="#createMenu"><i class="fa fa-plus"></i> Tambah</a>
             </div>
         </div>
         <div class="card-body">
@@ -274,8 +274,8 @@
                             </div>
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
-                                    <label>Email</label>
-                                    <input name="username" id="username" type="email" class="form-control" placeholder="Masukkan Email">
+                                    <label>Username</label>
+                                    <input name="username" id="username" type="text" class="form-control" placeholder="Masukkan Username tanpa spasi">
                                 </div>
                             </div>
                             <div class="col-sm-12">
@@ -292,6 +292,12 @@
                                 <div class="form-group form-group-default">
                                     <label>No. HP</label>
                                     <input name="no_hp" id="no_hp" type="number" class="form-control" placeholder="Masukkan Nomor HP">
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <div class="form-group form-group-default">
+                                    <label>Email</label>
+                                    <input name="email" id="email" type="email" class="form-control" placeholder="Masukkan Email">
                                 </div>
                             </div>
                         </div>
@@ -668,20 +674,23 @@
                     $('#newPJ').show();
                     $('#nm_pj').attr('required', '');
                     $('#username').attr('required', '');
-                    $('#jenis_kelamin').attr('required', '');
+                    $('#jenis_kelamin').attr('required', ''); 
                     $('#no_hp').attr('required', '');
+                    $('#email').attr('required', '');
                 } else {
                     $('#newPJ').hide();
                     $('#existingPJ').show();
                     $('#id_pengguna').attr('required', '');
                     $('#nm_pj').removeAttr('required', '');
-                    $('#username').removeAttr('required', '');
                     $('#jenis_kelamin').removeAttr('required', '');
-                    $('#no_hp').removeAttr('required', '');
+                    $('#username').removeAttr('required', '');
                     $('#nm_pj').val(null);
-                    $('#username').val(null);
                     $('#jenis_kelamin').val(null);
+                    $('#username').val(null);
+                    $('#no_hp').removeAttr('required', '');
+                    $('#email').removeAttr('required', '');
                     $('#no_hp').val(null);
+                    $('#email').val(null);
                 }
             });
         });
