@@ -150,6 +150,12 @@
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Unit Organisasi</label>
+                                    @php
+                                    $unit = DB::SELECT("
+                                            SELECT *
+                                            FROM man_akses.unit_organisasi WITH (NOLOCK)
+                                    ");
+                                    @endphp
                                     <select name="id_organisasi" class="form-control select2" required>
                                         <option selected disabled>Pilih</option>
                                         @foreach($unit as $item)
@@ -244,6 +250,13 @@
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Pengguna</label>
+                                    @php
+                                    $pengguna = DB::SELECT("
+                                            SELECT *
+                                            FROM man_akses.pengguna WITH (NOLOCK)
+                                            WHERE soft_delete=0 AND a_aktif=1
+                                    ");
+                                    @endphp
                                     <select name="id_pengguna[]" id="id_pengguna" class="form-control select2" data-placeholder="Pilih" multiple>
                                     @foreach($pengguna as $value)
                                     <option value="{{$value->id_pengguna}}">{{$value->nm_pengguna}}</option>
@@ -277,14 +290,16 @@
                             </div>
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
-                                    <label>Jabatan</label>
-                                    <input name="jabatan_pj" id="jabatan_pj" type="text" class="form-control" placeholder="Masukkan Jabatan">
-                                </div>
-                            </div>
-                            <div class="col-sm-12">
-                                <div class="form-group form-group-default">
                                     <label>No. HP</label>
                                     <input name="no_hp" id="no_hp" type="number" class="form-control" placeholder="Masukkan Nomor HP">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group form-group-default">
+                                    <label>Jabatan</label>
+                                    <input name="jabatan_pj" id="jabatan_pj" type="text" class="form-control" placeholder="Masukkan Jabatan">
                                 </div>
                             </div>
                         </div>
@@ -339,6 +354,13 @@
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Nama PJ</label>
+                                    @php
+                                    $pengguna = DB::SELECT("
+                                            SELECT *
+                                            FROM man_akses.pengguna WITH (NOLOCK)
+                                            WHERE soft_delete=0 AND a_aktif=1
+                                    ");
+                                    @endphp
                                     <select class="form-control select2" name="id_pengguna" required>
                                     @foreach($pengguna as $value)
                                     <option value="{{$value->id_pengguna}}" {{($value->id_pengguna==$items->id_pengguna)?'selected':''}}>{{$value->nm_pengguna}}</option>
@@ -477,6 +499,13 @@
                             <div class="col-sm-12 col-12">
                                 <div class="form-group form-group-default">
                                     <label>Peran</label>
+                                    @php
+                                    $peran = DB::SELECT("
+                                            SELECT *
+                                            FROM man_akses.peran WITH (NOLOCK)
+                                            WHERE expired_date=NULL
+                                    ");
+                                    @endphp
                                     <select class="form-control select2" name="id_peran[]" data-placeholder="Pilih" multiple required>
                                         @foreach($peran as $item)
                                         <option value="{{$item->id_peran}}">{{$item->nm_peran}}</option>
@@ -581,6 +610,13 @@
                             <div class="col-sm-12 col-12">
                                 <div class="form-group form-group-default">
                                     <label>Peran</label>
+                                    @php
+                                    $peran = DB::SELECT("
+                                            SELECT *
+                                            FROM man_akses.peran WITH (NOLOCK)
+                                            WHERE expired_date=NULL
+                                    ");
+                                    @endphp
                                     <select class="form-control select2" name="id_peran[]" data-placeholder="Pilih" multiple required>
                                         @foreach($peran as $item)
                                             <?php

@@ -140,19 +140,22 @@ class AplikasiController extends Controller
     {
         $id = Crypt::decrypt($id);
         $data = Aplikasi::with('UnitOrganisasi','LargeObject')->lock('WITH(NOLOCK)')->where('id_aplikasi', $id)->first();
-        $pj = PJAplikasi::lock('WITH(NOLOCK)')->where('id_aplikasi', $id)->where('soft_delete',0)->get();
-        $menu = Menu::lock('WITH(NOLOCK)')->where('id_aplikasi', $id)->get();
-        $unit = UnitOrganisasi::all();
-        $pengguna = User::lock('WITH(NOLOCK)')->where('soft_delete',0)->where('a_aktif',1)->get();
-        $peran = Peran::whereNull('expired_date')->get();
+        // $data = DB::table("man_akses.aplikasi AS aplikasi")->join("man_akses.unit_organisasi AS unit", "aplikasi.id_organisasi","=","unit.id_organisasi")->leftJoin("dok.large_object AS dok","dok.id_blob","=","aplikasi.id_blob")->lock('WITH(NOLOCK)')->where("aplikasi.id_aplikasi", $id)->first();
+        $pj = DB::SELECT("
+            SELECT *
+            FROM man_akses.pj_aplikasi WITH (NOLOCK)
+            WHERE id_aplikasi='".$id."' AND soft_delete=0
+        ");
+        $menu = DB::SELECT("
+            SELECT *
+            FROM man_akses.menu WITH (NOLOCK)
+            WHERE id_aplikasi='".$id."'
+        ");
 
         return view('manajemen.aplikasi.show', [
-            'data'=>$data,
-            'pj'=>$pj,
-            'menu'=>$menu,
-            'unit'=>$unit,
-            'pengguna'=>$pengguna,
-            'peran'=>$peran
+            'data'  => $data,
+            'pj'    => $pj,
+            'menu'  => $menu
         ]);
     }
 
