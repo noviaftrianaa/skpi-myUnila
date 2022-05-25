@@ -64,8 +64,14 @@ class HomeController extends Controller
     {
         $data = User::findOrFail(Auth::user()->id_pengguna);
 
-        return view('default.biodata.index', [
+        return view('manajemen.profile.biodata', [
             'data'=>$data
         ]);
     }
+
+    public function index_ubah_password()
+    {
+        return view('manajemen.profile.ubah_password');
+    }
+    
 }

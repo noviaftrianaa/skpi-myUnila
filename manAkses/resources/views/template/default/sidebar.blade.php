@@ -7,14 +7,14 @@
                 alt="User Image">
         </div>
         <div class="info">
-            <a href="{{ url('/biodata') }}" class="d-block">{{ $users['nm_pengguna'] }}</a>
+            <a href="{{ url('/biodata') }}" class="d-block">{{ strtoupper($users['nm_pengguna']) }}</a>
             <span class="d-block text-sm">
 				<form action="{{ url('changeRole') }}" method="post" enctype="multipart/form-data" id="changeRole">
 					<input type="hidden" name="_token" value="{{ csrf_token() }}">
 					<input type="hidden" name="_method" value="PUT">
 					<select class="form-control-plaintext bg-dark text-light peran" name="id_peran">
 						@foreach($users['status_peran'] AS $items)
-						<option value="{{ $items['id_peran'] }}" {{ ($items['id_peran']==session()->get('login.role')->id_peran) ? 'selected' : '' }}>{{ $items['nm_peran'] }}</option>
+						<option value="{{ $items['id_peran'] }}" {{ ($items['id_peran']==session()->get('login.role')->id_peran) ? 'selected' : '' }}>{{ strtoupper($items['nm_peran']) }}</option>
 						@endforeach
 					</select>
 				</form>
@@ -32,20 +32,26 @@
 				</a>
 			</li>
 			<li class="nav-item {{ 
-					(request()->is('biodata')) ? 'menu-open' : ''
+					(request()->is('profile*')) ? 'menu-open' : ''
 				 }}">
 				<!-- route dashboard -->
 				<a href="#" class="nav-link {{ 
-					(request()->is('biodata')) ? 'active' : ''
+					(request()->is('profile*')) ? 'active' : ''
 				 }}">
 					<i class="nav-icon fas fa-user"></i>
 					<p>Profile <i class="fas fa-angle-left right"></i></p>
 				</a>
 				<ul class="nav nav-treeview">
 					<li class="nav-item">
-						<a href="{{ route('biodata') }}" class="nav-link {{ (request()->is('biodata')) ? 'active' : '' }}">
+						<a href="{{ route('profile.biodata') }}" class="nav-link {{ (request()->is('*biodata')) ? 'active' : '' }}">
 							<i class="far fa-circle nav-icon"></i>
 							<p>Biodata</p>
+						</a>
+					</li>
+					<li class="nav-item">
+						<a href="{{ route('profile.ubah_password') }}" class="nav-link {{ (request()->is('*ubah_password')) ? 'active' : '' }}">
+							<i class="far fa-circle nav-icon"></i>
+							<p>Ubah Password</p>
 						</a>
 					</li>
 				</ul>

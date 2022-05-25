@@ -41,7 +41,11 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::put('/changeRole', [UserController::class, 'role'])->name('role');
     Route::put('/changePassword', [UserController::class, 'password'])->name('password');
-    Route::get('/biodata', [HomeController::class, 'biodata'])->name('biodata');
+
+    Route::namespace('profile')->prefix('profile')->name('profile.')->group(function () {
+        Route::get('/biodata', [HomeController::class, 'biodata'])->name('biodata');
+        Route::get('/ubah_password', [HomeController::class, 'index_ubah_password'])->name('ubah_password');
+    });
     
     Route::group(['middleware' => ['main']], function() {
         Route::get('/', [HomeController::class, 'index'])->name('index');
