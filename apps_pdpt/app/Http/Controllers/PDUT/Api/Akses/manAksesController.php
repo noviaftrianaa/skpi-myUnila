@@ -68,6 +68,8 @@ class manAksesController extends Controller
                     WHERE
                         role.id_pengguna = '" . $id . "'
                         AND role.soft_delete = 0
+                    ORDER BY
+                        last_active DESC
                 ");
             }
 

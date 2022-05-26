@@ -26,11 +26,15 @@ class KelasController extends Controller
     public function index()
     {
         $idProdi = $this->request->input('idProdi', NULL);
+        $idSmt = $this->request->input('idSmt', NULL);
+
         InputValidator([
             'page' => 'numeric|min:1',
             'count' => 'numeric|min:1|max:50',
             ['idProdi' => 'regex:/^[a-zA-Z0-9\-\(\)\s]+$/',],
-            ['idProdi.regex' => 'input harus berupa campuran alpa_numeric dan dash',]
+            ['idProdi.regex' => 'input harus berupa campuran alpa_numeric dan dash',],
+            ['idSmt' => 'regex:/^[a-zA-Z0-9\-\(\)\s]+$/',],
+            ['idSmt.regex' => 'input harus berupa campuran alpa_numeric dan dash',]
         ]);
 
         DB::beginTransaction();
@@ -63,6 +67,7 @@ class KelasController extends Controller
                 LEFT JOIN pdrd.matkul AS mk WITH(NOLOCK) ON mk.id_mk = kk.id_mk
                 AND mk.soft_delete = 0
                 JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = kk.id_smt
+                AND smt.id_smt = '". $idSmt ."'
                 AND smt.expired_date IS NULL
             WHERE
                 kk.soft_delete = 0

@@ -97,8 +97,154 @@ class PesertaKelasController extends Controller
         return $this->wrapResponse
             ->setTransformer(new PesertaKelasTransformer, __FUNCTION__)
             ->setStatusCode(Response::HTTP_ACCEPTED)
+            ->setMessage('Sukses mendapatkan daftar kelas peserta')
             ->withSimplePagination()
             ->render($result->query());
+    }
 
+    public function store()
+    {
+        InputValidator([
+            'id_kls' => 'required',
+            'id_reg_pd' => 'required'
+        ]);
+
+        //peserta kelas
+        $id_kls  = $this->request->input('id_kls');
+        $id_reg_pd  = $this->request->input('id_reg_pd');
+        $nilai_angka  = $this->request->input('nilai_angka');
+        $nilai_huruf  = $this->request->input('nilai_huruf');
+        $nilai_indeks  = $this->request->input('nilai_indeks');
+
+        $create_date = currDateTime();
+        $id_creator = '26004417-6e92-463c-bf35-f741817121dc';
+        $last_update = currDateTime();
+        $id_updater = '26004417-6e92-463c-bf35-f741817121dc';
+        $soft_delete = 0;
+        $last_sync = currDateTime();
+
+        DB::beginTransaction();
+        try {
+            // DB::table('pdrd.kelas_kuliah')->insert([
+            $this->nilaiMhs->create([
+                'id_kls' => $id_kls,
+                'id_reg_pd' => $id_reg_pd,
+                'nilai_angka' => $nilai_angka,
+                'nilai_huruf' => $nilai_huruf,
+                'nilai_indeks' => $nilai_indeks,
+                'create_date' => $create_date,
+                'id_creator' => $id_creator,
+                'last_update' => $last_update,
+                'id_updater' => $id_updater,
+                'soft_delete' => $soft_delete,
+                'last_sync' => $last_sync
+            ]);
+
+            DB::commit();
+            return WrapResponse(array('data' => array('id_reg_pd' => $id_reg_pd)), 'sukses menambahkan peserta kelas', TRUE);
+        } catch (ModelNotFoundException $mnfe) {
+            DB::rollBack();
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+            return WrapResponse(['data' => null], 'peserta kelas tidak dapat ditambahkan', FALSE);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
+            return WrapResponse(['data' => null], 'gagal menambahkan peserta kelas', FALSE);
+        }
+    }
+
+    public function update()
+    {
+
+        InputValidator([
+            'id_kls' => 'required',
+            'id_reg_pd' => 'required',
+            'nilai_angka' => 'required',
+            'nilai_huruf' => 'required',
+            'nilai_indeks' => 'required'
+        ]);
+
+        //peserta kelas
+        $id_kls  = $this->request->input('id_kls');
+        $id_reg_pd  = $this->request->input('id_reg_pd');
+        $nilai_angka  = $this->request->input('nilai_angka');
+        $nilai_huruf  = $this->request->input('nilai_huruf');
+        $nilai_indeks  = $this->request->input('nilai_indeks');
+
+        $last_update = currDateTime();
+        $id_updater = '26004417-6e92-463c-bf35-f741817121dc';
+        $last_sync = currDateTime();
+
+        DB::beginTransaction();
+        try {
+            $nilaiMhs = $this->nilaiMhs->where([['id_kls', '=', $id_kls], ['id_reg_pd', '=', $id_reg_pd]])->first();
+            if (!$nilaiMhs) return WrapResponse(['data' => null], 'id_kls dan id_reg_pd tidak ditemukan atau tidak terdaftar', FALSE);
+
+            $nilaiMhs->update([
+                'nilai_angka' => $nilai_angka,
+                'nilai_huruf' => $nilai_huruf,
+                'nilai_indeks' => $nilai_indeks,
+                'last_update' => $last_update,
+                'id_updater' => $id_updater,
+                'last_sync' => $last_sync
+            ]);
+
+            DB::commit();
+            return WrapResponse(array('data' => array('id_reg_pd' => $id_reg_pd)), 'sukses mengubah nilai peserta kelas', TRUE);
+        } catch (ModelNotFoundException $mnfe) {
+            DB::rollBack();
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+            return WrapResponse(['data' => null], 'nilai peserta kelas tidak dapat diubah', FALSE);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
+            return WrapResponse(['data' => null], 'gagal mengubah nilai peserta kelas', FALSE);
+        }
+    }
+
+    public function destroy()
+    {
+        InputValidator([
+            'id_kls' => 'required',
+            'id_reg_pd' => 'required'
+        ]);
+
+        //peserta kelas
+        $id_kls  = $this->request->input('id_kls');
+        $id_reg_pd  = $this->request->input('id_reg_pd');
+
+        $soft_delete = 1;
+        $last_update = currDateTime();
+        $id_updater = '26004417-6e92-463c-bf35-f741817121dc';
+        $last_sync = currDateTime();
+
+        DB::beginTransaction();
+        try {
+            $nilaiMhs = $this->nilaiMhs
+                ->where([
+                    ['id_kls', '=', $id_kls],
+                    ['id_reg_pd', '=', $id_reg_pd]
+                ])->first();
+
+            if (!$nilaiMhs) return WrapResponse(['data' => null], 'id_kls dan id_reg_pd tidak ditemukan atau tidak terdaftar', FALSE);
+
+            $nilaiMhs->update([
+                'last_update' => $last_update,
+                'id_updater' => $id_updater,
+                'soft_delete' => $soft_delete,
+                'last_sync' => $last_sync
+            ]);
+
+            DB::commit();
+            return WrapResponse(array('data' => array('id_reg_pd' => $id_reg_pd)), 'sukses menghapus peserta kelas', TRUE);
+        } catch (ModelNotFoundException $mnfe) {
+            DB::rollBack();
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+            return WrapResponse(['data' => null], 'peserta kelas tidak dapat dihapus', FALSE);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
+            return WrapResponse(['data' => null], 'gagal menghapus peserta kelas', FALSE);
+        }
     }
 }

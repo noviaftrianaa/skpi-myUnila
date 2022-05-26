@@ -7,11 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class NilaiSmtMhs extends Model
 {
     protected $table = 'pdrd.nilai_smt_mhs';
-//    protected $primaryKey = 'id_reg_pd';
+   protected $primaryKey = 'id_reg_pd';
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_reg_ptk',
+	'id_reg_pd',
 	'id_kls',
 	'nilai_angka',
 	'nilai_huruf',
