@@ -13,6 +13,7 @@ use App\Models\LargeObject;
 use Session;
 use Cookie;
 use Auth;
+use Illuminate\Support\Facades\Http;
 
 class HomeController extends Controller
 {
@@ -67,6 +68,34 @@ class HomeController extends Controller
         return view('manajemen.profile.biodata', [
             'data'=>$data
         ]);
+    }
+
+    public function riwayat_pendidikan()
+    {
+        $user = User::find(Auth::user()->id_pengguna);
+        if(!is_null($user->id_sdm_pengguna)) {
+            //GET API
+            $response = Http::get('http://onedata.unila.ac.id/api/live/0.1/sdm/detail?id_jns_sdm=12&id_sdm='.$user->id_sdm_pengguna);
+            if(is_null($response['data'])) {
+                $response = Http::get('http://onedata.unila.ac.id/api/live/0.1/sdm/detail?id_jns_sdm=13&id_sdm='.$user->id_sdm_pengguna);
+            }
+
+            $message = $response['message'];
+            if(!empty($message) && !is_null($response['data'])) {
+                $data = $response['data']['pendidikan'];
+            } else {
+                $data = [];
+            }
+        } else if (!is_null($user->id_pd_pengguna)) {
+            $response = Http::get('http://onedata.unila.ac.id/api/live/0.1/mahasiswa/detail?idPesertaDidik='.$user->id_pd_pengguna);
+            $message = $response['message'];
+            if(!empty($message) && !is_null($response['data'])) {
+                $data = $response['data'];
+            } else {
+                $data = [];
+            }
+        }
+        return view('manajemen.profile.riwayat_pendidikan', compact('data','user'));
     }
 
     public function index_ubah_password()

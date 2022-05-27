@@ -1,5 +1,5 @@
 @extends('template.default.app')
-@section('title','Dashboard')
+@section('title','Biodata')
 
 @section('content')
 

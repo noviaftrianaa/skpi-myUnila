@@ -49,7 +49,7 @@
 						</a>
 					</li>
 					<li class="nav-item">
-						<a href="{{ route('profile.ubah_password') }}" class="nav-link {{ (request()->is('#')) ? 'active' : '' }}">
+						<a href="{{ route('profile.riwayat_pendidikan') }}" class="nav-link {{ (request()->is('profile/riwayat_pendidikan*')) ? 'active' : '' }}">
 							<i class="nav-icon fas fa-caret-right ml-4"></i>
 							<p>Riwayat Pendidikan</p>
 						</a>
@@ -57,7 +57,7 @@
 				</ul>
 			</li>
 
-			@if(session()->get('login.role')->id_peran==1)
+			@if(session()->has('login.role') && session()->get('login.role')->id_peran==1)
 			<!-- Administrator Menus -->
 			<li class="nav-item {{ 
 					(request()->is('master*')) ? 'menu-open' : ''
