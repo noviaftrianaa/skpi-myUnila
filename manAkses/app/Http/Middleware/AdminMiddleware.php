@@ -23,7 +23,7 @@ class AdminMiddleware
     {
         //CHECK ADMIN
         // $check = RolePengguna::where('id_pengguna', auth()->user()->id_pengguna)->where('id_peran', 1)->first();
-        if(Session::has('login.role') && !is_null(Session::get('pj_aplikasi'))) {
+        if(Session::has('login.role') && Session::get('login.role')->id_peran==1) {
             if( (SSO::check()&&Auth::check()) || Auth::check() ) {
                 return $next($request);
             } else {
