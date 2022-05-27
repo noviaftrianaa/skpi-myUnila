@@ -45,6 +45,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::namespace('profile')->prefix('profile')->name('profile.')->group(function () {
         Route::get('/biodata', [HomeController::class, 'biodata'])->name('biodata');
+        Route::get('/riwayat_pendidikan', [HomeController::class, 'riwayat_pendidikan'])->name('riwayat_pendidikan');
         Route::get('/ubah_password', [HomeController::class, 'index_ubah_password'])->name('ubah_password');
     });
     
