@@ -70,7 +70,7 @@
             @if(auth()->check())
             <li class="nav-item dropdown">
                 <a class="nav-link" data-toggle="dropdown" href="#">
-                    <i class="fas fa-user mr-2"></i>{{ strtoupper($users['nm_pengguna']) }}
+                    <i class="fas fa-user mr-2"></i>{{ strtoupper($getPeran['nm_pengguna']) }}
                 </a>
                 <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
                     <!-- route password -->

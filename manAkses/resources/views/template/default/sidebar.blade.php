@@ -7,13 +7,13 @@
                 alt="User Image">
         </div>
         <div class="info">
-            <a href="{{ url('/biodata') }}" class="d-block">{{ strtoupper($users['nm_pengguna']) }}</a>
+            <a href="{{ url('/biodata') }}" class="d-block">{{ strtoupper($getPeran['nm_pengguna']) }}</a>
             <span class="d-block text-sm">
 				<form action="{{ url('changeRole') }}" method="post" enctype="multipart/form-data" id="changeRole">
 					<input type="hidden" name="_token" value="{{ csrf_token() }}">
 					<input type="hidden" name="_method" value="PUT">
 					<select class="form-control-plaintext bg-dark text-light peran" name="id_peran">
-						@foreach($users['status_peran'] AS $items)
+						@foreach($getPeran['status_peran'] AS $items)
 						<option value="{{ $items['id_peran'] }}" {{ ($items['id_peran']==session()->get('login.role')->id_peran) ? 'selected' : '' }}>{{ strtoupper($items['nm_peran']) }}</option>
 						@endforeach
 					</select>

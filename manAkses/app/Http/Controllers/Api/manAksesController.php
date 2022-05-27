@@ -37,9 +37,21 @@ class manAksesController extends Controller
                     pengguna.id_pengguna,
                     pengguna.username,
                     pengguna.nm_pengguna,
-                    pengguna.tgl_create AS akun_terdaftar
+                    pengguna.tgl_create AS akun_terdaftar,
+                    pj.id_pj_aplikasi,
+                    pj.id_aplikasi,
+                    pj.waktu_selesai,
+                    pj.tanggal_mulai_pj,
+                    pj.jabatan_pj
                 FROM
                     man_akses.pengguna AS pengguna
+                    LEFT JOIN (
+                        SELECT pj.id_pengguna, pj.id_pj_aplikasi, pj.id_aplikasi, pj.wkt_selesai AS waktu_selesai, pj.tgl_create AS tanggal_mulai_pj, pj.jabatan_pj
+                        FROM
+                            man_akses.aplikasi AS aplikasi
+                            JOIN man_akses.pj_aplikasi AS pj ON pj.id_aplikasi=aplikasi.id_aplikasi
+                        WHERE aplikasi.id_aplikasi = '" . env('APP_ID') . "'
+                    ) AS pj ON pj.id_pengguna=pengguna.id_pengguna
                 WHERE
                     pengguna.id_pengguna = '" . $id_pengguna . "'
                     AND pengguna.soft_delete = 0
@@ -50,6 +62,7 @@ class manAksesController extends Controller
             }
 
             $status_peran = [];
+            $pj_aplikasi = [];
             foreach ($query1 as $each_data) {
                 $id =  $each_data->id_pengguna;
                 $status_peran[$id] = DB::SELECT("
@@ -77,6 +90,11 @@ class manAksesController extends Controller
                     'username' => $each_data->username,
                     'nm_pengguna' => $each_data->nm_pengguna,
                     'akun_terdaftar' => $each_data->akun_terdaftar,
+                    'id_pj_aplikasi' => $each_data->id_pj_aplikasi,
+                    'id_aplikasi' => $each_data->id_aplikasi,
+                    'jabatan_pj' => $each_data->jabatan_pj,
+                    'tanggal_mulai_pj' => $each_data->tanggal_mulai_pj,
+                    'waktu_selesai' => $each_data->waktu_selesai,
                     'status_peran' => $status_peran[$each_data->id_pengguna]
                 ];
             }
