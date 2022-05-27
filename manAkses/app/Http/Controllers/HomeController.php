@@ -94,6 +94,8 @@ class HomeController extends Controller
             } else {
                 $data = [];
             }
+        } else {
+            $data = [];
         }
         return view('manajemen.profile.riwayat_pendidikan', compact('data','user'));
     }
