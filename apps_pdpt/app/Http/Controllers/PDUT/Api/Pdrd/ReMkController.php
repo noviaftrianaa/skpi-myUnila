@@ -44,6 +44,7 @@ class ReMkController extends Controller
 
         $query = "
             SELECT
+                re_mk.id_re_mk,
                 re_mk.id_mk,
                 je.nm_jns_eval,
                 re_mk.id_mk,

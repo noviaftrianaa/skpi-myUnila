@@ -40,6 +40,7 @@ class MataKuliahController extends Controller
         try {
             $query = "
             SELECT
+                matkur.id_kurikulum_sp,
                 mk.id_mk,
                 mk.kode_mk,
                 sms.id_sms,
@@ -88,6 +89,7 @@ class MataKuliahController extends Controller
             $data = [];
             foreach ($matkul as $each_data) {
                 $data[] = [
+                    'id_kurikulum_sp' => $each_data->id_kurikulum_sp,
                     'id_mk' => $each_data->id_mk,
                     'id_sms' => $each_data->id_sms,
                     'nm_prodi' => $each_data->nm_prodi,

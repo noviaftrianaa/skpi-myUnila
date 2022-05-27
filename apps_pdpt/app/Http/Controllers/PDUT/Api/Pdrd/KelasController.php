@@ -103,7 +103,7 @@ class KelasController extends Controller
         } catch (\Throwable $th) {
             return WrapResponse(['data' => null], 'gagal mendapatkan daftar kelas', FALSE);
         }
-        return WrapResponse(['currentPage' => $page, 'itemsPerPage' => $item, 'data' => $data], 'daftar kelas', TRUE);
+        return WrapResponse(['currentPage' => $page, 'itemsPerPage' => $item, 'data' => $data], 'berhasil mendapatkan daftar kelas', TRUE);
     }
 
     public function store()
