@@ -25,9 +25,8 @@ class JsonApiResponse
     public function setTransformer(object $transform, string $callableFun = NULL): object
     {
         try {
-            if (!is_null($callableFun)) {
+            if (is_null($callableFun)) {
                 $callableFun = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1]['function'];
-                logger()->info($callableFun);
             }
             $this->transform = new $transform($callableFun);
             return $this;
@@ -62,8 +61,8 @@ class JsonApiResponse
     {
         if ($this->simplePagination || !isset($pagination)) {
             $setPagination['pagination'] = [
-                'page' => request()->input('page'),
-                'count' => request()->input('count')
+                'currentPage' => request()->input('page'),
+                'itemsPerPage' => request()->input('count')
             ];
         } else {
             $setPagination['pagination'] = $pagination;

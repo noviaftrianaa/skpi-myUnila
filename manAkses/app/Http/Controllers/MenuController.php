@@ -8,6 +8,7 @@ use App\Models\Aplikasi;
 use App\Models\MenuRole;
 use Crypt;
 use Auth;
+use DataTables;
 
 class MenuController extends Controller
 {
@@ -22,10 +23,23 @@ class MenuController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
+        if($request->ajax()) {
+            $data = Menu::lock('WITH(NOLOCK)')->get();
+
+            return DataTables::of($data)
+                ->addIndexColumn()
+                ->addColumn('aksi', function($data) {
+                    $button = '<a class="btn btn-info btn-xs" title="Show User" href="#editItem'.$data->id_menu.'" data-toggle="modal"> <i class="fas fa-edit"></i></a>';
+                    return $button;
+                })
+                ->rawColumns(['aksi'])
+                ->make(true);
+        }
+        
         $menu = Menu::lock('WITH(NOLOCK)')->get();
-        return view('manajemen.menu.index', ['menu'=>$menu]);
+        return view('manajemen.menu.index', compact('menu'));
     }
 
     /**

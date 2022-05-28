@@ -33,6 +33,6 @@ class KelasKuliah extends AbstractionModel
 	'last_update',
 	'id_updater',
 	'soft_delete',
-	'last_sync',
+	'last_sync'
     ];
 }

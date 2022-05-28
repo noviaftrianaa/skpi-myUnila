@@ -15,9 +15,9 @@ if (!function_exists('token_series')) {
             $startKey = $startKey - $lengthKey;
         }
         $returnedKey = substr($encoded, $startKey, $lengthKey);
-        $list_erase = array(0,'o','O','l',1,'L','i','I');
-        $erase_char = str_replace($list_erase,'',$returnedKey);
-        $returned_token = substr($erase_char,0,10);
+        $list_erase = array(0, 'o', 'O', 'l', 1, 'L', 'i', 'I');
+        $erase_char = str_replace($list_erase, '', $returnedKey);
+        $returned_token = substr($erase_char, 0, 10);
         return $returned_token;
     }
 }
@@ -37,9 +37,23 @@ if (!function_exists('token_series_small')) {
             $startKey = $startKey - $lengthKey;
         }
         $returnedKey = substr($encoded, $startKey, $lengthKey);
-        $list_erase = array(0,'o','O','l',1,'L','i','I');
-        $erase_char = str_replace($list_erase,'',$returnedKey);
-        $returned_token = substr($erase_char,0,3);
+        $list_erase = array(0, 'o', 'O', 'l', 1, 'L', 'i', 'I');
+        $erase_char = str_replace($list_erase, '', $returnedKey);
+        $returned_token = substr($erase_char, 0, 3);
         return $returned_token;
+    }
+}
+
+if (!function_exists('base64url_encode')) {
+    function base64url_encode($str)
+    {
+        return rtrim(strtr(base64_encode($str), '+/', '-_'), '=');
+    }
+}
+
+if (!function_exists('starts_with')) {
+    function starts_with($haystack, $needles)
+    {
+        return Str::startsWith($haystack, $needles);
     }
 }

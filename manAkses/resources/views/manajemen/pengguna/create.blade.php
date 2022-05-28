@@ -10,7 +10,7 @@
 
         <div class="card card-info">
             <div class="card-header">
-                <h3 class="card-title"><i class="fa fa-list"></i> Tambah Pengguna</h3>
+                <h3 class="card-title mt-1"><i class="fa fa-list"></i> Tambah Pengguna</h3>
             </div><!-- /.card-header -->
             <div class="card-body">
                 <!-- FORM CREATE APLIKASI -->
@@ -78,7 +78,7 @@
 
         <div class="card card-info">
             <div class="card-header">
-                <h3 class="card-title"><i class="fa fa-list"></i> Role Pengguna</h3>
+                <h3 class="card-title mt-1"><i class="fa fa-list"></i> Role Pengguna</h3>
             </div><!-- /.card-header -->
             <div class="card-body">
                 <!-- FORM CREATE APLIKASI -->

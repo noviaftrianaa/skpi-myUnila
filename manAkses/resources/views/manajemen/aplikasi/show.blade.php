@@ -9,10 +9,10 @@
 
     <div class="card card-info">
         <div class="card-header">
-            <h3 class="card-title"><i class="fa fa-list"></i> Data Aplikasi</h3>
+            <h3 class="card-title mt-1"><i class="fa fa-list"></i> Data Aplikasi</h3>
             <div class="card-tools">
-                <a type="button" class="btn btn-primary btn-xs rounded-pill" href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Table Aplikasi</a>
-                <a type="button" data-toggle="modal" class="btn btn-secondary btn-xs rounded-pill" href="#editAplikasi{{$data->id_aplikasi}}"><i class="fa fa-edit"></i> Edit</a>
+                <a type="button" class="btn btn-primary btn-xs " href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Table Aplikasi</a>
+                <a type="button" data-toggle="modal" class="btn btn-secondary btn-xs " href="#editAplikasi{{$data->id_aplikasi}}"><i class="fa fa-edit"></i> Edit</a>
             </div>
         </div><!-- /.card-header -->
         <div class="card-body" style="margin: 0;padding: 0">
@@ -44,9 +44,9 @@
     
     <div class="card card-info">
         <div class="card-header">
-            <h3 class="card-title"><i class="fa fa-list"></i> PJ Aplikasi</h3>
+            <h3 class="card-title mt-1"><i class="fa fa-list"></i> PJ Aplikasi</h3>
             <div class="card-tools">
-                <a type="button" data-toggle="modal" class="btn btn-dark btn-xs rounded-pill" href="#pjCreate"><i class="fa fa-plus"></i> Tambah</a>
+                <a type="button" data-toggle="modal" class="btn btn-default btn-xs text-dark" href="#pjCreate"><i class="fa fa-plus"></i> Tambah</a>
             </div>
         </div>
         <div class="card-body">
@@ -83,9 +83,9 @@
     @if($data->a_generate_menu==1)
     <div class="card card-info">
         <div class="card-header">
-            <h3 class="card-title"><i class="fa fa-list"></i> Menu Aplikasi</h3>
+            <h3 class="card-title mt-1"><i class="fa fa-list"></i> Menu Aplikasi</h3>
             <div class="card-tools">
-                <a type="button" data-toggle="modal" class="btn btn-dark btn-xs rounded-pill" href="#createMenu"><i class="fa fa-plus"></i> Tambah</a>
+                <a type="button" data-toggle="modal" class="btn btn-default btn-xs text-dark" href="#createMenu"><i class="fa fa-plus"></i> Tambah</a>
             </div>
         </div>
         <div class="card-body">
@@ -150,6 +150,12 @@
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Unit Organisasi</label>
+                                    @php
+                                    $unit = DB::SELECT("
+                                            SELECT *
+                                            FROM man_akses.unit_organisasi WITH (NOLOCK)
+                                    ");
+                                    @endphp
                                     <select name="id_organisasi" class="form-control select2" required>
                                         <option selected disabled>Pilih</option>
                                         @foreach($unit as $item)
@@ -244,6 +250,13 @@
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Pengguna</label>
+                                    @php
+                                    $pengguna = DB::SELECT("
+                                            SELECT *
+                                            FROM man_akses.pengguna WITH (NOLOCK)
+                                            WHERE soft_delete=0 AND a_aktif=1
+                                    ");
+                                    @endphp
                                     <select name="id_pengguna[]" id="id_pengguna" class="form-control select2" data-placeholder="Pilih" multiple>
                                     @foreach($pengguna as $value)
                                     <option value="{{$value->id_pengguna}}">{{$value->nm_pengguna}}</option>
@@ -261,8 +274,8 @@
                             </div>
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
-                                    <label>Email</label>
-                                    <input name="username" id="username" type="email" class="form-control" placeholder="Masukkan Email">
+                                    <label>Username</label>
+                                    <input name="username" id="username" type="text" class="form-control" placeholder="Masukkan Username tanpa spasi">
                                 </div>
                             </div>
                             <div class="col-sm-12">
@@ -277,14 +290,22 @@
                             </div>
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
-                                    <label>Jabatan</label>
-                                    <input name="jabatan_pj" id="jabatan_pj" type="text" class="form-control" placeholder="Masukkan Jabatan">
+                                    <label>No. HP</label>
+                                    <input name="no_hp" id="no_hp" type="number" class="form-control" placeholder="Masukkan Nomor HP">
                                 </div>
                             </div>
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
-                                    <label>No. HP</label>
-                                    <input name="no_hp" id="no_hp" type="number" class="form-control" placeholder="Masukkan Nomor HP">
+                                    <label>Email</label>
+                                    <input name="email" id="email" type="email" class="form-control" placeholder="Masukkan Email">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group form-group-default">
+                                    <label>Jabatan</label>
+                                    <input name="jabatan_pj" id="jabatan_pj" type="text" class="form-control" placeholder="Masukkan Jabatan" required>
                                 </div>
                             </div>
                         </div>
@@ -339,6 +360,13 @@
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Nama PJ</label>
+                                    @php
+                                    $pengguna = DB::SELECT("
+                                            SELECT *
+                                            FROM man_akses.pengguna WITH (NOLOCK)
+                                            WHERE soft_delete=0 AND a_aktif=1
+                                    ");
+                                    @endphp
                                     <select class="form-control select2" name="id_pengguna" required>
                                     @foreach($pengguna as $value)
                                     <option value="{{$value->id_pengguna}}" {{($value->id_pengguna==$items->id_pengguna)?'selected':''}}>{{$value->nm_pengguna}}</option>
@@ -477,6 +505,13 @@
                             <div class="col-sm-12 col-12">
                                 <div class="form-group form-group-default">
                                     <label>Peran</label>
+                                    @php
+                                    $peran = DB::SELECT("
+                                            SELECT *
+                                            FROM man_akses.peran WITH (NOLOCK)
+                                            WHERE expired_date=NULL
+                                    ");
+                                    @endphp
                                     <select class="form-control select2" name="id_peran[]" data-placeholder="Pilih" multiple required>
                                         @foreach($peran as $item)
                                         <option value="{{$item->id_peran}}">{{$item->nm_peran}}</option>
@@ -581,6 +616,13 @@
                             <div class="col-sm-12 col-12">
                                 <div class="form-group form-group-default">
                                     <label>Peran</label>
+                                    @php
+                                    $peran = DB::SELECT("
+                                            SELECT *
+                                            FROM man_akses.peran WITH (NOLOCK)
+                                            WHERE expired_date=NULL
+                                    ");
+                                    @endphp
                                     <select class="form-control select2" name="id_peran[]" data-placeholder="Pilih" multiple required>
                                         @foreach($peran as $item)
                                             <?php
@@ -595,15 +637,15 @@
                                 <div class="form-group form-group-default">
                                     <?php $menurole = DB::table('man_akses.menu_role')->where('id_menu', $items->id_menu)->first(); ?>
                                     <label>Apakah Bisa:</label><br>
-                                    <input type="checkbox" id="a_boleh_insert" name="a_boleh_insert" {{($menurole->a_boleh_insert==1)?'checked':''}}>
+                                    <input type="checkbox" id="a_boleh_insert" name="a_boleh_insert" {{(!empty($menurole->a_boleh_insert)&&$menurole->a_boleh_insert==1)?'checked':''}}>
                                     <label for="a_boleh_insert"> Insert</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_show" name="a_boleh_show" {{($menurole->a_boleh_show==1)?'checked':''}}>
+                                    <input type="checkbox" id="a_boleh_show" name="a_boleh_show" {{(!empty($menurole->a_boleh_show)&&$menurole->a_boleh_show==1)?'checked':''}}>
                                     <label for="a_boleh_show"> Show</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_delete" name="a_boleh_delete" {{($menurole->a_boleh_delete==1)?'checked':''}}>
+                                    <input type="checkbox" id="a_boleh_delete" name="a_boleh_delete" {{(!empty($menurole->a_boleh_delete)&&$menurole->a_boleh_delete==1)?'checked':''}}>
                                     <label for="a_boleh_delete"> Delete</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_update" name="a_boleh_update" {{($menurole->a_boleh_update==1)?'checked':''}}>
+                                    <input type="checkbox" id="a_boleh_update" name="a_boleh_update" {{(!empty($menurole->a_boleh_update)&&$menurole->a_boleh_update==1)?'checked':''}}>
                                     <label for="a_boleh_update"> Update</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_sanggah" name="a_boleh_sanggah" {{($menurole->a_boleh_sanggah==1)?'checked':''}}>
+                                    <input type="checkbox" id="a_boleh_sanggah" name="a_boleh_sanggah" {{(!empty($menurole->a_boleh_sanggah)&&$menurole->a_boleh_sanggah==1)?'checked':''}}>
                                     <label for="a_boleh_sanggah"> Sanggah</label>
                                 </div>
                             </div>
@@ -632,23 +674,23 @@
                     $('#newPJ').show();
                     $('#nm_pj').attr('required', '');
                     $('#username').attr('required', '');
-                    $('#jenis_kelamin').attr('required', '');
-                    $('#jabatan_pj').attr('required', '');
+                    $('#jenis_kelamin').attr('required', ''); 
                     $('#no_hp').attr('required', '');
+                    $('#email').attr('required', '');
                 } else {
                     $('#newPJ').hide();
                     $('#existingPJ').show();
                     $('#id_pengguna').attr('required', '');
                     $('#nm_pj').removeAttr('required', '');
-                    $('#username').removeAttr('required', '');
                     $('#jenis_kelamin').removeAttr('required', '');
-                    $('#jabatan_pj').removeAttr('required', '');
-                    $('#no_hp').removeAttr('required', '');
+                    $('#username').removeAttr('required', '');
                     $('#nm_pj').val(null);
-                    $('#username').val(null);
                     $('#jenis_kelamin').val(null);
-                    $('#jabatan_pj').val(null);
+                    $('#username').val(null);
+                    $('#no_hp').removeAttr('required', '');
+                    $('#email').removeAttr('required', '');
                     $('#no_hp').val(null);
+                    $('#email').val(null);
                 }
             });
         });

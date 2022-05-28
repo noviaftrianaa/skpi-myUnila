@@ -15,7 +15,6 @@ class SandboxController
      *      url=L5_SWAGGER_CONST_HOST_SANDBOX,
      *      description="Server Sandbox",
      * )
-  
      * @OA\Tag(
      *     name="Overview",
      *     description="Web service ini digunakan oleh pengembang perangkat lunak atau admin perguruan tinggi untuk mengakses data pada PDUT. Web service ini tidak ditujukan untuk individu dosen karena menggunakan hak akses admin dan dapat mengakses data seluruh dosen pada perguruan tinggi yang bersangkutan."
@@ -25,5 +24,12 @@ class SandboxController
      *     description="Seluruh data menggunakan format JSON untuk request dan response. Terdapat pengecualian pada endpoint terkait dokumen. Upload dokumen menggunakan format multipart/form-data untuk mengirimkan isi dokumen dalam bentuk binary. Download dokumen akan mengembalikan isi dokumen dalam bentuk binary sesuai mime type dokumen. Sebagian besar ID data menggunakan format UUID (00000000-0000-0000-0000-000000000000) lowercase. Seluruh tanggal untuk request maupun response menggunakan format yyyy-mm-dd. Angka menggunakan titik . untuk pemisah desimal. Field request yang sifatnya opsional dapat diisi dengan null, 0, atau array kosong [] sesuai tipe datanya. Tidak diperkenankan menambahkan atau mengurangi field JSON pada request karena berpotensi mengakibatkan error.."
      * )
      *
+     * @OA\SecurityScheme(
+     *     type="apiKey",
+     *     description="OneData WebService Auth",
+     *     in="header",
+     *     securityScheme="token",
+     *     name="Authorization"
+     * )
      */
 }

@@ -11,6 +11,7 @@ class ReMk extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
+	'id_re_mk',
 	'id_jns_eval',
 	'id_mk',
 	'komponen_evaluasi',

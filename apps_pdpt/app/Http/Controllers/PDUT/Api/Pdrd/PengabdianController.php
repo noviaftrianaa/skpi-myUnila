@@ -45,7 +45,7 @@ class PengabdianController extends Controller
         $this->getAllListPengabdian = [];
     }
 
-   
+
     public function getAllListPengabdian()
     {
         InputValidator([
@@ -125,7 +125,7 @@ class PengabdianController extends Controller
             'page' => 'numeric|min:1',
             'count'    => 'numeric|min:1|max:50',
             'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
-       ]);
+        ]);
 
         $sdmId = $this->request->input('sdmid');
         $sortBy = $this->request->input('sortby');
@@ -162,7 +162,7 @@ class PengabdianController extends Controller
             litabmas.id_thn_laks " . $sortBy . "
     ";
 
-    $pagination = CustomPagination($query);
+        $pagination = CustomPagination($query);
         $query = $pagination['query'];
 
         $query = DB::select($query);
@@ -189,7 +189,7 @@ class PengabdianController extends Controller
             'data' => $data
         ], 'sukses');
     }
-   
+
 
     public function getDetailPengabdianByPengabdianId($id)
     {
@@ -233,28 +233,28 @@ class PengabdianController extends Controller
                     litabmas.id_litabmas = ?
                     AND litabmas.soft_delete = 0
                 ";
-                $getDetailPengabdian = DB::select($query, [$pengabdianId]);
-                if (empty($getDetailPengabdian)) {
-                    return WrapResponse([], "pengabdian $pengabdianId tidak ditemukan", FALSE);
-                }
-                foreach ($getDetailPengabdian as $value) {
-                    $reformatGetDetailPengabdian = [
-                        'tahun_anggaran' => $value->tahun_anggaran,
-                        'afiliasi' => $value->afiliasi,
-                        'kelompok_bidang' => $value->kelompok_bidang,
-                        'no_sk_penugasan' => $value->no_sk_penugasan,
-                        'tgl_sk_penugasan' => $value->tgl_sk_penugasan,
-                        'lama_kegiatan' => $value->lama_kegiatan,
-                        'judul_penelitian' => $value->judul_penelitian,
-                        'lokasi_kegiatan' => $value->lokasi_kegiatan,
-                        'tahun_pelaksanaan' => $value->tahun_anggaran,
-                        'dana_dikti' => $value->dana_dikti,
-                        'data_pt' => $value->dana_pt,
-                        'dana_institusi_lain' => $value->dana_il,
-                    ];
-                }
+            $getDetailPengabdian = DB::select($query, [$pengabdianId]);
+            if (empty($getDetailPengabdian)) {
+                return WrapResponse([], "pengabdian $pengabdianId tidak ditemukan", FALSE);
+            }
+            foreach ($getDetailPengabdian as $value) {
+                $reformatGetDetailPengabdian = [
+                    'tahun_anggaran' => $value->tahun_anggaran,
+                    'afiliasi' => $value->afiliasi,
+                    'kelompok_bidang' => $value->kelompok_bidang,
+                    'no_sk_penugasan' => $value->no_sk_penugasan,
+                    'tgl_sk_penugasan' => $value->tgl_sk_penugasan,
+                    'lama_kegiatan' => $value->lama_kegiatan,
+                    'judul_penelitian' => $value->judul_penelitian,
+                    'lokasi_kegiatan' => $value->lokasi_kegiatan,
+                    'tahun_pelaksanaan' => $value->tahun_anggaran,
+                    'dana_dikti' => $value->dana_dikti,
+                    'data_pt' => $value->dana_pt,
+                    'dana_institusi_lain' => $value->dana_il,
+                ];
+            }
 
-                $query = "
+            $query = "
                     SELECT
                         sal.id_sdm AS id_anggota_dosen,
                         sdm.nm_sdm AS nama_dosen,
@@ -591,7 +591,7 @@ class PengabdianController extends Controller
             }
 
             DB::commit();
-            return WrapResponse([], 'sukses menambahkan penelitian - ' . $pengabdian->id_litabmas);
+            return WrapResponse([], 'sukses menambahkan penelitian - ' . $litabmasId);
         } catch (ModelNotFoundException $mnfe) {
             DB::rollBack();
             Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
@@ -602,7 +602,7 @@ class PengabdianController extends Controller
             return WrapResponse([], "gagal menambahkan penelitian");
         }
     }
-   
+
     public function updatePengabdian()
     {
         InputValidator([
@@ -695,7 +695,8 @@ class PengabdianController extends Controller
         DB::beginTransaction();
         try {
             $pengabdian = $this->litabmas->where('id_litabmas', $litabmasId)->first();
-            if (!$pengabdian) return WrapResponse([], 'pengabdian tidak ditemukan atau pengabdian tidak terdaftar', FALSE);
+            if (!$pengabdian)
+                return WrapResponse([], 'pengabdian tidak ditemukan atau pengabdian tidak terdaftar', FALSE);
 
             $pengabdian->update([
                 'id_litabmas' => $litabmasId,
@@ -800,7 +801,7 @@ class PengabdianController extends Controller
                             'last_sync' => currDateTime(),
                         ]);
                     } else {
-                        $anggota_dosen->update([
+                        $anggota_dosen->update($pengabdian)([
                             'id_litabmas' => $litabmasId,
                             'id_sdm' => $idDosen,
                             'id_katgiat' => $kat_kegiatan,
@@ -818,7 +819,7 @@ class PengabdianController extends Controller
                 foreach ($anggota_mahasiswa as $index => $idMahasiswa) {
                     if (is_null($idMahasiswa)) break;
 
-                    $anggota_mahasiswa = $this->pdLitabmas->where('id_pd_ang_litabmas', $pdLitabmasId[$index])->where('id_litabmas', $litabmasId)->where('id_pd', $idMahasiswa)->first();
+                    $anggota_mahasiswa = $this->pdLitabmas->where('id_litabmas', $litabmasId)->where('id_pd', $idMahasiswa)->exists();
                     if (!$anggota_mahasiswa) {
                         $dataMahasiswa = DB::select("
                             SELECT
@@ -836,7 +837,8 @@ class PengabdianController extends Controller
 
                         if (empty($dataMahasiswa)) {
                             return WrapResponse([], 'tidak ditemukan data mahasiswa anggota pengabdian', FALSE);
-                        } $this->pdLitabmas->create([
+                        }
+                        $this->pdLitabmas->create([
                             'id_pd_ang_litabmas' => guid(),
                             'id_litabmas' => $pengabdian->id_litabmas,
                             'id_pd' => $idMahasiswa,
@@ -889,7 +891,7 @@ class PengabdianController extends Controller
                 foreach ($anggota_non_ca as $index => $idNonCa) {
                     if (is_null($idNonCa)) break;
 
-                    $anggota_non_ca = $this->nonCaLitabmas->where('id_litabmas', $litabmasId)->where('id_orang', $idNonCa)->first();
+                    $anggota_non_ca = $this->nonCaLitabmas->where('id_litabmas', $litabmasId)->where('id_orang', $idNonCa)->exists();
                     if (!$anggota_non_ca) {
                         $this->nonCaLitabmas->create([
                             'id_litabmas' => $litabmasId,
@@ -920,42 +922,36 @@ class PengabdianController extends Controller
             DB::commit();
             return WrapResponse([], 'sukses mengupdate data pengabdian - ' . $litabmasId);
         } catch (ModelNotFoundException $mnfe) {
-            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
             DB::rollBack();
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
             return WrapResponse([], 'pengabdian tidak ditemukan atau pengabdian tidak terdaftar', FALSE);
         } catch (Exception $e) {
-            Log::error('error on Function ' . __FUNCTION__ . ' with ' . $e->getMessage() . ' on ' . $e->getLine());
             DB::rollBack();
+            Log::error('error on Function ' . __FUNCTION__ . ' with ' . $e->getMessage() . ' on ' . $e->getLine());
             return WrapResponse([], "gagal mengupdate data pengabdian $litabmasId", FALSE);
         }
     }
-    
+
     public function deletePengabdian()
     {
-
-        $litabmasId = $this->request->input('id_penelitian');
-        $creatorId = $updateId = 'bc62ca9c-4e6e-4462-89b6-ff246512734f';
-        $last_update = currDateTime();
-
         InputValidator([
-            'id_penelitian' => 'required|uuid',
+            'pengabdianid' => 'required|uuid',
+        ], [
+            'pengabdianid.required' => 'field pengabdianid ini harus diisi',
+            'pengabdianid.uuid' => 'input pengabdianid harus berupa uuid yang valid',
         ]);
+
+        $pengabdianId = $this->request->input('pengabdianid');
 
         DB::beginTransaction();
         try {
-
-            $this->litabmas->where('id_penelitian',$litabmasId)->update([
-            'soft_delete' => 1,
-            'last_update' => $last_update,
-            'id_updater' => $updateId
-        ]); 
-        
-        DB::commit();
-        return WrapResponse(array('data' => array('id_penelitian' => $litabmasId)), 'berhasil menghapus data pengabdian', TRUE);
-    } catch (Exception $e) {
-        DB::rollBack();
-        Log::error('Error on ' . $e->getMessage() . ' in line ' . $e->getLine());
-        return WrapResponse(['data' => null], 'gagal menghapus data pengabdian', FALSE);
+            DB::update("UPDATE pdrd.litabmas SET soft_delete = 1 WHERE id_litabmas = $pengabdianId");
+            DB::commit();
+            return $this->wrapResponse->setStatusCode(Response::HTTP_ACCEPTED)->setMessage('berhasial menghapus data pengabdian - ' . $pengabdianId)->render();
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Error on ' . $e->getMessage() . ' in line ' . $e->getLine());
+            return $this->wrapResponse->setMessage(static::DELETE_FAILED)->setError(['query' => "gagal menghapus pengabdian $pengabdianId"]);
+        }
     }
-}
 }

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use DB;
 use SSO\SSO;
 use App\Http\Traits\Uuid;
@@ -126,6 +127,12 @@ class LoginController extends Controller
 
     public function logout(){
         if(Auth::check()) {
+
+            // UPDATE LAST ACTIVE
+            if(session()->has('login.role')) {
+                $response = Http::get('http://onedata.unila.ac.id/api/live/0.1/man_akses/ubah_keaktifan?id_role_pengguna='.session()->get('login.role')->id_role_pengguna);
+            }
+            
             Auth::logout(); //Destroy Auth
             Session::flush(); //Destroy Session
             alert()->success('Berhasil logout'); //Alert
