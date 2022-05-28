@@ -91,7 +91,7 @@ class LembagaController extends Controller
         return WrapResponse(compact('data'), 'berhasil');
     } catch (Exception $e) {
         Log::error(__FUNCTION__ . '-' . $e->getMessage());
-        return WrapResponse([], "gagal mendapatkan data profil perguruan tinggi", FALSE );
+        return WrapResponse([], "gagal mendapa tkan data profil perguruan tinggi", FALSE );
     }
 }
 
