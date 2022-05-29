@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class DayaTampung extends Model
 {
     protected $table = 'pmb.daya_tampung';
-    protected $primaryKey = ['id_smt', 'id_sms', 'id_periode_pmb'];
+    protected $primaryKey = 'id_daya_tampung';
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
+        'id_daya_tampung',
         'id_periode_pmb',
         'id_smt',
         'id_sms',

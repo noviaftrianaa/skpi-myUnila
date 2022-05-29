@@ -7,12 +7,36 @@
  *      tags={"PMB"},
  *      summary="Dapatkan daftar Periode PMB",
  *      description="Menampilkan daftar data Periode PMB",
- *      @OA\Parameter( name="sortby", description="Masukan urutan by ASC/DESC", example="DESC", required=false, in="query",
- *          @OA\Schema(type="string")),
- *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
- *          @OA\Schema(type="number")),
- *      @OA\Parameter( name="count", description="masukan jumlah data", example="10", required=false, in="query",
- *          @OA\Schema(type="number")),
+ *     @OA\Parameter(
+ *          name="page",
+ *          description="",
+ *          example="1",
+ *          required=false,
+ *          in="query",
+ *          @OA\Schema(
+ *              type="number"
+ *          )
+ *     ),
+ *     @OA\Parameter(
+ *          name="limit",
+ *          description="",
+ *          example="25",
+ *          required=false,
+ *          in="query",
+ *          @OA\Schema(
+ *              type="number"
+ *          )
+ *     ),
+ *     @OA\Parameter(
+ *          name="sort",
+ *          description="",
+ *          example="DESC",
+ *          required=false,
+ *          in="query",
+ *          @OA\Schema(
+ *              type="string"
+ *          )
+ *     ),
  *      @OA\Response(
  *          response=200,
  *          description="Successful operation",
@@ -140,6 +164,11 @@
  *     )
  */
 /**
+
+
+
+
+
 
 
 
