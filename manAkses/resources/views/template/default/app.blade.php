@@ -54,7 +54,7 @@
         }   
     </style>
 </head>
-<body class="hold-transition sidebar-mini sidebar-collapse">
+<body class="hold-transition sidebar-mini sidebar-collapse text-sm">
 <div class="wrapper">
     <!-- Navbar -->
     <nav class="main-header navbar navbar-expand navbar-info navbar-dark border-bottom-0 text-white">
