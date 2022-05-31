@@ -1,3 +1,13 @@
+@push('css')
+<style>
+	.nav li .nav-treeview{
+		position: relative;
+		list-style: none;
+		transition: all 0.4s ease;
+	}
+</style>
+@endpush
+
 <!-- Sidebar -->
 <div class="sidebar">
 	<!-- Profile Menu -->
@@ -31,9 +41,7 @@
 						<p>Dashboard</p>
 				</a>
 			</li>
-			<li class="nav-item {{ 
-					(request()->is('profile*')) ? 'menu-open' : ''
-				 }}">
+			<li class="nav-item">
 				<!-- route dashboard -->
 				<a href="#" class="nav-link {{ 
 					(request()->is('profile*')) ? 'active' : ''
