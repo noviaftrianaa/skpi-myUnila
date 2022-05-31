@@ -67,9 +67,7 @@
 
 			@if(session()->has('login.role') && session()->get('login.role')->id_peran==1)
 			<!-- Administrator Menus -->
-			<li class="nav-item {{ 
-					(request()->is('master*')) ? 'menu-open' : ''
-				 }}">
+			<li class="nav-item">
 				<!-- route dashboard -->
 				<a href="#" class="nav-link {{ 
 					(request()->is('master*')) ? 'active' : ''

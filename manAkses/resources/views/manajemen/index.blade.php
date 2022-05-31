@@ -68,22 +68,54 @@
 <script type="text/javascript" src="{{ asset('slick/slick.min.js') }}"></script>
 <script>
     $(document).ready(function(){
-        $('.apps').slick({
-            autoplay: true,
-            autoplaySpeed: 3000,
-            rows: 2,
-            slidesPerRow: 8
-        });
-        $('.apps_search').slick({
-            autoplay: true,
-            autoplaySpeed: 3000,
-            rows: 2,
-            slidesPerRow: 8
-        });
-        $('#search').on('change keyup', function() {
+        const mediaQuery = window.matchMedia("(max-width: 960px)");
+        if(mediaQuery.matches) {
+            $( ".apps" ).each(function() {
+                $( this ).slick({
+                    autoplay: true,
+                    autoplaySpeed: 3000,
+                    rows: 2,
+                    slidesPerRow: 4,
+                    mobileFirst: true,
+                    respondTo: 'window'
+                });
+            });
+            $( ".apps_search" ).each(function() {
+                $( this ).slick({
+                    autoplay: true,
+                    autoplaySpeed: 3000,
+                    rows: 2,
+                    slidesPerRow: 4,
+                    mobileFirst: true,
+                    respondTo: 'window'
+                });
+            });
+        } else {
+            $( ".apps" ).each(function() {
+                $( this ).slick({
+                    autoplay: true,
+                    autoplaySpeed: 3000,
+                    rows: 2,
+                    slidesPerRow: 8,
+                    mobileFirst: true,
+                    respondTo: 'window'
+                });
+            });
+            $( ".apps_search" ).each(function() {
+                $( this ).slick({
+                    autoplay: true,
+                    autoplaySpeed: 3000,
+                    rows: 2,
+                    slidesPerRow: 8,
+                    mobileFirst: true,
+                    respondTo: 'window'
+                });
+            });
+        }
+
+        $('#search').on('keyup change', function() {
             var name = $(this).val();
-            console.log(name);
-            if(name != '') {
+            if(name!='' && name!=' ') {
                 $.ajax({
                     url: '/apps/' + name,
                     type: "GET",
@@ -95,20 +127,18 @@
                             $('.apps_search').show();
                             $(".apps_search").html("");
                             $.each(data, function(key, item){
-                                $('.apps_search').append('<div> <a href="' + item.url + '" title="' + item.nm_aplikasi + '" alt="' + item.nm_aplikasi + '" target="_blank"> <div class="row"> <div class="col-12 text-center"> <img src="' + item.url_logo + '" class="img-fluid" alt="apps"> </div> </div> <div class="row"> <div class="col-12 text-center"> <p class="text-xs text-warning"><b>' + item.nm_aplikasi + '</b></p> </div> </div> </a> </div>');
+                                var html = '<div> <a href="' + item.url + '" title="' + item.nm_aplikasi + '" alt="' + item.nm_aplikasi + '" target="_blank"> <div class="row"> <div class="col-12 text-center"> <img src="' + item.url_logo + '" class="img-fluid" alt="apps"> </div> </div> <div class="row"> <div class="col-12 text-center"> <p class="text-xs text-warning"><b>' + item.nm_aplikasi + '</b></p> </div> </div> </a> </div>';
+                                $(".apps_search").append(html);
                             });
-                            for(var i=data.length; i <= 8; i++) {
-                                $('.apps_search').append('<div></div>');
-                            }
                         } else {
                             $('.apps').show();
-                            $('.apps_search').hide();
+                            $(".apps_search").html("");
                         }
                     }
                 });
             } else {
                 $('.apps').show();
-                $('.apps_search').hide();
+                $(".apps_search").html("");
             }
         });
     });
@@ -132,7 +162,7 @@
             </form>
         </div>
         <div class="col-12 mt-4">
-            <div class="apps">
+            <div class="apps ml-3 mr-3">
                 @foreach($app_inter AS $items)
                 <div>
                     <a href="{{ $items->url }}" title="{{$items->nm_aplikasi}}" alt="{{$items->nm_aplikasi}}" target="_blank">
@@ -150,7 +180,7 @@
                 </div>
                 @endforeach
             </div>
-            <div class="apps_search"></div>
+            <div class="apps_search ml-3 mr-3"></div>
         </div>
     </div>
 

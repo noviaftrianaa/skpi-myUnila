@@ -63,18 +63,6 @@ class HomeController extends Controller
 
     public function searchApps($name)
     {
-        // $data = DB::SELECT("
-        //     SELECT
-        //         *
-        //     FROM 
-        //         man_akses.aplikasi AS aplikasi
-        //     JOIN
-        //         dok.large_object AS dok ON dok.id_blob=aplikasi.id_blob
-        //     WHERE
-        //         aplikasi.nm_aplikasi LIKE '%" . $name . "%'
-        //     ORDER BY
-        //         aplikasi.nm_aplikasi ASC
-        // ");
         $data = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->where('nm_aplikasi', 'like', '%'.$name.'%')->get();
 
         foreach($data as $items) {
