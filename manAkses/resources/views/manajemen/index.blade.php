@@ -43,11 +43,11 @@
         cursor: pointer;
     }
     .new_style {
-        padding: 50px;
+        padding: 25px;
     }
     @media only screen and (max-width: 960px) {
         .new_style {
-            padding: 25px;
+            padding: 5px;
         }
     }
     .content-wrapper {
@@ -69,8 +69,47 @@
 <script>
     $(document).ready(function(){
         $('.apps').slick({
+            autoplay: true,
+            autoplaySpeed: 3000,
             rows: 2,
             slidesPerRow: 8
+        });
+        $('.apps_search').slick({
+            autoplay: true,
+            autoplaySpeed: 3000,
+            rows: 2,
+            slidesPerRow: 8
+        });
+        $('#search').on('change keyup', function() {
+            var name = $(this).val();
+            console.log(name);
+            if(name != '') {
+                $.ajax({
+                    url: '/apps/' + name,
+                    type: "GET",
+                    dataType: "json",
+                    success:function(data)
+                    {
+                        if(data){
+                            $('.apps').hide();
+                            $('.apps_search').show();
+                            $(".apps_search").html("");
+                            $.each(data, function(key, item){
+                                $('.apps_search').append('<div> <a href="' + item.url + '" title="' + item.nm_aplikasi + '" alt="' + item.nm_aplikasi + '" target="_blank"> <div class="row"> <div class="col-12 text-center"> <img src="' + item.url_logo + '" class="img-fluid" alt="apps"> </div> </div> <div class="row"> <div class="col-12 text-center"> <p class="text-xs text-warning"><b>' + item.nm_aplikasi + '</b></p> </div> </div> </a> </div>');
+                            });
+                            for(var i=data.length; i <= 8; i++) {
+                                $('.apps_search').append('<div></div>');
+                            }
+                        } else {
+                            $('.apps').show();
+                            $('.apps_search').hide();
+                        }
+                    }
+                });
+            } else {
+                $('.apps').show();
+                $('.apps_search').hide();
+            }
         });
     });
 </script>
@@ -92,25 +131,26 @@
                 </div>
             </form>
         </div>
-        <div class="col-12 mt-2">
+        <div class="col-12 mt-4">
             <div class="apps">
                 @foreach($app_inter AS $items)
                 <div>
                     <a href="{{ $items->url }}" title="{{$items->nm_aplikasi}}" alt="{{$items->nm_aplikasi}}" target="_blank">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-12 text-center">
-                                    <img src="{{ (!is_null($items->largeobject)) ? 'data:image/' . $items->largeobject->mime_type . ';base64,' . $items->largeobject->blob_content : asset('auth/img/logo.png') }}" class="img-fluid" alt="apps">
-                                </div>
+                        <div class="row">
+                            <div class="col-12 text-center">
+                                <img src="{{ (!is_null($items->largeobject)) ? 'data:image/' . $items->largeobject->mime_type . ';base64,' . $items->largeobject->blob_content : asset('auth/img/logo.png') }}" class="img-fluid" min-width="100%" alt="apps">
                             </div>
                         </div>
-                        <div class="text-center">
-                            <p class="text-sm text-warning"><b>{{$items->nm_aplikasi}}</b></p>
+                        <div class="row">
+                            <div class="col-12 text-center">
+                                <p class="text-xs text-warning"><b>{{$items->nm_aplikasi}}</b></p>
+                            </div>
                         </div>
                     </a>
                 </div>
                 @endforeach
             </div>
+            <div class="apps_search"></div>
         </div>
     </div>
 

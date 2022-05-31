@@ -61,6 +61,29 @@ class HomeController extends Controller
         return view($views, $data_compact);
     }
 
+    public function searchApps($name)
+    {
+        // $data = DB::SELECT("
+        //     SELECT
+        //         *
+        //     FROM 
+        //         man_akses.aplikasi AS aplikasi
+        //     JOIN
+        //         dok.large_object AS dok ON dok.id_blob=aplikasi.id_blob
+        //     WHERE
+        //         aplikasi.nm_aplikasi LIKE '%" . $name . "%'
+        //     ORDER BY
+        //         aplikasi.nm_aplikasi ASC
+        // ");
+        $data = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->where('nm_aplikasi', 'like', '%'.$name.'%')->get();
+
+        foreach($data as $items) {
+            $items->url_logo = (!is_null($items->largeobject)) ? 'data:image/' . $items->largeobject->mime_type . ';base64,' . $items->largeobject->blob_content : asset('auth/img/logo.png');
+        }
+
+        return response()->json($data);
+    }
+
     public function biodata()
     {
         $data = User::findOrFail(Auth::user()->id_pengguna);
