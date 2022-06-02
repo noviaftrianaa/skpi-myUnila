@@ -1,23 +1,43 @@
 <?php
 /**
-     * @OA\Get(
-     *      path="/referensi/jenis_penghargaan",
-     *      operationId="getJenisPenghargaan",
-     *      tags={"Referensi"},
-     *      summary="Dapatkan daftar JenisPenghargaan",
-     *      description="Menampilkan daftar data JenisPenghargaan",
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"token":{}}}
-     *     )
-     */
+ * @OA\Get(
+ *       path="/referensi/jenis_penghargaan",
+ *       tags={"Referensi"},
+ *       summary="Dapatkan daftar JenisPenghargaan",
+ *       description="Menampilkan daftar data JenisPenghargaan",
+ *       operationId="getJenisPenghargaan",
+ *       @OA\Parameter(
+ *          name="page",
+ *          description="",
+ *          example="1",
+ *          required=false,
+ *          in="query",
+ *          @OA\Schema(
+ *              type="number"
+ *          )
+ *      ),
+ *      @OA\Parameter(
+ *          name="limit",
+ *          description="",
+ *          example="10",
+ *          required=false,
+ *          in="query",
+ *          @OA\Schema(
+ *              type="number"
+ *          )
+ *     ),
+ *      @OA\Response(
+ *          response=200,
+ *          description="Successful operation",
+ *       ),
+ *      @OA\Response(
+ *          response=401,
+ *          description="Unauthenticated",
+ *      ),
+ *      @OA\Response(
+ *          response=403,
+ *          description="Forbidden"
+ *      ),
+ *      security={{"token":{}}}
+ *     )
+ */
