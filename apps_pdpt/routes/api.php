@@ -147,13 +147,13 @@ Route::group([
             });
 
             Route::prefix('lembaga')->group(function () {
-                Route::get('profilpt/detail', 'LembagaController@detailProfilPt');
+                Route::get('profil_pt/detail', 'LembagaController@detailProfilPt');
                 Route::get('akreditasi_pt', 'LembagaController@listAkreditasiPt');
                 Route::get('daftar_prodi/detail', 'LembagaController@detailDaftarProdi');
-                Route::get('profil_prodi/list', 'LembagaController@listProfilProdi');
+                Route::get('profil_prodi/daftar', 'LembagaController@listProfilProdi');
                 Route::get('profil_prodi/list_id', 'LembagaController@listProfilProdiById');
-                Route::put('profil_prodi/ubah', 'LembagaController@update');
-                Route::get('daftar_sms', 'LembagaController@listSms');
+                Route::put('profil_prodi/ubah', 'LembagaController@ubah');
+                Route::get('daftar_lembaga', 'LembagaController@listLembaga');
             });
         });
 

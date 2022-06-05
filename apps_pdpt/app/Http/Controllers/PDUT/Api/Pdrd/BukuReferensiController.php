@@ -30,7 +30,7 @@ class BukuReferensiController extends Controller
     {
         InputValidator([
             'page' => 'numeric|min:1',
-            'count'    => 'numeric|min:1|max:50',
+            'limit'    => 'numeric|min:1|max:50',
             'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
         ]);
 
@@ -89,7 +89,7 @@ class BukuReferensiController extends Controller
         InputValidator([
             'id_sdm' => 'required|uuid',
             'page' => 'numeric|min:1',
-            'count'    => 'numeric|min:1|max:50',
+            'limit'    => 'numeric|min:1|max:50',
             'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
          ]);
 
@@ -158,7 +158,6 @@ class BukuReferensiController extends Controller
             pub.id_publikasi, pub.judul, pub.isbn, jepub.nm_jns_pub,pub.penerbit,
            pub.tgl_terbit, lbms.judul_litabmas, kacaplu.nm_kat_capaian
             FROM pdrd.publikasi AS pub WITH(NOLOCK)
-            LEFT JOIN pdrd.publikasi AS pub WITH(NOLOCK) ON pub.id_publikasi = tspub.id_publikasi AND pub.soft_delete = 0
             LEFT JOIN ref.jenis_publikasi AS jepub WITH(NOLOCK) ON jepub.id_jns_pub = pub.id_jns_pub AND jepub.expired_date IS NULL
             LEFT JOIN pdrd.litabmas AS lbms WITH(NOLOCK) ON lbms.id_litabmas = pub.id_litabmas AND lbms.soft_delete = 0
             LEFT JOIN ref.kategori_capaian_luaran AS kacaplu WITH(NOLOCK) ON kacaplu.id_kat_capaian = pub.id_kat_capaian AND kacaplu.expired_date IS NULL
@@ -249,12 +248,13 @@ class BukuReferensiController extends Controller
                     'dokumen' =>  $buku_referensi_dok
                 ];
             }
-        } catch (\Throwable $th) {
-            return WrapResponse(['data' => null], 'Tidak Dapat Menampilkan Detail Buku Referensi', FALSE);
-        }
-        return WrapResponse(['data' => $data], 'Detail Buku Referensi', TRUE);
-    }
 
+            return WrapResponse(compact('data'), 'sukses');
+        } catch (Exception $e) {
+            Log::error(__FUNCTION__ . ' - ' . $e->getMessage());
+            return WrapResponse([], "Tidak Dapat Menampilkan Detail Buku Referensi", FALSE);
+        }
+    }
 
     public function tambah()
     {
