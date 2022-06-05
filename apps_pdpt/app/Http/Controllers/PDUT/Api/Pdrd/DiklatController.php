@@ -38,8 +38,8 @@ class DiklatController extends Controller
                 'alpha',
                 ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])
             ],
-            'page' => 'numeric',
-            'count' => 'numeric'
+            'page' => 'numeric|min:1',
+            'limit' => 'numeric|min:1|max:50'
         ]);
 
         $sortby = $this->request->input('sortby');

@@ -67,6 +67,13 @@ Route::group([
                 Route::delete('hapus', 'BukuReferensiController@hapus');
             });
 
+            Route::prefix('diklat')->group(function () {
+                Route::get('list', 'DiklatController@getAllListDiklat');
+                Route::post('tambah', 'DiklatController@tambah');
+                Route::put('ubah', 'DiklatController@ubahDiklat');
+                Route::delete('hapus', 'DiklatController@destroy');
+            });
+
             Route::prefix('penelitian')->group(function () {
                 Route::get('daftar', 'PenelitianController@daftar');
                 Route::get('daftar_id', 'PenelitianController@daftar_id');
@@ -203,6 +210,8 @@ Route::group([
             Route::get('list_id', 'KehadiranSdmController@getListKehadiranBySdmId');
             Route::post('tambah', 'KehadiranSdmController@store');
             Route::put('ubah', 'KehadiranSdmController@update');
+            Route::get('list_mhs', 'KehadiranMahasiswaController@getListKehadiranByMhs');
+            Route::post('tambah_kehadiran_mhs', 'KehadiranMahasiswaController@store');
         });
 
         Route::group([
