@@ -1,23 +1,43 @@
 <?php
 /**
-     * @OA\Get(
-     *      path="/referensi/jenis_akt_mhs",
-     *      operationId="getJenisAktMhs",
-     *      tags={"Referensi"},
-     *      summary="Dapatkan daftar JenisAktMhs",
-     *      description="Menampilkan daftar data JenisAktMhs",
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"token":{}}}
-     *     )
-     */
+ * @OA\Get(
+ *       path="/referensi/jenis_akt_mhs",
+ *       tags={"Referensi"},
+ *       summary="Dapatkan daftar JenisAktMhs",
+ *       description="Menampilkan daftar data JenisAktMhs",
+ *       operationId="getJenisAktMhs",
+ *       @OA\Parameter(
+ *          name="page",
+ *          description="",
+ *          example="1",
+ *          required=false,
+ *          in="query",
+ *          @OA\Schema(
+ *              type="number"
+ *          )
+ *      ),
+ *      @OA\Parameter(
+ *          name="limit",
+ *          description="",
+ *          example="10",
+ *          required=false,
+ *          in="query",
+ *          @OA\Schema(
+ *              type="number"
+ *          )
+ *     ),
+ *      @OA\Response(
+ *          response=200,
+ *          description="Successful operation",
+ *       ),
+ *      @OA\Response(
+ *          response=401,
+ *          description="Unauthenticated",
+ *      ),
+ *      @OA\Response(
+ *          response=403,
+ *          description="Forbidden"
+ *      ),
+ *      security={{"token":{}}}
+ *     )
+ */

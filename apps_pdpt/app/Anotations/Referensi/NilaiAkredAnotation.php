@@ -1,23 +1,43 @@
 <?php
- /**
-     * @OA\Get(
-     *      path="/referensi/nilai_akred",
-     *      operationId="getNilaiAkred",
-     *      tags={"Referensi"},
-     *      summary="Dapatkan daftar NilaiAkred",
-     *      description="Menampilkan daftar data NilaiAkred",
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"token":{}}}
-     *     )
-     */
+/**
+ * @OA\Get(
+ *       path="/referensi/nilai_akred",
+ *       tags={"Referensi"},
+ *       summary="Dapatkan daftar NilaiAkred",
+ *       description="Menampilkan daftar data NilaiAkred",
+ *       operationId="getNilaiAkred",
+ *       @OA\Parameter(
+ *          name="page",
+ *          description="",
+ *          example="1",
+ *          required=false,
+ *          in="query",
+ *          @OA\Schema(
+ *              type="number"
+ *          )
+ *      ),
+ *      @OA\Parameter(
+ *          name="limit",
+ *          description="",
+ *          example="10",
+ *          required=false,
+ *          in="query",
+ *          @OA\Schema(
+ *              type="number"
+ *          )
+ *     ),
+ *      @OA\Response(
+ *          response=200,
+ *          description="Successful operation",
+ *       ),
+ *      @OA\Response(
+ *          response=401,
+ *          description="Unauthenticated",
+ *      ),
+ *      @OA\Response(
+ *          response=403,
+ *          description="Forbidden"
+ *      ),
+ *      security={{"token":{}}}
+ *     )
+ */

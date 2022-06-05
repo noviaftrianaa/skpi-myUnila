@@ -67,6 +67,13 @@ Route::group([
                 Route::delete('hapus', 'BukuReferensiController@hapus');
             });
 
+            Route::prefix('diklat')->group(function () {
+                Route::get('list', 'DiklatController@getAllListDiklat');
+                Route::post('tambah', 'DiklatController@tambah');
+                Route::put('ubah', 'DiklatController@ubahDiklat');
+                Route::delete('hapus', 'DiklatController@destroy');
+            });
+
             Route::prefix('penelitian')->group(function () {
                 Route::get('daftar', 'PenelitianController@daftar');
                 Route::get('daftar_id', 'PenelitianController@daftar_id');
@@ -143,7 +150,6 @@ Route::group([
                 Route::post('jadwal/tambah', 'JadwalKelasController@store');
                 Route::put('jadwal/ubah', 'JadwalKelasController@update');
                 Route::delete('jadwal/hapus', 'JadwalKelasController@destroy');
-
             });
 
             Route::prefix('lembaga')->group(function () {
@@ -204,6 +210,8 @@ Route::group([
             Route::get('list_id', 'KehadiranSdmController@getListKehadiranBySdmId');
             Route::post('tambah', 'KehadiranSdmController@store');
             Route::put('ubah', 'KehadiranSdmController@update');
+            Route::get('list_mhs', 'KehadiranMahasiswaController@getListKehadiranByMhs');
+            Route::post('tambah_kehadiran_mhs', 'KehadiranMahasiswaController@store');
         });
 
         Route::group([
@@ -311,11 +319,14 @@ Route::group([
         'namespace' => 'Pmb',
         'prefix' => 'pmb'
     ], function () {
-
-        Route::get('list', 'PeriodePmbController@getAllListPeriodePmb');
-        Route::post('tambah', 'PeriodePmbController@tambah');
-        Route::put('ubah', 'PeriodePmbController@ubahPeriodePmb');
-        Route::delete('hapus', 'PeriodePmbController@destroy');
+        Route::get('list_periode', 'PeriodePmbController@getAllListPeriodePmb');
+        Route::post('tambah_periode', 'PeriodePmbController@tambah');
+        Route::put('ubah_periode', 'PeriodePmbController@ubahPeriodePmb');
+        Route::delete('hapus_periode', 'PeriodePmbController@destroy');
+        Route::get('list_daya_tampung', 'DayaTampungController@getAllListDayaTampung');
+        Route::post('tambah_daya_tampung', 'DayaTampungController@tambah');
+        Route::put('ubah_daya_tampung', 'DayaTampungController@ubahDayaTampung');
+        Route::delete('hapus_daya_tampung', 'DayaTampungController@destroy');
     });
 
 
@@ -366,5 +377,4 @@ Route::group([
         Route::get('peran', 'manAksesController@peran');
         Route::get('ubah_keaktifan', 'manAksesController@updateLastActive');
     });
-
 });

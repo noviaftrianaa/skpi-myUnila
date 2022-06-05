@@ -39,6 +39,7 @@ Route::namespace('Auth')->group(function () {
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
+    Route::get('/apps/{name}', [HomeController::class, 'searchApps'])->name('search_apps');
     Route::put('/changeRole', [UserController::class, 'role'])->name('role');
     Route::put('/changePassword', [UserController::class, 'password'])->name('password');
     Route::get('/ubah_password', [HomeController::class, 'index_ubah_password'])->name('ubah_password');
