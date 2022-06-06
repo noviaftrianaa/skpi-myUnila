@@ -8,7 +8,7 @@
  * summary="Mendapatkan Daftar Kehadiran Berdasarkan ID",
  * description="Menampilkan Daftar Kehadiran Berdasarkan ID",
  *  * @OA\Parameter(
- *          name="sdmid", description="masukan id sdm", example="bcb6de9a-2e7c-43c7-b192-029750754fe7", required=false, in="query",
+ *          name="id_sdm", description="masukan id sdm", example="bcb6de9a-2e7c-43c7-b192-029750754fe7", required=false, in="query",
  * @OA\Schema(type="string")),
  *     @OA\Parameter(
  *          name="page",
@@ -32,7 +32,7 @@
  *          )
  *     ),
  *     @OA\Parameter(
- *          name="sort",
+ *          name="sort_by",
  *          description="",
  *          example="DESC",
  *          required=false,
@@ -97,7 +97,6 @@
  *      security={{"token":{}}}
  *     )
  */
-
 
 /**
  * @OA\Put (
@@ -164,7 +163,7 @@
  *          )
  *     ),
  *     @OA\Parameter(
- *          name="sort",
+ *          name="sort_by",
  *          description="",
  *          example="DESC",
  *          required=false,

@@ -27,11 +27,11 @@ class KeuanganKelasUktController extends Controller
         InputValidator([
             'page' => 'numeric|min:1',
             'limit'    => 'numeric|min:1|max:50',
-            'sort' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
+            'sort_by' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
         ]);
 
         $sort = "ASC";
-        $sort = $this->request->input('sort');
+        $sort = $this->request->input('sort_by');
 
         if (!empty($sort)) {
             $sort = $sort;

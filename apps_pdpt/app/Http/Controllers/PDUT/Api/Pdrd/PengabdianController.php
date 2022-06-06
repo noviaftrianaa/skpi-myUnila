@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule as ValidationRule;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Exception;
+use Illuminate\Http\Response;
 
 class PengabdianController extends Controller
 {
@@ -49,15 +50,15 @@ class PengabdianController extends Controller
     public function getAllListPengabdian()
     {
         InputValidator([
-            'sortby' => [
+            'sort_by' => [
                 'alpha',
                 ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])
             ],
             'page' => 'numeric',
-            'count' => 'numeric'
+            'limit' => 'numeric'
         ]);
 
-        $sortby = $this->request->input('sortby');
+        $sortby = $this->request->input('sort_by');
         if (empty($sortby)) {
             $sortby = 'DESC';
         }
@@ -113,7 +114,7 @@ class PengabdianController extends Controller
 
         return WrapResponse([
             'page' => $pagination['page'],
-            'count' => $pagination['count'],
+            'limit' => $pagination['limit'],
             'data' => $data
         ], 'sukses');
     }
@@ -121,14 +122,14 @@ class PengabdianController extends Controller
     public function getListPengabdianBySdmId()
     {
         InputValidator([
-            'sdmid' => 'required|uuid',
+            'id_sdm' => 'required|uuid',
             'page' => 'numeric|min:1',
-            'count'    => 'numeric|min:1|max:50',
-            'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
+            'limit'    => 'numeric|min:1|max:50',
+            'sort_by' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
         ]);
 
-        $sdmId = $this->request->input('sdmid');
-        $sortBy = $this->request->input('sortby');
+        $sdmId = $this->request->input('id_sdm');
+        $sortBy = $this->request->input('sort_by');
         if (empty($sortBy)) {
             $sortBy = 'DESC';
         }
@@ -185,7 +186,7 @@ class PengabdianController extends Controller
 
         return WrapResponse([
             'page' => $pagination['page'],
-            'count' => $pagination['count'],
+            'limit' => $pagination['limit'],
             'data' => $data
         ], 'sukses');
     }
@@ -195,15 +196,15 @@ class PengabdianController extends Controller
     {
         $reformatGetDetailPengabdian = [];
 
-        request()->merge(['pengabdianid' => $id]);
+        request()->merge(['id_pengabdian' => $id]);
         InputValidator([
-            'pengabdianid' => 'required|uuid',
+            'id_pengabdian' => 'required|uuid',
         ], [
-            'pengabdianid.required' => 'field pengabdian id ini harus diisi',
-            'pengabdianid.uuid' => 'input pengabdian id harus berupa uuid yang valid',
+            'id_pengabdian.required' => 'field pengabdian id ini harus diisi',
+            'id_pengabdian.uuid' => 'input pengabdian id harus berupa uuid yang valid',
         ]);
 
-        $pengabdianId = $this->request->input('pengabdianid');
+        $pengabdianId = $this->request->input('id_pengabdian');
 
         try {
             $query = "
@@ -935,13 +936,13 @@ class PengabdianController extends Controller
     public function deletePengabdian()
     {
         InputValidator([
-            'pengabdianid' => 'required|uuid',
+            'id_pengabdian' => 'required|uuid',
         ], [
-            'pengabdianid.required' => 'field pengabdianid ini harus diisi',
-            'pengabdianid.uuid' => 'input pengabdianid harus berupa uuid yang valid',
+            'id_pengabdian.required' => 'field pengabdianid ini harus diisi',
+            'id_pengabdian.uuid' => 'input pengabdianid harus berupa uuid yang valid',
         ]);
 
-        $pengabdianId = $this->request->input('pengabdianid');
+        $pengabdianId = $this->request->input('id_pengabdian');
 
         DB::beginTransaction();
         try {

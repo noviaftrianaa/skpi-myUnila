@@ -41,11 +41,11 @@ class LembagaController extends Controller
             'id_sp' => 'required|uuid',
             'page' => 'numeric|min:1',
             'limit'    => 'numeric|min:1|max:50',
-            'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
+            'sort_by' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
         ]);
 
         $sortby = "ASC";
-        $sortby = $this->request->input('sortby');
+        $sortby = $this->request->input('sort_by');
         $id_sp = $this->request->input('id_sp');
 
         if (!empty($sortby)) {

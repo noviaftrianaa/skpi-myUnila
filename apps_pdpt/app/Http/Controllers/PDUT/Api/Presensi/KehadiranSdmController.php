@@ -33,19 +33,19 @@ class KehadiranSdmController extends Controller
     public function getListKehadiranBySdmId()
     {
         InputValidator([
-            'sdmid' => 'required|uuid',
-            'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
+            'id_sdm' => 'required|uuid',
+            'sort_by' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
         ], [
             'page' => 'numeric|min:1',
-            'count' => 'numeric|min:1|max:50',
-            'sdmid.required' => 'field sdmid ini harus diisi',
-            'sdmid.uuid' => 'input sdmid harus berupa uuid yang valid',
-            'sortby.alpha' => 'input sortby penyortiran tidak sesuai',
-            'sortby.in' => 'input sortby penyortiran hanya ASC,asc atau DESC,desc'
+            'limit' => 'numeric|min:1|max:50',
+            'id_sdm.required' => 'field sdmid ini harus diisi',
+            'id_sdm.uuid' => 'input sdmid harus berupa uuid yang valid',
+            'sort_by.alpha' => 'input sortby penyortiran tidak sesuai',
+            'sort_by.in' => 'input sortby penyortiran hanya ASC,asc atau DESC,desc'
         ]);
 
-        $sdmId = $this->request->input('sdmid');
-        $sortBy = $this->request->input('sortby');
+        $sdmId = $this->request->input('id_sdm');
+        $sortBy = $this->request->input('sort_by');
         if (empty($sortBy)) {
             $sortBy = 'DESC';
         }
@@ -102,7 +102,7 @@ class KehadiranSdmController extends Controller
             }
             //     return WrapResponse([
             //         'page' => $pagination['page'],
-            //         'count' => $pagination['count'],
+            //         'limit' => $pagination['limit'],
             //         'data' => $data
             //     ], 'sukses');
             // }

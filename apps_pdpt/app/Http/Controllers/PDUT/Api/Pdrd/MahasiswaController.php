@@ -13,18 +13,18 @@ class MahasiswaController extends Controller
     public function list(Request $request)
     {
         $currentPage = $request->input('page', 1);
-        $itemsPerPage = $request->input('item', 50);
-        $sortBy = $request->input('sortby', 'ASC');
-        $idProdi = $request->input('idProdi');
+        $itemsPerPage = $request->input('limit', 50);
+        $sortBy = $request->input('sort_by', 'ASC');
+        $id_prodi = $request->input('id_prodi');
 
         InputValidator([
-            'sortby' => ['alpha', ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])],
-            'idProdi' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
+            'sort_by' => ['alpha', ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])],
+            'id_prodi' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
         ], [
-            'idProdi.required' => 'field ini harus diisi',
-            'idProdi.regex' => 'input harus berupa campuran alpa_numeric dan dash',
-            'sortby.alpha' => 'input penyortiran harus kata',
-            'sortby.in' => 'input pernyortiran hanya ASC atau DESC'
+            'id_prodi.required' => 'field ini harus diisi',
+            'id_prodi.regex' => 'input harus berupa campuran alpa_numeric dan dash',
+            'sort_by.alpha' => 'input penyortiran harus kata',
+            'sort_by.in' => 'input pernyortiran hanya ASC atau DESC'
         ]);
 
         if (!empty($itemsPerPage)) {
@@ -33,7 +33,8 @@ class MahasiswaController extends Controller
             }
         }
 
-        $query = DB::SELECT("
+        $query = DB::SELECT(
+            "
             DECLARE @PageNumber AS INT
             DECLARE @RowsOfPage AS INT
             SET
@@ -69,7 +70,7 @@ class MahasiswaController extends Controller
             FROM
                 pdrd.peserta_didik AS pd WITH(NOLOCK)
                 JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
-                AND reg.id_sms = '" . $idProdi . "'
+                AND reg.id_sms = '" . $id_prodi . "'
                 AND reg.id_jns_keluar IS NULL
                 AND reg.soft_delete = 0
                 JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = reg.id_semester_masuk
@@ -135,9 +136,9 @@ class MahasiswaController extends Controller
 
     public function detail(Request $request)
     {
-        $idPesertaDidik = $request->input('idPesertaDidik');
+        $idPesertaDidik = $request->input('id_peserta_didik');
         InputValidator([
-            'idPesertaDidik' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
+            'id_peserta_didik' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
         ], [
             'idPesertaDidik.required' => 'field ini harus diisi',
             'idPesertaDidik.regex' => 'input harus berupa campuran alpa_numeric dan dash',
@@ -307,24 +308,24 @@ class MahasiswaController extends Controller
     public function status(Request $request)
     {
         $currentPage = $request->input('page', 1);
-        $itemsPerPage = $request->input('item', 50);
-        $sortBy = $request->input('sortby', 'ASC');
-        $idProdi = $request->input('idProdi');
-        $statMhs = $request->input('statMhs', 'A');
+        $itemsPerPage = $request->input('limit', 50);
+        $sortBy = $request->input('sort_by', 'ASC');
+        $id_prodi = $request->input('id_prodi');
+        $statMhs = $request->input('status_mahasiswa', 'A');
 
         InputValidator([
-            'idProdi' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
-            'statMhs' => ['alpha', ValidationRule::in([
+            'id_prodi' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
+            'status_mahasiswa' => ['alpha', ValidationRule::in([
                 'A', 'C', 'D', 'G', 'H', 'K', 'L', 'M', 'N', 'T', 'U', 'W',
                 'a', 'c', 'd', 'g', 'h', 'k', 'l', 'm', 'n', 't', 'u', 'w'
             ])],
-            'sortby' => ['alpha', ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])],
+            'sort_by' => ['alpha', ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])],
         ], [
-            'idProdi.required' => 'field ini harus diisi',
-            'idProdi.regex' => 'input harus berupa campuran alpa_numeric dan dash',
+            'id_prodi.required' => 'field ini harus diisi',
+            'id_prodi.regex' => 'input harus berupa campuran alpa_numeric dan dash',
             'statMhs.regex' => 'input harus sesuai',
-            'sortby.alpha' => 'input penyortiran harus kata',
-            'sortby.in' => 'input pernyortiran hanya ASC atau DESC'
+            'sort_by.alpha' => 'input penyortiran harus kata',
+            'sort_by.in' => 'input pernyortiran hanya ASC atau DESC'
         ]);
 
         if (!empty($itemsPerPage)) {
@@ -333,7 +334,8 @@ class MahasiswaController extends Controller
             }
         }
 
-        $query = DB::SELECT("
+        $query = DB::SELECT(
+            "
             DECLARE @PageNumber AS INT
             DECLARE @RowsOfPage AS INT
             SET
@@ -369,7 +371,7 @@ class MahasiswaController extends Controller
             FROM
                 pdrd.peserta_didik AS pd WITH(NOLOCK)
                 JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
-                AND reg.id_sms = '" . $idProdi . "'
+                AND reg.id_sms = '" . $id_prodi . "'
                 AND reg.id_jns_keluar IS NULL
                 AND reg.soft_delete = 0
                 JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = reg.id_semester_masuk
@@ -436,21 +438,21 @@ class MahasiswaController extends Controller
     public function regis(Request $request)
     {
         $currentPage = $request->input('page', 1);
-        $itemsPerPage = $request->input('item', 50);
-        $sortBy = $request->input('sortby', 'ASC');
-        $idProdi = $request->input('idProdi');
-        $idJenisDaftar = $request->input('idJenisDaftar', '1');
+        $itemsPerPage = $request->input('limit', 50);
+        $sortBy = $request->input('sort_by', 'ASC');
+        $id_prodi = $request->input('id_prodi');
+        $idJenisDaftar = $request->input('id_jenis_daftar', '1');
 
         InputValidator([
-            'idProdi' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
-            'idJenisDaftar' => ['numeric', ValidationRule::in(['1', '2', '3', '4', '5', '6', '8', '11', '12', '13', '14', '15'])],
-            'sortby' => ['alpha', ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])],
+            'id_prodi' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
+            'id_jenis_daftar' => ['numeric', ValidationRule::in(['1', '2', '3', '4', '5', '6', '8', '11', '12', '13', '14', '15'])],
+            'sort_by' => ['alpha', ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])],
         ], [
-            'idProdi.required' => 'field ini harus diisi',
-            'idProdi.regex' => 'input harus berupa campuran alpa_numeric dan dash',
+            'id_prodi.required' => 'field ini harus diisi',
+            'id_prodi.regex' => 'input harus berupa campuran alpa_numeric dan dash',
             'idJenisDaftar.regex' => 'input harus numerik',
-            'sortby.alpha' => 'input penyortiran harus kata',
-            'sortby.in' => 'input pernyortiran hanya ASC atau DESC'
+            'sort_by.alpha' => 'input penyortiran harus kata',
+            'sort_by.in' => 'input pernyortiran hanya ASC atau DESC'
         ]);
 
         if (!empty($itemsPerPage)) {
@@ -459,7 +461,8 @@ class MahasiswaController extends Controller
             }
         }
 
-        $query = DB::SELECT("
+        $query = DB::SELECT(
+            "
             DECLARE @PageNumber AS INT
             DECLARE @RowsOfPage AS INT
             SET
@@ -483,7 +486,7 @@ class MahasiswaController extends Controller
             FROM
                 pdrd.peserta_didik AS pd WITH(NOLOCK)
                 JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
-                AND reg.id_sms = '" . $idProdi . "'
+                AND reg.id_sms = '" . $id_prodi . "'
                 AND reg.id_jns_daftar = '" . $idJenisDaftar . "'
                 AND reg.id_jns_keluar IS NULL
                 AND reg.soft_delete = 0
@@ -552,9 +555,9 @@ class MahasiswaController extends Controller
 
     public function semester_keaktifan(Request $request)
     {
-        $idPesertaDidik = $request->input('idPesertaDidik');
+        $idPesertaDidik = $request->input('id_peserta_didik');
         InputValidator([
-            'idPesertaDidik' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
+            'id_peserta_didik' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
         ], [
             'idPesertaDidik.required' => 'field ini harus diisi',
             'idPesertaDidik.regex' => 'input harus berupa campuran alpa_numeric dan dash',
@@ -666,18 +669,18 @@ class MahasiswaController extends Controller
     public function alumni(Request $request)
     {
         $currentPage = $request->input('page', 1);
-        $itemsPerPage = $request->input('item', 50);
-        $sortBy = $request->input('sortby', 'ASC');
-        $idProdi = $request->input('idProdi');
+        $itemsPerPage = $request->input('limit', 50);
+        $sortBy = $request->input('sort_by', 'ASC');
+        $id_prodi = $request->input('id_prodi');
 
         InputValidator([
-            'sortby' => ['alpha', ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])],
-            'idProdi' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
+            'sort_by' => ['alpha', ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])],
+            'id_prodi' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
         ], [
-            'idProdi.required' => 'field ini harus diisi',
-            'idProdi.regex' => 'input harus berupa campuran alpa_numeric dan dash',
-            'sortby.alpha' => 'input penyortiran harus kata',
-            'sortby.in' => 'input pernyortiran hanya ASC atau DESC'
+            'id_prodi.required' => 'field ini harus diisi',
+            'id_prodi.regex' => 'input harus berupa campuran alpa_numeric dan dash',
+            'sort_by.alpha' => 'input penyortiran harus kata',
+            'sort_by.in' => 'input pernyortiran hanya ASC atau DESC'
         ]);
 
         if (!empty($itemsPerPage)) {
@@ -686,7 +689,8 @@ class MahasiswaController extends Controller
             }
         }
 
-        $query = DB::SELECT("
+        $query = DB::SELECT(
+            "
             DECLARE @PageNumber AS INT
             DECLARE @RowsOfPage AS INT
             SET
@@ -728,7 +732,7 @@ class MahasiswaController extends Controller
             FROM
                 pdrd.peserta_didik AS pd WITH(NOLOCK)
                 JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
-                AND reg.id_sms = '" . $idProdi . "'
+                AND reg.id_sms = '" . $id_prodi . "'
                 AND reg.id_jns_keluar = '1'
                 AND reg.soft_delete = 0
                 JOIN pdrd.sms AS sms WITH(NOLOCK) ON sms.id_sms = reg.id_sms

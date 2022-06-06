@@ -31,7 +31,7 @@ return [
                     base_path('app/Anotations')
                 ],
             ],
-            'generate_always' => false,
+            'generate_always' => true,
             'validator_url' => null,
             'persist_authorization' => true,
             'constants' => [

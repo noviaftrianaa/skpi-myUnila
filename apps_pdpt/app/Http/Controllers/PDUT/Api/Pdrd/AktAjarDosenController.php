@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Services\JsonApiResponse as WrapResponse;
 use App\Services\QueryPagination;
 use App\Transformers\AktAjarDosenTransformer;
+use Exception;
 
 class AktAjarDosenController extends Controller
 {
@@ -34,12 +35,11 @@ class AktAjarDosenController extends Controller
 
     public function index()
     {
-        $idKls = $this->request->input('idKls', NULL);
+        $idKls = $this->request->input('id_kelas', NULL);
         InputValidator([
             'page' => 'numeric|min:1',
-            'count' => 'numeric|min:1|max:50',
-            ['idKls' => 'regex:/^[a-zA-Z0-9\-\(\)\s]+$/',],
-            ['idKls.regex' => 'input harus berupa campuran alpa_numeric dan dash',]
+            'limit' => 'numeric|min:1|max:50',
+            'id_kelas' => 'required|uuid',
         ]);
 
         $query = "

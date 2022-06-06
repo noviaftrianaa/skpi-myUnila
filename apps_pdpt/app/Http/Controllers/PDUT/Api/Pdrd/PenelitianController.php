@@ -53,15 +53,15 @@ class PenelitianController extends Controller
     public function daftar()
     {
         InputValidator([
-            'sortby' => [
+            'sort_by' => [
                 'alpha',
                 ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])
             ],
             'page' => 'numeric',
-            'count' => 'numeric'
+            'limit' => 'numeric'
         ]);
 
-        $sortby = $this->request->input('sortby');
+        $sortby = $this->request->input('sort_by');
         if (empty($sortby)) {
             $sortby = 'DESC';
         }
@@ -111,14 +111,14 @@ class PenelitianController extends Controller
     public function daftar_id()
     {
         InputValidator([
-            'sdmid' => 'required|uuid',
+            'id_sdm' => 'required|uuid',
             'page' => 'numeric|min:1',
-            'count'    => 'numeric|min:1|max:50',
-            'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
+            'limit'    => 'numeric|min:1|max:50',
+            'sort_by' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
         ]);
 
-        $sdmId = $this->request->input('sdmid');
-        $sortBy = $this->request->input('sortby');
+        $sdmId = $this->request->input('id_sdm');
+        $sortBy = $this->request->input('sort_by');
         if (empty($sortBy)) {
             $sortBy = 'DESC';
         }
@@ -170,14 +170,14 @@ class PenelitianController extends Controller
     public function detail()
     {
         InputValidator([
-            'penelitianid' => 'required|uuid',
+            'id_penelitian' => 'required|uuid',
         ], [
             'penelitianid.required' => 'field penelitianid ini harus diisi',
             'penelitianid.uuid' => 'input penelitian id harus berupa uuid yang valid',
         ]);
 
         $reformatGetDetailPenelitian = [];
-        $penelitianId = $this->request->input('penelitianid');
+        $penelitianId = $this->request->input('id_penelitian');
 
         try {
             $query = "
@@ -485,8 +485,6 @@ class PenelitianController extends Controller
                     }
                 }
             }
-
-            return [$anggota_dosen, $penelitian];
 
             if (!empty($anggota_dosen)) {
                 foreach ($anggota_dosen as $index => $idDosen) {
@@ -906,13 +904,13 @@ class PenelitianController extends Controller
     public function hapus()
     {
         InputValidator([
-            'penelitianid' => 'required|uuid',
+            'id_penelitian' => 'required|uuid',
         ], [
-            'penelitianid.required' => 'field penelitianid ini harus diisi',
-            'penelitianid.uuid' => 'input penelitianid harus berupa uuid yang valid',
+            'id_penelitian.required' => 'field id_penelitian ini harus diisi',
+            'id_penelitian.uuid' => 'input id_penelitian harus berupa uuid yang valid',
         ]);
 
-        $penelitianId = $this->request->input('penelitianid');
+        $penelitianId = $this->request->input('id_penelitian');
         $updateId = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
 
         DB::beginTransaction();

@@ -23,12 +23,12 @@ class TracerStudyController extends Controller
     public function index(Request $request)
     {
         $currentPage = $request->input('page', 1);
-        $itemsPerPage = $request->input('item', 50);
-        $idProdi = $request->input('idProdi', NULL);
+        $itemsPerPage = $request->input('limit', 50);
+        $idProdi = $request->input('id_prodi', NULL);
 
         InputValidator(
-            ['idProdi' => 'regex:/^[a-zA-Z0-9\-\(\)\s]+$/',],
-            ['idProdi.regex' => 'input harus berupa campuran alpa_numeric dan dash',]
+            ['id_prodi' => 'regex:/^[a-zA-Z0-9\-\(\)\s]+$/',],
+            ['id_prodi.regex' => 'input harus berupa campuran alpa_numeric dan dash',]
         );
 
         if (!empty($itemsPerPage)) {

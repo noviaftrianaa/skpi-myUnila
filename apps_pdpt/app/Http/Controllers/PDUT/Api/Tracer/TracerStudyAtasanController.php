@@ -18,7 +18,7 @@ class TracerStudyAtasanController extends Controller
     public function index(Request $request)
     {
         $currentPage = $request->input('page', 1);
-        $itemsPerPage = $request->input('item', 50);
+        $itemsPerPage = $request->input("limit", 50);
 
         if (!empty($itemsPerPage)) {
             if ($itemsPerPage > 50) {
