@@ -2,8 +2,8 @@
 @section('title','Dashboard')
 
 @push('css')
-<link rel="stylesheet" type="text/css" href="{{ asset('slick/slick.css') }}"/>
-<link rel="stylesheet" type="text/css" href="{{ asset('slick/slick-theme.css') }}"/>
+<link rel="stylesheet" href="{{ asset('owlcarousel/dist/assets/owl.carousel.min.css') }}">
+<link rel="stylesheet" href="{{ asset('owlcarousel/dist/assets/owl.theme.default.min.css') }}">
 <style>
     form .inner-form .input-field {
         height: 65px;
@@ -45,10 +45,9 @@
     .new_style {
         padding: 25px;
     }
-    @media only screen and (max-width: 960px) {
-        .new_style {
-            padding: 5px;
-        }
+    ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+        color: black;
+        opacity: 1; /* Firefox */
     }
     .content-wrapper {
         background: url('/images/bg-dashboard.png');
@@ -59,60 +58,96 @@
     svg {
         color: #fff;
     }
+    .search {
+        transform: translate(0, 45%);
+    }
+    .owl-carousel img {
+        width:  auto; /*or 70%, or what you want*/
+        height: 65px; /*or 70%, or what you want*/
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        margin-top: 30px;
+        transform: translate(0, -50%);
+    }
+    .owl-prev, .owl-next
+    {
+        position: absolute;
+    }
+    .owl-prev
+    {
+        left: -30px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 40px !important;
+        background-color: transparent !important;
+        outline: none !important;
+    }
+    .owl-next
+    {
+        right: -30px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 40px !important;
+        background-color: transparent !important;
+        outline: none !important;
+    }
+    @media only screen and (max-width: 960px) {
+        .new_style {
+            padding: 5px;
+        }
+        .owl-carousel img {
+            width:  100%; /*or 70%, or what you want*/
+            height: 50px; /*or 70%, or what you want*/
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            margin-top: 30px;
+            transform: translate(0, -50%);
+        }
+    }
 </style>
 @endpush
 
 @push('js')
-<script type="text/javascript" src="//code.jquery.com/jquery-1.11.0.min.js"></script>
-<script type="text/javascript" src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
-<script type="text/javascript" src="{{ asset('slick/slick.min.js') }}"></script>
+<script src="{{ asset('owlcarousel/dist/owl.carousel.min.js') }}"></script>
 <script>
     $(document).ready(function(){
-        const mediaQuery = window.matchMedia("(max-width: 960px)");
-        if(mediaQuery.matches) {
-            $( ".apps" ).each(function() {
-                $( this ).slick({
-                    autoplay: true,
-                    autoplaySpeed: 3000,
-                    rows: 2,
-                    slidesPerRow: 4,
-                    mobileFirst: true,
-                    respondTo: 'window'
-                });
-            });
-            $( ".apps_search" ).each(function() {
-                $( this ).slick({
-                    autoplay: true,
-                    autoplaySpeed: 3000,
-                    rows: 2,
-                    slidesPerRow: 4,
-                    mobileFirst: true,
-                    respondTo: 'window'
-                });
-            });
-        } else {
-            $( ".apps" ).each(function() {
-                $( this ).slick({
-                    autoplay: true,
-                    autoplaySpeed: 3000,
-                    rows: 2,
-                    slidesPerRow: 8,
-                    mobileFirst: true,
-                    respondTo: 'window'
-                });
-            });
-            $( ".apps_search" ).each(function() {
-                $( this ).slick({
-                    autoplay: true,
-                    autoplaySpeed: 3000,
-                    rows: 2,
-                    slidesPerRow: 8,
-                    mobileFirst: true,
-                    respondTo: 'window'
-                });
-            });
-        }
+        var owls = $(".owl-carousel").owlCarousel({
+            loop:true,
+            nav: true,
+            margin:20,
+            // responsiveClass:true,
+            // autoplay:true,
+            // autoplayTimeout:1000,
+            responsive:{
+                0:{
+                    items:6,
+                    nav:true,
+                    loop:true
+                },
+                600:{
+                    items:8,
+                    nav:true,
+                    loop:true
+                },
+                1000:{
+                    items:10,
+                    nav:true,
+                    loop:true
+                }
+            }
+        });
+        $(".owl-carousel").on('mousewheel', '.owl-stage', function (e) {
+            if (e.deltaY>0) {
+                owl.trigger('next.owl');
+            } else {
+                owl.trigger('prev.owl');
+            }
+            e.preventDefault();
+        });
 
+        //SEARCH
         $('#search').on('keyup change', function() {
             var name = $(this).val();
             if(name!='' && name!=' ') {
@@ -127,18 +162,23 @@
                             $('.apps_search').show();
                             $(".apps_search").html("");
                             $.each(data, function(key, item){
-                                var html = '<div> <a href="' + item.url + '" title="' + item.nm_aplikasi + '" alt="' + item.nm_aplikasi + '" target="_blank"> <div class="row"> <div class="col-12 text-center"> <img src="' + item.url_logo + '" class="img-fluid" alt="apps"> </div> </div> <div class="row"> <div class="col-12 text-center"> <p class="text-xs text-warning"><b>' + item.nm_aplikasi + '</b></p> </div> </div> </a> </div>';
+                                var html = '<div id="'+key+'"> <a href="' + item.url + '" id="' + key + '" title="' + item.nm_aplikasi + '" alt="' + item.nm_aplikasi + '" target="_blank"> <div class="row"> <div class="col-12 text-center"> <img id="' + key + '" src="' + item.url_logo + '" class="img-responsive" alt="apps"> </div> </div> <div class="row"> <div class="col-12 text-center"> <span class="text-xs text-warning" id="' + key + '" style="font-weight: bold">' + item.nm_aplikasi + '</span> </div> </div> </a> </div>';
                                 $(".apps_search").append(html);
+                                owls.trigger('refresh.owl.carousel');
                             });
                         } else {
                             $('.apps').show();
                             $(".apps_search").html("");
+                            $("#search").val("");
+                            owls.trigger('refresh.owl.carousel');
                         }
                     }
                 });
             } else {
                 $('.apps').show();
                 $(".apps_search").html("");
+                $("#search").val("");
+                owls.trigger('refresh.owl.carousel');
             }
         });
     });
@@ -146,42 +186,50 @@
 @endpush
 
 @section('content')
-    <div class="row new_style">
-        <div class="col-12 text-center">
-            <form>
-                <div class="inner-form">
-                    <div class="input-field">
-                        <button class="btn-search" type="button">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="24" viewBox="0 0 24 24">
-                                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path>
-                            </svg>
-                        </button>
-                        <input id="search" type="text" placeholder="Search apps" />
+<div class="row search">
+    <div class="col-sm-1 col-12"></div>
+    <div class="col-sm-10 col-12">
+        <div class="row new_style">
+            <div class="col-12 text-center mb-4">
+                <form>
+                    <div class="inner-form">
+                        <div class="input-field">
+                            <button class="btn-search" type="button">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="24" viewBox="0 0 24 24">
+                                    <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path>
+                                </svg>
+                            </button>
+                            <input id="search" type="text" placeholder="Search apps ..." />
+                        </div>
                     </div>
-                </div>
-            </form>
-        </div>
-        <div class="col-12 mt-4">
-            <div class="apps ml-3 mr-3">
-                @foreach($app_inter AS $items)
-                <div>
-                    <a href="{{ $items->url }}" title="{{$items->nm_aplikasi}}" alt="{{$items->nm_aplikasi}}" target="_blank">
-                        <div class="row">
-                            <div class="col-12 text-center">
-                                <img src="{{ (!is_null($items->largeobject)) ? 'data:image/' . $items->largeobject->mime_type . ';base64,' . $items->largeobject->blob_content : asset('auth/img/logo.png') }}" class="img-fluid" min-width="100%" alt="apps">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-12 text-center">
-                                <p class="text-xs text-warning"><b>{{$items->nm_aplikasi}}</b></p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                @endforeach
+                </form>
             </div>
-            <div class="apps_search ml-3 mr-3"></div>
+            <div class="col-sm-1 col-1"></div>
+            <div class="col-sm-10 col-10">
+                <div class="owl-carousel apps">
+                    @foreach($app_inter AS $items)
+                    <div>
+                        <a href="{{ $items->url }}" title="{{$items->nm_aplikasi}}" alt="{{$items->nm_aplikasi}}" target="_blank">
+                            <div class="row">
+                                <div class="col-12 text-center">
+                                    <img src="{{ (!is_null($items->largeobject)) ? 'data:image/' . $items->largeobject->mime_type . ';base64,' . $items->largeobject->blob_content : asset('auth/img/logo.png') }}" class="img-responsive" alt="apps">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12 text-center">
+                                    <span class="text-xs text-warning" style="font-weight: bold">{{ $items->nm_aplikasi }}</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    @endforeach
+                </div>
+                <div class="owl-carousel apps_search"></div>
+            </div>
+            <div class="col-sm-1 col-1"></div>
         </div>
     </div>
+    <div class="col-sm-1 col-12"></div>
+</div>
 
 @endsection

@@ -63,7 +63,7 @@ class HomeController extends Controller
 
     public function searchApps($name)
     {
-        $data = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->where('nm_aplikasi', 'like', '%'.$name.'%')->get();
+        $data = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->where('nm_aplikasi', 'like', '%'.$name.'%')->orderBy("nm_aplikasi", "ASC")->take(1)->get();
 
         foreach($data as $items) {
             $items->url_logo = (!is_null($items->largeobject)) ? 'data:image/' . $items->largeobject->mime_type . ';base64,' . $items->largeobject->blob_content : asset('auth/img/logo.png');
