@@ -59,7 +59,7 @@
         color: #fff;
     }
     .search {
-        transform: translate(0, 45%);
+        transform: translate(0, 30%);
     }
     .owl-carousel img {
         width:  auto; /*or 70%, or what you want*/
@@ -97,7 +97,7 @@
             padding: 5px;
         }
         .owl-carousel img {
-            width:  100%; /*or 70%, or what you want*/
+            width:  auto; /*or 70%, or what you want*/
             height: 50px; /*or 70%, or what you want*/
             background-size: cover;
             background-position: center;
@@ -117,17 +117,17 @@
             loop:true,
             nav: true,
             margin:20,
-            // responsiveClass:true,
-            // autoplay:true,
-            // autoplayTimeout:1000,
+            responsiveClass:true,
+            autoplay:true,
+            autoplayTimeout:2000,
             responsive:{
                 0:{
-                    items:6,
+                    items:3,
                     nav:true,
                     loop:true
                 },
-                600:{
-                    items:8,
+                700:{
+                    items:6,
                     nav:true,
                     loop:true
                 },
@@ -157,10 +157,12 @@
                     dataType: "json",
                     success:function(data)
                     {
-                        if(data){
+                        console.log(data);
+                        if(data != ''){
                             $('.apps').hide();
                             $('.apps_search').show();
                             $(".apps_search").html("");
+                            $(".info-error").html("");
                             $.each(data, function(key, item){
                                 var html = '<div id="'+key+'"> <a href="' + item.url + '" id="' + key + '" title="' + item.nm_aplikasi + '" alt="' + item.nm_aplikasi + '" target="_blank"> <div class="row"> <div class="col-12 text-center"> <img id="' + key + '" src="' + item.url_logo + '" class="img-responsive" alt="apps"> </div> </div> <div class="row"> <div class="col-12 text-center"> <span class="text-xs text-warning" id="' + key + '" style="font-weight: bold">' + item.nm_aplikasi + '</span> </div> </div> </a> </div>';
                                 $(".apps_search").append(html);
@@ -169,7 +171,7 @@
                         } else {
                             $('.apps').show();
                             $(".apps_search").html("");
-                            $("#search").val("");
+                            $(".info-error").html('<div class="alert alert-warning text-center" style="padding:0"> <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> <span style="font-weight: bold;"><i class="icon fas fa-info-circle"></i> APLIKASI TIDAK DITEMUKAN!</span> </div>');
                             owls.trigger('refresh.owl.carousel');
                         }
                     }
@@ -178,6 +180,7 @@
                 $('.apps').show();
                 $(".apps_search").html("");
                 $("#search").val("");
+                $(".info-error").html("");
                 owls.trigger('refresh.owl.carousel');
             }
         });
@@ -191,6 +194,7 @@
     <div class="col-sm-10 col-12">
         <div class="row new_style">
             <div class="col-12 text-center mb-4">
+                <div class="info-error"></div>
                 <form>
                     <div class="inner-form">
                         <div class="input-field">
