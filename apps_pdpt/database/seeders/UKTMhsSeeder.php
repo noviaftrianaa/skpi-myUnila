@@ -112,13 +112,15 @@ class UKTMhsSeeder extends Seeder
                         if ($err) {
                             return false;
                         }else{
-                            for ($tahun=2011;$tahun<=(int) date('Y');$tahun++) {
+                            for ($tahun=2014;$tahun<=(int) date('Y');$tahun++) {
                                 $mhs = PesertaDidik::daftar_mhs_per_angkatan($tahun);
                                 $total = count($mhs);
                                 if ($total>0) {
                                     foreach ($mhs AS $no_mhs=>$each_mhs) {
                                         echo "Tarik UKT tahun ".$tahun." NPM:".$each_mhs->nipd." data ke-".($no_mhs+1)." dari ".$total;
                                         $response = $proxy->MasterBiayaMahasiswa($token,"npm='".$each_mhs->nipd."'","nama ASC",'100',0);
+//                                        $response = $proxy->MasterBiayaMahasiswa($token,"npm='1411011005'","nama ASC",'100',0);
+//                                        dd($response);
                                         if (count($response['result'])>0) {
                                             foreach ($response['result'] AS $each_result) {
                                                 if (count($each_result['riwayat'])>0) {
@@ -131,7 +133,7 @@ class UKTMhsSeeder extends Seeder
                                                                 'id_smt'	        => $smt,
                                                                 'id_semester'	    => $each_ukt['id_semester'],
                                                                 'fk_nama_semester'	=> $each_ukt['fk_nama_semester'],
-                                                                'id_ukt'	        => $each_ukt['id_ukt'],
+                                                                'id_ukt'	        => $each_ukt['id_ukt']==''?null:$each_ukt['id_ukt'],
                                                                 'fk_kode_kelas_ukt'	=> $each_ukt['fk_kode_kelas_ukt'],
                                                                 'fk_kelas_ukt'	    => $each_ukt['fk_kelas_ukt'],
                                                                 'flag_bidik_misi'	=> $each_ukt['flag_bidik_misi'],
