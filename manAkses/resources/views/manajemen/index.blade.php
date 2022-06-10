@@ -58,9 +58,9 @@
     svg {
         color: #fff;
     }
-    .search {
-        transform: translate(0, 30%);
-    }
+    /* .search {
+        transform: translate(0, 70%);
+    } */
     .owl-carousel img {
         width:  auto; /*or 70%, or what you want*/
         height: 65px; /*or 70%, or what you want*/
@@ -92,7 +92,7 @@
         background-color: transparent !important;
         outline: none !important;
     }
-    @media only screen and (max-width: 960px) {
+    @media only screen and (max-width: 1366px) {
         .new_style {
             padding: 5px;
         }
@@ -104,6 +104,26 @@
             background-repeat: no-repeat;
             margin-top: 30px;
             transform: translate(0, -50%);
+        }
+        .search {
+            transform: translate(0, 70%);
+        }
+    }
+    @media only screen and (min-width: 1366px) {
+        .new_style {
+            padding: 25px;
+        }
+        .owl-carousel img {
+            width:  auto; /*or 70%, or what you want*/
+            height: 70px; /*or 70%, or what you want*/
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            margin-top: 30px;
+            transform: translate(0, -50%);
+        }
+        .search {
+            transform: translate(0, 50%);
         }
     }
 </style>
@@ -119,19 +139,19 @@
             margin:20,
             responsiveClass:true,
             autoplay:true,
-            autoplayTimeout:2000,
+            autoplayTimeout:4000,
             responsive:{
                 0:{
-                    items:3,
+                    items:4,
                     nav:true,
                     loop:true
                 },
-                700:{
-                    items:6,
+                960:{
+                    items:8,
                     nav:true,
                     loop:true
                 },
-                1000:{
+                1366:{
                     items:10,
                     nav:true,
                     loop:true
