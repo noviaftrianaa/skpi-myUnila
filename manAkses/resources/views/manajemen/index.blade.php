@@ -142,7 +142,7 @@
             autoplayTimeout:4000,
             responsive:{
                 0:{
-                    items:4,
+                    items:5,
                     nav:true,
                     loop:true
                 },

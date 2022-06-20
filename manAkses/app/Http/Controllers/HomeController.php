@@ -39,7 +39,7 @@ class HomeController extends Controller
         $unit = UnitOrganisasi::all();
         $role = Rolepengguna::all();
         $db = DB::table('man_akses.versi_db')->first();
-        $app_inter = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->get();
+        $app_inter = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->whereNull('expired_date')->orWhere('expired_date', '>=', currDateTime())->get();
         // $app_non_inter = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->where('a_integrasi_cas',0)->get();
             
         if(Session::has('login.role') && Session::get('login.role')->id_peran == 1) {
@@ -63,7 +63,7 @@ class HomeController extends Controller
 
     public function searchApps($name)
     {
-        $data = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->where('nm_aplikasi', 'like', '%'.$name.'%')->orderBy("nm_aplikasi", "ASC")->take(1)->get();
+        $data = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->where('nm_aplikasi', 'like', '%'.$name.'%')->whereNull('expired_date')->orWhere('expired_date', '>=', currDateTime())->orderBy("nm_aplikasi", "ASC")->take(1)->get();
 
         foreach($data as $items) {
             $items->url_logo = (!is_null($items->largeobject)) ? 'data:image/' . $items->largeobject->mime_type . ';base64,' . $items->largeobject->blob_content : asset('auth/img/logo.png');

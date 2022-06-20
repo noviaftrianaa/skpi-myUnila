@@ -19,6 +19,7 @@
                         <th>Nama Aplikasi</th>
                         <th>Nama Organisasi</th>
                         <th>URL</th>
+                        <th>Expired Date</th>
                         <th>Last Sync</th>
                         <th>Aksi</th>
                       </tr>
@@ -30,7 +31,8 @@
                             <td>{{$item->nm_aplikasi}}</td>
                             <td>{{$item->unitorganisasi->nm_lemb}}</td>
                             <td>{{$item->url}}</td>
-                            <td>{{$item->last_sync}}</td>
+                            <td>{{TglWaktuIndonesia($item->expired_date)}}</td>
+                            <td>{{TglWaktuIndonesia($item->last_sync)}}</td>
                             <td>
                                 <a class="btn btn-info btn-xs" title="Show" href="{{ route('aplikasi.detail', [Crypt::encrypt($item->id_aplikasi)]) }}"> <i class="fas fa-eye"></i></a>
                             </td>

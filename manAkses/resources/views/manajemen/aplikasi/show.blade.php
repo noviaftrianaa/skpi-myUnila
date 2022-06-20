@@ -13,6 +13,7 @@
             <div class="card-tools">
                 <a type="button" class="btn btn-primary btn-xs " href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Table Aplikasi</a>
                 <a type="button" data-toggle="modal" class="btn btn-secondary btn-xs " href="#editAplikasi{{$data->id_aplikasi}}"><i class="fa fa-edit"></i> Edit</a>
+                <!-- <a type="button" data-toggle="modal" class="btn btn-danger btn-xs " href="#hapusAplikasi"><i class="fas fa-trash-alt"></i> Delete</a> -->
             </div>
         </div><!-- /.card-header -->
         <div class="card-body" style="margin: 0;padding: 0">
@@ -203,10 +204,50 @@
                                     <label for="a_sistem_internal_pt">&nbsp;&nbsp;Apakah Sistem Internal PT ?</label>
                                 </div>
                             </div>
+                            <div class="col-sm-12">
+                                <div class="form-group form-group-default">
+                                    <label>Expired Date</label>
+                                    <input name="expired_date" type="date" class="form-control" value="{{date('Y-m-d', strtotime($data->expired_date))}}">
+                                </div>
+                            </div>
                         </div>
                         <div class="modal-footer no-bd">
                             <button type="submit" class="btn btn-primary">Simpan</button>
                             <button type="button" class="btn btn-danger" data-dismiss="modal">Tutup</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="hapusAplikasi" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header no-bd">
+                    <h5 class="modal-title">
+                        <span class="fw-mediumbold">
+                        Hapus </span> 
+                        <span class="fw-light">
+                            Aplikasi
+                        </span>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ route('aplikasi.destroy', [Crypt::encrypt($data->id_aplikasi)]) }}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <p>Apakah yakin ingin menghapus aplikasi <b>{{$data->nm_aplikasi}}</b> ?</p>
+                            </div>
+                        </div>
+                        <div class="modal-footer no-bd">
+                            <button type="button" class="btn btn-link" data-dismiss="modal">Tutup</button>
+                            <button type="submit" class="btn btn-danger">Hapus</button>
                         </div>
                     </form>
                 </div>
@@ -509,7 +550,7 @@
                                     $peran = DB::SELECT("
                                             SELECT *
                                             FROM man_akses.peran WITH (NOLOCK)
-                                            WHERE expired_date=NULL
+                                            WHERE expired_date IS NULL
                                     ");
                                     @endphp
                                     <select class="form-control select2" name="id_peran[]" data-placeholder="Pilih" multiple required>
@@ -620,14 +661,14 @@
                                     $peran = DB::SELECT("
                                             SELECT *
                                             FROM man_akses.peran WITH (NOLOCK)
-                                            WHERE expired_date=NULL
+                                            WHERE expired_date IS NULL
                                     ");
+
+                                    $checkRole = DB::table('man_akses.menu_role')->where('id_menu', $items->id_menu)->where('soft_delete',0)->get()->toArray();
+                                    
                                     @endphp
                                     <select class="form-control select2" name="id_peran[]" data-placeholder="Pilih" multiple required>
                                         @foreach($peran as $item)
-                                            <?php
-                                                $checkRole = DB::table('man_akses.menu_role')->where('id_menu', $items->id_menu)->where('soft_delete',0)->get()->toArray();
-                                            ?>
                                             <option value="{{$item->id_peran}}" {{(in_array($item->id_peran, array_column($checkRole, "id_peran"))==true)?'selected':''}}>{{$item->nm_peran}}</option>
                                         @endforeach
                                     </select>

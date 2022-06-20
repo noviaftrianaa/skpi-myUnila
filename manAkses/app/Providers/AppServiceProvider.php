@@ -31,9 +31,12 @@ class AppServiceProvider extends ServiceProvider
     {
         view()->composer('*', function($view) {
             if(auth()->check()) {
+                // $response = Http::withHeaders([
+                //     'Content-Type' => 'application/json',
+                //     'Authorization' => 'Bearer ' . session()->get('login.token')
+                // ])->get(url('/api/0.1/peran?id_pengguna='.auth()->user()->id_pengguna));
                 $response = Http::get(url('/api/0.1/peran?id_pengguna='.auth()->user()->id_pengguna));
                 $message = $response['message'];
-                // dd($response['data']);
     
                 if(!empty($message)) {
                     foreach($response['data'] AS $each_data) {
