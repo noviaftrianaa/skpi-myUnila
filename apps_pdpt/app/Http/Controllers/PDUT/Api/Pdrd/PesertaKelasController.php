@@ -37,12 +37,11 @@ class PesertaKelasController extends Controller
 
     public function index()
     {
-        $idKelas = $this->request->input('idKelas', NULL);
+        $idKelas = $this->request->input('id_kelas', NULL);
         InputValidator([
             'page' => 'numeric|min:1',
-            'count' => 'numeric|min:1|max:50',
-            ['idKelas' => 'regex:/^[a-zA-Z0-9\-\(\)\s]+$/',],
-            ['idKelas.regex' => 'input harus berupa campuran alpa_numeric dan dash',]
+            'limit' => 'numeric|min:1|max:50',
+            'id_kelas' => 'required|uuid'
         ]);
 
         $query = "

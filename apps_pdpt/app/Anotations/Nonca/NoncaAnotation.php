@@ -28,7 +28,7 @@
  *          )
  *     ),
  *     @OA\Parameter(
- *          name="sort",
+ *          name="sort_by",
  *          description="",
  *          example="DESC",
  *          required=false,
@@ -61,7 +61,7 @@
  *     description="Menampilkan Detail Non Citivitas Akademik",
  *     operationId="detailNonCa",
  *     @OA\Parameter(
- *          name="id_orang",
+ *          name="id_nonca",
  *          description="",
  *          example="91BF4D2B-E204-44C3-BF6C-7060CBF808B8",
  *          required=true,

@@ -33,22 +33,25 @@ class KehadiranSdmController extends Controller
     public function getListKehadiranBySdmId()
     {
         InputValidator([
-            'sdmid' => 'required|uuid',
-            'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
+            'id_sdm' => 'required|uuid',
+            'sort_by' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
         ], [
-            'sdmid.required' => 'field sdmid ini harus diisi',
-            'sdmid.uuid' => 'input sdmid harus berupa uuid yang valid',
-            'sortby.alpha' => 'input sortby penyortiran tidak sesuai',
-            'sortby.in' => 'input sortby penyortiran hanya ASC,asc atau DESC,desc'
+            'page' => 'numeric|min:1',
+            'limit' => 'numeric|min:1|max:50',
+            'id_sdm.required' => 'field sdmid ini harus diisi',
+            'id_sdm.uuid' => 'input sdmid harus berupa uuid yang valid',
+            'sort_by.alpha' => 'input sortby penyortiran tidak sesuai',
+            'sort_by.in' => 'input sortby penyortiran hanya ASC,asc atau DESC,desc'
         ]);
 
-        $sdmId = $this->request->input('sdmid');
-        $sortBy = $this->request->input('sortby');
+        $sdmId = $this->request->input('id_sdm');
+        $sortBy = $this->request->input('sort_by');
         if (empty($sortBy)) {
             $sortBy = 'DESC';
         }
 
-        $query = "
+        try {
+            $query = "
             SELECT
                 ks.id_kehadiran_sdm,
                 sdm.nm_sdm AS sdm,
@@ -73,36 +76,44 @@ class KehadiranSdmController extends Controller
                 ks.tgl_hadir " . $sortBy . "
         ";
 
-        $pagination = CustomPagination($query);
-        $query = $pagination['query'];
+            $pagination = CustomPagination($query);
+            $query = $pagination['query'];
 
-        $query = DB::select($query);
-        if (empty($query)) {
-            return WrapResponse([], "tidak ditemukan data kehadiran dari sdm id $sdmId", FALSE);
-        }
+            $query = DB::select($query);
+            if (empty($query)) {
+                return WrapResponse([], "tidak ditemukan data kehadiran dari sdm id $sdmId", FALSE);
+            }
 
-        $data = [];
-        foreach ($query as $value) {
-            $data[] = [
-                'id_kehadiran_sdm' => $value->id_kehadiran_sdm,
-                'sdm' => $value->sdm,
-                'nip' => $value->nip,
-                'waktu_presensi' => $value->waktu_presensi,
-                'lokasi_presensi' => $value->lokasi_presensi,
-                'waktu_pulang' => $value->waktu_pulang,
-                'lokasi_pulang' => $value->lokasi_pulang,
-                'rencana_hari_ini' => $value->rencana_hari_ini,
-                'realisasi_hari_ini' => $value->realisasi_hari_ini,
-                'waktu_data_ditambahkan' => date('Y-m-d H:i:s', strtotime($value->waktu_data_ditambahkan)),
-                'terakhir_diubah' => date('Y-m-d H:i:s', strtotime($value->terakhir_diubah))
-            ];
+            $data = [];
+            foreach ($query as $value) {
+                $data[] = [
+                    'id_kehadiran_sdm' => $value->id_kehadiran_sdm,
+                    'sdm' => $value->sdm,
+                    'nip' => $value->nip,
+                    'waktu_presensi' => $value->waktu_presensi,
+                    'lokasi_presensi' => $value->lokasi_presensi,
+                    'waktu_pulang' => $value->waktu_pulang,
+                    'lokasi_pulang' => $value->lokasi_pulang,
+                    'rencana_hari_ini' => $value->rencana_hari_ini,
+                    'realisasi_hari_ini' => $value->realisasi_hari_ini,
+                    'waktu_data_ditambahkan' => date('Y-m-d H:i:s', strtotime($value->waktu_data_ditambahkan)),
+                    'terakhir_diubah' => date('Y-m-d H:i:s', strtotime($value->terakhir_diubah))
+                ];
+            }
+            //     return WrapResponse([
+            //         'page' => $pagination['page'],
+            //         'limit' => $pagination['limit'],
+            //         'data' => $data
+            //     ], 'sukses');
+            // }
+
+            return WrapResponse(compact('data'), 'sukses');
+        } catch (Exception $e) {
+            Log::error(__FUNCTION__ . ' - ' . $e->getMessage());
+            return WrapResponse([], "detail data Periode PMB tidak ditemukan atau data Periode PMB tidak terdaftar", FALSE);
         }
-        return WrapResponse([
-            'page' => $pagination['page'],
-            'count' => $pagination['count'],
-            'data' => $data
-        ], 'sukses');
     }
+
     public function create()
     {
         //

@@ -9,9 +9,9 @@
  *      description="Menampilkan Rencana Evaluasi Matkul",
  *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
  *          @OA\Schema(type="number")),
- *      @OA\Parameter( name="item", description="masukan jumlah data", example="50", required=false, in="query",
+ *      @OA\Parameter( name="limit", description="masukan jumlah data", example="50", required=false, in="query",
  *          @OA\Schema(type="number")),
- *      @OA\Parameter( name="idMk", description="Masukan idMk", example="0e6294a8-edc2-4297-8e8b-001363bcc401", required=true, in="query",
+ *      @OA\Parameter( name="id_mata_kuliah", description="Masukan idMk", example="0e6294a8-edc2-4297-8e8b-001363bcc401", required=true, in="query",
  *          @OA\Schema(type="string")),
  *      @OA\Response(
  *          response=401,

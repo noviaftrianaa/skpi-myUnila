@@ -1,23 +1,43 @@
 <?php
- /**
-     * @OA\Get(
-     *      path="/referensi/jabfung",
-     *      operationId="getJabfung",
-     *      tags={"Referensi"},
-     *      summary="Dapatkan daftar Jabfung",
-     *      description="Menampilkan daftar data Jabfung",
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *       ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      ),
-     *      security={{"token":{}}}
-     *     )
-     */
+/**
+ * @OA\Get(
+ *       path="/referensi/jabfung",
+ *       tags={"Referensi"},
+ *       summary="Dapatkan daftar Jabfung",
+ *       description="Menampilkan daftar data Jabfung",
+ *       operationId="getJabfung",
+ *       @OA\Parameter(
+ *          name="page",
+ *          description="",
+ *          example="1",
+ *          required=false,
+ *          in="query",
+ *          @OA\Schema(
+ *              type="number"
+ *          )
+ *      ),
+ *      @OA\Parameter(
+ *          name="limit",
+ *          description="",
+ *          example="10",
+ *          required=false,
+ *          in="query",
+ *          @OA\Schema(
+ *              type="number"
+ *          )
+ *     ),
+ *      @OA\Response(
+ *          response=200,
+ *          description="Successful operation",
+ *       ),
+ *      @OA\Response(
+ *          response=401,
+ *          description="Unauthenticated",
+ *      ),
+ *      @OA\Response(
+ *          response=403,
+ *          description="Forbidden"
+ *      ),
+ *      security={{"token":{}}}
+ *     )
+ */

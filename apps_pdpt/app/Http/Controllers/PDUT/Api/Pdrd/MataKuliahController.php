@@ -6,10 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\PDUT\Pdrd\KurikulumSp;
 use App\Models\PDUT\Pdrd\Matkul;
 use App\Models\PDUT\Pdrd\MatkulKurikulum;
+use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\Rule as ValidationRule;
 
 class MataKuliahController extends Controller
 {
@@ -28,12 +29,11 @@ class MataKuliahController extends Controller
 
     public function index()
     {
-        $idProdi = $this->request->input('idProdi', NULL);
+        $idProdi = $this->request->input('id_prodi', NULL);
         InputValidator([
             'page' => 'numeric|min:1',
-            'count' => 'numeric|min:1|max:50',
-            ['idProdi' => 'regex:/^[a-zA-Z0-9\-\(\)\s]+$/',],
-            ['idProdi.regex' => 'input harus berupa campuran alpa_numeric dan dash',]
+            'limit' => 'numeric|min:1|max:50',
+            'id_prodi' => 'required|uuid'
         ]);
 
         DB::beginTransaction();
@@ -102,7 +102,6 @@ class MataKuliahController extends Controller
                     'terakhir_diubah' => date('Y-m-d H:i:s', strtotime($each_data->terakhir_diubah))
                 ];
             }
-
         } catch (\Throwable $th) {
             return WrapResponse(['data' => null], 'gagal mendapatkan daftar mata kuliah', FALSE);
         }

@@ -27,7 +27,7 @@ class PeriodeController extends Controller
     {
         InputValidator([
             'page' => 'numeric|min:1',
-            'count' => 'numeric|min:1|max:50'
+            'limit' => 'numeric|min:1|max:50'
         ]);
 
         try {

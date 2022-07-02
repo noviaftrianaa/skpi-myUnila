@@ -72,6 +72,13 @@ Route::group([
                 Route::delete('hapus', 'BukuReferensiController@hapus');
             });
 
+            Route::prefix('diklat')->group(function () {
+                Route::get('list', 'DiklatController@getAllListDiklat');
+                Route::post('tambah', 'DiklatController@tambah');
+                Route::put('ubah', 'DiklatController@ubahDiklat');
+                Route::delete('hapus', 'DiklatController@destroy');
+            });
+
             Route::prefix('penelitian')->group(function () {
                 Route::get('daftar', 'PenelitianController@daftar');
                 Route::get('daftar_id', 'PenelitianController@daftar_id');
@@ -151,13 +158,13 @@ Route::group([
             });
 
             Route::prefix('lembaga')->group(function () {
-                Route::get('profilpt/detail', 'LembagaController@detailProfilPt');
+                Route::get('profil_pt/detail', 'LembagaController@detailProfilPt');
                 Route::get('akreditasi_pt', 'LembagaController@listAkreditasiPt');
                 Route::get('daftar_prodi/detail', 'LembagaController@detailDaftarProdi');
-                Route::get('profil_prodi/list', 'LembagaController@listProfilProdi');
+                Route::get('profil_prodi/daftar', 'LembagaController@listProfilProdi');
                 Route::get('profil_prodi/list_id', 'LembagaController@listProfilProdiById');
-                Route::put('profil_prodi/ubah', 'LembagaController@update');
-                Route::get('daftar_sms', 'LembagaController@listSms');
+                Route::put('profil_prodi/ubah', 'LembagaController@ubah');
+                Route::get('daftar_lembaga', 'LembagaController@listLembaga');
             });
         });
 
@@ -208,6 +215,8 @@ Route::group([
             Route::get('list_id', 'KehadiranSdmController@getListKehadiranBySdmId');
             Route::post('tambah', 'KehadiranSdmController@store');
             Route::put('ubah', 'KehadiranSdmController@update');
+            Route::get('list_mhs', 'KehadiranMahasiswaController@getListKehadiranByMhs');
+            Route::post('tambah_kehadiran_mhs', 'KehadiranMahasiswaController@store');
         });
 
         Route::group([
@@ -315,11 +324,14 @@ Route::group([
         'namespace' => 'Pmb',
         'prefix' => 'pmb'
     ], function () {
-
-        Route::get('list', 'PeriodePmbController@getAllListPeriodePmb');
-        Route::post('tambah', 'PeriodePmbController@tambah');
-        Route::put('ubah', 'PeriodePmbController@ubahPeriodePmb');
-        Route::delete('hapus', 'PeriodePmbController@destroy');
+        Route::get('list_periode', 'PeriodePmbController@getAllListPeriodePmb');
+        Route::post('tambah_periode', 'PeriodePmbController@tambah');
+        Route::put('ubah_periode', 'PeriodePmbController@ubahPeriodePmb');
+        Route::delete('hapus_periode', 'PeriodePmbController@destroy');
+        Route::get('list_daya_tampung', 'DayaTampungController@getAllListDayaTampung');
+        Route::post('tambah_daya_tampung', 'DayaTampungController@tambah');
+        Route::put('ubah_daya_tampung', 'DayaTampungController@ubahDayaTampung');
+        Route::delete('hapus_daya_tampung', 'DayaTampungController@destroy');
     });
 
 

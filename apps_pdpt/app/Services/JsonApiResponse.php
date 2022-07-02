@@ -62,7 +62,7 @@ class JsonApiResponse
         if ($this->simplePagination || !isset($pagination)) {
             $setPagination['pagination'] = [
                 'currentPage' => request()->input('page'),
-                'itemsPerPage' => request()->input('count')
+                'itemsPerPage' => request()->input('limit')
             ];
         } else {
             $setPagination['pagination'] = $pagination;

@@ -40,12 +40,12 @@ class LembagaController extends Controller
         InputValidator([
             'id_sp' => 'required|uuid',
             'page' => 'numeric|min:1',
-            'count'    => 'numeric|min:1|max:50',
-            'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
+            'limit'    => 'numeric|min:1|max:50',
+            'sort_by' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
         ]);
 
         $sortby = "ASC";
-        $sortby = $this->request->input('sortby');
+        $sortby = $this->request->input('sort_by');
         $id_sp = $this->request->input('id_sp');
 
         if (!empty($sortby)) {
@@ -91,22 +91,22 @@ class LembagaController extends Controller
         return WrapResponse(compact('data'), 'berhasil');
     } catch (Exception $e) {
         Log::error(__FUNCTION__ . '-' . $e->getMessage());
-        return WrapResponse([], "gagal mendapatkan data profil perguruan tinggi", FALSE );
+        return WrapResponse([], "gagal mendapa tkan data profil perguruan tinggi", FALSE );
     }
 }
 
 
     public function listAkreditasiPt(Request $request)
     {
-        $page = 1; $count = 10;
+        $page = 1; $limit = 10;
         if(!empty($request->page)) {
             $page = $request->page;
         }
-        if (!empty($request->count)) {
-            if ($request->count > 50) {
-                $count = 50;
+        if (!empty($request->limit)) {
+            if ($request->limit > 50) {
+                $limit = 50;
             } else {
-                $count = $request->count;
+                $limit = $request->limit;
             }
         }
 
@@ -129,7 +129,7 @@ class LembagaController extends Controller
         ORDER BY asp.id_sp ASC
         OFFSET (@PageNumber-1)*@RowsOfPage ROWS
         FETCH NEXT @RowsOfPage ROWS ONLY
-        ", [$page, $count]);
+        ", [$page, $limit]);
 
         $data = [];
         foreach ($akreditasipt as $each_data) {
@@ -147,22 +147,22 @@ class LembagaController extends Controller
             'success' => true,
             'message' => 'Berhasil mendapatkan data',
             'page' => $page,
-            'count' => $count,
+            'limit' => $limit,
             'data'  => $data
         ], 200);
     }
 
     public function detailDaftarProdi(Request $request)
     {
-        $page = 1; $count = 10;
+        $page = 1; $limit = 10;
         if(!empty($request->page)) {
             $page = $request->page;
         }
-        if (!empty($request->count)) {
-            if ($request->count > 50) {
-                $count = 50;
+        if (!empty($request->limit)) {
+            if ($request->limit > 50) {
+                $limit = 50;
             } else {
-                $count = $request->count;
+                $limit = $request->limit;
             }
         }
 
@@ -182,7 +182,7 @@ class LembagaController extends Controller
         ORDER BY sms.id_sms ASC
         OFFSET (@PageNumber-1)*@RowsOfPage ROWS
         FETCH NEXT @RowsOfPage ROWS ONLY
-        ", [$page, $count]);
+        ", [$page, $limit]);
 
         $data = [];
         foreach ($detail_prodi as $each_data) {
@@ -198,22 +198,22 @@ class LembagaController extends Controller
             'success' => true,
             'message' => 'Berhasil mendapatkan data',
             'page' => $page,
-            'count' => $count,
+            'limit' => $limit,
             'data'  => $data
         ], 200);
     }
 
     public function listProfilProdi(Request $request)
     {
-        $page = 1; $count = 10;
+        $page = 1; $limit = 10;
         if(!empty($request->page)) {
             $page = $request->page;
         }
-        if (!empty($request->count)) {
-            if ($request->count > 50) {
-                $count = 50;
+        if (!empty($request->limit)) {
+            if ($request->limit > 50) {
+                $limit = 50;
             } else {
-                $count = $request->count;
+                $limit = $request->limit;
             }
         }
 
@@ -245,7 +245,7 @@ class LembagaController extends Controller
         ORDER BY akredpd.create_date DESC
         OFFSET (@PageNumber-1)*@RowsOfPage ROWS
         FETCH NEXT @RowsOfPage ROWS ONLY
-        ", [$page, $count]);
+        ", [$page, $limit]);
 
         $data = [];
         foreach ($profilprodi as $each_data) {
@@ -255,10 +255,10 @@ class LembagaController extends Controller
                 'sk_akreditasi_prodi' => $each_data->sk_akreditasi_prodi,
                 'tanggal_sk_akreditasi_prodi' => $each_data->tanggal_sk_akreditasi_prodi,
                 'nm_lemb' => $each_data->nm_lemb,
-                'nm_lemb' => $each_data->nm_lemb,
-                'lembaga_akreditasi' => $each_data->himp_alumni,
+                'lembaga_akreditasi' => $each_data->lembaga_akreditasi,
                 'visi' => $each_data->misi,
-                'tujuan' => $each_data->sasaran,
+                'tujuan' => $each_data->tujuan,
+                'sasaran' => $each_data->sasaran,
                 'kompetensi' => $each_data->kompetensi,
                 'himp_alumni' => $each_data->himp_alumni
 
@@ -269,12 +269,81 @@ class LembagaController extends Controller
             'status' => true,
             'message' => 'Berhasil mengambil data Profil Prodi',
             'page' => $page,
-            'count' => $count,
+            'limit' => $limit,
             'data'  => $profilprodi
         ], 200);
     }
 
+    public function ubah()
+    {
+        InputValidator([
+           'id_sms' => 'required|uuid',
+           'id_akreditasi_prodi' => 'required|uuid',
+           'sk_akreditasi_prodi' => 'required|string',
+           'tanggal_sk_akreditasi_prodi' => 'nullable|date_format:Y-m-d',
+           'nm_lemb' => 'required|string',
+           'lembaga_akreditasi' => 'required|string',
+           'visi' => 'nullable|text',
+           'tujuan' => 'nullable|text',
+           'sasaran' => 'nullable|text',
+           'kompetensi' => 'nullable|text',
+           'himp_alumni' => 'nullable|text',
+        ]);
 
+        
+        $id_sms = $this->request->input('id_sms');
+        $id_akreditasi_prodi = $this->request->input('id_akreditasi_prodi');
+        $sk_akreditasi_prodi = $this->request->input('sk_akreditasi_prodi');
+        $tanggal_sk_akreditasi_prodi = $this->request->input('tanggal_sk_akreditasi_prod');
+        $nm_lemb = $this->request->input('nm_lemb');
+        $lembaga_akreditasi = $this->request->input('lembaga_akreditasi');
+        $visi = $this->request->input('visi');
+        $misi = $this->request->input('misi');
+        $tujuan = $this->request->input-('tujuan');
+        $sasaran = $this->request->input-('sasaran');
+        $kompetensi = $this->request->input('kompetensi');
+        $himp_alumni = $this->request->input('himp_alumni');
+       
+        $last_update = currDateTime();
+        $id_updater = '26004417-6e92-463c-bf35-f741817121dc';
+    
+        $last_sync = currDateTime();
+        
+       DB::beginTransaction();
+       try{
+        $profil_prodi = $this->profilprodi->where('id_sms', $id_sms)->first();
+       if (!$profil_prodi) return WrapResponse(['data' => null], 'id_sms tidak ditemukan', FALSE);
+    
+            $profil_prodi->update([
+                'id_sms' => $id_sms,
+                'id_akreditasi_prodi' => $id_akreditasi_prodi,
+                'sk_akreditasi_prodi' => $sk_akreditasi_prodi,
+                'tanggal_sk_akreditasi_prodi' => $tanggal_sk_akreditasi_prodi,
+                'nm_lemb' => $nm_lemb,
+                'lembaga_akreditasi' => $lembaga_akreditasi,
+                'visi' => $visi,
+                'misi' => $misi,
+                'tujuan' => $tujuan,
+                'sasaran' => $sasaran,
+                'kompetensi' => $kompetensi,
+                'himp_alumni' => $himp_alumni,
+                'id_updater' => $id_updater,
+                'last_update' => $last_update,
+                'last_sync' => $last_sync,
+            ]);
+
+            DB::commit();
+            return WrapResponse(array('data' => array('id_sms' => $id_sms)), 'sukses mengubah profil prodi', TRUE);
+        } catch (ModelNotFoundException $mnfe) {
+            DB::rollBack();
+            Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
+            return WrapResponse(['data' => null], 'profil prodi tidak dapat diubah', FALSE);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
+            return WrapResponse(['data' => null], 'gagal mengubah profil prodi', FALSE);
+        }
+    }
     public function listProfilProdiById(Request $request)
     {
 
@@ -329,69 +398,9 @@ class LembagaController extends Controller
         return WrapResponse(['data' => $data], 'Detail Profil Prodi By id_sms', TRUE);
     }
 
-    public function update(Request $request)
-    {
-        $id_sms = $request->input('id_sms');
-        InputValidator([
-            'id_sms' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
-        ], [
-            'id_sms.required' => 'field ini harus diisi',
-            'id_sms.regex' => 'input harus berupa campuran alpa_numeric dan dash',
-        ]);
+    
 
-        DB::beginTransaction();
-        try {
-
-            $profil_prodi = ProfilProdi::where('id_sms')->first();
-
-            if (empty($profil_prodi)) {
-                return WrapResponse([], "Data tidak ditemukan", FALSE);
-            }
-
-            $profil_prodi->update([
-                'id_sms' => $request->id_sms,
-                'desk_singkat' => $request->desk_singkat,
-                'visi' => $request->visi,
-                'misi' => $request->misi,
-                'tujuan' => $request->tujuan,
-                'sasaran' => $request->sasaran,
-                'kompetensi' => $request->kompetensi,
-                'capaian_belajar' => $request->capaian_belajar,
-                'upaya_sebar' => $request->upaya_sebar,
-                'keberlanjutan' => $request->keberlanjutan,
-                'frek_kur' => $request->frek_kur,
-                'laks_kur' => $request->laks_kur,
-                'himp_alumni' => $request->himp_alumni,
-                'id_updater' => guid(),
-                'create_date' => currDateTime(),
-                'last_update' => currDateTime(),
-                'last_sync' => currDateTime(),
-            ]);
-
-            $akreditasi_prodi = AkreditasiProdi::where('id_sms', $profil_prodi->id_sms)->first();
-            $akreditasi_prodi->update([
-                'id_lemb_akred' => $request->id_lemb_akred,
-                'id_akred' => $request->id_akred,
-                'sk_akreditasi_prodi' => $request->sk_akreditasi_prodi,
-                'tanggal_sk_akreditasi_prodi' => $request->tanggal_sk_akreditasi_prodi,
-                'tst_sk_akreditasi_prodi' => $request->tst_sk_akreditasi_prodi,
-                'asal_data' => $request->asal_data,
-                'id_updater' => guid(),
-                'last_update' => currDateTime(),
-                'last_sync' => currDateTime(),
-            ]);
-
-            DB::commit();
-            return WrapResponse([], 'sukses memperbaharui profil prodi - ' . $profil_prodi->id_sms);
-        } catch (\Exception $e) {
-            Log::error('Message ' . $e->getMessage() . ' - ' . $e->getLine());
-            DB::rollback();
-            Log::error($e->getMessage() . ' on line ' . $e->getLine());
-            return WrapResponse([], "gagal memperbaharui profil prodi");
-        }
-    }
-
-    public function listSms(Request $request)
+    public function listLembaga(Request $request)
     {
 
         $listdata = DB::SELECT("SELECT
@@ -499,64 +508,7 @@ class LembagaController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function updateProfilProdi(Request $request, $id)
-    {
-        DB::beginTransaction();
-        try {
-            DB::update("UPDATE pdrd.akreditasi_prodi
-                SET id_akreditasi_prodi = ?,
-                SET id_sms = ?,
-                SET id_lemb_akred = ?,
-                SET id_akred = ?,
-                SET sk_akreditasi_prodi = ?,
-                SET tanggal_sk_akreditasi_prodi' = ?,
-                SET isbn = ?,
-                SET tgl_terbit = ?,
-                SET sk_tugas = ?,
-                SET tgl_sk_tugas = ?
-            WHERE id_publikasi = ?", [
-                $request->id_kat_capaian,
-                $request->id_jns_pub,
-                $request->id_litabmas,
-                $request->judul,
-                $request->penulis,
-                $request->penerbit,
-                $request->isbn,
-                $request->tgl_terbit,
-                $request->sk_tugas,
-                $request->tgl_sk_tugas,
-                $request->id_publikasi
-            ]);
-
-            DB::update("UPDATE pdrd.tulis_pub SET id_publikasi = ?, SET id_sdm = ?,
-            SET id_pd = ?, SET id_orang = ?, SET urutan2 = ?, SET afiliasi = ?, SET peran_tulis = ?,
-            SET jns_penulis = ?, SET nm_pd = ?, SET nipd = ? WHERE id_tulis_pub = ?", [
-                $request->id_publikasi,
-                $request->id_sdm,
-                $request->id_pd,
-                $request->id_orang,
-                $request->urutan2,
-                $request->afiliasi,
-                $request->peran_tulis,
-                $request->jns_penulis,
-                $request->nm_pd,
-                $request->nipd,
-                $request->id_tulis_pub
-            ]);
-
-            DB::commit();
-            return response()->json([
-                'success' => true,
-                'message' => 'Berhasil ubah data'
-            ], 200);
-        } catch (\Exception $e) {
-            DB::rollback();
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal ubah data'
-            ], 400);
-        }
-    }
+    
 
     /**
      * Remove the specified resource from storage.

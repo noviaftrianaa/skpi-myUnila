@@ -22,12 +22,12 @@ class SdmController extends Controller
             'id_jns_sdm' => 'required|numeric',
             'page' => 'numeric|min:1',
             'limit'    => 'numeric|min:1|max:50',
-            'sort' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
+            'sort_by' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
         ]);
 
         $id_jns_sdm = $this->request->input('id_jns_sdm');
         $sort = "ASC";
-        $sort = $this->request->input('sort');
+        $sort = $this->request->input('sort_by');
 
         $query = "
                 SELECT
@@ -124,14 +124,14 @@ class SdmController extends Controller
             'id_sms' => 'required|uuid',
             'page' => 'numeric|min:1',
             'limit'    => 'numeric|min:1|max:50',
-            'sort' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
+            'sort_by' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
         ]);
 
         $id_jns_sdm = $this->request->input('id_jns_sdm');
         $id_sms = $this->request->input('id_sms');
 
         $sort = "ASC";
-        $sort = $this->request->input('sort');
+        $sort = $this->request->input('sort_by');
 
         $query = "
         SELECT

@@ -18,6 +18,7 @@
                         <th>No.</th>
                         <th>Nama Peran</th>
                         <th>Perlu SK ?</th>
+                        <th>Expired Date</th>
                         <th>Aksi</th>
                       </tr>
                     </thead>
@@ -27,8 +28,8 @@
                             <td>{{ $no+1 }}</td>
                             <td>{{ $item->nm_peran }}</td>
                             <td>{{ ($item->a_perlu_sk==1) ? 'Ya' : 'Tidak'}}</td>
+                            <td>{{ TglWaktuIndonesia($item->expired_date) ?? '-' }}</td>
                             <td>
-                                <!-- <button class="btn btn-warning btn-xs" title="Reset" data-toggle="modal" data-target="#resetItem{{$item->id_peran}}"> <i class="fas fa-key"></i></button> -->
                                 <button class="btn btn-info btn-xs" title="Edit" data-toggle="modal" data-target="#editItem{{$item->id_peran}}"> <i class="fas fa-edit"></i></button>
                             </td>
                         </tr>
@@ -73,6 +74,12 @@
                                         <option value="0">Tidak</option>
                                         <option value="1">Ya</option>
                                     </select>
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <div class="form-group form-group-default">
+                                    <label>Expired Date</label>
+                                    <input name="expired_date" type="date" class="form-control">
                                 </div>
                             </div>
                         </div>
@@ -120,6 +127,12 @@
                                         <option value="0" {{($items->a_perlu_sk==0)?'selected':''}}>Tidak</option>
                                         <option value="1" {{($items->a_perlu_sk==1)?'selected':''}}>Ya</option>
                                     </select>
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <div class="form-group form-group-default">
+                                    <label>Expired Date</label>
+                                    <input name="expired_date" type="date" class="form-control" value="{{ date('Y-m-d', strtotime($items->expired_date)) }}">
                                 </div>
                             </div>
                         </div>

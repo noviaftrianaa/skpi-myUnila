@@ -7,11 +7,11 @@
  *      tags={"Pengabdian"},
  *      summary="Dapatkan daftar Pengabdian",
  *      description="Menampilkan daftar data Pengabdian",
- *      @OA\Parameter( name="sortby", description="Masukan urutan by ASC/DESC", example="DESC", required=false, in="query",
+ *      @OA\Parameter( name="sort_by", description="Masukan urutan by ASC/DESC", example="DESC", required=false, in="query",
  *          @OA\Schema(type="string")),
  *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
  *          @OA\Schema(type="number")),
- *      @OA\Parameter( name="count", description="masukan jumlah data", example="10", required=false, in="query",
+ *      @OA\Parameter( name="limit", description="masukan jumlah data", example="10", required=false, in="query",
  *          @OA\Schema(type="number")),
  *      @OA\Response(
  *          response=200,
@@ -36,13 +36,13 @@
  *      tags={"Pengabdian"},
  *      summary="Dapatkan daftar Pengabdian Berdasarkan ID",
  *      description="Menampilkan daftar data Pengabdian Berdasarkan ID",
- *      @OA\Parameter( name="sdmid", description="masukan id sdm", example="bcb6de9a-2e7c-43c7-b192-029750754fe7", required=false, in="query",
+ *      @OA\Parameter( name="id_sdm", description="masukan id sdm", example="bcb6de9a-2e7c-43c7-b192-029750754fe7", required=false, in="query",
  *          @OA\Schema(type="string")),
- *      @OA\Parameter( name="sortby", description="Masukan urutan by ASC/DESC", example="DESC", required=false, in="query",
+ *      @OA\Parameter( name="sort_by", description="Masukan urutan by ASC/DESC", example="DESC", required=false, in="query",
  *          @OA\Schema(type="string")),
  *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
  *          @OA\Schema(type="number")),
- *      @OA\Parameter( name="count", description="masukan jumlah data", example="10", required=false, in="query",
+ *      @OA\Parameter( name="limit", description="masukan jumlah data", example="10", required=false, in="query",
  *          @OA\Schema(type="number")),
  *
  *      @OA\Response(
@@ -71,7 +71,7 @@
  *      @OA\Parameter(
  *         description="Pengabdian ID",
  *         in="path",
- *         name="id",
+ *         name="id_pengabdian",
  *         @OA\Schema(type="string"),
  *       ),
  *      @OA\Response(
@@ -311,8 +311,8 @@
  *      required=true,
  *      description="Hapus Data Pengabdian",
  *      @OA\JsonContent(
- *          required={"pengabdianid"},
- *          @OA\Property(property="pengabdianid", type="string", format="text", example="54DBF3BD-93AB-45D7-AE39-CC074C45E854")
+ *          required={"id_pengabdian"},
+ *          @OA\Property(property="id_pengabdian", type="string", format="text", example="54DBF3BD-93AB-45D7-AE39-CC074C45E854")
  *          ),
  *      ),
  *      @OA\Response(
@@ -330,4 +330,3 @@
  *      security={{"token":{}}}
  *     )
  */
-/**

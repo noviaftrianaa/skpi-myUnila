@@ -28,7 +28,7 @@
  *          )
  *     ),
  *     @OA\Parameter(
- *          name="sort",
+ *          name="sort_by",
  *          description="",
  *          example="DESC",
  *          required=false,
@@ -178,7 +178,7 @@
  *          )
  *     ),
  *     @OA\Parameter(
- *          name="sort",
+ *          name="sort_by",
  *          description="",
  *          example="DESC",
  *          required=false,
@@ -341,7 +341,7 @@
  *          )
  *     ),
  *     @OA\Parameter(
- *          name="sort",
+ *          name="sort_by",
  *          description="",
  *          example="DESC",
  *          required=false,

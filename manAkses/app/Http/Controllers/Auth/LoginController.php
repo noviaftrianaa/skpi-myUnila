@@ -47,6 +47,7 @@ class LoginController extends Controller
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
+        $this->base_url = 'http://oendata.unila.ac.id/api/live/0.1';
     }
 
     public function username()
@@ -56,7 +57,6 @@ class LoginController extends Controller
 
     public function showLoginForm()
     {
-        // dd(Session::all(), Cookie::get());
         return view('auth.login');
     }
 
@@ -75,6 +75,10 @@ class LoginController extends Controller
                     }
                     Session::put('login.log_address', get_client_ip());
                     Session::put('login.role', (!is_null($role)) ? $role : NULL);
+
+                    //GET TOKEN ONE DATA
+                    // $this->generateToken();
+
                     return redirect()->route('index');
                 } else {
                     alert()->error('Data pengguna tidak ditemukan, silahkan hubungi administrator.')->html(true);

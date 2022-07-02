@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6da3aa5f4ce7ec034986e32b5cf05472",
+    "content-hash": "8cdbf9059c8ceaa233ba23cb3d049817",
     "packages": [
         {
             "name": "anhskohbo/no-captcha",
@@ -69,6 +69,74 @@
                 "source": "https://github.com/anhskohbo/no-captcha/tree/3.3.0"
             },
             "time": "2020-09-10T02:31:52+00:00"
+        },
+        {
+            "name": "apereo/phpcas",
+            "version": "1.5.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/apereo/phpCAS.git",
+                "reference": "d6f5797fb568726f34c8e48741776d81e4a2646b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/apereo/phpCAS/zipball/d6f5797fb568726f34c8e48741776d81e4a2646b",
+                "reference": "d6f5797fb568726f34c8e48741776d81e4a2646b",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-dom": "*",
+                "php": ">=7.1.0",
+                "psr/log": "^1.0 || ^2.0 || ^3.0"
+            },
+            "require-dev": {
+                "monolog/monolog": "^1.0.0 || ^2.0.0",
+                "phpstan/phpstan": "^1.5",
+                "phpunit/phpunit": ">=7.5"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.3.x-dev"
+                }
+            },
+            "autoload": {
+                "classmap": [
+                    "source/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Joachim Fritschi",
+                    "email": "jfritschi@freenet.de",
+                    "homepage": "https://github.com/jfritschi"
+                },
+                {
+                    "name": "Adam Franco",
+                    "homepage": "https://github.com/adamfranco"
+                },
+                {
+                    "name": "Henry Pan",
+                    "homepage": "https://github.com/phy25"
+                }
+            ],
+            "description": "Provides a simple API for authenticating users against a CAS server",
+            "homepage": "https://wiki.jasig.org/display/CASC/phpCAS",
+            "keywords": [
+                "apereo",
+                "cas",
+                "jasig"
+            ],
+            "support": {
+                "issues": "https://github.com/apereo/phpCAS/issues",
+                "source": "https://github.com/apereo/phpCAS/tree/1.5.0"
+            },
+            "time": "2022-05-03T21:12:54+00:00"
         },
         {
             "name": "arcanedev/log-viewer",
@@ -2230,56 +2298,6 @@
             "time": "2020-07-09T08:09:16+00:00"
         },
         {
-            "name": "joshtronic/php-loremipsum",
-            "version": "2.1.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/joshtronic/php-loremipsum.git",
-                "reference": "6d7f8cff6a092a53d66b5237edbe97d398b14f88"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/joshtronic/php-loremipsum/zipball/6d7f8cff6a092a53d66b5237edbe97d398b14f88",
-                "reference": "6d7f8cff6a092a53d66b5237edbe97d398b14f88",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.3"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^4.8.36 || ^9.0"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "joshtronic\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Josh Sherman",
-                    "email": "hello@joshtronic.com",
-                    "homepage": "https://joshtronic.com"
-                }
-            ],
-            "description": "Lorem ipsum generator in PHP without dependencies",
-            "homepage": "https://github.com/joshtronic/php-loremipsum",
-            "keywords": [
-                "generator",
-                "ipsum",
-                "lorem"
-            ],
-            "support": {
-                "issues": "https://github.com/joshtronic/php-loremipsum/issues",
-                "source": "https://github.com/joshtronic/php-loremipsum/tree/2.1.0"
-            },
-            "time": "2022-01-23T23:27:44+00:00"
-        },
-        {
             "name": "laravel/framework",
             "version": "v8.80.0",
             "source": {
@@ -2642,6 +2660,67 @@
                 "source": "https://github.com/laravel/tinker/tree/v2.7.0"
             },
             "time": "2022-01-10T08:52:49+00:00"
+        },
+        {
+            "name": "laravel/ui",
+            "version": "v3.4.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laravel/ui.git",
+                "reference": "e01198123f7f4369d13c1f83a897c3f5e97fc9f4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laravel/ui/zipball/e01198123f7f4369d13c1f83a897c3f5e97fc9f4",
+                "reference": "e01198123f7f4369d13c1f83a897c3f5e97fc9f4",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/console": "^8.42|^9.0",
+                "illuminate/filesystem": "^8.42|^9.0",
+                "illuminate/support": "^8.42|^9.0",
+                "illuminate/validation": "^8.42|^9.0",
+                "php": "^7.3|^8.0"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^6.23|^7.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.x-dev"
+                },
+                "laravel": {
+                    "providers": [
+                        "Laravel\\Ui\\UiServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Laravel\\Ui\\": "src/",
+                    "Illuminate\\Foundation\\Auth\\": "auth-backend/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Taylor Otwell",
+                    "email": "taylor@laravel.com"
+                }
+            ],
+            "description": "Laravel UI utilities and presets.",
+            "keywords": [
+                "laravel",
+                "ui"
+            ],
+            "support": {
+                "source": "https://github.com/laravel/ui/tree/v3.4.2"
+            },
+            "time": "2022-01-25T20:15:56+00:00"
         },
         {
             "name": "laravelcollective/html",
@@ -9930,6 +10009,53 @@
             "time": "2021-12-08T09:12:39+00:00"
         },
         {
+            "name": "unila/sso",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/muhammadikhsan94/sso-unila.git",
+                "reference": "dd28f736953f51e84a1b0a89445fc39c41b42b9b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/muhammadikhsan94/sso-unila/zipball/dd28f736953f51e84a1b0a89445fc39c41b42b9b",
+                "reference": "dd28f736953f51e84a1b0a89445fc39c41b42b9b",
+                "shasum": ""
+            },
+            "require": {
+                "apereo/phpcas": "*",
+                "php": ">=7.1.0"
+            },
+            "default-branch": true,
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "SSO": "."
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Muhammad Ikhsan",
+                    "email": "muhammadikhsan208@gmail.com",
+                    "homepage": "http://muhammadikhsan94.github.io"
+                }
+            ],
+            "description": "Utility Authentication with SSO-UNILA",
+            "homepage": "http://muhammadikhsan94.github.io",
+            "keywords": [
+                "Authentication"
+            ],
+            "support": {
+                "issues": "https://github.com/muhammadikhsan94/sso-unila/issues",
+                "source": "https://github.com/muhammadikhsan94/sso-unila/tree/master"
+            },
+            "time": "2022-04-06T08:11:43+00:00"
+        },
+        {
             "name": "uxweb/sweet-alert",
             "version": "2.0.5",
             "source": {
@@ -12306,12 +12432,14 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": [],
+    "stability-flags": {
+        "unila/sso": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": "^7.3|^8.0"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.2.0"
+    "plugin-api-version": "2.3.0"
 }

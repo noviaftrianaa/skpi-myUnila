@@ -58,7 +58,7 @@ class AppLog
             'waktu_akses' => $waktu_akses,
             'a_berhasil' => $a_berhasil,
             'ket' => $ket,
-            'hasil_akses' => $hasil_akses,
+            'hasil_akses' => (string)$hasil_akses,
         ]);
 
         return $response;

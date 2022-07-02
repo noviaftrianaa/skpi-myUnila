@@ -13,7 +13,6 @@ use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
-
 class DiklatController extends Controller
 {
     protected $request;
@@ -34,15 +33,15 @@ class DiklatController extends Controller
     public function getAllListDiklat()
     {
         InputValidator([
-            'sortby' => [
+            'sort_by' => [
                 'alpha',
                 ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])
             ],
-            'page' => 'numeric',
-            'count' => 'numeric'
+            'page' => 'numeric|min:1',
+            'limit' => 'numeric|min:1|max:50'
         ]);
 
-        $sortby = $this->request->input('sortby');
+        $sortby = $this->request->input('sort_by');
         if (empty($sortby)) {
             $sortby = 'DESC';
         }

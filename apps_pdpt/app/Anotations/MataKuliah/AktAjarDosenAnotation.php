@@ -9,9 +9,9 @@
  *      description="Menampilkan Dosen Ajar",
  *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
  *          @OA\Schema(type="number")),
- *      @OA\Parameter( name="item", description="masukan jumlah data", example="50", required=false, in="query",
+ *      @OA\Parameter( name="limit", description="masukan jumlah data", example="50", required=false, in="query",
  *          @OA\Schema(type="number")),
- *      @OA\Parameter( name="idKls", description="Masukan idMk", example="9DCF2A1B-61BE-4E72-8F93-022D58D0F17D", required=true, in="query",
+ *      @OA\Parameter( name="id_kelas", description="Masukan idMk", example="9DCF2A1B-61BE-4E72-8F93-022D58D0F17D", required=true, in="query",
  *          @OA\Schema(type="string")),
  *      @OA\Response(
  *          response=401,

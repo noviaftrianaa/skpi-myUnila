@@ -22,15 +22,16 @@ class KeuanganUktMhsController extends Controller
         $this->sppmhs = new SppMhs();
     }
 
-    public function daftar(){
+    public function daftar()
+    {
         InputValidator([
             'page' => 'required|integer',
             'limit' => 'required|integer',
-            'sort' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])],
+            'sort_by' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])],
         ]);
 
         $sort = 'ASC';
-        $sort = $this->request->input('sort');
+        $sort = $this->request->input('sort_by');
         if (!empty($sort)) {
             $sort = $sort;
         }
@@ -129,7 +130,7 @@ class KeuanganUktMhsController extends Controller
             WHERE spp.soft_delete = 0 AND reg.nipd = " . $npm . " ";
 
             $uktmhs = DB::select($query);
-            if (empty($uktmhs)){
+            if (empty($uktmhs)) {
                 return WrapResponse(array('data' => array('npm' => $npm)), 'tidak ada daftar ukt mahasiswa yang ditampilkan berdasarkan npm', FALSE);
             }
 

@@ -1,4 +1,4 @@
-<?php
+ <?php
 
 /**
  * @OA\Get(
@@ -18,7 +18,7 @@
  *          )
  *     ),
  *     @OA\Parameter(
- *          name="count",
+ *          name="limit",
  *          description="",
  *          example="10",
  *          required=false,
@@ -28,7 +28,7 @@
  *          )
  *     ),
  *     @OA\Parameter(
- *          name="sortby",
+ *          name="sort_by",
  *          description="",
  *          example="DESC",
  *          required=false,
@@ -72,7 +72,7 @@
  *           )
  *      ),
  *      @OA\Parameter(
- *           name="count",
+ *           name="limit",
  *           description="",
  *           example="10",
  *           required=false,
@@ -82,7 +82,7 @@
  *           )
  *      ),
  *      @OA\Parameter(
- *           name="sortby",
+ *           name="sort_by",
  *           description="",
  *           example="DESC",
  *           required=false,
@@ -92,7 +92,7 @@
  *           )
  *      ),
  *      @OA\Parameter(
- *           name="sdmid",
+ *           name="id_sdm",
  *           description="",
  *           example="bcb6de9a-2e7c-43c7-b192-029750754fe7",
  *           required=false,
@@ -126,7 +126,7 @@
  *      description="Menampilkan Detail Penelitian Berdasarkan ID Penelitian",
  *      operationId="detailPenelitian",
  *      @OA\Parameter(
- *           name="penelitianid",
+ *           name="id_penelitian",
  *           description="",
  *           example="DEBA0D45-992B-49F3-932F-993655207E65",
  *           required=false,
@@ -540,8 +540,8 @@
  *      required=true,
  *      description="Menghapus Penelitian",
  *      @OA\JsonContent(
- *          required={"penelitianid"},
- *          @OA\Property(property="penelitianid", type="string", format="text", example="6FD66A81-0315-49B5-B32D-A05E4C66020C")
+ *          required={"id_penelitian"},
+ *          @OA\Property(property="id_penelitian", type="string", format="text", example="6FD66A81-0315-49B5-B32D-A05E4C66020C")
  *          ),
  *      ),
  *      @OA\Response(

@@ -18,7 +18,7 @@
  *          )
  *     ),
  *     @OA\Parameter(
- *          name="count",
+ *          name="limit",
  *          description="",
  *          example="10",
  *          required=false,
@@ -28,7 +28,7 @@
  *          )
  *     ),
  *     @OA\Parameter(
- *          name="sortby",
+ *          name="sort_by",
  *          description="",
  *          example="DESC",
  *          required=false,
@@ -82,7 +82,7 @@
  *           )
  *      ),
  *      @OA\Parameter(
- *           name="count",
+ *           name="limit",
  *           description="",
  *           example="10",
  *           required=false,
@@ -92,7 +92,7 @@
  *           )
  *      ),
  *      @OA\Parameter(
- *           name="sortby",
+ *           name="sort_by",
  *           description="",
  *           example="DESC",
  *           required=false,
@@ -102,7 +102,7 @@
  *           )
  *      ),
  *      @OA\Parameter(
- *           name="sdmid",
+ *           name="id_sdm",
  *           description="",
  *           example="bcb6de9a-2e7c-43c7-b192-029750754fe7",
  *           required=false,
@@ -136,7 +136,7 @@
  *      description="Menampilkan Detail Publikasi Berdasarkan ID Publikasi",
  *      operationId="detailPublikasi",
  *      @OA\Parameter(
- *           name="publikasiid",
+ *           name="id_publikasi",
  *           description="",
  *           example="80B78EED-7C41-4DE9-93B7-E675369501AD",
  *           required=false,
@@ -170,7 +170,7 @@
  *      description="Menambahkan Publikasi",
  *      operationId="tambahPublikasi",
  *      @OA\Parameter(
- *           name="publikasiid",
+ *           name="id_publikasi",
  *           description="",
  *           example="80B78EED-7C41-4DE9-93B7-E675369501AD",
  *           required=false,
@@ -204,7 +204,7 @@
  *      description="Ubah Data Publikasi",
  *      operationId="ubahPublikasi",
  *      @OA\Parameter(
- *           name="publikasiid",
+ *           name="id_publikasi",
  *           description="",
  *           example="80B78EED-7C41-4DE9-93B7-E675369501AD",
  *           required=false,
@@ -238,7 +238,7 @@
  *      description="Menghapus Publikasi",
  *      operationId="hapusPublikasi",
  *      @OA\Parameter(
- *           name="publikasiid",
+ *           name="id_publikasi",
  *           description="",
  *           example="80B78EED-7C41-4DE9-93B7-E675369501AD",
  *           required=false,

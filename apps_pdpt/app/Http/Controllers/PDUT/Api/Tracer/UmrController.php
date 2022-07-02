@@ -20,14 +20,14 @@ class UmrController extends Controller
     public function index(Request $request)
     {
         $currentPage = $request->input('page', 1);
-        $itemsPerPage = $request->input('item', 50);
-        $sortBy = $request->input('sortby', 'ASC');
+        $itemsPerPage = $request->input('limit', 50);
+        $sortBy = $request->input('sort_by', 'ASC');
 
         InputValidator([
-            'sortby' => ['alpha', ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])],
+            'sort_by' => ['alpha', ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])],
         ], [
-            'sortby.alpha' => 'input penyortiran harus kata',
-            'sortby.in' => 'input pernyortiran hanya ASC atau DESC'
+            'sort_by.alpha' => 'input penyortiran harus kata',
+            'sort_by.in' => 'input pernyortiran hanya ASC atau DESC'
         ]);
 
         if (!empty($itemsPerPage)) {

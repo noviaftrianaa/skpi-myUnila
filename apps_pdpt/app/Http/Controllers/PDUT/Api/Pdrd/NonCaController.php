@@ -27,11 +27,11 @@ class NonCaController extends Controller
         InputValidator([
             'page' => 'numeric|min:1',
             'limit'    => 'numeric|min:1|max:50',
-            'sort' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
+            'sort_by' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
         ]);
 
         $sort = "ASC";
-        $sort = $this->request->input('sort');
+        $sort = $this->request->input('sort_by');
 
         if (!empty($sort)) {
             $sort = $sort;
@@ -74,7 +74,7 @@ class NonCaController extends Controller
             $data = [];
             foreach ($noncas as $value) {
                 $data[] = [
-                    'id_orang' => $value->id_orang,
+                    'id_nonca' => $value->id_orang,
                     'nm_negara' => $value->nm_negara,
                     'nm_orang' => $value->nm_orang,
                     'jk' => $value->jk,
@@ -104,10 +104,10 @@ class NonCaController extends Controller
     public function detail()
     {
         InputValidator([
-            'id_orang' => 'required|uuid'
+            'id_nonca' => 'required|uuid'
         ]);
 
-        $id_orang = $this->request->input('id_orang');
+        $id_orang = $this->request->input('id_nonca');
 
         try {
             $query = "SELECT
@@ -133,17 +133,17 @@ class NonCaController extends Controller
             FROM pdrd.non_ca AS nc WITH(NOLOCK)
             LEFT JOIN ref.negara AS ng WITH(NOLOCK) ON ng.id_negara = nc.id_negara  AND ng.expired_date IS NULL
             WHERE nc.soft_delete = 0
-            AND nc.id_orang = '" . $id_orang."'";
+            AND nc.id_orang = '" . $id_orang . "'";
 
             $noncas = DB::select($query);
             if (empty($noncas)) {
-                return WrapResponse(array('data' => array('id_orang' => $id_orang)), 'tidak ada detail non citivitas akademik yang ditampilkan', FALSE);
+                return WrapResponse(array('data' => array('id_nonca' => $id_orang)), 'tidak ada detail non citivitas akademik yang ditampilkan', FALSE);
             }
 
             $data = [];
             foreach ($noncas as $value) {
                 $data[] = [
-                    'id_orang' => $value->id_orang,
+                    'id_nonca' => $value->id_orang,
                     'nm_negara' => $value->nm_negara,
                     'nm_orang' => $value->nm_orang,
                     'jk' => $value->jk,
@@ -213,7 +213,7 @@ class NonCaController extends Controller
         DB::beginTransaction();
         try {
             $non_ca = $this->nonca->create([
-                'id_orang' => $id_orang,
+                'id_nonca' => $id_orang,
                 'id_negara' => $id_negara,
                 'jln' => $jln,
                 'rt' => $rt,
@@ -239,7 +239,7 @@ class NonCaController extends Controller
             ]);
 
             DB::commit();
-            return WrapResponse(array('data' => array('id_orang' => $id_orang)), 'sukses menambahkan non citivitas akademik', TRUE);
+            return WrapResponse(array('data' => array('id_nonca' => $id_orang)), 'sukses menambahkan non citivitas akademik', TRUE);
         } catch (ModelNotFoundException $mnfe) {
             DB::rollBack();
             Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
@@ -254,7 +254,7 @@ class NonCaController extends Controller
     public function ubah()
     {
         $creatorId = $updateId = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
-        $id_orang = $this->request->input('id_orang');
+        $id_orang = $this->request->input('id_nonca');
         $id_negara = $this->request->input('id_negara');
         $jln = $this->request->input('jln');
         $rt = $this->request->input('rt');
@@ -293,11 +293,11 @@ class NonCaController extends Controller
 
         DB::beginTransaction();
         try {
-            $non_ca = $this->nonca->where('id_orang', $id_orang)->first();
+            $non_ca = $this->nonca->where('id_nonca', $id_orang)->first();
             if (!$non_ca) return WrapResponse(['data' => null], 'non citivitas akademik tidak ditemukan atau tidak terdaftar', FALSE);
 
             $non_ca->update([
-                // 'id_orang' => $id_orang,
+                // 'id_nonca' => $id_orang,
                 'id_negara' => $id_negara,
                 'jln' => $jln,
                 'rt' => $rt,
@@ -319,7 +319,7 @@ class NonCaController extends Controller
             ]);
 
             DB::commit();
-            return WrapResponse(array('data' => array('id_orang' => $id_orang)), 'sukses mengubah non citivitas akademik', TRUE);
+            return WrapResponse(array('data' => array('id_nonca' => $id_orang)), 'sukses mengubah non citivitas akademik', TRUE);
         } catch (ModelNotFoundException $mnfe) {
             DB::rollBack();
             Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
@@ -334,21 +334,21 @@ class NonCaController extends Controller
     public function hapus()
     {
         $creatorId = $updateId = 'fd323761-9f6c-4c75-9ec8-391ab00b63ba';
-        $id_orang = $this->request->input('id_orang');
+        $id_orang = $this->request->input('id_nonca');
 
         InputValidator([
-            'id_orang' => 'required|uuid',
+            'id_nonca' => 'required|uuid',
         ]);
 
         DB::beginTransaction();
         try {
-           $this->nonca->where('id_orang', $id_orang)->update([
+            $this->nonca->where('id_nonca', $id_orang)->update([
                 'soft_delete' => 1,
                 'last_update' => currDateTime(),
                 'id_updater' => $updateId
             ]);
             DB::commit();
-            return WrapResponse(array('data' => array('id_orang' => $id_orang)), 'berhasil menghapus data non citivitas akademik', TRUE);
+            return WrapResponse(array('data' => array('id_nonca' => $id_orang)), 'berhasil menghapus data non citivitas akademik', TRUE);
         } catch (Exception $e) {
             DB::rollBack();
             Log::error('Error on ' . $e->getMessage() . ' in line ' . $e->getLine());

@@ -7,12 +7,36 @@
  *      tags={"Diklat"},
  *      summary="Dapatkan daftar Diklat",
  *      description="Menampilkan daftar data Diklat",
- *      @OA\Parameter( name="sortby", description="Masukan urutan by ASC/DESC", example="DESC", required=false, in="query",
- *          @OA\Schema(type="string")),
- *      @OA\Parameter( name="page", description="masukan jumlah halaman", example="1", required=false, in="query",
- *          @OA\Schema(type="number")),
- *      @OA\Parameter( name="count", description="masukan jumlah data", example="10", required=false, in="query",
- *          @OA\Schema(type="number")),
+ *     @OA\Parameter(
+ *          name="page",
+ *          description="",
+ *          example="1",
+ *          required=false,
+ *          in="query",
+ *          @OA\Schema(
+ *              type="number"
+ *          )
+ *     ),
+ *     @OA\Parameter(
+ *          name="limit",
+ *          description="",
+ *          example="25",
+ *          required=false,
+ *          in="query",
+ *          @OA\Schema(
+ *              type="number"
+ *          )
+ *     ),
+ *     @OA\Parameter(
+ *          name="sort_by",
+ *          description="",
+ *          example="DESC",
+ *          required=false,
+ *          in="query",
+ *          @OA\Schema(
+ *              type="string"
+ *          )
+ *     ),
  *      @OA\Response(
  *          response=200,
  *          description="Successful operation",
@@ -156,40 +180,3 @@
  *      security={{"token":{}}}
  *     )
  */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

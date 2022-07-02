@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Services\JsonApiResponse as WrapResponse;
 use App\Services\QueryPagination;
 use App\Transformers\JadwalKelasTransformer;
+use Exception;
 
 class JadwalKelasController extends Controller
 {
@@ -34,15 +35,13 @@ class JadwalKelasController extends Controller
 
     public function index()
     {
-        $idProdi = $this->request->input('idProdi', NULL);
-        $idSmt = $this->request->input('idSmt', NULL);
+        $idProdi = $this->request->input('id_prodi', NULL);
+        $idSmt = $this->request->input('id_semester', NULL);
         InputValidator([
             'page' => 'numeric|min:1',
-            'count' => 'numeric|min:1|max:50',
-            ['idProdi' => 'regex:/^[a-zA-Z0-9\-\(\)\s]+$/',],
-            ['idProdi.regex' => 'input harus berupa campuran alpa_numeric dan dash',],
-            ['idSmt' => 'regex:/^[a-zA-Z0-9\-\(\)\s]+$/',],
-            ['idSmt.regex' => 'input harus berupa campuran alpa_numeric dan dash',]
+            'limit' => 'numeric|min:1|max:50',
+            'id_prodi' => 'required|uuid',
+            'id_semester' => 'required|uuid'
         ]);
 
         $query = "
@@ -67,14 +66,14 @@ class JadwalKelasController extends Controller
                 LEFT JOIN pdrd.kelas_kuliah AS kk WITH(NOLOCK) ON kk.id_kls = jadwal.id_kls
                 AND kk.soft_delete = 0
                 LEFT JOIN pdrd.sms AS sms WITH(NOLOCK) ON sms.id_sms = kk.id_sms
-                AND sms.id_sms = '". $idProdi ."'
+                AND sms.id_sms = '" . $idProdi . "'
                 AND sms.soft_delete = 0
                 JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
                 LEFT JOIN pdrd.matkul AS mk WITH(NOLOCK) ON mk.id_mk = kk.id_mk
                 AND mk.soft_delete = 0
                 JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = jadwal.id_smt
-                AND smt.id_smt = '". $idSmt ."'
+                AND smt.id_smt = '" . $idSmt . "'
                 AND smt.expired_date IS NULL
             WHERE
                 jadwal.soft_delete = 0

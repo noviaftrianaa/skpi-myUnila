@@ -80,16 +80,16 @@ class PublikasiController extends Controller
     public function daftar()
     {
         InputValidator([
-            'sortby' => [
+            'sort_by' => [
                 'alpha',
                 ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])
             ],
             'type' => 'numeric',
             'page' => 'numeric|min:1',
-            'count'    => 'numeric|min:1|max:50',
+            'limit'    => 'numeric|min:1|max:50',
         ]);
 
-        $sortby = $this->request->input('sortby');
+        $sortby = $this->request->input('sort_by');
         if (empty($sortby)) {
             $sortby = 'DESC';
         }
@@ -163,14 +163,14 @@ class PublikasiController extends Controller
     public function daftar_id()
     {
         InputValidator([
-            'sdmid' => 'required|uuid',
+            'id_sdm' => 'required|uuid',
             'page' => 'numeric|min:1',
-            'count'    => 'numeric|min:1|max:50',
-            'sortby' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
+            'limit'    => 'numeric|min:1|max:50',
+            'sort_by' => ['alpha', ValidationRule::in(['ASC', 'asc', 'DESC', 'desc'])]
         ]);
 
-        $sdmid = $this->request->input('sdmid');
-        $sortby = $this->request->input('sortby');
+        $sdmid = $this->request->input('id_sdm');
+        $sortby = $this->request->input('sort_by');
         if (empty($sortby)) {
             $sortby = 'DESC';
         }
@@ -282,14 +282,14 @@ class PublikasiController extends Controller
     public function detail()
     {
         InputValidator([
-            'publikasiid' => 'required|uuid',
+            'id_publikasi' => 'required|uuid',
         ],  [
-            'publikasiid.required' => 'field publikasiid ini harus diisi',
-            'publikasiid.uuid' => 'input publikasi id harus berupa uuid yang valid',
+            'id_publikasi.required' => 'field publikasiid ini harus diisi',
+            'id_publikasi.uuid' => 'input publikasi id harus berupa uuid yang valid',
         ]);
 
         $reformatDetailPublikasi = [];
-        $publikasiId = $this->request->input('publikasiid');
+        $publikasiId = $this->request->input('id_publikasi');
 
         $query = "
             SELECT

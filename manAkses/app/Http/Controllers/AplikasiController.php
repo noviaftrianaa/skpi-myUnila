@@ -226,7 +226,8 @@ class AplikasiController extends Controller
             'id_organisasi' => $array['id_organisasi'],
             'a_generate_menu' => (!empty($array['a_generate_menu'])) ? 1 : 0,
             'a_integrasi_cas' => (!empty($array['a_integrasi_cas'])) ? 1 : 0,
-            'a_sistem_internal_pt' => (!empty($array['a_sistem_internal_pt'])) ? 1 : 0
+            'a_sistem_internal_pt' => (!empty($array['a_sistem_internal_pt'])) ? 1 : 0,
+            'expired_date' => $array['expired_date']
         ]);
 
         if(!$store) {
@@ -245,7 +246,15 @@ class AplikasiController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $id = Crypt::decrypt($id);
+        $aplikasi = Aplikasi::lock('WITH(NOLOCK)')->where('id_aplikasi', $id)->delete();
+
+        if(!$aplikasi) {
+            alert()->error('Data gagal dihapus!');
+        } else {
+            alert()->success('Data berhasil dihapus!');
+        }
+        return redirect()->back();
     }
 
     public function create_menu()

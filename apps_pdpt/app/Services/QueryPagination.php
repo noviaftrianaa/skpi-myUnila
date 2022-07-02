@@ -24,12 +24,12 @@ class QueryPagination
             }
         }
 
-        if (request()->has('count')) {
-            if (!empty(request()->input('count'))) {
-                if (request()->input('count') > $this->maxPage) {
+        if (request()->has('limit')) {
+            if (!empty(request()->input('limit'))) {
+                if (request()->input('limit') > $this->maxPage) {
                     $count = $this->maxPage;
                 } else {
-                    $count = request()->input('count');
+                    $count = request()->input('limit');
                 }
             }
         }
