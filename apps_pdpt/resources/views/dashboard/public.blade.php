@@ -42,7 +42,7 @@
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDe0k4F4CyrJnchP6Cq7T5iAybq1ISUL6A&callback=initMap&v=weekly&channel=2"
         async
     ></script>
-    <script>
+    {{-- <script>
         var lat = {!! $pt->lintang !!};
         var lang = {!! $pt->bujur !!};
 
@@ -173,5 +173,5 @@
                 title: "Hello World!",
             });
         }
-    </script>
+    </script> --}}
 @endpush

@@ -27,6 +27,21 @@ class DashboardController extends Controller
         return view('dashboard.public', compact('total_dosen', 'total_dosen_jabfung', 'side_active', 'pt'));
     }
 
+    public function mahasiswa()
+    {
+        $data_1 = DB::table('dashboard.dashboard_power_bi')->where('kode_dashboard', '=', 'mahasiswa')->first();
+        $data_2 = DB::table('dashboard.dashboard_power_bi')->where('kode_dashboard', '=', 'rasio_dosen_mahasiswa')->first();
+        $side_active   = 'mahasiswa';
+        return view('dashboard.mahasiswa', compact('data_1', 'data_2', 'side_active'));
+    }
+
+    public function tracer_study()
+    {
+        $data = DB::table('dashboard.dashboard_power_bi')->where('kode_dashboard', '=', 'tracer_study')->first();
+        $side_active   = 'tracer_study';
+        return view('dashboard.tracer_study', compact('data', 'side_active'));
+    }
+
     public function iku()
     {
         $data = DB::table('dashboard.dashboard_power_bi')->where('kode_dashboard', '=', 'IKU')->first();

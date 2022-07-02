@@ -23,6 +23,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/',  [DashboardController::class, 'index'])->name('home');
 
+/** Dashboard Mahasiswa */
+Route::get('/dashboard/mahasiswa',  [DashboardController::class, 'mahasiswa'])->name('dashboard.mahasiswa');
+Route::get('/dashboard/tracer_study',  [DashboardController::class, 'tracer_study'])->name('dashboard.tracer_study');
+
 /** Dashboard Dosen */
 Route::get('/dashboard/dosen',  [DashboardController::class, 'dosen'])->name('dashboard.dosen');
 Route::get('/dashboard/dosen/profil/{id}',  [DashboardController::class, 'dosen_profil'])->name('dashboard.dosen.profil');

@@ -312,20 +312,20 @@ class MahasiswaController extends Controller
         $idProdi = $request->input('idProdi');
         $statMhs = $request->input('statMhs', 'A');
 
-        InputValidator([
-            'idProdi' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
-            'statMhs' => ['alpha', ValidationRule::in([
-                'A', 'C', 'D', 'G', 'H', 'K', 'L', 'M', 'N', 'T', 'U', 'W',
-                'a', 'c', 'd', 'g', 'h', 'k', 'l', 'm', 'n', 't', 'u', 'w'
-            ])],
-            'sortby' => ['alpha', ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])],
-        ], [
-            'idProdi.required' => 'field ini harus diisi',
-            'idProdi.regex' => 'input harus berupa campuran alpa_numeric dan dash',
-            'statMhs.regex' => 'input harus sesuai',
-            'sortby.alpha' => 'input penyortiran harus kata',
-            'sortby.in' => 'input pernyortiran hanya ASC atau DESC'
-        ]);
+        // InputValidator([
+        //     'idProdi' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
+        //     'statMhs' => ['alpha', ValidationRule::in([
+        //         'A', 'C', 'D', 'G', 'H', 'K', 'L', 'M', 'N', 'T', 'U', 'W',
+        //         'a', 'c', 'd', 'g', 'h', 'k', 'l', 'm', 'n', 't', 'u', 'w'
+        //     ])],
+        //     'sortby' => ['alpha', ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])],
+        // ], [
+        //     'idProdi.required' => 'field ini harus diisi',
+        //     'idProdi.regex' => 'input harus berupa campuran alpa_numeric dan dash',
+        //     'statMhs.regex' => 'input harus sesuai',
+        //     'sortby.alpha' => 'input penyortiran harus kata',
+        //     'sortby.in' => 'input pernyortiran hanya ASC atau DESC'
+        // ]);
 
         if (!empty($itemsPerPage)) {
             if ($itemsPerPage > 50) {
@@ -345,6 +345,7 @@ class MahasiswaController extends Controller
                 reg.id_reg_pd,
                 reg.nipd AS npm,
                 pd.nm_pd,
+                sms.id_sms,
                 CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS nm_prodi,
                 ts.nm_smt AS periode_masuk,
                 kul.ips,
@@ -352,6 +353,13 @@ class MahasiswaController extends Controller
                 pd.create_date AS waktu_data_ditambahkan,
                 pd.last_update AS terakhir_diubah,
                 kuliah.smt_skrng,
+                kul.total_sks,
+                pd.jk,
+                CONCAT(pd.tmpt_lahir, ', ', pd.tgl_lahir) AS ttgl_lahir,
+                pd.id_wil,
+                pd.jln,
+                pd.tlpn_hp,
+                pd.email,
             CASE
                 WHEN kul.id_stat_mhs = 'A' THEN 'Aktif'
                 WHEN kul.id_stat_mhs = 'C' THEN 'Cuti'
@@ -419,12 +427,20 @@ class MahasiswaController extends Controller
                 'id_reg_pd' => $each_data->id_reg_pd,
                 'NPM' => $each_data->npm,
                 'nama_mahasiswa' => $each_data->nm_pd,
+                'id_prodi' => $each_data->id_sms,
                 'program_studi' => $each_data->nm_prodi,
                 'periode_masuk' => $each_data->periode_masuk,
                 'semester_sekarang' => $each_data->smt_skrng,
                 'ips' => $each_data->ips,
                 'ipk' => $each_data->ipk,
+                'total_sks' => $each_data->total_sks,
                 'status' => $each_data->status,
+                'jk' => $each_data->jk,
+                'tmpt_tgl_lahir' => $each_data->ttgl_lahir,
+                'id_wil' => $each_data->id_wil,
+                'jln' => $each_data->jln,
+                'tlpn_hp' => $each_data->tlpn_hp,
+                'email' => $each_data->email,
                 'waktu_data_ditambahkan' => date('Y-m-d H:i:s', strtotime($each_data->waktu_data_ditambahkan)),
                 'terakhir_diubah' => date('Y-m-d H:i:s', strtotime($each_data->terakhir_diubah))
             ];

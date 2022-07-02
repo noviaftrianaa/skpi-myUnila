@@ -19,6 +19,29 @@
                         <p>Dashboard</p>
                     </a>
                 </li>
+                <li class="nav-item {{ in_array($side_active,['mahasiswa','tracer_study'])?'menu-open':'' }}">
+                    <a href="#" class="nav-link {{ in_array($side_active,['mahasiswa','tracer_study'])?'active':'' }}">
+                        <i class="nav-icon fas fa-layer-group"></i>
+                        <p>
+                            Mahasiswa & Alumni
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard.mahasiswa') }}" class="nav-link {{ $side_active=='mahasiswa'?'active':'' }}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Dashboard Mahasiswa</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard.tracer_study') }}" class="nav-link {{ $side_active=='tracer_study'?'active':'' }}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Tracer Study</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
                 <li class="nav-item {{ in_array($side_active,['dashboard.dosen','dashboard.jabfung','dashboard.jenj_didik','dashboard.pangkat_golongan','dashboard.ikatan_kerja','dashboard.jenis_kelamin','dashboard.status_kepegawaian','dashboard.status_keaktifan'])?'menu-open':'' }}">
                     <a href="#" class="nav-link {{ in_array($side_active,['dashboard.dosen','dashboard.jabfung','dashboard.jenj_didik','dashboard.pangkat_golongan','dashboard.ikatan_kerja','dashboard.jenis_kelamin','dashboard.status_kepegawaian','dashboard.status_keaktifan'])?'active':'' }}">
                         <i class="nav-icon fas fa-chalkboard-teacher"></i>

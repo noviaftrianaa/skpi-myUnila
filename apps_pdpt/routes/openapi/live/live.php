@@ -19,6 +19,11 @@ Route::group([
         Route::group([
             'namespace' => 'Pdrd',
         ], function () {
+
+            Route::prefix('pdrd')->group(function () {
+                Route::get('satuan_pendidikan', 'SatuanPendidikanController@index');
+            });
+
             Route::prefix('keuangan')->group(function () {
                 Route::get('/kelasukt/daftar', 'KeuanganKelasUktController@daftar');
                 Route::post('/kelasukt/tambah', 'KeuanganKelasUktController@tambah');
@@ -143,7 +148,6 @@ Route::group([
                 Route::post('jadwal/tambah', 'JadwalKelasController@store');
                 Route::put('jadwal/ubah', 'JadwalKelasController@update');
                 Route::delete('jadwal/hapus', 'JadwalKelasController@destroy');
-
             });
 
             Route::prefix('lembaga')->group(function () {
@@ -366,5 +370,4 @@ Route::group([
         Route::get('peran', 'manAksesController@peran');
         Route::get('ubah_keaktifan', 'manAksesController@updateLastActive');
     });
-
 });
