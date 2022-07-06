@@ -29,8 +29,8 @@ class DashboardController extends Controller
 
     public function mahasiswa()
     {
-        $data_1 = DB::table('dashboard.dashboard_power_bi')->where('kode_dashboard', '=', 'mahasiswa')->first();
-        $data_2 = DB::table('dashboard.dashboard_power_bi')->where('kode_dashboard', '=', 'rasio_dosen_mahasiswa')->first();
+        $data_1 = DB::table('dashboard.dashboard_power_bi')->where('kode_dashboard', '=', 'rasio_dosen_mahasiswa')->first();
+        $data_2 = DB::table('dashboard.dashboard_power_bi')->where('kode_dashboard', '=', 'mahasiswa')->first();
         $side_active   = 'mahasiswa';
         return view('dashboard.mahasiswa', compact('data_1', 'data_2', 'side_active'));
     }
