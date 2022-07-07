@@ -223,6 +223,43 @@ class DashboardController extends Controller
             AND trwy.id_sdm='" . $id_sdm . "'
             ORDER BY trwy.tmt_sk_jabstruk ASC
         ");
-        return view('dashboard.dosen_profil', compact('profil_dosen', 'side_active', 'rwy_pend', 'rwy_pang', 'rwy_jab', 'rwy_struk'));
+        $rwy_tgs_tmbhn =  DB::SELECT("
+            SELECT
+                tgstmb.id_tgs_tambah,
+                katgiat.nm_kat,
+                jabtgs.nm_jab_tgs,
+                tgstmb.jml_jam,
+                tgstmb.sk_tugas_tambah,
+                tgstmb.tmt_sk_tambah
+            FROM
+                pdrd.tugas_tambahan AS tgstmb WITH(NOLOCK)
+                JOIN ref.jab_tgs AS jabtgs WITH(NOLOCK) ON jabtgs.id_jab_tgs = tgstmb.id_jab_tgs
+                AND jabtgs.expired_date IS NULL
+                JOIN ref.kategori_kegiatan AS katgiat WITH(NOLOCK) ON katgiat.id_katgiat = tgstmb.id_katgiat
+                AND katgiat.expired_date IS NULL
+            WHERE
+            tgstmb.soft_delete = 0
+            AND tgstmb.id_sdm = '" . $id_sdm . "'
+            ORDER BY tgstmb.tmt_sk_tambah ASC
+        ");
+        $rwy_krja =  DB::SELECT("
+            SELECT
+                rwykrj.id_rwy_kerja,
+                pkrjn.nm_pekerjaan,
+                rwykrj.nm_jabatan,
+                rwykrj.instansi,
+                rwykrj.mulai_bekerja,
+                rwykrj.selesai_bekerja
+            FROM
+            pdrd.rwy_pekerjaan AS rwykrj WITH(NOLOCK)
+            JOIN ref.pekerjaan AS pkrjn WITH(NOLOCK) ON pkrjn.id_pekerjaan = rwykrj.id_pekerjaan
+            AND pkrjn.expired_date IS NULL
+            WHERE
+            rwykrj.soft_delete = 0
+            AND rwykrj.id_sdm = '" . $id_sdm . "'
+            ORDER BY rwykrj.mulai_bekerja ASC
+        ");
+
+        return view('dashboard.dosen_profil', compact('profil_dosen', 'side_active', 'rwy_pend', 'rwy_pang', 'rwy_jab', 'rwy_struk', 'rwy_tgs_tmbhn', 'rwy_krja'));
     }
 }
