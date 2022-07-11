@@ -23,7 +23,7 @@ class UserController extends Controller
     private function storeToSSO($array)
     {
         $response = $this->put('pengguna', $array);
-        $response = json_decode($response->getBody())->data;
+        $response = json_decode($response->getBody());
         return $response;
 
     }
@@ -31,7 +31,14 @@ class UserController extends Controller
     private function resetToSSO($array)
     {
         $response = $this->put('pengguna/reset', $array);
-        $response = json_decode($response->getBody())->data;
+        $response = json_decode($response->getBody());
+        return $response;
+    }
+
+    private function changePasswordToSSO($array)
+    {
+        $response = $this->put('pengguna/ubah_password', $array);
+        $response = json_decode($response->getBody());
         return $response;
     }
 
@@ -323,13 +330,29 @@ class UserController extends Controller
         }
 
         if($array['password']==$array['confirm_password']) {
+
+            $password = SHA1($array['password']);
+            
             $pengguna = User::lock('WITH(NOLOCK)')->where('id_pengguna', $pengguna->id_pengguna)->update([
-                'password'  => sha1($array['password'])
+                'password'      => $password,
+                'tgl_ganti_pwd' => currDateTime(),
+                'id_updater'    => Auth::user()->id_pengguna
             ]);
+            //SEND TO SSO
+            $input = [
+                'id_pengguna'   => Auth::user()->id_pengguna,
+                'password'      => $password,
+                'id_updater'    => Auth::user()->id_pengguna
+            ];
+            $this->changePasswordToSSO($input);
+
             alert()->success('Password Berhasil Diupdate!');
+
         } else {
+
             alert()->error('Konfirmasi Password Tidak Sama!');
+
         }
-        return redirect()->back();
+        return redirect()->to($array['url']);
     }
 }

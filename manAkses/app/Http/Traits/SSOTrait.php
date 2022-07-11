@@ -13,8 +13,8 @@ trait SSOTrait {
 
     public function __construct(Request $request)
     {
-        $this->base_uri = 'http://login_unila.test/api/live/0.1/';
-        // $this->base_uri = 'http://login.unila.ac.id/api/live/0.1/';
+        // $this->base_uri = 'http://login_unila.test/api/live/0.1/';
+        $this->base_uri = 'http://login.unila.ac.id/api/live/0.1/';
     }
 
     public function base_uri($api = "")

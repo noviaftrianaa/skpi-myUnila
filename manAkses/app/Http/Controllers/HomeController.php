@@ -113,7 +113,7 @@ class HomeController extends Controller
 
     public function index_ubah_password()
     {
-        return view('manajemen.profile.ubah_password');
+        return view('auth.ubah_password');
     }
     
 }
