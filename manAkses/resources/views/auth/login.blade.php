@@ -51,6 +51,11 @@
     <script src="{{ asset('master_template/plugins/jquery/jquery.min.js') }}"></script>
     <script src="{{ asset('master_template/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('master_template/dist/js/adminlte.min.js') }}"></script>
+    <script src="{!! asset('node_modules/sweetalert/dist/sweetalert.min.js') !!}"></script>
+
+    @stack('js')
+
+    @include('sweet::alert')
 </body>
 
 </html>
