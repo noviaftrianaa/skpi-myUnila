@@ -17,6 +17,7 @@ class User extends Authenticatable
      */
 
     protected $table = 'man_akses.pengguna';
+    protected $keyType = 'string';
     protected $primaryKey = 'id_pengguna';
     public $timestamps = false;
     public $incrementing = false;

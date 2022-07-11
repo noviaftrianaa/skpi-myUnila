@@ -35,7 +35,7 @@ class AppServiceProvider extends ServiceProvider
                 //     'Content-Type' => 'application/json',
                 //     'Authorization' => 'Bearer ' . session()->get('login.token')
                 // ])->get(url('/api/0.1/peran?id_pengguna='.auth()->user()->id_pengguna));
-                $response = Http::get(url('/api/0.1/peran?id_pengguna='.auth()->user()->id_pengguna));
+                $response = Http::get(url('/api/live/0.1/peran?id_pengguna='.auth()->user()->id_pengguna));
                 $message = $response['message'];
     
                 if(!empty($message)) {

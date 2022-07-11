@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Validation\Rule as ValidationRule;
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Models\Peran;
+use App\Models\RolePengguna;
 use Illuminate\Support\Facades\Log;
 use DB;
 
@@ -19,7 +19,7 @@ class manAksesController extends Controller
     {
         $this->request = $request;
         $this->pengguna = new User();
-        $this->rolePengguna = new Peran();
+        $this->rolePengguna = new RolePengguna();
     }
 
     public function peran()
@@ -117,7 +117,7 @@ class manAksesController extends Controller
         try {
 
             $role_pengguna = $this->rolePengguna->where('id_role_pengguna', $id_role_pengguna)->first();
-            if (!$role_pengguna) return WrapResponse(['data' => null], 'id_role_pengguna tidak ditemukan atau tidak terdaftar', FALSE);
+            if (!$role_pengguna) return WrapResponse(['data' => null], 'ID Role Pengguna tidak ditemukan atau tidak terdaftar', FALSE);
 
             $role_pengguna->update([
                 'last_active' => $last_active

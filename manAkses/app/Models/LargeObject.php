@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class LargeObject extends Model
 {
+    protected $keyType = 'string';
     protected $table = 'dok.large_object';
     protected $fillable = ['id_blob','blob_content','file_name','mime_type','create_date','id_creator','last_update','id_updater','expired_date','last_sync','soft_delete'];
     public $timestamps = false;

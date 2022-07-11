@@ -12,9 +12,28 @@ use App\Models\RolePengguna;
 use Illuminate\Support\Facades\Crypt;
 use Session;
 use DataTables;
+use Illuminate\Support\Facades\Http;
+use App\Http\Traits\SSOTrait;
 
 class UserController extends Controller
 {
+
+    use SSOTrait;
+
+    private function storeToSSO($array)
+    {
+        $response = $this->put('pengguna', $array);
+        $response = json_decode($response->getBody())->data;
+        return $response;
+
+    }
+
+    private function resetToSSO($array)
+    {
+        $response = $this->put('pengguna/reset', $array);
+        $response = json_decode($response->getBody())->data;
+        return $response;
+    }
 
     public function index(Request $request)
     {
@@ -91,6 +110,10 @@ class UserController extends Controller
             'id_updater'    => $uuid,
             'soft_delete'   => 0
         ]);
+
+        //SENT TO SSO
+        $this->storeToSSO($data);
+        
         foreach($array['id_peran'] as $item) {
             $role = RolePengguna::create([
                 'id_role_pengguna' => guid(),
@@ -187,7 +210,6 @@ class UserController extends Controller
 
         $data = User::lock('WITH(NOLOCK)')->where('id_pengguna',$id)->update([
             'nm_pengguna'   => $array['nm_pengguna'],
-            'username'      => $array['username'],
             'jenis_kelamin' => $array['jenis_kelamin'],
             'tempat_lahir'  => $array['tempat_lahir'],
             'tgl_lahir'     => $array['tgl_lahir'],
@@ -202,6 +224,10 @@ class UserController extends Controller
             'last_sync'     => currDateTime(),
             'id_updater'    => $id,
         ]);
+        $data = User::find($id)->toArray();
+
+        //SENT TO SSO
+        $response = $this->storeToSSO($data);
 
         if(!$data) {
             alert()->error('Data gagal disimpan!');
@@ -242,11 +268,19 @@ class UserController extends Controller
     public function reset(Request $request, $id)
     {
         $id = Crypt::decrypt($id);
-        $data = User::lock('WITH(NOLOCK)')->where('id_pengguna', $id)->update([
-            'password'         => sha1('unilajaya'),
-            'last_update'      => currDateTime(),
-            'id_updater'       => Auth::user()->id_pengguna
-        ]);
+        $array = $request->all();
+        $array['id_pengguna'] = $id;
+        $array['password'] = sha1('unilajaya');
+        $array['last_update'] = currDateTime();
+        $array['id_updater'] = Auth::user()->id_pengguna;
+        unset($array['_token']);
+        unset($array['_method']);
+
+        $data = User::lock('WITH(NOLOCK)')->where('id_pengguna', $id)->update($array);
+
+        //SEND TO SSO
+        $response = $this->resetToSSO($array);
+
         if(!$data) {
             alert()->error('Password gagal direset!');
         } else {

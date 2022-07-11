@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Aplikasi extends Model
 {
+    protected $keyType = 'string';
     protected $table = 'man_akses.aplikasi';
+    protected $primaryKey = 'id_aplikasi';
     protected $fillable = ['id_aplikasi','id_blob','id_organisasi','nm_aplikasi','ket_aplikasi','token_aplikasi','app_key','url','a_generate_menu','tgl_create','last_update','expired_date','last_sync','id_blob','endpoint_ws','a_integrasi_cas','a_sistem_internal_pt'];
     public $timestamps = false;
     public $incrementing = false;
