@@ -38,7 +38,7 @@ class AppServiceProvider extends ServiceProvider
                 $response = Http::get(url('/api/live/0.1/peran?id_pengguna='.auth()->user()->id_pengguna));
                 $message = $response['message'];
     
-                if(!empty($message)) {
+                if(!empty($message) AND !is_null($response['data'])) {
                     foreach($response['data'] AS $each_data) {
                         $view->with('getPeran', $each_data);
                         Session::put('pj_aplikasi', $each_data->jabatan_pj ?? null);
