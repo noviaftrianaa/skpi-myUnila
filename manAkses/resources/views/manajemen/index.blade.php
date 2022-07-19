@@ -136,7 +136,7 @@
         var owls = $(".owl-carousel").owlCarousel({
             loop:true,
             nav: true,
-            margin:20,
+            margin:5,
             responsiveClass:true,
             autoplay:true,
             autoplayTimeout:4000,

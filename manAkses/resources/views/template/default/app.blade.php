@@ -54,7 +54,7 @@
         }   
     </style>
 </head>
-<body class="hold-transition sidebar-collapse sidebar-mini text-sm">
+<body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed text-sm">
 <div class="wrapper">
     <!-- Navbar -->
     <nav class="main-header navbar navbar-expand navbar-info navbar-dark border-bottom-0 text-white">
@@ -62,6 +62,9 @@
         <ul class="navbar-nav">
             <li class="nav-item">
                 <a class="nav-link" data-widget="pushmenu" href="#"><i class="fas fa-bars"></i></a>
+            </li>
+            <li class="nav-item d-none d-sm-inline-block">
+                <a href="{{ url('/') }}" class="nav-link"><strong>Sistem Informasi Manajemen Akses</strong></a>
             </li>
         </ul>
 
@@ -90,11 +93,11 @@
     <!-- Main Sidebar Container -->
     <aside class="main-sidebar sidebar-dark-info elevation-4">
         <!-- Brand Logo -->
-        <a href="{!! url('/') !!}" class="brand-link bg-gradient-info text-white">
+        <a href="{!! url('/') !!}" class="brand-link text-white">
             <img src="{{ asset('images/logo-unila.png') }}" alt="Logo Aplikasi" class="brand-image img-fluid">
-            <span class="brand-text font-weight-light">&nbsp;<b>MANAJEMEN AKSES</b></span>
+            <span class="brand-text font-weight text-sm"><strong>MANAJEMEN AKSES</strong></span>
         </a>
-        @include('template.default.sidebar')
+        @include('template.default.sidebar2')
     </aside>
 
     <!-- Content Wrapper. Contains page content -->

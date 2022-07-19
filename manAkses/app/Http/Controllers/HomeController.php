@@ -14,6 +14,7 @@ use Session;
 use Cookie;
 use Auth;
 use Illuminate\Support\Facades\Http;
+use SSO\SSO;
 
 class HomeController extends Controller
 {
@@ -24,7 +25,7 @@ class HomeController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth');
+        // $this->middleware('auth');
     }
 
     /**
@@ -113,7 +114,9 @@ class HomeController extends Controller
 
     public function index_ubah_password()
     {
-        return view('auth.ubah_password');
+        if(SSO::authenticate()) {
+            return view('auth.ubah_password');
+        }
     }
     
 }
