@@ -35,71 +35,74 @@
 	<nav class="mt-2">
 		<ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
 			<li class="nav-item">
-			<!-- route dashboard -->
-				<a href="{{ route('index') }}" class="nav-link {{ (request()->is('/')) ? 'active' : '' }}">
+				<a href="{{ route('index') }}" class="nav-link {{ AktifMenu('index', 2) }}">
 						<i class="nav-icon fas fa-tachometer-alt"></i>
 						<p>Dashboard</p>
 				</a>
 			</li>
 
-			<li class="nav-header text-bold">PROFILE</li>
             <li class="nav-item">
-                <a href="{{ route('profile.biodata') }}" class="nav-link {{ (request()->is('profile/biodata*')) ? 'active' : '' }}">
-                    <i class="nav-icon fas fa-user"></i>
-                    <p>Biodata</p>
-                </a>
+                <li class="nav-header text-bold">PROFILE</li>
+                <li class="nav-item">
+                    <a href="{{ route('profile.biodata') }}" class="nav-link {{ AktifMenu('profile.biodata', 2) }}">
+                        <i class="nav-icon fas fa-user"></i>
+                        <p>Biodata</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('profile.riwayat_pendidikan') }}" class="nav-link {{ AktifMenu('profile.riwayat_pendidikan', 2) }}">
+                        <i class="nav-icon fas fa-school"></i>
+                        <p>Riwayat Pendidikan</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('ubah_password') }}" class="nav-link {{ AktifMenu('ubah_password', 2) }}">
+                        <i class="fas fa-key nav-icon"></i>
+                        <p>Ubah Password</p>
+                    </a>
+                </li>
             </li>
-            <li class="nav-item">
-                <a href="{{ route('profile.riwayat_pendidikan') }}" class="nav-link {{ (request()->is('profile/riwayat_pendidikan*')) ? 'active' : '' }}">
-                    <i class="nav-icon fas fa-school"></i>
-                    <p>Riwayat Pendidikan</p>
-                </a>
-            </li>
-			<li class="nav-item">
-				<a href="{{ route('ubah_password') }}" class="nav-link {{ (request()->is('ubah_password')) ? 'active' : '' }}">
-					<i class="fas fa-key nav-icon"></i>
-					<p>Ubah Password</p>
-				</a>
-			</li>
 
 			@if(session()->has('login.role') && session()->get('login.role')->id_peran==1)
 			
-			<li class="nav-header text-bold">MASTER DATA</li>
             <li class="nav-item">
-                <a href="{{ route('user.index') }}" class="nav-link {{ (request()->is('master/user*')) ? 'active' : '' }}">
-                    <i class="nav-icon fas fa-users"></i>
-                    <p>Pengguna</p>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{{ route('peran.index') }}" class="nav-link {{ (request()->is('master/peran*')) ? 'active' : '' }}">
-                    <i class="nav-icon fab fa-critical-role"></i>
-                    <p>Peran</p>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{{ route('unit.index') }}" class="nav-link {{ (request()->is('master/unit*')) ? 'active' : '' }}">
-                    <i class="nav-icon fa fa-building-o"></i>
-                    <p>Unit Organisasi</p>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{{ route('aplikasi.index') }}" class="nav-link {{ (request()->is('master/aplikasi*')) ? 'active' : '' }}">
-                    <i class="nav-icon fa fa-desktop"></i>
-                    <p>Aplikasi</p>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{{ route('token.index') }}" class="nav-link {{ (request()->is('master/token*')) ? 'active' : '' }}">
-                    <i class="nav-icon fas fa-coins"></i>
-                    <p>Token</p>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{{ route('menu.index') }}" class="nav-link {{ (request()->is('master/menu*')) ? 'active' : '' }}">
-                    <i class="nav-icon fas fa-bars"></i>
-                    <p>Menu</p>
-                </a>
+                <li class="nav-header text-bold">MASTER DATA</li>
+                <li class="nav-item">
+                    <a href="{{ route('user.index') }}" class="nav-link {{ (request()->is('master/user*')) ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-users"></i>
+                        <p>Pengguna</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('peran.index') }}" class="nav-link {{ (request()->is('master/peran*')) ? 'active' : '' }}">
+                        <i class="nav-icon fab fa-critical-role"></i>
+                        <p>Peran</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('unit.index') }}" class="nav-link {{ (request()->is('master/unit*')) ? 'active' : '' }}">
+                        <i class="nav-icon fa fa-building-o"></i>
+                        <p>Unit Organisasi</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('aplikasi.index') }}" class="nav-link {{ (request()->is('master/aplikasi*')) ? 'active' : '' }}">
+                        <i class="nav-icon fa fa-desktop"></i>
+                        <p>Aplikasi</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('token.index') }}" class="nav-link {{ (request()->is('master/token*')) ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-coins"></i>
+                        <p>Token</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('menu.index') }}" class="nav-link {{ (request()->is('master/menu*')) ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-bars"></i>
+                        <p>Menu</p>
+                    </a>
+                </li>
             </li>
 			@endif
 		</ul>
@@ -116,7 +119,6 @@
 			if (parentForm && parentForm.length > 0) {
 				parentForm.submit();
 			}
-			// document.forms['#changeRole'].submit();
 		});
 	});
 </script>

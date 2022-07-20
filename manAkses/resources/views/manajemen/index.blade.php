@@ -123,7 +123,7 @@
             transform: translate(0, -50%);
         }
         .search {
-            transform: translate(0, 50%);
+            transform: translate(0, 40%);
         }
     }
 </style>

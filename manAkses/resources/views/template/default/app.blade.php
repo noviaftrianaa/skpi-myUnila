@@ -54,7 +54,7 @@
         }   
     </style>
 </head>
-<body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed text-sm">
+<body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed text-sm {{ (request()->is('/')) ? 'sidebar-collapse' : '' }}">
 <div class="wrapper">
     <!-- Navbar -->
     <nav class="main-header navbar navbar-expand navbar-info navbar-dark border-bottom-0 text-white">
