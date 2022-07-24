@@ -789,7 +789,7 @@ class MahasiswaController extends Controller
         );
 
         if (empty($query)) {
-            return WrapResponse([], "Data tidak ditemukan", FALSE);
+            return WrapResponse(['data' => null], "Data tidak ditemukan", FALSE);
         }
 
         $data = [];

@@ -165,7 +165,6 @@ class TracerStudyController extends Controller
         return WrapResponse(compact('currentPage', 'itemsPerPage', 'data'), 'Berhasil mengambil data list Tracer Study');
     }
 
-
     /**
      * Store a newly created resource in storage.
      *
@@ -174,93 +173,66 @@ class TracerStudyController extends Controller
      */
     public function store(Request $request)
     {
-
-        $get_data = $request->all();
-
-        if (empty($get_data['data'])) {
-            return WrapResponse([], 'Data kosonng silahkan diisi', FALSE);
-        }
+        $id_reg_pd = $request->input('id_reg_pd');
+        $id_thn_ajaran = $request->input('id_thn_ajaran');
+        $id_bid_kerja = $request->input('id_bid_kerja');
+        $id_wil = $request->input('id_wil');
+        $id_smt = $request->input('id_smt');
+        $id_jns_jalur_kerja = $request->input('id_jns_jalur_kerja');
+        $wkt_pengisian = $request->input('wkt_pengisian');
+        $wkt_tunggu = $request->input('wkt_tunggu');
+        $a_kerja_sblm_lulus = $request->input('a_kerja_sblm_lulus');
+        $status_lulusan = $request->input('status_lulusan');
+        $jns_tmpt_bekerja = $request->input('jns_tmpt_bekerja');
+        $level_perusahaan = $request->input('level_perusahaan');
+        $nm_tmpt_bekerja = $request->input('nm_tmpt_bekerja');
+        $income_per_bln = $request->input('income_per_bln');
+        $status_jabatan = $request->input('status_jabatan');
+        $total_instansi_dilamar = $request->input('total_instansi_dilamar');
+        $hub_bidang_kerja = $request->input('hub_bidang_kerja');
+        $tkt_kesesuaian = $request->input('tkt_kesesuaian');
+        $alasan_tidak_sesuai = $request->input('alasan_tidak_sesuai');
+        $nm_pt_lnjt = $request->input('nm_pt_lnjt');
+        $nm_prodi_lnjt = $request->input('nm_prodi_lnjt');
+        $wkt_masuk = $request->input('wkt_masuk');
+        $ket = $request->input('ket');
 
         DB::beginTransaction();
         try {
-            $tracer = [];
-            foreach ($get_data['data'] as $each_data) {
+            $tracer = HasilTracerStudy::updateOrInsert([
+                'id_reg_pd' => $id_reg_pd,
+                'id_thn_ajaran' => $id_thn_ajaran,
+            ], [
+                'id_hasil_tracer_study' => guid(),
+                'id_bid_kerja' => $id_bid_kerja,
+                'id_wil' => $id_wil,
+                'id_smt' => $id_smt,
+                'id_jns_jalur_kerja' => $id_jns_jalur_kerja,
+                'wkt_pengisian' => $wkt_pengisian,
+                'wkt_tunggu' => $wkt_tunggu,
+                'a_kerja_sblm_lulus' => $a_kerja_sblm_lulus,
+                'status_lulusan' => $status_lulusan,
+                'jns_tmpt_bekerja' => $jns_tmpt_bekerja,
+                'level_perusahaan' => $level_perusahaan,
+                'nm_tmpt_bekerja' => $nm_tmpt_bekerja,
+                'income_per_bln' => $income_per_bln,
+                'status_jabatan' => $status_jabatan,
+                'total_instansi_dilamar' => $total_instansi_dilamar,
+                'hub_bidang_kerja' => $hub_bidang_kerja,
+                'tkt_kesesuaian' => $tkt_kesesuaian,
+                'alasan_tidak_sesuai' => $alasan_tidak_sesuai,
+                'nm_pt_lnjt' => $nm_pt_lnjt,
+                'nm_prodi_lnjt' => $nm_prodi_lnjt,
+                'wkt_masuk' => $wkt_masuk,
+                'ket' => $ket,
+                'id_creator' => guid(),
+                'id_updater' => guid(),
+                'create_date' => currDateTime(),
+                'last_update' => currDateTime(),
+                'last_sync' => currDateTime(),
+                'soft_delete' => 0
+            ]);
 
-                // $dataRegPd = DB::select("
-                //     SELECT
-                //         reg.id_reg_pd,
-                //         reg.nipd AS npm
-                //     FROM
-                //         pdrd.reg_pd AS reg
-                //     WHERE
-                //         reg.nipd = ?
-                //         AND reg.soft_delete = 0
-                // ", [$each_data['npm']]);
-
-                $tracer = HasilTracerStudy::updateOrInsert([
-                    'id_reg_pd' => $each_data['id_reg_pd'],
-                    'id_thn_ajaran' => $each_data['id_thn_ajaran'],
-                ], [
-                    'id_hasil_tracer_study' => guid(),
-                    'id_bid_kerja' => $each_data['id_bid_kerja'],
-                    'id_wil' => $each_data['id_wil'],
-                    'id_smt' => $each_data['id_smt'],
-                    'id_jns_jalur_kerja' => $each_data['id_jns_jalur_kerja'],
-                    'wkt_pengisian' => $each_data['wkt_pengisian'],
-                    'wkt_tunggu' => $each_data['wkt_tunggu'],
-                    'a_kerja_sblm_lulus' => $each_data['a_kerja_sblm_lulus'],
-                    'status_lulusan' => $each_data['status_lulusan'],
-                    'jns_tmpt_bekerja' => $each_data['jns_tmpt_bekerja'],
-                    'level_perusahaan' => $each_data['level_perusahaan'],
-                    'nm_tmpt_bekerja' => $each_data['nm_tmpt_bekerja'],
-                    'income_per_bln' => $each_data['income_per_bln'],
-                    'status_jabatan' => $each_data['status_jabatan'],
-                    'total_instansi_dilamar' => $each_data['total_instansi_dilamar'],
-                    'hub_bidang_kerja' => $each_data['hub_bidang_kerja'],
-                    'tkt_kesesuaian' => $each_data['tkt_kesesuaian'],
-                    'alasan_tidak_sesuai' => $each_data['alasan_tidak_sesuai'],
-                    'nm_pt_lnjt' => $each_data['nm_pt_lnjt'],
-                    'nm_prodi_lnjt' => $each_data['nm_prodi_lnjt'],
-                    'wkt_masuk' => $each_data['wkt_masuk'],
-                    'ket' => $each_data['ket'],
-                    'id_creator' => guid(),
-                    'id_updater' => guid(),
-                    'create_date' => currDateTime(),
-                    'last_update' => currDateTime(),
-                    'last_sync' => currDateTime(),
-                    'soft_delete' => 0
-                ]);
-
-                //     $dataBidangKerja = DB::select("
-                //         SELECT
-                //             bp.nm_bid_kerja
-                //         FROM
-                //             ref.bidang_pekerjaan AS bp
-                //         WHERE
-                //             bp.id_bid_kerja = ?
-                //             AND bp.expired_date IS NULL
-                //     ", [$each_data['id_bid_kerja']]);
-
-                // HasilTracerAtasan::create([
-                //     'id_hasil_tracer_atasan' => guid(),
-                //     'id_hasil_tracer_study' => $tracer->id_hasil_tracer_study,
-                //     // 'id_negara' => $each_data['id_negara'],
-                //     'id_wil' => $tracer->id_wil,
-                //     // 'email_atasan' => $each_data['email_atasan'],
-                //     // 'nm_atasan' => $each_data['nm_atasan'],
-                //     // 'jabatan_atasan' => $each_data['jabatan_atasan'],
-                //     'nm_tmpt_bekerja' => $dataBidangKerja[0]->nm_bid_kerja,
-                //     'bidang_tempat_bekerja' => $dataBidangKerja[0]->nm_bid_kerja,
-                //     // 'saran' => $each_data['saran'],
-                //     // 'harapan' => $each_data['harapan'],
-                //     'id_creator' => $tracer->id_creator,
-                //     'id_updater' => $tracer->id_updater,
-                //     'create_date' => $tracer->create_date,
-                //     'last_update' => $tracer->last_update,
-                //     'last_sync' => $tracer->last_sync,
-                //     'soft_delete' => 0
-                // ]);
-            }
 
             DB::commit();
             $config = config('database.default');
@@ -386,5 +358,4 @@ class TracerStudyController extends Controller
             return WrapResponse([], "gagal menghapus tracer study");
         }
     }
-
 }
