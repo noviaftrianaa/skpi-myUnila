@@ -19,7 +19,7 @@
                         <p>Dashboard</p>
                     </a>
                 </li>
-                <li class="nav-item {{ in_array($side_active,['mahasiswa','tracer_study'])?'menu-open':'' }}">
+                <li class="nav-item {{ in_array($side_active,['mahasiswa','tracer_study', 'kampus_merdeka'])?'menu-open':'' }}">
                     <a href="#" class="nav-link {{ in_array($side_active,['mahasiswa','tracer_study'])?'active':'' }}">
                         <i class="nav-icon fas fa-layer-group"></i>
                         <p>
@@ -38,6 +38,12 @@
                             <a href="{{ route('dashboard.tracer_study') }}" class="nav-link {{ $side_active=='tracer_study'?'active':'' }}">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Tracer Study</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard.kampus_merdeka') }}" class="nav-link {{ $side_active=='kampus_merdeka'?'active':'' }}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Kampus Merdeka</p>
                             </a>
                         </li>
                     </ul>

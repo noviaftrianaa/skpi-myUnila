@@ -35,6 +35,13 @@ class DashboardController extends Controller
         return view('dashboard.mahasiswa', compact('data_1', 'data_2', 'side_active'));
     }
 
+    public function kampus_merdeka()
+    {
+        $data = DB::table('dashboard.dashboard_power_bi')->where('kode_dashboard', '=', 'kampus_merdeka')->first();
+        $side_active   = 'kampus_merdeka';
+        return view('dashboard.kampus_merdeka', compact('data', 'side_active'));
+    }
+
     public function tracer_study()
     {
         $data = DB::table('dashboard.dashboard_power_bi')->where('kode_dashboard', '=', 'tracer_study')->first();

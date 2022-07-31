@@ -46,6 +46,7 @@ Route::get('/',  [DashboardController::class, 'index'])->name('home');
 /** Dashboard Mahasiswa */
 Route::get('/dashboard/mahasiswa',  [DashboardController::class, 'mahasiswa'])->name('dashboard.mahasiswa');
 Route::get('/dashboard/tracer_study',  [DashboardController::class, 'tracer_study'])->name('dashboard.tracer_study');
+Route::get('/dashboard/kampus_merdeka',  [DashboardController::class, 'kampus_merdeka'])->name('dashboard.kampus_merdeka');
 
 /** Dashboard Dosen */
 Route::get('/dashboard/dosen',  [DashboardController::class, 'dosen'])->name('dashboard.dosen');
