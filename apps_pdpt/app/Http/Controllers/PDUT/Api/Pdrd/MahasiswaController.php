@@ -46,6 +46,7 @@ class MahasiswaController extends Controller
                 reg.id_reg_pd,
                 reg.nipd AS npm,
                 pd.nm_pd,
+                sms.id_sms,
                 CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS nm_prodi,
                 ts.nm_smt AS periode_masuk,
                 kul.ips,
@@ -120,6 +121,7 @@ class MahasiswaController extends Controller
                 'NPM' => $each_data->npm,
                 'nama_mahasiswa' => $each_data->nm_pd,
                 'program_studi' => $each_data->nm_prodi,
+                'id_prodi' => $each_data->id_sms,
                 'periode_masuk' => $each_data->periode_masuk,
                 'semester_sekarang' => $each_data->smt_skrng,
                 'ips' => $each_data->ips,
@@ -314,15 +316,15 @@ class MahasiswaController extends Controller
         $statMhs = $request->input('status_mahasiswa', 'A');
 
         InputValidator([
-            'idProdi' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
+            'id_prodi' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
             'statMhs' => ['alpha', ValidationRule::in([
                 'A', 'C', 'D', 'G', 'H', 'K', 'L', 'M', 'N', 'T', 'U', 'W',
                 'a', 'c', 'd', 'g', 'h', 'k', 'l', 'm', 'n', 't', 'u', 'w'
             ])],
             'sortby' => ['alpha', ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])],
         ], [
-            'idProdi.required' => 'field ini harus diisi',
-            'idProdi.regex' => 'input harus berupa campuran alpa_numeric dan dash',
+            'id_prodi.required' => 'field ini harus diisi',
+            'id_prodi.regex' => 'input harus berupa campuran alpa_numeric dan dash',
             'statMhs.regex' => 'input harus sesuai',
             'sortby.alpha' => 'input penyortiran harus kata',
             'sortby.in' => 'input pernyortiran hanya ASC atau DESC'
