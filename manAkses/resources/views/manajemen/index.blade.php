@@ -42,12 +42,13 @@
         padding: 0;
         cursor: pointer;
     }
-    .new_style {
-        padding: 25px;
-    }
     ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
         color: black;
         opacity: 1; /* Firefox */
+    }
+    .card {
+        border-radius: 10px;
+        border-left: 5px solid #17a2b8;
     }
     .content-wrapper {
         background: url('/images/bg-dashboard.png');
@@ -58,141 +59,58 @@
     svg {
         color: #fff;
     }
-    /* .search {
-        transform: translate(0, 70%);
-    } */
-    .owl-carousel img {
-        width:  auto; /*or 70%, or what you want*/
-        height: 65px; /*or 70%, or what you want*/
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        margin-top: 30px;
-        transform: translate(0, -50%);
-    }
-    .owl-prev, .owl-next
-    {
-        position: absolute;
-    }
-    .owl-prev
-    {
-        left: -30px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 40px !important;
-        background-color: transparent !important;
-        outline: none !important;
-    }
-    .owl-next
-    {
-        right: -30px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 40px !important;
-        background-color: transparent !important;
-        outline: none !important;
-    }
     @media only screen and (max-width: 1366px) {
         .new_style {
-            padding: 5px;
-        }
-        .owl-carousel img {
-            width:  auto; /*or 70%, or what you want*/
-            height: 50px; /*or 70%, or what you want*/
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            margin-top: 30px;
-            transform: translate(0, -50%);
-        }
-        .search {
-            transform: translate(0, 70%);
+            padding: 0;
         }
     }
     @media only screen and (min-width: 1366px) {
         .new_style {
-            padding: 25px;
-        }
-        .owl-carousel img {
-            width:  auto; /*or 70%, or what you want*/
-            height: 70px; /*or 70%, or what you want*/
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            margin-top: 30px;
-            transform: translate(0, -50%);
-        }
-        .search {
-            transform: translate(0, 40%);
+            padding: 20px;
         }
     }
 </style>
 @endpush
 
 @push('js')
-<script src="{{ asset('owlcarousel/dist/owl.carousel.min.js') }}"></script>
 <script>
-    $(document).ready(function(){
-        var owls = $(".owl-carousel").owlCarousel({
-            loop:true,
-            nav: true,
-            margin:5,
-            responsiveClass:true,
-            autoplay:true,
-            autoplayTimeout:4000,
-            responsive:{
-                0:{
-                    items:5,
-                    nav:true,
-                    loop:true
-                },
-                960:{
-                    items:8,
-                    nav:true,
-                    loop:true
-                },
-                1366:{
-                    items:10,
-                    nav:true,
-                    loop:true
-                }
-            }
-        });
-        $(".owl-carousel").on('mousewheel', '.owl-stage', function (e) {
-            if (e.deltaY>0) {
-                owl.trigger('next.owl');
-            } else {
-                owl.trigger('prev.owl');
-            }
-            e.preventDefault();
-        });
 
+    function fetch_data(page) {
+        var l = window.location;
+        $.ajax({
+            url: l.origin + l.pathname + "?page=" + page,
+            success: function(satwork) {
+                $('.wrapper').html('');
+                $('.wrapper').html(satwork);
+            }
+        });
+    }
+
+    $(document).ready(function(){
         //SEARCH
         $('#search').on('keyup change', function() {
             var name = $(this).val();
-            if(name!='' && name!=' ') {
+            console.log(name);
+            if(name != "" && name != " ") {
                 $.ajax({
                     url: '/apps/' + name,
                     type: "GET",
                     dataType: "json",
                     success:function(data)
                     {
-                        console.log(data);
                         if(data != ''){
                             $('.apps').hide();
                             $('.apps_search').show();
                             $(".apps_search").html("");
                             $(".info-error").html("");
                             $.each(data, function(key, item){
-                                var html = '<div id="'+key+'"> <a href="' + item.url + '" id="' + key + '" title="' + item.nm_aplikasi + '" alt="' + item.nm_aplikasi + '" target="_blank"> <div class="row"> <div class="col-12 text-center"> <img id="' + key + '" src="' + item.url_logo + '" class="img-responsive" alt="apps"> </div> </div> <div class="row"> <div class="col-12 text-center"> <span class="text-xs text-warning" id="' + key + '" style="font-weight: bold">' + item.nm_aplikasi + '</span> </div> </div> </a> </div>';
+                                var html = '<div class="col-md-2 col-6"> <a href="'+item.url+'" alt="'+item.nm_aplikasi+'" title="'+item.nm_aplikasi+'" target="_blank"> <div class="card"> <div class="row"> <div class="col-4 p-3"> <img id="' + key + '" src="' + item.url_logo + '" class="img-responsive" alt="apps" height="40" width="100%"> </div> <div class="col-8 pr-3" style="margin-top: auto; margin-bottom: auto;word-wrap: break-word;"> <span class="text-bold text-sm">'+item.nm_aplikasi+'</span> </div> </div> </div> </a> </div>';
                                 $(".apps_search").append(html);
-                                owls.trigger('refresh.owl.carousel');
                             });
                         } else {
                             $('.apps').show();
                             $(".apps_search").html("");
                             $(".info-error").html('<div class="alert alert-warning text-center" style="padding:0"> <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> <span style="font-weight: bold;"><i class="icon fas fa-info-circle"></i> APLIKASI TIDAK DITEMUKAN!</span> </div>');
-                            owls.trigger('refresh.owl.carousel');
                         }
                     }
                 });
@@ -201,8 +119,14 @@
                 $(".apps_search").html("");
                 $("#search").val("");
                 $(".info-error").html("");
-                owls.trigger('refresh.owl.carousel');
             }
+        });
+
+        //Paginate
+        $(document).on('click', '.paginate a', function(event) {
+            event.preventDefault();
+            var page = $(this).attr('href').split('page=')[1];
+            fetch_data(page);
         });
     });
 </script>
@@ -210,8 +134,7 @@
 
 @section('content')
 <div class="row search">
-    <div class="col-sm-1 col-12"></div>
-    <div class="col-sm-10 col-12">
+    <div class="col-sm-12 col-12">
         <div class="row new_style">
             <div class="col-12 text-center mb-4">
                 <div class="info-error"></div>
@@ -228,32 +151,32 @@
                     </div>
                 </form>
             </div>
-            <div class="col-sm-1 col-1"></div>
-            <div class="col-sm-10 col-10">
-                <div class="owl-carousel apps">
+            <div class="col-12">
+                <div class="row apps">
                     @foreach($app_inter AS $items)
-                    <div>
-                        <a href="{{ $items->url }}" title="{{$items->nm_aplikasi}}" alt="{{$items->nm_aplikasi}}" target="_blank">
-                            <div class="row">
-                                <div class="col-12 text-center">
-                                    <img src="{{ (!is_null($items->largeobject)) ? 'data:image/' . $items->largeobject->mime_type . ';base64,' . $items->largeobject->blob_content : asset('auth/img/logo.png') }}" class="img-responsive" alt="apps">
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-12 text-center">
-                                    <span class="text-xs text-warning" style="font-weight: bold">{{ $items->nm_aplikasi }}</span>
+                    <div class="col-md-2 col-6">
+                        <a href="{!! $items->url !!}" alt="{!! $items->nm_aplikasi !!}" title="{!! $items->nm_aplikasi !!}" target="_blank">
+                            <div class="card">
+                                <div class="row">
+                                    <div class="col-4 p-3">
+                                        <img src="{{ (!is_null($items->largeobject)) ? 'data:image/' . $items->largeobject->mime_type . ';base64,' . $items->largeobject->blob_content : asset('auth/img/logo.png') }}" class="img-responsive" alt="apps" height="40" width="100%">
+                                    </div>
+                                    <div class="col-8 pr-3" style="margin-top: auto; margin-bottom: auto;word-wrap: break-word;">
+                                        <span class="text-bold text-sm">{!! $items->nm_aplikasi !!}</span>
+                                    </div>
                                 </div>
                             </div>
                         </a>
                     </div>
                     @endforeach
+                    <div class="col-md-12 col-12 text-center my-4 paginate">
+                        {!! $app_inter->links() !!}
+                    </div>
                 </div>
-                <div class="owl-carousel apps_search"></div>
+                <div class="row apps_search"></div>
             </div>
-            <div class="col-sm-1 col-1"></div>
         </div>
     </div>
-    <div class="col-sm-1 col-12"></div>
 </div>
 
 @endsection
