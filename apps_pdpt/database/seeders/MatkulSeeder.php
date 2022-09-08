@@ -17,6 +17,8 @@ class MatkulSeeder extends Seeder
      */
     public function run()
     {
+        ini_set('memory_limit',-1);
+        ini_set('max_execution_time',0);
         $data_mk_sister = \DB::connection('pgsql_sister')->SELECT("
             SELECT
                 tsms.nm_lemb,
@@ -86,8 +88,6 @@ class MatkulSeeder extends Seeder
                     'a_selenggara_pditt',
                     'a_pengguna_pditt',
                     'kuota_pditt',
-                    'NULL AS kode_vclass',
-                    'NULL AS url_vclass',
                     'tgl_create AS create_date',
                     'id_updater AS id_creator',
                     'last_update',
@@ -95,6 +95,7 @@ class MatkulSeeder extends Seeder
                     'soft_delete',
                     'last_sync'
                 ])
+                ->where('id_mk',$each_mk->id_mk)
                 ->orderBy('id_smt')->get();
             if (count($kelas)>0) {
                 foreach ($kelas AS $each_kelas) {
@@ -114,6 +115,7 @@ class MatkulSeeder extends Seeder
                         $akt_ajar = \DB::connection('pgsql_sister')->table('pdrd.akt_ajar_dosen AS akt')
                             ->join('pdrd.reg_ptk AS tr','tr.id_reg_ptk','=','akt.id_reg_ptk')
                             ->where('tr.id_sp','e2b705a7-173e-464a-9fac-509128709515')
+                            ->where('akt.id_kls',$each_kelas->id_kls)
                             ->where('akt.soft_delete',0)
                             ->select([
                                 'akt.id_ajar',
@@ -151,7 +153,7 @@ class MatkulSeeder extends Seeder
                                         $input_akt = (array) $each_akt;
                                         unset($input_akt['id_ajar']);
                                         $akt = AktAjarDosen::find($cari_akt->id_ajar);
-                                        $akt->fill($input_kelas)->save();
+                                        $akt->fill($input_akt)->save();
                                         echo "(Update)";
                                     } else {
                                         echo "(Lewati)";
