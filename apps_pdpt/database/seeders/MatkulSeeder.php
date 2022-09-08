@@ -2,6 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\PDUT\Pdrd\AktAjarDosen;
+use App\Models\PDUT\Pdrd\KelasKuliah;
+use App\Models\PDUT\Pdrd\Matkul;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -14,91 +17,154 @@ class MatkulSeeder extends Seeder
      */
     public function run()
     {
-        $prodi = DB::table('pdrd.sms')->where('soft_delete',0)->select('id_sms')->groupBy('id_sms')->pluck('id_sms')->toArray();
-        $cari_token = DB::table('man_akses.access_token')->where(function ($token) {
-            $token->where('waktu_create','>=',currDateTime())->where('waktu_expired','<=',currDateTime());
-        })->first();
-        if (is_null($cari_token)) {
-            $url = ENV('URL_WS_FEEDER');
-            $form_token = $this->data_get_token_form();
-            $get_token = $this->curl_api_feeder($url,$form_token);
-            $token = $get_token['token'];
-            DB::table('man_akses.access_token')->insert([
-                'id_token'      => guid(),
-                'waktu_create'  => currDateTime(),
-                'waktu_expired' => config('mp.exp_data_row.waktu_expired_token'),
-                'keterangan'    => 'Token Seeder Matakuliah Forlap',
-                'token_value'   => $token,
-                'is_seq_uri'    => 0,
-                'is_reg_user'   => 1,
-                'base_url'      => $url
-            ]);
-        } else {
-            $token = $cari_token->token_value;
-        }
-
-        foreach ($prodi AS $id_sms) {
-            $cari_prodi = DB::table('pdrd.sms')->where('id_sms', $id_sms)->first();
-            $jenjang = DB::table('ref.jenjang_pendidikan')->where('id_jenj_didik',$cari_prodi->id_jenj_didik)->first();
-            echo "Mendapatkan data kurikulum dari prodi ".($cari_prodi->nm_lemb.' ('.$jenjang->nm_jenj_didik.')')."\n";
-            $get_kurikulum = $this->curl_api_feeder($url, $this->data_form('GetListKurikulum',$token,'id_prodi',$id_sms));
-            dd($get_kurikulum);
-            $total_data = count($get_kurikulum);
-        }
-    }
-
-    function curl_api_feeder($url,$fields_string) {
-        if (extension_loaded('curl') === true)
-        {
-            $ch = curl_init();
-            curl_setopt($ch,CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-            curl_setopt($ch,CURLOPT_URL, $url);
-//            curl_setopt($ch,CURLOPT_SSL_VERIFYPEER, FALSE);
-            curl_setopt($ch,CURLOPT_POST, true);
-            curl_setopt($ch,CURLOPT_POSTFIELDS, $fields_string);
-            curl_setopt($ch,CURLOPT_RETURNTRANSFER, true);
-            $result = curl_exec ($ch);
-            if ($result === false) {
-                $info = curl_getinfo($ch);
-                curl_close($ch);
-                die('error occured during curl exec. Info: ' . var_export($info));
+        $data_mk_sister = \DB::connection('pgsql_sister')->SELECT("
+            SELECT
+                tsms.nm_lemb,
+                tm.id_mk,
+                tm.id_sms,
+                tm.id_jenj_didik,
+                tm.sks_mk,
+                tm.sks_tm,
+                tm.sks_prak,
+                tm.sks_prak_lap,
+                tm.sks_sim,
+                tm.kode_mk,
+                tm.nm_mk,
+                tm.jns_mk,
+                tm.kel_mk,
+                tm.metode_pelaksanaan_kuliah,
+                tm.a_sap,
+                tm.a_silabus,
+                tm.a_bahan_ajar,
+                tm.acara_prak,
+                tm.a_diktat,
+                tm.tgl_mulai_efektif,
+                tm.tgl_akhir_efektif,
+                tm.tgl_create AS create_date,
+                tm.id_updater AS id_creator,
+                tm.last_update,
+                tm.id_updater,
+                tm.soft_delete,
+                tm.last_sync
+            FROM pdrd.matkul AS tm
+            JOIN pdrd.sms AS tsms ON tsms.id_sms=tm.id_sms AND tsms.soft_delete=0
+                AND tsms.id_sp='e2b705a7-173e-464a-9fac-509128709515'
+            WHERE tm.soft_delete=0
+            ORDER BY tsms.id_sms ASC
+        ");
+        $total_mk = count($data_mk_sister);
+        foreach ($data_mk_sister AS $no_mk=>$each_mk) {
+            echo "Cek MK: ".$each_mk->nm_mk.' ('.$each_mk->kode_mk.') '.($no_mk+1).'/'.$total_mk.' Prodi '.$each_mk->nm_lemb;
+            $cari_mk = DB::table('pdrd.matkul')->where('id_mk',$each_mk->id_mk)->first();
+            if (is_null($cari_mk)) {
+                $input_mk = (array) $each_mk;
+                unset($input_mk['nm_lemb']);
+                $mk = new Matkul();
+                $mk->fill($input_mk)->save();
+            } else {
+                if (strtotime($each_mk->last_update)>strtotime($cari_mk->last_update)) {
+                    $input_mk = (array) $each_mk;
+                    unset($input_mk['id_mk']);
+                    unset($input_mk['nm_lemb']);
+                    $mk = Matkul::find($cari_mk->id_mk);
+                    $mk->fill($input_mk)->save();
+                }
             }
-            curl_close ($ch);
-        } else {
-            ini_set("allow_url_fopen", 1);
-            $result = file_get_contents($url);
+            $kelas = \DB::connection('pgsql_sister')->table('pdrd.kelas_kuliah')->where('soft_delete',0)
+                ->select([
+                    'id_kls',
+                    'id_sms',
+                    'id_mk',
+                    'id_smt',
+                    'nm_kls',
+                    'sks_mk',
+                    'sks_tm',
+                    'sks_prak',
+                    'sks_prak_lap',
+                    'sks_sim',
+                    'bahasan_case',
+                    'a_selenggara_pditt',
+                    'a_pengguna_pditt',
+                    'kuota_pditt',
+                    'NULL AS kode_vclass',
+                    'NULL AS url_vclass',
+                    'tgl_create AS create_date',
+                    'id_updater AS id_creator',
+                    'last_update',
+                    'id_updater',
+                    'soft_delete',
+                    'last_sync'
+                ])
+                ->orderBy('id_smt')->get();
+            if (count($kelas)>0) {
+                foreach ($kelas AS $each_kelas) {
+                    echo " ".$each_kelas->id_smt;
+                    $cari_kelas = DB::table('pdrd.kelas_kuliah')->where('id_kls',$each_kelas->id_kls)->first();
+                    if (is_null($cari_kelas)) {
+                        $input_kelas = (array) $each_kelas;
+                        $kelas = new KelasKuliah();
+                        $kelas->fill($input_kelas)->save();
+                    } else {
+                        if (strtotime($each_kelas->last_update)>strtotime($cari_kelas->last_update)) {
+                            $input_kelas = (array) $each_kelas;
+                            unset($input_kelas['id_kls']);
+                            $kelas = KelasKuliah::find($cari_kelas->id_kls);
+                            $kelas->fill($input_kelas)->save();
+                        }
+                        $akt_ajar = \DB::connection('pgsql_sister')->table('pdrd.akt_ajar_dosen AS akt')
+                            ->join('pdrd.reg_ptk AS tr','tr.id_reg_ptk','=','akt.id_reg_ptk')
+                            ->where('tr.id_sp','e2b705a7-173e-464a-9fac-509128709515')
+                            ->where('akt.soft_delete',0)
+                            ->select([
+                                'akt.id_ajar',
+                                'akt.id_reg_ptk',
+                                'akt.id_subst',
+                                'akt.id_katgiat',
+                                'akt.id_jns_eval',
+                                'akt.id_kls',
+                                'akt.sks_subst_tot',
+                                'akt.sks_tm_subst',
+                                'akt.sks_prak_subst',
+                                'akt.sks_prak_lap_subst',
+                                'akt.sks_sim_subst',
+                                'akt.jml_tm_renc',
+                                'akt.jml_tm_real',
+                                'akt.jml_mhs',
+                                'akt.tgl_create AS create_date',
+                                'akt.id_updater AS id_creator',
+                                'akt.last_update',
+                                'akt.id_updater',
+                                'akt.soft_delete',
+                                'akt.last_sync'
+                            ])
+                            ->get();
+                        if (count($akt_ajar)>0) {
+                            foreach ($akt_ajar AS $each_akt) {
+                                $cari_akt = DB::table('pdrd.akt_ajar_dosen')->where('id_ajar',$each_akt->id_ajar)->first();
+                                if (is_null($cari_akt)) {
+                                    $input_akt = (array) $each_akt;
+                                    $akt = new AktAjarDosen();
+                                    $akt->fill($input_akt)->save();
+                                    echo "(Tambah)";
+                                } else {
+                                    if (strtotime($each_akt->last_update)>strtotime($cari_akt->last_update)) {
+                                        $input_akt = (array) $each_akt;
+                                        unset($input_akt['id_ajar']);
+                                        $akt = AktAjarDosen::find($cari_akt->id_ajar);
+                                        $akt->fill($input_kelas)->save();
+                                        echo "(Update)";
+                                    } else {
+                                        echo "(Lewati)";
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                echo " - OK\n";
+            } else {
+                echo " - Lewati\n";
+            }
         }
-        $obj = json_decode($result, TRUE);
-        return $obj['data'];
-    }
-
-    function data_form($act,$token,$filter=null,$param=null)
-    {
-        if (is_null($filter)) {
-            return json_encode([
-                "act"=> $act,
-                "token"=> $token,
-                "filter"=> "",
-                "limit"=>0,
-                "offset"=>0,
-            ]);
-        } else {
-            return json_encode([
-                "act"=> $act,
-                "token"=> $token,
-                "filter"=> "{$filter}='{$param}'",
-                "limit"=>0,
-                "offset"=>0,
-            ]);
-        }
-    }
-
-    function data_get_token_form()
-    {
-        return json_encode([
-            "act"=> "GetToken",
-            "username"=> ENV('WS_USERNAME'),
-            "password"=> ENV('WS_PASSWORD')
-        ]);
     }
 }
