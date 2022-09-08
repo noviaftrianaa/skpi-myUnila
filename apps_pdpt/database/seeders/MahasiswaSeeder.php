@@ -183,7 +183,7 @@ class MahasiswaSeeder extends Seeder
                             ]);
                         } else {
                             $gagal[$each_data['id_registrasi_mahasiswa']] = 'Gagal mendapatkan registrasi mahasiswa lulus/do';
-                        }                        
+                        }
                     } else {
                         DB::table('pdrd.reg_pd')->where('id_reg_pd',$carireg->id_reg_pd)->update([
                             'id_jns_keluar'     => $get_data_reg[0]['id_jenis_keluar'],
@@ -244,7 +244,7 @@ class MahasiswaSeeder extends Seeder
         }
         $endTime=microtime(true);
         echo "Selesai\n";
-        echo date("H:i:s",$endtime-$starttime);
+        echo date("H:i:s",$endTime-$startTime);
         if(count($gagal)>0) {
             var_dump($gagal);
         }
