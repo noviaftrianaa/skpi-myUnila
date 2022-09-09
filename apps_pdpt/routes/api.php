@@ -382,4 +382,12 @@ Route::group([
         Route::get('peran', 'manAksesController@peran');
         Route::get('ubah_keaktifan', 'manAksesController@updateLastActive');
     });
+
+    Route::group([
+        'namespace' => 'Iku',
+        'prefix' => 'iku_2'
+    ], function () {
+        Route::get('list', 'Iku2Controller@daftar');
+        Route::post('tambah', 'Iku2Controller@tambah');
+    });
 });
