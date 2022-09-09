@@ -24,6 +24,8 @@ class NeoFeederSeeder extends Seeder
      */
     public function run()
     {
+        ini_set('memory_limit',-1);
+        ini_set('max_execution_time',0);
         $nomor_data=0;
         $id_creator = '443701e4-e814-48f3-9528-251bccee8af1';
         $prodi = DB::table('pdrd.sms')->where('soft_delete',0)->select('id_sms')->orderBy('id_jenj_didik','ASC')->get();
@@ -32,18 +34,18 @@ class NeoFeederSeeder extends Seeder
         $token = $this->generate_token();
 
         $func = [
-//            'substansi_kuliah',
-//            'akt_mhs',
-//            'ang_akt_mhs',
-//            'konversi'
-//            'kurikulum',
-//            'mk_kurikulum',
-//            'rencana_ajar',
-//            'rencana_evaluasi',
+        //    'substansi_kuliah',
+           'akt_mhs',
+           'ang_akt_mhs',
+        //    'konversi',
+        //   'kurikulum',
+        //    'mk_kurikulum',
+        //    'rencana_ajar',
+        //    'rencana_evaluasi',
             'nilai_kelas',
-//            'prestasi',
-//            'ekuivalensi',
-//            'transkrip'
+           'prestasi',
+        //    'ekuivalensi',
+           'transkrip'
 //            'stat_mhs'
         ];
 

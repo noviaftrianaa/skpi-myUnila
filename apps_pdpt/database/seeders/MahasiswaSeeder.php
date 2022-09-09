@@ -16,11 +16,16 @@ class MahasiswaSeeder extends Seeder
      */
     public function run()
     {
+        $startTime=microtime(true);
+
+        ini_set('memory_limit',-1);
+        ini_set('max_execution_time',0);
         $nomor_data=0;
         $id_creator = '443701e4-e814-48f3-9528-251bccee8af1';
         $prodi = DB::table('pdrd.sms')->where('soft_delete',0)->select('id_sms')->groupBy('id_sms')->pluck('id_sms')->toArray();
         $url = ENV('URL_WS_NEO_FEEDER');
         $token = $this->generate_token();
+        $gagal = [];
 
         foreach ($prodi AS $id_sms) {
             if (currDateTime()>$this->expired) {
@@ -50,7 +55,7 @@ class MahasiswaSeeder extends Seeder
                 }
                 $get_data_reg = curl_api_neo_feeder($url, data_form_feeder('GetListRiwayatPendidikanMahasiswa',$token,'id_registrasi_mahasiswa',$each_data['id_registrasi_mahasiswa']));
                 $cari_keaktifan = DB::table('ref.status_mahasiswa')->where('nm_stat_mhs',$each_data['nama_status_mahasiswa'])->first();
-                echo "Input data Mahasiswa Prodi ".($cari_prodi->nm_lemb.' ('.$jenjang->nm_jenj_didik.')')." ".$no." dari ".$total_data." data\n";
+                echo "Input data Mahasiswa Prodi ".($cari_prodi->nm_lemb.' ('.$jenjang->nm_jenj_didik.')')." id:".$each_data['id_mahasiswa']." ".$no." dari ".$total_data." data\n";
                 $carimhs = DB::table('pdrd.peserta_didik')->where('id_pd',$each_data['id_mahasiswa'])->first();
                 if (is_null($carimhs)) {
                     DB::table('pdrd.peserta_didik')->insert([
@@ -114,6 +119,9 @@ class MahasiswaSeeder extends Seeder
                 }
                 $carireg = DB::table('pdrd.reg_pd')->where('id_reg_pd',$each_data['id_registrasi_mahasiswa'])->first();
                 if (is_null($carireg)) {
+                    if (currDateTime()>$this->expired) {
+                        $token = $this->generate_token();
+                    }
                     $get_data_lulus_do = curl_api_neo_feeder($url, data_form_feeder('GetDetailMahasiswaLulusDO',$token,'id_registrasi_mahasiswa',$each_data['id_registrasi_mahasiswa']));
                     DB::table('pdrd.reg_pd')->insert([
                         'id_reg_pd'         => $each_data['id_registrasi_mahasiswa'],
@@ -152,23 +160,30 @@ class MahasiswaSeeder extends Seeder
                     ]);
                 } else {
                     if (!is_null($carireg->id_jns_keluar)) {
+                        if (currDateTime()>$this->expired) {
+                            $token = $this->generate_token();
+                        }
                         $get_data_lulus_do = curl_api_neo_feeder($url, data_form_feeder('GetDetailMahasiswaLulusDO',$token,'id_registrasi_mahasiswa',$each_data['id_registrasi_mahasiswa']));
-                        DB::table('pdrd.reg_pd')->where('id_reg_pd',$carireg->id_reg_pd)->update([
-                            'id_jns_keluar'     => $get_data_lulus_do[0]['id_jenis_keluar'],
-                            'tgl_keluar'        => date('Y-m-d',strtotime($get_data_lulus_do[0]['tanggal_keluar'])),
-                            'ket'               => $get_data_lulus_do[0]['keterangan'],
-                            'sk_yudisium'       => $get_data_lulus_do[0]['nomor_sk_yudisium'],
-                            'tgl_sk_yudisium'   => $get_data_lulus_do[0]['tanggal_sk_yudisium'],
-                            'ipk'               => $get_data_lulus_do[0]['ipk'],
-                            'no_seri_ijazah'    => $get_data_lulus_do[0]['nomor_ijazah'],
-                            'jalur_skripsi'     => $get_data_lulus_do[0]['jalur_skripsi'],
-                            'judul_skripsi'     => $get_data_lulus_do[0]['judul_skripsi'],
-                            'bln_awal_bimbingan'=> $get_data_lulus_do[0]['bulan_awal_bimbingan'],
-                            'bln_akhir_bimbingan'=> $get_data_lulus_do[0]['bulan_akhir_bimbingan'],
-                            'asal_data_ijazah'  => $get_data_lulus_do[0]['asal_ijazah'],
-                            'last_update'       => currDateTime(),
-                            'id_updater'        => '443701e4-e814-48f3-9528-251bccee8af1',
-                        ]);
+                        if(count($get_data_lulus_do)>0) {
+                            DB::table('pdrd.reg_pd')->where('id_reg_pd',$carireg->id_reg_pd)->update([
+                                'id_jns_keluar'     => $get_data_lulus_do[0]['id_jenis_keluar'],
+                                'tgl_keluar'        => date('Y-m-d',strtotime($get_data_lulus_do[0]['tanggal_keluar'])),
+                                'ket'               => $get_data_lulus_do[0]['keterangan'],
+                                'sk_yudisium'       => $get_data_lulus_do[0]['nomor_sk_yudisium'],
+                                'tgl_sk_yudisium'   => $get_data_lulus_do[0]['tanggal_sk_yudisium'],
+                                'ipk'               => $get_data_lulus_do[0]['ipk'],
+                                'no_seri_ijazah'    => $get_data_lulus_do[0]['nomor_ijazah'],
+                                'jalur_skripsi'     => $get_data_lulus_do[0]['jalur_skripsi'],
+                                'judul_skripsi'     => $get_data_lulus_do[0]['judul_skripsi'],
+                                'bln_awal_bimbingan'=> $get_data_lulus_do[0]['bulan_awal_bimbingan'],
+                                'bln_akhir_bimbingan'=> $get_data_lulus_do[0]['bulan_akhir_bimbingan'],
+                                'asal_data_ijazah'  => $get_data_lulus_do[0]['asal_ijazah'],
+                                'last_update'       => currDateTime(),
+                                'id_updater'        => '443701e4-e814-48f3-9528-251bccee8af1',
+                            ]);
+                        } else {
+                            $gagal[$each_data['id_registrasi_mahasiswa']] = 'Gagal mendapatkan registrasi mahasiswa lulus/do';
+                        }
                     } else {
                         DB::table('pdrd.reg_pd')->where('id_reg_pd',$carireg->id_reg_pd)->update([
                             'id_jns_keluar'     => $get_data_reg[0]['id_jenis_keluar'],
@@ -227,7 +242,12 @@ class MahasiswaSeeder extends Seeder
                 $no++;
             }
         }
+        $endTime=microtime(true);
         echo "Selesai\n";
+        echo date("H:i:s",$endTime-$startTime);
+        if(count($gagal)>0) {
+            var_dump($gagal);
+        }
     }
 
     function generate_token()
