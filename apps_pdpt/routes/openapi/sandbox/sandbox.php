@@ -390,4 +390,12 @@ Route::group([
         Route::get('list', 'Iku2Controller@daftar');
         Route::post('tambah', 'Iku2Controller@tambah');
     });
+
+    Route::group([
+        'namespace' => 'Iku',
+        'prefix' => 'iku_6'
+    ], function () {
+        Route::get('list', 'Iku6Controller@daftar');
+        Route::post('tambah', 'Iku6Controller@tambah');
+    });
 });

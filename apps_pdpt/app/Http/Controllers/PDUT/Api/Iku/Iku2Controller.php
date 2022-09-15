@@ -16,6 +16,7 @@ use App\Services\JsonApiResponse as WrapResponse;
 use App\Services\QueryPagination;
 
 use Exception;
+use Log;
 
 class Iku2Controller extends Controller
 {
