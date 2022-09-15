@@ -10759,6 +10759,7 @@
         },
         {
             "name": "zircote/swagger-php",
+<<<<<<< Updated upstream
             "version": "4.4.9",
             "source": {
                 "type": "git",
@@ -10769,6 +10770,18 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/zircote/swagger-php/zipball/0c1cdd31e8cfeb7116c54696aafdab9c778070fd",
                 "reference": "0c1cdd31e8cfeb7116c54696aafdab9c778070fd",
+=======
+            "version": "4.4.8",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/zircote/swagger-php.git",
+                "reference": "34c0980c4cd4f32a1a43f995463001e450d18896"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/zircote/swagger-php/zipball/34c0980c4cd4f32a1a43f995463001e450d18896",
+                "reference": "34c0980c4cd4f32a1a43f995463001e450d18896",
+>>>>>>> Stashed changes
                 "shasum": ""
             },
             "require": {
@@ -10830,9 +10843,15 @@
             ],
             "support": {
                 "issues": "https://github.com/zircote/swagger-php/issues",
+<<<<<<< Updated upstream
                 "source": "https://github.com/zircote/swagger-php/tree/4.4.9"
             },
             "time": "2022-09-11T20:51:43+00:00"
+=======
+                "source": "https://github.com/zircote/swagger-php/tree/4.4.8"
+            },
+            "time": "2022-08-16T23:21:13+00:00"
+>>>>>>> Stashed changes
         }
     ],
     "packages-dev": [

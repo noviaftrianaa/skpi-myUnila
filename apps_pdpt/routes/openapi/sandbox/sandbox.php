@@ -393,9 +393,16 @@ Route::group([
 
     Route::group([
         'namespace' => 'Iku',
+<<<<<<< Updated upstream
         'prefix' => 'iku_6'
     ], function () {
         Route::get('list', 'Iku6Controller@daftar');
         Route::post('tambah', 'Iku6Controller@tambah');
+=======
+        'prefix' => 'iku_7'
+    ], function () {
+        Route::get('list', 'Iku7Controller@daftar');
+        Route::post('tambah', 'Iku7Controller@tambah');
+>>>>>>> Stashed changes
     });
 });
