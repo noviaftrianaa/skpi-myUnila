@@ -11,87 +11,6 @@ class TahunAjaran extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_thn_ajaran',
-	'nm_thn_ajaran',
-	'a_periode_aktif',
-	'tgl_mulai',
-	'tgl_selesai',
-	'create_date',
-	'last_update',
-	'expired_date',
-	'last_sync',
+	'id_thn_ajaran',	'nm_thn_ajaran',	'a_periode_aktif',	'tgl_mulai',	'tgl_selesai',	'create_date',	'last_update',	'expired_date',	'last_sync',
     ];
-
-    public static function getList()
-    {
-        $res = self::select('nm_thn_ajaran','id_thn_ajaran')
-            ->where('tgl_mulai','>','2000-01-01')
-            ->where('id_thn_ajaran', '>=', date('Y')-4)
-            ->where('tgl_mulai','<=',date('Y-m-d H:i:s'))
-            ->where(function ($query) {
-                $query->whereNull('expired_date')
-                    ->orWhere('expired_date', '>=', date('Y-m-d H:i:s'));
-            })
-            ->orderBy('id_thn_ajaran','desc')
-            ->lists('nm_thn_ajaran','id_thn_ajaran')
-            ->toArray();
-
-        return $res;
-    }
-
-    public static function isValid($tahun)
-    {
-        $res = self::select('id_thn_ajaran')
-            ->where('tgl_mulai','>','2010-01-01')
-            ->where('id_thn_ajaran','<=',$tahun)
-            ->where(function ($query) {
-                $query->whereNull('expired_date')
-                    ->orWhere('expired_date', '>=', date('Y-m-d H:i:s'));
-            })
-            ->count();
-
-        return $res;
-    }
-
-    public static function getAktif()
-    {
-        $res = self::select('id_thn_ajaran')
-            ->where('a_periode_aktif','=',1)
-            ->where(function ($query) {
-                $query->whereNull('expired_date')
-                    ->orWhere('expired_date', '>=', date('Y-m-d'));
-            })
-            ->first();
-
-        return $res->id_thn_ajaran;
-    }
-
-    public static function tglSelesai($tahun)
-    {
-        $res = self::select('tgl_selesai')
-            ->where('id_thn_ajaran','=',$tahun)
-            ->first();
-        return $res->tgl_selesai;
-    }
-
-    public static function tglMulai($tahun)
-    {
-        $res = self::select('tgl_mulai')
-            ->where('id_thn_ajaran','=',$tahun)
-            ->first();
-        return $res->tgl_mulai;
-    }
-
-    public static function getTA($tahun)
-    {
-        $res = self::select('id_thn_ajaran', 'nm_thn_ajaran')
-            ->where('id_thn_ajaran','=',$tahun)
-            ->where(function ($query) {
-                $query->whereNull('expired_date')
-                    ->orWhere('expired_date', '>=', date('Y-m-d'));
-            })
-            ->first();
-
-        return $res;
-    }
 }
