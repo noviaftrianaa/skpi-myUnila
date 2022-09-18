@@ -209,6 +209,21 @@ Route::group([
         });
 
         Route::group([
+            'namespace' => 'Kerjasama',
+            'prefix' => 'kerjasama'
+        ], function () {
+            Route::get('list_sms', 'SmsKerjasamaController@index');
+            Route::post('tambah_sms', 'SmsKerjasamaController@store');
+            Route::put('ubah_sms', 'SmsKerjasamaController@update');
+            Route::delete('hapus_sms', 'SmsKerjasamaController@destroy');
+
+            Route::get('list_mou', 'MouController@index');
+            Route::post('tambah_mou', 'MouController@store');
+            Route::put('ubah_mou', 'MouController@update');
+            Route::delete('hapus_mou', 'MouController@destroy');
+        });
+
+        Route::group([
             'namespace' => 'Presensi',
             'prefix' => 'presensi'
         ], function () {
