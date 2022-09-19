@@ -108,9 +108,9 @@ class SmsKerjasamaController extends Controller
             }
         } catch (\Throwable $th) {
             Log::error($th->getMessage() . ' on line ' . $th->getLine());
-            return WrapResponse(['data' => null], 'gagal mendapatkan dsms kerjasama', FALSE);
+            return WrapResponse(['data' => null], 'Gagal mendapatkan sms kerjasama', FALSE);
         }
-        return WrapResponse(['currentPage' => $page, 'itemsPerPage' => $item, 'data' => $data], 'dsms kerjasama', TRUE);
+        return WrapResponse(['currentPage' => $page, 'itemsPerPage' => $item, 'data' => $data], 'Berhasil mendapatkan sms kerjasama', TRUE);
     }
 
     public function store()
