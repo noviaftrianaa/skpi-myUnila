@@ -11,6 +11,6 @@ class JenisKesejahteraan extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_jns_sejahtera',	'nm_jns_sejahtera',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_jns_sejahtera',	'nm_jns_sejahtera',	'create_date',	'last_update',
     ];
 }

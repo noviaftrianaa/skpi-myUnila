@@ -11,6 +11,6 @@ class StatusKeaktifanPegawai extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_stat_aktif',	'nm_stat_aktif',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_stat_aktif',	'nm_stat_aktif',	'create_date',	'last_update',
     ];
 }

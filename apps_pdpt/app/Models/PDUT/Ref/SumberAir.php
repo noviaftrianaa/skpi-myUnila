@@ -11,6 +11,6 @@ class SumberAir extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_sumber_air',	'create_date',	'last_update',	'expired_date',	'last_sync',	'nm_sumber_air',
+	'id_sumber_air',	'create_date',	'last_update',	'nm_sumber_air',
     ];
 }

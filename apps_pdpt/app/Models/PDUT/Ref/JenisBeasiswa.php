@@ -11,6 +11,6 @@ class JenisBeasiswa extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_jns_beasiswa',	'id_sumber_dana',	'nm_jns_beasiswa',	'u_pd',	'u_ptk',	'u_non_ca',	'kat_beasiswa',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_jns_beasiswa',	'id_sumber_dana',	'nm_jns_beasiswa',	'u_pd',	'u_ptk',	'u_non_ca',	'kat_beasiswa',	'create_date',	'last_update',
     ];
 }

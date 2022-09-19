@@ -11,6 +11,6 @@ class KategoriTabel extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_kat_tabel',	'id_katgiat',	'nm_schema',	'nm_tbl',	'konfig_kolom',	'ket',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_kat_tabel',	'id_katgiat',	'nm_schema',	'nm_tbl',	'konfig_kolom',	'ket',	'create_date',	'last_update',
     ];
 }

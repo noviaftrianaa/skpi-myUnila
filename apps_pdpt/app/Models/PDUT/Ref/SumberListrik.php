@@ -11,6 +11,6 @@ class SumberListrik extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_sumber_listrik',	'create_date',	'last_update',	'expired_date',	'last_sync',	'nm_sumber_listrik',
+	'id_sumber_listrik',	'create_date',	'last_update',	'nm_sumber_listrik',
     ];
 }

@@ -11,6 +11,6 @@ class JenisTinggal extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_jns_tinggal',	'nm_jns_tinggal',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_jns_tinggal',	'nm_jns_tinggal',	'create_date',	'last_update',
     ];
 }

@@ -11,6 +11,6 @@ class AktifitasKerjasama extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_akt_kerjasama',	'nm_akt_kerjasama',	'ket',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_akt_kerjasama',	'nm_akt_kerjasama',	'ket',	'create_date',	'last_update',
     ];
 }

@@ -11,6 +11,6 @@ class KebutuhanKhusus extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_kk',	'nm_kk',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_kk',	'nm_kk',	'create_date',	'last_update',
     ];
 }

@@ -11,6 +11,6 @@ class JenisEvaluasi extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_jns_eval',	'nm_jns_eval',	'ket_jns_eval',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_jns_eval',	'nm_jns_eval',	'ket_jns_eval',	'create_date',	'last_update',
     ];
 }

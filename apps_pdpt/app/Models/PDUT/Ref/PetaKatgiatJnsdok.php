@@ -11,6 +11,6 @@ class PetaKatgiatJnsdok extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_katgiat',	'id_jns_dok',	'a_wajib',	'no_urut',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_katgiat',	'id_jns_dok',	'a_wajib',	'no_urut',	'create_date',	'last_update',
     ];
 }

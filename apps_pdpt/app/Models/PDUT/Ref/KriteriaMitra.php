@@ -11,6 +11,6 @@ class KriteriaMitra extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_kriteria_mitra',	'nm_kriteria_mitra',	'ket',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_kriteria_mitra',	'nm_kriteria_mitra',	'ket',	'create_date',	'last_update',
     ];
 }

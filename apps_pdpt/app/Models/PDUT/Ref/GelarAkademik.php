@@ -11,6 +11,6 @@ class GelarAkademik extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_gelar_akad',	'singkat_gelar',	'nm_gelar_akad',	'posisi_gelar',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_gelar_akad',	'singkat_gelar',	'nm_gelar_akad',	'posisi_gelar',	'create_date',	'last_update',
     ];
 }

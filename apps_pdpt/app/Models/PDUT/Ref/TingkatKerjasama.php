@@ -11,6 +11,6 @@ class TingkatKerjasama extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_tingkat_kerjasama',	'nm_tingkat_kerjasama',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_tingkat_kerjasama',	'nm_tingkat_kerjasama',	'create_date',	'last_update',
     ];
 }

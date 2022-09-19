@@ -11,6 +11,6 @@ class JenisPenghargaan extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_jns_penghargaan',	'nm_jns_penghargaan',	'u_sdm',	'u_lembaga',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_jns_penghargaan',	'nm_jns_penghargaan',	'u_sdm',	'u_lembaga',	'create_date',	'last_update',
     ];
 }

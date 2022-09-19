@@ -11,6 +11,6 @@ class Kbli extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_kbli',	'id_induk_kbli',	'kategori',	'kode',	'judul',	'lv_kbli',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_kbli',	'id_induk_kbli',	'kategori',	'kode',	'judul',	'lv_kbli',	'create_date',	'last_update',
     ];
 }

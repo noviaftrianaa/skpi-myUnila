@@ -11,6 +11,6 @@ class LembagaPengangkat extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_lemb_angkat',	'nm_lemb_angkat',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_lemb_angkat',	'nm_lemb_angkat',	'create_date',	'last_update',
     ];
 }

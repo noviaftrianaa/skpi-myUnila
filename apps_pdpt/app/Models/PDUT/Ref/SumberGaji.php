@@ -11,6 +11,6 @@ class SumberGaji extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_sumber_gaji',	'create_date',	'last_update',	'expired_date',	'last_sync',	'nm_sumber_gaji',
+	'id_sumber_gaji',	'create_date',	'last_update',	'nm_sumber_gaji',
     ];
 }

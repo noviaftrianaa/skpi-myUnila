@@ -11,6 +11,6 @@ class BidangKerjasama extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_bid_kerjasama',	'nm_bid_kerjasama',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_bid_kerjasama',	'nm_bid_kerjasama',	'create_date',	'last_update',
     ];
 }

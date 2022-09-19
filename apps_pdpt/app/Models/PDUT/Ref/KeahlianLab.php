@@ -11,6 +11,6 @@ class KeahlianLab extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_keahlian_lab',	'nm_keahlian_lab',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_keahlian_lab',	'nm_keahlian_lab',	'create_date',	'last_update',
     ];
 }

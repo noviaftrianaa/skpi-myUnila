@@ -11,6 +11,6 @@ class JalurDaftar extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_jalur_daftar',	'nm_jalur_daftar',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_jalur_daftar',	'nm_jalur_daftar',	'create_date',	'last_update',
     ];
 }

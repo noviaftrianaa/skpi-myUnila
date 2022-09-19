@@ -11,6 +11,6 @@ class IkatanKerjaSdm extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_ikatan_kerja',	'nm_ikatan_kerja',	'ket_ikatan_kerja',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_ikatan_kerja',	'nm_ikatan_kerja',	'ket_ikatan_kerja',	'create_date',	'last_update',
     ];
 }

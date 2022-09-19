@@ -11,6 +11,6 @@ class JenisJalurPekerjaan extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_jns_jalur_kerja',	'nm_jns_jalur_kerja',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_jns_jalur_kerja',	'nm_jns_jalur_kerja',	'create_date',	'last_update',
     ];
 }

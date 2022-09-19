@@ -11,6 +11,6 @@ class JenisSms extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_jns_sms',	'nm_jns_sms',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_jns_sms',	'nm_jns_sms',	'create_date',	'last_update',
     ];
 }

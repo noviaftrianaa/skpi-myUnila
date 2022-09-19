@@ -11,6 +11,6 @@ class JenisPrestasi extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_jenis_prestasi',	'nm_jenis_prestasi',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_jenis_prestasi',	'nm_jenis_prestasi',	'create_date',	'last_update',
     ];
 }

@@ -11,6 +11,6 @@ class JenisHapusBuku extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_hapus_buku',	'ket_hapus_buku',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_hapus_buku',	'ket_hapus_buku',	'create_date',	'last_update',
     ];
 }

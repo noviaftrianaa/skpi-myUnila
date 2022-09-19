@@ -11,6 +11,6 @@ class JabTgs extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_jab_tgs',	'id_kel_prof',	'nm_jab_tgs',	'a_jab_utama_sek',	'a_jab_utama_pt',	'a_jab_utama_lpnk',	'a_jab_utama_lpk',	'jml_jam_diakui',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_jab_tgs',	'id_kel_prof',	'nm_jab_tgs',	'a_jab_utama_sek',	'a_jab_utama_pt',	'a_jab_utama_lpnk',	'a_jab_utama_lpk',	'jml_jam_diakui',	'create_date',	'last_update',
     ];
 }

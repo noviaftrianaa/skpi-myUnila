@@ -11,6 +11,6 @@ class JenisSarana extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_jns_sarana',	'nm_jns_sarana',	'kel',	'a_penempatan',	'ket',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_jns_sarana',	'nm_jns_sarana',	'kel',	'a_penempatan',	'ket',	'create_date',	'last_update',
     ];
 }

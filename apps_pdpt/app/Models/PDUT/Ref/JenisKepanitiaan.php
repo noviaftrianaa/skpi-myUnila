@@ -11,6 +11,6 @@ class JenisKepanitiaan extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_jns_panitia',	'nm_jns_panitia',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_jns_panitia',	'nm_jns_panitia',	'create_date',	'last_update',
     ];
 }

@@ -11,6 +11,6 @@ class KelompokProfesi extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_kel_prof',	'nm_kel_prof',	'ket_kel_prof',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_kel_prof',	'nm_kel_prof',	'ket_kel_prof',	'create_date',	'last_update',
     ];
 }

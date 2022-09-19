@@ -11,6 +11,6 @@ class Negara extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_negara',	'nm_negara',	'a_ln',	'benua',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_negara',	'nm_negara',	'a_ln',	'benua',	'create_date',	'last_update',
     ];
 }

@@ -11,6 +11,6 @@ class StatusKerjasama extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_stat_kerjasama',	'nm_stat_kerjasama',	'ket',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_stat_kerjasama',	'nm_stat_kerjasama',	'ket',	'create_date',	'last_update',
     ];
 }
