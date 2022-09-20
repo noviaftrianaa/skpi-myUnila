@@ -18,14 +18,23 @@ use DB;
 class AplikasiController extends Controller
 {
 
+    private function keyGenerate()
+    {
+        \Artisan::call('key:generate --show');
+        $app_key = \Artisan::output();
+        $app_key = trim(preg_replace('/\s+/', ' ', $app_key));
+        return Crypt::encrypt(strrev($app_key));
+    }
+
     public function index()
     {
-        $data = Aplikasi::with(['UnitOrganisasi','PJAplikasi'])->lock('WITH(NOLOCK)')->get();
-        $user = User::lock('WITH(NOLOCK)')->where('a_aktif',1)->get();
-
+        if(session()->get('login.role')->id_peran==1) {
+            $data = Aplikasi::with(['UnitOrganisasi','PJAplikasi'])->lock('WITH(NOLOCK)')->get();
+        } else {
+            $data = PJAplikasi::with(['aplikasi.unitorganisasi'])->lock('WITH(NOLOCK)')->where('soft_delete', 0)->where('id_pengguna', auth()->user()->id_pengguna)->get();
+        }
         return view('manajemen.aplikasi.index', [
-            'data'=>$data,
-            'user'=>$user
+            'data'=>$data
         ]);
     }
 
@@ -79,6 +88,7 @@ class AplikasiController extends Controller
             'nm_aplikasi' => $array['nm_aplikasi'],
             'ket_aplikasi' => $array['ket_aplikasi'],
             'url' => $array['url'],
+            'app_key' => $this->keyGenerate(),
             'a_generate_menu' => (!empty($array['a_generate_menu'])) ? 1 : 0,
             'a_integrasi_cas' => (!empty($array['a_integrasi_cas'])) ? 1 : 0,
             'a_sistem_internal_pt' => (!empty($array['a_sistem_internal_pt'])) ? 1 : 0,
@@ -86,41 +96,6 @@ class AplikasiController extends Controller
             'last_update' => currDateTime(),
             'last_sync' => currDateTime()
         ]);
-
-        // $pengguna = User::create([
-        //     'id_pengguna' => guid(),
-        //     'username' => $array['username'],
-        //     'password' => sha1('12345678'),
-        //     'nm_pengguna' => $array['nm_pj'],
-        //     'jenis_kelamin' => $array['jenis_kelamin'],
-        //     'no_hp' => $array['no_hp'],
-        //     'approval_pengguna' => 1,
-        //     'a_aktif' => 1,
-        //     'jabatan' => $array['jabatan_pj'],
-        //     'disable' => 0,
-        //     'tgl_create' => currDateTime(),
-        //     'last_update' => currDateTime(),
-        //     'soft_delete' => 0,
-        //     'last_sync' => currDateTime(),
-        //     'id_updater' => Auth::user()->id_pengguna
-        // ]);
-
-        // $pj = PJAplikasi::create([
-        //     'id_pj_aplikasi' => guid(),
-        //     'id_aplikasi' => $aplikasi->id_aplikasi,
-        //     'id_pengguna' => $pengguna->id_pengguna,
-        //     'nm_pj' => $pengguna->nm_pengguna,
-        //     'jabatan_pj' => $pengguna->jabatan,
-        //     'no_hp' => $pengguna->no_hp,
-        //     'email' => $pengguna->username,
-        //     'a_masih' => $array['a_masih'],
-        //     'wkt_selesai' => $array['wkt_selesai'],
-        //     'tgl_create' => currDateTime(),
-        //     'last_update' => currDateTime(),
-        //     'soft_delete' => 0,
-        //     'last_sync' => currDateTime(),
-        //     'id_updater' => Auth::user()->id_pengguna
-        // ]);
 
         if(!$aplikasi) {
             alert()->error('Data gagal disimpan!');
@@ -140,7 +115,6 @@ class AplikasiController extends Controller
     {
         $id = Crypt::decrypt($id);
         $data = Aplikasi::with('UnitOrganisasi','LargeObject')->lock('WITH(NOLOCK)')->where('id_aplikasi', $id)->first();
-        // $data = DB::table("man_akses.aplikasi AS aplikasi")->join("man_akses.unit_organisasi AS unit", "aplikasi.id_organisasi","=","unit.id_organisasi")->leftJoin("dok.large_object AS dok","dok.id_blob","=","aplikasi.id_blob")->lock('WITH(NOLOCK)')->where("aplikasi.id_aplikasi", $id)->first();
         $pj = DB::SELECT("
             SELECT *
             FROM man_akses.pj_aplikasi WITH (NOLOCK)
@@ -269,30 +243,45 @@ class AplikasiController extends Controller
 
     public function store_menu(Request $request, $id)
     {
-        // $id = Crypt::decrypt($id);
-        // $aplikasi = Aplikasi::lock('WITH(NOLOCK)')->where('id_aplikasi',$id)->first();
-        // $array = $request->all();
+        $id = Crypt::decrypt($id);
+        $aplikasi = Aplikasi::lock('WITH(NOLOCK)')->where('id_aplikasi',$id)->first();
+        $array = $request->all();
 
-        // $store = Menu::create([
-        //     'id_menu' > guid(),
-        //     'nm_menu' => $array['nm_menu'],
-        //     'nm_file' => $array['nm_file'],
-        //     'urutan_menu' => $array['urutan_menu'],
-        //     'a_aktif' => $array['a_aktif'],
-        //     'a_tampil' => $array['a_tampil'],
-        //     'icon' => $array['nm_menu'],
-        //     'level_menu' => $array['level_menu'],
-        //     'id_aplikasi' => $aplikasi->id_aplikasi,
-        //     'tgl_create' => currDateTime(),
-        //     'last_update' => currDateTime(),
-        //     'last_sync' => currDateTime()
-        // ]);
+        $store = Menu::create([
+            'id_menu' > guid(),
+            'nm_menu' => $array['nm_menu'],
+            'nm_file' => $array['nm_file'],
+            'urutan_menu' => $array['urutan_menu'],
+            'a_aktif' => $array['a_aktif'],
+            'a_tampil' => $array['a_tampil'],
+            'icon' => $array['nm_menu'],
+            'level_menu' => $array['level_menu'],
+            'id_aplikasi' => $aplikasi->id_aplikasi,
+            'tgl_create' => currDateTime(),
+            'last_update' => currDateTime(),
+            'last_sync' => currDateTime()
+        ]);
 
-        // if(!$store) {
-        //     alert()->error('Data gagal disimpan!');
-        // } else {
-        //     alert()->success('Data berhasil disimpan!');
-        // }
-        // return redirect()->route('aplikasi.index');
+        if(!$store) {
+            alert()->error('Data gagal disimpan!');
+        } else {
+            alert()->success('Data berhasil disimpan!');
+        }
+        return redirect()->route('aplikasi.index');
+    }
+
+    public function appKeyGenerate($id)
+    {
+        $aplikasi = Aplikasi::where('id_aplikasi',$id)->first();
+        $store = Aplikasi::lock('WITH(NOLOCK)')->where('id_aplikasi', $id)->update([
+            'app_key' => $this->keyGenerate()
+        ]);
+
+        if(!$store) {
+            alert()->error('Data gagal diupdate!');
+        } else {
+            alert()->success('Data berhasil diupdate!');
+        }
+        return redirect()->back();
     }
 }

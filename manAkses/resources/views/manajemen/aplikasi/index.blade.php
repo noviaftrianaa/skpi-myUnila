@@ -5,9 +5,13 @@
 @section('content')
     <div class="card card-info">
         <div class="card-header">
-            <h3 class="card-title mt-1"><i class="fa fa-list"></i> Data Aplikasi</h3>
+            <h3 class="card-title mt-1"><i class="fa fa-list mr-2"></i> Data Aplikasi</h3>
             <div class="card-tools">
-                <a class="btn btn-default btn-xs text-dark" href="{{route('aplikasi.create')}}"><i class="fa fa-plus"></i> Tambah</a>
+                @if(session()->get('login.role')->id_peran==1)
+                <a class="btn btn-default btn-xs text-dark" href="{{route('aplikasi.create')}}"><i class="fa fa-plus mr-1"></i>Tambah</a>
+                @else
+                <a class="btn btn-warning btn-xs text-dark" href="{{ url('/api/live/0.1') }}" target="_blank"><i class="fa fa-connectdevelop mr-1"></i>Rest API</a>
+                @endif
             </div>
         </div><!-- /.card-header -->
         <div class="card-body">
@@ -24,6 +28,7 @@
                         <th>Aksi</th>
                       </tr>
                     </thead>
+                    @if(session()->get('login.role')->id_peran==1)
                     <tbody>
                         @foreach($data as $no=>$item)
                         <tr>
@@ -39,6 +44,23 @@
                         </tr>
                         @endforeach
                     </tbody>
+                    @else
+                    <tbody>
+                        @foreach($data as $no=>$item)
+                        <tr>
+                            <td>{{$no+1}}</td>
+                            <td>{{$item->aplikasi->nm_aplikasi}}</td>
+                            <td>{{$item->aplikasi->unitorganisasi->nm_lemb}}</td>
+                            <td>{{$item->aplikasi->url}}</td>
+                            <td>{{TglWaktuIndonesia($item->aplikasi->expired_date)}}</td>
+                            <td>{{TglWaktuIndonesia($item->aplikasi->last_sync)}}</td>
+                            <td>
+                                <a class="btn btn-info btn-xs" title="Show" href="{{ route('manajemen.aplikasi.detail', [Crypt::encrypt($item->id_aplikasi)]) }}"> <i class="fas fa-eye"></i></a>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                    @endif
                 </table>
             </div>
         </div>

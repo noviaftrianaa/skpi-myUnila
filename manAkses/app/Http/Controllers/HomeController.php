@@ -114,7 +114,7 @@ class HomeController extends Controller
 
     public function index_ubah_password()
     {
-        if(SSO::authenticate()) {
+        if(SSO::check()) {
             return view('auth.ubah_password');
         }
     }

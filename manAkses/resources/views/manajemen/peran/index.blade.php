@@ -5,7 +5,7 @@
 @section('content')
     <div class="card card-info">
         <div class="card-header">
-            <h3 class="card-title mt-1"><i class="fa fa-list"></i> Data Peran</h3>
+            <h3 class="card-title mt-1"><i class="fa fa-list mr-2"></i> Data Peran</h3>
             <div class="card-tools">
                 <button class="btn btn-default btn-xs text-dark" data-toggle="modal" data-target="#addItem"><i class="fa fa-plus"></i> Tambah</button>
             </div>

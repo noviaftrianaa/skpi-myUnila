@@ -5,7 +5,7 @@
 @section('content')
     <div class="card card-info">
         <div class="card-header">
-            <h3 class="card-title"><i class="fa fa-list"></i> Table Aplikasi {!! $data->nm_aplikasi !!}</h3>
+            <h3 class="card-title"><i class="fa fa-list mr-2"></i> Table Aplikasi {!! $data->nm_aplikasi !!}</h3>
             <div class="card-tools">
                 <a type="button" data-toggle="modal" class="btn btn-default btn-xs text-dark" href="#tambahTable"><i class="fa fa-plus"></i> Tambah</a>
             </div>

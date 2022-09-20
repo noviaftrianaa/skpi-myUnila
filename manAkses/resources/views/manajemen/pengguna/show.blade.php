@@ -5,7 +5,7 @@
 @section('content')
     <div class="card card-info">
         <div class="card-header">
-            <h3 class="card-title mt-1"><i class="fa fa-list"></i> Data Pengguna</h3>
+            <h3 class="card-title mt-1"><i class="fa fa-list mr-2"></i> Data Pengguna</h3>
         </div><!-- /.card-header -->
         <div class="card-body" style="margin: 0;padding: 0">
             <div class="row col-12 p-2">
@@ -39,7 +39,7 @@
 
     <div class="card card-info">
         <div class="card-header">
-            <h3 class="card-title mt-1"><i class="fa fa-list"></i> Role Pengguna</h3>
+            <h3 class="card-title mt-1"><i class="fa fa-list mr-2"></i> Role Pengguna</h3>
             <div class="card-tools">
                 <a type="button" data-toggle="modal" class="btn btn-default btn-xs text-dark" href="#createRole"><i class="fa fa-plus"></i> Tambah</a>
             </div>

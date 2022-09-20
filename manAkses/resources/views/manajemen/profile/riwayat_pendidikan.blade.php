@@ -5,7 +5,7 @@
 @section('content')
     <div class="card card-info">
         <div class="card-header">
-            <h3 class="card-title mt-1"><i class="fa fa-list"></i> Riwayat Pendidikan</h3>
+            <h3 class="card-title mt-1"><i class="fa fa-list mr-2"></i> Riwayat Pendidikan</h3>
         </div><!-- /.card-header -->
         <div class="card-body">
             <div class="table-responsive">

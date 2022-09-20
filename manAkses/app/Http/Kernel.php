@@ -41,8 +41,9 @@ class Kernel extends HttpKernel
 
         'api' => [
             // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-            'throttle:api',
+            // 'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            // 'applog',
         ],
     ];
 
@@ -55,6 +56,7 @@ class Kernel extends HttpKernel
      */
     protected $routeMiddleware = [
         'auth' => \App\Http\Middleware\Authenticate::class,
+        'auth.api'  => \App\Http\Middleware\AuthApi::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
         'can' => \Illuminate\Auth\Middleware\Authorize::class,
@@ -66,5 +68,6 @@ class Kernel extends HttpKernel
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
         'main' => \App\Http\Middleware\MainMiddleware::class,
         'auth.sso' => \App\Http\Middleware\AuthSSO::class,
+        'openapi_live' => \App\Http\Middleware\OpenApiLive::class,
     ];
 }
