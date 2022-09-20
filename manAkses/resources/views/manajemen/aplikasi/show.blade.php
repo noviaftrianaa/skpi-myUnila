@@ -17,7 +17,11 @@
                     <img src="{!! (!is_null($data->largeobject)) ? 'data:image/' . $data->largeobject->mime_type . ';base64,' . $data->largeobject->blob_content : asset('auth/img/logo.png') !!}" width="100%" class="my-3"/>
                     @if(session()->get('login.role')->id_peran==1)
                     <a type="button" data-toggle="modal" class="btn btn-info col-12 mb-3" href="#editAplikasi{{$data->id_aplikasi}}"><i class="fa fa-edit"></i> Edit</a>
+                    @endif
+                    @if(session()->get('login.role')->id_peran==1)
                     <a type="button" class="btn btn-info col-12" href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Tabel Aplikasi</a>
+                    @else
+                    <a type="button" class="btn btn-info col-12" href="{{ route('manajemen.aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Tabel Aplikasi</a>
                     @endif
                 </div>
                 <div class="col-md-10 col-12">

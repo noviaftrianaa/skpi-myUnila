@@ -6,26 +6,19 @@
     <title>MANAJEMEN AKSES UNILA Web Service ver 0.1</title>
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Source+Code+Pro:300,600|Titillium+Web:400,600,700" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="{{ l5_swagger_asset($documentation, 'swagger-ui.css') }}" >
-    <link rel="icon" type="image/png" href="{{ asset((config('mp.apps.at_use')==1?config('mp.apps.user.logo'):config('mp.copyright.logo'))) }}">
+    <link rel="stylesheet" type="text/css" href="{{ asset('swagger.css') }}" >
+    <!-- <link rel="icon" type="image/png" href="{{ asset((config('mp.apps.at_use')==1?config('mp.apps.user.logo'):config('mp.copyright.logo'))) }}"> -->
+    <link rel="icon" type="image/png" href="{{ asset('auth/img/logo.png') }}">
     <style>
-        html
-        {
-            box-sizing: border-box;
-            overflow: -moz-scrollbars-vertical;
-            overflow-y: scroll;
-        }
+        html { box-sizing: border-box; overflow: -moz-scrollbars-vertical; overflow-y: scroll; }
         *,
         *:before,
         *:after
         {
             box-sizing: inherit;
         }
-
-        body {
-          margin:0;
-          background: #fafafa;
-        }
-        .topbar{ display: none;}
+        body { margin:0; background: #fafafa; }
+        .topbar { display: none; }
     </style>
 </head>
 
