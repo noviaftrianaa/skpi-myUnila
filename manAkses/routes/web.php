@@ -55,6 +55,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
             Route::namespace('aplikasi')->prefix('aplikasi')->name('aplikasi.')->group(function () {
                 Route::get('/', [AplikasiController::class, 'index'])->name('index');
                 Route::get('/detail/{id}', [AplikasiController::class, 'detail'])->name('detail');
+                Route::get('/table/{id}', [TableAplikasiController::class, 'index'])->name('table');
             });
         });
     });

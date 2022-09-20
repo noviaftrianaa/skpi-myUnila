@@ -6,9 +6,6 @@
     <div class="card card-info">
         <div class="card-header">
             <h3 class="card-title mt-1"><i class="fa fa-user"></i>&nbsp;&nbsp;Biodata</h3>
-            <div class="card-tools">
-                <a data-toggle="modal" class="btn btn-default text-dark btn-xs" href="#editUser"><i class="fa fa-edit"></i> Edit</a>
-            </div>
         </div><!-- /.card-header -->
         <div class="card-body" style="margin: 0;padding: 0">
             <div class="table-responsive">
@@ -26,13 +23,12 @@
                         {!! tablerow('Approval Pengguna ?', ($data->approval_pengguna==1) ? 'Disetujui':'Tidak Disetujui') !!}
                         {!! tablerow('Apakah Aktif ?',($data->a_aktif==1) ? 'Aktif':'Tidak Aktif') !!}
                         {!! tablerow('Disable ?',($data->disable==1) ? 'Aktif':'Tidak Aktif') !!}
+                        {!! tablerow('Terakhir Update', TglWaktuIndonesia($data->last_update)) !!}
                     </tbody>
                 </table>
             </div>
-        </div>
-        <div class="card-body">
-            <div class="row text-red">
-                <i class="text-bold">*Terakhir diupdate pada {{ TglWaktuIndonesia($data->last_update) }}</i>
+            <div class="d-lg-flex d-block px-3 mb-3">
+                <a data-toggle="modal" class="btn btn-info col-12" href="#editUser"><i class="fa fa-edit"></i> Edit</a>
             </div>
         </div>
     </div>

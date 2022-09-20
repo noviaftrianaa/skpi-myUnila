@@ -7,34 +7,15 @@
 <script type="text/javascript" src="{{ asset('bower_components/datatables/media/js/dataTables.bootstrap4.min.js')}}"></script>
 <script>
     $(document).ready( function () {
-        $('#table-data').DataTable({
-            // stateSave: true,
+        let table = $('#table-data').DataTable({
+            // serverSide: true,
             processing: true,
             pagingType: "simple",
-            "language": {
-                "decimal":        "",
-                "emptyTable":     "Tidak ada data pada tabel",
-                "info":           "Menampilkan _START_ sampai _END_ dari _TOTAL_ total data",
-                "infoEmpty":      "Tidak ada yang ditampilkan",
-                "infoFiltered":   "(Terfilter dari  _MAX_ total entitas)",
-                "infoPostFix":    "",
-                "thousands":      ",",
-                "lengthMenu":     "Menampilkan _MENU_ entitas",
-                "loadingRecords": "Loading...",
-                "processing":     "Sedang dalam proses...",
-                "search":         "Pencarian:",
-                "zeroRecords":    "Tidak ada data yang cocok",
-                "paginate": {
-                    "first":      "Pertama",
-                    "last":       "Terakhir",
-                    "next":       "Selanjutnya",
-                    "previous":   "Sebelumnya"
-                },
-                "aria": {
-                    "sortAscending":  ": activate to sort column ascending",
-                    "sortDescending": ": activate to sort column descending"
-                }
-            }
+            sDom: 'rt<"row"<"col-sm-12 col-md-3"l><"col-sm-12 col-md-3"i><"col-sm-12 col-md-6"p>>'
+        } );
+
+        $('#search').on('keyup click', function () {
+            table.search($('#search').val()).draw();
         } );
     });
 </script>

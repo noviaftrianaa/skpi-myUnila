@@ -62,7 +62,7 @@
         </div><!-- /.card-header -->
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-striped table-hover text-xs" id="table-data" style="width: 100% !important">
+                <table class="table table-striped table-bordered table-hover text-xs" id="table-data" style="width: 100% !important">
                     <thead>
                       <tr>
                         <th width="5%">No.</th>

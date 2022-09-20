@@ -10,18 +10,19 @@
     <div class="card card-info">
         <div class="card-header">
             <h3 class="card-title mt-1"><i class="fa fa-list mr-2"></i> Data Aplikasi</h3>
-            @if(session()->get('login.role')->id_peran==1)
-            <div class="card-tools">
-                <a type="button" class="btn btn-primary btn-xs " href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Table Aplikasi</a>
-                <a type="button" data-toggle="modal" class="btn btn-secondary btn-xs " href="#editAplikasi{{$data->id_aplikasi}}"><i class="fa fa-edit"></i> Edit</a>
-                <!-- <a type="button" data-toggle="modal" class="btn btn-danger btn-xs " href="#hapusAplikasi"><i class="fas fa-trash-alt"></i> Delete</a> -->
-            </div>
-            @endif
         </div><!-- /.card-header -->
         <div class="card-body" style="margin: 0;padding: 0">
             <div class="row">
-                <div class="col-md-2 col-12 p-3">
-                    <img src="{!! (!is_null($data->largeobject)) ? 'data:image/' . $data->largeobject->mime_type . ';base64,' . $data->largeobject->blob_content : asset('auth/img/logo.png') !!}" width="100%" />
+                <div class="col-md-2 col-12 pl-4">
+                    <img src="{!! (!is_null($data->largeobject)) ? 'data:image/' . $data->largeobject->mime_type . ';base64,' . $data->largeobject->blob_content : asset('auth/img/logo.png') !!}" width="100%" class="my-3"/>
+                    @if(session()->get('login.role')->id_peran==1)
+                    <a type="button" data-toggle="modal" class="btn btn-info col-12 mb-3" href="#editAplikasi{{$data->id_aplikasi}}"><i class="fa fa-edit"></i> Edit</a>
+                    @endif
+                    @if(session()->get('login.role')->id_peran==1)
+                    <a type="button" class="btn btn-info col-12" href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Tabel Aplikasi</a>
+                    @else
+                    <a type="button" class="btn btn-info col-12" href="{{ route('manajemen.aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Tabel Aplikasi</a>
+                    @endif
                 </div>
                 <div class="col-md-10 col-12">
                     <div class="table-responsive">
@@ -50,15 +51,27 @@
     <div class="card card-info">
         <div class="card-header">
             <h3 class="card-title mt-1"><i class="fa fa-list mr-2"></i> PJ Aplikasi</h3>
-            @if(session()->get('login.role')->id_peran==1)
-            <div class="card-tools">
-                <a type="button" data-toggle="modal" class="btn btn-default btn-xs text-dark" href="#pjCreate"><i class="fa fa-plus"></i> Tambah</a>
-            </div>
-            @endif
         </div>
         <div class="card-body">
+            <div class="d-lg-flex d-block">
+                @if(session()->get('login.role')->id_peran==1)
+                <div class="col-2">
+                    <a type="button" data-toggle="modal" class="btn btn-info" href="#pjCreate"><i class="fa fa-plus"></i> Tambah Data</a>
+                </div>
+                @endif
+                <div class="ml-auto pr-2">
+                    <div class="input-group">
+                        <input type="text" id="search" placeholder="Pencarian" class="form-control">
+                        <div class="input-group-append">
+                            <button class="btn btn-info btn-sm" data-toggle="tooltip" data-placement="top" title="Cari">
+                                <i class="fa fa-search search-icon"></i>
+                            </button>
+                        </div>
+                    </div> 
+                </div>
+            </div>
             <div class="table-responsive">
-                <table class="table table-striped table-hover text-xs" id="table-data" style="width: 100% !important">
+                <table class="table table-striped table-bordered table-hover text-xs" id="table-data" style="width: 100% !important">
                     <thead>
                         <tr>
                             <th>No.</th>
@@ -95,15 +108,27 @@
     <div class="card card-info">
         <div class="card-header">
             <h3 class="card-title mt-1"><i class="fa fa-list mr-2"></i> Menu Aplikasi</h3>
-            @if(session()->get('login.role')->id_peran==1)
-            <div class="card-tools">
-                <a type="button" data-toggle="modal" class="btn btn-default btn-xs text-dark" href="#createMenu"><i class="fa fa-plus"></i> Tambah</a>
-            </div>
-            @endif
         </div>
         <div class="card-body">
+            <div class="d-lg-flex d-block">
+                @if(session()->get('login.role')->id_peran==1)
+                <div class="col-2">
+                    <a type="button" data-toggle="modal" class="btn btn-info" href="#createMenu"><i class="fa fa-plus"></i> Tambah</a>
+                </div>
+                @endif
+                <div class="ml-auto pr-2">
+                    <div class="input-group">
+                        <input type="text" id="search-2" placeholder="Pencarian" class="form-control">
+                        <div class="input-group-append">
+                            <button class="btn btn-info btn-sm" data-toggle="tooltip" data-placement="top" title="Cari">
+                                <i class="fa fa-search search-icon"></i>
+                            </button>
+                        </div>
+                    </div> 
+                </div>
+            </div>
             <div class="table-responsive">
-                <table class="table table-striped table-hover text-xs" id="table-data-2" style="width: 100% !important">
+                <table class="table table-striped table-bordered table-hover text-xs" id="table-data-2" style="width: 100% !important">
                     <thead>
                         <tr>
                             <th>No.</th>
