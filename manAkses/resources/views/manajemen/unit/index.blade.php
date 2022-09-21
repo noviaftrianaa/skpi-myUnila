@@ -9,7 +9,7 @@
         </div><!-- /.card-header -->
         <div class="card-body">
             <div class="d-lg-flex d-block">
-                <div class="ml-auto pr-2">
+                <div class="ml-auto px-2">
                     <div class="input-group">
                         <input type="text" id="search" placeholder="Pencarian" class="form-control">
                         <div class="input-group-append">

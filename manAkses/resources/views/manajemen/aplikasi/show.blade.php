@@ -59,7 +59,7 @@
                     <a type="button" data-toggle="modal" class="btn btn-info" href="#pjCreate"><i class="fa fa-plus"></i> Tambah Data</a>
                 </div>
                 @endif
-                <div class="ml-auto pr-2">
+                <div class="ml-auto px-2">
                     <div class="input-group">
                         <input type="text" id="search" placeholder="Pencarian" class="form-control">
                         <div class="input-group-append">
@@ -116,7 +116,7 @@
                     <a type="button" data-toggle="modal" class="btn btn-info" href="#createMenu"><i class="fa fa-plus"></i> Tambah</a>
                 </div>
                 @endif
-                <div class="ml-auto pr-2">
+                <div class="ml-auto px-2">
                     <div class="input-group">
                         <input type="text" id="search-2" placeholder="Pencarian" class="form-control">
                         <div class="input-group-append">

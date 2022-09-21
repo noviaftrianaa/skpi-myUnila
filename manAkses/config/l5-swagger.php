@@ -5,10 +5,10 @@ return [
     'documentations' => [
         'default' => [
             'api' => [
-                'title' => 'Manajemen Akses Web Service Live 1.0',
+                'title' => 'Manajemen Akses Web Service Live v1',
             ],
             'routes' => [
-                'api' => 'api/live/0.1',
+                'api' => 'api/live/v1',
                 'docs' => 'live',
                 'oauth2_callback' => 'api/live/oauth2-callback',
                 'middleware' => [

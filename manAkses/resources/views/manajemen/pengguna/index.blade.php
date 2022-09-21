@@ -43,7 +43,7 @@
                 <div class="col-2">
                     <a class="btn btn-info" href="{{route('user.create')}}"><i class="fa fa-plus"></i> Tambah Data</a>
                 </div>
-                <div class="ml-auto pr-2">
+                <div class="ml-auto px-2">
                     <div class="input-group">
                         <input type="text" id="search" placeholder="Pencarian" class="form-control">
                         <div class="input-group-append">

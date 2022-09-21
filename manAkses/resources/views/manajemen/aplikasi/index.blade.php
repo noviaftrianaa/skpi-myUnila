@@ -9,14 +9,14 @@
         </div><!-- /.card-header -->
         <div class="card-body">
             <div class="d-lg-flex d-block">
-                <div class="col-2">
+                <div class="col-6">
                     @if(session()->get('login.role')->id_peran==1)
                     <a class="btn btn-info" href="{{route('aplikasi.create')}}"><i class="fa fa-plus"></i> Tambah Data</a>
                     @else
-                    <a class="btn btn-info" href="{{ url('/api/live/0.1') }}" target="_blank"><i class="fa fa-connectdevelop"></i> Rest API</a>
+                    <a class="btn btn-info" href="{{ url('/api/live/v1') }}" target="_blank"><i class="fa fa-connectdevelop"></i> Rest API</a>
                     @endif
                 </div>
-                <div class="ml-auto pr-2">
+                <div class="ml-auto px-2">
                     <div class="input-group">
                         <input type="text" id="search" placeholder="Pencarian" class="form-control">
                         <div class="input-group-append">

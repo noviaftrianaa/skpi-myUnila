@@ -1,16 +1,16 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "MANAJEMEN AKSES UNILA - Live Web Service",
-        "description": "Versi 1.0.0",
+        "title": "Manajemen Akses Unila - Live Web Service",
+        "description": "Version 1.0",
         "contact": {
-            "email": "muhammadikhsan208@gmail.com"
+            "email": ""
         },
         "version": "1.0"
     },
     "servers": [
         {
-            "url": "http://pdut-unila.test/api/live/0.1",
+            "url": "http://pdut-unila.test/api/live/v1",
             "description": "Server Live"
         }
     ],
@@ -315,6 +315,54 @@
                                 }
                             }
                         }
+                    }
+                },
+                "security": [
+                    {
+                        "token": []
+                    }
+                ]
+            }
+        },
+        "/peran/list": {
+            "get": {
+                "tags": [
+                    "Peran"
+                ],
+                "summary": "Dapatkan daftar Peran",
+                "description": "Menampilkan daftar data Peran",
+                "operationId": "getPeran",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "",
+                        "required": false,
+                        "schema": {
+                            "type": "number"
+                        },
+                        "example": "1"
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "",
+                        "required": false,
+                        "schema": {
+                            "type": "number"
+                        },
+                        "example": "50"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
                     }
                 },
                 "security": [

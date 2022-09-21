@@ -7,10 +7,10 @@ class LiveController
     /**
      * @OA\Info(
      *      version="1.0",
-     *      title="MANAJEMEN AKSES UNILA - Live Web Service",
-     *      description="Versi 1.0.0",
+     *      title="Manajemen Akses Unila - Live Web Service",
+     *      description="Version 1.0",
      *      @OA\Contact(
-     *          email="muhammadikhsan208@gmail.com"
+     *          email=""
      *      )
      * )
      *
