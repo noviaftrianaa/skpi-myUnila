@@ -11,6 +11,6 @@ class PetaKatgiatJabfung extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_katgiat',	'id_jabfung',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_katgiat',	'id_jabfung',	'create_date',	'last_update',
     ];
 }

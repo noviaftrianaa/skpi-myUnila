@@ -11,6 +11,6 @@ class Satuan extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'kd_satuan',	'nm_satuan',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'kd_satuan',	'nm_satuan',	'create_date',	'last_update',
     ];
 }

@@ -11,6 +11,6 @@ class JenisKeluar extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_jns_keluar',	'ket_keluar',	'a_pd',	'a_ptk',	'a_sdm_iptek',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_jns_keluar',	'ket_keluar',	'a_pd',	'a_ptk',	'a_sdm_iptek',	'create_date',	'last_update',
     ];
 }

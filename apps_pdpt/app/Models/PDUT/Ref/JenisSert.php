@@ -11,6 +11,6 @@ class JenisSert extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_jns_sert',	'nm_jns_sert',	'u_prof_guru',	'u_kepsek',	'u_laboran',	'u_prof_dosen',	'u_lembaga',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_jns_sert',	'nm_jns_sert',	'u_prof_guru',	'u_kepsek',	'u_laboran',	'u_prof_dosen',	'u_lembaga',	'create_date',	'last_update',
     ];
 }

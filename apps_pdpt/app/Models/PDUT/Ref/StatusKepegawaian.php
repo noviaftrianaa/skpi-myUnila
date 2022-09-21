@@ -11,6 +11,6 @@ class StatusKepegawaian extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_stat_pegawai',	'nm_stat_pegawai',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_stat_pegawai',	'nm_stat_pegawai',	'create_date',	'last_update',
     ];
 }

@@ -43,16 +43,20 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::put('/changeRole', [UserController::class, 'role'])->name('role');
     Route::put('/changePassword', [UserController::class, 'password'])->name('password');
     Route::get('/ubah_password', [HomeController::class, 'index_ubah_password'])->name('ubah_password');
-
-    Route::namespace('profile')->prefix('profile')->name('profile.')->group(function () {
-        Route::get('/biodata', [HomeController::class, 'biodata'])->name('biodata');
-        Route::get('/riwayat_pendidikan', [HomeController::class, 'riwayat_pendidikan'])->name('riwayat_pendidikan');
-    });
+    Route::get('/biodata', [HomeController::class, 'biodata'])->name('biodata');
+    Route::get('/riwayat_pendidikan', [HomeController::class, 'riwayat_pendidikan'])->name('riwayat_pendidikan');
     
     Route::group(['middleware' => ['main']], function() {
         Route::get('/', [HomeController::class, 'index'])->name('index');
         Route::get('/otorisasi', function() {
             return view('error.pages');
+        });
+        Route::prefix('manajemen')->name('manajemen.')->group(function() {
+            Route::namespace('aplikasi')->prefix('aplikasi')->name('aplikasi.')->group(function () {
+                Route::get('/', [AplikasiController::class, 'index'])->name('index');
+                Route::get('/detail/{id}', [AplikasiController::class, 'detail'])->name('detail');
+                Route::get('/table/{id}', [TableAplikasiController::class, 'index'])->name('table');
+            });
         });
     });
 
@@ -98,6 +102,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 Route::get('/pj_aplikasi', [AplikasiController::class, 'pj_aplikasi'])->name('pj_aplikasi');
                 Route::put('/store_menu/{id}', [AplikasiController::class, 'store_menu'])->name('store_menu');
                 Route::delete('/destroy/{id}', [AplikasiController::class, 'destroy'])->name('destroy');
+                Route::get('/{id}/appKeyGenerate', [AplikasiController::class, 'appKeyGenerate'])->name('appKeyGenerate');
 
                 Route::get('/table/{id}', [TableAplikasiController::class, 'index'])->name('table');
                 Route::put('/table/{id}/store', [TableAplikasiController::class, 'store'])->name('table.store');

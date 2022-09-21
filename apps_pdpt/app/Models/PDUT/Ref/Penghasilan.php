@@ -11,6 +11,6 @@ class Penghasilan extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_penghasilan',	'nm_penghasilan',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_penghasilan',	'nm_penghasilan',	'create_date',	'last_update',
     ];
 }

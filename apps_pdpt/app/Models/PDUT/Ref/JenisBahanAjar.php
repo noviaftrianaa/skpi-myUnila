@@ -11,6 +11,6 @@ class JenisBahanAjar extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_jns_bhn_ajar',	'nm_jns_bhn_ajar',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_jns_bhn_ajar',	'nm_jns_bhn_ajar',	'create_date',	'last_update',
     ];
 }

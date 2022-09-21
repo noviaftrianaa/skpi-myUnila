@@ -17,14 +17,22 @@
                 alt="User Image">
         </div>
         <div class="info">
-            <a href="{{ url('/biodata') }}" class="d-block">{{ strtoupper($getPeran['nm_pengguna']) }}</a>
+            <a href="{{ url('/biodata') }}" class="d-block">{{ strtoupper(auth()->user()->nm_pengguna) }}</a>
             <span class="d-block text-sm">
 				<form action="{{ url('changeRole') }}" method="post" enctype="multipart/form-data" id="changeRole">
 					<input type="hidden" name="_token" value="{{ csrf_token() }}">
 					<input type="hidden" name="_method" value="PUT">
 					<select class="form-control-plaintext bg-dark text-light peran" name="id_peran">
-						@foreach($getPeran['status_peran'] AS $items)
-						<option value="{{ $items['id_peran'] }}" {{ ($items['id_peran']==session()->get('login.role')->id_peran) ? 'selected' : '' }}>{{ strtoupper($items['nm_peran']) }}</option>
+                        @php
+                        $peran = DB::SELECT("
+                            SELECT peran.*
+                            FROM man_akses.role_pengguna AS role
+                            JOIN man_akses.peran ON peran.id_peran=role.id_peran
+                            WHERE role.id_pengguna='".auth()->user()->id_pengguna."'
+                        ");
+                        @endphp
+						@foreach($peran AS $items)
+						<option value="{{ $items->id_peran }}" {{ ($items->id_peran==session()->get('login.role')->id_peran) ? 'selected' : '' }}>{{ strtoupper($items->nm_peran) }}</option>
 						@endforeach
 					</select>
 				</form>
@@ -44,24 +52,24 @@
             <li class="nav-item">
                 <li class="nav-header text-bold">PROFILE</li>
                 <li class="nav-item">
-                    <a href="{{ route('profile.biodata') }}" class="nav-link {{ AktifMenu('profile.biodata', 2) }}">
+                    <a href="{{ route('biodata') }}" class="nav-link {{ AktifMenu('biodata', 2) }}">
                         <i class="nav-icon fas fa-user"></i>
                         <p>Biodata</p>
                     </a>
                 </li>
+            </li>
+
+			@if(session()->has('login.role') && session()->get('login.role')->id_peran==107)
+            <li class="nav-item">
+                <li class="nav-header text-bold">MANAJEMEN</li>
                 <li class="nav-item">
-                    <a href="{{ route('profile.riwayat_pendidikan') }}" class="nav-link {{ AktifMenu('profile.riwayat_pendidikan', 2) }}">
-                        <i class="nav-icon fas fa-school"></i>
-                        <p>Riwayat Pendidikan</p>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('ubah_password') }}" class="nav-link {{ AktifMenu('ubah_password', 2) }}">
-                        <i class="fas fa-key nav-icon"></i>
-                        <p>Ubah Password</p>
+                    <a href="{{ route('manajemen.aplikasi.index') }}" class="nav-link {{ (request()->is('manajemen/aplikasi*')) ? 'active' : '' }}">
+                        <i class="nav-icon fa fa-desktop"></i>
+                        <p>Aplikasi</p>
                     </a>
                 </li>
             </li>
+            @endif
 
 			@if(session()->has('login.role') && session()->get('login.role')->id_peran==1)
 			

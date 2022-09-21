@@ -9,57 +9,78 @@
 
     <div class="card card-info">
         <div class="card-header">
-            <h3 class="card-title mt-1"><i class="fa fa-list"></i> Data Aplikasi</h3>
-            <div class="card-tools">
-                <a type="button" class="btn btn-primary btn-xs " href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Table Aplikasi</a>
-                <a type="button" data-toggle="modal" class="btn btn-secondary btn-xs " href="#editAplikasi{{$data->id_aplikasi}}"><i class="fa fa-edit"></i> Edit</a>
-                <!-- <a type="button" data-toggle="modal" class="btn btn-danger btn-xs " href="#hapusAplikasi"><i class="fas fa-trash-alt"></i> Delete</a> -->
-            </div>
+            <h3 class="card-title mt-1"><i class="fa fa-list mr-2"></i> Data Aplikasi</h3>
         </div><!-- /.card-header -->
         <div class="card-body" style="margin: 0;padding: 0">
             <div class="row">
-            <div class="col-md-2 col-12 p-3">
-                <img src="{!! (!is_null($data->largeobject)) ? 'data:image/' . $data->largeobject->mime_type . ';base64,' . $data->largeobject->blob_content : asset('auth/img/logo.png') !!}" class="img-fluid" />
-            </div>
-            <div class="col-md-10 col-12">
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <tbody>
-                            {!! tablerow('Nama Aplikasi',$data->nm_aplikasi) !!}
-                            {!! tablerow('Nama Unit Organisasi',$data->unitorganisasi->nm_lemb) !!}
-                            {!! tablerow('Keterangan Aplikasi',$data->ket_aplikasi) !!}
-                            {!! tablerow('URL','<a href="'.$data->url.'" target=new>'.$data->url.'</a>') !!}
-                            {!! tablerow('Apakah Bisa Generate Menu ?',($data->a_generate_menu==1)?'Ya':'Tidak') !!}
-                            {!! tablerow('Apakah Telah Ter-integrasi SSO ?',($data->a_integrasi_cas==1)?'Ya':'Tidak') !!}
-                            {!! tablerow('Apakah Sistem Internal PT ?',($data->a_sistem_internal_pt==1)?'Ya':'Tidak') !!}
-                            {!! tablerow('Tgl Buat', TglWaktuIndonesia($data->tgl_create)) ?? '-' !!}
-                            {!! tablerow('Tgl Update', TglWaktuIndonesia($data->last_update)) ?? '-' !!}
-                            {!! tablerow('Last Sync', TglWaktuIndonesia($data->last_sync)) ?? '-' !!}
-                            {!! tablerow('Tgl Expired', TglWaktuIndonesia($data->expired_date)) ?? '-' !!}
-                        </tbody>
-                    </table>
+                <div class="col-md-2 col-12 pl-4">
+                    <img src="{!! (!is_null($data->largeobject)) ? 'data:image/' . $data->largeobject->mime_type . ';base64,' . $data->largeobject->blob_content : asset('auth/img/logo.png') !!}" width="100%" class="my-3"/>
+                    @if(session()->get('login.role')->id_peran==1)
+                    <a type="button" data-toggle="modal" class="btn btn-info col-12 mb-3" href="#editAplikasi{{$data->id_aplikasi}}"><i class="fa fa-edit"></i> Edit</a>
+                    @endif
+                    @if(session()->get('login.role')->id_peran==1)
+                    <a type="button" class="btn btn-info col-12" href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Tabel Aplikasi</a>
+                    @else
+                    <a type="button" class="btn btn-info col-12" href="{{ route('manajemen.aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Tabel Aplikasi</a>
+                    @endif
                 </div>
-            </div></div>
+                <div class="col-md-10 col-12">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <tbody>
+                                {!! tablerow('Aplikasi',$data->nm_aplikasi) !!}
+                                {!! tablerow('Unit Organisasi',$data->unitorganisasi->nm_lemb) !!}
+                                {!! tablerow('Keterangan Aplikasi',$data->ket_aplikasi) !!}
+                                {!! tablerow('URL','<a href="'.$data->url.'" target=new>'.$data->url.'</a>') !!}
+                                {!! tablerow('APP KEY', '<a href="#showKey" data-toggle="modal">SHOW</a>') !!}
+                                {!! tablerow('Apakah Bisa Generate Menu ?',($data->a_generate_menu==1)?'Ya':'Tidak') !!}
+                                {!! tablerow('Apakah Telah Ter-integrasi SSO ?',($data->a_integrasi_cas==1)?'Ya':'Tidak') !!}
+                                {!! tablerow('Apakah Sistem Internal PT ?',($data->a_sistem_internal_pt==1)?'Ya':'Tidak') !!}
+                                {!! tablerow('Tgl Buat', TglWaktuIndonesia($data->tgl_create)) ?? '-' !!}
+                                {!! tablerow('Tgl Update', TglWaktuIndonesia($data->last_update)) ?? '-' !!}
+                                {!! tablerow('Last Sync', TglWaktuIndonesia($data->last_sync)) ?? '-' !!}
+                                {!! tablerow('Tgl Expired', TglWaktuIndonesia($data->expired_date)) ?? '-' !!}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    
+
     <div class="card card-info">
         <div class="card-header">
-            <h3 class="card-title mt-1"><i class="fa fa-list"></i> PJ Aplikasi</h3>
-            <div class="card-tools">
-                <a type="button" data-toggle="modal" class="btn btn-default btn-xs text-dark" href="#pjCreate"><i class="fa fa-plus"></i> Tambah</a>
-            </div>
+            <h3 class="card-title mt-1"><i class="fa fa-list mr-2"></i> PJ Aplikasi</h3>
         </div>
         <div class="card-body">
+            <div class="d-lg-flex d-block">
+                @if(session()->get('login.role')->id_peran==1)
+                <div class="col-2">
+                    <a type="button" data-toggle="modal" class="btn btn-info" href="#pjCreate"><i class="fa fa-plus"></i> Tambah Data</a>
+                </div>
+                @endif
+                <div class="ml-auto px-2">
+                    <div class="input-group">
+                        <input type="text" id="search" placeholder="Pencarian" class="form-control">
+                        <div class="input-group-append">
+                            <button class="btn btn-info btn-sm" data-toggle="tooltip" data-placement="top" title="Cari">
+                                <i class="fa fa-search search-icon"></i>
+                            </button>
+                        </div>
+                    </div> 
+                </div>
+            </div>
             <div class="table-responsive">
-                <table class="table table-striped table-hover text-xs" id="table-data" style="width: 100% !important">
+                <table class="table table-striped table-bordered table-hover text-xs" id="table-data" style="width: 100% !important">
                     <thead>
                         <tr>
                             <th>No.</th>
                             <th>Nama</th>
                             <th>Email</th>
                             <th>No. HP</th>
+                            @if(session()->get('login.role')->id_peran==1)
                             <th>Aksi</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody>
@@ -69,10 +90,12 @@
                             <td>{{$item->nm_pj}}</td>
                             <td>{{$item->email}}</td>
                             <td>{{$item->no_hp}}</td>
+                            @if(session()->get('login.role')->id_peran==1)
                             <td>
                                 <a type="button" data-toggle="modal" class="btn btn-primary btn-xs" href="#editPJ{{$item->id_pj_aplikasi}}"><i class="fa fa-edit"></i></a>
                                 <a type="button" data-toggle="modal" class="btn btn-danger btn-xs" href="#deletePJ{{$item->id_pj_aplikasi}}"><i class="fas fa-trash-alt"></i></a>
                             </td>
+                            @endif
                         </tr>
                         @endforeach
                     </tbody>
@@ -84,14 +107,28 @@
     @if($data->a_generate_menu==1)
     <div class="card card-info">
         <div class="card-header">
-            <h3 class="card-title mt-1"><i class="fa fa-list"></i> Menu Aplikasi</h3>
-            <div class="card-tools">
-                <a type="button" data-toggle="modal" class="btn btn-default btn-xs text-dark" href="#createMenu"><i class="fa fa-plus"></i> Tambah</a>
-            </div>
+            <h3 class="card-title mt-1"><i class="fa fa-list mr-2"></i> Menu Aplikasi</h3>
         </div>
         <div class="card-body">
+            <div class="d-lg-flex d-block">
+                @if(session()->get('login.role')->id_peran==1)
+                <div class="col-2">
+                    <a type="button" data-toggle="modal" class="btn btn-info" href="#createMenu"><i class="fa fa-plus"></i> Tambah</a>
+                </div>
+                @endif
+                <div class="ml-auto px-2">
+                    <div class="input-group">
+                        <input type="text" id="search-2" placeholder="Pencarian" class="form-control">
+                        <div class="input-group-append">
+                            <button class="btn btn-info btn-sm" data-toggle="tooltip" data-placement="top" title="Cari">
+                                <i class="fa fa-search search-icon"></i>
+                            </button>
+                        </div>
+                    </div> 
+                </div>
+            </div>
             <div class="table-responsive">
-                <table class="table table-striped table-hover text-xs" id="table-data-2" style="width: 100% !important">
+                <table class="table table-striped table-bordered table-hover text-xs" id="table-data-2" style="width: 100% !important">
                     <thead>
                         <tr>
                             <th>No.</th>
@@ -102,7 +139,9 @@
                             <th>Apakah Aktif ?</th>
                             <th>Apakah Tampil ?</th>
                             <th>Last Sync</th>
+                            @if(session()->get('login.role')->id_peran==1)
                             <th>Aksi</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody>
@@ -116,9 +155,11 @@
                             <td>{{($item->a_aktif==1)?'Ya':'Tidak'}}</td>
                             <td>{{($item->a_tampil==1)?'Ya':'Tidak'}}</td>
                             <td>{{TglWaktuIndonesia($data->last_sync) ?? '-'}}</td>
+                            @if(session()->get('login.role')->id_peran==1)
                             <td>
                                 <a type="button" data-toggle="modal" class="btn btn-primary btn-xs" href="#editMenu{{$item->id_menu}}"><i class="fa fa-edit"></i></a>
                             </td>
+                            @endif
                         </tr>
                         @endforeach
                     </tbody>
@@ -207,7 +248,7 @@
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Expired Date</label>
-                                    <input name="expired_date" type="date" class="form-control" value="{{date('Y-m-d', strtotime($data->expired_date))}}">
+                                    <input name="expired_date" type="date" class="form-control" value="{{ (!is_null($data->expired_date)) ? date('Y-m-d', strtotime($data->expired_date)) : '' }}">
                                 </div>
                             </div>
                         </div>
@@ -216,6 +257,44 @@
                             <button type="button" class="btn btn-danger" data-dismiss="modal">Tutup</button>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="showKey" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header no-bd">
+                    <h5 class="modal-title">
+                        <span class="fw-mediumbold">
+                        APP </span> 
+                        <span class="fw-light">
+                            KEY
+                        </span>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        @if(session()->get('login.role')->id_peran==1)
+                        <div class="col-sm-12">
+                            <p class="text-muted text-center text-break">{!! $data->app_key ?? '-' !!}</p>
+                        </div>
+                        @else
+                        <div class="col-sm-12">
+                            <p class="text-muted text-center text-break">{!! (!is_null($data->app_key)) ? strrev(Crypt::decrypt($data->app_key)) : '-' !!}</p>
+                        </div>
+                        @endif
+                    </div>
+                    <div class="modal-footer no-bd">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Tutup</button>
+                        @if(session()->get('login.role')->id_peran==1)
+                        <a type="button" class="btn btn-warning" href="{!! route('aplikasi.appKeyGenerate', $data->id_aplikasi) !!}"><i class="fas fa-key mr-1"></i> Generate App Key</a>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>

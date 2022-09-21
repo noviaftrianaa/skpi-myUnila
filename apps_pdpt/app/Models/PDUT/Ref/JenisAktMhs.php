@@ -11,6 +11,6 @@ class JenisAktMhs extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_jns_akt_mhs',	'nm_jns_akt_mhs',	'ket_jns_akt_mhs',	'a_kegiatan_kampus_merdeka',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_jns_akt_mhs',	'nm_jns_akt_mhs',	'ket_jns_akt_mhs',	'a_kegiatan_kampus_merdeka',	'create_date',	'last_update',
     ];
 }

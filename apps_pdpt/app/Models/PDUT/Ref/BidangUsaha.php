@@ -11,6 +11,6 @@ class BidangUsaha extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_bu',	'nm_bu',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_bu',	'nm_bu',	'create_date',	'last_update',
     ];
 }

@@ -2480,6 +2480,33 @@ class ReferensiController extends Controller
         }
         return WrapResponse(compact('data'), 'sukses');
     }
+    public function aktifitas_kerjasama(Request $request)
+    {
+        InputValidator([
+            'page' => 'required|numeric',
+            'limit' => 'required|numeric'
+        ]);
+
+        $offset = $request->input('page');
+        $limit = $request->input('limit');
+
+        $listdata = DB::table('ref.aktifitas_kerjasama')->select('id_akt_kerjasama', 'nm_akt_kerjasama', 'ket', 'create_date', 'last_update')->offset($offset)->limit($limit)->get()->toArray();
+        if (empty($listdata)) {
+            return WrapResponse([], 'tidak ada daftar aktifitas_kerjasama yang ditampilkan');
+        }
+
+        $data = [];
+        foreach ($listdata as $each_data) {
+            $data[] = [
+                'id_akt_kerjasama' => $each_data->id_akt_kerjasama,
+                'nm_akt_kerjasama' => $each_data->nm_akt_kerjasama,
+                'ket' => $each_data->ket,
+                'waktu_data_ditambahkan' => $each_data->create_date,
+                'terakhir_diubah' => $each_data->last_update,
+            ];
+        }
+        return WrapResponse(compact('data'), 'sukses');
+    }
     public function agama(Request $request)
     {
         InputValidator([

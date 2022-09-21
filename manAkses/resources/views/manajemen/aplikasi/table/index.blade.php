@@ -5,14 +5,28 @@
 @section('content')
     <div class="card card-info">
         <div class="card-header">
-            <h3 class="card-title"><i class="fa fa-list"></i> Table Aplikasi {!! $data->nm_aplikasi !!}</h3>
-            <div class="card-tools">
-                <a type="button" data-toggle="modal" class="btn btn-default btn-xs text-dark" href="#tambahTable"><i class="fa fa-plus"></i> Tambah</a>
-            </div>
+            <h3 class="card-title"><i class="fa fa-list mr-2"></i> Table Aplikasi {!! $data->nm_aplikasi !!}</h3>
         </div><!-- /.card-header -->
         <div class="card-body">
+            <div class="d-lg-flex d-block">
+                @if(session()->get('login.role')->id_peran==1)
+                <div class="col-2">
+                    <a type="button" data-toggle="modal" class="btn btn-info" href="#tambahTable"><i class="fa fa-plus"></i> Tambah Data</a>
+                </div>
+                @endif
+                <div class="ml-auto px-2">
+                    <div class="input-group">
+                        <input type="text" id="search" placeholder="Pencarian" class="form-control">
+                        <div class="input-group-append">
+                            <button class="btn btn-info btn-sm" data-toggle="tooltip" data-placement="top" title="Cari">
+                                <i class="fa fa-search search-icon"></i>
+                            </button>
+                        </div>
+                    </div> 
+                </div>
+            </div>
             <div class="table-responsive">
-                <table class="table table-striped table-hover text-xs" id="table-data" style="width: 100% !important">
+                <table class="table table-striped table-bordered table-hover text-xs" id="table-data" style="width: 100% !important">
                     <thead>
                         <tr>
                             <th>No.</th>
@@ -21,7 +35,9 @@
                             <th>Akses Table ?</th>
                             <th>Expired Date</th>
                             <th>Last Sync</th>
+                            @if(session()->get('login.role')->id_peran==1)
                             <th>Aksi</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody>
@@ -39,9 +55,11 @@
                             </td>
                             <td>{{ $item->expired_date }}</td>
                             <td>{{ $item->last_sync }}</td>
+                            @if(session()->get('login.role')->id_peran==1)
                             <td>
                                 <a type="button" data-toggle="modal" class="btn btn-primary btn-xs" href="#editTable{{$item->id_table_app}}"><i class="fas fa-edit"></i></a>
                             </td>
+                            @endif
                         </tr>
                         @endforeach
                     </tbody>

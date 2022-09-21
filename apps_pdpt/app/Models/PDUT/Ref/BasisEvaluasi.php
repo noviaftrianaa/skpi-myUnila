@@ -11,6 +11,6 @@ class BasisEvaluasi extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_basis_evaluasi',	'nm_basis_evaluasi',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_basis_evaluasi',	'nm_basis_evaluasi',	'create_date',	'last_update',
     ];
 }

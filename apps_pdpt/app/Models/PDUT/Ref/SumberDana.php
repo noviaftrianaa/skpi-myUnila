@@ -11,6 +11,6 @@ class SumberDana extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_sumber_dana',	'nm_sumber_dana',	'u_blockgrant',	'u_beasiswa',	'u_lit',	'u_unit_usaha',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_sumber_dana',	'nm_sumber_dana',	'u_blockgrant',	'u_beasiswa',	'u_lit',	'u_unit_usaha',	'create_date',	'last_update',
     ];
 }

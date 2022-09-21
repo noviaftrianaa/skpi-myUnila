@@ -11,6 +11,6 @@ class Wilayah extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_wil',	'id_negara',	'nm_wil',	'asal_wil',	'kode_bps',	'kode_dagri',	'kode_keu',	'id_induk_wilayah',	'id_level_wil',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_wil',	'id_negara',	'nm_wil',	'asal_wil',	'kode_bps',	'kode_dagri',	'kode_keu',	'id_induk_wilayah',	'id_level_wil',	'create_date',	'last_update',
     ];
 }

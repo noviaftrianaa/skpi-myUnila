@@ -11,19 +11,6 @@ class ReMk extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_re_mk',
-	'id_jns_eval',
-	'id_mk',
-	'komponen_evaluasi',
-	'no_urut',
-	'desk_indo',
-	'desk_ing',
-	'bobot_evaluasi',
-	'create_date',
-	'id_creator',
-	'last_update',
-	'id_updater',
-	'soft_delete',
-	'last_sync',
+	'id_re_mk',	'id_jns_eval',	'id_mk',	'no_urut',	'komponen_evaluasi',	'desk_indo',	'desk_ing',	'bobot_evaluasi',	'create_date',	'id_creator',	'last_update',	'id_updater',	'soft_delete',	'last_sync',
     ];
 }

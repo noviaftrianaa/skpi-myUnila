@@ -11,6 +11,6 @@ class JenisDiklat extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_jns_diklat',	'nm_jns_diklat',	'u_guru',	'u_dosen',	'u_tendik',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_jns_diklat',	'nm_jns_diklat',	'u_guru',	'u_dosen',	'u_tendik',	'create_date',	'last_update',
     ];
 }

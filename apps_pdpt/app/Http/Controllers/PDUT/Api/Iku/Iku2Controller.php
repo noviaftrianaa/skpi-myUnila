@@ -21,12 +21,8 @@ use Log;
 class Iku2Controller extends Controller
 {
     protected $request;
-    protected $litabmas;
-    protected $sdmLitabmas;
-    protected $pdLitabmas;
-    protected $nonCaLitabmas;
-    protected $dokLitabmas;
-    protected $dokumen;
+    protected $regPd;
+    protected $iku2;
     protected $wrapResponse;
 
     public function __construct()

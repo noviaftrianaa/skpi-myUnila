@@ -11,6 +11,6 @@ class JenisPenelitian extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_jns_lit',	'nm_jns_lit',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_jns_lit',	'nm_jns_lit',	'create_date',	'last_update',
     ];
 }

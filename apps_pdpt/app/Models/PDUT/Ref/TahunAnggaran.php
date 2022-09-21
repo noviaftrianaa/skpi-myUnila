@@ -11,6 +11,6 @@ class TahunAnggaran extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_tahun_anggaran',	'nm_tahun_anggaran',	'a_periode_aktif',	'tgl_mulai',	'tgl_selesai',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_tahun_anggaran',	'nm_tahun_anggaran',	'a_periode_aktif',	'tgl_mulai',	'tgl_selesai',	'create_date',	'last_update',
     ];
 }

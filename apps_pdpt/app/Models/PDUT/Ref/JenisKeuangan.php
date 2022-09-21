@@ -11,6 +11,6 @@ class JenisKeuangan extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_jns_keuangan',	'nm_jns_keuangan',	'a_pengeluaran',	'a_pemasukan',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_jns_keuangan',	'nm_jns_keuangan',	'a_pengeluaran',	'a_pemasukan',	'create_date',	'last_update',
     ];
 }

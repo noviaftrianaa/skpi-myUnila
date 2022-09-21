@@ -58,11 +58,11 @@
 @section('content')
     <div class="card card-info">
         <div class="card-header">
-            <h3 class="card-title mt-1"><i class="fa fa-list"></i> Data Token</h3>
+            <h3 class="card-title mt-1"><i class="fa fa-list mr-2"></i> Data Token</h3>
         </div><!-- /.card-header -->
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-striped table-hover text-xs" id="table-data" style="width: 100% !important">
+                <table class="table table-striped table-bordered table-hover text-xs" id="table-data" style="width: 100% !important">
                     <thead>
                       <tr>
                         <th width="5%">No.</th>

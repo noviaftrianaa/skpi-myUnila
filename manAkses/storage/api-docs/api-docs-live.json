@@ -1,0 +1,389 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Manajemen Akses Unila - Live Web Service",
+        "description": "Version 1.0",
+        "contact": {
+            "email": ""
+        },
+        "version": "1.0"
+    },
+    "servers": [
+        {
+            "url": "http://pdut-unila.test/api/live/v1",
+            "description": "Server Live"
+        }
+    ],
+    "paths": {
+        "/": {},
+        "/auth/login": {
+            "post": {
+                "tags": [
+                    "Akses"
+                ],
+                "summary": "Mendapatkan token untuk otorisasi",
+                "description": "Dapatkan token otorisasi",
+                "operationId": "authLogin",
+                "requestBody": {
+                    "description": "Pass user credentials",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "id_aplikasi": {
+                                        "type": "uuid",
+                                        "format": "text",
+                                        "example": "948df317-78f7-4b92-a53f-0a56215e07de"
+                                    },
+                                    "username": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "rio.ananda@staff.unila.ac.id"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "12345678"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "successful operation"
+                    },
+                    "404": {
+                        "description": "page not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Maaf, halaman tidak ditemukan"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/pengguna/list": {
+            "get": {
+                "tags": [
+                    "Pengguna"
+                ],
+                "summary": "Dapatkan daftar Pengguna",
+                "description": "Menampilkan daftar data Pengguna",
+                "operationId": "getPengguna",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "",
+                        "required": false,
+                        "schema": {
+                            "type": "number"
+                        },
+                        "example": "1"
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "",
+                        "required": false,
+                        "schema": {
+                            "type": "number"
+                        },
+                        "example": "50"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "token": []
+                    }
+                ]
+            }
+        },
+        "/pengguna/tambah": {
+            "post": {
+                "tags": [
+                    "Pengguna"
+                ],
+                "summary": "Menambah data Pengguna",
+                "description": "",
+                "operationId": "postTambahPengguna",
+                "requestBody": {
+                    "description": "Pass user credentials",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "username",
+                                    "password",
+                                    "jenis_kelamin"
+                                ],
+                                "properties": {
+                                    "username": {
+                                        "type": "string",
+                                        "format": "text",
+                                        "example": "agus.aja"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "12345678"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "text",
+                                        "example": "agus.aja@gmail.com"
+                                    },
+                                    "tempat_lahir": {
+                                        "type": "string",
+                                        "format": "text",
+                                        "example": "Lampung"
+                                    },
+                                    "tgl_lahir": {
+                                        "type": "string",
+                                        "format": "text",
+                                        "example": "2022-02-02"
+                                    },
+                                    "jenis_kelamin": {
+                                        "type": "string",
+                                        "format": "text",
+                                        "example": "L"
+                                    },
+                                    "alamat": {
+                                        "type": "string",
+                                        "format": "text",
+                                        "example": "Bandar Lampung"
+                                    },
+                                    "no_telp": {
+                                        "type": "string",
+                                        "format": "text",
+                                        "example": "0721 123456"
+                                    },
+                                    "no_hp": {
+                                        "type": "string",
+                                        "format": "text",
+                                        "example": "0812 1234 1234"
+                                    },
+                                    "id_sdm_pengguna": {
+                                        "type": "string",
+                                        "format": "text",
+                                        "example": "94637666-e2bc-4c37-aac0-0000c2aef0ad"
+                                    },
+                                    "id_pd_pengguna": {
+                                        "type": "string",
+                                        "format": "text",
+                                        "example": "94637666-e2bc-4c37-aac0-0000c2aef0ad"
+                                    },
+                                    "id_calon_pd_pengguna": {
+                                        "type": "string",
+                                        "format": "text",
+                                        "example": "94637666-e2bc-4c37-aac0-0000c2aef0ad"
+                                    },
+                                    "token_reg": {
+                                        "type": "string",
+                                        "format": "text",
+                                        "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHAiOiI5NDhERjMxNy03OEY3LTRCOTItQTUzRi0wQTU2MjE1RTA3REUiLCJzdWIiOiI3Qzk5OTg1My0xMDAyLTQzNjMtQjJGRC1DOEIzN0YzRUIyM0UiLCJyb2xlIjoiMTA3IiwiaXNzIjoiaHR0cDpcL1wvb25lZGF0YS51bmlsYS5hYy5pZFwvYXBpXC9saXZlXC8wLjFcL2F1dGhcL2xvZ2luIiwiaWF0IjoxNjYzNTY5NzE4LCJleHAiOjE2NjM1NzMzMTh9.JT8elSJdem7SJMvSUU5yU4Wyg4P4LRhmjHSnDiSm6Zw"
+                                    },
+                                    "jabatan": {
+                                        "type": "string",
+                                        "format": "text",
+                                        "example": "Developer"
+                                    },
+                                    "provider": {
+                                        "type": "string",
+                                        "format": "text",
+                                        "example": "-"
+                                    },
+                                    "id_updater": {
+                                        "type": "string",
+                                        "format": "text",
+                                        "example": "94637666-e2bc-4c37-aac0-0000c2aef0ad"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "successful operation"
+                    },
+                    "404": {
+                        "description": "page not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Maaf, halaman tidak ditemukan"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "token": []
+                    }
+                ]
+            }
+        },
+        "/pengguna/ubah_password": {
+            "put": {
+                "tags": [
+                    "Pengguna"
+                ],
+                "summary": "Menyimpan password terbaru",
+                "description": "",
+                "operationId": "postUbahPassword",
+                "requestBody": {
+                    "description": "Pass user credentials",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "id_pengguna",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "id_pengguna": {
+                                        "type": "string",
+                                        "format": "text",
+                                        "example": "948df317-78f7-4b92-a53f-0a56215e07de"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "12345678"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "successful operation"
+                    },
+                    "404": {
+                        "description": "page not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Maaf, halaman tidak ditemukan"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "token": []
+                    }
+                ]
+            }
+        },
+        "/peran/list": {
+            "get": {
+                "tags": [
+                    "Peran"
+                ],
+                "summary": "Dapatkan daftar Peran",
+                "description": "Menampilkan daftar data Peran",
+                "operationId": "getPeran",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "",
+                        "required": false,
+                        "schema": {
+                            "type": "number"
+                        },
+                        "example": "1"
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "",
+                        "required": false,
+                        "schema": {
+                            "type": "number"
+                        },
+                        "example": "50"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "token": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "token": {
+                "type": "apiKey",
+                "description": "Manajemen Akses WebService Auth",
+                "name": "Authorization",
+                "in": "header"
+            }
+        }
+    },
+    "security": [
+        []
+    ]
+}

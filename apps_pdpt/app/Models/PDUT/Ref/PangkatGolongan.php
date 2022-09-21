@@ -11,6 +11,6 @@ class PangkatGolongan extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_pangkat_gol',	'kode_gol',	'nm_pangkat',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_pangkat_gol',	'kode_gol',	'nm_pangkat',	'create_date',	'last_update',
     ];
 }

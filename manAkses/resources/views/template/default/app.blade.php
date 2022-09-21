@@ -54,7 +54,7 @@
         }   
     </style>
 </head>
-<body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed text-sm {{ (request()->is('/')) ? 'sidebar-collapse' : '' }}">
+<body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed text-sm">
 <div class="wrapper">
     <!-- Navbar -->
     <nav class="main-header navbar navbar-expand navbar-info navbar-dark border-bottom-0 text-white">
@@ -73,13 +73,14 @@
             @if(auth()->check())
             <li class="nav-item dropdown">
                 <a class="nav-link" data-toggle="dropdown" href="#">
-                    <i class="fas fa-user mr-2"></i>{{ strtoupper($getPeran['nm_pengguna']) }}
+                    <i class="fas fa-user mr-2"></i>{{ auth()->user()->nm_pengguna }}
                 </a>
                 <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                    <!-- route password -->
+                    <!-- change password -->
                     <a class="dropdown-item" href="{{ route('ubah_password') }}" style="border-bottom: 1px solid #eee">
                         <i class="fas fa-key mr-1"></i> Ubah Password
                     </a>
+                    <!-- Logout -->
                     <a class="dropdown-item" href="{{ route('auth.logout') }}">
                         <i class="fas fa-power-off mr-1"></i> Logout
                     </a>
@@ -128,7 +129,7 @@
     </div>
     <!-- /.content-wrapper -->
     <footer class="main-footer">
-        <strong>Copyright 2021</strong> by TIK UNILA
+        <strong>Copyright {!! date('Y') !!}</strong> by TIK UNILA
         <div class="float-right">
             <b>SIMA UNILA</b>
         </div>

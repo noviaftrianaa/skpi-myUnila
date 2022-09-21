@@ -11,6 +11,6 @@ class StatusAnak extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_stat_anak',	'nm_stat_anak',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_stat_anak',	'nm_stat_anak',	'create_date',	'last_update',
     ];
 }

@@ -11,17 +11,6 @@ class RencanaAjar extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_renc_ajar',
-	'id_mk',
-	'no_urut',
-	'pertemuan',
-	'materi_indonesia',
-	'materi_inggris',
-	'create_date',
-	'id_creator',
-	'last_update',
-	'id_updater',
-	'soft_delete',
-	'last_sync',
+	'id_renc_ajar',	'id_mk',	'no_urut',	'pertemuan',	'materi_indonesia',	'materi_inggris',	'create_date',	'id_creator',	'last_update',	'id_updater',	'soft_delete',	'last_sync',
     ];
 }

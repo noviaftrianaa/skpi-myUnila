@@ -75,7 +75,7 @@ include $path.'GetBrowser.php';
 
 include $path.'GetClientIP.php';
 
-include $path.'GetIDUser.php';
+include $path.'GetRoleUser.php';
 
 include $path.'GetOS.php';
 

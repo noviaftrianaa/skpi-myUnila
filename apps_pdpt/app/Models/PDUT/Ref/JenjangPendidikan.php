@@ -11,6 +11,6 @@ class JenjangPendidikan extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_jenj_didik',	'nm_jenj_didik',	'u_jenj_lemb',	'u_jenj_org',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_jenj_didik',	'nm_jenj_didik',	'u_jenj_lemb',	'u_jenj_org',	'create_date',	'last_update',
     ];
 }

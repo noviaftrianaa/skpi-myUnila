@@ -11,6 +11,6 @@ class MediaPublikasi extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_media_pub',	'id_jns_media',	'id_kel_bidang',	'id_sp',	'id_negara',	'nm_media_pub',	'bentuk_media_pub',	'grade_sinta',	'jns_penerbit',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_media_pub',	'id_jns_media',	'id_kel_bidang',	'id_sp',	'id_negara',	'nm_media_pub',	'bentuk_media_pub',	'grade_sinta',	'jns_penerbit',	'create_date',	'last_update',
     ];
 }

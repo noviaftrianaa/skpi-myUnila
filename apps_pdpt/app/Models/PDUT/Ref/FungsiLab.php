@@ -11,6 +11,6 @@ class FungsiLab extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_fungsi_lab',	'nm_fungsi_lab',	'create_date',	'last_update',	'expired_date',	'last_sync',
+	'id_fungsi_lab',	'nm_fungsi_lab',	'create_date',	'last_update',
     ];
 }
