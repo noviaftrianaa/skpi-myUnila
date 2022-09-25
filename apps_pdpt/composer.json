@@ -9,7 +9,7 @@
         "anhskohbo/no-captcha": "^3.2",
         "arcanedev/log-viewer": "^8.1",
         "barryvdh/laravel-dompdf": "^0.9.0",
-        "darkaonline/l5-swagger": "^8.0",
+        "darkaonline/l5-swagger": "8.1",
         "doctrine/dbal": "^3.2",
         "econea/nusoap": "^0.9.10",
         "fideloper/proxy": "^4.0",

@@ -170,7 +170,7 @@ class MouController extends Controller
                 'id_creator' => $this->creatorId,
                 'create_date' => $now,
                 'last_update' => $now,
-                // 'last_sync' => $now,
+                'last_sync' => $now,
                 'soft_delete' => $soft_delete
             ]);
 
