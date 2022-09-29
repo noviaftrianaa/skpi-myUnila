@@ -15,6 +15,7 @@ use Cookie;
 use Auth;
 use Illuminate\Support\Facades\Http;
 use SSO\SSO;
+use Crypt;
 
 class HomeController extends Controller
 {

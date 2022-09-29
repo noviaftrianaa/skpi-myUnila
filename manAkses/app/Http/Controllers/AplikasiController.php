@@ -14,6 +14,8 @@ use App\Models\LargeObject;
 use Auth;
 use Illuminate\Support\Facades\Storage;
 use DB;
+use Illuminate\Encryption\Encrypter;
+use Config;
 
 class AplikasiController extends Controller
 {
@@ -23,7 +25,9 @@ class AplikasiController extends Controller
         \Artisan::call('key:generate --show');
         $app_key = \Artisan::output();
         $app_key = trim(preg_replace('/\s+/', ' ', $app_key));
-        return Crypt::encrypt(strrev($app_key));
+        return strrev($app_key);
+        // $crypt = new Encrypter('TBfJxbPdM8WoXviHuuoHZSscTZkBOoWd', Config::get('app.cipher'));
+        // return $crypt->encrypt(strrev($app_key));
     }
 
     public function index()

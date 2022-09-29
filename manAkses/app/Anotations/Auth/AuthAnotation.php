@@ -12,7 +12,7 @@
  *      description="Pass user credentials",
  *      @OA\JsonContent(
  *          required={"email","password"},
- *          @OA\Property(property="id_aplikasi", type="uuid", format="text", example="948df317-78f7-4b92-a53f-0a56215e07de"),
+ *          @OA\Property(property="app_key", type="string", format="text", example="base64:xgyD/eUvr5fhJskP1Z6ueW2Pt3tuR1/g5GtxV783vHC8M="),
  *          @OA\Property(property="username", type="string", format="email", example="rio.ananda@staff.unila.ac.id"),
  *          @OA\Property(property="password", type="string", format="password", example="12345678"),
  *      ),

@@ -281,11 +281,20 @@
                     <div class="row">
                         @if(session()->get('login.role')->id_peran==1)
                         <div class="col-sm-12">
-                            <p class="text-muted text-center text-break">{!! $data->app_key ?? '-' !!}</p>
+                            <p class="text-muted text-center text-break">{!! substr($data->app_key, 0, 3).str_repeat('*', strlen($data->app_key)-3) ?? '-' !!}</p>
                         </div>
                         @else
                         <div class="col-sm-12">
-                            <p class="text-muted text-center text-break">{!! (!is_null($data->app_key)) ? strrev(Crypt::decrypt($data->app_key)) : '-' !!}</p>
+                            <p class="text-muted text-center text-break">
+                                @if(is_null($data->app_key))
+                                -
+                                @else
+                                @php
+                                $app_key = strrev($data->app_key);
+                                @endphp
+                                {!! $app_key !!}
+                                @endif
+                            </p>
                         </div>
                         @endif
                     </div>

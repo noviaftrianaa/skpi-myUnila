@@ -35,10 +35,10 @@
                                     "password"
                                 ],
                                 "properties": {
-                                    "id_aplikasi": {
-                                        "type": "uuid",
+                                    "app_key": {
+                                        "type": "string",
                                         "format": "text",
-                                        "example": "948df317-78f7-4b92-a53f-0a56215e07de"
+                                        "example": "base64:xgyD/eUvr5fhJskP1Z6ueW2Pt3tuR1/g5GtxV783vHC8M="
                                     },
                                     "username": {
                                         "type": "string",
