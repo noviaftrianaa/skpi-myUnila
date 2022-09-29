@@ -87,34 +87,3 @@
  *  security={{"token":{}}}
  * )
  **/
-
-/**
- * @OA\Put(
- *  path="/pengguna/ubah_password",
- *  summary="Menyimpan password terbaru",
- *  description="",
- *  operationId="postUbahPassword",
- *  tags={"Pengguna"},
- *  @OA\RequestBody(
- *      required=true,
- *      description="Pass user credentials",
- *      @OA\JsonContent(
- *          required={"id_pengguna","password"},
- *          @OA\Property(property="id_pengguna", type="string", format="text", example="948df317-78f7-4b92-a53f-0a56215e07de"),
- *          @OA\Property(property="password", type="string", format="password", example="12345678"),
- *      ),
- *  ),
- *  @OA\Response(
- *      response=200,
- *      description="successful operation",
- *  ),
- *  @OA\Response(
- *      response=404,
- *      description="page not found",
- *      @OA\JsonContent(
- *          @OA\Property(property="message", type="string", example="Maaf, halaman tidak ditemukan")
- *      )
- *  ),
- *  security={{"token":{}}}
- * )
- **/

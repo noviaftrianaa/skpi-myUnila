@@ -13,14 +13,6 @@ class AuthApi
 {
     protected $mLogJwt;
 
-    private function base64url_encode($data) {
-        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
-    }
-    
-    private function base64url_decode($data) {
-        return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
-    }
-
     public function handle($request, Closure $next)
     {
         try {
@@ -77,10 +69,10 @@ class AuthApi
             throw new Exception("Token kadarluwasa", 1);
         }
 
-        $base64_url_header = $this->base64url_encode($header);
-        $base64_url_payload = $this->base64url_encode($payload);
+        $base64_url_header = base64_encode($header);
+        $base64_url_payload = base64_encode($payload);
         $signature = hash_hmac('SHA256', $base64_url_header . "." . $base64_url_payload, $secret, true);
-        $base64_url_signature = $this->base64url_encode($signature);
+        $base64_url_signature = base64_encode($signature);
         $is_signature_valid = ($base64_url_signature === $signature_provided);
 
         if (!$is_signature_valid) {

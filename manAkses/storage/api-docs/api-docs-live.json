@@ -261,69 +261,6 @@
                 ]
             }
         },
-        "/pengguna/ubah_password": {
-            "put": {
-                "tags": [
-                    "Pengguna"
-                ],
-                "summary": "Menyimpan password terbaru",
-                "description": "",
-                "operationId": "postUbahPassword",
-                "requestBody": {
-                    "description": "Pass user credentials",
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "id_pengguna",
-                                    "password"
-                                ],
-                                "properties": {
-                                    "id_pengguna": {
-                                        "type": "string",
-                                        "format": "text",
-                                        "example": "948df317-78f7-4b92-a53f-0a56215e07de"
-                                    },
-                                    "password": {
-                                        "type": "string",
-                                        "format": "password",
-                                        "example": "12345678"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "successful operation"
-                    },
-                    "404": {
-                        "description": "page not found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Maaf, halaman tidak ditemukan"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "token": []
-                    }
-                ]
-            }
-        },
         "/peran/list": {
             "get": {
                 "tags": [
