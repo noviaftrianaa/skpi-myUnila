@@ -38,58 +38,82 @@ class Iku2Controller extends Controller
     {
 
         InputValidator([
-            'npm' => 'required|numeric',
             'id_thn_ajaran' => 'required|numeric',
-            'status_kegiatan' => ['alpha', 'required', ValidationRule::in(['M', 'P'])],
-            'nm_kegiatan' => 'required',
-            'kat_kegiatan' => 'required',
-            'peringkat' => 'numeric',
-            'a_diluar_pt' => 'numeric',
-            'total_sks' => 'numeric'
-        ], [
-            'status_kegiatan.in' => 'input status harus M/P'
+            'id_reg_pd' => 'required|uuid',
+            'id_smt' => 'required|numeric',
+            'id_daftar_mbkm' => 'required|uuid',
+            'id_jns_akt_mhs' => 'required|numeric',
+            'nm_periode_mbkm' => 'required',
+            'tgl_mulai' => 'required|date',
+            'tgl_selesai' => 'required|date',
+            'a_diluar_pt' => 'required|numeric',
+            'id_mk_konversi' => 'required|uuid',
+            'nip_ajar' => 'required|numeric',
+            'kode_mk' => 'required',
+            'nm_mk' => 'required',
+            'sks_mk' => 'required'
         ]);
 
-        $id_iku_2 = guid();
-        $npm = $this->request->input('npm');
-        $id_thn_ajaran =  $this->request->input('id_thn_ajaran');
-        $id_smt =  $this->request->input('id_smt');
-        $status_kegiatan =  $this->request->input('status_kegiatan');
-        $nm_kegiatan = $this->request->input('nm_kegiatan');
-        $kat_kegiatan = $this->request->input('kat_kegiatan');
-        $lokasi_kegiatan = $this->request->input('lokasi_kegiatan');
-        $peringkat = $this->request->input('peringkat');
-        $total_sks = $this->request->input('total_sks');
+        $id_iku_2_mbkm = guid();
+        $id_reg_pd = $this->request->input('id_reg_pd');
+        $id_thn_ajaran = $this->request->input('id_thn_ajaran');
+        $id_smt = $this->request->input('id_smt');
+        $id_daftar_mbkm = $this->request->input('id_daftar_mbkm');
+        $id_jns_akt_mhs = $this->request->input('id_jns_akt_mhs');
+        $nm_periode_mbkm = $this->request->input('nm_periode_mbkm');
+        $nm_penyelenggara = $this->request->input('nm_penyelenggara');
+        $tgl_mulai = $this->request->input('tgl_mulai');
+        $tgl_selesai = $this->request->input('tgl_selesai');
+        $lokasi_mbkm = $this->request->input('lokasi_mbkm');
         $a_diluar_pt = $this->request->input('a_diluar_pt');
         $nidn_pembimbing = $this->request->input('nidn_pembimbing');
         $nm_pembimbing = $this->request->input('nm_pembimbing');
+        $id_mk_konversi = $this->request->input('id_mk_konversi');
+        $nip_ajar = $this->request->input('nip_ajar');
+        $nm_ajar = $this->request->input('nm_ajar');
+        $kode_mk = $this->request->input('kode_mk');
+        $nm_mk = $this->request->input('nm_mk');
+        $sks_mk = $this->request->input('sks_mk');
+        $nilai_angka = $this->request->input('nilai_angka');
+        $nilai_huruf = $this->request->input('nilai_huruf');
+        $nilai_indeks = $this->request->input('nilai_indeks');
 
         $now = currDateTime();
         $id_creator = '26004417-6e92-463c-bf35-f741817121dc';
         $soft_delete = 0;
 
-        $id_reg_pd = $this->regPd->where('nipd', $npm)->pluck('id_reg_pd')->first();
+        $cek_mhs = $this->regPd->where('id_reg_pd', $id_reg_pd)->first();
 
-        if (empty($id_reg_pd)) {
-            return WrapResponse(['data' => null], 'npm tidak ada', FALSE);
+        if (empty($cek_mhs)) {
+            return WrapResponse(['data' => null], 'id_reg_pd tidak ada', FALSE);
         }
 
         DB::beginTransaction();
         try {
             $iku2 = $this->iku2->create([
-                'id_iku_2' => $id_iku_2,
+                'id_iku_2_mbkm' => $id_iku_2_mbkm,
                 'id_reg_pd' => $id_reg_pd,
                 'id_thn_ajaran' => $id_thn_ajaran,
                 'id_smt' => $id_smt,
-                'status_kegiatan' => $status_kegiatan,
-                'nm_kegiatan' => $nm_kegiatan,
-                'kat_kegiatan' => $kat_kegiatan,
-                'lokasi_kegiatan' => $lokasi_kegiatan,
-                'peringkat' => $peringkat,
-                'total_sks' => $total_sks,
+                'id_daftar_mbkm' => $id_daftar_mbkm,
+                'id_jns_akt_mhs' => $id_jns_akt_mhs,
+                'nm_periode_mbkm' => $nm_periode_mbkm,
+                'nm_penyelenggara' => $nm_penyelenggara,
+                'tgl_mulai' => $tgl_mulai,
+                'tgl_selesai' => $tgl_selesai,
+                'lokasi_mbkm' => $lokasi_mbkm,
                 'a_diluar_pt' => $a_diluar_pt,
                 'nidn_pembimbing' => $nidn_pembimbing,
                 'nm_pembimbing' => $nm_pembimbing,
+                'id_mk_konversi' => $id_mk_konversi,
+                'nip_ajar' => $nip_ajar,
+                'nm_ajar' => $nm_ajar,
+                'kode_mk' => $kode_mk,
+                'nm_mk' => $nm_mk,
+                'sks_mk' => $sks_mk,
+                'nilai_angka' => $nilai_angka,
+                'nilai_huruf' => $nilai_huruf,
+                'nilai_indeks' => $nilai_indeks,
                 'id_creator' => $id_creator,
                 'create_date' => $now,
                 'last_update' => $now,
@@ -99,7 +123,7 @@ class Iku2Controller extends Controller
 
 
             DB::commit();
-            return $this->wrapResponse->setStatusCode(Response::HTTP_ACCEPTED)->setMessage('sukses menambahkan iku2 - id : ' . $iku2->id_iku_2)->render();
+            return $this->wrapResponse->setStatusCode(Response::HTTP_ACCEPTED)->setMessage('sukses menambahkan iku2 - id_reg_pd : ' . $iku2->id_reg_pd)->render();
         } catch (ModelNotFoundException $mnfe) {
             DB::rollBack();
             Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
