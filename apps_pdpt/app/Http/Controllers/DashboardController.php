@@ -13,11 +13,7 @@ class DashboardController extends Controller
     {
         $this->id_sp = env('APP_ID_SP');
     }
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+
     public function index()
     {
         $pt = SatuanPendidikan::find($this->id_sp);
@@ -268,5 +264,89 @@ class DashboardController extends Controller
         ");
 
         return view('dashboard.dosen_profil', compact('profil_dosen', 'side_active', 'rwy_pend', 'rwy_pang', 'rwy_jab', 'rwy_struk', 'rwy_tgs_tmbhn', 'rwy_krja'));
+    }
+
+    public function university_rank()
+    {
+        $arrField = [
+            'rank_by_word' => '-',
+            'rank_by_asia' => '-',
+            'rank_by_indonesia' => '-',
+            'total_score' => '-',
+        ];
+
+        $dataQsWordUniversity = $arrField;
+        $dataTheWur = $arrField;
+        $dataUniRankTm = $arrField;
+        $dataWebometric = $arrField;
+        $dataGreenmetric = $arrField;
+        $year = date('Y')-1;
+
+        try {
+
+            $TheWur = dom_xpath(
+                'https://www.timeshighereducation.com/world-university-rankings/university-lampung',
+                '/html/body/div[4]/div/section/div/div/div[1]/div/div/div[1]/div/section/div/div/div[4]/div/div/div[1]/span'
+            )[0];
+
+            $dataTheWur['rank_by_word'] = trim(str_replace('th', '', $TheWur->textContent));
+
+            $UniRankTm = dom_xpath(
+                'https://www.4icu.org/reviews/2184.htm',
+                '//*[@id="2184-Universitas-Lampung"]/div/div[3]/table'
+            )[0]->getElementsByTagName('td');
+
+            $dataUniRankTm['rank_by_word'] = $UniRankTm[3]->textContent;
+            $dataUniRankTm['rank_by_indonesia'] = $UniRankTm[1]->textContent;
+
+            $Webometric = dom_xpath(
+                'https://www.webometrics.info/en/detalles/unila.ac.id',
+                '//*[@id="mytable"]/tbody/tr'
+            )[0]->getElementsByTagName('td');
+
+            $dataWebometric['rank_by_word'] = $Webometric[0]->textContent;
+            $dataWebometric['rank_by_indonesia'] = $Webometric[2]->textContent;
+            $dataWebometric['total_score'] = ($Webometric[3]->textContent + $Webometric[4]->textContent + $Webometric[5]->textContent);
+
+            $GreenmetricWord = dom_xpath(
+                "https://greenmetric.ui.ac.id/rankings/overall-rankings-{$year}",
+                '//table/tbody'
+            )[0]->getElementsByTagName('tr');
+
+            foreach ($GreenmetricWord as $singleTable) {
+                $td = $singleTable->getElementsByTagName('td');
+                if (trim($td[1]->textContent) === "Universitas Lampung") {
+                    $dataGreenmetric['rank_by_word'] = $td[0]->textContent;
+                    $dataGreenmetric['total_score'] = $td[3]->textContent;
+                    break;
+                }
+            }
+
+            $GreenmetricIndo = dom_xpath(
+                "https://greenmetric.ui.ac.id/rankings/ranking-by-country-{$year}/Indonesia",
+                '//table/tbody'
+            )[0]->getElementsByTagName('tr');
+
+            foreach ($GreenmetricIndo as $singleTable) {
+                $td = $singleTable->getElementsByTagName('td');
+                if (trim($td[1]->textContent) === "Universitas Lampung") {
+                    $dataGreenmetric['rank_by_indonesia'] = $td[0]->textContent;
+                    $dataGreenmetric['total_score'] = $td[3]->textContent;
+                    break;
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error($e->getMessage() . ' on line ' . $e->getLine());
+        }
+
+        $side_active = 'university_rank';
+        return view('dashboard.university_rank', compact(
+            'dataQsWordUniversity',
+            'dataTheWur',
+            'dataUniRankTm',
+            'dataWebometric',
+            'dataGreenmetric',
+            'side_active',
+        ));
     }
 }

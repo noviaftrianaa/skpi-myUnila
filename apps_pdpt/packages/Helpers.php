@@ -60,3 +60,5 @@ include $path.'Wsdl.php';
 include $path.'CustomPagination.php';
 include $path.'AppLatency.php';
 include $path.'PDDIKTI.php';
+include $path.'DomXpath.php';
+
