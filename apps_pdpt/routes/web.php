@@ -81,6 +81,9 @@ Route::get('/dashboard/jenis_kelamin/load',  [JenisKelaminController::class, 'lo
 Route::post('/dashboard/jenis_kelamin/reload',  [JenisKelaminController::class, 'reload'])->name('dashboard.jenis_kelamin.reload');
 /** End Dashboar Dosen */
 Route::get('/iku',  [DashboardController::class, 'iku'])->name('iku');
+//Route::get('/akreditasi_pt',  [AkreditasController::class, 'index_pt'])->name('akreditasi_pt');
+Route::get('/akreditasi_prodi',  [AkreditasController::class, 'index'])->name('akreditasi_prodi');
+Route::get('/akreditasi_prodi/{id_prodi}',  [AkreditasController::class, 'show'])->name('akreditasi_prodi.detail_prodi');
 // Route::prefix('akreditasi')->group(function () {
 //     Route::get('/',  [AkreditasController::class, 'akreditasi'])->name('akreditasi');
 //     Route::get('/{id_prodi}/detail',  [AkreditasController::class, 'detail_akreditasi_prodi'])->name('detail_akreditasi');

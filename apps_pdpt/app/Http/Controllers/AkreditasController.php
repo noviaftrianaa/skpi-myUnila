@@ -19,7 +19,7 @@ class AkreditasController extends Controller
         $this->id_sp = 'e2b705a7-173e-464a-9fac-509128709515';
     }
 
-    public function akreditasi()
+    public function index()
     {
         $sp = collect(DB::SELECT("
             SELECT
@@ -31,7 +31,7 @@ class AkreditasController extends Controller
                 ak.tst_sk_akred_sp,
                 tni.nm_akred
             FROM pdrd.satuan_pendidikan AS tsp
-            JOIN pdrd.akred_sp AS ak ON ak.id_sp=tsp.id_sp
+            JOIN pdrd.akred_sp AS ak ON ak.id_sp=tsp.id_sp AND ak.soft_delete=0
             JOIN ref.nilai_akred AS tni ON tni.id_akred=ak.id_akred
             WHERE tsp.id_sp = '" . $this->id_sp . "'
             AND tsp.soft_delete=0
@@ -88,10 +88,10 @@ class AkreditasController extends Controller
             'pageName',
             'judul_layout',
             'side_active',
-            'akred', 
-            'sp', 
-            'list_akreditasi', 
-            'last_sync', 
+            'akred',
+            'sp',
+            'list_akreditasi',
+            'last_sync',
             'total'
         ));
     }
@@ -344,11 +344,11 @@ class AkreditasController extends Controller
             'pageName',
             'judul_layout',
             'side_active',
-            'detail_prodi', 
-            'detail_akred', 
-            'detail_akred_all', 
-            'rank_akred', 
-            'list_kriteria', 
+            'detail_prodi',
+            'detail_akred',
+            'detail_akred_all',
+            'rank_akred',
+            'list_kriteria',
             'kriteria'
         ));
     }

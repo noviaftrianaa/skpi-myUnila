@@ -8,7 +8,7 @@
 @section('content')
     <div class="container">
         <div class="row">
-            <div class="col-sm-12" style="display: none;">
+            <div class="col-sm-6">
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Status Akreditasi PT</h3>
@@ -17,7 +17,7 @@
                         <img src="{{ asset('asset/logo/logo_unila.png') }}" alt="logo_unila"
                             class="img-thumbnail rounded mx-auto d-block" width="200px">
                         <br>
-                        <table class="table table-striped mb-2">
+                        <table class="table table-striped">
                             <tbody>
                                 {!! tableRow('Nama PT', $sp->first->nm_lemb) !!}
                                 {!! tableRow('Kode PT', $sp->first->npsn) !!}
@@ -51,7 +51,7 @@
                 </div>
             </div>
 
-            <div class="col-sm-12">
+            <div class="col-sm-6">
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Akreditasi Prodi</h3>
@@ -110,6 +110,7 @@
                                                 tprodi.id_sms,
                                                 CONCAT(tprodi.nm_lemb,' (',tjenj.nm_jenj_didik,')') AS asal_prodi,
                                                 tn.nm_akred,
+                                                tprodi.stat_prodi,
                                                 takred.sk_akreditasi_prodi,
                                                 takred.tanggal_sk_akreditasi_prodi,
                                                 takred.tst_sk_akreditasi_prodi,
@@ -154,6 +155,7 @@
                                                 <tr>
                                                     <th>No</th>
                                                     <th>Nama Program Studi</th>
+                                                    <th>Status</th>
                                                     <th>SK Akreditasi</th>
                                                     <th>Tanggal Akreditasi</th>
                                                     <th>Waktu Expired</th>
@@ -166,13 +168,14 @@
                                                     <tr>
                                                         <td>{{ $no_data + 1 }}</td>
                                                         <td>{{ $each_data_akred->asal_prodi }}</td>
+                                                        <td>{{ config('mp.data_master.stat_prodi.'.$each_data_akred->stat_prodi) }}</td>
                                                         <td>{{ $each_data_akred->sk_akreditasi_prodi }}</td>
                                                         <td>{{ $each_data_akred->tanggal_sk_akreditasi_prodi }}</td>
                                                         <td>{{ $each_data_akred->tst_sk_akreditasi_prodi }}</td>
                                                         <td>{{ $each_data_akred->nm_akred }}</td>
                                                         <td style="text-align: center;">
                                                             <button type="button" class="btn btn-primary"
-                                                                onclick="window.location='{{ route('detail_akreditasi', Crypt::encrypt($each_data_akred->id_sms)) }}'">Detail</button>
+                                                                onclick="window.location='{{ route('akreditasi_prodi.detail_prodi', Crypt::encrypt($each_data_akred->id_sms)) }}'">Detail</button>
                                                         </td>
                                                     </tr>
                                                 @endforeach
