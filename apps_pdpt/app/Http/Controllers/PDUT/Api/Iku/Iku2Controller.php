@@ -90,12 +90,14 @@ class Iku2Controller extends Controller
 
         DB::beginTransaction();
         try {
-            $iku2 = $this->iku2->create([
+            $iku2 = $this->iku2->updateOrCreate([
+                'id_mk_konversi' => $id_mk_konversi,
+                'id_smt' => $id_smt,
+            ],[
                 'id_iku_2_mbkm' => $id_iku_2_mbkm,
                 'id_reg_pd' => $id_reg_pd,
-                'id_thn_ajaran' => $id_thn_ajaran,
-                'id_smt' => $id_smt,
                 'id_daftar_mbkm' => $id_daftar_mbkm,
+                'id_thn_ajaran' => $id_thn_ajaran,
                 'id_jns_akt_mhs' => $id_jns_akt_mhs,
                 'nm_periode_mbkm' => $nm_periode_mbkm,
                 'nm_penyelenggara' => $nm_penyelenggara,
@@ -105,7 +107,6 @@ class Iku2Controller extends Controller
                 'a_diluar_pt' => $a_diluar_pt,
                 'nidn_pembimbing' => $nidn_pembimbing,
                 'nm_pembimbing' => $nm_pembimbing,
-                'id_mk_konversi' => $id_mk_konversi,
                 'nip_ajar' => $nip_ajar,
                 'nm_ajar' => $nm_ajar,
                 'kode_mk' => $kode_mk,
