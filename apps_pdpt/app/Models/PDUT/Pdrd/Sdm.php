@@ -13,70 +13,70 @@ class Sdm extends AbstractionModel
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-        'id_sdm',
-        'nm_sdm',
-        'jk',
-        'tmpt_lahir',
-        'tgl_lahir',
-        'nik',
-        'niy_nigk',
-        'nuptk',
-        'nidn',
-        'nsdmi',
-        'stat_kawin',
-        'jln',
-        'rt',
-        'rw',
-        'nm_dsn',
-        'ds_kel',
-        'kode_pos',
-        'no_tel_rmh',
-        'no_hp',
-        'email',
-        'nip',
-        'tmt_pns',
-        'nm_suami_istri',
-        'nip_suami_istri',
-        'sk_cpns',
-        'tgl_sk_cpns',
-        'sk_angkat',
-        'tmt_sk_angkat',
-        'npwp',
-        'nm_wp',
-        'stat_data',
-        'akta_ijin_ajar',
-        'nira',
-        'kewarganegaraan',
-        'id_jns_sdm',
-        'id_wil',
-        'id_stat_aktif',
-        'id_agama',
-        'id_keahlian_lab',
-        'id_pekerjaan_suami_istri',
-        'id_lemb_angkat',
-        'id_sumber_gaji',
-        'create_date',
-        'id_creator',
-        'last_update',
-        'id_updater',
-        'soft_delete',
-        'last_sync',
+	'id_sdm',
+	'nm_sdm',
+	'jk',
+	'tmpt_lahir',
+	'tgl_lahir',
+	'nik',
+	'niy_nigk',
+	'nuptk',
+	'nidn',
+	'nsdmi',
+	'stat_kawin',
+	'jln',
+	'rt',
+	'rw',
+	'nm_dsn',
+	'ds_kel',
+	'kode_pos',
+	'no_tel_rmh',
+	'no_hp',
+	'email',
+	'nip',
+	'tmt_pns',
+	'nm_suami_istri',
+	'nip_suami_istri',
+	'sk_cpns',
+	'tgl_sk_cpns',
+	'sk_angkat',
+	'tmt_sk_angkat',
+	'npwp',
+	'nm_wp',
+	'stat_data',
+	'akta_ijin_ajar',
+	'nira',
+	'kewarganegaraan',
+	'id_jns_sdm',
+	'id_wil',
+	'id_stat_aktif',
+	'id_agama',
+	'id_keahlian_lab',
+	'id_pekerjaan_suami_istri',
+	'id_lemb_angkat',
+	'id_sumber_gaji',
+	'create_date',
+	'id_creator',
+	'last_update',
+	'id_updater',
+	'soft_delete',
+	'last_sync',
     ];
 
-    public static function dashboard_dosen($tipe, $tahun)
+    public static function dashboard_dosen($tipe,$tahun)
     {
         $tgl      = TahunAjaran::tglSelesai($tahun);
         $from   = "FROM pdrd.sdm AS tsdm WITH (NOLOCK)
         ";
         $group = '';
         $order = '';
-        if ($tipe == 'nomor_induk') {
+        if ($tipe=='nomor_induk') {
             $select = "SELECT SUM(CASE WHEN LEFT(tsdm.nidn,2)<88 THEN 1 ELSE 0 END) AS NIDN,
                 SUM(CASE WHEN LEFT(tsdm.nidn,2) IN (88,89) THEN 1 ELSE 0 END) AS NIDK,
                 SUM(CASE WHEN LEFT(tsdm.nidn,2)>89 THEN 1 ELSE 0 END) AS NUP
                 ";
             $alternative_where = '';
-        } elseif ($tipe == 'dosen_jabfung') {
+        } elseif ($tipe=='dosen_jabfung') {
             $select = "SELECT SUM(CASE WHEN tjab.id_jabfung IS NULL THEN 1 ELSE 0 END) AS 'Tidak ada Fungsional',
                 SUM(CASE WHEN tjab.id_jabfung IN (40,41) THEN 1 ELSE 0 END) AS 'Asisten Ahli',
                 SUM(CASE WHEN tjab.id_jabfung IN (43,44) THEN 1 ELSE 0 END) AS 'Lektor',
@@ -84,7 +84,7 @@ class Sdm extends AbstractionModel
                 SUM(CASE WHEN tjab.id_jabfung IN (50,51) THEN 1 ELSE 0 END) AS 'Profesor'
                 ";
             $alternative_where = '';
-        } elseif ($tipe == 'dosen_jabfung_all') {
+        } elseif ($tipe=='dosen_jabfung_all') {
             $select = "SELECT SUM(CASE WHEN tjab.id_jabfung IS NULL THEN 1 ELSE 0 END) AS 'Tidak ada Fungsional',
                 SUM(CASE WHEN tjab.id_jabfung = 40 THEN 1 ELSE 0 END) AS 'Asisten Ahli (100)',
                 SUM(CASE WHEN tjab.id_jabfung = 41 THEN 1 ELSE 0 END) AS 'Asisten Ahli (150)',
@@ -97,22 +97,22 @@ class Sdm extends AbstractionModel
                 SUM(CASE WHEN tjab.id_jabfung = 51 THEN 1 ELSE 0 END) AS 'Profesor (1050)'
                 ";
             $alternative_where = '';
-        } elseif ($tipe == 'dosen_jk') {
+        } elseif ($tipe=='dosen_jk') {
             $select = "SELECT SUM(CASE WHEN tsdm.jk='L' THEN 1 ELSE 0 END) AS 'Laki-laki',
                 SUM(CASE WHEN tsdm.jk='P' THEN 1 ELSE 0 END) AS 'Perempuan'
                 ";
             $alternative_where = '';
-        } elseif ($tipe == 'dosen_usia') {
+        } elseif ($tipe=='dosen_usia') {
             $select = "SELECT COUNT (tsdm.id_sdm) AS total, tsdm.umur, tsdm.jk
                 ";
             $from = "FROM (
                             SELECT
-                                CASE WHEN (DATEDIFF(day,tgl_lahir,'" . $tgl . "')/365.2425)<=30 then '0-30'
-                                    WHEN (DATEDIFF(day,tgl_lahir,'" . $tgl . "')/365.2425)<=40 AND (DATEDIFF(day,tgl_lahir,'" . $tgl . "')/365.2425)>30 THEN '31-40'
-                                    WHEN (DATEDIFF(day,tgl_lahir,'" . $tgl . "')/365.2425)<=50 AND (DATEDIFF(day,tgl_lahir,'" . $tgl . "')/365.2425)>40 THEN '41-50'
-                                    WHEN (DATEDIFF(day,tgl_lahir,'" . $tgl . "')/365.2425)<=60 AND (DATEDIFF(day,tgl_lahir,'" . $tgl . "')/365.2425)>50 THEN '51-60'
-                                    WHEN (DATEDIFF(day,tgl_lahir,'" . $tgl . "')/365.2425)<=80 AND (DATEDIFF(day,tgl_lahir,'" . $tgl . "')/365.2425)>60 THEN '61-80'
-                                    WHEN (DATEDIFF(day,tgl_lahir,'" . $tgl . "')/365.2425)>80 THEN '80+'
+                                CASE WHEN (DATEDIFF(day,tgl_lahir,'".$tgl."')/365.2425)<=30 then '0-30'
+                                    WHEN (DATEDIFF(day,tgl_lahir,'".$tgl."')/365.2425)<=40 AND (DATEDIFF(day,tgl_lahir,'".$tgl."')/365.2425)>30 THEN '31-40'
+                                    WHEN (DATEDIFF(day,tgl_lahir,'".$tgl."')/365.2425)<=50 AND (DATEDIFF(day,tgl_lahir,'".$tgl."')/365.2425)>40 THEN '41-50'
+                                    WHEN (DATEDIFF(day,tgl_lahir,'".$tgl."')/365.2425)<=60 AND (DATEDIFF(day,tgl_lahir,'".$tgl."')/365.2425)>50 THEN '51-60'
+                                    WHEN (DATEDIFF(day,tgl_lahir,'".$tgl."')/365.2425)<=80 AND (DATEDIFF(day,tgl_lahir,'".$tgl."')/365.2425)>60 THEN '61-80'
+                                    WHEN (DATEDIFF(day,tgl_lahir,'".$tgl."')/365.2425)>80 THEN '80+'
                                 END AS Umur,
                                 nm_sdm,
                                 tgl_lahir,
@@ -129,7 +129,7 @@ class Sdm extends AbstractionModel
             $alternative_where = '';
             $group  = " GROUP BY tsdm.umur,tsdm.jk";
             $order  = " ORDER BY jk ASC, umur ASC";
-        } elseif ($tipe == 'dosen_ikatan_kerja') {
+        } elseif ($tipe=='dosen_ikatan_kerja') {
             $select = "SELECT SUM(CASE WHEN ti.id_ikatan_kerja='A' THEN 1 ELSE 0 END) AS 'Dosen Tetap',
                 SUM(CASE WHEN ti.id_ikatan_kerja='B' THEN 1 ELSE 0 END) AS 'Dosen PNS DPK',
                 SUM(CASE WHEN ti.id_ikatan_kerja='E' THEN 1 ELSE 0 END) AS 'Dokter Pendidik Klinis',
@@ -142,7 +142,7 @@ class Sdm extends AbstractionModel
                 SUM(CASE WHEN ti.id_ikatan_kerja='L' THEN 1 ELSE 0 END) AS 'JFT (Jabatan Fungsional Tertentu)'
                 ";
             $alternative_where = '';
-        } elseif ($tipe == 'dosen_kepangkatan_all') {
+        } elseif ($tipe=='dosen_kepangkatan_all') {
             $select = "SELECT SUM(CASE WHEN tpang.id_pangkat_gol=1 THEN 1 ELSE 0 END) AS 'I/a',
                 SUM(CASE WHEN tpang.id_pangkat_gol=2 THEN 1 ELSE 0 END) AS 'I/b',
                 SUM(CASE WHEN tpang.id_pangkat_gol=3 THEN 1 ELSE 0 END) AS 'I/c',
@@ -163,7 +163,7 @@ class Sdm extends AbstractionModel
                 SUM(CASE WHEN tpang.id_pangkat_gol IS NULL THEN 1 ELSE 0 END) AS 'Tidak ada Kepangkatan'
                 ";
             $alternative_where = '';
-        } elseif ($tipe == 'dosen_pendidikan_all') {
+        } elseif ($tipe=='dosen_pendidikan_all') {
             $select = "SELECT SUM(CASE WHEN tjenj.id_jenj_didik=20 THEN 1 ELSE 0 END) AS 'D1',
                 SUM(CASE WHEN tjenj.id_jenj_didik=21 THEN 1 ELSE 0 END) AS 'D2',
                 SUM(CASE WHEN tjenj.id_jenj_didik=22 THEN 1 ELSE 0 END) AS 'D3',
@@ -184,13 +184,13 @@ class Sdm extends AbstractionModel
         $join = "JOIN pdrd.reg_ptk AS tr WITH (NOLOCK) ON tr.id_sdm=tsdm.id_sdm AND tr.soft_delete=0
                 AND tr.id_jns_keluar IS NULL AND (tr.tgl_ptk_keluar IS NULL OR tr.tgl_ptk_keluar>GETDATE())
                 JOIN pdrd.keaktifan_ptk AS tak WITH (NOLOCK) ON tak.id_reg_ptk=tr.id_reg_ptk AND tak.soft_delete=0
-                AND tak.a_sp_homebase=1 AND tak.id_thn_ajaran='" . $tahun . "'
+                AND tak.a_sp_homebase=1 AND tak.id_thn_ajaran='".$tahun."'
                 JOIN ref.status_kepegawaian AS tsk WITH (NOLOCK) ON tsk.id_stat_pegawai=tr.id_stat_pegawai
                 JOIN ref.status_keaktifan_pegawai AS ta WITH (NOLOCK) ON ta.id_stat_aktif=tsdm.id_stat_aktif
                 JOIN ref.ikatan_kerja_sdm AS ti WITH (NOLOCK) ON ti.id_ikatan_kerja=tr.id_ikatan_kerja
                 ";
 
-        if (in_array($tipe, ['dosen_jabfung', 'dosen_jabfung_all'])) {
+        if (in_array($tipe,['dosen_jabfung','dosen_jabfung_all'])) {
             $join .= " LEFT JOIN (
                 SELECT id_sdm, MAX(rwy_fungsional.id_jabfung) AS id_jabfung
                 FROM pdrd.rwy_fungsional WITH (NOLOCK)
@@ -205,7 +205,7 @@ class Sdm extends AbstractionModel
             ";
         }
 
-        if (in_array($tipe, ['dosen_kepangkatan', 'dosen_kepangkatan_all'])) {
+        if (in_array($tipe,['dosen_kepangkatan','dosen_kepangkatan_all'])) {
             $join .= " LEFT JOIN (
                 SELECT id_sdm, MAX(rwy_kepangkatan.id_pangkat_gol) AS id_pangkat_gol
                 FROM pdrd.rwy_kepangkatan WITH (NOLOCK)
@@ -219,7 +219,7 @@ class Sdm extends AbstractionModel
             ";
         }
 
-        if (in_array($tipe, ['dosen_pendidikan', 'dosen_pendidikan_all'])) {
+        if (in_array($tipe,['dosen_pendidikan','dosen_pendidikan_all'])) {
             $join .= " LEFT JOIN (
                 SELECT id_sdm, MAX(id_jenj_didik) AS id_jenj_didik
                 FROM pdrd.rwy_pend_formal WITH (NOLOCK)
@@ -234,7 +234,7 @@ class Sdm extends AbstractionModel
                 AND tsdm.id_jns_sdm=12
                 AND tsdm.id_stat_aktif IN (1,20,24,25,27)
                 ";
-        $data = \DB::SELECT($select . $from . $join . $where . $alternative_where . $group . $order);
+        $data = \DB::SELECT($select.$from.$join.$where.$alternative_where.$group.$order);
         return collect($data);
     }
 }

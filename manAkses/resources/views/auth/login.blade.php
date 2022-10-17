@@ -41,8 +41,18 @@
             </div>
             <div class="card-body">
                 <div class="social-auth-links text-center mt-2 mb-3">
-                    <a href="{{ route('auth.signing_process') }}" class="btn btn-block btn-warning text-white">
-                        Gunakan SSO
+                    <a href="{{ route('auth.signing_process') }}" class="btn btn-block btn-primary">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Sign In - SSO UNILA
+                    </a>
+                </div>
+                <div class="social-auth-links text-center mt-2 mb-3">
+                    <a href="http://login.unila.ac.id/about#faq" class="btn btn-block btn-warning">
+                        <i class="fas fa-question-circle mr-2"></i>Forgot Password
+                    </a>
+                </div>
+                <div class="social-auth-links text-center mt-2 mb-3">
+                    <a href="http://login.unila.ac.id/about#register" class="btn btn-block btn-info">
+                        <i class="fas fa-user-plus mr-2"></i>Register
                     </a>
                 </div>
             </div>

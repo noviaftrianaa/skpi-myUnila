@@ -11,6 +11,8 @@ use App\Models\PDUT\Pdrd\RwyPendFormal;
 use App\Models\PDUT\Pdrd\RwySertifikasi;
 use App\Models\PDUT\Pdrd\Sdm;
 use App\Models\PDUT\Pdrd\Sms;
+use App\Models\PDUT\Ref\Semester;
+use App\Models\PDUT\Ref\TahunAjaran;
 use Illuminate\Database\Seeder;
 
 class TarikSisterDosenSeeder extends Seeder
@@ -23,6 +25,54 @@ class TarikSisterDosenSeeder extends Seeder
     public function run()
     {
         $waktu_sekarang = currDateTime();
+        $tahun_ajaran = \DB::connection('pgsql_sister')->table('ref.tahun_ajaran')
+            ->whereNull('expired_date')
+            ->get();
+        foreach ($tahun_ajaran AS $each_ta) {
+            $cek_ta = TahunAjaran::find($each_ta->id_thn_ajaran);
+            if (is_null($cek_ta)) {
+                $input_ta = (array) $each_ta;
+                unset($input_ta['csf']);
+                $input_ta['last_update']   = $waktu_sekarang;
+                $input_ta['last_sync']     = $waktu_sekarang;
+                $simpan_ta = new TahunAjaran();
+                $simpan_ta->fill($input_ta)->save();
+                echo " (OK - tambah Tahun Ajaran)\n";
+            } else {
+                if ($each_ta->last_update>$cek_ta->last_update) {
+                    $input_ta = (array) $each_ta;
+                    unset($input_ta['csf']);
+                    $input_ta['last_update']   = $waktu_sekarang;
+                    $input_ta['last_sync']     = $waktu_sekarang;
+                    $cek_ta->fill($input_ta)->save();
+                    echo " (OK - tambah Tahun Ajaran)\n";
+                }
+            }
+            $semester = \DB::connection('pgsql_sister')->table('ref.semester')
+                ->whereNull('expired_date')->where('id_thn_ajaran',$each_ta->id_thn_ajaran)
+                ->get();
+            foreach ($semester AS $each_smt) {
+                $cek_smt = Semester::find($each_smt->id_smt);
+                if (is_null($cek_smt)) {
+                    $input_smt = (array) $each_smt;
+                    unset($input_smt['csf']);
+                    $input_smt['last_update']   = $waktu_sekarang;
+                    $input_smt['last_sync']     = $waktu_sekarang;
+                    $simpan_smt = new Semester();
+                    $simpan_smt->fill($input_smt)->save();
+                    echo " (OK - tambah Semester)\n";
+                } else {
+                    if ($each_smt->last_update>$cek_smt->last_update) {
+                        $input_smt = (array) $each_smt;
+                        unset($input_smt['csf']);
+                        $input_smt['last_update']   = $waktu_sekarang;
+                        $input_smt['last_sync']     = $waktu_sekarang;
+                        $cek_smt->fill($input_smt)->save();
+                        echo " (OK - tambah Semester)\n";
+                    }
+                }
+            }
+        }
         $data_dosen_sister = \DB::connection('pgsql_sister')->table('pdrd.sdm')
             ->where('id_jns_sdm',12)->where('soft_delete',0)
             ->get();

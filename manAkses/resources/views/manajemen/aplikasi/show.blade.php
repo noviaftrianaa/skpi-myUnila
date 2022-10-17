@@ -281,7 +281,13 @@
                     <div class="row">
                         @if(session()->get('login.role')->id_peran==1)
                         <div class="col-sm-12">
-                            <p class="text-muted text-center text-break">{!! substr($data->app_key, 0, 3).str_repeat('*', strlen($data->app_key)-3) ?? '-' !!}</p>
+                            <p class="text-muted text-center text-break">
+                                @if(is_null($data->app_key))
+                                -
+                                @else
+                                {!! substr($data->app_key, 0, 3).str_repeat('*', strlen($data->app_key)-3) !!}
+                                @endif
+                            </p>
                         </div>
                         @else
                         <div class="col-sm-12">
