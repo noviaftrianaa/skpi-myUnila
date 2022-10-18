@@ -98,7 +98,7 @@ class LoginController extends Controller
         ];
 
         $payload = [
-            'app' => $dPengguna[0]->id_aplikasi,
+            'app' => $aplikasi->id_aplikasi,
             'sub' => $dPengguna[0]->id_pengguna,
             'role' => $dPengguna[0]->id_peran,
             'iss' => $this->request->getUri(),
