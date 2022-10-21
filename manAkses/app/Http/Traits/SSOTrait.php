@@ -47,8 +47,8 @@ trait SSOTrait {
     // public function put($uri, $id, $input)
     public function put($uri, $input)
     {
-        // unset($input["_token"]);
-        // unset($input["_method"]);
+        unset($input["_token"]);
+        unset($input["_method"]);
         return $this->clients()->put($this->base_uri($uri), [
             'json' => $input
         ]);

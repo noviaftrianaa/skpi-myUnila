@@ -41,7 +41,7 @@ class HomeController extends Controller
         $unit = UnitOrganisasi::all();
         $role = Rolepengguna::all();
         $db = DB::table('man_akses.versi_db')->first();
-        $app_inter = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->whereNull('expired_date')->orWhere('expired_date', '>=', currDateTime())->simplePaginate(18);
+        $app_inter = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->whereNull('expired_date')->orWhere('expired_date', '>=', currDateTime())->simplePaginate(20);
         // $app_non_inter = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->where('a_integrasi_cas',0)->get();
             
         if(Session::has('login.role') && Session::get('login.role')->id_peran == 1) {

@@ -22,7 +22,7 @@
         font-size: 18px;
         color: #000;
         transition: all .2s ease-out, color .2s ease-out;
-        border-radius: 10px;
+        /* border-radius: 10px; */
     }
     form .inner-form .input-field input.placeholder {
         color: #000;
@@ -46,10 +46,10 @@
         color: black;
         opacity: 1; /* Firefox */
     }
-    .card {
+    /* .card {
         border-radius: 10px;
         border-left: 5px solid #17a2b8;
-    }
+    } */
     .content-wrapper {
         background: url('/images/bg-dashboard.png');
         background-position: center;
@@ -68,6 +68,15 @@
         .new_style {
             padding: 20px;
         }
+    }
+    .apps > a {
+        background: #fff;
+    }
+    .apps > a:hover > .card {
+        background: #F0FFF0;
+    }
+    .apps_search > a:hover > .card {
+        background: #F0FFF0;
     }
 </style>
 @endpush
@@ -104,7 +113,8 @@
                             $(".apps_search").html("");
                             $(".info-error").html("");
                             $.each(data, function(key, item){
-                                var html = '<div class="col-md-2 col-6"> <a href="'+item.url+'" alt="'+item.nm_aplikasi+'" title="'+item.nm_aplikasi+'" target="_blank"> <div class="card"> <div class="row"> <div class="col-4 p-3"> <img id="' + key + '" src="' + item.url_logo + '" class="img-responsive" alt="apps" height="40" width="100%"> </div> <div class="col-8 pr-3" style="margin-top: auto; margin-bottom: auto;word-wrap: break-word;"> <span class="text-bold text-sm">'+item.nm_aplikasi+'</span> </div> </div> </div> </a> </div>';
+                                // var html = '<div class="col-md-2 col-6"> <a href="'+item.url+'" alt="'+item.nm_aplikasi+'" title="'+item.nm_aplikasi+'" target="_blank"> <div class="card"> <div class="row"> <div class="col-4 p-3"> <img id="' + key + '" src="' + item.url_logo + '" class="img-responsive" alt="apps" height="40" width="100%"> </div> <div class="col-8 pr-3" style="margin-top: auto; margin-bottom: auto;word-wrap: break-word;"> <span class="text-bold text-sm">'+item.nm_aplikasi+'</span> </div> </div> </div> </a> </div>';
+                                var html = '<a class="col-md-3 col-12 px-0" href="'+item.url+'" alt="'+item.nm_aplikasi+'" title="'+item.nm_aplikasi+'" target="_blank"> <div class="card h-100"> <div class="col-12 px-3 pt-3"> <div class="ribbon-wrapper ribbon-lg"> <div class="ribbon bg-info" style="font-size:10px">'+item.nm_aplikasi+'</div> </div> <div class="col-11" style="margin-top: auto; margin-bottom: auto;word-wrap: break-word;"> <img id="' + key + '" src="' + item.url_logo + '" class="img-responsive mb-2" alt="apps" height="25px"><br> <span class="text-bold text-sm">'+item.ket_aplikasi+'</span><br> <small class="text-info">'+item.url+'</small> </div> </div> </div> </a>';
                                 $(".apps_search").append(html);
                             });
                         } else {
@@ -136,7 +146,7 @@
 <div class="row search">
     <div class="col-sm-12 col-12">
         <div class="row new_style">
-            <div class="col-12 text-center mb-4">
+            <div class="col-12 text-center mb-4 px-0">
                 <div class="info-error"></div>
                 <form>
                     <div class="inner-form">
@@ -154,12 +164,28 @@
             <div class="col-12">
                 <div class="row apps">
                     @foreach($app_inter AS $items)
-                    <div class="col-md-2 col-6">
+                    <a class="col-md-3 col-6 px-0" href="{!! $items->url !!}" alt="{!! $items->nm_aplikasi !!}" title="{!! $items->nm_aplikasi !!}" target="_blank">
+                        <div class="card h-100">
+                            <div class="col-12 px-3 pt-3">
+                                <div class="ribbon-wrapper ribbon-lg">
+                                    <div class="ribbon bg-info" style="font-size:10px">
+                                        {!! $items->nm_aplikasi !!}
+                                    </div>
+                                </div>
+                                <div class="col-11" style="margin-top: auto; margin-bottom: auto;word-wrap: break-word;">
+                                    <img src="{{ (!is_null($items->largeobject)) ? 'data:image/' . $items->largeobject->mime_type . ';base64,' . $items->largeobject->blob_content : asset('auth/img/logo.png') }}" class="img-responsive mb-2" alt="apps" height="25px"><br>
+                                    <span class="text-bold text-sm">{!! $items->ket_aplikasi !!}</span><br>
+                                    <small class="text-primary">{!! $items->url !!}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                    <!-- <div class="col-md-3 col-6">
                         <a href="{!! $items->url !!}" alt="{!! $items->nm_aplikasi !!}" title="{!! $items->nm_aplikasi !!}" target="_blank">
                             <div class="card">
                                 <div class="row">
                                     <div class="col-4 p-3">
-                                        <img src="{{ (!is_null($items->largeobject)) ? 'data:image/' . $items->largeobject->mime_type . ';base64,' . $items->largeobject->blob_content : asset('auth/img/logo.png') }}" class="img-responsive" alt="apps" height="40" width="100%">
+                                        <img src="{{ (!is_null($items->largeobject)) ? 'data:image/' . $items->largeobject->mime_type . ';base64,' . $items->largeobject->blob_content : asset('auth/img/logo.png') }}" class="img-responsive" alt="apps" height="50">
                                     </div>
                                     <div class="col-8 pr-3" style="margin-top: auto; margin-bottom: auto;word-wrap: break-word;">
                                         <span class="text-bold text-sm">{!! $items->nm_aplikasi !!}</span>
@@ -167,7 +193,7 @@
                                 </div>
                             </div>
                         </a>
-                    </div>
+                    </div> -->
                     @endforeach
                     <div class="col-md-12 col-12 text-center my-4 paginate">
                         {!! $app_inter->links() !!}
