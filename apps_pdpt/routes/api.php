@@ -278,52 +278,52 @@ Route::group([
         });
     });
 
-    Route::group([
-        'namespace' => 'Tracer',
-        'prefix' => 'tracer_study'
-    ], function () {
-        //umr
-        Route::get('umr_wilayah', 'UmrController@index');
-        Route::post('umr_wilayah/tambah', 'UmrController@store');
-        Route::put('umr_wilayah/ubah', 'UmrController@update');
-        Route::delete('umr_wilayah/hapus', 'UmrController@destroy');
+    // Route::group([
+    //     'namespace' => 'Tracer',
+    //     'prefix' => 'tracer_study'
+    // ], function () {
+    //     //umr
+    //     Route::get('umr_wilayah', 'UmrController@index');
+    //     Route::post('umr_wilayah/tambah', 'UmrController@store');
+    //     Route::put('umr_wilayah/ubah', 'UmrController@update');
+    //     Route::delete('umr_wilayah/hapus', 'UmrController@destroy');
 
-        //hasil tracer
-        Route::get('list', 'TracerStudyController@index');
-        Route::post('tambah', 'TracerStudyController@store');
-        Route::put('ubah', 'TracerStudyController@update');
-        Route::delete('hapus', 'TracerStudyController@destroy');
+    //     //hasil tracer
+    //     Route::get('list', 'TracerStudyController@index');
+    //     Route::post('tambah', 'TracerStudyController@store');
+    //     Route::put('ubah', 'TracerStudyController@update');
+    //     Route::delete('hapus', 'TracerStudyController@destroy');
 
-        //hasil tracer atasan
-        Route::get('list_atasan', 'TracerStudyAtasanController@index');
-        Route::post('tambah_atasan', 'TracerStudyAtasanController@store');
-        Route::put('ubah_atasan', 'TracerStudyAtasanController@update');
-        Route::delete('hapus_atasan', 'TracerStudyAtasanController@destroy');
-    });
+    //     //hasil tracer atasan
+    //     Route::get('list_atasan', 'TracerStudyAtasanController@index');
+    //     Route::post('tambah_atasan', 'TracerStudyAtasanController@store');
+    //     Route::put('ubah_atasan', 'TracerStudyAtasanController@update');
+    //     Route::delete('hapus_atasan', 'TracerStudyAtasanController@destroy');
+    // });
 
-    Route::group([
-        'namespace' => 'Mbkm',
-        'prefix' => 'mbkm'
-    ], function () {
-        Route::get('list_periode', 'PeriodeController@index');
-        Route::post('tambah_periode', 'PeriodeController@store');
-        Route::put('ubah_periode', 'PeriodeController@update');
-        Route::delete('hapus_periode', 'PeriodeController@destroy');
+    // Route::group([
+    //     'namespace' => 'Mbkm',
+    //     'prefix' => 'mbkm'
+    // ], function () {
+    //     Route::get('list_periode', 'PeriodeController@index');
+    //     Route::post('tambah_periode', 'PeriodeController@store');
+    //     Route::put('ubah_periode', 'PeriodeController@update');
+    //     Route::delete('hapus_periode', 'PeriodeController@destroy');
 
-        Route::get('list_peserta', 'PesertaController@index');
-        Route::post('tambah_peserta', 'PesertaController@store');
-        Route::put('ubah_peserta', 'PesertaController@update');
-        Route::delete('hapus_peserta', 'PesertaController@destroy');
+    //     Route::get('list_peserta', 'PesertaController@index');
+    //     Route::post('tambah_peserta', 'PesertaController@store');
+    //     Route::put('ubah_peserta', 'PesertaController@update');
+    //     Route::delete('hapus_peserta', 'PesertaController@destroy');
 
-        Route::get('detail_konversi', 'KonversiController@index');
-        Route::post('tambah_konversi', 'KonversiController@store');
-        Route::put('ubah_konversi', 'KonversiController@update');
-        Route::delete('hapus_konversi', 'KonversiController@destroy');
+    //     Route::get('detail_konversi', 'KonversiController@index');
+    //     Route::post('tambah_konversi', 'KonversiController@store');
+    //     Route::put('ubah_konversi', 'KonversiController@update');
+    //     Route::delete('hapus_konversi', 'KonversiController@destroy');
 
-        Route::get('cari_pt', 'NonUnilaController@cariPt');
-        Route::get('cari_prodi', 'NonUnilaController@cariProdi');
-        Route::get('cari_mhs', 'NonUnilaController@cariMhs');
-    });
+    //     Route::get('cari_pt', 'NonUnilaController@cariPt');
+    //     Route::get('cari_prodi', 'NonUnilaController@cariProdi');
+    //     Route::get('cari_mhs', 'NonUnilaController@cariMhs');
+    // });
 
     Route::group([
         'namespace' => 'Presensi',

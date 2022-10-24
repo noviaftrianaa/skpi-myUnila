@@ -12,6 +12,8 @@ use Illuminate\Validation\Rule as ValidationRule;
 class UmrController extends Controller
 {
 
+    protected $request;
+
     /**
      * Display a listing of the resource.
      *
@@ -97,17 +99,19 @@ class UmrController extends Controller
      */
     public function store(Request $request)
     {
-        $get_data = $request->all();
+
+        $id_wil = $request->input('id_wilayah');
+        $id_tahun_anggaran = $request->input('id_tahun_anggaran');
+        $besaran_umr = $request->input('besaran_umr');
 
         DB::beginTransaction();
         try {
-            foreach ($get_data['data'] as $each_data) {
                 UmrWilayah::updateOrInsert([
-                    'id_wil' => $each_data['id_wilayah'],
-                    'id_tahun_anggaran' => $each_data['id_tahun_anggaran'],
+                    'id_wil' => $id_wil,
+                    'id_tahun_anggaran' => $id_tahun_anggaran
                 ],[
                     'id_umr_wil' => guid(),
-                    'besaran_umr' => $each_data['besaran_umr'],
+                    'besaran_umr' => $besaran_umr,
                     'id_creator' => guid(),
                     'id_updater' => guid(),
                     'create_date' => currDateTime(),
@@ -115,7 +119,6 @@ class UmrController extends Controller
                     'last_sync' => currDateTime(),
                     'soft_delete' => 0
                 ]);
-            }
 
             DB::commit();
             return WrapResponse([], 'sukses menambahkan umr wilayah');
