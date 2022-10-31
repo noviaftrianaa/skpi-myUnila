@@ -28,7 +28,7 @@
     <link href="{{ asset('template/material-dashboard-master/assets/css/overide.css') }}" rel="stylesheet" />
 </head>
 
-<body class="hold-transition sidebar-mini dark-mode">
+<body class="hold-transition sidebar-mini sidebar-collapse dark-mode">
     <div class="wrapper">
         <!-- Preloader -->
         <div class="preloader">

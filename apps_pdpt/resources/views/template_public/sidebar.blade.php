@@ -134,8 +134,17 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ route('dashboard.iku') }}"
+                            <a href="{{ route('dashboardIku3') }}"
                                 class="nav-link {{ $side_active == 'iku' ? 'active' : '' }}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>IKU NEW</p>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard.iku') }}"
+                                class="nav-link {{ $side_active == 'iku' ? 'active' : '' }}"
+                                >
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>IKU</p>
                             </a>
