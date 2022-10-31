@@ -48,7 +48,7 @@ class LoginController extends Controller
     }
 
     public function username()
-    { 
+    {
         return 'username'; // this string is column of accounts table which we are going use for login
     }
 
@@ -95,7 +95,7 @@ class LoginController extends Controller
         } else {
             $cari = null;
         }
-        
+
         if (!is_null($cari)) {
             if ($cari->a_aktif==1) {
                 if (Auth::loginUsingId($cari->id_pengguna)) {
@@ -130,7 +130,7 @@ class LoginController extends Controller
             if(session()->has('login.role')) {
                 $response = Http::get('http://onedata.unila.ac.id/api/live/0.1/man_akses/ubah_keaktifan?id_role_pengguna='.session()->get('login.role')->id_role_pengguna);
             }
-            
+
             Auth::logout(); //Destroy Auth
             Session::flush(); //Destroy Session
             alert()->success('Berhasil logout'); //Alert
