@@ -126,6 +126,7 @@ Route::get('/dashboard/university_rank',  [DashboardController::class, 'universi
 
 Route::prefix('dashboard')->group(function () {
     Route::get('api/iku3',  'App\Http\Controllers\Dashboard\IKU\Iku3Controller@apiIku3')->name('apiDashboardIku3');
+    Route::get('api/iku3/dosen',  'App\Http\Controllers\Dashboard\IKU\Iku3Controller@apiIku3Dosen')->name('apiIku3Dosen');
     Route::get('api/iku3/detail',  'App\Http\Controllers\Dashboard\IKU\Iku3Controller@apiIku3Detail')->name('apiIku3Detail');
     Route::get('iku3',  'App\Http\Controllers\Dashboard\IKU\Iku3Controller@homeIku3')->name('dashboardIku3');
 });

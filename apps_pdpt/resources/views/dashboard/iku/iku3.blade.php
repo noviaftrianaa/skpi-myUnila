@@ -1,16 +1,15 @@
 @extends('template_public.default')
-@section('content')
-    <script src="https://code.highcharts.com/highcharts.js"></script>
-    <script src="https://code.highcharts.com/modules/drilldown.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+@include('__partial.highchart')
+@include('__partial.datatable_yajra')
 
+@section('content')
     <div class="row">
         <div class="col">
             <div class="card">
                 <div class="card-body">
                     <div class="row">
                         <div class="col-lg-4 col-6">
-                            <div class="small-box bg-success">
+                            <div class="small-box bg-warning">
                                 <div class="inner">
                                     <h3 id="x_total_data_yes">0</h3>
                                     <p>Dosen Memenuhi IKU 3</p>
@@ -21,7 +20,7 @@
                             </div>
                         </div>
                         <div class="col-lg-4 col-6">
-                            <div class="small-box bg-danger">
+                            <div class="small-box bg-warning">
                                 <div class="inner">
                                     <h3 id="x_total_data_no">0</h3>
                                     <p>Dosen Tidak Memenuhi IKU 3</p>
@@ -32,7 +31,7 @@
                             </div>
                         </div>
                         <div class="col-lg-4 col-6">
-                            <div class="small-box bg-blue">
+                            <div class="small-box bg-warning">
                                 <div class="inner">
                                     <h3 id="x_total_data">0</h3>
                                     <p>Total Dosen IKU 3</p>
@@ -67,7 +66,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row mt-3">
+                    <div class="row">
                         <div class="col">
                             <div id="container" style="width: 100%;"></div>
                         </div>
@@ -77,6 +76,27 @@
         </div>
     </div>
 
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table id="example1" class="table table-bordered table-striped dataTable dtr-inline"
+                        aria-describedby="example1_info">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
+
+@push('js')
     <script>
         let dataIku3 = [],
             drill = 1,
@@ -91,14 +111,14 @@
         });
 
         function refreshTotal() {
-            let standar = 0.2;
-            h_total_data_capaian = x_total_data_yes / x_total_data;
-            h_total_data_gold = h_total_data_capaian - standar;
+            let standar = 20;
+            h_total_data_capaian = (x_total_data_yes / x_total_data) * 100;
+            h_total_data_gold = (h_total_data_capaian - standar);
             $('#x_total_data').text(x_total_data);
             $('#x_total_data_yes').text(x_total_data_yes);
             $('#x_total_data_no').text(x_total_data_no);
-            $('#h_total_data_capaian').text(h_total_data_capaian);
-            $('#h_total_data_gold').text(h_total_data_gold);
+            $('#h_total_data_capaian').text(h_total_data_capaian.toFixed(2) + ' %');
+            $('#h_total_data_gold').text(h_total_data_gold.toFixed(2) + ' %');
         }
 
         function Iku3Data() {
@@ -174,7 +194,7 @@
             var chart = Highcharts.chart('container', {
                 chart: {
                     type: 'bar',
-                    height: 800,
+                    height: 600,
                 },
                 title: {
                     text: 'IKU 3 : Dosen Berkegiatan di Luar Kampus'
@@ -204,8 +224,10 @@
                                     if (drill == 1) {
                                         Iku3Prodi(event.point.category);
                                     } else {
-                                        let id_fakultas = dataIku3[fak]['DRILL'][event.point.category]['DATA']['y_id'];
-                                        window.open("{!! route('apiIku3Detail') !!}/?id_fakultas=" + id_fakultas);
+                                        let id_prodi = dataIku3[fak]['DRILL'][event.point.category]['DATA'][
+                                            'y_id'
+                                        ];
+                                        modalDrill01(id_prodi);
                                     }
                                 }
                             }
@@ -224,5 +246,70 @@
             });
             chart.setSize(null);
         }
+
+        function modalDrill01(param) {
+            $('#exampleModal').modal('show');
+            $('#example1').DataTable({
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                searching: true,
+                paging: true,
+                info: true,
+                ordering: true,
+                ajax: {
+                    url: '{!! route('apiIku3Dosen') !!}',
+                    type: 'GET',
+                    data: {
+                        id_prodi: param
+                    }
+                },
+                columns: [{
+                        title: 'NIDN/NIDK',
+                        data: 'nidn',
+                        name: 'nidn',
+                    }, {
+                        title: 'Nama Dosen',
+                        data: 'nm_sdm',
+                        name: 'nm_sdm',
+                    },
+                    {
+                        title: 'Pend. Akhir',
+                        data: 'pend_akhir',
+                        name: 'pend_akhir',
+                    },
+                    {
+                        title: 'Ikatan Kerja',
+                        data: 'ikatan_kerja',
+                        name: 'ikatan_kerja',
+                    },
+                    {
+                        title: 'Keaktifan',
+                        data: 'keaktifan',
+                        name: 'keaktifan',
+                    },
+                    {
+                        title: 'Tridharma',
+                        data: 'l_tridharma',
+                        name: 'l_tridharma',
+                    },
+                    {
+                        title: 'QS100',
+                        data: 'l_qs100',
+                        name: 'l_qs100',
+                    },
+                    {
+                        title: 'Praktisi',
+                        data: 'l_praktisi',
+                        name: 'l_praktisi',
+                    },
+                    {
+                        title: 'Prestasi',
+                        data: 'l_prestasi',
+                        name: 'l_prestasi',
+                    }
+                ],
+            });
+        }
     </script>
-@endsection
+@endpush
