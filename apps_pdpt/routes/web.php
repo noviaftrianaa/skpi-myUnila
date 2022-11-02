@@ -122,13 +122,11 @@ Route::get('/dashboard/university_rank',  [DashboardController::class, 'universi
 // });
 
 Route::prefix('dashboard')->group(function () {
+    Route::get('iku3',  'App\Http\Controllers\Dashboard\IKU\Iku3Controller@homeIku3')->name('dashboardIku3');
     Route::get('api/iku3',  'App\Http\Controllers\Dashboard\IKU\Iku3Controller@apiIku3')->name('apiDashboardIku3');
     Route::get('api/iku3/dosen',  'App\Http\Controllers\Dashboard\IKU\Iku3Controller@apiIku3Dosen')->name('apiIku3Dosen');
     Route::get('api/iku3/tridharma',  'App\Http\Controllers\Dashboard\IKU\Iku3Controller@apiIku3Tridharma')->name('apiIku3Tridharma');
     Route::get('api/iku3/qs100',  'App\Http\Controllers\Dashboard\IKU\Iku3Controller@apiIku3Qs100')->name('apiIku3Qs100');
     Route::get('api/iku3/praktisi',  'App\Http\Controllers\Dashboard\IKU\Iku3Controller@apiIku3Praktisi')->name('apiIku3Praktisi');
     Route::get('api/iku3/prestasi',  'App\Http\Controllers\Dashboard\IKU\Iku3Controller@apiIku3Prestasi')->name('apiIku3Prestasi');
-
-    Route::get('api/iku3/detail',  'App\Http\Controllers\Dashboard\IKU\Iku3Controller@apiIku3Detail')->name('apiIku3Detail');
-    Route::get('iku3',  'App\Http\Controllers\Dashboard\IKU\Iku3Controller@homeIku3')->name('dashboardIku3');
 });

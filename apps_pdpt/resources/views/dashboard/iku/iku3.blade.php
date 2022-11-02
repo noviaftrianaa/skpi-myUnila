@@ -25,12 +25,37 @@
     </style>
 @endpush
 
-
 @section('content')
     <div class="row">
         <div class="col">
-            <div class="card">
+            <div class="card card-info">
+                <div class="card-header">
+                    <h3 class="card-title">IKU 3 : Dosen Berkegiatan Diluar Kampus</h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="maximize">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+                </div>
                 <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col">
+                            <div class="input-group">
+                                <select id="thn_iku" class="form-control mr-2">
+                                    @foreach($thn_iku as $th)
+                                        <option {{ ($th->a_periode_aktif == 1) ? 'selected' : '' }} value="{{ $th->id_thn_ajaran }}">{{ $th->id_thn_ajaran }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="input-group-append">
+                                    <button class="btn btn-info mr-2" onclick="Iku3Data(0)">FILTER</button>
+                                    <button class="btn btn-info" onclick="Iku3Data(1)">HITUNG ULANG</button>
+                                </div>
+                            </div>
+                            <div class="isLoading overlay mt-3" style="display: none;"><i
+                                    class="fas fa-3x fa-sync-alt fa-spin"></i>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="col-lg-4 col-6">
                             <div class="small-box bg-warning">
@@ -68,7 +93,7 @@
                     </div>
                     <div class="row">
                         <div class="col-lg-6 col-6">
-                            <div class="small-box bg-purple">
+                            <div class="small-box bg-warning">
                                 <div class="inner">
                                     <h3 id="h_total_data_capaian">0</h3>
                                     <p>Presentase Capaian IKU 3</p>
@@ -79,7 +104,7 @@
                             </div>
                         </div>
                         <div class="col-lg-6 col-6">
-                            <div class="small-box bg-purple">
+                            <div class="small-box bg-warning">
                                 <div class="inner">
                                     <h3 id="h_total_data_gold">0</h3>
                                     <p>Delta Gold Standar IKU 3</p>
@@ -87,6 +112,13 @@
                                 <div class="icon">
                                     <i class="ion ion-person-add"></i>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col bg-info mr-2 ml-2">
+                            <div class="text-center">
+                                <h1 id="navChart"></h1>
                             </div>
                         </div>
                     </div>
@@ -99,7 +131,6 @@
             </div>
         </div>
     </div>
-
     <div class="modal fade modal-fullscreen" id="exampleModal" tabindex="-1" role="dialog"
         aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
@@ -167,6 +198,11 @@
             h_total_data_gold = 0;
 
         $(document).ready(function() {
+            $("#x_tb_01").show();
+            $("#x_tb_02").hide();
+            $("#x_tb_03").hide();
+            $("#x_tb_04").hide();
+            $("#x_tb_05").hide();
             Iku3Data();
         });
 
@@ -190,15 +226,22 @@
             $('#h_total_data_gold').text(h_total_data_gold.toFixed(2) + ' %');
         }
 
-        function Iku3Data() {
+        function Iku3Data(ulang) {
+            $(".isLoading").show();
             $.ajax({
                 type: 'GET',
                 url: "{{ route('apiDashboardIku3') }}",
+                data: {
+                    thn_iku: $("#thn_iku").val(),
+                    is_ulang: ulang
+                }
             }).done(function(res) {
                 dataIku3 = res;
                 Iku3Fakultas();
+                $(".isLoading").hide();
             }).fail(function(res) {
                 console.log(res);
+                $(".isLoading").hide();
             });
         }
 
@@ -221,6 +264,7 @@
             });
             drill = 1;
             Iku3Chart(y_title, x_data_yes, x_data_no);
+            $("#navChart").html(`<a href="javascript:" class="text-dark">UNILA</a> / FAKULTAS`);
         }
 
         function Iku3Prodi(fak) {
@@ -242,6 +286,9 @@
             });
             drill = 2;
             Iku3Chart(y_title, x_data_yes, x_data_no, fak);
+            $("#navChart").html(
+                `<a href="javascript:" class="text-dark">UNILA</a> / <a href="javascript:Iku3Fakultas();" class="text-dark">FAKULTAS</a> / PRODI`
+                );
         }
 
         function Iku3Chart(y_title, x_data_yes, x_data_no, fak = null) {
@@ -370,7 +417,7 @@
             }
         }
 
-        function TbIku3Dosen(param) {
+        function TbIku3Dosen(id_prodi) {
             $('#exampleModal').modal('show');
             $('#tb_01').DataTable({
                 processing: true,
@@ -384,7 +431,8 @@
                     url: '{!! route('apiIku3Dosen') !!}',
                     type: 'GET',
                     data: {
-                        id_prodi: param
+                        id_prodi: id_prodi,
+                        thn_iku: $("#thn_iku").val(),
                     }
                 },
                 columns: [{
@@ -486,7 +534,8 @@
                     url: '{!! route('apiIku3Tridharma') !!}',
                     type: 'GET',
                     data: {
-                        id_sdm: id_sdm
+                        id_sdm: id_sdm,
+                        thn_iku: $("#thn_iku").val(),
                     }
                 },
                 columns: [{
@@ -529,7 +578,8 @@
                     url: '{!! route('apiIku3Qs100') !!}',
                     type: 'GET',
                     data: {
-                        id_sdm: id_sdm
+                        id_sdm: id_sdm,
+                        thn_iku: $("#thn_iku").val(),
                     }
                 },
                 columns: [{
@@ -567,7 +617,8 @@
                     url: '{!! route('apiIku3Praktisi') !!}',
                     type: 'GET',
                     data: {
-                        id_sdm: id_sdm
+                        id_sdm: id_sdm,
+                        thn_iku: $("#thn_iku").val(),
                     }
                 },
                 columns: [{
@@ -610,7 +661,8 @@
                     url: '{!! route('apiIku3Prestasi') !!}',
                     type: 'GET',
                     data: {
-                        id_sdm: id_sdm
+                        id_sdm: id_sdm,
+                        thn_iku: $("#thn_iku").val(),
                     }
                 },
                 columns: [{

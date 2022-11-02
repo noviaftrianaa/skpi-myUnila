@@ -11,19 +11,45 @@ use Yajra\DataTables\Facades\DataTables as DaTables;
 
 class Iku3Controller extends Controller
 {
-    private $tahunAktif;
     private $request;
 
     public function __construct()
     {
-        $this->tahunAktif = get_tahun_keaktifan();
         $this->request = app(Request::class);
+    }
+
+    public function tahunIku()
+    {
+        return DB::select("
+            SELECT
+                th.id_thn_ajaran,
+                th.a_periode_aktif,
+                th.nm_thn_ajaran
+            FROM
+                ref.tahun_ajaran AS th
+            WHERE
+                th.expired_date IS NULL
+            ORDER BY
+                th.id_thn_ajaran DESC
+        ");
     }
 
     public function apiIku3()
     {
-        $apiIku3 = Cache::rememberForever('apiIku3', function () {
-            return DB::connection('sqlsrv_sandbox')->select("
+        $thn_iku = (string) $this->request->thn_iku;
+        $is_ulang = (string) $this->request->is_ulang;
+
+        if ($is_ulang) {
+            Cache::forget('apiIku3-' . $thn_iku);
+            Cache::forget('apiIku3Dosen-' . $thn_iku);
+            Cache::forget('apiIku3Tridharma-' . $thn_iku);
+            Cache::forget('apiIku3Qs100-' . $thn_iku);
+            Cache::forget('apiIku3Praktisi-' . $thn_iku);
+            Cache::forget('apiIku3Prestasi-' . $thn_iku);
+        }
+
+        $apiIku3 = Cache::rememberForever('apiIku3-' . $thn_iku, function () use ($thn_iku) {
+            return DB::select("
                 SELECT
                     (
                         SELECT
@@ -33,7 +59,7 @@ class Iku3Controller extends Controller
                             JOIN pdrd.litabmas AS lit ON lit.id_litabmas = sal.id_litabmas
                             AND lit.soft_delete = 0
                             AND lit.stat_aktif = 1
-                            AND lit.id_thn_laks >= (YEAR(GETDATE()) - 5)
+                            AND lit.id_thn_laks >= (" . $thn_iku . " - 5)
                             AND lit.id_lemb_iptek != ptk.id_sp
                         WHERE
                             sal.id_sdm = sdm.id_sdm
@@ -59,7 +85,7 @@ class Iku3Controller extends Controller
                             AND rkrj.soft_delete = 0
                             AND (
                                 CASE
-                                    WHEN rkrj.selesai_bekerja IS NULL THEN DATEDIFF(DAY, rkrj.mulai_bekerja, GETDATE()) / 365.2425
+                                    WHEN rkrj.selesai_bekerja IS NULL THEN DATEDIFF(DAY, rkrj.mulai_bekerja,'" . $thn_iku . '-12-31' . "') / 365.2425
                                     ELSE DATEDIFF(DAY, rkrj.mulai_bekerja, rkrj.selesai_bekerja) / 365.2425
                                 END
                             ) > 5
@@ -88,7 +114,7 @@ class Iku3Controller extends Controller
                     AND ptk.id_jns_keluar IS NULL
                     AND (
                         ptk.tgl_ptk_keluar IS NULL
-                        OR ptk.tgl_ptk_keluar > GETDATE()
+                        OR ptk.tgl_ptk_keluar > '" . $thn_iku . '-' . date('m-d') . "'
                     )
                     JOIN pdrd.sms AS prod WITH(NOLOCK) ON prod.id_sms = ptk.id_sms
                     AND prod.soft_delete = 0
@@ -99,7 +125,7 @@ class Iku3Controller extends Controller
                     JOIN pdrd.keaktifan_ptk AS aktfptk WITH(NOLOCK) ON aktfptk.id_reg_ptk = ptk.id_reg_ptk
                     AND aktfptk.soft_delete = 0
                     AND aktfptk.a_sp_homebase = 1
-                    AND aktfptk.id_thn_ajaran = YEAR(GETDATE())
+                    AND aktfptk.id_thn_ajaran = " . $thn_iku . "
                 WHERE
                     sdm.id_jns_sdm = 12
                     AND sdm.soft_delete = 0
@@ -167,9 +193,10 @@ class Iku3Controller extends Controller
 
     public function apiIku3Dosen()
     {
+        $thn_iku = (string) $this->request->thn_iku;
         $id_prodi = (string) $this->request->id_prodi;
-        $apiIku3Dosen = Cache::rememberForever('apiIku3Dosen-' . $id_prodi, function () use ($id_prodi) {
-            return DB::connection('sqlsrv_sandbox')->select("
+        $apiIku3Dosen = Cache::rememberForever('apiIku3Dosen-' . $id_prodi, function () use ($id_prodi, $thn_iku) {
+            return DB::select("
                 SELECT
                     (
                         SELECT
@@ -179,7 +206,7 @@ class Iku3Controller extends Controller
                             JOIN pdrd.litabmas AS lit ON lit.id_litabmas = sal.id_litabmas
                             AND lit.soft_delete = 0
                             AND lit.stat_aktif = 1
-                            AND lit.id_thn_laks >= (YEAR(GETDATE()) - 5)
+                            AND lit.id_thn_laks >= (" . $thn_iku . " - 5)
                             AND lit.id_lemb_iptek != ptk.id_sp
                         WHERE
                             sal.id_sdm = sdm.id_sdm
@@ -205,7 +232,7 @@ class Iku3Controller extends Controller
                             AND rkrj.soft_delete = 0
                             AND (
                                 CASE
-                                    WHEN rkrj.selesai_bekerja IS NULL THEN DATEDIFF(DAY, rkrj.mulai_bekerja, GETDATE()) / 365.2425
+                                    WHEN rkrj.selesai_bekerja IS NULL THEN DATEDIFF(DAY, rkrj.mulai_bekerja, '" . $thn_iku . '-12-31' . "') / 365.2425
                                     ELSE DATEDIFF(DAY, rkrj.mulai_bekerja, rkrj.selesai_bekerja) / 365.2425
                                 END
                             ) > 5
@@ -257,7 +284,7 @@ class Iku3Controller extends Controller
                     AND ptk.id_jns_keluar IS NULL
                     AND (
                         ptk.tgl_ptk_keluar IS NULL
-                        OR ptk.tgl_ptk_keluar > GETDATE()
+                        OR ptk.tgl_ptk_keluar > '" . $thn_iku . '-' . date('m-d') . "'
                     )
                     JOIN pdrd.sms AS prod WITH(NOLOCK) ON prod.id_sms = ptk.id_sms
                     AND prod.soft_delete = 0
@@ -268,7 +295,7 @@ class Iku3Controller extends Controller
                     JOIN pdrd.keaktifan_ptk AS aktfptk WITH(NOLOCK) ON aktfptk.id_reg_ptk = ptk.id_reg_ptk
                     AND aktfptk.soft_delete = 0
                     AND aktfptk.a_sp_homebase = 1
-                    AND aktfptk.id_thn_ajaran = YEAR(GETDATE())
+                    AND aktfptk.id_thn_ajaran = " . $thn_iku . "
                     JOIN ref.status_kepegawaian AS skep WITH(NOLOCK) ON skep.id_stat_pegawai = ptk.id_stat_pegawai
                     AND skep.expired_date IS NULL
                     JOIN ref.status_keaktifan_pegawai AS aktf WITH(NOLOCK) ON aktf.id_stat_aktif = sdm.id_stat_aktif
@@ -291,9 +318,10 @@ class Iku3Controller extends Controller
 
     public function apiIku3Tridharma()
     {
+        $thn_iku = (string) $this->request->thn_iku;
         $id_sdm = (string) $this->request->id_sdm;
-        $apiIku3Tridharma = Cache::rememberForever('apiIku3Tridharma-' . $id_sdm, function () use ($id_sdm) {
-            return DB::connection('sqlsrv_sandbox')->select("
+        $apiIku3Tridharma = Cache::rememberForever('apiIku3Tridharma-' . $id_sdm, function () use ($id_sdm, $thn_iku) {
+            return DB::select("
                 SELECT
                     CASE
                         WHEN lit.jns_litabmas = 'L' THEN 'Penelitian'
@@ -311,7 +339,7 @@ class Iku3Controller extends Controller
                     JOIN pdrd.litabmas AS lit ON lit.id_litabmas = sal.id_litabmas
                     AND lit.soft_delete = 0
                     AND lit.stat_aktif = 1
-                    AND lit.id_thn_laks >= (YEAR(GETDATE()) - 5)
+                    AND lit.id_thn_laks >= (" . $thn_iku . " - 5)
                     AND lit.id_lemb_iptek != 'e2b705a7-173e-464a-9fac-509128709515'
                     JOIN pdrd.lembaga_iptek AS afil WITH(NOLOCK) ON afil.id_lemb_iptek = lit.id_lemb_iptek
                     AND afil.soft_delete = 0
@@ -328,7 +356,7 @@ class Iku3Controller extends Controller
     {
         $id_sdm = (string) $this->request->id_sdm;
         $apiIku3Qs100 = Cache::rememberForever('apiIku3Qs100-' . $id_sdm, function () use ($id_sdm) {
-            return DB::connection('sqlsrv_sandbox')->select("
+            return DB::select("
                 SELECT
                     dts.bid_tgs,
                     spsb.nm_lemb AS sp_sumber,
@@ -350,9 +378,10 @@ class Iku3Controller extends Controller
 
     public function apiIku3Praktisi()
     {
+        $thn_iku = (string) $this->request->thn_iku;
         $id_sdm = (string) $this->request->id_sdm;
-        $apiIku3Praktisi = Cache::rememberForever('apiIku3Praktisi-' . $id_sdm, function () use ($id_sdm) {
-            return DB::connection('sqlsrv_sandbox')->select("
+        $apiIku3Praktisi = Cache::rememberForever('apiIku3Praktisi-' . $id_sdm, function () use ($id_sdm, $thn_iku) {
+            return DB::select("
                 SELECT
                     pkrj.nm_pekerjaan AS bid_pekerjaan,
                     rkrj.nm_jabatan,
@@ -368,7 +397,7 @@ class Iku3Controller extends Controller
                     AND rkrj.soft_delete = 0
                     AND (
                         CASE
-                            WHEN rkrj.selesai_bekerja IS NULL THEN DATEDIFF(DAY, rkrj.mulai_bekerja, GETDATE()) / 365.2425
+                            WHEN rkrj.selesai_bekerja IS NULL THEN DATEDIFF(DAY, rkrj.mulai_bekerja, '" . $thn_iku . '-12-31' . "') / 365.2425
                             ELSE DATEDIFF(DAY, rkrj.mulai_bekerja, rkrj.selesai_bekerja) / 365.2425
                         END
                     ) > 5
@@ -381,7 +410,7 @@ class Iku3Controller extends Controller
     {
         $id_sdm = (string) $this->request->id_sdm;
         $apiIku3Prestasi = Cache::rememberForever('apiIku3Prestasi-' . $id_sdm, function () use ($id_sdm) {
-            return DB::connection('sqlsrv_sandbox')->select("
+            return DB::select("
                 SELECT
                     psd.nm_pd,
                     rpd.nipd,
@@ -420,341 +449,10 @@ class Iku3Controller extends Controller
         return DaTables::of($apiIku3Prestasi)->make(true);
     }
 
-    public function apiIku3Detail()
-    {
-        $id_fakultas = (string) $this->request->id_fakultas;
-        $apiIku3Tridharma = [];
-        $apiIku3Qs100 = [];
-        $apiIku3Praktisi = [];
-        $apiIku3Prestasi = [];
-
-        $apiIku3Tridharma = Cache::rememberForever('apiIku3Tridharma-' . $id_fakultas, function () use ($id_fakultas) {
-            return DB::connection('sqlsrv_sandbox')->select("
-                SELECT
-                    sdm.nidn,
-                    sdm.nm_sdm,
-                    sdm.nip,
-                    sdm.tmpt_lahir,
-                    sdm.tgl_lahir,
-                    CONCAT(prod.nm_lemb, ' (', jenj.nm_jenj_didik, ')') AS nm_prodi,
-                    fak.nm_lemb AS nm_fakultas,
-                    aktf.nm_stat_aktif AS keaktifan,
-                    skep.nm_stat_pegawai AS stat_pegawai,
-                    iks.nm_ikatan_kerja AS ikatan_kerja,
-                    (
-                        SELECT
-                            TOP 1 CONCAT(jenjpend.nm_jenj_didik, ' - ', bids.nm_bid_studi)
-                        FROM
-                            pdrd.rwy_pend_formal AS pend
-                            JOIN ref.jenjang_pendidikan AS jenjpend ON jenjpend.id_jenj_didik = pend.id_jenj_didik
-                            AND jenjpend.expired_date IS NULL
-                            JOIN ref.bidang_studi AS bids ON bids.id_bid_studi = pend.id_bid_studi
-                        WHERE
-                            pend.id_sdm = sdm.id_sdm
-                            AND pend.soft_delete = 0
-                        ORDER BY
-                            pend.thn_lulus DESC
-                    ) AS pend_akhir,
-                    CASE
-                        WHEN lit.jns_litabmas = 'L' THEN 'Penelitian'
-                        WHEN lit.jns_litabmas = 'M' THEN 'Pengabdian'
-                    END AS jns_litabmas,
-                    CASE
-                        WHEN sal.peran_litabmas = 'A' THEN 'Anggota'
-                        WHEN sal.peran_litabmas = 'K' THEN 'Ketua'
-                    END AS peran_litabmas,
-                    afil.nm_lemb AS afiliasi_litabmas,
-                    lit.judul_litabmas,
-                    lit.id_thn_laks AS thn_laks_litabmas,
-                    sdm.id_sdm,
-                    prod.id_sms AS id_prodi,
-                    fak.id_sms AS id_fakultas
-                FROM
-                    pdrd.sdm AS sdm WITH (NOLOCK)
-                    JOIN pdrd.reg_ptk AS ptk WITH (NOLOCK) ON ptk.id_sdm = sdm.id_sdm
-                    AND ptk.soft_delete = 0
-                    AND ptk.id_jns_keluar IS NULL
-                    AND (
-                        ptk.tgl_ptk_keluar IS NULL
-                        OR ptk.tgl_ptk_keluar > GETDATE()
-                    )
-                    JOIN pdrd.sms AS prod WITH(NOLOCK) ON prod.id_sms = ptk.id_sms
-                    AND prod.soft_delete = 0
-                    JOIN pdrd.sms AS fak WITH(NOLOCK) ON fak.id_sms = prod.id_fak_unila
-                    AND fak.soft_delete = 0
-                    JOIN ref.jenjang_pendidikan AS jenj WITH(NOLOCK) ON jenj.id_jenj_didik = prod.id_jenj_didik
-                    AND jenj.expired_date IS NULL
-                    JOIN pdrd.keaktifan_ptk AS aktfptk WITH(NOLOCK) ON aktfptk.id_reg_ptk = ptk.id_reg_ptk
-                    AND aktfptk.soft_delete = 0
-                    AND aktfptk.a_sp_homebase = 1
-                    AND aktfptk.id_thn_ajaran = YEAR(GETDATE())
-                    JOIN ref.status_kepegawaian AS skep WITH(NOLOCK) ON skep.id_stat_pegawai = ptk.id_stat_pegawai
-                    AND skep.expired_date IS NULL
-                    JOIN ref.status_keaktifan_pegawai AS aktf WITH(NOLOCK) ON aktf.id_stat_aktif = sdm.id_stat_aktif
-                    AND aktf.expired_date IS NULL
-                    JOIN ref.ikatan_kerja_sdm AS iks WITH(NOLOCK) ON iks.id_ikatan_kerja = ptk.id_ikatan_kerja
-                    AND iks.expired_date IS NULL
-                    JOIN pdrd.sdm_anggota_litabmas AS sal WITH(NOLOCK) ON sal.id_sdm = sdm.id_sdm
-                    AND sal.soft_delete = 0
-                    AND sal.soft_delete = 0
-                    AND sal.stat_aktif = 1
-                    JOIN pdrd.litabmas AS lit WITH(NOLOCK) ON lit.id_litabmas = sal.id_litabmas
-                    AND lit.soft_delete = 0
-                    AND lit.stat_aktif = 1
-                    AND lit.id_thn_laks >= (YEAR(GETDATE()) - 5)
-                    AND lit.id_lemb_iptek != ptk.id_sp
-                    JOIN pdrd.lembaga_iptek AS afil WITH(NOLOCK) ON afil.id_lemb_iptek = lit.id_lemb_iptek
-                    AND afil.soft_delete = 0
-                WHERE
-                    sdm.id_jns_sdm = 12
-                    AND sdm.soft_delete = 0
-                    AND sdm.id_stat_aktif IN('1', '20', '24', '25', '27')
-                    AND (
-                        LEFT(sdm.nidn, 2) <= 87
-                        OR LEFT(sdm.nidn, 2) IN (88, 89)
-                    )
-                    AND ptk.id_sms =  ?
-            ", [$id_fakultas]);
-        });
-
-        $apiIku3Qs100 = Cache::rememberForever('apiIku3Qs100' . $id_fakultas, function () use ($id_fakultas) {
-            return DB::connection('sqlsrv_sandbox')->select("
-                SELECT
-                    sdm.nidn,
-                    sdm.nm_sdm,
-                    sdm.nip,
-                    sdm.tmpt_lahir,
-                    sdm.tgl_lahir,
-                    CONCAT(prod.nm_lemb, ' (', jenj.nm_jenj_didik, ')') AS nm_prodi,
-                    fak.nm_lemb AS nm_fakultas,
-                    aktf.nm_stat_aktif AS keaktifan,
-                    skep.nm_stat_pegawai AS stat_pegawai,
-                    iks.nm_ikatan_kerja AS ikatan_kerja,
-                    (
-                        SELECT
-                            TOP 1 CONCAT(jenjpend.nm_jenj_didik, ' - ', bids.nm_bid_studi)
-                        FROM
-                            pdrd.rwy_pend_formal AS pend
-                            JOIN ref.jenjang_pendidikan AS jenjpend ON jenjpend.id_jenj_didik = pend.id_jenj_didik
-                            AND jenjpend.expired_date IS NULL
-                            JOIN ref.bidang_studi AS bids ON bids.id_bid_studi = pend.id_bid_studi
-                        WHERE
-                            pend.id_sdm = sdm.id_sdm
-                            AND pend.soft_delete = 0
-                        ORDER BY
-                            pend.thn_lulus DESC
-                    ) AS pend_akhir,
-                    spendsasr.nm_lemb AS perguruan_tinggi_sasaran,
-                    detas.tgl_mulai AS tanggal_mulai,
-                    detas.tgl_selesai AS tanggal_selesai,
-                    detas.bid_tgs AS bidang_tugas,
-                    sdm.id_sdm,
-                    prod.id_sms AS id_prodi,
-                    fak.id_sms AS id_fakultas
-                FROM
-                    pdrd.sdm AS sdm WITH (NOLOCK)
-                    JOIN pdrd.reg_ptk AS ptk WITH (NOLOCK) ON ptk.id_sdm = sdm.id_sdm
-                    AND ptk.soft_delete = 0
-                    AND ptk.id_jns_keluar IS NULL
-                    AND (
-                        ptk.tgl_ptk_keluar IS NULL
-                        OR ptk.tgl_ptk_keluar > GETDATE()
-                    )
-                    JOIN pdrd.sms AS prod WITH(NOLOCK) ON prod.id_sms = ptk.id_sms
-                    AND prod.soft_delete = 0
-                    JOIN pdrd.sms AS fak WITH(NOLOCK) ON fak.id_sms = prod.id_fak_unila
-                    AND fak.soft_delete = 0
-                    JOIN ref.jenjang_pendidikan AS jenj WITH(NOLOCK) ON jenj.id_jenj_didik = prod.id_jenj_didik
-                    AND jenj.expired_date IS NULL
-                    JOIN pdrd.keaktifan_ptk AS aktfptk WITH(NOLOCK) ON aktfptk.id_reg_ptk = ptk.id_reg_ptk
-                    AND aktfptk.soft_delete = 0
-                    AND aktfptk.a_sp_homebase = 1
-                    AND aktfptk.id_thn_ajaran = YEAR(GETDATE())
-                    JOIN ref.status_kepegawaian AS skep WITH(NOLOCK) ON skep.id_stat_pegawai = ptk.id_stat_pegawai
-                    AND skep.expired_date IS NULL
-                    JOIN ref.status_keaktifan_pegawai AS aktf WITH(NOLOCK) ON aktf.id_stat_aktif = sdm.id_stat_aktif
-                    AND aktf.expired_date IS NULL
-                    JOIN ref.ikatan_kerja_sdm AS iks WITH(NOLOCK) ON iks.id_ikatan_kerja = ptk.id_ikatan_kerja
-                    AND iks.expired_date IS NULL
-                    JOIN pdrd.detasering AS detas WITH(NOLOCK) ON detas.id_sdm = sdm.id_sdm
-                    AND detas.soft_delete = 0
-                    JOIN pdrd.satuan_pendidikan AS spendsasr WITH(NOLOCK) ON detas.id_sp_sasaran = spendsasr.id_sp
-                    AND spendsasr.soft_delete = 0
-                WHERE
-                    sdm.id_jns_sdm = 12
-                    AND sdm.soft_delete = 0
-                    AND sdm.id_stat_aktif IN('1', '20', '24', '25', '27')
-                    AND (
-                        LEFT(sdm.nidn, 2) <= 87
-                        OR LEFT(sdm.nidn, 2) IN (88, 89)
-                    )
-                    AND ptk.id_sms = ?
-            ", [$id_fakultas]);
-        });
-
-        // $apiIku3Praktisi = Cache::rememberForever('apiIku3Praktisi' . $id_fakultas, function () use ($id_fakultas) {
-        //     return DB::connection('sqlsrv_sandbox')->select("
-        //         SELECT
-        //             sdm.nidn,
-        //             sdm.nm_sdm,
-        //             sdm.nip,
-        //             sdm.tmpt_lahir,
-        //             sdm.tgl_lahir,
-        //             CONCAT(prod.nm_lemb, ' (', jenj.nm_jenj_didik, ')') AS nm_prodi,
-        //             fak.nm_lemb AS nm_fakultas,
-        //             aktf.nm_stat_aktif AS keaktifan,
-        //             skep.nm_stat_pegawai AS stat_pegawai,
-        //             iks.nm_ikatan_kerja AS ikatan_kerja,
-        //             (
-        //                 SELECT
-        //                     TOP 1 CONCAT(jenjpend.nm_jenj_didik, ' - ', bids.nm_bid_studi)
-        //                 FROM
-        //                     pdrd.rwy_pend_formal AS pend
-        //                     JOIN ref.jenjang_pendidikan AS jenjpend ON jenjpend.id_jenj_didik = pend.id_jenj_didik
-        //                     AND jenjpend.expired_date IS NULL
-        //                     JOIN ref.bidang_studi AS bids ON bids.id_bid_studi = pend.id_bid_studi
-        //                 WHERE
-        //                     pend.id_sdm = sdm.id_sdm
-        //                     AND pend.soft_delete = 0
-        //                 ORDER BY
-        //                     pend.thn_lulus DESC
-        //             ) AS pend_akhir,
-        //             spendsasr.nm_lemb AS perguruan_tinggi_sasaran,
-        //             detas.tgl_mulai AS tanggal_mulai,
-        //             detas.tgl_selesai AS tanggal_selesai,
-        //             detas.bid_tgs AS bidang_tugas,
-        //             sdm.id_sdm,
-        //             prod.id_sms AS id_prodi,
-        //             fak.id_sms AS id_fakultas
-        //         FROM
-        //             pdrd.sdm AS sdm WITH (NOLOCK)
-        //             JOIN pdrd.reg_ptk AS ptk WITH (NOLOCK) ON ptk.id_sdm = sdm.id_sdm
-        //             AND ptk.soft_delete = 0
-        //             AND ptk.id_jns_keluar IS NULL
-        //             AND (
-        //                 ptk.tgl_ptk_keluar IS NULL
-        //                 OR ptk.tgl_ptk_keluar > GETDATE()
-        //             )
-        //             JOIN pdrd.sms AS prod WITH(NOLOCK) ON prod.id_sms = ptk.id_sms
-        //             AND prod.soft_delete = 0
-        //             JOIN pdrd.sms AS fak WITH(NOLOCK) ON fak.id_sms = prod.id_fak_unila
-        //             AND fak.soft_delete = 0
-        //             JOIN ref.jenjang_pendidikan AS jenj WITH(NOLOCK) ON jenj.id_jenj_didik = prod.id_jenj_didik
-        //             AND jenj.expired_date IS NULL
-        //             JOIN pdrd.keaktifan_ptk AS aktfptk WITH(NOLOCK) ON aktfptk.id_reg_ptk = ptk.id_reg_ptk
-        //             AND aktfptk.soft_delete = 0
-        //             AND aktfptk.a_sp_homebase = 1
-        //             AND aktfptk.id_thn_ajaran = YEAR(GETDATE())
-        //             JOIN ref.status_kepegawaian AS skep WITH(NOLOCK) ON skep.id_stat_pegawai = ptk.id_stat_pegawai
-        //             AND skep.expired_date IS NULL
-        //             JOIN ref.status_keaktifan_pegawai AS aktf WITH(NOLOCK) ON aktf.id_stat_aktif = sdm.id_stat_aktif
-        //             AND aktf.expired_date IS NULL
-        //             JOIN ref.ikatan_kerja_sdm AS iks WITH(NOLOCK) ON iks.id_ikatan_kerja = ptk.id_ikatan_kerja
-        //             AND iks.expired_date IS NULL
-        //             JOIN pdrd.detasering AS detas WITH(NOLOCK) ON detas.id_sdm = sdm.id_sdm
-        //             AND detas.soft_delete = 0
-        //             JOIN pdrd.satuan_pendidikan AS spendsasr WITH(NOLOCK) ON detas.id_sp_sasaran = spendsasr.id_sp
-        //             AND spendsasr.soft_delete = 0
-        //         WHERE
-        //             sdm.id_jns_sdm = 12
-        //             AND sdm.soft_delete = 0
-        //             AND sdm.id_stat_aktif IN('1', '20', '24', '25', '27')
-        //             AND (
-        //                 LEFT(sdm.nidn, 2) <= 87
-        //                 OR LEFT(sdm.nidn, 2) IN (88, 89)
-        //             )
-        //             AND ptk.id_sms = '" . $id_fakultas . "'
-        //     ");
-        // });
-
-        // $apiIku3Prestasi = Cache::rememberForever('apiIku3Prestasi' . $id_fakultas, function () use ($id_fakultas) {
-        //     return DB::connection('sqlsrv_sandbox')->select("
-        //         SELECT
-        //             sdm.nidn,
-        //             sdm.nm_sdm,
-        //             sdm.nip,
-        //             sdm.tmpt_lahir,
-        //             sdm.tgl_lahir,
-        //             CONCAT(prod.nm_lemb, ' (', jenj.nm_jenj_didik, ')') AS nm_prodi,
-        //             fak.nm_lemb AS nm_fakultas,
-        //             aktf.nm_stat_aktif AS keaktifan,
-        //             skep.nm_stat_pegawai AS stat_pegawai,
-        //             iks.nm_ikatan_kerja AS ikatan_kerja,
-        //             (
-        //                 SELECT
-        //                     TOP 1 CONCAT(jenjpend.nm_jenj_didik, ' - ', bids.nm_bid_studi)
-        //                 FROM
-        //                     pdrd.rwy_pend_formal AS pend
-        //                     JOIN ref.jenjang_pendidikan AS jenjpend ON jenjpend.id_jenj_didik = pend.id_jenj_didik
-        //                     AND jenjpend.expired_date IS NULL
-        //                     JOIN ref.bidang_studi AS bids ON bids.id_bid_studi = pend.id_bid_studi
-        //                 WHERE
-        //                     pend.id_sdm = sdm.id_sdm
-        //                     AND pend.soft_delete = 0
-        //                 ORDER BY
-        //                     pend.thn_lulus DESC
-        //             ) AS pend_akhir,
-        //             spendsasr.nm_lemb AS perguruan_tinggi_sasaran,
-        //             detas.tgl_mulai AS tanggal_mulai,
-        //             detas.tgl_selesai AS tanggal_selesai,
-        //             detas.bid_tgs AS bidang_tugas,
-        //             sdm.id_sdm,
-        //             prod.id_sms AS id_prodi,
-        //             fak.id_sms AS id_fakultas
-        //         FROM
-        //             pdrd.sdm AS sdm WITH (NOLOCK)
-        //             JOIN pdrd.reg_ptk AS ptk WITH (NOLOCK) ON ptk.id_sdm = sdm.id_sdm
-        //             AND ptk.soft_delete = 0
-        //             AND ptk.id_jns_keluar IS NULL
-        //             AND (
-        //                 ptk.tgl_ptk_keluar IS NULL
-        //                 OR ptk.tgl_ptk_keluar > GETDATE()
-        //             )
-        //             JOIN pdrd.sms AS prod WITH(NOLOCK) ON prod.id_sms = ptk.id_sms
-        //             AND prod.soft_delete = 0
-        //             JOIN pdrd.sms AS fak WITH(NOLOCK) ON fak.id_sms = prod.id_fak_unila
-        //             AND fak.soft_delete = 0
-        //             JOIN ref.jenjang_pendidikan AS jenj WITH(NOLOCK) ON jenj.id_jenj_didik = prod.id_jenj_didik
-        //             AND jenj.expired_date IS NULL
-        //             JOIN pdrd.keaktifan_ptk AS aktfptk WITH(NOLOCK) ON aktfptk.id_reg_ptk = ptk.id_reg_ptk
-        //             AND aktfptk.soft_delete = 0
-        //             AND aktfptk.a_sp_homebase = 1
-        //             AND aktfptk.id_thn_ajaran = YEAR(GETDATE())
-        //             JOIN ref.status_kepegawaian AS skep WITH(NOLOCK) ON skep.id_stat_pegawai = ptk.id_stat_pegawai
-        //             AND skep.expired_date IS NULL
-        //             JOIN ref.status_keaktifan_pegawai AS aktf WITH(NOLOCK) ON aktf.id_stat_aktif = sdm.id_stat_aktif
-        //             AND aktf.expired_date IS NULL
-        //             JOIN ref.ikatan_kerja_sdm AS iks WITH(NOLOCK) ON iks.id_ikatan_kerja = ptk.id_ikatan_kerja
-        //             AND iks.expired_date IS NULL
-        //             JOIN pdrd.detasering AS detas WITH(NOLOCK) ON detas.id_sdm = sdm.id_sdm
-        //             AND detas.soft_delete = 0
-        //             JOIN pdrd.satuan_pendidikan AS spendsasr WITH(NOLOCK) ON detas.id_sp_sasaran = spendsasr.id_sp
-        //             AND spendsasr.soft_delete = 0
-        //         WHERE
-        //             sdm.id_jns_sdm = 12
-        //             AND sdm.soft_delete = 0
-        //             AND sdm.id_stat_aktif IN('1', '20', '24', '25', '27')
-        //             AND (
-        //                 LEFT(sdm.nidn, 2) <= 87
-        //                 OR LEFT(sdm.nidn, 2) IN (88, 89)
-        //             )
-        //             AND ptk.id_sms = '" . $id_fakultas . "'
-        //     ");
-        // });
-
-        $side_active   = 'iku';
-        return view('dashboard.iku.iku3detail', compact(
-            'apiIku3Tridharma',
-            'apiIku3Qs100',
-            'apiIku3Praktisi',
-            'apiIku3Prestasi',
-            'side_active'
-        ));
-    }
-
     public function homeIku3()
     {
+        $thn_iku = $this->tahunIku();
         $side_active   = 'iku';
-        return view('dashboard.iku.iku3', compact('side_active'));
+        return view('dashboard.iku.iku3', compact('side_active', 'thn_iku'));
     }
 }
