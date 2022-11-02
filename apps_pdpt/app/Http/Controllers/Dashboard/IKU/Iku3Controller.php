@@ -152,10 +152,7 @@ class Iku3Controller extends Controller
                     'l_praktisi' => $v->l_praktisi,
                     'l_prestasi' => $v->l_prestasi,
                 ];
-                // $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DRILL'] = [];
-                // array_push($fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DRILL'], $v->id_sdm);
             } else {
-                // array_push($fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DRILL'], $v->id_sdm);
                 $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data'] + 1;
                 $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data_yes'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data_yes'] + $x_yes;
                 $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_tridharma'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_tridharma'] + $v->l_tridharma;
@@ -227,6 +224,7 @@ class Iku3Controller extends Controller
                     ) AS l_prestasi,
                     sdm.nidn,
                     sdm.nm_sdm,
+                    sdm.jk,
                     sdm.nip,
                     sdm.tmpt_lahir,
                     sdm.tgl_lahir,
@@ -286,13 +284,140 @@ class Iku3Controller extends Controller
                         OR LEFT(sdm.nidn, 2) IN (88, 89)
                     )
                     AND ptk.id_sms = ?
-                ORDER BY
-                    fak.nm_lemb,
-                    jenj.nm_jenj_didik,
-                    prod.nm_lemb ASC
             ", [$id_prodi]);
         });
         return DaTables::of($apiIku3Dosen)->make(true);
+    }
+
+    public function apiIku3Tridharma()
+    {
+        $id_sdm = (string) $this->request->id_sdm;
+        $apiIku3Tridharma = Cache::rememberForever('apiIku3Tridharma-' . $id_sdm, function () use ($id_sdm) {
+            return DB::connection('sqlsrv_sandbox')->select("
+                SELECT
+                    CASE
+                        WHEN lit.jns_litabmas = 'L' THEN 'Penelitian'
+                        WHEN lit.jns_litabmas = 'M' THEN 'Pengabdian'
+                    END AS jns_litabmas,
+                    CASE
+                        WHEN sal.peran_litabmas = 'A' THEN 'Anggota'
+                        WHEN sal.peran_litabmas = 'K' THEN 'Ketua'
+                    END AS peran_litabmas,
+                    afil.nm_lemb AS afiliasi_litabmas,
+                    lit.judul_litabmas,
+                    lit.id_thn_laks AS thn_laks_litabmas
+                FROM
+                    pdrd.sdm_anggota_litabmas AS sal
+                    JOIN pdrd.litabmas AS lit ON lit.id_litabmas = sal.id_litabmas
+                    AND lit.soft_delete = 0
+                    AND lit.stat_aktif = 1
+                    AND lit.id_thn_laks >= (YEAR(GETDATE()) - 5)
+                    AND lit.id_lemb_iptek != 'e2b705a7-173e-464a-9fac-509128709515'
+                    JOIN pdrd.lembaga_iptek AS afil WITH(NOLOCK) ON afil.id_lemb_iptek = lit.id_lemb_iptek
+                    AND afil.soft_delete = 0
+                WHERE
+                    sal.id_sdm = ?
+                    AND sal.soft_delete = 0
+                    AND sal.stat_aktif = 1
+            ", [$id_sdm]);
+        });
+        return DaTables::of($apiIku3Tridharma)->make(true);
+    }
+
+    public function apiIku3Qs100()
+    {
+        $id_sdm = (string) $this->request->id_sdm;
+        $apiIku3Qs100 = Cache::rememberForever('apiIku3Qs100-' . $id_sdm, function () use ($id_sdm) {
+            return DB::connection('sqlsrv_sandbox')->select("
+                SELECT
+                    dts.bid_tgs,
+                    spsb.nm_lemb AS sp_sumber,
+                    spss.nm_lemb AS sp_sasaran,
+                    dts.tgl_mulai
+                FROM
+                    pdrd.detasering AS dts WITH(NOLOCK)
+                    JOIN pdrd.satuan_pendidikan AS spsb WITH(NOLOCK) ON spsb.id_sp = dts.id_sp_sumber
+                    AND spsb.soft_delete = 0
+                    JOIN pdrd.satuan_pendidikan AS spss WITH(NOLOCK) ON spss.id_sp = dts.id_sp_sumber
+                    AND spss.soft_delete = 0
+                WHERE
+                    dts.id_sdm = ?
+                    AND dts.soft_delete = 0
+            ", [$id_sdm]);
+        });
+        return DaTables::of($apiIku3Qs100)->make(true);
+    }
+
+    public function apiIku3Praktisi()
+    {
+        $id_sdm = (string) $this->request->id_sdm;
+        $apiIku3Praktisi = Cache::rememberForever('apiIku3Praktisi-' . $id_sdm, function () use ($id_sdm) {
+            return DB::connection('sqlsrv_sandbox')->select("
+                SELECT
+                    pkrj.nm_pekerjaan AS bid_pekerjaan,
+                    rkrj.nm_jabatan,
+                    rkrj.instansi,
+                    rkrj.mulai_bekerja,
+                    rkrj.selesai_bekerja
+                FROM
+                    pdrd.rwy_pekerjaan AS rkrj
+                    JOIN ref.pekerjaan AS pkrj ON pkrj.id_pekerjaan = rkrj.id_pekerjaan
+                    AND pkrj.expired_date IS NULL
+                WHERE
+                    rkrj.id_sdm = ?
+                    AND rkrj.soft_delete = 0
+                    AND (
+                        CASE
+                            WHEN rkrj.selesai_bekerja IS NULL THEN DATEDIFF(DAY, rkrj.mulai_bekerja, GETDATE()) / 365.2425
+                            ELSE DATEDIFF(DAY, rkrj.mulai_bekerja, rkrj.selesai_bekerja) / 365.2425
+                        END
+                    ) > 5
+            ", [$id_sdm]);
+        });
+        return DaTables::of($apiIku3Praktisi)->make(true);
+    }
+
+    public function apiIku3Prestasi()
+    {
+        $id_sdm = (string) $this->request->id_sdm;
+        $apiIku3Prestasi = Cache::rememberForever('apiIku3Prestasi-' . $id_sdm, function () use ($id_sdm) {
+            return DB::connection('sqlsrv_sandbox')->select("
+                SELECT
+                    psd.nm_pd,
+                    rpd.nipd,
+                    psd.jk,
+                    psd.tgl_lahir,
+                    prodi.nm_lemb AS nm_prodi,
+                    jur.nm_lemb AS nm_jur,
+                    fak.nm_lemb AS nm_fak,
+                    jpres.nm_jenis_prestasi,
+                    pres.nm_prestasi,
+                    pres.penyelenggara,
+                    pres.peringkat,
+                    pres.thn_prestasi
+                FROM
+                    pdrd.bimbing_mhs AS bmhs
+                    JOIN pdrd.prestasi AS pres ON pres.id_akt_mhs = bmhs.id_akt_mhs
+                    AND pres.soft_delete = 0
+                    AND pres.id_tkt_prestasi IN (5, 6)
+                    JOIN ref.jenis_prestasi AS jpres ON jpres.id_jenis_prestasi = pres.id_jenis_prestasi
+                    AND jpres.expired_date IS NULL
+                    JOIN pdrd.peserta_didik AS psd ON psd.id_pd = pres.id_pd
+                    AND psd.soft_delete = 0
+                    JOIN pdrd.reg_pd AS rpd ON rpd.id_pd = psd.id_pd
+                    AND rpd.soft_delete = 0
+                    JOIN pdrd.sms AS prodi ON prodi.id_sms = rpd.id_sms
+                    AND prodi.soft_delete = 0
+                    LEFT JOIN pdrd.sms AS jur ON jur.id_sms = prodi.id_jur_unila
+                    AND jur.soft_delete =  0
+                    JOIN pdrd.sms AS fak ON fak.id_sms = prodi.id_fak_unila
+                    AND fak.soft_delete = 0
+                WHERE
+                    bmhs.id_sdm = ?
+                    AND bmhs.soft_delete = 0
+            ", [$id_sdm]);
+        });
+        return DaTables::of($apiIku3Prestasi)->make(true);
     }
 
     public function apiIku3Detail()

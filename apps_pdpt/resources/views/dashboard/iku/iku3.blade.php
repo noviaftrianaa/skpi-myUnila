@@ -2,6 +2,30 @@
 @include('__partial.highchart')
 @include('__partial.datatable_yajra')
 
+@push('css')
+    <style>
+        .modal.modal-fullscreen .modal-dialog {
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            max-width: none;
+        }
+
+        .modal.modal-fullscreen .modal-content {
+            height: auto;
+            height: 100vh;
+            border-radius: 0;
+            border: none;
+        }
+
+        .modal.modal-fullscreen .modal-body {
+            overflow-y: auto;
+        }
+    </style>
+@endpush
+
+
 @section('content')
     <div class="row">
         <div class="col">
@@ -76,20 +100,56 @@
         </div>
     </div>
 
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
+    <div class="modal fade modal-fullscreen" id="exampleModal" tabindex="-1" role="dialog"
+        aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                <div class="modal-header pb-0">
+                    <div class="float-left">
+                        <p>
+                            <span id="txt1_modal"></span>
+                            <span id="txt2_modal"></span>
+                            <span id="txt3_modal"></span>
+                            <span id="txt4_modal"></span>
+                        </p>
+                    </div>
+                    <div class="float-right mt-3">
+                        <button id="btn_modal_back" class="btn btn-primary mr-1"><i class="fas fa-arrow-left"></i></button>
+                        <button class="btn btn-danger" data-dismiss="modal" aria-label="Close"><i
+                                class="fas fa-times"></i></button>
+                    </div>
                 </div>
                 <div class="modal-body">
-                    <table id="example1" class="table table-bordered table-striped dataTable dtr-inline"
-                        aria-describedby="example1_info">
-                    </table>
+                    <div id="x_tb_01">
+                        <table id="tb_01" class="table table-bordered table-striped dataTable dtr-inline"
+                            aria-describedby="tb_01_info">
+                            <thead class="bg-info"></thead>
+                        </table>
+                    </div>
+                    <div id="x_tb_02">
+                        <table id="tb_02" class="table table-bordered table-striped dataTable dtr-inline"
+                            aria-describedby="tb_02_info">
+                            <thead class="bg-info"></thead>
+                        </table>
+                    </div>
+                    <div id="x_tb_03">
+                        <table id="tb_03" class="table table-bordered table-striped dataTable dtr-inline"
+                            aria-describedby="tb_03_info">
+                            <thead class="bg-info"></thead>
+                        </table>
+                    </div>
+                    <div id="x_tb_04">
+                        <table id="tb_04" class="table table-bordered table-striped dataTable dtr-inline"
+                            aria-describedby="tb_04_info">
+                            <thead class="bg-info"></thead>
+                        </table>
+                    </div>
+                    <div id="x_tb_05">
+                        <table id="tb_05" class="table table-bordered table-striped dataTable dtr-inline"
+                            aria-describedby="tb_05_info">
+                            <thead class="bg-info"></thead>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -108,6 +168,15 @@
 
         $(document).ready(function() {
             Iku3Data();
+        });
+
+        $("#btn_modal_back").click(function() {
+            $("#txt3_modal").html("");
+            $("#x_tb_01").show();
+            $("#x_tb_02").hide();
+            $("#x_tb_03").hide();
+            $("#x_tb_04").hide();
+            $("#x_tb_05").hide();
         });
 
         function refreshTotal() {
@@ -175,26 +244,12 @@
             Iku3Chart(y_title, x_data_yes, x_data_no, fak);
         }
 
-        function Iku3ProdiDetail(fak, prod) {
-            $.ajax({
-                type: 'GET',
-                url: "{{ route('apiIku3Detail') }}",
-                data: {
-                    id_fakultas: dataIku3[fak]['DRILL'][prod]['DATA']['y_id']
-                }
-            }).done(function(res) {
-                console.log(res);
-            }).fail(function(res) {
-                console.log(res);
-            });
-        }
-
         function Iku3Chart(y_title, x_data_yes, x_data_no, fak = null) {
             refreshTotal();
             var chart = Highcharts.chart('container', {
                 chart: {
                     type: 'bar',
-                    height: 600,
+                    height: 700,
                 },
                 title: {
                     text: 'IKU 3 : Dosen Berkegiatan di Luar Kampus'
@@ -227,7 +282,15 @@
                                         let id_prodi = dataIku3[fak]['DRILL'][event.point.category]['DATA'][
                                             'y_id'
                                         ];
-                                        modalDrill01(id_prodi);
+                                        $("#txt1_modal").html(
+                                            "<b>IKU 3 : DOSEN BERKEGIATAN DILUAR KAMPUS</b><br>");
+                                        $("#txt2_modal").html("FAKULTAS " + fak + " - Prodi " + event.point
+                                            .category + "<br>");
+                                        if ($.fn.dataTable.isDataTable($('#tb_01'))) {
+                                            $('#tb_01').DataTable().destroy();
+                                        } else {
+                                            TbIku3Dosen(id_prodi);
+                                        }
                                     }
                                 }
                             }
@@ -247,9 +310,69 @@
             chart.setSize(null);
         }
 
-        function modalDrill01(param) {
+        function reloadTbIku3Tridharma(id_sdm, nm_sdm, nidn) {
+            $("#txt3_modal").html("TRIDHARMA - " + nm_sdm + " - " + nidn);
+            $("#x_tb_01").hide();
+            $("#x_tb_02").show();
+            $("#x_tb_03").hide();
+            $("#x_tb_04").hide();
+            $("#x_tb_05").hide();
+            if ($.fn.dataTable.isDataTable($('#tb_02'))) {
+                $('#tb_02').DataTable().destroy();
+                TbIku3Tridharma(id_sdm, nm_sdm, nidn);
+            } else {
+                TbIku3Tridharma(id_sdm, nm_sdm, nidn);
+            }
+        }
+
+        function reloadTbIku3Qs100(id_sdm, nm_sdm, nidn) {
+            $("#txt3_modal").html("Qs100 - " + nm_sdm + " - " + nidn);
+            $("#x_tb_01").hide();
+            $("#x_tb_02").hide();
+            $("#x_tb_03").show();
+            $("#x_tb_04").hide();
+            $("#x_tb_05").hide();
+            if ($.fn.dataTable.isDataTable($('#tb_03'))) {
+                $('#tb_03').DataTable().destroy();
+                TbIku3Qs100(id_sdm, nm_sdm, nidn);
+            } else {
+                TbIku3Qs100(id_sdm, nm_sdm, nidn);
+            }
+        }
+
+        function reloadTbIku3Praktisi(id_sdm, nm_sdm, nidn) {
+            $("#txt3_modal").html("Praktisi - " + nm_sdm + " - " + nidn);
+            $("#x_tb_01").hide();
+            $("#x_tb_02").hide();
+            $("#x_tb_03").hide();
+            $("#x_tb_04").show();
+            $("#x_tb_05").hide();
+            if ($.fn.dataTable.isDataTable($('#tb_04'))) {
+                $('#tb_04').DataTable().destroy();
+                TbIku3Praktisi(id_sdm, nm_sdm, nidn);
+            } else {
+                TbIku3Praktisi(id_sdm, nm_sdm, nidn);
+            }
+        }
+
+        function reloadTbIku3Prestasi(id_sdm, nm_sdm, nidn) {
+            $("#txt3_modal").html("Prestasi - " + nm_sdm + " - " + nidn);
+            $("#x_tb_01").hide();
+            $("#x_tb_02").hide();
+            $("#x_tb_03").hide();
+            $("#x_tb_04").hide();
+            $("#x_tb_05").show();
+            if ($.fn.dataTable.isDataTable($('#tb_05'))) {
+                $('#tb_05').DataTable().destroy();
+                TbIku3Prestasi(id_sdm, nm_sdm, nidn);
+            } else {
+                TbIku3Prestasi(id_sdm, nm_sdm, nidn);
+            }
+        }
+
+        function TbIku3Dosen(param) {
             $('#exampleModal').modal('show');
-            $('#example1').DataTable({
+            $('#tb_01').DataTable({
                 processing: true,
                 serverSide: true,
                 responsive: true,
@@ -265,21 +388,41 @@
                     }
                 },
                 columns: [{
-                        title: 'NIDN/NIDK',
-                        data: 'nidn',
-                        name: 'nidn',
-                    }, {
+                        title: '#',
+                        render: function(data, type, row) {
+                            if (row.l_tridharma > 0 || row.l_qs100 > 0 || row.l_praktisi > 0 || row
+                                .l_prestasi > 0) {
+                                return "<center><b class='text-bold text-green'>Y</b></center>";
+                            } else {
+                                return "<center><b class='text-bold text-red'>T</b></center>";
+                            }
+                        }
+                    },
+                    {
                         title: 'Nama Dosen',
                         data: 'nm_sdm',
                         name: 'nm_sdm',
+                    }, {
+                        title: 'JK',
+                        data: 'jk',
+                        name: 'jk',
+                    }, {
+                        title: 'NIDN/NIDK',
+                        data: 'nidn',
+                        name: 'nidn',
                     },
                     {
-                        title: 'Pend. Akhir',
+                        title: 'Tgl. Lahir',
+                        data: 'tgl_lahir',
+                        name: 'tgl_lahir',
+                    },
+                    {
+                        title: 'Pend',
                         data: 'pend_akhir',
                         name: 'pend_akhir',
                     },
                     {
-                        title: 'Ikatan Kerja',
+                        title: 'Ikatan',
                         data: 'ikatan_kerja',
                         name: 'ikatan_kerja',
                     },
@@ -292,22 +435,242 @@
                         title: 'Tridharma',
                         data: 'l_tridharma',
                         name: 'l_tridharma',
+                        render: function(data, type, row) {
+                            return `<a href="#" onclick="reloadTbIku3Tridharma('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
+                        }
                     },
                     {
                         title: 'QS100',
                         data: 'l_qs100',
                         name: 'l_qs100',
+                        render: function(data, type, row) {
+                            return `<a href="#" onclick="reloadTbIku3Qs100('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
+                        }
                     },
                     {
                         title: 'Praktisi',
                         data: 'l_praktisi',
                         name: 'l_praktisi',
+                        render: function(data, type, row) {
+                            return `<a href="#" onclick="reloadTbIku3Praktisi('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
+                        }
                     },
                     {
                         title: 'Prestasi',
                         data: 'l_prestasi',
                         name: 'l_prestasi',
+                        render: function(data, type, row) {
+                            return `<a href="#" onclick="reloadTbIku3Prestasi('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
+                        }
                     }
+                ],
+                order: [
+                    [8, 'desc'],
+                    [9, 'desc'],
+                    [10, 'desc'],
+                    [11, 'desc']
+                ],
+            });
+        }
+
+        function TbIku3Tridharma(id_sdm, nm_sdm, nidn) {
+            $('#tb_02').DataTable({
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                searching: true,
+                paging: true,
+                info: true,
+                ordering: true,
+                ajax: {
+                    url: '{!! route('apiIku3Tridharma') !!}',
+                    type: 'GET',
+                    data: {
+                        id_sdm: id_sdm
+                    }
+                },
+                columns: [{
+                        title: 'Jenis',
+                        data: 'jns_litabmas',
+                        name: 'jns_litabmas',
+                    }, {
+                        title: 'Peran',
+                        data: 'peran_litabmas',
+                        name: 'peran_litabmas',
+                    }, {
+                        title: 'Afiliasi',
+                        data: 'afiliasi_litabmas',
+                        name: 'afiliasi_litabmas',
+                    },
+                    {
+                        title: 'Judul',
+                        data: 'judul_litabmas',
+                        name: 'judul_litabmas',
+                    },
+                    {
+                        title: 'Tahun Laks.',
+                        data: 'thn_laks_litabmas',
+                        name: 'thn_laks_litabmas',
+                    }
+                ],
+            });
+        }
+
+        function TbIku3Qs100(id_sdm, nm_sdm, nidn) {
+            $('#tb_03').DataTable({
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                searching: true,
+                paging: true,
+                info: true,
+                ordering: true,
+                ajax: {
+                    url: '{!! route('apiIku3Qs100') !!}',
+                    type: 'GET',
+                    data: {
+                        id_sdm: id_sdm
+                    }
+                },
+                columns: [{
+                        title: 'Bidang',
+                        data: 'bid_tgs',
+                        name: 'bid_tgs',
+                    }, {
+                        title: 'SP Sumber',
+                        data: 'sp_sumber',
+                        name: 'sp_sumber',
+                    }, {
+                        title: 'SP Sasaran',
+                        data: 'sp_sasaran',
+                        name: 'sp_sasaran',
+                    },
+                    {
+                        title: 'Tgl. Mulai',
+                        data: 'tgl_mulai',
+                        name: 'tgl_mulai',
+                    }
+                ],
+            });
+        }
+
+        function TbIku3Praktisi(id_sdm, nm_sdm, nidn) {
+            $('#tb_04').DataTable({
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                searching: true,
+                paging: true,
+                info: true,
+                ordering: true,
+                ajax: {
+                    url: '{!! route('apiIku3Praktisi') !!}',
+                    type: 'GET',
+                    data: {
+                        id_sdm: id_sdm
+                    }
+                },
+                columns: [{
+                        title: 'Bidang',
+                        data: 'bid_pekerjaan',
+                        name: 'bid_pekerjaan',
+                    }, {
+                        title: 'Jabatan',
+                        data: 'nm_jabatan',
+                        name: 'nm_jabatan',
+                    }, {
+                        title: 'Instansi',
+                        data: 'instansi',
+                        name: 'instansi',
+                    },
+                    {
+                        title: 'Mulai Kerja',
+                        data: 'mulai_bekerja',
+                        name: 'mulai_bekerja',
+                    },
+                    {
+                        title: 'Selesai Kerja',
+                        data: 'selesai_bekerja',
+                        name: 'selesai_bekerja',
+                    }
+                ],
+            });
+        }
+
+        function TbIku3Prestasi(id_sdm, nm_sdm, nidn) {
+            $('#tb_05').DataTable({
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                searching: true,
+                paging: true,
+                info: true,
+                ordering: true,
+                ajax: {
+                    url: '{!! route('apiIku3Prestasi') !!}',
+                    type: 'GET',
+                    data: {
+                        id_sdm: id_sdm
+                    }
+                },
+                columns: [{
+                        title: 'Nama',
+                        data: 'nm_pd',
+                        name: 'nm_pd',
+                    }, {
+                        title: 'JK',
+                        data: 'jk',
+                        name: 'jk',
+                    }, {
+                        title: 'NPM',
+                        data: 'nipd',
+                        name: 'nipd',
+                    },
+                    {
+                        title: 'Tgl. Lahir',
+                        data: 'tgl_lahir',
+                        name: 'tgl_lahir',
+                    },
+                    {
+                        title: 'Prodi',
+                        data: 'nm_prodi',
+                        name: 'nm_prodi',
+                    },
+                    {
+                        title: 'Jurusan',
+                        data: 'nm_jur',
+                        name: 'nm_jur',
+                    },
+                    {
+                        title: 'Fakultas',
+                        data: 'nm_fak',
+                        name: 'nm_fak',
+                    },
+                    {
+                        title: 'Jns Prestasi',
+                        data: 'nm_jenis_prestasi',
+                        name: 'nm_jenis_prestasi',
+                    },
+                    {
+                        title: 'Nm Prestasi',
+                        data: 'nm_prestasi',
+                        name: 'nm_prestasi',
+                    },
+                    {
+                        title: 'Penyelenggara',
+                        data: 'penyelenggara',
+                        name: 'penyelenggara',
+                    },
+                    {
+                        title: 'Peringkat',
+                        data: 'peringkat',
+                        name: 'peringkat',
+                    },
+                    {
+                        title: 'Thn Prestasi',
+                        data: 'thn_prestasi',
+                        name: 'thn_prestasi',
+                    },
                 ],
             });
         }
