@@ -129,4 +129,11 @@ Route::prefix('dashboard')->group(function () {
     Route::get('api/iku3/qs100',  'App\Http\Controllers\Dashboard\IKU\Iku3Controller@apiIku3Qs100')->name('apiIku3Qs100');
     Route::get('api/iku3/praktisi',  'App\Http\Controllers\Dashboard\IKU\Iku3Controller@apiIku3Praktisi')->name('apiIku3Praktisi');
     Route::get('api/iku3/prestasi',  'App\Http\Controllers\Dashboard\IKU\Iku3Controller@apiIku3Prestasi')->name('apiIku3Prestasi');
+
+    Route::get('iku4',  'App\Http\Controllers\Dashboard\IKU\Iku4Controller@homeIku4')->name('dashboardIku4');
+    Route::get('api/iku4',  'App\Http\Controllers\Dashboard\IKU\Iku4Controller@apiIku4')->name('apiDashboardIku4');
+    Route::get('api/iku4/dosen',  'App\Http\Controllers\Dashboard\IKU\Iku4Controller@apiIku4Dosen')->name('apiIku4Dosen');
+    Route::get('api/iku4/pendidikan',  'App\Http\Controllers\Dashboard\IKU\Iku4Controller@apiIku4Pendidikan')->name('apiIku4Pendidikan');
+    Route::get('api/iku4/sertifikasi',  'App\Http\Controllers\Dashboard\IKU\Iku4Controller@apiIku4Sertifikasi')->name('apiIku4Sertifikasi');
+    Route::get('api/iku4/praktisi',  'App\Http\Controllers\Dashboard\IKU\Iku4Controller@apiIku4Praktisi')->name('apiIku4Praktisi');
 });

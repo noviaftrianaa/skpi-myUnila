@@ -36,8 +36,8 @@ class Iku3Controller extends Controller
 
     public function apiIku3()
     {
-        $thn_iku = (string) $this->request->thn_iku;
-        $is_ulang = (string) $this->request->is_ulang;
+        $thn_iku = $this->request->thn_iku;
+        $is_ulang = $this->request->is_ulang;
 
         if ($is_ulang) {
             Cache::forget('apiIku3-' . $thn_iku);
@@ -59,7 +59,7 @@ class Iku3Controller extends Controller
                             JOIN pdrd.litabmas AS lit ON lit.id_litabmas = sal.id_litabmas
                             AND lit.soft_delete = 0
                             AND lit.stat_aktif = 1
-                            AND lit.id_thn_laks >= (" . $thn_iku . " - 5)
+                            AND lit.id_thn_laks >= " . ($thn_iku - 5) . "
                             AND lit.id_lemb_iptek != ptk.id_sp
                         WHERE
                             sal.id_sdm = sdm.id_sdm
@@ -85,10 +85,10 @@ class Iku3Controller extends Controller
                             AND rkrj.soft_delete = 0
                             AND (
                                 CASE
-                                    WHEN rkrj.selesai_bekerja IS NULL THEN DATEDIFF(DAY, rkrj.mulai_bekerja,'" . $thn_iku . '-12-31' . "') / 365.2425
-                                    ELSE DATEDIFF(DAY, rkrj.mulai_bekerja, rkrj.selesai_bekerja) / 365.2425
+                                    WHEN rkrj.selesai_bekerja IS NULL THEN '" . $thn_iku . '-12-31' . "'
+                                    ELSE rkrj.selesai_bekerja
                                 END
-                            ) > 5
+                            ) >= '" . ($thn_iku - 5) . '-01-01' . "'
                     ) AS l_praktisi,
                     (
                         SELECT
@@ -206,7 +206,7 @@ class Iku3Controller extends Controller
                             JOIN pdrd.litabmas AS lit ON lit.id_litabmas = sal.id_litabmas
                             AND lit.soft_delete = 0
                             AND lit.stat_aktif = 1
-                            AND lit.id_thn_laks >= (" . $thn_iku . " - 5)
+                            AND lit.id_thn_laks >= " . ($thn_iku - 5) . "
                             AND lit.id_lemb_iptek != ptk.id_sp
                         WHERE
                             sal.id_sdm = sdm.id_sdm
@@ -232,10 +232,10 @@ class Iku3Controller extends Controller
                             AND rkrj.soft_delete = 0
                             AND (
                                 CASE
-                                    WHEN rkrj.selesai_bekerja IS NULL THEN DATEDIFF(DAY, rkrj.mulai_bekerja, '" . $thn_iku . '-12-31' . "') / 365.2425
-                                    ELSE DATEDIFF(DAY, rkrj.mulai_bekerja, rkrj.selesai_bekerja) / 365.2425
+                                    WHEN rkrj.selesai_bekerja IS NULL THEN '" . $thn_iku . '-12-31' . "'
+                                    ELSE rkrj.selesai_bekerja
                                 END
-                            ) > 5
+                            ) >= '" . ($thn_iku - 5) . '-01-01' . "'
                     ) AS l_praktisi,
                     (
                         SELECT
@@ -339,7 +339,7 @@ class Iku3Controller extends Controller
                     JOIN pdrd.litabmas AS lit ON lit.id_litabmas = sal.id_litabmas
                     AND lit.soft_delete = 0
                     AND lit.stat_aktif = 1
-                    AND lit.id_thn_laks >= (" . $thn_iku . " - 5)
+                    AND lit.id_thn_laks >= " . ($thn_iku - 5) . "
                     AND lit.id_lemb_iptek != 'e2b705a7-173e-464a-9fac-509128709515'
                     JOIN pdrd.lembaga_iptek AS afil WITH(NOLOCK) ON afil.id_lemb_iptek = lit.id_lemb_iptek
                     AND afil.soft_delete = 0
@@ -397,10 +397,10 @@ class Iku3Controller extends Controller
                     AND rkrj.soft_delete = 0
                     AND (
                         CASE
-                            WHEN rkrj.selesai_bekerja IS NULL THEN DATEDIFF(DAY, rkrj.mulai_bekerja, '" . $thn_iku . '-12-31' . "') / 365.2425
-                            ELSE DATEDIFF(DAY, rkrj.mulai_bekerja, rkrj.selesai_bekerja) / 365.2425
+                            WHEN rkrj.selesai_bekerja IS NULL THEN '" . $thn_iku . '-12-31' . "'
+                            ELSE rkrj.selesai_bekerja
                         END
-                    ) > 5
+                    ) >= '" . ($thn_iku - 5) . '-01-01' . "'
             ", [$id_sdm]);
         });
         return DaTables::of($apiIku3Praktisi)->make(true);

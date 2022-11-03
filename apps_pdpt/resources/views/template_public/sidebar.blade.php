@@ -134,10 +134,59 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
+                            <a href="#"
+                                class="nav-link {{ $side_active == 'iku' ? 'active' : '' }}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>IKU 1</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#"
+                                class="nav-link {{ $side_active == 'iku' ? 'active' : '' }}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>IKU 2</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a href="{{ route('dashboardIku3') }}"
                                 class="nav-link {{ $side_active == 'iku' ? 'active' : '' }}">
                                 <i class="far fa-circle nav-icon"></i>
-                                <p>IKU NEW</p>
+                                <p>IKU 3</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('dashboardIku4') }}"
+                                class="nav-link {{ $side_active == 'iku' ? 'active' : '' }}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>IKU 4</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#"
+                                class="nav-link {{ $side_active == 'iku' ? 'active' : '' }}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>IKU 5</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#"
+                                class="nav-link {{ $side_active == 'iku' ? 'active' : '' }}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>IKU 6</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#"
+                                class="nav-link {{ $side_active == 'iku' ? 'active' : '' }}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>IKU 7</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#"
+                                class="nav-link {{ $side_active == 'iku' ? 'active' : '' }}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>IKU 8</p>
                             </a>
                         </li>
 
@@ -146,7 +195,7 @@
                                 class="nav-link {{ $side_active == 'iku' ? 'active' : '' }}"
                                 >
                                 <i class="far fa-circle nav-icon"></i>
-                                <p>IKU</p>
+                                <p>IKU OLD</p>
                             </a>
                         </li>
 
