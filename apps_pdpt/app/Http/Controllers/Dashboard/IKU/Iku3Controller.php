@@ -34,21 +34,25 @@ class Iku3Controller extends Controller
         ");
     }
 
+    public function clearCacheIku3($thn_iku)
+    {
+        Cache::forget($thn_iku . '-apiIku3-');
+        Cache::forget($thn_iku . '-apiIku3Dosen-');
+        Cache::forget($thn_iku . '-apiIku3Tridharma-');
+        Cache::forget($thn_iku . '-apiIku3Qs100-');
+        Cache::forget($thn_iku . '-apiIku3Praktisi-');
+        Cache::forget($thn_iku . '-apiIku3Prestasi-');
+    }
+
     public function apiIku3()
     {
         $thn_iku = $this->request->thn_iku;
         $is_ulang = $this->request->is_ulang;
-
+        $cache = $thn_iku . '-apiIku3-';
         if ($is_ulang) {
-            Cache::forget('apiIku3-' . $thn_iku);
-            Cache::forget('apiIku3Dosen-' . $thn_iku);
-            Cache::forget('apiIku3Tridharma-' . $thn_iku);
-            Cache::forget('apiIku3Qs100-' . $thn_iku);
-            Cache::forget('apiIku3Praktisi-' . $thn_iku);
-            Cache::forget('apiIku3Prestasi-' . $thn_iku);
+            $this->clearCacheIku3($thn_iku);
         }
-
-        $apiIku3 = Cache::rememberForever('apiIku3-' . $thn_iku, function () use ($thn_iku) {
+        $apiIku3 = Cache::rememberForever($cache, function () use ($thn_iku) {
             return DB::select("
                 SELECT
                     (
@@ -195,7 +199,9 @@ class Iku3Controller extends Controller
     {
         $thn_iku = (string) $this->request->thn_iku;
         $id_prodi = (string) $this->request->id_prodi;
-        $apiIku3Dosen = Cache::rememberForever('apiIku3Dosen-' . $id_prodi, function () use ($id_prodi, $thn_iku) {
+        $cache = $thn_iku . '-apiIku3Dosen-';
+
+        $apiIku3Dosen = Cache::rememberForever($cache . Cache::increment($cache), function () use ($id_prodi, $thn_iku) {
             return DB::select("
                 SELECT
                     (
@@ -249,6 +255,18 @@ class Iku3Controller extends Controller
                             bmhs.id_sdm = sdm.id_sdm
                             AND bmhs.soft_delete = 0
                     ) AS l_prestasi,
+                    (
+                        SELECT
+                            sdm.nidn
+                        WHERE
+                            LEFT(sdm.nidn, 2) <= 87
+                    ) AS l_nidn,
+                    (
+                        SELECT
+                            sdm.nidn
+                        WHERE
+                            LEFT(sdm.nidn, 2) IN (88, 89)
+                    ) AS l_nidk,
                     sdm.nidn,
                     sdm.nm_sdm,
                     sdm.jk,
@@ -320,7 +338,9 @@ class Iku3Controller extends Controller
     {
         $thn_iku = (string) $this->request->thn_iku;
         $id_sdm = (string) $this->request->id_sdm;
-        $apiIku3Tridharma = Cache::rememberForever('apiIku3Tridharma-' . $id_sdm, function () use ($id_sdm, $thn_iku) {
+        $cache = $thn_iku . '-apiIku3Tridharma-';
+
+        $apiIku3Tridharma = Cache::rememberForever($cache . Cache::increment($cache), function () use ($id_sdm, $thn_iku) {
             return DB::select("
                 SELECT
                     CASE
@@ -355,7 +375,10 @@ class Iku3Controller extends Controller
     public function apiIku3Qs100()
     {
         $id_sdm = (string) $this->request->id_sdm;
-        $apiIku3Qs100 = Cache::rememberForever('apiIku3Qs100-' . $id_sdm, function () use ($id_sdm) {
+        $thn_iku = (string) $this->request->thn_iku;
+        $cache = $thn_iku . '-apiIku3Qs100-';
+
+        $apiIku3Qs100 = Cache::rememberForever($cache . Cache::increment($cache), function () use ($id_sdm, $thn_iku) {
             return DB::select("
                 SELECT
                     dts.bid_tgs,
@@ -378,9 +401,11 @@ class Iku3Controller extends Controller
 
     public function apiIku3Praktisi()
     {
-        $thn_iku = (string) $this->request->thn_iku;
         $id_sdm = (string) $this->request->id_sdm;
-        $apiIku3Praktisi = Cache::rememberForever('apiIku3Praktisi-' . $id_sdm, function () use ($id_sdm, $thn_iku) {
+        $thn_iku = (string) $this->request->thn_iku;
+        $cache = $thn_iku . '-apiIku3Praktisi-';
+
+        $apiIku3Praktisi = Cache::rememberForever($cache . Cache::increment($cache), function () use ($id_sdm, $thn_iku) {
             return DB::select("
                 SELECT
                     pkrj.nm_pekerjaan AS bid_pekerjaan,
@@ -409,7 +434,10 @@ class Iku3Controller extends Controller
     public function apiIku3Prestasi()
     {
         $id_sdm = (string) $this->request->id_sdm;
-        $apiIku3Prestasi = Cache::rememberForever('apiIku3Prestasi-' . $id_sdm, function () use ($id_sdm) {
+        $thn_iku = (string) $this->request->thn_iku;
+        $cache = $thn_iku . '-apiIku3Prestasi-';
+
+        $apiIku3Prestasi = Cache::rememberForever($cache . Cache::increment($cache), function () use ($id_sdm, $thn_iku) {
             return DB::select("
                 SELECT
                     psd.nm_pd,

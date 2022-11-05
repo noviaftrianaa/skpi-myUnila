@@ -18,22 +18,39 @@ class Iku4Controller extends Controller
         $this->tahunIku = app(Iku3Controller::class)->tahunIku();
     }
 
+    public function clearCacheIku4($thn_iku)
+    {
+        Cache::forget($thn_iku . '-apiIku4-');
+        Cache::forget($thn_iku . '-apiIku4Dosen-');
+        Cache::forget($thn_iku . '-apiIku4Pendidikan-');
+        Cache::forget($thn_iku . '-apiIku4Sertifikasi-');
+        Cache::forget($thn_iku . '-apiIku4Praktisi-');
+    }
+
     public function apiIku4()
     {
         $thn_iku = $this->request->thn_iku;
         $is_ulang = $this->request->is_ulang;
-
+        $cache = $thn_iku . '-apiIku4-';
         if ($is_ulang) {
-            Cache::forget('apiIku4-' . $thn_iku);
-            Cache::forget('apiIku4Dosen-' . $thn_iku);
-            Cache::forget('apiIku4Pendidikan-' . $thn_iku);
-            Cache::forget('apiIku4sertifikasi-' . $thn_iku);
-            Cache::forget('apiIku4Praktisi-' . $thn_iku);
+            $this->clearCacheIku4($thn_iku);
         }
 
-        $apiIku4 = Cache::rememberForever('apiIku4-' . $thn_iku, function () use ($thn_iku) {
+        $apiIku4 = Cache::rememberForever($cache, function () use ($thn_iku) {
             return DB::select("
                 SELECT
+                    (
+                        SELECT
+                            sdm.nidn
+                        WHERE
+                            LEFT(sdm.nidn, 2) <= 87
+                    ) AS l_nidn,
+                    (
+                        SELECT
+                            sdm.nidn
+                        WHERE
+                            LEFT(sdm.nidn, 2) IN (88, 89)
+                    ) AS l_nidk,
                     (
                         SELECT
                             COUNT(pend.id_sdm)
@@ -108,7 +125,7 @@ class Iku4Controller extends Controller
         });
         $fakultas = [];
         foreach ($apiIku4 as $k => $v) {
-            $x_yes = ($v->l_pend > 0 && ($v->l_sert > 0 || $v->l_praktisi > 0)) ? 1  : 0;
+            $x_yes = (($v->l_pend > 0 || !empty($v->l_nidk)) && ($v->l_sert > 0 || $v->l_praktisi > 0)) ? 1  : 0;
             if (!array_key_exists($v->y_nm_fakultas, $fakultas)) {
                 $fakultas[$v->y_nm_fakultas]['DATA'] = [
                     'y_id' => $v->y_id_fakultas,
@@ -130,7 +147,7 @@ class Iku4Controller extends Controller
             $fakultas[$v->y_nm_fakultas]['DATA']['x_data_no'] = $fakultas[$v->y_nm_fakultas]['DATA']['x_data'] - $fakultas[$v->y_nm_fakultas]['DATA']['x_data_yes'];
         }
         foreach ($apiIku4 as $k => $v) {
-            $x_yes = ($v->l_pend > 0 && ($v->l_sert > 0 || $v->l_praktisi > 0)) ? 1  : 0;
+            $x_yes = (($v->l_pend > 0 || !empty($v->l_nidk)) && ($v->l_sert > 0 || $v->l_praktisi > 0)) ? 1  : 0;
             if (!array_key_exists($v->y_nm_prodi, $fakultas[$v->y_nm_fakultas]['DRILL'])) {
                 $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA'] = [
                     'y_id' => $v->y_id_prodi,
@@ -157,7 +174,8 @@ class Iku4Controller extends Controller
     {
         $thn_iku = $this->request->thn_iku;
         $id_prodi = $this->request->id_prodi;
-        $apiIku3Dosen = Cache::rememberForever('apiIku4Dosen-' . $id_prodi, function () use ($id_prodi, $thn_iku) {
+        $cache = $thn_iku . '-apiIku4Dosen-';
+        $apiIku4Dosen = Cache::rememberForever($cache . Cache::increment($cache), function () use ($id_prodi, $thn_iku) {
             return DB::select("
                 SELECT
                     (
@@ -194,6 +212,18 @@ class Iku4Controller extends Controller
                                 END
                             ) >= '" . ($thn_iku -5) . '-01-01' . "'
                     ) AS l_praktisi,
+                    (
+                        SELECT
+                            sdm.nidn
+                        WHERE
+                            LEFT(sdm.nidn, 2) <= 87
+                    ) AS l_nidn,
+                    (
+                        SELECT
+                            sdm.nidn
+                        WHERE
+                            LEFT(sdm.nidn, 2) IN (88, 89)
+                    ) AS l_nidk,
                     sdm.nidn,
                     sdm.nm_sdm,
                     sdm.jk,
@@ -258,13 +288,15 @@ class Iku4Controller extends Controller
                     AND ptk.id_sms = ?
             ", [$id_prodi]);
         });
-        return DaTables::of($apiIku3Dosen)->make(true);
+        return DaTables::of($apiIku4Dosen)->make(true);
     }
 
     public function apiIku4Pendidikan()
     {
         $id_sdm = $this->request->id_sdm;
-        $apiIku4Pendidikan = Cache::rememberForever('apiIku4Pendidikan-' . $id_sdm, function () use ($id_sdm) {
+        $thn_iku = $this->request->thn_iku;
+        $cache = $thn_iku . '-apiIku4Pendidikan-';
+        $apiIku4Pendidikan = Cache::rememberForever($cache . Cache::increment($cache), function () use ($id_sdm) {
             return DB::select("
                 SELECT
                     rpend.nm_sp_formal,
@@ -293,7 +325,9 @@ class Iku4Controller extends Controller
     public function apiIku4Sertifikasi()
     {
         $id_sdm = $this->request->id_sdm;
-        $apiIku4Sertifikasi = Cache::rememberForever('apiIku4Sertifikasi-' . $id_sdm, function () use ($id_sdm) {
+        $thn_iku = $this->request->thn_iku;
+        $cache = $thn_iku . '-apiIku4Sertifikasi-';
+        $apiIku4Sertifikasi = Cache::rememberForever($cache . Cache::increment($cache), function () use ($id_sdm) {
             return DB::select("
                 SELECT
                     jsert.nm_jns_sert,
@@ -320,7 +354,9 @@ class Iku4Controller extends Controller
     {
         $thn_iku = $this->request->thn_iku;
         $id_sdm = $this->request->id_sdm;
-        $apiIku4Praktisi = Cache::rememberForever('apiIku4Praktisi-' . $id_sdm, function () use ($id_sdm, $thn_iku) {
+        $thn_iku = $this->request->thn_iku;
+        $cache = $thn_iku . '-apiIku4Praktisi-';
+        $apiIku4Praktisi = Cache::rememberForever($cache . Cache::increment($cache), function () use ($id_sdm, $thn_iku) {
             return DB::select("
                 SELECT
                     pkrj.nm_pekerjaan AS bid_pekerjaan,

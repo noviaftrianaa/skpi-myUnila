@@ -42,8 +42,9 @@
                         <div class="col">
                             <div class="input-group">
                                 <select id="thn_iku" class="form-control mr-2">
-                                    @foreach($thn_iku as $th)
-                                        <option {{ ($th->a_periode_aktif == 1) ? 'selected' : '' }} value="{{ $th->id_thn_ajaran }}">{{ $th->id_thn_ajaran }}</option>
+                                    @foreach ($thn_iku as $th)
+                                        <option {{ $th->a_periode_aktif == 1 ? 'selected' : '' }}
+                                            value="{{ $th->id_thn_ajaran }}">{{ $th->nm_thn_ajaran }}</option>
                                     @endforeach
                                 </select>
                                 <div class="input-group-append">
@@ -146,39 +147,34 @@
                     </div>
                     <div class="float-right mt-3">
                         <button id="btn_modal_back" class="btn btn-primary mr-1"><i class="fas fa-arrow-left"></i></button>
-                        <button class="btn btn-danger" data-dismiss="modal" aria-label="Close"><i
+                        <button id="btn_modal_close" class="btn btn-danger" data-dismiss="modal" aria-label="Close"><i
                                 class="fas fa-times"></i></button>
                     </div>
                 </div>
                 <div class="modal-body">
                     <div id="x_tb_01">
-                        <table id="tb_01" class="table table-bordered table-striped dataTable dtr-inline"
-                            aria-describedby="tb_01_info">
-                            <thead class="bg-info"></thead>
+                        <table id="tb_01" class="table table-bordered table-striped">
+                            <thead class="bg-info text-center"></thead>
                         </table>
                     </div>
                     <div id="x_tb_02">
-                        <table id="tb_02" class="table table-bordered table-striped dataTable dtr-inline"
-                            aria-describedby="tb_02_info">
-                            <thead class="bg-info"></thead>
+                        <table id="tb_02" class="table table-bordered table-striped">
+                            <thead class="bg-info text-center"></thead>
                         </table>
                     </div>
                     <div id="x_tb_03">
-                        <table id="tb_03" class="table table-bordered table-striped dataTable dtr-inline"
-                            aria-describedby="tb_03_info">
-                            <thead class="bg-info"></thead>
+                        <table id="tb_03" class="table table-bordered table-striped">
+                            <thead class="bg-info text-center"></thead>
                         </table>
                     </div>
                     <div id="x_tb_04">
-                        <table id="tb_04" class="table table-bordered table-striped dataTable dtr-inline"
-                            aria-describedby="tb_04_info">
-                            <thead class="bg-info"></thead>
+                        <table id="tb_04" class="table table-bordered table-striped">
+                            <thead class="bg-info text-center"></thead>
                         </table>
                     </div>
                     <div id="x_tb_05">
-                        <table id="tb_05" class="table table-bordered table-striped dataTable dtr-inline"
-                            aria-describedby="tb_05_info">
-                            <thead class="bg-info"></thead>
+                        <table id="tb_05" class="table table-bordered table-striped">
+                            <thead class="bg-info text-center"></thead>
                         </table>
                     </div>
                 </div>
@@ -207,6 +203,8 @@
         });
 
         $("#btn_modal_back").click(function() {
+            $("#btn_modal_close").show();
+            $("#btn_modal_back").hide();
             $("#txt3_modal").html("");
             $("#x_tb_01").show();
             $("#x_tb_02").hide();
@@ -288,7 +286,7 @@
             Iku3Chart(y_title, x_data_yes, x_data_no, fak);
             $("#navChart").html(
                 `<a href="javascript:" class="text-dark">UNILA</a> / <a href="javascript:Iku3Fakultas();" class="text-dark">FAKULTAS</a> / PRODI`
-                );
+            );
         }
 
         function Iku3Chart(y_title, x_data_yes, x_data_no, fak = null) {
@@ -358,6 +356,8 @@
         }
 
         function reloadTbIku3Tridharma(id_sdm, nm_sdm, nidn) {
+            $("#btn_modal_close").hide();
+            $("#btn_modal_back").show();
             $("#txt3_modal").html("TRIDHARMA - " + nm_sdm + " - " + nidn);
             $("#x_tb_01").hide();
             $("#x_tb_02").show();
@@ -373,6 +373,8 @@
         }
 
         function reloadTbIku3Qs100(id_sdm, nm_sdm, nidn) {
+            $("#btn_modal_close").hide();
+            $("#btn_modal_back").show();
             $("#txt3_modal").html("Qs100 - " + nm_sdm + " - " + nidn);
             $("#x_tb_01").hide();
             $("#x_tb_02").hide();
@@ -388,6 +390,8 @@
         }
 
         function reloadTbIku3Praktisi(id_sdm, nm_sdm, nidn) {
+            $("#btn_modal_close").hide();
+            $("#btn_modal_back").show();
             $("#txt3_modal").html("Praktisi - " + nm_sdm + " - " + nidn);
             $("#x_tb_01").hide();
             $("#x_tb_02").hide();
@@ -403,6 +407,8 @@
         }
 
         function reloadTbIku3Prestasi(id_sdm, nm_sdm, nidn) {
+            $("#btn_modal_close").hide();
+            $("#btn_modal_back").show();
             $("#txt3_modal").html("Prestasi - " + nm_sdm + " - " + nidn);
             $("#x_tb_01").hide();
             $("#x_tb_02").hide();
@@ -418,6 +424,8 @@
         }
 
         function TbIku3Dosen(id_prodi) {
+            $("#btn_modal_close").show();
+            $("#btn_modal_back").hide();
             $('#exampleModal').modal('show');
             $('#tb_01').DataTable({
                 processing: true,
@@ -451,21 +459,26 @@
                         data: 'nm_sdm',
                         name: 'nm_sdm',
                     }, {
-                        title: 'JK',
+                        title: 'Jk',
                         data: 'jk',
                         name: 'jk',
                     }, {
-                        title: 'NIDN/NIDK',
-                        data: 'nidn',
-                        name: 'nidn',
+                        title: 'Nidn',
+                        data: 'l_nidn',
+                        name: 'l_nidn',
                     },
                     {
-                        title: 'Tgl. Lahir',
+                        title: 'Nidk',
+                        data: 'l_nidk',
+                        name: 'l_nidk',
+                    },
+                    {
+                        title: 'Tgl. Lhr',
                         data: 'tgl_lahir',
                         name: 'tgl_lahir',
                     },
                     {
-                        title: 'Pend',
+                        title: 'Pend. Akhir',
                         data: 'pend_akhir',
                         name: 'pend_akhir',
                     },
@@ -504,7 +517,7 @@
                         }
                     },
                     {
-                        title: 'Prestasi',
+                        title: 'Membina',
                         data: 'l_prestasi',
                         name: 'l_prestasi',
                         render: function(data, type, row) {
@@ -513,10 +526,10 @@
                     }
                 ],
                 order: [
-                    [8, 'desc'],
                     [9, 'desc'],
                     [10, 'desc'],
-                    [11, 'desc']
+                    [11, 'desc'],
+                    [12, 'desc'],
                 ],
             });
         }

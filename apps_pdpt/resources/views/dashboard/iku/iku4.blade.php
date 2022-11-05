@@ -44,7 +44,7 @@
                                 <select id="thn_iku" class="form-control mr-2">
                                     @foreach ($thn_iku as $th)
                                         <option {{ $th->a_periode_aktif == 1 ? 'selected' : '' }}
-                                            value="{{ $th->id_thn_ajaran }}">{{ $th->id_thn_ajaran }}</option>
+                                            value="{{ $th->id_thn_ajaran }}">{{ $th->nm_thn_ajaran }}</option>
                                     @endforeach
                                 </select>
                                 <div class="input-group-append">
@@ -84,7 +84,7 @@
                             <div class="small-box bg-warning">
                                 <div class="inner">
                                     <h3 id="x_total_data">0</h3>
-                                    <p>Total Dosen IKU 4</p>
+                                    <p>Total Dosen Pada IKU 4</p>
                                 </div>
                                 <div class="icon">
                                     <i class="ion ion-person-add"></i>
@@ -97,7 +97,7 @@
                             <div class="small-box bg-warning">
                                 <div class="inner">
                                     <h3 id="h_total_data_capaian">0</h3>
-                                    <p>Presentase Capaian IKU 4</p>
+                                    <p>Presentase Pencapaian IKU 4</p>
                                 </div>
                                 <div class="icon">
                                     <i class="ion ion-stats-bars"></i>
@@ -108,7 +108,7 @@
                             <div class="small-box bg-warning">
                                 <div class="inner">
                                     <h3 id="h_total_data_gold">0</h3>
-                                    <p>Delta Gold Standar IKU 4</p>
+                                    <p>Delta Terhadap Gold Standar IKU 4</p>
                                 </div>
                                 <div class="icon">
                                     <i class="ion ion-person-add"></i>
@@ -147,7 +147,7 @@
                     </div>
                     <div class="float-right mt-3">
                         <button id="btn_modal_back" class="btn btn-primary mr-1"><i class="fas fa-arrow-left"></i></button>
-                        <button class="btn btn-danger" data-dismiss="modal" aria-label="Close"><i
+                        <button id="btn_modal_close" class="btn btn-danger" data-dismiss="modal" aria-label="Close"><i
                                 class="fas fa-times"></i></button>
                     </div>
                 </div>
@@ -155,31 +155,31 @@
                     <div id="x_tb_01">
                         <table id="tb_01" class="table table-bordered table-striped dataTable dtr-inline"
                             aria-describedby="tb_01_info">
-                            <thead class="bg-info"></thead>
+                            <thead class="bg-info text-center"></thead>
                         </table>
                     </div>
                     <div id="x_tb_02">
                         <table id="tb_02" class="table table-bordered table-striped dataTable dtr-inline"
                             aria-describedby="tb_02_info">
-                            <thead class="bg-info"></thead>
+                            <thead class="bg-info text-center"></thead>
                         </table>
                     </div>
                     <div id="x_tb_03">
                         <table id="tb_03" class="table table-bordered table-striped dataTable dtr-inline"
                             aria-describedby="tb_03_info">
-                            <thead class="bg-info"></thead>
+                            <thead class="bg-info text-center"></thead>
                         </table>
                     </div>
                     <div id="x_tb_04">
                         <table id="tb_04" class="table table-bordered table-striped dataTable dtr-inline"
                             aria-describedby="tb_04_info">
-                            <thead class="bg-info"></thead>
+                            <thead class="bg-info text-center"></thead>
                         </table>
                     </div>
                     <div id="x_tb_05">
                         <table id="tb_05" class="table table-bordered table-striped dataTable dtr-inline"
                             aria-describedby="tb_05_info">
-                            <thead class="bg-info"></thead>
+                            <thead class="bg-info text-center"></thead>
                         </table>
                     </div>
                 </div>
@@ -208,6 +208,8 @@
         });
 
         $("#btn_modal_back").click(function() {
+            $("#btn_modal_close").show();
+            $("#btn_modal_back").hide();
             $("#txt3_modal").html("");
             $("#x_tb_01").show();
             $("#x_tb_02").hide();
@@ -217,14 +219,14 @@
         });
 
         function refreshTotal() {
-            let standar = 20;
+            let standar = 40;
             h_total_data_capaian = (x_total_data_yes / x_total_data) * 100;
             h_total_data_gold = (h_total_data_capaian - standar);
             $('#x_total_data').text(x_total_data);
             $('#x_total_data_yes').text(x_total_data_yes);
             $('#x_total_data_no').text(x_total_data_no);
-            $('#h_total_data_capaian').text(h_total_data_capaian.toFixed(2) + ' %');
-            $('#h_total_data_gold').text(h_total_data_gold.toFixed(2) + ' %');
+            $('#h_total_data_capaian').text(h_total_data_capaian.toFixed(2) + '%');
+            $('#h_total_data_gold').text(h_total_data_gold.toFixed(2) + '%');
         }
 
         function Iku4Data(ulang) {
@@ -359,6 +361,8 @@
         }
 
         function reloadTbIku4Pendidikan(id_sdm, nm_sdm, nidn) {
+            $("#btn_modal_close").hide();
+            $("#btn_modal_back").show();
             $("#txt3_modal").html("Pendidikan - " + nm_sdm + " - " + nidn);
             $("#x_tb_01").hide();
             $("#x_tb_02").show();
@@ -374,6 +378,8 @@
         }
 
         function reloadTbIku4Sertifikasi(id_sdm, nm_sdm, nidn) {
+            $("#btn_modal_close").hide();
+            $("#btn_modal_back").show();
             $("#txt3_modal").html("Sertifikasi - " + nm_sdm + " - " + nidn);
             $("#x_tb_01").hide();
             $("#x_tb_02").hide();
@@ -389,6 +395,8 @@
         }
 
         function reloadTbIku4Praktisi(id_sdm, nm_sdm, nidn) {
+            $("#btn_modal_close").hide();
+            $("#btn_modal_back").show();
             $("#txt3_modal").html("Praktisi - " + nm_sdm + " - " + nidn);
             $("#x_tb_01").hide();
             $("#x_tb_02").hide();
@@ -403,10 +411,9 @@
             }
         }
 
-
-
-
         function TbIku4Dosen(id_prodi) {
+            $("#btn_modal_close").show();
+            $("#btn_modal_back").hide();
             $('#exampleModal').modal('show');
             $('#tb_01').DataTable({
                 processing: true,
@@ -427,7 +434,7 @@
                 columns: [{
                         title: '#',
                         render: function(data, type, row) {
-                            if ((row.l_pend > 0) && (row.l_sert > 0 || row.l_praktisi > 0)) {
+                            if ((row.l_pend > 0 || row.nidk != null) && (row.l_sert > 0 || row.l_praktisi > 0)) {
                                 return "<center><b class='text-bold text-green'>Y</b></center>";
                             } else {
                                 return "<center><b class='text-bold text-red'>T</b></center>";
@@ -439,21 +446,26 @@
                         data: 'nm_sdm',
                         name: 'nm_sdm',
                     }, {
-                        title: 'JK',
+                        title: 'Jk',
                         data: 'jk',
                         name: 'jk',
                     }, {
-                        title: 'NIDN/NIDK',
-                        data: 'nidn',
-                        name: 'nidn',
+                        title: 'Nidn',
+                        data: 'l_nidn',
+                        name: 'l_nidn',
                     },
                     {
-                        title: 'Tgl. Lahir',
+                        title: 'Nidk',
+                        data: 'l_nidk',
+                        name: 'l_nidk',
+                    },
+                    {
+                        title: 'Tgl. Lhr',
                         data: 'tgl_lahir',
                         name: 'tgl_lahir',
                     },
                     {
-                        title: 'Pend',
+                        title: 'Pend. Akhir',
                         data: 'pend_akhir',
                         name: 'pend_akhir',
                     },
@@ -468,7 +480,7 @@
                         name: 'keaktifan',
                     },
                     {
-                        title: 'Pendidikan S3',
+                        title: 'Pend. S3',
                         data: 'l_pend',
                         name: 'l_pend',
                         render: function(data, type, row) {
@@ -493,9 +505,9 @@
                     },
                 ],
                 order: [
-                    [8, 'desc'],
                     [9, 'desc'],
-                    [10, 'desc']
+                    [10, 'desc'],
+                    [11, 'desc']
                 ],
             });
         }
