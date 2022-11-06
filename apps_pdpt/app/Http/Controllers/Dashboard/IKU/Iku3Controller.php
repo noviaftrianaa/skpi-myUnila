@@ -22,9 +22,11 @@ class Iku3Controller extends Controller
     {
         return DB::select("
             SELECT
-                th.id_thn_ajaran,
                 th.a_periode_aktif,
-                th.nm_thn_ajaran
+                th.id_thn_ajaran,
+                th.nm_thn_ajaran,
+                CONVERT(DATE, th.tgl_mulai) AS tgl_mulai,
+                CONVERT(DATE, th.tgl_selesai) AS tgl_selesai
             FROM
                 ref.tahun_ajaran AS th
             WHERE
