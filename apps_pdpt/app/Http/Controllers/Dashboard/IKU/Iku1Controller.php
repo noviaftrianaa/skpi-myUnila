@@ -11,10 +11,12 @@ use Yajra\DataTables\Facades\DataTables as DaTables;
 class Iku1Controller extends Controller
 {
     private $request;
+    private $tahunIku;
 
     public function __construct()
     {
         $this->request = app(Request::class);
+        $this->tahunIku = app(Iku3Controller::class)->tahunIku();
     }
 
     public function tahunIku()
@@ -344,7 +346,7 @@ class Iku1Controller extends Controller
 
     public function homeIku1()
     {
-        $thn_iku = $this->tahunIku();
+        $thn_iku = $this->tahunIku;
         $side_active   = 'iku';
         return view('dashboard.iku.iku1', compact('side_active', 'thn_iku'));
     }
