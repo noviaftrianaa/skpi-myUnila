@@ -101,20 +101,20 @@ class Iku1Controller extends Controller
                     AND jenj.id_jenj_didik IN(21, 22, 23, 30)
                     LEFT JOIN tracer.hasil_tracer_study AS tc WITH(NOLOCK) ON tc.id_reg_pd = rgpd.id_reg_pd
                     AND tc.soft_delete = 0
-                    AND tc.id_thn_ajaran BETWEEN '" . ($thn_iku - 1) . "' AND '" . $thn_iku . "'
+                    AND tc.id_thn_ajaran = '" . ($thn_iku - 1) . "'
                     LEFT JOIN tracer.umr_wilayah AS umr WITH(NOLOCK) ON umr.id_wil = tc.id_wil
                     AND umr.id_tahun_anggaran = tc.id_thn_ajaran
                     AND umr.soft_delete = 0
                 WHERE
                     rgpd.soft_delete = 0
-                    AND rgpd.tgl_sk_yudisium BETWEEN '" . ($thn_iku - 1) . "-08-01' AND '" . $thn_iku . "-07-31'
+                    AND YEAR(rgpd.tgl_sk_yudisium) = '" . ($thn_iku - 1) . "'
                     AND rgpd.id_sms <> 'EDD11DC8-72ED-4B06-B993-2551D1D4406A'
                     AND rgpd.id_jns_keluar = '1'
                     ORDER BY
                     fak.nm_lemb,
                     jenj.nm_jenj_didik,
                     prod.nm_lemb ASC
-            ", [$thn_iku,  $thn_iku]);
+            ");
         });
 
         $fakultas = [];
@@ -245,14 +245,14 @@ class Iku1Controller extends Controller
                     AND jadftr.expired_date IS NULL
                     LEFT JOIN tracer.hasil_tracer_study AS tc WITH(NOLOCK) ON tc.id_reg_pd = rgpd.id_reg_pd
                     AND tc.soft_delete = 0
-                    AND tc.id_thn_ajaran BETWEEN '" . ($thn_iku - 1) . "' AND '" . $thn_iku . "'
+                    AND tc.id_thn_ajaran = '" . ($thn_iku - 1) . "'
                     LEFT JOIN tracer.umr_wilayah AS umr WITH(NOLOCK) ON umr.id_wil = tc.id_wil
                     AND umr.id_tahun_anggaran = tc.id_thn_ajaran
                     AND umr.soft_delete = 0
                 WHERE
                     rgpd.soft_delete = 0
                     AND prod.id_sms = '" . $id_prodi . "'
-                    AND rgpd.tgl_sk_yudisium BETWEEN '" . ($thn_iku - 1) . "-08-01' AND '" . $thn_iku . "-07-31'
+                    AND rgpd.tgl_sk_yudisium = '" . ($thn_iku - 1) . "'
                     AND rgpd.id_jns_keluar = '1'
             ");
         });
@@ -303,7 +303,7 @@ class Iku1Controller extends Controller
                 WHERE
                     tc.soft_delete = 0
                     AND tc.id_reg_pd = ?
-                    AND tc.id_thn_ajaran BETWEEN '" . ($thn_iku - 1) . "' AND '" . $thn_iku . "'
+                    AND tc.id_thn_ajaran = '" . ($thn_iku - 1) . "'
                     AND tc.status_lulusan IN (1, 2)
             ", [$id_reg_pd]);
         });
@@ -337,7 +337,7 @@ class Iku1Controller extends Controller
                 WHERE
                     tc.soft_delete = 0
                     AND tc.id_reg_pd = ?
-                    AND tc.id_thn_ajaran BETWEEN '" . ($thn_iku - 1) . "' AND '" . $thn_iku . "'
+                    AND tc.id_thn_ajaran = '" . ($thn_iku - 1) . "'
                     AND tc.status_lulusan = 3
             ", [$id_reg_pd]);
         });

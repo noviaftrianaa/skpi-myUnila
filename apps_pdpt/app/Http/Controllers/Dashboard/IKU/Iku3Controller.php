@@ -31,6 +31,7 @@ class Iku3Controller extends Controller
                 ref.tahun_ajaran AS th
             WHERE
                 th.expired_date IS NULL
+                AND th.id_thn_ajaran BETWEEN 2020 AND YEAR(GETDATE())
             ORDER BY
                 th.id_thn_ajaran DESC
         ");
@@ -154,20 +155,20 @@ class Iku3Controller extends Controller
                     'y_id' => $v->y_id_fakultas,
                     'y_title' => $v->y_nm_fakultas,
                     'x_data' => 1,
-                    'x_data_yes' => $x_yes,
-                    'l_tridharma' => $v->l_tridharma,
-                    'l_qs100' => $v->x_qs100,
-                    'l_praktisi' => $v->l_praktisi,
-                    'l_prestasi' => $v->l_prestasi,
+                    'x_data_yes' => (int) $x_yes,
+                    'l_tridharma' => (int) $v->l_tridharma,
+                    'l_qs100' => (int) $v->x_qs100,
+                    'l_praktisi' => (int) $v->l_praktisi,
+                    'l_prestasi' => (int) $v->l_prestasi,
                 ];
                 $fakultas[$v->y_nm_fakultas]['DRILL'] = [];
             } else {
                 $fakultas[$v->y_nm_fakultas]['DATA']['x_data'] = $fakultas[$v->y_nm_fakultas]['DATA']['x_data'] + 1;
-                $fakultas[$v->y_nm_fakultas]['DATA']['x_data_yes'] = $fakultas[$v->y_nm_fakultas]['DATA']['x_data_yes'] + $x_yes;
-                $fakultas[$v->y_nm_fakultas]['DATA']['l_tridharma'] = $fakultas[$v->y_nm_fakultas]['DATA']['l_tridharma'] + $v->l_tridharma;
-                $fakultas[$v->y_nm_fakultas]['DATA']['l_qs100'] = $fakultas[$v->y_nm_fakultas]['DATA']['l_qs100'] + $v->x_qs100;
-                $fakultas[$v->y_nm_fakultas]['DATA']['l_praktisi'] = $fakultas[$v->y_nm_fakultas]['DATA']['l_praktisi'] + $v->l_praktisi;
-                $fakultas[$v->y_nm_fakultas]['DATA']['l_prestasi'] = $fakultas[$v->y_nm_fakultas]['DATA']['l_prestasi'] + $v->l_prestasi;
+                $fakultas[$v->y_nm_fakultas]['DATA']['x_data_yes'] = $fakultas[$v->y_nm_fakultas]['DATA']['x_data_yes'] + (int) $x_yes;
+                $fakultas[$v->y_nm_fakultas]['DATA']['l_tridharma'] = $fakultas[$v->y_nm_fakultas]['DATA']['l_tridharma'] + (int) $v->l_tridharma;
+                $fakultas[$v->y_nm_fakultas]['DATA']['l_qs100'] = $fakultas[$v->y_nm_fakultas]['DATA']['l_qs100'] + (int) $v->x_qs100;
+                $fakultas[$v->y_nm_fakultas]['DATA']['l_praktisi'] = $fakultas[$v->y_nm_fakultas]['DATA']['l_praktisi'] + (int) $v->l_praktisi;
+                $fakultas[$v->y_nm_fakultas]['DATA']['l_prestasi'] = $fakultas[$v->y_nm_fakultas]['DATA']['l_prestasi'] + (int) $v->l_prestasi;
             }
             $fakultas[$v->y_nm_fakultas]['DATA']['x_data_no'] = $fakultas[$v->y_nm_fakultas]['DATA']['x_data'] - $fakultas[$v->y_nm_fakultas]['DATA']['x_data_yes'];
         }
@@ -178,19 +179,19 @@ class Iku3Controller extends Controller
                     'y_id' => $v->y_id_prodi,
                     'y_title' => $v->y_nm_prodi,
                     'x_data' => 1,
-                    'x_data_yes' => $x_yes,
-                    'l_tridharma' => $v->l_tridharma,
-                    'l_qs100' => $v->x_qs100,
-                    'l_praktisi' => $v->l_praktisi,
-                    'l_prestasi' => $v->l_prestasi,
+                    'x_data_yes' => (int) $x_yes,
+                    'l_tridharma' => (int) $v->l_tridharma,
+                    'l_qs100' => (int) $v->x_qs100,
+                    'l_praktisi' => (int) $v->l_praktisi,
+                    'l_prestasi' => (int) $v->l_prestasi,
                 ];
             } else {
                 $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data'] + 1;
-                $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data_yes'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data_yes'] + $x_yes;
-                $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_tridharma'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_tridharma'] + $v->l_tridharma;
-                $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_qs100'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_qs100'] + $v->x_qs100;
-                $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_praktisi'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_praktisi'] + $v->l_praktisi;
-                $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_prestasi'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_prestasi'] + $v->l_prestasi;
+                $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data_yes'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data_yes'] + (int) $x_yes;
+                $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_tridharma'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_tridharma'] + (int) $v->l_tridharma;
+                $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_qs100'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_qs100'] + (int) $v->x_qs100;
+                $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_praktisi'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_praktisi'] + (int) $v->l_praktisi;
+                $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_prestasi'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_prestasi'] + (int) $v->l_prestasi;
             }
             $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data_no'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data'] - $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data_yes'];
         }
@@ -199,8 +200,8 @@ class Iku3Controller extends Controller
 
     public function apiIku3Dosen()
     {
-        $thn_iku = (string) $this->request->thn_iku;
-        $id_prodi = (string) $this->request->id_prodi;
+        $thn_iku = $this->request->thn_iku;
+        $id_prodi = $this->request->id_prodi;
         $cache = $thn_iku . '-apiIku3Dosen-';
 
         $apiIku3Dosen = Cache::rememberForever($cache . Cache::increment($cache), function () use ($id_prodi, $thn_iku) {
@@ -338,8 +339,8 @@ class Iku3Controller extends Controller
 
     public function apiIku3Tridharma()
     {
-        $thn_iku = (string) $this->request->thn_iku;
-        $id_sdm = (string) $this->request->id_sdm;
+        $thn_iku = $this->request->thn_iku;
+        $id_sdm = $this->request->id_sdm;
         $cache = $thn_iku . '-apiIku3Tridharma-';
 
         $apiIku3Tridharma = Cache::rememberForever($cache . Cache::increment($cache), function () use ($id_sdm, $thn_iku) {
@@ -376,8 +377,8 @@ class Iku3Controller extends Controller
 
     public function apiIku3Qs100()
     {
-        $id_sdm = (string) $this->request->id_sdm;
-        $thn_iku = (string) $this->request->thn_iku;
+        $id_sdm = $this->request->id_sdm;
+        $thn_iku = $this->request->thn_iku;
         $cache = $thn_iku . '-apiIku3Qs100-';
 
         $apiIku3Qs100 = Cache::rememberForever($cache . Cache::increment($cache), function () use ($id_sdm, $thn_iku) {
@@ -403,8 +404,8 @@ class Iku3Controller extends Controller
 
     public function apiIku3Praktisi()
     {
-        $id_sdm = (string) $this->request->id_sdm;
-        $thn_iku = (string) $this->request->thn_iku;
+        $id_sdm = $this->request->id_sdm;
+        $thn_iku = $this->request->thn_iku;
         $cache = $thn_iku . '-apiIku3Praktisi-';
 
         $apiIku3Praktisi = Cache::rememberForever($cache . Cache::increment($cache), function () use ($id_sdm, $thn_iku) {
@@ -435,8 +436,8 @@ class Iku3Controller extends Controller
 
     public function apiIku3Prestasi()
     {
-        $id_sdm = (string) $this->request->id_sdm;
-        $thn_iku = (string) $this->request->thn_iku;
+        $id_sdm = $this->request->id_sdm;
+        $thn_iku = $this->request->thn_iku;
         $cache = $thn_iku . '-apiIku3Prestasi-';
 
         $apiIku3Prestasi = Cache::rememberForever($cache . Cache::increment($cache), function () use ($id_sdm, $thn_iku) {

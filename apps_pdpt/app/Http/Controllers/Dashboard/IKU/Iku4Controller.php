@@ -131,18 +131,18 @@ class Iku4Controller extends Controller
                     'y_id' => $v->y_id_fakultas,
                     'y_title' => $v->y_nm_fakultas,
                     'x_data' => 1,
-                    'x_data_yes' => $x_yes,
-                    'l_pend' => $v->l_pend,
-                    'l_sert' => $v->l_sert,
-                    'l_praktisi' => $v->l_praktisi,
+                    'x_data_yes' => (int) $x_yes,
+                    'l_pend' => (int) $v->l_pend,
+                    'l_sert' => (int) $v->l_sert,
+                    'l_praktisi' => (int) $v->l_praktisi,
                 ];
                 $fakultas[$v->y_nm_fakultas]['DRILL'] = [];
             } else {
                 $fakultas[$v->y_nm_fakultas]['DATA']['x_data'] = $fakultas[$v->y_nm_fakultas]['DATA']['x_data'] + 1;
-                $fakultas[$v->y_nm_fakultas]['DATA']['x_data_yes'] = $fakultas[$v->y_nm_fakultas]['DATA']['x_data_yes'] + $x_yes;
-                $fakultas[$v->y_nm_fakultas]['DATA']['l_pend'] = $fakultas[$v->y_nm_fakultas]['DATA']['l_pend'] + $v->l_pend;
-                $fakultas[$v->y_nm_fakultas]['DATA']['l_sert'] = $fakultas[$v->y_nm_fakultas]['DATA']['l_sert'] + $v->l_sert;
-                $fakultas[$v->y_nm_fakultas]['DATA']['l_praktisi'] = $fakultas[$v->y_nm_fakultas]['DATA']['l_praktisi'] + $v->l_praktisi;
+                $fakultas[$v->y_nm_fakultas]['DATA']['x_data_yes'] = $fakultas[$v->y_nm_fakultas]['DATA']['x_data_yes'] + (int) $x_yes;
+                $fakultas[$v->y_nm_fakultas]['DATA']['l_pend'] = $fakultas[$v->y_nm_fakultas]['DATA']['l_pend'] + (int) $v->l_pend;
+                $fakultas[$v->y_nm_fakultas]['DATA']['l_sert'] = $fakultas[$v->y_nm_fakultas]['DATA']['l_sert'] + (int) $v->l_sert;
+                $fakultas[$v->y_nm_fakultas]['DATA']['l_praktisi'] = $fakultas[$v->y_nm_fakultas]['DATA']['l_praktisi'] + (int) $v->l_praktisi;
             }
             $fakultas[$v->y_nm_fakultas]['DATA']['x_data_no'] = $fakultas[$v->y_nm_fakultas]['DATA']['x_data'] - $fakultas[$v->y_nm_fakultas]['DATA']['x_data_yes'];
         }
@@ -153,17 +153,17 @@ class Iku4Controller extends Controller
                     'y_id' => $v->y_id_prodi,
                     'y_title' => $v->y_nm_prodi,
                     'x_data' => 1,
-                    'x_data_yes' => $x_yes,
-                    'l_pend' => $v->l_pend,
-                    'l_sert' => $v->l_sert,
-                    'l_praktisi' => $v->l_praktisi,
+                    'x_data_yes' => (int) $x_yes,
+                    'l_pend' => (int) $v->l_pend,
+                    'l_sert' => (int) $v->l_sert,
+                    'l_praktisi' => (int) $v->l_praktisi,
                 ];
             } else {
                 $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data'] + 1;
-                $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data_yes'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data_yes'] + $x_yes;
-                $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_pend'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_pend'] + $v->l_pend;
-                $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_sert'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_sert'] + $v->l_sert;
-                $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_praktisi'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_praktisi'] + $v->l_praktisi;
+                $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data_yes'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data_yes'] + (int) $x_yes;
+                $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_pend'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_pend'] + (int) $v->l_pend;
+                $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_sert'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_sert'] + (int) $v->l_sert;
+                $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_praktisi'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['l_praktisi'] + (int) $v->l_praktisi;
             }
             $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data_no'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data'] - $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data_yes'];
         }

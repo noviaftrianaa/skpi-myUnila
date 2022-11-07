@@ -32,7 +32,8 @@
                 <div class="card-header">
                     <h3 class="card-title">IKU 3 : Dosen Berkegiatan Diluar Kampus</h3>
                     <div class="card-tools">
-                        <button type="button" class="btn btn-tool" data-card-widget="maximize">
+                        <a class="btn btn-sm bg-white mr-1" target="_blank" href="https://drive.google.com/file/d/1bzsNVI_OoY3LcfBf_53INSJ9T2hoZQCq/view?usp=share_link"><i class="fas fa-info-circle"></i></a>
+                        <button type="button" class="btn btn-sm btn-light" data-card-widget="maximize">
                             <i class="fas fa-expand"></i>
                         </button>
                     </div>
@@ -44,7 +45,7 @@
                                 <select id="thn_iku" class="form-control mr-2">
                                     @foreach ($thn_iku as $th)
                                         <option {{ $th->a_periode_aktif == 1 ? 'selected' : '' }}
-                                            value="{{ $th->id_thn_ajaran }}">{{ $th->nm_thn_ajaran }}</option>
+                                            value="{{ $th->id_thn_ajaran }}">{{ $th->id_thn_ajaran }}</option>
                                     @endforeach
                                 </select>
                                 <div class="input-group-append">
