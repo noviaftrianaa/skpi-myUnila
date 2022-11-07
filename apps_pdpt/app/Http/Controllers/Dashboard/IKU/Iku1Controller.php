@@ -252,7 +252,7 @@ class Iku1Controller extends Controller
                 WHERE
                     rgpd.soft_delete = 0
                     AND prod.id_sms = '" . $id_prodi . "'
-                    AND rgpd.tgl_sk_yudisium = '" . ($thn_iku - 1) . "'
+                    AND YEAR(rgpd.tgl_sk_yudisium) = '" . ($thn_iku - 1) . "'
                     AND rgpd.id_jns_keluar = '1'
             ");
         });
