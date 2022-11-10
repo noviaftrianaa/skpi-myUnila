@@ -150,4 +150,8 @@ Route::prefix('dashboard')->group(function () {
     Route::get('api/iku5',  'App\Http\Controllers\Dashboard\IKU\Iku5Controller@apiIku5')->name('apiDashboardIku5');
     Route::get('api/iku5/dosen',  'App\Http\Controllers\Dashboard\IKU\Iku5Controller@apiIku5Dosen')->name('apiIku5Dosen');
     Route::get('api/iku5/keluaranpenelitian',  'App\Http\Controllers\Dashboard\IKU\Iku5Controller@apiIku5KeluaranPenelitian')->name('apiIku5KeluaranPenelitian');
+
+    Route::get('iku7',  'App\Http\Controllers\Dashboard\IKU\Iku7Controller@homeIku7')->name('dashboardIku7');
+    Route::get('api/iku7',  'App\Http\Controllers\Dashboard\IKU\Iku7Controller@apiIku7')->name('apiDashboardIku7');
+    Route::get('api/iku7/matkul',  'App\Http\Controllers\Dashboard\IKU\Iku7Controller@apiIku7Matkul')->name('apiIku7Matkul');
 });

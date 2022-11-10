@@ -162,7 +162,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#"
+                            <a href="{{ route('dashboardIku5') }}"
                                 class="nav-link {{ $side_active == 'iku' ? 'active' : '' }}">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>IKU 5</p>
