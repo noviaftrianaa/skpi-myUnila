@@ -145,4 +145,9 @@ Route::prefix('dashboard')->group(function () {
     Route::get('api/iku4/pendidikan',  'App\Http\Controllers\Dashboard\IKU\Iku4Controller@apiIku4Pendidikan')->name('apiIku4Pendidikan');
     Route::get('api/iku4/sertifikasi',  'App\Http\Controllers\Dashboard\IKU\Iku4Controller@apiIku4Sertifikasi')->name('apiIku4Sertifikasi');
     Route::get('api/iku4/praktisi',  'App\Http\Controllers\Dashboard\IKU\Iku4Controller@apiIku4Praktisi')->name('apiIku4Praktisi');
+
+    Route::get('iku5',  'App\Http\Controllers\Dashboard\IKU\Iku5Controller@homeIku5')->name('dashboardIku5');
+    Route::get('api/iku5',  'App\Http\Controllers\Dashboard\IKU\Iku5Controller@apiIku5')->name('apiDashboardIku5');
+    Route::get('api/iku5/dosen',  'App\Http\Controllers\Dashboard\IKU\Iku5Controller@apiIku5Dosen')->name('apiIku5Dosen');
+    Route::get('api/iku5/keluaranpenelitian',  'App\Http\Controllers\Dashboard\IKU\Iku5Controller@apiIku5KeluaranPenelitian')->name('apiIku5KeluaranPenelitian');
 });

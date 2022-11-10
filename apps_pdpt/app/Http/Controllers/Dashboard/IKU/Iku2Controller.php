@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Yajra\DataTables\Facades\DataTables as DaTables;
 
 class Iku2Controller extends Controller
 {
@@ -134,6 +135,34 @@ class Iku2Controller extends Controller
             $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data_no'] = $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data'] - $fakultas[$v->y_nm_fakultas]['DRILL'][$v->y_nm_prodi]['DATA']['x_data_yes'];
         }
         return response()->json($fakultas);
+    }
+
+    public function apiIku1Prestasi()
+    {
+        $id_reg_pd = $this->request->id_reg_pd;
+        $thn_iku = $this->request->thn_iku;
+        $cache = $thn_iku . '-apiIku1Prestasi-';
+
+        $apiIku1Prestasi = Cache::rememberForever($cache . Cache::increment($cache), function () use ($id_reg_pd, $thn_iku) {
+            return DB::select("
+
+            ", [$id_reg_pd]);
+        });
+        return DaTables::of($apiIku1Prestasi)->make(true);
+    }
+
+    public function apiIku1Mbkm()
+    {
+        $id_reg_pd = $this->request->id_reg_pd;
+        $thn_iku = $this->request->thn_iku;
+        $cache = $thn_iku . '-apiIku1Mbkm-';
+
+        $apiIku1Mbkm = Cache::rememberForever($cache . Cache::increment($cache), function () use ($id_reg_pd, $thn_iku) {
+            return DB::select("
+
+            ", [$id_reg_pd]);
+        });
+        return DaTables::of($apiIku1Mbkm)->make(true);
     }
 
     public function homeIku2()

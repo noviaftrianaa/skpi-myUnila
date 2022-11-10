@@ -49,8 +49,8 @@
                                     @endforeach
                                 </select>
                                 <div class="input-group-append">
-                                    <button class="btn btn-info mr-2" onclick="Iku3Data(0)">FILTER</button>
-                                    <button class="btn btn-info" onclick="Iku3Data(1)">HITUNG ULANG</button>
+                                    <button class="btn btn-info" onclick="Iku3Data(0)">FILTER</button>
+                                    {{-- <button class="btn btn-info" onclick="Iku3Data(1)">HITUNG ULANG</button> --}}
                                 </div>
                             </div>
                             <div class="isLoading overlay mt-3" style="display: none;"><i
@@ -154,27 +154,27 @@
                 </div>
                 <div class="modal-body">
                     <div id="x_tb_01">
-                        <table id="tb_01" class="table table-bordered table-striped">
+                        <table id="tb_01" class="table table-bordered table-striped" style="width: 100%;">
                             <thead class="bg-info text-center"></thead>
                         </table>
                     </div>
                     <div id="x_tb_02">
-                        <table id="tb_02" class="table table-bordered table-striped">
+                        <table id="tb_02" class="table table-bordered table-striped" style="width: 100%;">
                             <thead class="bg-info text-center"></thead>
                         </table>
                     </div>
                     <div id="x_tb_03">
-                        <table id="tb_03" class="table table-bordered table-striped">
+                        <table id="tb_03" class="table table-bordered table-striped" style="width: 100%;">
                             <thead class="bg-info text-center"></thead>
                         </table>
                     </div>
                     <div id="x_tb_04">
-                        <table id="tb_04" class="table table-bordered table-striped">
+                        <table id="tb_04" class="table table-bordered table-striped" style="width: 100%;">
                             <thead class="bg-info text-center"></thead>
                         </table>
                     </div>
                     <div id="x_tb_05">
-                        <table id="tb_05" class="table table-bordered table-striped">
+                        <table id="tb_05" class="table table-bordered table-striped" style="width: 100%;">
                             <thead class="bg-info text-center"></thead>
                         </table>
                     </div>
@@ -460,23 +460,13 @@
                         data: 'nm_sdm',
                         name: 'nm_sdm',
                     }, {
-                        title: 'Jk',
+                        title: 'JK',
                         data: 'jk',
                         name: 'jk',
-                    }, {
-                        title: 'Nidn',
+                    },{
+                        title: 'No. Induk',
                         data: 'l_nidn',
                         name: 'l_nidn',
-                    },
-                    {
-                        title: 'Nidk',
-                        data: 'l_nidk',
-                        name: 'l_nidk',
-                    },
-                    {
-                        title: 'Tgl. Lhr',
-                        data: 'tgl_lahir',
-                        name: 'tgl_lahir',
                     },
                     {
                         title: 'Pend. Akhir',
@@ -498,7 +488,7 @@
                         data: 'l_tridharma',
                         name: 'l_tridharma',
                         render: function(data, type, row) {
-                            return `<a href="#" onclick="reloadTbIku3Tridharma('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
+                            return `<a href="javascript:" onclick="reloadTbIku3Tridharma('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
                         }
                     },
                     {
@@ -506,7 +496,7 @@
                         data: 'l_qs100',
                         name: 'l_qs100',
                         render: function(data, type, row) {
-                            return `<a href="#" onclick="reloadTbIku3Qs100('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
+                            return `<a href="javascript:" onclick="reloadTbIku3Qs100('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
                         }
                     },
                     {
@@ -514,7 +504,7 @@
                         data: 'l_praktisi',
                         name: 'l_praktisi',
                         render: function(data, type, row) {
-                            return `<a href="#" onclick="reloadTbIku3Praktisi('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
+                            return `<a href="javascript:" onclick="reloadTbIku3Praktisi('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
                         }
                     },
                     {
@@ -522,15 +512,15 @@
                         data: 'l_prestasi',
                         name: 'l_prestasi',
                         render: function(data, type, row) {
-                            return `<a href="#" onclick="reloadTbIku3Prestasi('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
+                            return `<a href="javascript:" onclick="reloadTbIku3Prestasi('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
                         }
                     }
                 ],
                 order: [
+                    [7, 'desc'],
+                    [8, 'desc'],
                     [9, 'desc'],
                     [10, 'desc'],
-                    [11, 'desc'],
-                    [12, 'desc'],
                 ],
             });
         }

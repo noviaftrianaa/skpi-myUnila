@@ -32,7 +32,9 @@
                 <div class="card-header">
                     <h3 class="card-title">IKU 4: Praktisi Mengajar di Dalam Kampus</h3>
                     <div class="card-tools">
-                        <a class="btn btn-sm bg-white mr-1" target="_blank" href="https://drive.google.com/file/d/1bzsNVI_OoY3LcfBf_53INSJ9T2hoZQCq/view?usp=share_link"><i class="fas fa-info-circle"></i></a>
+                        <a class="btn btn-sm bg-white mr-1" target="_blank"
+                            href="https://drive.google.com/file/d/1bzsNVI_OoY3LcfBf_53INSJ9T2hoZQCq/view?usp=share_link"><i
+                                class="fas fa-info-circle"></i></a>
                         <button type="button" class="btn btn-sm btn-light" data-card-widget="maximize">
                             <i class="fas fa-expand"></i>
                         </button>
@@ -49,8 +51,8 @@
                                     @endforeach
                                 </select>
                                 <div class="input-group-append">
-                                    <button class="btn btn-info mr-2" onclick="Iku4Data(0)">FILTER</button>
-                                    <button class="btn btn-info" onclick="Iku4Data(1)">HITUNG ULANG</button>
+                                    <button class="btn btn-info" onclick="Iku4Data(0)">FILTER</button>
+                                    {{-- <button class="btn btn-info" onclick="Iku4Data(1)">HITUNG ULANG</button> --}}
                                 </div>
                             </div>
                             <div class="isLoading overlay mt-3" style="display: none;"><i
@@ -435,11 +437,15 @@
                 columns: [{
                         title: '#',
                         render: function(data, type, row) {
-                            if ((row.l_pend > 0 || row.nidk != null) && (row.l_sert > 0 || row.l_praktisi > 0)) {
-                                return "<center><b class='text-bold text-green'>Y</b></center>";
+                            x_yes = "<center><b class='text-bold text-red'>T</b></center>";
+                            if (row.l_pend > 0 || row.l_nidn == 'NIDK') {
+                                x_yes = "<center><b class='text-bold text-green'>Y</b></center>";
                             } else {
-                                return "<center><b class='text-bold text-red'>T</b></center>";
+                                if (row.l_sert > 0 || row.l_praktisi > 0) {
+                                    x_yes = "<center><b class='text-bold text-green'>Y</b></center>";
+                                }
                             }
+                            return x_yes;
                         }
                     },
                     {
@@ -447,23 +453,13 @@
                         data: 'nm_sdm',
                         name: 'nm_sdm',
                     }, {
-                        title: 'Jk',
+                        title: 'JK',
                         data: 'jk',
                         name: 'jk',
                     }, {
-                        title: 'Nidn',
+                        title: 'No. Induk',
                         data: 'l_nidn',
                         name: 'l_nidn',
-                    },
-                    {
-                        title: 'Nidk',
-                        data: 'l_nidk',
-                        name: 'l_nidk',
-                    },
-                    {
-                        title: 'Tgl. Lhr',
-                        data: 'tgl_lahir',
-                        name: 'tgl_lahir',
                     },
                     {
                         title: 'Pend. Akhir',
@@ -485,7 +481,7 @@
                         data: 'l_pend',
                         name: 'l_pend',
                         render: function(data, type, row) {
-                            return `<a href="#" onclick="reloadTbIku4Pendidikan('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
+                            return `<a href="javascript:" onclick="reloadTbIku4Pendidikan('${row.id_sdm}','${row.nm_sdm}','${row.l_nidn}')">${data}</a>`;
                         }
                     },
                     {
@@ -493,7 +489,7 @@
                         data: 'l_sert',
                         name: 'l_sert',
                         render: function(data, type, row) {
-                            return `<a href="#" onclick="reloadTbIku4Sertifikasi('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
+                            return `<a href="javascript:" onclick="reloadTbIku4Sertifikasi('${row.id_sdm}','${row.nm_sdm}','${row.l_nidn}')">${data}</a>`;
                         }
                     },
                     {
@@ -501,14 +497,14 @@
                         data: 'l_praktisi',
                         name: 'l_praktisi',
                         render: function(data, type, row) {
-                            return `<a href="#" onclick="reloadTbIku4Praktisi('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
+                            return `<a href="javascript:" onclick="reloadTbIku4Praktisi('${row.id_sdm}','${row.nm_sdm}','${row.l_nidn}')">${data}</a>`;
                         }
                     },
                 ],
                 order: [
-                    [9, 'desc'],
-                    [10, 'desc'],
-                    [11, 'desc']
+                    [7, 'desc'],
+                    [8, 'desc'],
+                    [9, 'desc']
                 ],
             });
         }
