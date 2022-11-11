@@ -93,8 +93,6 @@
                             </div>
                         </div>
                     </div>
-
-
                     <div class="row">
                         <div class="col-lg-6 col-6">
                             <div class="row">
@@ -515,10 +513,6 @@
                         title: 'Jk',
                         data: 'jk',
                         name: 'jk',
-                    }, {
-                        title: 'NPM',
-                        data: 'nipd',
-                        name: 'nipd',
                     },
                     {
                         title: 'Jenis Daftar',
@@ -537,13 +531,8 @@
                     },
                     {
                         title: 'Tgl. Lulus',
-                        data: 'tgl_sk_yudisium',
-                        name: 'tgl_sk_yudisium',
-                    },
-                    {
-                        title: 'IPK',
-                        data: 'ipk',
-                        name: 'ipk',
+                        data: 'tgl_keluar',
+                        name: 'tgl_keluar',
                     },
                     {
                         title: 'Status Lulus',

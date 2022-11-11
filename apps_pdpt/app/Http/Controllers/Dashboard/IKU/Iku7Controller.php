@@ -104,7 +104,7 @@ class Iku7Controller extends Controller
     {
         $thn_iku = $this->request->thn_iku;
         $id_prodi = $this->request->id_prodi;
-        $apiIku7Matkul = DB::select("
+        $apiIku7Matkul = DB::connection('sqlsrv_live')->select("
             SELECT
                 DISTINCT mk.id_mk AS y_id_mk,
                 --kk.id_smt AS y_id_smt,

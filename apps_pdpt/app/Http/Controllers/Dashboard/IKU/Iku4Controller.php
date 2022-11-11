@@ -166,7 +166,7 @@ class Iku4Controller extends Controller
     {
         $thn_iku = $this->request->thn_iku;
         $id_prodi = $this->request->id_prodi;
-        $apiIku4Dosen = DB::select("
+        $apiIku4Dosen = DB::connection('sqlsrv_live')->select("
             SELECT
                 CASE
                     WHEN LEFT(sdm.nidn, 2) <= 87 THEN 'NIDN'
@@ -275,7 +275,7 @@ class Iku4Controller extends Controller
     {
         $id_sdm = $this->request->id_sdm;
         $thn_iku = $this->request->thn_iku;
-        $apiIku4Pendidikan = DB::select("
+        $apiIku4Pendidikan = DB::connection('sqlsrv_live')->select("
             SELECT
                 rpend.nm_sp_formal,
                 CONCAT(jenj.nm_jenj_didik, ' - ', bid.nm_bid_studi) AS bid_studi,
@@ -303,7 +303,7 @@ class Iku4Controller extends Controller
     {
         $id_sdm = $this->request->id_sdm;
         $thn_iku = $this->request->thn_iku;
-        $apiIku4Sertifikasi = DB::select("
+        $apiIku4Sertifikasi = DB::connection('sqlsrv_live')->select("
             SELECT
                 jsert.nm_jns_sert,
                 bid.nm_bid_studi,
@@ -329,7 +329,7 @@ class Iku4Controller extends Controller
     {
         $thn_iku = $this->request->thn_iku;
         $id_sdm = $this->request->id_sdm;
-        $apiIku4Praktisi = DB::select("
+        $apiIku4Praktisi = DB::connection('sqlsrv_live')->select("
             SELECT
                 pkrj.nm_pekerjaan AS bid_pekerjaan,
                 rkrj.nm_jabatan,

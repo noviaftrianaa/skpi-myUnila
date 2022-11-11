@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Dashboard\IKU;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables as DaTables;
@@ -19,21 +18,10 @@ class Iku2Controller extends Controller
         $this->tahunIku = app(Iku3Controller::class)->tahunIku();
     }
 
-    public function clearCacheIku2($thn_iku)
-    {
-        Cache::forget($thn_iku . '-apiIku2-');
-    }
-
     public function apiIku2()
     {
         $thn_iku = $this->request->thn_iku;
-        $is_ulang = $this->request->is_ulang;
-        $cache = $thn_iku . '-apiIku2-';
-        if ($is_ulang) {
-            $this->clearCacheIku2($thn_iku);
-        }
-        $apiIku2 = Cache::rememberForever($cache, function () use ($thn_iku) {
-            return DB::select("
+        $apiIku2 = DB::connection('sqlsrv_live')->select("
                 SELECT
                     reg.id_reg_pd AS y_id_reg_pd,
                     sms.id_sms AS y_id_prodi,
@@ -93,7 +81,6 @@ class Iku2Controller extends Controller
                 WHERE
                     pd.soft_delete = 0
             ");
-        });
         $fakultas = [];
         foreach ($apiIku2 as $v) {
             $x_data_yes = ($v->l_total_sks >= 20 && ($v->x_mbkm > 0 || $v->x_prestasi > 0)) ? 1 : 0;
@@ -141,13 +128,10 @@ class Iku2Controller extends Controller
     {
         $id_reg_pd = $this->request->id_reg_pd;
         $thn_iku = $this->request->thn_iku;
-        $cache = $thn_iku . '-apiIku1Prestasi-';
 
-        $apiIku1Prestasi = Cache::rememberForever($cache . Cache::increment($cache), function () use ($id_reg_pd, $thn_iku) {
-            return DB::select("
+        $apiIku1Prestasi = DB::select("
 
-            ", [$id_reg_pd]);
-        });
+        ");
         return DaTables::of($apiIku1Prestasi)->make(true);
     }
 
@@ -155,13 +139,10 @@ class Iku2Controller extends Controller
     {
         $id_reg_pd = $this->request->id_reg_pd;
         $thn_iku = $this->request->thn_iku;
-        $cache = $thn_iku . '-apiIku1Mbkm-';
 
-        $apiIku1Mbkm = Cache::rememberForever($cache . Cache::increment($cache), function () use ($id_reg_pd, $thn_iku) {
-            return DB::select("
+        $apiIku1Mbkm = DB::select("
 
-            ", [$id_reg_pd]);
-        });
+        ");
         return DaTables::of($apiIku1Mbkm)->make(true);
     }
 

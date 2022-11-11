@@ -180,7 +180,7 @@ class Iku5Controller extends Controller
     {
         $thn_iku = $this->request->thn_iku;
         $id_prodi = $this->request->id_prodi;
-        $apiIku5Dosen = DB::select("
+        $apiIku5Dosen = DB::connection('sqlsrv_live')->select("
             SELECT
                 CASE
                     WHEN LEFT(sdm.nidn, 2) <= 87 THEN 'NIDN'
@@ -326,7 +326,7 @@ class Iku5Controller extends Controller
     {
         $thn_iku = $this->request->thn_iku;
         $id_sdm = $this->request->id_sdm;
-        $apiIku5KeluaranPenelitian = DB::select("
+        $apiIku5KeluaranPenelitian = DB::connection('sqlsrv_live')->select("
             SELECT
                 jpub.nm_jns_pub,
                 pub.nama_jurnal,
