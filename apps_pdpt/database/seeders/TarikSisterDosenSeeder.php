@@ -13,6 +13,7 @@ use App\Models\PDUT\Pdrd\Sdm;
 use App\Models\PDUT\Pdrd\Sms;
 use App\Models\PDUT\Ref\Semester;
 use App\Models\PDUT\Ref\TahunAjaran;
+use App\Models\PDUT\Ref\GelarAkademik;
 use Illuminate\Database\Seeder;
 
 class TarikSisterDosenSeeder extends Seeder
@@ -70,6 +71,31 @@ class TarikSisterDosenSeeder extends Seeder
                         $cek_smt->fill($input_smt)->save();
                         echo " (OK - tambah Semester)\n";
                     }
+                }
+            }
+        }
+        $data_dosen_gelar = \DB::connection('pgsql_sister')->table('ref.gelar_akademik')
+            ->whereNull('expired_date')
+            ->get();
+        foreach ($data_dosen_gelar AS $each_gelar) {
+            $cek_gelar = GelarAkademik::find($each_gelar->id_gelar_akad);
+            if (is_null($cek_gelar)) {
+                $input_gelar = (array) $each_gelar;
+                unset($input_gelar['csf']);
+                $input_gelar['last_update']   = $waktu_sekarang;
+                $input_gelar['last_sync']     = $waktu_sekarang;
+                $simpan_gelar = new GelarAkademik();
+                $simpan_gelar->fill($input_gelar)->save();
+                echo " (OK - tambah Gelar)\n";
+            } else {
+                
+                if ($each_gelar->last_update>$cek_gelar->last_update) {
+                    $input_gelar = (array) $each_gelar;
+                    unset($input_gelar['csf']);
+                    $input_gelar['last_update']   = $waktu_sekarang;
+                    $input_gelar['last_sync']     = $waktu_sekarang;
+                    $cek_gelar->fill($input_gelar)->save();
+                    echo " (OK - tambah Gelar)\n";
                 }
             }
         }

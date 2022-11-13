@@ -42,10 +42,10 @@ class NeoFeederSeeder extends Seeder
         //    'mk_kurikulum',
         //    'rencana_ajar',
         //    'rencana_evaluasi',
-            'nilai_kelas',
+            // 'nilai_kelas',
            'prestasi',
         //    'ekuivalensi',
-           'transkrip'
+        //    'transkrip'
 //            'stat_mhs'
         ];
 
@@ -97,7 +97,7 @@ class NeoFeederSeeder extends Seeder
                                 'judul_akt_mhs' => $each_akt_mhs['judul'],
                                 'lokasi_kegiatan' => $each_akt_mhs['lokasi'],
                                 'sk_tugas'      => $each_akt_mhs['sk_tugas'],
-                                'tgl_sk_tugas'  => $each_akt_mhs['tanggal_sk_tugas'],
+                                'tgl_sk_tugas'  => date('Y-m-d',strtotime($each_akt_mhs['tanggal_sk_tugas'])),
                                 'ket_akt'       => $each_akt_mhs['keterangan'],
                                 'a_komunal'     => $each_akt_mhs['untuk_kampus_merdeka'],
                                 'create_date'   => currDateTime(),
@@ -246,26 +246,32 @@ class NeoFeederSeeder extends Seeder
             if ($total_data_kurikulum_sp>0) {
                 foreach ($get_data_kurikulum_sp AS $no_kurikulum_sp=>$each_kurikulum_sp) {
                     echo 'Mendapatkan '.($no_kurikulum_sp+1).' dari '.$total_data_kurikulum_sp;
-                    DB::table('pdrd.kurikulum_sp')->insert([
-                        'id_kurikulum_sp'   => $each_kurikulum_sp['id_kurikulum'],
-                        'id_smt'            => $each_kurikulum_sp['id_semester'],
-                        'id_jenj_didik'     => $each_kurikulum_sp['id_jenj_didik'],
-                        'id_sms'	        => $each_kurikulum_sp['id_prodi'],
-                        'nm_kurikulum_sp'   => $each_kurikulum_sp['nama_kurikulum'],
-                        'jmlh_smt_normal'	=> $each_kurikulum_sp['jml_sem_normal'],
-                        'jmlh_sks_lulus'	=> $each_kurikulum_sp['jumlah_sks_lulus'],
-                        'jmlh_sks_wajib'	=> $each_kurikulum_sp['jumlah_sks_wajib'],
-                        'jmlh_sks_pilihan'	=> $each_kurikulum_sp['jumlah_sks_pilihan'],
-                        'jmlh_sks_mk_wajib'	=> $each_kurikulum_sp['jumlah_sks_mata_kuliah_wajib'],
-                        'jmlh_sks_mk_pilih'	=> $each_kurikulum_sp['jumlah_sks_mata_kuliah_pilihan'],
-                        'create_date'	=> currDateTime(),
-                        'id_creator'	=> $id_creator,
-                        'last_update'	=> currDateTime(),
-                        'id_updater'	=> $id_creator,
-                        'soft_delete'	=> 0,
-                        'last_sync'	    => currDateTime()
-                    ]);
-                    echo " (OK)\n";
+                    $cari_kurikulum = DB::table('pdrd.kurikulum_sp')->where('id_kurikulum_sp',$each_kurikulum_sp['id_kurikulum'])->first();
+                    if(is_null($cari_kurikulum)) {
+                        DB::table('pdrd.kurikulum_sp')->insert([
+                            'id_kurikulum_sp'   => $each_kurikulum_sp['id_kurikulum'],
+                            'id_smt'            => $each_kurikulum_sp['id_semester'],
+                            'id_jenj_didik'     => $each_kurikulum_sp['id_jenj_didik'],
+                            'id_sms'	        => $each_kurikulum_sp['id_prodi'],
+                            'nm_kurikulum_sp'   => $each_kurikulum_sp['nama_kurikulum'],
+                            'jmlh_smt_normal'	=> $each_kurikulum_sp['jml_sem_normal'],
+                            'jmlh_sks_lulus'	=> $each_kurikulum_sp['jumlah_sks_lulus'],
+                            'jmlh_sks_wajib'	=> $each_kurikulum_sp['jumlah_sks_wajib'],
+                            'jmlh_sks_pilihan'	=> $each_kurikulum_sp['jumlah_sks_pilihan'],
+                            'jmlh_sks_mk_wajib'	=> $each_kurikulum_sp['jumlah_sks_mata_kuliah_wajib'],
+                            'jmlh_sks_mk_pilih'	=> $each_kurikulum_sp['jumlah_sks_mata_kuliah_pilihan'],
+                            'create_date'	=> currDateTime(),
+                            'id_creator'	=> $id_creator,
+                            'last_update'	=> currDateTime(),
+                            'id_updater'	=> $id_creator,
+                            'soft_delete'	=> 0,
+                            'last_sync'	    => currDateTime()
+                        ]);
+                        echo " (OK)\n";
+                    } else {
+                        echo " (Lewati)\n";
+                    }
+                    
                 }
             }
         }
@@ -277,24 +283,29 @@ class NeoFeederSeeder extends Seeder
             if ($total_data_mk_kurikulum>0) {
                 foreach ($get_data_mk_kurikulum AS $no_mk_kurikulum=>$each_mk_kurikulum) {
                     echo 'Mendapatkan '.($no_mk_kurikulum+1).' dari '.$total_data_mk_kurikulum;
-                    DB::table('pdrd.matkul_kurikulum')->insert([
-                        'id_kurikulum_sp'   => $each_mk_kurikulum['id_kurikulum'],
-                        'id_mk'             => $each_mk_kurikulum['id_matkul'],
-                        'smt'               => $each_mk_kurikulum['semester'],
-                        'sks_mk'            => $each_mk_kurikulum['sks_mata_kuliah'],
-                        'sks_tm'            => $each_mk_kurikulum['sks_tatap_muka'],
-                        'sks_prak'          => $each_mk_kurikulum['sks_praktek'],
-                        'sks_prak_lap'      => $each_mk_kurikulum['sks_praktek_lapangan'],
-                        'sks_sim'           => $each_mk_kurikulum['sks_simulasi'],
-                        'a_wajib'           => $each_mk_kurikulum['apakah_wajib'],
-                        'create_date'	=> currDateTime(),
-                        'id_creator'	=> $id_creator,
-                        'last_update'	=> currDateTime(),
-                        'id_updater'	=> $id_creator,
-                        'soft_delete'	=> 0,
-                        'last_sync'	    => currDateTime()
-                    ]);
-                    echo " (OK)\n";
+                    $cari_mk_kur = DB::table('pdrd.matkul_kurikulum')->where('id_kurikulum_sp',$each_mk_kurikulum['id_kurikulum'])->first();
+                    if(is_null($cari_mk_kur)) {
+                        DB::table('pdrd.matkul_kurikulum')->insert([
+                            'id_kurikulum_sp'   => $each_mk_kurikulum['id_kurikulum'],
+                            'id_mk'             => $each_mk_kurikulum['id_matkul'],
+                            'smt'               => $each_mk_kurikulum['semester'],
+                            'sks_mk'            => $each_mk_kurikulum['sks_mata_kuliah'],
+                            'sks_tm'            => $each_mk_kurikulum['sks_tatap_muka'],
+                            'sks_prak'          => $each_mk_kurikulum['sks_praktek'],
+                            'sks_prak_lap'      => $each_mk_kurikulum['sks_praktek_lapangan'],
+                            'sks_sim'           => $each_mk_kurikulum['sks_simulasi'],
+                            'a_wajib'           => $each_mk_kurikulum['apakah_wajib'],
+                            'create_date'	=> currDateTime(),
+                            'id_creator'	=> $id_creator,
+                            'last_update'	=> currDateTime(),
+                            'id_updater'	=> $id_creator,
+                            'soft_delete'	=> 0,
+                            'last_sync'	    => currDateTime()
+                        ]);
+                        echo " (OK)\n";
+                    } else {
+                        echo " (Lewati)\n";
+                    }
                 }
             }
         }

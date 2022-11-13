@@ -32,18 +32,18 @@ class MahasiswaSeeder extends Seeder
                 $token = $this->generate_token();
             }
             $cari_prodi = DB::table('pdrd.sms')->where('id_sms',$id_sms)->first();
-//            $cari_sms_sync = DB::table('log_sync_pd_sms')->where('id_sms',$id_sms)->where('tgl_sync','>=',date('Y-m-1'))->first();
-//            if (!is_null($cari_sms_sync)) {
-//                if ($cari_sms_sync->a_selesai==1) {
-//                    continue;
-//                }
-//            } else {
-//                DB::table('log_sync_pd_sms')->insert([
-//                    'id_sms' => $id_sms,
-//                    'tgl_sync'=> date('Y-m-d'),
-//                    'a_selesai'=> 0
-//                ]);
-//            }
+           $cari_sms_sync = DB::table('log_sync_pd_sms')->where('id_sms',$id_sms)->where('tgl_sync','>=',date('Y-m-1'))->first();
+           if (!is_null($cari_sms_sync)) {
+               if ($cari_sms_sync->a_selesai==1) {
+                   continue;
+               }
+           } else {
+               DB::table('log_sync_pd_sms')->insert([
+                   'id_sms' => $id_sms,
+                   'tgl_sync'=> date('Y-m-d'),
+                   'a_selesai'=> 0
+               ]);
+           }
             $jenjang = DB::table('ref.jenjang_pendidikan')->where('id_jenj_didik',$cari_prodi->id_jenj_didik)->first();
             echo "Mendapatkan data mahasiswa dari prodi ".($cari_prodi->nm_lemb.' ('.$jenjang->nm_jenj_didik.')')."\n";
             $get_data = curl_api_neo_feeder($url, data_form_feeder('GetDataLengkapMahasiswaProdi',$token,'id_prodi',$id_sms));
@@ -113,6 +113,8 @@ class MahasiswaSeeder extends Seeder
                 } else {
                     DB::table('pdrd.peserta_didik')->where('id_pd',$carimhs->id_pd)->update([
                         'email'             => $each_data['email'],
+                        'tlpn_rumah'        => $each_data['telepon'],
+                        'tlpn_hp'           => $each_data['handphone'],
                         'last_update'       => currDateTime(),
                         'id_updater'        => '443701e4-e814-48f3-9528-251bccee8af1',
                     ]);
@@ -143,7 +145,8 @@ class MahasiswaSeeder extends Seeder
                         'tgl_keluar'        => (count($get_data_lulus_do)>0)?(!is_null($get_data_lulus_do[0]['tanggal_keluar'])?date('Y-m-d',strtotime($get_data_lulus_do[0]['tanggal_keluar'])):null):null,
                         'ket'               => (count($get_data_lulus_do)>0)?$get_data_lulus_do[0]['keterangan']:null,
                         'sk_yudisium'       => (count($get_data_lulus_do)>0)?$get_data_lulus_do[0]['nomor_sk_yudisium']:null,
-                        'tgl_sk_yudisium'   => (count($get_data_lulus_do)>0)?$get_data_lulus_do[0]['tanggal_sk_yudisium']:null,
+                        'tgl_sk_yudisium'   => (count($get_data_lulus_do)>0)?(!is_null($get_data_lulus_do[0]['tanggal_sk_yudisium'])?date('Y-m-d',strtotime($get_data_lulus_do[0]['tanggal_sk_yudisium'])):null):null,
+                        // 'tgl_sk_yudisium'   => (count($get_data_lulus_do)>0)?$get_data_lulus_do[0]['tanggal_sk_yudisium']:null,
                         'ipk'               => (count($get_data_lulus_do)>0)?$get_data_lulus_do[0]['ipk']:null,
                         'no_seri_ijazah'    => (count($get_data_lulus_do)>0)?$get_data_lulus_do[0]['nomor_ijazah']:null,
                         'jalur_skripsi'     => (count($get_data_lulus_do)>0)?$get_data_lulus_do[0]['jalur_skripsi']:null,
@@ -170,7 +173,7 @@ class MahasiswaSeeder extends Seeder
                                 'tgl_keluar'        => date('Y-m-d',strtotime($get_data_lulus_do[0]['tanggal_keluar'])),
                                 'ket'               => $get_data_lulus_do[0]['keterangan'],
                                 'sk_yudisium'       => $get_data_lulus_do[0]['nomor_sk_yudisium'],
-                                'tgl_sk_yudisium'   => $get_data_lulus_do[0]['tanggal_sk_yudisium'],
+                                'tgl_sk_yudisium'   => date('Y-m-d',strtotime($get_data_lulus_do[0]['tanggal_sk_yudisium'])),
                                 'ipk'               => $get_data_lulus_do[0]['ipk'],
                                 'no_seri_ijazah'    => $get_data_lulus_do[0]['nomor_ijazah'],
                                 'jalur_skripsi'     => $get_data_lulus_do[0]['jalur_skripsi'],

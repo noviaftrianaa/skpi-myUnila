@@ -15,7 +15,7 @@ class ReferensiSeeder extends Seeder
     public function run()
     {
         $cari_token = DB::table('man_akses.access_token')->where('waktu_expired','>=',currDateTime())->first();
-        $url = ENV('URL_WS_FEEDER');
+        $url = ENV('URL_WS_NEO_FEEDER');
             $form_token = $this->data_get_token_form();
             $get_token = $this->curl_api_feeder($url,$form_token);
             $token = $get_token['token'];
@@ -33,18 +33,20 @@ class ReferensiSeeder extends Seeder
         $method_alias = [
 //            'Jenis Pendaftaran'     => 'GetJenisPendaftaran',
 //            'Kebutuhan Khusus'      => 'GetKebutuhanKhusus',
+           'Jenis Keluar'      => 'GetJenisKeluar',
 //            'Jalur Masuk'           => 'GetJalurMasuk',
 //            'Status Mahasiswa'      => 'GetStatusMahasiswa',
 //            'Alat Transportasi'     => 'GetAlatTransportasi',
 //            'Jenis Tinggal'         => 'GetJenisTinggal',
 //            'Penghasilan'           => 'GetPenghasilan',
 //            'Pembiayaan'            => 'GetPembiayaan',
-            'Jenis Prestasi'        => 'GetJenisPrestasi',
+//            'Jenis Prestasi'        => 'GetJenisPrestasi',
 //            'Tingkat Prestasi'      => 'GetTingkatPrestasi',
         ];
         foreach ($method_alias AS $name_alias=>$each_method) {
             echo "Mendapatkan data Referensi ".$name_alias."\n";
             $get_data = $this->curl_api_feeder($url, $this->data_form($each_method,$token));
+            dd($get_data);
             $total_data = count($get_data);
             $no = 1;
             foreach ($get_data AS $each_data) {
