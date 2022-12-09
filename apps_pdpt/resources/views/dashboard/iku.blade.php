@@ -1,4 +1,4 @@
-@extends('template_public.default')
+@extends('template_public.default',['judul_layout'=>'Dashboard IKU'])
 
 @section('content')
     <div class="container">

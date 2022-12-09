@@ -70,6 +70,7 @@ class Kernel extends HttpKernel
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        'one_data_man_akses'    => \MP\ManAkses\ManAksesMiddleware::class,
         'openapi_sandbox' => OpenApiSandbox::class,
         'openapi_live' => OpenApiLive::class,
         'dbaccess' => DBAccess::class,

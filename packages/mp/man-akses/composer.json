@@ -1,0 +1,25 @@
+{
+    "name": "mp/man-akses",
+    "description": "Packages Manajemen Akses",
+    "require": {
+        "illuminate/database": "^8.5",
+        "illuminate/routing": "^8.5",
+        "illuminate/support": "^8.5",
+        "illuminate/http": "^8.5",
+        "laracasts/flash": "^3.2"
+    },
+    "version": "0.7",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mahendra Pratama",
+            "email": "mahendra.pratama15@eng.unila.ac.id"
+        }
+    ],
+    "minimum-stability": "dev",
+    "autoload": {
+      "psr-4": {
+        "MP\\ManAkses\\": "src/"
+      }
+    }
+}
