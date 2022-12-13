@@ -15,13 +15,14 @@
             <div class="row">
                 <div class="col-md-2 col-12 pl-4">
                     <img src="{!! (!is_null($data->largeobject)) ? 'data:image/' . $data->largeobject->mime_type . ';base64,' . $data->largeobject->blob_content : asset('auth/img/logo.png') !!}" width="100%" class="my-3"/>
-                    @if(session()->get('login.role')->id_peran==1)
-                    <a type="button" data-toggle="modal" class="btn btn-info col-12 mb-3" href="#editAplikasi{{$data->id_aplikasi}}"><i class="fa fa-edit"></i> Edit</a>
+                    @if($menus->a_boleh_update == "1")
+                    <a type="button" data-toggle="modal" class="btn btn-info col-12 my-1" href="#editAplikasi{{$data->id_aplikasi}}"><i class="fa fa-edit"></i> Edit</a>
                     @endif
-                    @if(session()->get('login.role')->id_peran==1)
-                    <a type="button" class="btn btn-info col-12" href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Tabel Aplikasi</a>
+                    @if($menus->a_boleh_insert == "1")
+                    <a type="button" class="btn btn-info col-12 my-1" href="{{ route('aplikasi.menu_role', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Menu Role</a>
+                    <a type="button" class="btn btn-info col-12 my-1" href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Tabel Aplikasi</a>
                     @else
-                    <a type="button" class="btn btn-info col-12" href="{{ route('manajemen.aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Tabel Aplikasi</a>
+                    <a type="button" class="btn btn-info col-12 my-1" href="{{ route('manajemen.aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Tabel Aplikasi</a>
                     @endif
                 </div>
                 <div class="col-md-10 col-12">
@@ -54,7 +55,7 @@
         </div>
         <div class="card-body">
             <div class="d-lg-flex d-block">
-                @if(session()->get('login.role')->id_peran==1)
+                @if($menus->a_boleh_insert == "1")
                 <div class="col-2">
                     <a type="button" data-toggle="modal" class="btn btn-info" href="#pjCreate"><i class="fa fa-plus"></i> Tambah Data</a>
                 </div>
@@ -78,7 +79,7 @@
                             <th>Nama</th>
                             <th>Email</th>
                             <th>No. HP</th>
-                            @if(session()->get('login.role')->id_peran==1)
+                            @if($menus->a_boleh_insert == "1")
                             <th>Aksi</th>
                             @endif
                         </tr>
@@ -90,7 +91,7 @@
                             <td>{{$item->nm_pj}}</td>
                             <td>{{$item->email}}</td>
                             <td>{{$item->no_hp}}</td>
-                            @if(session()->get('login.role')->id_peran==1)
+                            @if($menus->a_boleh_insert == "1")
                             <td>
                                 <a type="button" data-toggle="modal" class="btn btn-primary btn-xs" href="#editPJ{{$item->id_pj_aplikasi}}"><i class="fa fa-edit"></i></a>
                                 <a type="button" data-toggle="modal" class="btn btn-danger btn-xs" href="#deletePJ{{$item->id_pj_aplikasi}}"><i class="fas fa-trash-alt"></i></a>
@@ -111,7 +112,7 @@
         </div>
         <div class="card-body">
             <div class="d-lg-flex d-block">
-                @if(session()->get('login.role')->id_peran==1)
+                @if($menus->a_boleh_insert == "1")
                 <div class="col-2">
                     <a type="button" data-toggle="modal" class="btn btn-info" href="#createMenu"><i class="fa fa-plus"></i> Tambah</a>
                 </div>
@@ -139,7 +140,7 @@
                             <th>Apakah Aktif ?</th>
                             <th>Apakah Tampil ?</th>
                             <th>Last Sync</th>
-                            @if(session()->get('login.role')->id_peran==1)
+                            @if($menus->a_boleh_insert == "1")
                             <th>Aksi</th>
                             @endif
                         </tr>
@@ -155,7 +156,7 @@
                             <td>{{($item->a_aktif==1)?'Ya':'Tidak'}}</td>
                             <td>{{($item->a_tampil==1)?'Ya':'Tidak'}}</td>
                             <td>{{TglWaktuIndonesia($data->last_sync) ?? '-'}}</td>
-                            @if(session()->get('login.role')->id_peran==1)
+                            @if($menus->a_boleh_insert == "1")
                             <td>
                                 <a type="button" data-toggle="modal" class="btn btn-primary btn-xs" href="#editMenu{{$item->id_menu}}"><i class="fa fa-edit"></i></a>
                             </td>
@@ -279,7 +280,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="row">
-                        @if(session()->get('login.role')->id_peran==1)
+                        @if($menus->a_boleh_insert == "1")
                         <div class="col-sm-12">
                             <p class="text-muted text-center text-break">
                                 @if(is_null($data->app_key))
@@ -306,7 +307,7 @@
                     </div>
                     <div class="modal-footer no-bd">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Tutup</button>
-                        @if(session()->get('login.role')->id_peran==1)
+                        @if($menus->a_boleh_insert == "1")
                         <a type="button" class="btn btn-warning" href="{!! route('aplikasi.appKeyGenerate', $data->id_aplikasi) !!}"><i class="fas fa-key mr-1"></i> Generate App Key</a>
                         @endif
                     </div>
@@ -616,7 +617,22 @@
                                     <label>Group Menu</label>
                                     <select name="id_group_menu" class="form-control">
                                         <option selected disabled>Pilih</option>
+                                        @foreach(\App\Models\Menu::where('id_aplikasi', $data->id_aplikasi)->where('urutan_menu','>',0)->orderBy('urutan_menu','ASC')->pluck('nm_menu', 'id_menu') AS $n=>$r)
+                                        <option value="{{ $n }}">{{ $r }}</option>
+                                        @endforeach
                                     </select>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group form-group-default">
+                                    <label>Icon</label>
+                                    <input name="icon" type="text" class="form-control" placeholder="icon">
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group form-group-default">
+                                    <label>Level Menu</label>
+                                    <input name="level_menu" type="number" class="form-control" placeholder="level menu">
                                 </div>
                             </div>
                             <div class="col-sm-6 col-12">
@@ -635,38 +651,6 @@
                                         <option value="0">Tidak</option>
                                         <option value="1">Ya</option>
                                     </select>
-                                </div>
-                            </div>
-                            <div class="col-sm-12 col-12">
-                                <div class="form-group form-group-default">
-                                    <label>Peran</label>
-                                    @php
-                                    $peran = DB::SELECT("
-                                            SELECT *
-                                            FROM man_akses.peran WITH (NOLOCK)
-                                            WHERE expired_date IS NULL
-                                    ");
-                                    @endphp
-                                    <select class="form-control select2" name="id_peran[]" data-placeholder="Pilih" multiple required>
-                                        @foreach($peran as $item)
-                                        <option value="{{$item->id_peran}}">{{$item->nm_peran}}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-sm-12 col-12">
-                                <div class="form-group form-group-default">
-                                    <label>Apakah Bisa:</label><br>
-                                    <input type="checkbox" id="a_boleh_insert" name="a_boleh_insert">
-                                    <label for="a_boleh_insert"> Insert</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_show" name="a_boleh_show">
-                                    <label for="a_boleh_show"> Show</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_delete" name="a_boleh_delete">
-                                    <label for="a_boleh_delete"> Delete</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_update" name="a_boleh_update">
-                                    <label for="a_boleh_update"> Update</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_sanggah" name="a_boleh_sanggah">
-                                    <label for="a_boleh_sanggah"> Sanggah</label>
                                 </div>
                             </div>
                         </div>
@@ -724,10 +708,22 @@
                                     <label>Group Menu</label>
                                     <select name="id_group_menu" class="form-control">
                                         <option selected disabled>Pilih</option>
-                                        @foreach($menu as $value)
-                                        <option value="{{$value->id_menu}}" {{($items->id_group_menu==$value->id_menu)?'selected':''}}>{{$items->nm_menu}}</option>
+                                        @foreach(\App\Models\Menu::where('id_aplikasi', $data->id_aplikasi)->where('urutan_menu','>',0)->orderBy('urutan_menu','ASC')->pluck('nm_menu', 'id_menu') AS $n=>$r)
+                                        <option value="{{ $n }}" {{ ($n==$items->id_group_menu) ? 'selected' : ''}}>{{ $r }}</option>
                                         @endforeach
                                     </select>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group form-group-default">
+                                    <label>Icon</label>
+                                    <input name="icon" type="text" class="form-control" placeholder="icon" value="{{ $items->icon }}">
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group form-group-default">
+                                    <label>Level Menu</label>
+                                    <input name="level_menu" type="number" class="form-control" placeholder="level menu" value="{{ $items->level_menu }}">
                                 </div>
                             </div>
                             <div class="col-sm-6 col-12">
@@ -746,42 +742,6 @@
                                         <option value="0" {{($items->a_tampil==0)?'selected':''}}>Tidak</option>
                                         <option value="1" {{($items->a_tampil==1)?'selected':''}}>Ya</option>
                                     </select>
-                                </div>
-                            </div>
-                            <div class="col-sm-12 col-12">
-                                <div class="form-group form-group-default">
-                                    <label>Peran</label>
-                                    @php
-                                    $peran = DB::SELECT("
-                                            SELECT *
-                                            FROM man_akses.peran WITH (NOLOCK)
-                                            WHERE expired_date IS NULL
-                                    ");
-
-                                    $checkRole = DB::table('man_akses.menu_role')->where('id_menu', $items->id_menu)->where('soft_delete',0)->get()->toArray();
-                                    
-                                    @endphp
-                                    <select class="form-control select2" name="id_peran[]" data-placeholder="Pilih" multiple required>
-                                        @foreach($peran as $item)
-                                            <option value="{{$item->id_peran}}" {{(in_array($item->id_peran, array_column($checkRole, "id_peran"))==true)?'selected':''}}>{{$item->nm_peran}}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-sm-12 col-12">
-                                <div class="form-group form-group-default">
-                                    <?php $menurole = DB::table('man_akses.menu_role')->where('id_menu', $items->id_menu)->first(); ?>
-                                    <label>Apakah Bisa:</label><br>
-                                    <input type="checkbox" id="a_boleh_insert" name="a_boleh_insert" {{(!empty($menurole->a_boleh_insert)&&$menurole->a_boleh_insert==1)?'checked':''}}>
-                                    <label for="a_boleh_insert"> Insert</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_show" name="a_boleh_show" {{(!empty($menurole->a_boleh_show)&&$menurole->a_boleh_show==1)?'checked':''}}>
-                                    <label for="a_boleh_show"> Show</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_delete" name="a_boleh_delete" {{(!empty($menurole->a_boleh_delete)&&$menurole->a_boleh_delete==1)?'checked':''}}>
-                                    <label for="a_boleh_delete"> Delete</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_update" name="a_boleh_update" {{(!empty($menurole->a_boleh_update)&&$menurole->a_boleh_update==1)?'checked':''}}>
-                                    <label for="a_boleh_update"> Update</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_sanggah" name="a_boleh_sanggah" {{(!empty($menurole->a_boleh_sanggah)&&$menurole->a_boleh_sanggah==1)?'checked':''}}>
-                                    <label for="a_boleh_sanggah"> Sanggah</label>
                                 </div>
                             </div>
                         </div>

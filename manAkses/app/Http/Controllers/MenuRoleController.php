@@ -16,9 +16,28 @@ class MenuRoleController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index($id)
     {
-        //
+        $id = Crypt::decrypt($id);
+        $data = \App\Models\Aplikasi::lock('WITH(NOLOCK)')->where('id_aplikasi',$id)->first();
+        $peran = \DB::SELECT("
+            SELECT DISTINCT
+                peran.id_peran,
+                peran.nm_peran
+            FROM
+                man_akses.menu_role AS mrole
+                JOIN man_akses.menu ON menu.id_menu=mrole.id_menu
+                JOIN man_akses.peran ON peran.id_peran=mrole.id_peran
+            WHERE
+                menu.id_aplikasi='".$id."'
+                AND mrole.soft_delete=0
+                AND peran.expired_date IS NULL
+        ");
+
+        return view('manajemen.aplikasi.menu_role.index', [
+            'peran' => $peran,
+            'data'=>$data
+        ]);
     }
 
     /**
@@ -26,9 +45,11 @@ class MenuRoleController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create($id)
     {
-        //
+        $id = Crypt::decrypt($id);
+        $data = \App\Models\Aplikasi::lock('WITH(NOLOCK)')->where('id_aplikasi',$id)->first();
+        return view('manajemen.aplikasi.menu_role.create', compact('data'));
     }
 
     /**
@@ -37,9 +58,36 @@ class MenuRoleController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request, $id)
     {
+        $id = \Crypt::decrypt($id);
         $array = $request->all();
+        
+        foreach($array['menu'] AS $n=>$r)
+        {
+            MenuRole::updateOrCreate(
+                [
+                    'id_peran' => $array['id_peran'],
+                    'id_menu' => $n,
+                ],
+                [
+                    'a_boleh_insert' => (!empty($r['insert'])) ? 1 : 0,
+                    'a_boleh_show' => (!empty($r['show'])) ? 1 : 0,
+                    'a_boleh_delete' => (!empty($r['delete'])) ? 1 : 0,
+                    'a_boleh_update' => (!empty($r['update'])) ? 1 : 0,
+                    'a_boleh_sanggah' => (!empty($r['sanggah'])) ? 1 : 0,
+                    'approval_menu' => 1,
+                    'tgl_create' => currDateTime(),
+                    'last_update' => currDateTime(),
+                    'soft_delete' => 0,
+                    'last_sync' => currDateTime(),
+                    'id_updater' => \Auth::user()->id_pengguna
+                ]
+            );
+        }
+
+        alert()->success('Data berhasil ditambahkan!');
+        return redirect()->back();
     }
 
     /**
@@ -59,9 +107,14 @@ class MenuRoleController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit($id, $mrole)
     {
-        //
+        $id_aplikasi = Crypt::decrypt($id);
+        $id_peran = Crypt::decrypt($mrole);
+
+        $data = \App\Models\Aplikasi::lock('WITH(NOLOCK)')->where('id_aplikasi', $id_aplikasi)->first();
+
+        return view('manajemen.aplikasi.menu_role.edit', compact('data','id_peran'));
     }
 
     /**
@@ -73,8 +126,7 @@ class MenuRoleController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $id = Crypt::decrypt($id);
-        $array = $request->all();
+        //
     }
 
     /**
@@ -83,8 +135,19 @@ class MenuRoleController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy($id, $mrole)
     {
-        //
+        $id_aplikasi = Crypt::decrypt($id);
+        $id_peran = Crypt::decrypt($mrole);
+
+        $menu = \App\Models\Menu::lock('WITH(NOLOCK)')->where('id_aplikasi', $id_aplikasi)->pluck('id_menu');
+        MenuRole::whereIn('id_menu', $menu)->where('id_peran', $id_peran)->update(
+            [
+                'soft_delete' => 1
+            ]
+        );
+
+        alert()->success('Data berhasil dihapus!');
+        return redirect()->back();
     }
 }

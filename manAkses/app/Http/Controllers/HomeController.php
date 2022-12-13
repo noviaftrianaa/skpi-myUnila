@@ -42,24 +42,21 @@ class HomeController extends Controller
         $role = Rolepengguna::all();
         $db = DB::table('man_akses.versi_db')->first();
         $app_inter = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->whereNull('expired_date')->orWhere('expired_date', '>=', currDateTime())->simplePaginate(20);
-        // $app_non_inter = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->where('a_integrasi_cas',0)->get();
             
-        if(Session::has('login.role') && Session::get('login.role')->id_peran == 1) {
+        if(Session::get('login.role')->id_peran == 1) {
             $views = 'manajemen.index_admin';
-            $data_compact = [
-                'data'  => $datas,
-                'apps'  => $apps,
-                'db'    => $db,
-                'role'  => $role,
-                'unit'  => $unit
-            ];
         } else {
             $views = 'manajemen.index';
-            $data_compact = [
-                'app_inter' => $app_inter
-                // 'app_non_inter'=>$app_non_inter
-            ];
         }
+        $data_compact = [
+            'data'  => $datas,
+            'apps'  => $apps,
+            'db'    => $db,
+            'role'  => $role,
+            'unit'  => $unit,
+            'app_inter' => $app_inter
+        ];
+        
         return view($views, $data_compact);
     }
 
@@ -118,6 +115,12 @@ class HomeController extends Controller
         if(SSO::check()) {
             return view('auth.ubah_password');
         }
+    }
+
+    public function refresh()
+    {
+        MenuRole();
+        return redirect()->back();
     }
     
 }

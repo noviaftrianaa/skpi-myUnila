@@ -20,6 +20,13 @@ use Config;
 class AplikasiController extends Controller
 {
 
+    private $basepath;
+
+    public function __construct()
+    {
+        $this->basepath = 'aplikasi';
+    }
+
     private function keyGenerate()
     {
         \Artisan::call('key:generate --show');
@@ -32,13 +39,16 @@ class AplikasiController extends Controller
 
     public function index()
     {
-        if(session()->get('login.role')->id_peran==1) {
+        $menus = collect(session()->get('login.menu'))->where('nm_file', $this->basepath.'.index')->first();
+
+        if($menus->a_boleh_insert == "1") {
             $data = Aplikasi::with(['UnitOrganisasi','PJAplikasi'])->lock('WITH(NOLOCK)')->get();
         } else {
             $data = PJAplikasi::with(['aplikasi.unitorganisasi'])->lock('WITH(NOLOCK)')->where('soft_delete', 0)->where('id_pengguna', auth()->user()->id_pengguna)->get();
         }
         return view('manajemen.aplikasi.index', [
-            'data'=>$data
+            'data'=>$data,
+            'menus'=>$menus
         ]);
     }
 
@@ -127,13 +137,15 @@ class AplikasiController extends Controller
         $menu = DB::SELECT("
             SELECT *
             FROM man_akses.menu WITH (NOLOCK)
-            WHERE id_aplikasi='".$id."'
+            WHERE id_aplikasi='".$id."' AND a_aktif=1
         ");
+        $menus = collect(session()->get('login.menu'))->where('nm_file', $this->basepath.'.index')->first();
 
         return view('manajemen.aplikasi.show', [
             'data'  => $data,
             'pj'    => $pj,
-            'menu'  => $menu
+            'menu'  => $menu,
+            'menus' => $menus
         ]);
     }
 
@@ -256,12 +268,37 @@ class AplikasiController extends Controller
             'nm_menu' => $array['nm_menu'],
             'nm_file' => $array['nm_file'],
             'urutan_menu' => $array['urutan_menu'],
+            'icon' => $array['icon'],
+            'level_menu' => $array['level_menu'],
             'a_aktif' => $array['a_aktif'],
             'a_tampil' => $array['a_tampil'],
-            'icon' => $array['nm_menu'],
-            'level_menu' => $array['level_menu'],
             'id_aplikasi' => $aplikasi->id_aplikasi,
             'tgl_create' => currDateTime(),
+            'last_update' => currDateTime(),
+            'last_sync' => currDateTime()
+        ]);
+
+        if(!$store) {
+            alert()->error('Data gagal disimpan!');
+        } else {
+            alert()->success('Data berhasil disimpan!');
+        }
+        return redirect()->route('aplikasi.index');
+    }
+
+    public function edit_menu(Request $request, $id)
+    {
+        $id = Crypt::decrypt($id);
+        $array = $request->all();
+
+        $store = Menu::where('id_menu', $id)->update([
+            'nm_menu' => $array['nm_menu'],
+            'nm_file' => $array['nm_file'],
+            'urutan_menu' => $array['urutan_menu'],
+            'icon' => $array['icon'],
+            'level_menu' => $array['level_menu'],
+            'a_aktif' => $array['a_aktif'],
+            'a_tampil' => $array['a_tampil'],
             'last_update' => currDateTime(),
             'last_sync' => currDateTime()
         ]);

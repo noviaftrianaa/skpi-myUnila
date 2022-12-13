@@ -15,6 +15,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('favicon/apple-touch-icon.png') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon/favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon/favicon-16x16.png') }}">
+    <link rel="stylesheet" href="{{ asset('node_modules/font-awesome/css/font-awesome.css') }}">
     <link rel="manifest" href="{{ asset('favicon/site.webmanifest') }}">
 </head>
 
@@ -46,13 +47,13 @@
                     </a>
                 </div>
                 <div class="social-auth-links text-center mt-2 mb-3">
-                    <a href="http://login.unila.ac.id/about#faq" class="btn btn-block btn-warning">
+                    <a href="http://login.unila.ac.id/help#faq" class="btn btn-block btn-warning">
                         <i class="fas fa-question-circle mr-2"></i>Forgot Password
                     </a>
                 </div>
                 <div class="social-auth-links text-center mt-2 mb-3">
-                    <a href="http://login.unila.ac.id/about#register" class="btn btn-block btn-info">
-                        <i class="fas fa-user-plus mr-2"></i>Register
+                    <a href="http://login.unila.ac.id/help#register" class="btn btn-block btn-info">
+                        <i class="fa fa-user-plus mr-2"></i>Register
                     </a>
                 </div>
             </div>

@@ -10,7 +10,7 @@
         <div class="card-body">
             <div class="d-lg-flex d-block">
                 <div class="col-6">
-                    @if(session()->get('login.role')->id_peran==1)
+                    @if($menus->a_boleh_insert == "1")
                     <a class="btn btn-info" href="{{route('aplikasi.create')}}"><i class="fa fa-plus"></i> Tambah Data</a>
                     @else
                     <a class="btn btn-info" href="{{ url('/api/live/v1') }}" target="_blank"><i class="fa fa-connectdevelop"></i> Rest API</a>
@@ -40,7 +40,7 @@
                         <th>Aksi</th>
                       </tr>
                     </thead>
-                    @if(session()->get('login.role')->id_peran==1)
+                    @if($menus->a_boleh_insert == "1")
                     <tbody>
                         @foreach($data as $no=>$item)
                         <tr>

@@ -98,7 +98,7 @@
             <img src="{{ asset('images/logo-unila.png') }}" alt="Logo Aplikasi" class="brand-image img-fluid">
             <span class="brand-text font-weight text-sm"><strong>MANAJEMEN AKSES</strong></span>
         </a>
-        @include('template.default.sidebar2')
+        @include('template.default.sidebar')
     </aside>
 
     <!-- Content Wrapper. Contains page content -->

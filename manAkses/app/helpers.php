@@ -112,3 +112,5 @@ include $path.'WeekOfMonth.php';
 include $path.'InputValidator.php';
 
 include $path.'WrapResponse.php';
+
+include $path.'MenuRole.php';

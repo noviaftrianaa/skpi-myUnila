@@ -17,14 +17,22 @@
                 alt="User Image">
         </div>
         <div class="info">
-            <a href="{{ url('/biodata') }}" class="d-block">{{ strtoupper($getPeran['nm_pengguna']) }}</a>
+            <a href="{{ url('/biodata') }}" class="d-block">{{ strtoupper(auth()->user()->nm_pengguna) }}</a>
             <span class="d-block text-sm">
 				<form action="{{ url('changeRole') }}" method="post" enctype="multipart/form-data" id="changeRole">
 					<input type="hidden" name="_token" value="{{ csrf_token() }}">
 					<input type="hidden" name="_method" value="PUT">
 					<select class="form-control-plaintext bg-dark text-light peran" name="id_peran">
-						@foreach($getPeran['status_peran'] AS $items)
-						<option value="{{ $items['id_peran'] }}" {{ ($items['id_peran']==session()->get('login.role')->id_peran) ? 'selected' : '' }}>{{ strtoupper($items['nm_peran']) }}</option>
+                        @php
+                        $peran = DB::SELECT("
+                            SELECT peran.*
+                            FROM man_akses.role_pengguna AS role
+                            JOIN man_akses.peran ON peran.id_peran=role.id_peran
+                            WHERE role.id_pengguna='".auth()->user()->id_pengguna."'
+                        ");
+                        @endphp
+						@foreach($peran AS $items)
+						<option value="{{ $items->id_peran }}" {{ ($items->id_peran==session()->get('login.role')->id_peran) ? 'selected' : '' }}>{{ strtoupper($items->nm_peran) }}</option>
 						@endforeach
 					</select>
 				</form>
@@ -34,108 +42,19 @@
 	<!-- Sidebar Menu -->
 	<nav class="mt-2">
 		<ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+			@if(\Session::has('login.menu'))
+			@foreach(\Session::get('login.menu') AS $n=>$r)
 			<li class="nav-item">
-			<!-- route dashboard -->
-				<a href="{{ route('index') }}" class="nav-link {{ (request()->is('/')) ? 'active' : '' }}">
+				<a href="{{ route($r->nm_file) }}" class="nav-link {{ AktifMenu($r->nm_file, 2) }}">
 						<i class="nav-icon fas fa-tachometer-alt"></i>
-						<p>Dashboard</p>
+						<p>{{ $r->nm_menu }}</p>
 				</a>
 			</li>
-			<li class="nav-item">
-				<!-- route dashboard -->
-				<a href="#" class="nav-link {{ 
-					(request()->is('profile*')) ? 'active' : ''
-				 }}">
-					<i class="nav-icon fas fa-user"></i>
-					<p>Profile <i class="fas fa-angle-left right"></i></p>
-				</a>
-				<ul class="nav nav-treeview">
-					<li class="nav-item">
-						<a href="{{ route('profile.biodata') }}" class="nav-link {{ (request()->is('profile/biodata*')) ? 'active' : '' }}">
-							<i class="nav-icon fas fa-caret-right ml-4"></i>
-							<p>Biodata</p>
-						</a>
-					</li>
-					<li class="nav-item">
-						<a href="{{ route('profile.riwayat_pendidikan') }}" class="nav-link {{ (request()->is('profile/riwayat_pendidikan*')) ? 'active' : '' }}">
-							<i class="nav-icon fas fa-caret-right ml-4"></i>
-							<p>Riwayat Pendidikan</p>
-						</a>
-					</li>
-				</ul>
-			</li>
-
-			@if(session()->has('login.role') && session()->get('login.role')->id_peran==1)
-			<!-- Administrator Menus -->
-			<li class="nav-item">
-				<!-- route dashboard -->
-				<a href="#" class="nav-link {{ 
-					(request()->is('master*')) ? 'active' : ''
-				 }}">
-					<i class="nav-icon fas fa-cog"></i>
-					<p>Master Data <i class="fas fa-angle-left right"></i></p>
-				</a>
-				<ul class="nav nav-treeview">
-					<li class="nav-item">
-					<!-- route dashboard -->
-						<a href="{{ route('user.index') }}" class="nav-link {{ (request()->is('master/user*')) ? 'active' : '' }}">
-							<i class="nav-icon fas fa-caret-right ml-4"></i>
-							<p>Data Pengguna</p>
-						</a>
-					</li>
-					<li class="nav-item">
-					<!-- route dashboard -->
-						<a href="{{ route('peran.index') }}" class="nav-link {{ (request()->is('master/peran*')) ? 'active' : '' }}">
-							<i class="nav-icon fas fa-caret-right ml-4"></i>
-							<p>Data Peran</p>
-						</a>
-					</li>
-					<li class="nav-item">
-					<!-- route dashboard -->
-						<a href="{{ route('unit.index') }}" class="nav-link {{ (request()->is('master/unit*')) ? 'active' : '' }}">
-							<i class="nav-icon fas fa-caret-right ml-4"></i>
-							<p>Data Unit Organisasi</p>
-						</a>
-					</li>
-					<li class="nav-item">
-					<!-- route dashboard -->
-						<a href="{{ route('aplikasi.index') }}" class="nav-link {{ (request()->is('master/aplikasi*')) ? 'active' : '' }}">
-							<i class="nav-icon fa fa-caret-right ml-4"></i>
-							<p>Data Aplikasi</p>
-						</a>
-					</li>
-					<li class="nav-item">
-					<!-- route dashboard -->
-						<a href="{{ route('token.index') }}" class="nav-link {{ (request()->is('master/token*')) ? 'active' : '' }}">
-							<i class="nav-icon fas fa-caret-right ml-4"></i>
-							<p>Data Token</p>
-						</a>
-					</li>
-					<li class="nav-item">
-					<!-- route dashboard -->
-						<a href="{{ route('menu.index') }}" class="nav-link {{ (request()->is('master/menu*')) ? 'active' : '' }}">
-							<i class="nav-icon fas fa-caret-right ml-4"></i>
-							<p>Data Menu</p>
-						</a>
-					</li>
-				</ul>
-			</li>
+			@endforeach
+			@if(\Config::get('manAkses')['Developer'] == 1)
+			<a href="{{ route('menu_refresh') }}" class="btn btn-info col-12 mt-4">REFRESH MENU</a>
 			@endif
-
-			<!-- CHANGE PASSWORD & LOGOUT -->
-			<li class="nav-item">
-				<a href="{{ route('ubah_password') }}" class="nav-link {{ (request()->is('ubah_password')) ? 'active' : '' }}">
-					<i class="fas fa-key nav-icon"></i>
-					<p>Ubah Password</p>
-				</a>
-			</li>
-			<li class="nav-item">
-			<!-- route dashboard -->
-				<a href="{{ route('auth.logout') }}" class="nav-link">
-					<i class="nav-icon fas fa-power-off"></i>
-					<p>Logout</p>
-				</a>
-			</li>
+			@endif
 		</ul>
 	</nav>
 	<!-- /.sidebar-menu -->
@@ -150,7 +69,6 @@
 			if (parentForm && parentForm.length > 0) {
 				parentForm.submit();
 			}
-			// document.forms['#changeRole'].submit();
 		});
 	});
 </script>

@@ -75,14 +75,15 @@ class LoginController extends Controller
                     }
                     Session::put('login.log_address', get_client_ip());
                     Session::put('login.role', (!is_null($role)) ? $role : NULL);
+                    MenuRole();
 
                     //GET TOKEN ONE DATA
                     // $this->generateToken();
 
-                    return redirect()->route('index');
+                    return redirect()->route('dashboard');
                 } else {
                     alert()->error('Data pengguna tidak ditemukan, silahkan hubungi administrator.')->html(true);
-                    return redirect()->route('auth.login');
+                    return redirect()->to('otorisasi');
                 }
             }
         } else {

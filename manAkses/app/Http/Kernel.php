@@ -69,5 +69,6 @@ class Kernel extends HttpKernel
         'main' => \App\Http\Middleware\MainMiddleware::class,
         'auth.sso' => \App\Http\Middleware\AuthSSO::class,
         'openapi_live' => \App\Http\Middleware\OpenApiLive::class,
+        'one_data_man_akses'    => \MP\ManAkses\ManAksesMiddleware::class,
     ];
 }
