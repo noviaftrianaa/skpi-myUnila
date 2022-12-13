@@ -41,7 +41,7 @@ class JadwalKelasController extends Controller
             'page' => 'numeric|min:1',
             'limit' => 'numeric|min:1|max:50',
             'id_prodi' => 'required|uuid',
-            'id_semester' => 'required|uuid'
+            'id_semester' => 'required'
         ]);
 
         $query = "
