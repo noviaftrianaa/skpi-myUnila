@@ -13,6 +13,13 @@ use App\Models\UnitOrganisasi;
 class RolePenggunaController extends Controller
 {
 
+    private $basepath;
+
+    public function __construct()
+    {
+        $this->basepath = 'pengguna.role_pengguna';
+    }
+
     /**
      * Display a listing of the resource.
      *

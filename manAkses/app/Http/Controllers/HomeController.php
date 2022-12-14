@@ -19,14 +19,12 @@ use Crypt;
 
 class HomeController extends Controller
 {
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
+
+    private $basepath;
+
     public function __construct()
     {
-        // $this->middleware('auth');
+        $this->basepath = 'dashboard';
     }
 
     /**
@@ -43,7 +41,7 @@ class HomeController extends Controller
         $db = DB::table('man_akses.versi_db')->first();
         $app_inter = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->whereNull('expired_date')->orWhere('expired_date', '>=', currDateTime())->simplePaginate(20);
             
-        if(Session::get('login.role')->id_peran == 1) {
+        if(!empty(Session::get('login.role')->id_peran) AND Session::get('login.role')->id_peran == 1) {
             $views = 'manajemen.index_admin';
         } else {
             $views = 'manajemen.index';

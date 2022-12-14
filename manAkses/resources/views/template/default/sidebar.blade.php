@@ -54,7 +54,7 @@
 			@if(\Config::get('manAkses')['Developer'] == 1)
 			@endif
 			@endif
-			<a href="{{ route('menu_refresh') }}" class="btn btn-info col-12 mt-4">REFRESH MENU</a>
+			<a href="{{ route('dashboard.refresh') }}" class="btn btn-info col-12 mt-4">REFRESH MENU</a>
 		</ul>
 	</nav>
 	<!-- /.sidebar-menu -->

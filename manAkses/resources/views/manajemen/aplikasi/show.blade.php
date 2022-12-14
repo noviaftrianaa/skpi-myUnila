@@ -366,7 +366,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form action="{{route('pj_aplikasi.store')}}" method="post" enctype="multipart/form-data">
+                    <form action="{{route('aplikasi.pj_aplikasi.store')}}" method="post" enctype="multipart/form-data">
                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="_method" value="PUT">
                         <input type="hidden" name="id_aplikasi" value="{{$data->id_aplikasi}}">
@@ -489,7 +489,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form action="{{route('pj_aplikasi.update', [Crypt::encrypt($items->id_pj_aplikasi)])}}" method="post" enctype="multipart/form-data">
+                    <form action="{{route('aplikasi.pj_aplikasi.update', [Crypt::encrypt($items->id_pj_aplikasi)])}}" method="post" enctype="multipart/form-data">
                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="_method" value="PATCH">
                         <div class="row">
@@ -554,7 +554,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form action="{{route('pj_aplikasi.destroy', [Crypt::encrypt($items->id_pj_aplikasi)])}}" method="post" enctype="multipart/form-data">
+                    <form action="{{route('aplikasi.pj_aplikasi.destroy', [Crypt::encrypt($items->id_pj_aplikasi)])}}" method="post" enctype="multipart/form-data">
                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="_method" value="DELETE">
                         <div class="row">

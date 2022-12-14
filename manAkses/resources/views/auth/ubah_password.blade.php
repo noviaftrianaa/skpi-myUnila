@@ -26,7 +26,7 @@
                 </p>
             </div>
             <div class="card-body">
-                <form action="{{ route('password') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('dashboard.password') }}" method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="_method" value="PUT">
                     <input type="hidden" name="url" value="{{ url()->previous() }}">

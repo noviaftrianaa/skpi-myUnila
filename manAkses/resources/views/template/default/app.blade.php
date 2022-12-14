@@ -77,7 +77,7 @@
                 </a>
                 <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
                     <!-- change password -->
-                    <a class="dropdown-item" href="{{ route('ubah_password') }}" style="border-bottom: 1px solid #eee">
+                    <a class="dropdown-item" href="{{ route('dashboard.ubah_password') }}" style="border-bottom: 1px solid #eee">
                         <i class="fas fa-key mr-1"></i> Ubah Password
                     </a>
                     <!-- Logout -->

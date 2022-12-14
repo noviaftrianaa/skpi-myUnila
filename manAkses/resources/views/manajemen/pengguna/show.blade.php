@@ -181,7 +181,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form action="{{route('role.store')}}" method="post" enctype="multipart/form-data">
+                    <form action="{{route('user.role.store')}}" method="post" enctype="multipart/form-data">
                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="_method" value="PUT">
                         <input type="hidden" name="id_pengguna" value="{{$data->id_pengguna}}">
@@ -247,7 +247,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form action="{{route('role.update', [Crypt::encrypt($items->id_role_pengguna)])}}" method="post" enctype="multipart/form-data">
+                    <form action="{{route('user.role.update', [Crypt::encrypt($items->id_role_pengguna)])}}" method="post" enctype="multipart/form-data">
                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="_method" value="PATCH">
                         <input type="hidden" name="id_pengguna" value="{{$data->id_pengguna}}">
@@ -315,7 +315,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form action="{{route('role.destroy', [Crypt::encrypt($items->id_role_pengguna)])}}" method="post" enctype="multipart/form-data">
+                    <form action="{{route('user.role.destroy', [Crypt::encrypt($items->id_role_pengguna)])}}" method="post" enctype="multipart/form-data">
                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="_method" value="DELETE">
                         <input type="hidden" name="id_pengguna" value="{{$data->id_pengguna}}">

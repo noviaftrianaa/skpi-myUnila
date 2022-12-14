@@ -12,10 +12,12 @@ use DataTables;
 
 class MenuController extends Controller
 {
-    
+
+    private $basepath;
+
     public function __construct()
     {
-        // $this->middleware('admin');
+        $this->basepath = 'menu';
     }
 
     /**
