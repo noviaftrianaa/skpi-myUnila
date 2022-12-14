@@ -26,8 +26,7 @@ class MenuController extends Controller
     public function index(Request $request)
     {
         if($request->ajax()) {
-            $data = Menu::lock('WITH(NOLOCK)')->get();
-
+            $data = Menu::with('group_menu')->lock('WITH(NOLOCK)')->get();
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('aksi', function($data) {
@@ -38,7 +37,7 @@ class MenuController extends Controller
                 ->make(true);
         }
         
-        $menu = Menu::lock('WITH(NOLOCK)')->get();
+        $menu = Menu::with('group_menu')->lock('WITH(NOLOCK)')->get();
         return view('manajemen.menu.index', compact('menu'));
     }
 
@@ -120,6 +119,7 @@ class MenuController extends Controller
     public function update(Request $request, $id)
     {
         $array = $request->all();
+        $id = Crypt::decrypt($id);
 
         $data = Menu::lock('WITH(NOLOCK)')->where('id_menu', $id)->update([
             'nm_menu' => $array['nm_menu'],

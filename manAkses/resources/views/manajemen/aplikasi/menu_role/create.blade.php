@@ -17,7 +17,7 @@
                         <div class="form-group row">
                             <label class="col-2">Peran</label>
                             <div class="col-10">
-                                <select class="form-control select2" name="id_peran" required>
+                                <select class="form-control select2 col-12" name="id_peran" required>
                                     <option value="" selected disabled>-- Pilih --</option>
                                     @foreach(\App\Models\Peran::whereNull('expired_date')->orderBy('nm_peran')->pluck('nm_peran','id_peran') AS $n=>$r)
                                     <option value="{{ $n }}">{{ $r }}</option>
@@ -35,14 +35,14 @@
                                         @foreach(\App\Models\Menu::where('id_aplikasi', $data->id_aplikasi)->where('a_aktif',1)->where('urutan_menu','>',0)->orderBy('urutan_menu')->get() AS $n=>$r)
                                         <tr>
                                             <th class="row m-0 p-0">
-                                                <div class="col-2">
+                                                <div class="col-md-2 col-4">
                                                     <div class="form-group form-group-default">
-                                                        <input class="mr-2" type="checkbox" id="{{ $r->nm_file }}" name="menu[{{$r->id_menu}}]" value="{{$r->id_menu}}">
+                                                        <input class="mr-2 menus" type="checkbox" id="{{ $n }}" name="menu[{{$r->id_menu}}]" value="{{$r->id_menu}}">
                                                         <label for="a_boleh_insert"> {{ $r->nm_menu }}</label>
                                                     </div>
                                                 </div>
-                                                <div class="col-10">
-                                                    <div class="form-group form-group-default">
+                                                <div class="col-md-10 col-8">
+                                                    <div class="form-group form-group-default menu_{{$n}}">
                                                         <input class="mr-2" type="checkbox" id="a_boleh_insert" name="menu[{{$r->id_menu}}][insert]">
                                                         <label for="a_boleh_insert"> Insert</label>&nbsp;&nbsp;
                                                         <input class="mr-2" type="checkbox" id="a_boleh_show" name="menu[{{$r->id_menu}}][show]">
@@ -73,3 +73,18 @@
         </div>
     </div>
 @endsection
+
+@push("js")
+<script>
+    $(document).ready(function () {
+        $(".menus").change(function() {
+            var id = this.id;
+            if($(this).is(':checked')==true) {
+                $('.menu_'+id+' :checkbox').prop('checked', true);
+            } else {
+                $('.menu_'+id+' :checkbox').prop('checked', false);
+            }
+        });
+    });
+</script>
+@endpush

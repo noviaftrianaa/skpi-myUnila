@@ -46,15 +46,15 @@
 			@foreach(\Session::get('login.menu') AS $n=>$r)
 			<li class="nav-item">
 				<a href="{{ route($r->nm_file) }}" class="nav-link {{ AktifMenu($r->nm_file, 2) }}">
-						<i class="nav-icon fas fa-tachometer-alt"></i>
-						<p>{{ $r->nm_menu }}</p>
+					<i class="nav-icon {{ $r->icon }}"></i>
+					<p>{{ $r->nm_menu }}</p>
 				</a>
 			</li>
 			@endforeach
 			@if(\Config::get('manAkses')['Developer'] == 1)
+			@endif
+			@endif
 			<a href="{{ route('menu_refresh') }}" class="btn btn-info col-12 mt-4">REFRESH MENU</a>
-			@endif
-			@endif
 		</ul>
 	</nav>
 	<!-- /.sidebar-menu -->

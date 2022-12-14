@@ -62,15 +62,17 @@ class MenuRoleController extends Controller
     {
         $id = \Crypt::decrypt($id);
         $array = $request->all();
+
+        $menu = \App\Models\Menu::where('id_aplikasi', $id)->pluck('id_menu');
+        //DELETE
+        MenuRole::where('id_peran', $array['id_peran'])->whereIn('id_menu', $menu)->delete();
         
         foreach($array['menu'] AS $n=>$r)
         {
-            MenuRole::updateOrCreate(
+            MenuRole::create(
                 [
                     'id_peran' => $array['id_peran'],
                     'id_menu' => $n,
-                ],
-                [
                     'a_boleh_insert' => (!empty($r['insert'])) ? 1 : 0,
                     'a_boleh_show' => (!empty($r['show'])) ? 1 : 0,
                     'a_boleh_delete' => (!empty($r['delete'])) ? 1 : 0,

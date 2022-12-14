@@ -135,11 +135,11 @@
                             <th>No.</th>
                             <th>Nama Menu</th>
                             <th>Nama File</th>
+                            <th>Icon</th>
                             <th>Urutan</th>
                             <th>ID Group Menu</th>
                             <th>Apakah Aktif ?</th>
                             <th>Apakah Tampil ?</th>
-                            <th>Last Sync</th>
                             @if($menus->a_boleh_insert == "1")
                             <th>Aksi</th>
                             @endif
@@ -151,11 +151,11 @@
                             <td>{{$no+1}}</td>
                             <td>{{$item->nm_menu}}</td>
                             <td>{{$item->nm_file}}</td>
+                            <td>{{$item->icon}}</td>
                             <td>{{$item->urutan_menu}}</td>
-                            <td>{{$item->id_group_menu}}</td>
+                            <td>{{$item->group_menu->nm_menu ?? null}}</td>
                             <td>{{($item->a_aktif==1)?'Ya':'Tidak'}}</td>
                             <td>{{($item->a_tampil==1)?'Ya':'Tidak'}}</td>
-                            <td>{{TglWaktuIndonesia($data->last_sync) ?? '-'}}</td>
                             @if($menus->a_boleh_insert == "1")
                             <td>
                                 <a type="button" data-toggle="modal" class="btn btn-primary btn-xs" href="#editMenu{{$item->id_menu}}"><i class="fa fa-edit"></i></a>

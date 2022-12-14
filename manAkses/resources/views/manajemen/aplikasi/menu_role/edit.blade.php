@@ -38,12 +38,12 @@
                                             <th class="row m-0 p-0">
                                                 <div class="col-2">
                                                     <div class="form-group form-group-default">
-                                                        <input class="mr-2" type="checkbox" id="{{ $r->nm_file }}" name="menu[{{$r->id_menu}}]" value="{{$r->id_menu}}" {{ (!empty($check_menu)) ? 'checked' : ''}}>
+                                                        <input class="mr-2 menus" type="checkbox" id="{{ $n }}" name="menu[{{$r->id_menu}}]" value="{{$r->id_menu}}" {{ (!empty($check_menu)) ? 'checked' : ''}}>
                                                         <label for="a_boleh_insert"> {{ $r->nm_menu }}</label>
                                                     </div>
                                                 </div>
                                                 <div class="col-10">
-                                                    <div class="form-group form-group-default">
+                                                    <div class="form-group form-group-default menu_{{$n}}">
                                                         <input class="mr-2" type="checkbox" id="a_boleh_insert" name="menu[{{$r->id_menu}}][insert]" {{ (!is_null($check_menu) && $check_menu->a_boleh_insert==1) ? 'checked':''}}>
                                                         <label for="a_boleh_insert"> Insert</label>&nbsp;&nbsp;
                                                         <input class="mr-2" type="checkbox" id="a_boleh_show" name="menu[{{$r->id_menu}}][show]" {{ (!is_null($check_menu) && $check_menu->a_boleh_show==1) ? 'checked':''}}>
@@ -74,3 +74,18 @@
         </div>
     </div>
 @endsection
+
+@push("js")
+<script>
+    $(document).ready(function () {
+        $(".menus").change(function() {
+            var id = this.id;
+            if($(this).is(':checked')==true) {
+                $('.menu_'+id+' :checkbox').prop('checked', true);
+            } else {
+                $('.menu_'+id+' :checkbox').prop('checked', false);
+            }
+        });
+    });
+</script>
+@endpush

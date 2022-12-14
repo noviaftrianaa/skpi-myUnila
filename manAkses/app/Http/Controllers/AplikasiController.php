@@ -134,11 +134,7 @@ class AplikasiController extends Controller
             FROM man_akses.pj_aplikasi WITH (NOLOCK)
             WHERE id_aplikasi='".$id."' AND soft_delete=0
         ");
-        $menu = DB::SELECT("
-            SELECT *
-            FROM man_akses.menu WITH (NOLOCK)
-            WHERE id_aplikasi='".$id."' AND a_aktif=1
-        ");
+        $menu = Menu::with('group_menu')->lock('WITH(NOLOCK)')->where('id_aplikasi', $id)->where('a_aktif', 1)->get();
         $menus = collect(session()->get('login.menu'))->where('nm_file', $this->basepath.'.index')->first();
 
         return view('manajemen.aplikasi.show', [
@@ -260,7 +256,6 @@ class AplikasiController extends Controller
     public function store_menu(Request $request, $id)
     {
         $id = Crypt::decrypt($id);
-        $aplikasi = Aplikasi::lock('WITH(NOLOCK)')->where('id_aplikasi',$id)->first();
         $array = $request->all();
 
         $store = Menu::create([
@@ -272,7 +267,7 @@ class AplikasiController extends Controller
             'level_menu' => $array['level_menu'],
             'a_aktif' => $array['a_aktif'],
             'a_tampil' => $array['a_tampil'],
-            'id_aplikasi' => $aplikasi->id_aplikasi,
+            'id_aplikasi' => $id,
             'tgl_create' => currDateTime(),
             'last_update' => currDateTime(),
             'last_sync' => currDateTime()

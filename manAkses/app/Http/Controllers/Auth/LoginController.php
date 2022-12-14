@@ -77,9 +77,6 @@ class LoginController extends Controller
                     Session::put('login.role', (!is_null($role)) ? $role : NULL);
                     MenuRole();
 
-                    //GET TOKEN ONE DATA
-                    // $this->generateToken();
-
                     return redirect()->route('dashboard');
                 } else {
                     alert()->error('Data pengguna tidak ditemukan, silahkan hubungi administrator.')->html(true);

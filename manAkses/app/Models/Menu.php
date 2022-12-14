@@ -22,4 +22,9 @@ class Menu extends Model
     {
         return $this->belongsTo('App\Models\Aplikasi','id_aplikasi','id_aplikasi');
     }
+
+    public function group_menu()
+    {
+        return $this->belongsTo('App\Models\Menu','id_group_menu','id_menu');
+    }
 }
