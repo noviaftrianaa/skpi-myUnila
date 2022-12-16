@@ -32,7 +32,7 @@
                             <div class="col-10">
                                 <table class="table table-borderless">
                                     <tbody>
-                                        @foreach(\App\Models\Menu::where('id_aplikasi', $data->id_aplikasi)->where('a_aktif',1)->where('urutan_menu','>',0)->orderBy('urutan_menu')->get() AS $n=>$r)
+                                        @foreach(\App\Models\Menu::where('id_aplikasi', $data->id_aplikasi)->where('a_aktif',1)->where('level_menu',1)->orderBy('urutan_menu')->get() AS $n=>$r)
                                         <tr>
                                             <th class="row m-0 p-0">
                                                 <div class="col-md-2 col-4">

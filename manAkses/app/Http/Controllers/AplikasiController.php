@@ -134,8 +134,16 @@ class AplikasiController extends Controller
             FROM man_akses.pj_aplikasi WITH (NOLOCK)
             WHERE id_aplikasi='".$id."' AND soft_delete=0
         ");
+<<<<<<< Updated upstream
         $menu = Menu::with('group_menu')->lock('WITH(NOLOCK)')->where('id_aplikasi', $id)->where('a_aktif', 1)->get();
         $menus = collect(session()->get('login.menu'))->where('nm_file', $this->basepath.'.index')->first();
+=======
+        $menu = DB::SELECT("
+            SELECT *
+            FROM man_akses.menu WITH (NOLOCK)
+            WHERE id_aplikasi='".$id."' AND a_aktif=1
+        ");
+>>>>>>> Stashed changes
 
         return view('manajemen.aplikasi.show', [
             'data'  => $data,

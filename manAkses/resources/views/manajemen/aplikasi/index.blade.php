@@ -67,7 +67,7 @@
                             <td>{{TglWaktuIndonesia($item->aplikasi->expired_date)}}</td>
                             <td>{{TglWaktuIndonesia($item->aplikasi->last_sync)}}</td>
                             <td>
-                                <a class="btn btn-info btn-xs" title="Show" href="{{ route('manajemen.aplikasi.detail', [Crypt::encrypt($item->id_aplikasi)]) }}"> <i class="fas fa-eye"></i></a>
+                                <a class="btn btn-info btn-xs" title="Show" href="{{ route('aplikasi.detail', [Crypt::encrypt($item->id_aplikasi)]) }}"> <i class="fas fa-eye"></i></a>
                             </td>
                         </tr>
                         @endforeach
