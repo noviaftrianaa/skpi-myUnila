@@ -15,7 +15,6 @@
             <div class="row">
                 <div class="col-md-2 col-12 pl-4">
                     <img src="{!! (!is_null($data->largeobject)) ? 'data:image/' . $data->largeobject->mime_type . ';base64,' . $data->largeobject->blob_content : asset('auth/img/logo.png') !!}" width="100%" class="my-3"/>
-<<<<<<< Updated upstream
                     @if($menus->a_boleh_update == "1")
                     <a type="button" data-toggle="modal" class="btn btn-info col-12 my-1" href="#editAplikasi{{$data->id_aplikasi}}"><i class="fa fa-edit"></i> Edit</a>
                     @endif
@@ -24,16 +23,6 @@
                     <a type="button" class="btn btn-info col-12 my-1" href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Tabel Aplikasi</a>
                     @else
                     <a type="button" class="btn btn-info col-12 my-1" href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Tabel Aplikasi</a>
-=======
-                    @if(session()->get('login.role')->id_peran==1)
-                    <a type="button" data-toggle="modal" class="btn btn-info col-12 my-1" href="#editAplikasi{{$data->id_aplikasi}}"><i class="fa fa-edit"></i> Edit</a>
-                    @endif
-                    @if(session()->get('login.role')->id_peran==1)
-                    <a type="button" class="btn btn-info col-12 my-1" href="{{ route('aplikasi.menu_role', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Menu Role</a>
-                    <a type="button" class="btn btn-info col-12 my-1" href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Tabel Aplikasi</a>
-                    @else
-                    <a type="button" class="btn btn-info col-12 my-1" href="{{ route('manajemen.aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Tabel Aplikasi</a>
->>>>>>> Stashed changes
                     @endif
                 </div>
                 <div class="col-md-10 col-12">
@@ -665,41 +654,6 @@
                                     </select>
                                 </div>
                             </div>
-<<<<<<< Updated upstream
-=======
-                            <!-- <div class="col-sm-12 col-12">
-                                <div class="form-group form-group-default">
-                                    <label>Peran</label>
-                                    @php
-                                    $peran = DB::SELECT("
-                                            SELECT *
-                                            FROM man_akses.peran WITH (NOLOCK)
-                                            WHERE expired_date IS NULL
-                                    ");
-                                    @endphp
-                                    <select class="form-control select2" name="id_peran[]" data-placeholder="Pilih" multiple required>
-                                        @foreach($peran as $item)
-                                        <option value="{{$item->id_peran}}">{{$item->nm_peran}}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div> -->
-                            <!-- <div class="col-sm-12 col-12">
-                                <div class="form-group form-group-default">
-                                    <label>Apakah Bisa:</label><br>
-                                    <input type="checkbox" id="a_boleh_insert" name="a_boleh_insert">
-                                    <label for="a_boleh_insert"> Insert</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_show" name="a_boleh_show">
-                                    <label for="a_boleh_show"> Show</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_delete" name="a_boleh_delete">
-                                    <label for="a_boleh_delete"> Delete</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_update" name="a_boleh_update">
-                                    <label for="a_boleh_update"> Update</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_sanggah" name="a_boleh_sanggah">
-                                    <label for="a_boleh_sanggah"> Sanggah</label>
-                                </div>
-                            </div> -->
->>>>>>> Stashed changes
                         </div>
                         <div class="modal-footer no-bd">
                             <button type="submit" class="btn btn-primary">Simpan</button>
@@ -791,45 +745,6 @@
                                     </select>
                                 </div>
                             </div>
-<<<<<<< Updated upstream
-=======
-                            <!-- <div class="col-sm-12 col-12">
-                                <div class="form-group form-group-default">
-                                    <label>Peran</label>
-                                    @php
-                                    $peran = DB::SELECT("
-                                            SELECT *
-                                            FROM man_akses.peran WITH (NOLOCK)
-                                            WHERE expired_date IS NULL
-                                    ");
-
-                                    $checkRole = DB::table('man_akses.menu_role')->where('id_menu', $items->id_menu)->where('soft_delete',0)->get()->toArray();
-                                    
-                                    @endphp
-                                    <select class="form-control select2" name="id_peran[]" data-placeholder="Pilih" multiple required>
-                                        @foreach($peran as $item)
-                                            <option value="{{$item->id_peran}}" {{(in_array($item->id_peran, array_column($checkRole, "id_peran"))==true)?'selected':''}}>{{$item->nm_peran}}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div> -->
-                            <!-- <div class="col-sm-12 col-12">
-                                <div class="form-group form-group-default">
-                                    @php $menurole = DB::table('man_akses.menu_role')->where('id_menu', $items->id_menu)->first(); @endphp
-                                    <label>Apakah Bisa:</label><br>
-                                    <input type="checkbox" id="a_boleh_insert" name="a_boleh_insert" {{(!empty($menurole->a_boleh_insert)&&$menurole->a_boleh_insert==1)?'checked':''}}>
-                                    <label for="a_boleh_insert"> Insert</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_show" name="a_boleh_show" {{(!empty($menurole->a_boleh_show)&&$menurole->a_boleh_show==1)?'checked':''}}>
-                                    <label for="a_boleh_show"> Show</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_delete" name="a_boleh_delete" {{(!empty($menurole->a_boleh_delete)&&$menurole->a_boleh_delete==1)?'checked':''}}>
-                                    <label for="a_boleh_delete"> Delete</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_update" name="a_boleh_update" {{(!empty($menurole->a_boleh_update)&&$menurole->a_boleh_update==1)?'checked':''}}>
-                                    <label for="a_boleh_update"> Update</label>&nbsp;&nbsp;
-                                    <input type="checkbox" id="a_boleh_sanggah" name="a_boleh_sanggah" {{(!empty($menurole->a_boleh_sanggah)&&$menurole->a_boleh_sanggah==1)?'checked':''}}>
-                                    <label for="a_boleh_sanggah"> Sanggah</label>
-                                </div>
-                            </div> -->
->>>>>>> Stashed changes
                         </div>
                         <div class="modal-footer no-bd">
                             <button type="submit" class="btn btn-primary">Simpan</button>

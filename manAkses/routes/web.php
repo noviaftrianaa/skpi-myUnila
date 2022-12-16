@@ -5,11 +5,7 @@ use App\Http\Controllers\Auth\{
     LoginController, RegisterController, ForgotPasswordController
 };
 use App\Http\Controllers\{
-<<<<<<< Updated upstream
     HomeController, UserController, PeranController, UnitOrganisasiController, AplikasiController, TokenController, PJAplikasiController, MenuController, RolePenggunaController, TableAplikasiController, MenuRoleController, AksesWSController
-=======
-    HomeController, UserController, PeranController, UnitOrganisasiController, AplikasiController, TokenController, PJAplikasiController, MenuController, RolePenggunaController, TableAplikasiController, MenuRoleController
->>>>>>> Stashed changes
 };
 /*
 |--------------------------------------------------------------------------
@@ -128,16 +124,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
                 Route::get('/menu_role/{id}', [MenuRoleController::class, 'index'])->name('menu_role');
                 Route::get('/menu_role/{id}/tambah', [MenuRoleController::class, 'create'])->name('menu_role.create');
-<<<<<<< Updated upstream
                 Route::put('/menu_role/{id}/store', [MenuRoleController::class, 'store'])->name('menu_role.store');
                 Route::get('/menu_role/{id}/{mrole}/edit', [MenuRoleController::class, 'edit'])->name('menu_role.edit');
                 Route::patch('/menu_role/{id}/{mrole}/update', [MenuRoleController::class, 'update'])->name('menu_role.update');
                 Route::get('/menu_role/{id}/{mrole}/destroy', [MenuRoleController::class, 'destroy'])->name('menu_role.destroy');
-=======
-                Route::put('/menu_role/{id}/tambah', [MenuRoleController::class, 'store'])->name('menu_role.store');
-                Route::get('/menu_role/{id}/{mrole}', [MenuRoleController::class, 'edit'])->name('menu_role.edit');
-                Route::patch('/menu_role/{id}/{mrole}', [MenuRoleController::class, 'update'])->name('menu_role.update');
->>>>>>> Stashed changes
             });
             Route::namespace('token')->prefix('token')->name('token.')->group(function () {
                 Route::get('/', [TokenController::class, 'index'])->name('index');

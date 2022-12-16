@@ -11,7 +11,6 @@ use Crypt;
 class MenuRoleController extends Controller
 {
 
-<<<<<<< Updated upstream
     private $basepath;
 
     public function __construct()
@@ -21,15 +20,6 @@ class MenuRoleController extends Controller
 
     public function index($id)
     {
-=======
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index($id)
-    {
->>>>>>> Stashed changes
         $id = Crypt::decrypt($id);
         $data = \App\Models\Aplikasi::lock('WITH(NOLOCK)')->where('id_aplikasi',$id)->first();
         $peran = \DB::SELECT("
@@ -74,13 +64,10 @@ class MenuRoleController extends Controller
     {
         $id = \Crypt::decrypt($id);
         $array = $request->all();
-<<<<<<< Updated upstream
 
         $menu = \App\Models\Menu::where('id_aplikasi', $id)->pluck('id_menu');
         //DELETE
         MenuRole::where('id_peran', $array['id_peran'])->whereIn('id_menu', $menu)->delete();
-=======
->>>>>>> Stashed changes
         
         foreach($array['menu'] AS $n=>$r)
         {
@@ -103,10 +90,7 @@ class MenuRoleController extends Controller
             );
         }
 
-<<<<<<< Updated upstream
         alert()->success('Data berhasil ditambahkan!');
-=======
->>>>>>> Stashed changes
         return redirect()->back();
     }
 

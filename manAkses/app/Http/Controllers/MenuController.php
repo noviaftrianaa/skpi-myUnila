@@ -81,29 +81,7 @@ class MenuController extends Controller
             'last_sync' => currDateTime()
         ]);
 
-<<<<<<< Updated upstream
         if(!$data) {
-=======
-        // foreach($array['id_peran'] as $item) {
-        //     $datas = MenuRole::lock('WITH(NOLOCK)')->create([
-        //         'id_peran' => $item,
-        //         'id_menu' => $data->id_menu,
-        //         'a_boleh_insert' => (!empty($array['a_boleh_insert'])) ? 1 : 0,
-        //         'a_boleh_show' => (!empty($array['a_boleh_show'])) ? 1 : 0,
-        //         'a_boleh_delete' => (!empty($array['a_boleh_delete'])) ? 1 : 0,
-        //         'a_boleh_update' => (!empty($array['a_boleh_update'])) ? 1 : 0,
-        //         'a_boleh_sanggah' => (!empty($array['a_boleh_sanggah'])) ? 1 : 0,
-        //         'approval_menu' => 1,
-        //         'tgl_create' => currDateTime(),
-        //         'last_update' => currDateTime(),
-        //         'soft_delete' => 0,
-        //         'last_sync' => currDateTime(),
-        //         'id_updater' => Auth::user()->id_pengguna
-        //     ]);
-        // }
-
-        if(!$data && !$datas) {
->>>>>>> Stashed changes
             alert()->error('Data gagal disimpan!');
         } else {
             alert()->success('Data berhasil disimpan!');
@@ -158,49 +136,6 @@ class MenuController extends Controller
             'last_sync' => currDateTime()
         ]);
 
-<<<<<<< Updated upstream
-=======
-        //Check Menu
-        // MenuRole::lock('WITH(NOLOCK)')->where('id_menu', $id)->whereNotIn('id_peran', $array['id_peran'])->update([
-        //     'soft_delete'=>1,
-        //     'last_update'=>currDateTime(),
-        //     'last_sync'=>currDateTime()
-        // ]);
-
-        // foreach($array['id_peran'] as $item) {
-        //     $check = MenuRole::lock('WITH(NOLOCK)')->where('id_menu', $id)->where('id_peran', $item)->first();
-        //     if(!is_null($check)) {
-        //         $datas = MenuRole::lock('WITH(NOLOCK)')->where('id_menu', $id)->where('id_peran', $item)->update([
-        //             'a_boleh_insert' => (!empty($array['a_boleh_insert'])) ? 1 : 0,
-        //             'a_boleh_show' => (!empty($array['a_boleh_show'])) ? 1 : 0,
-        //             'a_boleh_delete' => (!empty($array['a_boleh_delete'])) ? 1 : 0,
-        //             'a_boleh_update' => (!empty($array['a_boleh_update'])) ? 1 : 0,
-        //             'a_boleh_sanggah' => (!empty($array['a_boleh_sanggah'])) ? 1 : 0,
-        //             'last_update' => currDateTime(),
-        //             'last_sync' => currDateTime(),
-        //             'soft_delete' => 0,
-        //             'id_updater' => Auth::user()->id_pengguna
-        //         ]);
-        //     } else {
-        //         $datas = MenuRole::lock('WITH(NOLOCK)')->create([
-        //             'id_peran' => $item,
-        //             'id_menu' => $id,
-        //             'a_boleh_insert' => (!empty($array['a_boleh_insert'])) ? 1 : 0,
-        //             'a_boleh_show' => (!empty($array['a_boleh_show'])) ? 1 : 0,
-        //             'a_boleh_delete' => (!empty($array['a_boleh_delete'])) ? 1 : 0,
-        //             'a_boleh_update' => (!empty($array['a_boleh_update'])) ? 1 : 0,
-        //             'a_boleh_sanggah' => (!empty($array['a_boleh_sanggah'])) ? 1 : 0,
-        //             'approval_menu' => 1,
-        //             'tgl_create' => currDateTime(),
-        //             'last_update' => currDateTime(),
-        //             'soft_delete' => 0,
-        //             'last_sync' => currDateTime(),
-        //             'id_updater' => Auth::user()->id_pengguna
-        //         ]);
-        //     }
-        // }
-
->>>>>>> Stashed changes
         if(!$data) {
             alert()->error('Data gagal disimpan!');
         } else {
