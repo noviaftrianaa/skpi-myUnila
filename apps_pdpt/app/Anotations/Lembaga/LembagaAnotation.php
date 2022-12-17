@@ -141,7 +141,7 @@
 
      /**
      * @OA\Put (
-     *      path="/profil_prodi/ubah",
+     *      path="/lembaga/profil_prodi/ubah",
      *      operationId="ubahProfilProdi",
      *      tags={"Lembaga"},
      *      summary="Ubah Data Profil Prodi",
@@ -164,7 +164,7 @@
      *          @OA\Property(property="himp_alumni", type="string", format="text", example="himp_alumni"),
      *        ),
      * ),
-     * 
+     *
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",

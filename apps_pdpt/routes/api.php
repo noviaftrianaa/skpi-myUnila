@@ -1,20 +1,18 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::group([
     'prefix' => '0.1',
     'as' => 'api.',
     'namespace' => 'App\Http\Controllers\PDUT\Api',
-    'middleware' => ['api', 'auth.api']
 ], function () {
     Route::prefix('auth')->group(function () {
         Route::post('/login', 'LoginController@login');
         Route::post('/cek_token', 'LoginController@checkToken');
     });
 
-    Route::middleware('api', 'auth.api')->group(function () {
+    Route::middleware(['auth_api', 'applog'])->group(function () {
         Route::prefix('referensi')->group(base_path('routes/onedata/referensi.php'));
         Route::group([
             'namespace' => 'Pdrd',
@@ -234,6 +232,77 @@ Route::group([
             Route::post('tambah_kehadiran_mhs', 'KehadiranMahasiswaController@store');
         });
 
+        // Route::group([
+        //     'namespace' => 'Tracer',
+        //     'prefix' => 'tracer_study'
+        // ], function () {
+        //     //umr
+        //     Route::get('umr_wilayah', 'UmrController@index');
+        //     Route::post('umr_wilayah/tambah', 'UmrController@store');
+        //     Route::put('umr_wilayah/ubah', 'UmrController@update');
+        //     Route::delete('umr_wilayah/hapus', 'UmrController@destroy');
+
+        //     //hasil tracer
+        //     Route::get('list', 'TracerStudyController@index');
+        //     Route::post('tambah', 'TracerStudyController@store');
+        //     Route::put('ubah', 'TracerStudyController@update');
+        //     Route::delete('hapus', 'TracerStudyController@destroy');
+
+        //     //hasil tracer atasan
+        //     Route::get('list_atasan', 'TracerStudyAtasanController@index');
+        //     Route::post('tambah_atasan', 'TracerStudyAtasanController@store');
+        //     Route::put('ubah_atasan', 'TracerStudyAtasanController@update');
+        //     Route::delete('hapus_atasan', 'TracerStudyAtasanController@destroy');
+        // });
+
+        // Route::group([
+        //     'namespace' => 'Mbkm',
+        //     'prefix' => 'mbkm'
+        // ], function () {
+        //     Route::get('list_periode', 'PeriodeController@index');
+        //     Route::post('tambah_periode', 'PeriodeController@store');
+        //     Route::put('ubah_periode', 'PeriodeController@update');
+        //     Route::delete('hapus_periode', 'PeriodeController@destroy');
+
+        //     Route::get('list_peserta', 'PesertaController@index');
+        //     Route::post('tambah_peserta', 'PesertaController@store');
+        //     Route::put('ubah_peserta', 'PesertaController@update');
+        //     Route::delete('hapus_peserta', 'PesertaController@destroy');
+
+        //     Route::get('detail_konversi', 'KonversiController@index');
+        //     Route::post('tambah_konversi', 'KonversiController@store');
+        //     Route::put('ubah_konversi', 'KonversiController@update');
+        //     Route::delete('hapus_konversi', 'KonversiController@destroy');
+
+        //     Route::get('cari_pt', 'NonUnilaController@cariPt');
+        //     Route::get('cari_prodi', 'NonUnilaController@cariProdi');
+        //     Route::get('cari_mhs', 'NonUnilaController@cariMhs');
+        // });
+
+        Route::group([
+            'namespace' => 'Presensi',
+            'prefix' => 'presensi'
+        ], function () {
+            Route::get('list_id', 'KehadiranSdmController@getListKehadiranBySdmId');
+            Route::post('tambah', 'KehadiranSdmController@store');
+            Route::put('ubah', 'KehadiranSdmController@update');
+        });
+
+
+        Route::group([
+            'namespace' => 'Pmb',
+            'prefix' => 'pmb'
+        ], function () {
+            Route::get('list_periode', 'PeriodePmbController@getAllListPeriodePmb');
+            Route::post('tambah_periode', 'PeriodePmbController@tambah');
+            Route::put('ubah_periode', 'PeriodePmbController@ubahPeriodePmb');
+            Route::delete('hapus_periode', 'PeriodePmbController@destroy');
+            Route::get('list_daya_tampung', 'DayaTampungController@getAllListDayaTampung');
+            Route::post('tambah_daya_tampung', 'DayaTampungController@tambah');
+            Route::put('ubah_daya_tampung', 'DayaTampungController@ubahDayaTampung');
+            Route::delete('hapus_daya_tampung', 'DayaTampungController@destroy');
+        });
+
         Route::group([
             'namespace' => 'Sarpras',
             'prefix' => 'sarpras'
@@ -248,6 +317,7 @@ Route::group([
             Route::get('tanah/daftar', 'TanahController@daftar');
             Route::post('alat/tambah', 'AlatController@tambah');
             Route::post('alat_long/tambah', 'AlatLongController@tambah');
+            Route::post('alat_transportasi/tambah', 'AlatTransportasiController@tambah');
             Route::post('angkutan/tambah', 'AngkutanController@tambah');
             Route::post('bangunan/tambah', 'BangunanController@tambah');
             Route::post('dbr/tambah', 'DbrController@tambah');
@@ -255,6 +325,7 @@ Route::group([
             Route::post('tanah/tambah', 'TanahController@tambah');
             Route::put('alat/ubah', 'AlatController@ubah');
             Route::put('alat_long/ubah', 'AlatLongController@ubah');
+            Route::put('alat_transportasi/ubah', 'AlatTransportasiController@ubah');
             Route::put('angkutan/ubah', 'AngkutanController@ubah');
             Route::put('bangunan/ubah', 'BangunanController@ubah');
             Route::put('dbr/ubah', 'DbrController@ubah');
@@ -262,6 +333,7 @@ Route::group([
             Route::put('tanah/ubah', 'TanahController@ubah');
             Route::delete('alat/hapus', 'AlatController@hapus');
             Route::delete('alat_long/hapus', 'AlatLongController@hapus');
+            Route::delete('alat_transportasi/hapus', 'AlatTransportasiController@hapus');
             Route::delete('angkutan/hapus', 'AngkutanController@hapus');
             Route::delete('bangunan/hapus', 'BangunanController@hapus');
             Route::delete('dbr/hapus', 'DbrController@hapus');
@@ -270,155 +342,27 @@ Route::group([
         });
 
         Route::group([
-            'namespace' => 'Akses',
-            'prefix' => 'man_akses'
+            'namespace' => 'Iku',
+            'prefix' => 'iku_2'
         ], function () {
-            Route::get('peran', 'manAksesController@peran');
-            Route::get('ubah_keaktifan', 'manAksesController@updateLastActive');
+            Route::get('list', 'Iku2Controller@daftar');
+            Route::post('tambah', 'Iku2Controller@tambah');
         });
-    });
 
-    // Route::group([
-    //     'namespace' => 'Tracer',
-    //     'prefix' => 'tracer_study'
-    // ], function () {
-    //     //umr
-    //     Route::get('umr_wilayah', 'UmrController@index');
-    //     Route::post('umr_wilayah/tambah', 'UmrController@store');
-    //     Route::put('umr_wilayah/ubah', 'UmrController@update');
-    //     Route::delete('umr_wilayah/hapus', 'UmrController@destroy');
+        Route::group([
+            'namespace' => 'Iku',
+            'prefix' => 'iku_6'
+        ], function () {
+            Route::get('list', 'Iku6Controller@daftar');
+            Route::post('tambah', 'Iku6Controller@tambah');
+        });
 
-    //     //hasil tracer
-    //     Route::get('list', 'TracerStudyController@index');
-    //     Route::post('tambah', 'TracerStudyController@store');
-    //     Route::put('ubah', 'TracerStudyController@update');
-    //     Route::delete('hapus', 'TracerStudyController@destroy');
-
-    //     //hasil tracer atasan
-    //     Route::get('list_atasan', 'TracerStudyAtasanController@index');
-    //     Route::post('tambah_atasan', 'TracerStudyAtasanController@store');
-    //     Route::put('ubah_atasan', 'TracerStudyAtasanController@update');
-    //     Route::delete('hapus_atasan', 'TracerStudyAtasanController@destroy');
-    // });
-
-    // Route::group([
-    //     'namespace' => 'Mbkm',
-    //     'prefix' => 'mbkm'
-    // ], function () {
-    //     Route::get('list_periode', 'PeriodeController@index');
-    //     Route::post('tambah_periode', 'PeriodeController@store');
-    //     Route::put('ubah_periode', 'PeriodeController@update');
-    //     Route::delete('hapus_periode', 'PeriodeController@destroy');
-
-    //     Route::get('list_peserta', 'PesertaController@index');
-    //     Route::post('tambah_peserta', 'PesertaController@store');
-    //     Route::put('ubah_peserta', 'PesertaController@update');
-    //     Route::delete('hapus_peserta', 'PesertaController@destroy');
-
-    //     Route::get('detail_konversi', 'KonversiController@index');
-    //     Route::post('tambah_konversi', 'KonversiController@store');
-    //     Route::put('ubah_konversi', 'KonversiController@update');
-    //     Route::delete('hapus_konversi', 'KonversiController@destroy');
-
-    //     Route::get('cari_pt', 'NonUnilaController@cariPt');
-    //     Route::get('cari_prodi', 'NonUnilaController@cariProdi');
-    //     Route::get('cari_mhs', 'NonUnilaController@cariMhs');
-    // });
-
-    Route::group([
-        'namespace' => 'Presensi',
-        'prefix' => 'presensi'
-    ], function () {
-        Route::get('list_id', 'KehadiranSdmController@getListKehadiranBySdmId');
-        Route::post('tambah', 'KehadiranSdmController@store');
-        Route::put('ubah', 'KehadiranSdmController@update');
-    });
-
-
-    Route::group([
-        'namespace' => 'Pmb',
-        'prefix' => 'pmb'
-    ], function () {
-        Route::get('list_periode', 'PeriodePmbController@getAllListPeriodePmb');
-        Route::post('tambah_periode', 'PeriodePmbController@tambah');
-        Route::put('ubah_periode', 'PeriodePmbController@ubahPeriodePmb');
-        Route::delete('hapus_periode', 'PeriodePmbController@destroy');
-        Route::get('list_daya_tampung', 'DayaTampungController@getAllListDayaTampung');
-        Route::post('tambah_daya_tampung', 'DayaTampungController@tambah');
-        Route::put('ubah_daya_tampung', 'DayaTampungController@ubahDayaTampung');
-        Route::delete('hapus_daya_tampung', 'DayaTampungController@destroy');
-    });
-
-
-    Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-        return $request->user();
-    });
-
-
-    Route::group([
-        'namespace' => 'Sarpras',
-        'prefix' => 'sarpras'
-    ], function () {
-        Route::get('alat/daftar', 'AlatController@daftar');
-        Route::get('alat_long/daftar', 'AlatLongController@daftar');
-        Route::get('alat_transportasi/daftar', 'AlatTransportasiController@daftar');
-        Route::get('angkutan/daftar', 'AngkutanController@daftar');
-        Route::get('bangunan/daftar', 'BangunanController@daftar');
-        Route::get('dbr/daftar', 'DbrController@daftar');
-        Route::get('ruang/daftar', 'RuangController@daftar');
-        Route::get('tanah/daftar', 'TanahController@daftar');
-        Route::post('alat/tambah', 'AlatController@tambah');
-        Route::post('alat_long/tambah', 'AlatLongController@tambah');
-        Route::post('angkutan/tambah', 'AngkutanController@tambah');
-        Route::post('bangunan/tambah', 'BangunanController@tambah');
-        Route::post('dbr/tambah', 'DbrController@tambah');
-        Route::post('ruang/tambah', 'RuangController@tambah');
-        Route::post('tanah/tambah', 'TanahController@tambah');
-        Route::put('alat/ubah', 'AlatController@ubah');
-        Route::put('alat_long/ubah', 'AlatLongController@ubah');
-        Route::put('angkutan/ubah', 'AngkutanController@ubah');
-        Route::put('bangunan/ubah', 'BangunanController@ubah');
-        Route::put('dbr/ubah', 'DbrController@ubah');
-        Route::put('ruang/ubah', 'RuangController@ubah');
-        Route::put('tanah/ubah', 'TanahController@ubah');
-        Route::delete('alat/hapus', 'AlatController@hapus');
-        Route::delete('alat_long/hapus', 'AlatLongController@hapus');
-        Route::delete('angkutan/hapus', 'AngkutanController@hapus');
-        Route::delete('bangunan/hapus', 'BangunanController@hapus');
-        Route::delete('dbr/hapus', 'DbrController@hapus');
-        Route::delete('ruang/hapus', 'RuangController@hapus');
-        Route::delete('tanah/hapus', 'TanahController@hapus');
-    });
-
-    Route::group([
-        'namespace' => 'Akses',
-        'prefix' => 'man_akses'
-    ], function () {
-        Route::get('peran', 'manAksesController@peran');
-        Route::get('ubah_keaktifan', 'manAksesController@updateLastActive');
-    });
-
-    Route::group([
-        'namespace' => 'Iku',
-        'prefix' => 'iku_2'
-    ], function () {
-        Route::get('list', 'Iku2Controller@daftar');
-        Route::post('tambah', 'Iku2Controller@tambah');
-    });
-
-    Route::group([
-        'namespace' => 'Iku',
-        'prefix' => 'iku_6'
-    ], function () {
-        Route::get('list', 'Iku6Controller@daftar');
-        Route::post('tambah', 'Iku6Controller@tambah');
-    });
-
-    Route::group([
-        'namespace' => 'Iku',
-        'prefix' => 'iku_7'
-    ], function () {
-        Route::get('list', 'Iku7Controller@daftar');
-        Route::post('tambah', 'Iku7Controller@tambah');
+        Route::group([
+            'namespace' => 'Iku',
+            'prefix' => 'iku_7'
+        ], function () {
+            Route::get('list', 'Iku7Controller@daftar');
+            Route::post('tambah', 'Iku7Controller@tambah');
+        });
     });
 });

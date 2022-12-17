@@ -2,22 +2,10 @@
 
 namespace App\Http;
 
-use App\Http\Middleware\AppLog;
-use App\Http\Middleware\AuthApi;
-use App\Http\Middleware\DBAccess;
-use App\Http\Middleware\OpenApiLive;
-use App\Http\Middleware\OpenApiSandbox;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
 class Kernel extends HttpKernel
 {
-    /**
-     * The application's global HTTP middleware stack.
-     *
-     * These middleware are run during every request to your application.
-     *
-     * @var array
-     */
     protected $middleware = [
         // \App\Http\Middleware\TrustHosts::class,
         \App\Http\Middleware\TrustProxies::class,
@@ -28,11 +16,6 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
     ];
 
-    /**
-     * The application's route middleware groups.
-     *
-     * @var array
-     */
     protected $middlewareGroups = [
         'web' => [
             \App\Http\Middleware\EncryptCookies::class,
@@ -48,20 +31,11 @@ class Kernel extends HttpKernel
             // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             // 'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            'applog'
         ],
     ];
 
-    /**
-     * The application's route middleware.
-     *
-     * These middleware may be assigned to groups or used individually.
-     *
-     * @var array
-     */
     protected $routeMiddleware = [
         'auth' => \App\Http\Middleware\Authenticate::class,
-        'auth.api'  => \App\Http\Middleware\AuthApi::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
         'can' => \Illuminate\Auth\Middleware\Authorize::class,
@@ -70,10 +44,11 @@ class Kernel extends HttpKernel
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-        'one_data_man_akses'    => \MP\ManAkses\ManAksesMiddleware::class,
-        'openapi_sandbox' => OpenApiSandbox::class,
-        'openapi_live' => OpenApiLive::class,
-        'dbaccess' => DBAccess::class,
-        'applog' => AppLog::class
+        'one_data_man_akses' => \MP\ManAkses\ManAksesMiddleware::class,
+        'openapi_sandbox' => \App\Http\Middleware\OpenApiSandbox::class,
+        'openapi_live' => \App\Http\Middleware\OpenApiLive::class,
+        'dbaccess' => \App\Http\Middleware\DBAccess::class,
+        'auth_api'  => \App\Http\Middleware\AuthApi::class,
+        'applog' => \App\Http\Middleware\AppLog::class,
     ];
 }

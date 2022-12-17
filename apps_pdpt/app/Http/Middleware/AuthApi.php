@@ -3,91 +3,156 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use Illuminate\Support\Facades\DB;
 use Exception;
+use Illuminate\Database\QueryException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use App\Models\PDUT\Logger\LogJwt;
-use Log;
-
 class AuthApi
 {
-    protected $mLogJwt;
-
     public function handle($request, Closure $next)
     {
         try {
-            if (!$token = $this->parseToken($request)) {
-                return WrapResponse(['data' => ['errors' => 'Token kosong!']], 'Otorisasi gagal!', FALSE);
+            $decode_token_jwt = decode_token_jwt();
+            if (!property_exists($decode_token_jwt, 'id_aplikasi')) {
+                return $decode_token_jwt;
             }
-            $this->decodedToken($token);
-        } catch (ModelNotFoundException $e) {
-            return WrapResponse(['data' => ['errors' => $e->getMessage()]], 'Otorisasi gagal!', FALSE);
+
+            $nm_method = $request->method();
+            $path_url = str_replace([
+                'api/0.1',
+                'api/live/0.1',
+                'api/sandbox/0.1',
+            ], '', $request->path());
+            $ws_aut = DB::select("
+            SELECT
+                wb.nm_req,
+                wt.terms_logic,
+                wt.terms_value
+            FROM
+                man_akses.ws_authorization AS wa
+                JOIN man_akses.ws_endpoint AS we
+                    ON we.id_ws_endpoint = wa.id_ws_endpoint
+                    AND we.soft_delete = 0
+                    AND we.a_active = 1
+                    AND we.nm_method = ?
+                    AND we.path_url = ?
+                LEFT JOIN man_akses.ws_endpoint_body_terms AS wt
+                    ON wt.id_ws_authorization = wa.id_ws_authorization
+                    AND wt.soft_delete = 0
+                LEFT JOIN man_akses.ws_endpoint_body AS wb
+                    ON wb.id_ws_endpoint_body = wt.id_ws_endpoint_body
+                    AND wb.soft_delete = 0
+            WHERE
+                wa.soft_delete = 0
+                AND wa.a_active = 1
+                AND wa.id_aplikasi = ?
+                AND wa.id_pengguna = ?
+        ", [
+                $nm_method,
+                $path_url,
+                $decode_token_jwt->id_aplikasi,
+                $decode_token_jwt->id_pengguna,
+            ]);
+            if (count($ws_aut) > 0) {
+                foreach ($ws_aut as $wa) {
+                    if (!empty($wa->nm_req)) {
+                        $res_invalid_terms = WrapResponse([
+                            'data' => [
+                                'path_url' => $path_url,
+                                'request_body' => $request->all(),
+                                'request_body_terms' => "$wa->nm_req $wa->terms_logic $wa->terms_value",
+                            ]
+                        ], 'Akeses Dibatasi. Pastikan request_body Anda Sesuai Dengan Ketentuan', false);
+                        if ($wa->terms_logic == 'equals') {
+                            if ($request->input($wa->nm_req) == $wa->terms_value) {
+                                continue;
+                            } else {
+                                return $res_invalid_terms;
+                            }
+                        }
+                        if ($wa->terms_logic == 'does_not_equal') {
+                            if ($request->input($wa->nm_req) != $wa->terms_value) {
+                                continue;
+                            } else {
+                                return $res_invalid_terms;
+                            }
+                        }
+                        if ($wa->terms_logic == 'greater_than') {
+                            if ($request->input($wa->nm_req) > $wa->terms_value) {
+                                continue;
+                            } else {
+                                return $res_invalid_terms;
+                            }
+                        }
+                        if ($wa->terms_logic == 'less_than') {
+                            if ($request->input($wa->nm_req) < $wa->terms_value) {
+                                continue;
+                            } else {
+                                return $res_invalid_terms;
+                            }
+                        }
+                        if ($wa->terms_logic == 'greater_than_or_equal_to') {
+                            if ($request->input($wa->nm_req) >= $wa->terms_value) {
+                                continue;
+                            } else {
+                                return $res_invalid_terms;
+                            }
+                        }
+                        if ($wa->terms_logic == 'less_than_or_equal_to') {
+                            if ($request->input($wa->nm_req) <= $wa->terms_value) {
+                                continue;
+                            } else {
+                                return $res_invalid_terms;
+                            }
+                        }
+                        if ($wa->terms_logic == 'is_in') {
+                            if (in_array($request->input($wa->nm_req), explode(',', $wa->terms_value))) {
+                                continue;
+                            } else {
+                                return $res_invalid_terms;
+                            }
+                        }
+                        if ($wa->terms_logic == 'is_not_in') {
+                            if (!in_array($request->input($wa->nm_req), explode(',', $wa->terms_value))) {
+                                continue;
+                            } else {
+                                return $res_invalid_terms;
+                            }
+                        }
+                        if ($wa->terms_logic == 'contains') {
+                            if (str_contains($wa->terms_value, $request->input($wa->nm_req))) {
+                                continue;
+                            } else {
+                                return $res_invalid_terms;
+                            }
+                        }
+                        if ($wa->terms_logic == 'does_not_contain') {
+                            if (!str_contains($wa->terms_value, $request->input($wa->nm_req))) {
+                                continue;
+                            } else {
+                                return $res_invalid_terms;
+                            }
+                        }
+                    }
+                }
+                return $next($request);
+            } else {
+                return WrapResponse([
+                    'data' => [
+                        'path_url' => $path_url,
+                        'request_body' => $request->all(),
+                    ]
+                ], 'Akeses Ditolak. Akun Anda Tidak Diatur Untuk Mengakses path_url Ini', false);
+            }
+        } catch (QueryException $qe) {
+            logger($this->request->ip(), [$this->request->fullUrl(), __CLASS__, __FUNCTION__, $qe->getLine(), $qe->getMessage()]);
+            return WrapResponse(['error' => ['internal' => 'QueryException'], 'data' => null], 'Internal Server Error', false);
+        } catch (ModelNotFoundException $mnfe) {
+            logger($this->request->ip(), [$this->request->fullUrl(), __CLASS__, __FUNCTION__, $mnfe->getLine(), $mnfe->getMessage()]);
+            return WrapResponse(['error' => ['internal' => 'ModelNotFoundException'], 'data' => null], 'Internal Server Error', false);
         } catch (Exception $e) {
-            return WrapResponse(['data' => ['errors' => $e->getMessage()]], 'Otorisasi gagal!', FALSE);
+            logger($this->request->ip(), [$this->request->fullUrl(), __CLASS__, __FUNCTION__, $e->getLine(), $e->getMessage()]);
+            return WrapResponse(['error' => ['internal' => 'Exception'], 'data' => null], 'Internal Server Error', false);
         }
-        return $next($request);
-    }
-
-    function parseToken($request, $method = 'bearer', $header = 'authorization', $query = 'token')
-    {
-        if (!$token = $this->parseAuthHeader($request, $header, $method)) {
-            if (!$token = $request->query($query, false)) {
-                throw new Exception('Token tidak ditemukan', 400);
-            }
-        }
-        return $token;
-    }
-
-    function parseAuthHeader($request, $header = 'authorization', $method = 'bearer')
-    {
-        $header = $request->headers->get($header);
-        if (!starts_with(strtolower($header), $method)) {
-            return false;
-        }
-        return trim(str_ireplace($method, '', $header));
-    }
-
-    function decodedToken($jwt)
-    {
-        $secret = env('JWT_SECRET', 'secret');
-        $tokenParts = explode('.', $jwt);
-        $header = base64_decode($tokenParts[0]);
-        $payload = base64_decode($tokenParts[1]);
-        $signature_provided = $tokenParts[2];
-        $payload_decoded = json_decode($payload);
-
-        $requred_claims = ['app', 'sub', 'role', 'iss', 'iat', 'exp'];
-        foreach ($requred_claims as $req) {
-            if (!property_exists($payload_decoded, $req)) {
-                throw new Exception("Token tidak valid", 1);
-            }
-        }
-
-        $expiration = $payload_decoded->exp;
-        $is_token_expired = ($expiration - time()) < 0;
-        if ($is_token_expired) {
-            throw new Exception("Token kadarluwasa", 1);
-        }
-
-        $base64_url_header = base64url_encode($header);
-        $base64_url_payload = base64url_encode($payload);
-        $signature = hash_hmac('SHA256', $base64_url_header . "." . $base64_url_payload, $secret, true);
-        $base64_url_signature = base64url_encode($signature);
-        $is_signature_valid = ($base64_url_signature === $signature_provided);
-
-        if (!$is_signature_valid) {
-            throw new Exception("Tanda tangan token tidak sah", 1);
-        }
-
-        return $payload_decoded;
-    }
-
-    function getIdToken($request)
-    {
-        if (!$token = $this->parseAuthHeader($request)) {
-            return NULL;
-        }
-        $mLogJwt = $this->mLogJwt = new LogJwt();
-        $idToken = $mLogJwt->select('id_log_jwt')->where('token_value', $token)->first();
-        return $idToken->id_log_jwt;
     }
 }
