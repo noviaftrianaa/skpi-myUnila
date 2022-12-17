@@ -9,11 +9,13 @@ use Illuminate\Support\Facades\Crypt;
 class PeranController extends Controller
 {
 
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    private $basepath;
+
+    public function __construct()
+    {
+        $this->basepath = 'peran';
+    }
+
     public function index()
     {
         $peran = Peran::lock('WITH(NOLOCK)')->whereNull('expired_date')->orderBy('nm_peran','ASC')->get();

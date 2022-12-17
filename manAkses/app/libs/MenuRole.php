@@ -10,6 +10,7 @@ if( !function_exists('MenuRole')){
         if(\Session::has('login.menu')) {
             \Session::forget('login.menu');
         }
+        $id_peran = \Session::get('login.role')->id_peran ?? NULL;
         $data = \DB::SELECT("
             SELECT
                 menu.nm_menu,
@@ -24,7 +25,7 @@ if( !function_exists('MenuRole')){
                 man_akses.menu
                 JOIN man_akses.menu_role AS mrole ON mrole.id_menu=menu.id_menu
             WHERE
-                mrole.id_peran='".\Session::get('login.role')->id_peran."'
+                mrole.id_peran='".$id_peran."'
                 AND menu.id_aplikasi='".env('APP_ID')."'
                 AND menu.id_group_menu IS NULL
                 AND menu.a_aktif=1

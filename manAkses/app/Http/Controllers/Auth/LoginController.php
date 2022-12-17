@@ -77,7 +77,7 @@ class LoginController extends Controller
                     Session::put('login.role', (!is_null($role)) ? $role : NULL);
                     MenuRole();
 
-                    return redirect()->route('dashboard');
+                    return redirect()->route('dashboard.index');
                 } else {
                     alert()->error('Data pengguna tidak ditemukan, silahkan hubungi administrator.')->html(true);
                     return redirect()->to('otorisasi');

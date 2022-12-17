@@ -22,7 +22,7 @@
                     <a type="button" class="btn btn-info col-12 my-1" href="{{ route('aplikasi.menu_role', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Menu Role</a>
                     <a type="button" class="btn btn-info col-12 my-1" href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Tabel Aplikasi</a>
                     @else
-                    <a type="button" class="btn btn-info col-12 my-1" href="{{ route('manajemen.aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Tabel Aplikasi</a>
+                    <a type="button" class="btn btn-info col-12 my-1" href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Tabel Aplikasi</a>
                     @endif
                 </div>
                 <div class="col-md-10 col-12">
@@ -93,8 +93,9 @@
                             <td>{{$item->no_hp}}</td>
                             @if($menus->a_boleh_insert == "1")
                             <td>
-                                <a type="button" data-toggle="modal" class="btn btn-primary btn-xs" href="#editPJ{{$item->id_pj_aplikasi}}"><i class="fa fa-edit"></i></a>
-                                <a type="button" data-toggle="modal" class="btn btn-danger btn-xs" href="#deletePJ{{$item->id_pj_aplikasi}}"><i class="fas fa-trash-alt"></i></a>
+                                <a type="button" class="btn btn-info btn-xs" href="{{ route('aplikasi.pj_aplikasi.akses_ws.create', Crypt::encrypt($item->id_pj_aplikasi)) }}"><i class="fa fa-globe"></i> Akses WS</a>
+                                <a type="button" data-toggle="modal" class="btn btn-primary btn-xs" href="#editPJ{{$item->id_pj_aplikasi}}"><i class="fa fa-edit"></i> Edit</a>
+                                <a type="button" data-toggle="modal" class="btn btn-danger btn-xs" href="#deletePJ{{$item->id_pj_aplikasi}}"><i class="fas fa-trash-alt"></i> Delete</a>
                             </td>
                             @endif
                         </tr>
@@ -158,7 +159,7 @@
                             <td>{{($item->a_tampil==1)?'Ya':'Tidak'}}</td>
                             @if($menus->a_boleh_insert == "1")
                             <td>
-                                <a type="button" data-toggle="modal" class="btn btn-primary btn-xs" href="#editMenu{{$item->id_menu}}"><i class="fa fa-edit"></i></a>
+                                <a type="button" data-toggle="modal" class="btn btn-primary btn-xs" href="#editMenu{{$item->id_menu}}"><i class="fa fa-edit"></i> Edit</a>
                             </td>
                             @endif
                         </tr>
@@ -366,7 +367,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form action="{{route('pj_aplikasi.store')}}" method="post" enctype="multipart/form-data">
+                    <form action="{{route('aplikasi.pj_aplikasi.store')}}" method="post" enctype="multipart/form-data">
                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="_method" value="PUT">
                         <input type="hidden" name="id_aplikasi" value="{{$data->id_aplikasi}}">
@@ -489,7 +490,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form action="{{route('pj_aplikasi.update', [Crypt::encrypt($items->id_pj_aplikasi)])}}" method="post" enctype="multipart/form-data">
+                    <form action="{{route('aplikasi.pj_aplikasi.update', [Crypt::encrypt($items->id_pj_aplikasi)])}}" method="post" enctype="multipart/form-data">
                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="_method" value="PATCH">
                         <div class="row">
@@ -554,7 +555,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form action="{{route('pj_aplikasi.destroy', [Crypt::encrypt($items->id_pj_aplikasi)])}}" method="post" enctype="multipart/form-data">
+                    <form action="{{route('aplikasi.pj_aplikasi.destroy', [Crypt::encrypt($items->id_pj_aplikasi)])}}" method="post" enctype="multipart/form-data">
                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="_method" value="DELETE">
                         <div class="row">

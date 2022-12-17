@@ -42,7 +42,26 @@
 	<!-- Sidebar Menu -->
 	<nav class="mt-2">
 		<ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-			@if(\Session::has('login.menu'))
+			
+			<li	li class="nav-item">
+				<a href="{{ route('dashboard.index') }}" class="nav-link {{ (request()->is('/')) ? 'active' : '' }}">
+						<i class="nav-icon fas fa-tachometer-alt"></i>
+						<p>Dashboard</p>
+				</a>
+			</li>
+
+            <li class="nav-item">
+                <li class="nav-header text-bold">PROFILE</li>
+                <li class="nav-item">
+                    <a href="{{ route('biodata.index') }}" class="nav-link {{ AktifMenu('biodata', 1) }}">
+                        <i class="nav-icon fas fa-user"></i>
+                        <p>Biodata</p>
+                    </a>
+                </li>
+            </li>
+
+			@if(!empty(\Session::get('login.menu')))
+			<li class="nav-header text-bold">MANAJEMEN</li>
 			@foreach(\Session::get('login.menu') AS $n=>$r)
 			<li class="nav-item">
 				<a href="{{ route($r->nm_file) }}" class="nav-link {{ AktifMenu($r->nm_file, 2) }}">
@@ -54,7 +73,7 @@
 			@if(\Config::get('manAkses')['Developer'] == 1)
 			@endif
 			@endif
-			<a href="{{ route('menu_refresh') }}" class="btn btn-info col-12 mt-4">REFRESH MENU</a>
+			<a href="{{ route('dashboard.refresh') }}" class="btn btn-info col-12 mt-4">REFRESH MENU</a>
 		</ul>
 	</nav>
 	<!-- /.sidebar-menu -->

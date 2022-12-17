@@ -26,13 +26,13 @@
         "laravel/tinker": "^2.5",
         "laravel/ui": "^3.4",
         "maatwebsite/excel": "^3.1",
+        "mp/man-akses": "*",
         "primitive/openapi-initializer": "^1.4",
         "rap2hpoutre/fast-excel": "^3.2",
         "unila/sso": "dev-master",
         "uxweb/sweet-alert": "^2.0",
         "yajra/laravel-datatables": "^1.5",
-        "yajra/laravel-datatables-oracle": "~9.0",
-        "mp/man-akses": "*"
+        "yajra/laravel-datatables-oracle": "~9.0"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^2.11",

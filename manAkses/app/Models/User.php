@@ -35,4 +35,29 @@ class User extends Authenticatable
     {
         return $this->hasMany('App\Models\PJAplikasi','id_pengguna','id_pengguna');
     }
+
+    public static function akses()
+    {
+        $url = \Request::route()->getName();
+        $url = explode('.', $url);
+        foreach($url AS $n=>$r) {
+            $url[$n] = "'".$r.".index'";
+        }
+        $url = implode(',', $url);
+        $url = (!empty(session()->get('login.role')->id_peran)) ? " AND menu.nm_file IN (".$url.")" : "";
+
+        $id_peran = session()->get('login.role')->id_peran ?? null;
+        
+        return \DB::select("
+            SELECT
+                menu.nm_file
+            FROM
+                man_akses.menu
+                JOIN man_akses.menu_role AS mrole ON mrole.id_menu=menu.id_menu
+            WHERE
+                menu.id_aplikasi='".env('APP_ID')."'
+                AND mrole.id_peran='".$id_peran."'
+                ".$url."
+        ");
+    }
 }

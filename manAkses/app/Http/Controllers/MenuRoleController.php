@@ -11,11 +11,13 @@ use Crypt;
 class MenuRoleController extends Controller
 {
 
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    private $basepath;
+
+    public function __construct()
+    {
+        $this->basepath = 'aplikasi.menu_role';
+    }
+
     public function index($id)
     {
         $id = Crypt::decrypt($id);

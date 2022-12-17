@@ -23,7 +23,7 @@ class LembagaController extends Controller
     protected $sms;
     protected $profil_pt;
     protected $satuan_pendidikan;
-    
+
     public function __construct(Request $request)
     {
         $this->request = $request;
@@ -54,20 +54,20 @@ class LembagaController extends Controller
 
         try {
         $query = "SELECT
-            sp.id_sp, 
-            sp.nm_lemb, 
+            sp.id_sp,
+            sp.nm_lemb,
             ppt.visi,
-            ppt.misi, 
-            ppt.tujuan, 
+            ppt.misi,
+            ppt.tujuan,
             ppt.sasaran
-        FROM 
+        FROM
             pdrd.profil_pt AS ppt WITH(NOLOCK)
-        JOIN 
+        JOIN
             pdrd.satuan_pendidikan AS sp WITH(NOLOCK) ON sp.id_sp = ppt.id_sp AND sp.soft_delete = 0
-        WHERE 
+        WHERE
             sp.soft_delete = 0 AND sp.id_sp = '" . $id_sp . "' ORDER BY sp.nm_lemb " .$sortby . " ";
 
-        
+
         $pagination = CustomPagination($query);
         $query = $pagination['query'];
 
@@ -76,7 +76,7 @@ class LembagaController extends Controller
             return WrapResponse(['data' => null], 'tidak ada daftar profil perguruan tinggi yang ditampilkan', FALSE);
         }
 
-        
+
             $data = [];
             foreach ($profilpt as $value) {
                 $data[] = [
@@ -224,6 +224,7 @@ class LembagaController extends Controller
         SET @RowsOfPage= ?
         SELECT
             sms.id_sms,
+            sms.nm_lemb AS nm_prodi,
             akredpd.id_akreditasi_prodi,
             akredpd.sk_akreditasi_prodi,
             akredpd.tanggal_sk_akreditasi_prodi,
@@ -235,7 +236,8 @@ class LembagaController extends Controller
             profilpd.tujuan,
             profilpd.sasaran,
             profilpd.kompetensi,
-            profilpd.himp_alumni
+            profilpd.himp_alumni,
+            lembak.nm_lemb
         FROM pdrd.akreditasi_prodi AS akredpd WITH(NOLOCK)
         JOIN pdrd.sms AS sms WITH(NOLOCK) ON sms.id_sms = akredpd.id_sms AND sms.soft_delete = 0
             LEFT JOIN pdrd.profil_prodi AS profilpd WITH(NOLOCK) ON profilpd.id_sms = akredpd.id_sms AND profilpd.soft_delete = 0
@@ -251,11 +253,12 @@ class LembagaController extends Controller
         foreach ($profilprodi as $each_data) {
             $data[] = [
                 'id_sms' => $each_data->id_sms,
+                'nm_prodi' => $each_data->nm_prodi,
                 'id_akreditasi_prodi' => $each_data->id_akreditasi_prodi,
                 'sk_akreditasi_prodi' => $each_data->sk_akreditasi_prodi,
                 'tanggal_sk_akreditasi_prodi' => $each_data->tanggal_sk_akreditasi_prodi,
                 'nm_lemb' => $each_data->nm_lemb,
-                'lembaga_akreditasi' => $each_data->lembaga_akreditasi,
+                'lembaga_akreditasi' => $each_data->nm_lemb,
                 'visi' => $each_data->misi,
                 'tujuan' => $each_data->tujuan,
                 'sasaran' => $each_data->sasaran,
@@ -290,7 +293,7 @@ class LembagaController extends Controller
            'himp_alumni' => 'nullable|text',
         ]);
 
-        
+
         $id_sms = $this->request->input('id_sms');
         $id_akreditasi_prodi = $this->request->input('id_akreditasi_prodi');
         $sk_akreditasi_prodi = $this->request->input('sk_akreditasi_prodi');
@@ -303,17 +306,17 @@ class LembagaController extends Controller
         $sasaran = $this->request->input-('sasaran');
         $kompetensi = $this->request->input('kompetensi');
         $himp_alumni = $this->request->input('himp_alumni');
-       
+
         $last_update = currDateTime();
         $id_updater = '26004417-6e92-463c-bf35-f741817121dc';
-    
+
         $last_sync = currDateTime();
-        
+
        DB::beginTransaction();
        try{
         $profil_prodi = $this->profilprodi->where('id_sms', $id_sms)->first();
        if (!$profil_prodi) return WrapResponse(['data' => null], 'id_sms tidak ditemukan', FALSE);
-    
+
             $profil_prodi->update([
                 'id_sms' => $id_sms,
                 'id_akreditasi_prodi' => $id_akreditasi_prodi,
@@ -398,7 +401,7 @@ class LembagaController extends Controller
         return WrapResponse(['data' => $data], 'Detail Profil Prodi By id_sms', TRUE);
     }
 
-    
+
 
     public function listLembaga(Request $request)
     {
@@ -508,7 +511,7 @@ class LembagaController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    
+
 
     /**
      * Remove the specified resource from storage.
