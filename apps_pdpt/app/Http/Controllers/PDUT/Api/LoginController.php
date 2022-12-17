@@ -33,13 +33,14 @@ class LoginController extends Controller
             $id_aplikasi = $this->request->input('id_aplikasi');
             $username    = $this->request->input('username');
             $password    = sha1($this->request->input('password'));
-            $url         = $this->request->getSchemeAndHttpHost();
+            $asal_domain = $this->request->header('host', '');
             $sPengguna = "
                 SELECT
                     pj.id_aplikasi,
                     pj.a_masih,
                     apk.url,
                     pgn.id_pengguna,
+                    pgn.username,
                     pgn.password,
                     pgn.a_aktif,
                     prn.nm_peran,
@@ -65,42 +66,42 @@ class LoginController extends Controller
                 return WrapResponse(['data' => [
                     'id_aplikasi' => $id_aplikasi,
                     'username' => $username,
-                    'asal_domain' => $url,
+                    'asal_domain' => $asal_domain,
                 ]], 'Gagal Otentikasi. Anda Belum Terdaftar', false);
             }
             if ($dPengguna[0]->a_aktif === 0) {
                 return WrapResponse(['data' => [
                     'id_aplikasi' => $id_aplikasi,
                     'username' => $username,
-                    'asal_domain' => $url,
+                    'asal_domain' => $asal_domain,
                 ]], 'Gagal Otentikasi. Anda Tidak Aktif', false);
             }
             if ($dPengguna[0]->a_masih === 0) {
                 return WrapResponse(['data' => [
                     'id_aplikasi' => $id_aplikasi,
                     'username' => $username,
-                    'asal_domain' => $url,
+                    'asal_domain' => $asal_domain,
                 ]], 'Gagal Otentikasi. Anda Sudah Tidak Terdaftar Sebagai Penggguna Web Service', false);
             }
             if ($dPengguna[0]->password !== $password) {
                 return WrapResponse(['data' => [
                     'id_aplikasi' => $id_aplikasi,
                     'username' => $username,
-                    'asal_domain' => $url,
+                    'asal_domain' => $asal_domain,
                 ]], 'Gagal Otentikasi. Password Salah', false);
             }
             if ($dPengguna[0]->id_aplikasi != \Str::upper($id_aplikasi)) {
                 return WrapResponse(['data' => [
                     'id_aplikasi' => $id_aplikasi,
                     'username' => $username,
-                    'asal_domain' => $url,
+                    'asal_domain' => $asal_domain,
                 ]], 'Gagal Otentikasi. ID Aplikasi Tidak Cocok Dengan Akun Anda', false);
             }
-            if ($dPengguna[0]->url != $url) {
+            if (parse_url($dPengguna[0]->url, PHP_URL_HOST) != $asal_domain) {
                 return WrapResponse(['data' => [
                     'id_aplikasi' => $id_aplikasi,
                     'username' => $username,
-                    'asal_domain' => $url,
+                    'asal_domain' => $asal_domain,
                 ]], 'Gagal Otentikasi. Akses Ditolak, Asal IP atau Domain Anda Tidak Sesuai Dengan Yang Terdaftar', false);
             }
             $header = [
@@ -111,6 +112,7 @@ class LoginController extends Controller
                 'id_aplikasi' => $dPengguna[0]->id_aplikasi,
                 'url_aplikasi' => $dPengguna[0]->url,
                 'id_pengguna' => $dPengguna[0]->id_pengguna,
+                'username' => $dPengguna[0]->username,
                 'peran_pengguna' => $dPengguna[0]->nm_peran,
                 'token_dibuat' => time(),
                 'token_kadarluwasa' => (time() + (60 * 60)),

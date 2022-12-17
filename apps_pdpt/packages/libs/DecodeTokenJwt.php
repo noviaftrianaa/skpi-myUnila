@@ -39,6 +39,7 @@ if (!function_exists('decode_token_jwt')) {
             'id_aplikasi',
             'url_aplikasi',
             'id_pengguna',
+            'username',
             'peran_pengguna',
             'token_dibuat',
             'token_kadarluwasa',
@@ -57,6 +58,15 @@ if (!function_exists('decode_token_jwt')) {
                     ]
                 ], 'Gagal Otentikasi', false);
             }
+        }
+
+        $asal_domain = request()->header('host', '');
+        if (parse_url($payload_decoded->url_aplikasi, PHP_URL_HOST) != $asal_domain) {
+            return WrapResponse(['data' => [
+                'id_aplikasi' => $payload_decoded->id_aplikasi,
+                'username' => $payload_decoded->username,
+                'asal_domain' => $asal_domain,
+            ]], 'Gagal Otentikasi. Akses Ditolak, Asal IP atau Domain Anda Tidak Sesuai Dengan Yang Terdaftar', false);
         }
 
         $expiration = $payload_decoded->token_kadarluwasa;

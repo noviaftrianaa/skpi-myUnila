@@ -5,7 +5,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class WsReqBodyTerms extends Model
 {
-    protected $connection='sqlsrv_live';
     protected $table = 'man_akses.ws_endpoint_body_terms';
     protected $primaryKey = 'id_ws_endpoint_body_terms';
     public $incrementing = false;

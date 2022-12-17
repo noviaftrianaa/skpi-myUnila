@@ -5,7 +5,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class WsAuthorization extends Model
 {
-    protected $connection='sqlsrv_live';
     protected $table = 'man_akses.ws_authorization';
     protected $primaryKey = 'id_ws_authorization';
     public $incrementing = false;

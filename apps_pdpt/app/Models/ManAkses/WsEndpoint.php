@@ -5,7 +5,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class WsEndpoint extends Model
 {
-    protected $connection='sqlsrv_live';
     protected $table = 'man_akses.ws_endpoint';
     protected $primaryKey = 'id_ws_endpoint';
     public $incrementing = false;
