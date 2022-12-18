@@ -75,8 +75,8 @@ if (!function_exists('decode_token_jwt')) {
             return WrapResponse([
                 'data' => [
                     'token_status' => 'Kadarluwasa',
-                    'token_dibuat' => null,
-                    'token_kadarluwasa' => null,
+                    'token_dibuat' => date('Y-m-d H:i:s', $payload_decoded->token_dibuat),
+                    'token_kadarluwasa' => date('Y-m-d H:i:s', $payload_decoded->token_dibuat),
                     'token_bearer' => $token_bearer,
                 ]
             ], 'Gagal Otentikasi', false);
