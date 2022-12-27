@@ -71,54 +71,13 @@
 <script type="text/javascript" src="{{ asset('bower_components/datatables/media/js/dataTables.bootstrap4.min.js')}}"></script>
 <script>
     $(document).ready(function () {
-        var ws = <?php echo json_encode($authorization) ?>;
-        
         let t = $('#table-data').DataTable({
             processing: true,
-            paging: false,
             pagingType: "simple",
             sDom: 'rt<"row"<"col-sm-12 col-md-3"l><"col-sm-12 col-md-3"i><"col-sm-12 col-md-6"p>>'
         } );
         
         var counter = 1;
-
-        if(ws.length > 0) {
-            $.each(ws, function(index, item) {
-                $.ajax({
-                    url: '/aplikasi/pj_aplikasi/akses_ws/'+item.id_ws_endpoint+'/body',
-                    type: 'GET',
-                    success: function(response) {
-                        t.row.add(
-                            [
-                                cEndpoint(counter, exists = item.id_ws_endpoint),
-                                cBody(counter, response, exists = item.terms),
-                                cAction(counter)
-                            ] 
-                        ).draw(true);
-                        
-                        $(".endpoint").select2();
-                        $('.endpoint').on('change', function() {
-                            var id = $(this).data('id');
-                            var value = $(this).val();
-                            var row = $(this).closest('tr');
-                            var cell = t.cell(row, 1);
-                            if(value!=null) {
-                                $.ajax({
-                                    url: '/aplikasi/pj_aplikasi/akses_ws/'+value+'/body',
-                                    type: 'GET',
-                                    success: function(response) {
-                                        cell.data(null);
-                                        cell.data(cBody(id, response));
-                                    }
-                                });
-                            }
-                        });
-
-                        counter++;
-                    }
-                });
-            })
-        }
 
         $('#addAkses').on('click', function() {
 
@@ -151,44 +110,30 @@
         });
     });
 
-    function cEndpoint(counter, exists = '')
+    function cEndpoint(counter)
     {
         var data = <?php echo json_encode($data) ?>;
         var html = '';
         html += '<select class="form-control select2bs4 endpoint" data-id="'+counter+'" name="ws['+counter+'][id]" required>';
-        if(exists == null) {
+        if(data.length>0) {
             $.each(data, function(index, item) {
                 html += '<option value="'+item.id_ws_endpoint+'">['+item.nm_method+'] ['+item.nm_group+'] [<span class="text-muted">'+item.path_url+'</span>]</option>';
             })
-        } else {
-            $.each(data, function(index, item) {
-                if(item.id_ws_endpoint == exists) {
-                    html += '<option value="'+item.id_ws_endpoint+'" selected>['+item.nm_method+'] ['+item.nm_group+'] [<span class="text-muted">'+item.path_url+'</span>]</option>';
-                } else {
-                    html += '<option value="'+item.id_ws_endpoint+'">['+item.nm_method+'] ['+item.nm_group+'] [<span class="text-muted">'+item.path_url+'</span>]</option>';
-                }
-            })
-        }
+        };
         html += '</select>';
 
         return html;
     }
 
-    function cBody(id, data, exists = '')
+    function cBody(id, data)
     {
         var html = '';
         html += '<table class="table table-borderless">';
         html += '<thead><tr><th></th><th>Endpoint Body</th><th>Operator</th><th>Terms</th></tr></thead>'
         html += '<tbody>';
         $.each(data, function(index, item) {
-            var logic = (exists[index] != undefined) ? exists[index].terms_logic : '';
-            var values = (exists[index] != undefined) ? exists[index].terms_values : '';
             html += '<tr>';
-            if(exists[index] != undefined && exists[index].id_ws_endpoint_body==item.id_ws_endpoint_body) {
-                html += '<td><input class=".checkItem" type="checkbox" name="ws['+id+'][body]['+item.id_ws_endpoint_body+']" checked></td>';
-            } else {
-                html += '<td><input class=".checkItem" type="checkbox" name="ws['+id+'][body]['+item.id_ws_endpoint_body+']"></td>';
-            }
+            html += '<td><input class=".checkItem" type="checkbox" name="ws['+id+'][body]['+item.id_ws_endpoint_body+']"></td>';
             html += '<td>'+item.nm_req+' ['+item.type_data+']</td>';
             html += '<td><select class="form-control input-sm" name="ws['+id+'][body]['+item.id_ws_endpoint_body+'][]"><option value="equals">equals [==]</option><option value="does_not_equal">does_not_equal [!=]</option><option value="contains">contains [str_contains]</option><option value="does_not_contain">does_not_contain [!str_contains]</option><option value="greater_than">greater_than [>]</option><option value="less_than">less_than [<]</option><option value="greater_than_or_equal_to">greater_than_or_equal_to [>=]</option><option value="less_than_or_equal_to">less_than_or_equal_to [<=]</option><option value="is_in">is_in [in_array]</option><option value="is_not_in">is_not_in [!in_array]</option></select></td>';
             html += '<td><input type="text" class="form-control input-sm" name="ws['+id+'][body]['+item.id_ws_endpoint_body+'][]"></td>';

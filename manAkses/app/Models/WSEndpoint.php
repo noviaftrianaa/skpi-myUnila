@@ -16,6 +16,6 @@ class WSEndpoint extends Model
 
     public function req()
     {
-        return $this->hasMany('\App\Models\WSReqBody','id_ws_endpoint','id_ws_endpoint');
+        return $this->belongsTo('\App\Models\WSEndpointBody','id_ws_endpoint','id_ws_endpoint');
     }
 }

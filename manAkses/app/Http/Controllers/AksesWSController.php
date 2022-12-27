@@ -8,8 +8,8 @@ use App\Models\PJAplikasi;
 use App\Models\Aplikasi;
 use App\Models\WSAuthorization;
 use App\Models\WSEndpoint;
-use App\Models\WSReqBody;
-use App\Models\WSReqBodyTerms;
+use App\Models\WSEndpointBody;
+use App\Models\WSEndpointBodyTerms;
 use App\Models\User;
 use Auth;
 
@@ -29,29 +29,58 @@ class AksesWSController extends Controller
         $d['id'] = $id;
         $d['pj'] = PJAplikasi::with("user","aplikasi")->where('id_pj_aplikasi',$id)->first();
         $d['data'] = WSEndpoint::with("req.terms")->where('soft_delete',0)->where('a_active',1)->orderBy('nm_group')->get();
-        // dd($d);
-
+        $d['authorization'] = WSAuthorization::with('terms')->where('soft_delete',0)->where('a_active',1)->where('id_pengguna', \Auth::user()->id_pengguna)->where('id_aplikasi', $d['pj']->aplikasi->id_aplikasi)->get();
+        // dd($d['authorization']->toArray());
         return view('manajemen.aplikasi.akses_ws.form', $d);
     }
 
-    public function req($id)
+    public function body($id)
     {
-        $data = WSEndpoint::select('id_ws_endpoint AS id','path_url AS text')->orderBy('path_url')->get();
-        // $data = WSReqBody::where('id_ws_endpoint', $id)->select('id_ws_req_body AS id','nm_req AS text')->orderBy('nm_req')->get();
-
-        return response()->json($data);
-    }
-
-    public function terms($id)
-    {
-        $data = WSEndpoint::select('id_ws_endpoint AS id','path_url AS text')->orderBy('path_url')->get();
-        // $data = WSReqBodyTerms::where('id_ws_req_body', $id)->select('id_ws_req_body_terms AS id','req_terms AS text')->orderBy('req_terms')->get();
+        $data = WSEndpointBody::where('id_ws_endpoint', $id)->select('id_ws_endpoint_body', 'nm_req', 'type_data')->orderBy('nm_req')->get();
 
         return response()->json($data);
     }
 
     public function store(Request $request, $id)
     {
-        dd($request->all());
+        $request->validate([
+            'id_pengguna'   => 'required',
+            'id_aplikasi'   => 'required',
+            'ws'            => 'required'
+        ]);
+
+        $input = $request->all();
+
+        if(count($input['ws']) == 0) {
+            alert()->error('Tidak ada akses web services yang dipilih!');
+            return redirect()->back();
+        }
+
+        foreach($input['ws'] AS $r) {
+            $authorization = WSAuthorization::create([
+                'id_ws_authorization'   => guid(),
+                'id_pengguna'           => $input['id_pengguna'],
+                'id_aplikasi'           => $input['id_aplikasi'],
+                'id_ws_endpoint'        => $r['id'],
+                'a_active'              => 1,
+                'created_at'            => now()
+            ]);
+
+            foreach($r['body'] AS $s=>$t) {
+                if($t[1] != null) {
+                    WSEndpointBodyTerms::create([
+                        'id_ws_endpoint_body_terms' => guid(),
+                        'id_ws_authorization'       => $authorization->id_ws_authorization,
+                        'id_ws_endpoint_body'       => $s,
+                        'terms_logic'               => $t[0],
+                        'terms_value'               => $t[1],
+                        'created_at'                => now()
+                    ]);
+                }
+            }
+        }
+
+        alert()->success('Sukses menambahkan hak akses web services');
+        return redirect()->route('aplikasi.detail', Crypt::encrypt($input['id_aplikasi']));
     }
 }
