@@ -38,61 +38,59 @@ class KonversiController extends Controller
     }
     public function index()
     {
-        $id_reg_pd = $this->request->input('id_reg_pd');
+        $id_ang_akt_mhs = $this->request->input('id_ang_akt_mhs');
 
         InputValidator([
-            'id_reg_pd' => 'required|uuid',
+            'id_ang_akt_mhs' => 'required|uuid',
         ]);
 
         try {
 
             $query1 = DB::SELECT("
                 SELECT
-                    DISTINCT reg.id_reg_pd,
+                    reg.id_reg_pd,
+                    akt.id_akt_mhs,
+                    ang_akt.id_ang_akt_mhs,
                     pd.nm_pd,
                     reg.nipd AS npm,
                     jns_akt.nm_jns_akt_mhs AS program_mbkm,
                     akt.judul_akt_mhs AS judul_mbkm,
-                    sks.total_sks,
                     sdm.nidn,
-                    sdm.nm_sdm AS nm_pembimbing
+                    sdm.nm_sdm AS nm_pembimbing,
+                    akt.id_smt,
+                    (
+                        SELECT
+                            SUM(konversi.sks_mk) as total_sks
+                        FROM
+                            mbkm.konversi_kampus_merdeka AS konversi WITH(NOLOCK)
+                        WHERE
+                            konversi.id_ang_akt_mhs = ang_akt.id_ang_akt_mhs
+                            AND konversi.soft_delete = 0
+                    )AS total_sks
                 FROM
-                    mbkm.konversi_kampus_merdeka AS k_mbkm WITH(NOLOCK)
-                    LEFT JOIN pdrd.anggota_akt_mhs AS ang_akt WITH(NOLOCK) ON ang_akt.id_ang_akt_mhs = k_mbkm.id_ang_akt_mhs
+                    pdrd.anggota_akt_mhs AS ang_akt WITH(NOLOCK)
+                    JOIN pdrd.akt_mhs AS akt WITH(NOLOCK) ON akt.id_akt_mhs = ang_akt.id_akt_mhs
                     AND ang_akt.soft_delete = 0
-                    LEFT JOIN pdrd.akt_mhs AS akt WITH(NOLOCK) ON akt.id_akt_mhs = ang_akt.id_akt_mhs
-                    AND akt.soft_delete = 0
+                    JOIN ref.jenis_akt_mhs AS jns_akt WITH(NOLOCK) ON jns_akt.id_jns_akt_mhs = akt.id_jns_akt_mhs
+                    AND expired_date IS NULL
                     LEFT JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_reg_pd = ang_akt.id_reg_pd
-                    AND reg.id_reg_pd = '" . $id_reg_pd . "'
                     AND reg.soft_delete = 0
                     JOIN pdrd.peserta_didik AS pd WITH(NOLOCK) ON pd.id_pd = reg.id_pd
                     AND pd.soft_delete = 0
-                    JOIN ref.jenis_akt_mhs AS jns_akt WITH(NOLOCK) ON jns_akt.id_jns_akt_mhs = akt.id_jns_akt_mhs
-                    AND expired_date IS NULL
                     LEFT JOIN pdrd.bimbing_mhs AS bimbing WITH(NOLOCK) ON bimbing.id_akt_mhs = ang_akt.id_akt_mhs
                     AND bimbing.soft_delete = 0
                     LEFT JOIN pdrd.sdm AS sdm WITH(NOLOCK) ON sdm.id_sdm = bimbing.id_sdm
                     AND sdm.soft_delete = 0
-                    LEFT JOIN (
-                        SELECT
-                            SUM(k_mbkm1.sks_mk) as total_sks,
-                            ang_akt.id_reg_pd
-                        FROM
-                            mbkm.konversi_kampus_merdeka AS k_mbkm1 WITH(NOLOCK)
-                            LEFT JOIN pdrd.anggota_akt_mhs AS ang_akt WITH(NOLOCK) ON ang_akt.id_ang_akt_mhs = k_mbkm1.id_ang_akt_mhs
-                            AND ang_akt.soft_delete = 0
-                        WHERE
-                            k_mbkm1.soft_delete = 0
-                        GROUP BY
-                            ang_akt.id_reg_pd
-                    ) AS sks ON sks.id_reg_pd = reg.id_reg_pd
                 WHERE
-                    k_mbkm.soft_delete = 0 ");
+                    ang_akt.id_ang_akt_mhs = '" . $id_ang_akt_mhs . "'
+                    AND akt.id_jns_akt_mhs IN (13, 14, 15, 16, 17, 18, 19, 20, 21)
+                    AND akt.soft_delete = 0
+            ");
 
             $konversi_mbkm = [];
             foreach ($query1 as $each_data) {
-                $id = $each_data->id_reg_pd;
-                $konversi_mbkm[$id] = DB::SELECT("
+                $id_ang_akt_mhs = $each_data->id_ang_akt_mhs;
+                $konversi_mbkm[$id_ang_akt_mhs] = DB::SELECT("
                     SELECT
                         k_mbkm.id_konversi_aktivitas AS id_konversi,
                         mk.id_mk,
@@ -100,7 +98,9 @@ class KonversiController extends Controller
                         k_mbkm.nilai_angka,
                         k_mbkm.nilai_huruf,
                         k_mbkm.nilai_indeks,
-                        k_mbkm.sks_mk
+                        k_mbkm.sks_mk,
+                        akt.id_smt,
+                        akt.judul_akt_mhs
                     FROM
                         mbkm.konversi_kampus_merdeka AS k_mbkm WITH(NOLOCK)
                         LEFT JOIN pdrd.anggota_akt_mhs AS ang_akt WITH(NOLOCK) ON ang_akt.id_ang_akt_mhs = k_mbkm.id_ang_akt_mhs
@@ -108,12 +108,12 @@ class KonversiController extends Controller
                         LEFT JOIN pdrd.akt_mhs AS akt WITH(NOLOCK) ON akt.id_akt_mhs = ang_akt.id_akt_mhs
                         AND akt.soft_delete = 0
                         JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_reg_pd = ang_akt.id_reg_pd
-                        AND reg.id_reg_pd = '" . $id . "'
                         AND reg.soft_delete = 0
                         LEFT JOIN pdrd.matkul AS mk WITH(NOLOCK) ON mk.id_mk = k_mbkm.id_mk
                         AND reg.soft_delete = 0
                     WHERE
                         k_mbkm.soft_delete = 0
+                        AND ang_akt.id_ang_akt_mhs = '" . $id_ang_akt_mhs . "'
                 ");
             }
 
@@ -123,6 +123,8 @@ class KonversiController extends Controller
             foreach ($query1 as $each_data) {
                 $data[] = [
                     'id_reg_pd ' => $each_data->id_reg_pd,
+                    'id_akt_mhs ' => $each_data->id_akt_mhs,
+                    'id_ang_akt_mhs ' => $each_data->id_ang_akt_mhs,
                     'nm_pd' => $each_data->nm_pd,
                     'npm' => $each_data->npm,
                     'program_mbkm' => $each_data->program_mbkm,
@@ -130,7 +132,7 @@ class KonversiController extends Controller
                     'total_sks' => $each_data->total_sks,
                     'nidn' => $each_data->nidn,
                     'nm_pembimbing' => $each_data->nm_pembimbing,
-                    'konversi_mbkm' => $konversi_mbkm[$each_data->id_reg_pd]
+                    'konversi_mbkm' => $konversi_mbkm[$each_data->id_ang_akt_mhs]
                 ];
             }
         } catch (\Throwable $th) {

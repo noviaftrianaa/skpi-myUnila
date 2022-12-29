@@ -51,6 +51,8 @@ class PeriodeController extends Controller
                 AND smt.expired_date IS NULL
                 LEFT JOIN ref.jenis_akt_mhs AS akt_mhs ON akt_mhs.id_jns_akt_mhs = p_mbkm.id_jns_akt_mhs
                 AND akt_mhs.expired_date IS NULL
+            WHERE
+                p_mbkm.soft_delete = 0
                 ORDER BY smt.nm_smt DESC ";
 
             $pagination = CustomPagination($query);

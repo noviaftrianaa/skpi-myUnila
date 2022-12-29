@@ -46,6 +46,9 @@ class PesertaController extends Controller
         try {
             $query = "SELECT
             d_mbkm.id_daftar_kampus_merdeka,
+            akt.id_akt_mhs,
+            ang_akt.id_ang_akt_mhs,
+            p_mbkm.id_periode_mbkm,
             reg.id_reg_pd,
             smt.nm_smt AS semester,
             reg.nipd AS npm,
@@ -58,6 +61,8 @@ class PesertaController extends Controller
                 WHEN d_mbkm.a_diluar_pt = 1 THEN 'di luar PT'
                 WHEN d_mbkm.a_diluar_pt = 0 THEN 'di dalam PT'
             END AS kat_kegiatan,
+            akt.sk_tugas,
+            akt.tgl_sk_tugas,
             sdm.nidn,
             sdm.nm_sdm AS nm_pembimbing
         FROM
@@ -78,6 +83,9 @@ class PesertaController extends Controller
             AND smt.expired_date IS NULL
             LEFT JOIN pdrd.anggota_akt_mhs AS ang_akt WITH(NOLOCK) ON ang_akt.id_reg_pd = reg.id_reg_pd
             AND ang_akt.soft_delete = 0
+            JOIN pdrd.akt_mhs AS akt WITH(NOLOCK) ON akt.id_akt_mhs = ang_akt.id_akt_mhs
+            AND akt.id_jns_akt_mhs IN (13,14,15,16,17,18,19,20)
+            AND akt.soft_delete = 0
             LEFT JOIN pdrd.bimbing_mhs AS bimbing WITH(NOLOCK) ON bimbing.id_akt_mhs = ang_akt.id_akt_mhs
             AND bimbing.soft_delete = 0
             LEFT JOIN pdrd.sdm AS sdm WITH(NOLOCK) ON sdm.id_sdm = bimbing.id_sdm
@@ -101,6 +109,9 @@ class PesertaController extends Controller
             foreach ($peserta as $each_data) {
                 $data[] = [
                     'id_daftar_kampus_merdeka ' => $each_data->id_daftar_kampus_merdeka,
+                    'id_akt_mhs ' => $each_data->id_akt_mhs,
+                    'id_ang_akt_mhs ' => $each_data->id_ang_akt_mhs,
+                    'id_periode_mbkm ' => $each_data->id_periode_mbkm,
                     'id_reg_pd' => $each_data->id_reg_pd,
                     'semester' => $each_data->semester,
                     'npm' => $each_data->npm,
@@ -109,6 +120,8 @@ class PesertaController extends Controller
                     'nm_prodi' => $each_data->nm_prodi,
                     'nm_kegiatan' => $each_data->nm_kegiatan,
                     'lokasi_kegiatan' => $each_data->lokasi_kegiatan,
+                    'sk_tugas' => $each_data->sk_tugas,
+                    'tgl_sk_tugas' => $each_data->tgl_sk_tugas,
                     'kat_kegiatan' => $each_data->kat_kegiatan,
                     'nm_pembimbing' => $each_data->nm_pembimbing,
                     'nidn' => $each_data->nidn,
@@ -270,7 +283,7 @@ class PesertaController extends Controller
             ]);
 
             DB::commit();
-            return WrapResponse(array('data' => array('id_daftar_kampus_merdeka' => $id_daftar_kampus_merdeka)), 'sukses menambahkan peserta mbkm', TRUE);
+            return WrapResponse(array('data' => array('id_daftar_kampus_merdeka' => $id_daftar_kampus_merdeka, 'id_akt_mhs' => $id_akt_mhs, 'id_ang_akt_mhs' => $id_ang_akt_mhs)), 'sukses menambahkan peserta mbkm', TRUE);
         } catch (ModelNotFoundException $mnfe) {
             DB::rollBack();
             Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
@@ -286,17 +299,32 @@ class PesertaController extends Controller
     {
         InputValidator([
             'id_daftar_kampus_merdeka' => 'required|uuid',
-            'id_periode_mbkm' => 'required|uuid',
-            'id_reg_pd' => 'required|uuid',
+            'id_akt_mhs' => 'required|uuid',
+            'id_ang_akt_mhs' => 'required|uuid',
             'lokasi_mbkm' => 'required',
             'a_diluar_pt' => 'required',
         ]);
 
+        //request daftar
         $id_daftar_kampus_merdeka = $this->request->input('id_daftar_kampus_merdeka');
-        $id_periode_mbkm = $this->request->input('id_periode_mbkm');
-        $id_reg_pd = $this->request->input('id_reg_pd');
         $lokasi_mbkm = $this->request->input('lokasi_mbkm');
         $a_diluar_pt = $this->request->input('a_diluar_pt');
+
+        //request aktivitas
+        $id_akt_mhs = $this->request->input('id_akt_mhs');
+        $judul_akt_mhs = $this->request->input('judul_akt_mhs');
+        $sk_tugas = $this->request->input('sk_tugas');
+        $tgl_sk_tugas = $this->request->input('tgl_sk_tugas');
+        $ket_akt = $this->request->input('ket_akt');
+        $a_komunal = $this->request->input('a_komunal');
+
+        //request anggota aktivitas
+        $id_ang_akt_mhs = $this->request->input('id_ang_akt_mhs');
+        $jns_peran_mhs = 1;
+
+        //request pembimbing
+        $id_sdm = $this->request->input('id_sdm');
+        $urutan_promotor = $this->request->input('urutan_promotor');
 
         $id_sp = 'e2b705a7-173e-464a-9fac-509128709515';
         $last_update = currDateTime();
@@ -307,36 +335,65 @@ class PesertaController extends Controller
             $daftarMbkm = $this->daftarMbkm->where('id_daftar_kampus_merdeka', $id_daftar_kampus_merdeka)->first();
             if (!$daftarMbkm) return WrapResponse(['data' => null], 'id_daftar_kampus_merdeka tidak ditemukan atau tidak terdaftar', FALSE);
 
-            $data_mhs = DB::select("
-                SELECT
-                    reg.nipd,
-                    reg.id_reg_pd,
-                    pd.nm_pd,
-                    reg.id_sms
-                FROM
-                    pdrd.reg_pd AS reg
-                    JOIN pdrd.peserta_didik AS pd WITH(NOLOCK) ON pd.id_pd = reg.id_pd
-                    AND pd.soft_delete = 0
-                WHERE
-                    reg.id_reg_pd = ?
-                    AND reg.soft_delete = 0
-            ", [$id_reg_pd]);
-
+            $periode_mbkm  = DB::select("
+                    SELECT
+                        p_mbkm.id_periode_mbkm,
+                        p_mbkm.id_smt,
+                        p_mbkm.id_jns_akt_mhs
+                    FROM
+                        mbkm.daftar_kampus_merdeka AS d_mbkm
+                        JOIN mbkm.periode_kampus_merdeka AS p_mbkm WITH(NOLOCK) ON p_mbkm.id_periode_mbkm = d_mbkm.id_periode_mbkm
+                        AND p_mbkm.soft_delete = 0
+                    WHERE
+                        d_mbkm.id_daftar_kampus_merdeka = ?
+                        AND d_mbkm.soft_delete = 0
+            ", [$id_daftar_kampus_merdeka]);
+            //ubah daftar mbkm
             $daftarMbkm->update([
-                'id_daftar_kampus_merdeka' => $id_daftar_kampus_merdeka,
-                'id_periode_mbkm' => $id_periode_mbkm,
-                'id_reg_pd' => $id_reg_pd,
                 'id_sp' => $id_sp,
                 'lokasi_mbkm' => $lokasi_mbkm,
-                'nm_pd' => $data_mhs[0]->nm_pd,
-                'nipd' => $data_mhs[0]->nipd,
                 'a_diluar_pt' => $a_diluar_pt,
                 'last_update' => $last_update,
                 'id_updater' => $id_updater
             ]);
 
+            $aktMhs = $this->aktMhs->where('id_akt_mhs', $id_akt_mhs)->first();
+            if (!$aktMhs) return WrapResponse(['data' => null], 'id_akt_mhs tidak ditemukan atau tidak terdaftar', FALSE);
+            //ubah aktivitas mahasiswa
+            $aktMhs->update([
+                'id_jns_akt_mhs' => $periode_mbkm[0]->id_jns_akt_mhs,
+                'id_smt' => $periode_mbkm[0]->id_smt,
+                'judul_akt_mhs' => $judul_akt_mhs,
+                'lokasi_kegiatan' => $lokasi_mbkm,
+                'sk_tugas' => $sk_tugas,
+                'tgl_sk_tugas' => $tgl_sk_tugas,
+                'ket_akt' => $ket_akt,
+                'a_komunal' => $a_komunal,
+                'last_update' => $last_update,
+                'last_sync' => $last_update
+            ]);
+
+            $anggotaAkt = $this->anggotaAkt->where('id_ang_akt_mhs', $id_ang_akt_mhs)->first();
+            if (!$anggotaAkt) return WrapResponse(['data' => null], 'id_ang_akt_mhs tidak ditemukan atau tidak terdaftar', FALSE);
+            //ubah anggota aktivitas mahasiswa
+            $anggotaAkt->update([
+                'jns_peran_mhs' => $jns_peran_mhs,
+                'last_update' => $last_update,
+                'last_sync' => $last_update
+            ]);
+
+            $bimbingMhs = $this->bimbingMhs->where('id_akt_mhs', $id_akt_mhs)->first();
+            if (!$bimbingMhs) return WrapResponse(['data' => null], 'id_bimb_mhs tidak ditemukan atau tidak terdaftar', FALSE);
+            // pembimbing/pembina
+            $bimbingMhs->update([
+                'id_sdm' => $id_sdm,
+                'urutan_promotor' => $urutan_promotor,
+                'last_update' => $last_update,
+                'last_sync' => $last_update
+            ]);
+
             DB::commit();
-            return WrapResponse(array('data' => array('id_daftar_kampus_merdeka' => $id_daftar_kampus_merdeka)), 'sukses mengubah periode mbkm', TRUE);
+            return WrapResponse(array('data' => array('id_daftar_kampus_merdeka' => $id_daftar_kampus_merdeka)), 'sukses mengubah daftar mbkm', TRUE);
         } catch (ModelNotFoundException $mnfe) {
             DB::rollBack();
             Log::error($mnfe->getMessage() . ' - ' . $mnfe->getModel() . ' - ' . $mnfe->getIds());
