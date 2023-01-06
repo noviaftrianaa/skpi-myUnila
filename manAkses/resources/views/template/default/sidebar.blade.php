@@ -53,7 +53,7 @@
             <li class="nav-item">
                 <li class="nav-header text-bold">PROFILE</li>
                 <li class="nav-item">
-                    <a href="{{ route('biodata.index') }}" class="nav-link {{ AktifMenu('biodata', 1) }}">
+                    <a href="{{ route('biodata.index') }}" class="nav-link {{ (request()->is('biodata')) ? 'active' : '' }}">
                         <i class="nav-icon fas fa-user"></i>
                         <p>Biodata</p>
                     </a>
@@ -64,13 +64,13 @@
 			@foreach(\Session::get('login.menu') AS $n=>$r)
 			@if(empty($r->sub))
 			<li class="nav-item">
-				<a href="{{ route($r->nm_file) }}" class="nav-link {{ AktifMenu($r->nm_file, 2) }}">
+				<a href="{{ route($r->nm_file) }}" class="nav-link {{ AktifMenu($r->nm_file, 1) }}">
 					<i class="nav-icon {{ $r->icon }}"></i>
 					<p>{{ $r->nm_menu }}</p>
 				</a>
 			</li>
 			@else
-			<li class="nav-item {{ AktifMenu($r->nm_file, 2) == 'active' ? 'menu-open' : '' }}">
+			<li class="nav-item {{ AktifMenu($r->nm_file, 1) == 'active' ? 'menu-open' : '' }}">
 				<a href="#" class="nav-link">
 					<i class="nav-icon fas fa-tachometer-alt"></i>
 					<p>

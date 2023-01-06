@@ -32,17 +32,19 @@
                             <div class="col-10">
                                 <table class="table table-borderless">
                                     <tbody>
-                                        @foreach(\App\Models\Menu::where('id_aplikasi', $data->id_aplikasi)->where('a_aktif',1)->orderBy('nm_menu')->get() AS $n=>$r)
-                                        @php $check_menu = \App\Models\MenuRole::where('id_menu', $r->id_menu)->where('id_peran', $id_peran)->where('soft_delete', 0)->first(); @endphp
+                                        @foreach(\App\Models\Menu::where('id_aplikasi', $data->id_aplikasi)->where('a_aktif',1)->orderBy('nm_file')->orderBy('level_menu')->get() AS $n=>$r)
+                                        @php
+                                            $check_menu = \App\Models\MenuRole::where('id_menu', $r->id_menu)->where('id_peran', $id_peran)->where('soft_delete', 0)->first();
+                                        @endphp
                                         <tr>
                                             <th class="row m-0 p-0">
-                                                <div class="col-2">
-                                                    <div class="form-group form-group-default">
+                                                <div class="col-4">
+                                                    <div class="form-group form-group-default {{ ($r->level_menu > 1) ? 'ml-4' : '' }}">
                                                         <input class="mr-2 menus" type="checkbox" id="{{ $n }}" name="menu[{{$r->id_menu}}]" value="{{$r->id_menu}}" {{ (!empty($check_menu)) ? 'checked' : ''}}>
                                                         <label for="a_boleh_insert"> {{ $r->nm_menu }}</label>
                                                     </div>
                                                 </div>
-                                                <div class="col-10">
+                                                <div class="col-8">
                                                     <div class="form-group form-group-default menu_{{$n}}">
                                                         <input class="mr-2" type="checkbox" id="a_boleh_insert" name="menu[{{$r->id_menu}}][insert]" {{ (!is_null($check_menu) && $check_menu->a_boleh_insert==1) ? 'checked':''}}>
                                                         <label for="a_boleh_insert"> Insert</label>&nbsp;&nbsp;
@@ -67,8 +69,8 @@
                 </div>
 
                 <div class="modal-footer">
-                    <!-- <a type="button" class="btn btn-link" href="">Kembali</a> -->
-                    <button type="submit" class="btn btn-primary">Simpan</button>
+                    <a type="button" class="btn btn-default" href="#" onclick="history.back()"><i class="fa fa-arrow-left"></i> Kembali</a>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
                 </div>
             </form>
         </div>

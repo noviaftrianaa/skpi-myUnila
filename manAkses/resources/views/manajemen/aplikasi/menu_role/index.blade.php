@@ -11,6 +11,7 @@
             <div class="d-lg-flex d-block">
                 @if(session()->get('login.role')->id_peran==1)
                 <div class="col-2">
+                    <a type="button" class="btn btn-default" href="#" onclick="history.back()"><i class="fa fa-arrow-left"></i> Kembali</a>
                     <a type="button" class="btn btn-info" href="{{ route('aplikasi.menu_role.create', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fa fa-plus"></i> Tambah Data</a>
                 </div>
                 @endif

@@ -58,8 +58,8 @@
                 </div>
 
                 <div class="modal-footer">
-                    <a onclick="history.back()" type="button" class="btn btn-link" href="#">Kembali</a>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
+                    <a type="button" class="btn btn-default" href="#" onclick="history.back()"><i class="fa fa-arrow-left"></i> Kembali</a>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
                 </div>
             </form>
         </div>

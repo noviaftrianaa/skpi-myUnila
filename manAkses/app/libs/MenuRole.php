@@ -51,7 +51,6 @@ if( !function_exists('MenuRole')){
                     JOIN man_akses.menu_role AS mrole ON mrole.id_menu=menu.id_menu
                 WHERE
                     mrole.id_peran='".$id_peran."'
-                    AND menu.id_aplikasi='".env('APP_ID')."'
                     AND menu.id_group_menu='".$item->id_menu."'
                     AND menu.a_aktif=1
                     AND mrole.soft_delete=0
