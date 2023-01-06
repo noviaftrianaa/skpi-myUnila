@@ -59,16 +59,37 @@
                     </a>
                 </li>
             </li>
-
 			@if(!empty(\Session::get('login.menu')))
 			<li class="nav-header text-bold">MANAJEMEN</li>
 			@foreach(\Session::get('login.menu') AS $n=>$r)
+			@if(empty($r->sub))
 			<li class="nav-item">
 				<a href="{{ route($r->nm_file) }}" class="nav-link {{ AktifMenu($r->nm_file, 2) }}">
 					<i class="nav-icon {{ $r->icon }}"></i>
 					<p>{{ $r->nm_menu }}</p>
 				</a>
 			</li>
+			@else
+			<li class="nav-item {{ AktifMenu($r->nm_file, 2) == 'active' ? 'menu-open' : '' }}">
+				<a href="#" class="nav-link">
+					<i class="nav-icon fas fa-tachometer-alt"></i>
+					<p>
+						{{ $r->nm_menu }}
+						<i class="right fas fa-angle-left"></i>
+					</p>
+				</a>
+				<ul class="nav nav-treeview">
+					@foreach($r->sub AS $t)
+					<li class="nav-item">
+						<a href="{{ route($t->nm_file) }}" class="nav-link {{ AktifMenu($r->nm_file, 2) }}">
+							<i class="far fa-circle nav-icon"></i>
+							<p>{{ $t->nm_menu }}</p>
+						</a>
+					</li>
+					@endforeach
+				</ul>
+			</li>
+			@endif
 			@endforeach
 			@if(\Config::get('manAkses')['Developer'] == 1)
 			@endif

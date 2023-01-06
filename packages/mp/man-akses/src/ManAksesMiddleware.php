@@ -43,7 +43,7 @@ class ManAksesMiddleware
             }
         }
 
-        if ($request->user()->akses != 0)
+        if (empty($request->user()->akses()))
         {
             alert()->error('Anda tidak mempunyai hak akses untuk bisa mengakses halaman ini','Maaf!');
             return back();
