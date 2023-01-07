@@ -55,9 +55,9 @@
                     </ul>
                 </li>
                 <li
-                    class="nav-item {{ in_array($side_active, ['dashboard.dosen', 'dashboard.jabfung', 'dashboard.jenj_didik', 'dashboard.pangkat_golongan', 'dashboard.ikatan_kerja', 'dashboard.jenis_kelamin', 'dashboard.status_kepegawaian', 'dashboard.status_keaktifan']) ? 'menu-open' : '' }}">
+                    class="nav-item {{ in_array($side_active, ['dashboard.dosen', 'dashboard.jabfung', 'dashboard.jenj_didik', 'dashboard.pangkat_golongan', 'dashboard.ikatan_kerja', 'dashboard.jenis_kelamin', 'dashboard.status_kepegawaian', 'dashboard.status_keaktifan', 'dashboard.list_daftar_dosen', 'dashboard.list_daftar_dosen_tanpa_jabfung']) ? 'menu-open' : '' }}">
                     <a href="#"
-                        class="nav-link {{ in_array($side_active, ['dashboard.dosen', 'dashboard.jabfung', 'dashboard.jenj_didik', 'dashboard.pangkat_golongan', 'dashboard.ikatan_kerja', 'dashboard.jenis_kelamin', 'dashboard.status_kepegawaian', 'dashboard.status_keaktifan']) ? 'active' : '' }}">
+                        class="nav-link {{ in_array($side_active, ['dashboard.dosen', 'dashboard.jabfung', 'dashboard.jenj_didik', 'dashboard.pangkat_golongan', 'dashboard.ikatan_kerja', 'dashboard.jenis_kelamin', 'dashboard.status_kepegawaian', 'dashboard.status_keaktifan', 'dashboard.list_daftar_dosen', 'dashboard.list_daftar_dosen_tanpa_jabfung']) ? 'active' : '' }}">
                         <i class="nav-icon fas fa-chalkboard-teacher"></i>
                         <p>
                             Rekap Dosen
@@ -119,6 +119,27 @@
                                 class="nav-link {{ $side_active == 'dashboard.status_keaktifan' ? 'active' : '' }}">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Status Keaktifan</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard.list_daftar_dosen') }}"
+                                class="nav-link {{ $side_active == 'dashboard.list_daftar_dosen' ? 'active' : '' }}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Belum S2</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard.list_daftar_dosen_tanpa_jabfung') }}"
+                                class="nav-link {{ $side_active == 'dashboard.list_daftar_dosen_tanpa_jabfung' ? 'active' : '' }}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Tanpa Jabatan Fungsional</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard.list_daftar_dosen_s2_dgn_masa_kerja') }}"
+                                class="nav-link {{ $side_active == 'dashboard.list_daftar_dosen_s2_dgn_masa_kerja' ? 'active' : '' }}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Masa Kerja</p>
                             </a>
                         </li>
                     </ul>

@@ -7,12 +7,21 @@ use App\Models\PDUT\Pdrd\Sdm;
 use App\Models\PDUT\Pdrd\Sms;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Crypt;
+use stdClass;
 
 class DashboardController extends Controller
 {
+
+    protected $id_prodi;
+    private $id_sp;
+    
     public function __construct()
     {
         $this->id_sp = env('APP_ID_SP');
+        $this->id_prodi = Cache::get('setProdi');
+        $this->id_sp = 'e2b705a7-173e-464a-9fac-509128709515';
     }
 
     public function index()
@@ -431,48 +440,6 @@ class DashboardController extends Controller
         $side_active   = 'dashboard.dosen';
         return view('dashboard.dosen', compact('tahun', 'tahun_pilih', 'side_active', 'dosen_jk', 'dosen_usia_detail', 'dosen_jabfung_detail', 'dosen_kepangkatan_detail', 'dosen_pendidikan_detail', 'dosen_ikatan_detail'));
     }
-    public function standar_akreditasi()
-    {
-        return view('dashboard.standar_akreditasi');
-    }
-
-    public function kriteria2()
-    {
-        return view('dashboard.akreditasi.tables.table_1_all_kerjasama');
-    }
-    public function kriteria3()
-    {
-        return view('dashboard.kriteria3');
-    }
-    public function kriteria4()
-    {
-        return view('dashboard.kriteria4');
-    }
-    public function kriteria5()
-    {
-        return view('dashboard.kriteria5');
-    }
-    public function kriteria6()
-    {
-        return view('dashboard.kriteria6');
-    }
-    public function kriteria7()
-    {
-        return view('dashboard.kriteria7');
-    }
-    public function kriteria8()
-    {
-        return view('dashboard.kriteria8');
-    }
-    public function kriteria9()
-    {
-        return view('dashboard.kriteria9');
-    }
-
-    public function add_penggunaan_dana()
-    {
-        return view('dashboard.penggunaan_dana');
-    }
 
     public function dosen_profil($id, Request $request)
     {
@@ -704,4 +671,148 @@ class DashboardController extends Controller
             'side_active',
         ));
     }
+
+    public function list_daftar_dosen_blm_s2()
+    {
+        $list_dosen = DB::SELECT("
+        SELECT
+        al.id_sdm,
+        al.nm_sdm AS nama_dosen,
+        al.nidn,
+        jenjang.nm_jenj_didik AS jenjang_terakhir
+    FROM
+        (
+            SELECT
+                sdm.id_sdm,
+                sdm.nm_sdm,
+                sdm.nidn,
+                (
+                    SELECT
+                        MAX(pend.id_jenj_didik) AS id_jenj_didik
+                    FROM
+                        pdrd.rwy_pend_formal AS pend
+                        LEFT JOIN pdrd.sdm AS sdm1 ON sdm1.id_sdm = pend.id_sdm
+                        AND sdm1.soft_delete = 0
+                    WHERE
+                        sdm1.id_sdm = sdm.id_sdm
+                        AND pend.id_jenj_didik < 35
+                        AND pend.soft_delete = 0
+                    GROUP BY
+                        pend.id_sdm
+                ) AS id_jenj_didik
+            FROM
+                pdrd.sdm AS sdm
+            WHERE
+                sdm.soft_delete = 0
+                AND sdm.id_jns_sdm = 12
+        ) AS al
+        LEFT JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = al.id_jenj_didik
+        AND expired_date IS NULL
+    WHERE
+        al.id_jenj_didik IS NOT NULL
+        ");
+
+        $side_active = 'dashboard.list_daftar_dosen';
+        $judul_layout = 'Belum S2';
+
+        return view('dashboard.list_daftar_dosen', compact(
+            'side_active',
+            'judul_layout',
+            'list_dosen'
+        ));
+    }
+
+    public function list_daftar_dosen_tanpa_jabfung()
+    {
+        $list_dosen_tanpa_jabfung= DB::SELECT("
+            SELECT *
+        from
+            (
+                SELECT
+                    sdm.id_sdm,
+                    sdm.nm_sdm as nama_dosen,
+                    sdm.nidn,
+                    (
+                        SELECT
+                            MAX(jabfung.tmt_sk_jabfung) AS tgl_jabfung
+                        FROM
+                            pdrd.rwy_fungsional AS jabfung
+                            LEFT JOIN pdrd.sdm AS sdm1 ON sdm1.id_sdm = jabfung.id_sdm
+                            AND sdm1.soft_delete = 0
+                        WHERE
+                            sdm1.id_sdm = sdm.id_sdm
+        --                     AND jabfung.sk_jabfung = '-'
+                            AND jabfung.soft_delete = 0
+                        GROUP BY
+                            jabfung.id_sdm
+                    ) AS tgl_jabfung
+                FROM
+                    pdrd.sdm AS sdm
+                WHERE
+                    sdm.soft_delete = 0
+                    AND sdm.id_jns_sdm = 12
+            ) al
+        WHERE
+        DATEDIFF(YEAR, al.tgl_jabfung, GETDATE()) < 5
+            AND al.tgl_jabfung IS NOT NULL
+        ");
+
+        $side_active = 'dashboard.list_daftar_dosen_tanpa_jabfung';
+        $judul_layout = 'Tanpa Jabatan fungsional';
+
+        return view('dashboard.list_daftar_dosen_tanpa_jabfung', compact(
+            'side_active',
+            'judul_layout',
+            'list_dosen_tanpa_jabfung'
+        ));
+
+    }
+
+    public function list_daftar_dosen_s2_dgn_masa_kerja()
+    {
+        $list_dosen_s2_masa_kerja= DB::SELECT("
+        SELECT
+            *
+        from
+            (
+                SELECT
+                    sdm.id_sdm,
+                    sdm.nm_sdm as nama_dosen,
+                    sdm.nidn,
+                    (
+                        SELECT
+                            MAX(ptk.tmt_srt_tgs) AS tgl_srt_tgs
+                        FROM
+                            pdrd.reg_ptk AS ptk
+                            LEFT JOIN pdrd.sdm AS sdm1 ON sdm1.id_sdm = ptk.id_sdm
+                            AND sdm1.soft_delete = 0
+                        WHERE
+                            sdm1.id_sdm = sdm.id_sdm
+                            AND ptk.soft_delete = 0
+                        GROUP BY
+                            ptk.id_sdm
+                    ) AS tgl_srt_tgs
+                FROM
+                    pdrd.sdm AS sdm
+                WHERE
+                    sdm.soft_delete = 0
+                    AND sdm.id_jns_sdm = 12
+            ) al
+        WHERE
+            DATEDIFF(YEAR, al.tgl_srt_tgs, GETDATE()) IN (20, 25, 30)
+            AND al.tgl_srt_tgs IS NOT NULL
+    ");
+
+    $side_active = 'dashboard.list_dosen_s2_masa_kerja';
+    $judul_layout = 'Masa Kerja';
+
+    return view('dashboard.list_dosen_s2_masa_kerja', compact(
+        'side_active',
+        'judul_layout',
+        'list_dosen_s2_masa_kerja'
+    ));
+
+    }
+    
+
 }
