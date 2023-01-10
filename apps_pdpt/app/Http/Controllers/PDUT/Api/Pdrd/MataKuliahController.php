@@ -68,10 +68,10 @@ class MataKuliahController extends Controller
                 JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
             WHERE
-                mk.jns_mk IN ('A', 'B', 'C', 'D', 'S')
-            --     AND matkur.smt IS NOT NULL
-                AND mk.tgl_mulai_efektif IS NOT NULL
-                AND mk.soft_delete = 0
+            --  mk.jns_mk IN ('A', 'B', 'C', 'D', 'S')
+            --  AND matkur.smt IS NOT NULL
+            --  AND mk.tgl_mulai_efektif IS NOT NULL
+                mk.soft_delete = 0
             ORDER BY
                 mk.nm_mk, matkur.smt DESC ";
 
