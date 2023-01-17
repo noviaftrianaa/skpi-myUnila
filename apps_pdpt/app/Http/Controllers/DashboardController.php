@@ -676,40 +676,32 @@ class DashboardController extends Controller
     {
         $list_dosen = DB::SELECT("
         SELECT
-        al.id_sdm,
-        al.nm_sdm AS nama_dosen,
-        al.nidn,
-        jenjang.nm_jenj_didik AS jenjang_terakhir
-    FROM
-        (
-            SELECT
-                sdm.id_sdm,
-                sdm.nm_sdm,
-                sdm.nidn,
-                (
-                    SELECT
-                        MAX(pend.id_jenj_didik) AS id_jenj_didik
-                    FROM
-                        pdrd.rwy_pend_formal AS pend
-                        LEFT JOIN pdrd.sdm AS sdm1 ON sdm1.id_sdm = pend.id_sdm
-                        AND sdm1.soft_delete = 0
-                    WHERE
-                        sdm1.id_sdm = sdm.id_sdm
-                        AND pend.id_jenj_didik < 35
-                        AND pend.soft_delete = 0
-                    GROUP BY
-                        pend.id_sdm
-                ) AS id_jenj_didik
-            FROM
-                pdrd.sdm AS sdm
-            WHERE
-                sdm.soft_delete = 0
-                AND sdm.id_jns_sdm = 12
-        ) AS al
-        LEFT JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = al.id_jenj_didik
-        AND expired_date IS NULL
-    WHERE
-        al.id_jenj_didik IS NOT NULL
+            sdm.id_sdm,
+            sdm.nm_sdm AS nama_dosen,
+            sdm.nidn,
+            jenjang1.nm_jenj_didik AS jenjang_terakhir
+        FROM
+            pdrd.sdm AS sdm
+            LEFT JOIN (
+                SELECT
+                    pend.id_sdm,
+                    MAX(pend.id_jenj_didik) AS id_jenj_didik
+                FROM
+                    pdrd.rwy_pend_formal AS pend
+                WHERE
+                    pend.soft_delete = 0
+                GROUP BY
+                    pend.id_sdm
+            ) AS jenjang ON jenjang.id_sdm = sdm.id_sdm
+            LEFT JOIN ref.jenjang_pendidikan AS jenjang1 ON jenjang1.id_jenj_didik = jenjang.id_jenj_didik
+            AND expired_date IS NULL
+        WHERE
+            sdm.soft_delete = 0
+            AND sdm.id_jns_sdm = 12
+            AND (
+                jenjang.id_jenj_didik IS NULL
+                or jenjang.id_jenj_didik < 35
+            ) 
         ");
 
         $side_active = 'dashboard.list_daftar_dosen';
