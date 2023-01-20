@@ -650,6 +650,8 @@ class MahasiswaController extends Controller
                 WHEN kul.id_stat_mhs = 'U' THEN  'Unknown'
                 WHEN kul.id_stat_mhs = 'W' THEN  'Wafat'
             END AS status,
+                kul.id_stat_mhs,
+                kul.id_smt,
                 kul.sks_semester,
                 kul.ips,
                 kul.ipk,
@@ -713,7 +715,7 @@ class MahasiswaController extends Controller
             }
         }
 
-        if(is_null($id_prodi)){
+        if (is_null($id_prodi)) {
             $query = DB::SELECT(
                 "
                 DECLARE @PageNumber AS INT
@@ -800,7 +802,7 @@ class MahasiswaController extends Controller
             if (empty($query)) {
                 return WrapResponse(['data' => null], "Data tidak ditemukan", FALSE);
             }
-        }else{
+        } else {
             $query = DB::SELECT(
                 "
                 DECLARE @PageNumber AS INT
@@ -928,5 +930,37 @@ class MahasiswaController extends Controller
         }
 
         return WrapResponse(compact('currentPage', 'itemsPerPage', 'sortBy', 'data'), 'Berhasil mengambil data list Alumni');
+    }
+
+    public function luar_pt(Request $request)
+    {
+
+        $id_sp = $request->input('id_sp');
+        $nim = $request->input('nim');
+
+        InputValidator([
+            'id_sp' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
+            'nim' => 'required|numeric',
+        ], [
+            'id_sp.required' => 'field ini harus diisi',
+            'id_sp.regex' => 'input harus berupa campuran alpa_numeric dan dash',
+            'nim.regex' => 'field ini harus diisi',
+            'nim.regex' => 'input harus berupa numeric'
+        ]);
+
+
+
+
+
+        if (empty($query)) {
+            return WrapResponse([], "Data Mahasiswa tidak ditemukan", FALSE);
+        }
+
+        $data = [];
+        foreach ($query as $each_data) {
+            $data[] = [];
+
+            return WrapResponse(compact('data'), 'Berhasil mengambil data detail Mahasiswa');
+        }
     }
 }

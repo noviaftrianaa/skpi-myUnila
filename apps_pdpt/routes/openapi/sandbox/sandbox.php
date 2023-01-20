@@ -18,10 +18,6 @@ Route::group([
             'namespace' => 'Pdrd',
         ], function () {
 
-            Route::prefix('pdrd')->group(function () {
-                Route::get('satuan_pendidikan', 'SatuanPendidikanController@index');
-            });
-
             Route::prefix('keuangan')->group(function () {
                 Route::get('/kelasukt/daftar', 'KeuanganKelasUktController@daftar');
                 Route::post('/kelasukt/tambah', 'KeuanganKelasUktController@tambah');
@@ -111,6 +107,7 @@ Route::group([
                 Route::get('list_regis', 'MahasiswaController@regis');
                 Route::get('smt_keaktifan', 'MahasiswaController@semester_keaktifan');
                 Route::get('list_alumni', 'MahasiswaController@alumni');
+                Route::get('luar_pt', 'MahasiswaController@luar_pt');
             });
 
             Route::prefix('mata_kuliah')->group(function () {
@@ -163,6 +160,7 @@ Route::group([
                 Route::get('profil_prodi/list_id', 'LembagaController@listProfilProdiById');
                 Route::put('profil_prodi/ubah', 'LembagaController@ubah');
                 Route::get('daftar_lembaga', 'LembagaController@listLembaga');
+                Route::get('daftar_satuan_pendidikan', 'LembagaController@listSp');
             });
         });
 

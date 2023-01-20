@@ -10,28 +10,33 @@ use App\Models\PDUT\Pdrd\ProfilProdi;
 use App\Models\PDUT\Pdrd\ProfilPt;
 use App\Models\PDUT\Pdrd\SatuanPendidikan;
 use App\Models\PDUT\Pdrd\Sms;
+use Illuminate\Http\Response;
+use App\Services\QueryPagination;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule as ValidationRule;
+use App\Services\JsonApiResponse as WrapResponse;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Exception;
 
 class LembagaController extends Controller
 {
     protected $request;
-    protected $akreditasi_prodi;
-    protected $profil_prodi;
+    protected $akreditasiProdi;
+    protected $profilProdi;
     protected $sms;
-    protected $profil_pt;
-    protected $satuan_pendidikan;
+    protected $profilPt;
+    protected $satuanPendidikan;
+    protected $wrapResponse;
 
     public function __construct(Request $request)
     {
         $this->request = $request;
-        $this->akreditasiprodi = new AkreditasiProdi();
-        $this->profilprodi = new ProfilProdi();
+        $this->akreditasiProdi = new AkreditasiProdi();
+        $this->profilProdi = new ProfilProdi();
         $this->sms = new Sms();
-        $this->profilpt = new ProfilPt();
-        $this->satuanpendidikan = new SatuanPendidikan();
+        $this->profilPt = new ProfilPt();
+        $this->satuanPendidikan = new SatuanPendidikan();
+        $this->wrapResponse = new WrapResponse;
     }
 
 
@@ -49,11 +54,11 @@ class LembagaController extends Controller
         $id_sp = $this->request->input('id_sp');
 
         if (!empty($sortby)) {
-            $sortby =$sortby;
+            $sortby = $sortby;
         }
 
         try {
-        $query = "SELECT
+            $query = "SELECT
             sp.id_sp,
             sp.nm_lemb,
             ppt.visi,
@@ -65,41 +70,42 @@ class LembagaController extends Controller
         JOIN
             pdrd.satuan_pendidikan AS sp WITH(NOLOCK) ON sp.id_sp = ppt.id_sp AND sp.soft_delete = 0
         WHERE
-            sp.soft_delete = 0 AND sp.id_sp = '" . $id_sp . "' ORDER BY sp.nm_lemb " .$sortby . " ";
+            sp.soft_delete = 0 AND sp.id_sp = '" . $id_sp . "' ORDER BY sp.nm_lemb " . $sortby . " ";
 
 
-        $pagination = CustomPagination($query);
-        $query = $pagination['query'];
+            $pagination = CustomPagination($query);
+            $query = $pagination['query'];
 
-        $profilpt= DB::select($query);
-        if(empty($profilpt)){
-            return WrapResponse(['data' => null], 'tidak ada daftar profil perguruan tinggi yang ditampilkan', FALSE);
-        }
+            $profilpt = DB::select($query);
+            if (empty($profilpt)) {
+                return WrapResponse(['data' => null], 'tidak ada daftar profil perguruan tinggi yang ditampilkan', FALSE);
+            }
 
 
             $data = [];
             foreach ($profilpt as $value) {
                 $data[] = [
-                'id_sp' => $value->id_sp,
-                'nm_lemb' => $value->id_publikasi,
-                'visi' => $value->visi,
-                'misi' => $value->misi,
-                'tujuan' => $value->tujuan,
-                'sasaran' => $value->sasaran,
-            ];
+                    'id_sp' => $value->id_sp,
+                    'nm_lemb' => $value->id_publikasi,
+                    'visi' => $value->visi,
+                    'misi' => $value->misi,
+                    'tujuan' => $value->tujuan,
+                    'sasaran' => $value->sasaran,
+                ];
+            }
+            return WrapResponse(compact('data'), 'berhasil');
+        } catch (Exception $e) {
+            Log::error(__FUNCTION__ . '-' . $e->getMessage());
+            return WrapResponse([], "gagal mendapa tkan data profil perguruan tinggi", FALSE);
         }
-        return WrapResponse(compact('data'), 'berhasil');
-    } catch (Exception $e) {
-        Log::error(__FUNCTION__ . '-' . $e->getMessage());
-        return WrapResponse([], "gagal mendapa tkan data profil perguruan tinggi", FALSE );
     }
-}
 
 
     public function listAkreditasiPt(Request $request)
     {
-        $page = 1; $limit = 10;
-        if(!empty($request->page)) {
+        $page = 1;
+        $limit = 10;
+        if (!empty($request->page)) {
             $page = $request->page;
         }
         if (!empty($request->limit)) {
@@ -110,7 +116,7 @@ class LembagaController extends Controller
             }
         }
 
-        $akreditasipt= DB::SELECT("
+        $akreditasipt = DB::SELECT("
         DECLARE @PageNumber AS INT
         DECLARE @RowsOfPage AS INT
         SET @PageNumber= ?
@@ -154,8 +160,9 @@ class LembagaController extends Controller
 
     public function detailDaftarProdi(Request $request)
     {
-        $page = 1; $limit = 10;
-        if(!empty($request->page)) {
+        $page = 1;
+        $limit = 10;
+        if (!empty($request->page)) {
             $page = $request->page;
         }
         if (!empty($request->limit)) {
@@ -166,7 +173,7 @@ class LembagaController extends Controller
             }
         }
 
-        $detail_prodi= DB::SELECT("
+        $detail_prodi = DB::SELECT("
         DECLARE @PageNumber AS INT
         DECLARE @RowsOfPage AS INT
         SET @PageNumber= ?
@@ -205,8 +212,9 @@ class LembagaController extends Controller
 
     public function listProfilProdi(Request $request)
     {
-        $page = 1; $limit = 10;
-        if(!empty($request->page)) {
+        $page = 1;
+        $limit = 10;
+        if (!empty($request->page)) {
             $page = $request->page;
         }
         if (!empty($request->limit)) {
@@ -280,17 +288,17 @@ class LembagaController extends Controller
     public function ubah()
     {
         InputValidator([
-           'id_sms' => 'required|uuid',
-           'id_akreditasi_prodi' => 'required|uuid',
-           'sk_akreditasi_prodi' => 'required|string',
-           'tanggal_sk_akreditasi_prodi' => 'nullable|date_format:Y-m-d',
-           'nm_lemb' => 'required|string',
-           'lembaga_akreditasi' => 'required|string',
-           'visi' => 'nullable|text',
-           'tujuan' => 'nullable|text',
-           'sasaran' => 'nullable|text',
-           'kompetensi' => 'nullable|text',
-           'himp_alumni' => 'nullable|text',
+            'id_sms' => 'required|uuid',
+            'id_akreditasi_prodi' => 'required|uuid',
+            'sk_akreditasi_prodi' => 'required|string',
+            'tanggal_sk_akreditasi_prodi' => 'nullable|date_format:Y-m-d',
+            'nm_lemb' => 'required|string',
+            'lembaga_akreditasi' => 'required|string',
+            'visi' => 'nullable|text',
+            'tujuan' => 'nullable|text',
+            'sasaran' => 'nullable|text',
+            'kompetensi' => 'nullable|text',
+            'himp_alumni' => 'nullable|text',
         ]);
 
 
@@ -302,8 +310,8 @@ class LembagaController extends Controller
         $lembaga_akreditasi = $this->request->input('lembaga_akreditasi');
         $visi = $this->request->input('visi');
         $misi = $this->request->input('misi');
-        $tujuan = $this->request->input-('tujuan');
-        $sasaran = $this->request->input-('sasaran');
+        $tujuan = $this->request->input - ('tujuan');
+        $sasaran = $this->request->input - ('sasaran');
         $kompetensi = $this->request->input('kompetensi');
         $himp_alumni = $this->request->input('himp_alumni');
 
@@ -312,10 +320,10 @@ class LembagaController extends Controller
 
         $last_sync = currDateTime();
 
-       DB::beginTransaction();
-       try{
-        $profil_prodi = $this->profilprodi->where('id_sms', $id_sms)->first();
-       if (!$profil_prodi) return WrapResponse(['data' => null], 'id_sms tidak ditemukan', FALSE);
+        DB::beginTransaction();
+        try {
+            $profil_prodi = $this->profilProdi->where('id_sms', $id_sms)->first();
+            if (!$profil_prodi) return WrapResponse(['data' => null], 'id_sms tidak ditemukan', FALSE);
 
             $profil_prodi->update([
                 'id_sms' => $id_sms,
@@ -347,6 +355,7 @@ class LembagaController extends Controller
             return WrapResponse(['data' => null], 'gagal mengubah profil prodi', FALSE);
         }
     }
+
     public function listProfilProdiById(Request $request)
     {
 
@@ -401,8 +410,6 @@ class LembagaController extends Controller
         return WrapResponse(['data' => $data], 'Detail Profil Prodi By id_sms', TRUE);
     }
 
-
-
     public function listLembaga(Request $request)
     {
 
@@ -441,86 +448,79 @@ class LembagaController extends Controller
             WHERE sms.soft_delete = 0 ");
 
 
-            foreach ($listdata as $each_data) {
-                $data[] = [
-                    'id_sms' => $each_data->id_sms,
-                    'nm_jns_sms' => $each_data->nm_jns_sms,
-                    'nm_lemb' => $each_data->nm_lemb,
-                    'id_fak_unila' => $each_data->id_fak_unila,
-                    'id_jur_unila' => $each_data->id_jur_unila,
-                    'kode_prodi' => $each_data->kode_prodi,
-                    'no_tel' => $each_data->no_tel,
-                    'no_fax' => $each_data->no_fax,
-                    'email' => $each_data->email,
-                    'tgl_berdiri' => $each_data->tgl_berdiri,
-                    'sks_lulus' => $each_data->sks_lulus,
-                    'gelar_lulusan' => $each_data->gelar_lulusan,
-                    'stat_prodi' => $each_data->stat_prodi,
-                    'nm_jenj_didik' => $each_data->nm_jenj_didik,
-                    'id_jns_sms' => $each_data->id_jns_sms,
-                    'id_wil' => $each_data->id_wil,
-                    'id_induk_sms' => $each_data->id_induk_sms,
-                    'waktu_data_ditambahkan' => $each_data->create_date,
-                    'terakhir_diubah' => $each_data->last_update,
-                ];
-            }
-           return response()->json([
+        foreach ($listdata as $each_data) {
+            $data[] = [
+                'id_sms' => $each_data->id_sms,
+                'nm_jns_sms' => $each_data->nm_jns_sms,
+                'nm_lemb' => $each_data->nm_lemb,
+                'id_fak_unila' => $each_data->id_fak_unila,
+                'id_jur_unila' => $each_data->id_jur_unila,
+                'kode_prodi' => $each_data->kode_prodi,
+                'no_tel' => $each_data->no_tel,
+                'no_fax' => $each_data->no_fax,
+                'email' => $each_data->email,
+                'tgl_berdiri' => $each_data->tgl_berdiri,
+                'sks_lulus' => $each_data->sks_lulus,
+                'gelar_lulusan' => $each_data->gelar_lulusan,
+                'stat_prodi' => $each_data->stat_prodi,
+                'nm_jenj_didik' => $each_data->nm_jenj_didik,
+                'id_jns_sms' => $each_data->id_jns_sms,
+                'id_wil' => $each_data->id_wil,
+                'id_induk_sms' => $each_data->id_induk_sms,
+                'waktu_data_ditambahkan' => $each_data->create_date,
+                'terakhir_diubah' => $each_data->last_update,
+            ];
+        }
+        return response()->json([
             'success' => true,
             'message' => 'Berhasil mendapatkan data',
             'data'  => $data
         ], 200);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
+    public function listSp(Request $request)
     {
-        //
-    }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
+        $page = $request->input('page', 1);
+        $count = $request->input('count', 50);
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
+        InputValidator([
+            'page' => 'numeric|min:1',
+            'count' => 'numeric|min:1|max:50'
+        ]);
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+        $query = "
+            SELECT
+                sp.id_sp,
+                sp.nm_lemb,
+                sp.nm_singkat,
+                sp.nss,
+                sp.npsn,
+                sp.jln,
+                sp.id_wil,
+                sp.create_date AS waktu_data_ditambahkan,
+                sp.last_update AS terakhir_diubah
+            FROM
+                pdrd.satuan_pendidikan AS sp WITH(NOLOCK)
+            WHERE
+                sp.soft_delete = 0
+            ORDER BY
+                sp.nm_lemb ASC";
 
+        // $result = DB::connection('sqlsrv_live')->select($query);
+        $result = new QueryPagination($query);
+        if (empty($result->query())) {
+            return $this->wrapResponse
+                ->setMessage(static::QUERY_RESULT_EMPTY)
+                ->setError('tidak ada daftar satuan pendidikan yang ditampilkan')
+                ->render();
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
+        return $this->wrapResponse
+            // ->setTransformer(new JadwalKelasTransformer, __FUNCTION__)
+            ->setStatusCode(Response::HTTP_ACCEPTED)
+            ->setMessage('Sukses mendapatkan daftar satuan pendidikan')
+            ->withSimplePagination()
+            ->render($result->query());
     }
 }

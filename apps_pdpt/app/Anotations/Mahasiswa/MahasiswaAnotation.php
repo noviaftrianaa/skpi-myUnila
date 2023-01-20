@@ -205,3 +205,31 @@
      *      security={{"token":{}}}
      *     )
      */
+
+
+     /**
+     * @OA\Get(
+     *      path="/mahasiswa/luar_pt",
+     *      operationId="getMahasiswaLuarPT",
+     *      tags={"Mahasiswa"},
+     *      summary="Dapatkan profil Mahasiswa luar PT",
+     *      description="Detail Mahasiswa luar PT Berdasarkan id_sp dan nim",
+     *      @OA\Parameter( name="id_sp", description="masukan id_sp", example="a1e8c356-48ef-4871-af3e-85079443f952", required=true, in="query",
+     *          @OA\Schema(type="string")),
+     *      @OA\Parameter( name="nim", description="masukan NIM mahasiswa", example="", required=true, in="query",
+     *          @OA\Schema(type="number")),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     *      security={{"token":{}}}
+     *     )
+     */
