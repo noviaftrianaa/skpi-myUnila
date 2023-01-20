@@ -144,8 +144,8 @@ class MahasiswaController extends Controller
         InputValidator([
             'id_peserta_didik' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
         ], [
-            'idPesertaDidik.required' => 'field ini harus diisi',
-            'idPesertaDidik.regex' => 'input harus berupa campuran alpa_numeric dan dash',
+            'id_peserta_didik.required' => 'field ini harus diisi',
+            'id_peserta_didik.regex' => 'input harus berupa campuran alpa_numeric dan dash',
         ]);
 
         $query = DB::SELECT("
@@ -575,12 +575,12 @@ class MahasiswaController extends Controller
 
     public function semester_keaktifan(Request $request)
     {
-        $idPesertaDidik = $request->input('id_peserta_didik');
+        $idRegPd = $request->input('id_reg_pd');
         InputValidator([
-            'id_peserta_didik' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
+            'id_reg_pd' => 'required|regex:/^[a-zA-Z0-9\-\(\)\s]+$/',
         ], [
-            'idPesertaDidik.required' => 'field ini harus diisi',
-            'idPesertaDidik.regex' => 'input harus berupa campuran alpa_numeric dan dash',
+            'id_reg_pd.required' => 'field ini harus diisi',
+            'id_reg_pd.regex' => 'input harus berupa campuran alpa_numeric dan dash',
         ]);
 
         $query = DB::SELECT("
@@ -599,7 +599,7 @@ class MahasiswaController extends Controller
             FROM
                 pdrd.peserta_didik AS pd WITH(NOLOCK)
                 JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
-                AND reg.id_pd = '" . $idPesertaDidik . "'
+                AND reg.id_reg_pd = '" . $idRegPd . "'
                 AND reg.soft_delete = 0
                 AND reg.id_jns_keluar IS NULL
                 JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = reg.id_semester_masuk
@@ -653,7 +653,8 @@ class MahasiswaController extends Controller
                 kul.sks_semester,
                 kul.ips,
                 kul.ipk,
-                kul.total_sks AS sks_lulus
+                kul.total_sks AS sks_lulus,
+                kul.biaya_smt
             FROM
                 pdrd.kuliah_mhs as kul
                 JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_reg_pd = kul.id_reg_pd

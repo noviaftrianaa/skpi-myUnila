@@ -128,8 +128,8 @@
      *      tags={"Mahasiswa"},
      *      summary="Dapatkan daftar Semester Keaktifan Mahasiswa",
      *      description="Menampilkan daftar Semester Keaktifan Mahasiswa",
-     *      description="Daftar keaktifan semester Mahasiswa Berdasarkan idPesertaDidik",
-     *      @OA\Parameter( name="id_peserta_didik", description="masukan idPesertaDidik", example="11d42109-7f99-49ea-96e3-15f314c40523", required=true, in="query",
+     *      description="Daftar keaktifan semester Mahasiswa Berdasarkan id_reg_pd",
+     *      @OA\Parameter( name="id_reg_pd", description="masukan id_reg_pd", example="00024479-2843-46DD-8B5C-EB3FC7F8640E", required=true, in="query",
      *          @OA\Schema(type="string")),
      *      @OA\Response(
      *          response=200,
