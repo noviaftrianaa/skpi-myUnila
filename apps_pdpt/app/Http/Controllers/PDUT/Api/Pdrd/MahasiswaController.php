@@ -654,7 +654,9 @@ class MahasiswaController extends Controller
                 kul.ips,
                 kul.ipk,
                 kul.total_sks AS sks_lulus,
-                kul.biaya_smt
+                kul.biaya_smt,
+                kul.create_date AS waktu_data_ditambahkan,
+                kul.last_update AS terakhir_diubah
             FROM
                 pdrd.kuliah_mhs as kul
                 JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_reg_pd = kul.id_reg_pd
