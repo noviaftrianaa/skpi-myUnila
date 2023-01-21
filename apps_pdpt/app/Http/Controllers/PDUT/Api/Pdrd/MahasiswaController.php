@@ -55,20 +55,7 @@ class MahasiswaController extends Controller
                 pd.create_date AS waktu_data_ditambahkan,
                 pd.last_update AS terakhir_diubah,
                 kuliah.smt_skrng,
-            CASE
-                WHEN kul.id_stat_mhs = 'A' THEN 'Aktif'
-                WHEN kul.id_stat_mhs = 'C' THEN 'Cuti'
-                WHEN kul.id_stat_mhs = 'D' THEN 'Drop Out / Dikeluarkan'
-                WHEN kul.id_stat_mhs = 'G' THEN 'Sedang Double Degree'
-                WHEN kul.id_stat_mhs = 'H' THEN 'Hilang'
-                WHEN kul.id_stat_mhs = 'K' THEN 'Mengundurkan Diri / Keluar'
-                WHEN kul.id_stat_mhs = 'L' THEN 'Lulus'
-                WHEN kul.id_stat_mhs = 'M' THEN 'Mutasi'
-                WHEN kul.id_stat_mhs = 'N' THEN 'Non Aktif'
-                WHEN kul.id_stat_mhs = 'T' THEN 'Transfer'
-                WHEN kul.id_stat_mhs = 'U' THEN 'Unknown'
-                WHEN kul.id_stat_mhs = 'W' THEN 'Wafat'
-            END AS status
+                sm.nm_stat_mhs AS status
             FROM
                 pdrd.peserta_didik AS pd WITH(NOLOCK)
                 JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
@@ -98,6 +85,8 @@ class MahasiswaController extends Controller
                 AND jenjang.expired_date IS NULL
                 JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt = reg.id_semester_masuk
                 AND ts.expired_date IS NULL
+                JOIN ref.status_mahasiswa AS sm WITH(NOLOCK) ON sm.id_stat_mhs = kul.id_stat_mhs
+                AND sm.expired_date IS NULL
             WHERE
                 pd.soft_delete = 0
             ORDER BY
@@ -155,20 +144,7 @@ class MahasiswaController extends Controller
                 reg.nipd AS npm,
                 pd.nm_pd,
                 CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS nm_prodi,
-                CASE
-                    WHEN kul.id_stat_mhs = 'A' THEN  'Aktif'
-                    WHEN kul.id_stat_mhs = 'C' THEN  'Cuti'
-                    WHEN kul.id_stat_mhs = 'D' THEN  'Drop Out / Dikeluarkan'
-                    WHEN kul.id_stat_mhs = 'G' THEN  'Sedang Double Degree'
-                    WHEN kul.id_stat_mhs = 'H' THEN  'Hilang'
-                    WHEN kul.id_stat_mhs = 'K' THEN  'Mengundurkan Diri / Keluar'
-                    WHEN kul.id_stat_mhs = 'L' THEN  'Lulus'
-                    WHEN kul.id_stat_mhs = 'M' THEN  'Mutasi'
-                    WHEN kul.id_stat_mhs = 'N' THEN  'Non Aktif'
-                    WHEN kul.id_stat_mhs = 'T' THEN  'Transfer'
-                    WHEN kul.id_stat_mhs = 'U' THEN  'Unknown'
-                    WHEN kul.id_stat_mhs = 'W' THEN  'Wafat'
-                END AS status_sekarang,
+                sm.nm_stat_mhs AS status_sekarang,
                 reg.tgl_masuk_sp,
                 smt.nm_smt AS periode_masuk,
                 reg.nm_pt_asal,
@@ -244,6 +220,8 @@ class MahasiswaController extends Controller
                 AND jd.expired_date IS NULL
                 JOIN ref.agama AS agama WITH(NOLOCK) ON agama.id_agama = pd.id_agama
                 AND agama.expired_date IS NULL
+                JOIN ref.status_mahasiswa AS sm WITH(NOLOCK) ON sm.id_stat_mhs = kul.id_stat_mhs
+                AND sm.expired_date IS NULL
             WHERE
                 reg.id_pd = '" . $idPesertaDidik . "'
                 AND reg.soft_delete = 0;
@@ -350,6 +328,7 @@ class MahasiswaController extends Controller
                 pd.id_pd,
                 reg.id_reg_pd,
                 reg.nipd AS npm,
+                reg.id_pembiayaan,
                 pd.nm_pd,
                 sms.id_sms,
                 CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS nm_prodi,
@@ -366,20 +345,7 @@ class MahasiswaController extends Controller
                 pd.jln,
                 pd.tlpn_hp,
                 pd.email,
-            CASE
-                WHEN kul.id_stat_mhs = 'A' THEN 'Aktif'
-                WHEN kul.id_stat_mhs = 'C' THEN 'Cuti'
-                WHEN kul.id_stat_mhs = 'D' THEN 'Drop Out / Dikeluarkan'
-                WHEN kul.id_stat_mhs = 'G' THEN 'Sedang Double Degree'
-                WHEN kul.id_stat_mhs = 'H' THEN 'Hilang'
-                WHEN kul.id_stat_mhs = 'K' THEN 'Mengundurkan Diri / Keluar'
-                WHEN kul.id_stat_mhs = 'L' THEN 'Lulus'
-                WHEN kul.id_stat_mhs = 'M' THEN 'Mutasi'
-                WHEN kul.id_stat_mhs = 'N' THEN 'Non Aktif'
-                WHEN kul.id_stat_mhs = 'T' THEN 'Transfer'
-                WHEN kul.id_stat_mhs = 'U' THEN 'Unknown'
-                WHEN kul.id_stat_mhs = 'W' THEN 'Wafat'
-            END AS status
+                kul.id_stat_mhs AS status
             FROM
                 pdrd.peserta_didik AS pd WITH(NOLOCK)
                 JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
@@ -436,6 +402,7 @@ class MahasiswaController extends Controller
                 'id_prodi' => $each_data->id_sms,
                 'program_studi' => $each_data->nm_prodi,
                 'periode_masuk' => $each_data->periode_masuk,
+                'id_pembiayaan' => $each_data->id_pembiayaan,
                 'semester_sekarang' => $each_data->smt_skrng,
                 'ips' => $each_data->ips,
                 'ipk' => $each_data->ipk,
@@ -502,7 +469,7 @@ class MahasiswaController extends Controller
                 pd.create_date AS waktu_data_ditambahkan,
                 pd.last_update AS terakhir_diubah,
                 kuliah.smt_skrng,
-                kul.id_stat_mhs AS status
+                sm.nm_stat_mhs AS status
             FROM
                 pdrd.peserta_didik AS pd WITH(NOLOCK)
                 JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
@@ -535,6 +502,8 @@ class MahasiswaController extends Controller
                 AND jenjang.expired_date IS NULL
                 JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt = reg.id_semester_masuk
                 AND ts.expired_date IS NULL
+                JOIN ref.status_mahasiswa AS sm WITH(NOLOCK) ON sm.id_stat_mhs = kul.id_stat_mhs
+                AND sm.expired_date IS NULL
             WHERE
                 pd.soft_delete = 0
             ORDER BY
@@ -595,7 +564,7 @@ class MahasiswaController extends Controller
                 ts.nm_smt AS periode_masuk,
                 kul.ips,
                 kul.ipk,
-                kul.id_stat_mhs AS status
+                sm.nm_stat_mhs AS status
             FROM
                 pdrd.peserta_didik AS pd WITH(NOLOCK)
                 JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
@@ -625,6 +594,8 @@ class MahasiswaController extends Controller
                 AND jenjang.expired_date IS NULL
                 JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt = reg.id_semester_masuk
                 AND ts.expired_date IS NULL
+                JOIN ref.status_mahasiswa AS sm WITH(NOLOCK) ON sm.id_stat_mhs = kul.id_stat_mhs
+                AND sm.expired_date IS NULL
             WHERE
                 reg.soft_delete = 0;
         ");
@@ -636,20 +607,7 @@ class MahasiswaController extends Controller
         $semester = DB::SELECT("
             SELECT
                 ts.nm_smt AS periode,
-            CASE
-                WHEN kul.id_stat_mhs = 'A' THEN  'Aktif'
-                WHEN kul.id_stat_mhs = 'C' THEN  'Cuti'
-                WHEN kul.id_stat_mhs = 'D' THEN  'Drop Out / Dikeluarkan'
-                WHEN kul.id_stat_mhs = 'G' THEN  'Sedang Double Degree'
-                WHEN kul.id_stat_mhs = 'H' THEN  'Hilang'
-                WHEN kul.id_stat_mhs = 'K' THEN  'Mengundurkan Diri / Keluar'
-                WHEN kul.id_stat_mhs = 'L' THEN  'Lulus'
-                WHEN kul.id_stat_mhs = 'M' THEN  'Mutasi'
-                WHEN kul.id_stat_mhs = 'N' THEN  'Non Aktif'
-                WHEN kul.id_stat_mhs = 'T' THEN  'Transfer'
-                WHEN kul.id_stat_mhs = 'U' THEN  'Unknown'
-                WHEN kul.id_stat_mhs = 'W' THEN  'Wafat'
-            END AS status,
+                sm.nm_stat_mhs,
                 kul.id_stat_mhs,
                 kul.id_smt,
                 kul.sks_semester,
