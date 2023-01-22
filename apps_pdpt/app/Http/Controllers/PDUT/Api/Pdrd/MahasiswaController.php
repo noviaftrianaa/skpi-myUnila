@@ -557,6 +557,7 @@ class MahasiswaController extends Controller
                 pd.id_pd,
                 reg.id_reg_pd,
                 reg.nipd AS npm,
+                reg.id_pembiayaan,
                 pd.nm_pd,
                 CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS nm_prodi,
                 kul.id_stat_mhs AS status_sekarang,
@@ -640,6 +641,7 @@ class MahasiswaController extends Controller
                 'nama_mahasiswa' => $each_data->nm_pd,
                 'program_studi' => $each_data->nm_prodi,
                 'periode_masuk' => $each_data->periode_masuk,
+                'id_pembiayaan' => $each_data->id_pembiayaan,
                 'semester_sekarang' => $each_data->smt_skrng,
                 'status' => $each_data->status,
                 'semester' => $semester
