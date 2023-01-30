@@ -677,11 +677,16 @@ class DashboardController extends Controller
         $list_dosen = DB::SELECT("
         SELECT
             sdm.id_sdm,
+            tsp.id_sp,
             sdm.nm_sdm AS nama_dosen,
             sdm.nidn,
             jenjang1.nm_jenj_didik AS jenjang_terakhir
         FROM
             pdrd.sdm AS sdm
+            LEFT JOIN pdrd.reg_ptk AS treg WITH (NOLOCK) ON treg.id_sdm = sdm.id_sdm
+            AND treg.soft_delete = 0
+            LEFT JOIN pdrd.satuan_pendidikan tsp WITH (NOLOCK) ON tsp.id_sp = treg.id_sp
+            AND tsp.soft_delete = 0
             LEFT JOIN (
                 SELECT
                     pend.id_sdm,
@@ -698,6 +703,7 @@ class DashboardController extends Controller
         WHERE
             sdm.soft_delete = 0
             AND sdm.id_jns_sdm = 12
+            AND tsp.id_sp = '".env('APP_ID_SP')."'
             AND (
                 jenjang.id_jenj_didik IS NULL
                 or jenjang.id_jenj_didik < 35
@@ -717,36 +723,29 @@ class DashboardController extends Controller
     public function list_daftar_dosen_tanpa_jabfung()
     {
         $list_dosen_tanpa_jabfung= DB::SELECT("
-            SELECT *
-        from
-            (
+        SELECT
+            sdm.id_sdm,
+            sdm.nm_sdm AS nama_dosen,
+            sdm.nidn,
+            jab.tgl_jabfung
+        FROM
+            pdrd.sdm AS sdm
+            LEFT JOIN (
                 SELECT
-                    sdm.id_sdm,
-                    sdm.nm_sdm as nama_dosen,
-                    sdm.nidn,
-                    (
-                        SELECT
-                            MAX(jabfung.tmt_sk_jabfung) AS tgl_jabfung
-                        FROM
-                            pdrd.rwy_fungsional AS jabfung
-                            LEFT JOIN pdrd.sdm AS sdm1 ON sdm1.id_sdm = jabfung.id_sdm
-                            AND sdm1.soft_delete = 0
-                        WHERE
-                            sdm1.id_sdm = sdm.id_sdm
-        --                     AND jabfung.sk_jabfung = '-'
-                            AND jabfung.soft_delete = 0
-                        GROUP BY
-                            jabfung.id_sdm
-                    ) AS tgl_jabfung
+                    id_sdm,
+                    MAX(tmt_sk_jabfung) AS tgl_jabfung
                 FROM
-                    pdrd.sdm AS sdm
+                    pdrd.rwy_fungsional
                 WHERE
-                    sdm.soft_delete = 0
-                    AND sdm.id_jns_sdm = 12
-            ) al
+                    soft_delete = 0
+                    and sk_jabfung = '-'
+                GROUP BY
+                    id_sdm
+            ) AS jab ON jab.id_sdm = sdm.id_sdm
         WHERE
-        DATEDIFF(YEAR, al.tgl_jabfung, GETDATE()) < 5
-            AND al.tgl_jabfung IS NOT NULL
+            sdm.soft_delete = 0
+            AND sdm.id_jns_sdm = 12
+            AND YEAR(jab.tgl_jabfung) < YEAR(GETDATE()) - 5
         ");
 
         $side_active = 'dashboard.list_daftar_dosen_tanpa_jabfung';

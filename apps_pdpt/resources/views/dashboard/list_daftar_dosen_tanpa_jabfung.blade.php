@@ -20,8 +20,8 @@
                                                     <th>No</th>
                                                     <th>Nama Dosen</th>
                                                     <th>NIDN</th>
-                                                    <th>Tanggal Jabatan Fungsional</th>
-                                                    {{-- <th>Aksi</th> --}}
+                                                    <th>Masa Kerja</th>
+                                                    <th>Aksi</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -31,9 +31,9 @@
                                                         <td>{{ $each_data->nama_dosen }}</td>
                                                         <td>{{ $each_data->nidn }}</td>
                                                         <td>{{ $each_data->tgl_jabfung }}</td>
-                                                        {{-- <td style="text-align: center;">
+                                                        <td style="text-align: center;">
                                                             <button type="button" class="btn btn-primary">Detail</button>
-                                                        </td> --}}
+                                                        </td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>

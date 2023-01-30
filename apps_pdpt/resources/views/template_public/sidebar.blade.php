@@ -142,6 +142,13 @@
                                 <p>Masa Kerja</p>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard.list_daftar_dosen_s2_dgn_masa_kerja') }}"
+                                class="nav-link {{ $side_active == 'dashboard.list_daftar_dosen_s2_dgn_masa_kerja' ? 'active' : '' }}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Masa Jabatan Fungsional</p>
+                            </a>
+                        </li>
                     </ul>
                 </li>
                 <li class="nav-item {{ in_array($side_active, ['iku', 'akreditasi', 'university_rank']) ? 'menu-open' : '' }}">
