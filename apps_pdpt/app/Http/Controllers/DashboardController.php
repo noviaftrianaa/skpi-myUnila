@@ -763,35 +763,46 @@ class DashboardController extends Controller
     {
         $list_dosen_s2_masa_kerja= DB::SELECT("
         SELECT
-            *
-        from
-            (
+            sdm.id_sdm,
+            sdm.nm_sdm AS nama_dosen,
+            sdm.nidn,
+            jenjang1.nm_jenj_didik AS jenjang_terakhir,
+            jab.tgl_jabfung
+        FROM
+            pdrd.sdm AS sdm
+            LEFT JOIN (
                 SELECT
-                    sdm.id_sdm,
-                    sdm.nm_sdm as nama_dosen,
-                    sdm.nidn,
-                    (
-                        SELECT
-                            MAX(ptk.tmt_srt_tgs) AS tgl_srt_tgs
-                        FROM
-                            pdrd.reg_ptk AS ptk
-                            LEFT JOIN pdrd.sdm AS sdm1 ON sdm1.id_sdm = ptk.id_sdm
-                            AND sdm1.soft_delete = 0
-                        WHERE
-                            sdm1.id_sdm = sdm.id_sdm
-                            AND ptk.soft_delete = 0
-                        GROUP BY
-                            ptk.id_sdm
-                    ) AS tgl_srt_tgs
+                    id_sdm,
+                    MAX(tmt_sk_jabfung) AS tgl_jabfung
                 FROM
-                    pdrd.sdm AS sdm
+                    pdrd.rwy_fungsional
                 WHERE
-                    sdm.soft_delete = 0
-                    AND sdm.id_jns_sdm = 12
-            ) al
+                    soft_delete = 0
+                    and sk_jabfung = '-'
+                GROUP BY
+                    id_sdm
+            ) AS jab ON jab.id_sdm = sdm.id_sdm
+            LEFT JOIN (
+                SELECT
+                    pend.id_sdm,
+                    MAX(pend.id_jenj_didik) AS id_jenj_didik
+                FROM
+                    pdrd.rwy_pend_formal AS pend
+                WHERE
+                    pend.soft_delete = 0
+                GROUP BY
+                    pend.id_sdm
+            ) AS jenjang ON jenjang.id_sdm = sdm.id_sdm
+            LEFT JOIN ref.jenjang_pendidikan AS jenjang1 ON jenjang1.id_jenj_didik = jenjang.id_jenj_didik
+            AND expired_date IS NULL
         WHERE
-            DATEDIFF(YEAR, al.tgl_srt_tgs, GETDATE()) IN (20, 25, 30)
-            AND al.tgl_srt_tgs IS NOT NULL
+            sdm.soft_delete = 0
+            AND sdm.id_jns_sdm = 12
+            AND YEAR(jab.tgl_jabfung) < YEAR(GETDATE()) - 5
+            AND (
+                jenjang.id_jenj_didik IS NULL
+                or jenjang.id_jenj_didik <= 35
+    )
     ");
 
     $side_active = 'dashboard.list_dosen_s2_masa_kerja';

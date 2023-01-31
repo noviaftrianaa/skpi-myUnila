@@ -20,7 +20,8 @@
                                                     <th>No</th>
                                                     <th>Nama Dosen</th>
                                                     <th>NIDN</th>
-                                                    <th>Tanggal Surat Tugas</th>
+                                                    <th>Pendidikan Terakhir</th>
+                                                    <th>Masa Kerja</th>
                                                     <th>Aksi</th>
                                                 </tr>
                                             </thead>
@@ -30,7 +31,8 @@
                                                         <td>{{ $no_data + 1 }}</td>
                                                         <td>{{ $each_data->nama_dosen }}</td>
                                                         <td>{{ $each_data->nidn }}</td>
-                                                        <td>{{ $each_data->tgl_srt_tgs }}</td>
+                                                        <td>{{ $each_data->jenjang_terakhir }}</td>
+                                                        <td>{{ $each_data->tgl_jabfung}}</td>
                                                         <td style="text-align: center;">
                                                             <button type="button" class="btn btn-primary">Detail</button>
                                                         </td>
