@@ -22,7 +22,8 @@ class MahasiswaSeeder extends Seeder
         ini_set('max_execution_time',0);
         $nomor_data=0;
         $id_creator = '443701e4-e814-48f3-9528-251bccee8af1';
-        $prodi = DB::table('pdrd.sms')->where('soft_delete',0)->select('id_sms')->groupBy('id_sms')->pluck('id_sms')->toArray();
+        $prodi = DB::table('pdrd.sms')->where('soft_delete',0)->where('id_jns_sms',3)
+            ->select('id_sms')->groupBy('id_sms')->pluck('id_sms')->toArray();
         $url = ENV('URL_WS_NEO_FEEDER');
         $token = $this->generate_token();
         $gagal = [];
@@ -32,18 +33,19 @@ class MahasiswaSeeder extends Seeder
                 $token = $this->generate_token();
             }
             $cari_prodi = DB::table('pdrd.sms')->where('id_sms',$id_sms)->first();
-           $cari_sms_sync = DB::table('log_sync_pd_sms')->where('id_sms',$id_sms)->where('tgl_sync','>=',date('Y-m-1'))->first();
-           if (!is_null($cari_sms_sync)) {
-               if ($cari_sms_sync->a_selesai==1) {
+            $cari_sms_sync = DB::table('logger.log_sync_pd_sms')->where('id_sms',$id_sms)->where('tgl_sync','>=',date('Y-m-1'))->first();
+            if (!is_null($cari_sms_sync)) {
+                if ($cari_sms_sync->a_selesai==1) {
                    continue;
-               }
-           } else {
-               DB::table('log_sync_pd_sms')->insert([
-                   'id_sms' => $id_sms,
-                   'tgl_sync'=> date('Y-m-d'),
-                   'a_selesai'=> 0
-               ]);
-           }
+                }
+            } else {
+                DB::table('logger.log_sync_pd_sms')->insert([
+                   'id_sms'             => $id_sms,
+                   'tgl_sync'           => date('Y-m-d'),
+                   'waktu_mulai_sync'   => currDateTime(),
+                   'a_selesai'          => 0
+                ]);
+            }
             $jenjang = DB::table('ref.jenjang_pendidikan')->where('id_jenj_didik',$cari_prodi->id_jenj_didik)->first();
             echo "Mendapatkan data mahasiswa dari prodi ".($cari_prodi->nm_lemb.' ('.$jenjang->nm_jenj_didik.')')."\n";
             $get_data = curl_api_neo_feeder($url, data_form_feeder('GetDataLengkapMahasiswaProdi',$token,'id_prodi',$id_sms));
@@ -55,7 +57,7 @@ class MahasiswaSeeder extends Seeder
                 }
                 $get_data_reg = curl_api_neo_feeder($url, data_form_feeder('GetListRiwayatPendidikanMahasiswa',$token,'id_registrasi_mahasiswa',$each_data['id_registrasi_mahasiswa']));
                 $cari_keaktifan = DB::table('ref.status_mahasiswa')->where('nm_stat_mhs',$each_data['nama_status_mahasiswa'])->first();
-                echo "Input data Mahasiswa Prodi ".($cari_prodi->nm_lemb.' ('.$jenjang->nm_jenj_didik.')')." id:".$each_data['id_mahasiswa']." ".$no." dari ".$total_data." data\n";
+                echo "Input data Mahasiswa Prodi ".($cari_prodi->nm_lemb.' ('.$jenjang->nm_jenj_didik.')')." id:".$each_data['id_mahasiswa']." ".$no." dari ".$total_data." data";
                 $carimhs = DB::table('pdrd.peserta_didik')->where('id_pd',$each_data['id_mahasiswa'])->first();
                 if (is_null($carimhs)) {
                     DB::table('pdrd.peserta_didik')->insert([
@@ -65,7 +67,7 @@ class MahasiswaSeeder extends Seeder
                         'nisn'              => $each_data['nisn'],
                         'nik'               => $each_data['nik'],
                         'tmpt_lahir'        => $each_data['tempat_lahir'],
-                        'tgl_lahir'         => $each_data['tanggal_lahir'],
+                        'tgl_lahir'         => date('Y-m-d',strtotime($each_data['tanggal_lahir'])),
                         'jln'               => $each_data['jalan'],
                         'email'             => $each_data['email'],
                         'rt'                => $each_data['rt'],
@@ -110,14 +112,55 @@ class MahasiswaSeeder extends Seeder
                         'soft_delete'       => 0,
                         'last_sync'         => currDateTime()
                     ]);
+                    echo " (Input PD Baru)";
                 } else {
                     DB::table('pdrd.peserta_didik')->where('id_pd',$carimhs->id_pd)->update([
+                        'nm_pd'             => $each_data['nama_mahasiswa'],
+                        'jk'                => $each_data['jenis_kelamin'],
+                        'nisn'              => $each_data['nisn'],
+                        'nik'               => $each_data['nik'],
+                        'tmpt_lahir'        => $each_data['tempat_lahir'],
+                        'tgl_lahir'         => date('Y-m-d',strtotime($each_data['tanggal_lahir'])),
+                        'jln'               => $each_data['jalan'],
                         'email'             => $each_data['email'],
+                        'rt'                => $each_data['rt'],
+                        'rw'                => $each_data['rw'],
+                        'nm_dsn'            => $each_data['dusun'],
+                        'ds_kel'            => $each_data['kelurahan'],
+                        'kode_pos'          => $each_data['kode_pos'],
                         'tlpn_rumah'        => $each_data['telepon'],
                         'tlpn_hp'           => $each_data['handphone'],
+                        'nm_wali'           => $each_data['nama_wali'],
+                        'tgl_lahir_wali'    => $each_data['tanggal_lahir_wali'],
+                        'id_pekerjaan_wali' => $each_data['id_pekerjaan_wali'],
+                        'id_penghasilan_wali'=> $each_data['id_penghasilan_wali'],
+                        'id_pendidikan_wali'=> $each_data['id_pendidikan_wali'],
+                        'nm_ibu_kandung'    => $each_data['nama_ibu_kandung'],
+                        'tgl_lahir_ibu'     => $each_data['tanggal_lahir_ibu'],
+                        'nik_ibu'           => $each_data['nik_ibu'],
+                        'id_pekerjaan_ibu'  => $each_data['id_pekerjaan_ibu'],
+                        'id_penghasilan_ibu'=> $each_data['id_penghasilan_ibu'],
+                        'id_pendidikan_ibu' => $each_data['id_pendidikan_ibu'],
+                        'id_kk_ibu'         => $each_data['id_kebutuhan_khusus_ibu'],
+                        'nm_ayah'           => $each_data['nama_ayah'],
+                        'tgl_lahir_ayah'    => $each_data['tanggal_lahir_ayah'],
+                        'nik_ayah'          => $each_data['nik_ayah'],
+                        'id_pekerjaan_ayah' => $each_data['id_pekerjaan_ayah'],
+                        'id_penghasilan_ayah'=> $each_data['id_penghasilan_ayah'],
+                        'id_pendidikan_ayah'=> $each_data['id_pendidikan_ayah'],
+                        'id_kk_ayah'        => $each_data['id_kebutuhan_khusus_ayah'],
+                        'a_terima_kps'      => $each_data['penerima_kps'],
+                        'no_kps'            => $each_data['nomor_kps'],
+                        'id_kk'             => $each_data['id_kebutuhan_khusus_mahasiswa'],
+                        'id_alat_transport' => $each_data['id_alat_transportasi'],
+                        'id_kewarganegaraan'=> $each_data['id_negara'],
+                        'id_agama'          => $each_data['id_agama'],
+                        'id_jns_tinggal'    => $each_data['id_jenis_tinggal'],
+                        'id_wil'            => $each_data['id_wilayah'],
                         'last_update'       => currDateTime(),
                         'id_updater'        => '443701e4-e814-48f3-9528-251bccee8af1',
                     ]);
+                    echo " (Update PD)";
                 }
                 $carireg = DB::table('pdrd.reg_pd')->where('id_reg_pd',$each_data['id_registrasi_mahasiswa'])->first();
                 if (is_null($carireg)) {
@@ -161,6 +204,7 @@ class MahasiswaSeeder extends Seeder
                         'soft_delete'       => 0,
                         'last_sync'         => currDateTime()
                     ]);
+                    echo " (Input Reg Baru)";
                 } else {
                     if (!is_null($carireg->id_jns_keluar)) {
                         if (currDateTime()>$this->expired) {
@@ -184,8 +228,10 @@ class MahasiswaSeeder extends Seeder
                                 'last_update'       => currDateTime(),
                                 'id_updater'        => '443701e4-e814-48f3-9528-251bccee8af1',
                             ]);
+                            echo " (Update Reg Lulus)";
                         } else {
                             $gagal[$each_data['id_registrasi_mahasiswa']] = 'Gagal mendapatkan registrasi mahasiswa lulus/do';
+                            echo " (Gagal Update Reg Lulus)";
                         }
                     } else {
                         DB::table('pdrd.reg_pd')->where('id_reg_pd',$carireg->id_reg_pd)->update([
@@ -201,6 +247,7 @@ class MahasiswaSeeder extends Seeder
                             'id_updater'        => '443701e4-e814-48f3-9528-251bccee8af1',
                         ]);
                     }
+                    echo " (Update Reg)";
                 }
                 $get_data_keaktifan = curl_api_neo_feeder($url, data_form_feeder('GetListPerkuliahanMahasiswa',$token,'id_registrasi_mahasiswa',$each_data['id_registrasi_mahasiswa']));
                 if (currDateTime()>$this->expired) {
@@ -227,6 +274,7 @@ class MahasiswaSeeder extends Seeder
                                 'soft_delete'       => 0,
                                 'last_sync'         => currDateTime()
                             ]);
+                            echo " (Input Kuliah ".$each_keaktifan['id_semester']." Baru)";
                         } else {
                             DB::table('pdrd.kuliah_mhs')
                                 ->where('id_reg_pd',$each_keaktifan['id_registrasi_mahasiswa'])
@@ -239,11 +287,17 @@ class MahasiswaSeeder extends Seeder
                                     'last_update'       => currDateTime(),
                                     'id_updater'        => '443701e4-e814-48f3-9528-251bccee8af1',
                                 ]);
+                            echo " (Update Kuliah ".$each_keaktifan['id_semester'].")";
                         }
                     }
                 }
                 $no++;
+                echo "\n";
             }
+            DB::table('logger.log_sync_pd_sms')->where('id_sms',$id_sms)->where('tgl_sync','>=',date('Y-m-1'))->update([
+                'a_selesai'             => 1,
+                'waktu_selesai_sync'    => currDateTime()
+            ]);
         }
         $endTime=microtime(true);
         echo "Selesai\n";

@@ -35,18 +35,18 @@ class NeoFeederSeeder extends Seeder
 
         $func = [
         //    'substansi_kuliah',
-           'akt_mhs',
-           'ang_akt_mhs',
+        //    'akt_mhs',
+        //    'ang_akt_mhs',
         //    'konversi',
         //   'kurikulum',
         //    'mk_kurikulum',
         //    'rencana_ajar',
         //    'rencana_evaluasi',
-            // 'nilai_kelas',
-           'prestasi',
+            'nilai_kelas',
+        //    'prestasi',
         //    'ekuivalensi',
-        //    'transkrip'
-//            'stat_mhs'
+           'transkrip',
+        //    'stat_mhs'
         ];
 
         // substansi kuliah
@@ -282,7 +282,7 @@ class NeoFeederSeeder extends Seeder
             $total_data_mk_kurikulum = count($get_data_mk_kurikulum);
             if ($total_data_mk_kurikulum>0) {
                 foreach ($get_data_mk_kurikulum AS $no_mk_kurikulum=>$each_mk_kurikulum) {
-                    echo 'Mendapatkan '.($no_mk_kurikulum+1).' dari '.$total_data_mk_kurikulum;
+                    echo 'Mendapatkan MK Kurikulum '.($no_mk_kurikulum+1).' dari '.$total_data_mk_kurikulum;
                     $cari_mk_kur = DB::table('pdrd.matkul_kurikulum')->where('id_kurikulum_sp',$each_mk_kurikulum['id_kurikulum'])->first();
                     if(is_null($cari_mk_kur)) {
                         DB::table('pdrd.matkul_kurikulum')->insert([
@@ -316,7 +316,7 @@ class NeoFeederSeeder extends Seeder
             $total_data_renc_ajar = count($get_data_renc_ajar);
             if ($total_data_renc_ajar>0) {
                 foreach ($get_data_renc_ajar AS $no_renc_ajar=>$each_renc_ajar) {
-                    echo 'Mendapatkan '.($no_renc_ajar+1).' dari '.$total_data_renc_ajar;
+                    echo 'Mendapatkan Rencana Ajar '.($no_renc_ajar+1).' dari '.$total_data_renc_ajar;
                     $cari_renc = RencanaAjar::find($each_renc_ajar->id_rencana_ajar);
                     if (is_null($cari_renc)) {
                         DB::table('pdrd.rencana_ajar')->insert([
@@ -359,7 +359,7 @@ class NeoFeederSeeder extends Seeder
             $total_data_re_mk = count($get_data_re_mk);
             if ($total_data_re_mk>0) {
                 foreach ($get_data_re_mk AS $no_re_mk=>$each_re_mk) {
-                    echo 'Mendapatkan '.($no_re_mk+1).' dari '.$total_data_re_mk;
+                    echo 'Mendapatkan Rencana Evaluasu Matakuliah '.($no_re_mk+1).' dari '.$total_data_re_mk;
                     $cari_renc = ReMk::find($each_re_mk['id_rencana_evaluasi']);
                     if (is_null($cari_renc)) {
                         DB::table('pdrd.re_mk')->insert([
@@ -392,7 +392,7 @@ class NeoFeederSeeder extends Seeder
             $total_data_prestasi = count($get_data_prestasi);
             if ($total_data_prestasi>0) {
                 foreach ($get_data_prestasi AS $no_prestasi=>$each_prestasi) {
-                    echo 'Mendapatkan '.($no_prestasi+1).' dari '.$total_data_prestasi;
+                    echo 'Mendapatkan Prestasi '.($no_prestasi+1).' dari '.$total_data_prestasi;
                     $cari_renc = Prestasi::find($each_prestasi['id_prestasi']);
                     if (is_null($cari_renc)) {
                         DB::table('pdrd.prestasi')->insert([
@@ -427,7 +427,7 @@ class NeoFeederSeeder extends Seeder
             $total_data_ekuivalensi = count($get_data_ekuivalensi);
             if ($total_data_ekuivalensi>0) {
                 foreach ($get_data_ekuivalensi AS $no_ekuivalensi=>$each_ekuivalensi) {
-                    echo 'Mendapatkan '.($no_ekuivalensi+1).' dari '.$total_data_ekuivalensi;
+                    echo 'Mendapatkan Ekuvalensi '.($no_ekuivalensi+1).' dari '.$total_data_ekuivalensi;
                     $cari_ekuiv = DB::table('mbkm.ekuiv_transfer')->where('id_ekuivalensi',$each_ekuivalensi['id_transfer'])->first();
                     if (is_null($cari_ekuiv)) {
                         DB::table('mbkm.ekuiv_transfer')->insert([
@@ -465,12 +465,12 @@ class NeoFeederSeeder extends Seeder
             $total_data_transkrip = count($get_data_transkrip);
             if ($total_data_transkrip>0) {
                 foreach ($get_data_transkrip AS $no_transkrip=>$each_transkrip) {
-                    echo 'Mendapatkan '.($no_transkrip+1).' dari '.$total_data_transkrip;
-//                    $cari_ekuiv = DB::table('pdrd.nilai_transkrip')->where('id_reg_pd',$each_transkrip['id_registrasi_mahasiswa'])
-//                        ->where('id_mk',$each_transkrip['id_matkul'])
-//                        ->where('id_kls',$each_transkrip['id_kelas_kuliah'])
-//                        ->first();
-//                    if (is_null($cari_ekuiv)) {
+                    echo 'Mendapatkan Transkrip '.($no_transkrip+1).' dari '.$total_data_transkrip;
+                   $cari_ekuiv = DB::table('pdrd.nilai_transkrip')->where('id_reg_pd',$each_transkrip['id_registrasi_mahasiswa'])
+                       ->where('id_mk',$each_transkrip['id_matkul'])
+                       ->where('id_kls',$each_transkrip['id_kelas_kuliah'])
+                       ->first();
+                   if (is_null($cari_ekuiv)) {
                         DB::table('pdrd.nilai_transkrip')->insert([
                             'id_reg_pd'         => $each_transkrip['id_registrasi_mahasiswa'],
                             'id_mk'             => $each_transkrip['id_matkul'],
@@ -490,9 +490,9 @@ class NeoFeederSeeder extends Seeder
                             'last_sync'	        => currDateTime()
                         ]);
                         echo " (OK)\n";
-//                    } else {
-//                        echo " (SUDAH ADA)\n";
-//                    }
+                   } else {
+                       echo " (SUDAH ADA)\n";
+                   }
                 }
             }
         }
@@ -502,7 +502,7 @@ class NeoFeederSeeder extends Seeder
                 $cari_prodi = DB::table('pdrd.sms')->where('id_sms', $each_prodi->id_sms)->first();
                 $jenjang = DB::table('ref.jenjang_pendidikan')->where('id_jenj_didik',$cari_prodi->id_jenj_didik)->first();
                 $kelas = KelasKuliah::where('id_sms',$each_prodi->id_sms)
-//                    ->whereIn('id_smt',['20181','20182','20191','20192','20201','20202','20211'])
+                   ->whereIn('id_smt',['20201','20202','20211','20212','20221'])
                     ->orderBy('id_smt','ASC')->get();
                 $total_kelas = count($kelas);
                 if ($total_kelas>0) {

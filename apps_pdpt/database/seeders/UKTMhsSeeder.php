@@ -32,7 +32,7 @@ class UKTMhsSeeder extends Seeder
                         if ($err) {
                             return false;
                         }else{
-                            for ($tahun=2011;$tahun<=(int) date('Y');$tahun++) {
+                            for ($tahun=2015;$tahun<=(int) date('Y');$tahun++) {
                                 for ($iterasi_dftr_ukt=0;$iterasi_dftr_ukt<=1000;$iterasi_dftr_ukt++) {
                                     echo "Tarik UKT tahun ".$tahun." iterasi ke-".($iterasi_dftr_ukt+1);
                                     $cari_iterasi = \DB::table('keuangan.temp_iterasi_ukt')->where('tahun',$tahun)->where('urutan_iterasi',$iterasi_dftr_ukt)->first();

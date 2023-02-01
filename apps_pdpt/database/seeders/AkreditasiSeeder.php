@@ -26,6 +26,7 @@ class AkreditasiSeeder extends Seeder
         foreach ($cari_sms AS $each_sms) {
             echo 'Mencari akreditasi prodi: '.$each_sms->id_sms.' - '.($each_sms->nm_lemb.' ('.$each_sms->jenjang->nm_jenj_didik.')').' dari BAN-PT:PDDIKTI';
             $get_data = $this->curl_api_feeder($url.'/'.$kode_sp.'/prodi/'.strtoupper($each_sms->id_sms).'/akreditasi',$token);
+            dd($get_data);
             if (count($get_data)>0) {
                 foreach ($get_data AS $each_data) {
                     if (key_exists($each_data['nilai'],$akred)) {
