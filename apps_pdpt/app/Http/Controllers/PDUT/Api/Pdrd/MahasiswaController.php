@@ -624,6 +624,8 @@ class MahasiswaController extends Controller
                 AND reg.soft_delete = 0
                 JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt = kul.id_smt
                 AND ts.expired_date IS NULL
+                JOIN ref.status_mahasiswa AS sm WITH(NOLOCK) ON sm.id_stat_mhs = kul.id_stat_mhs
+                AND sm.expired_date IS NULL
             WHERE
                 kul.id_reg_pd = '" . $query[0]->id_reg_pd . "'
                 AND kul.soft_delete = 0

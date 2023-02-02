@@ -81,7 +81,7 @@
      *      operationId="getListStatusMahasiswa",
      *      tags={"Mahasiswa"},
      *      summary="Dapatkan daftar Mahasiswa sesuai Status Mahasiswa",
-     *      description="Daftar daftar list mahasiswa berdasarkan idProdi dan status mahasiswa sebagai berikut : <br><br>
+     *      description="Daftar daftar list mahasiswa berdasarkan id_prodi dan status mahasiswa sebagai berikut : <br><br>
      *       A : Aktif <br>
      *       C : Cuti <br>
      *       D : Drop Out / Dikeluarkan <br>
