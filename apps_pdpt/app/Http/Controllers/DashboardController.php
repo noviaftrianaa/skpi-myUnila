@@ -761,7 +761,7 @@ class DashboardController extends Controller
 
     public function list_daftar_dosen_s2_dgn_masa_kerja()
     {
-        $list_dosen_s2_masa_kerja= DB::SELECT("
+        $list_daftar_dosen_s2_masa_kerja= DB::SELECT("
         SELECT
             sdm.id_sdm,
             sdm.nm_sdm AS nama_dosen,
@@ -805,13 +805,71 @@ class DashboardController extends Controller
     )
     ");
 
-    $side_active = 'dashboard.list_dosen_s2_masa_kerja';
+    $side_active = 'dashboard.list_daftar_dosen_s2_masa_kerja';
     $judul_layout = 'Masa Kerja';
 
-    return view('dashboard.list_dosen_s2_masa_kerja', compact(
+    return view('dashboard.list_daftar_dosen_s2_masa_kerja', compact(
         'side_active',
         'judul_layout',
-        'list_dosen_s2_masa_kerja'
+        'list_daftar_dosen_s2_masa_kerja'
+    ));
+
+    }
+
+
+    public function list_daftar_dosen_masa_jabfung()
+    {
+        $list_daftar_dosen_masa_jabfung= DB::SELECT("
+        SELECT
+            sdm.id_sdm,
+            sdm.nm_sdm AS nama_dosen,
+            sdm.nidn,
+            jenjang1.nm_jenj_didik AS jenjang_terakhir,
+            jab.tgl_jabfung
+        FROM
+            pdrd.sdm AS sdm
+            LEFT JOIN (
+                SELECT
+                    id_sdm,
+                    MAX(tmt_sk_jabfung) AS tgl_jabfung
+                FROM
+                    pdrd.rwy_fungsional
+                WHERE
+                    soft_delete = 0
+                    and sk_jabfung = '-'
+                GROUP BY
+                    id_sdm
+            ) AS jab ON jab.id_sdm = sdm.id_sdm
+            LEFT JOIN (
+                SELECT
+                    pend.id_sdm,
+                    MAX(pend.id_jenj_didik) AS id_jenj_didik
+                FROM
+                    pdrd.rwy_pend_formal AS pend
+                WHERE
+                    pend.soft_delete = 0
+                GROUP BY
+                    pend.id_sdm
+            ) AS jenjang ON jenjang.id_sdm = sdm.id_sdm
+            LEFT JOIN ref.jenjang_pendidikan AS jenjang1 ON jenjang1.id_jenj_didik = jenjang.id_jenj_didik
+            AND expired_date IS NULL
+        WHERE
+            sdm.soft_delete = 0
+            AND sdm.id_jns_sdm = 12
+            AND YEAR(jab.tgl_jabfung) < YEAR(GETDATE()) - 5
+            AND (
+                jenjang.id_jenj_didik IS NULL
+                or jenjang.id_jenj_didik <= 35
+    )
+    ");
+
+    $side_active = 'dashboard.list_daftar_dosen_masa_jabfung';
+    $judul_layout = 'Masa Jabatan Fungsional';
+
+    return view('dashboard.list_daftar_dosen_masa_jabfung', compact(
+        'side_active',
+        'judul_layout',
+        'list_daftar_dosen_masa_jabfung'
     ));
 
     }

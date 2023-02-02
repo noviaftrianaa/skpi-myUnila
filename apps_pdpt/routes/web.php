@@ -46,8 +46,9 @@ Route::get('/dashboard/kampus_merdeka',  [DashboardController::class, 'kampus_me
 /** Dashboard Dosen */
 Route::get('/dashboard/dosen',  [DashboardController::class, 'dosen'])->name('dashboard.dosen');
 Route::get('/dashboard/list_daftar_dosen',  [DashboardController::class, 'list_daftar_dosen_blm_s2'])->name('dashboard.list_daftar_dosen');
-Route::get('/dashboard/list_dosen_s2_masa_kerja',  [DashboardController::class, 'list_daftar_dosen_s2_dgn_masa_kerja'])->name('dashboard.list_daftar_dosen_s2_dgn_masa_kerja');
+Route::get('/dashboard/list_daftar_dosen_s2_masa_kerja',  [DashboardController::class, 'list_daftar_dosen_s2_dgn_masa_kerja'])->name('dashboard.list_daftar_dosen_s2_dgn_masa_kerja');
 Route::get('/dashboard/list_daftar_dosen_tanpa_jabfung',  [DashboardController::class, 'list_daftar_dosen_tanpa_jabfung'])->name('dashboard.list_daftar_dosen_tanpa_jabfung');
+Route::get('/dashboard/list_daftar_dosen_masa_jabfung',  [DashboardController::class, 'list_daftar_dosen_masa_jabfung'])->name('dashboard.list_daftar_dosen_masa_jabfung');
 Route::get('/dashboard/dosen/profil/{id}',  [DashboardController::class, 'dosen_profil'])->name('dashboard.dosen.profil');
 Route::get('/dashboard/jabfung_dosen',  [JabfungController::class, 'index'])->name('dashboard.jabfung');
 Route::post('/dashboard/jabfung_dosen',  [JabfungController::class, 'chart'])->name('dashboard.jabfung.chart');

@@ -9,7 +9,7 @@
     <div class="container">
             <div class="col-sm-12">
                 <div class="card">
-                    <div class="card-header">List Daftar Dosen S2 dengan masa kerja 20, 25, 30 Tahun</div>
+                    <div class="card-header">List Daftar Dosen dengan masa jabatan fungsional</div>
                     <div class="card-body">
                         <div class="tab-content" id="pills-tabContent">
                                 <div class>
@@ -26,7 +26,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach ($list_dosen_s2_masa_kerja as $no_data => $each_data)
+                                                @foreach ($list_daftar_dosen_masa_jabfung as $no_data => $each_data)
                                                     <tr>
                                                         <td>{{ $no_data + 1 }}</td>
                                                         <td>{{ $each_data->nama_dosen }}</td>
