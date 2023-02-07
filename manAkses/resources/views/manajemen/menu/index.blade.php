@@ -26,7 +26,7 @@
             sDom: 'rt<"row"<"col-sm-12 col-md-3"l><"col-sm-12 col-md-3"i><"col-sm-12 col-md-6"p>>'
         } );
 
-        $('#search').on('keyup click', function () {
+        $('#search').on('change', function () {
             table.search($('#search').val()).draw();
         } );
     });

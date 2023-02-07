@@ -47,7 +47,6 @@ class LoginController extends Controller
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
-        $this->base_url = 'http://onedata.unila.ac.id/api/live/0.1';
     }
 
     public function username()

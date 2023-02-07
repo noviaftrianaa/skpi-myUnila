@@ -19,6 +19,7 @@
                 { data: 'DT_RowIndex', orderable: false, searchable: false },
                 { data: 'nm_pengguna' },
                 { data: 'username' },
+                { data: 'unit_organisasi' },
                 { data: 'jenis_kelamin', searchable: false },
                 { data: 'status', searchable: false },
                 { data: 'aksi', orderable: false, searchable: false }
@@ -26,7 +27,7 @@
             sDom: 'rt<"row"<"col-sm-12 col-md-3"l><"col-sm-12 col-md-3"i><"col-sm-12 col-md-6"p>>'
         } );
 
-        $('#search').on('keyup click', function () {
+        $('#search').on('change', function () {
             table.search($('#search').val()).draw();
         } );
     });
@@ -39,8 +40,8 @@
             <h3 class="card-title mt-1"><i class="fa fa-list mr-2"></i> Data Pengguna</h3>
         </div><!-- /.card-header -->
         <div class="card-body">
-            <div class="d-lg-flex d-block">
-                <div class="col-2">
+            <div class="row px-2">
+                <div class="col-4">
                     <a class="btn btn-info" href="{{route('user.create')}}"><i class="fa fa-plus"></i> Tambah Data</a>
                 </div>
                 <div class="ml-auto px-2">
@@ -60,7 +61,8 @@
                       <tr>
                         <th>No.</th>
                         <th>Nama</th>
-                        <th>Username (<i>Email</i>)</th>
+                        <th>Username</th>
+                        <th>Unit Organisasi</th>
                         <th>Jenis Kelamin</th>
                         <th>Status</th>
                         <th>Aksi</th>

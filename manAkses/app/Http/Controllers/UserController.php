@@ -45,12 +45,34 @@ class UserController extends Controller
     public function index(Request $request)
     {
         if($request->ajax()) {
-            $user = DB::SELECT('
-                SELECT *
-                FROM man_akses.pengguna WITH(NOLOCK)
-                WHERE soft_delete=0
-                ORDER BY a_aktif DESC, nm_pengguna ASC
-            ');
+            $user = DB::SELECT("
+                SELECT
+                    pengguna.id_pengguna,
+                    pengguna.nm_pengguna,
+                    pengguna.username,
+                    pengguna.jenis_kelamin,
+                    pengguna.a_aktif,
+                    (
+                        SELECT
+                            STRING_AGG(unit.nm_lemb, ', ')
+                        FROM
+                            (
+                                SELECT
+                                    DISTINCT role.id_pengguna,
+                                    unit.nm_lemb
+                                FROM
+                                    man_akses.role_pengguna AS role
+                                    JOIN man_akses.unit_organisasi AS unit ON unit.id_organisasi = role.id_organisasi
+                            ) AS unit
+                        WHERE
+                            unit.id_pengguna = pengguna.id_pengguna
+                    ) AS unit_organisasi
+                FROM
+                    man_akses.pengguna AS pengguna WITH(NOLOCK)
+                ORDER BY
+                    pengguna.a_aktif DESC,
+                    pengguna.nm_pengguna ASC
+            ");
             return DataTables::of($user)
                 ->addIndexColumn()
                 ->editColumn('jenis_kelamin', function($user) {

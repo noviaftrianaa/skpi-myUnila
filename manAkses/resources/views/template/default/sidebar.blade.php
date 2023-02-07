@@ -28,7 +28,7 @@
                             SELECT peran.*
                             FROM man_akses.role_pengguna AS role
                             JOIN man_akses.peran ON peran.id_peran=role.id_peran
-                            WHERE role.id_pengguna='".auth()->user()->id_pengguna."'
+                            WHERE role.id_pengguna='".auth()->user()->id_pengguna."' AND role.soft_delete=0
                         ");
                         @endphp
 						@foreach($peran AS $items)
