@@ -31,7 +31,7 @@
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
     @stack('css')
 </head>
-<body class="hold-transition sidebar-mini layout-fixed control-sidebar-slide-open text-sm">
+<body class="hold-transition sidebar-mini layout-fixed control-sidebar-slide-open">
 <div class="wrapper">
     <!-- Navbar -->
     <nav class="main-header navbar navbar-expand navbar-white navbar-light border-bottom-0">
@@ -49,7 +49,7 @@
                     <i class="fas fa-gears"></i> Pengaturan
                 </a>
                 <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                    <a href="{{ route('password') }}" class="dropdown-item">
+                    <a href="#" class="dropdown-item">
                         <i class="fas fa-key mr-2"></i> Ubah Password
                     </a>
                     @if(in_array(session()->get('login.peran.id_peran'),[1,3]))
@@ -61,7 +61,7 @@
                     <?php $total_peran = DB::table('man_akses.role_pengguna')->where('id_pengguna',auth()->user()->id_pengguna)->where('soft_delete',0)->count(); ?>
                     @if($total_peran>1)
                         <div class="dropdown-divider"></div>
-                        <a href="{{ route('ubah_peran') }}" class="dropdown-item">
+                        <a href="#" class="dropdown-item">
                             <i class="fas fa-users mr-2"></i> Ubah Peran
                         </a>
                     @endif
@@ -81,7 +81,7 @@
         <!-- Brand Logo -->
         <a href="{!! url('dashboard') !!}" class="brand-link">
             <img src="{{ asset((config('mp.apps.at_use')==1?config('mp.apps.user.logo'):config('mp.copyright.logo'))) }}" alt="Logo Aplikasi" class="brand-image img-circle elevation-3" style="opacity: .8">
-            <span class="brand-text font-weight-light">{{ (config('mp.apps.title')).' - '.((config('mp.apps.at_use')==1?config('mp.apps.user.acronym_institute'):config('mp.copyright.acronym_institute'))) }}</span>
+            <span class="brand-text font-weight-light">{{ (config('mp.apps.title')) }}</span>
         </a>
         @include('template.sidebar')
     </aside>
@@ -93,11 +93,11 @@
             <div class="container-fluid">
                 <div class="row mb-2">
                     <div class="col-sm-6">
-                        <h1 class="m-0 text-dark">{!! Judul() !!}</h1>
+                        <h1 class="m-0 text-dark">{{-- Judul() --}}</h1>
                     </div><!-- /.col -->
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-right">
-                            {!! auto_breadcrumb() !!}
+                            {{-- auto_breadcrumb() --}}
                         </ol>
                     </div><!-- /.col -->
                 </div><!-- /.row -->

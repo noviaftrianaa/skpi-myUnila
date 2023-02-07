@@ -36,6 +36,8 @@ Route::namespace('Auth')->group(function () {
 /** End Auth */
 
 Route::get('/',  [DashboardController::class, 'index'])->name('home');
+Route::put('/changeRole', [DashboardController::class, 'role'])->name('role');
+Route::get('/refresh_menu', function() { MenuRole(); return redirect()->back(); });
 
 /** Dashboard Mahasiswa */
 Route::get('/dashboard/mahasiswa',  [DashboardController::class, 'mahasiswa'])->name('dashboard.mahasiswa');

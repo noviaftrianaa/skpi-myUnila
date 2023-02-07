@@ -26,11 +26,15 @@ class DashboardController extends Controller
 
     public function index()
     {
-        $pt = SatuanPendidikan::find($this->id_sp);
-        $total_dosen = json_encode(Sdm::dashboard_dosen('nomor_induk', get_tahun_keaktifan())->first());
-        $total_dosen_jabfung = json_encode(Sdm::dashboard_dosen('dosen_jabfung', get_tahun_keaktifan())->first());
         $side_active   = 'home';
-        return view('dashboard.public', compact('total_dosen', 'total_dosen_jabfung', 'side_active', 'pt'));
+        if(auth()->check()) {
+            return view('dashboard.home', compact('side_active'));
+        } else {
+            $pt = SatuanPendidikan::find($this->id_sp);
+            $total_dosen = json_encode(Sdm::dashboard_dosen('nomor_induk', get_tahun_keaktifan())->first());
+            $total_dosen_jabfung = json_encode(Sdm::dashboard_dosen('dosen_jabfung', get_tahun_keaktifan())->first());
+            return view('dashboard.public', compact('total_dosen', 'total_dosen_jabfung', 'side_active', 'pt'));
+        }
     }
 
     public function mahasiswa()
@@ -872,6 +876,18 @@ class DashboardController extends Controller
         'list_daftar_dosen_masa_jabfung'
     ));
 
+    }
+
+    public function role(Request $request)
+    {
+        \Session::forget('login.role');
+        $array = $request->all();
+        $role = \App\Models\PDUT\Man_akses\RolePengguna::where('id_pengguna', \Auth::user()->id_pengguna)->where('id_peran',$array['id_peran'])->first();
+        \Session::put('login.role', $role);
+        MenuRole();
+        $peran = \App\Models\PDUT\Man_akses\Peran::where('id_peran', $role->id_peran)->first();
+        alert()->success('Role '.$peran->nm_peran.' Aktif');
+        return redirect()->to('/');
     }
     
 

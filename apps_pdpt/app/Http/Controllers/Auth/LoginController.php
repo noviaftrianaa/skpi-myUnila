@@ -67,12 +67,14 @@ class LoginController extends Controller
                 if(!is_null($check)) {
                     Auth::loginUsingId($check->id_pengguna);
                     alert()->success('You are logged in!');
-                    // $role = RolePengguna::where('id_pengguna', $check->id_pengguna)->where('id_peran',1)->first();
-                    // if(is_null($role)) {
-                    //     $role = RolePengguna::where('id_pengguna', $check->id_pengguna)->orderBy('last_active','DESC')->first();
-                    // }
+                    $role = RolePengguna::where('id_pengguna', $check->id_pengguna)->where('id_peran',1)->first();
+                    if(is_null($role)) {
+                        $role = RolePengguna::where('id_pengguna', $check->id_pengguna)->orderBy('last_active','DESC')->first();
+                    }
                     Session::put('login.log_address', get_client_ip());
-                    // Session::put('login.role', (!is_null($role)) ? $role : NULL);
+                    Session::put('login.role', (!is_null($role)) ? $role : NULL);
+                    MenuRole();
+
                     return redirect()->route('home');
                 } else {
                     alert()->error('Data pengguna tidak ditemukan, silahkan hubungi administrator.')->html(true);
