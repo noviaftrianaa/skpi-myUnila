@@ -11,6 +11,8 @@ class VersiDb extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_versi',	'versi',	'tgl_update',
+	'id_versi',
+	'versi',
+	'tgl_update',
     ];
 }

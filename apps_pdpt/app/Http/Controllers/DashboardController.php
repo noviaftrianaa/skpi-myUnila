@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\PDUT\Pdrd\SatuanPendidikan;
 use App\Models\PDUT\Pdrd\Sdm;
 use App\Models\PDUT\Pdrd\Sms;
+use App\Models\PDUT\Logger\LogLogin;
+use App\Models\PDUT\Man_akses\VersiDb;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
@@ -28,7 +30,9 @@ class DashboardController extends Controller
     {
         $side_active   = 'home';
         if(auth()->check()) {
-            return view('dashboard.home', compact('side_active'));
+            $log_login = LogLogin::where('id_pengguna', \Auth::user()->id_pengguna)->orderBy('waktu_login', 'DESC')->first();
+            $versi_database = VersiDb::orderBy('tgl_update','DESC')->first();
+            return view('dashboard.index_admin', compact('side_active','log_login','versi_database'));
         } else {
             $pt = SatuanPendidikan::find($this->id_sp);
             $total_dosen = json_encode(Sdm::dashboard_dosen('nomor_induk', get_tahun_keaktifan())->first());

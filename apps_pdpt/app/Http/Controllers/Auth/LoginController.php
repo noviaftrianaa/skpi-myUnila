@@ -75,6 +75,19 @@ class LoginController extends Controller
                     Session::put('login.role', (!is_null($role)) ? $role : NULL);
                     MenuRole();
 
+                    \App\Models\PDUT\Logger\LogLogin::create(
+                        [
+                            'id_log_login' => guid(),
+                            'id_aplikasi' => env('APP_ID'),
+                            'id_pengguna' => Auth::user()->id_pengguna,
+                            'waktu_login' => currDateTime(),
+                            'ip_address' => get_client_ip(),
+                            'browser' => GetBrowser(),
+                            'os' => GetOS(),
+                            'a_sesi_aktif' => 1
+                        ]
+                    );
+
                     return redirect()->route('home');
                 } else {
                     alert()->error('Data pengguna tidak ditemukan, silahkan hubungi administrator.')->html(true);
