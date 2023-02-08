@@ -1,6 +1,7 @@
 <?php
 return [
     'apps'  => [
+        'id_app'    => '948DF317-78F7-4B92-A53F-0A56215E07DE',
         'title' => 'One Data UNILA',
         'acronym_title' => 'ODU',
         'year_development' => 2021,
@@ -14,7 +15,8 @@ return [
             'logo'  => 'images/logo-unila.png'
         ],
         'version_apps'  => '0.1',
-        'version_db'    => '0.01'
+        'version_db'    => '0.01',
+        'developer_mode'=> 0
     ],
     'copyright' => [
         'year'  => 2021,

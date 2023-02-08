@@ -11,6 +11,18 @@ class Peran extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_peran',	'nm_peran',	'a_perlu_sk',	'tgl_create',	'last_update',	'expired_date',	'last_sync',
+        'id_peran',
+        'nm_peran',
+        'a_perlu_sk',
+        'tgl_create',
+        'last_update',
+        'expired_date',
+        'last_sync',
+    ];
+    protected $hidden = [
+        'tgl_create',
+        'last_update',
+        'expired_date',
+        'last_sync'
     ];
 }
