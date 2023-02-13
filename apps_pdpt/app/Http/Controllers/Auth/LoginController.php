@@ -55,7 +55,7 @@ class LoginController extends Controller
     public function showLoginForm()
     {
         // dd(Session::all(), Cookie::get());
-        return view('auth.login');
+        return redirect()->to('/');
     }
 
     public function signing_process()
@@ -88,7 +88,7 @@ class LoginController extends Controller
                         ]
                     );
 
-                    return redirect()->route('home');
+                    return redirect()->to('/home');
                 } else {
                     alert()->error('Data pengguna tidak ditemukan, silahkan hubungi administrator.')->html(true);
                     return redirect()->route('auth.signing_process');
@@ -151,7 +151,7 @@ class LoginController extends Controller
             alert()->success('Berhasil logout'); //Alert
             return redirect('/')->with('pesan', 'berhasil logout');
         } else {
-            return redirect('auth/login/sso');
+            return redirect('/');
         }
     }
 }

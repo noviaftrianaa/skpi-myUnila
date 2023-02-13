@@ -32,7 +32,7 @@ class DashboardController extends Controller
         if(auth()->check()) {
             $log_login = LogLogin::where('id_pengguna', \Auth::user()->id_pengguna)->orderBy('waktu_login', 'DESC')->first();
             $versi_database = VersiDb::orderBy('tgl_update','DESC')->first();
-            return view('dashboard.index_admin', compact('side_active','log_login','versi_database'));
+            return view('home.index', compact('side_active','log_login','versi_database'));
         } else {
             $pt = SatuanPendidikan::find($this->id_sp);
             $total_dosen = json_encode(Sdm::dashboard_dosen('nomor_induk', get_tahun_keaktifan())->first());

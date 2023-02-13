@@ -17,7 +17,7 @@
                 alt="User Image">
         </div>
         <div class="info">
-            <a href="{{ url('/biodata') }}" class="d-block">{{ strtoupper(auth()->user()->nm_pengguna) }}</a>
+            <a href="#" class="d-block">{{ strtoupper(auth()->user()->nm_pengguna) }}</a>
             <span class="d-block text-sm">
 				<form action="{{ url('changeRole') }}" method="post" enctype="multipart/form-data" id="changeRole">
 					<input type="hidden" name="_token" value="{{ csrf_token() }}">
@@ -43,7 +43,7 @@
     <nav class="mt-2">
 		<ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
             <li class="nav-item">
-                <a href="#" class="nav-link {{ $side_active == 'home' ? 'active' : '' }}">
+                <a href="{{ url('home') }}" class="nav-link {{ $side_active == 'home' ? 'active' : '' }}">
                     <i class="nav-icon fas fa-tachometer-alt"></i>
                     <p>Dashboard</p>
                 </a>
@@ -61,7 +61,7 @@
 			@else
 			<li class="nav-item {{ AktifMenu($r->nm_file, 1) == 'active' ? 'menu-open' : '' }}">
 				<a href="#" class="nav-link">
-					<i class="nav-icon fas fa-tachometer-alt"></i>
+					<i class="nav-icon {{ $r->icon }}"></i>
 					<p>
 						{{ $r->nm_menu }}
 						<i class="right fas fa-angle-left"></i>
@@ -71,7 +71,7 @@
 					@foreach($r->sub AS $t)
 					<li class="nav-item">
 						<a href="{{ route($t->nm_file) }}" class="nav-link {{ AktifMenu($r->nm_file, 2) }}">
-							<i class="far fa-circle nav-icon"></i>
+							<i class="{{ $t->icon }} nav-icon"></i>
 							<p>{{ $t->nm_menu }}</p>
 						</a>
 					</li>

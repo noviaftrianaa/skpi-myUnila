@@ -162,3 +162,13 @@ Route::prefix('dashboard')->group(function () {
     Route::get('api/iku7',  'App\Http\Controllers\Dashboard\IKU\Iku7Controller@apiIku7')->name('apiDashboardIku7');
     Route::get('api/iku7/matkul',  'App\Http\Controllers\Dashboard\IKU\Iku7Controller@apiIku7Matkul')->name('apiIku7Matkul');
 });
+
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+    Route::get('/home',  [DashboardController::class, 'index']);
+    Route::prefix('profil_pt')->name('profil_pt.')->group(function() {
+        Route::get('direktori_pt', 'App\Http\Controllers\ProfilPT\DirektoriPTController@index')->name('direktori_pt');
+        Route::get('direktori_pt/data', 'App\Http\Controllers\ProfilPT\DirektoriPTController@data')->name('direktori_pt.data');
+        Route::get('direktori_pt/data/detail', 'App\Http\Controllers\ProfilPT\DirektoriPTController@dataDetail')->name('direktori_pt.data.detail');
+    });
+});
+Auth::routes();
