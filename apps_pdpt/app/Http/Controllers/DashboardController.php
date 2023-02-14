@@ -767,7 +767,7 @@ class DashboardController extends Controller
 
     }
 
-    public function list_daftar_dosen_s2_dgn_masa_kerja()
+    public function list_daftar_dosen_s2_masa_kerja()
     {
         $list_daftar_dosen_s2_masa_kerja= DB::SELECT("
         SELECT
