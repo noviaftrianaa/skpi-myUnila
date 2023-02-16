@@ -96,7 +96,11 @@ class Iku6Controller extends Controller
                 mou.nm_dudi,
                 mou.nm_bu,
                 mou.tgl_mulai,
-                mou.tgl_selesai
+                mou.tgl_selesai,
+                CASE
+                    WHEN kerjasama.id_sms_kerjasama = kerjasama.id_sms_kerjasama THEN 1
+                    ELSE 0
+                END AS x_data_yes
             FROM
                 kerjasama.sms_kerjasama AS kerjasama WITH(NOLOCK)
                 JOIN kerjasama.mou AS mou WITH(NOLOCK) ON mou.id_mou = kerjasama.id_mou
