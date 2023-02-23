@@ -143,7 +143,7 @@ class LoginController extends Controller
 
             // UPDATE LAST ACTIVE
             if(session()->has('login.role')) {
-                $response = Http::get('http://onedata.unila.ac.id/api/live/0.1/man_akses/ubah_keaktifan?id_role_pengguna='.session()->get('login.role')->id_role_pengguna);
+                $response = Http::get( env('L5_SWAGGER_CONST_HOST') . '/man_akses/ubah_keaktifan?id_role_pengguna='.session()->get('login.role')->id_role_pengguna );
             }
 
             Auth::logout(); //Destroy Auth

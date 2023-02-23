@@ -95,21 +95,23 @@ class AplikasiController extends Controller
             }
         }
 
-        $aplikasi = Aplikasi::create([
-            'id_aplikasi' => guid(),
-            'id_blob' => $dok->id_blob ?? NULL,
-            'id_organisasi' => $array['id_organisasi'],
-            'nm_aplikasi' => $array['nm_aplikasi'],
-            'ket_aplikasi' => $array['ket_aplikasi'],
-            'url' => $array['url'],
-            'app_key' => $this->keyGenerate(),
-            'a_generate_menu' => (!empty($array['a_generate_menu'])) ? 1 : 0,
-            'a_integrasi_cas' => (!empty($array['a_integrasi_cas'])) ? 1 : 0,
-            'a_sistem_internal_pt' => (!empty($array['a_sistem_internal_pt'])) ? 1 : 0,
-            'tgl_create' => currDateTime(),
-            'last_update' => currDateTime(),
-            'last_sync' => currDateTime()
-        ]);
+        $aplikasi = Aplikasi::updateOrCreate(
+            [
+                'id_aplikasi' => guid(),
+                'id_blob' => $dok->id_blob ?? NULL,
+                'id_organisasi' => $array['id_organisasi'],
+                'nm_aplikasi' => $array['nm_aplikasi'],
+                'ket_aplikasi' => $array['ket_aplikasi'],
+                'url' => $array['url'],
+                'app_key' => $this->keyGenerate(),
+                'a_generate_menu' => (!empty($array['a_generate_menu'])) ? 1 : 0,
+                'a_integrasi_cas' => (!empty($array['a_integrasi_cas'])) ? 1 : 0,
+                'a_sistem_internal_pt' => (!empty($array['a_sistem_internal_pt'])) ? 1 : 0,
+                'tgl_create' => currDateTime(),
+                'last_update' => currDateTime(),
+                'last_sync' => currDateTime()
+            ]
+        );
 
         if(!$aplikasi) {
             alert()->error('Data gagal disimpan!');
@@ -129,20 +131,29 @@ class AplikasiController extends Controller
     {
         $id = Crypt::decrypt($id);
         $data = Aplikasi::with('UnitOrganisasi','LargeObject')->lock('WITH(NOLOCK)')->where('id_aplikasi', $id)->first();
-        $pj = DB::SELECT("
+        $menus = collect(session()->get('login.menu'))->where('nm_file', $this->basepath.'.index')->first();
+
+        return view('manajemen.aplikasi.show', [
+            'id'    => $id,
+            'data'  => $data,
+            'menus' => $menus
+        ]);
+    }
+
+    public function dataPJ($id)
+    {
+        $data = DB::SELECT("
             SELECT *
             FROM man_akses.pj_aplikasi WITH (NOLOCK)
             WHERE id_aplikasi='".$id."' AND soft_delete=0
         ");
-        $menu = Menu::with('group_menu')->lock('WITH(NOLOCK)')->where('id_aplikasi', $id)->where('a_aktif', 1)->get();
-        $menus = collect(session()->get('login.menu'))->where('nm_file', $this->basepath.'.index')->first();
+        return \DataTables::of($data)->addIndexColumn()->make(true);
+    }
 
-        return view('manajemen.aplikasi.show', [
-            'data'  => $data,
-            'pj'    => $pj,
-            'menu'  => $menu,
-            'menus' => $menus
-        ]);
+    public function dataMenu($id)
+    {
+        $data = Menu::with('group_menu')->lock('WITH(NOLOCK)')->where('id_aplikasi', $id)->where('a_aktif', 1)->get();
+        return \DataTables::of($data)->addIndexColumn()->make(true);
     }
 
     /**

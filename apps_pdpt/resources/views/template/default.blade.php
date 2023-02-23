@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>{{ (config('mp.apps.title')).' - '.((config('mp.apps.at_use')==1?config('mp.apps.user.institute'):config('mp.copyright.institute'))) }}</title>
     <link rel="icon" type="image/png"
         href="{{ asset(config('mp.apps.at_use') == 1 ? config('mp.apps.user.logo') : config('mp.copyright.logo')) }}">

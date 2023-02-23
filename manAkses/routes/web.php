@@ -105,10 +105,13 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 Route::delete('/destroy/{id}', [AplikasiController::class, 'destroy'])->name('destroy');
                 Route::get('/{id}/appKeyGenerate', [AplikasiController::class, 'appKeyGenerate'])->name('appKeyGenerate');
 
+                Route::get('/dataPJ/{id}', [AplikasiController::class, 'dataPJ'])->name('dataPJ');
+                Route::get('/dataMenu/{id}', [AplikasiController::class, 'dataMenu'])->name('dataMenu');
+
                 Route::prefix('pj_aplikasi')->name('pj_aplikasi.')->group(function() {
-                    Route::put('/', [PJAplikasiController::class, 'store'])->name('store');
-                    Route::patch('/{id}/update', [PJAplikasiController::class, 'update'])->name('update');
-                    Route::delete('/{id}/destroy', [PJAplikasiController::class, 'destroy'])->name('destroy');
+                    Route::put('', [PJAplikasiController::class, 'store'])->name('store');
+                    Route::patch('update/{id}', [PJAplikasiController::class, 'update'])->name('update');
+                    Route::delete('destroy/{id}', [PJAplikasiController::class, 'destroy'])->name('destroy');
                     
                     Route::prefix('akses_ws')->name('akses_ws.')->group(function() {
                         Route::get('/{id}', [AksesWSController::class, 'create'])->name('create');
@@ -135,7 +138,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
             });
             Route::prefix('menu')->name('menu.')->group(function() {
                 Route::get('', [MenuController::class, 'index'])->name('index');
-                Route::put('/', [MenuController::class, 'store'])->name('store');
+                Route::get('{id}', [MenuController::class, 'data'])->name('data');
+                Route::put('', [MenuController::class, 'store'])->name('store');
                 Route::patch('/{id}/update', [MenuController::class, 'update'])->name('update');
                 Route::delete('/{id}/destroy', [MenuController::class, 'destroy'])->name('destroy');
             });

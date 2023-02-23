@@ -145,16 +145,15 @@ class PJAplikasiController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $id = Crypt::decrypt($id);
         $array = $request->all();
 
-        $pengguna = User::findOrFail($array['id_pengguna']);
+        $pengguna = User::whereIn('id_pengguna', $array['id_pengguna'])->first();
         
         $pj = PJAplikasi::lock('WITH(NOLOCK)')->where('id_pj_aplikasi', $id)->update([
             'id_pengguna' => $pengguna->id_pengguna,
             'nm_pj' => $pengguna->nm_pengguna,
-            'jabatan_pj' => $pengguna->jabatan,
-            'no_hp' => $pengguna->no_hp,
+            'jabatan_pj' => $array['jabatan_pj'],
+            'no_hp' => $pengguna->no_hp ?? '-',
             'email' => $pengguna->username,
             'a_masih' => $array['a_masih'],
             'wkt_selesai' => $array['wkt_selesai'],
@@ -164,9 +163,9 @@ class PJAplikasiController extends Controller
             'id_updater' => Auth::user()->id_pengguna
         ]);
         if(!$pj) {
-            alert()->error('Data gagal disimpan!');
+            alert()->error('Data gagal diupdate!');
         } else {
-            alert()->success('Data berhasil disimpan!');
+            alert()->success('Data berhasil diupdate!');
         }
         return redirect()->back();
     }
@@ -179,15 +178,14 @@ class PJAplikasiController extends Controller
      */
     public function destroy($id)
     {
-        $id = Crypt::decrypt($id);
         $data = PJAplikasi::lock('WITH(NOLOCK)')->where('id_pj_aplikasi', $id)->update([
             'soft_delete' => 1,
             'id_updater' => Auth::user()->id_pengguna
         ]);
         if(!$data) {
-            alert()->error('Data gagal disimpan!');
+            alert()->error('Data gagal dihapus!');
         } else {
-            alert()->success('Data berhasil disimpan!');
+            alert()->success('Data berhasil dihapus!');
         }
         return redirect()->back();
     }

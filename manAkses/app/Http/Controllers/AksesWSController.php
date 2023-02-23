@@ -25,7 +25,6 @@ class AksesWSController extends Controller
 
     public function create($id)
     {
-        $id = Crypt::decrypt($id);
         $d['id'] = $id;
         $d['pj'] = PJAplikasi::with("user","aplikasi")->where('id_pj_aplikasi',$id)->first();
         $d['data'] = WSEndpoint::with("req.terms")->where('soft_delete',0)->where('a_active',1)->orderBy('nm_group')->get();

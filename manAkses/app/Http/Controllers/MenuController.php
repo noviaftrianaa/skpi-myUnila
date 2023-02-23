@@ -48,9 +48,10 @@ class MenuController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function data($id)
     {
-        //
+        $data = Menu::where('id_menu', $id)->first();
+        return response()->json($data);
     }
 
     /**
@@ -62,7 +63,6 @@ class MenuController extends Controller
     public function store(Request $request)
     {
         $array = $request->all();
-        // dd($array);
 
         $aplikasi = Aplikasi::lock('WITH(NOLOCK)')->where('id_aplikasi', $array['id_aplikasi'])->first();
         $data = Menu::lock('WITH(NOLOCK)')->create([
@@ -121,7 +121,6 @@ class MenuController extends Controller
     public function update(Request $request, $id)
     {
         $array = $request->all();
-        $id = Crypt::decrypt($id);
 
         $data = Menu::lock('WITH(NOLOCK)')->where('id_menu', $id)->update([
             'nm_menu' => $array['nm_menu'],
@@ -152,6 +151,16 @@ class MenuController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $data = Menu::where('id_menu', $id);
+        $menu_pj = MenuRole::where('id_menu', $data->first()->id_menu)->delete();
+        $data->delete();
+        
+        if(!$data) {
+            alert()->error('Data gagal dihapus!');
+        } else {
+            alert()->success('Data berhasil dihapus!');
+        }
+        return redirect()->back();
+        
     }
 }
