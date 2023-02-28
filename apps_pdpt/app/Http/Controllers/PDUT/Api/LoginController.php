@@ -61,6 +61,7 @@ class LoginController extends Controller
                     pgn.soft_delete = 0
                     AND pgn.username = ?
             ";
+
             $dPengguna = DB::select($sPengguna, [$username]);
             if (empty($dPengguna)) {
                 return WrapResponse(['data' => [

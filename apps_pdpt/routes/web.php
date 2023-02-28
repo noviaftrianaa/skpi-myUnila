@@ -173,7 +173,6 @@ Route::prefix('dashboard')->group(function () {
     Route::get('/aktivitas_mahasiswa/load',  [AktivitasMahasiswaController::class, 'load'])->name('aktivitas_mahasiswa.load');
     Route::post('/aktivitas_mahasiswa/reload',  [AktivitasMahasiswaController::class, 'reload'])->name('aktivitas_mahasiswa.reload');
     Route::get('/mahasiswa/profil/{id}',  [DashboardController::class, 'mahasiswa_profil'])->name('mahasiswa.profil');
-
 });
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {

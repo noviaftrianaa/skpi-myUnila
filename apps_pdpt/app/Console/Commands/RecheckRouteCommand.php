@@ -37,7 +37,10 @@ class RecheckRouteCommand extends Command
             if ($findString) {
                 $replaceFile = str_replace("'prefix' => '0.1',", "'prefix' => '" . $file . "/0.1',", $readFile);
                 $replaceFile = str_replace("'as' => 'api.',", "'as' => 'api_" . $file . "',", $replaceFile);
-                $replaceFile = str_replace("'middleware' => ['api', 'auth.api']", "'middleware' => ['openapi_" . $file . "','dbaccess']", $replaceFile);
+                if ($file == 'sandbox') {
+                    $replaceFile = str_replace("['openapi_live']", "['openapi_" . $file . "']", $replaceFile);
+                }
+                $replaceFile = str_replace("Route::middleware(['auth_api', 'applog'])", "Route::middleware(['auth_api', 'applog', 'openapi_" . $file . "'])", $replaceFile);
 
                 $writeFile = fopen($path, 'w');
                 flock($writeFile, LOCK_EX);

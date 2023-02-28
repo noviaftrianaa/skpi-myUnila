@@ -7,9 +7,11 @@ Route::group([
     'as' => 'api.',
     'namespace' => 'App\Http\Controllers\PDUT\Api',
 ], function () {
-    Route::prefix('auth')->group(function () {
-        Route::post('/login', 'LoginController@login');
-        Route::post('/cek_token', 'LoginController@checkToken');
+    Route::middleware(['openapi_live'])->group(function () {
+        Route::prefix('auth')->group(function () {
+            Route::post('login', 'LoginController@login');
+            Route::post('cek_token', 'LoginController@checkToken');
+        });
     });
 
     Route::middleware(['auth_api', 'applog'])->group(function () {
@@ -17,7 +19,6 @@ Route::group([
         Route::group([
             'namespace' => 'Pdrd',
         ], function () {
-
             Route::prefix('keuangan')->group(function () {
                 Route::get('/kelasukt/daftar', 'KeuanganKelasUktController@daftar');
                 Route::post('/kelasukt/tambah', 'KeuanganKelasUktController@tambah');

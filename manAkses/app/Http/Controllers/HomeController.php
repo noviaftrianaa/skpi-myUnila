@@ -41,7 +41,7 @@ class HomeController extends Controller
         $role = Rolepengguna::all();
         $db = DB::table('man_akses.versi_db')->first();
         $app_inter = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->whereNull('expired_date')->orWhere('expired_date', '>=', currDateTime())->simplePaginate(20);
-            
+
         if(!empty(Session::get('login.role')->id_peran) AND Session::get('login.role')->id_peran == 1) {
             $views = 'manajemen.index_admin';
         } else {
@@ -55,7 +55,7 @@ class HomeController extends Controller
             'unit'  => $unit,
             'app_inter' => $app_inter
         ];
-        
+
         return view($views, $data_compact);
     }
 
@@ -121,5 +121,5 @@ class HomeController extends Controller
         MenuRole();
         return redirect()->back();
     }
-    
+
 }

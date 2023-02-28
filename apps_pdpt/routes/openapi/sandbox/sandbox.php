@@ -7,17 +7,18 @@ Route::group([
     'as' => 'api_sandbox',
     'namespace' => 'App\Http\Controllers\PDUT\Api',
 ], function () {
-    Route::prefix('auth')->group(function () {
-        Route::post('/login', 'LoginController@login');
-        Route::post('/cek_token', 'LoginController@checkToken');
+    Route::middleware(['openapi_sandbox'])->group(function () {
+        Route::prefix('auth')->group(function () {
+            Route::post('login', 'LoginController@login');
+            Route::post('cek_token', 'LoginController@checkToken');
+        });
     });
 
-    Route::middleware(['auth_api', 'applog'])->group(function () {
+    Route::middleware(['auth_api', 'applog', 'openapi_sandbox'])->group(function () {
         Route::prefix('referensi')->group(base_path('routes/onedata/referensi.php'));
         Route::group([
             'namespace' => 'Pdrd',
         ], function () {
-
             Route::prefix('keuangan')->group(function () {
                 Route::get('/kelasukt/daftar', 'KeuanganKelasUktController@daftar');
                 Route::post('/kelasukt/tambah', 'KeuanganKelasUktController@tambah');
