@@ -20,16 +20,16 @@ class AktivitasMahasiswaController extends Controller
 
     public function __construct()
     {
-        $this->basepath = 'wakil_rektor_4';
+        $this->basepath = 'wakil_rektor4';
         $this->sp = DB::table('pdrd.satuan_pendidikan')->where('id_sp', env('APP_ID_SP'))->first();
     }
 
     public function index()
     {
-        return view('dashboard.wr.wakil_rektor4.aktivitas_mahasiswa.index', [
+        return view('home.wr.wakil_rektor4.aktivitas_mahasiswa.index', [
             'pageName'  =>  'Rekap ' . $this->title . $this->reportName,
             'judul_layout' => 'Aktivitas Mahasiswa',
-            'side_active'  => 'dashboard.aktivitas_mahasiswa',
+            'side_active'  => 'wakil_rektor4.aktivitas_mahasiswa',
             'info' =>  [
                 'Aktivitas Mahasiswa yang ditampilkan berdasarkan jenis aktivitas mahasiswa :
                 </br> - Laporan akhir studi,
@@ -263,7 +263,7 @@ class AktivitasMahasiswaController extends Controller
             /** Menampilkan hasil dalam Datatable */
             return Datatables::of($results)
                 ->editColumn('nm_mhs', function ($model) {
-                    return '<a href="' . route('mahasiswa.profil', ['id' => Crypt::encrypt($model->id_reg_pd), 'year' => get_tahun_keaktifan()]) . '" target="_blank">' . $model->nm_mhs . '</a>';
+                    return '<a href="' . route('mahasiswa.profil', ['id' => Crypt::encrypt($model->id_reg_pd), 'year' => get_tahun_keaktifan()]) . '" target="_blank" style=" color: #0062CC!important;">' . $model->nm_mhs . '</a>';
                 })
                 ->rawColumns(['nm_mhs'])
                 ->make(true);

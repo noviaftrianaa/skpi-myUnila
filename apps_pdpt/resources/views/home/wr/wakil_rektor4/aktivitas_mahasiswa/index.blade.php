@@ -1,17 +1,17 @@
-@extends('template_public.default',['judul_layout'=>$judul_layout,'side_active'=>$side_active])
+@extends('template.default',['judul_layout'=>$judul_layout,'side_active'=>$side_active])
 
-@include('__partial.select2')
+{{-- @include('__partial.select2') --}}
 @include('__partial.datatable_yajra')
 @include('__partial.highchart')
-@include('dashboard.wr.wakil_rektor4.aktivitas_mahasiswa.report-pt-chart')
+@include('home.wr.wakil_rektor4.aktivitas_mahasiswa.report-pt-chart')
 
 @section('content')
-    <div class="container">
+    <div class="container-fluid">
         <div class="card">
             <div class="card-body">
                 <div class="col-md-12" id="reportTemp">
                     <div class="card">
-                        <div class="card-body">
+                        <div class="card-body blue">
                             Update Data Terakhir : <span id="last-update">{{ @$temp->last_update }}</span>
                             <div class="pull-right">
                                 {!! Form::open(['url'=>Request::url().'/reload','id'=>'reload_temp']) !!}
@@ -19,7 +19,7 @@
                                     "<i class='fa fa-refresh'></i> Hitung Ulang",
                                     [
                                         'type' => 'submit',
-                                        'class' => 'btn btn-default btn-xs'
+                                        'class' => 'btn btn-warning btn-sm'
                                     ]
                                 ) !!}
                                 {!! Form::close() !!}
@@ -36,12 +36,13 @@
                                 <li class="nav-item" role="presentation"><button data-toggle="tab" data-target="#table" href="#table" class="nav-link"><i class="fa fa-table"></i>  Tabel</button></li>
                                 <li class="nav-item" role="presentation"><button data-toggle="tab" data-target="#info" href="#info" class="nav-link"><i class="fa fa-info"></i>  Keterangan</button></li>
                             </ul>
-                            <div class="tab-content" id="myTabContent">
+                            <div class="tab-content mt-4" id="myTabContent">
                                 <div id="chart" class="tab-pane fade show active" role="tabpanel" aria-labelledby="chart-tab">
                                     <div class="card-body">
                                         <div class="align-middle">
-                                            <nav aria-label="breadcrumb"><p class="pull-left fw-bold">Level : </p>
-                                                <ol class="breadcrumb" id="chartBreadcrumb"></ol>
+                                            <nav aria-label="breadcrumb mb-3" class="second " >
+                                                <ol class="breadcrumb indigo lighten-6 first" id="chartBreadcrumb">
+                                                </ol>
                                             </nav>
                                         </div>
                                         <hr>
@@ -121,5 +122,100 @@
             </div>
         </div>
     </div>
-    @include('dashboard.wr.wakil_rektor4.aktivitas_mahasiswa.list')
+
+    @push('css')
+
+<style>
+.second a:hover {
+    color: rgb(0, 183, 255) !important;
+}
+
+.active-2 {
+    color: rgb(0, 183, 255) !important;
+}
+
+.second a:hover {
+    padding-bottom: 10px !important;
+    border-bottom: 3px solid rgb(0, 183, 255) !important;
+
+}
+
+.breadcrumb>li+li:before {
+    content: "" !important;
+}
+
+.breadcrumb {
+    font-size: 14px;
+    color: #aaa !important;
+    letter-spacing: 2px;
+    border-radius: 5px !important;
+}
+
+
+.fa-angle-double-right {
+    color: #aaa !important;
+}
+
+
+.first {
+    background-color: white !important;
+}
+
+
+a {
+    text-decoration: none !important;
+    color: #aaa;
+}
+
+a:focus,
+a:active {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+
+.fa-caret-right,
+.fa-angle-double-right {
+    font-size: 20px !important;
+}
+
+.fa-caret-right {
+    vertical-align: middle;
+}
+
+img {
+    vertical-align: bottom;
+    opacity: 0.3;
+}
+
+.four ol {
+    background-color: rgb(51, 0, 80) !important;
+}
+
+@media (max-width: 767px) {
+    .breadcrumb {
+        font-size: 10px;
+    }
+
+    .breadcrumb-item+.breadcrumb-item {
+        padding-left: 0;
+    }
+
+    .fa {
+        font-size: 9px !important;
+    }
+
+    .breadcrumb {
+        letter-spacing: 1px !important;
+    }
+
+    .breadcrumb>* div {
+        max-width: 60px;
+    }
+
+
+    </style>
+@endpush
+
+    @include('home.wr.wakil_rektor4.aktivitas_mahasiswa.list')
 @endsection

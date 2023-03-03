@@ -75,13 +75,13 @@
 
             function setBreadcrumbs()
             {
-                var chartBreadcrumb = '<li class="breadcrumb-item"><a data-nextlevel="Universitas Lampung">Universitas Lampung</a></li>';
+                var chartBreadcrumb = '<li class="breadcrumb-item font-weight-bold"><a data-nextlevel="Universitas Lampung">Universitas Lampung</a></li>';
                 if(level == 'Fakultas' || level == 'Program Studi'){
-                    chartBreadcrumb += '<li class="breadcrumb-item active" aria-current="page" data-nextlevel="Fakultas" data-selected="'+lastPTID+'">'+lastPT+'</li>';
+                    chartBreadcrumb += '<i class="fa fa-angle-double-right ml-2 mr-2" aria-hidden="true"></i><li class="breadcrumb-item font-weight-bold active" aria-current="page" data-nextlevel="Fakultas" data-selected="'+lastPTID+'">'+lastPT+'<i class="fa fa-angle-double-right ml-2" aria-hidden="true"></i></li>';
                 }
                 if(level == 'Program Studi'){
                     if(lastFakultas != ''){
-                        chartBreadcrumb += '<li class="breadcrumb-item active" aria-current="page"><a data-nextlevel="Program Studi" data-selected="'+lastFakultasID+'">'+lastFakultas+'</a></li>';
+                        chartBreadcrumb += '<li class="breadcrumb-item font-weight-bold active" aria-current="page"><a data-nextlevel="Program Studi" data-selected="'+lastFakultasID+'">'+lastFakultas+'</a></li>';
                     }
                 }
                 $("#chartBreadcrumb").html(chartBreadcrumb);
@@ -112,7 +112,7 @@
                     "bDestroy": true,
                     processing: true,
                     serverSide: true,
-                    "scrollY": "380px",
+                    "scrollY": "580px",
                     "scrollCollapse": true,
                     "ajax": {
                         "url": url,
@@ -269,13 +269,13 @@
                     title: {
                         text: chartTitle,
                         style: {
-                            color: "#ffffff"
+                            color: "#343A40"
                         }
                     },
                     subtitle: {
                         text: chartSubtitle,
                         style: {
-                            color: "#ffffff"
+                            color: "#343A40"
                         }
                     },
                     scrollbar: {
@@ -349,7 +349,7 @@
                             overflow: 'justify',
                             style:{
                                 width:'80px',
-                                color: '#FFFFFF'
+                                color: '#343A40'
                             },
                             groupedOptions: [{
                                 rotation: 0, // rotate labels for a 2nd-level
@@ -372,12 +372,12 @@
                         title: {
                             text: chartUnit,
                             style: {
-                                color: "#ffffff"
+                                color: "#343A40"
                             }
                         },
                         labels: {
                             style: {
-                                color: '#FFFFFF',
+                                color: '#343A40',
                             }
                         },
                     },

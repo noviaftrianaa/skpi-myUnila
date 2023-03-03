@@ -81,7 +81,7 @@
 			@endif
 			@endforeach
 			@endif
-            
+
 			<a href="{{ url('refresh_menu') }}" class="btn btn-info text-light col-12 mt-4">REFRESH MENU</a>
         </ul>
     </nav>

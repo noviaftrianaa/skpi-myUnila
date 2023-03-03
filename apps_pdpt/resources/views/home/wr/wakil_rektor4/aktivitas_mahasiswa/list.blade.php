@@ -1,5 +1,5 @@
 <!-- Modal -->
-<div class="modal fade" id="modal" role="dialog">
+<div class="modal fade modal-fullscreen" id="modal" role="dialog">
     <div class="modal-dialog modal-xl">
         <!-- Modal content-->
         <div class="modal-content">
@@ -49,3 +49,29 @@
         </div>
     </div>
 </div>
+
+@push('css')
+
+<style>
+
+    .modal.modal-fullscreen .modal-dialog {
+        width: 100vw;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+        max-width: none;
+    }
+
+    .modal.modal-fullscreen .modal-content {
+        height: auto;
+        height: 100vh;
+        border-radius: 0;
+        border: none;
+    }
+
+    .modal.modal-fullscreen .modal-body {
+        overflow-y: auto;
+    }
+
+</style>
+@endpush

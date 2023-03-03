@@ -24,7 +24,7 @@
                                         <i class="fa fa-search search-icon"></i>
                                     </button>
                                 </div>
-                            </div> 
+                            </div>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -147,7 +147,7 @@
         } );
         return table;
     }
-    
+
     $(document).ready( function () {
 
         let url = window.location.href+'/data';
@@ -158,7 +158,7 @@
         $('#search').on('change', function () {
             table.search($('#search').val()).draw();
         } );
-        
+
         $('.reload_data').on('click', function() {
             table.clear().destroy();
             table = datatables(url);
@@ -172,7 +172,7 @@
             let sms = $(this).data('sms');
             let fak = $(this).data('fak');
             let jur = $(this).data('jur');
-            
+
             if(sms!='' && fak=='' && jur=='') {
                 $('#name').append(' &#187; Fakultas '+$(this).data('name'));
                 urls = url + '?id_fak_unila='+sms;

@@ -1,4 +1,4 @@
-@extends('template_public.default')
+@extends('template.default')
 
 @section('content')
     <div class="container">
@@ -96,7 +96,7 @@
                                 <thead>
                                     <tr>
                                         <th>Periode</th>
-                                        <th>SKS Semester</th>
+                                        <th>SKS</th>
                                         <th>IPS</th>
                                         <th>Status</th>
                                     </tr>
@@ -105,7 +105,7 @@
                                     @foreach ($status_semester as $no_semester => $each_semester)
                                         <tr>
                                             <td>{{ $each_semester->periode }}</td>
-                                            <td>{{ $each_semester->sks_semester }}</td>
+                                            <td>{{ number_format($each_semester->sks_semester, 0, '.', '') }}</td>
                                             <td>{{ number_format($each_semester->ips, 2, '.', '') }}</td>
                                             <td>{{ $each_semester->nm_stat_mhs }}</td>
                                         </tr>

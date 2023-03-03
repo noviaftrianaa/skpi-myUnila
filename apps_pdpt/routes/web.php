@@ -10,6 +10,7 @@ use App\Http\Controllers\AkreditasController;
 use App\Http\Controllers\Dashboard\WR\WakilRektor4\AktivitasMahasiswaController;
 use App\Http\Controllers\ListDaftarDosenController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Dashboard\WR\WakilRektor4\TracerStudyController;
 use App\Http\Controllers\PDUT\Dashboard\JabfungController;
 use App\Http\Controllers\PDUT\Dashboard\JenjangPendidikan;
 use App\Http\Controllers\PDUT\Dashboard\PangkatGolonganController;
@@ -164,15 +165,6 @@ Route::prefix('dashboard')->group(function () {
     Route::get('iku7',  'App\Http\Controllers\Dashboard\IKU\Iku7Controller@homeIku7')->name('dashboardIku7');
     Route::get('api/iku7',  'App\Http\Controllers\Dashboard\IKU\Iku7Controller@apiIku7')->name('apiDashboardIku7');
     Route::get('api/iku7/matkul',  'App\Http\Controllers\Dashboard\IKU\Iku7Controller@apiIku7Matkul')->name('apiIku7Matkul');
-
-    // Route::get('aktivitas_mahasiswa',  'App\Http\Controllers\Dashboard\WR\WakilRektor\AktivitasMahasiswaController@index')->name('dashboardWr4');
-    // Route::get('api/jenis_aktivitas',  'App\Http\Controllers\Dashboard\WR\WakilRektor\AktivitasMahasiswaController@apiJenisAktivitas')->name('jenis_aktivitas');
-
-    Route::get('/aktivitas_mahasiswa',  [AktivitasMahasiswaController::class, 'index'])->name('aktivitas_mahasiswa');
-    Route::post('/aktivitas_mahasiswa',  [AktivitasMahasiswaController::class, 'chart'])->name('aktivitas_mahasiswa.chart');
-    Route::get('/aktivitas_mahasiswa/load',  [AktivitasMahasiswaController::class, 'load'])->name('aktivitas_mahasiswa.load');
-    Route::post('/aktivitas_mahasiswa/reload',  [AktivitasMahasiswaController::class, 'reload'])->name('aktivitas_mahasiswa.reload');
-    Route::get('/mahasiswa/profil/{id}',  [DashboardController::class, 'mahasiswa_profil'])->name('mahasiswa.profil');
 });
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
@@ -182,5 +174,13 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('direktori_pt/data', 'App\Http\Controllers\ProfilPT\DirektoriPTController@data')->name('direktori_pt.data');
         Route::get('direktori_pt/data/detail', 'App\Http\Controllers\ProfilPT\DirektoriPTController@dataDetail')->name('direktori_pt.data.detail');
     });
+
+    //Wakil Rektor 3
+    Route::get('/aktivitas_mahasiswa',  [AktivitasMahasiswaController::class, 'index'])->name('aktivitas_mahasiswa');
+    Route::post('/aktivitas_mahasiswa',  [AktivitasMahasiswaController::class, 'chart'])->name('aktivitas_mahasiswa.chart');
+    Route::get('/aktivitas_mahasiswa/load',  [AktivitasMahasiswaController::class, 'load'])->name('aktivitas_mahasiswa.load');
+    Route::post('/aktivitas_mahasiswa/reload',  [AktivitasMahasiswaController::class, 'reload'])->name('aktivitas_mahasiswa.reload');
+    Route::get('/mahasiswa/profil/{id}',  [DashboardController::class, 'mahasiswa_profil'])->name('mahasiswa.profil');
+    Route::get('/tracer_study',  [TracerStudyController::class, 'alumni'])->name('tracer_study');
 });
 Auth::routes();

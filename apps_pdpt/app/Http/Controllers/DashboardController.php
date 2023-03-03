@@ -600,7 +600,7 @@ class DashboardController extends Controller
     {
 
         $id_reg_pd = \Crypt::decrypt($id);
-        $side_active = 'dashboard.mahasiswa';
+        $side_active = 'dashboard.aktivitas_mahasiswa';
 
         $profil_mahasiswa = collect(DB::SELECT("
             SELECT
@@ -633,7 +633,6 @@ class DashboardController extends Controller
             FROM
                 pdrd.peserta_didik AS pd WITH(NOLOCK)
                 JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
-                AND reg.id_jns_keluar IS NULL
                 AND reg.soft_delete = 0
                 LEFT JOIN (
                     SELECT
@@ -652,7 +651,7 @@ class DashboardController extends Controller
                 AND kul.soft_delete = 0
                 JOIN pdrd.sms AS sms WITH(NOLOCK) ON sms.id_sms = reg.id_sms
                 AND sms.soft_delete = 0
-                JOIN pdrd.sms AS jur WITH(NOLOCK) ON jur.id_sms = sms.id_jur_unila
+                LEFT JOIN pdrd.sms AS jur WITH(NOLOCK) ON jur.id_sms = sms.id_jur_unila
                 AND jur.soft_delete = 0
                 JOIN pdrd.sms AS fak WITH(NOLOCK) ON fak.id_sms = sms.id_fak_unila
                 AND fak.soft_delete = 0
