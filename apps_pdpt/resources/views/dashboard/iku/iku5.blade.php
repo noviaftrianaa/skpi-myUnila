@@ -234,7 +234,7 @@
         });
 
         function refreshTotal() {
-            let standar = 15;
+            let standar = 50;
             h_total_data_capaian = (x_total_data_keluaran_penelitian / x_total_data) * 100;
             h_total_data_gold = (h_total_data_capaian - standar);
             $('#x_total_data').text(x_total_data);

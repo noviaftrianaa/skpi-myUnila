@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Dashboard\WR\WakilRektor4;
+namespace App\Http\Controllers\Dashboard\WR\WakilRektor3;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -103,7 +103,7 @@ class TracerStudyController extends Controller
         $respon_rate = json_encode($fakultas);
 
 
-        $side_active   = 'home.wr.wakil_rektor4.tracer_study';
-        return view('home.wr.wakil_rektor4.tracer_study', compact('tahun', 'tahun_pilih', 'side_active', 'alumni_jk', 'alumni_pendidikan', 'status_lulusan', 'tingkat_perusahaan', 'bidang_kerja', 'respon_rate'));
+        $side_active   = 'home.wr.wakil_rektor3.tracer_study';
+        return view('home.wr.wakil_rektor3.tracer_study', compact('tahun', 'tahun_pilih', 'side_active', 'alumni_jk', 'alumni_pendidikan', 'status_lulusan', 'tingkat_perusahaan', 'bidang_kerja', 'respon_rate'));
     }
 }

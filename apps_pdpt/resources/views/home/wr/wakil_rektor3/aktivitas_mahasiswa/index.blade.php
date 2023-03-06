@@ -3,7 +3,7 @@
 {{-- @include('__partial.select2') --}}
 @include('__partial.datatable_yajra')
 @include('__partial.highchart')
-@include('home.wr.wakil_rektor4.aktivitas_mahasiswa.report-pt-chart')
+@include('home.wr.wakil_rektor3.aktivitas_mahasiswa.report-pt-chart')
 
 @section('content')
     <div class="container-fluid">
@@ -217,5 +217,5 @@ img {
     </style>
 @endpush
 
-    @include('home.wr.wakil_rektor4.aktivitas_mahasiswa.list')
+    @include('home.wr.wakil_rektor3.aktivitas_mahasiswa.list')
 @endsection

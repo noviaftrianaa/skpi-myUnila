@@ -7,12 +7,12 @@ use App\Http\Controllers\Auth\{
 };
 
 use App\Http\Controllers\AkreditasController;
-use App\Http\Controllers\Dashboard\WR\WakilRektor4\AktivitasMahasiswaController;
+use App\Http\Controllers\Dashboard\WR\WakilRektor3\AktivitasMahasiswaController;
+use App\Http\Controllers\Dashboard\WR\WakilRektor3\TracerStudyController;
 use App\Http\Controllers\Dashboard\WR\WakilRektor4\KerjasamaController;
 use App\Http\Controllers\Dashboard\WR\WakilRektor4\PengelolaanTikController;
 use App\Http\Controllers\ListDaftarDosenController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\Dashboard\WR\WakilRektor4\TracerStudyController;
 use App\Http\Controllers\RenstraController;
 use App\Http\Controllers\PDUT\Dashboard\JabfungController;
 use App\Http\Controllers\PDUT\Dashboard\JenjangPendidikan;
@@ -182,13 +182,14 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('direktori_pt/data/detail', 'App\Http\Controllers\ProfilPT\DirektoriPTController@dataDetail')->name('direktori_pt.data.detail');
     });
 
-    //Wakil Rektor 3
+    /** Dashboard Wakil Rektor III */
     Route::get('/aktivitas_mahasiswa',  [AktivitasMahasiswaController::class, 'index'])->name('aktivitas_mahasiswa');
     Route::post('/aktivitas_mahasiswa',  [AktivitasMahasiswaController::class, 'chart'])->name('aktivitas_mahasiswa.chart');
     Route::get('/aktivitas_mahasiswa/load',  [AktivitasMahasiswaController::class, 'load'])->name('aktivitas_mahasiswa.load');
     Route::post('/aktivitas_mahasiswa/reload',  [AktivitasMahasiswaController::class, 'reload'])->name('aktivitas_mahasiswa.reload');
-    Route::get('/mahasiswa/profil/{id}',  [DashboardController::class, 'mahasiswa_profil'])->name('mahasiswa.profil');
+    Route::get('/mahasiswa/profil/{id}',  [AktivitasMahasiswaController::class, 'mahasiswa_profil'])->name('mahasiswa.profil');
     Route::get('/tracer_study',  [TracerStudyController::class, 'alumni'])->name('tracer_study');
+    /** End Dashboard Wakil Rektor III */
 
     /** Dashboard Wakil Rektor IV */
     Route::get('/dashboard/kerjasama',  [KerjasamaController::class, 'kerjasama'])->name('kerjasama');

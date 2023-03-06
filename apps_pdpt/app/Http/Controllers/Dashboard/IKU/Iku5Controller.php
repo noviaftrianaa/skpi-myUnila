@@ -123,7 +123,7 @@ class Iku5Controller extends Controller
                 JOIN pdrd.keaktifan_ptk AS aktfptk WITH(NOLOCK) ON aktfptk.id_reg_ptk = ptk.id_reg_ptk
                 AND aktfptk.soft_delete = 0
                 AND aktfptk.a_sp_homebase = 1
-                AND aktfptk.id_thn_ajaran = 2022
+                AND aktfptk.id_thn_ajaran = " . $thn_iku . "
             WHERE
                 sdm.id_jns_sdm = 12
                 AND sdm.soft_delete = 0

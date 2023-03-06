@@ -234,7 +234,7 @@
         });
 
         function refreshTotal() {
-            let standar = 80;
+            let standar = 60;
             h_total_data_capaian = (x_total_data_yes / x_total_data) * 100;
             h_total_data_gold = (h_total_data_capaian - standar);
             $('#x_total_data').text(x_total_data);
