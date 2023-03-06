@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\{
 
 use App\Http\Controllers\AkreditasController;
 use App\Http\Controllers\Dashboard\WR\WakilRektor4\AktivitasMahasiswaController;
+use App\Http\Controllers\Dashboard\WR\WakilRektor4\KerjasamaController;
 use App\Http\Controllers\ListDaftarDosenController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Dashboard\WR\WakilRektor4\TracerStudyController;
@@ -182,5 +183,13 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/aktivitas_mahasiswa/reload',  [AktivitasMahasiswaController::class, 'reload'])->name('aktivitas_mahasiswa.reload');
     Route::get('/mahasiswa/profil/{id}',  [DashboardController::class, 'mahasiswa_profil'])->name('mahasiswa.profil');
     Route::get('/tracer_study',  [TracerStudyController::class, 'alumni'])->name('tracer_study');
+
+    /** Dashboard Wakil Rektor IV */
+    Route::get('/dashboard/kerjasama',  [KerjasamaController::class, 'kerjasama'])->name('kerjasama');
+    /** End Dashboard Wakil Rektor IV */
+
+
+
 });
+
 Auth::routes();

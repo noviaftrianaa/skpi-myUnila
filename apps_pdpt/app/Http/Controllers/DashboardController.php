@@ -18,7 +18,7 @@ class DashboardController extends Controller
 
     protected $id_prodi;
     private $id_sp;
-
+    
     public function __construct()
     {
         $this->id_sp = env('APP_ID_SP');
@@ -48,7 +48,6 @@ class DashboardController extends Controller
         $side_active   = 'mahasiswa';
         return view('dashboard.mahasiswa', compact('data_1', 'data_2', 'side_active'));
     }
-
     public function kampus_merdeka()
     {
         $data = DB::table('dashboard.dashboard_power_bi')->where('kode_dashboard', '=', 'kampus_merdeka')->first();
@@ -72,13 +71,13 @@ class DashboardController extends Controller
 
     public function iku_fakultas(Request $request)
     {
-        $fakultas = Sms::where('id_sp', env('APP_ID_SP'))->where('soft_delete', 0)->where('id_jns_sms', 1)->orderBy('nm_lemb', 'ASC')->get();
+        $fakultas = Sms::where('id_sp',env('APP_ID_SP'))->where('soft_delete',0)->where('id_jns_sms',1)->orderBy('nm_lemb','ASC')->get();
         $list_fakultas['semua'] = '--Semua Fakultas--';
-        foreach ($fakultas as $each_fakultas) {
-            $list_fakultas[$each_fakultas->id_sms] = 'FAKULTAS ' . $each_fakultas->nm_lemb;
+        foreach ($fakultas AS $each_fakultas) {
+            $list_fakultas[$each_fakultas->id_sms]='FAKULTAS '.$each_fakultas->nm_lemb;
         }
         if ($request->has('id_fak')) {
-            if ($request->get('id_fak') != 'semua') {
+            if ($request->get('id_fak')!='semua') {
                 $pilih_fak = $request->id_sms;
             } else {
                 $pilih_fak = null;
@@ -314,7 +313,7 @@ class DashboardController extends Controller
                     GROUP BY id_sdm
                 ) AS tpend ON tpend.id_sdm = tsdm.id_sdm
                 LEFT JOIN ref.jenjang_pendidikan AS tjenjang ON tpend.id_jenj_didik = tjenjang.id_jenj_didik
-                WHERE tkeaktifan.id_thn_ajaran = " . get_tahun_keaktifan() . "
+                WHERE tkeaktifan.id_thn_ajaran = ".get_tahun_keaktifan()."
                     AND tkeaktifan.a_sp_homebase = 1
                   AND tsdm.soft_delete = 0
                   AND tsdm.id_jns_sdm = 12
@@ -323,7 +322,7 @@ class DashboardController extends Controller
                   AND LEFT(tsp.id_wil,2) <> '99'
                   AND tsdm.id_stat_aktif IN (1,20,24,25,27)
                   AND treg.id_jns_keluar IS NULL
-                    AND tsp.id_sp = '" . env('APP_ID_SP') . "'
+                    AND tsp.id_sp = '".env('APP_ID_SP')."'
                   AND tsert.id_jns_sert not in (1,2,3,4)
                     AND tpend.id_jenj_didik NOT IN (40,41)
                     AND treg.id_ikatan_kerja in ('A','F')
@@ -336,10 +335,10 @@ class DashboardController extends Controller
                   AND treg.id_jns_keluar IS NULL
                     AND (treg.tgl_ptk_keluar IS NULL OR treg.tgl_ptk_keluar >= GETDATE())
                 JOIN pdrd.keaktifan_ptk tkeaktifan WITH (NOLOCK) ON tkeaktifan.id_reg_ptk=treg.id_reg_ptk AND tkeaktifan.soft_delete=0
-                    AND tkeaktifan.id_thn_ajaran = " . get_tahun_keaktifan() . "
+                    AND tkeaktifan.id_thn_ajaran = ".get_tahun_keaktifan()."
                     AND tkeaktifan.a_sp_homebase = 1
                 JOIN pdrd.satuan_pendidikan tsp WITH (NOLOCK) ON tsp.id_sp=treg.id_sp AND tsp.soft_delete=0
-                  AND tsp.stat_sp = 'A' AND tsp.id_sp = '" . env('APP_ID_SP') . "'
+                  AND tsp.stat_sp = 'A' AND tsp.id_sp = '".env('APP_ID_SP')."'
                 JOIN pdrd.sms tsms WITH (NOLOCK) ON tsms.id_sms=treg.id_sms AND tsms.soft_delete=0
                   AND tsms.id_jns_sms = 3
                 LEFT JOIN pdrd.sms AS tjur WITH (NOLOCK) ON tjur.id_sms=tsms.id_induk_sms AND tjur.soft_delete=0
@@ -402,26 +401,26 @@ class DashboardController extends Controller
         ";
         $side_active   = 'iku_fakultas';
         if (!is_null($pilih_fak)) {
-            $data_query_iku_1 .= " AND fak.id_sms='" . $pilih_fak . "'";
-            $data_query_iku_2 .= " WHERE a.id_fak='" . $pilih_fak . "'";
-            $data_query_iku_4 .= " WHERE a.id_fak_unila='" . $pilih_fak . "'";
-            $data_query_iku_7 .= " AND fak.id_sms='" . $pilih_fak . "'";
+            $data_query_iku_1.= " AND fak.id_sms='".$pilih_fak."'";
+            $data_query_iku_2 .= " WHERE a.id_fak='".$pilih_fak."'";
+            $data_query_iku_4 .= " WHERE a.id_fak_unila='".$pilih_fak."'";
+            $data_query_iku_7 .= " AND fak.id_sms='".$pilih_fak."'";
         }
         $iku1 = collect(DB::SELECT("
             SELECT
                 COUNT(a.id_pd) AS total_alumni,
                 SUM(CASE WHEN a.status_iku=1 THEN 1 ELSE 0 END) AS total_menenuhi,
                 SUM(CASE WHEN a.status_iku=0 THEN 1 ELSE 0 END) AS total_tidak_menenuhi
-            FROM (" . $data_query_iku_1 . ") AS a
+            FROM (".$data_query_iku_1.") AS a
         "))->first();
         $iku2 = collect(DB::SELECT("
             SELECT
                 COUNT(b.id_pd) AS total_mhs,
                 SUM(CASE WHEN b.status_iku=1 THEN 1 ELSE 0 END) AS total_menenuhi,
                 SUM(CASE WHEN b.status_iku=0 THEN 1 ELSE 0 END) AS total_tidak_menenuhi
-            FROM (" . $data_query_iku_2 . ") AS b
+            FROM (".$data_query_iku_2.") AS b
         "))->first();
-        return view('dashboard.iku_fakultas', compact('side_active', 'list_fakultas', 'pilih_fak'));
+        return view('dashboard.iku_fakultas', compact('side_active','list_fakultas','pilih_fak'));
     }
 
     public function dosen(Request $request)
@@ -596,133 +595,6 @@ class DashboardController extends Controller
         return view('dashboard.dosen_profil', compact('profil_dosen', 'side_active', 'rwy_pend', 'rwy_pang', 'rwy_jab', 'rwy_struk', 'rwy_tgs_tmbhn', 'rwy_krja'));
     }
 
-    public function mahasiswa_profil($id, Request $request)
-    {
-
-        $id_reg_pd = \Crypt::decrypt($id);
-        $side_active = 'dashboard.aktivitas_mahasiswa';
-
-        $profil_mahasiswa = collect(DB::SELECT("
-            SELECT
-                reg.id_reg_pd,
-                reg.nipd AS npm,
-                pd.nm_pd,
-                CASE
-                    WHEN pd.jk = 'L' THEN 'Laki-laki'
-                    ELSE 'Perempuan'
-                END AS jenis_kelamin,
-                CONCAT(pd.tmpt_lahir, ', ', pd.tgl_lahir) AS ttgl_lahir,
-                ag.nm_agama,
-                neg.nm_negara,
-                pd.email,
-                pd.jln,
-                pd.tlpn_hp,
-                sp.nm_lemb AS asal_pt,
-                fak.nm_lemb AS fakultas,
-                jur.nm_lemb AS jurusan,
-                CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS nm_prodi,
-                jada.nm_jalur_daftar,
-                ts.id_thn_ajaran AS angkatan,
-                kul.ips,
-                kul.ipk,
-                kuliah.smt_skrng,
-                kul.total_sks,
-                stat.nm_stat_mhs,
-                pd.create_date AS waktu_data_ditambahkan,
-                pd.last_update AS terakhir_diubah
-            FROM
-                pdrd.peserta_didik AS pd WITH(NOLOCK)
-                JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
-                AND reg.soft_delete = 0
-                LEFT JOIN (
-                    SELECT
-                        MAX(id_smt) as smt,
-                        COUNT(*) as smt_skrng,
-                        id_reg_pd
-                    FROM
-                        pdrd.kuliah_mhs WITH(NOLOCK)
-                    WHERE
-                        soft_delete = 0
-                    GROUP BY
-                        id_reg_pd
-                ) AS kuliah ON kuliah.id_reg_pd = reg.id_reg_pd
-                JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_smt = kuliah.smt
-                AND kul.id_reg_pd = kuliah.id_reg_pd
-                AND kul.soft_delete = 0
-                JOIN pdrd.sms AS sms WITH(NOLOCK) ON sms.id_sms = reg.id_sms
-                AND sms.soft_delete = 0
-                LEFT JOIN pdrd.sms AS jur WITH(NOLOCK) ON jur.id_sms = sms.id_jur_unila
-                AND jur.soft_delete = 0
-                JOIN pdrd.sms AS fak WITH(NOLOCK) ON fak.id_sms = sms.id_fak_unila
-                AND fak.soft_delete = 0
-                JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = sms.id_jenj_didik
-                AND jenjang.expired_date IS NULL
-                JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt = reg.id_semester_masuk
-                AND ts.expired_date IS NULL
-                JOIN ref.agama AS ag WITH(NOLOCK) ON ag.id_agama = pd.id_agama
-                AND ag.expired_date IS NULL
-                JOIN ref.negara AS neg ON neg.id_negara = pd.id_kewarganegaraan
-                AND neg.expired_date IS NULL
-                AND ag.expired_date IS NULL
-                JOIN ref.status_mahasiswa AS stat ON stat.id_stat_mhs = kul.id_stat_mhs
-                AND stat.expired_date IS NULL
-                JOIN ref.jalur_daftar AS jada ON jada.id_jalur_daftar = reg.id_jalur_daftar
-                AND jada.expired_date IS NULL
-                JOIN pdrd.satuan_pendidikan AS sp ON sp.id_sp = reg.id_sp
-                AND sp.soft_delete = 0
-            WHERE
-                pd.soft_delete = 0
-                AND reg.id_reg_pd = '" . $id_reg_pd . "'
-        "))->first();
-
-        $status_ukt =  DB::SELECT("
-            SELECT
-                reg.id_pd,
-                reg.id_reg_pd,
-                ts.nm_smt AS periode,
-                ukt.fk_kelas_ukt,
-                ukt.total_tagihan,
-                ukt.fk_flag_bayar,
-                ukt.fk_nama_semester
-            FROM
-                keuangan.temp_ukt_mhs as ukt WITH(NOLOCK)
-                JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_reg_pd = ukt.id_reg_pd
-                AND reg.soft_delete = 0
-                JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt = ukt.id_smt
-                AND ts.expired_date IS NULL
-            WHERE
-                reg.id_reg_pd = '". $id_reg_pd ."'
-            ORDER BY fk_nama_semester ASC
-        ");
-
-        $status_semester =  DB::SELECT("
-            SELECT
-                reg.id_pd,
-                reg.id_reg_pd,
-                ts.nm_smt AS periode,
-                sm.nm_stat_mhs,
-                kul.id_smt,
-                kul.sks_semester,
-                kul.ips,
-                kul.ipk,
-                kul.total_sks AS sks_lulus
-            FROM
-                pdrd.kuliah_mhs as kul WITH(NOLOCK)
-                JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_reg_pd = kul.id_reg_pd
-                AND reg.soft_delete = 0
-                JOIN ref.semester AS ts WITH(NOLOCK) ON ts.id_smt = kul.id_smt
-                AND ts.expired_date IS NULL
-                JOIN ref.status_mahasiswa AS sm WITH(NOLOCK) ON sm.id_stat_mhs = kul.id_stat_mhs
-                AND sm.expired_date IS NULL
-            WHERE
-                kul.soft_delete = 0
-                AND kul.id_reg_pd = '". $id_reg_pd ."'
-                ORDER BY id_smt ASC
-        ");
-
-        return view('dashboard.mahasiswa_profil', compact('profil_mahasiswa',  'side_active', 'status_ukt', 'status_semester'));
-    }
-
     public function university_rank()
     {
         $arrField = [
@@ -737,7 +609,7 @@ class DashboardController extends Controller
         $dataUniRankTm = $arrField;
         $dataWebometric = $arrField;
         $dataGreenmetric = $arrField;
-        $year = date('Y') - 1;
+        $year = date('Y')-1;
 
         try {
 
@@ -838,11 +710,11 @@ class DashboardController extends Controller
         WHERE
             sdm.soft_delete = 0
             AND sdm.id_jns_sdm = 12
-            AND tsp.id_sp = '" . env('APP_ID_SP') . "'
+            AND tsp.id_sp = '".env('APP_ID_SP')."'
             AND (
                 jenjang.id_jenj_didik IS NULL
                 or jenjang.id_jenj_didik < 35
-            )
+            ) 
         ");
 
         $side_active = 'dashboard.list_daftar_dosen';
@@ -857,7 +729,7 @@ class DashboardController extends Controller
 
     public function list_daftar_dosen_tanpa_jabfung()
     {
-        $list_dosen_tanpa_jabfung = DB::SELECT("
+        $list_dosen_tanpa_jabfung= DB::SELECT("
         SELECT
             sdm.id_sdm,
             sdm.nm_sdm AS nama_dosen,
@@ -891,11 +763,12 @@ class DashboardController extends Controller
             'judul_layout',
             'list_dosen_tanpa_jabfung'
         ));
+
     }
 
     public function list_daftar_dosen_s2_masa_kerja()
     {
-        $list_daftar_dosen_s2_masa_kerja = DB::SELECT("
+        $list_daftar_dosen_s2_masa_kerja= DB::SELECT("
         SELECT
             sdm.id_sdm,
             sdm.nm_sdm AS nama_dosen,
@@ -939,20 +812,21 @@ class DashboardController extends Controller
     )
     ");
 
-        $side_active = 'dashboard.list_daftar_dosen_s2_masa_kerja';
-        $judul_layout = 'Masa Kerja';
+    $side_active = 'dashboard.list_daftar_dosen_s2_masa_kerja';
+    $judul_layout = 'Masa Kerja';
 
-        return view('dashboard.list_daftar_dosen_s2_masa_kerja', compact(
-            'side_active',
-            'judul_layout',
-            'list_daftar_dosen_s2_masa_kerja'
-        ));
+    return view('dashboard.list_daftar_dosen_s2_masa_kerja', compact(
+        'side_active',
+        'judul_layout',
+        'list_daftar_dosen_s2_masa_kerja'
+    ));
+
     }
 
 
     public function list_daftar_dosen_masa_jabfung()
     {
-        $list_daftar_dosen_masa_jabfung = DB::SELECT("
+        $list_daftar_dosen_masa_jabfung= DB::SELECT("
         SELECT
             sdm.id_sdm,
             sdm.nm_sdm AS nama_dosen,
@@ -996,25 +870,30 @@ class DashboardController extends Controller
     )
     ");
 
-        $side_active = 'dashboard.list_daftar_dosen_masa_jabfung';
-        $judul_layout = 'Masa Jabatan Fungsional';
+    $side_active = 'dashboard.list_daftar_dosen_masa_jabfung';
+    $judul_layout = 'Masa Jabatan Fungsional';
 
-        return view('dashboard.list_daftar_dosen_masa_jabfung', compact(
-            'side_active',
-            'judul_layout',
-            'list_daftar_dosen_masa_jabfung'
-        ));
+    return view('dashboard.list_daftar_dosen_masa_jabfung', compact(
+        'side_active',
+        'judul_layout',
+        'list_daftar_dosen_masa_jabfung'
+    ));
+
     }
+
+   
 
     public function role(Request $request)
     {
         \Session::forget('login.role');
         $array = $request->all();
-        $role = \App\Models\PDUT\Man_akses\RolePengguna::where('id_pengguna', \Auth::user()->id_pengguna)->where('id_peran', $array['id_peran'])->first();
+        $role = \App\Models\PDUT\Man_akses\RolePengguna::where('id_pengguna', \Auth::user()->id_pengguna)->where('id_peran',$array['id_peran'])->first();
         \Session::put('login.role', $role);
         MenuRole();
         $peran = \App\Models\PDUT\Man_akses\Peran::where('id_peran', $role->id_peran)->first();
-        alert()->success('Role ' . $peran->nm_peran . ' Aktif');
+        alert()->success('Role '.$peran->nm_peran.' Aktif');
         return redirect()->to('/');
     }
+    
+
 }
