@@ -9,9 +9,11 @@ use App\Http\Controllers\Auth\{
 use App\Http\Controllers\AkreditasController;
 use App\Http\Controllers\Dashboard\WR\WakilRektor4\AktivitasMahasiswaController;
 use App\Http\Controllers\Dashboard\WR\WakilRektor4\KerjasamaController;
+use App\Http\Controllers\Dashboard\WR\WakilRektor4\PengelolaanTikController;
 use App\Http\Controllers\ListDaftarDosenController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Dashboard\WR\WakilRektor4\TracerStudyController;
+use App\Http\Controllers\RenstraController;
 use App\Http\Controllers\PDUT\Dashboard\JabfungController;
 use App\Http\Controllers\PDUT\Dashboard\JenjangPendidikan;
 use App\Http\Controllers\PDUT\Dashboard\PangkatGolonganController;
@@ -19,6 +21,7 @@ use App\Http\Controllers\PDUT\Dashboard\IkatanKerjaController;
 use App\Http\Controllers\PDUT\Dashboard\JenisKelaminController;
 use App\Http\Controllers\PDUT\Dashboard\StatusKeaktifanController;
 use App\Http\Controllers\PDUT\Dashboard\StatusKepegawaianController;
+
 use Illuminate\Support\Facades\Route;
 
 /** Auth */
@@ -98,6 +101,9 @@ Route::get('/akreditasi_prodi/{id_prodi}',  [AkreditasController::class, 'show']
 Route::get('/dashboard/iku',  [DashboardController::class, 'iku'])->name('dashboard.iku');
 Route::get('/dashboard/university_rank',  [DashboardController::class, 'university_rank'])->name('dashboard.university_rank');
 /** End Dashboard Institusi */
+
+
+
 
 
 // Route::prefix('akreditasi')->group(function () {
@@ -186,6 +192,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     /** Dashboard Wakil Rektor IV */
     Route::get('/dashboard/kerjasama',  [KerjasamaController::class, 'kerjasama'])->name('kerjasama');
+    Route::get('/dashboard/aplikasi',  [PengelolaanTikController::class, 'daftar_aplikasi'])->name('aplikasi');
     /** End Dashboard Wakil Rektor IV */
 
 
