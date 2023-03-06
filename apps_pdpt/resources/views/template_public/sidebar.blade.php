@@ -223,7 +223,7 @@
                                 class="nav-link {{ $side_active == 'iku' ? 'active' : '' }}"
                                 >
                                 <i class="far fa-circle nav-icon"></i>
-                                <p>IKU OLD</p>
+                                <p>IKU VERSI ALL</p>
                             </a>
                         </li>
 
@@ -242,11 +242,11 @@
                             </a>
                         </li>
 
-                      
-                     
+
+
                     </ul>
                 </li>
-              
+
             </ul>
         </nav>
         <!-- /.sidebar-menu -->
