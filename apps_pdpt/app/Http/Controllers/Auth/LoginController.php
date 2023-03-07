@@ -144,13 +144,13 @@ class LoginController extends Controller
         if (Auth::check()) {
             try {
                 // UPDATE LAST ACTIVE
-                if (session()->has('login.role')) {
+                if (session()->has('login.role')==true) {
                     if (config('env') == 'local') {
                         $endpoint = env('API_ENDPOINT_SANDBOX');
                     } else {
                         $endpoint = env('API_ENDPOINT_LIVE');
                     }
-                    Http::get($endpoint . '/man_akses/ubah_keaktifan?id_role_pengguna=' . session()->get('login.role')->id_role_pengguna);
+                    Http::get($endpoint . '/ubah_keaktifan?id_role_pengguna=' . session()->get('login.role')->id_role_pengguna);
                 }
             } catch (HttpClientException $he) {
                 logger()->error(__CLASS__ . DIRECTORY_SEPARATOR . __FUNCTION__ . ':' . $he->getMessage());

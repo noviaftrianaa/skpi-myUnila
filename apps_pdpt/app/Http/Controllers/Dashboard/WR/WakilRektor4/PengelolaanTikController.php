@@ -21,20 +21,28 @@ class PengelolaanTikController extends Controller
     public function daftar_aplikasi()
     {
         $aplikasi = DB::SELECT("
-        SELECT DISTINCT 
+            SELECT DISTINCT 
                 apl.nm_aplikasi,
                 unit.nm_lemb as nama_organisasi,
                 apl.url,
-                pengguna.nm_pengguna as nama_pj,
-                apl.last_sync
+                apl.last_sync,
+                (
+                    SELECT
+                        STRING_AGG(pj.nm_pj, ';') WITHIN GROUP (ORDER BY pj.tgl_create)
+                    FROM
+                        man_akses.pj_aplikasi as pj WITH(NOLOCK)
+                        LEFT JOIN man_akses.pengguna as pengguna WITH(NOLOCK) ON pj.id_pengguna = pengguna.id_pengguna
+                        AND pengguna.soft_delete = 0
+                    WHERE
+                        apl.id_aplikasi = pj.id_aplikasi
+                        AND pj.soft_delete = 0
+                ) AS nama_pj
             FROM
                 man_akses.aplikasi as apl WITH(NOLOCK)
             LEFT JOIN man_akses.unit_organisasi as unit WITH(NOLOCK) ON apl.id_organisasi = unit.id_organisasi
                 AND unit.soft_delete = 0
-            LEFT JOIN man_akses.pj_aplikasi as pj WITH(NOLOCK) ON apl.id_aplikasi = pj.id_aplikasi
-                AND pj.soft_delete = 0
-            LEFT JOIN man_akses.pengguna as pengguna WITH(NOLOCK) ON pj.id_pengguna = pengguna.id_pengguna
-                AND pengguna.soft_delete = 0
+            WHERE
+                apl.expired_date IS NULL
         ");
 
         $side_active = 'home.wr.wakil_rektor4.aplikasi';
