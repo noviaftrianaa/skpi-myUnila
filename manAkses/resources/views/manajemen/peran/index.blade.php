@@ -24,25 +24,25 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover text-xs" id="table-data" style="width: 100% !important">
+                <table class="table table-striped table-bordered table-hover" id="table-data" style="width: 100% !important">
                     <thead>
                       <tr>
-                        <th>No.</th>
+                        <th class="text-center">No.</th>
                         <th>Nama Peran</th>
                         <th>Perlu SK ?</th>
                         <th>Expired Date</th>
-                        <th>Aksi</th>
+                        <th class="text-center">Aksi</th>
                       </tr>
                     </thead>
                     <tbody>
                         @foreach($peran as $no=>$item)
                         <tr>
-                            <td>{{ $no+1 }}</td>
+                            <td class="text-center" width="5px">{{ $no+1 }}</td>
                             <td>{{ $item->nm_peran }}</td>
                             <td>{{ ($item->a_perlu_sk==1) ? 'Ya' : 'Tidak'}}</td>
                             <td>{{ TglWaktuIndonesia($item->expired_date) ?? '-' }}</td>
-                            <td>
-                                <button class="btn btn-info btn-xs" title="Edit" data-toggle="modal" data-target="#editItem{{$item->id_peran}}"> <i class="fas fa-edit"></i></button>
+                            <td class="text-center" width="5px">
+                                <button class="btn btn-info" title="Edit" data-toggle="modal" data-target="#editItem{{$item->id_peran}}">Edit</button>
                             </td>
                         </tr>
                         @endforeach

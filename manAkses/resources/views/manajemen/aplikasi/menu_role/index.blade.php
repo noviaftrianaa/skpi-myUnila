@@ -9,12 +9,12 @@
         </div><!-- /.card-header -->
         <div class="card-body">
             <div class="d-lg-flex d-block">
-                @if(session()->get('login.role')->id_peran==1)
                 <div class="col-2">
                     <a type="button" class="btn btn-default" href="#" onclick="history.back()"><i class="fa fa-arrow-left"></i> Kembali</a>
+                    @if($menus->a_boleh_insert==1)
                     <a type="button" class="btn btn-info" href="{{ route('aplikasi.menu_role.create', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fa fa-plus"></i> Tambah Data</a>
+                    @endif
                 </div>
-                @endif
                 <div class="ml-auto px-2">
                     <div class="input-group">
                         <input type="text" id="search" placeholder="Pencarian" class="form-control">
@@ -27,7 +27,7 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover text-xs" id="table-data" style="width: 100% !important">
+                <table class="table table-striped table-bordered table-hover" id="table-data" style="width: 100% !important">
                     <thead>
                         <tr>
                             <th>Peran</th>
@@ -39,8 +39,12 @@
                         <tr>
                             <td>{{ strtoupper($item->nm_peran) }}</td>
                             <td>
+                                @if($menus->a_boleh_update==1)
                                 <a type="button" class="btn btn-primary btn-xs" href="{{ route('aplikasi.menu_role.edit', [Crypt::encrypt($data->id_aplikasi), Crypt::encrypt($item->id_peran)]) }}"><i class="fas fa-users"></i></a>
+                                @endif
+                                @if($menus->a_boleh_delete==1)
                                 <a type="button" class="btn btn-danger btn-xs" href="{{ route('aplikasi.menu_role.destroy', [Crypt::encrypt($data->id_aplikasi), Crypt::encrypt($item->id_peran)]) }}"><i class="fas fa-trash-alt"></i></a>
+                                @endif
                             </td>
                         </tr>
                         @endforeach

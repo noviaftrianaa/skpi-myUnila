@@ -15,7 +15,7 @@ class MenuRoleController extends Controller
 
     public function __construct()
     {
-        $this->basepath = 'aplikasi.menu_role';
+        $this->basepath = 'aplikasi';
     }
 
     public function index($id)
@@ -35,10 +35,12 @@ class MenuRoleController extends Controller
                 AND mrole.soft_delete=0
                 AND peran.expired_date IS NULL
         ");
+        $menus = collect(session()->get('login.menu'))->where('nm_file', $this->basepath.'.index')->first();
 
         return view('manajemen.aplikasi.menu_role.index', [
             'peran' => $peran,
-            'data'=>$data
+            'data'=>$data,
+            'menus'=>$menus
         ]);
     }
 

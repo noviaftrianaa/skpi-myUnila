@@ -16,12 +16,12 @@
             pagingType: "simple",
             ajax: window.location.href,
             columns: [
-                { data: 'DT_RowIndex', orderable: false, searchable: false },
+                { data: 'DT_RowIndex', orderable: false, searchable: false, width: '5px', className: 'text-center' },
                 { data: 'nm_menu' },
                 { data: 'nm_file' },
                 { data: 'icon', searchable: false },
                 { data: 'a_aktif', searchable: false },
-                { data: 'aksi', orderable: false, searchable: false }
+                { data: 'aksi', orderable: false, searchable: false, width: '5px' }
             ],
             sDom: 'rt<"row"<"col-sm-12 col-md-3"l><"col-sm-12 col-md-3"i><"col-sm-12 col-md-6"p>>'
         } );
@@ -55,7 +55,7 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover text-xs" id="table-data" style="width: 100% !important">
+                <table class="table table-striped table-bordered table-hover" id="table-data" style="width: 100% !important">
                     <thead>
                       <tr>
                         <th width="5%">No.</th>

@@ -2,6 +2,10 @@
 @section('title','Aplikasi '.$data->nm_aplikasi)
 @extends('__partial.datatable_yajra')
 
+@push('css')
+<link rel="stylesheet" href="{{ asset('iconpicker/css/bootstrap-iconpicker.min.css') }}">
+@endpush
+
 @section('content')
 
     @include('error.list')
@@ -17,10 +21,8 @@
                     @if($menus->a_boleh_update == "1")
                     <a type="button" data-toggle="modal" class="btn btn-info col-12 my-1" href="#editAplikasi{{$data->id_aplikasi}}"><i class="fa fa-edit"></i> Edit</a>
                     @endif
-                    @if($menus->a_boleh_insert == "1")
+                    @if($menus->a_boleh_show == "1")
                     <a type="button" class="btn btn-info col-12 my-1" href="{{ route('aplikasi.menu_role', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Menu Role</a>
-                    <a type="button" class="btn btn-info col-12 my-1" href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Tabel Aplikasi</a>
-                    @else
                     <a type="button" class="btn btn-info col-12 my-1" href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Tabel Aplikasi</a>
                     @endif
                 </div>
@@ -496,7 +498,13 @@
                             <div class="col-sm-6">
                                 <div class="form-group form-group-default">
                                     <label>Icon</label>
-                                    <input name="icon" id="icon" type="text" class="form-control" placeholder="icon">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <button class="btn btn-secondary" data-icon="fas fa-map-marker-alt" role="iconpicker" id="btnIcon"></button>
+                                        </div>
+                                        <input type="text" class="form-control" name="icon" id="icon">
+                                    </div>
+                                    <!-- <input name="icon" id="icon" type="text" class="form-control iconpicker" placeholder="icon"> -->
                                 </div>
                             </div>
                             <div class="col-sm-6">
@@ -573,6 +581,7 @@
 @endsection
 
 @push('js')
+<script src="{{ asset('iconpicker/js/bootstrap-iconpicker.bundle.min.js') }}"></script>
 <script>
     function tbPJ(menus, url)
     {
@@ -819,6 +828,7 @@
                     $('#id_group_menu').val(data.id_group_menu).trigger('change');
                     $('#icon').val(data.icon);
                     $('#level_menu').val(data.level_menu);
+                    $('#btnIcon i').prop('class', data.icon);
                     $('#a_aktif').val(data.a_aktif).trigger('change');
                     $('#a_tampil').val(data.a_tampil).trigger('change');
                     $('#menuMdl').modal('show');
@@ -838,6 +848,11 @@
             $('#menu_token_delete').val("{{ csrf_token() }}");
             $('#deleteNmMenuMdl').html(nama);
             $('#deleteMenuMdl').modal('show');
+        });
+        $('.iconpicker').iconpicker();
+        $('#btnIcon').on('change', function() {
+            $('#icon').val(null);
+            $('#icon').val($('#btnIcon input').val());
         });
     });
 </script>

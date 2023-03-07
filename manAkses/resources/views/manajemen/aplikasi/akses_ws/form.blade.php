@@ -43,7 +43,7 @@
                     </div>
                     
                     <div class="col-12">
-                        <table class="table table-bordered table-hover text-xs" id="table-data" style="width: 100% !important;">
+                        <table class="table table-bordered table-hover" id="table-data" style="width: 100% !important;">
                             <thead>
                                 <tr>
                                     <th>Endpoint</th>

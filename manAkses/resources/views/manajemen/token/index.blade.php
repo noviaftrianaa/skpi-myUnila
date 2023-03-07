@@ -18,7 +18,7 @@
             lengthChange: false,
             ajax: window.location.href,
             columns: [
-                { data: 'DT_RowIndex', orderable: false, searchable: false },
+                { data: 'DT_RowIndex', orderable: false, searchable: false, width: '5px', className: 'text-center' },
                 { data: 'token_value' },
                 { data: 'base_url' },
                 { data: 'waktu_create' },
@@ -62,7 +62,7 @@
         </div><!-- /.card-header -->
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover text-xs" id="table-data" style="width: 100% !important">
+                <table class="table table-striped table-bordered table-hover" id="table-data" style="width: 100% !important">
                     <thead>
                       <tr>
                         <th width="5%">No.</th>
@@ -71,7 +71,6 @@
                         <th width="10%">Created Date</th>
                         <th width="10%">Expired Date</th>
                         <th width="20%">Notes</th>
-                        <!-- <th>Aksi</th> -->
                       </tr>
                     </thead>
                 </table>

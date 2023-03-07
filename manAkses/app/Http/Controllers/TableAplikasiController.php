@@ -12,6 +12,13 @@ use DB;
 
 class TableAplikasiController extends Controller
 {
+
+    private $basepath;
+
+    public function __construct()
+    {
+        $this->basepath = 'aplikasi';
+    }
     /**
      * Display a listing of the resource.
      *
@@ -22,6 +29,7 @@ class TableAplikasiController extends Controller
         $id = Crypt::decrypt($id);
         $data = Aplikasi::lock('WITH(NOLOCK)')->where('id_aplikasi', $id)->first();
         $data_table = TableAplikasi::lock('WITH(NOLOCK)')->where('a_table_aktif', 1)->get();
+        $menus = collect(session()->get('login.menu'))->where('nm_file', $this->basepath.'.index')->first();
         $table = DB::table('man_akses.akses_table_aplikasi AS akses')
             ->where('akses.soft_delete',0)
             ->where('akses.id_aplikasi','=',$id)
@@ -33,7 +41,8 @@ class TableAplikasiController extends Controller
         return view('manajemen.aplikasi.table.index', [
             'data'=>$data,
             'table'=>$table,
-            'data_table'=>$data_table
+            'data_table'=>$data_table,
+            'menus'=>$menus
         ]);
     }
 

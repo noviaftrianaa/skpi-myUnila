@@ -132,6 +132,7 @@ class AplikasiController extends Controller
         $id = Crypt::decrypt($id);
         $data = Aplikasi::with('UnitOrganisasi','LargeObject')->lock('WITH(NOLOCK)')->where('id_aplikasi', $id)->first();
         $menus = collect(session()->get('login.menu'))->where('nm_file', $this->basepath.'.index')->first();
+        // dd($menus);
 
         return view('manajemen.aplikasi.show', [
             'id'    => $id,

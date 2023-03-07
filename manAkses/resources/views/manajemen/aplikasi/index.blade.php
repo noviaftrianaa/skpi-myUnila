@@ -28,30 +28,30 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover text-xs" id="table-data" style="width: 100% !important">
+                <table class="table table-striped table-bordered table-hover" id="table-data" style="width: 100% !important">
                     <thead>
                       <tr>
-                        <th>No.</th>
+                        <th class="text-center">No.</th>
                         <th>Nama Aplikasi</th>
                         <th>Nama Organisasi</th>
                         <th>URL</th>
                         <th>Expired Date</th>
                         <th>Last Sync</th>
-                        <th>Aksi</th>
+                        <th class="text-center">Aksi</th>
                       </tr>
                     </thead>
                     @if($menus->a_boleh_insert == "1")
                     <tbody>
                         @foreach($data as $no=>$item)
                         <tr>
-                            <td>{{$no+1}}</td>
+                            <td width="5px" class="text-center">{{$no+1}}</td>
                             <td>{{$item->nm_aplikasi}}</td>
                             <td>{{$item->unitorganisasi->nm_lemb}}</td>
                             <td>{{$item->url}}</td>
                             <td>{{TglWaktuIndonesia($item->expired_date)}}</td>
                             <td>{{TglWaktuIndonesia($item->last_sync)}}</td>
-                            <td>
-                                <a class="btn btn-info btn-xs" title="Show" href="{{ route('aplikasi.detail', [Crypt::encrypt($item->id_aplikasi)]) }}"> <i class="fas fa-eye"></i></a>
+                            <td width="5px" class="text-center">
+                                <a class="btn btn-info" title="Show" href="{{ route('aplikasi.detail', [Crypt::encrypt($item->id_aplikasi)]) }}">Detail</a>
                             </td>
                         </tr>
                         @endforeach
@@ -60,14 +60,14 @@
                     <tbody>
                         @foreach($data as $no=>$item)
                         <tr>
-                            <td>{{$no+1}}</td>
+                            <td width="5px" class="text-center">{{$no+1}}</td>
                             <td>{{$item->aplikasi->nm_aplikasi}}</td>
                             <td>{{$item->aplikasi->unitorganisasi->nm_lemb}}</td>
                             <td>{{$item->aplikasi->url}}</td>
                             <td>{{TglWaktuIndonesia($item->aplikasi->expired_date)}}</td>
                             <td>{{TglWaktuIndonesia($item->aplikasi->last_sync)}}</td>
-                            <td>
-                                <a class="btn btn-info btn-xs" title="Show" href="{{ route('aplikasi.detail', [Crypt::encrypt($item->id_aplikasi)]) }}"> <i class="fas fa-eye"></i></a>
+                            <td width="5px" class="text-center">
+                                <a class="btn btn-info" title="Show" href="{{ route('aplikasi.detail', [Crypt::encrypt($item->id_aplikasi)]) }}">Detail</a>
                             </td>
                         </tr>
                         @endforeach

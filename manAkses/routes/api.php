@@ -9,7 +9,7 @@ Route::group([
     'namespace' => 'App\Http\Controllers\Api'
 ], function () {
 
-    Route::middleware('api','auth.sso')->group(function () {
+    Route::middleware('api')->group(function () {
         
         Route::prefix('peran')->group(function () {
             Route::get('', 'manAksesController@peran');

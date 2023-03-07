@@ -157,6 +157,7 @@ class LoginController extends Controller
             } catch (Exception $e) {
                 logger()->error(__CLASS__ . DIRECTORY_SEPARATOR . __FUNCTION__ . ':' . $e->getMessage());
             } finally {
+                SSO::cookieClear(); //clear Cookie
                 Auth::logout(); //Destroy Auth
                 Session::flush(); //Destroy Session
                 alert()->success('Berhasil logout'); //Alert

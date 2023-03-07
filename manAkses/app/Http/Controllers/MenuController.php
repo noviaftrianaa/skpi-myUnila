@@ -32,7 +32,7 @@ class MenuController extends Controller
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('aksi', function($data) {
-                    $button = '<a class="btn btn-info btn-xs" title="Show User" href="#editItem'.$data->id_menu.'" data-toggle="modal"> <i class="fas fa-edit"></i></a>';
+                    $button = '<a class="btn btn-info" title="Show User" href="#editItem'.$data->id_menu.'" data-toggle="modal">Edit</a>';
                     return $button;
                 })
                 ->rawColumns(['aksi'])

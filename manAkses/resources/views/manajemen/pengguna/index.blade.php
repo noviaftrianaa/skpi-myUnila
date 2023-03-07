@@ -16,13 +16,13 @@
             pagingType: "simple",
             ajax: window.location.href,
             columns: [
-                { data: 'DT_RowIndex', orderable: false, searchable: false },
-                { data: 'nm_pengguna' },
-                { data: 'username' },
-                { data: 'unit_organisasi' },
-                { data: 'jenis_kelamin', searchable: false },
-                { data: 'status', searchable: false },
-                { data: 'aksi', orderable: false, searchable: false }
+                { data: 'DT_RowIndex', orderable: false, searchable: false, title: 'No.', width: '5px', className: 'text-center' },
+                { data: 'nm_pengguna', title: 'Nama' },
+                { data: 'username', title: 'Username' },
+                { data: 'unit_organisasi', title: 'Unit Organisasi' },
+                { data: 'jenis_kelamin', searchable: false, title: 'Jenis Kelamin' },
+                { data: 'status', searchable: false, title: 'Status', className: 'text-center' },
+                { data: 'aksi', orderable: false, searchable: false, title: 'Aksi', className: 'text-center', width: '5px' }
             ],
             sDom: 'rt<"row"<"col-sm-12 col-md-3"l><"col-sm-12 col-md-3"i><"col-sm-12 col-md-6"p>>'
         } );
@@ -56,9 +56,9 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover text-xs" id="table-data" style="width: 100% !important">
+                <table class="table table-striped table-bordered table-hover" id="table-data" style="width: 100% !important">
                     <thead>
-                      <tr>
+                      <!-- <tr>
                         <th>No.</th>
                         <th>Nama</th>
                         <th>Username</th>
@@ -66,7 +66,7 @@
                         <th>Jenis Kelamin</th>
                         <th>Status</th>
                         <th>Aksi</th>
-                      </tr>
+                      </tr> -->
                     </thead>
                 </table>
             </div>

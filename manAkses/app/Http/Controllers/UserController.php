@@ -87,7 +87,7 @@ class UserController extends Controller
                     return $button;
                 })
                 ->addColumn('aksi', function($user) {
-                    $button = '<a class="btn btn-primary btn-xs" title="Show User" href="'.route('user.detail', [Crypt::encrypt($user->id_pengguna)]).'"> <i class="fas fa-eye"></i></a>';
+                    $button = '<a class="btn btn-info" title="Show User" href="'.route('user.detail', [Crypt::encrypt($user->id_pengguna)]).'">Detail</a>';
                     return $button;
                 })
                 ->rawColumns(['status','aksi'])

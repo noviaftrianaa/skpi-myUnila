@@ -21,7 +21,7 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover text-xs" id="table-data" style="width: 100% !important">
+                <table class="table table-striped table-bordered table-hover" id="table-data" style="width: 100% !important">
                     <thead>
                       <tr>
                         <th>No.</th>
@@ -35,7 +35,7 @@
                     <tbody>
                         @foreach($data as $no=>$item)
                         <tr>
-                            <td>{{$no+1}}</td>
+                            <td class="text-center" width="5px">{{ $no+1 }}</td>
                             <td>{{$item->nm_lemb}}</td>
                             <td>{{$item->email}}</td>
                             <td>{{$item->no_telp}}</td>
