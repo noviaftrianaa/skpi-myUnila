@@ -144,6 +144,8 @@ Route::prefix('dashboard')->group(function () {
 
     Route::get('iku2',  'App\Http\Controllers\Dashboard\IKU\Iku2Controller@homeIku2')->name('dashboardIku2');
     Route::get('api/iku2',  'App\Http\Controllers\Dashboard\IKU\Iku2Controller@apiIku2')->name('apiDashboardIku2');
+    Route::get('api/iku2/prodi',  'App\Http\Controllers\Dashboard\IKU\Iku2Controller@apiIku2Prodi')->name('apiIku2Prodi');
+    Route::get('api/iku2/memenuhi',  'App\Http\Controllers\Dashboard\IKU\Iku2Controller@apiIku2Memenuhi')->name('apiIku2Memenuhi');
 
     Route::get('iku3',  'App\Http\Controllers\Dashboard\IKU\Iku3Controller@homeIku3')->name('dashboardIku3');
     Route::get('api/iku3',  'App\Http\Controllers\Dashboard\IKU\Iku3Controller@apiIku3')->name('apiDashboardIku3');

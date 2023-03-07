@@ -49,6 +49,8 @@ class Iku6Controller extends Controller
             WHERE
                 prodi.soft_delete = 0
                 AND prodi.stat_prodi = 'A'
+            ORDER BY
+                    y_nm_fakultas, y_nm_prodi ASC
         ");
         $fakultas = [];
         foreach ($apiIku6 as $v) {

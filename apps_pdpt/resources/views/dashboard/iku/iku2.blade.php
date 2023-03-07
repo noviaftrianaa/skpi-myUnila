@@ -335,7 +335,7 @@
                                         if ($.fn.dataTable.isDataTable($('#tb_01'))) {
                                             $('#tb_01').DataTable().destroy();
                                         } else {
-                                            TbIku2Mahasiswa(id_prodi);
+                                            TbIku2Prodi(id_prodi);
                                         }
                                     }
                                 }
@@ -355,5 +355,145 @@
             });
             chart.setSize(null);
         }
+
+        function TbIku2Prodi(id_prodi) {
+            $("#btn_modal_close").show();
+            $("#btn_modal_back").hide();
+            $('#exampleModal').modal('show');
+            $('#tb_01').DataTable({
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                searching: true,
+                paging: true,
+                info: true,
+                ordering: true,
+                ajax: {
+                    url: '{!! route('apiIku2Prodi') !!}',
+                    type: 'GET',
+                    data: {
+                        id_prodi: id_prodi,
+                        thn_iku: $("#thn_iku").val(),
+                    }
+                },
+                columns: [
+                    {
+                        title: 'NPM',
+                        data: 'npm',
+                        name: 'npm',
+                    },
+                    {
+                        title: 'Nama Alumni',
+                        data: 'nm_pd',
+                        name: 'nm_pd',
+                    },
+                    {
+                        title: 'Fakulkas',
+                        data: 'y_nm_fakultas',
+                        name: 'y_nm_fakultas',
+                    },
+                    {
+                        title: 'Prodi',
+                        data: 'y_nm_prodi',
+                        name: 'y_nm_prodi',
+                    },
+                    {
+                        title: 'Total SKS MBKM',
+                        data: 'x_mbkm',
+                        name: 'x_mbkm',
+                    },
+                    {
+                        title: 'Total Prestasi',
+                        data: 'x_prestasi',
+                        name: 'x_prestasi',
+                    },
+                    {
+                        title: 'Status IKU',
+                        data: 'x_data_yes',
+                        name: 'x_data_yes',
+                        render: function (data, type, row) {
+                            if (data == 1) {
+                                return `<center><a href="#" onclick="reloadTbIku2Memenuhi('${row.y_id_reg_pd}','${row.nm_pd}')">Memenuhi</a><center>`;
+                            } else {
+                                return "<center><b class='text-bold text-red'>Tidak Memenuhi</b></center>";
+                            }
+                        }
+                    },
+                ],
+                order: [
+                    [6, 'desc'],
+                ],
+            });
+        }
+
+        function reloadTbIku2Memenuhi(y_id_reg_pd, nm_pd = null) {
+            $("#btn_modal_close").hide();
+            $("#btn_modal_back").show();
+            $("#txt3_modal").html(nm_pd);
+            $("#x_tb_01").hide();
+            $("#x_tb_02").show();
+            $("#x_tb_03").hide();
+            $("#x_tb_04").hide();
+            $("#x_tb_05").hide();
+            if ($.fn.dataTable.isDataTable($('#tb_02'))) {
+                $('#tb_02').DataTable().destroy();
+                TbIku2Memenuhi(y_id_reg_pd);
+            } else {
+                TbIku2Memenuhi(y_id_reg_pd);
+            }
+        }
+
+        function TbIku2Memenuhi(y_id_reg_pd) {
+            $('#tb_02').DataTable({
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                searching: true,
+                paging: true,
+                info: true,
+                ordering: true,
+                ajax: {
+                    url: '{!! route('apiIku2Memenuhi') !!}',
+                    type: 'GET',
+                    data: {
+                        id_reg_pd: y_id_reg_pd,
+                        thn_iku: $("#thn_iku").val(),
+                    }
+                },
+                columns: [
+                    {
+                        title: 'Jenis Aktivitas',
+                        data: 'nm_jns_akt_mhs',
+                        name: 'nm_jns_akt_mhs',
+                    },
+                    {
+                        title: 'Nama Kegiatan',
+                        data: 'nm_periode_mbkm',
+                        name: 'nm_periode_mbkm',
+                    },
+                    {
+                        title: 'Penyelenggara',
+                        data: 'nm_penyelenggara',
+                        name: 'nm_penyelenggara',
+                    },
+                    {
+                        title: 'Tgl. Selesai/Tgl. SK',
+                        data: 'tgl_selesai',
+                        name: 'tgl_selesai',
+                    },
+                    {
+                        title: 'Lokasi Kegiatan',
+                        data: 'lokasi_kegiatan',
+                        name: 'lokasi_kegiatan',
+                    },
+                    {
+                        title: 'SKS Konversi',
+                        data: 'total_sks',
+                        name: 'total_sks',
+                    }
+                ],
+            });
+        }
+
     </script>
 @endpush

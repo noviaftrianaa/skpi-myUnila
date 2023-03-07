@@ -64,6 +64,8 @@ class Iku7Controller extends Controller
                 AND kk.id_smt IN ('" . ($thn_iku - 1) . "2', '" . $thn_iku . "1')
                 AND prodi.stat_prodi = 'A'
                 AND jenjang.id_jenj_didik IN(21, 22, 23, 30)
+            ORDER BY
+                y_nm_fakultas, y_nm_prodi ASC
         ");
         $fakultas = [];
         foreach ($apiIku7 as $v) {
