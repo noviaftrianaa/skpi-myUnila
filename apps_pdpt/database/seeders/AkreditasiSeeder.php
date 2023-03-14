@@ -26,7 +26,6 @@ class AkreditasiSeeder extends Seeder
         foreach ($cari_sms AS $each_sms) {
             echo 'Mencari akreditasi prodi: '.$each_sms->id_sms.' - '.($each_sms->nm_lemb.' ('.$each_sms->jenjang->nm_jenj_didik.')').' dari BAN-PT:PDDIKTI';
             $get_data = $this->curl_api_feeder($url.'/'.$kode_sp.'/prodi/'.strtoupper($each_sms->id_sms).'/akreditasi',$token);
-            dd($get_data);
             if (count($get_data)>0) {
                 foreach ($get_data AS $each_data) {
                     if (key_exists($each_data['nilai'],$akred)) {
@@ -35,11 +34,13 @@ class AkreditasiSeeder extends Seeder
                         $akred[$each_data['nilai']] = 1;
                     }
                     echo ' dapat akreditasi:'.$each_data['nilai'];
-                    $cari_akreditasi = AkreditasiProdi::find($each_data['id']);
+                    $cari_akreditasi = AkreditasiProdi::where('id_sms',$each_data['prodi']['id'])->where('sk_akreditasi_prodi',$each_data['sk_akreditasi'])
+                        ->where('tanggal_sk_akreditasi_prodi',$each_data['tgl_sk_akreditasi'])->first();
+//                    $cari_akreditasi = AkreditasiProdi::find($each_data['id']);
                     if (is_null($cari_akreditasi)) {
                         $cari_nilai = DB::table('ref.nilai_akred')->where('nm_akred',$each_data['nilai'])->first();
                         $simpan = new AkreditasiProdi();
-                        $simpan->id_akreditasi_prodi            = $each_data['id'];
+                        $simpan->id_akreditasi_prodi            = is_null($each_data['id'])?guid():$each_data['id'];
                         $simpan->id_lemb_akred                  = '00001';
                         $simpan->id_sms                         = $each_sms->id_sms;
                         $simpan->id_akred                       = $cari_nilai->id_akred;

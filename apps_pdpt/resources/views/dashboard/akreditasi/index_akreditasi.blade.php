@@ -131,11 +131,10 @@
                                                     AND (tr.tgl_ptk_keluar IS NULL AND tr.tgl_ptk_keluar>GETDATE())
                                                 JOIN pdrd.keaktifan_ptk AS tak ON tak.id_reg_ptk=tr.id_reg_ptk
                                                 AND tak.soft_delete=0
-                                                AND tak.id_thn_ajaran=2021
+                                                AND tak.id_thn_ajaran=".get_tahun_keaktifan()."
                                                 GROUP BY tr.id_sms
                                             ) AS tl ON tl.id_sms=tprodi.id_sms
-                                            WHERE tprodi.id_jenj_didik = 30
-                                            AND tprodi.soft_delete=0
+                                            WHERE tprodi.soft_delete=0
                                             AND tprodi.id_jns_sms=3
                                             AND tprodi.stat_prodi='A'
                                             AND tn.nm_akred " .
