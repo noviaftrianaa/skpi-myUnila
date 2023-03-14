@@ -16,6 +16,8 @@ class AkreditasiSeeder extends Seeder
      */
     public function run()
     {
+        ini_set('memory_limit',-1);
+        ini_set('max_execution_time',0);
         $id_sp = 'e2b705a7-173e-464a-9fac-509128709515';
         $kode_sp = '001026';
         $token = 'a934b2aa-ec1d-32a1-9d41-e982b6b1426c';
