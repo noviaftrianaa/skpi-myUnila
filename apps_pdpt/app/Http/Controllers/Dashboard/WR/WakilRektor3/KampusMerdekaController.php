@@ -29,7 +29,7 @@ class KampusMerdekaController extends Controller
         return view('home.wr.wakil_rektor3.kampus_merdeka.index', [
             'pageName'  =>  'Rekap ' . $this->title . $this->reportName,
             'judul_layout' => 'Kampus Merdeka',
-            'side_active'  => 'wakil_rektor3.kampus_merdeka',
+            'side_active'  => 'kampus_merdeka',
             'info' =>  [
                 'Kampus Merdeka yang ditampilkan berdasarkan Kategori :
                 </br> - Magang/Praktik Kerja,

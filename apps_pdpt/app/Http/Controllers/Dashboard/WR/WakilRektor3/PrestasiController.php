@@ -108,7 +108,9 @@ class PrestasiController extends Controller
         }
         $list_mhs_prestasi = json_encode($fakultas);
 
-        $side_active   = 'home.wr.wakil_rektor3.prestasi';
-        return view('home.wr.wakil_rektor3.prestasi', compact('tahun', 'tahun_pilih', 'side_active', 'jenis_prestasi', 'tingkat_prestasi', 'peringkat', 'iku_prestasi', 'list_mhs_prestasi'));
+        $side_active   = 'prestasi';
+        $judul_layout   = 'Prestasi Mahasiswa';
+
+        return view('home.wr.wakil_rektor3.prestasi', compact('tahun', 'tahun_pilih', 'side_active', 'judul_layout', 'jenis_prestasi', 'tingkat_prestasi', 'peringkat', 'iku_prestasi', 'list_mhs_prestasi'));
     }
 }

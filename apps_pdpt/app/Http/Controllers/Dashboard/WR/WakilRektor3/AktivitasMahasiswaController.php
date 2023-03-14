@@ -29,7 +29,7 @@ class AktivitasMahasiswaController extends Controller
         return view('home.wr.wakil_rektor3.aktivitas_mahasiswa.index', [
             'pageName'  =>  'Rekap ' . $this->title . $this->reportName,
             'judul_layout' => 'Aktivitas Mahasiswa',
-            'side_active'  => 'wakil_rektor3.aktivitas_mahasiswa',
+            'side_active'  => 'aktivitas_mahasiswa',
             'info' =>  [
                 'Aktivitas Mahasiswa yang ditampilkan berdasarkan jenis aktivitas mahasiswa :
                 </br> - Laporan akhir studi,

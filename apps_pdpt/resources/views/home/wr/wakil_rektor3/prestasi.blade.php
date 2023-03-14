@@ -1,4 +1,4 @@
-@extends('template.default')
+@extends('template.default', ['judul_layout'=>$judul_layout,'side_active'=>$side_active])
 @include('__partial.highchart')
 @include('__partial.datatable_yajra')
 
@@ -117,7 +117,7 @@ img {
 @section('content')
     <div class="container">
         <div class="card">
-            <div class="card-header"><h3 class="card-title">Sebaran Tracer Study Tahun <span id="selectYear">{{ $tahun_pilih }}</span></h3></div>
+            <div class="card-header"><h3 class="card-title">Sebaran Mahasiswa Prestasi Tahun <span id="selectYear">{{ $tahun_pilih }}</span></h3></div>
             <div class="card-body">
 
                 <div class="row mb-5">
@@ -289,7 +289,7 @@ img {
                 drill = 1;
                 ReloadMhsPrestasiBarChart(y_title, x_data_yes, x_data_no);
                 $("#navChart").html(
-                    `<li class="breadcrumb-item font-weight-bold"><a data-nextlevel="Fakultas">Respon Rate Fakultas</a></li>`
+                    `<li class="breadcrumb-item font-weight-bold"><a data-nextlevel="Fakultas">Mahasiswa Prestasi Fakultas</a></li>`
                     );
             }
 
@@ -347,7 +347,7 @@ img {
                         categories: y_title,
                     },
                     legend: {
-                        reversed: true
+                        reversed: false
                     },
                     plotOptions: {
                         series: {
