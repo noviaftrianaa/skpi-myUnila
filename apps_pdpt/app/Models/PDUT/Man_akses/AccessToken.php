@@ -11,6 +11,13 @@ class AccessToken extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $fillable = [
-	'id_token',	'waktu_create',	'waktu_expired',	'keterangan',	'token_value',	'is_seq_uri',	'is_reg_user',	'base_url',
+	'id_token',
+	'waktu_create',
+	'waktu_expired',
+	'keterangan',
+	'token_value',
+	'is_seq_uri',
+	'is_reg_user',
+	'base_url',
     ];
 }
