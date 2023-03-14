@@ -9,6 +9,9 @@ use App\Http\Controllers\Auth\{
 use App\Http\Controllers\AkreditasController;
 use App\Http\Controllers\Dashboard\WR\WakilRektor3\AktivitasMahasiswaController;
 use App\Http\Controllers\Dashboard\WR\WakilRektor3\TracerStudyController;
+use App\Http\Controllers\Dashboard\WR\WakilRektor3\KampusMerdekaController;
+use App\Http\Controllers\Dashboard\WR\WakilRektor3\ProfilMahasiswaController;
+use App\Http\Controllers\Dashboard\WR\WakilRektor3\PrestasiController;
 use App\Http\Controllers\Dashboard\WR\WakilRektor4\KerjasamaController;
 use App\Http\Controllers\Dashboard\WR\WakilRektor4\PengelolaanTikController;
 use App\Http\Controllers\ListDaftarDosenController;
@@ -189,8 +192,13 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/aktivitas_mahasiswa',  [AktivitasMahasiswaController::class, 'chart'])->name('aktivitas_mahasiswa.chart');
     Route::get('/aktivitas_mahasiswa/load',  [AktivitasMahasiswaController::class, 'load'])->name('aktivitas_mahasiswa.load');
     Route::post('/aktivitas_mahasiswa/reload',  [AktivitasMahasiswaController::class, 'reload'])->name('aktivitas_mahasiswa.reload');
-    Route::get('/mahasiswa/profil/{id}',  [AktivitasMahasiswaController::class, 'mahasiswa_profil'])->name('mahasiswa.profil');
+    Route::get('/mahasiswa/profil/{id}',  [ProfilMahasiswaController::class, 'index'])->name('mahasiswa.profil');
+    Route::get('/kampus_merdeka',  [KampusMerdekaController::class, 'index'])->name('kampus_merdeka');
+    Route::post('/kampus_merdeka',  [KampusMerdekaController::class, 'chart'])->name('kampus_merdeka.chart');
+    Route::get('/kampus_merdeka/load',  [KampusMerdekaController::class, 'load'])->name('kampus_merdeka.load');
+    Route::post('/kampus_merdeka/reload',  [KampusMerdekaController::class, 'reload'])->name('kampus_merdeka.reload');
     Route::get('/tracer_study',  [TracerStudyController::class, 'alumni'])->name('tracer_study');
+    Route::get('/prestasi',  [PrestasiController::class, 'prestasi'])->name('prestasi');
     /** End Dashboard Wakil Rektor III */
 
     /** Dashboard Wakil Rektor IV */

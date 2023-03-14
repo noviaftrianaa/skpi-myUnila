@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
-class AktivitasMahasiswaController extends Controller
+class KampusMerdekaController extends Controller
 {
-    private $reportName = 'Aktivitas Mahasiswa';
+    private $reportName = 'Kampus Merdeka';
     private $title = '';
     protected $basepath;
     protected $sp;
@@ -26,22 +26,12 @@ class AktivitasMahasiswaController extends Controller
 
     public function index()
     {
-        return view('home.wr.wakil_rektor3.aktivitas_mahasiswa.index', [
+        return view('home.wr.wakil_rektor3.kampus_merdeka.index', [
             'pageName'  =>  'Rekap ' . $this->title . $this->reportName,
-            'judul_layout' => 'Aktivitas Mahasiswa',
-            'side_active'  => 'wakil_rektor3.aktivitas_mahasiswa',
+            'judul_layout' => 'Kampus Merdeka',
+            'side_active'  => 'wakil_rektor3.kampus_merdeka',
             'info' =>  [
-                'Aktivitas Mahasiswa yang ditampilkan berdasarkan jenis aktivitas mahasiswa :
-                </br> - Laporan akhir studi,
-                </br> - Tugas akhir,
-                </br> - Tesis,
-                </br> - Disertasi,
-                </br> - Kuliah kerja nyata,
-                </br> - Kerja praktek/PKL,
-                </br> - Bimbingan akademis,
-                </br> - Aktivitas kemahasiswaan,
-                </br> - Program kreativitas mahasiswa,
-                </br> - Kompetisi,
+                'Kampus Merdeka yang ditampilkan berdasarkan Kategori :
                 </br> - Magang/Praktik Kerja,
                 </br> - Asistensi Mengajar di Satuan Pendidikan,
                 </br> - Penelitian/Riset,
@@ -50,8 +40,7 @@ class AktivitasMahasiswaController extends Controller
                 </br> - Studi/Proyek Independen,
                 </br> - Membangun Desa/Kuliah Kerja Nyata Tematik,
                 </br> - Bela Negara,
-                </br> - Pertukaran Pelajar,
-                </br> - Skripsi dan Kegiatan Penelitian Reguler',
+                </br> - Pertukaran Pelajar'
             ],
         ]);
     }
@@ -109,6 +98,7 @@ class AktivitasMahasiswaController extends Controller
                     ref.jenis_akt_mhs WITH (NOLOCK)
                 WHERE
                     expired_date IS NULL
+                    AND id_jns_akt_mhs IN (13, 14, 15, 16, 17, 18, 19, 20, 21)
              " . $where);
 
             /**
@@ -161,7 +151,8 @@ class AktivitasMahasiswaController extends Controller
         ";
 
         /** WHERE params */
-        $query_where    = " WHERE ang.soft_delete = 0 ";
+        $query_where    = " WHERE ang.soft_delete = 0
+                            AND akt.id_jns_akt_mhs IN (13, 14, 15, 16, 17, 18, 19, 20, 21) ";
 
         /** GROUP BY */
         $query_group    = " GROUP BY jns_akt.id_jns_akt_mhs, smt.id_thn_ajaran ";
@@ -226,7 +217,7 @@ class AktivitasMahasiswaController extends Controller
         $chartData[$currentYear]    = [];
 
         /** Eksekusi Query */
-        /** Jika Request Tabel Daftar Aktivitas Mahasiswa */
+        /** Jika Request Tabel Daftar Kampus Merdeka */
         if ($requestType == 'table') {
             $query_select = "
             SELECT
@@ -241,7 +232,7 @@ class AktivitasMahasiswaController extends Controller
 
             $currentCategory = $selectedPointID;
 
-            /** Jika Kategori terplih adalah Aktivitas Mahasiswa, maka tampilkan aktivitas NULL */
+            /** Jika Kategori terplih adalah Kampus Merdeka, maka tampilkan aktivitas NULL */
             if ($currentLevel == 'Perguruan Tinggi') {
                 $query_where .= " AND jns_akt.id_jns_akt_mhs='" . $currentCategory . "' ";
             } elseif ($currentLevel != 'Perguruan Tinggi') {
@@ -423,7 +414,7 @@ class AktivitasMahasiswaController extends Controller
     public function load()
     {
         $fileLocation   = 'Sdid/Back/Report/';
-        $filename       = sha1('AktivitasMahasiswaWR3');
+        $filename       = sha1('KampusMerdekaWR3');
         $file           = Storage::disk('local')->exists($fileLocation . $filename);
 
         if ($file) {
@@ -446,7 +437,7 @@ class AktivitasMahasiswaController extends Controller
     public function reload(Request $request)
     {
         $fileLocation               = 'Sdid/Back/Report/';
-        $filename                   = sha1('AktivitasMahasiswaWR3');
+        $filename                   = sha1('KampusMerdekaWR3');
         $tahun                      = get_tahun_keaktifan();
         $request->level             = 'Perguruan Tinggi';
         $request->year              = $tahun;
@@ -468,5 +459,4 @@ class AktivitasMahasiswaController extends Controller
         Storage::disk('local')->put($fileLocation . $filename, Crypt::encrypt(json_encode($result, JSON_PRETTY_PRINT)));
         return redirect()->back();
     }
-
 }

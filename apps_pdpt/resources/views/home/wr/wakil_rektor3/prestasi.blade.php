@@ -122,28 +122,23 @@ img {
 
                 <div class="row mb-5">
                     <div class="col">
-                        <div id="ReloadResponRateBarChart"></div>
+                        <div id="ReloadMhsPrestasiBarChart"></div>
                     </div>
                 </div>
                 <div class="row mb-5">
                     <div class="col-sm-6">
-                        <div id="alumni_rasio_jk"></div>
+                        <div id="rasio_jenis_prestasi"></div>
                     </div>
                     <div class="col-sm-6">
-                        <div id="alumni_rasio_pendidikan"></div>
+                        <div id="rasio_tingkat_prestasi"></div>
                     </div>
                 </div>
                 <div class="row mb-5">
                     <div class="col-sm-6">
-                        <div id="rasio_status_lulusan"></div>
+                        <div id="rasio_iku_prestasi"></div>
                     </div>
                     <div class="col-sm-6">
-                        <div id="rasio_tingkat_perusahaan"></div>
-                    </div>
-                </div>
-                <div class="row mb-5">
-                    <div class="col-sm-12">
-                        <div id="rasio_bidang_kerja"></div>
+                        <div id="rasio_peringkat"></div>
                     </div>
                 </div>
             </div>
@@ -203,7 +198,7 @@ img {
 
 @push('js')
     <script>
-        var respon_rate = [];
+        var list_mhs_prestasi = [];
         var drill = 1;
         var x_total_data = 0;
         var x_total_data_yes = 0;
@@ -226,63 +221,52 @@ img {
             $("#x_tb_03").hide();
             $("#x_tb_04").hide();
             $("#x_tb_05").hide();
-            ResponRateFakultas();
+            MhsPrestasiFakultas();
 
-            var alumni_jk = '{!! $alumni_jk !!}';
-            var data_alumni_jk = [];
-            var kategori_alumni_jk = [];
-            $.each(JSON.parse(alumni_jk),function (i, k) {
-                data_alumni_jk.push([
+            var jenis_prestasi = '{!! $jenis_prestasi !!}';
+            var data_jenis_prestasi = [];
+            var kategori_jenis_prestasi = [];
+            $.each(JSON.parse(jenis_prestasi),function (i, k) {
+                data_jenis_prestasi.push([
                     i, parseInt(k)
                 ]);
-                kategori_alumni_jk.push(i);
+                kategori_jenis_prestasi.push(i);
             });
 
-            var alumni_pendidikan = '{!! $alumni_pendidikan !!}';
-            var data_alumni_pendidikan = [];
-            var kategori_alumni_pendidikan = [];
-            $.each(JSON.parse(alumni_pendidikan),function (i, k) {
-                data_alumni_pendidikan.push([
+            var peringkat = '{!! $peringkat !!}';
+            var data_peringkat = [];
+            var kategori_peringkat = [];
+            $.each(JSON.parse(peringkat),function (i, k) {
+                data_peringkat.push([
                     i, parseInt(k)
                 ]);
-                kategori_alumni_pendidikan.push(i);
+                kategori_peringkat.push(i);
             });
 
-            var status_lulusan = '{!! $status_lulusan !!}';
-            var data_status_lulusan = [];
-            var kategori_status_lulusan = [];
-            $.each(JSON.parse(status_lulusan),function (i, k) {
-                data_status_lulusan.push([
+            var iku_prestasi = '{!! $iku_prestasi !!}';
+            var data_iku_prestasi = [];
+            var kategori_iku_prestasi = [];
+            $.each(JSON.parse(iku_prestasi),function (i, k) {
+                data_iku_prestasi.push([
                     i, parseInt(k)
                 ]);
-                kategori_status_lulusan.push(i);
+                kategori_iku_prestasi.push(i);
             });
 
-            var tingkat_perusahaan = '{!! $tingkat_perusahaan !!}';
-            var data_tingkat_perusahaan = [];
-            var kategori_tingkat_perusahaan = [];
-            $.each(JSON.parse(tingkat_perusahaan),function (i, k) {
-                data_tingkat_perusahaan.push([
+            var tingkat_prestasi = '{!! $tingkat_prestasi !!}';
+            var data_tingkat_prestasi = [];
+            var kategori_tingkat_prestasi = [];
+            $.each(JSON.parse(tingkat_prestasi),function (i, k) {
+                data_tingkat_prestasi.push([
                     i, parseInt(k)
                 ]);
-                kategori_tingkat_perusahaan.push(i);
-            });
-
-            var bidang_kerja = '{!! $bidang_kerja !!}';
-            var data_bidang_kerja = [];
-            var kategori_bidang_kerja = [];
-            $.each(JSON.parse(bidang_kerja),function (i, k) {
-                data_bidang_kerja.push([
-                    i, parseInt(k)
-                ]);
-                kategori_bidang_kerja.push(i);
+                kategori_tingkat_prestasi.push(i);
             });
 
 
-
-            function ResponRateFakultas() {
-                var res = '{!! $respon_rate !!}';
-                var respon_rate = JSON.parse(res);
+            function MhsPrestasiFakultas() {
+                var res = '{!! $list_mhs_prestasi !!}';
+                var list_mhs_prestasi = JSON.parse(res);
 
                 var y_id = [];
                 var y_title = [];
@@ -292,7 +276,7 @@ img {
                 x_total_data = 0;
                 x_total_data_yes = 0;
                 x_total_data_no = 0;
-                $.each(respon_rate, function(index, value) {
+                $.each(list_mhs_prestasi, function(index, value) {
                     y_id.push(value.DATA.y_id);
                     y_title.push(value.DATA.y_title);
                     x_data_yes.push(value.DATA.x_data_yes);
@@ -303,15 +287,15 @@ img {
                 });
 
                 drill = 1;
-                ReloadResponRateBarChart(y_title, x_data_yes, x_data_no);
+                ReloadMhsPrestasiBarChart(y_title, x_data_yes, x_data_no);
                 $("#navChart").html(
                     `<li class="breadcrumb-item font-weight-bold"><a data-nextlevel="Fakultas">Respon Rate Fakultas</a></li>`
                     );
             }
 
-            function ResponRateProdi(fak) {
-                var res = '{!! $respon_rate !!}';
-                var respon_rate = JSON.parse(res);
+            function MhsPrestasiProdi(fak) {
+                var res = '{!! $list_mhs_prestasi !!}';
+                var list_mhs_prestasi = JSON.parse(res);
 
                 var y_id = [];
                 var y_title = [];
@@ -321,7 +305,7 @@ img {
                 x_total_data = 0;
                 x_total_data_yes = 0;
                 x_total_data_no = 0;
-                $.each(respon_rate[fak]['DRILL'], function(index, value) {
+                $.each(list_mhs_prestasi[fak]['DRILL'], function(index, value) {
                     y_id.push(value.DATA.y_id);
                     y_title.push(value.DATA.y_title);
                     x_data_yes.push(value.DATA.x_data_yes);
@@ -331,24 +315,26 @@ img {
                     x_total_data_no += value.DATA.x_data_no;
                 });
                 drill = 2;
-                ReloadResponRateBarChart(y_title, x_data_yes, x_data_no, fak);
+                ReloadMhsPrestasiBarChart(y_title, x_data_yes, x_data_no, fak);
                 $("#navChart").html(
-                    '<li class="breadcrumb-item font-weight-bold active" aria-current="page"><a href="javascript:location.reload();">Respon Rate Fakultas</a> / Program Studi</li>'
+                    '<li class="breadcrumb-item font-weight-bold active" aria-current="page"><a href="javascript:location.reload();">Mahasiswa Prestasi Fakultas</a> / Program Studi</li>'
                 );
             }
 
-            reloadPieChart('alumni_rasio_jk','Sebaran alumni berdasarkan Jenis Kelamin',data_alumni_jk);
-            reloadPieChart('alumni_rasio_pendidikan','Sebaran alumni berdasarkan Pendidikan',data_alumni_pendidikan);
-            reloadPieChart('rasio_status_lulusan','Sebaran Tracer berdasarkan Status Lulusan',data_status_lulusan);
-            reloadColumnChart('rasio_tingkat_perusahaan','Sebaran Tracer berdasarkan Tingkat Perusahaan',data_tingkat_perusahaan, kategori_tingkat_perusahaan);
-            reloadBarChart('rasio_bidang_kerja','Sebaran Tracer berdasarkan Bidang Pekerjaan', data_bidang_kerja, kategori_bidang_kerja);
+            reloadPieChart('rasio_jenis_prestasi','Sebaran prestasi berdasarkan Jenis Prestasi',data_jenis_prestasi);
+            reloadPieChart('rasio_tingkat_prestasi','Sebaran prestasi berdasarkan Tingkat Prestasi',data_tingkat_prestasi);
+            reloadPieChart('rasio_iku_prestasi','Sebaran prestasi berdasarkan IKU 2',data_tingkat_prestasi);
+            reloadColumnChart('rasio_peringkat','Sebaran prestasi berdasarkan Peringkat Prestasi',data_peringkat, kategori_peringkat);
 
             $("#selectYear").change(function() {
                 loading(id_wil,nm_wil,false,kualifikasi);
             });
 
-            function ReloadResponRateBarChart(y_title, x_data_yes, x_data_no, fak = null) {
-                var chart = Highcharts.chart('ReloadResponRateBarChart', {
+            function ReloadMhsPrestasiBarChart(y_title, x_data_yes, x_data_no, fak = null) {
+                Highcharts.setOptions({
+                    colors: ['#3498DB', '#34495E', '#F1C40F', '#E67E22', '#E74C3C', '#4DB1F4', '#95A5A6', '#1ABC9C', '#2ECC71', '#9B59B6', '#C0392B', '#F39C12', '#16A085', '#2980B9', '#2C3E50']
+                });
+                var chart = Highcharts.chart('ReloadMhsPrestasiBarChart', {
                     chart: {
                         type: 'bar',
                         height: 700,
@@ -360,29 +346,19 @@ img {
                     xAxis: {
                         categories: y_title,
                     },
-                    yAxis: {
-                        min: 0,
-                        title: {
-                            text: 'Alumni'
-                        },
-                    },
                     legend: {
                         reversed: true
                     },
                     plotOptions: {
                         series: {
-                            stacking: 'percent',
-                            dataLabels: {
-                                enabled: true
-                            },
                             cursor: 'pointer',
                             point: {
                                 events: {
                                     click: function(event) {
                                         if (drill == 1) {
-                                            ResponRateProdi(event.point.category);
+                                            MhsPrestasiProdi(event.point.category);
                                         } else {
-                                            let id_prodi = respon_rate[fak]['DRILL'][event.point.category]['DATA'][
+                                            let id_prodi = list_mhs_prestasi[fak]['DRILL'][event.point.category]['DATA'][
                                                 'y_id'
                                             ];
                                             $("#txt1_modal").html(
@@ -401,13 +377,9 @@ img {
                         }
                     },
                     series: [{
-                        name: 'Belum Mengisi',
-                        data: x_data_no,
-                        color: '#FF973B'
-                    }, {
-                        name: 'Sudah Mengisi',
+                        name: 'Total Prestasi',
                         data: x_data_yes,
-                        color: '#4D6277'
+                        colorByPoint: true
                     }],
                     credits: {
                         enabled: false
@@ -538,59 +510,6 @@ img {
                     }
                 });
             }
-
-            function reloadBarChart(target, title, data, kategori) {
-                Highcharts.setOptions({
-                    colors: ['#3498DB', '#34495E', '#F1C40F', '#E67E22', '#E74C3C', '#4DB1F4', '#95A5A6', '#1ABC9C', '#2ECC71', '#9B59B6', '#C0392B', '#F39C12', '#16A085', '#2980B9', '#2C3E50']
-                });
-
-                chart = new Highcharts.Chart({
-                    chart: {
-                        renderTo: target,
-                        type: 'bar',
-                        options3d: {
-                            enabled: true,
-                            alpha: 45,
-                            beta: 0
-                        },
-                        backgroundColor: 'rgba(0,0,0,0)'
-                    },
-                    title: {
-                        text: title,
-                        style: {
-                            color: "#343A40"
-                        }
-                    },
-                    tooltip: {
-                        formatter: function () {
-                            return '<b>' + this.point.name + '</b><br/>' +
-                                'Jumlah: ' + Highcharts.numberFormat(Math.abs(this.point.y), 0);
-                        }
-                    },
-                    xAxis: {
-                        categories: kategori,
-                    },
-                    yAxis: {
-                        title: {
-                            enabled: false
-                        }
-                    },
-                    plotOptions: {
-                        bar: {
-                            showInLegend: false,
-                        },
-                    },
-                    series: [{
-                        type: 'bar',
-                        colorByPoint: true,
-                        data: data,
-                    }],
-                    credits: {
-                        enabled: false
-                    }
-                });
-            }
-
 
         });
     </script>
