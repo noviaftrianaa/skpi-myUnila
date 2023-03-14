@@ -194,8 +194,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     /** End Dashboard Wakil Rektor III */
 
     /** Dashboard Wakil Rektor IV */
-    Route::get('/dashboard/kerjasama',  [KerjasamaController::class, 'kerjasama'])->name('kerjasama');
-    Route::get('/dashboard/aplikasi',  [PengelolaanTikController::class, 'daftar_aplikasi'])->name('aplikasi');
+    Route::get('/kerjasama',  [KerjasamaController::class, 'index'])->name('kerjasama');
+    Route::get('/kerjasama/detail/{id}', [KerjasamaController::class, 'detail'])->name('kerjasama.detail');
+    Route::get('/aplikasi',  [PengelolaanTikController::class, 'daftar_aplikasi'])->name('aplikasi');
     /** End Dashboard Wakil Rektor IV */
 
 
