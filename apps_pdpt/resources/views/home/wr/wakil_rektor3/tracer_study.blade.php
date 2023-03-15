@@ -1,4 +1,4 @@
-@extends('template.default', ,['judul_layout'=>$judul_layout,'side_active'=>$side_active])
+@extends('template.default', ['judul_layout'=>$judul_layout,'side_active'=>$side_active])
 @include('__partial.highchart')
 @include('__partial.datatable_yajra')
 

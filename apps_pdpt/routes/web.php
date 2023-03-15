@@ -194,14 +194,15 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/aktivitas_mahasiswa/reload',  [AktivitasMahasiswaController::class, 'reload'])->name('aktivitas_mahasiswa.reload');
     Route::get('/mahasiswa/profil/{id}',  [ProfilMahasiswaController::class, 'index'])->name('mahasiswa.profil');
 
-    Route::get('/kampus_merdeka',  [KampusMerdekaController::class, 'index'])->name('kampus_merdeka');
-    Route::post('/kampus_merdeka',  [KampusMerdekaController::class, 'chart'])->name('kampus_merdeka.chart');
-    Route::get('/kampus_merdeka/load',  [KampusMerdekaController::class, 'load'])->name('kampus_merdeka.load');
-    Route::post('/kampus_merdeka/reload',  [KampusMerdekaController::class, 'reload'])->name('kampus_merdeka.reload');
+    Route::prefix('aktivitas_mahasiswa')->name('aktivitas_mahasiswa.')->group(function() {
+        Route::get('/kampus_merdeka',  [KampusMerdekaController::class, 'index'])->name('kampus_merdeka');
+        Route::post('/kampus_merdeka',  [KampusMerdekaController::class, 'chart'])->name('kampus_merdeka.chart');
+        Route::get('/kampus_merdeka/load',  [KampusMerdekaController::class, 'load'])->name('kampus_merdeka.load');
+        Route::post('/kampus_merdeka/reload',  [KampusMerdekaController::class, 'reload'])->name('kampus_merdeka.reload');
+        Route::get('/prestasi',  [PrestasiController::class, 'prestasi'])->name('prestasi');
+    });
     Route::get('/tracer_study',  [TracerStudyController::class, 'alumni'])->name('tracer_study');
-    Route::get('/prestasi',  [PrestasiController::class, 'prestasi'])->name('prestasi');
     /** End Dashboard Wakil Rektor III */
-
 
     /** Dashboard Wakil Rektor IV */
     Route::get('/kerjasama',  [KerjasamaController::class, 'index'])->name('kerjasama');

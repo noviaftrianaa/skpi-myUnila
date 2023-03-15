@@ -103,7 +103,9 @@ class TracerStudyController extends Controller
         $respon_rate = json_encode($fakultas);
 
 
-        $side_active   = 'home.wr.wakil_rektor3.tracer_study';
-        return view('home.wr.wakil_rektor3.tracer_study', compact('tahun', 'tahun_pilih', 'side_active', 'alumni_jk', 'alumni_pendidikan', 'status_lulusan', 'tingkat_perusahaan', 'bidang_kerja', 'respon_rate'));
+        $side_active = 'home.wr.wakil_rektor3.tracer_study';
+        $judul_layout = 'Tracer Study';
+
+        return view('home.wr.wakil_rektor3.tracer_study', compact('tahun', 'tahun_pilih', 'side_active', 'judul_layout', 'alumni_jk', 'alumni_pendidikan', 'status_lulusan', 'tingkat_perusahaan', 'bidang_kerja', 'respon_rate'));
     }
 }
