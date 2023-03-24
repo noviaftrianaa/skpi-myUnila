@@ -1617,7 +1617,7 @@ Shadow=0</a:DisplayPreferences>
 <c:Symbols>
 <o:InheritanceRootLinkSymbol Id="o6">
 <a:ModificationDate>1631515175</a:ModificationDate>
-<a:Rect>((1918,6931), (54102,9322))</a:Rect>
+<a:Rect>((1918,6951), (54102,9322))</a:Rect>
 <a:ListOfPoints>((2318,7607),(53702,8922))</a:ListOfPoints>
 <a:ArrowStyle>1</a:ArrowStyle>
 <a:LineColor>16744576</a:LineColor>
@@ -1674,7 +1674,7 @@ Shadow=0</a:DisplayPreferences>
 </o:InheritanceRootLinkSymbol>
 <o:InheritanceRootLinkSymbol Id="o18">
 <a:ModificationDate>1631515407</a:ModificationDate>
-<a:Rect>((-2451,28569), (4269,32724))</a:Rect>
+<a:Rect>((-2360,28569), (4179,32724))</a:Rect>
 <a:ListOfPoints>((909,28969),(909,32324))</a:ListOfPoints>
 <a:CornerStyle>1</a:CornerStyle>
 <a:ArrowStyle>1</a:ArrowStyle>
@@ -1960,7 +1960,7 @@ DESTINATION 0 Arial,8,N</a:FontList>
 </o:RelationshipSymbol>
 <o:RelationshipSymbol Id="o59">
 <a:ModificationDate>1631515175</a:ModificationDate>
-<a:Rect>((-68827,18616), (-11882,21812))</a:Rect>
+<a:Rect>((-66017,18616), (-11882,21812))</a:Rect>
 <a:ListOfPoints>((-35782,19278),(-12282,19278),(-65617,19278),(-65617,20612),(-14044,20612),(-37544,20612))</a:ListOfPoints>
 <a:CornerStyle>2</a:CornerStyle>
 <a:ArrowStyle>4371</a:ArrowStyle>
@@ -2493,7 +2493,7 @@ DESTINATION 0 Arial,8,N</a:FontList>
 </o:RelationshipSymbol>
 <o:RelationshipSymbol Id="o122">
 <a:ModificationDate>1631515416</a:ModificationDate>
-<a:Rect>((-9769,23659), (-3229,40258))</a:Rect>
+<a:Rect>((-9510,23659), (-5299,40052))</a:Rect>
 <a:ListOfPoints>((-9110,39240),(-6499,39240),(-6499,25059))</a:ListOfPoints>
 <a:CornerStyle>2</a:CornerStyle>
 <a:ArrowStyle>4627</a:ArrowStyle>
@@ -2514,7 +2514,7 @@ DESTINATION 0 Arial,8,N</a:FontList>
 </o:RelationshipSymbol>
 <o:RelationshipSymbol Id="o124">
 <a:ModificationDate>1631515416</a:ModificationDate>
-<a:Rect>((2441,18892), (11845,60430))</a:Rect>
+<a:Rect>((2441,18892), (9125,60430))</a:Rect>
 <a:ListOfPoints>((5468,59618),(8725,59618),(8725,20092),(3841,20092))</a:ListOfPoints>
 <a:CornerStyle>2</a:CornerStyle>
 <a:ArrowStyle>4627</a:ArrowStyle>
@@ -2693,7 +2693,7 @@ DESTINATION 0 Arial,8,N</a:FontList>
 </o:InheritanceLinkSymbol>
 <o:RelationshipSymbol Id="o147">
 <a:ModificationDate>1647223509</a:ModificationDate>
-<a:Rect>((18675,-18103), (31474,21787))</a:Rect>
+<a:Rect>((18675,-18103), (31474,21807))</a:Rect>
 <a:ListOfPoints>((31074,20778),(20925,20778),(20925,-16703))</a:ListOfPoints>
 <a:CornerStyle>2</a:CornerStyle>
 <a:ArrowStyle>4371</a:ArrowStyle>
@@ -45165,7 +45165,7 @@ DESTINATION 0 Arial,8,N</a:FontList>
 </o:RelationshipSymbol>
 <o:RelationshipSymbol Id="o2469">
 <a:ModificationDate>1643600353</a:ModificationDate>
-<a:Rect>((11207,-900), (19258,1031))</a:Rect>
+<a:Rect>((11207,-900), (19258,964))</a:Rect>
 <a:ListOfPoints>((18858,0),(11607,0))</a:ListOfPoints>
 <a:CornerStyle>2</a:CornerStyle>
 <a:ArrowStyle>4631</a:ArrowStyle>
@@ -107321,7 +107321,7 @@ P	perempuan
 <a:TargetModelURL>file:///d|/xampp/htdocs/unila/pdut-unila/data-model/pdut-master-sqlsrv.pdm</a:TargetModelURL>
 <a:TargetModelID>2AFCDD32-B36F-4156-810C-896B6143B5CB</a:TargetModelID>
 <a:TargetModelClassID>CDE44E21-9669-11D1-9914-006097355D9B</a:TargetModelClassID>
-<a:TargetModelLastModificationDate>1678894581</a:TargetModelLastModificationDate>
+<a:TargetModelLastModificationDate>1679023758</a:TargetModelLastModificationDate>
 <c:SessionShortcuts>
 <o:Shortcut Ref="o4"/>
 </c:SessionShortcuts>

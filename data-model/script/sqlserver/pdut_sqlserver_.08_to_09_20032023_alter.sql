@@ -1,6 +1,6 @@
 /*==============================================================*/
 /* DBMS name:      Microsoft SQL Server 2014                    */
-/* Created on:     15/03/2023 22:37:50                          */
+/* Created on:     20/03/2023 21:22:35                          */
 /*==============================================================*/
 
 
@@ -559,6 +559,41 @@ go
 
 if exists (select 1
    from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('mbkm.ekuiv_transfer') and o.name = 'fk_ekuiv_tr_akt_mhs_e_akt_mhs')
+alter table mbkm.ekuiv_transfer
+   drop constraint fk_ekuiv_tr_akt_mhs_e_akt_mhs
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('mbkm.ekuiv_transfer') and o.name = 'fk_ekuiv_tr_mk_ekuiv__matkul')
+alter table mbkm.ekuiv_transfer
+   drop constraint fk_ekuiv_tr_mk_ekuiv__matkul
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('mbkm.ekuiv_transfer') and o.name = 'fk_ekuiv_tr_reg_pd_ek_reg_pd')
+alter table mbkm.ekuiv_transfer
+   drop constraint fk_ekuiv_tr_reg_pd_ek_reg_pd
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('mbkm.ekuiv_transfer') and o.name = 'fk_ekuiv_tr_smt_ekuiv_semester')
+alter table mbkm.ekuiv_transfer
+   drop constraint fk_ekuiv_tr_smt_ekuiv_semester
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('mbkm.ekuiv_transfer') and o.name = 'fk_ekuiv_tr_sp_ekuiv__satuan_p')
+alter table mbkm.ekuiv_transfer
+   drop constraint fk_ekuiv_tr_sp_ekuiv__satuan_p
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
    where r.fkeyid = object_id('dok.foto_peserta_didik') and o.name = 'fk_foto_pes_pemilik_f_peserta_')
 alter table dok.foto_peserta_didik
    drop constraint fk_foto_pes_pemilik_f_peserta_
@@ -1056,6 +1091,41 @@ go
 
 if exists (select 1
    from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('pdrd.nilai_transkrip') and o.name = 'fk_nilai_tr_kelas_tra_kelas_ku')
+alter table pdrd.nilai_transkrip
+   drop constraint fk_nilai_tr_kelas_tra_kelas_ku
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('pdrd.nilai_transkrip') and o.name = 'fk_nilai_tr_mk_nilai__matkul')
+alter table pdrd.nilai_transkrip
+   drop constraint fk_nilai_tr_mk_nilai__matkul
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('pdrd.nilai_transkrip') and o.name = 'fk_nilai_tr_nilai_eku_ekuiv_tr')
+alter table pdrd.nilai_transkrip
+   drop constraint fk_nilai_tr_nilai_eku_ekuiv_tr
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('pdrd.nilai_transkrip') and o.name = 'fk_nilai_tr_nilai_kon_konversi')
+alter table pdrd.nilai_transkrip
+   drop constraint fk_nilai_tr_nilai_kon_konversi
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('pdrd.nilai_transkrip') and o.name = 'fk_nilai_tr_reg_pd_tr_reg_pd')
+alter table pdrd.nilai_transkrip
+   drop constraint fk_nilai_tr_reg_pd_tr_reg_pd
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
    where r.fkeyid = object_id('pdrd.non_ca') and o.name = 'fk_non_ca_kewargane_negara')
 alter table pdrd.non_ca
    drop constraint fk_non_ca_kewargane_negara
@@ -1448,9 +1518,16 @@ go
 
 if exists (select 1
    from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
-   where r.fkeyid = object_id('pdrd.re_mk') and o.name = 'fk_re_mk_basis_eva_basis_ev')
+   where r.fkeyid = object_id('pdrd.re_mk') and o.name = 'fk_re_mk_jns_evalu_jenis_ev')
 alter table pdrd.re_mk
-   drop constraint fk_re_mk_basis_eva_basis_ev
+   drop constraint fk_re_mk_jns_evalu_jenis_ev
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('pdrd.re_mk') and o.name = 'fk_re_mk_mk_re_mk_matkul')
+alter table pdrd.re_mk
+   drop constraint fk_re_mk_mk_re_mk_matkul
 go
 
 if exists (select 1
@@ -1563,6 +1640,13 @@ if exists (select 1
    where r.fkeyid = object_id('pdrd.reg_ptk') and o.name = 'fk_reg_ptk_statpeg_p_status_k')
 alter table pdrd.reg_ptk
    drop constraint fk_reg_ptk_statpeg_p_status_k
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('pdrd.rencana_ajar') and o.name = 'fk_rencana__rencana_m_matkul')
+alter table pdrd.rencana_ajar
+   drop constraint fk_rencana__rencana_m_matkul
 go
 
 if exists (select 1
@@ -2529,6 +2613,24 @@ go
 execute sp_rename 'pdrd.diklat', tmp_diklat
 go
 
+alter table mbkm.ekuiv_transfer
+   drop constraint pk_ekuiv_transfer
+go
+
+alter table mbkm.ekuiv_transfer
+   drop constraint ckc_soft_delete_ekuiv_tr
+go
+
+if exists (select 1
+            from  sysobjects
+           where  id = object_id('mbkm.tmp_ekuiv_transfer')
+            and   type = 'U')
+   drop table mbkm.tmp_ekuiv_transfer
+go
+
+execute sp_rename 'mbkm.ekuiv_transfer', tmp_ekuiv_transfer
+go
+
 alter table ref.fungsi_lab
    drop constraint pk_fungsi_lab
 go
@@ -3492,13 +3594,6 @@ go
 execute sp_rename 'dashboard.kontrak_iku_pt', tmp_kontrak_iku_pt
 go
 
-if exists (select 1
-            from  sysobjects
-           where  id = object_id('mbkm.konversi_kampus_merdeka')
-            and   type = 'U')
-   drop table mbkm.konversi_kampus_merdeka
-go
-
 alter table ref.kriteria_mitra
    drop constraint pk_kriteria_mitra
 go
@@ -3652,6 +3747,20 @@ go
 execute sp_rename 'pdrd.nilai_tes', tmp_nilai_tes
 go
 
+alter table pdrd.nilai_transkrip
+   drop constraint ckc_soft_delete_nilai_tr
+go
+
+if exists (select 1
+            from  sysobjects
+           where  id = object_id('pdrd.tmp_nilai_transkrip')
+            and   type = 'U')
+   drop table pdrd.tmp_nilai_transkrip
+go
+
+execute sp_rename 'pdrd.nilai_transkrip', tmp_nilai_transkrip
+go
+
 alter table ref.pangkat_golongan
    drop constraint pk_pangkat_golongan
 go
@@ -3799,7 +3908,28 @@ execute sp_rename 'ref.peta_katgiat_jnspub', tmp_peta_katgiat_jnspub
 go
 
 alter table pdrd.re_mk
-   drop column id_basis_evaluasi
+   drop constraint pk_re_mk
+go
+
+alter table pdrd.re_mk 
+   drop constraint ckc_komponen_evaluasi_re_mk
+go
+alter table pdrd.re_mk 
+   drop constraint ckc_bobot_evaluasi_re_mk
+go
+
+alter table pdrd.re_mk
+   drop constraint ckc_soft_delete_re_mk
+go
+
+if exists (select 1
+            from  sysobjects
+           where  id = object_id('pdrd.tmp_re_mk')
+            and   type = 'U')
+   drop table pdrd.tmp_re_mk
+go
+
+execute sp_rename 'pdrd.re_mk', tmp_re_mk
 go
 
 alter table pdrd.reg_ptk
@@ -3818,6 +3948,24 @@ if exists (select 1
 go
 
 execute sp_rename 'pdrd.reg_ptk', tmp_reg_ptk
+go
+
+alter table pdrd.rencana_ajar
+   drop constraint pk_rencana_ajar
+go
+
+alter table pdrd.rencana_ajar
+   drop constraint ckc_soft_delete_rencana_
+go
+
+if exists (select 1
+            from  sysobjects
+           where  id = object_id('pdrd.tmp_rencana_ajar')
+            and   type = 'U')
+   drop table pdrd.tmp_rencana_ajar
+go
+
+execute sp_rename 'pdrd.rencana_ajar', tmp_rencana_ajar
 go
 
 alter table ref.satuan
@@ -4878,6 +5026,46 @@ if exists (select 1
            where  id = object_id('pdrd.tmp_diklat')
             and   type = 'U')
    drop table pdrd.tmp_diklat
+go
+
+/*==============================================================*/
+/* Table: ekuiv_transfer                                        */
+/*==============================================================*/
+create table mbkm.ekuiv_transfer (
+   id_ekuivalensi       uniqueidentifier     not null,
+   id_akt_mhs           uniqueidentifier     null,
+   id_mk                uniqueidentifier     not null,
+   id_smt               char(5)              null,
+   id_reg_pd            uniqueidentifier     not null,
+   kode_mk_asal         varchar(20)          not null,
+   nm_mk_asal           varchar(200)         not null,
+   sks_asal             numeric(5,2)         not null,
+   sks_diakui           numeric(3)           not null,
+   nilai_huruf_asal     char(3)              not null,
+   nilai_huruf_diakui   char(3)              not null,
+   nilai_angka_diakui   numeric(4,1)         not null,
+   id_sp                uniqueidentifier     null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_ekuiv_tr check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
+   constraint pk_ekuiv_transfer primary key (id_ekuivalensi)
+)
+go
+
+insert into mbkm.ekuiv_transfer (id_ekuivalensi, id_akt_mhs, id_mk, id_smt, id_reg_pd, kode_mk_asal, nm_mk_asal, sks_asal, sks_diakui, nilai_huruf_asal, nilai_huruf_diakui, nilai_angka_diakui, id_sp, create_date, id_creator, last_update, id_updater, soft_delete, last_sync)
+select id_ekuivalensi, id_akt_mhs, id_mk, id_smt, id_reg_pd, kode_mk_asal, nm_mk_asal, sks_asal, sks_diakui, nilai_huruf_asal, nilai_huruf_diakui, nilai_angka_diakui, id_sp, create_date, id_creator, last_update, id_updater, soft_delete, last_sync
+from mbkm.tmp_ekuiv_transfer
+go
+
+if exists (select 1
+            from  sysobjects
+           where  id = object_id('mbkm.tmp_ekuiv_transfer')
+            and   type = 'U')
+   drop table mbkm.tmp_ekuiv_transfer
 go
 
 /*==============================================================*/
@@ -6488,6 +6676,10 @@ if exists (select 1
    drop table dashboard.tmp_kontrak_iku_pt
 go
 
+alter table mbkm.konversi_kampus_merdeka 
+   drop constraint ckc_soft_delete_konversi
+go
+
 /*==============================================================*/
 /* Table: konversi_akt_mhs                                      */
 /*==============================================================*/
@@ -6511,6 +6703,11 @@ create table mbkm.konversi_akt_mhs (
    last_sync            datetime             not null,
    constraint pk_konversi_akt_mhs primary key (id_konversi_aktivitas)
 )
+go
+
+insert into mbkm.konversi_akt_mhs (id_konversi_aktivitas, id_mk, id_ang_akt_mhs, id_smt, id_akt_mhs, id_daftar_kampus_merdeka, nilai_angka, nilai_huruf, nilai_indeks, sks_mk, create_date, id_creator, last_update, id_updater, soft_delete, last_sync)
+select id_konversi_aktivitas, id_mk, id_ang_akt_mhs, null, id_akt_mhs, id_daftar_kampus_merdeka, nilai_angka, nilai_huruf, nilai_indeks, sks_mk, create_date, id_creator, last_update, id_updater, soft_delete, last_sync
+from mbkm.konversi_kampus_merdeka
 go
 
 /*==============================================================*/
@@ -6833,6 +7030,43 @@ if exists (select 1
            where  id = object_id('pdrd.tmp_nilai_tes')
             and   type = 'U')
    drop table pdrd.tmp_nilai_tes
+go
+
+/*==============================================================*/
+/* Table: nilai_transkrip                                       */
+/*==============================================================*/
+create table pdrd.nilai_transkrip (
+   id_reg_pd            uniqueidentifier     not null,
+   id_mk                uniqueidentifier     not null,
+   id_kls               uniqueidentifier     null,
+   id_konversi_aktivitas uniqueidentifier     null,
+   id_ekuivalensi       uniqueidentifier     null,
+   nilai_angka          numeric(4,1)         null,
+   nilai_huruf          char(3)              null,
+   nilai_indeks         numeric(4,2)         null,
+   smt_ke               numeric(2)           not null,
+   sks_mk               numeric(5,2)         not null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_nilai_tr check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
+   --constraint pk_nilai_transkrip primary key (id_reg_pd, id_mk, id_kls)
+)
+go
+
+insert into pdrd.nilai_transkrip (id_reg_pd, id_mk, id_kls, id_konversi_aktivitas, id_ekuivalensi, nilai_angka, nilai_huruf, nilai_indeks, smt_ke, sks_mk, create_date, id_creator, last_update, id_updater, soft_delete, last_sync)
+select id_reg_pd, id_mk, id_kls, id_konversi_aktivitas, id_ekuivalensi, nilai_angka, nilai_huruf, nilai_indeks, smt_ke, sks_mk, create_date, id_creator, last_update, id_updater, soft_delete, last_sync
+from pdrd.tmp_nilai_transkrip
+go
+
+if exists (select 1
+            from  sysobjects
+           where  id = object_id('pdrd.tmp_nilai_transkrip')
+            and   type = 'U')
+   drop table pdrd.tmp_nilai_transkrip
 go
 
 /*==============================================================*/
@@ -7162,6 +7396,43 @@ if exists (select 1
 go
 
 /*==============================================================*/
+/* Table: re_mk                                                 */
+/*==============================================================*/
+create table pdrd.re_mk (
+   id_re_mk             uniqueidentifier     not null,
+   id_jns_eval          smallint             not null,
+   id_mk                uniqueidentifier     not null,
+   no_urut              int                  null,
+   komponen_evaluasi    char(3)              null 
+      constraint ckc_komponen_evaluasi_re_mk check (komponen_evaluasi is null or (komponen_evaluasi in ('TGS','QIZ','UTS','UAS'))),
+   desk_indo            varchar(1000)        not null,
+   desk_ing             varchar(1000)        null,
+   bobot_evaluasi       numeric(7,4)         null 
+      constraint ckc_bobot_evaluasi_re_mk check (bobot_evaluasi is null or (bobot_evaluasi between 0 and 100)),
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_re_mk check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
+   constraint pk_re_mk primary key nonclustered (id_re_mk)
+)
+go
+
+insert into pdrd.re_mk (id_re_mk, id_jns_eval, id_mk, no_urut, komponen_evaluasi, desk_indo, desk_ing, bobot_evaluasi, create_date, id_creator, last_update, id_updater, soft_delete, last_sync)
+select id_re_mk, id_jns_eval, id_mk, no_urut, komponen_evaluasi, desk_indo, desk_ing, bobot_evaluasi, create_date, id_creator, last_update, id_updater, soft_delete, last_sync
+from pdrd.tmp_re_mk
+go
+
+if exists (select 1
+            from  sysobjects
+           where  id = object_id('pdrd.tmp_re_mk')
+            and   type = 'U')
+   drop table pdrd.tmp_re_mk
+go
+
+/*==============================================================*/
 /* Table: reg_ptk                                               */
 /*==============================================================*/
 create table pdrd.reg_ptk (
@@ -7199,6 +7470,39 @@ if exists (select 1
            where  id = object_id('pdrd.tmp_reg_ptk')
             and   type = 'U')
    drop table pdrd.tmp_reg_ptk
+go
+
+/*==============================================================*/
+/* Table: rencana_ajar                                          */
+/*==============================================================*/
+create table pdrd.rencana_ajar (
+   id_renc_ajar         uniqueidentifier     not null,
+   id_mk                uniqueidentifier     not null,
+   no_urut              int                  null,
+   pertemuan            numeric(2)           not null,
+   materi_indonesia     varchar(1000)        null,
+   materi_inggris       varchar(1000)        null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_rencana_ check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
+   constraint pk_rencana_ajar primary key (id_renc_ajar)
+)
+go
+
+insert into pdrd.rencana_ajar (id_renc_ajar, id_mk, no_urut, pertemuan, materi_indonesia, materi_inggris, create_date, id_creator, last_update, id_updater, soft_delete, last_sync)
+select id_renc_ajar, id_mk, no_urut, pertemuan, materi_indonesia, materi_inggris, create_date, id_creator, last_update, id_updater, soft_delete, last_sync
+from pdrd.tmp_rencana_ajar
+go
+
+if exists (select 1
+            from  sysobjects
+           where  id = object_id('pdrd.tmp_rencana_ajar')
+            and   type = 'U')
+   drop table pdrd.tmp_rencana_ajar
 go
 
 /*==============================================================*/
@@ -8534,6 +8838,18 @@ alter table mbkm.ekuiv_transfer
 go
 
 alter table mbkm.ekuiv_transfer
+   add constraint fk_ekuiv_tr_mk_ekuiv__matkul foreign key (id_mk)
+      references pdrd.matkul (id_mk)
+         on update cascade on delete cascade
+go
+
+alter table mbkm.ekuiv_transfer
+   add constraint fk_ekuiv_tr_reg_pd_ek_reg_pd foreign key (id_reg_pd)
+      references pdrd.reg_pd (id_reg_pd)
+         on update cascade on delete cascade
+go
+
+alter table mbkm.ekuiv_transfer
    add constraint fk_ekuiv_tr_smt_ekuiv_semester foreign key (id_smt)
       references ref.semester (id_smt)
          on update cascade on delete cascade
@@ -8741,10 +9057,10 @@ alter table mbkm.konversi_akt_mhs
       references mbkm.daftar_kampus_merdeka (id_daftar_kampus_merdeka)
 go
 
-alter table mbkm.konversi_akt_mhs
-   add constraint fk_konversi_konversi__anggota_ foreign key (id_ang_akt_mhs)
-      references pdrd.anggota_akt_mhs (id_ang_akt_mhs)
-go
+-- alter table mbkm.konversi_akt_mhs
+--    add constraint fk_konversi_konversi__anggota_ foreign key (id_ang_akt_mhs)
+--       references pdrd.anggota_akt_mhs (id_ang_akt_mhs)
+-- go
 
 alter table mbkm.konversi_akt_mhs
    add constraint fk_konversi_konversi__matkul foreign key (id_mk)
@@ -8917,8 +9233,32 @@ alter table pdrd.nilai_tes
 go
 
 alter table pdrd.nilai_transkrip
+   add constraint fk_nilai_tr_kelas_tra_kelas_ku foreign key (id_kls)
+      references pdrd.kelas_kuliah (id_kls)
+         on update cascade on delete cascade
+go
+
+alter table pdrd.nilai_transkrip
+   add constraint fk_nilai_tr_mk_nilai__matkul foreign key (id_mk)
+      references pdrd.matkul (id_mk)
+         on update cascade on delete cascade
+go
+
+alter table pdrd.nilai_transkrip
+   add constraint fk_nilai_tr_nilai_eku_ekuiv_tr foreign key (id_ekuivalensi)
+      references mbkm.ekuiv_transfer (id_ekuivalensi)
+         --on update cascade on delete cascade
+go
+
+alter table pdrd.nilai_transkrip
    add constraint fk_nilai_tr_nilai_kon_konversi foreign key (id_konversi_aktivitas)
       references mbkm.konversi_akt_mhs (id_konversi_aktivitas)
+         on update cascade on delete cascade
+go
+
+alter table pdrd.nilai_transkrip
+   add constraint fk_nilai_tr_reg_pd_tr_reg_pd foreign key (id_reg_pd)
+      references pdrd.reg_pd (id_reg_pd)
          on update cascade on delete cascade
 go
 
@@ -9213,6 +9553,11 @@ alter table pdrd.re_mk
          on update cascade on delete cascade
 go
 
+alter table pdrd.re_mk
+   add constraint fk_re_mk_mk_re_mk_matkul foreign key (id_mk)
+      references pdrd.matkul (id_mk)
+go
+
 alter table pdrd.reg_pd
    add constraint fk_reg_pd_alasan_ke_jenis_ke foreign key (id_jns_keluar)
       references ref.jenis_keluar (id_jns_keluar)
@@ -9293,6 +9638,11 @@ alter table pdrd.reg_ptk
       references ref.status_kepegawaian (id_stat_pegawai)
 go
 
+alter table pdrd.rencana_ajar
+   add constraint fk_rencana__rencana_m_matkul foreign key (id_mk)
+      references pdrd.matkul (id_mk)
+go
+
 alter table man_akses.role_pengguna
    add constraint fk_role_pen_akses_pen_peran foreign key (id_peran)
       references man_akses.peran (id_peran)
@@ -9363,10 +9713,10 @@ alter table pdrd.rwy_pend_formal
       references ref.kategori_kegiatan (id_katgiat)
 go
 
-alter table pdrd.rwy_pend_formal
-   add constraint fk_rwy_pend_riwayat_g_gelar_ak foreign key (id_gelar_akad)
-      references ref.gelar_akademik (id_gelar_akad)
-go
+--alter table pdrd.rwy_pend_formal
+--   add constraint fk_rwy_pend_riwayat_g_gelar_ak foreign key (id_gelar_akad)
+--      references ref.gelar_akademik (id_gelar_akad)
+--go
 
 alter table pdrd.rwy_pend_formal
    add constraint fk_rwy_pend_rwyt_pend_bidang_s foreign key (id_bid_studi)
@@ -9765,6 +10115,13 @@ go
 alter table ref.wilayah
    add constraint fk_wilayah_wilayah_n_negara foreign key (id_negara)
       references ref.negara (id_negara)
+go
+
+if exists (select 1
+            from  sysobjects
+           where  id = object_id('mbkm.konversi_kampus_merdeka')
+            and   type = 'U')
+   drop table mbkm.konversi_kampus_merdeka
 go
 
 INSERT INTO man_akses.versi_db (versi,tgl_update) VALUES ('0.9.0',GETDATE());
