@@ -1,6 +1,6 @@
 /*==============================================================*/
 /* DBMS name:      Microsoft SQL Server 2014                    */
-/* Created on:     28/03/2023 21:46:29                          */
+/* Created on:     30/03/2023 12:48:42                          */
 /*==============================================================*/
 
 
@@ -550,6 +550,8 @@ create table man_akses.aplikasi (
    token_aplikasi       varchar(1000)        null,
    app_key              varchar(500)         null,
    url                  varchar(256)         null,
+   port                 numeric(10)          null,
+   teknologi            varchar(5000)        null,
    endpoint_ws          varchar(256)         null,
    a_generate_menu      numeric(1)           not null default 0
       constraint ckc_a_generate_menu_aplikasi check (a_generate_menu between 0 and 1 and a_generate_menu in (0,1)),
@@ -4170,6 +4172,8 @@ create table man_akses.pengguna (
    id_pengguna          uniqueidentifier     not null,
    username             varchar(60)          not null,
    password             varchar(50)          not null,
+   password_encrypt     varchar(255)         null,
+   type_encrypt         varchar(80)          null,
    nm_pengguna          varchar(200)         null,
    email                varchar(60)          null,
    tempat_lahir         varchar(60)          null,
@@ -4187,6 +4191,7 @@ create table man_akses.pengguna (
    id_sdm_pengguna      uniqueidentifier     null,
    id_pd_pengguna       uniqueidentifier     null,
    id_calon_pd_pengguna uniqueidentifier     null,
+   id_user_sikep        int                  null,
    token_reg            varchar(100)         null,
    jabatan              varchar(80)          null,
    provider             varchar(500)         null,
@@ -6104,6 +6109,88 @@ create table ref.wilayah (
    expired_date         datetime             null,
    last_sync            datetime             not null,
    constraint pk_wilayah primary key (id_wil)
+)
+go
+
+/*==============================================================*/
+/* Table: ws_authorization                                      */
+/*==============================================================*/
+create table man_akses.ws_authorization (
+   id_ws_authorization  uniqueidentifier     not null,
+   id_pengguna          uniqueidentifier     not null,
+   id_aplikasi          uniqueidentifier     not null,
+   id_ws_endpoint       uniqueidentifier     not null,
+   a_active             numeric(1)           not null default 0
+      constraint ckc_a_active_ws_autho check (a_active between 0 and 1 and a_active in (0,1)),
+   created_at           datetime             null,
+   updated_at           datetime             null,
+   last_sync            datetime             null,
+   id_creator           uniqueidentifier     null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_ws_autho check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   constraint pk_ws_authorization primary key (id_ws_authorization)
+)
+go
+
+/*==============================================================*/
+/* Table: ws_endpoint                                           */
+/*==============================================================*/
+create table man_akses.ws_endpoint (
+   id_ws_endpoint       uniqueidentifier     not null,
+   nm_group             varchar(50)          not null,
+   nm_method            varchar(6)           not null,
+   nm_endpoint          varchar(100)         null,
+   path_url             varchar(255)         not null,
+   a_active             numeric(1)           not null default 0
+      constraint ckc_a_active_ws_endpo check (a_active between 0 and 1 and a_active in (0,1)),
+   created_at           datetime             null,
+   updated_at           datetime             null,
+   last_sync            datetime             null,
+   id_creator           uniqueidentifier     null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_ws_endpo2 check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   constraint pk_ws_endpoint primary key (id_ws_endpoint)
+)
+go
+
+/*==============================================================*/
+/* Table: ws_endpoint_body                                      */
+/*==============================================================*/
+create table man_akses.ws_endpoint_body (
+   id_ws_endpoint_body  uniqueidentifier     not null,
+   id_ws_endpoint       uniqueidentifier     not null,
+   nm_req               varchar(150)         not null,
+   type_data            varchar(150)         not null,
+   created_at           datetime             null,
+   updated_at           datetime             null,
+   last_sync            datetime             null,
+   id_creator           uniqueidentifier     null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_ws_endpo3 check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   constraint pk_ws_endpoint_body primary key (id_ws_endpoint_body)
+)
+go
+
+/*==============================================================*/
+/* Table: ws_endpoint_body_terms                                */
+/*==============================================================*/
+create table man_akses.ws_endpoint_body_terms (
+   id_ws_endpoint_body_terms uniqueidentifier     not null,
+   id_ws_endpoint_body  uniqueidentifier     not null,
+   id_ws_authorization  uniqueidentifier     not null,
+   terms_logic          varchar(50)          not null,
+   terms_value          text                 not null,
+   created_at           datetime             null,
+   updated_at           datetime             null,
+   last_sync            datetime             null,
+   id_creator           uniqueidentifier     null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_ws_endpo check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   constraint pk_ws_endpoint_body_terms primary key (id_ws_endpoint_body_terms)
 )
 go
 
@@ -8386,5 +8473,41 @@ go
 alter table ref.wilayah
    add constraint fk_wilayah_wilayah_n_negara foreign key (id_negara)
       references ref.negara (id_negara)
+go
+
+alter table man_akses.ws_authorization
+   add constraint fk_ws_autho_ws_auth_a_aplikasi foreign key (id_aplikasi)
+      references man_akses.aplikasi (id_aplikasi)
+         on update cascade on delete cascade
+go
+
+alter table man_akses.ws_authorization
+   add constraint fk_ws_autho_ws_auth_e_ws_endpo foreign key (id_ws_endpoint)
+      references man_akses.ws_endpoint (id_ws_endpoint)
+         on update cascade on delete cascade
+go
+
+alter table man_akses.ws_authorization
+   add constraint fk_ws_autho_ws_penggu_pengguna foreign key (id_pengguna)
+      references man_akses.pengguna (id_pengguna)
+         on update cascade on delete cascade
+go
+
+alter table man_akses.ws_endpoint_body
+   add constraint fk_ws_endpo_ws_body_ws_endpo foreign key (id_ws_endpoint)
+      references man_akses.ws_endpoint (id_ws_endpoint)
+         on update cascade on delete cascade
+go
+
+alter table man_akses.ws_endpoint_body_terms
+   add constraint fk_ws_endpo_ws_auth_b_ws_autho foreign key (id_ws_authorization)
+      references man_akses.ws_authorization (id_ws_authorization)
+         on update cascade on delete cascade
+go
+
+alter table man_akses.ws_endpoint_body_terms
+   add constraint fk_ws_endpo_ws_bodyte_ws_endpo foreign key (id_ws_endpoint_body)
+      references man_akses.ws_endpoint_body (id_ws_endpoint_body)
+         on update cascade on delete cascade
 go
 
