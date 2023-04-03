@@ -3,6 +3,7 @@
         $(document).ready(function(){
             var token                   = $("meta[name=csrf-token]").attr("content");
             var url                     = "{{ Request::url() }}";
+            console.log(url);
             var isFilter                = false;
             var level                   = 'Perguruan Tinggi';
             var nextLevel               = 'Fakultas';

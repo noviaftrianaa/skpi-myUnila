@@ -89,7 +89,7 @@ class LoginController extends Controller
                         ]
                     );
 
-                    return redirect()->to('/home');
+                    return redirect()->route('dashboard');
                 } else {
                     alert()->error('Data pengguna tidak ditemukan, silahkan hubungi administrator.')->html(true);
                     return redirect()->route('auth.signing_process');

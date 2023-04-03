@@ -81,7 +81,7 @@
     <!-- Main Sidebar Container -->
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
         <!-- Brand Logo -->
-        <a href="{!! url('dashboard') !!}" class="brand-link">
+        <a href="{{ route('home') }}" class="brand-link">
             <img src="{{ asset((config('mp.apps.at_use')==1?config('mp.apps.user.logo'):config('mp.copyright.logo'))) }}" alt="Logo Aplikasi" class="brand-image img-circle elevation-3" style="opacity: .8">
             <span class="brand-text font-weight-light">{{ (config('mp.apps.title')) }}</span>
         </a>
@@ -109,9 +109,7 @@
 
         <!-- Main content -->
         <section class="content">
-            <div class="container-fluid">
                 @yield('content')
-            </div>
         </section>
         <!-- /.content -->
     </div>

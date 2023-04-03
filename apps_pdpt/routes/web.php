@@ -7,6 +7,13 @@ use App\Http\Controllers\Auth\{
 };
 
 use App\Http\Controllers\AkreditasController;
+use App\Http\Controllers\Dashboard\WR\WakilRektor1\BukuAjar\BukuAjarController;
+use App\Http\Controllers\Dashboard\WR\WakilRektor1\BukuAjar\DashboardController as BukuAjarDashboardController;
+use App\Http\Controllers\Dashboard\WR\WakilRektor1\Litabmas\DashboardController as LitabmasDashboardController;
+use App\Http\Controllers\Dashboard\WR\WakilRektor1\Litabmas\PenelitianController;
+use App\Http\Controllers\Dashboard\WR\WakilRektor1\Litabmas\PengabdianController;
+use App\Http\Controllers\Dashboard\WR\WakilRektor1\Publikasi\DashboardController as PublikasiDashboardController;
+use App\Http\Controllers\Dashboard\WR\WakilRektor1\Publikasi\PublikasiController as PublikasiController;
 use App\Http\Controllers\Dashboard\WR\WakilRektor3\AktivitasMahasiswaController;
 use App\Http\Controllers\Dashboard\WR\WakilRektor3\TracerStudyController;
 use App\Http\Controllers\Dashboard\WR\WakilRektor3\KampusMerdekaController;
@@ -45,8 +52,12 @@ Route::namespace('Auth')->group(function () {
 /** End Auth */
 
 Route::get('/',  [DashboardController::class, 'index'])->name('home');
+Route::get('/dashboard',  [DashboardController::class, 'index'])->name('dashboard');
 Route::put('/changeRole', [DashboardController::class, 'role'])->name('role');
-Route::get('/refresh_menu', function() { MenuRole(); return redirect()->back(); });
+Route::get('/refresh_menu', function () {
+    MenuRole();
+    return redirect()->back();
+});
 
 /** Dashboard Mahasiswa */
 Route::get('/dashboard/mahasiswa',  [DashboardController::class, 'mahasiswa'])->name('dashboard.mahasiswa');
@@ -131,7 +142,7 @@ Route::get('/dashboard/university_rank',  [DashboardController::class, 'universi
 //             Route::get('dosen_tetap', [AkreditasController::class, 'rekognisi_dtps'])->name('rekognisi_dtps');
 //             Route::get('penelitian_dtps', [AkreditasController::class, 'penelitian_dtps'])->name('penelitian_dtps');
 //             Route::get('pkm_dtps', [AkreditasController::class, 'pkm_dtps'])->name('pkm_dtps');
-//             Route::get('publikasi_dtps', [AkreditasController::class, 'publikasi_dtps'])->name('publikasi_dtps');
+//             Route::get('buku_ajar_dtps', [AkreditasController::class, 'buku_ajar_dtps'])->name('buku_ajar_dtps');
 //             Route::get('karya_ilmiah_disitasi', [AkreditasController::class, 'karya_ilmiah_disitasi'])->name('karya_ilmiah_disitasi');
 //             Route::get('luaran_penelitian_pkm_dtps', [AkreditasController::class, 'luaran_penelitian_pkm_dtps'])->name('luaran_penelitian_pkm_dtps');
 //         });
@@ -181,10 +192,49 @@ Route::prefix('dashboard')->group(function () {
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/home',  [DashboardController::class, 'index']);
-    Route::prefix('profil_pt')->name('profil_pt.')->group(function() {
+    Route::prefix('profil_pt')->name('profil_pt.')->group(function () {
         Route::get('direktori_pt', 'App\Http\Controllers\ProfilPT\DirektoriPTController@index')->name('direktori_pt');
         Route::get('direktori_pt/data', 'App\Http\Controllers\ProfilPT\DirektoriPTController@data')->name('direktori_pt.data');
         Route::get('direktori_pt/data/detail', 'App\Http\Controllers\ProfilPT\DirektoriPTController@dataDetail')->name('direktori_pt.data.detail');
+    });
+
+    // Menu Wakil Rektor 1
+    Route::prefix('litabmas')->name('litabmas')->group(function () {
+        Route::controller(LitabmasDashboardController::class)->group(function () {
+            Route::get('/', 'index')->name('');
+        });
+
+        Route::prefix('penelitian')->name('.penelitian')->controller(PenelitianController::class)->group(function () {
+            Route::get('/', 'index')->name('');
+            Route::post('/penelitian/chart', 'chart')->name('.chart');
+        });
+
+        Route::prefix('pengabdian')->name('.pengabdian')->controller(PengabdianController::class)->group(function () {
+            Route::get('/', 'index')->name('');
+            Route::post('/pengabdian/chart', 'chart')->name('.chart');
+        });
+    });
+
+    Route::prefix('publikasi')->name('publikasi')->group(function () {
+        Route::controller(PublikasiController::class)->group(function() {
+            Route::get('/', 'index')->name('');
+            Route::post('/publikasi/chart', 'chart')->name('.chart');
+        });
+
+        Route::prefix('dashboard')->name('_dashboard')->controller(PublikasiDashboardController::class)->group(function () {
+            Route::get('/', 'index')->name('');
+        });
+    });
+
+    Route::prefix('buku_ajar')->name('buku_ajar')->group(function () {
+        Route::controller(BukuAjarController::class)->group(function() {
+            Route::get('/', 'index')->name('');
+            Route::post('/buku-ajar/chart', 'chart')->name('.chart');
+        });
+
+        Route::prefix('dashboard')->name('_dashboard')->controller(BukuAjarDashboardController::class)->group(function () {
+            Route::get('/', 'index')->name('');
+        });
     });
 
     /** Dashboard Wakil Rektor III */
@@ -194,7 +244,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/aktivitas_mahasiswa/reload',  [AktivitasMahasiswaController::class, 'reload'])->name('aktivitas_mahasiswa.reload');
     Route::get('/mahasiswa/profil/{id}',  [ProfilMahasiswaController::class, 'index'])->name('mahasiswa.profil');
 
-    Route::prefix('aktivitas_mahasiswa')->name('aktivitas_mahasiswa.')->group(function() {
+    Route::prefix('aktivitas_mahasiswa')->name('aktivitas_mahasiswa.')->group(function () {
         Route::get('/kampus_merdeka',  [KampusMerdekaController::class, 'index'])->name('kampus_merdeka');
         Route::post('/kampus_merdeka',  [KampusMerdekaController::class, 'chart'])->name('kampus_merdeka.chart');
         Route::get('/kampus_merdeka/load',  [KampusMerdekaController::class, 'load'])->name('kampus_merdeka.load');
@@ -209,9 +259,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/kerjasama/detail/{id}', [KerjasamaController::class, 'detail'])->name('kerjasama.detail');
     Route::get('/aplikasi',  [PengelolaanTikController::class, 'daftar_aplikasi'])->name('aplikasi');
     /** End Dashboard Wakil Rektor IV */
-
-
-
 });
 
 Auth::routes();
