@@ -78,7 +78,7 @@ class Iku1Controller extends Controller
                 AND umr.soft_delete = 0
             WHERE
                 rgpd.soft_delete = 0
-                AND YEAR(rgpd.tgl_keluar) = " . ($thn_iku - 2) . "
+                AND YEAR(rgpd.tgl_keluar) = " . ($thn_iku - 1) . "
                 AND rgpd.id_jns_keluar = '1'
             ORDER BY
                 fak.nm_lemb,
@@ -221,7 +221,7 @@ class Iku1Controller extends Controller
                 WHERE
                     rgpd.soft_delete = 0
                     AND prod.id_sms = '" . $id_prodi . "'
-                    AND YEAR(rgpd.tgl_keluar) = '" . ($thn_iku - 2) . "'
+                    AND YEAR(rgpd.tgl_keluar) = '" . ($thn_iku - 1) . "'
                     AND rgpd.id_jns_keluar = '1'
             ");
         return DaTables::of($apiIku1Alumni)->make(true);
@@ -268,7 +268,7 @@ class Iku1Controller extends Controller
                 WHERE
                     tc.soft_delete = 0
                     AND tc.id_reg_pd = ?
-                    AND tc.id_thn_ajaran = '" . ($thn_iku - 2) . "'
+                    AND tc.id_thn_ajaran = '" . ($thn_iku - 1) . "'
                     AND tc.status_lulusan IN (1, 2)
             ", [$id_reg_pd]);
         return DaTables::of($apiIku1Bekerja)->make(true);
@@ -298,7 +298,7 @@ class Iku1Controller extends Controller
                 WHERE
                     tc.soft_delete = 0
                     AND tc.id_reg_pd = ?
-                    AND tc.id_thn_ajaran = '" . ($thn_iku - 2) . "'
+                    AND tc.id_thn_ajaran = '" . ($thn_iku - 1) . "'
                     AND tc.status_lulusan = 3
             ", [$id_reg_pd]);
         return DaTables::of($apiIku1LanjutStudi)->make(true);
@@ -396,13 +396,13 @@ class Iku1Controller extends Controller
                 JOIN pdrd.peserta_didik AS pd ON pd.id_pd=rgpd.id_pd AND pd.soft_delete = 0
                 JOIN pdrd.satuan_pendidikan AS sp ON sp.id_sp=rgpd.id_sp AND sp.soft_delete = 0
                 JOIN pdrd.sms AS prod WITH(NOLOCK) ON prod.id_sms = rgpd.id_sms AND prod.soft_delete = 0
+                JOIN ref.jenjang_pendidikan AS jenj WITH(NOLOCK) ON jenj.id_jenj_didik = prod.id_jenj_didik
+                    AND jenj.expired_date IS NULL
+                    AND jenj.id_jenj_didik IN(21, 22, 23, 30)
                 JOIN tracer.hasil_tracer_study AS tc WITH(NOLOCK) ON tc.id_reg_pd = rgpd.id_reg_pd
                     AND tc.soft_delete = 0
                     AND prod.soft_delete = 0
                     AND prod.stat_prodi = 'A'
-                JOIN ref.jenjang_pendidikan AS jenj WITH(NOLOCK) ON jenj.id_jenj_didik = prod.id_jenj_didik
-                    AND jenj.expired_date IS NULL
-                    AND jenj.id_jenj_didik IN(21, 22, 23, 30)
                 LEFT JOIN ref.wilayah AS wil ON wil.id_wil=tc.id_wil
                 LEFT JOIN tracer.umr_wilayah AS umr WITH(NOLOCK) ON umr.id_wil = tc.id_wil
                     AND umr.id_tahun_anggaran = tc.id_thn_ajaran
@@ -410,7 +410,7 @@ class Iku1Controller extends Controller
                     AND umr.id_wil = wil.id_wil
             WHERE
                 rgpd.soft_delete = 0
-                AND YEAR(rgpd.tgl_keluar) = " . ($thn_iku - 2) . "
+                AND YEAR(rgpd.tgl_keluar) = " . ($thn_iku - 1) . "
                 AND rgpd.id_jns_keluar = '1'
             ORDER BY
                 rgpd.nipd ASC
