@@ -32,6 +32,11 @@
                 <div class="card-header">
                     <h3 class="card-title">IKU 1 : Lulusan Mendapat Pekerjaan yang Layak</h3>
                     <div class="card-tools">
+                        @if(auth()->check())
+                        <button class="btn btn-sm bg-white mr-1" onclick="exportAll()">
+                            <i class="fas fa-file-excel"></i>
+                        </button>
+                        @endif
                         <a class="btn btn-sm bg-white mr-1" target="_blank" href="https://drive.google.com/file/d/1bzsNVI_OoY3LcfBf_53INSJ9T2hoZQCq/view?usp=share_link"><i class="fas fa-info-circle"></i></a>
                         <button type="button" class="btn btn-sm bg-white" data-card-widget="maximize">
                             <i class="fas fa-expand"></i>
@@ -700,6 +705,12 @@
                     },
                 ],
             });
+        }
+
+        function exportAll()
+        {
+            var thn_iku = $("#thn_iku").val();
+            window.location.href="{{ route('apiDashboardIku1ExportAll') }}"+"?thn_iku="+thn_iku;
         }
     </script>
 @endpush

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables as DaTables;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\Iku1Export;
 
 class Iku1Controller extends Controller
 {
@@ -307,5 +309,113 @@ class Iku1Controller extends Controller
         $thn_iku = $this->tahunIku;
         $side_active   = 'iku';
         return view('dashboard.iku.iku1', compact('side_active', 'thn_iku'));
+    }
+
+    public function exportAll()
+    {
+        $thn_iku = $this->request->thn_iku;
+        
+        // $data = DB::connection('sqlsrv_live')->select("
+        //     SELECT DISTINCT
+        //         rpd.nipd,
+        //         pd.nm_pd,
+        //         sp.nm_lemb,
+        //         sms.nm_lemb,
+        //         tc.id_thn_ajaran,
+        //         CASE
+        //             WHEN tc.status_lulusan = 0 THEN 'Tidak Bekerja'
+        //             WHEN tc.status_lulusan = 1 THEN 'Bekerja'
+        //             WHEN tc.status_lulusan = 2 THEN 'Berwirausaha'
+        //             WHEN tc.status_lulusan = 3 THEN 'Melanjutkan Studi'
+        //             ELSE 'Belum Mengisi'
+        //         END AS status_lulusan,
+        //         tc.income_per_bln,
+        //         w.nm_wil
+        //     FROM
+        //         tracer.hasil_tracer_study AS tc WITH(NOLOCK)
+        //         JOIN pdrd.reg_pd AS rpd ON rpd.id_reg_pd=tc.id_reg_pd
+        //         JOIn pdrd.satuan_pendidikan AS sp ON sp.id_sp=rpd.id_sp
+        //         JOIN pdrd.peserta_didik AS pd ON pd.id_pd=rpd.id_pd
+        //         JOIN pdrd.sms AS sms ON sms.id_sms=rpd.id_sms
+        //         LEFT JOIN ref.wilayah AS w ON w.id_wil=tc.id_wil
+        //         LEFT JOIN tracer.umr_wilayah AS umr WITH(NOLOCK) ON umr.id_wil = tc.id_wil
+        //         AND umr.soft_delete = 0
+        //         AND umr.id_tahun_anggaran = tc.id_thn_ajaran
+        //     WHERE
+        //         tc.soft_delete = 0
+        //         AND tc.id_thn_ajaran = '" . ($thn_iku - 2) . "'
+        //         AND tc.status_lulusan IN (1,2)
+        //         AND tc.income_per_bln >= (1.2 * umr.besaran_umr)
+        // ");
+        
+        $data = DB::connection("sqlsrv_live")->select("
+            SELECT
+                rgpd.nipd,
+                pd.nm_pd,
+                sp.nm_lemb AS nm_sp,
+                prod.nm_lemb AS nm_prod,
+                YEAR(rgpd.tgl_keluar) AS thn_lulus,
+                CASE
+                    WHEN tc.status_lulusan = 0 THEN 'Tidak Bekerja'
+                    WHEN tc.status_lulusan = 1 THEN 'Bekerja'
+                    WHEN tc.status_lulusan = 2 THEN 'Berwirausaha'
+                    WHEN tc.status_lulusan = 3 THEN 'Melanjutkan Studi'
+                    ELSE 'Belum Mengisi'
+                END AS stat_lulus,
+                CASE
+                    WHEN tc.status_lulusan IN ('3')
+                    AND (
+                        DATEDIFF(MONTH, rgpd.tgl_keluar, tc.wkt_masuk) < 12
+                    ) THEN 'Ya'
+                    ELSE 'Tidak'
+                END AS kurang_dari_6_bulan,
+                tc.income_per_bln,
+                wil.nm_wil,
+                umr.besaran_umr,
+                CASE
+                    WHEN tc.status_lulusan IN ('1', '2')
+                    AND (
+                        (
+                            tc.income_per_bln >= 1.2 * umr.besaran_umr
+                            AND tc.a_kerja_sblm_lulus = 1
+                        )
+                        OR (
+                            tc.a_kerja_sblm_lulus = 0
+                            AND tc.income_per_bln >= 1.2 * umr.besaran_umr
+                            AND tc.wkt_tunggu < 6
+                        )
+                    ) THEN 'Ya'
+                    WHEN tc.status_lulusan IN ('3')
+                    AND (
+                        DATEDIFF(MONTH, rgpd.tgl_keluar, tc.wkt_masuk) < 12
+                    ) THEN 'Ya'
+                    ELSE 'Tidak'
+                END AS memenuhi_iku
+            FROM
+                pdrd.reg_pd AS rgpd WITH(NOLOCK)
+                JOIN pdrd.peserta_didik AS pd ON pd.id_pd=rgpd.id_pd AND pd.soft_delete = 0
+                JOIN pdrd.satuan_pendidikan AS sp ON sp.id_sp=rgpd.id_sp AND sp.soft_delete = 0
+                JOIN pdrd.sms AS prod WITH(NOLOCK) ON prod.id_sms = rgpd.id_sms AND prod.soft_delete = 0
+                JOIN tracer.hasil_tracer_study AS tc WITH(NOLOCK) ON tc.id_reg_pd = rgpd.id_reg_pd
+                    AND tc.soft_delete = 0
+                    AND prod.soft_delete = 0
+                    AND prod.stat_prodi = 'A'
+                JOIN ref.jenjang_pendidikan AS jenj WITH(NOLOCK) ON jenj.id_jenj_didik = prod.id_jenj_didik
+                    AND jenj.expired_date IS NULL
+                    AND jenj.id_jenj_didik IN(21, 22, 23, 30)
+                LEFT JOIN ref.wilayah AS wil ON wil.id_wil=tc.id_wil
+                LEFT JOIN tracer.umr_wilayah AS umr WITH(NOLOCK) ON umr.id_wil = tc.id_wil
+                    AND umr.id_tahun_anggaran = tc.id_thn_ajaran
+                    AND umr.soft_delete = 0
+                    AND umr.id_wil = wil.id_wil
+            WHERE
+                rgpd.soft_delete = 0
+                AND YEAR(rgpd.tgl_keluar) = " . ($thn_iku - 2) . "
+                AND rgpd.id_jns_keluar = '1'
+            ORDER BY
+                rgpd.nipd ASC
+        ");
+
+        return Excel::download(new Iku1Export($thn_iku, $data), 'LAPORAN IKU 1 TAHUN '.$thn_iku.' UNIVERSITAS LAMPUNG.xlsx');
     }
 }
