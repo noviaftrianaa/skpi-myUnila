@@ -17,7 +17,7 @@ class ReferensiSeeder extends Seeder
         $cari_token = DB::table('man_akses.access_token')->where('waktu_expired','>=',currDateTime())->first();
         $url = ENV('URL_WS_NEO_FEEDER');
             $form_token = $this->data_get_token_form();
-            $get_token = $this->curl_api_feeder($url,$form_token);
+            $get_token = curl_api_neo_feeder($url,$form_token);
             $token = $get_token['token'];
             DB::table('man_akses.access_token')->insert([
                 'id_token'      => guid(),
@@ -31,13 +31,14 @@ class ReferensiSeeder extends Seeder
             ]);
 
         $method_alias = [
-//            'Jenis Pendaftaran'     => 'GetJenisPendaftaran',
+        //    'Jenis Pendaftaran'     => 'GetJenisPendaftaran',
 //            'Kebutuhan Khusus'      => 'GetKebutuhanKhusus',
-           'Jenis Keluar'      => 'GetJenisKeluar',
-//            'Jalur Masuk'           => 'GetJalurMasuk',
+        //    'Jenis Keluar'      => 'GetJenisKeluar',
+           'Jalur Daftar'      => 'GetJalurDaftar',
+        //    'Jalur Masuk'           => 'GetJalurMasuk',
 //            'Status Mahasiswa'      => 'GetStatusMahasiswa',
 //            'Alat Transportasi'     => 'GetAlatTransportasi',
-//            'Jenis Tinggal'         => 'GetJenisTinggal',
+           'Jenis Tinggal'         => 'GetJenisTinggal',
 //            'Penghasilan'           => 'GetPenghasilan',
 //            'Pembiayaan'            => 'GetPembiayaan',
 //            'Jenis Prestasi'        => 'GetJenisPrestasi',
@@ -56,6 +57,15 @@ class ReferensiSeeder extends Seeder
                         'id_jns_daftar'     => $each_data['id_jenis_daftar'],
                         'nm_jns_daftar'     => $each_data['nama_jenis_daftar'],
                         'u_daftar_sekolah'  => $each_data['untuk_daftar_sekolah'],
+                        'u_daftar_rombel'   => 0,
+                        'create_date'       => currDateTime(),
+                        'last_update'       => currDateTime(),
+                        'last_sync'         => currDateTime()
+                    ]);
+                } elseif ($each_method=='GetJalurDaftar') {
+                    DB::table('ref.jalur_daftar')->insert([
+                        'id_jalur_daftar'     => $each_data['id_jalur_daftar'],
+                        'nm_jns_daftar'     => $each_data['nama_jenis_daftar'],
                         'u_daftar_rombel'   => 0,
                         'create_date'       => currDateTime(),
                         'last_update'       => currDateTime(),

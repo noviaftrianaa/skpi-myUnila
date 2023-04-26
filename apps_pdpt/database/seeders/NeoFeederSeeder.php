@@ -35,17 +35,17 @@ class NeoFeederSeeder extends Seeder
 
         $func = [
         //    'substansi_kuliah',
-        //    'akt_mhs',
+           'akt_mhs',
         //    'ang_akt_mhs',
         //    'konversi',
         //   'kurikulum',
         //    'mk_kurikulum',
         //    'rencana_ajar',
         //    'rencana_evaluasi',
-            'nilai_kelas',
+            // 'nilai_kelas',
         //    'prestasi',
         //    'ekuivalensi',
-           'transkrip',
+        //    'transkrip',
         //    'stat_mhs'
         ];
 
@@ -140,9 +140,9 @@ class NeoFeederSeeder extends Seeder
                         $total_data_konversi_mbkm = count($get_data_konversi_mbkm);
                         if ($total_data_konversi_mbkm > 0) {
                             foreach ($get_data_konversi_mbkm AS $no_konversi_mbkm => $each_data_konversi_mbkm) {
-                                $cek_konversi = DB::table('mbkm.konversi_kampus_merdeka')->where('id_konversi_aktivitas',$each_data_konversi_mbkm['id_konversi_aktivitas'])->first();
+                                $cek_konversi = DB::table('mbkm.konversi_akt_mhs')->where('id_konversi_aktivitas',$each_data_konversi_mbkm['id_konversi_aktivitas'])->first();
                                 if (is_null($cek_konversi)) {
-                                    DB::table('mbkm.konversi_kampus_merdeka')->insert([
+                                    DB::table('mbkm.konversi_akt_mhs')->insert([
                                         'id_konversi_aktivitas'=> $each_data_konversi_mbkm['id_konversi_aktivitas'],
                                         'id_mk'         => $each_data_konversi_mbkm['id_matkul'],
                                         'id_ang_akt_mhs'=> $each_data_konversi_mbkm['id_anggota'],
@@ -212,9 +212,9 @@ class NeoFeederSeeder extends Seeder
             if ($total_data_konversi_mbkm > 0) {
                 foreach ($get_data_konversi_mbkm as $no_konversi_mbkm => $each_data_konversi_mbkm) {
                     echo 'Mendapatkan ' . ($no_konversi_mbkm + 1) . ' dari ' . $total_data_konversi_mbkm;
-                    $cek_konversi = DB::table('mbkm.konversi_kampus_merdeka')->where('id_konversi_aktivitas',$each_data_konversi_mbkm['id_konversi_aktivitas'])->first();
+                    $cek_konversi = DB::table('mbkm.konversi_akt_mhs')->where('id_konversi_aktivitas',$each_data_konversi_mbkm['id_konversi_aktivitas'])->first();
                     if (is_null($cek_konversi)) {
-                        DB::table('mbkm.konversi_kampus_merdeka')->insert([
+                        DB::table('mbkm.konversi_akt_mhs')->insert([
                             'id_konversi_aktivitas'=> $each_data_konversi_mbkm['id_konversi_aktivitas'],
                             'id_mk'         => $each_data_konversi_mbkm['id_matkul'],
                             'id_ang_akt_mhs'=> $each_data_konversi_mbkm['id_anggota'],
@@ -432,9 +432,9 @@ class NeoFeederSeeder extends Seeder
                     if (is_null($cari_ekuiv)) {
                         DB::table('mbkm.ekuiv_transfer')->insert([
                             'id_ekuivalensi'    => $each_ekuivalensi['id_transfer'],
-//                            'id_akt_mhs'            => $each_ekuivalensi['id_aktivitas'],
+                            'id_akt_mhs'        => $each_ekuivalensi['id_aktivitas'],
                             'id_mk'             => $each_ekuivalensi['id_matkul'],
-//                            'id_smt'            => $each_ekuivalensi['id_aktivitas'],
+                            'id_smt'            => $each_ekuivalensi['id_semester'],
                             'id_reg_pd'         => $each_ekuivalensi['id_registrasi_mahasiswa'],
                             'kode_mk_asal'      => $each_ekuivalensi['kode_mata_kuliah_asal'],
                             'nm_mk_asal'        => $each_ekuivalensi['nama_mata_kuliah_asal'],
@@ -453,6 +453,21 @@ class NeoFeederSeeder extends Seeder
                         ]);
                         echo " (OK)\n";
                     } else {
+                        DB::table('mbkm.ekuiv_transfer')->where('id_ekuivalensi',$each_ekuivalensi['id_transfer'])->update([
+                            'id_akt_mhs'        => $each_ekuivalensi['id_aktivitas'],
+                            'id_mk'             => $each_ekuivalensi['id_matkul'],
+                            'id_smt'            => $each_ekuivalensi['id_semester'],
+                            'id_reg_pd'         => $each_ekuivalensi['id_registrasi_mahasiswa'],
+                            'kode_mk_asal'      => $each_ekuivalensi['kode_mata_kuliah_asal'],
+                            'nm_mk_asal'        => $each_ekuivalensi['nama_mata_kuliah_asal'],
+                            'sks_asal'          => $each_ekuivalensi['sks_mata_kuliah_asal'],
+                            'sks_diakui'        => $each_ekuivalensi['sks_mata_kuliah_diakui'],
+                            'nilai_huruf_asal'  => $each_ekuivalensi['nilai_huruf_asal'],
+                            'nilai_huruf_diakui'=> $each_ekuivalensi['nilai_huruf_diakui'],
+                            'nilai_angka_diakui'=> $each_ekuivalensi['nilai_angka_diakui'],
+                            'id_sp'             => $each_ekuivalensi['id_perguruan_tinggi'],
+                            'last_update'	    => currDateTime(),
+                        ]);
                         echo " (SUDAH ADA)\n";
                     }
                 }

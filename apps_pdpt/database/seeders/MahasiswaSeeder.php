@@ -167,6 +167,14 @@ class MahasiswaSeeder extends Seeder
                     if (currDateTime()>$this->expired) {
                         $token = $this->generate_token();
                     }
+                    if(!is_null($get_data_reg[0]['id_jalur_daftar'])) {
+                        $cari_jalur_daftar = DB::table('ref.jalur_daftar')->where('id_jalur_daftar',$get_data_reg[0]['id_jalur_daftar'])->first();
+                        if(is_null($cari_jalur_daftar)) {
+                            $gagal[$each_data['id_registrasi_mahasiswa']] = 'Gagal mendapatkan registrasi mahasiswa lulus/do, dengan id_jalur_daftar '.($get_data_reg[0]['id_jalur_daftar']);
+                            echo " (Gagal Update Reg Lulus)";
+                            continue;
+                        }
+                    }
                     $get_data_lulus_do = curl_api_neo_feeder($url, data_form_feeder('GetDetailMahasiswaLulusDO',$token,'id_registrasi_mahasiswa',$each_data['id_registrasi_mahasiswa']));
                     DB::table('pdrd.reg_pd')->insert([
                         'id_reg_pd'         => $each_data['id_registrasi_mahasiswa'],
