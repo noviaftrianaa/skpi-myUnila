@@ -271,7 +271,7 @@ class NeoFeederSeeder extends Seeder
                     } else {
                         echo " (Lewati)\n";
                     }
-                    
+
                 }
             }
         }
@@ -359,7 +359,7 @@ class NeoFeederSeeder extends Seeder
             $total_data_re_mk = count($get_data_re_mk);
             if ($total_data_re_mk>0) {
                 foreach ($get_data_re_mk AS $no_re_mk=>$each_re_mk) {
-                    echo 'Mendapatkan Rencana Evaluasu Matakuliah '.($no_re_mk+1).' dari '.$total_data_re_mk;
+                    echo 'Mendapatkan Rencana Evaluasi Matakuliah '.($no_re_mk+1).' dari '.$total_data_re_mk;
                     $cari_renc = ReMk::find($each_re_mk['id_rencana_evaluasi']);
                     if (is_null($cari_renc)) {
                         DB::table('pdrd.re_mk')->insert([
@@ -432,9 +432,9 @@ class NeoFeederSeeder extends Seeder
                     if (is_null($cari_ekuiv)) {
                         DB::table('mbkm.ekuiv_transfer')->insert([
                             'id_ekuivalensi'    => $each_ekuivalensi['id_transfer'],
-//                            'id_akt_mhs'            => $each_ekuivalensi['id_aktivitas'],
+                            'id_akt_mhs'        => $each_ekuivalensi['id_aktivitas'],
                             'id_mk'             => $each_ekuivalensi['id_matkul'],
-//                            'id_smt'            => $each_ekuivalensi['id_aktivitas'],
+                            'id_smt'            => $each_ekuivalensi['id_semester'],
                             'id_reg_pd'         => $each_ekuivalensi['id_registrasi_mahasiswa'],
                             'kode_mk_asal'      => $each_ekuivalensi['kode_mata_kuliah_asal'],
                             'nm_mk_asal'        => $each_ekuivalensi['nama_mata_kuliah_asal'],
