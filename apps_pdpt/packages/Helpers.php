@@ -10,6 +10,7 @@
 $path = 'libs/';
 
 include $path.'AktifMenu.php';
+include $path.'OpenMenu.php';
 include $path.'AlertInfo.php';
 include $path.'AutoBreadcrumb.php';
 include $path.'BulanIndonesia.php';

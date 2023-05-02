@@ -1,6 +1,6 @@
 /*==============================================================*/
 /* DBMS name:      Microsoft SQL Server 2014                    */
-/* Created on:     21/04/2022 00:47:19                          */
+/* Created on:     30/03/2023 12:48:42                          */
 /*==============================================================*/
 
 
@@ -122,6 +122,10 @@ go
 /*==============================================================*/
 create table ref.agama (
    id_agama             smallint             not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_agama check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_agama check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_agama             varchar(50)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -163,9 +167,9 @@ create table pdrd.akreditasi_prodi (
    id_sms               uniqueidentifier     not null,
    id_lemb_akred        char(5)              not null,
    id_akred             numeric(1)           not null,
-   sk_akreditasi_prodi  varchar(80)          not null,
-   tanggal_sk_akreditasi_prodi date                 not null,
-   tst_sk_akreditasi_prodi date                 not null,
+   sk_akreditasi_prodi  varchar(80)          null,
+   tanggal_sk_akreditasi_prodi date                 null,
+   tst_sk_akreditasi_prodi date                 null,
    asal_data            char(1)              not null default '9'
       constraint ckc_asal_data_akredita check (asal_data in ('1','2','3','4','5','6','9','7','8')),
    a_aktif              numeric(1)           not null default 1
@@ -255,6 +259,10 @@ create table pdrd.akt_mhs (
    ket_akt              text                 null,
    a_komunal            numeric(1)           not null default 0
       constraint ckc_a_komunal_akt_mhs check (a_komunal between 0 and 1 and a_komunal in (0,1)),
+   tgl_mulai            datetime             null,
+   tgl_selesai          datetime             null,
+   a_flagship           numeric(1)           null default 0
+      constraint ckc_a_flagship_akt_mhs check (a_flagship is null or (a_flagship between 0 and 1 and a_flagship in (0,1))),
    create_date          datetime             not null,
    id_creator           uniqueidentifier     not null,
    last_update          datetime             not null,
@@ -271,6 +279,10 @@ go
 /*==============================================================*/
 create table ref.aktifitas_kerjasama (
    id_akt_kerjasama     numeric(2)           identity,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_aktifita check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_aktifita check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_akt_kerjasama     varchar(100)         not null,
    ket                  varchar(250)         null,
    create_date          datetime             not null,
@@ -534,10 +546,12 @@ create table man_akses.aplikasi (
    id_blob              uniqueidentifier     null,
    id_organisasi        uniqueidentifier     null,
    nm_aplikasi          varchar(100)         not null,
-   ket_aplikasi         varchar(500)         null,
+   ket_aplikasi         varchar(5000)        null,
    token_aplikasi       varchar(1000)        null,
    app_key              varchar(500)         null,
    url                  varchar(256)         null,
+   port                 numeric(10)          null,
+   teknologi            varchar(5000)        null,
    endpoint_ws          varchar(256)         null,
    a_generate_menu      numeric(1)           not null default 0
       constraint ckc_a_generate_menu_aplikasi check (a_generate_menu between 0 and 1 and a_generate_menu in (0,1)),
@@ -624,6 +638,10 @@ go
 /*==============================================================*/
 create table ref.basis_evaluasi (
    id_basis_evaluasi    numeric(2)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_basis_ev check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_basis_ev check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_basis_evaluasi    varchar(50)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -662,6 +680,10 @@ go
 /*==============================================================*/
 create table ref.bentuk_kegiatan_kerjasama (
    id_bntk_giat_kerjasama numeric(2)           identity,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_bentuk_k check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_bentuk_k check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_bntk_giat_kerjasama varchar(60)          not null,
    ket                  varchar(250)         null,
    create_date          datetime             not null,
@@ -677,6 +699,10 @@ go
 /*==============================================================*/
 create table ref.bentuk_pendidikan (
    id_bp                smallint             not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_bentuk_p check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_bentuk_p check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_bp                varchar(50)          not null,
    a_jenj_paud          numeric(1)           not null default 0
       constraint ckc_a_jenj_paud_bentuk_p check (a_jenj_paud between 0 and 1 and a_jenj_paud in (0,1)),
@@ -728,6 +754,10 @@ go
 /*==============================================================*/
 create table ref.bidang_kerjasama (
    id_bid_kerjasama     numeric(2)           identity,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_bidang_k check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_bidang_k check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_bid_kerjasama     varchar(60)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -742,6 +772,10 @@ go
 /*==============================================================*/
 create table ref.bidang_pekerjaan (
    id_bid_kerja         numeric(2)           identity,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_bidang_p check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_bidang_p check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_bid_kerja         varchar(120)         not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -757,6 +791,10 @@ go
 create table ref.bidang_studi (
    id_bid_studi         int                  not null,
    id_induk_bidang_studi int                  null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_bidang_s check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_bidang_s check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    kode_bid_studi       varchar(22)          null,
    nm_bid_studi         varchar(100)         not null,
    a_kel                numeric(1)           not null default 0
@@ -786,6 +824,10 @@ go
 /*==============================================================*/
 create table ref.bidang_usaha (
    id_bu                char(10)             not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_bidang_u check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_bidang_u check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_bu                varchar(50)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -945,6 +987,10 @@ create table dashboard.detail_iku_1 (
    id_detail_iku_1      uniqueidentifier     not null,
    id_sms               uniqueidentifier     not null,
    id_tahun_anggaran    numeric(4)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_detail_i2 check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_detail_i2 check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    total_bekerja        numeric(8)           null,
    total_tidak_bekerja  numeric(8)           null,
    total_wirausaha      numeric(8)           null,
@@ -967,6 +1013,10 @@ create table dashboard.detail_iku_2 (
    id_detail_iku_2      uniqueidentifier     not null,
    id_sms               uniqueidentifier     not null,
    id_tahun_anggaran    numeric(4)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_detail_i3 check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_detail_i3 check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    total_mahasiswa      numeric(8)           null,
    total_tidak_masuk_kategori numeric(8)           null,
    total_mbkm           numeric(8)           null,
@@ -995,6 +1045,10 @@ create table dashboard.detail_iku_3 (
    id_detail_iku_3      uniqueidentifier     not null,
    id_sms               uniqueidentifier     not null,
    id_tahun_anggaran    numeric(4)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_detail_i4 check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_detail_i4 check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    total_dosen_nidk     numeric(8)           null,
    total_dosen_nidn     numeric(8)           null,
    total_diklat_qs100   numeric(8)           null,
@@ -1014,6 +1068,10 @@ create table dashboard.detail_iku_4 (
    id_detail_iku_4      uniqueidentifier     not null,
    id_sms               uniqueidentifier     not null,
    id_tahun_anggaran    numeric(4)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_detail_i5 check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_detail_i5 check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    total_dosen_nidn     numeric(8)           null,
    total_dosen_nidk     numeric(8)           null,
    total_dosen_s3       numeric(8)           null,
@@ -1034,6 +1092,10 @@ create table dashboard.detail_iku_5 (
    id_detail_iku_5      uniqueidentifier     not null,
    id_sms               uniqueidentifier     not null,
    id_tahun_anggaran    numeric(4)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_detail_i6 check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_detail_i6 check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    total_dosen_tetap    numeric(8)           null,
    total_luaran_kti     numeric(8)           null,
    total_luaran_karya_terapan numeric(8)           null,
@@ -1054,6 +1116,10 @@ create table dashboard.detail_iku_7 (
    id_detail_iku_7      uniqueidentifier     not null,
    id_sms               uniqueidentifier     not null,
    id_tahun_anggaran    numeric(4)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_detail_i check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_detail_i check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    total_mk_case_method numeric(8)           null,
    total_mk_team_base_project numeric(8)           null,
    create_date          datetime             not null,
@@ -1096,6 +1162,7 @@ go
 /*==============================================================*/
 create table pdrd.diklat (
    id_diklat            uniqueidentifier     not null,
+   id_sp                uniqueidentifier     null,
    id_sdm               uniqueidentifier     not null,
    id_kel_bidang        uniqueidentifier     null,
    id_katgiat           int                  not null,
@@ -1113,6 +1180,9 @@ create table pdrd.diklat (
    tgl_selesai          date                 null,
    sk_tugas             varchar(80)          null,
    tgl_sk_tugas         date                 null,
+   a_valid              numeric(1)           null default 0
+      constraint ckc_a_valid_diklat check (a_valid is null or (a_valid between 0 and 1 and a_valid in (0,1))),
+   tgl_validasi         datetime             null,
    create_date          datetime             not null,
    id_creator           uniqueidentifier     not null,
    last_update          datetime             not null,
@@ -1566,6 +1636,34 @@ create table pdrd.dudi (
 go
 
 /*==============================================================*/
+/* Table: ekuiv_transfer                                        */
+/*==============================================================*/
+create table mbkm.ekuiv_transfer (
+   id_ekuivalensi       uniqueidentifier     not null,
+   id_akt_mhs           uniqueidentifier     null,
+   id_mk                uniqueidentifier     not null,
+   id_smt               char(5)              null,
+   id_reg_pd            uniqueidentifier     not null,
+   kode_mk_asal         varchar(20)          not null,
+   nm_mk_asal           varchar(200)         not null,
+   sks_asal             numeric(5,2)         not null,
+   sks_diakui           numeric(3)           not null,
+   nilai_huruf_asal     char(3)              not null,
+   nilai_huruf_diakui   char(3)              not null,
+   nilai_angka_diakui   numeric(4,1)         not null,
+   id_sp                uniqueidentifier     null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_ekuiv_tr check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
+   constraint pk_ekuiv_transfer primary key (id_ekuivalensi)
+)
+go
+
+/*==============================================================*/
 /* Table: foto_peserta_didik                                    */
 /*==============================================================*/
 create table dok.foto_peserta_didik (
@@ -1591,6 +1689,10 @@ go
 /*==============================================================*/
 create table ref.fungsi_lab (
    id_fungsi_lab        char(1)              not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_fungsi_l check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_fungsi_l check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_fungsi_lab        varchar(100)         not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -1605,6 +1707,10 @@ go
 /*==============================================================*/
 create table ref.gelar_akademik (
    id_gelar_akad        int                  not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_gelar_ak check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_gelar_ak check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    singkat_gelar        varchar(30)          not null,
    nm_gelar_akad        varchar(80)          not null,
    posisi_gelar         numeric(1)           not null 
@@ -1690,6 +1796,10 @@ go
 /*==============================================================*/
 create table ref.ikatan_kerja_sdm (
    id_ikatan_kerja      char(1)              not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_ikatan_k check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_ikatan_k check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_ikatan_kerja      varchar(50)          not null,
    ket_ikatan_kerja     varchar(150)         not null,
    create_date          datetime             not null,
@@ -1742,6 +1852,10 @@ go
 create table ref.jab_tgs (
    id_jab_tgs           numeric(5)           not null,
    id_kel_prof          numeric(5)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jab_tgs check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jab_tgs check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jab_tgs           varchar(50)          not null,
    a_jab_utama_sek      numeric(1)           not null default 0
       constraint ckc_a_jab_utama_sek_jab_tgs check (a_jab_utama_sek between 0 and 1 and a_jab_utama_sek in (0,1)),
@@ -1766,6 +1880,10 @@ go
 create table ref.jabfung (
    id_jabfung           numeric(5)           not null,
    id_kel_prof          numeric(5)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jabfung check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jabfung check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jabfung           varchar(50)          not null,
    angka_kredit         numeric(7,2)         null default 0,
    create_date          datetime             not null,
@@ -1805,6 +1923,10 @@ go
 /*==============================================================*/
 create table ref.jalur_daftar (
    id_jalur_daftar      numeric              identity,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jalur_da check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jalur_da check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jalur_daftar      varchar(100)         not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -1819,6 +1941,10 @@ go
 /*==============================================================*/
 create table ref.jenis_akt_mhs (
    id_jns_akt_mhs       numeric(2)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_ak check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_ak check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_akt_mhs       varchar(50)          not null,
    ket_jns_akt_mhs      varchar(100)         null,
    a_kegiatan_kampus_merdeka numeric(1)           not null default 0
@@ -1836,6 +1962,10 @@ go
 /*==============================================================*/
 create table ref.jenis_bahan_ajar (
    id_jns_bhn_ajar      int                  not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_ba check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_ba check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_bhn_ajar      varchar(100)         not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -1851,6 +1981,10 @@ go
 create table ref.jenis_beasiswa (
    id_jns_beasiswa      int                  not null,
    id_sumber_dana       numeric(4)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_be check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_be check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_beasiswa      varchar(50)          not null,
    u_pd                 numeric(1)           not null default 1
       constraint ckc_u_pd_jenis_be check (u_pd between 0 and 1 and u_pd in (0,1)),
@@ -1873,6 +2007,10 @@ go
 /*==============================================================*/
 create table ref.jenis_diklat (
    id_jns_diklat        int                  not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_di check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_di check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_diklat        varchar(50)          not null,
    u_guru               numeric(1)           not null default 0
       constraint ckc_u_guru_jenis_di check (u_guru between 0 and 1 and u_guru in (0,1)),
@@ -1880,6 +2018,8 @@ create table ref.jenis_diklat (
       constraint ckc_u_dosen_jenis_di check (u_dosen between 0 and 1 and u_dosen in (0,1)),
    u_tendik             numeric(1)           not null default 0
       constraint ckc_u_tendik_jenis_di check (u_tendik between 0 and 1 and u_tendik in (0,1)),
+   a_validasi           numeric(1)           not null default 0
+      constraint ckc_a_validasi_jenis_di check (a_validasi between 0 and 1 and a_validasi in (0,1)),
    create_date          datetime             not null,
    last_update          datetime             not null,
    expired_date         datetime             null,
@@ -1893,6 +2033,10 @@ go
 /*==============================================================*/
 create table ref.jenis_dokumen (
    id_jns_dok           int                  not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_do check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_do check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_dok           varchar(50)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -1907,6 +2051,10 @@ go
 /*==============================================================*/
 create table ref.jenis_evaluasi (
    id_jns_eval          smallint             not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_ev check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_ev check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_eval          varchar(50)          not null,
    ket_jns_eval         varchar(100)         null,
    create_date          datetime             not null,
@@ -1922,6 +2070,10 @@ go
 /*==============================================================*/
 create table ref.jenis_hapus_buku (
    id_hapus_buku        char(1)              not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_ha check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_ha check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    ket_hapus_buku       varchar(80)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -1936,6 +2088,10 @@ go
 /*==============================================================*/
 create table ref.jenis_jalur_pekerjaan (
    id_jns_jalur_kerja   numeric(2)           identity,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_ja check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_ja check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_jalur_kerja   varchar(80)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -1950,6 +2106,10 @@ go
 /*==============================================================*/
 create table ref.jenis_keluar (
    id_jns_keluar        char(1)              not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_ke2 check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_ke2 check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    ket_keluar           varchar(40)          not null,
    a_pd                 numeric(1)           not null default 0
       constraint ckc_a_pd_jenis_ke check (a_pd between 0 and 1 and a_pd in (0,1)),
@@ -1970,6 +2130,10 @@ go
 /*==============================================================*/
 create table ref.jenis_kepanitiaan (
    id_jns_panitia       int                  not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_ke check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_ke check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_panitia       varchar(100)         not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -1984,6 +2148,10 @@ go
 /*==============================================================*/
 create table ref.jenis_kesejahteraan (
    id_jns_sejahtera     int                  not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_ke3 check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_ke3 check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_sejahtera     varchar(50)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -1998,6 +2166,10 @@ go
 /*==============================================================*/
 create table ref.jenis_keuangan (
    id_jns_keuangan      int                  not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_ke4 check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_ke4 check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_keuangan      varchar(100)         not null,
    a_pengeluaran        numeric(1)           not null default 0
       constraint ckc_a_pengeluaran_jenis_ke check (a_pengeluaran between 0 and 1 and a_pengeluaran in (0,1)),
@@ -2016,6 +2188,10 @@ go
 /*==============================================================*/
 create table ref.jenis_lembaga (
    id_jns_lemb          numeric(5)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_le check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_le check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_lemb          varchar(100)         not null,
    a_sp                 numeric(1)           not null default 0
       constraint ckc_a_sp_jenis_le check (a_sp between 0 and 1 and a_sp in (0,1)),
@@ -2045,6 +2221,10 @@ go
 /*==============================================================*/
 create table ref.jenis_media_pub (
    id_jns_media         numeric(2)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_me check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_me check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_media         varchar(80)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -2059,6 +2239,10 @@ go
 /*==============================================================*/
 create table ref.jenis_pendaftaran (
    id_jns_daftar        numeric(2)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_pe2 check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_pe2 check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_daftar        varchar(60)          not null,
    u_daftar_sekolah     numeric(1)           not null default 0
       constraint ckc_u_daftar_sekolah_jenis_pe check (u_daftar_sekolah between 0 and 1 and u_daftar_sekolah in (0,1)),
@@ -2077,6 +2261,10 @@ go
 /*==============================================================*/
 create table ref.jenis_penelitian (
    id_jns_lit           numeric(4)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_pe check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_pe check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_lit           varchar(100)         null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -2091,6 +2279,10 @@ go
 /*==============================================================*/
 create table ref.jenis_penghargaan (
    id_jns_penghargaan   int                  not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_pe3 check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_pe3 check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_penghargaan   varchar(160)         not null,
    u_sdm                numeric(1)           null default 0
       constraint ckc_u_sdm_jenis_pe check (u_sdm is null or (u_sdm between 0 and 1 and u_sdm in (0,1))),
@@ -2109,6 +2301,10 @@ go
 /*==============================================================*/
 create table ref.jenis_prasarana (
    id_jns_prasarana     int                  not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_pr check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_pr check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_prasarana     varchar(250)         not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -2123,6 +2319,10 @@ go
 /*==============================================================*/
 create table ref.jenis_prestasi (
    id_jenis_prestasi    int                  not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_pr2 check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_pr2 check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jenis_prestasi    varchar(100)         not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -2137,6 +2337,10 @@ go
 /*==============================================================*/
 create table ref.jenis_publikasi (
    id_jns_pub           int                  not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_pu check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_pu check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_pub           varchar(100)         not null,
    a_pub_prestasi       numeric(1)           null default 0
       constraint ckc_a_pub_prestasi_jenis_pu check (a_pub_prestasi is null or (a_pub_prestasi between 0 and 1 and a_pub_prestasi in (0,1))),
@@ -2153,6 +2357,10 @@ go
 /*==============================================================*/
 create table ref.jenis_sarana (
    id_jns_sarana        int                  not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_sa check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_sa check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_sarana        varchar(60)          not null,
    kel                  varchar(50)          null,
    a_penempatan         numeric(1)           not null default 0
@@ -2171,6 +2379,10 @@ go
 /*==============================================================*/
 create table ref.jenis_sdm (
    id_jns_sdm           numeric(2)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_sd check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_sd check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_sdm           varchar(50)          not null,
    a_guru_kelas         numeric(1)           not null default 0
       constraint ckc_a_guru_kelas_jenis_sd check (a_guru_kelas between 0 and 1 and a_guru_kelas in (0,1)),
@@ -2229,6 +2441,10 @@ go
 /*==============================================================*/
 create table ref.jenis_sert (
    id_jns_sert          numeric(3)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_se check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_se check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_sert          varchar(50)          not null,
    u_prof_guru          numeric(1)           not null default 0
       constraint ckc_u_prof_guru_jenis_se check (u_prof_guru between 0 and 1 and u_prof_guru in (0,1)),
@@ -2253,6 +2469,10 @@ go
 /*==============================================================*/
 create table ref.jenis_sms (
    id_jns_sms           numeric(2)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_sm check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_sm check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_sms           varchar(50)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -2267,6 +2487,10 @@ go
 /*==============================================================*/
 create table ref.jenis_subst (
    id_jns_subst         char(5)              not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_su check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_su check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_subst         varchar(50)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -2281,6 +2505,10 @@ go
 /*==============================================================*/
 create table ref.jenis_tes (
    id_jns_tes           numeric(3)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_te check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_te check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_tes           varchar(50)          not null,
    ket                  varchar(250)         null,
    nilai_maks           numeric(6,2)         not null,
@@ -2297,6 +2525,10 @@ go
 /*==============================================================*/
 create table ref.jenis_tinggal (
    id_jns_tinggal       numeric(2)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_ti check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_ti check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_tinggal       varchar(50)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -2311,6 +2543,10 @@ go
 /*==============================================================*/
 create table ref.jenis_tunjangan (
    id_jns_tunj          int                  not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenis_tu check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenis_tu check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jns_tunj          varchar(50)          null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -2325,6 +2561,10 @@ go
 /*==============================================================*/
 create table ref.jenjang_pendidikan (
    id_jenj_didik        numeric(2)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jenjang_ check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jenjang_ check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jenj_didik        varchar(50)          not null,
    u_jenj_lemb          numeric(1)           not null default 0
       constraint ckc_u_jenj_lemb_jenjang_ check (u_jenj_lemb between 0 and 1 and u_jenj_lemb in (0,1)),
@@ -2343,8 +2583,13 @@ go
 /*==============================================================*/
 create table ref.jurusan (
    id_jur               varchar(25)          not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_jurusan check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_jurusan check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_jur               varchar(100)         not null,
    nm_intl_jur          varchar(100)         null,
+   kode_nomenklatur     varchar(10)          null,
    u_sma                numeric(1)           not null default 0
       constraint ckc_u_sma_jurusan check (u_sma between 0 and 1 and u_sma in (0,1)),
    u_smk                numeric(1)           not null default 0
@@ -2369,6 +2614,10 @@ go
 /*==============================================================*/
 create table ref.kategori_capaian_luaran (
    id_kat_capaian       numeric(3)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_kategori check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_kategori check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_kat_capaian       varchar(50)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -2384,6 +2633,10 @@ go
 create table ref.kategori_kegiatan (
    id_katgiat           int                  not null,
    id_induk_katgiat     int                  null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_kategori2 check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_kategori2 check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    id_jns_sdm           numeric(2)           not null,
    kode_kat_pak         varchar(16)          null,
    kode_kat_bkd         varchar(16)          null,
@@ -2431,6 +2684,10 @@ go
 create table ref.kategori_tabel (
    id_kat_tabel         uniqueidentifier     not null,
    id_katgiat           int                  not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_kategori3 check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_kategori3 check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_schema            varchar(100)         null,
    nm_tbl               varchar(100)         not null,
    konfig_kolom         text                 null,
@@ -2449,6 +2706,10 @@ go
 create table ref.kbli (
    id_kbli              numeric(7)           not null,
    id_induk_kbli        numeric(7)           null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_kbli check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_kbli check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    kategori             varchar(2)           not null,
    kode                 varchar(5)           not null,
    judul                varchar(500)         not null,
@@ -2466,6 +2727,10 @@ go
 /*==============================================================*/
 create table ref.keahlian_lab (
    id_keahlian_lab      smallint             not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_keahlian check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_keahlian check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_keahlian_lab      varchar(50)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -2523,6 +2788,10 @@ go
 /*==============================================================*/
 create table ref.kebutuhan_khusus (
    id_kk                int                  not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_kebutuha check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_kebutuha check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_kk                varchar(50)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -2667,6 +2936,10 @@ go
 /*==============================================================*/
 create table ref.kelompok_bidang (
    id_kel_bidang        uniqueidentifier     not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_kelompok2 check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_kelompok2 check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    kode_kel_bidang      varchar(20)          not null,
    nm_kel_bidang        varchar(120)         not null,
    u_sma                numeric(1)           not null default 0
@@ -2697,6 +2970,10 @@ go
 /*==============================================================*/
 create table ref.kelompok_profesi (
    id_kel_prof          numeric(5)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_kelompok check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_kelompok check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_kel_prof          varchar(50)          not null,
    ket_kel_prof         varchar(250)         null,
    create_date          datetime             not null,
@@ -2712,6 +2989,10 @@ go
 /*==============================================================*/
 create table ref.kelompok_usaha (
    id_kel_usaha         char(8)              not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_kelompok3 check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_kelompok3 check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_kel_usaha         varchar(60)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -2818,6 +3099,10 @@ go
 create table dashboard.kontrak_iku_pt (
    id_kontak_iku_pt     uniqueidentifier     not null,
    id_tahun_anggaran    numeric(4)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_kontrak_ check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_kontrak_ check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    iku1                 numeric(5,2)         null,
    iku2                 numeric(5,2)         null,
    iku3                 numeric(5,2)         null,
@@ -2836,12 +3121,13 @@ create table dashboard.kontrak_iku_pt (
 go
 
 /*==============================================================*/
-/* Table: konversi_kampus_merdeka                               */
+/* Table: konversi_akt_mhs                                      */
 /*==============================================================*/
-create table mbkm.konversi_kampus_merdeka (
+create table mbkm.konversi_akt_mhs (
    id_konversi_aktivitas uniqueidentifier     not null,
    id_mk                uniqueidentifier     not null,
    id_ang_akt_mhs       uniqueidentifier     null,
+   id_smt               char(5)              null,
    id_akt_mhs           uniqueidentifier     not null,
    id_daftar_kampus_merdeka uniqueidentifier     null,
    nilai_angka          numeric(4,1)         null,
@@ -2855,7 +3141,7 @@ create table mbkm.konversi_kampus_merdeka (
    soft_delete          numeric(1)           not null default 0
       constraint ckc_soft_delete_konversi check (soft_delete between 0 and 1 and soft_delete in (0,1)),
    last_sync            datetime             not null,
-   constraint pk_konversi_kampus_merdeka primary key (id_konversi_aktivitas)
+   constraint pk_konversi_akt_mhs primary key (id_konversi_aktivitas)
 )
 go
 
@@ -2864,6 +3150,10 @@ go
 /*==============================================================*/
 create table ref.kriteria_mitra (
    id_kriteria_mitra    numeric(2)           identity,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_kriteria check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_kriteria check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_kriteria_mitra    varchar(100)         not null,
    ket                  varchar(250)         null,
    create_date          datetime             not null,
@@ -2880,6 +3170,7 @@ go
 create table pdrd.kuliah_mhs (
    id_reg_pd            uniqueidentifier     not null,
    id_smt               char(5)              not null,
+   id_pembiayaan        numeric(2)           null,
    id_stat_mhs          char(1)              not null,
    ips                  numeric(7,4)         null,
    sks_semester         numeric(5,2)         null,
@@ -2977,6 +3268,10 @@ go
 /*==============================================================*/
 create table ref.lembaga_akred (
    id_lemb_akred        char(5)              not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_lembaga_2 check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_lembaga_2 check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_lemb              varchar(100)         not null,
    jln                  varchar(255)         null,
    rt                   numeric(3)           null,
@@ -3081,6 +3376,10 @@ go
 /*==============================================================*/
 create table ref.lembaga_pengangkat (
    id_lemb_angkat       numeric(2)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_lembaga_ check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_lembaga_ check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_lemb_angkat       varchar(100)         not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -3095,6 +3394,10 @@ go
 /*==============================================================*/
 create table ref.level_wilayah (
    id_level_wil         smallint             not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_level_wi check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_level_wi check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_level_wilayah     varchar(50)          null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -3413,6 +3716,10 @@ create table ref.media_publikasi (
    id_kel_bidang        uniqueidentifier     not null,
    id_sp                uniqueidentifier     null,
    id_negara            char(2)              not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_media_pu check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_media_pu check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_media_pub         varchar(120)         not null,
    bentuk_media_pub     char(1)              null 
       constraint ckc_bentuk_media_pub_media_pu check (bentuk_media_pub is null or (bentuk_media_pub in ('C','E'))),
@@ -3560,6 +3867,10 @@ go
 /*==============================================================*/
 create table ref.negara (
    id_negara            char(2)              not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_negara check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_negara check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_negara            varchar(50)          not null,
    a_ln                 numeric(1)           not null default 0
       constraint ckc_a_ln_negara check (a_ln between 0 and 1 and a_ln in (0,1)),
@@ -3578,6 +3889,10 @@ go
 /*==============================================================*/
 create table ref.nilai_akred (
    id_akred             numeric(1)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_nilai_ak check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_nilai_ak check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_akred             varchar(50)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -3619,6 +3934,9 @@ create table pdrd.nilai_tes (
    thn                  numeric(4)           not null,
    skor                 numeric(6,2)         not null,
    tgl_tes              date                 null,
+   a_valid              numeric(1)           null default 0
+      constraint ckc_a_valid_nilai_te check (a_valid is null or (a_valid between 0 and 1 and a_valid in (0,1))),
+   tgl_validasi         datetime             null,
    create_date          datetime             not null,
    id_creator           uniqueidentifier     not null,
    last_update          datetime             not null,
@@ -3627,6 +3945,31 @@ create table pdrd.nilai_tes (
       constraint ckc_soft_delete_nilai_te check (soft_delete between 0 and 1 and soft_delete in (0,1)),
    last_sync            datetime             not null,
    constraint pk_nilai_tes primary key (id_nilai_tes)
+)
+go
+
+/*==============================================================*/
+/* Table: nilai_transkrip                                       */
+/*==============================================================*/
+create table pdrd.nilai_transkrip (
+   id_reg_pd            uniqueidentifier     not null,
+   id_mk                uniqueidentifier     not null,
+   id_kls               uniqueidentifier     not null,
+   id_konversi_aktivitas uniqueidentifier     null,
+   id_ekuivalensi       uniqueidentifier     null,
+   nilai_angka          numeric(4,1)         null,
+   nilai_huruf          char(3)              null,
+   nilai_indeks         numeric(4,2)         null,
+   smt_ke               numeric(2)           not null,
+   sks_mk               numeric(5,2)         not null,
+   create_date          datetime             not null,
+   id_creator           uniqueidentifier     not null,
+   last_update          datetime             not null,
+   id_updater           uniqueidentifier     null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_nilai_tr check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
+   constraint pk_nilai_transkrip primary key (id_reg_pd, id_mk, id_kls)
 )
 go
 
@@ -3689,6 +4032,10 @@ go
 /*==============================================================*/
 create table ref.pangkat_golongan (
    id_pangkat_gol       numeric(2)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_pangkat_ check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_pangkat_ check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    kode_gol             varchar(5)           not null,
    nm_pangkat           varchar(50)          not null,
    create_date          datetime             not null,
@@ -3728,6 +4075,10 @@ go
 /*==============================================================*/
 create table ref.pekerjaan (
    id_pekerjaan         int                  not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_pekerjaa check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_pekerjaa check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_pekerjaan         varchar(50)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -3742,6 +4093,10 @@ go
 /*==============================================================*/
 create table ref.pembiayaan (
    id_pembiayaan        numeric(2)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_pembiaya check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_pembiaya check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_pembiayaan        varchar(40)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -3817,6 +4172,8 @@ create table man_akses.pengguna (
    id_pengguna          uniqueidentifier     not null,
    username             varchar(60)          not null,
    password             varchar(50)          not null,
+   password_encrypt     varchar(255)         null,
+   type_encrypt         varchar(80)          null,
    nm_pengguna          varchar(200)         null,
    email                varchar(60)          null,
    tempat_lahir         varchar(60)          null,
@@ -3834,6 +4191,7 @@ create table man_akses.pengguna (
    id_sdm_pengguna      uniqueidentifier     null,
    id_pd_pengguna       uniqueidentifier     null,
    id_calon_pd_pengguna uniqueidentifier     null,
+   id_user_sikep        int                  null,
    token_reg            varchar(100)         null,
    jabatan              varchar(80)          null,
    provider             varchar(500)         null,
@@ -3878,6 +4236,10 @@ go
 /*==============================================================*/
 create table ref.penghasilan (
    id_penghasilan       int                  not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_penghasi check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_penghasi check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_penghasilan       varchar(50)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -3895,6 +4257,10 @@ create table man_akses.peran (
    nm_peran             varchar(50)          not null,
    a_perlu_sk           numeric(1)           not null default 0
       constraint ckc_a_perlu_sk_peran check (a_perlu_sk between 0 and 1 and a_perlu_sk in (0,1)),
+   peran_pddikti        numeric(1)           not null default 0
+      constraint ckc_peran_pddikti_peran check (peran_pddikti between 0 and 1 and peran_pddikti in (0,1)),
+   peran_unila          numeric(1)           not null default 0
+      constraint ckc_peran_unila_peran check (peran_unila between 0 and 1 and peran_unila in (0,1)),
    tgl_create           datetime             not null,
    last_update          datetime             not null,
    expired_date         datetime             null,
@@ -3974,6 +4340,12 @@ create table pdrd.peserta_didik (
    tlpn_rumah           varchar(20)          null,
    tlpn_hp              varchar(20)          null,
    email                varchar(60)          null,
+   a_pmpap              numeric(1)           not null default 0
+      constraint ckc_a_pmpap_peserta_ check (a_pmpap between 0 and 1 and a_pmpap in (0,1)),
+   a_bidikmisi          numeric(1)           not null default 0
+      constraint ckc_a_bidikmisi_peserta_ check (a_bidikmisi between 0 and 1 and a_bidikmisi in (0,1)),
+   a_bebas_biaya        numeric(1)           not null default 0
+      constraint ckc_a_bebas_biaya_peserta_ check (a_bebas_biaya between 0 and 1 and a_bebas_biaya in (0,1)),
    nm_wali              varchar(100)         null,
    tgl_lahir_wali       date                 null,
    id_pendidikan_wali   numeric(2)           null,
@@ -4021,6 +4393,10 @@ go
 create table ref.peta_katgiat_jabfung (
    id_katgiat           int                  not null,
    id_jabfung           numeric(5)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_peta_kat2 check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_peta_kat2 check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    create_date          datetime             not null,
    last_update          datetime             not null,
    expired_date         datetime             null,
@@ -4035,6 +4411,10 @@ go
 create table ref.peta_katgiat_jnsdok (
    id_katgiat           int                  not null,
    id_jns_dok           int                  not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_peta_kat check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_peta_kat check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    a_wajib              numeric(1)           null default 0
       constraint ckc_a_wajib_peta_kat check (a_wajib is null or (a_wajib between 0 and 1 and a_wajib in (0,1))),
    no_urut              int                  null,
@@ -4052,6 +4432,10 @@ go
 create table ref.peta_katgiat_jnspub (
    id_katgiat           int                  not null,
    id_jns_pub           int                  not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_peta_kat3 check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_peta_kat3 check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    create_date          datetime             not null,
    last_update          datetime             not null,
    expired_date         datetime             null,
@@ -4237,7 +4621,7 @@ create table pdrd.re_mk (
       constraint ckc_komponen_evaluasi_re_mk check (komponen_evaluasi is null or (komponen_evaluasi in ('TGS','QIZ','UTS','UAS'))),
    desk_indo            varchar(1000)        not null,
    desk_ing             varchar(1000)        null,
-   bobot_evaluasi       numeric(5,2)         null 
+   bobot_evaluasi       numeric(7,4)         null 
       constraint ckc_bobot_evaluasi_re_mk check (bobot_evaluasi is null or (bobot_evaluasi between 0 and 100)),
    create_date          datetime             not null,
    id_creator           uniqueidentifier     not null,
@@ -4317,6 +4701,7 @@ create table pdrd.reg_ptk (
    tmt_srt_tgs          date                 not null,
    tgl_ptk_keluar       date                 null,
    nidn                 char(10)             null,
+   jns_reg              varchar(10)          null,
    create_date          datetime             not null,
    id_creator           uniqueidentifier     not null,
    last_update          datetime             not null,
@@ -4610,6 +4995,10 @@ go
 /*==============================================================*/
 create table ref.satuan (
    kd_satuan            char(1)              not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_satuan check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_satuan check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_satuan            varchar(100)         not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -4660,6 +5049,8 @@ create table pdrd.satuan_pendidikan (
    npwp                 char(15)             null,
    nm_wp                varchar(100)         null,
    flag                 char(1)              null,
+   tgl_tutup            datetime             null,
+   kode_snpmb           varchar(10)          null,
    id_pembina           uniqueidentifier     not null,
    id_blob              uniqueidentifier     null,
    id_stat_milik        numeric(1)           not null,
@@ -4714,6 +5105,7 @@ create table pdrd.sdm (
    stat_data            int                  null,
    akta_ijin_ajar       char(1)              null,
    nira                 char(30)             null,
+   jns_reg              varchar(10)          null,
    kewarganegaraan      char(2)              not null,
    id_jns_sdm           numeric(2)           not null,
    id_wil               char(8)              not null,
@@ -4762,6 +5154,10 @@ go
 create table ref.semester (
    id_smt               char(5)              not null,
    id_thn_ajaran        numeric(4)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_semester check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_semester check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_smt               varchar(50)          not null,
    smt                  numeric(2)           not null,
    a_periode_aktif      numeric(1)           null default 0
@@ -4782,6 +5178,10 @@ go
 create table ref.skim_kegiatan (
    id_skim              uniqueidentifier     not null,
    id_jenj_didik        numeric(2)           null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_skim_keg check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_skim_keg check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_skim              varchar(80)          not null,
    nm_singkat_skim      varchar(40)          null,
    kd_skim              varchar(20)          null,
@@ -4844,6 +5244,8 @@ create table pdrd.sms (
    a_selenggara_subst   numeric(1)           not null default 0
       constraint ckc_a_selenggara_subs_sms check (a_selenggara_subst between 0 and 1 and a_selenggara_subst in (0,1)),
    stat_prodi_unila     char(1)              null,
+   tgl_tutup            datetime             null,
+   kode_snpmb           varchar(10)          null,
    kode_prodi           varchar(10)          null,
    nm_prodi_english     varchar(100)         null,
    kpst_pd              numeric(5)           null,
@@ -4971,6 +5373,10 @@ go
 /*==============================================================*/
 create table ref.status_anak (
    id_stat_anak         numeric(1)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_status_a check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_status_a check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_stat_anak         varchar(50)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -4985,6 +5391,10 @@ go
 /*==============================================================*/
 create table ref.status_keaktifan_pegawai (
    id_stat_aktif        numeric(2)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_status_k3 check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_status_k3 check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_stat_aktif        varchar(50)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -4999,6 +5409,10 @@ go
 /*==============================================================*/
 create table ref.status_kepegawaian (
    id_stat_pegawai      smallint             not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_status_k4 check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_status_k4 check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_stat_pegawai      varchar(50)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -5013,6 +5427,10 @@ go
 /*==============================================================*/
 create table ref.status_kepemilikan (
    id_stat_milik        numeric(1)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_status_k2 check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_status_k2 check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_stat_milik        varchar(50)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -5027,6 +5445,10 @@ go
 /*==============================================================*/
 create table ref.status_kerjasama (
    id_stat_kerjasama    numeric(2)           identity,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_status_k check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_status_k check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_stat_kerjasama    varchar(60)          not null,
    ket                  varchar(250)         null,
    create_date          datetime             not null,
@@ -5042,6 +5464,10 @@ go
 /*==============================================================*/
 create table ref.status_mahasiswa (
    id_stat_mhs          char(1)              not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_status_m2 check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_status_m2 check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_stat_mhs          varchar(30)          not null,
    ket_stat_mhs         varchar(100)         null,
    create_date          datetime             not null,
@@ -5057,6 +5483,10 @@ go
 /*==============================================================*/
 create table ref.status_milik_sarpras (
    id_stat_milik_sarpras numeric(1)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_status_m check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_status_m check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_stat_milik_sarpras varchar(50)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -5095,6 +5525,10 @@ go
 /*==============================================================*/
 create table ref.sumber_air (
    id_sumber_air        numeric(2)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_sumber_a check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_sumber_a check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    create_date          datetime             not null,
    last_update          datetime             not null,
    expired_date         datetime             null,
@@ -5109,6 +5543,10 @@ go
 /*==============================================================*/
 create table ref.sumber_dana (
    id_sumber_dana       numeric(4)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_sumber_d check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_sumber_d check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_sumber_dana       varchar(80)          not null,
    u_blockgrant         numeric(1)           not null default 0
       constraint ckc_u_blockgrant_sumber_d check (u_blockgrant between 0 and 1 and u_blockgrant in (0,1)),
@@ -5131,6 +5569,10 @@ go
 /*==============================================================*/
 create table ref.sumber_gaji (
    id_sumber_gaji       numeric(2)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_sumber_g check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_sumber_g check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    create_date          datetime             not null,
    last_update          datetime             not null,
    expired_date         datetime             null,
@@ -5145,6 +5587,10 @@ go
 /*==============================================================*/
 create table ref.sumber_listrik (
    id_sumber_listrik    numeric(2)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_sumber_l check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_sumber_l check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    create_date          datetime             not null,
    last_update          datetime             not null,
    expired_date         datetime             null,
@@ -5186,6 +5632,10 @@ go
 /*==============================================================*/
 create table ref.tahun_ajaran (
    id_thn_ajaran        numeric(4)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_tahun_aj check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_tahun_aj check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_thn_ajaran        varchar(50)          not null,
    a_periode_aktif      numeric(1)           null default 0
       constraint ckc_a_periode_aktif_tahun_aj check (a_periode_aktif is null or (a_periode_aktif between 0 and 1 and a_periode_aktif in (0,1))),
@@ -5204,6 +5654,10 @@ go
 /*==============================================================*/
 create table ref.tahun_anggaran (
    id_tahun_anggaran    numeric(4)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_tahun_an check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_tahun_an check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_tahun_anggaran    varchar(50)          not null,
    a_periode_aktif      numeric(1)           not null default 0
       constraint ckc_a_periode_aktif_tahun_an check (a_periode_aktif between 0 and 1 and a_periode_aktif in (0,1)),
@@ -5281,6 +5735,10 @@ go
 /*==============================================================*/
 create table ref.tingkat_kerjasama (
    id_tingkat_kerjasama numeric(2)           identity,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_tingkat_ check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_tingkat_ check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_tingkat_kerjasama varchar(60)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -5295,6 +5753,10 @@ go
 /*==============================================================*/
 create table ref.tingkat_penghargaan (
    id_tkt_penghargaan   int                  not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_tingkat_3 check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_tingkat_3 check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_tkt_penghargaan   varchar(50)          not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -5309,6 +5771,10 @@ go
 /*==============================================================*/
 create table ref.tingkat_prestasi (
    id_tkt_prestasi      int                  not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_tingkat_2 check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_tingkat_2 check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_tkt_prestasi      varchar(100)         not null,
    create_date          datetime             not null,
    last_update          datetime             not null,
@@ -5353,6 +5819,10 @@ go
 /*==============================================================*/
 create table ref.tse (
    id_tse               numeric(5)           not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_tse check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_tse check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    kode_tse             varchar(20)          not null,
    nm_tse               varchar(120)         not null,
    create_date          datetime             not null,
@@ -5623,6 +6093,10 @@ go
 create table ref.wilayah (
    id_wil               char(8)              not null,
    id_negara            char(2)              not null,
+   a_ref_pddikti        numeric(1)           not null default 0
+      constraint ckc_a_ref_pddikti_wilayah check (a_ref_pddikti between 0 and 1 and a_ref_pddikti in (0,1)),
+   a_ref_unila          numeric(1)           not null default 0
+      constraint ckc_a_ref_unila_wilayah check (a_ref_unila between 0 and 1 and a_ref_unila in (0,1)),
    nm_wil               varchar(60)          null,
    asal_wil             char(8)              null,
    kode_bps             char(7)              null,
@@ -5635,59 +6109,6 @@ create table ref.wilayah (
    expired_date         datetime             null,
    last_sync            datetime             not null,
    constraint pk_wilayah primary key (id_wil)
-)
-go
-
-/*==============================================================*/
-/* Table: ekuiv_transfer                                        */
-/*==============================================================*/
-create table mbkm.ekuiv_transfer (
-   id_ekuivalensi       uniqueidentifier     not null,
-   id_akt_mhs           uniqueidentifier     null,
-   id_mk                uniqueidentifier     not null,
-   id_smt               char(5)              null,
-   id_reg_pd            uniqueidentifier     not null,
-   kode_mk_asal         varchar(20)          not null,
-   nm_mk_asal           varchar(200)         not null,
-   sks_asal             numeric(5,2)         not null,
-   sks_diakui           numeric(3)           not null,
-   nilai_huruf_asal     char(3)              not null,
-   nilai_huruf_diakui   char(3)              not null,
-   nilai_angka_diakui   numeric(4,1)         not null,
-   id_sp                uniqueidentifier     null,
-   create_date          datetime             not null,
-   id_creator           uniqueidentifier     not null,
-   last_update          datetime             not null,
-   id_updater           uniqueidentifier     null,
-   soft_delete          numeric(1)           not null default 0
-      constraint ckc_soft_delete_ekuiv_tr check (soft_delete between 0 and 1 and soft_delete in (0,1)),
-   last_sync            datetime             not null,
-   constraint pk_ekuiv_transfer primary key (id_ekuivalensi)
-)
-go
-
-/*==============================================================*/
-/* Table: nilai_transkrip                                       */
-/*==============================================================*/
-create table pdrd.nilai_transkrip (
-   id_reg_pd            uniqueidentifier     not null,
-   id_mk                uniqueidentifier     not null,
-   id_kls               uniqueidentifier     not null,
-   id_konversi_aktivitas uniqueidentifier     null,
-   id_ekuivalensi       uniqueidentifier     null,
-   nilai_angka          numeric(4,1)         null,
-   nilai_huruf          char(3)              null,
-   nilai_indeks         numeric(4,2)         null,
-   smt_ke               numeric(2)           not null,
-   sks_mk               numeric(5,2)         not null,
-   create_date          datetime             not null,
-   id_creator           uniqueidentifier     not null,
-   last_update          datetime             not null,
-   id_updater           uniqueidentifier     null,
-   soft_delete          numeric(1)           not null default 0
-      constraint ckc_soft_delete_nilai_tr check (soft_delete between 0 and 1 and soft_delete in (0,1)),
-   last_sync            datetime             not null,
-   constraint pk_nilai_transkrip primary key (id_reg_pd, id_mk, id_kls)
 )
 go
 
@@ -6221,6 +6642,12 @@ alter table pdrd.diklat
       references pdrd.sdm (id_sdm)
 go
 
+alter table pdrd.diklat
+   add constraint fk_diklat_sp_diklat_satuan_p foreign key (id_sp)
+      references pdrd.satuan_pendidikan (id_sp)
+         on update cascade on delete cascade
+go
+
 alter table dok.dok_akt_mhs
    add constraint fk_dok_akt__akt_mhs_d_akt_mhs foreign key (id_akt_mhs)
       references pdrd.akt_mhs (id_akt_mhs)
@@ -6456,6 +6883,36 @@ alter table pdrd.dudi
       references ref.wilayah (id_wil)
 go
 
+alter table mbkm.ekuiv_transfer
+   add constraint fk_ekuiv_tr_akt_mhs_e_akt_mhs foreign key (id_akt_mhs)
+      references pdrd.akt_mhs (id_akt_mhs)
+         on update cascade on delete cascade
+go
+
+alter table mbkm.ekuiv_transfer
+   add constraint fk_ekuiv_tr_mk_ekuiv__matkul foreign key (id_mk)
+      references pdrd.matkul (id_mk)
+         on update cascade on delete cascade
+go
+
+alter table mbkm.ekuiv_transfer
+   add constraint fk_ekuiv_tr_reg_pd_ek_reg_pd foreign key (id_reg_pd)
+      references pdrd.reg_pd (id_reg_pd)
+         on update cascade on delete cascade
+go
+
+alter table mbkm.ekuiv_transfer
+   add constraint fk_ekuiv_tr_smt_ekuiv_semester foreign key (id_smt)
+      references ref.semester (id_smt)
+         on update cascade on delete cascade
+go
+
+alter table mbkm.ekuiv_transfer
+   add constraint fk_ekuiv_tr_sp_ekuiv__satuan_p foreign key (id_sp)
+      references pdrd.satuan_pendidikan (id_sp)
+         on update cascade on delete cascade
+go
+
 alter table dok.foto_peserta_didik
    add constraint fk_foto_pes_pemilik_f_peserta_ foreign key (id_pd)
       references pdrd.peserta_didik (id_pd)
@@ -6678,29 +7135,41 @@ alter table dashboard.kontrak_iku_pt
       references ref.tahun_anggaran (id_tahun_anggaran)
 go
 
-alter table mbkm.konversi_kampus_merdeka
+alter table mbkm.konversi_akt_mhs
    add constraint fk_konversi_akt_konve_akt_mhs foreign key (id_akt_mhs)
       references pdrd.akt_mhs (id_akt_mhs)
 go
 
-alter table mbkm.konversi_kampus_merdeka
+alter table mbkm.konversi_akt_mhs
    add constraint fk_konversi_hasil_kon_daftar_k foreign key (id_daftar_kampus_merdeka)
       references mbkm.daftar_kampus_merdeka (id_daftar_kampus_merdeka)
 go
 
-alter table mbkm.konversi_kampus_merdeka
+alter table mbkm.konversi_akt_mhs
    add constraint fk_konversi_konversi__anggota_ foreign key (id_ang_akt_mhs)
       references pdrd.anggota_akt_mhs (id_ang_akt_mhs)
 go
 
-alter table mbkm.konversi_kampus_merdeka
+alter table mbkm.konversi_akt_mhs
    add constraint fk_konversi_konversi__matkul foreign key (id_mk)
       references pdrd.matkul (id_mk)
+go
+
+alter table mbkm.konversi_akt_mhs
+   add constraint fk_konversi_smt_konve_semester foreign key (id_smt)
+      references ref.semester (id_smt)
+         on update cascade on delete cascade
 go
 
 alter table pdrd.kuliah_mhs
    add constraint fk_kuliah_m_keaktifan_semester foreign key (id_smt)
       references ref.semester (id_smt)
+go
+
+alter table pdrd.kuliah_mhs
+   add constraint fk_kuliah_m_pembiayaa_pembiaya foreign key (id_pembiayaan)
+      references ref.pembiayaan (id_pembiayaan)
+         on update cascade on delete cascade
 go
 
 alter table pdrd.kuliah_mhs
@@ -7004,6 +7473,36 @@ go
 alter table pdrd.nilai_tes
    add constraint fk_nilai_te_test_jeni_jenis_te foreign key (id_jns_tes)
       references ref.jenis_tes (id_jns_tes)
+go
+
+alter table pdrd.nilai_transkrip
+   add constraint fk_nilai_tr_kelas_tra_kelas_ku foreign key (id_kls)
+      references pdrd.kelas_kuliah (id_kls)
+         on update cascade on delete cascade
+go
+
+alter table pdrd.nilai_transkrip
+   add constraint fk_nilai_tr_mk_nilai__matkul foreign key (id_mk)
+      references pdrd.matkul (id_mk)
+         on update cascade on delete cascade
+go
+
+alter table pdrd.nilai_transkrip
+   add constraint fk_nilai_tr_nilai_eku_ekuiv_tr foreign key (id_ekuivalensi)
+      references mbkm.ekuiv_transfer (id_ekuivalensi)
+         on update cascade on delete cascade
+go
+
+alter table pdrd.nilai_transkrip
+   add constraint fk_nilai_tr_nilai_kon_konversi foreign key (id_konversi_aktivitas)
+      references mbkm.konversi_akt_mhs (id_konversi_aktivitas)
+         on update cascade on delete cascade
+go
+
+alter table pdrd.nilai_transkrip
+   add constraint fk_nilai_tr_reg_pd_tr_reg_pd foreign key (id_reg_pd)
+      references pdrd.reg_pd (id_reg_pd)
+         on update cascade on delete cascade
 go
 
 alter table pdrd.non_ca
@@ -7976,65 +8475,6 @@ alter table ref.wilayah
       references ref.negara (id_negara)
 go
 
-alter table mbkm.ekuiv_transfer
-   add constraint fk_ekuiv_tr_akt_mhs_e_akt_mhs foreign key (id_akt_mhs)
-      references pdrd.akt_mhs (id_akt_mhs)
-         on update cascade on delete cascade
-go
-
-alter table mbkm.ekuiv_transfer
-   add constraint fk_ekuiv_tr_mk_ekuiv__matkul foreign key (id_mk)
-      references pdrd.matkul (id_mk)
-         on update cascade on delete cascade
-go
-
-alter table mbkm.ekuiv_transfer
-   add constraint fk_ekuiv_tr_reg_pd_ek_reg_pd foreign key (id_reg_pd)
-      references pdrd.reg_pd (id_reg_pd)
-         on update cascade on delete cascade
-go
-
-alter table mbkm.ekuiv_transfer
-   add constraint fk_ekuiv_tr_smt_ekuiv_semester foreign key (id_smt)
-      references ref.semester (id_smt)
-         on update cascade on delete cascade
-go
-
-alter table mbkm.ekuiv_transfer
-   add constraint fk_ekuiv_tr_sp_ekuiv__satuan_p foreign key (id_sp)
-      references pdrd.satuan_pendidikan (id_sp)
-         on update cascade on delete cascade
-go
-
-alter table pdrd.nilai_transkrip
-   add constraint fk_nilai_tr_kelas_tra_kelas_ku foreign key (id_kls)
-      references pdrd.kelas_kuliah (id_kls)
-         on update cascade on delete cascade
-go
-
-alter table pdrd.nilai_transkrip
-   add constraint fk_nilai_tr_mk_nilai__matkul foreign key (id_mk)
-      references pdrd.matkul (id_mk)
-         on update cascade on delete cascade
-go
-
-alter table pdrd.nilai_transkrip
-   add constraint fk_nilai_tr_nilai_eku_ekuiv_tr foreign key (id_ekuivalensi)
-      references mbkm.ekuiv_transfer (id_ekuivalensi)
-go
-
-alter table pdrd.nilai_transkrip
-   add constraint fk_nilai_tr_nilai_kon_konversi foreign key (id_konversi_aktivitas)
-      references mbkm.konversi_kampus_merdeka (id_konversi_aktivitas)
-         on update cascade on delete cascade
-go
-
-alter table pdrd.nilai_transkrip
-   add constraint fk_nilai_tr_reg_pd_tr_reg_pd foreign key (id_reg_pd)
-      references pdrd.reg_pd (id_reg_pd)
-         on update cascade on delete cascade
-go
-
 alter table man_akses.ws_authorization
    add constraint fk_ws_autho_ws_auth_a_aplikasi foreign key (id_aplikasi)
       references man_akses.aplikasi (id_aplikasi)
@@ -8068,7 +8508,6 @@ go
 alter table man_akses.ws_endpoint_body_terms
    add constraint fk_ws_endpo_ws_bodyte_ws_endpo foreign key (id_ws_endpoint_body)
       references man_akses.ws_endpoint_body (id_ws_endpoint_body)
+         on update cascade on delete cascade
 go
 
-
-INSERT INTO man_akses.versi_db (versi,tgl_update) VALUES ('0.8.0',GETDATE());

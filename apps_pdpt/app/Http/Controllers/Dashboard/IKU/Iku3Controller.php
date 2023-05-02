@@ -18,7 +18,7 @@ class Iku3Controller extends Controller
 
     public function tahunIku()
     {
-        return DB::connection('sqlsrv_live')->select("
+        return DB::select("
             SELECT
                 th.a_periode_aktif,
                 th.id_thn_ajaran,
@@ -38,7 +38,7 @@ class Iku3Controller extends Controller
     public function apiIku3()
     {
         $thn_iku = $this->request->thn_iku;
-        $apiIku3 = DB::connection('sqlsrv_live')->select("
+        $apiIku3 = DB::select("
             SELECT
                 (
                     SELECT
@@ -106,7 +106,7 @@ class Iku3Controller extends Controller
                 fak.nm_lemb AS y_nm_fakultas
             FROM
                 pdrd.sdm AS sdm WITH(NOLOCK)
-                JOIN pdrd.reg_ptk AS ptk WITH(NOLOCK) ON ptk.id_sdm = sdm.id_sdm
+                JOIN pdrd.reg_ptk AS ptk WITH(NOLOCK) ON ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete=0 AND ptk.id_sp='".env('APP_ID_SP')."'
                 AND ptk.soft_delete = 0
                 AND ptk.id_jns_keluar IS NULL
                 AND ptk.id_ikatan_kerja IN('A', 'B', 'D', 'E', 'G', 'H', 'I')
@@ -189,7 +189,7 @@ class Iku3Controller extends Controller
     {
         $thn_iku = $this->request->thn_iku;
         $id_prodi = $this->request->id_prodi;
-        $apiIku3Dosen = DB::connection('sqlsrv_live')->select("
+        $apiIku3Dosen = DB::select("
             SELECT
                 (
                     SELECT
@@ -280,7 +280,7 @@ class Iku3Controller extends Controller
                 fak.id_sms AS y_id_fakultas
             FROM
                 pdrd.sdm AS sdm WITH (NOLOCK)
-                JOIN pdrd.reg_ptk AS ptk WITH (NOLOCK) ON ptk.id_sdm = sdm.id_sdm
+                JOIN pdrd.reg_ptk AS ptk WITH (NOLOCK) ON ptk.id_sdm = sdm.id_sdm AND ptk.id_sp='".env('APP_ID_SP')."'
                 AND ptk.soft_delete = 0
                 AND ptk.id_jns_keluar IS NULL
                 JOIN pdrd.sms AS prod WITH(NOLOCK) ON prod.id_sms = ptk.id_sms
@@ -318,7 +318,7 @@ class Iku3Controller extends Controller
     {
         $thn_iku = $this->request->thn_iku;
         $id_sdm = $this->request->id_sdm;
-        $apiIku3Tridharma = DB::connection('sqlsrv_live')->select("
+        $apiIku3Tridharma = DB::select("
             SELECT
                 CASE
                     WHEN lit.jns_litabmas = 'L' THEN 'Penelitian'
@@ -358,7 +358,7 @@ class Iku3Controller extends Controller
     {
         $id_sdm = $this->request->id_sdm;
         $thn_iku = $this->request->thn_iku;
-        $apiIku3Qs100 = DB::connection('sqlsrv_live')->select("
+        $apiIku3Qs100 = DB::select("
             SELECT
                 dts.bid_tgs,
                 spsb.nm_lemb AS sp_sumber,
@@ -382,7 +382,7 @@ class Iku3Controller extends Controller
     public function apiIku3Praktisi()
     {
         $id_sdm = $this->request->id_sdm;
-        $apiIku3Praktisi = DB::connection('sqlsrv_live')->select("
+        $apiIku3Praktisi = DB::select("
                 SELECT
                     pkrj.nm_pekerjaan AS bid_pekerjaan,
                     rkrj.nm_jabatan,
@@ -410,7 +410,7 @@ class Iku3Controller extends Controller
     {
         $id_sdm = $this->request->id_sdm;
         $thn_iku = $this->request->thn_iku;
-        $apiIku3Prestasi =  DB::connection('sqlsrv_live')->select("
+        $apiIku3Prestasi =  DB::select("
                 SELECT
                     psd.nm_pd,
                     rpd.nipd,

@@ -88,6 +88,7 @@
         </nav>
         <!-- /.navbar -->
 
+<<<<<<< HEAD
         <!-- Main Sidebar Container -->
         <aside class="main-sidebar sidebar-dark-primary elevation-4">
             <!-- Brand Logo -->
@@ -125,6 +126,50 @@
                 </div>
             </section>
             <!-- /.content -->
+=======
+    <!-- Main Sidebar Container -->
+    <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <!-- Brand Logo -->
+        <a href="{{ route('home') }}" class="brand-link">
+            <img src="{{ asset((config('mp.apps.at_use')==1?config('mp.apps.user.logo'):config('mp.copyright.logo'))) }}" alt="Logo Aplikasi" class="brand-image img-circle elevation-3" style="opacity: .8">
+            <span class="brand-text font-weight-light">{{ (config('mp.apps.title')) }}</span>
+        </a>
+        @include('template.sidebar')
+    </aside>
+
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6">
+                        <h1 class="m-0 text-dark">{{-- Judul() --}}</h1>
+                    </div><!-- /.col -->
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            {{-- auto_breadcrumb() --}}
+                        </ol>
+                    </div><!-- /.col -->
+                </div><!-- /.row -->
+            </div><!-- /.container-fluid -->
+        </div>
+        <!-- /.content-header -->
+
+        <!-- Main content -->
+        <section class="content">
+                @yield('content')
+        </section>
+        <!-- /.content -->
+    </div>
+    <!-- /.content-wrapper -->
+    <footer class="main-footer">
+        <strong>Copyright</strong> {{ (config('mp.apps.at_use')==0?config('mp.apps.year_development'):config('mp.copyright.year').' by '.config('mp.copyright.institute')) }}<br>
+        <strong>Powered by <a href="http://adminlte.io">AdminLTE.io</a>.</strong>
+        All rights reserved.
+        <div class="float-right d-sm-inline-block">
+            <b>Version</b> {{ config('mp.apps.version_apps') }}
+>>>>>>> 402f1bb76766217fcf76e23ca97da7cf15a13060
         </div>
         <!-- /.content-wrapper -->
         <footer class="main-footer">

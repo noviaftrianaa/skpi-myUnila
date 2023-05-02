@@ -23,7 +23,7 @@ class Iku1Controller extends Controller
     public function apiIku1()
     {
         $thn_iku = $this->request->thn_iku;
-        $apiIku1 = DB::connection('sqlsrv_live')->select("
+        $apiIku1 = DB::select("
             SELECT
                 rgpd.id_reg_pd,
                 prod.id_sms AS y_id_prodi,
@@ -158,7 +158,7 @@ class Iku1Controller extends Controller
         $thn_iku = $this->request->thn_iku;
         $id_prodi = $this->request->id_prodi;
 
-        $apiIku1Alumni = DB::connection('sqlsrv_live')->select("
+        $apiIku1Alumni = DB::select("
             SELECT
                 rgpd.id_reg_pd,
                 prod.id_sms AS y_id_prodi,
@@ -231,7 +231,7 @@ class Iku1Controller extends Controller
     {
         $thn_iku = $this->request->thn_iku;
         $id_reg_pd = $this->request->id_reg_pd;
-        $apiIku1Bekerja = DB::connection('sqlsrv_live')->select("
+        $apiIku1Bekerja = DB::select("
                 SELECT
                     tc.id_thn_ajaran,
                     tc.id_reg_pd,
@@ -278,7 +278,7 @@ class Iku1Controller extends Controller
     {
         $thn_iku = $this->request->thn_iku;
         $id_reg_pd = $this->request->id_reg_pd;
-        $apiIku1LanjutStudi = DB::connection('sqlsrv_live')->select("
+        $apiIku1LanjutStudi = DB::select("
                 SELECT
                     tc.id_thn_ajaran,
                     tc.id_reg_pd,

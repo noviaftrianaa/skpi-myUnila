@@ -30,6 +30,7 @@ class PengabdianController extends Controller
     protected $nonCaLitabmas;
     protected $dokLitabmas;
     protected $dokumen;
+    private $cacheLifeTime;
 
     protected $getAllListPengabdian;
 
@@ -45,7 +46,6 @@ class PengabdianController extends Controller
         $this->cacheLifeTime = 3600;
         $this->getAllListPengabdian = [];
     }
-
 
     public function getAllListPengabdian()
     {
