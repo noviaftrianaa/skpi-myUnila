@@ -116,7 +116,7 @@ class Iku5Controller extends Controller
                 JOIN pdrd.sms AS prod WITH(NOLOCK) ON prod.id_sms = ptk.id_sms
                 AND prod.soft_delete = 0
                 AND prod.stat_prodi = 'A'
-                JOIN pdrd.sms AS fak WITH(NOLOCK) ON fak.id_sms = prod.id_fak_unila
+                LEFT JOIN pdrd.sms AS fak WITH(NOLOCK) ON fak.id_sms = prod.id_fak_unila
                 AND fak.soft_delete = 0
                 JOIN ref.jenjang_pendidikan AS jenj WITH(NOLOCK) ON jenj.id_jenj_didik = prod.id_jenj_didik
                 AND jenj.expired_date IS NULL

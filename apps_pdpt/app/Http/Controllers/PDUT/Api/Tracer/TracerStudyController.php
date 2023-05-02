@@ -199,10 +199,10 @@ class TracerStudyController extends Controller
 
         DB::beginTransaction();
         try {
-            $tracer = HasilTracerStudy::updateOrInsert([
+            DB::table('tracer.hasil_tracer_study')->insert([
+            // $tracer = HasilTracerStudy::updateOrInsert([
                 'id_reg_pd' => $id_reg_pd,
                 'id_thn_ajaran' => $id_thn_ajaran,
-            ], [
                 'id_hasil_tracer_study' => guid(),
                 'id_bid_kerja' => $id_bid_kerja,
                 'id_wil' => $id_wil,

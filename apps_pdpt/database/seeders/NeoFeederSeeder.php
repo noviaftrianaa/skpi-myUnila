@@ -140,9 +140,9 @@ class NeoFeederSeeder extends Seeder
                         $total_data_konversi_mbkm = count($get_data_konversi_mbkm);
                         if ($total_data_konversi_mbkm > 0) {
                             foreach ($get_data_konversi_mbkm AS $no_konversi_mbkm => $each_data_konversi_mbkm) {
-                                $cek_konversi = DB::table('mbkm.konversi_kampus_merdeka')->where('id_konversi_aktivitas',$each_data_konversi_mbkm['id_konversi_aktivitas'])->first();
+                                $cek_konversi = DB::table('mbkm.konversi_akt_mhs')->where('id_konversi_aktivitas',$each_data_konversi_mbkm['id_konversi_aktivitas'])->first();
                                 if (is_null($cek_konversi)) {
-                                    DB::table('mbkm.konversi_kampus_merdeka')->insert([
+                                    DB::table('mbkm.konversi_akt_mhs')->insert([
                                         'id_konversi_aktivitas'=> $each_data_konversi_mbkm['id_konversi_aktivitas'],
                                         'id_mk'         => $each_data_konversi_mbkm['id_matkul'],
                                         'id_ang_akt_mhs'=> $each_data_konversi_mbkm['id_anggota'],
@@ -212,9 +212,9 @@ class NeoFeederSeeder extends Seeder
             if ($total_data_konversi_mbkm > 0) {
                 foreach ($get_data_konversi_mbkm as $no_konversi_mbkm => $each_data_konversi_mbkm) {
                     echo 'Mendapatkan ' . ($no_konversi_mbkm + 1) . ' dari ' . $total_data_konversi_mbkm;
-                    $cek_konversi = DB::table('mbkm.konversi_kampus_merdeka')->where('id_konversi_aktivitas',$each_data_konversi_mbkm['id_konversi_aktivitas'])->first();
+                    $cek_konversi = DB::table('mbkm.konversi_akt_mhs')->where('id_konversi_aktivitas',$each_data_konversi_mbkm['id_konversi_aktivitas'])->first();
                     if (is_null($cek_konversi)) {
-                        DB::table('mbkm.konversi_kampus_merdeka')->insert([
+                        DB::table('mbkm.konversi_akt_mhs')->insert([
                             'id_konversi_aktivitas'=> $each_data_konversi_mbkm['id_konversi_aktivitas'],
                             'id_mk'         => $each_data_konversi_mbkm['id_matkul'],
                             'id_ang_akt_mhs'=> $each_data_konversi_mbkm['id_anggota'],
@@ -271,7 +271,7 @@ class NeoFeederSeeder extends Seeder
                     } else {
                         echo " (Lewati)\n";
                     }
-                    
+
                 }
             }
         }

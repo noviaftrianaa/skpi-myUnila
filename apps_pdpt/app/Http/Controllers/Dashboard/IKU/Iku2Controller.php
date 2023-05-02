@@ -28,17 +28,33 @@ class Iku2Controller extends Controller
                     fak.id_sms AS y_id_fakultas,
                     CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS y_nm_prodi,
                     fak.nm_lemb AS y_nm_fakultas,
-                    (
+                --(
+                   --     SELECT
+                   --         SUM(mbkm.sks_mk)
+                   --     FROM
+                   --         temp_iku.iku_2_mbkm AS mbkm WITH(NOLOCK)
+                   --     WHERE
+                   --         mbkm.id_reg_pd = reg.id_reg_pd
+                   --         AND mbkm.soft_delete = 0
+                   --         AND mbkm.id_smt IN ('" . ($thn_iku - 1) . "2', '" . $thn_iku . "1')
+                   --     GROUP BY
+                   --         mbkm.id_reg_pd
+                   -- ) AS x_mbkm,
+                   (
                         SELECT
-                            SUM(mbkm.sks_mk)
+                            SUM(konversi.sks_mk)
                         FROM
-                            temp_iku.iku_2_mbkm AS mbkm WITH(NOLOCK)
+                            mbkm.konversi_akt_mhs AS konversi WITH(NOLOCK)
+                            JOIN pdrd.anggota_akt_mhs AS ang_mbkm WITH(NOLOCK) ON ang_mbkm.id_ang_akt_mhs = konversi.id_ang_akt_mhs
+                            AND ang_mbkm.soft_delete = 0
+                            JOIN pdrd.akt_mhs AS akt_mbkm WITH(NOLOCK) ON akt_mbkm.id_akt_mhs = ang_mbkm.id_akt_mhs
+                            AND akt_mbkm.soft_delete = 0
                         WHERE
-                            mbkm.id_reg_pd = reg.id_reg_pd
-                            AND mbkm.soft_delete = 0
-                            AND mbkm.id_smt IN ('" . ($thn_iku - 1) . "2', '" . $thn_iku . "1')
+                            ang_mbkm.id_reg_pd = reg.id_reg_pd
+                            AND akt_mbkm.id_smt IN ('" . ($thn_iku - 1) . "2', '" . $thn_iku . "1')
+                            AND konversi.soft_delete = 0
                         GROUP BY
-                            mbkm.id_reg_pd
+                            ang_mbkm.id_reg_pd
                     ) AS x_mbkm,
                     (
                         SELECT

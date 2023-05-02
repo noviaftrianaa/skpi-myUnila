@@ -62,7 +62,7 @@ class KonversiController extends Controller
                         SELECT
                             SUM(konversi.sks_mk) as total_sks
                         FROM
-                            mbkm.konversi_kampus_merdeka AS konversi WITH(NOLOCK)
+                            mbkm.konversi_akt_mhs AS konversi WITH(NOLOCK)
                         WHERE
                             konversi.id_ang_akt_mhs = ang_akt.id_ang_akt_mhs
                             AND konversi.soft_delete = 0
@@ -102,7 +102,7 @@ class KonversiController extends Controller
                         akt.id_smt,
                         akt.judul_akt_mhs
                     FROM
-                        mbkm.konversi_kampus_merdeka AS k_mbkm WITH(NOLOCK)
+                        mbkm.konversi_akt_mhs AS k_mbkm WITH(NOLOCK)
                         LEFT JOIN pdrd.anggota_akt_mhs AS ang_akt WITH(NOLOCK) ON ang_akt.id_ang_akt_mhs = k_mbkm.id_ang_akt_mhs
                         AND ang_akt.soft_delete = 0
                         LEFT JOIN pdrd.akt_mhs AS akt WITH(NOLOCK) ON akt.id_akt_mhs = ang_akt.id_akt_mhs
