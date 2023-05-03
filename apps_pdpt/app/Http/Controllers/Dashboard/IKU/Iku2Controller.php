@@ -28,34 +28,42 @@ class Iku2Controller extends Controller
                     fak.id_sms AS y_id_fakultas,
                     CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS y_nm_prodi,
                     fak.nm_lemb AS y_nm_fakultas,
-                --(
-                   --     SELECT
-                   --         SUM(mbkm.sks_mk)
-                   --     FROM
-                   --         temp_iku.iku_2_mbkm AS mbkm WITH(NOLOCK)
-                   --     WHERE
-                   --         mbkm.id_reg_pd = reg.id_reg_pd
-                   --         AND mbkm.soft_delete = 0
-                   --         AND mbkm.id_smt IN ('" . ($thn_iku - 1) . "2', '" . $thn_iku . "1')
-                   --     GROUP BY
-                   --         mbkm.id_reg_pd
-                   -- ) AS x_mbkm,
-                   (
+                    (
                         SELECT
-                            SUM(konversi.sks_mk)
+                            SUM(al.sks_mk) AS total
                         FROM
-                            mbkm.konversi_akt_mhs AS konversi WITH(NOLOCK)
-                            JOIN pdrd.anggota_akt_mhs AS ang_mbkm WITH(NOLOCK) ON ang_mbkm.id_ang_akt_mhs = konversi.id_ang_akt_mhs
-                            AND ang_mbkm.soft_delete = 0
-                            JOIN pdrd.akt_mhs AS akt_mbkm WITH(NOLOCK) ON akt_mbkm.id_akt_mhs = ang_mbkm.id_akt_mhs
-                            AND akt_mbkm.soft_delete = 0
-                        WHERE
-                            ang_mbkm.id_reg_pd = reg.id_reg_pd
-                            AND akt_mbkm.id_smt IN ('" . ($thn_iku - 1) . "2', '" . $thn_iku . "1')
-                            AND konversi.soft_delete = 0
-                        GROUP BY
-                            ang_mbkm.id_reg_pd
+                            (
+                                SELECT
+                                    DISTINCT k_nilai.id_mk,
+                                    k_nilai.sks_mk
+                                FROM
+                                    mbkm.konversi_akt_mhs AS k_nilai
+                                    JOIN pdrd.anggota_akt_mhs AS ang_mbkm WITH(NOLOCK) ON ang_mbkm.id_akt_mhs = k_nilai.id_akt_mhs
+                                    AND ang_mbkm.soft_delete = 0
+                                    JOIN pdrd.akt_mhs AS akt_mbkm WITH(NOLOCK) ON akt_mbkm.id_akt_mhs = ang_mbkm.id_akt_mhs
+                                    AND akt_mbkm.soft_delete = 0
+                                WHERE
+                                    akt_mbkm.id_smt IN ('" . ($thn_iku - 1) . "2', '" . $thn_iku . "1')
+                                    AND akt_mbkm.id_jns_akt_mhs IN (13, 14, 15, 16, 17, 18, 19, 20)
+                                    AND ang_mbkm.id_reg_pd = reg.id_reg_pd
+                                    AND k_nilai.soft_delete = 0
+                            ) AS al
                     ) AS x_mbkm,
+                    (
+                        SELECT
+                            SUM(k_nilai_tf.sks_diakui) AS total_sks_tf
+                        FROM
+                            mbkm.ekuiv_transfer AS k_nilai_tf WITH(NOLOCK)
+                            JOIN pdrd.akt_mhs AS akt_mbkm_tf WITH(NOLOCK) ON akt_mbkm_tf.id_akt_mhs = k_nilai_tf.id_akt_mhs
+                            AND akt_mbkm_tf.soft_delete = 0
+                            JOIN pdrd.anggota_akt_mhs AS ang_mbkm_tf WITH(NOLOCK) ON ang_mbkm_tf.id_akt_mhs = akt_mbkm_tf.id_akt_mhs
+                            AND ang_mbkm_tf.soft_delete = 0
+                        where
+                            k_nilai_tf.id_smt IN ('" . ($thn_iku - 1) . "2', '" . $thn_iku . "1')
+                            AND akt_mbkm_tf.id_jns_akt_mhs = 21
+                            AND ang_mbkm_tf.id_reg_pd = reg.id_reg_pd
+                            AND k_nilai_tf.soft_delete = 0
+                    ) AS x_mbkm_tf,
                     (
                         SELECT
                             COUNT(pres.id_pd)
@@ -64,21 +72,23 @@ class Iku2Controller extends Controller
                             JOIN pdrd.akt_mhs AS akt WITH(NOLOCK) ON akt.id_akt_mhs = pres.id_akt_mhs
                             AND akt.soft_delete = 0
                         WHERE
-                            pres.id_pd = reg.id_pd
-                            AND pres.soft_delete = 0
+                            pres.thn_prestasi = '". $thn_iku ."'
                             AND pres.id_tkt_prestasi IN(5, 6)
-                            AND akt.id_smt IN ('" . ($thn_iku - 1) . "2', '" . $thn_iku . "1')
+                            AND pres.id_pd = reg.id_pd
+                            AND pres.soft_delete = 0
                     ) AS x_prestasi
                 FROM
                     pdrd.peserta_didik AS pd WITH(NOLOCK)
                     JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
                     AND reg.id_jns_keluar IS NULL
+                    AND reg.id_sp='".env('APP_ID_SP')."'
                     AND reg.soft_delete = 0
                     JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_reg_pd = reg.id_reg_pd
                     AND kul.id_stat_mhs IN ('A', 'M')
                     AND kul.id_smt IN ('" . ($thn_iku - 1) . "2', '" . $thn_iku . "1')
                     AND kul.soft_delete = 0
                     JOIN pdrd.sms AS sms WITH(NOLOCK) ON sms.id_sms = reg.id_sms
+                    AND sms.stat_prodi = 'A'
                     AND sms.soft_delete = 0
                     JOIN pdrd.sms AS fak WITH(NOLOCK) ON fak.id_sms = sms.id_fak_unila
                     AND fak.soft_delete = 0
@@ -92,7 +102,7 @@ class Iku2Controller extends Controller
             ");
         $fakultas = [];
         foreach ($apiIku2 as $v) {
-            $x_data_yes = ($v->x_mbkm >= 20 || $v->x_prestasi > 0) ? 1 : 0;
+            $x_data_yes = ($v->x_mbkm >= 20 || $v->x_mbkm_tf >= 20 || $v->x_prestasi > 0) ? 1 : 0;
             if (!array_key_exists($v->y_nm_fakultas, $fakultas)) {
                 $fakultas[$v->y_nm_fakultas]['DATA'] = [
                     'y_id' => $v->y_id_fakultas,
