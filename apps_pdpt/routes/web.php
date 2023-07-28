@@ -103,9 +103,14 @@ Route::post('/dashboard/jenis_kelamin/reload',  [JenisKelaminController::class, 
 
 /** End Dashboar Dosen */
 Route::get('/iku',  [DashboardController::class, 'iku'])->name('iku');
-//Route::get('/akreditasi_pt',  [AkreditasController::class, 'index_pt'])->name('akreditasi_pt');
+Route::get('/akreditasi_pt',  [AkreditasController::class, 'index_pt'])->name('akreditasi_pt');
 Route::get('/akreditasi_prodi',  [AkreditasController::class, 'index'])->name('akreditasi_prodi');
-Route::get('/akreditasi_prodi/{id_prodi}',  [AkreditasController::class, 'show'])->name('akreditasi_prodi.detail_prodi');
+Route::get('/akreditasi_prodi/{id_prodi}',  [AkreditasController::class, 'detail_akreditasi_prodi'])->name('akreditasi_prodi.detail_prodi');
+
+//Detail of detail_akreditasi
+Route::get('/akreditasi_prodi/{id_prodi}/{ts}',  [AkreditasController::class, 'next_detail_akreditasi_prodi'])->name('akreditasi_prodi.detail_prodi.next_detail');
+
+// Route::get('/akreditasi_prodi/{id_prodi}',  [AkreditasController::class, 'detail_akreditasi_prodi'])->name('akreditasi_prodi.detail_prodi');
 // Route::prefix('akreditasi')->group(function () {
 //     Route::get('/',  [AkreditasController::class, 'akreditasi'])->name('akreditasi');
 //     Route::get('/{id_prodi}/detail',  [AkreditasController::class, 'detail_akreditasi_prodi'])->name('detail_akreditasi');
@@ -120,34 +125,34 @@ Route::get('/dashboard/university_rank',  [DashboardController::class, 'universi
 
 
 
-// Route::prefix('akreditasi')->group(function () {
-//     Route::get('/',  [AkreditasController::class, 'akreditasi'])->name('akreditasi');
-//     Route::get('/{id_prodi}/detail',  [AkreditasController::class, 'detail_akreditasi_prodi'])->name('detail_akreditasi');
-//     Route::prefix('lkps')->group(function () {
-//         Route::prefix('kerjasama')->group(function () {
-//             Route::get('/{jenis_kerjasama}', [AkreditasController::class, 'kerjasama'])->name('kerjasama');
-//         });
-//         Route::prefix('mahasiswa')->group(function () {
-//             Route::get('seleksi_mahasiswa', [AkreditasController::class, 'seleksi_mahasiswa'])->name('seleksi_mahasiswa');
-//             Route::get('mahasiswa_asing', [AkreditasController::class, 'mahasiswa_asing'])->name('mahasiswa_asing');
-//         });
-//         Route::prefix('profil_dosen')->group(function () {
-//             Route::get('dosen_tetap', [AkreditasController::class, 'dosen_tetap'])->name('dosen_tetap');
-//             Route::get('dosen_pembimbing_utama', [AkreditasController::class, 'dosen_pembimbing_utama_tugas_akhir'])->name('dosen_pembimbing_utama');
-//             Route::get('eewmp_dosen_tetap', [AkreditasController::class, 'eewmp_dosen_tetap'])->name('eewmp_dosen_tetap');
-//             Route::get('dosen_tidak_tetap', [AkreditasController::class, 'dosen_tidak_tetap'])->name('dosen_tidak_tetap');
-//             Route::get('dosen_praktisi_industri', [AkreditasController::class, 'dosen_praktisi_industri'])->name('dosen_praktisi_industri');
-//         });
-//         Route::prefix('kinerja_dosen')->group(function () {
-//             Route::get('dosen_tetap', [AkreditasController::class, 'rekognisi_dtps'])->name('rekognisi_dtps');
-//             Route::get('penelitian_dtps', [AkreditasController::class, 'penelitian_dtps'])->name('penelitian_dtps');
-//             Route::get('pkm_dtps', [AkreditasController::class, 'pkm_dtps'])->name('pkm_dtps');
-//             Route::get('buku_ajar_dtps', [AkreditasController::class, 'buku_ajar_dtps'])->name('buku_ajar_dtps');
-//             Route::get('karya_ilmiah_disitasi', [AkreditasController::class, 'karya_ilmiah_disitasi'])->name('karya_ilmiah_disitasi');
-//             Route::get('luaran_penelitian_pkm_dtps', [AkreditasController::class, 'luaran_penelitian_pkm_dtps'])->name('luaran_penelitian_pkm_dtps');
-//         });
-//     });
-// });
+Route::prefix('akreditasi')->group(function () {
+    Route::get('/',  [AkreditasController::class, 'akreditasi'])->name('akreditasi');
+    Route::get('/{id_prodi}/detail',  [AkreditasController::class, 'detail_akreditasi_prodi'])->name('detail_akreditasi');
+    Route::prefix('lkps')->group(function () {
+        Route::prefix('kerjasama')->group(function () {
+            Route::get('/{jenis_kerjasama}', [AkreditasController::class, 'kerjasama'])->name('kerjasama');
+        });
+        Route::prefix('mahasiswa')->group(function () {
+            Route::get('seleksi_mahasiswa', [AkreditasController::class, 'seleksi_mahasiswa'])->name('seleksi_mahasiswa');
+            Route::get('mahasiswa_asing', [AkreditasController::class, 'mahasiswa_asing'])->name('mahasiswa_asing');
+        });
+        Route::prefix('profil_dosen')->group(function () {
+            Route::get('dosen_tetap', [AkreditasController::class, 'dosen_tetap'])->name('dosen_tetap');
+            Route::get('dosen_pembimbing_utama', [AkreditasController::class, 'dosen_pembimbing_utama_tugas_akhir'])->name('dosen_pembimbing_utama');
+            Route::get('eewmp_dosen_tetap', [AkreditasController::class, 'eewmp_dosen_tetap'])->name('eewmp_dosen_tetap');
+            Route::get('dosen_tidak_tetap', [AkreditasController::class, 'dosen_tidak_tetap'])->name('dosen_tidak_tetap');
+            Route::get('dosen_praktisi_industri', [AkreditasController::class, 'dosen_praktisi_industri'])->name('dosen_praktisi_industri');
+        });
+        Route::prefix('kinerja_dosen')->group(function () {
+            Route::get('dosen_tetap', [AkreditasController::class, 'rekognisi_dtps'])->name('rekognisi_dtps');
+            Route::get('penelitian_dtps', [AkreditasController::class, 'penelitian_dtps'])->name('penelitian_dtps');
+            Route::get('pkm_dtps', [AkreditasController::class, 'pkm_dtps'])->name('pkm_dtps');
+            Route::get('buku_ajar_dtps', [AkreditasController::class, 'buku_ajar_dtps'])->name('buku_ajar_dtps');
+            Route::get('karya_ilmiah_disitasi', [AkreditasController::class, 'karya_ilmiah_disitasi'])->name('karya_ilmiah_disitasi');
+            Route::get('luaran_penelitian_pkm_dtps', [AkreditasController::class, 'luaran_penelitian_pkm_dtps'])->name('luaran_penelitian_pkm_dtps');
+        });
+    });
+});
 
 Route::prefix('dashboard')->group(function () {
     Route::get('iku1',  'App\Http\Controllers\Dashboard\IKU\Iku1Controller@homeIku1')->name('dashboardIku1');
@@ -216,7 +221,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     });
 
     Route::prefix('publikasi')->name('publikasi')->group(function () {
-        Route::controller(PublikasiController::class)->group(function() {
+        Route::controller(PublikasiController::class)->group(function () {
             Route::get('/', 'index')->name('');
             Route::post('/publikasi/chart', 'chart')->name('.chart');
         });
@@ -227,7 +232,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     });
 
     Route::prefix('buku_ajar')->name('buku_ajar')->group(function () {
-        Route::controller(BukuAjarController::class)->group(function() {
+        Route::controller(BukuAjarController::class)->group(function () {
             Route::get('/', 'index')->name('');
             Route::post('/buku-ajar/chart', 'chart')->name('.chart');
         });

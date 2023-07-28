@@ -19,7 +19,7 @@
         </button>
 
         <button class="btn btn-primary mb-2" style="width: 100%;"
-            onclick="window.open('{{ route('publikasi_dtps') }}','_blank')">
+            onclick="window.open('{{ url('publikasi_dtps') }}','_blank')">
             <a class="float-left">Tabel 3.b.4 Publikasi Ilmiah DTPS</a>
             <a class="float-right"><i class="fa fa-chevron-right" aria-hidden="true"></i></a>
         </button>
