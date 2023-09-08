@@ -10,7 +10,7 @@
     },
     "servers": [
         {
-            "url": "http://pdut-unila.test/api/live/v1",
+            "url": "http://my-unila.test/api/live/v1",
             "description": "Server Live"
         }
     ],
@@ -19,20 +19,20 @@
         "/auth/login": {
             "post": {
                 "tags": [
-                    "Akses"
+                    "Login"
                 ],
                 "summary": "Mendapatkan token untuk otorisasi",
                 "description": "Dapatkan token otorisasi",
                 "operationId": "authLogin",
                 "requestBody": {
-                    "description": "Pass user credentials",
+                    "description": "<strong>APP_KEY</strong> didapat dari Laman Manajemen Akses https://akses.unila.ac.id<br><strong>Username</strong> dan <strong>Password</strong> adalah akun SSO",
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "email",
-                                    "password"
+                                    "app_key",
+                                    "username"
                                 ],
                                 "properties": {
                                     "app_key": {
@@ -43,12 +43,7 @@
                                     "username": {
                                         "type": "string",
                                         "format": "email",
-                                        "example": "rio.ananda@staff.unila.ac.id"
-                                    },
-                                    "password": {
-                                        "type": "string",
-                                        "format": "password",
-                                        "example": "12345678"
+                                        "example": "m.ikhsan@staff.unila.ac.id"
                                     }
                                 },
                                 "type": "object"
@@ -226,6 +221,69 @@
                                         "type": "string",
                                         "format": "text",
                                         "example": "94637666-e2bc-4c37-aac0-0000c2aef0ad"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "successful operation"
+                    },
+                    "404": {
+                        "description": "page not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Maaf, halaman tidak ditemukan"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "token": []
+                    }
+                ]
+            }
+        },
+        "/pengguna/ubah_password": {
+            "put": {
+                "tags": [
+                    "Pengguna"
+                ],
+                "summary": "Ubah Password Pengguna",
+                "description": "",
+                "operationId": "postUbahPasswordPengguna",
+                "requestBody": {
+                    "description": "Pass user credentials",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "username",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "username": {
+                                        "type": "string",
+                                        "format": "text",
+                                        "example": "username sso yang ingin diganti"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password baru"
                                     }
                                 },
                                 "type": "object"
