@@ -24,7 +24,7 @@
                                 <i class="fa fa-search search-icon"></i>
                             </button>
                         </div>
-                    </div> 
+                    </div>
                 </div>
             </div>
             <div class="table-responsive">

@@ -87,3 +87,35 @@
  *  security={{"token":{}}}
  * )
  **/
+
+
+/**
+ * @OA\Put(
+ *  path="/pengguna/ubah_password",
+ *  summary="Ubah Password Pengguna",
+ *  description="",
+ *  operationId="postUbahPasswordPengguna",
+ *  tags={"Pengguna"},
+ *  @OA\RequestBody(
+ *      required=true,
+ *      description="Pass user credentials",
+ *      @OA\JsonContent(
+ *          required={"username","password"},
+ *          @OA\Property(property="username", type="string", format="text", example="username sso yang ingin diganti"),
+ *          @OA\Property(property="password", type="string", format="password", example="password baru"),
+ *      ),
+ *  ),
+ *  @OA\Response(
+ *      response=200,
+ *      description="successful operation",
+ *  ),
+ *  @OA\Response(
+ *      response=404,
+ *      description="page not found",
+ *      @OA\JsonContent(
+ *          @OA\Property(property="message", type="string", example="Maaf, halaman tidak ditemukan")
+ *      )
+ *  ),
+ *  security={{"token":{}}}
+ * )
+ **/

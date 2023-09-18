@@ -86,13 +86,13 @@ return [
             'url' => env('DATABASE_URL'),
             'host' => env('DB_HOST', '192.168.123.119'),
             'port' => env('DB_PORT', '1433'),
-            'database' => env('DB_DATABASE', 'pdut_dev'),
-            'username' => env('DB_USERNAME', 'muhikhsan'),
+            'database' => env('DB_DATABASE', 'pdut'),
+            'username' => env('DB_USERNAME', 'm.ikhsan'),
             'password' => env('DB_PASSWORD', 'Fogging204'),
             'charset' => 'utf8',
             'prefix' => '',
             'prefix_indexes' => true,
-            'trust_server_certificate' => true,
+            'trust_server_certificate' => true
         ],
 
     ],

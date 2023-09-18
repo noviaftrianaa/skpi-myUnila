@@ -47,7 +47,7 @@ class User extends Authenticatable
         $url = (!empty(session()->get('login.role')->id_peran)) ? " AND menu.nm_file IN (".$url.")" : "";
 
         $id_peran = session()->get('login.role')->id_peran ?? null;
-        
+
         return \DB::select("
             SELECT
                 menu.nm_file

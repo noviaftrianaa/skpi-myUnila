@@ -12,7 +12,7 @@ use Auth;
 
 class PenggunaController extends Controller
 {
-    
+
     protected $request;
     protected $pengguna;
 
@@ -91,34 +91,33 @@ class PenggunaController extends Controller
     public function password()
     {
         InputValidator([
-            'id_pengguna'           => 'required|string',
-            'password'              => 'required|string|min:8',
+            'username'           => 'required|string',
+            'password'              => 'required|string',
         ]);
 
-        $id_pengguna = $this->request->input('id_pengguna');
+        $username = $this->request->input('username');
         $password = $this->request->input('password');
         $tgl_ganti_pwd = date('Y-m-d');
         $last_update = currDateTime();
-        $id_updater = $id_pengguna;
 
         DB::beginTransaction();
 
         try {
-            $data = $this->pengguna->where('id_pengguna', $id_pengguna)->first();
-            if (!$data) return WrapResponse(['data' => null], 'ID Pengguna tidak ditemukan atau tidak terdaftar', FALSE);
+            $data = $this->pengguna->where('username', $username)->first();
+            if (!$data) return WrapResponse(['data' => null], 'Username pengguna tidak ditemukan atau tidak terdaftar', FALSE);
 
             $data->update([
-                'password'      => SHA1($password),
-                'tgl_ganti_pwd' => $tgl_ganti_pwd,
-                'last_sync'     => $last_sync,
-                'id_updater'    => $id_updater
+                'password'          => SHA1($password),
+                'tgl_ganti_pwd'     => $tgl_ganti_pwd,
+                'last_update'       => $last_update,
+                'id_updater'        => $data->id_pengguna
             ]);
-            
+            DB::commit();
         } catch (\Throwable $th) {
             Log::error($th->getMessage() . ' on line ' . $th->getLine());
             return WrapResponse(['data' => null], 'password pengguna gagal diubah', FALSE);
         }
-        return WrapResponse(['data' => $data], 'password pengguna berhasil diubah', TRUE);
+        return WrapResponse(['username' => $username], 'password pengguna berhasil diubah', TRUE);
     }
 
     public function store()
@@ -240,7 +239,7 @@ class PenggunaController extends Controller
                 'last_sync'     => $last_sync,
                 'id_updater'    => $id_updater
             ]);
-            
+
         } catch (\Throwable $th) {
             Log::error($th->getMessage() . ' on line ' . $th->getLine());
             return WrapResponse(['data' => null], 'password pengguna gagal direset', FALSE);
