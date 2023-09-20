@@ -28,10 +28,8 @@ class TemplateIku1Export implements FromView, ShouldAutoSize
                 rgpd.nipd,
                 pd.nm_pd,
                 rgpd.tgl_keluar,
-                prod.id_sms AS y_id_prodi,
-                fak.id_sms AS y_id_fakultas,
-                CONCAT(prod.nm_lemb, ' (', jenj.nm_jenj_didik, ')') AS y_nm_prodi,
                 fak.nm_lemb AS y_nm_fakultas,
+                CONCAT(prod.nm_lemb, ' (', jenj.nm_jenj_didik, ')') AS y_nm_prodi,
                 CASE
                     WHEN tc.status_lulusan = 0 THEN 'Tidak Bekerja'
                     WHEN tc.status_lulusan = 1 THEN 'Bekerja'
@@ -67,13 +65,15 @@ class TemplateIku1Export implements FromView, ShouldAutoSize
                             AND tc.income_per_bln >= 1.2 * umr.besaran_umr
                             AND tc.wkt_tunggu < 12
                         )
-                    ) THEN 1
+                    ) THEN 'Ya'
                     WHEN tc.status_lulusan IN ('3')
                     AND (
                         DATEDIFF(MONTH, rgpd.tgl_keluar, tc.wkt_masuk) < 12
-                    ) THEN 1
-                    ELSE 0
-                END AS x_data_yes
+                    ) THEN 'Ya'
+                    ELSE 'Tidak'
+                END AS x_data_yes,
+                tc.nm_pt_lnjt,
+                CONVERT(DATE, tc.wkt_masuk) AS wkt_masuk
             FROM
                 tracer.hasil_tracer_study AS tc WITH(NOLOCK)
                 JOIN pdrd.reg_pd AS rgpd WITH(NOLOCK) ON rgpd.id_reg_pd = tc.id_reg_pd
@@ -101,7 +101,7 @@ class TemplateIku1Export implements FromView, ShouldAutoSize
                 pd.nm_pd ASC
         ");
 
-        return view('home.wr.wakil_rektor4.iku.download.iku1', [
+        return view('home.wr.wakil_rektor4.iku.export.excel_iku1', [
             'data' => $data,
             'thn_iku' => $thn_iku
         ]);

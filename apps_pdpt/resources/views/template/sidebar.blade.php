@@ -88,7 +88,7 @@
     <!-- /.sidebar-menu -->
 </div>
 <!-- /.sidebar -->
-@push('js')
+@section('js')
 <script>
 	$(document).ready(function() {
 		$('.peran').on('change', function() {
@@ -99,4 +99,4 @@
 		});
 	});
 </script>
-@endpush
+@stop

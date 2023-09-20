@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Dashboard\WR\WakilRektor4\IKU;
+namespace App\Http\Controllers\Dashboard\IKU\Tahun2023;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;

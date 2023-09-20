@@ -21,7 +21,7 @@ use App\Http\Controllers\Dashboard\WR\WakilRektor3\ProfilMahasiswaController;
 use App\Http\Controllers\Dashboard\WR\WakilRektor3\PrestasiController;
 use App\Http\Controllers\Dashboard\WR\WakilRektor4\KerjasamaController;
 use App\Http\Controllers\Dashboard\WR\WakilRektor4\PengelolaanTikController;
-use App\Http\Controllers\Dashboard\WR\WakilRektor4\IKU\Iku1Controller;
+use App\Http\Controllers\Dashboard\IKU\Tahun2023\Iku1Controller;
 use App\Http\Controllers\ListDaftarDosenController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RenstraController;

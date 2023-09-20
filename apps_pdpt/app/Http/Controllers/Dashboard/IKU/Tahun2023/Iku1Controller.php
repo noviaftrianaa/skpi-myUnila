@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Dashboard\WR\WakilRektor4\IKU;
+namespace App\Http\Controllers\Dashboard\IKU\Tahun2023;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -12,19 +12,36 @@ use App\Exports\TemplateIku1Export;
 class Iku1Controller extends Controller
 {
     private $request;
-    private $tahunIku;
 
     public function __construct()
     {
         $this->request = app(Request::class);
-        $this->tahunIku = app(Iku3Controller::class)->tahunIku();
+    }
+
+    public function tahunIku()
+    {
+        return DB::select("
+            SELECT
+                th.a_periode_aktif,
+                th.id_thn_ajaran,
+                th.nm_thn_ajaran,
+                CONVERT(DATE, th.tgl_mulai) AS tgl_mulai,
+                CONVERT(DATE, th.tgl_selesai) AS tgl_selesai
+            FROM
+                ref.tahun_ajaran AS th
+            WHERE
+                th.expired_date IS NULL
+                AND th.id_thn_ajaran BETWEEN 2020 AND YEAR(GETDATE())
+            ORDER BY
+                th.id_thn_ajaran DESC
+        ");
     }
 
     public function homeIku1()
     {
-        $thn_iku = $this->tahunIku;
+        $thn_iku = $this->tahunIku();
         $side_active   = 'iku';
-        return view('home.wr.wakil_rektor4.iku.iku1', compact('side_active', 'thn_iku'));
+        return view('home.wr.wakil_rektor4.iku.index', compact('side_active', 'thn_iku'));
     }
 
     public function apiIku1()
