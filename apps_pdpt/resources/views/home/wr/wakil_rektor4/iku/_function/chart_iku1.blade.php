@@ -36,7 +36,7 @@
 
         function DownloadIku1(){
             var thn_iku = $("#thn_iku").val();
-            var url = "{{ route('downloadIku1') }}?thn_iku="+thn_iku;
+            var url = "{{ route('downloadIku1v2') }}?thn_iku="+thn_iku;
             location.href = url;
         }
 
@@ -57,7 +57,7 @@
             $(".isLoading").show();
             $.ajax({
                 type: 'GET',
-                url: "{{ route('apiDashboardIku1') }}",
+                url: "{{ route('apiIku1v2') }}",
                 data: {
                     thn_iku: $("#thn_iku").val(),
                     is_ulang: ulang
@@ -72,31 +72,11 @@
             });
         }
 
-        // function DownloadIku1(){
-        //     $(".isLoading").show();
-        //     $.ajax({
-        //         type: 'GET',
-        //         url: "{{ route('downloadIku1') }}",
-        //         data: {
-        //             thn_iku: $("#thn_iku").val()
-        //         }
-        //     }).done(function(res) {
-        //         var url = window.URL || window.webkitURL;
-        //         var objectUrl = url.createObjectURL(res);
-        //         window.open(objectUrl);
-        //         Iku1Fakultas();
-        //         $(".isLoading").hide();
-        //     }).fail(function(res) {
-        //         console.log(res);
-        //         $(".isLoading").hide();
-        //     });
-        // }
-
         function Iku1TotalAlumni(fak) {
             $(".isLoading").show();
             $.ajax({
                 type: 'GET',
-                url: "{{ route('apiTotalAlumni') }}",
+                url: "{{ route('apiTotalAlumniv2') }}",
                 data: {
                     thn_iku: $("#thn_iku").val(),
                     id_fak: fak
@@ -254,7 +234,7 @@
                 info: true,
                 ordering: true,
                 ajax: {
-                    url: '{!! route('apiIku1Alumni') !!}',
+                    url: '{!! route('apiIku1Alumniv2') !!}',
                     type: 'GET',
                     data: {
                         id_prodi: id_prodi,
@@ -385,7 +365,7 @@
                 info: true,
                 ordering: true,
                 ajax: {
-                    url: '{!! route('apiIku1Bekerja') !!}',
+                    url: '{!! route('apiIku1Bekerjav2') !!}',
                     type: 'GET',
                     data: {
                         id_reg_pd: id_reg_pd,
@@ -456,7 +436,7 @@
                 info: true,
                 ordering: true,
                 ajax: {
-                    url: '{!! route('apiIku1LanjutStudi') !!}',
+                    url: '{!! route('apiIku1LanjutStudiv2') !!}',
                     type: 'GET',
                     data: {
                         id_reg_pd: id_reg_pd,

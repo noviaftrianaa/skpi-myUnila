@@ -33,6 +33,19 @@
         a {
             text-underline-offset: 0.2em
         }
+
+        .nav-tabs .nav-item .nav-link {
+            color: #0080FF;
+            border-top: 1px solid #d6d7d8;
+            border-left: 1px solid #d6d7d8;
+            border-right: 1px solid #d6d7d8;
+        }
+
+        .nav-tabs .nav-item .nav-link.active {
+            background-color: #17A2B8;
+            color: #fff;
+        }
+
 </style>
 @endpush
 
@@ -45,7 +58,7 @@
         </h3>
     </div>
     <div class="card-body">
-        <ul class="nav nav-tabs" id="custom-content-below-tab" role="tablist">
+        <ul class="nav nav-tabs mb-3" id="custom-content-below-tab" role="tablist">
             <li class="nav-item">
                 <a class="nav-link active" id="iku1-tab" data-toggle="pill" href="#iku1" role="tab" aria-controls="iku1" aria-selected="true">IKU 1</a>
             </li>
@@ -73,8 +86,9 @@
         </ul>
         <div class="tab-content" id="tabContent">
             <div class="tab-pane fade active show" id="iku1" role="tabpanel" aria-labelledby="iku1-tab">
-                @include('home.wr.wakil_rektor4.iku._partial.chart_iku1')
+                @include('home.wr.wakil_rektor4.iku._partial.chart_iku1')1
             </div>
+
         </div>
     </div>
 </div>

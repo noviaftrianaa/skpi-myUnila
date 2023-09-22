@@ -268,12 +268,12 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     //iku
     Route::get('/dashboard_iku', [Iku1Controller::class, 'homeIku1'])->name('dashboard_iku');
-    Route::get('api/iku1', [Iku1Controller::class, 'apiIku1'])->name('apiDashboardIku1');
-    Route::get('api/iku1/alumni', [Iku1Controller::class, 'apiIku1Alumni'])->name('apiIku1Alumni');
-    Route::get('api/iku1/total-alumni', [Iku1Controller::class, 'apiTotalAlumni'])->name('apiTotalAlumni');
-    Route::get('api/iku1/bekerja', [Iku1Controller::class, 'apiIku1Bekerja'])->name('apiIku1Bekerja');
-    Route::get('api/iku1/lanjut-studi', [Iku1Controller::class, 'apiIku1LanjutStudi'])->name('apiIku1LanjutStudi');
-    Route::get('api/iku1/download', [Iku1Controller::class, 'downloadIku1'])->name('downloadIku1');
+    Route::get('api/iku1', [Iku1Controller::class, 'apiIku1'])->name('apiIku1v2');
+    Route::get('api/iku1/alumni', [Iku1Controller::class, 'apiIku1Alumni'])->name('apiIku1Alumniv2');
+    Route::get('api/iku1/total-alumni', [Iku1Controller::class, 'apiTotalAlumni'])->name('apiTotalAlumniv2');
+    Route::get('api/iku1/bekerja', [Iku1Controller::class, 'apiIku1Bekerja'])->name('apiIku1Bekerjav2');
+    Route::get('api/iku1/lanjut-studi', [Iku1Controller::class, 'apiIku1LanjutStudi'])->name('apiIku1LanjutStudiv2');
+    Route::get('api/iku1/download', [Iku1Controller::class, 'downloadIku1'])->name('downloadIku1v2');
 
     /** End Dashboard Wakil Rektor IV */
 
