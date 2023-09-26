@@ -271,7 +271,7 @@ class NeoFeederSeeder extends Seeder
                     } else {
                         echo " (Lewati)\n";
                     }
-                    
+
                 }
             }
         }
@@ -359,7 +359,7 @@ class NeoFeederSeeder extends Seeder
             $total_data_re_mk = count($get_data_re_mk);
             if ($total_data_re_mk>0) {
                 foreach ($get_data_re_mk AS $no_re_mk=>$each_re_mk) {
-                    echo 'Mendapatkan Rencana Evaluasu Matakuliah '.($no_re_mk+1).' dari '.$total_data_re_mk;
+                    echo 'Mendapatkan Rencana Evaluasi Matakuliah '.($no_re_mk+1).' dari '.$total_data_re_mk;
                     $cari_renc = ReMk::find($each_re_mk['id_rencana_evaluasi']);
                     if (is_null($cari_renc)) {
                         DB::table('pdrd.re_mk')->insert([

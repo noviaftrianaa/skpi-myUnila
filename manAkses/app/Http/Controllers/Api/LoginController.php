@@ -29,13 +29,13 @@ class LoginController extends Controller
         InputValidator([
             'app_key'       => ['required'],
             'username'      => ['required'],
-            'password'      => ['required']
+            // 'password'      => ['required']
         ]);
 
         $app_key    = $this->request->input('app_key');
         $crypt_app_key = $this->encryptAppKey($app_key);
         $username   = $this->request->input('username');
-        $password   = $this->request->input('password');
+        // $password   = $this->request->input('password');
 
         $aplikasi = DB::table("man_akses.aplikasi")->where("app_key", $crypt_app_key)->first();
         if (is_null($aplikasi)) {
@@ -44,7 +44,7 @@ class LoginController extends Controller
         if (!is_null($aplikasi->expired_date) AND $aplikasi->expired_date < currDateTime()) {
             return WrapResponse(['data' => null], 'Aplikasi sudah tidak aktif!', FALSE);
         }
-    
+
         $sPengguna = "
             SELECT
                 usr.id_pengguna,
@@ -59,15 +59,16 @@ class LoginController extends Controller
                 man_akses.pengguna AS usr WITH(NOLOCK)
                 JOIN man_akses.pj_aplikasi AS pj WITH(NOLOCK) ON usr.id_pengguna = pj.id_pengguna
                 AND pj.soft_delete = 0
-                LEFT JOIN man_akses.role_pengguna AS rpg WITH(NOLOCK) ON usr.id_pengguna = rpg.id_pengguna
+                JOIN man_akses.role_pengguna AS rpg WITH(NOLOCK) ON usr.id_pengguna = rpg.id_pengguna
                 AND rpg.soft_delete = 0
-                LEFT JOIN man_akses.peran AS prn WITH(NOLOCK) ON rpg.id_peran = prn.id_peran
+                JOIN man_akses.peran AS prn WITH(NOLOCK) ON rpg.id_peran = prn.id_peran
                 AND prn.expired_date IS NULL
-                LEFT JOIN man_akses.aplikasi AS apk WITH(NOLOCK) ON pj.id_aplikasi = apk.id_aplikasi
+                JOIN man_akses.aplikasi AS apk WITH(NOLOCK) ON pj.id_aplikasi = apk.id_aplikasi
                 AND apk.expired_date IS NULL
             WHERE
                 usr.soft_delete = 0
                 AND usr.username =  '" . $username . "'
+                AND apk.app_key = '" . $crypt_app_key . "'
         ";
 
         $dPengguna = DB::select($sPengguna);
@@ -84,9 +85,9 @@ class LoginController extends Controller
             return WrapResponse(['data' => null], 'Pengguna tidak aktif sebagai penanggung jawab aplikasi!', FALSE);
         }
 
-        if ($dPengguna[0]->password !== sha1($password)) {
-            return WrapResponse(['data' => null], 'Password salah!', FALSE);
-        }
+        // if ($dPengguna[0]->password !== sha1($password)) {
+        //     return WrapResponse(['data' => null], 'Password salah!', FALSE);
+        // }
 
         if ($dPengguna[0]->id_aplikasi != \Str::upper($aplikasi->id_aplikasi)) {
             return WrapResponse(['data' => null], 'Id aplikasi tidak valid dengan pengguna', FALSE);
@@ -149,7 +150,7 @@ class LoginController extends Controller
 
         return WrapResponse(['data' => ['type' => 'bearer', 'token' => $jwt]], 'Berhasil mendapatkan token otorisasi!', TRUE);
     }
-    
+
     private function encryptAppKey($app_key)
     {
         return strrev($app_key);

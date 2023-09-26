@@ -18,7 +18,7 @@ class DashboardController extends Controller
 
     protected $id_prodi;
     private $id_sp;
-    
+
     public function __construct()
     {
         $this->id_sp = env('APP_ID_SP');
@@ -28,7 +28,7 @@ class DashboardController extends Controller
 
     public function index()
     {
-        $side_active   = 'home';
+        $side_active = 'dashboard';
         if (auth()->check()) {
             $log_login = LogLogin::where('id_pengguna', \Auth::user()->id_pengguna)->orderBy('waktu_login', 'DESC')->first();
             $versi_database = VersiDb::orderBy('tgl_update', 'DESC')->first();
@@ -714,7 +714,7 @@ class DashboardController extends Controller
             AND (
                 jenjang.id_jenj_didik IS NULL
                 or jenjang.id_jenj_didik < 35
-            ) 
+            )
         ");
 
         $side_active = 'dashboard.list_daftar_dosen';
@@ -881,7 +881,7 @@ class DashboardController extends Controller
 
     }
 
-   
+
 
     public function role(Request $request)
     {
@@ -894,6 +894,6 @@ class DashboardController extends Controller
         alert()->success('Role '.$peran->nm_peran.' Aktif');
         return redirect()->to('/');
     }
-    
+
 
 }

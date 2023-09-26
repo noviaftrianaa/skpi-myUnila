@@ -8,7 +8,7 @@
                     <h3 class="card-title"><i class="fa fa-dashboard"></i> Dashboard</h3>
                 </div>
             </div>
-        </div>
+        </div> 
         <div class="col-md-4">
             @include('dashboard.log_login')
             @include('dashboard.database')

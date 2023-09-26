@@ -3,6 +3,11 @@
 /* Created on:     20/03/2023 21:22:35                          */
 /*==============================================================*/
 
+INSERT INTO [pdrd].[anggota_akt_mhs]([id_ang_akt_mhs], [id_akt_mhs], [id_reg_pd], [nm_pd], [nipd], [jns_peran_mhs], [create_date], [id_creator], [last_update], [id_updater], [soft_delete], [last_sync]) VALUES ('EE3871CB-A9C9-454B-AEF6-06A0187652E3', '3145C1AE-9FD5-4067-AE69-F00EE1D39C44', '529FE8B8-9C76-4ED3-BD9F-7BA53EA7B267', 'NADYA MERDEKA WATI', '1715061010', '3', '2022-02-24 12:09:41.000', '443701E4-E814-48F3-9528-251BCCEE8AF1', '2022-02-24 12:09:41.000', '443701E4-E814-48F3-9528-251BCCEE8AF1', 1, '2022-10-12 07:16:32.000');
+INSERT INTO [pdrd].[anggota_akt_mhs]([id_ang_akt_mhs], [id_akt_mhs], [id_reg_pd], [nm_pd], [nipd], [jns_peran_mhs], [create_date], [id_creator], [last_update], [id_updater], [soft_delete], [last_sync]) VALUES ('96AA2B7A-D6E6-45B6-83AA-0EFC422AC706', '320AFCAF-841D-4F65-8655-3E3089093476', '008E02BD-917C-4A32-B5D9-59809149A0ED', 'ANUGRAH AGUNG SIBURIAN', '1812011321', '3', '2022-02-22 10:33:04.000', '443701E4-E814-48F3-9528-251BCCEE8AF1', '2022-02-22 10:33:04.000', '443701E4-E814-48F3-9528-251BCCEE8AF1', 1, '2022-10-12 07:16:32.000');
+INSERT INTO [pdrd].[anggota_akt_mhs]([id_ang_akt_mhs], [id_akt_mhs], [id_reg_pd], [nm_pd], [nipd], [jns_peran_mhs], [create_date], [id_creator], [last_update], [id_updater], [soft_delete], [last_sync]) VALUES ('1BB2D66D-E26F-4104-8DB9-29F82038DC0A', '83CCAC0A-5F7C-4E6D-A16C-E4EE16763339', 'F781F167-48E3-4DA2-91B8-86B961A77AA0', 'Zulfikar Ali Basyah S', '1855031015', '3', '2022-01-31 14:47:34.000', '443701E4-E814-48F3-9528-251BCCEE8AF1', '2022-01-31 14:47:34.000', '443701E4-E814-48F3-9528-251BCCEE8AF1', 1, '2022-10-12 07:16:32.000');
+INSERT INTO [pdrd].[anggota_akt_mhs]([id_ang_akt_mhs], [id_akt_mhs], [id_reg_pd], [nm_pd], [nipd], [jns_peran_mhs], [create_date], [id_creator], [last_update], [id_updater], [soft_delete], [last_sync]) VALUES ('D7B32D37-C1CC-4CD6-B9DC-3E899A64F787', '17D1DBDF-C919-4DBA-9F0E-0044E28294A3', '1453E571-B50A-431A-9104-FA0261888A82', 'Clarissa Rahma Dewi', '1952011092', '3', '2022-02-27 22:06:37.000', '443701E4-E814-48F3-9528-251BCCEE8AF1', '2022-02-27 22:06:37.000', '443701E4-E814-48F3-9528-251BCCEE8AF1', 1, '2022-10-12 07:16:32.000');
+INSERT INTO [pdrd].[anggota_akt_mhs]([id_ang_akt_mhs], [id_akt_mhs], [id_reg_pd], [nm_pd], [nipd], [jns_peran_mhs], [create_date], [id_creator], [last_update], [id_updater], [soft_delete], [last_sync]) VALUES ('6D04F80F-7D8D-477A-A688-7D4B2644B80F', '774DC06F-E563-44E9-945D-20017823E9F1', '0E12CEAB-85A1-4F01-8420-7F6B81A5EAB7', 'WANDA YUNITA SARI', '1816021062', '3', '2022-02-28 12:03:41.000', '443701E4-E814-48F3-9528-251BCCEE8AF1', '2022-02-28 12:03:41.000', '443701E4-E814-48F3-9528-251BCCEE8AF1', 1, '2022-10-12 07:16:32.000');
 
 if exists (select 1
    from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
@@ -849,6 +854,13 @@ if exists (select 1
    where r.fkeyid = object_id('dashboard.kontrak_iku_pt') and o.name = 'fk_kontrak__kontrak_i_tahun_an')
 alter table dashboard.kontrak_iku_pt
    drop constraint fk_kontrak__kontrak_i_tahun_an
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('mbkm.konversi_kampus_merdeka') and o.name = 'fk_konversi_konversi__anggota_')
+alter table mbkm.konversi_kampus_merdeka
+   drop constraint fk_konversi_konversi__anggota_
 go
 
 if exists (select 1
@@ -8428,6 +8440,402 @@ if exists (select 1
    drop table ref.tmp_wilayah
 go
 
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('man_akses.akses_table_aplikasi') and o.name = 'fk_akses_ta_dtl_akses_aplikasi')
+alter table man_akses.akses_table_aplikasi
+   drop constraint fk_akses_ta_dtl_akses_aplikasi
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('man_akses.aplikasi') and o.name = 'fk_aplikasi_logo_apli_large_ob')
+alter table man_akses.aplikasi
+   drop constraint fk_aplikasi_logo_apli_large_ob
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('man_akses.aplikasi') and o.name = 'fk_aplikasi_unit_pemi_unit_org')
+alter table man_akses.aplikasi
+   drop constraint fk_aplikasi_unit_pemi_unit_org
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('logger.log_jwt') and o.name = 'fk_log_jwt_app_pemin_aplikasi')
+alter table logger.log_jwt
+   drop constraint fk_log_jwt_app_pemin_aplikasi
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('logger.log_jwt') and o.name = 'fk_log_jwt_log_pengg_pengguna')
+alter table logger.log_jwt
+   drop constraint fk_log_jwt_log_pengg_pengguna
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('logger.log_login') and o.name = 'fk_log_logi_log_login_aplikasi')
+alter table logger.log_login
+   drop constraint fk_log_logi_log_login_aplikasi
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('logger.log_login') and o.name = 'fk_log_logi_log_login_pengguna')
+alter table logger.log_login
+   drop constraint fk_log_logi_log_login_pengguna
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('logger.log_pengguna') and o.name = 'fk_log_peng_log_app_l_aplikasi')
+alter table logger.log_pengguna
+   drop constraint fk_log_peng_log_app_l_aplikasi
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('logger.log_pengguna') and o.name = 'fk_log_peng_log_pengu_pengguna')
+alter table logger.log_pengguna
+   drop constraint fk_log_peng_log_pengu_pengguna
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('logger.log_table_app') and o.name = 'fk_log_tabl_log_pengg_pengguna')
+alter table logger.log_table_app
+   drop constraint fk_log_tabl_log_pengg_pengguna
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('logger.log_table_app') and o.name = 'fk_log_tabl_log_table_aplikasi')
+alter table logger.log_table_app
+   drop constraint fk_log_tabl_log_table_aplikasi
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('man_akses.menu') and o.name = 'fk_menu_menu_apli_aplikasi')
+alter table man_akses.menu
+   drop constraint fk_menu_menu_apli_aplikasi
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('man_akses.pj_aplikasi') and o.name = 'fk_pj_aplik_akun_pj_a_pengguna')
+alter table man_akses.pj_aplikasi
+   drop constraint fk_pj_aplik_akun_pj_a_pengguna
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('man_akses.pj_aplikasi') and o.name = 'fk_pj_aplik_list_pj_a_aplikasi')
+alter table man_akses.pj_aplikasi
+   drop constraint fk_pj_aplik_list_pj_a_aplikasi
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('man_akses.role_pengguna') and o.name = 'fk_role_pen_peran_pen_pengguna')
+alter table man_akses.role_pengguna
+   drop constraint fk_role_pen_peran_pen_pengguna
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('man_akses.ws_authorization') and o.name = 'FK__ws_author__id_pe__75B852E5')
+alter table man_akses.ws_authorization
+   drop constraint FK__ws_author__id_pe__75B852E5
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('man_akses.ws_authorization') and o.name = 'FK__ws_author__id_ap__76AC771E')
+alter table man_akses.ws_authorization
+   drop constraint FK__ws_author__id_ap__76AC771E
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('man_akses.ws_endpoint_body') and o.name = 'FK__ws_endpoi__id_ws__7894BF90')
+alter table man_akses.ws_endpoint_body
+   drop constraint FK__ws_endpoi__id_ws__7894BF90
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('man_akses.ws_authorization') and o.name = 'FK__ws_author__id_ws__77A09B57')
+alter table man_akses.ws_authorization
+   drop constraint FK__ws_author__id_ws__77A09B57
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('man_akses.ws_endpoint_body_terms') and o.name = 'FK__ws_endpoi__id_ws__7988E3C9')
+alter table man_akses.ws_endpoint_body_terms
+   drop constraint FK__ws_endpoi__id_ws__7988E3C9
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('man_akses.ws_endpoint_body_terms') and o.name = 'FK__ws_endpoi__id_ws__7A7D0802')
+alter table man_akses.ws_endpoint_body_terms
+   drop constraint FK__ws_endpoi__id_ws__7A7D0802
+go
+
+alter table man_akses.aplikasi
+   drop constraint pk_aplikasi
+go
+
+alter table man_akses.aplikasi
+   drop constraint ckc_a_generate_menu_aplikasi
+go
+
+alter table man_akses.aplikasi
+   drop constraint ckc_a_integrasi_cas_aplikasi
+go
+
+alter table man_akses.aplikasi
+   drop constraint ckc_a_sistem_internal_aplikasi
+go
+
+if exists (select 1
+            from  sysobjects
+           where  id = object_id('man_akses.tmp_aplikasi')
+            and   type = 'U')
+   drop table man_akses.tmp_aplikasi
+go
+
+execute sp_rename 'man_akses.aplikasi', tmp_aplikasi
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('man_akses.pj_aplikasi') and o.name = 'FK__pj_aplika__id_pe__61B15A38')
+alter table man_akses.pj_aplikasi
+   drop constraint FK__pj_aplika__id_pe__61B15A38
+go
+
+alter table man_akses.pengguna
+   drop constraint pk_pengguna
+go
+
+alter table man_akses.pengguna 
+   drop constraint ckc_jenis_kelamin_pengguna
+go
+
+alter table man_akses.pengguna
+   drop constraint ckc_approval_pengguna_pengguna
+go
+
+alter table man_akses.pengguna
+   drop constraint ckc_a_aktif_pengguna
+go
+
+alter table man_akses.pengguna
+   drop constraint ckc_disable_pengguna
+go
+
+alter table man_akses.pengguna
+   drop constraint ckc_soft_delete_pengguna
+go
+
+if exists (select 1
+            from  sysobjects
+           where  id = object_id('man_akses.tmp_pengguna')
+            and   type = 'U')
+   drop table man_akses.tmp_pengguna
+go
+
+execute sp_rename 'man_akses.pengguna', tmp_pengguna
+go
+
+/*==============================================================*/
+/* Table: aplikasi                                              */
+/*==============================================================*/
+create table man_akses.aplikasi (
+   id_aplikasi          uniqueidentifier     not null,
+   id_blob              uniqueidentifier     null,
+   id_organisasi        uniqueidentifier     null,
+   nm_aplikasi          varchar(100)         not null,
+   ket_aplikasi         varchar(5000)        null,
+   token_aplikasi       varchar(1000)        null,
+   app_key              varchar(500)         null,
+   url                  varchar(256)         null,
+   port                 numeric(10)          null,
+   teknologi            varchar(5000)        null,
+   endpoint_ws          varchar(256)         null,
+   a_generate_menu      numeric(1)           not null default 0
+      constraint ckc_a_generate_menu_aplikasi check (a_generate_menu between 0 and 1 and a_generate_menu in (0,1)),
+   a_integrasi_cas      numeric(1)           not null default 0
+      constraint ckc_a_integrasi_cas_aplikasi check (a_integrasi_cas between 0 and 1 and a_integrasi_cas in (0,1)),
+   a_sistem_internal_pt numeric(1)           not null default 0
+      constraint ckc_a_sistem_internal_aplikasi check (a_sistem_internal_pt between 0 and 1 and a_sistem_internal_pt in (0,1)),
+   tgl_create           datetime             not null,
+   last_update          datetime             not null,
+   expired_date         datetime             null,
+   last_sync            datetime             not null,
+   constraint pk_aplikasi primary key (id_aplikasi)
+)
+go
+
+insert into man_akses.aplikasi (id_aplikasi, id_blob, id_organisasi, nm_aplikasi, ket_aplikasi, token_aplikasi, app_key, url, endpoint_ws, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, tgl_create, last_update, expired_date, last_sync)
+select id_aplikasi, id_blob, id_organisasi, nm_aplikasi, ket_aplikasi, token_aplikasi, app_key, url, endpoint_ws, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, tgl_create, last_update, expired_date, last_sync
+from man_akses.tmp_aplikasi
+go
+
+if exists (select 1
+            from  sysobjects
+           where  id = object_id('man_akses.tmp_aplikasi')
+            and   type = 'U')
+   drop table man_akses.tmp_aplikasi
+go
+
+/*==============================================================*/
+/* Table: pengguna                                              */
+/*==============================================================*/
+create table man_akses.pengguna (
+   id_pengguna          uniqueidentifier     not null,
+   username             varchar(60)          not null,
+   password             varchar(50)          not null,
+   password_encrypt     varchar(255)         null,
+   type_encrypt         varchar(80)          null,
+   nm_pengguna          varchar(200)         null,
+   email                varchar(60)          null,
+   tempat_lahir         varchar(60)          null,
+   tgl_lahir            date                 null,
+   jenis_kelamin        char(1)              not null 
+      constraint ckc_jenis_kelamin_pengguna check (jenis_kelamin in ('L','P','*')),
+   alamat               varchar(255)         null,
+   no_tel               varchar(20)          null,
+   no_hp                varchar(20)          null,
+   approval_pengguna    numeric(1)           not null default 0
+      constraint ckc_approval_pengguna_pengguna check (approval_pengguna between 0 and 1 and approval_pengguna in (0,1)),
+   a_aktif              numeric(1)           not null default 1
+      constraint ckc_a_aktif_pengguna check (a_aktif between 0 and 1 and a_aktif in (0,1)),
+   tgl_ganti_pwd        date                 null,
+   id_sdm_pengguna      uniqueidentifier     null,
+   id_pd_pengguna       uniqueidentifier     null,
+   id_calon_pd_pengguna uniqueidentifier     null,
+   id_user_sikep        int                  null,
+   token_reg            varchar(100)         null,
+   jabatan              varchar(80)          null,
+   provider             varchar(500)         null,
+   disable              numeric(1)           not null default 0
+      constraint ckc_disable_pengguna check (disable between 0 and 1 and disable in (0,1)),
+   tgl_create           datetime             not null,
+   last_update          datetime             not null,
+   soft_delete          numeric(1)           not null default 0
+      constraint ckc_soft_delete_pengguna check (soft_delete between 0 and 1 and soft_delete in (0,1)),
+   last_sync            datetime             not null,
+   id_updater           uniqueidentifier     not null,
+   constraint pk_pengguna primary key (id_pengguna)
+)
+go
+
+insert into man_akses.pengguna (id_pengguna, username, password, nm_pengguna, email, tempat_lahir, tgl_lahir, jenis_kelamin, alamat, no_tel, no_hp, approval_pengguna, a_aktif, tgl_ganti_pwd, id_sdm_pengguna, id_pd_pengguna, id_calon_pd_pengguna, token_reg, jabatan, provider, disable, tgl_create, last_update, soft_delete, last_sync, id_updater)
+select id_pengguna, username, password, nm_pengguna, email, tempat_lahir, tgl_lahir, jenis_kelamin, alamat, no_tel, no_hp, approval_pengguna, a_aktif, tgl_ganti_pwd, id_sdm_pengguna, id_pd_pengguna, id_calon_pd_pengguna, token_reg, jabatan, provider, disable, tgl_create, last_update, soft_delete, last_sync, id_updater
+from man_akses.tmp_pengguna
+go
+
+if exists (select 1
+            from  sysobjects
+           where  id = object_id('man_akses.tmp_pengguna')
+            and   type = 'U')
+   drop table man_akses.tmp_pengguna
+go
+
+alter table man_akses.akses_table_aplikasi
+   add constraint fk_akses_ta_dtl_akses_aplikasi foreign key (id_aplikasi)
+      references man_akses.aplikasi (id_aplikasi)
+go
+
+alter table man_akses.aplikasi
+   add constraint fk_aplikasi_logo_apli_large_ob foreign key (id_blob)
+      references dok.large_object (id_blob)
+go
+
+alter table man_akses.aplikasi
+   add constraint fk_aplikasi_unit_pemi_unit_org foreign key (id_organisasi)
+      references man_akses.unit_organisasi (id_organisasi)
+go
+
+alter table logger.log_jwt
+   add constraint fk_log_jwt_app_pemin_aplikasi foreign key (id_aplikasi)
+      references man_akses.aplikasi (id_aplikasi)
+go
+
+alter table logger.log_jwt
+   add constraint fk_log_jwt_log_pengg_pengguna foreign key (id_pengguna)
+      references man_akses.pengguna (id_pengguna)
+go
+
+alter table logger.log_login
+   add constraint fk_log_logi_log_login_pengguna foreign key (id_pengguna)
+      references man_akses.pengguna (id_pengguna)
+go
+
+alter table logger.log_login
+   add constraint fk_log_logi_log_login_aplikasi foreign key (id_aplikasi)
+      references man_akses.aplikasi (id_aplikasi)
+go
+
+alter table logger.log_pengguna
+   add constraint fk_log_peng_log_app_l_aplikasi foreign key (id_aplikasi)
+      references man_akses.aplikasi (id_aplikasi)
+go
+
+alter table logger.log_pengguna
+   add constraint fk_log_peng_log_pengu_pengguna foreign key (id_pengguna)
+      references man_akses.pengguna (id_pengguna)
+go
+
+alter table logger.log_table_app
+   add constraint fk_log_tabl_log_pengg_pengguna foreign key (id_pengguna)
+      references man_akses.pengguna (id_pengguna)
+go
+
+alter table logger.log_table_app
+   add constraint fk_log_tabl_log_table_aplikasi foreign key (id_aplikasi)
+      references man_akses.aplikasi (id_aplikasi)
+go
+
+alter table man_akses.menu
+   add constraint fk_menu_menu_apli_aplikasi foreign key (id_aplikasi)
+      references man_akses.aplikasi (id_aplikasi)
+go
+
+alter table man_akses.pj_aplikasi
+   add constraint fk_pj_aplik_akun_pj_a_pengguna foreign key (id_pengguna)
+      references man_akses.pengguna (id_pengguna)
+go
+
+alter table man_akses.pj_aplikasi
+   add constraint fk_pj_aplik_list_pj_a_aplikasi foreign key (id_aplikasi)
+      references man_akses.aplikasi (id_aplikasi)
+go
+
+alter table man_akses.role_pengguna
+   add constraint fk_role_pen_peran_pen_pengguna foreign key (id_pengguna)
+      references man_akses.pengguna (id_pengguna)
+go
+
+alter table man_akses.ws_authorization
+   add constraint fk_ws_autho_ws_auth_a_aplikasi foreign key (id_aplikasi)
+      references man_akses.aplikasi (id_aplikasi)
+         on update cascade on delete cascade
+go
+
+alter table man_akses.ws_authorization
+   add constraint fk_ws_autho_ws_penggu_pengguna foreign key (id_pengguna)
+      references man_akses.pengguna (id_pengguna)
+         on update cascade on delete cascade
+go
+
 alter table pdrd.akred_sp
    add constraint fk_akred_sp_akred_sp_satuan_p foreign key (id_sp)
       references pdrd.satuan_pendidikan (id_sp)
@@ -9057,10 +9465,10 @@ alter table mbkm.konversi_akt_mhs
       references mbkm.daftar_kampus_merdeka (id_daftar_kampus_merdeka)
 go
 
--- alter table mbkm.konversi_akt_mhs
---    add constraint fk_konversi_konversi__anggota_ foreign key (id_ang_akt_mhs)
---       references pdrd.anggota_akt_mhs (id_ang_akt_mhs)
--- go
+alter table mbkm.konversi_akt_mhs
+   add constraint fk_konversi_konversi__anggota_ foreign key (id_ang_akt_mhs)
+      references pdrd.anggota_akt_mhs (id_ang_akt_mhs)
+go
 
 alter table mbkm.konversi_akt_mhs
    add constraint fk_konversi_konversi__matkul foreign key (id_mk)
@@ -10122,6 +10530,45 @@ if exists (select 1
            where  id = object_id('mbkm.konversi_kampus_merdeka')
             and   type = 'U')
    drop table mbkm.konversi_kampus_merdeka
+go
+
+DROP INDEX pk_ws_authorization ON man_akses.ws_authorization;
+DROP INDEX pk_ws_endpoint ON man_akses.ws_endpoint;
+DROP INDEX pk_ws_endpoint_body ON man_akses.ws_endpoint_body;
+
+alter table man_akses.ws_authorization
+   add constraint pk_ws_authorization primary key (id_ws_authorization)
+go
+
+alter table man_akses.ws_endpoint
+   add constraint pk_ws_endpoint primary key (id_ws_endpoint)
+go
+
+alter table man_akses.ws_endpoint_body
+   add constraint pk_ws_endpoint_body primary key (id_ws_endpoint_body)
+go
+
+alter table man_akses.ws_authorization
+   add constraint fk_ws_autho_ws_auth_e_ws_endpo foreign key (id_ws_endpoint)
+      references man_akses.ws_endpoint (id_ws_endpoint)
+         on update cascade on delete cascade
+go
+
+alter table man_akses.ws_endpoint_body
+   add constraint fk_ws_endpo_ws_body_ws_endpo foreign key (id_ws_endpoint)
+      references man_akses.ws_endpoint (id_ws_endpoint)
+         on update cascade on delete cascade
+go
+
+alter table man_akses.ws_endpoint_body_terms
+   add constraint fk_ws_endpo_ws_auth_b_ws_autho foreign key (id_ws_authorization)
+      references man_akses.ws_authorization (id_ws_authorization)
+         on update cascade on delete cascade
+go
+
+alter table man_akses.ws_endpoint_body_terms
+   add constraint fk_ws_endpo_ws_bodyte_ws_endpo foreign key (id_ws_endpoint_body)
+      references man_akses.ws_endpoint_body (id_ws_endpoint_body)
 go
 
 INSERT INTO man_akses.versi_db (versi,tgl_update) VALUES ('0.9.0',GETDATE());

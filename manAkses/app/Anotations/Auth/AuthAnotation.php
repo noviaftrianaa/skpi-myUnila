@@ -6,15 +6,14 @@
  *  summary="Mendapatkan token untuk otorisasi",
  *  description="Dapatkan token otorisasi",
  *  operationId="authLogin",
- *  tags={"Akses"},
+ *  tags={"Login"},
  *  @OA\RequestBody(
  *      required=true,
- *      description="Pass user credentials",
+ *      description="<strong>APP_KEY</strong> didapat dari Laman Manajemen Akses https://akses.unila.ac.id<br><strong>Username</strong> dan <strong>Password</strong> adalah akun SSO",
  *      @OA\JsonContent(
- *          required={"email","password"},
+ *          required={"app_key","username"},
  *          @OA\Property(property="app_key", type="string", format="text", example="base64:xgyD/eUvr5fhJskP1Z6ueW2Pt3tuR1/g5GtxV783vHC8M="),
- *          @OA\Property(property="username", type="string", format="email", example="rio.ananda@staff.unila.ac.id"),
- *          @OA\Property(property="password", type="string", format="password", example="12345678"),
+ *          @OA\Property(property="username", type="string", format="email", example="m.ikhsan@staff.unila.ac.id"),
  *      ),
  *  ),
  *  @OA\Response(

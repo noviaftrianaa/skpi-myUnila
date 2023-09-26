@@ -159,7 +159,7 @@
 <script src="{{ asset('master_template/dist/js/adminlte.js') }}"></script>
 <script src="{!! asset('node_modules/sweetalert/dist/sweetalert.min.js') !!}"></script>
 
-@stack('js')
+@yield('js')
 
 @include('sweet::alert')
 <script src="{!! asset('js/konfirmasi.js') !!}"></script>
@@ -168,6 +168,14 @@
     $(function () {
         $('[data-toggle="tooltip"]').tooltip();
     })
+    $(document).ready(function() {
+		$('.peran').on('change', function() {
+			var parentForm = $(this).closest("form");
+			if (parentForm && parentForm.length > 0) {
+				parentForm.submit();
+			}
+		});
+	});
 </script>
 </body>
 </html>

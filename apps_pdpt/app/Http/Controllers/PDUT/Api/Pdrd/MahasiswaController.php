@@ -809,7 +809,7 @@ class MahasiswaController extends Controller
                     pdrd.peserta_didik AS pd WITH(NOLOCK)
                     JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
                     AND reg.id_sms = '" . $id_prodi . "'
-                    AND YEAR(tgl_sk_yudisium) = '" . $tahun_lulus . "'
+                    AND YEAR(tgl_keluar) = '" . $tahun_lulus . "'
                     AND reg.id_jns_keluar = '1'
                     AND reg.soft_delete = 0
                     JOIN pdrd.sms AS sms WITH(NOLOCK) ON sms.id_sms = reg.id_sms

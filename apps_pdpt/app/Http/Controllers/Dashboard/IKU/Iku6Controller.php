@@ -41,7 +41,7 @@ class Iku6Controller extends Controller
                 ) AS x_data_yes
             FROM
                 pdrd.sms AS prodi WITH(NOLOCK)
-                JOIN pdrd.sms AS fak WITH(NOLOCK) ON fak.id_sms = prodi.id_fak_unila
+                LEFT JOIN pdrd.sms AS fak WITH(NOLOCK) ON fak.id_sms = prodi.id_fak_unila
                 AND fak.soft_delete = 0
                 JOIN ref.jenjang_pendidikan AS jenj WITH(NOLOCK) ON jenj.id_jenj_didik = prodi.id_jenj_didik
                 AND jenj.expired_date IS NULL

@@ -109,14 +109,14 @@ class Iku5Controller extends Controller
                 fak.nm_lemb AS y_nm_fakultas
             FROM
                 pdrd.sdm AS sdm WITH(NOLOCK)
-                JOIN pdrd.reg_ptk AS ptk WITH(NOLOCK) ON ptk.id_sdm = sdm.id_sdm
+                JOIN pdrd.reg_ptk AS ptk WITH(NOLOCK) ON ptk.id_sdm = sdm.id_sdm AND ptk.id_sp='".env('APP_ID_SP')."'
                 AND ptk.soft_delete = 0
                 AND ptk.id_jns_keluar IS NULL
                 AND ptk.id_ikatan_kerja IN('A', 'B', 'D', 'E', 'G', 'H', 'I')
                 JOIN pdrd.sms AS prod WITH(NOLOCK) ON prod.id_sms = ptk.id_sms
                 AND prod.soft_delete = 0
                 AND prod.stat_prodi = 'A'
-                JOIN pdrd.sms AS fak WITH(NOLOCK) ON fak.id_sms = prod.id_fak_unila
+                LEFT JOIN pdrd.sms AS fak WITH(NOLOCK) ON fak.id_sms = prod.id_fak_unila
                 AND fak.soft_delete = 0
                 JOIN ref.jenjang_pendidikan AS jenj WITH(NOLOCK) ON jenj.id_jenj_didik = prod.id_jenj_didik
                 AND jenj.expired_date IS NULL
@@ -288,7 +288,7 @@ class Iku5Controller extends Controller
             fak.id_sms AS y_id_fakultas
         FROM
             pdrd.sdm AS sdm WITH (NOLOCK)
-            JOIN pdrd.reg_ptk AS ptk WITH (NOLOCK) ON ptk.id_sdm = sdm.id_sdm
+            JOIN pdrd.reg_ptk AS ptk WITH (NOLOCK) ON ptk.id_sdm = sdm.id_sdm AND ptk.id_sp='".env('APP_ID_SP')."'
             AND ptk.soft_delete = 0
             AND ptk.id_jns_keluar IS NULL
             JOIN pdrd.sms AS prod WITH(NOLOCK) ON prod.id_sms = ptk.id_sms

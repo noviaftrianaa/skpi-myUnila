@@ -196,14 +196,49 @@ class TracerStudyController extends Controller
         $nm_prodi_lnjt = $request->input('nm_prodi_lnjt');
         $wkt_masuk = $request->input('wkt_masuk');
         $ket = $request->input('ket');
+        $id_hasil_tracer_study = guid();
 
         DB::beginTransaction();
         try {
-            $tracer = HasilTracerStudy::updateOrInsert([
+            $cek = HasilTracerStudy::where('id_reg_pd', $id_reg_pd)->where('id_thn_ajaran',$id_thn_ajaran)->first();
+            if(!is_null($cek)){
+                $cek->update([
+                    'id_bid_kerja' => $id_bid_kerja,
+                    'id_wil' => $id_wil,
+                    'id_smt' => $id_smt,
+                    'id_jns_jalur_kerja' => $id_jns_jalur_kerja,
+                    'wkt_pengisian' => $wkt_pengisian,
+                    'wkt_tunggu' => $wkt_tunggu,
+                    'a_kerja_sblm_lulus' => $a_kerja_sblm_lulus,
+                    'status_lulusan' => $status_lulusan,
+                    'jns_tmpt_bekerja' => $jns_tmpt_bekerja,
+                    'level_perusahaan' => $level_perusahaan,
+                    'nm_tmpt_bekerja' => $nm_tmpt_bekerja,
+                    'income_per_bln' => $income_per_bln,
+                    'status_jabatan' => $status_jabatan,
+                    'total_instansi_dilamar' => $total_instansi_dilamar,
+                    'hub_bidang_kerja' => $hub_bidang_kerja,
+                    'tkt_kesesuaian' => $tkt_kesesuaian,
+                    'alasan_tidak_sesuai' => $alasan_tidak_sesuai,
+                    'nm_pt_lnjt' => $nm_pt_lnjt,
+                    'nm_prodi_lnjt' => $nm_prodi_lnjt,
+                    'wkt_masuk' => $wkt_masuk,
+                    'ket' => $ket,
+                    'id_creator' => guid(),
+                    'id_updater' => guid(),
+                    'create_date' => currDateTime(),
+                    'last_update' => currDateTime(),
+                    'last_sync' => currDateTime(),
+                    'soft_delete' => 0
+                ]);
+
+                DB::commit();
+                return WrapResponse(array('data' => array('id_hasil_tracer_study' => $cek->id_hasil_tracer_study)), 'sukses update tracer study', TRUE);
+            }else{
+            DB::table('tracer.hasil_tracer_study')->insert([
+                'id_hasil_tracer_study' => $id_hasil_tracer_study,
                 'id_reg_pd' => $id_reg_pd,
                 'id_thn_ajaran' => $id_thn_ajaran,
-            ], [
-                'id_hasil_tracer_study' => guid(),
                 'id_bid_kerja' => $id_bid_kerja,
                 'id_wil' => $id_wil,
                 'id_smt' => $id_smt,
@@ -232,11 +267,10 @@ class TracerStudyController extends Controller
                 'last_sync' => currDateTime(),
                 'soft_delete' => 0
             ]);
-
-
             DB::commit();
-            $config = config('database.default');
-            return WrapResponse([$config], 'sukses menambahkan tracer study');
+            return WrapResponse(array('data' => array('id_hasil_tracer_study' => $id_hasil_tracer_study)), 'sukses menambahkan tracer study', TRUE);
+        }
+
         } catch (\Exception $e) {
             DB::rollback();
             Log::error($e->getMessage() . ' on line ' . $e->getLine());
