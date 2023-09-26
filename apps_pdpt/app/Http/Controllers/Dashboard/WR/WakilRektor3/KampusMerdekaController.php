@@ -56,7 +56,7 @@ class KampusMerdekaController extends Controller
         $lastLevelID = $request->lastLevelID;
         $currentType = $request->type;
         $requestType = $request->requestType;
-        $currentYear = get_tahun_keaktifan();
+        $currentYear = get_tahun_keaktifan() - 1;
 
         /**  Selected Params :: */
         $selectedPoint = $request->selectedPoint;
@@ -119,7 +119,7 @@ class KampusMerdekaController extends Controller
         /**
          * Looping Query Report untuk Trend Tahun
          */
-        $tgl = TahunAjaran::tglSelesai(get_tahun_keaktifan());
+        $tgl = TahunAjaran::tglSelesai(get_tahun_keaktifan() - 1);
 
         /** SELECT fields */
         $query_select   = "
@@ -138,7 +138,7 @@ class KampusMerdekaController extends Controller
             AND akt.soft_delete = 0
             JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = akt.id_smt
             AND smt.expired_date IS NULL
-            AND smt.id_thn_ajaran = " . get_tahun_keaktifan() . "
+            AND smt.id_thn_ajaran = " . get_tahun_keaktifan() -1 . "
             JOIN ref.jenis_akt_mhs AS jns_akt WITH(NOLOCK) ON jns_akt.id_jns_akt_mhs = akt.id_jns_akt_mhs
             AND jns_akt.expired_date IS NULL
             JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_reg_pd = ang.id_reg_pd
@@ -254,7 +254,7 @@ class KampusMerdekaController extends Controller
             /** Menampilkan hasil dalam Datatable */
             return Datatables::of($results)
                 ->editColumn('nm_mhs', function ($model) {
-                    return '<a href="' . route('mahasiswa.profil', ['id' => Crypt::encrypt($model->id_reg_pd), 'year' => get_tahun_keaktifan()]) . '" target="_blank" style=" color: #0062CC!important;">' . $model->nm_mhs . '</a>';
+                    return '<a href="' . route('mahasiswa.profil', ['id' => Crypt::encrypt($model->id_reg_pd), 'year' => get_tahun_keaktifan() - 1]) . '" target="_blank" style=" color: #0062CC!important;">' . $model->nm_mhs . '</a>';
                 })
                 ->rawColumns(['nm_mhs'])
                 ->make(true);
@@ -438,7 +438,7 @@ class KampusMerdekaController extends Controller
     {
         $fileLocation               = 'Sdid/Back/Report/';
         $filename                   = sha1('KampusMerdekaWR3');
-        $tahun                      = get_tahun_keaktifan();
+        $tahun                      = get_tahun_keaktifan() - 1;
         $request->level             = 'Perguruan Tinggi';
         $request->year              = $tahun;
         $getChart                   = json_decode($this->chart($request));

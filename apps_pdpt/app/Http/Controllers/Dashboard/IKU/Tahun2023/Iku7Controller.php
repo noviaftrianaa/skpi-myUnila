@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables as DaTables;
 
-class Iku3Controller extends Controller
+class Iku7Controller extends Controller
 {
     private $request;
     private $tahunIku;
@@ -18,11 +18,11 @@ class Iku3Controller extends Controller
         $this->tahunIku = app(Iku1Controller::class)->tahunIku();
     }
 
-    public function homeIku3()
+    public function homeIku7()
     {
         $thn_iku = $this->tahunIku;
         $side_active   = 'iku';
-        return view('home.wr.wakil_rektor4.iku.iku3', compact('side_active', 'thn_iku'));
+        return view('home.wr.wakil_rektor4.iku.iku7', compact('side_active', 'thn_iku'));
     }
 
 }

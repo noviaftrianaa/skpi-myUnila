@@ -41,7 +41,7 @@ class Iku1Controller extends Controller
     {
         $thn_iku = $this->tahunIku();
         $side_active   = 'iku';
-        return view('home.wr.wakil_rektor4.iku.index', compact('side_active', 'thn_iku'));
+        return view('home.wr.wakil_rektor4.iku.iku1', compact('side_active', 'thn_iku'));
     }
 
     public function apiIku1()

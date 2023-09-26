@@ -60,7 +60,7 @@
     <div class="card-body">
         <ul class="nav nav-tabs mb-3" id="custom-content-below-tab" role="tablist">
             <li class="nav-item">
-                <a class="nav-link active" href="{{ url('dashboard_iku') }}">IKU 1</a>
+                <a class="nav-link" href="{{ url('dashboard_iku') }}">IKU 1</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="{{ url('dashboard_iku2v2') }}">IKU 2</a>
@@ -69,7 +69,7 @@
                 <a class="nav-link" href="{{ url('dashboard_iku3v2') }}">IKU 3</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ url('dashboard_iku4v2') }}">IKU 4</a>
+                <a class="nav-link active" href="{{ url('dashboard_iku4v2') }}">IKU 4</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="{{ url('dashboard_iku5v2') }}">IKU 5</a>
@@ -86,7 +86,7 @@
         </ul>
         <div class="tab-content" id="tabContent">
             <div class="tab-pane fade active show">
-                @include('home.wr.wakil_rektor4.iku._partial.chart_iku1')
+                @include('home.wr.wakil_rektor4.iku._partial.comming_soon')
             </div>
 
         </div>
@@ -101,6 +101,6 @@
     <script type="text/javascript" src="{{ asset('node_modules/datatables/media/js/jquery.dataTables.min.js')}}"></script>
     <script type="text/javascript" src="{{ asset('js/konfirmasi_yajra.js')}}"></script>
 
-    @include('home.wr.wakil_rektor4.iku._function.chart_iku1')
+    {{-- @include('home.wr.wakil_rektor4.iku._function.chart_iku1') --}}
 
 @stop

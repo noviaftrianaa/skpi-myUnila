@@ -22,6 +22,13 @@ use App\Http\Controllers\Dashboard\WR\WakilRektor3\PrestasiController;
 use App\Http\Controllers\Dashboard\WR\WakilRektor4\KerjasamaController;
 use App\Http\Controllers\Dashboard\WR\WakilRektor4\PengelolaanTikController;
 use App\Http\Controllers\Dashboard\IKU\Tahun2023\Iku1Controller;
+use App\Http\Controllers\Dashboard\IKU\Tahun2023\Iku2Controller;
+use App\Http\Controllers\Dashboard\IKU\Tahun2023\Iku3Controller;
+use App\Http\Controllers\Dashboard\IKU\Tahun2023\Iku4Controller;
+use App\Http\Controllers\Dashboard\IKU\Tahun2023\Iku5Controller;
+use App\Http\Controllers\Dashboard\IKU\Tahun2023\Iku6Controller;
+use App\Http\Controllers\Dashboard\IKU\Tahun2023\Iku7Controller;
+use App\Http\Controllers\Dashboard\IKU\Tahun2023\Iku8Controller;
 use App\Http\Controllers\ListDaftarDosenController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RenstraController;
@@ -266,14 +273,37 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/kerjasama/detail/{id}', [KerjasamaController::class, 'detail'])->name('kerjasama.detail');
     Route::get('/aplikasi',  [PengelolaanTikController::class, 'daftar_aplikasi'])->name('aplikasi');
 
-    //iku
+    //iku1
     Route::get('/dashboard_iku', [Iku1Controller::class, 'homeIku1'])->name('dashboard_iku');
     Route::get('api/iku1', [Iku1Controller::class, 'apiIku1'])->name('apiIku1v2');
     Route::get('api/iku1/alumni', [Iku1Controller::class, 'apiIku1Alumni'])->name('apiIku1Alumniv2');
-    Route::get('api/iku1/total-alumni', [Iku1Controller::class, 'apiTotalAlumni'])->name('apiTotalAlumniv2');
+    Route::get('api/iku1/total_alumni', [Iku1Controller::class, 'apiTotalAlumni'])->name('apiTotalAlumniv2');
     Route::get('api/iku1/bekerja', [Iku1Controller::class, 'apiIku1Bekerja'])->name('apiIku1Bekerjav2');
-    Route::get('api/iku1/lanjut-studi', [Iku1Controller::class, 'apiIku1LanjutStudi'])->name('apiIku1LanjutStudiv2');
+    Route::get('api/iku1/lanjut_studi', [Iku1Controller::class, 'apiIku1LanjutStudi'])->name('apiIku1LanjutStudiv2');
     Route::get('api/iku1/download', [Iku1Controller::class, 'downloadIku1'])->name('downloadIku1v2');
+
+    //iku2
+    Route::get('/dashboard_iku2v2', [Iku2Controller::class, 'homeIku2'])->name('dashboard_iku2v2');
+    Route::get('api/iku2/mbkm', [Iku2Controller::class, 'apiIku2Mbkm'])->name('apiIku2Mbkmv2');
+    Route::get('api/iku2/prestasi', [Iku2Controller::class, 'apiIku2Prestasi'])->name('apiIku2Prestasiv2');
+    Route::get('api/iku2/table_mbkm', [Iku2Controller::class, 'apiIku2MbkmTable'])->name('apiIku2MbkmTablev2');
+    Route::get('api/iku2/table_prestasi', [Iku2Controller::class, 'apiIku2PrestasiTable'])->name('apiIku2PrestasiTablev2');
+    // Route::get('api/iku2/mbkm_non', [Iku2Controller::class, 'apiIku2MbkmNonPertukaran'])->name('apiIku2MbkmNonv2');
+    // Route::get('api/iku2/mbkm_pertukaran', [Iku2Controller::class, 'apiIku2MbkmPertukaran'])->name('apiIku2MbkmPertukaranv2');
+    // Route::get('api/iku2/download', [Iku2Controller::class, 'downloadIku2'])->name('downloadIku2v2');
+    //iku3
+    Route::get('/dashboard_iku3v2', [Iku3Controller::class, 'homeIku3'])->name('dashboard_iku3v2');
+    //iku4
+    Route::get('/dashboard_iku4v2', [Iku4Controller::class, 'homeIku4'])->name('dashboard_iku4v2');
+    //iku5
+    Route::get('/dashboard_iku5v2', [Iku5Controller::class, 'homeIku5'])->name('dashboard_iku5v2');
+    //iku6
+    Route::get('/dashboard_iku6v2', [Iku6Controller::class, 'homeIku6'])->name('dashboard_iku6v2');
+    //iku7
+    Route::get('/dashboard_iku7v2', [Iku7Controller::class, 'homeIku7'])->name('dashboard_iku7v2');
+    //iku8
+    Route::get('/dashboard_iku8v2', [Iku8Controller::class, 'homeIku8'])->name('dashboard_iku8v2');
+
 
     /** End Dashboard Wakil Rektor IV */
 

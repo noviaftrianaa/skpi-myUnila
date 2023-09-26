@@ -118,7 +118,6 @@
             });
             drill = 1;
             Iku1ChartBar(y_title, x_data_yes, x_data_no);
-            Iku1TotalAlumni();
             $("#navChart").html(`<a href="javascript:" class="text-dark text-xl"><u>Unila</u></a> <a class="text-xl">/</a> <a class="text-xl">Fakultas</a>`);
         }
 
@@ -163,7 +162,7 @@
                     height: 700,
                 },
                 title: {
-                    text: 'IKU 1 : Lulusan Mendapat Pekerjaan yang Layak'
+                    text: 'IKU 1 : Kesiapan kerja lulusan'
                 },
                 xAxis: {
                     categories: y_title,
@@ -194,7 +193,7 @@
                                             'y_id'
                                         ];
                                         $("#txt1_modal").html(
-                                            "<b>IKU 1 : Lulusan Mendapat Pekerjaan yang Layak</b><br>");
+                                            "<b>IKU 1 : Kesiapan kerja lulusan</b><br>");
                                         $("#txt2_modal").html("FAKULTAS " + fak + " - Prodi " + event.point
                                             .category + "<br>");
                                         if ($.fn.dataTable.isDataTable($('#tb_01'))) {

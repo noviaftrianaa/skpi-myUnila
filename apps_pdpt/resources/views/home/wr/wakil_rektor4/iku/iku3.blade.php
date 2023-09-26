@@ -60,33 +60,33 @@
     <div class="card-body">
         <ul class="nav nav-tabs mb-3" id="custom-content-below-tab" role="tablist">
             <li class="nav-item">
-                <a class="nav-link active" id="iku1-tab" data-toggle="pill" href="#iku1" role="tab" aria-controls="iku1" aria-selected="true">IKU 1</a>
+                <a class="nav-link" href="{{ url('dashboard_iku') }}">IKU 1</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="iku2-tab" data-toggle="pill" href="#iku2" role="tab" aria-controls="iku2" aria-selected="false">IKU 2</a>
+                <a class="nav-link" href="{{ url('dashboard_iku2v2') }}">IKU 2</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="iku3-tab" data-toggle="pill" href="#iku3" role="tab" aria-controls="iku3" aria-selected="false">IKU 3</a>
+                <a class="nav-link active" href="{{ url('dashboard_iku3v2') }}">IKU 3</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="iku4-tab" data-toggle="pill" href="#iku4" role="tab" aria-controls="iku4" aria-selected="false">IKU 4</a>
+                <a class="nav-link" href="{{ url('dashboard_iku4v2') }}">IKU 4</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="iku5-tab" data-toggle="pill" href="#iku5" role="tab" aria-controls="iku5" aria-selected="false">IKU 5</a>
+                <a class="nav-link" href="{{ url('dashboard_iku5v2') }}">IKU 5</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="iku6-tab" data-toggle="pill" href="#iku6" role="tab" aria-controls="iku6" aria-selected="false">IKU 6</a>
+                <a class="nav-link" href="{{ url('dashboard_iku6v2') }}">IKU 6</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="iku7-tab" data-toggle="pill" href="#iku7" role="tab" aria-controls="iku7" aria-selected="false">IKU 7</a>
+                <a class="nav-link" href="{{ url('dashboard_iku7v2') }}">IKU 7</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="iku8-tab" data-toggle="pill" href="#iku8" role="tab" aria-controls="iku8" aria-selected="false">IKU 8</a>
+                <a class="nav-link" href="{{ url('dashboard_iku8v2') }}">IKU 8</a>
             </li>
         </ul>
         <div class="tab-content" id="tabContent">
-            <div class="tab-pane fade active show" id="iku1" role="tabpanel" aria-labelledby="iku1-tab">
-                @include('home.wr.wakil_rektor4.iku._partial.chart_iku1')1
+            <div class="tab-pane fade active show">
+                @include('home.wr.wakil_rektor4.iku._partial.comming_soon')
             </div>
 
         </div>
@@ -101,6 +101,6 @@
     <script type="text/javascript" src="{{ asset('node_modules/datatables/media/js/jquery.dataTables.min.js')}}"></script>
     <script type="text/javascript" src="{{ asset('js/konfirmasi_yajra.js')}}"></script>
 
-    @include('home.wr.wakil_rektor4.iku._function.chart_iku1')
+    {{-- @include('home.wr.wakil_rektor4.iku._function.chart_iku1') --}}
 
 @stop
