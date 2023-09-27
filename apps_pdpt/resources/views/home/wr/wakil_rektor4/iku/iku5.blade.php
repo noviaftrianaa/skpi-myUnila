@@ -86,7 +86,7 @@
         </ul>
         <div class="tab-content" id="tabContent">
             <div class="tab-pane fade active show">
-                @include('home.wr.wakil_rektor4.iku._partial.comming_soon')
+                @include('home.wr.wakil_rektor4.iku._partial.chart_iku5')
             </div>
 
         </div>
@@ -101,6 +101,6 @@
     <script type="text/javascript" src="{{ asset('node_modules/datatables/media/js/jquery.dataTables.min.js')}}"></script>
     <script type="text/javascript" src="{{ asset('js/konfirmasi_yajra.js')}}"></script>
 
-    {{-- @include('home.wr.wakil_rektor4.iku._function.chart_iku1') --}}
+    @include('home.wr.wakil_rektor4.iku._function.chart_iku5')
 
 @stop

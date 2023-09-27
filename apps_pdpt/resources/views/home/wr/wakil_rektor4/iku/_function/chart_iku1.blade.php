@@ -118,7 +118,7 @@
             });
             drill = 1;
             Iku1ChartBar(y_title, x_data_yes, x_data_no);
-            $("#navChart").html(`<a href="javascript:" class="text-dark text-xl"><u>Unila</u></a> <a class="text-xl">/</a> <a class="text-xl">Fakultas</a>`);
+            $("#navChart").html(`<a href="javascript:" class="text-dark">UNILA</a> / FAKULTAS`);
         }
 
         function Iku1Prodi(fak) {
@@ -150,7 +150,7 @@
             Iku1ChartBar(y_title, x_data_yes, x_data_no, fak);
             Iku1TotalAlumni(fak);
             $("#navChart").html(
-                `<a href="javascript:" class="text-dark text-xl">Unila</a> <a class="text-xl">/</a> <a href="javascript:Iku1Fakultas();" class="text-dark text-xl"><u>Fakultas</u></a> <a class="text-xl">/ Prodi</a>`
+                `<a href="javascript:" class="text-dark">UNILA</a> / <a href="javascript:Iku1Fakultas();" class="text-dark">FAKULTAS</a> / PRODI`
             );
         }
 

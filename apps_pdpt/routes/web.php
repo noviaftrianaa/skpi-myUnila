@@ -292,12 +292,32 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Route::get('api/iku2/mbkm_non', [Iku2Controller::class, 'apiIku2MbkmNonPertukaran'])->name('apiIku2MbkmNonv2');
     // Route::get('api/iku2/mbkm_pertukaran', [Iku2Controller::class, 'apiIku2MbkmPertukaran'])->name('apiIku2MbkmPertukaranv2');
     // Route::get('api/iku2/download', [Iku2Controller::class, 'downloadIku2'])->name('downloadIku2v2');
+
     //iku3
     Route::get('/dashboard_iku3v2', [Iku3Controller::class, 'homeIku3'])->name('dashboard_iku3v2');
+    Route::get('api/iku3',  [Iku3Controller::class, 'apiIku3'])->name('apiDashboardIku3v2');
+    Route::get('api/iku3/dosen',  [Iku3Controller::class, 'apiIku3Dosen'])->name('apiIku3Dosenv2');
+    Route::get('api/iku3/tridharma',  [Iku3Controller::class, 'apiIku3Tridharma'])->name('apiIku3Tridharmav2');
+    Route::get('api/iku3/qs100',  [Iku3Controller::class, 'apiIku3Qs100'])->name('apiIku3Qs100v2');
+    Route::get('api/iku3/praktisi',  [Iku3Controller::class, 'apiIku3Praktisi'])->name('apiIku3Praktisiv2');
+    Route::get('api/iku3/prestasi',  [Iku3Controller::class, 'apiIku3Prestasi'])->name('apiIku3Prestasiv2');
+
     //iku4
     Route::get('/dashboard_iku4v2', [Iku4Controller::class, 'homeIku4'])->name('dashboard_iku4v2');
+    Route::get('api/iku4', [Iku4Controller::class, 'apiIku4'])->name('apiDashboardIku4v2');
+    Route::get('api/iku4/dosen', [Iku4Controller::class, 'apiIku4Dosen'])->name('apiIku4Dosenv2');
+    Route::get('api/iku4/pendidikan', [Iku4Controller::class, 'apiIku4Pendidikan'])->name('apiIku4Pendidikanv2');
+    Route::get('api/iku4/sertifikasi', [Iku4Controller::class, 'apiIku4Sertifikasi'])->name('apiIku4Sertifikasiv2');
+    Route::get('api/iku4/praktisi', [Iku4Controller::class, 'apiIku4Praktisi'])->name('apiIku4Praktisiv2');
+
     //iku5
-    Route::get('/dashboard_iku5v2', [Iku5Controller::class, 'homeIku5'])->name('dashboard_iku5v2');
+    Route::get('/dashboard_iku5v2', [Iku5Controller::class, 'homeIku5'])->name('dashboard_iku5v2v2');
+    Route::get('api/iku5',  [Iku5Controller::class, 'apiIku5'])->name('apiDashboardIku5v2');
+    Route::get('api/iku5/dosen',  [Iku5Controller::class, 'apiIku5Dosen'])->name('apiIku5Dosenv2');
+    Route::get('api/iku5/keluaranpenelitian',  [Iku5Controller::class, 'apiIku5KeluaranPenelitian'])->name('apiIku5KeluaranPenelitianv2');
+
+
+
     //iku6
     Route::get('/dashboard_iku6v2', [Iku6Controller::class, 'homeIku6'])->name('dashboard_iku6v2');
     //iku7

@@ -161,7 +161,7 @@
                         </p>
                     </a>
                     <ul class="nav nav-treeview">
-                        <li class="nav-item">
+                        {{-- <li class="nav-item">
                             <a href="{{ route('dashboardIku1') }}"
                                 class="nav-link {{ $side_active == 'iku' ? 'active' : '' }}">
                                 <i class="far fa-circle nav-icon"></i>
@@ -216,14 +216,14 @@
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>IKU 8</p>
                             </a>
-                        </li>
+                        </li> --}}
 
                         <li class="nav-item">
                             <a href="{{ route('dashboard.iku') }}"
                                 class="nav-link {{ $side_active == 'iku' ? 'active' : '' }}"
                                 >
                                 <i class="far fa-circle nav-icon"></i>
-                                <p>IKU VERSI ALL</p>
+                                <p>IKU VERSI ALL<br>(Sedang proses perbaikan <br>dan penyesuaian formula <br>perhitungan IKU)</p>
                             </a>
                         </li>
 
