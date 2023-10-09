@@ -170,7 +170,7 @@
         chart.setSize(null);
     }
 
-    function reloadTbIku3Tridharma(id_sdm, nm_sdm, nidn) {
+    function reloadTbIku3TridharmaLitabmas(id_sdm, nm_sdm, nidn) {
         $("#btn_modal_close").hide();
         $("#btn_modal_back").show();
         $("#txt3_modal").html("TRIDHARMA - " + nm_sdm + " - " + nidn);
@@ -181,13 +181,13 @@
         $("#x_tb_05").hide();
         if ($.fn.dataTable.isDataTable($('#tb_02'))) {
             $('#tb_02').DataTable().destroy();
-            TbIku3Tridharma(id_sdm, nm_sdm, nidn);
+            TbIku3TridharmaLitabmas(id_sdm, nm_sdm, nidn);
         } else {
-            TbIku3Tridharma(id_sdm, nm_sdm, nidn);
+            TbIku3TridharmaLitabmas(id_sdm, nm_sdm, nidn);
         }
     }
 
-    function reloadTbIku3Qs100(id_sdm, nm_sdm, nidn) {
+    function reloadTbIkuTridharmaMengajar(id_sdm, nm_sdm, nidn) {
         $("#btn_modal_close").hide();
         $("#btn_modal_back").show();
         $("#txt3_modal").html("Qs100 - " + nm_sdm + " - " + nidn);
@@ -198,9 +198,43 @@
         $("#x_tb_05").hide();
         if ($.fn.dataTable.isDataTable($('#tb_03'))) {
             $('#tb_03').DataTable().destroy();
-            TbIku3Qs100(id_sdm, nm_sdm, nidn);
+            TbIku3TridharmaMengajar(id_sdm, nm_sdm, nidn);
         } else {
-            TbIku3Qs100(id_sdm, nm_sdm, nidn);
+            TbIku3TridharmaMengajar(id_sdm, nm_sdm, nidn);
+        }
+    }
+
+    function reloadTbIkuTridharmaMenguji(id_sdm, nm_sdm, nidn) {
+        $("#btn_modal_close").hide();
+        $("#btn_modal_back").show();
+        $("#txt3_modal").html("Qs100 - " + nm_sdm + " - " + nidn);
+        $("#x_tb_01").hide();
+        $("#x_tb_02").hide();
+        $("#x_tb_03").show();
+        $("#x_tb_04").hide();
+        $("#x_tb_05").hide();
+        if ($.fn.dataTable.isDataTable($('#tb_03'))) {
+            $('#tb_03').DataTable().destroy();
+            TbIku3TridharmaMenguji(id_sdm, nm_sdm, nidn);
+        } else {
+            TbIku3TridharmaMenguji(id_sdm, nm_sdm, nidn);
+        }
+    }
+
+    function reloadTbIkuTridharmaMembimbing(id_sdm, nm_sdm, nidn) {
+        $("#btn_modal_close").hide();
+        $("#btn_modal_back").show();
+        $("#txt3_modal").html("Qs100 - " + nm_sdm + " - " + nidn);
+        $("#x_tb_01").hide();
+        $("#x_tb_02").hide();
+        $("#x_tb_03").show();
+        $("#x_tb_04").hide();
+        $("#x_tb_05").hide();
+        if ($.fn.dataTable.isDataTable($('#tb_03'))) {
+            $('#tb_03').DataTable().destroy();
+            TbIku3TridharmaMembimbing(id_sdm, nm_sdm, nidn);
+        } else {
+            TbIku3TridharmaMembimbing(id_sdm, nm_sdm, nidn);
         }
     }
 
@@ -258,17 +292,15 @@
                     thn_iku: $("#thn_iku").val(),
                 }
             },
-            columns: [{
-                    title: '#',
-                    render: function(data, type, row) {
-                        if (row.l_tridharma > 0 || row.l_qs100 > 0 || row.l_praktisi > 0 || row
-                            .l_prestasi > 0) {
-                            return "<center><b class='text-bold text-green'>Y</b></center>";
-                        } else {
-                            return "<center><b class='text-bold text-red'>T</b></center>";
-                        }
-                    }
-                },
+            columns: [
+                {
+                            title: 'No',
+                            data: 'id_sdm',
+                            name: 'id_sdm',
+                            render: function(data, type, row, meta) {
+                                return meta.row + meta.settings._iDisplayStart + 1;
+                            }
+                        },
                 {
                     title: 'Nama Dosen',
                     data: 'nm_sdm',
@@ -278,7 +310,7 @@
                     data: 'jk',
                     name: 'jk',
                 },{
-                    title: 'No. Induk',
+                    title: 'NIDN',
                     data: 'l_nidn',
                     name: 'l_nidn',
                 },
@@ -298,19 +330,35 @@
                     name: 'keaktifan',
                 },
                 {
-                    title: 'Tridharma',
-                    data: 'l_tridharma',
-                    name: 'l_tridharma',
+                    title: 'Tridharma Litabmas',
+                    data: 'l_tridharma_litabmas',
+                    name: 'l_tridharma_litabmas',
                     render: function(data, type, row) {
-                        return `<a href="javascript:" onclick="reloadTbIku3Tridharma('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
+                        return `<a href="javascript:" onclick="reloadTbIku3TridharmaLitabmas('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
                     }
                 },
                 {
-                    title: 'QS100',
-                    data: 'l_qs100',
-                    name: 'l_qs100',
+                    title: 'Tridharma Mengajar',
+                    data: 'l_tridharma_ngajar',
+                    name: 'l_tridharma_ngajar',
                     render: function(data, type, row) {
-                        return `<a href="javascript:" onclick="reloadTbIku3Qs100('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
+                        return `<a href="javascript:" onclick="reloadTbIku3Mengajar('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
+                    }
+                },
+                {
+                    title: 'Tridharma Membimbing',
+                    data: 'l_tridharma_bimbing',
+                    name: 'l_tridharma_bimbing',
+                    render: function(data, type, row) {
+                        return `<a href="javascript:" onclick="reloadTbIku3Membimbing('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
+                    }
+                },
+                {
+                    title: 'Tridharma Menguji',
+                    data: 'l_tridharma_menguji',
+                    name: 'l_tridharma_menguji',
+                    render: function(data, type, row) {
+                        return `<a href="javascript:" onclick="reloadTbIku3Menguji('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
                     }
                 },
                 {
@@ -322,13 +370,24 @@
                     }
                 },
                 {
-                    title: 'Membina',
+                    title: 'Membina Prestasi',
                     data: 'l_prestasi',
                     name: 'l_prestasi',
                     render: function(data, type, row) {
                         return `<a href="javascript:" onclick="reloadTbIku3Prestasi('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
                     }
-                }
+                },
+                {
+                        title: 'Sesuai IKU 3',
+                        render: function(data, type, row) {
+                            if (row.l_tridharma_litabmas > 0 || row.l_tridharma_ngajar > 0 || row.l_tridharma_menguji > 0 ||
+                         row.l_tridharma_bimbing > 0 || row.l_praktisi > 0 || row.l_prestasi > 0) {
+                                return "<center><b class='text-bold text-green'>Ya</b></center>";
+                            } else {
+                                return "<center><b class='text-bold text-red'>Tidak</b></center>";
+                            }
+                        }
+                    },
             ],
             order: [
                 [7, 'desc'],
@@ -339,7 +398,7 @@
         });
     }
 
-    function TbIku3Tridharma(id_sdm, nm_sdm, nidn) {
+    function TbIku3TridharmaLitabmas(id_sdm, nm_sdm, nidn) {
         $('#tb_02').DataTable({
             processing: true,
             serverSide: true,
@@ -349,41 +408,69 @@
             info: true,
             ordering: true,
             ajax: {
-                url: '{!! route('apiIku3Tridharmav2') !!}',
+                url: '{!! route('apiIku3TridharmaLitabmasv2') !!}',
                 type: 'GET',
                 data: {
                     id_sdm: id_sdm,
                     thn_iku: $("#thn_iku").val(),
                 }
             },
-            columns: [{
-                    title: 'Jenis',
-                    data: 'jns_litabmas',
-                    name: 'jns_litabmas',
-                }, {
-                    title: 'Peran',
-                    data: 'peran_litabmas',
-                    name: 'peran_litabmas',
-                }, {
-                    title: 'Afiliasi',
-                    data: 'afiliasi_litabmas',
-                    name: 'afiliasi_litabmas',
+            columns: [
+                {
+                    title: 'TA',
+                    data: 'TA',
+                    name: 'TA',
                 },
                 {
-                    title: 'Judul',
+                    title: 'NIDN',
+                    data: 'NIDN',
+                    name: 'NIDN',
+                },
+                {
+                    title: 'Nama PT',
+                    data: 'Nama PT',
+                    name: 'Nama PT',
+                },
+                {
+                    title: 'Nama Prodi',
+                    data: 'Nama Prodi',
+                    name: 'Nama Prodi',
+                },
+                {
+                    title: 'Judul Litabmas',
                     data: 'judul_litabmas',
                     name: 'judul_litabmas',
                 },
                 {
-                    title: 'Tahun Laks.',
-                    data: 'thn_laks_litabmas',
-                    name: 'thn_laks_litabmas',
-                }
+                    title: 'Jenis Litabmas',
+                    data: 'Jenis Litabmas',
+                    name: 'Jenis Litabmas',
+                },
+                {
+                    title: 'Bidang',
+                    data: 'Bidang',
+                    name: 'Bidang',
+                },
+                {
+                    title: 'Judul Publikasi',
+                    data: 'Judul Publikasi',
+                    name: 'Judul Publikasi',
+                },
+                {
+                    title: 'Tanggal Terbit',
+                    data: 'Tanggal Terbit',
+                    name: 'Tanggal Terbit',
+                },
+                {
+                    title: 'Jenis Publikasi',
+                    data: 'Jenis Publikasi',
+                    name: 'Jenis Publikasi',
+                },
             ],
         });
     }
 
-    function TbIku3Qs100(id_sdm, nm_sdm, nidn) {
+    function TbIku3TridharmaMengajar(id_sdm, nm_sdm, nidn) {
         $('#tb_03').DataTable({
             processing: true,
             serverSide: true,
@@ -439,18 +526,40 @@
                     thn_iku: $("#thn_iku").val(),
                 }
             },
-            columns: [{
-                    title: 'Bidang',
-                    data: 'bid_pekerjaan',
-                    name: 'bid_pekerjaan',
+            columns: [
+                {
+                    title: 'NIDN',
+                    data: 'nidn',
+                    name: 'nidn',
+                },
+                {
+                    title: 'Nama Jabatan',
+                    data: 'nm_jabatan',
+                    name: 'nm_jabatan',
                 }, {
                     title: 'Jabatan',
                     data: 'nm_jabatan',
                     name: 'nm_jabatan',
-                }, {
+                },
+                {
                     title: 'Instansi',
                     data: 'instansi',
                     name: 'instansi',
+                },
+                {
+                    title: 'Divisi',
+                    data: 'divisi',
+                    name: 'divisi',
+                },
+                {
+                    title: 'Pekerjaan',
+                    data: 'pekerjaan',
+                    name: 'pekerjaan',
+                },
+                {
+                    title: 'Bidang',
+                    data: 'bidang',
+                    name: 'bidang',
                 },
                 {
                     title: 'Mulai Kerja',

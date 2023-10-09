@@ -135,8 +135,8 @@
                 <div class="container">
                     <div class="main-content">
                         <div class="page-title">
-                            <h1>Dashboard IKU 6 ada pada sistem SIKERMA</h1>
-                            <div id="countdown-clock">
+                            <h1>Dashboard IKU 6 ada pada sistem SIKERMA UNILA</h1>
+                            {{-- <div id="countdown-clock">
                                 <div class="time">
                                     <span class="days">00</span>
                                     <small>Days</small>
@@ -153,7 +153,7 @@
                                     <span class="seconds">00</span>
                                     <small>Seconds</small>
                                 </div>
-                            </div>
+                            </div> --}}
                         </div>
                     </div>
                 </div>

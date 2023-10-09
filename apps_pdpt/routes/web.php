@@ -297,7 +297,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/dashboard_iku3v2', [Iku3Controller::class, 'homeIku3'])->name('dashboard_iku3v2');
     Route::get('api/iku3',  [Iku3Controller::class, 'apiIku3'])->name('apiDashboardIku3v2');
     Route::get('api/iku3/dosen',  [Iku3Controller::class, 'apiIku3Dosen'])->name('apiIku3Dosenv2');
-    Route::get('api/iku3/tridharma',  [Iku3Controller::class, 'apiIku3Tridharma'])->name('apiIku3Tridharmav2');
+    Route::get('api/iku3/tridharma_litabmas',  [Iku3Controller::class, 'apiIku3TridharmaLitabmas'])->name('apiIku3TridharmaLitabmasv2');
     Route::get('api/iku3/qs100',  [Iku3Controller::class, 'apiIku3Qs100'])->name('apiIku3Qs100v2');
     Route::get('api/iku3/praktisi',  [Iku3Controller::class, 'apiIku3Praktisi'])->name('apiIku3Praktisiv2');
     Route::get('api/iku3/prestasi',  [Iku3Controller::class, 'apiIku3Prestasi'])->name('apiIku3Prestasiv2');

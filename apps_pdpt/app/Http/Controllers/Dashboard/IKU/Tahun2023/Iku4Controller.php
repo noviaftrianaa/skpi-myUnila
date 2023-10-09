@@ -244,7 +244,8 @@ class Iku4Controller extends Controller
             fak.id_sms AS y_id_fakultas
         FROM
             pdrd.sdm AS sdm WITH (NOLOCK)
-            JOIN pdrd.reg_ptk AS ptk WITH (NOLOCK) ON ptk.id_sdm = sdm.id_sdm AND ptk.id_sp='".env('APP_ID_SP')."'
+            JOIN pdrd.reg_ptk AS ptk WITH (NOLOCK) ON ptk.id_sdm = sdm.id_sdm
+            AND ptk.id_sp='".env('APP_ID_SP')."'
             AND ptk.soft_delete = 0
             AND ptk.id_jns_keluar IS NULL
             JOIN pdrd.sms AS prod WITH(NOLOCK) ON prod.id_sms = ptk.id_sms
