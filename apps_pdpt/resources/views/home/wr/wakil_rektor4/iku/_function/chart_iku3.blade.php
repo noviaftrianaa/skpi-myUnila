@@ -334,7 +334,7 @@
                     data: 'l_tridharma_litabmas',
                     name: 'l_tridharma_litabmas',
                     render: function(data, type, row) {
-                        return `<a href="javascript:" onclick="reloadTbIku3TridharmaLitabmas('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
+                        return `<a href="javascript:" onclick="reloadTbIku3TridharmaLitabmas('${row.id_sdm}','${row.nm_sdm}','${row.l_nidn}')">${data}</a>`;
                     }
                 },
                 {
@@ -342,7 +342,7 @@
                     data: 'l_tridharma_ngajar',
                     name: 'l_tridharma_ngajar',
                     render: function(data, type, row) {
-                        return `<a href="javascript:" onclick="reloadTbIku3Mengajar('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
+                        return `<a href="javascript:" onclick="reloadTbIku3Mengajar('${row.id_sdm}','${row.nm_sdm}','${row.l_nidn}')">${data}</a>`;
                     }
                 },
                 {
@@ -350,7 +350,7 @@
                     data: 'l_tridharma_bimbing',
                     name: 'l_tridharma_bimbing',
                     render: function(data, type, row) {
-                        return `<a href="javascript:" onclick="reloadTbIku3Membimbing('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
+                        return `<a href="javascript:" onclick="reloadTbIku3Membimbing('${row.id_sdm}','${row.nm_sdm}','${row.l_nidn}')">${data}</a>`;
                     }
                 },
                 {
@@ -358,7 +358,7 @@
                     data: 'l_tridharma_menguji',
                     name: 'l_tridharma_menguji',
                     render: function(data, type, row) {
-                        return `<a href="javascript:" onclick="reloadTbIku3Menguji('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
+                        return `<a href="javascript:" onclick="reloadTbIku3Menguji('${row.id_sdm}','${row.nm_sdm}','${row.l_nidn}')">${data}</a>`;
                     }
                 },
                 {
@@ -366,7 +366,7 @@
                     data: 'l_praktisi',
                     name: 'l_praktisi',
                     render: function(data, type, row) {
-                        return `<a href="javascript:" onclick="reloadTbIku3Praktisi('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
+                        return `<a href="javascript:" onclick="reloadTbIku3Praktisi('${row.id_sdm}','${row.nm_sdm}','${row.l_nidn}')">${data}</a>`;
                     }
                 },
                 {
@@ -374,7 +374,7 @@
                     data: 'l_prestasi',
                     name: 'l_prestasi',
                     render: function(data, type, row) {
-                        return `<a href="javascript:" onclick="reloadTbIku3Prestasi('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
+                        return `<a href="javascript:" onclick="reloadTbIku3Prestasi('${row.id_sdm}','${row.nm_sdm}','${row.l_nidn}')">${data}</a>`;
                     }
                 },
                 {
@@ -420,11 +420,6 @@
                     title: 'TA',
                     data: 'TA',
                     name: 'TA',
-                },
-                {
-                    title: 'NIDN',
-                    data: 'NIDN',
-                    name: 'NIDN',
                 },
                 {
                     title: 'Nama PT',
@@ -528,15 +523,6 @@
             },
             columns: [
                 {
-                    title: 'NIDN',
-                    data: 'nidn',
-                    name: 'nidn',
-                },
-                {
-                    title: 'Nama Jabatan',
-                    data: 'nm_jabatan',
-                    name: 'nm_jabatan',
-                }, {
                     title: 'Jabatan',
                     data: 'nm_jabatan',
                     name: 'nm_jabatan',

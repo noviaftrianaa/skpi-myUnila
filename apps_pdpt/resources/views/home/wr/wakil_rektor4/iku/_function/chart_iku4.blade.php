@@ -241,20 +241,7 @@
                         thn_iku: $("#thn_iku").val(),
                     }
                 },
-                columns: [{
-                        title: '#',
-                        render: function(data, type, row) {
-                            x_yes = "<center><b class='text-bold text-red'>T</b></center>";
-                            if (row.l_pend > 0 || row.l_nidn == 'NIDK') {
-                                x_yes = "<center><b class='text-bold text-green'>Y</b></center>";
-                            } else {
-                                if (row.l_sert > 0 || row.l_praktisi > 0) {
-                                    x_yes = "<center><b class='text-bold text-green'>Y</b></center>";
-                                }
-                            }
-                            return x_yes;
-                        }
-                    },
+                columns: [
                     {
                         title: 'Nama Dosen',
                         data: 'nm_sdm',
@@ -288,7 +275,7 @@
                         data: 'l_pend',
                         name: 'l_pend',
                         render: function(data, type, row) {
-                            return `<a href="javascript:" onclick="reloadTbIku4Pendidikan('${row.id_sdm}','${row.nm_sdm}','${row.l_nidn}')">${data}</a>`;
+                            return `<a href="javascript:" onclick="reloadTbIku4Pendidikan('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
                         }
                     },
                     {
@@ -296,7 +283,7 @@
                         data: 'l_sert',
                         name: 'l_sert',
                         render: function(data, type, row) {
-                            return `<a href="javascript:" onclick="reloadTbIku4Sertifikasi('${row.id_sdm}','${row.nm_sdm}','${row.l_nidn}')">${data}</a>`;
+                            return `<a href="javascript:" onclick="reloadTbIku4Sertifikasi('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
                         }
                     },
                     {
@@ -304,7 +291,21 @@
                         data: 'l_praktisi',
                         name: 'l_praktisi',
                         render: function(data, type, row) {
-                            return `<a href="javascript:" onclick="reloadTbIku4Praktisi('${row.id_sdm}','${row.nm_sdm}','${row.l_nidn}')">${data}</a>`;
+                            return `<a href="javascript:" onclick="reloadTbIku4Praktisi('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
+                        }
+                    },
+                    {
+                        title: 'Sesuai IKU 3',
+                        render: function(data, type, row) {
+                            x_yes = "<center><b class='text-bold text-red'>Tidak</b></center>";
+                            if (row.l_pend > 0 || row.l_nidn == 'NIDK') {
+                                x_yes = "<center><b class='text-bold text-green'>Ya</b></center>";
+                            } else {
+                                if (row.l_sert > 0 || row.l_praktisi > 0) {
+                                    x_yes = "<center><b class='text-bold text-green'>Ya</b></center>";
+                                }
+                            }
+                            return x_yes;
                         }
                     },
                 ],
@@ -372,33 +373,21 @@
                         thn_iku: $("#thn_iku").val(),
                     }
                 },
-                columns: [{
-                        title: 'Jenis',
-                        data: 'nm_jns_sert',
-                        name: 'nm_jns_sert',
-                    }, {
-                        title: 'Bidang',
-                        data: 'nm_bid_studi',
-                        name: 'nm_bid_studi',
-                    }, {
+                columns: [
+                    {
+                        title: 'Tahun Sertifikasi',
+                        data: 'Tahun Sertifikasi',
+                        name: 'Tahun Sertifikasi',
+                    },
+                    {
+                        title: 'Jenis Sertifikasi',
+                        data: 'Jenis Sertifikasi',
+                        name: 'Jenis Sertifikasi',
+                    },
+                    {
                         title: 'SK',
                         data: 'sk_sert',
                         name: 'sk_sert',
-                    },
-                    {
-                        title: 'NRG',
-                        data: 'nrg',
-                        name: 'nrg',
-                    },
-                    {
-                        title: 'No. Peserta',
-                        data: 'no_peserta',
-                        name: 'no_peserta',
-                    },
-                    {
-                        title: 'Thn. Sert',
-                        data: 'thn_sert',
-                        name: 'thn_sert',
                     },
                 ],
             });

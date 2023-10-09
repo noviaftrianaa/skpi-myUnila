@@ -30,6 +30,7 @@ class Iku4Controller extends Controller
         $thn_iku = $this->request->thn_iku;
         $apiIku4 = DB::connection('sqlsrv_live')->select("
             SELECT
+                sdm.nidn,
                 CASE
                     WHEN LEFT(sdm.nidn, 2) <= 87 THEN 'NIDN'
                     WHEN LEFT(sdm.nidn, 2) IN (88, 89) THEN 'NIDK'
@@ -45,18 +46,50 @@ class Iku4Controller extends Controller
                         AND pend.id_jenj_didik IN (40, 41)
                 ) AS l_pend,
                 (
-                    SELECT
-                        COUNT(sert.id_sdm)
-                    FROM
-                        pdrd.rwy_sertifikasi AS sert
-                        JOIN ref.jenis_sert AS jsert ON jsert.id_jns_sert = sert.id_jns_sert
-                        AND jsert.expired_date IS NULL
-                        JOIN ref.bidang_studi AS bid ON bid.id_bid_studi = sert.id_bid_studi
-                        AND bid.expired_date IS NULL
-                    WHERE
-                        jsert.id_jns_sert NOT IN (1, 2, 3, 4)
-                        AND sert.id_sdm = sdm.id_sdm
-                        AND sert.soft_delete = 0
+                SELECT
+                    COUNT(tsert.id_sdm)
+                FROM
+                    pdrd.sdm tsdm WITH (NOLOCK)
+                    JOIN pdrd.reg_ptk treg WITH (NOLOCK) ON treg.id_sdm = tsdm.id_sdm
+                    AND treg.soft_delete = 0
+                    JOIN pdrd.keaktifan_ptk tkeaktifan WITH (NOLOCK) ON tkeaktifan.id_reg_ptk = treg.id_reg_ptk
+                    AND tkeaktifan.soft_delete = 0
+                    LEFT JOIN (
+                        SELECT
+                            id_sdm,
+                            MAX(id_jenj_didik) AS id_jenj_didik
+                        FROM
+                            pdrd.rwy_pend_formal
+                        WHERE
+                            soft_delete = 0
+                            AND id_jenj_didik != 99
+                        GROUP BY
+                            id_sdm
+                    ) AS tpend ON tpend.id_sdm = tsdm.id_sdm
+                    LEFT JOIN pdrd.satuan_pendidikan tsp WITH (NOLOCK) ON tsp.id_sp = treg.id_sp
+                    AND tsp.soft_delete = 0
+                    LEFT JOIN pdrd.sms tsms WITH (NOLOCK) ON tsms.id_sms = treg.id_sms
+                    AND tsms.soft_delete = 0
+                    LEFT JOIN ref.jenjang_pendidikan AS tj ON tj.id_jenj_didik = tsms.id_jenj_didik
+                    LEFT JOIN pdrd.rwy_sertifikasi tsert WITH (NOLOCK) ON tsert.id_sdm = tsdm.id_sdm
+                    and tsert.thn_sert <= YEAR(GETDATE())
+                    and tsert.soft_delete = 0
+                    LEFT JOIN ref.jenis_sert AS jns ON jns.id_jns_sert = tsert.id_jns_sert
+                WHERE
+                    tkeaktifan.id_thn_ajaran = '" . $thn_iku . "'
+                    AND tkeaktifan.a_sp_homebase = 1
+                    AND tsdm.soft_delete = 0
+                    AND tsdm.id_jns_sdm = 12
+                    AND tsp.stat_sp = 'A'
+                    AND tsms.id_jns_sms = 3
+                    AND LEFT(tsp.id_wil, 2) <> '99'
+                    AND tsdm.id_stat_aktif IN (1, 20, 24, 25, 27)
+                    AND treg.id_jns_keluar IS NULL
+                    AND tsp.npsn = '001026'
+                    AND tsert.id_jns_sert NOT IN (1, 2, 3, 4)
+                    AND tpend.id_jenj_didik NOT IN (40, 41)
+                    AND tsert.id_sdm = sdm.id_sdm
+                    AND tsert.thn_sert = '" . $thn_iku . "'
                 ) AS l_sert,
                 (
                     SELECT
@@ -175,6 +208,7 @@ class Iku4Controller extends Controller
         $id_prodi = $this->request->id_prodi;
         $apiIku4Dosen = DB::connection('sqlsrv_live')->select("
             SELECT
+            sdm.nidn,
                 CASE
                     WHEN LEFT(sdm.nidn, 2) <= 87 THEN 'NIDN'
                     WHEN LEFT(sdm.nidn, 2) IN (88, 89) THEN 'NIDK'
@@ -191,18 +225,50 @@ class Iku4Controller extends Controller
                 ) AS l_pend,
                 (
                     SELECT
-                        COUNT(sert.id_sdm)
+                        COUNT(tsert.id_sdm)
                     FROM
-                        pdrd.rwy_sertifikasi AS sert
-                        JOIN ref.jenis_sert AS jsert ON jsert.id_jns_sert = sert.id_jns_sert
-                        AND jsert.expired_date IS NULL
-                        JOIN ref.bidang_studi AS bid ON bid.id_bid_studi = sert.id_bid_studi
-                        AND bid.expired_date IS NULL
+                        pdrd.sdm tsdm WITH (NOLOCK)
+                        JOIN pdrd.reg_ptk treg WITH (NOLOCK) ON treg.id_sdm = tsdm.id_sdm
+                        AND treg.soft_delete = 0
+                        JOIN pdrd.keaktifan_ptk tkeaktifan WITH (NOLOCK) ON tkeaktifan.id_reg_ptk = treg.id_reg_ptk
+                        AND tkeaktifan.soft_delete = 0
+                        LEFT JOIN (
+                            SELECT
+                                id_sdm,
+                                MAX(id_jenj_didik) AS id_jenj_didik
+                            FROM
+                                pdrd.rwy_pend_formal
+                            WHERE
+                                soft_delete = 0
+                                AND id_jenj_didik != 99
+                            GROUP BY
+                                id_sdm
+                        ) AS tpend ON tpend.id_sdm = tsdm.id_sdm
+                        LEFT JOIN pdrd.satuan_pendidikan tsp WITH (NOLOCK) ON tsp.id_sp = treg.id_sp
+                        AND tsp.soft_delete = 0
+                        LEFT JOIN pdrd.sms tsms WITH (NOLOCK) ON tsms.id_sms = treg.id_sms
+                        AND tsms.soft_delete = 0
+                        LEFT JOIN ref.jenjang_pendidikan AS tj ON tj.id_jenj_didik = tsms.id_jenj_didik
+                        LEFT JOIN pdrd.rwy_sertifikasi tsert WITH (NOLOCK) ON tsert.id_sdm = tsdm.id_sdm
+                        and tsert.thn_sert <= YEAR(GETDATE())
+                        and tsert.soft_delete = 0
+                        LEFT JOIN ref.jenis_sert AS jns ON jns.id_jns_sert = tsert.id_jns_sert
                     WHERE
-                        jsert.id_jns_sert NOT IN (1, 2, 3, 4)
-                        AND sert.id_sdm = sdm.id_sdm
-                        AND sert.soft_delete = 0
-                ) AS l_sert,
+                        tkeaktifan.id_thn_ajaran = '" . $thn_iku . "'
+                        AND tkeaktifan.a_sp_homebase = 1
+                        AND tsdm.soft_delete = 0
+                        AND tsdm.id_jns_sdm = 12
+                        AND tsp.stat_sp = 'A'
+                        AND tsms.id_jns_sms = 3
+                        AND LEFT(tsp.id_wil, 2) <> '99'
+                        AND tsdm.id_stat_aktif IN (1, 20, 24, 25, 27)
+                        AND treg.id_jns_keluar IS NULL
+                        AND tsp.npsn = '001026'
+                        AND tsert.id_jns_sert NOT IN (1, 2, 3, 4)
+                        AND tpend.id_jenj_didik NOT IN (40, 41)
+                        AND tsert.id_sdm = sdm.id_sdm
+                        AND tsert.thn_sert = '" . $thn_iku . "'
+                    ) AS l_sert,
                 (
                     SELECT
                         COUNT (rpkrj.id_sdm)
@@ -313,22 +379,56 @@ class Iku4Controller extends Controller
         $thn_iku = $this->request->thn_iku;
         $apiIku4Sertifikasi = DB::connection('sqlsrv_live')->select("
             SELECT
-                jsert.nm_jns_sert,
-                bid.nm_bid_studi,
-                rsert.sk_sert,
-                rsert.nrg,
-                rsert.no_peserta,
-                rsert.thn_sert
+                tsert.thn_sert AS 'TA',
+                tsdm.nidn,
+                tsdm.nm_sdm AS 'Nama Dosen',
+                tsp.nm_lemb AS 'Asal PT',
+                CONCAT(tsms.nm_lemb, ' (', tj.nm_jenj_didik, ')') AS prodi,
+                tsert.thn_sert AS 'Tahun Sertifikasi',
+                jns.nm_jns_sert AS 'Jenis Sertifikasi',
+                tsert.sk_sert
             FROM
-                pdrd.rwy_sertifikasi AS rsert
-                JOIN ref.jenis_sert AS jsert ON jsert.id_jns_sert = rsert.id_jns_sert
-                AND jsert.expired_date IS NULL
-                JOIN ref.bidang_studi AS bid ON bid.id_bid_studi = rsert.id_bid_studi
-                AND bid.expired_date IS NULL
+                pdrd.sdm tsdm WITH (NOLOCK)
+                JOIN pdrd.reg_ptk treg WITH (NOLOCK) ON treg.id_sdm = tsdm.id_sdm
+                AND treg.soft_delete = 0
+                JOIN pdrd.keaktifan_ptk tkeaktifan WITH (NOLOCK) ON tkeaktifan.id_reg_ptk = treg.id_reg_ptk
+                AND tkeaktifan.soft_delete = 0
+                LEFT JOIN (
+                    SELECT
+                        id_sdm,
+                        MAX(id_jenj_didik) AS id_jenj_didik
+                    FROM
+                        pdrd.rwy_pend_formal
+                    WHERE
+                        soft_delete = 0
+                        AND id_jenj_didik != 99
+                    GROUP BY
+                        id_sdm
+                ) AS tpend ON tpend.id_sdm = tsdm.id_sdm
+                LEFT JOIN pdrd.satuan_pendidikan tsp WITH (NOLOCK) ON tsp.id_sp = treg.id_sp
+                AND tsp.soft_delete = 0
+                LEFT JOIN pdrd.sms tsms WITH (NOLOCK) ON tsms.id_sms = treg.id_sms
+                AND tsms.soft_delete = 0
+                LEFT JOIN ref.jenjang_pendidikan AS tj ON tj.id_jenj_didik = tsms.id_jenj_didik
+                LEFT JOIN pdrd.rwy_sertifikasi tsert WITH (NOLOCK) ON tsert.id_sdm = tsdm.id_sdm
+                and tsert.thn_sert <= YEAR(GETDATE())
+                and tsert.soft_delete = 0
+                LEFT JOIN ref.jenis_sert AS jns ON jns.id_jns_sert = tsert.id_jns_sert
             WHERE
-                rsert.id_jns_sert NOT IN (1, 2, 3, 4)
-                AND rsert.soft_delete = 0
-                AND rsert.id_sdm = '" . $id_sdm . "'
+                tkeaktifan.id_thn_ajaran = '" . $thn_iku . "'
+                AND tkeaktifan.a_sp_homebase = 1
+                AND tsdm.soft_delete = 0
+                AND tsdm.id_jns_sdm = 12
+                AND tsp.stat_sp = 'A'
+                AND tsms.id_jns_sms = 3
+                AND LEFT(tsp.id_wil, 2) <> '99'
+                AND tsdm.id_stat_aktif IN (1, 20, 24, 25, 27)
+                AND treg.id_jns_keluar IS NULL
+                AND tsp.npsn = '001026'
+                AND tsert.id_jns_sert NOT IN (1, 2, 3, 4)
+                AND tpend.id_jenj_didik NOT IN (40, 41)
+                AND tsert.thn_sert = '" . $thn_iku . "'
+                AND tsert.id_sdm = '" . $id_sdm . "'
         ");
         return DaTables::of($apiIku4Sertifikasi)->make(true);
     }
