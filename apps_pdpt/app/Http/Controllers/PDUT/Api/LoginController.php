@@ -51,6 +51,7 @@ class LoginController extends Controller
                     AND pj.soft_delete = 0
                     AND pj.a_masih = 1
                     AND pj.wkt_selesai IS NULL
+                    AND pj.id_aplikasi = ?
                     JOIN man_akses.aplikasi AS apk ON apk.id_aplikasi = pj.id_aplikasi
                     AND apk.expired_date IS NULL
                     JOIN man_akses.role_pengguna AS rpg WITH(NOLOCK) ON pgn.id_pengguna = rpg.id_pengguna
@@ -62,7 +63,8 @@ class LoginController extends Controller
                     AND pgn.username = ?
             ";
 
-            $dPengguna = DB::select($sPengguna, [$username]);
+            $dPengguna = DB::select($sPengguna, [$id_aplikasi, $username]);
+
             if (empty($dPengguna)) {
                 return WrapResponse(['data' => [
                     'id_aplikasi' => $id_aplikasi,
