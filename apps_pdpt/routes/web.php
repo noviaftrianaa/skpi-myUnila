@@ -314,9 +314,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/dashboard_iku5v2', [Iku5Controller::class, 'homeIku5'])->name('dashboard_iku5v2v2');
     Route::get('api/iku5',  [Iku5Controller::class, 'apiIku5'])->name('apiDashboardIku5v2');
     Route::get('api/iku5/dosen',  [Iku5Controller::class, 'apiIku5Dosen'])->name('apiIku5Dosenv2');
-    Route::get('api/iku5/keluaranpenelitian',  [Iku5Controller::class, 'apiIku5KeluaranPenelitian'])->name('apiIku5KeluaranPenelitianv2');
-
-
+    Route::get('api/iku5/keluaran_publikasi',  [Iku5Controller::class, 'apiIku5KeluaranPublikasi'])->name('apiIku5KeluaranPublikasiv2');
+    Route::get('api/iku5/keluaran_pengabdian',  [Iku5Controller::class, 'apiIku5KeluaranPengabdian'])->name('apiIku5KeluaranPengabdianv2');
 
     //iku6
     Route::get('/dashboard_iku6v2', [Iku6Controller::class, 'homeIku6'])->name('dashboard_iku6v2');

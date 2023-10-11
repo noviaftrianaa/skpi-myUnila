@@ -243,6 +243,14 @@
                 },
                 columns: [
                     {
+                            title: 'No',
+                            data: 'id_sdm',
+                            name: 'id_sdm',
+                            render: function(data, type, row, meta) {
+                                return meta.row + meta.settings._iDisplayStart + 1;
+                            }
+                    },
+                    {
                         title: 'Nama Dosen',
                         data: 'nm_sdm',
                         name: 'nm_sdm',

@@ -32,7 +32,7 @@
                     <div class="col">
                         <div class="small-box bg-silver border shadow mb-4 bg-white rounded">
                             <div class="inner px-5">
-                                <h3 id="x_total_data_yes">0</h3><h3> / </h3><h3 id="x_total_data1">0</h3>
+                                <h3 id="h_total_data_publikasi_pengabdian">0</h3><h3> / </h3><h3 id="x_total_data1">0</h3>
                                 <hr><span> Pembentuk </span>
                             </div>
                         </div>

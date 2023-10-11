@@ -2,9 +2,11 @@
         let dataIku5 = [],
             drill = 1,
             x_total_data = 0,
+            h_total_data = 0,
             x_total_data_yes = 0,
             x_total_data_no = 0,
-            x_total_data_keluaran_penelitian = 0,
+            x_total_data_keluaran_publikasi = 0,
+            x_total_data_keluaran_pengabdian = 0,
             h_total_data_capaian = 0,
             h_total_data_gold = 0;
 
@@ -30,11 +32,14 @@
 
         function refreshTotal() {
             let standar = 50;
-            h_total_data_capaian = (x_total_data_keluaran_penelitian / x_total_data) * 100;
+            h_total_data_publikasi_pengabdian = x_total_data_keluaran_publikasi + x_total_data_keluaran_pengabdian;
+            h_total_data_capaian = (h_total_data_publikasi_pengabdian / x_total_data) * 100;
             h_total_data_gold = (h_total_data_capaian - standar);
             $('#x_total_data1').text(x_total_data);
             $('#x_total_data2').text(x_total_data);
-            $('#x_total_data_keluaran_penelitian').text(x_total_data_keluaran_penelitian);
+            $('#h_total_data_publikasi_pengabdian').text(h_total_data_publikasi_pengabdian);
+            $('#x_total_data_keluaran_publikasi').text(x_total_data_keluaran_publikasi);
+            $('#x_total_data_keluaran_pengabdian').text(x_total_data_keluaran_pengabdian);
             $('#x_total_data_yes').text(x_total_data_yes);
             $('#x_total_data_no').text(x_total_data_no);
             $('#h_total_data_capaian').text(h_total_data_capaian.toFixed(2) + '%');
@@ -63,58 +68,66 @@
         function Iku5Fakultas() {
             let y_id = [],
                 y_title = [],
-                x_data_keluaran_penelitian = [],
+                x_data_keluaran_publikasi = [],
+                x_data_keluaran_pengabdian = [],
                 x_data_yes = [],
                 x_data_no = [];
             x_total_data = 0;
-            x_total_data_keluaran_penelitian = 0;
+            x_total_data_keluaran_publikasi = 0;
+            x_total_data_keluaran_pengabdian = 0;
             x_total_data_yes = 0;
             x_total_data_no = 0;
             $.each(dataIku5, function(index, value) {
                 y_id.push(value.DATA.y_id);
                 y_title.push(value.DATA.y_title);
-                x_data_keluaran_penelitian.push(value.DATA.l_keluaran_penelitian);
+                x_data_keluaran_publikasi.push(value.DATA.l_publikasi);
+                x_data_keluaran_pengabdian.push(value.DATA.l_pengabdian);
                 x_data_yes.push(value.DATA.x_data_yes);
                 x_data_no.push(value.DATA.x_data_no);
                 x_total_data += value.DATA.x_data;
-                x_total_data_keluaran_penelitian += value.DATA.l_keluaran_penelitian;
+                x_total_data_keluaran_publikasi += value.DATA.l_publikasi;
+                x_total_data_keluaran_pengabdian += value.DATA.l_pengabdian;
                 x_total_data_yes += value.DATA.x_data_yes;
                 x_total_data_no += value.DATA.x_data_no;
             });
             drill = 1;
-            Iku5Chart(y_title, x_data_keluaran_penelitian, x_data_yes, x_data_no);
+            Iku5Chart(y_title, x_data_keluaran_publikasi, x_data_keluaran_pengabdian, x_data_yes, x_data_no);
             $("#navChart").html(`<a href="javascript:" class="text-dark">UNILA</a> / FAKULTAS`);
         }
 
         function Iku5Prodi(fak) {
             let y_id = [],
                 y_title = [],
-                x_data_keluaran_penelitian = [],
+                x_data_keluaran_publikasi = [],
+                x_data_keluaran_pengabdian = [],
                 x_data_yes = [],
                 x_data_no = [];
             x_total_data = 0;
-            x_total_data_keluaran_penelitian = 0;
+            x_total_data_keluaran_publikasi = 0;
+            x_total_data_keluaran_pengabdian = 0;
             x_total_data_yes = 0;
             x_total_data_no = 0;
             $.each(dataIku5[fak]['DRILL'], function(index, value) {
                 y_id.push(value.DATA.y_id);
                 y_title.push(value.DATA.y_title);
-                x_data_keluaran_penelitian.push(value.DATA.l_keluaran_penelitian);
+                x_data_keluaran_publikasi.push(value.DATA.l_publikasi);
+                x_data_keluaran_pengabdian.push(value.DATA.l_pengabdian);
                 x_data_yes.push(value.DATA.x_data_yes);
                 x_data_no.push(value.DATA.x_data_no);
                 x_total_data += value.DATA.x_data;
-                x_total_data_keluaran_penelitian += value.DATA.l_keluaran_penelitian;
+                x_total_data_keluaran_publikasi += value.DATA.l_publikasi;
+                x_total_data_keluaran_pengabdian += value.DATA.l_pengabdian;
                 x_total_data_yes += value.DATA.x_data_yes;
                 x_total_data_no += value.DATA.x_data_no;
             });
             drill = 2;
-            Iku5Chart(y_title, x_data_keluaran_penelitian, x_data_yes, x_data_no, fak);
+            Iku5Chart(y_title, x_data_keluaran_publikasi, x_data_keluaran_pengabdian, x_data_yes, x_data_no, fak);
             $("#navChart").html(
                 `<a href="javascript:" class="text-dark">UNILA</a> / <a href="javascript:Iku5Fakultas();" class="text-dark">FAKULTAS</a> / PRODI`
             );
         }
 
-        function Iku5Chart(y_title, x_data_keluaran_penelitian, x_data_yes, x_data_no, fak = null) {
+        function Iku5Chart(y_title, x_data_keluaran_publikasi, x_data_keluaran_pengabdian, x_data_yes, x_data_no, fak = null) {
             refreshTotal();
             var chart = Highcharts.chart('Iku5ChartBar', {
                 chart: {
@@ -171,16 +184,18 @@
                 series: [{
                     name: 'Jumlah Dosen Tidak Memenuhi',
                     data: x_data_no,
-                    color: '#6c757d'
+                    color: '#FF4136'
                 }, {
                     name: 'Jumlah Dosen Memenuhi',
                     data: x_data_yes,
-                    color: '#343a40'
-                }, {
-                    name: 'Jumlah Keluaran Penelitian',
-                    data: x_data_keluaran_penelitian,
-                    color: '#6f42c1'
-                }]
+                    color: '#2ECC40'
+                },
+                // {
+                //     name: 'Jumlah Keluaran Penelitian',
+                //     data: x_data_keluaran_publikasi,
+                //     color: '#4f7bff'
+                // }
+            ]
             });
             chart.setSize(null);
         }
@@ -205,15 +220,14 @@
                         thn_iku: $("#thn_iku").val(),
                     }
                 },
-                columns: [{
-                        title: '#',
-                        render: function(data, type, row) {
-                            if (row.l_keluaran_penelitian > 0) {
-                                return "<center><b class='text-bold text-green'>Y</b></center>";
-                            } else {
-                                return "<center><b class='text-bold text-danger'>T</b></center>";
+                columns: [
+                    {
+                            title: 'No',
+                            data: 'id_sdm',
+                            name: 'id_sdm',
+                            render: function(data, type, row, meta) {
+                                return meta.row + meta.settings._iDisplayStart + 1;
                             }
-                        }
                     },
                     {
                         title: 'Nama Dosen',
@@ -244,11 +258,29 @@
                         name: 'keaktifan',
                     },
                     {
-                        title: 'Kelr. Penelitian',
-                        data: 'l_keluaran_penelitian',
-                        name: 'l_keluaran_penelitian',
+                        title: 'Publikasi',
+                        data: 'l_publikasi',
+                        name: 'l_publikasi',
                         render: function(data, type, row) {
-                            return `<a href="javascript:" onclick="reloadTbIku4KeluaranPenelitian('${row.id_sdm}','${row.nm_sdm}','${row.l_nidn}')">${data}</a>`;
+                            return `<a href="javascript:" onclick="reloadTbIku4KeluaranPublikasi('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
+                        }
+                    },
+                    {
+                        title: 'Pengabdian',
+                        data: 'l_pengabdian',
+                        name: 'l_pengabdian',
+                        render: function(data, type, row) {
+                            return `<a href="javascript:" onclick="reloadTbIku4KeluaranPengabdian('${row.id_sdm}','${row.nm_sdm}','${row.nidn}')">${data}</a>`;
+                        }
+                    },
+                    {
+                        title: 'Sesuai IKU 5',
+                        render: function(data, type, row) {
+                            if (row.l_publikasi > 0) {
+                                return "<center><b class='text-bold text-green'>Ya</b></center>";
+                            } else {
+                                return "<center><b class='text-bold text-danger'>Tidak</b></center>";
+                            }
                         }
                     },
                 ],
@@ -258,22 +290,41 @@
             });
         }
 
-        function reloadTbIku4KeluaranPenelitian(id_sdm, nm_sdm, nidn) {
+        function reloadTbIku4KeluaranPublikasi(id_sdm, nm_sdm, nidn) {
             $("#btn_modal_close").hide();
             $("#btn_modal_back").show();
-            $("#txt3_modal").html("Keluaran Penelitian - " + nm_sdm + " - " + nidn);
+            $("#txt3_modal").html("Keluaran Publikasi - " + nm_sdm + " - " + nidn);
             $("#x_tb_01").hide();
             $("#x_tb_02").show();
             $("#x_tb_03").hide();
+            $("#x_tb_04").hide();
+            $("#x_tb_05").hide();
             if ($.fn.dataTable.isDataTable($('#tb_02'))) {
                 $('#tb_02').DataTable().destroy();
-                TbIku5KeluaranPenelitian(id_sdm, nm_sdm, nidn);
+                TbIku5KeluaranPublikasi(id_sdm, nm_sdm, nidn);
             } else {
-                TbIku5KeluaranPenelitian(id_sdm, nm_sdm, nidn);
+                TbIku5KeluaranPublikasi(id_sdm, nm_sdm, nidn);
             }
         }
 
-        function TbIku5KeluaranPenelitian(id_sdm) {
+        function reloadTbIku4KeluaranPengabdian(id_sdm, nm_sdm, nidn) {
+            $("#btn_modal_close").hide();
+            $("#btn_modal_back").show();
+            $("#txt3_modal").html("Keluaran Pengabdian - " + nm_sdm + " - " + nidn);
+            $("#x_tb_01").hide();
+            $("#x_tb_02").hide();
+            $("#x_tb_03").show();
+            $("#x_tb_04").hide();
+            $("#x_tb_05").hide();
+            if ($.fn.dataTable.isDataTable($('#tb_03'))) {
+                $('#tb_03').DataTable().destroy();
+                TbIku5KeluaranPengabdian(id_sdm, nm_sdm, nidn);
+            } else {
+                TbIku5KeluaranPengabdian(id_sdm, nm_sdm, nidn);
+            }
+        }
+
+        function TbIku5KeluaranPublikasi(id_sdm) {
             $('#tb_02').DataTable({
                 processing: true,
                 serverSide: true,
@@ -283,7 +334,7 @@
                 info: true,
                 ordering: true,
                 ajax: {
-                    url: '{!! route('apiIku5KeluaranPenelitianv2') !!}',
+                    url: '{!! route('apiIku5KeluaranPublikasiv2') !!}',
                     type: 'GET',
                     data: {
                         id_sdm: id_sdm,
@@ -291,37 +342,83 @@
                     }
                 },
                 columns: [{
-                        title: 'Jenis',
+                        title: 'Jenis Litabmas',
                         data: 'nm_jns_pub',
                         name: 'nm_jns_pub',
-                    }, {
-                        title: 'Jurnal',
-                        data: 'nama_jurnal',
-                        name: 'nama_jurnal',
-                    }, {
+                    },
+                   {
                         title: 'Judul',
                         data: 'judul',
                         name: 'judul',
                     },
                     {
-                        title: 'Tgl. Terbit',
+                        title: 'Tanggal Terbit',
                         data: 'tgl_terbit',
                         name: 'tgl_terbit',
                     },
                     {
-                        title: 'Vol',
-                        data: 'vol',
-                        name: 'vol',
+                        title: 'Peran Tulis',
+                        data: 'peran_tulis',
+                        name: 'peran_tulis',
                     },
                     {
-                        title: 'ISBN',
-                        data: 'isbn',
-                        name: 'isbn',
+                        title: 'URL',
+                        data: 'url',
+                        name: 'url',
+                        render: function(data, type, row) {
+                            if(data != null){
+                                return  `<a href="${data}" target="_blank">Link</a>`;
+                            } else {
+                                return '-';
+                            }
+                        }
+                    },
+                ],
+            });
+        }
+
+        function TbIku5KeluaranPengabdian(id_sdm) {
+            $('#tb_03').DataTable({
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                searching: true,
+                paging: true,
+                info: true,
+                ordering: true,
+                ajax: {
+                    url: '{!! route('apiIku5KeluaranPengabdianv2') !!}',
+                    type: 'GET',
+                    data: {
+                        id_sdm: id_sdm,
+                        thn_iku: $("#thn_iku").val(),
+                    }
+                },
+                columns: [
+                    {
+                        title: 'Tahun Anggaran',
+                        data: 'TA',
+                        name: 'TA',
                     },
                     {
-                        title: 'Afiliasi',
-                        data: 'afiliasi',
-                        name: 'afiliasi',
+                        title: 'Jenis Litabmas',
+                        data: 'Jenis Litabmas',
+                        name: 'Jenis Litabmas',
+                    },
+                   {
+                        title: 'Judul Litabmas',
+                        data: 'judul_litabmas',
+                        name: 'judul_litabmas',
+                    },
+                   {
+                        title: 'Bidang',
+                        data: 'Bidang',
+                        name: 'Bidang',
+                    },
+                    {
+                        title: 'Tanggal Terbit',
+                        data: 'Tanggal Terbit',
+                        name: 'Tanggal Terbit',
                     },
                     {
                         title: 'URL',
