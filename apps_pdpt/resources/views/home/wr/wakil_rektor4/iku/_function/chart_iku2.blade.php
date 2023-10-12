@@ -21,6 +21,24 @@
             $("#x_tb_05").hide();
             Iku2MbkmData();
             Iku2PrestasiData();
+
+            $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                let target = e.target
+                let previous = e.relatedTarget
+
+                if(target.id === "prestasi-tab"){
+                    if(previous.id === "mbkm-tab"){
+                        $('#mbkm').removeClass('show active')
+                    }
+                    $('#prestasi').addClass('show active')
+                }
+                if(target.id === "mbkm-tab"){
+                    if(previous.id === "prestasi-tab"){
+                        $('#prestasi').removeClass('show active')
+                    }
+                    $('#mbkm').addClass('show active')
+                }
+            });
         });
 
         $("#btn_modal_back").click(function() {

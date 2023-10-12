@@ -321,6 +321,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/dashboard_iku6v2', [Iku6Controller::class, 'homeIku6'])->name('dashboard_iku6v2');
     //iku7
     Route::get('/dashboard_iku7v2', [Iku7Controller::class, 'homeIku7'])->name('dashboard_iku7v2');
+    Route::get('api/iku7', [Iku7Controller::class, 'apiIku7'])->name('apiDashboardIku7v2');
+    Route::get('api/iku7/matkul', [Iku7Controller::class, 'apiIku7Matkul'])->name('apiIku7Matkulv2');
     //iku8
     Route::get('/dashboard_iku8v2', [Iku8Controller::class, 'homeIku8'])->name('dashboard_iku8v2');
 
