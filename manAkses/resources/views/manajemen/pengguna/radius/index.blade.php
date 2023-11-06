@@ -9,16 +9,21 @@
 <script type="text/javascript" src="{{ asset('bower_components/datatables/media/js/jquery.dataTables.min.js')}}"></script>
 <script type="text/javascript" src="{{ asset('bower_components/datatables/media/js/dataTables.bootstrap4.min.js')}}"></script>
 <script>
-    $(document).ready( function () {
-        let table = $('#table-data').DataTable({
+
+    function datatables() {
+        return $('#table-data').DataTable({
             processing: true,
             serverSide: true,
-            pagingType: "simple",
             ordering: false,
-            ajax: window.location.href,
+            ajax: {
+                url: window.location.href,
+                data: {
+                    status: $('#status').val()
+                }
+            },
             columns: [
                 { data: 'DT_RowIndex', orderable: false, searchable: false, title: 'No.', width: '5px', className: 'text-center' },
-                { data: 'nm_pengguna', title: 'Nama', className: 'text-center' },
+                { data: 'nm_pengguna', title: 'Nama' },
                 { data: 'username', title: 'Username', className: 'text-center', width: '5px' },
                 { data: 'email', title: 'Email', className: 'text-center', width: '5px' },
                 { data: 'nip', title: 'NIP/NPM', className: 'text-center', width: '5px' },
@@ -43,10 +48,19 @@
             ],
             sDom: 'rt<"row"<"col-sm-12 col-md-3"l><"col-sm-12 col-md-3"i><"col-sm-12 col-md-6"p>>'
         } );
+    }
+
+    $(document).ready( function () {
+        let table = datatables();
 
         $('#search').on('change', function () {
             table.search($('#search').val()).draw();
         } );
+
+        $('#status').on('change', function() {
+            $('#table-data').DataTable().clear().destroy();
+            table = datatables();
+        });
     });
 </script>
 @endpush
@@ -59,7 +73,15 @@
         <div class="card-body">
             <div class="row px-2">
                 <div class="col-2">
-                    <a type="button" class="btn btn-default" href="{{ route('user.index') }}"><i class="fas fa-arrow-left mr-1"></i>Kembali</a>
+                    <a type="button" class="btn btn-default col-12" href="{{ route('user.index') }}"><i class="fas fa-arrow-left mr-1"></i>Kembali</a>
+                </div>
+                <div class="col-2">
+                    <select class="form-control col-12" id="status">
+                        <option value="all">Semua Peran</option>
+                        @foreach ($status as $item)
+                            <option value="{{ strtolower($item->status) }}">{{ ucwords(strtolower($item->status)) }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div class="ml-auto px-2">
                     <div class="input-group">

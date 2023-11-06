@@ -383,11 +383,17 @@ class UserController extends Controller
     public function radiusIndex(Request $request)
     {
         if($request->ajax()) {
-            $data = \App\Models\Radius::orderBy('username','ASC');
+            $data = \App\Models\Radius::select('nm_pengguna','username','email','nip','status','a_aktif');
+            if($request->status != 'all') {
+                $data = $data->where(DB::raw('lower(status)'), $request->status);
+            }
+            $data = $data->orderBy('username','ASC');
 
             return DataTables::of($data)->addIndexColumn()->make(true);
         }
 
-        return view('manajemen.pengguna.radius.index');
+        $d['status'] = \App\Models\Radius::select('status')->distinct()->orderBy('status','ASC')->get();
+
+        return view('manajemen.pengguna.radius.index', $d);
     }
 }

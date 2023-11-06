@@ -134,6 +134,12 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 Route::get('/menu_role/{id}/{mrole}/edit', [MenuRoleController::class, 'edit'])->name('menu_role.edit');
                 Route::patch('/menu_role/{id}/{mrole}/update', [MenuRoleController::class, 'update'])->name('menu_role.update');
                 Route::get('/menu_role/{id}/{mrole}/destroy', [MenuRoleController::class, 'destroy'])->name('menu_role.destroy');
+
+                Route::prefix('ws')->name('ws.')->group(function() {
+                    Route::get('/{id}', [AplikasiController::class, 'ws'])->name('index');
+                    Route::post('/{id}', [AplikasiController::class, 'wsStore'])->name('store');
+                    Route::delete('/{id}', [AplikasiController::class, 'wsDelete'])->name('destroy');
+                });
             });
             Route::namespace('token')->prefix('token')->name('token.')->group(function () {
                 Route::get('/', [TokenController::class, 'index'])->name('index');

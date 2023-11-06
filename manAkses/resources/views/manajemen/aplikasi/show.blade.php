@@ -19,11 +19,12 @@
                 <div class="col-md-2 col-12 pl-4">
                     <img src="{!! (!is_null($data->largeobject)) ? 'data:image/' . $data->largeobject->mime_type . ';base64,' . $data->largeobject->blob_content : asset('auth/img/logo.png') !!}" width="100%" class="my-3"/>
                     @if($menus->a_boleh_update == "1")
-                    <a type="button" data-toggle="modal" class="btn btn-info col-12 my-1" href="#editAplikasi{{$data->id_aplikasi}}"><i class="fa fa-edit"></i> Edit</a>
+                    <a type="button" data-toggle="modal" class="btn btn-info col-12 my-1" href="#editAplikasi{{$data->id_aplikasi}}"><i class="fa fa-edit mr-1"></i>Edit</a>
                     @endif
                     @if($menus->a_boleh_show == "1")
-                    <a type="button" class="btn btn-info col-12 my-1" href="{{ route('aplikasi.menu_role', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Menu Role</a>
-                    <a type="button" class="btn btn-info col-12 my-1" href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Tabel Aplikasi</a>
+                    <a type="button" class="btn btn-info col-12 my-1" href="{{ route('aplikasi.menu_role', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table mr-1"></i>Menu Role</a>
+                    <a type="button" class="btn btn-info col-12 my-1" href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table mr-1"></i>Tabel Aplikasi</a>
+                    <a type="button" class="btn btn-info col-12 my-1" href="{{ route('aplikasi.ws.index', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fa fa-connectdevelop mr-1"></i>Web Services</a>
                     @endif
                 </div>
                 <div class="col-md-10 col-12">
