@@ -10,11 +10,13 @@
         <div class="card-body">
             <div class="d-lg-flex d-block">
                 <div class="col-2">
-                    <a type="button" class="btn btn-default" href="#" onclick="history.back()"><i class="fa fa-arrow-left"></i> Kembali</a>
-                    @if($menus->a_boleh_insert==1)
-                    <a type="button" data-toggle="modal" class="btn btn-info" href="#tambahTable"><i class="fa fa-plus"></i> Tambah Data</a>
-                    @endif
+                    <a type="button" class="btn btn-default col-12" href="#" onclick="history.back()"><i class="fa fa-arrow-left"></i> Kembali</a>
                 </div>
+                @if($menus->a_boleh_insert==1)
+                <div class="col-2">
+                    <a type="button" data-toggle="modal" class="btn btn-info col-12" href="#tambahTable"><i class="fa fa-plus"></i> Tambah Data</a>
+                </div>
+                @endif
                 <div class="ml-auto px-2">
                     <div class="input-group">
                         <input type="text" id="search" placeholder="Pencarian" class="form-control">
@@ -23,20 +25,20 @@
                                 <i class="fa fa-search search-icon"></i>
                             </button>
                         </div>
-                    </div> 
+                    </div>
                 </div>
             </div>
             <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover" id="table-data" style="width: 100% !important">
-                    <thead>
+                <table class="table table-borderless table-hover" id="table-data" style="width: 100% !important">
+                    <thead class="bg-info">
                         <tr>
                             <th>No.</th>
-                            <th>Skema Table</th>
-                            <th>Nama Table</th>
-                            <th>Akses Table ?</th>
-                            <th>Expired Date</th>
-                            <th>Last Sync</th>
-                            <th>Aksi</th>
+                            <th>Scheme</th>
+                            <th>Name</th>
+                            <th>Access</th>
+                            <th>Expired</th>
+                            <th>Sync</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -73,7 +75,7 @@
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
                         <span class="fw-mediumbold">
-                        Tambah </span> 
+                        Tambah </span>
                         <span class="fw-light">
                             Table Aplikasi
                         </span>
@@ -146,7 +148,7 @@
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
                         <span class="fw-mediumbold">
-                        Edit </span> 
+                        Edit </span>
                         <span class="fw-light">
                             Table Aplikasi
                         </span>

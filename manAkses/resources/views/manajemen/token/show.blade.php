@@ -9,8 +9,8 @@
         </div><!-- /.card-header -->
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover" id="table-data" style="width: 100% !important">
-                    <thead>
+                <table class="table table-borderless table-hover" id="table-data" style="width: 100% !important">
+                    <thead class="bg-info">
                       <tr>
                         <th>No.</th>
                         <th>Accessed URI</th>

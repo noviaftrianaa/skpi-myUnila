@@ -51,7 +51,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/otorisasi', function() {
         return view('error.pages');
     });
-    
+
     Route::group(['middleware' => ['one_data_man_akses']], function() {
 
         // Route::prefix('manajemen')->name('manajemen.')->group(function() {
@@ -79,6 +79,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                     Route::patch('/{id}/update', [RolePenggunaController::class, 'update'])->name('update');
                     Route::delete('/{id}/destroy', [RolePenggunaController::class, 'destroy'])->name('destroy');
                 });
+            });
+            Route::namespace('radius')->prefix('radius')->name('radius.')->group(function () {
+                Route::get('/', [UserController::class, 'radiusIndex'])->name('index');
             });
             Route::namespace('peran')->prefix('peran')->name('peran.')->group(function () {
                 Route::get('/', [PeranController::class, 'index'])->name('index');
@@ -112,7 +115,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                     Route::put('', [PJAplikasiController::class, 'store'])->name('store');
                     Route::patch('update/{id}', [PJAplikasiController::class, 'update'])->name('update');
                     Route::delete('destroy/{id}', [PJAplikasiController::class, 'destroy'])->name('destroy');
-                    
+
                     Route::prefix('akses_ws')->name('akses_ws.')->group(function() {
                         Route::get('/{id}', [AksesWSController::class, 'create'])->name('create');
                         Route::put('/{id}', [AksesWSController::class, 'store'])->name('store');

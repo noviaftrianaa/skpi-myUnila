@@ -17,19 +17,18 @@
                                 <i class="fa fa-search search-icon"></i>
                             </button>
                         </div>
-                    </div> 
+                    </div>
                 </div>
             </div>
             <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover" id="table-data" style="width: 100% !important">
-                    <thead>
+                <table class="table table-borderless table-hover" id="table-data" style="width: 100% !important">
+                    <thead class="bg-info">
                       <tr>
                         <th>No.</th>
-                        <th>Nama Lembaga</th>
-                        <th>Email</th>
-                        <th>No Telp.</th>
-                        <th>Jalan</th>
-                        <th>Status</th>
+                        <th>Unit</th>
+                        <th class="text-center" width="5px">Email</th>
+                        <th class="text-center" width="5px">Phone</th>
+                        <th class="text-center">Status</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -37,10 +36,9 @@
                         <tr>
                             <td class="text-center" width="5px">{{ $no+1 }}</td>
                             <td>{{$item->nm_lemb}}</td>
-                            <td>{{$item->email}}</td>
-                            <td>{{$item->no_telp}}</td>
-                            <td>{{$item->jalan}}</td>
-                            <td>{{($item->a_aktif==1)?'Aktif':'Tidak Aktif'}}</td>
+                            <td class="text-center" width="5px">{{$item->email}}</td>
+                            <td class="text-center" width="5px">{{$item->no_telp ?? '-'}}</td>
+                            <td class="text-center">{!! ($item->a_aktif==1)?'<span class="badge badge-success">Aktif</span>':'<span class="badge badge-danger">Tidak Aktif</span>' !!}</td>
                         </tr>
                         @endforeach
                     </tbody>

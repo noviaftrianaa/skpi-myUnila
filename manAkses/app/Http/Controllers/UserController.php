@@ -80,14 +80,14 @@ class UserController extends Controller
                 })
                 ->addColumn('status', function($user) {
                     if($user->a_aktif==1) {
-                        $button = '<span class="alert alert-success" style="padding:3px;color:white">Aktif</span>';
+                        $button = '<span class="badge badge-success">Aktif</span>';
                     } else {
-                        $button = '<span class="alert alert-danger" style="padding:3px;color:white">Tidak Aktif</span>';
+                        $button = '<span class="badge badge-danger">Tidak Aktif</span>';
                     }
                     return $button;
                 })
                 ->addColumn('aksi', function($user) {
-                    $button = '<a class="btn btn-info" title="Show User" href="'.route('user.detail', [Crypt::encrypt($user->id_pengguna)]).'">Detail</a>';
+                    $button = '<a class="btn btn-link btn-xs" title="Show User" href="'.route('user.detail', [Crypt::encrypt($user->id_pengguna)]).'"><i class="fas fa-search"></i></a>';
                     return $button;
                 })
                 ->rawColumns(['status','aksi'])
@@ -142,7 +142,7 @@ class UserController extends Controller
 
         //SENT TO SSO
         $this->storeToSSO($data);
-        
+
         foreach($array['id_peran'] as $item) {
             $role = RolePengguna::create([
                 'id_role_pengguna' => guid(),
@@ -160,7 +160,7 @@ class UserController extends Controller
                 'id_updater' => $uuid
             ]);
         }
-    
+
         if(!$data) {
             alert()->error('Data gagal disimpan!');
         } else {
@@ -288,7 +288,7 @@ class UserController extends Controller
         }
         return redirect()->route('user.index');
     }
-    
+
     /**
      * Show the form for creating a new resource.
      *
@@ -356,7 +356,7 @@ class UserController extends Controller
         if($array['password']==$array['confirm_password']) {
 
             $password = SHA1($array['password']);
-            
+
             $pengguna = User::lock('WITH(NOLOCK)')->where('id_pengguna', $pengguna->id_pengguna)->update([
                 'password'      => $password,
                 'tgl_ganti_pwd' => currDateTime(),
@@ -378,5 +378,16 @@ class UserController extends Controller
 
         }
         return redirect()->to($array['url']);
+    }
+
+    public function radiusIndex(Request $request)
+    {
+        if($request->ajax()) {
+            $data = \App\Models\Radius::orderBy('username','ASC');
+
+            return DataTables::of($data)->addIndexColumn()->make(true);
+        }
+
+        return view('manajemen.pengguna.radius.index');
     }
 }

@@ -14,14 +14,31 @@
             processing: true,
             serverSide: true,
             pagingType: "simple",
+            ordering: false,
             ajax: window.location.href,
             columns: [
-                { data: 'DT_RowIndex', orderable: false, searchable: false, width: '5px', className: 'text-center' },
-                { data: 'nm_menu' },
-                { data: 'nm_file' },
-                { data: 'icon', searchable: false },
-                { data: 'a_aktif', searchable: false },
-                { data: 'aksi', orderable: false, searchable: false, width: '5px' }
+                { data: 'DT_RowIndex', width: '5px', className: 'text-center', title: 'No.' },
+                { data: 'nm_menu', title: 'Menu' },
+                { data: 'nm_file', title: 'Alias', width: '5px', className: 'text-center' },
+                { data: 'icon', title: 'Icon', className: 'text-center' },
+                {
+                    data: 'a_aktif',
+                    title: 'Status',
+                    width: '5px',
+                    className: 'text-center',
+                    render: function(data,type,row) {
+                        return data==1 ? `<span class="badge badge-success">Aktif</span>` : `<span class="badge badge-danger">Tidak Aktif</span>`;
+                    }
+                },
+                {
+                    data: 'id_menu',
+                    width: '5px',
+                    title: 'Action',
+                    className: 'text-center',
+                    render: function(data,type,row) {
+                        return `<a class="btn btn-link btn-xs" title="Show User" href="#editItem${data}" data-toggle="modal"><i class="fas fa-edit"></i></a>`;
+                    }
+                }
             ],
             sDom: 'rt<"row"<"col-sm-12 col-md-3"l><"col-sm-12 col-md-3"i><"col-sm-12 col-md-6"p>>'
         } );
@@ -41,7 +58,7 @@
         <div class="card-body">
             <div class="d-lg-flex d-block">
                 <div class="col-2">
-                    <button class="btn btn-info" data-toggle="modal" data-target="#addItem"><i class="fa fa-plus"></i> Tambah Data</button>
+                    <button class="btn btn-info col-12" data-toggle="modal" data-target="#addItem"><i class="fa fa-plus"></i> Tambah Data</button>
                 </div>
                 <div class="ml-auto px-2">
                     <div class="input-group">
@@ -51,21 +68,12 @@
                                 <i class="fa fa-search search-icon"></i>
                             </button>
                         </div>
-                    </div> 
+                    </div>
                 </div>
             </div>
             <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover" id="table-data" style="width: 100% !important">
-                    <thead>
-                      <tr>
-                        <th width="5%">No.</th>
-                        <th>Nama Menu</th>
-                        <th>Nama Alias</th>
-                        <th>Icon</th>
-                        <th>Aktif ?</th>
-                        <th width="5%">Aksi</th>
-                      </tr>
-                    </thead>
+                <table class="table table-borderless table-hover" id="table-data" style="width: 100% !important">
+                    <thead class="bg-info"></thead>
                 </table>
             </div>
         </div>
@@ -78,7 +86,7 @@
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
                         <span class="fw-mediumbold">
-                        Tambah</span> 
+                        Tambah</span>
                         <span class="fw-light">
                             Menu
                         </span>
@@ -146,7 +154,7 @@
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
                         <span class="fw-mediumbold">
-                        Update</span> 
+                        Update</span>
                         <span class="fw-light">
                             Menu
                         </span>

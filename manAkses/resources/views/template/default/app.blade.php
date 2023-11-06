@@ -44,7 +44,7 @@
             animation: spin 2s linear infinite;
             margin-left:250px;
             margin-top:250px;
-        }   
+        }
         @-webkit-keyframes spin {
             0% { -webkit-transform: rotate(0deg); }
             100% { -webkit-transform: rotate(360deg); }
@@ -52,7 +52,7 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }   
+        }
     </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed text-sm">
@@ -177,7 +177,7 @@
 <script src="{!! asset('js/konfirmasi.js') !!}"></script>
 <script src="{!! asset('js/konfirmasi_non_datatables.js') !!}"></script>
 <script type="text/javascript">
-    
+
     $(document).ready( function () {
         $('.select2').select2();
     });
@@ -188,7 +188,7 @@
 
     function convertToRupiah(angka)
     {
-        var rupiah = '';		
+        var rupiah = '';
         var angkarev = angka.toString().split('').reverse().join('');
         for(var i = 0; i < angkarev.length; i++) if(i%3 == 0) rupiah += angkarev.substr(i,3)+'.';
         return 'Rp. '+rupiah.split('',rupiah.length-1).reverse().join('');

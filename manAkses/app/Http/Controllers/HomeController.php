@@ -34,7 +34,6 @@ class HomeController extends Controller
      */
     public function index()
     {
-        // dd(MenuRole());
         $datas = User::all();
         $apps = Aplikasi::all();
         $unit = UnitOrganisasi::all();

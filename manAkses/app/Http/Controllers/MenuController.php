@@ -28,17 +28,13 @@ class MenuController extends Controller
     public function index(Request $request)
     {
         if($request->ajax()) {
-            $data = Menu::with('group_menu')->lock('WITH(NOLOCK)')->get();
+            $data = Menu::with('group_menu')->lock('WITH(NOLOCK)')->orderBy('nm_menu','ASC')->get();
+
             return DataTables::of($data)
                 ->addIndexColumn()
-                ->addColumn('aksi', function($data) {
-                    $button = '<a class="btn btn-info" title="Show User" href="#editItem'.$data->id_menu.'" data-toggle="modal">Edit</a>';
-                    return $button;
-                })
-                ->rawColumns(['aksi'])
                 ->make(true);
         }
-        
+
         $menu = Menu::with('group_menu')->lock('WITH(NOLOCK)')->get();
         return view('manajemen.menu.index', compact('menu'));
     }
@@ -154,13 +150,13 @@ class MenuController extends Controller
         $data = Menu::where('id_menu', $id);
         $menu_pj = MenuRole::where('id_menu', $data->first()->id_menu)->delete();
         $data->delete();
-        
+
         if(!$data) {
             alert()->error('Data gagal dihapus!');
         } else {
             alert()->success('Data berhasil dihapus!');
         }
         return redirect()->back();
-        
+
     }
 }

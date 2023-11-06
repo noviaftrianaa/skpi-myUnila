@@ -1,5 +1,5 @@
 @extends('template.default.app')
-@section('title','Data Pengguna')
+@section('title','Data Pengguna Radius')
 
 @push('css')
 <link href="{{asset('bower_components/datatables/media/css/dataTables.bootstrap4.css')}}" rel="stylesheet">
@@ -18,12 +18,28 @@
             ajax: window.location.href,
             columns: [
                 { data: 'DT_RowIndex', orderable: false, searchable: false, title: 'No.', width: '5px', className: 'text-center' },
-                { data: 'nm_pengguna', title: 'Nama' },
-                { data: 'username', title: 'Username', width: '5px' },
-                { data: 'unit_organisasi', title: 'Unit' },
-                { data: 'jenis_kelamin', searchable: false, title: 'Gender', width: '5px', className: 'text-center' },
-                { data: 'status', searchable: false, title: 'Status', className: 'text-center' },
-                { data: 'aksi', orderable: false, searchable: false, title: 'Action', className: 'text-center', width: '5px' }
+                { data: 'nm_pengguna', title: 'Nama', className: 'text-center' },
+                { data: 'username', title: 'Username', className: 'text-center', width: '5px' },
+                { data: 'email', title: 'Email', className: 'text-center', width: '5px' },
+                { data: 'nip', title: 'NIP/NPM', className: 'text-center', width: '5px' },
+                {
+                    data: 'status',
+                    title: 'Peran',
+                    className: 'text-center',
+                    width: '5px',
+                    render: function(data,type,row) {
+                        return `<span class="badge badge-warning">${data}</span>`;
+                    }
+                },
+                {
+                    data: 'a_aktif',
+                    title: 'Aktif',
+                    className: 'text-center',
+                    width: '5px',
+                    render: function(data,type,row) {
+                        return data==1 ? `<span class="badge badge-success">Aktif</span>` : `<span class="badge badge-danger">Tidak Aktif</span>`;
+                    }
+                }
             ],
             sDom: 'rt<"row"<"col-sm-12 col-md-3"l><"col-sm-12 col-md-3"i><"col-sm-12 col-md-6"p>>'
         } );
@@ -38,15 +54,12 @@
 @section('content')
     <div class="card card-info">
         <div class="card-header">
-            <h3 class="card-title mt-1"><i class="fa fa-list mr-2"></i> Data Pengguna</h3>
+            <h3 class="card-title mt-1"><i class="fa fa-list mr-2"></i> Data Pengguna Radius</h3>
         </div><!-- /.card-header -->
         <div class="card-body">
             <div class="row px-2">
                 <div class="col-2">
-                    <a type="button" class="btn btn-info col-12" href="{{route('user.create')}}"><i class="fa fa-plus"></i> Tambah Data</a>
-                </div>
-                <div class="col-2">
-                    <a type="button" class="btn btn-primary col-12" href="{{route('radius.index')}}"><i class="fa fa-users"></i> Radius</a>
+                    <a type="button" class="btn btn-default" href="{{ route('user.index') }}"><i class="fas fa-arrow-left mr-1"></i>Kembali</a>
                 </div>
                 <div class="ml-auto px-2">
                     <div class="input-group">
