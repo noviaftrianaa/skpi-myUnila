@@ -37,17 +37,43 @@ class AplikasiController extends Controller
         // return $crypt->encrypt(strrev($app_key));
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $menus = collect(session()->get('login.menu'))->where('nm_file', $this->basepath.'.index')->first();
 
-        if($menus->a_boleh_insert == "1") {
-            $data = Aplikasi::with(['UnitOrganisasi','PJAplikasi'])->lock('WITH(NOLOCK)')->get();
-        } else {
-            $data = PJAplikasi::with(['aplikasi.unitorganisasi'])->lock('WITH(NOLOCK)')->where('soft_delete', 0)->where('id_pengguna', auth()->user()->id_pengguna)->get();
+        if($request->ajax()) {
+            if($menus->a_boleh_insert == "1") {
+                $data = Aplikasi::with(['UnitOrganisasi','PJAplikasi'])->lock('WITH(NOLOCK)')->get();
+            } else {
+                $data = PJAplikasi::with(['aplikasi.unitorganisasi'])->lock('WITH(NOLOCK)')->where('soft_delete', 0)->where('id_pengguna', auth()->user()->id_pengguna)->get();
+            }
+
+            return \DataTables::of($data)
+                ->addIndexColumn()
+                ->addColumn('lemb', function($data) {
+                    return $data->unitorganisasi->nm_lemb ?? $data->aplikasi->unitorganisasi->nm_lemb;
+                })
+                ->addColumn('apps', function($data) {
+                    return $data->nm_aplikasi ?? $data->aplikasi->nm_aplikasi;
+                })
+                ->addColumn('links', function($data) {
+                    $url = $data->url??$data->aplikasi->url;
+                    return '<a type="button" href="'.$url.'" target="_blank">'.$url.'</a>';
+                })
+                ->addColumn('expired', function($data) {
+                    return TglIndonesiaShort($data->expired_date ?? null) ?? TglIndonesiaShort($data->aplikasi->expired_date ?? null);
+                })
+                ->addColumn('sync', function($data) {
+                    return TglIndonesiaShort($data->last_sync) ?? TglIndonesiaShort($data->aplikasi->last_sync);
+                })
+                ->addColumn('aksi', function($data) {
+                    return '<a class="btn btn-link btn-xs" title="Show" href="'.route('aplikasi.detail', [Crypt::encrypt($data->id_aplikasi ?? $data->aplikasi->id_aplikasi)]).'"><i class="fas fa-search"></i></a>';
+                })
+                ->rawColumns(['aksi','lemb','expired','sync','links','apps'])
+                ->make(true);
         }
+
         return view('manajemen.aplikasi.index', [
-            'data'=>$data,
             'menus'=>$menus
         ]);
     }
@@ -333,15 +359,28 @@ class AplikasiController extends Controller
         return redirect()->back();
     }
 
-    public function ws($id)
+    public function ws($id, Request $request)
     {
         $id = \Crypt::decrypt($id);
 
-        $d['data'] = \App\Models\WSEndpoint::where('id_aplikasi', $id)->where('soft_delete', 0)->select('nm_group','nm_method','path_url','a_active','id_ws_endpoint')->orderBy('nm_group','ASC')->orderBy('nm_method','ASC')->get();
-        $d['group'] = \App\Models\WSEndpoint::where('id_aplikasi', $id)->select('nm_group')->distinct()->orderBy('nm_group','Asc')->get();
+        if($request->ajax()) {
+            $data = \App\Models\WSEndpoint::where('id_aplikasi', $id)->where('soft_delete', 0)->select('nm_group','nm_method','path_url','a_active','id_ws_endpoint')->orderBy('nm_group','ASC')->orderBy('nm_method','ASC')->get();
+
+            return \DataTables::of($data)->addIndexColumn()->make(true);
+        }
+
+        $d['group'] = \App\Models\WSEndpoint::where('id_aplikasi', $id)->where('soft_delete', 0)->select('nm_group')->distinct()->orderBy('nm_group','Asc')->get();
         $d['id'] = $id;
+        $d['menus'] = collect(session()->get('login.menu'))->where('nm_file', $this->basepath.'.index')->first();
 
         return view('manajemen.aplikasi.ws.index', $d);
+    }
+
+    public function wsData($id)
+    {
+        $data = \App\Models\WSEndpoint::findOrFail($id);
+
+        return response()->json($data);
     }
 
     public function wsStore($id, Request $request)
@@ -380,8 +419,6 @@ class AplikasiController extends Controller
 
     public function wsDelete($id)
     {
-        $id = \Crypt::decrypt($id);
-
         $data = \App\Models\WSEndpoint::findOrFail($id);
 
         if(!$data) {

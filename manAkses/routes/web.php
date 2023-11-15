@@ -137,6 +137,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
                 Route::prefix('ws')->name('ws.')->group(function() {
                     Route::get('/{id}', [AplikasiController::class, 'ws'])->name('index');
+                    Route::get('/data/{id}', [AplikasiController::class, 'wsData'])->name('data');
                     Route::post('/{id}', [AplikasiController::class, 'wsStore'])->name('store');
                     Route::delete('/{id}', [AplikasiController::class, 'wsDelete'])->name('destroy');
                 });
