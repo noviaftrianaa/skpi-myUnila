@@ -41,7 +41,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="col-12">
                         <table class="table table-bordered table-hover" id="table-data" style="width: 100% !important;">
                             <thead>
@@ -72,14 +72,14 @@
 <script>
     $(document).ready(function () {
         var ws = <?php echo json_encode($authorization) ?>;
-        
+
         let t = $('#table-data').DataTable({
             processing: true,
             paging: false,
             pagingType: "simple",
             sDom: 'rt<"row"<"col-sm-12 col-md-3"l><"col-sm-12 col-md-3"i><"col-sm-12 col-md-6"p>>'
         } );
-        
+
         var counter = 1;
 
         if(ws.length > 0) {
@@ -93,9 +93,9 @@
                                 cEndpoint(counter, exists = item.id_ws_endpoint),
                                 cBody(counter, response, exists = item.terms),
                                 cAction(counter)
-                            ] 
+                            ]
                         ).draw(true);
-                        
+
                         $(".endpoint").select2();
                         $('.endpoint').on('change', function() {
                             var id = $(this).data('id');
@@ -127,9 +127,9 @@
                     cEndpoint(counter),
                     null,
                     cAction(counter)
-                ] 
+                ]
             ).draw(true);
-            
+
             $(".endpoint").select2();
             $('.endpoint').on('change', function() {
                 var id = $(this).data('id');

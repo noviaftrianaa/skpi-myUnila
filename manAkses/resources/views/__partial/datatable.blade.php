@@ -10,6 +10,7 @@
         let table = $('#table-data').DataTable({
             // serverSide: true,
             processing: true,
+            ordering: false,
             pagingType: "simple",
             sDom: 'rt<"row"<"col-sm-12 col-md-3"l><"col-sm-12 col-md-3"i><"col-sm-12 col-md-6"p>>'
         } );

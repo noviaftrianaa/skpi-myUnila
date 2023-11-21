@@ -10,7 +10,7 @@
         <div class="card-body">
             <div class="d-lg-flex d-block">
                 <div class="col-2">
-                    <button class="btn btn-info" data-toggle="modal" data-target="#addItem"><i class="fa fa-plus"></i> Tambah Data</button>
+                    <button class="btn btn-info col-12" data-toggle="modal" data-target="#addItem"><i class="fa fa-plus"></i> Tambah Data</button>
                 </div>
                 <div class="ml-auto px-2">
                     <div class="input-group">
@@ -20,18 +20,18 @@
                                 <i class="fa fa-search search-icon"></i>
                             </button>
                         </div>
-                    </div> 
+                    </div>
                 </div>
             </div>
             <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover" id="table-data" style="width: 100% !important">
-                    <thead>
+                <table class="table table-borderless table-hover" id="table-data" style="width: 100% !important">
+                    <thead class="bg-info">
                       <tr>
                         <th class="text-center">No.</th>
                         <th>Nama Peran</th>
                         <th>Perlu SK ?</th>
                         <th>Expired Date</th>
-                        <th class="text-center">Aksi</th>
+                        <th class="text-center">Action</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -42,7 +42,7 @@
                             <td>{{ ($item->a_perlu_sk==1) ? 'Ya' : 'Tidak'}}</td>
                             <td>{{ TglWaktuIndonesia($item->expired_date) ?? '-' }}</td>
                             <td class="text-center" width="5px">
-                                <button class="btn btn-info" title="Edit" data-toggle="modal" data-target="#editItem{{$item->id_peran}}">Edit</button>
+                                <button class="btn btn-link btn-xs" title="Edit" data-toggle="modal" data-target="#editItem{{$item->id_peran}}"><i class="fas fa-edit"></i></button>
                             </td>
                         </tr>
                         @endforeach
@@ -59,7 +59,7 @@
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
                         <span class="fw-mediumbold">
-                        Tambah</span> 
+                        Tambah</span>
                         <span class="fw-light">
                             Pengguna
                         </span>
@@ -112,7 +112,7 @@
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
                         <span class="fw-mediumbold">
-                        Update</span> 
+                        Update</span>
                         <span class="fw-light">
                             Pengguna
                         </span>
@@ -166,7 +166,7 @@
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
                         <span class="fw-mediumbold">
-                        Reset</span> 
+                        Reset</span>
                         <span class="fw-light">
                             Password Pengguna
                         </span>

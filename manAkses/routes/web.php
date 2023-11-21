@@ -51,7 +51,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/otorisasi', function() {
         return view('error.pages');
     });
-    
+
     Route::group(['middleware' => ['one_data_man_akses']], function() {
 
         // Route::prefix('manajemen')->name('manajemen.')->group(function() {
@@ -79,6 +79,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                     Route::patch('/{id}/update', [RolePenggunaController::class, 'update'])->name('update');
                     Route::delete('/{id}/destroy', [RolePenggunaController::class, 'destroy'])->name('destroy');
                 });
+            });
+            Route::namespace('radius')->prefix('radius')->name('radius.')->group(function () {
+                Route::get('/', [UserController::class, 'radiusIndex'])->name('index');
             });
             Route::namespace('peran')->prefix('peran')->name('peran.')->group(function () {
                 Route::get('/', [PeranController::class, 'index'])->name('index');
@@ -112,7 +115,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                     Route::put('', [PJAplikasiController::class, 'store'])->name('store');
                     Route::patch('update/{id}', [PJAplikasiController::class, 'update'])->name('update');
                     Route::delete('destroy/{id}', [PJAplikasiController::class, 'destroy'])->name('destroy');
-                    
+
                     Route::prefix('akses_ws')->name('akses_ws.')->group(function() {
                         Route::get('/{id}', [AksesWSController::class, 'create'])->name('create');
                         Route::put('/{id}', [AksesWSController::class, 'store'])->name('store');
@@ -131,6 +134,13 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 Route::get('/menu_role/{id}/{mrole}/edit', [MenuRoleController::class, 'edit'])->name('menu_role.edit');
                 Route::patch('/menu_role/{id}/{mrole}/update', [MenuRoleController::class, 'update'])->name('menu_role.update');
                 Route::get('/menu_role/{id}/{mrole}/destroy', [MenuRoleController::class, 'destroy'])->name('menu_role.destroy');
+
+                Route::prefix('ws')->name('ws.')->group(function() {
+                    Route::get('/{id}', [AplikasiController::class, 'ws'])->name('index');
+                    Route::get('/data/{id}', [AplikasiController::class, 'wsData'])->name('data');
+                    Route::post('/{id}', [AplikasiController::class, 'wsStore'])->name('store');
+                    Route::delete('/{id}', [AplikasiController::class, 'wsDelete'])->name('destroy');
+                });
             });
             Route::namespace('token')->prefix('token')->name('token.')->group(function () {
                 Route::get('/', [TokenController::class, 'index'])->name('index');

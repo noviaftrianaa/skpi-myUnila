@@ -37,17 +37,43 @@ class AplikasiController extends Controller
         // return $crypt->encrypt(strrev($app_key));
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $menus = collect(session()->get('login.menu'))->where('nm_file', $this->basepath.'.index')->first();
 
-        if($menus->a_boleh_insert == "1") {
-            $data = Aplikasi::with(['UnitOrganisasi','PJAplikasi'])->lock('WITH(NOLOCK)')->get();
-        } else {
-            $data = PJAplikasi::with(['aplikasi.unitorganisasi'])->lock('WITH(NOLOCK)')->where('soft_delete', 0)->where('id_pengguna', auth()->user()->id_pengguna)->get();
+        if($request->ajax()) {
+            if($menus->a_boleh_insert == "1") {
+                $data = Aplikasi::with(['UnitOrganisasi','PJAplikasi'])->lock('WITH(NOLOCK)')->get();
+            } else {
+                $data = PJAplikasi::with(['aplikasi.unitorganisasi'])->lock('WITH(NOLOCK)')->where('soft_delete', 0)->where('id_pengguna', auth()->user()->id_pengguna)->get();
+            }
+
+            return \DataTables::of($data)
+                ->addIndexColumn()
+                ->addColumn('lemb', function($data) {
+                    return $data->unitorganisasi->nm_lemb ?? $data->aplikasi->unitorganisasi->nm_lemb;
+                })
+                ->addColumn('apps', function($data) {
+                    return $data->nm_aplikasi ?? $data->aplikasi->nm_aplikasi;
+                })
+                ->addColumn('links', function($data) {
+                    $url = $data->url??$data->aplikasi->url;
+                    return '<a type="button" href="'.$url.'" target="_blank">'.$url.'</a>';
+                })
+                ->addColumn('expired', function($data) {
+                    return TglIndonesiaShort($data->expired_date ?? null) ?? TglIndonesiaShort($data->aplikasi->expired_date ?? null);
+                })
+                ->addColumn('sync', function($data) {
+                    return TglIndonesiaShort($data->last_sync) ?? TglIndonesiaShort($data->aplikasi->last_sync);
+                })
+                ->addColumn('aksi', function($data) {
+                    return '<a class="btn btn-link btn-xs" title="Show" href="'.route('aplikasi.detail', [Crypt::encrypt($data->id_aplikasi ?? $data->aplikasi->id_aplikasi)]).'"><i class="fas fa-search"></i></a>';
+                })
+                ->rawColumns(['aksi','lemb','expired','sync','links','apps'])
+                ->make(true);
         }
+
         return view('manajemen.aplikasi.index', [
-            'data'=>$data,
             'menus'=>$menus
         ]);
     }
@@ -77,7 +103,7 @@ class AplikasiController extends Controller
                 $mime = $file->getClientMimeType();
                 $nama_asli = $file->getClientOriginalName();
                 $bytea = base64_encode(file_get_contents($file->getPathName()));
-                
+
                 $dok                = new LargeObject();
                 $dok->id_blob       = guid();
                 $dok->blob_content  = DB::raw("CONVERT(VARBINARY(MAX), '" . $bytea . "')");
@@ -196,7 +222,7 @@ class AplikasiController extends Controller
                 $mime = $file->getClientMimeType();
                 $nama_asli = $file->getClientOriginalName();
                 $bytea = base64_encode(file_get_contents($file->getPathName()));
-                
+
                 $dok                = new LargeObject();
                 $dok->id_blob       = guid();
                 $dok->blob_content  = DB::raw("CONVERT(VARBINARY(MAX), '" . $bytea . "')");
@@ -329,6 +355,80 @@ class AplikasiController extends Controller
             alert()->error('Data gagal diupdate!');
         } else {
             alert()->success('Data berhasil diupdate!');
+        }
+        return redirect()->back();
+    }
+
+    public function ws($id, Request $request)
+    {
+        $id = \Crypt::decrypt($id);
+
+        if($request->ajax()) {
+            $data = \App\Models\WSEndpoint::where('id_aplikasi', $id)->where('soft_delete', 0)->select('nm_group','nm_method','path_url','a_active','id_ws_endpoint')->orderBy('nm_group','ASC')->orderBy('nm_method','ASC')->get();
+
+            return \DataTables::of($data)->addIndexColumn()->make(true);
+        }
+
+        $d['group'] = \App\Models\WSEndpoint::where('id_aplikasi', $id)->where('soft_delete', 0)->select('nm_group')->distinct()->orderBy('nm_group','Asc')->get();
+        $d['id'] = $id;
+        $d['menus'] = collect(session()->get('login.menu'))->where('nm_file', $this->basepath.'.index')->first();
+
+        return view('manajemen.aplikasi.ws.index', $d);
+    }
+
+    public function wsData($id)
+    {
+        $data = \App\Models\WSEndpoint::findOrFail($id);
+
+        return response()->json($data);
+    }
+
+    public function wsStore($id, Request $request)
+    {
+        $id = \Crypt::decrypt($id);
+        $array = $request->all();
+
+        $data = new \App\Models\WSEndpoint();
+        $data->created_at = NOW();
+        $data->id_ws_endpoint = guid();
+        if(!empty($array['id_ws_endpoint'])) {
+            $data = \App\Models\WSEndpoint::findOrFail($array['id_ws_endpoint']);
+        }
+        if(is_null($array['nm_group_lama']) AND is_null($array['nm_group_baru'])) {
+            alert()->error('Group tidak boleh kosong!');
+            return redirect()->back();
+        }
+        $data->nm_group = is_null($array['nm_group_baru']) ? $array['nm_group_lama'] : $array['nm_group_baru'];
+        $data->nm_method = $array['nm_method'];
+        $data->path_url = $array['path_url'];
+        $data->a_active = $array['a_active'];
+        $data->id_aplikasi = $id;
+        $data->soft_delete = 0;
+        $data->updated_at = NOW();
+        $data->id_creator = \Auth::user()->id_pengguna;
+        $data->id_updater = \Auth::user()->id_pengguna;
+        $data->save();
+
+        if(!$data) {
+            alert()->error('Data gagal disimpan!');
+        } else {
+            alert()->success('Data berhasil disimpan!');
+        }
+        return redirect()->back();
+    }
+
+    public function wsDelete($id)
+    {
+        $data = \App\Models\WSEndpoint::findOrFail($id);
+
+        if(!$data) {
+            alert()->error('Data tidak ditemukan!');
+        } else {
+            $data->soft_delete = 1;
+            $data->id_updater = \Auth::user()->id_pengguna;
+            $data->save();
+
+            alert()->success('Data berhasil disimpan!');
         }
         return redirect()->back();
     }

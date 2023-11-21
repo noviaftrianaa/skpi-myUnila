@@ -46,8 +46,8 @@
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover" id="table-data" style="width: 100% !important">
-                    <thead>
+                <table class="table table-borderless table-hover" id="table-data" style="width: 100% !important">
+                    <thead class="bg-info">
                         <tr>
                             <th>No.</th>
                             <th>Nama Peran</th>
@@ -83,7 +83,7 @@
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
                         <span class="fw-mediumbold">
-                        Edit </span> 
+                        Edit </span>
                         <span class="fw-light">
                             Pengguna
                         </span>
@@ -171,7 +171,7 @@
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
                         <span class="fw-mediumbold">
-                        Tambah </span> 
+                        Tambah </span>
                         <span class="fw-light">
                             Role Pengguna
                         </span>
@@ -237,7 +237,7 @@
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
                         <span class="fw-mediumbold">
-                        Tambah </span> 
+                        Tambah </span>
                         <span class="fw-light">
                             Role Pengguna
                         </span>
@@ -305,7 +305,7 @@
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
                         <span class="fw-mediumbold">
-                        Delete </span> 
+                        Delete </span>
                         <span class="fw-light">
                             Role Pengguna
                         </span>
@@ -341,7 +341,7 @@
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
                         <span class="fw-mediumbold">
-                        Reset </span> 
+                        Reset </span>
                         <span class="fw-light">
                             Password Pengguna
                         </span>
@@ -375,7 +375,7 @@
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
                         <span class="fw-mediumbold">
-                        Ubah Status </span> 
+                        Ubah Status </span>
                         <span class="fw-light">
                             Aktif Pengguna
                         </span>
@@ -409,7 +409,7 @@
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
                         <span class="fw-mediumbold">
-                        Hapus </span> 
+                        Hapus </span>
                         <span class="fw-light">
                             Pengguna
                         </span>

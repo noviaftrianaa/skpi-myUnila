@@ -1,6 +1,61 @@
 @extends('template.default.app')
 @section('title','Data Aplikasi')
-@extends('__partial.datatable')
+
+@push('css')
+<link href="{{asset('bower_components/datatables/media/css/dataTables.bootstrap4.css')}}" rel="stylesheet">
+@endpush
+
+@push('js')
+<script type="text/javascript" src="{{ asset('bower_components/datatables/media/js/jquery.dataTables.min.js')}}"></script>
+<script type="text/javascript" src="{{ asset('bower_components/datatables/media/js/dataTables.bootstrap4.min.js')}}"></script>
+<script>
+
+    function datatables() {
+        return $('#table-data').DataTable({
+            processing: true,
+            serverSide: true,
+            ordering: false,
+            ajax: window.location.href,
+            columns: [
+                { data: 'DT_RowIndex', orderable: false, searchable: false, title: 'No.', width: '5px', className: 'text-center' },
+                { data: 'apps', title: 'Aplikasi' },
+                { data: 'lemb', title: 'Unit' },
+                {
+                    data: 'links',
+                    title: 'URL',
+                    className: 'text-center',
+                    width: '5px'
+                },
+                {
+                    data: 'expired',
+                    title: 'Expired',
+                    className: 'text-center'
+                },
+                {
+                    data: 'sync',
+                    title: 'Sync',
+                    className: 'text-center'
+                },
+                {
+                    data: 'aksi',
+                    title: 'Action',
+                    className: 'text-center',
+                    width: '5px'
+                }
+            ],
+            sDom: 'rt<"row"<"col-sm-12 col-md-3"l><"col-sm-12 col-md-3"i><"col-sm-12 col-md-6"p>>'
+        } );
+    }
+
+    $(document).ready( function () {
+        let table = datatables();
+
+        $('#search').on('change', function () {
+            table.search($('#search').val()).draw();
+        } );
+    });
+</script>
+@endpush
 
 @section('content')
     <div class="card card-info">
@@ -9,11 +64,11 @@
         </div><!-- /.card-header -->
         <div class="card-body">
             <div class="d-lg-flex d-block">
-                <div class="col-6">
+                <div class="col-2">
                     @if($menus->a_boleh_insert == "1")
-                    <a class="btn btn-info" href="{{route('aplikasi.create')}}"><i class="fa fa-plus"></i> Tambah Data</a>
+                    <a class="btn btn-info col-12" href="{{route('aplikasi.create')}}"><i class="fa fa-plus"></i> Tambah Data</a>
                     @else
-                    <a class="btn btn-info" href="{{ url('/api/live/v1') }}" target="_blank"><i class="fa fa-connectdevelop"></i> Rest API</a>
+                    <a class="btn btn-info col-12" href="{{ url('/api/live/v1') }}" target="_blank"><i class="fa fa-connectdevelop"></i> Rest API</a>
                     @endif
                 </div>
                 <div class="ml-auto px-2">
@@ -28,51 +83,8 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover" id="table-data" style="width: 100% !important">
-                    <thead>
-                      <tr>
-                        <th class="text-center">No.</th>
-                        <th>Nama Aplikasi</th>
-                        <th>Nama Organisasi</th>
-                        <th>URL</th>
-                        <th>Expired Date</th>
-                        <th>Last Sync</th>
-                        <th class="text-center">Aksi</th>
-                      </tr>
-                    </thead>
-                    @if($menus->a_boleh_insert == "1")
-                    <tbody>
-                        @foreach($data as $no=>$item)
-                        <tr>
-                            <td width="5px" class="text-center">{{$no+1}}</td>
-                            <td>{{$item->nm_aplikasi}}</td>
-                            <td>{{$item->unitorganisasi->nm_lemb}}</td>
-                            <td>{{$item->url}}</td>
-                            <td>{{TglWaktuIndonesia($item->expired_date)}}</td>
-                            <td>{{TglWaktuIndonesia($item->last_sync)}}</td>
-                            <td width="5px" class="text-center">
-                                <a class="btn btn-info" title="Show" href="{{ route('aplikasi.detail', [Crypt::encrypt($item->id_aplikasi)]) }}">Detail</a>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                    @else
-                    <tbody>
-                        @foreach($data as $no=>$item)
-                        <tr>
-                            <td width="5px" class="text-center">{{$no+1}}</td>
-                            <td>{{$item->aplikasi->nm_aplikasi}}</td>
-                            <td>{{$item->aplikasi->unitorganisasi->nm_lemb}}</td>
-                            <td>{{$item->aplikasi->url}}</td>
-                            <td>{{TglWaktuIndonesia($item->aplikasi->expired_date)}}</td>
-                            <td>{{TglWaktuIndonesia($item->aplikasi->last_sync)}}</td>
-                            <td width="5px" class="text-center">
-                                <a class="btn btn-info" title="Show" href="{{ route('aplikasi.detail', [Crypt::encrypt($item->id_aplikasi)]) }}">Detail</a>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                    @endif
+                <table class="table table-borderless table-hover" id="table-data" style="width: 100% !important">
+                    <thead class="bg-info"></thead>
                 </table>
             </div>
         </div>

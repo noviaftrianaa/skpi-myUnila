@@ -22,7 +22,7 @@ class TokenController extends Controller
     {
         if($request->ajax()) {
             $data = DB::SELECT('
-                SELECT TOP 5000 SUBSTRING(token_value, 0, 75) AS token_value, base_url, waktu_create, waktu_expired, keterangan
+                SELECT TOP 1000 SUBSTRING(token_value, 0, 25) AS token_value, base_url, waktu_create, waktu_expired, keterangan
                 FROM man_akses.access_token
                 ORDER BY waktu_create DESC
             ');

@@ -19,11 +19,12 @@
                 <div class="col-md-2 col-12 pl-4">
                     <img src="{!! (!is_null($data->largeobject)) ? 'data:image/' . $data->largeobject->mime_type . ';base64,' . $data->largeobject->blob_content : asset('auth/img/logo.png') !!}" width="100%" class="my-3"/>
                     @if($menus->a_boleh_update == "1")
-                    <a type="button" data-toggle="modal" class="btn btn-info col-12 my-1" href="#editAplikasi{{$data->id_aplikasi}}"><i class="fa fa-edit"></i> Edit</a>
+                    <a type="button" data-toggle="modal" class="btn btn-info col-12 my-1" href="#editAplikasi{{$data->id_aplikasi}}"><i class="fa fa-edit mr-1"></i>Edit</a>
                     @endif
                     @if($menus->a_boleh_show == "1")
-                    <a type="button" class="btn btn-info col-12 my-1" href="{{ route('aplikasi.menu_role', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Menu Role</a>
-                    <a type="button" class="btn btn-info col-12 my-1" href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table"></i> Tabel Aplikasi</a>
+                    <a type="button" class="btn btn-info col-12 my-1" href="{{ route('aplikasi.menu_role', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table mr-1"></i>Menu Role</a>
+                    <a type="button" class="btn btn-info col-12 my-1" href="{{ route('aplikasi.table', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fas fa-table mr-1"></i>Tabel Aplikasi</a>
+                    <a type="button" class="btn btn-info col-12 my-1" href="{{ route('aplikasi.ws.index', [Crypt::encrypt($data->id_aplikasi)]) }}"><i class="fa fa-connectdevelop mr-1"></i>Web Services</a>
                     @endif
                 </div>
                 <div class="col-md-10 col-12">
@@ -69,12 +70,12 @@
                                 <i class="fa fa-search search-icon"></i>
                             </button>
                         </div>
-                    </div> 
+                    </div>
                 </div>
             </div>
             <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover" id="table-pj" style="width: 100% !important">
-                    <thead></thead>
+                <table class="table table-borderless table-hover" id="table-pj" style="width: 100% !important">
+                    <thead class="bg-info"></thead>
                 </table>
             </div>
         </div>
@@ -100,12 +101,12 @@
                                 <i class="fa fa-search search-icon"></i>
                             </button>
                         </div>
-                    </div> 
+                    </div>
                 </div>
             </div>
             <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover" id="table-menu" style="width: 100% !important">
-                    <thead></thead>
+                <table class="table table-borderless table-hover" id="table-menu" style="width: 100% !important">
+                    <thead class="bg-info"></thead>
                 </table>
             </div>
         </div>
@@ -118,7 +119,7 @@
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
                         <span class="fw-mediumbold">
-                        Edit </span> 
+                        Edit </span>
                         <span class="fw-light">
                             Aplikasi
                         </span>
@@ -211,7 +212,7 @@
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
                         <span class="fw-mediumbold">
-                        APP </span> 
+                        APP </span>
                         <span class="fw-light">
                             KEY
                         </span>
@@ -264,7 +265,7 @@
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
                         <span class="fw-mediumbold">
-                        Hapus </span> 
+                        Hapus </span>
                         <span class="fw-light">
                             Aplikasi
                         </span>
@@ -417,7 +418,7 @@
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
                         <span class="fw-mediumbold">
-                        Delete </span> 
+                        Delete </span>
                         <span class="fw-light">
                             PJ Aplikasi
                         </span>
@@ -451,7 +452,7 @@
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
                         <span class="fw-mediumbold">
-                        Tambah </span> 
+                        Tambah </span>
                         <span class="fw-light">
                             Menu
                         </span>
@@ -550,7 +551,7 @@
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
                         <span class="fw-mediumbold">
-                        Delete </span> 
+                        Delete </span>
                         <span class="fw-light">
                             Menu
                         </span>
@@ -594,12 +595,12 @@
             },
             columns: [
                 { data: 'DT_RowIndex', orderable: false, searchable: false, width: '5px', title: 'No.' },
-                { data: 'nm_pj', title: 'Nama PJ' },
-                { data: 'email', title: 'Email' },
-                { data: 'no_hp', title: 'No. HP' },
+                { data: 'nm_pj', title: 'Penanggung Jawab' },
+                { data: 'email', title: 'Email', width: '5px', className: 'text-center' },
+                { data: 'no_hp', title: 'HP', width: '5px', className: 'text-center' },
                 {
                     data: 'id_pj_aplikasi',
-                    title: '#',
+                    title: 'Action',
                     width: '5px',
                     className: 'text-center',
                     render: function(data,type,row) {
@@ -608,8 +609,8 @@
                             var ws = "{{ route('aplikasi.pj_aplikasi.akses_ws.create', '') }}"+"/"+data;
                             btn += `
                                 <div class="btn-group">
-                                    <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        <i class="fas fa-info-circle mr-1"></i>Button
+                                    <button type="button" class="btn btn-link btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <i class="fas fa-cog"></i>
                                     </button>
                                     <div class="dropdown-menu dropdown-menu-right">
                                         <a class="dropdown-item" href="${ws}"><i class="fa fa-globe mr-1"></i>Akses WS</a>
@@ -641,7 +642,6 @@
                 { data: 'nm_menu', title: 'Nama Menu' },
                 { data: 'nm_file', title: 'Nama File' },
                 { data: 'icon', title: 'Icon' },
-                { data: 'urutan_menu', title: 'Urutan Menu' },
                 {
                     data: 'group_menu',
                     title: 'Group Menu',
@@ -652,31 +652,28 @@
                         return data;
                     }
                 },
+                { data: 'urutan_menu', title: 'Urutan', width: '5px', className: 'text-center' },
                 {
-                    data: 'a_aktif',
-                    title: 'Aktif ?',
+                    data: 'a_tampil',
+                    title: 'Tampil?',
+                    width: '5px',
+                    className: 'text-center',
                     render: function(data,type,row) {
-                        if(data==1) {
-                            return 'Ya';
-                        } else {
-                            return 'Tidak';
-                        }
+                        return data==1 ? `<span class="badge badge-success">Ya</span>` : `<span class="badge badge-danger">Tidak</span>`;
                     }
                 },
                 {
-                    data: 'a_tampil',
-                    title: 'Tampil ?',
+                    data: 'a_aktif',
+                    title: 'Status',
+                    width: '5px',
+                    className: 'text-center',
                     render: function(data,type,row) {
-                        if(data==1) {
-                            return 'Ya';
-                        } else {
-                            return 'Tidak';
-                        }
+                        return data==1 ? `<span class="badge badge-success">Aktif</span>` : `<span class="badge badge-danger">Tidak Aktif</span>`;
                     }
                 },
                 {
                     data: 'id_menu',
-                    title: '#',
+                    title: 'Action',
                     width: '5px',
                     className: 'text-center',
                     render: function(data,type,row) {
@@ -684,8 +681,8 @@
                         if(menus.a_boleh_insert==1) {
                             btn += `
                                 <div class="btn-group">
-                                    <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        <i class="fas fa-info-circle mr-1"></i>Button
+                                    <button type="button" class="btn btn-link btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <i class="fas fa-cog"></i>
                                     </button>
                                     <div class="dropdown-menu dropdown-menu-right">
                                         <button class="dropdown-item" id="editMenu" data-id="${data}" data-action="{{ route('menu.update', ':id') }}"><i class="fas fa-edit mr-1"></i>Edit</button>
@@ -726,7 +723,7 @@
                 $('#newPJ').show();
                 $('#nm_pj').attr('required', '');
                 $('#username').attr('required', '');
-                $('#jenis_kelamin').attr('required', ''); 
+                $('#jenis_kelamin').attr('required', '');
                 $('#no_hp').attr('required', '');
                 $('#email').attr('required', '');
             } else {

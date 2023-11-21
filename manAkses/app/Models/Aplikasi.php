@@ -15,7 +15,7 @@ class Aplikasi extends Model
     public $incrementing = false;
 
     public function unitorganisasi()
-    {   
+    {
     	return $this->belongsTo('App\Models\UnitOrganisasi','id_organisasi','id_organisasi');
     }
 
@@ -25,12 +25,12 @@ class Aplikasi extends Model
     }
 
     public function akses_table_aplikasi()
-    {   
+    {
     	return $this->hasMany('App\Models\AksesTableAplikasi','id_aplikasi','id_aplikasi');
     }
 
     public function largeobject()
-    {   
+    {
     	return $this->belongsTo('App\Models\LargeObject','id_blob','id_blob');
     }
 }
