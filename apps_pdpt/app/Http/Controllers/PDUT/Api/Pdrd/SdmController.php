@@ -256,6 +256,10 @@ class SdmController extends Controller
                 fak.nm_lemb AS fakultas,
                 jur.nm_lemb AS jurusan,
                 CONCAT(prodi.nm_lemb, ' (', jp.nm_jenj_didik, ')') AS prodi,
+                ptk.no_srt_tgs,
+                ptk.tgl_srt_tgs,
+                ptk.id_stat_pegawai,
+                ptk.id_ikatan_kerja,
                 sdm.create_date,
                 sdm.last_update
             FROM
@@ -389,6 +393,10 @@ class SdmController extends Controller
                     'fakultas' => $value->fakultas,
                     'jurusan' => $value->jurusan,
                     'prodi' => $value->prodi,
+                    'no_srt_tgs' => $value->no_srt_tgs,
+                    'tgl_srt_tgs' => $value->tgl_srt_tgs,
+                    'id_stat_pegawai' => $value->id_stat_pegawai,
+                    'id_ikatan_kerja' => $value->id_ikatan_kerja,
                     'waktu_data_ditambahkan' => $value->create_date,
                     'terakhir_diubah' => $value->last_update
                 ];

@@ -44,6 +44,10 @@ class AktAjarDosenTransformer
             'jml_tatap_muka_rencana' => $value->jml_tm_renc,
             'jml_tatap_muka_realisasi' => $value->jml_tm_real,
             'jml_mhs' => $value->jml_mhs,
+            'id_katgiat' => $value->id_katgiat,
+            'id_reg_ptk' => $value->id_reg_ptk,
+            'id_kls' => $value->id_kls,
+            'id_jns_eval' => $value->id_jns_eval,
             'waktu_data_ditambahkan' => date('Y-m-d H:i:s', strtotime($value->waktu_data_ditambahkan)),
             'terakhir_diubah' => date('Y-m-d H:i:s', strtotime($value->terakhir_diubah))
         ];

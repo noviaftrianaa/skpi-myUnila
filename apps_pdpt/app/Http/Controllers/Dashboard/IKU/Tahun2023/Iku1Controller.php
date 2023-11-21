@@ -81,7 +81,7 @@ class Iku1Controller extends Controller
                     ) THEN 1
                     WHEN tc.status_lulusan IN ('3')
                     AND (
-                        DATEDIFF(MONTH, rgpd.tgl_keluar, tc.wkt_masuk) < 12
+                        DATEDIFF(DAY, rgpd.tgl_keluar, tc.wkt_masuk) < 365
                     ) THEN 1
                     ELSE 0
                 END AS x_data_yes
@@ -199,7 +199,7 @@ class Iku1Controller extends Controller
                         OR tc.wkt_tunggu < 12
                     )
                     OR (
-                        DATEDIFF(MONTH, rgpd.tgl_keluar, tc.wkt_masuk) < 12
+                        DATEDIFF(DAY, rgpd.tgl_keluar, tc.wkt_masuk) < 365
                     ) THEN 'Ya'
                     ELSE 'Tidak'
                 END AS kerja_or_study_12_bln,
@@ -224,7 +224,7 @@ class Iku1Controller extends Controller
                     ) THEN 1
                     WHEN tc.status_lulusan IN ('3')
                     AND (
-                        DATEDIFF(MONTH, rgpd.tgl_keluar, tc.wkt_masuk) < 12
+                        DATEDIFF(DAY, rgpd.tgl_keluar, tc.wkt_masuk) < 365
                     ) THEN 1
                     ELSE 0
                 END AS x_data_yes

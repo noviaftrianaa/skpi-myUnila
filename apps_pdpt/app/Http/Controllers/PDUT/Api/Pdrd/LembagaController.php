@@ -417,6 +417,7 @@ class LembagaController extends Controller
                 sms.id_sms,
                 js.nm_jns_sms,
                 sms.id_fak_unila,
+                sms.id_sp,
                 sms.id_jur_unila,
                 sms.nm_lemb,
                 sms.smt_mulai,
@@ -450,6 +451,7 @@ class LembagaController extends Controller
 
         foreach ($listdata as $each_data) {
             $data[] = [
+                'id_sp' => $each_data->id_sp,
                 'id_sms' => $each_data->id_sms,
                 'nm_jns_sms' => $each_data->nm_jns_sms,
                 'nm_lemb' => $each_data->nm_lemb,

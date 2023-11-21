@@ -56,6 +56,10 @@ class AktAjarDosenController extends Controller
                 ajar_dosen.jml_tm_real,
                 ajar_dosen.jml_mhs,
                 CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS prodi,
+                ajar_dosen.id_katgiat,
+                ajar_dosen.id_reg_ptk,
+                ajar_dosen.id_kls,
+                ajar_dosen.id_jns_eval,
                 ajar_dosen.create_date AS waktu_data_ditambahkan,
                 ajar_dosen.last_update AS terakhir_diubah
             FROM

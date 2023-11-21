@@ -36,15 +36,15 @@ class NeoFeederSeeder extends Seeder
         $func = [
         //    'substansi_kuliah',
            'akt_mhs',
-        //    'ang_akt_mhs',
-        //    'konversi',
+           'ang_akt_mhs',
+           'konversi',
         //   'kurikulum',
         //    'mk_kurikulum',
         //    'rencana_ajar',
         //    'rencana_evaluasi',
             // 'nilai_kelas',
         //    'prestasi',
-        //    'ekuivalensi',
+           'ekuivalensi',
         //    'transkrip',
         //    'stat_mhs'
         ];

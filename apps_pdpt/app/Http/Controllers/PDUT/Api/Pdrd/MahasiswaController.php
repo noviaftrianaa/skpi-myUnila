@@ -185,7 +185,9 @@ class MahasiswaController extends Controller
                 jp.nm_jns_daftar,
                 pd.email,
                 jd.nm_jalur_daftar,
-                pmb.nm_pembiayaan
+                pmb.nm_pembiayaan,
+                pd.*,
+                reg.*
             FROM
                 pdrd.reg_pd as reg WITH(NOLOCK)
                 JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = reg.id_semester_masuk
@@ -201,7 +203,7 @@ class MahasiswaController extends Controller
                     GROUP BY
                         id_reg_pd
                 ) AS kuliah ON kuliah.id_reg_pd = reg.id_reg_pd
-                JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_smt = kuliah.smt
+                LEFT JOIN pdrd.kuliah_mhs AS kul WITH(NOLOCK) ON kul.id_smt = kuliah.smt
                 AND kul.id_reg_pd = kuliah.id_reg_pd
                 AND kul.soft_delete = 0
                 JOIN pdrd.satuan_pendidikan AS sp WITH(NOLOCK) ON sp.id_sp = reg.id_sp
@@ -218,9 +220,9 @@ class MahasiswaController extends Controller
                 AND jd.expired_date IS NULL
                 JOIN ref.pembiayaan AS pmb WITH(NOLOCK) ON pmb.id_pembiayaan = reg.id_pembiayaan
                 AND jd.expired_date IS NULL
-                JOIN ref.agama AS agama WITH(NOLOCK) ON agama.id_agama = pd.id_agama
+                LEFT JOIN ref.agama AS agama WITH(NOLOCK) ON agama.id_agama = pd.id_agama
                 AND agama.expired_date IS NULL
-                JOIN ref.status_mahasiswa AS sm WITH(NOLOCK) ON sm.id_stat_mhs = kul.id_stat_mhs
+                LEFT JOIN ref.status_mahasiswa AS sm WITH(NOLOCK) ON sm.id_stat_mhs = kul.id_stat_mhs
                 AND sm.expired_date IS NULL
             WHERE
                 reg.id_pd = '" . $idPesertaDidik . "'
@@ -233,54 +235,55 @@ class MahasiswaController extends Controller
 
         $data = [];
         foreach ($query as $each_data) {
-            $data[] = [
-                'id_peserta_didik' => $each_data->id_pd,
-                'id_reg_pd' => $each_data->id_reg_pd,
-                'NPM' => $each_data->npm,
-                'nama' => $each_data->nm_pd,
-                'program_studi' => $each_data->nm_prodi,
-                'status_sekarang' => $each_data->status_sekarang,
-                'tanggal_masuk' => $each_data->tgl_masuk_sp,
-                'periode_masuk' => $each_data->periode_masuk,
-                'nm_pt_asal' => $each_data->nm_pt_asal,
-                'nm_prodi_asal' => $each_data->nm_prodi_asal,
-                'tgl_keluar' => $each_data->tgl_keluar,
-                'keterangan' => $each_data->ket,
-                'skhun' => $each_data->skhun,
-                'no_peserta_ujian' => $each_data->no_peserta_ujian,
-                'no_seri_ijazah' => $each_data->no_seri_ijazah,
-                'asal_data_ijazah' => $each_data->asal_data_ijazah,
-                'bidang_mayor' => $each_data->bidang_mayor,
-                'bidang_minor' => $each_data->bidang_minor,
-                'sks_diakui' => $each_data->sks_diakui,
-                'jalur_skripsi' => $each_data->jalur_skripsi,
-                'judul_skripsi' => $each_data->judul_skripsi,
-                'bln_awal_bimbingan' => $each_data->bln_awal_bimbingan,
-                'bln_akhir_bimbingan' => $each_data->bln_akhir_bimbingan,
-                'sk_yudisium,' => $each_data->sk_yudisium,
-                'tgl_sk_yudisium' => $each_data->tgl_sk_yudisium,
-                'ipk' => $each_data->ipk,
-                'sert_prof' => $each_data->sert_prof,
-                'a_pindah_mhs_asing' => $each_data->a_pindah_mhs_asing,
-                'biaya_masuk_kuliah' => $each_data->biaya_masuk_kuliah,
-                'nm_lemb' => $each_data->nm_lemb,
-                'nik' => $each_data->nik,
-                'id_kk' => $each_data->id_kk,
-                'agama' => $each_data->nm_agama,
-                'jenis_kelamin' => $each_data->jk,
-                'email' => $each_data->email,
-                'no_telepon' => $each_data->tlpn_hp,
-                'telepon_rumah' => $each_data->tlpn_rumah,
-                'tempat_lahir' => $each_data->tmpt_lahir,
-                'tanggal_lahir' => $each_data->tgl_lahir,
-                'jln' => $each_data->jln,
-                'rt' => $each_data->rt,
-                'rw' => $each_data->rw,
-                'desa_kelurahan' => $each_data->ds_kel,
-                'nm_jns_daftar,' => $each_data->nm_jns_daftar,
-                'jalur daftar' => $each_data->nm_jalur_daftar,
-                'biaya_kuliah' => $each_data->nm_pembiayaan
-            ];
+            $data = $query;
+            // $data[] = [
+            //     'id_peserta_didik' => $each_data->id_pd,
+            //     'id_reg_pd' => $each_data->id_reg_pd,
+            //     'NPM' => $each_data->npm,
+            //     'nama' => $each_data->nm_pd,
+            //     'program_studi' => $each_data->nm_prodi,
+            //     'status_sekarang' => $each_data->status_sekarang,
+            //     'tanggal_masuk' => $each_data->tgl_masuk_sp,
+            //     'periode_masuk' => $each_data->periode_masuk,
+            //     'nm_pt_asal' => $each_data->nm_pt_asal,
+            //     'nm_prodi_asal' => $each_data->nm_prodi_asal,
+            //     'tgl_keluar' => $each_data->tgl_keluar,
+            //     'keterangan' => $each_data->ket,
+            //     'skhun' => $each_data->skhun,
+            //     'no_peserta_ujian' => $each_data->no_peserta_ujian,
+            //     'no_seri_ijazah' => $each_data->no_seri_ijazah,
+            //     'asal_data_ijazah' => $each_data->asal_data_ijazah,
+            //     'bidang_mayor' => $each_data->bidang_mayor,
+            //     'bidang_minor' => $each_data->bidang_minor,
+            //     'sks_diakui' => $each_data->sks_diakui,
+            //     'jalur_skripsi' => $each_data->jalur_skripsi,
+            //     'judul_skripsi' => $each_data->judul_skripsi,
+            //     'bln_awal_bimbingan' => $each_data->bln_awal_bimbingan,
+            //     'bln_akhir_bimbingan' => $each_data->bln_akhir_bimbingan,
+            //     'sk_yudisium,' => $each_data->sk_yudisium,
+            //     'tgl_sk_yudisium' => $each_data->tgl_sk_yudisium,
+            //     'ipk' => $each_data->ipk,
+            //     'sert_prof' => $each_data->sert_prof,
+            //     'a_pindah_mhs_asing' => $each_data->a_pindah_mhs_asing,
+            //     'biaya_masuk_kuliah' => $each_data->biaya_masuk_kuliah,
+            //     'nm_lemb' => $each_data->nm_lemb,
+            //     'nik' => $each_data->nik,
+            //     'id_kk' => $each_data->id_kk,
+            //     'agama' => $each_data->nm_agama,
+            //     'jenis_kelamin' => $each_data->jk,
+            //     'email' => $each_data->email,
+            //     'no_telepon' => $each_data->tlpn_hp,
+            //     'telepon_rumah' => $each_data->tlpn_rumah,
+            //     'tempat_lahir' => $each_data->tmpt_lahir,
+            //     'tanggal_lahir' => $each_data->tgl_lahir,
+            //     'jln' => $each_data->jln,
+            //     'rt' => $each_data->rt,
+            //     'rw' => $each_data->rw,
+            //     'desa_kelurahan' => $each_data->ds_kel,
+            //     'nm_jns_daftar,' => $each_data->nm_jns_daftar,
+            //     'jalur daftar' => $each_data->nm_jalur_daftar,
+            //     'biaya_kuliah' => $each_data->nm_pembiayaan
+            // ];
         }
 
         return WrapResponse(compact('data'), 'Berhasil mengambil data detail Mahasiswa');

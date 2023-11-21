@@ -42,10 +42,13 @@ class KelasController extends Controller
             $query = "
             SELECT
                 kk.id_kls,
+                kk.id_smt,
+                kk.id_sms,
                 smt.nm_smt,
                 CONCAT(sms.nm_lemb, ' (', jenjang.nm_jenj_didik, ')') AS nm_prodi,
                 kk.nm_kls,
                 mk.kode_mk,
+                mk.id_mk,
                 mk.nm_mk,
                 mk.sks_mk,
                 CASE
@@ -89,10 +92,13 @@ class KelasController extends Controller
             foreach ($kelas as $each_data) {
                 $data[] = [
                     'id_kls' => $each_data->id_kls,
+                    'id_smt' => $each_data->id_smt,
                     'nm_smt' => $each_data->nm_smt,
+                    'id_sms' => $each_data->id_sms,
                     'nm_prodi' => $each_data->nm_prodi,
                     'nm_kls' => $each_data->nm_kls,
                     'kode_mk' => $each_data->kode_mk,
+                    'id_mk' => $each_data->id_mk,
                     'nm_mk' => $each_data->nm_mk,
                     'sks_mk' => $each_data->sks_mk,
                     'status' => $each_data->status,
