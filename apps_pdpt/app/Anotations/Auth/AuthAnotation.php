@@ -13,7 +13,7 @@
  *      @OA\JsonContent(
  *          required={"email","password"},
  *          @OA\Property(property="id_aplikasi", type="uuid", format="text", example="948df317-78f7-4b92-a53f-0a56215e07de"),
- *          @OA\Property(property="username", type="string", format="email", example="rio.ananda@staff.unila.ac.id"),
+ *          @OA\Property(property="username", type="string", format="email", example="mizar.zulmi"),
  *          @OA\Property(property="password", type="string", format="password", example="12345678"),
  *      ),
  *  ),

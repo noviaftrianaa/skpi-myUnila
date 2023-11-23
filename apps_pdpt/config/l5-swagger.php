@@ -5,7 +5,7 @@ return [
     'documentations' => [
         'sandbox' => [
             'api' => [
-                'title' => 'ONE DATA Web Service Sandbox 0.1',
+                'title' => 'MY UNILA Web Service Sandbox 0.1',
             ],
             'routes' => [
                 'api' => 'api/sandbox/0.1',
@@ -40,7 +40,7 @@ return [
         ],
         'live' => [
             'api' => [
-                'title' => 'ONEDATA Web Service Live 0.1',
+                'title' => 'MY UNILA Web Service Live 0.1',
             ],
             'routes' => [
                 'api' => 'api/live/0.1',
@@ -70,7 +70,7 @@ return [
             'validator_url' => null,
             'persist_authorization' => true,
             'constants' => [
-                'L5_SWAGGER_CONST_HOST_LIVE' => env('L5_SWAGGER_CONST_HOST_LIVE', 'http://onedata.unila.ac.id'),
+                'L5_SWAGGER_CONST_HOST_LIVE' => env('L5_SWAGGER_CONST_HOST_LIVE', 'http://myunila.unila.ac.id'),
             ]
         ],
     ]

@@ -5,7 +5,7 @@ class SandboxController
     /**
      * @OA\Info(
      *      version="0.1.0",
-     *      title="One Data UNILA - Sandbox Web Service",
+     *      title="MY UNILA - Sandbox Web Service",
      *      description="Versi 0.1.0",
      *      @OA\Contact(
      *          email="mahendra.pratama15@eng.unila.ac.id"
@@ -26,7 +26,7 @@ class SandboxController
      *
      * @OA\SecurityScheme(
      *     type="apiKey",
-     *     description="OneData WebService Auth",
+     *     description="MyUnila WebService Auth",
      *     in="header",
      *     securityScheme="token",
      *     name="Authorization"

@@ -7,7 +7,7 @@
         <!-- <p class="mb-1 mb-sm-0 h-1 mt-auto">
             @<img src="{{ asset('images/sima-sso.png') }}" title="Manajemen Akses" class="img-fluid" />
         </p> -->
-        <p class="mb-1 mb-sm-0 h-1 mt-auto">ONE DATA UNIVERSITAS LAMPUNG</p>
+        <p class="mb-1 mb-sm-0 h-1 mt-auto">MY UNILA - UNIVERSITAS LAMPUNG</p>
         <!-- <p class="mb-1 mb-sm-0 h-1">Universitas Lampung</p> -->
 
         <div class="card-mobile d-flex flex-column">
