@@ -117,10 +117,12 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                     Route::delete('destroy/{id}', [PJAplikasiController::class, 'destroy'])->name('destroy');
 
                     Route::prefix('akses_ws')->name('akses_ws.')->group(function() {
-                        Route::get('/{id}', [AksesWSController::class, 'create'])->name('create');
-                        Route::put('/{id}', [AksesWSController::class, 'store'])->name('store');
-                        Route::get('/{id}/body', [AksesWSController::class, 'body'])->name('body');
-                        Route::get('/{id}/terms', [AksesWSController::class, 'terms'])->name('terms');
+                        Route::get('/{id}', [AksesWSController::class, 'index'])->name('index');
+                        Route::get('/create/{id}', [AksesWSController::class, 'create'])->name('create');
+                        Route::get('/edit/{id}', [AksesWSController::class, 'edit'])->name('edit');
+                        Route::put('/store/{id}', [AksesWSController::class, 'store'])->name('store');
+                        // Route::get('/body/{id}', [AksesWSController::class, 'body'])->name('body');
+                        // Route::get('/{id}/terms', [AksesWSController::class, 'terms'])->name('terms');
                     });
                 });
 

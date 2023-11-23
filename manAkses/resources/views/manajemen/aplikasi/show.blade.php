@@ -613,13 +613,14 @@
                                         <i class="fas fa-cog"></i>
                                     </button>
                                     <div class="dropdown-menu dropdown-menu-right">
-                                        <a class="dropdown-item" href="${ws}"><i class="fa fa-globe mr-1"></i>Akses WS</a>
-                                        <div class="dropdown-divider"></div>
                                         <button class="dropdown-item" id="editPJ" data-id="${data}" data-pengguna="${row.id_pengguna}" data-jabatan="${row.jabatan_pj}" data-aktif="${row.a_masih}" data-expired="${row.wkt_selesai}"><i class="fa fa-edit mr-1"></i>Edit</button>
                                         <button class="dropdown-item text-danger" id="deletePJ" data-id="${data}" data-nama="${row.nm_pj}"><i class="fas fa-trash-alt mr-1"></i>Delete</button>
                                     </div>
                                 </div>
                             `;
+
+                            // <div class="dropdown-divider"></div>
+                            // <a class="dropdown-item" href="${ws}"><i class="fa fa-globe mr-1"></i>Akses WS</a>
                         }
                         return btn;
                     }

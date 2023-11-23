@@ -139,9 +139,17 @@
         </div><!-- /.card-header -->
         <div class="card-body">
             <div class="d-lg-flex d-block">
+                <div class="col-2">
+                    <a type="button" href="{{ route('aplikasi.detail', Crypt::encrypt($id)) }}" class="btn btn-default col-12" id="btnBack"><i class="fa fa-arrow-left"></i> Kembali</a>
+                </div>
                 @if($menus->a_boleh_insert == "1")
                 <div class="col-2">
-                    <button class="btn btn-info col-12" id="btnTambah"><i class="fa fa-plus"></i> Tambah Data</button>
+                    <button class="btn btn-info col-12" id="btnTambah"><i class="fa fa-plus"></i> Tambah</button>
+                </div>
+                @endif
+                @if($menus->a_boleh_insert == "1")
+                <div class="col-2">
+                    <a href="{{ route('aplikasi.pj_aplikasi.akses_ws.index', Crypt::encrypt($id)) }}" type="button" class="btn btn-primary col-12" id="btnAksesWS"><i class="fa fa-users"></i> Hak Akses WS</a>
                 </div>
                 @endif
                 <div class="ml-auto px-2">

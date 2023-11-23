@@ -18,4 +18,9 @@ class WSEndpoint extends Model
     {
         return $this->belongsTo('\App\Models\WSEndpointBody','id_ws_endpoint','id_ws_endpoint');
     }
+
+    public function authorization()
+    {
+        return $this->belongsTo('\App\Models\WSAuthorization','id_ws_endpoint','id_ws_endpoint');
+    }
 }

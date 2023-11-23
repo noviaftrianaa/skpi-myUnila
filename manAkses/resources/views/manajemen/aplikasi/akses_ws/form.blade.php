@@ -1,59 +1,112 @@
 @extends('template.default.app')
-@section('title','WS Access Permission | '.$pj->aplikasi->nm_aplikasi)
+@section('title','WS Access Permission | '.$aplikasi->nm_aplikasi)
 
 @push('css')
-<link href="{{asset('bower_components/datatables/media/css/dataTables.bootstrap.css')}}" rel="stylesheet">
-<link href="{{asset('bower_components/datatables/RowGroup/css/rowGroup.dataTables.min.css')}}" rel="stylesheet">
+<style>
+    ul {
+        list-style-type: none;
+        columns: 3;
+        -webkit-columns: 3;
+        -moz-columns: 3;
+    }
+    .checkbox {
+        $block: &;
+
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+
+        &__input {
+            position: absolute;
+            width: 1.375em;
+            height: 1.375em;
+            opacity: 0;
+            cursor: pointer;
+
+            &:checked + #{$block}__icon .tick {
+            stroke-dashoffset: 0;
+            }
+        }
+
+        &__icon {
+            width: 1.375em;
+            height: 1.375em;
+            flex-shrink: 0;
+            overflow: visible;
+
+            .tick {
+            stroke-dasharray: 20px;
+            stroke-dashoffset: 20px;
+            transition: stroke-dashoffset .2s ease-out;
+            }
+        }
+
+        &__label {
+            margin-left: 0.5em;
+        }
+    }
+</style>
 @endpush
 
 @section('content')
     <div class="card card-info">
         <div class="card-header">
-            <h3 class="card-title"><i class="fa fa-list mr-2"></i> WS Access Permission | {!! $pj->aplikasi->nm_aplikasi !!}</h3>
+            <h3 class="card-title"><i class="fa fa-list mr-2"></i> WS Access Permission | {!! $aplikasi->nm_aplikasi !!}</h3>
         </div><!-- /.card-header -->
         <div class="card-body">
             <form action="{{ route('aplikasi.pj_aplikasi.akses_ws.store', Crypt::encrypt($id)) }}" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="_method" value="PUT">
-                <input type="hidden" name="id_pengguna" value="{{ $pj->id_pengguna }}">
-                <input type="hidden" name="id_aplikasi" value="{{ $pj->aplikasi->id_aplikasi }}">
+                <input type="hidden" name="id_pengguna" value="{{ $pengguna->id_pengguna }}">
+                <input type="hidden" name="id_aplikasi" value="{{ $aplikasi->id_aplikasi }}">
 
                 <div class="row text-md">
                     <div class="col-sm-12">
                         <div class="form-group row">
                             <label class="col-2">Pengguna</label>
                             <div class="col-10">
-                                <input class="form-control-plaintext" value="{{ $pj->user->nm_pengguna }}" readonly>
+                                <input class="form-control-plaintext" value="{{ $pengguna->nm_pengguna }}" readonly>
                             </div>
                         </div>
                         <div class="form-group row">
                             <label class="col-2">Aplikasi</label>
                             <div class="col-10">
-                                <input class="form-control-plaintext" value="{{ $pj->aplikasi->nm_aplikasi }}" readonly>
+                                <input class="form-control-plaintext" value="{{ $aplikasi->nm_aplikasi }}" readonly>
                             </div>
                         </div>
-                        <div class="form-group row">
-                            <label class="col-2">
-                                Akses WS<span class="required-label">*</span>
-                            </label>
-                            <div class="col-10">
-                                <a class="btn btn-info" id="addAkses" href="#"><i class="fas fa-plus"></i> Tambah Akses</a>
-                            </div>
-                        </div>
+                        <hr>
                     </div>
-
                     <div class="col-12">
-                        <table class="table table-bordered table-hover" id="table-data" style="width: 100% !important;">
-                            <thead>
-                                <tr>
-                                    <th>Endpoint</th>
-                                    <th>Request Body & Terms</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="datas">
-                            </tbody>
-                        </table>
+                        <div class="form-group row">
+                            <label class="col-2">GROUP</label>
+                            <div class="col-10">
+                                <label>ENDPOINT</label>
+                            </div>
+                        </div>
+                        <hr>
+                        @forelse ($endpoint as $method=>$ws)
+                        <div class="form-group row">
+                            <div class="Checkbox-parent Accordion col-2">
+                                <input class="checkbox__input mr-1" type="checkbox" id="{{$method}}" {{in_array(1, array_column($ws->toArray(), 'aktif'))==true?'checked':''}} />
+                                <span class="checkbox__label">
+                                    <strong>{{ strtoupper($method) }}</strong>
+                                    <a href="#" class="btn btn-link btnShow" data-id="{{$method}}" id="btn{{$method}}">{{in_array(1, array_column($ws->toArray(), 'aktif'))==true?'hide':'show'}}</a></span>
+                            </div>
+                            <div class="Accordion-panel collapse {{in_array(1, array_column($ws->toArray(), 'aktif'))==true?'show':''}} col-10" id="{{$method}}-collapse">
+                                <ul class="Checkbox-child">
+                                    @foreach ($ws as $no=>$item)
+                                    <li>
+                                        <input class="checkbox__input" type="checkbox" name="ws[]" value="{{ $item->id_ws_endpoint }}" {{ $item->aktif==1?'checked':'' }} />
+                                        <span class="checkbox__label">[{{ $item->nm_method }}] {{ $item->path_url }}</span>
+                                    </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+                        <hr>
+                        @empty
+                        <h3 class="text-center">TIDAK ADA ENDPOINT TERDATA !!!</p>
+                        @endforelse
                     </div>
                 </div>
 
@@ -66,143 +119,82 @@
     </div>
 @endsection
 
-@push("js")
-<script type="text/javascript" src="{{ asset('bower_components/datatables/media/js/jquery.dataTables.min.js')}}"></script>
-<script type="text/javascript" src="{{ asset('bower_components/datatables/media/js/dataTables.bootstrap4.min.js')}}"></script>
+@push('js')
 <script>
-    $(document).ready(function () {
-        var ws = <?php echo json_encode($authorization) ?>;
+    $(document).ready(function() {
 
-        let t = $('#table-data').DataTable({
-            processing: true,
-            paging: false,
-            pagingType: "simple",
-            sDom: 'rt<"row"<"col-sm-12 col-md-3"l><"col-sm-12 col-md-3"i><"col-sm-12 col-md-6"p>>'
-        } );
+        $('.btnShow').on('click', function() {
+            var id = $(this).data('id');
+            if($(this).html() == "show") {
+                $('#'+id+'-collapse').addClass('show');
+                $(this).html('hide');
+            } else {
+                $('#'+id+'-collapse').removeClass('show');
+                $(this).html('show');
+            }
 
-        var counter = 1;
+        });
 
-        if(ws.length > 0) {
-            $.each(ws, function(index, item) {
-                $.ajax({
-                    url: '/aplikasi/pj_aplikasi/akses_ws/'+item.id_ws_endpoint+'/body',
-                    type: 'GET',
-                    success: function(response) {
-                        t.row.add(
-                            [
-                                cEndpoint(counter, exists = item.id_ws_endpoint),
-                                cBody(counter, response, exists = item.terms),
-                                cAction(counter)
-                            ]
-                        ).draw(true);
+        $(".Checkbox-parent input").on('click',function(){
+            var _parent=$(this);
+            var nextli=$(this).parent().next().children().children();
+            var id = this.id;
 
-                        $(".endpoint").select2();
-                        $('.endpoint').on('change', function() {
-                            var id = $(this).data('id');
-                            var value = $(this).val();
-                            var row = $(this).closest('tr');
-                            var cell = t.cell(row, 1);
-                            if(value!=null) {
-                                $.ajax({
-                                    url: '/aplikasi/pj_aplikasi/akses_ws/'+value+'/body',
-                                    type: 'GET',
-                                    success: function(response) {
-                                        cell.data(null);
-                                        cell.data(cBody(id, response));
-                                    }
-                                });
-                            }
-                        });
-
-                        counter++;
-                    }
+            if(_parent.prop('checked')){
+                console.log('Checkbox-parent checked');
+                nextli.each(function(){
+                    $(this).children().prop('checked',true);
                 });
-            })
-        }
 
-        $('#addAkses').on('click', function() {
+                $('#'+id+'-collapse').addClass('show');
+                $('#btn'+id).html('hide');
 
-            t.row.add(
-                [
-                    cEndpoint(counter),
-                    null,
-                    cAction(counter)
-                ]
-            ).draw(true);
+            } else {
+                console.log('Checkbox-parent un checked');
+                nextli.each(function(){
+                    $(this).children().prop('checked',false);
+                });
 
-            $(".endpoint").select2();
-            $('.endpoint').on('change', function() {
-                var id = $(this).data('id');
-                var value = $(this).val();
-                var row = $(this).closest('tr');
-                var cell = t.cell(row, 1);
-                if(value!=null) {
-                    $.ajax({
-                        url: '/aplikasi/pj_aplikasi/akses_ws/'+value+'/body',
-                        type: 'GET',
-                        success: function(response) {
-                            cell.data(cBody(id, response));
-                        }
-                    });
+                $('#'+id+'-collapse').removeClass('show');
+                $('#btn'+id).html('show');
+            }
+        });
+
+        $(".Checkbox-child input").on('click',function(){
+            var ths=$(this);
+            var parentinput=ths.closest('div').prev().children();
+            var sibblingsli=ths.closest('ul').find('li');
+
+            if(ths.prop('checked')){
+                console.log('Checkbox-child checked');
+                parentinput.prop('checked',true);
+            }
+            else{
+                console.log('Checkbox-child unchecked');
+                var status=true;
+                sibblingsli.each(function(){
+                    console.log('sibb');
+                    if($(this).children().prop('checked')) status=false;
+                });
+                if(status) parentinput.prop('checked',false);
+            }
+        });
+
+        // show hide accordion
+        var acc = document.getElementsByClassName("Accordion");
+        var i;
+
+        for (i = 0; i < acc.length; i++) {
+            acc[i].addEventListener("click", function() {
+                this.classList.toggle("Accordion--active");
+                var panel = this.nextElementSibling;
+                if (panel.style.maxHeight){
+                    panel.style.maxHeight = null;
+                } else {
+                    panel.style.maxHeight = panel.scrollHeight + "px";
                 }
             });
-
-            counter++;
-        });
-    });
-
-    function cEndpoint(counter, exists = '')
-    {
-        var data = <?php echo json_encode($data) ?>;
-        var html = '';
-        html += '<select class="form-control select2bs4 endpoint" data-id="'+counter+'" name="ws['+counter+'][id]" required>';
-        if(exists == null) {
-            $.each(data, function(index, item) {
-                html += '<option value="'+item.id_ws_endpoint+'">['+item.nm_method+'] ['+item.nm_group+'] [<span class="text-muted">'+item.path_url+'</span>]</option>';
-            })
-        } else {
-            $.each(data, function(index, item) {
-                if(item.id_ws_endpoint == exists) {
-                    html += '<option value="'+item.id_ws_endpoint+'" selected>['+item.nm_method+'] ['+item.nm_group+'] [<span class="text-muted">'+item.path_url+'</span>]</option>';
-                } else {
-                    html += '<option value="'+item.id_ws_endpoint+'">['+item.nm_method+'] ['+item.nm_group+'] [<span class="text-muted">'+item.path_url+'</span>]</option>';
-                }
-            })
         }
-        html += '</select>';
-
-        return html;
-    }
-
-    function cBody(id, data, exists = '')
-    {
-        var html = '';
-        html += '<table class="table table-borderless">';
-        html += '<thead><tr><th></th><th>Endpoint Body</th><th>Operator</th><th>Terms</th></tr></thead>'
-        html += '<tbody>';
-        $.each(data, function(index, item) {
-            var logic = (exists[index] != undefined) ? exists[index].terms_logic : '';
-            var values = (exists[index] != undefined) ? exists[index].terms_values : '';
-            html += '<tr>';
-            if(exists[index] != undefined && exists[index].id_ws_endpoint_body==item.id_ws_endpoint_body) {
-                html += '<td><input class=".checkItem" type="checkbox" name="ws['+id+'][body]['+item.id_ws_endpoint_body+']" checked></td>';
-            } else {
-                html += '<td><input class=".checkItem" type="checkbox" name="ws['+id+'][body]['+item.id_ws_endpoint_body+']"></td>';
-            }
-            html += '<td>'+item.nm_req+' ['+item.type_data+']</td>';
-            html += '<td><select class="form-control input-sm" name="ws['+id+'][body]['+item.id_ws_endpoint_body+'][]"><option value="equals">equals [==]</option><option value="does_not_equal">does_not_equal [!=]</option><option value="contains">contains [str_contains]</option><option value="does_not_contain">does_not_contain [!str_contains]</option><option value="greater_than">greater_than [>]</option><option value="less_than">less_than [<]</option><option value="greater_than_or_equal_to">greater_than_or_equal_to [>=]</option><option value="less_than_or_equal_to">less_than_or_equal_to [<=]</option><option value="is_in">is_in [in_array]</option><option value="is_not_in">is_not_in [!in_array]</option></select></td>';
-            html += '<td><input type="text" class="form-control input-sm" name="ws['+id+'][body]['+item.id_ws_endpoint_body+'][]"></td>';
-        })
-        html += '</tbody>';
-        html += '</table>';
-        return html;
-    }
-
-    function cAction(counter)
-    {
-        var html = '';
-        html += '<a href="#" class="btn btn-danger btnDelete" data-id="'+counter+'"><i class="fas fa-trash-alt"></i> Delete</a>';
-        return html;
-    }
+    });
 </script>
 @endpush
