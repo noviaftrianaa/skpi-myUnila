@@ -14,7 +14,7 @@
                 </div>
                 @if($menus->a_boleh_insert == "1")
                 <div class="col-2">
-                    <a href="" class="btn btn-info col-12" id="btnTambah"><i class="fa fa-plus"></i> Tambah</a>
+                    <a href="{{ route('aplikasi.pj_aplikasi.akses_ws.create', Crypt::encrypt($id)) }}" class="btn btn-info col-12" id="btnTambah"><i class="fa fa-plus"></i> Tambah</a>
                 </div>
                 @endif
                 <div class="ml-auto px-2">
@@ -42,7 +42,7 @@
                                 <td>{{ strtoupper($item->nm_pengguna) }}</td>
                                 <td>
                                     <a href="{{ route('aplikasi.pj_aplikasi.akses_ws.edit', Crypt::encrypt([$id, $item->id_pengguna])) }}" class="btn btn-default btn-xs" title="Edit"><i class="fas fa-edit mr-1"></i>Edit</a>
-                                    <button class="btn btn-danger btn-xs" title="Delete" data-toggle="modal" data-target="#deleteMdl"><i class="fas fa-trash-alt mr-1"></i>Delete</a>
+                                    <button class="btn btn-danger btn-xs" title="Delete" data-toggle="modal" data-target="#deleteMdl{{$no}}"><i class="fas fa-trash-alt mr-1"></i>Delete</a>
                                 </td>
                             </tr>
                         @endforeach
@@ -53,7 +53,7 @@
     </div>
 
     @foreach ($data as $no=>$items)
-    <div class="modal fade" id="deleteMdl" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal fade" id="deleteMdl{{$no}}" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header no-bd">
@@ -65,12 +65,12 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form id="formDeleteMdl" method="post" enctype="multipart/form-data">
+                    <form action="{{ route('aplikasi.pj_aplikasi.akses_ws.delete', Crypt::encrypt([$id, $items->id_pengguna])) }}" method="post" enctype="multipart/form-data">
                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="_method" value="DELETE">
                         <div class="row">
                             <div class="col-sm-12">
-                                <p>Apakah yakin ingin menghapus akses web services atas nama "<strong>{{ strtoupper($items->nm_pengguna) }}</strong>" ?</p>
+                                <h4>Apakah yakin ingin menghapus akses web services atas nama "<strong>{{ strtoupper($items->nm_pengguna) }}</strong>" ?</h4>
                             </div>
                         </div>
                         <div class="modal-footer no-bd">

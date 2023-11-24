@@ -3,47 +3,11 @@
 
 @push('css')
 <style>
-    ul {
+    .Accordion-panel > ul {
         list-style-type: none;
         columns: 3;
         -webkit-columns: 3;
         -moz-columns: 3;
-    }
-    .checkbox {
-        $block: &;
-
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-
-        &__input {
-            position: absolute;
-            width: 1.375em;
-            height: 1.375em;
-            opacity: 0;
-            cursor: pointer;
-
-            &:checked + #{$block}__icon .tick {
-            stroke-dashoffset: 0;
-            }
-        }
-
-        &__icon {
-            width: 1.375em;
-            height: 1.375em;
-            flex-shrink: 0;
-            overflow: visible;
-
-            .tick {
-            stroke-dasharray: 20px;
-            stroke-dashoffset: 20px;
-            transition: stroke-dashoffset .2s ease-out;
-            }
-        }
-
-        &__label {
-            margin-left: 0.5em;
-        }
     }
 </style>
 @endpush
@@ -57,46 +21,49 @@
             <form action="{{ route('aplikasi.pj_aplikasi.akses_ws.store', Crypt::encrypt($id)) }}" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="_method" value="PUT">
-                <input type="hidden" name="id_pengguna" value="{{ $pengguna->id_pengguna }}">
                 <input type="hidden" name="id_aplikasi" value="{{ $aplikasi->id_aplikasi }}">
 
                 <div class="row text-md">
                     <div class="col-sm-12">
                         <div class="form-group row">
-                            <label class="col-2">Pengguna</label>
-                            <div class="col-10">
-                                <input class="form-control-plaintext" value="{{ $pengguna->nm_pengguna }}" readonly>
+                            <label class="col-3">Pengguna</label>
+                            <div class="col-9">
+                                <select class="form-control select2" id="searchIdPengguna" name="id_pengguna" data-placeholder="Choose" required>
+                                    <option></option>
+                                    @foreach ($pengguna AS $no=>$item)
+                                    <option value="{{$item->id_pengguna}}">{{$item->nm_pengguna}}</option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="col-2">Aplikasi</label>
-                            <div class="col-10">
+                            <label class="col-3">Aplikasi</label>
+                            <div class="col-9">
                                 <input class="form-control-plaintext" value="{{ $aplikasi->nm_aplikasi }}" readonly>
                             </div>
                         </div>
                         <hr>
                     </div>
                     <div class="col-12">
-                        <div class="form-group row">
-                            <label class="col-2">GROUP</label>
-                            <div class="col-10">
+                        <div class="form-group row bg-info p-1">
+                            <label class="col-3">GROUP</label>
+                            <div class="col-9">
                                 <label>ENDPOINT</label>
                             </div>
                         </div>
-                        <hr>
                         @forelse ($endpoint as $method=>$ws)
                         <div class="form-group row">
-                            <div class="Checkbox-parent Accordion col-2">
-                                <input class="checkbox__input mr-1" type="checkbox" id="{{$method}}" {{in_array(1, array_column($ws->toArray(), 'aktif'))==true?'checked':''}} />
+                            <div class="Checkbox-parent Accordion col-3">
+                                <input class="checkbox__input mr-1" type="checkbox" id="{{$method}}" />
                                 <span class="checkbox__label">
                                     <strong>{{ strtoupper($method) }}</strong>
-                                    <a href="#" class="btn btn-link btnShow" data-id="{{$method}}" id="btn{{$method}}">{{in_array(1, array_column($ws->toArray(), 'aktif'))==true?'hide':'show'}}</a></span>
+                                    <a href="#" class="btn btn-link btnShow" data-id="{{$method}}" id="btn{{$method}}">show</a></span>
                             </div>
-                            <div class="Accordion-panel collapse {{in_array(1, array_column($ws->toArray(), 'aktif'))==true?'show':''}} col-10" id="{{$method}}-collapse">
-                                <ul class="Checkbox-child">
+                            <div class="Accordion-panel collapse col-9" id="{{$method}}-collapse">
+                                <ul class="Checkbox-child p-0">
                                     @foreach ($ws as $no=>$item)
                                     <li>
-                                        <input class="checkbox__input" type="checkbox" name="ws[]" value="{{ $item->id_ws_endpoint }}" {{ $item->aktif==1?'checked':'' }} />
+                                        <input class="checkbox__input" type="checkbox" name="ws[]" onChange="this.form.submit()" value="{{ $item->id_ws_endpoint }}" {{ $item->aktif==1?'checked':'' }} />
                                         <span class="checkbox__label">[{{ $item->nm_method }}] {{ $item->path_url }}</span>
                                     </li>
                                     @endforeach

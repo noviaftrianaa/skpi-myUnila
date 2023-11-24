@@ -48,11 +48,15 @@ class AksesWSController extends Controller
 
     public function create($id)
     {
+        $id_aplikasi = \Crypt::decrypt($id);
+
+        $d['aplikasi'] = Aplikasi::findOrFail($id_aplikasi);
+        $d['pengguna'] = \App\Models\User::where('soft_delete', 0)->where('a_aktif', 1)->orderBy('nm_pengguna','ASC')->get();
         $d['id'] = $id;
-        $d['pj'] = PJAplikasi::with("user","aplikasi")->where('id_pj_aplikasi',$id)->first();
-        $d['data'] = WSEndpoint::with("req.terms")->where('soft_delete',0)->where('a_active',1)->orderBy('nm_group')->get();
-        $d['authorization'] = WSAuthorization::with('terms')->where('soft_delete',0)->where('a_active',1)->where('id_pengguna', \Auth::user()->id_pengguna)->where('id_aplikasi', $d['pj']->aplikasi->id_aplikasi)->get();
-        // dd($d['authorization']->toArray());
+
+        $endpoint = WSEndpoint::where('soft_delete',0)->where('a_active',1)->orderBy('nm_group')->orderBy('nm_method')->get();
+        $d['endpoint'] = collect($endpoint)->groupBy('nm_group');
+
         return view('manajemen.aplikasi.akses_ws.form', $d);
     }
 
@@ -70,12 +74,12 @@ class AksesWSController extends Controller
             SELECT
                 wse.*,
                 CASE
-                    WHEN wsa.id_ws_authorization IS NOT NULL THEN 1
+                    WHEN wsa.id_ws_endpoint IS NOT NULL THEN 1
                     ELSE 0
                 END AS aktif
             FROM
                 man_akses.ws_endpoint as wse
-                LEFT JOIN man_akses.ws_authorization AS wsa ON wsa.id_ws_endpoint=wse.id_ws_endpoint AND wsa.id_aplikasi='".$id_aplikasi."' AND wsa.id_pengguna='".$id_pengguna."'
+                LEFT JOIN man_akses.ws_authorization AS wsa ON wsa.id_ws_endpoint=wse.id_ws_endpoint AND wsa.id_aplikasi='".$id_aplikasi."' AND wsa.id_pengguna='".$id_pengguna."' AND wsa.soft_delete=0 AND wsa.a_active=1
             WHERE
                 wse.soft_delete=0
                 AND wse.a_active=1
@@ -87,7 +91,7 @@ class AksesWSController extends Controller
         $d['endpoint'] = collect($endpoint)->groupBy('nm_group');
         // dd($d, $endpoint);
 
-        return view('manajemen.aplikasi.akses_ws.form', $d);
+        return view('manajemen.aplikasi.akses_ws.edit', $d);
     }
 
     public function body($id)
@@ -106,7 +110,7 @@ class AksesWSController extends Controller
         ]);
 
         $input = $request->all();
-        dd($input);
+        // dd($input['ws']);
 
         if(count($input['ws']) == 0) {
             alert()->error('Tidak ada akses web services yang dipilih!');
@@ -114,30 +118,59 @@ class AksesWSController extends Controller
         }
 
         foreach($input['ws'] AS $r) {
-            $authorization = WSAuthorization::create([
-                'id_ws_authorization'   => guid(),
-                'id_pengguna'           => $input['id_pengguna'],
-                'id_aplikasi'           => $input['id_aplikasi'],
-                'id_ws_endpoint'        => $r['id'],
-                'a_active'              => 1,
-                'created_at'            => now()
-            ]);
-
-            foreach($r['body'] AS $s=>$t) {
-                if($t[1] != null) {
-                    WSEndpointBodyTerms::create([
-                        'id_ws_endpoint_body_terms' => guid(),
-                        'id_ws_authorization'       => $authorization->id_ws_authorization,
-                        'id_ws_endpoint_body'       => $s,
-                        'terms_logic'               => $t[0],
-                        'terms_value'               => $t[1],
-                        'created_at'                => now()
-                    ]);
-                }
+            $authorization = WSAuthorization::where('id_ws_endpoint', $r)->where('id_pengguna', $input['id_pengguna'])->where('id_aplikasi', $input['id_aplikasi'])->first();
+            if(is_null($authorization)) {
+                $authorization = WSAuthorization::create([
+                    'id_ws_authorization'   => guid(),
+                    'id_pengguna'           => $input['id_pengguna'],
+                    'id_aplikasi'           => $input['id_aplikasi'],
+                    'id_ws_endpoint'        => $r,
+                    'a_active'              => 1,
+                    'created_at'            => now()
+                ]);
+            } else {
+                $authorization->a_active = 1;
+                $authorization->save();
             }
+
+            // foreach($r['body'] AS $s=>$t) {
+            //     if($t[1] != null) {
+            //         WSEndpointBodyTerms::create([
+            //             'id_ws_endpoint_body_terms' => guid(),
+            //             'id_ws_authorization'       => $authorization->id_ws_authorization,
+            //             'id_ws_endpoint_body'       => $s,
+            //             'terms_logic'               => $t[0],
+            //             'terms_value'               => $t[1],
+            //             'created_at'                => now()
+            //         ]);
+            //     }
+            // }
         }
+
+        $disableAuthorization = WSAuthorization::where('id_pengguna', $input['id_pengguna'])->where('id_aplikasi', $input['id_aplikasi'])->whereNotIn('id_ws_endpoint', $input['ws'])->update(
+            [
+                'a_active'              => 0
+            ]
+        );
 
         alert()->success('Sukses menambahkan hak akses web services');
         return redirect()->route('aplikasi.detail', Crypt::encrypt($input['id_aplikasi']));
+    }
+
+    public function delete($id)
+    {
+        $array = \Crypt::decrypt($id);
+        $id_aplikasi = $array[0];
+        $id_pengguna = $array[1];
+
+        $data = WSAuthorization::where('id_aplikasi', $id_aplikasi)->where('id_pengguna', $id_pengguna)->pluck('id_ws_authorization');
+        if(is_null($data)) {
+            alert()->error('Data tidak ditemukan!');
+        } else {
+            $delete = WSAuthorization::whereIn('id_ws_authorization', $data)->delete();
+            alert()->success('Sukses menghapus hak akses web services');
+        }
+
+        return redirect()->route('aplikasi.detail', Crypt::encrypt($id_aplikasi));
     }
 }

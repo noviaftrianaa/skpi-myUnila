@@ -121,6 +121,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                         Route::get('/create/{id}', [AksesWSController::class, 'create'])->name('create');
                         Route::get('/edit/{id}', [AksesWSController::class, 'edit'])->name('edit');
                         Route::put('/store/{id}', [AksesWSController::class, 'store'])->name('store');
+                        Route::delete('/delete/{id}', [AksesWSController::class, 'delete'])->name('delete');
                         // Route::get('/body/{id}', [AksesWSController::class, 'body'])->name('body');
                         // Route::get('/{id}/terms', [AksesWSController::class, 'terms'])->name('terms');
                     });
