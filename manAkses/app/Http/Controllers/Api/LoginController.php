@@ -112,42 +112,43 @@ class LoginController extends Controller
         return $this->generateJwt($header, $payload);
     }
 
-    public function sso()
+    public function sso(Request $request)
     {
         InputValidator([
-            'username'      => ['required'],
-            'password'      => ['required']
+            'url'      => ['required']
         ]);
 
-        $username   = $this->request->input('username');
-        $password   = $this->request->input('password');
+        $url   = $this->request->input('url');
 
-        $pengguna = DB::connection("mysql")->select("SELECT * FROM radcheck where soft_delete = 0 AND username = ? AND value = ?", [$username, SHA1($password)]);
+        if(SSO::authenticate()) {
+            $pengguna = SSO::getUser();
+            $user = \App\Models\User::where('username', $pengguna->username)->first();
 
-        if (empty($pengguna)) {
-            return WrapResponse(['data' => null], 'Pengguna tidak ditemukan!', FALSE);
+            if (empty($user)) {
+                return WrapResponse(['data' => null], 'Pengguna tidak ditemukan!', FALSE);
+            }
+
+            $header = [
+                "alg" => "HS256",
+                "typ" => "JWT"
+            ];
+
+            $payload = [
+                'id_aplikasi' => env('APP_ID'),
+                'url_aplikasi' => $url ?? $this->request->getHost(),
+                'id_pengguna' => $user->id_pengguna,
+                'username' => $pengguna->username,
+                'peran_pengguna' => $pengguna->status ?? '-',
+                'email' => $pengguna->email,
+                'token_dibuat' => time(),
+                'token_kadarluwasa' => (time() + (60 * 60)),
+                'asal_domain' => $this->request->getUri(),
+                'ip_address' => $this->request->ip(),
+                'sso' => true
+            ];
+
+            return $this->generateJwt($header, $payload, $url);
         }
-
-        $header = [
-            "alg" => "HS256",
-            "typ" => "JWT"
-        ];
-
-        $payload = [
-            'id_aplikasi' => env('APP_ID'),
-            'url_aplikasi' => $this->request->input('url') ?? $this->request->getHost(),
-            'id_pengguna' => $pengguna[0]->id,
-            'username' => $pengguna[0]->username,
-            'peran_pengguna' => $pengguna[0]->status,
-            'email' => $pengguna[0]->email,
-            'token_dibuat' => time(),
-            'token_kadarluwasa' => (time() + (60 * 60)),
-            'asal_domain' => $this->request->getUri(),
-            'ip_address' => $this->request->ip(),
-            'sso' => true
-        ];
-
-        return $this->generateJwt($header, $payload);
     }
 
     public function checkToken()
@@ -165,7 +166,7 @@ class LoginController extends Controller
         }
     }
 
-    private function generateJwt($headers, $payload)
+    private function generateJwt($headers, $payload, $url = null)
     {
         $secret = env('JWT_SECRET', 'secret');
         $headers_encoded = base64_encode(json_encode($headers));
@@ -188,7 +189,11 @@ class LoginController extends Controller
             ]);
         }
 
-        return WrapResponse(['data' => ['type' => 'bearer', 'token' => $jwt]], 'Berhasil mendapatkan token otorisasi!', TRUE);
+        if($url === null) {
+            return WrapResponse(['data' => ['type' => 'bearer', 'token' => $jwt]], 'Berhasil mendapatkan token otorisasi!', TRUE);
+        } else {
+            return redirect()->to($url . '/auth/sso/callback?token=' . $jwt);
+        }
     }
 
     private function encryptAppKey($app_key)

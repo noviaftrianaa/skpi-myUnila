@@ -10,7 +10,7 @@ Route::group([
     'middleware' => ['openapi_live']
 ], function () {
     Route::post('/auth/login', 'LoginController@login');
-    Route::post('/auth/login/sso', 'LoginController@sso');
+    Route::get('/auth/login/sso', 'LoginController@sso');
     Route::post('/auth/cek_token', 'LoginController@checkToken');
 
     Route::middleware('api', 'auth.api')->group(function () {
