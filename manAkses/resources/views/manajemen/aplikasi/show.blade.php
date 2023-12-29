@@ -229,22 +229,23 @@
                                 @if(is_null($data->app_key))
                                 -
                                 @else
-                                {!! substr($data->app_key, 0, 3).str_repeat('*', strlen($data->app_key)-3) !!}
+                                @php
+                                $app_key = substr($data->app_key, 0, 3).str_repeat('*', strlen($data->app_key)-3);
+                                @endphp
+                                <input type="text" class="form-control-plaintext text-center" value="{{ $app_key }}">
                                 @endif
                             </p>
                         </div>
                         @else
                         <div class="col-sm-12">
-                            <p class="text-muted text-center text-break" id="appKeyText">
-                                @if(is_null($data->app_key))
-                                -
-                                @else
+                            @if(is_null($data->app_key))
+                            -
+                            @else
                                 @php
                                 $app_key = strrev($data->app_key);
                                 @endphp
-                                {!! $app_key !!}
-                                @endif
-                            </p>
+                                <input type="text" id="appKeyText" class="form-control-plaintext text-center" value="{{ $app_key }}">
+                            @endif
                         </div>
                         @endif
                     </div>
@@ -724,7 +725,7 @@
         } );
         $('#copyText').on('click', function() {
             var text = $(this).text();
-            window.navigator.clipboard.writeText($('#appKeyText').html());
+            window.navigator.clipboard.writeText($('#appKeyText').val());
             $(this).text('Copied!');
         });
         //ifelse
