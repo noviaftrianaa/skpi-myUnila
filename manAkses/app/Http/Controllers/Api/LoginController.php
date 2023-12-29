@@ -115,17 +115,22 @@ class LoginController extends Controller
     public function sso(Request $request)
     {
         InputValidator([
-            'url'      => ['required']
+            'id_aplikasi'      => ['required']
         ]);
 
-        $url   = $this->request->input('url');
+        $id_aplikasi   = $this->request->input('id_aplikasi');
 
         if(SSO::authenticate()) {
             $pengguna = SSO::getUser();
-            $user = \App\Models\User::where('username', $pengguna->username)->first();
 
+            $user = \App\Models\User::where('username', $pengguna->username)->first();
             if (empty($user)) {
                 return WrapResponse(['data' => null], 'Pengguna tidak ditemukan!', FALSE);
+            }
+
+            $aplikasi = \App\Models\Aplikasi::where('id_aplikasi', $id_aplikasi)->first();
+            if (empty($aplikasi)) {
+                return WrapResponse(['data' => null], 'Aplikasi tidak ditemukan!', FALSE);
             }
 
             $header = [
@@ -134,8 +139,8 @@ class LoginController extends Controller
             ];
 
             $payload = [
-                'id_aplikasi' => env('APP_ID'),
-                'url_aplikasi' => $url ?? $this->request->getHost(),
+                'id_aplikasi' => $aplikasi->id_aplikasi,
+                'url_aplikasi' => $aplikasi->url ?? $this->request->getHost(),
                 'id_pengguna' => $user->id_pengguna,
                 'username' => $pengguna->username,
                 'peran_pengguna' => $pengguna->status ?? '-',
@@ -160,7 +165,7 @@ class LoginController extends Controller
         $AuthApi = new AuthApi();
         try {
             $token = $AuthApi->decodedToken($this->request->input('token'));
-            return WrapResponse(['data' => $token], 'Token aktif', FALSE);
+            return WrapResponse(['data' => $token], 'Token aktif', TRUE);
         } catch (Exception $e) {
             return WrapResponse(['data' => ['errors' => $e->getMessage()]], 'Token tidak aktif', FALSE);
         }
@@ -176,18 +181,16 @@ class LoginController extends Controller
         $signature_encoded = base64_encode($signature);
         $jwt = "$headers_encoded.$payload_encoded.$signature_encoded";
 
-        if($payload['sso']===false) {
-            $this->mLogJwt->create([
-                'id_log_jwt' => guid(),
-                'id_pengguna' => $payload['id_pengguna'],
-                'id_aplikasi' => $payload['id_aplikasi'],
-                'token_value' => $jwt,
-                'url' => $payload['asal_domain'],
-                'ip_address' => $payload['ip_address'],
-                'waktu_create' => date('Y-m-d H:i:s', $payload['token_dibuat']),
-                'waktu_expired' => date('Y-m-d H:i:s', $payload['token_kadarluwasa']),
-            ]);
-        }
+        $this->mLogJwt->create([
+            'id_log_jwt' => guid(),
+            'id_pengguna' => $payload['id_pengguna'],
+            'id_aplikasi' => $payload['id_aplikasi'],
+            'token_value' => $jwt,
+            'url' => $payload['asal_domain'],
+            'ip_address' => $payload['ip_address'],
+            'waktu_create' => date('Y-m-d H:i:s', $payload['token_dibuat']),
+            'waktu_expired' => date('Y-m-d H:i:s', $payload['token_kadarluwasa']),
+        ]);
 
         if($url === null) {
             return WrapResponse(['data' => ['type' => 'bearer', 'token' => $jwt]], 'Berhasil mendapatkan token otorisasi!', TRUE);
