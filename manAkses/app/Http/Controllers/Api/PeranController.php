@@ -12,7 +12,7 @@ use Auth;
 
 class PeranController extends Controller
 {
-    
+
     protected $request;
     protected $peran;
 

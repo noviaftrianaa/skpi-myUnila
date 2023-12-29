@@ -19,13 +19,18 @@ class AuthApi
             if (!$token = $this->parseToken($request)) {
                 return WrapResponse(['data' => ['errors' => 'Token kosong!']], 'Otorisasi gagal!', FALSE);
             }
-            $this->decodedToken($token);
+            $decodeToken = $this->decodedToken($token);
         } catch (ModelNotFoundException $e) {
             return WrapResponse(['data' => ['errors' => $e->getMessage()]], 'Otorisasi gagal!', FALSE);
         } catch (Exception $e) {
             return WrapResponse(['data' => ['errors' => $e->getMessage()]], 'Otorisasi gagal!', FALSE);
         }
-        return $next($request);
+
+        if($decodeToken->sso === false) {
+            return $next($request);
+        } else {
+            return WrapResponse(['data' => ['errors' => 'Token tidak valid!']], 'Otorisasi gagal!', FALSE);
+        }
     }
 
     function parseToken($request, $method = 'bearer', $header = 'authorization', $query = 'token')
@@ -56,14 +61,14 @@ class AuthApi
         $signature_provided = $tokenParts[2];
         $payload_decoded = json_decode($payload);
 
-        $requred_claims = ['app', 'sub', 'role', 'iss', 'iat', 'exp'];
+        $requred_claims = ['id_aplikasi', 'url_aplikasi', 'id_pengguna', 'username', 'peran_pengguna', 'email', 'token_dibuat', 'token_kadarluwasa', 'asal_domain', 'ip_address', 'sso'];
         foreach ($requred_claims as $req) {
             if (!property_exists($payload_decoded, $req)) {
                 throw new Exception("Token tidak valid", 1);
             }
         }
 
-        $expiration = $payload_decoded->exp;
+        $expiration = $payload_decoded->token_kadarluwasa;
         $is_token_expired = ($expiration - time()) < 0;
         if ($is_token_expired) {
             throw new Exception("Token kadarluwasa", 1);
@@ -71,7 +76,7 @@ class AuthApi
 
         $base64_url_header = base64_encode($header);
         $base64_url_payload = base64_encode($payload);
-        $signature = hash_hmac('SHA256', $base64_url_header . "." . $base64_url_payload, $secret, true);
+        $signature = hash_hmac('SHA256', "$base64_url_header.$base64_url_payload", $secret, true);
         $base64_url_signature = base64_encode($signature);
         $is_signature_valid = ($base64_url_signature === $signature_provided);
 

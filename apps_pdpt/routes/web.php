@@ -48,6 +48,7 @@ Route::namespace('Auth')->group(function () {
     Route::get('auth/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('auth/login', [LoginController::class, 'authenticate'])->name('auth.login');
     Route::get('auth/login/sso', [LoginController::class, 'signing_process'])->name('auth.signing_process');
+    Route::post('auth/login/captcha', [LoginController::class, 'submitCaptcha'])->name('auth.login.captcha');
     Route::get('auth/logout', [LoginController::class, 'logout'])->name('auth.logout');
     Route::get('auth/register', [RegisterController::class, 'index'])->name('auth.register');
     Route::post('auth/register', [RegisterController::class, 'create'])->name('auth.do_register');

@@ -67,17 +67,8 @@ class LoginController extends Controller
             if (SSO::check()) {
                 $check = User::where('username', SSO::getUser()->username)->first();
                 if (!is_null($check)) {
-                    Auth::loginUsingId($check->id_pengguna);
-                    alert()->success('You are logged in!');
-                    $role = RolePengguna::where('id_pengguna', $check->id_pengguna)->where('id_peran', 1)->first();
-                    if (is_null($role)) {
-                        $role = RolePengguna::where('id_pengguna', $check->id_pengguna)->orderBy('last_active', 'DESC')->first();
-                    }
-                    Session::put('login.log_address', get_client_ip());
-                    Session::put('login.role', (!is_null($role)) ? $role : NULL);
-                    MenuRole();
-
-                    return redirect()->route('dashboard.index');
+                    $d['check'] = $check;
+                    return view('auth.captcha', $d);
                 } else {
                     alert()->error('Data pengguna tidak ditemukan, silahkan hubungi administrator.')->html(true);
                     return redirect()->to('otorisasi');
@@ -88,43 +79,27 @@ class LoginController extends Controller
         }
     }
 
-    public function authenticate(Request $input)
+    public function submitCaptcha(Request $request)
     {
-        $username   = $input['username'];
-        $password   = sha1($input['password']);
+        $array = $request->all();
+        $check = json_decode($array['check']);
 
-        $checkUser = User::where('username', $username)->first();
+        return $this->authenticate($check);
+    }
 
-        if (!is_null($checkUser) && ($password == $checkUser->password)) {
-            $cari = User::where('username', $username)->first();
-        } else {
-            $cari = null;
+    private function authenticate($check)
+    {
+        Auth::loginUsingId($check->id_pengguna);
+        alert()->success('You are logged in!');
+        $role = RolePengguna::where('id_pengguna', $check->id_pengguna)->where('id_peran', 1)->first();
+        if (is_null($role)) {
+            $role = RolePengguna::where('id_pengguna', $check->id_pengguna)->orderBy('last_active', 'DESC')->first();
         }
+        Session::put('login.log_address', get_client_ip());
+        Session::put('login.role', (!is_null($role)) ? $role : NULL);
+        MenuRole();
 
-        if (!is_null($cari)) {
-            if ($cari->a_aktif == 1) {
-                if (Auth::loginUsingId($cari->id_pengguna)) {
-
-                    $role = RolePengguna::where('id_pengguna', $cari->id_pengguna)->where('id_peran', 1)->first();
-
-                    Session::put('login.log_address', get_client_ip());
-                    Session::put('login.role', (!is_null($role)) ? $role : NULL);
-
-                    alert()->success(Auth::user()->nm_pengguna, 'Selamat Datang')->persistent("OK");
-
-                    return redirect()->to('/');
-                } else {
-                    alert()->error('Login gagal')->persistent('Coba lagi');
-                    return redirect()->back()->withInput(['username' => $username]);
-                }
-            } else {
-                alert()->error('Harap hubungi administrator untuk mengaktifkannya kembali', 'Pengguna tidak aktif')->persistent('Coba lagi');
-                return redirect()->back();
-            }
-        } else {
-            alert()->error('Username dan Password tidak ditemukan', 'Silahkan coba kembali')->persistent('Coba lagi');
-            return redirect()->back()->withInput(['username' => $username]);
-        }
+        return redirect()->route('dashboard.index');
     }
 
     public function logout()

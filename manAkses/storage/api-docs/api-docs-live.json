@@ -25,7 +25,7 @@
                 "description": "Dapatkan token otorisasi",
                 "operationId": "authLogin",
                 "requestBody": {
-                    "description": "<strong>APP_KEY</strong> didapat dari Laman Manajemen Akses https://akses.unila.ac.id<br><strong>Username</strong> dan <strong>Password</strong> adalah akun SSO",
+                    "description": "<strong>APP_KEY</strong> didapat dari Laman Manajemen Akses https://akses.unila.ac.id<i>ex: base64:xxxxxxxxxxxxxxxx</i><br><strong>Username</strong> adalah username akun SSO",
                     "required": true,
                     "content": {
                         "application/json": {
@@ -38,12 +38,64 @@
                                     "app_key": {
                                         "type": "string",
                                         "format": "text",
-                                        "example": "base64:xgyD/eUvr5fhJskP1Z6ueW2Pt3tuR1/g5GtxV783vHC8M="
+                                        "example": "Masukkan APP_KEY aplikasi anda"
                                     },
                                     "username": {
                                         "type": "string",
-                                        "format": "email",
-                                        "example": "m.ikhsan@staff.unila.ac.id"
+                                        "format": "text",
+                                        "example": "Masukkan username anda"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "successful operation"
+                    },
+                    "404": {
+                        "description": "page not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Maaf, halaman tidak ditemukan"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/cek_token": {
+            "post": {
+                "tags": [
+                    "Login"
+                ],
+                "summary": "Mengecek Keaktifan Token",
+                "description": "Cek token kadaluarsa",
+                "operationId": "authCekToken",
+                "requestBody": {
+                    "description": "<strong>TOKEN</strong> didapat dari Login API atau Login API SSO",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "token"
+                                ],
+                                "properties": {
+                                    "token": {
+                                        "type": "string",
+                                        "format": "text",
+                                        "example": "Masukkan token disini"
                                     }
                                 },
                                 "type": "object"
