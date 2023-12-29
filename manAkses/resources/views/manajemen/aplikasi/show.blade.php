@@ -34,8 +34,8 @@
                                 {!! tablerow('Aplikasi',$data->nm_aplikasi) !!}
                                 {!! tablerow('Unit Organisasi',$data->unitorganisasi->nm_lemb) !!}
                                 {!! tablerow('Keterangan Aplikasi',$data->ket_aplikasi) !!}
-                                {!! tablerow('URL','<a href="'.$data->url.'" target=new>'.$data->url.'</a>') !!}
-                                {!! tablerow('APP KEY', '<a href="#showKey" data-toggle="modal">SHOW</a>') !!}
+                                {!! tablerow('URL','<a href="'.$data->url.'" class="btn btn-outline-info btn-xs" target=new>'.$data->url.'</a>') !!}
+                                {!! tablerow('APP KEY', '<a href="#showKey" class="btn btn-outline-info btn-xs" data-toggle="modal" onclick="btnFunc()"><i class="fas fa-key"></i></a>') !!}
                                 {!! tablerow('Apakah Bisa Generate Menu ?',($data->a_generate_menu==1)?'Ya':'Tidak') !!}
                                 {!! tablerow('Apakah Telah Ter-integrasi SSO ?',($data->a_integrasi_cas==1)?'Ya':'Tidak') !!}
                                 {!! tablerow('Apakah Sistem Internal PT ?',($data->a_sistem_internal_pt==1)?'Ya':'Tidak') !!}
@@ -235,7 +235,7 @@
                         </div>
                         @else
                         <div class="col-sm-12">
-                            <p class="text-muted text-center text-break">
+                            <p class="text-muted text-center text-break" id="appKeyText">
                                 @if(is_null($data->app_key))
                                 -
                                 @else
@@ -252,6 +252,8 @@
                         <button type="button" class="btn btn-default" data-dismiss="modal">Tutup</button>
                         @if($menus->a_boleh_insert == "1")
                         <a type="button" class="btn btn-warning" href="{!! route('aplikasi.appKeyGenerate', $data->id_aplikasi) !!}"><i class="fas fa-key mr-1"></i> Generate App Key</a>
+                        @else
+                        <button type="button" class="btn btn-warning" id="copyText">Copy</button>
                         @endif
                     </div>
                 </div>
@@ -584,6 +586,11 @@
 @push('js')
 <script src="{{ asset('iconpicker/js/bootstrap-iconpicker.bundle.min.js') }}"></script>
 <script>
+    function btnFunc()
+    {
+        $('#copyText').text('Copy to Clipboard');
+    }
+
     function tbPJ(menus, url)
     {
         return $('#table-pj').DataTable({
@@ -715,6 +722,11 @@
         $('#search-2').on('change', function () {
             tmn.search($('#search-2').val()).draw();
         } );
+        $('#copyText').on('click', function() {
+            var text = $(this).text();
+            window.navigator.clipboard.writeText($('#appKeyText').html());
+            $(this).text('Copied!');
+        });
         //ifelse
         $('#code').on('change', function() {
             if(this.value==0) {
