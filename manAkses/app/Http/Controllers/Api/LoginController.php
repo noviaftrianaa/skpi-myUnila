@@ -115,10 +115,11 @@ class LoginController extends Controller
     public function sso(Request $request)
     {
         InputValidator([
-            'id_aplikasi'      => ['required']
+            'app_key'      => ['required']
         ]);
 
-        $id_aplikasi   = $this->request->input('id_aplikasi');
+        $app_key   = $this->request->input('app_key');
+        $crypt_app_key = $this->encryptAppKey($app_key);
 
         if(SSO::authenticate()) {
             $pengguna = SSO::getUser();
@@ -128,9 +129,9 @@ class LoginController extends Controller
                 return WrapResponse(['data' => null], 'Pengguna tidak ditemukan!', FALSE);
             }
 
-            $aplikasi = \App\Models\Aplikasi::where('id_aplikasi', $id_aplikasi)->first();
+            $aplikasi = \App\Models\Aplikasi::where('app_key', $crypt_app_key)->first();
             if (empty($aplikasi)) {
-                return WrapResponse(['data' => null], 'Aplikasi tidak ditemukan!', FALSE);
+                return WrapResponse(['data' => null], 'App Key tidak cocok dengan aplikasi apapun!', FALSE);
             }
 
             $header = [
