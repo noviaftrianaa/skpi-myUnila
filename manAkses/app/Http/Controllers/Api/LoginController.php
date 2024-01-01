@@ -144,6 +144,7 @@ class LoginController extends Controller
                 'url_aplikasi' => $aplikasi->url ?? $this->request->getHost(),
                 'id_pengguna' => $user->id_pengguna,
                 'username' => $pengguna->username,
+                'nm_pengguna' => $user->nm_pengguna,
                 'peran_pengguna' => $pengguna->status ?? '-',
                 'email' => $pengguna->email,
                 'token_dibuat' => time(),
@@ -153,7 +154,7 @@ class LoginController extends Controller
                 'sso' => true
             ];
 
-            return $this->generateJwt($header, $payload, $url);
+            return $this->generateJwt($header, $payload, $aplikasi->url);
         }
     }
 

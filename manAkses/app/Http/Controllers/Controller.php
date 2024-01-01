@@ -18,7 +18,7 @@ class Controller extends BaseController
 
     public function __construct(Request $request)
     {
-        $this->base_uri = 'http://onedata.unila.ac.id/api/live/0.1';
+        $this->base_uri = 'http://myunila.unila.ac.id/api/live/0.1';
     }
 
     public function clients()

@@ -83,9 +83,9 @@ class HomeController extends Controller
         $user = User::find(Auth::user()->id_pengguna);
         if(!is_null($user->id_sdm_pengguna)) {
             //GET API
-            $response = Http::get('http://onedata.unila.ac.id/api/live/0.1/sdm/detail?id_jns_sdm=12&id_sdm='.$user->id_sdm_pengguna);
+            $response = Http::get('http://myunila.unila.ac.id/api/live/0.1/sdm/detail?id_jns_sdm=12&id_sdm='.$user->id_sdm_pengguna);
             if(is_null($response['data'])) {
-                $response = Http::get('http://onedata.unila.ac.id/api/live/0.1/sdm/detail?id_jns_sdm=13&id_sdm='.$user->id_sdm_pengguna);
+                $response = Http::get('http://myunila.unila.ac.id/api/live/0.1/sdm/detail?id_jns_sdm=13&id_sdm='.$user->id_sdm_pengguna);
             }
 
             $message = $response['message'];
@@ -95,7 +95,7 @@ class HomeController extends Controller
                 $data = [];
             }
         } else if (!is_null($user->id_pd_pengguna)) {
-            $response = Http::get('http://onedata.unila.ac.id/api/live/0.1/mahasiswa/detail?idPesertaDidik='.$user->id_pd_pengguna);
+            $response = Http::get('http://myunila.unila.ac.id/api/live/0.1/mahasiswa/detail?idPesertaDidik='.$user->id_pd_pengguna);
             $message = $response['message'];
             if(!empty($message) && !is_null($response['data'])) {
                 $data = $response['data'];
