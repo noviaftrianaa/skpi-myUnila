@@ -1,6 +1,7 @@
 @extends('template.default.app')
 @section('title','Table Aplikasi '.$data->nm_aplikasi)
 @extends('__partial.datatable')
+@extends('__partial.select2')
 
 @section('content')
     <div class="card card-info">
@@ -17,8 +18,8 @@
                         <div class="form-group row">
                             <label class="col-2">Peran</label>
                             <div class="col-10">
-                                <select class="form-control select2" name="id_peran" required>
-                                    <option value="" selected disabled>-- Pilih --</option>
+                                <select class="form-control select2" name="id_peran" data-placeholder="Pilih" required>
+                                    <option></option>
                                     @foreach(\App\Models\Peran::whereNull('expired_date')->orderBy('nm_peran')->pluck('nm_peran','id_peran') AS $n=>$r)
                                     <option value="{{ $n }}" {{ ($n==$id_peran) ? 'selected' : ''}}>{{ $r }}</option>
                                     @endforeach

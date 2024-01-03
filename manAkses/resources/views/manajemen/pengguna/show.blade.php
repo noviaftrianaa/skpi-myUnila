@@ -1,6 +1,7 @@
 @extends('template.default.app')
 @section('title','Data Pengguna')
 @extends('__partial.datatable')
+@extends('__partial.select2')
 
 @section('content')
     <div class="card card-info">
@@ -189,7 +190,8 @@
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Nama Peran</label>
-                                    <select class="form-control select2" name="id_peran[]" data-placeholder="Pilih" multiple required>
+                                    <select class="form-control select2" name="id_peran[]" data-placeholder="Pilih" multiple="multiple" required>
+                                        <option></option>
                                         @foreach($peran as $item)
                                         <option value="{{$item->id_peran}}">{{$item->nm_peran}}</option>
                                         @endforeach
@@ -199,8 +201,8 @@
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Unit Organisasi</label>
-                                    <select class="form-control select2" name="id_organisasi" required>
-                                        <option selected disabled>Pilih</option>
+                                    <select class="form-control select2" name="id_organisasi" data-placeholder="Pilih" required>
+                                        <option></option>
                                         @foreach($unit as $item)
                                         <option value="{{$item->id_organisasi}}">{{$item->nm_lemb}}</option>
                                         @endforeach
@@ -255,8 +257,8 @@
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Nama Peran</label>
-                                    <select class="form-control select2" name="id_peran" required>
-                                        <option selected disabled>Pilih</option>
+                                    <select class="form-control select2" name="id_peran" data-placeholder="Pilih" required>
+                                        <option></option>
                                         @foreach($peran as $item)
                                         <option value="{{$item->id_peran}}" {{($items->id_peran==$item->id_peran)?'selected':''}}>{{$item->nm_peran}}</option>
                                         @endforeach
@@ -266,8 +268,8 @@
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Unit Organisasi</label>
-                                    <select class="form-control select2" name="id_organisasi" required>
-                                        <option selected disabled>Pilih</option>
+                                    <select class="form-control select2" name="id_organisasi" data-placeholder="Pilih" required>
+                                        <option></option>
                                         @foreach($unit as $item)
                                         <option value="{{$item->id_organisasi}}" {{($items->id_organisasi==$item->id_organisasi)?'selected':''}}>{{$item->nm_lemb}}</option>
                                         @endforeach

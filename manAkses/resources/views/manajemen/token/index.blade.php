@@ -13,20 +13,18 @@
         $('#table-data').DataTable({
             processing: true,
             serverSide: true,
-            pagingType: "simple",
-            info: false,
             searching: false,
-            lengthChange: false,
+            ordering: false,
             ajax: window.location.href,
             columns: [
-                { data: 'DT_RowIndex', orderable: false, searchable: false, width: '5px', className: 'text-center', title: 'No.' },
+                { data: 'DT_RowIndex', width: '5px', className: 'text-center', title: 'No.' },
                 { data: 'token_value', title: 'Token' },
                 { data: 'base_url', title: 'URL' },
                 { data: 'waktu_create', title: 'Created' },
                 { data: 'waktu_expired', title: 'Expired' },
                 { data: 'keterangan', title: 'Notes' }
-                // { data: 'action', orderable: false, searchable: false }
             ],
+            sDom: 'rt<"row"<"col-sm-12 col-md-3"l><"col-sm-12 col-md-3"i><"col-sm-12 col-md-6"p>>',
             "language": {
                 "decimal":        "",
                 "emptyTable":     "Tidak ada data pada tabel",

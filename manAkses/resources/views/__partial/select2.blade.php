@@ -1,6 +1,13 @@
+@push('css')
+<link rel="stylesheet" href="{{ asset('master_template/plugins/select2/css/select2.min.css') }}">
+<link rel="stylesheet" href="{{ asset('master_template/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+@endpush
+
 @push('js')
-<script type="text/javascript" src="{{ asset('node_modules/select2/dist/js/select2.full.min.js') }}"></script>
+<script src="{{ asset('master_template/plugins/select2/js/select2.full.min.js') }}"></script>
 <script>
-    $('select').select2({ width: '100%' });
+    $('.select2').select2({
+        theme: "bootstrap4",
+    });
 </script>
 @endpush

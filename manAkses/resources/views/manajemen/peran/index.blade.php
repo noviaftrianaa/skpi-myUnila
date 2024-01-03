@@ -8,11 +8,11 @@
             <h3 class="card-title mt-1"><i class="fa fa-list mr-2"></i> Data Peran</h3>
         </div><!-- /.card-header -->
         <div class="card-body">
-            <div class="d-lg-flex d-block">
-                <div class="col-2">
+            <div class="row px-2">
+                <div class="col-md-2 col-6 py-1">
                     <button class="btn btn-info col-12" data-toggle="modal" data-target="#addItem"><i class="fa fa-plus"></i> Tambah Data</button>
                 </div>
-                <div class="ml-auto px-2">
+                <div class="col-md-4 col-12 ml-auto py-1">
                     <div class="input-group">
                         <input type="text" id="search" placeholder="Pencarian" class="form-control">
                         <div class="input-group-append">

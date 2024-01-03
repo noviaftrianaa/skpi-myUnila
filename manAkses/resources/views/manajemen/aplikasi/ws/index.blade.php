@@ -1,5 +1,6 @@
 @extends('template.default.app')
 @section('title','Data Web Services')
+@extends('__partial.select2')
 
 @push('css')
 <link href="{{asset('bower_components/datatables/media/css/dataTables.bootstrap4.css')}}" rel="stylesheet">
@@ -190,7 +191,7 @@
                             <div class="col-sm-6">
                                 <div class="form-group form-group-default">
                                     <label>Group</label>
-                                    <select id="nmGroupLamaMdl" name="nm_group_lama" class="form-control select2" data-placeholder="Choose">
+                                    <select id="nmGroupLamaMdl" name="nm_group_lama" class="form-control select2" data-placeholder="Pilih">
                                         <option></option>
                                         @foreach ($group as $value)
                                             <option value="{{ $value->nm_group }}">{{ $value->nm_group }}</option>
@@ -207,7 +208,7 @@
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Method</label>
-                                    <select id="nmMethodMdl" name="nm_method" class="form-control select2" data-placeholder="Choose" required>
+                                    <select id="nmMethodMdl" name="nm_method" class="form-control select2" data-placeholder="Pilih" required>
                                         <option></option>
                                         <option value="GET">GET</option>
                                         <option value="POST">POST</option>
@@ -226,7 +227,7 @@
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Active ?</label>
-                                    <select id="activeMdl" name="a_active" class="form-control select2" data-placeholder="Choose" required>
+                                    <select id="activeMdl" name="a_active" class="form-control select2" data-placeholder="Pilih" required>
                                         <option></option>
                                         <option value="1">Aktif</option>
                                         <option value="0">Tidak Aktif</option>

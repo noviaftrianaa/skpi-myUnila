@@ -15,7 +15,7 @@ class RolePengguna extends Model
     public $incrementing = false;
 
     public function peran()
-    {   
+    {
     	return $this->belongsTo('App\Models\Peran','id_peran','id_peran');
     }
 

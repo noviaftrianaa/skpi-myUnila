@@ -64,14 +64,14 @@
         </div><!-- /.card-header -->
         <div class="card-body">
             <div class="d-lg-flex d-block">
-                <div class="col-2">
+                <div class="col-md-2 col-6 py-1">
                     @if($menus->a_boleh_insert == "1")
                     <a class="btn btn-info col-12" href="{{route('aplikasi.create')}}"><i class="fa fa-plus"></i> Tambah Data</a>
                     @else
                     <a class="btn btn-info col-12" href="{{ url('/api/live/v1') }}" target="_blank"><i class="fa fa-connectdevelop"></i> Rest API</a>
                     @endif
                 </div>
-                <div class="ml-auto px-2">
+                <div class="col-md-4 col-12 ml-auto py-1">
                     <div class="input-group">
                         <input type="text" id="search" placeholder="Pencarian" class="form-control">
                         <div class="input-group-append">

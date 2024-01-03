@@ -21,11 +21,7 @@ class TokenController extends Controller
     public function index(Request $request)
     {
         if($request->ajax()) {
-            $data = DB::SELECT('
-                SELECT TOP 1000 SUBSTRING(token_value, 0, 25) AS token_value, base_url, waktu_create, waktu_expired, keterangan
-                FROM man_akses.access_token
-                ORDER BY waktu_create DESC
-            ');
+            $data = \App\Models\AccessToken::select(\DB::raw('SUBSTRING(token_value, 0, 25) AS token_value'),'base_url','waktu_create','waktu_expired','keterangan');
 
             return DataTables::of($data)
                 ->addIndexColumn()

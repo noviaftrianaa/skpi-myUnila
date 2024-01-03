@@ -4,6 +4,8 @@
 
 @push('css')
 <link rel="stylesheet" href="{{ asset('iconpicker/css/bootstrap-iconpicker.min.css') }}">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/select2/3.5.4/select2.min.css" />
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-css/1.4.6/select2-bootstrap.min.css" />
 @endpush
 
 @section('content')
@@ -58,11 +60,11 @@
         <div class="card-body">
             <div class="row px-2">
                 @if($menus->a_boleh_insert == "1")
-                <div class="col-2">
+                <div class="col-md-2 col-6 py-1">
                     <button class="btn btn-info" id="pjCreate"><i class="fa fa-plus"></i> Tambah</button>
                 </div>
                 @endif
-                <div class="ml-auto mb-2">
+                <div class="col-md-4 col-12 ml-auto py-1">
                     <div class="input-group">
                         <input type="text" id="search-1" placeholder="Pencarian" class="form-control">
                         <div class="input-group-append">
@@ -89,11 +91,11 @@
         <div class="card-body">
             <div class="row px-2">
                 @if($menus->a_boleh_insert == "1")
-                <div class="col-2">
+                <div class="col-md-2 col-6 py-1">
                     <button class="btn btn-info" id="createMenu"><i class="fa fa-plus"></i> Tambah</button>
                 </div>
                 @endif
-                <div class="ml-auto mb-2">
+                <div class="col-md-4 col-12 ml-auto py-1">
                     <div class="input-group">
                         <input type="text" id="search-2" placeholder="Pencarian" class="form-control">
                         <div class="input-group-append">
@@ -142,8 +144,8 @@
                                             FROM man_akses.unit_organisasi WITH (NOLOCK)
                                     ");
                                     @endphp
-                                    <select name="id_organisasi" class="form-control select2" required>
-                                        <option selected disabled>Pilih</option>
+                                    <select name="id_organisasi" class="form-control select2" data-placeholder="Pilih" required>
+                                        <option></option>
                                         @foreach($unit as $item)
                                         <option value="{{$item->id_organisasi}}" {{($data->id_organisasi==$item->id_organisasi)?'selected':''}}>{{$item->nm_lemb}}</option>
                                         @endforeach
@@ -297,7 +299,7 @@
     </div>
 
     <div class="modal fade" id="pjMdl" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
@@ -328,18 +330,7 @@
                             <div class="col-sm-12">
                                 <div class="form-group form-group-default">
                                     <label>Pengguna</label>
-                                    @php
-                                    $pengguna = DB::SELECT("
-                                            SELECT *
-                                            FROM man_akses.pengguna WITH (NOLOCK)
-                                            WHERE soft_delete=0 AND a_aktif=1
-                                    ");
-                                    @endphp
-                                    <select name="id_pengguna[]" id="id_pengguna" class="form-control select2" data-placeholder="Pilih" multiple>
-                                    @foreach($pengguna as $value)
-                                    <option value="{{$value->id_pengguna}}">{{$value->nm_pengguna}}</option>
-                                    @endforeach
-                                    </select>
+                                    <input id="id_pengguna" class="form-control" name="id_pengguna" />
                                 </div>
                             </div>
                         </div>
@@ -586,6 +577,8 @@
 
 @push('js')
 <script src="{{ asset('iconpicker/js/bootstrap-iconpicker.bundle.min.js') }}"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/4.15.0/lodash.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/select2/3.5.4/select2.min.js"></script>
 <script>
     function btnFunc()
     {
@@ -599,7 +592,7 @@
             serverSide: true,
             ajax: {
                 url: url,
-                type: 'GET'
+                type: "GET"
             },
             columns: [
                 { data: 'DT_RowIndex', orderable: false, searchable: false, width: '5px', title: 'No.' },
@@ -621,12 +614,11 @@
                                         <i class="fas fa-cog"></i>
                                     </button>
                                     <div class="dropdown-menu dropdown-menu-right">
-                                        <button class="dropdown-item" id="editPJ" data-id="${data}" data-pengguna="${row.id_pengguna}" data-jabatan="${row.jabatan_pj}" data-aktif="${row.a_masih}" data-expired="${row.wkt_selesai}"><i class="fa fa-edit mr-1"></i>Edit</button>
                                         <button class="dropdown-item text-danger" id="deletePJ" data-id="${data}" data-nama="${row.nm_pj}"><i class="fas fa-trash-alt mr-1"></i>Delete</button>
                                     </div>
                                 </div>
                             `;
-
+                            // <button class="dropdown-item" id="editPJ" data-id="${data}" data-pengguna="${row.id_pengguna}" data-jabatan="${row.jabatan_pj}" data-aktif="${row.a_masih}" data-expired="${row.wkt_selesai}"><i class="fa fa-edit mr-1"></i>Edit</button>
                             // <div class="dropdown-divider"></div>
                             // <a class="dropdown-item" href="${ws}"><i class="fa fa-globe mr-1"></i>Akses WS</a>
                         }
@@ -644,7 +636,7 @@
             serverSide: true,
             ajax: {
                 url: url,
-                type: 'GET'
+                type: "GET"
             },
             columns: [
                 { data: 'DT_RowIndex', orderable: false, searchable: false, width: '5px', title: 'No.' },
@@ -708,7 +700,44 @@
         })
     }
 
+    function data()
+    {
+        let data = <?php echo json_encode($user) ?>;
+        return $.map(data, function(i) {
+            return {
+                id: i.id_pengguna,
+                text: i.nm_pengguna + ' (' + i.email + ')',
+            };
+        });
+    }
+
     $(document).ready(function() {
+        //GET PENGGUNA
+        $('#id_pengguna').select2({
+            data: data(),
+            placeholder: 'Search',
+            multiple: true,
+            query: function (data) {
+                var pageSize,
+                        dataset,
+                        that = this;
+                pageSize = 20; // Number of the option loads at a time
+                results = [];
+                if (data.term && data.term !== '') {
+                    // HEADS UP; for the _.filter function I use underscore (actually lo-dash) here
+                    results = _.filter(that.data, function (e) {
+                        return e.text.toUpperCase().indexOf(data.term.toUpperCase()) >= 0;
+                    });
+                } else if (data.term === '') {
+                    results = that.data;
+                }
+                data.callback({
+                    results: results.slice((data.page - 1) * pageSize, data.page * pageSize),
+                    more: results.length >= data.page * pageSize,
+                });
+            },
+        });
+
         let menus = <?php echo json_encode($menus) ?>;
         let id = "{{ $id }}";
         var pj = "{{ route('aplikasi.dataPJ', '') }}"+"/"+id;

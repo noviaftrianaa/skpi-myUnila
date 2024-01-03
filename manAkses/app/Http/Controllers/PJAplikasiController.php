@@ -43,9 +43,11 @@ class PJAplikasiController extends Controller
     public function store(Request $request)
     {
         $array = $request->all();
+
         $aplikasi = Aplikasi::lock('WITH(NOLOCK)')->where('id_aplikasi', $array['id_aplikasi'])->first();
         if(!empty($array['id_pengguna'])) {
-            foreach($array['id_pengguna'] AS $item) {
+            $aPengguna = explode(',', $array['id_pengguna']);
+            foreach($aPengguna AS $item) {
                 $pengguna = User::where('id_pengguna', $item)->first();
                 $pj = PJAplikasi::lock('WITH(NOLOCK)')->create([
                     'id_pj_aplikasi' => guid(),
@@ -86,7 +88,7 @@ class PJAplikasiController extends Controller
                 'last_sync' => currDateTime(),
                 'id_updater' => Auth::user()->id_pengguna
             ]);
-    
+
             $pj = PJAplikasi::lock('WITH(NOLOCK)')->create([
                 'id_pj_aplikasi' => guid(),
                 'id_aplikasi' => $aplikasi->id_aplikasi,
@@ -104,8 +106,8 @@ class PJAplikasiController extends Controller
                 'id_updater' => Auth::user()->id_pengguna
             ]);
         }
-        
-        
+
+
         if(!$pj) {
             alert()->error('Data gagal disimpan!');
         } else {
@@ -148,7 +150,7 @@ class PJAplikasiController extends Controller
         $array = $request->all();
 
         $pengguna = User::whereIn('id_pengguna', $array['id_pengguna'])->first();
-        
+
         $pj = PJAplikasi::lock('WITH(NOLOCK)')->where('id_pj_aplikasi', $id)->update([
             'id_pengguna' => $pengguna->id_pengguna,
             'nm_pj' => $pengguna->nm_pengguna,

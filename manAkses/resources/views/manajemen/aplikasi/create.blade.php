@@ -1,6 +1,7 @@
 @extends('template.default.app')
 @section('title','Tambah Aplikasi')
 @extends('__partial.datatable')
+@extends('__partial.select2')
 
 @section('content')
     <!-- FORM CREATE APLIKASI -->
@@ -17,8 +18,8 @@
                     <div class="col-sm-12">
                         <div class="form-group form-group-default">
                             <label>Unit Organisasi</label>
-                            <select name="id_organisasi" class="form-control select2" required>
-                                <option selected disabled>Pilih</option>
+                            <select name="id_organisasi" class="form-control select2" data-placeholder="Pilih" required>
+                                <option></option>
                                 @foreach($unit as $item)
                                 <option value="{{$item->id_organisasi}}">{{$item->nm_lemb}}</option>
                                 @endforeach

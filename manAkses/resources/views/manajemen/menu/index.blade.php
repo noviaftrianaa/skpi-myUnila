@@ -1,5 +1,6 @@
 @extends('template.default.app')
 @section('title','Data Menu')
+@extends('__partial.select2')
 
 @push('css')
 <link href="{{asset('bower_components/datatables/media/css/dataTables.bootstrap4.css')}}" rel="stylesheet">
@@ -9,39 +10,47 @@
 <script type="text/javascript" src="{{ asset('bower_components/datatables/media/js/jquery.dataTables.min.js')}}"></script>
 <script type="text/javascript" src="{{ asset('bower_components/datatables/media/js/dataTables.bootstrap4.min.js')}}"></script>
 <script>
-    $(document).ready( function () {
-        let table = $('#table-data').DataTable({
+    function tbl()
+    {
+        return $('#table-data').DataTable({
             processing: true,
             serverSide: true,
-            pagingType: "simple",
-            ordering: false,
-            ajax: window.location.href,
+            ajax: {
+                url: window.location.href,
+                data: {
+                    aplikasi: $('#getAplikasi').val()
+                }
+            },
             columns: [
-                { data: 'DT_RowIndex', width: '5px', className: 'text-center', title: 'No.' },
-                { data: 'nm_menu', title: 'Menu' },
-                { data: 'nm_file', title: 'Alias', width: '5px', className: 'text-center' },
-                { data: 'icon', title: 'Icon', className: 'text-center' },
+                { data: 'DT_RowIndex', width: '5px', className: 'text-center', title: 'No.', orderable: false },
+                { data: 'aplikasi.nm_aplikasi', title: 'Aplikasi' },
+                { data: 'nm_menu', title: 'Menu', orderable: false },
+                { data: 'nm_file', title: 'Alias', width: '5px', orderable: false },
+                { data: 'icon', title: 'Icon', className: 'text-center', orderable: false },
                 {
                     data: 'a_aktif',
                     title: 'Status',
                     width: '5px',
                     className: 'text-center',
+                    orderable: false,
                     render: function(data,type,row) {
                         return data==1 ? `<span class="badge badge-success">Aktif</span>` : `<span class="badge badge-danger">Tidak Aktif</span>`;
                     }
-                },
-                {
-                    data: 'id_menu',
-                    width: '5px',
-                    title: 'Action',
-                    className: 'text-center',
-                    render: function(data,type,row) {
-                        return `<a class="btn btn-link btn-xs" title="Show User" href="#editItem${data}" data-toggle="modal"><i class="fas fa-edit"></i></a>`;
-                    }
                 }
             ],
-            sDom: 'rt<"row"<"col-sm-12 col-md-3"l><"col-sm-12 col-md-3"i><"col-sm-12 col-md-6"p>>'
+            sDom: 'rt<"row"<"col-sm-12 col-md-3"l><"col-sm-12 col-md-3"i><"col-sm-12 col-md-6"p>>',
+            order: [[1, 'asc']],
         } );
+    }
+
+    $(document).ready( function () {
+        let table = tbl();
+
+        $('#getAplikasi').on('change', function() {
+            let id = $(this).val();
+            $('#table-data').DataTable().clear().destroy();
+            table = tbl();
+        });
 
         $('#search').on('change', function () {
             table.search($('#search').val()).draw();
@@ -56,11 +65,16 @@
             <h3 class="card-title mt-1"><i class="fa fa-list mr-2"></i> Data Menu</h3>
         </div><!-- /.card-header -->
         <div class="card-body">
-            <div class="d-lg-flex d-block">
-                <div class="col-2">
-                    <button class="btn btn-info col-12" data-toggle="modal" data-target="#addItem"><i class="fa fa-plus"></i> Tambah Data</button>
+            <div class="row px-2">
+                <div class="col-md-2 col-6 py-1">
+                    <select class="form-control select2" id="getAplikasi" data-placeholder="Pilih">
+                        <option value="all" selected>TAMPILKAN SEMUA</option>
+                        @foreach($aplikasi AS $no=>$item)
+                        <option value="{{ $item->id_aplikasi }}">{{ $item->nm_aplikasi }}</option>
+                        @endforeach
+                    </select>
                 </div>
-                <div class="ml-auto px-2">
+                <div class="col-md-4 col-12 ml-auto py-1">
                     <div class="input-group">
                         <input type="text" id="search" placeholder="Pencarian" class="form-control">
                         <div class="input-group-append">
@@ -146,74 +160,4 @@
             </div>
         </div>
     </div>
-
-    @foreach($menu as $items)
-    <div class="modal fade" id="editItem{{$items->id_menu}}" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header no-bd">
-                    <h5 class="modal-title">
-                        <span class="fw-mediumbold">
-                        Update</span>
-                        <span class="fw-light">
-                            Menu
-                        </span>
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form action="{{ route('menu.update', [Crypt::encrypt($items->id_menu)]) }}" method="post" enctype="multipart/form-data">
-                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                        <input type="hidden" name="_method" value="PATCH">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <div class="form-group form-group-default">
-                                    <label>Nama Menu</label>
-                                    <input name="nm_menu" type="text" class="form-control" placeholder="Masukkan Nama Menu" value="{{$items->nm_menu}}" required>
-                                </div>
-                            </div>
-                            <div class="col-sm-12">
-                                <div class="form-group form-group-default">
-                                    <label>Nama Alias</label>
-                                    <input name="nm_file" type="text" class="form-control" placeholder="Masukkan Nama Alias" value="{{$items->nm_file}}" required>
-                                </div>
-                            </div>
-                            <div class="col-sm-12">
-                                <div class="form-group form-group-default">
-                                    <label>Icon</label>
-                                    <input name="icon" type="text" class="form-control" placeholder="example: <i class='fas fa-check'></i>" value="{{$items->icon}}">
-                                </div>
-                            </div>
-                            <div class="col-sm-12">
-                                <div class="form-group form-group-default">
-                                    <label>Apakah Aktif ?</label>
-                                    <select name="a_aktif" class="form-control" required>
-                                        <option value="0" {{ ($items->a_aktif==0)?'selected':'' }}>Tidak</option>
-                                        <option value="1" {{ ($items->a_aktif==1)?'selected':'' }}>Ya</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-sm-12">
-                                <div class="form-group form-group-default">
-                                    <label>Apakah Tampil ?</label>
-                                    <select name="a_tampil" class="form-control" required>
-                                        <option value="0" {{ ($items->a_tampil==0)?'selected':'' }}>Tidak</option>
-                                        <option value="1" {{ ($items->a_tampil==1)?'selected':'' }}>Ya</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer no-bd">
-                            <button type="submit" class="btn btn-primary">Simpan</button>
-                            <button type="button" class="btn btn-danger" data-dismiss="modal">Tutup</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-    @endforeach
-
 @endsection

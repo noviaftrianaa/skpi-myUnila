@@ -13,18 +13,26 @@
         let table = $('#table-data').DataTable({
             processing: true,
             serverSide: true,
-            pagingType: "simple",
-            ordering: false,
             ajax: window.location.href,
             columns: [
                 { data: 'DT_RowIndex', orderable: false, searchable: false, title: 'No.', width: '5px', className: 'text-center' },
-                { data: 'nm_pengguna', title: 'Nama' },
-                { data: 'username', title: 'Username', width: '5px' },
-                { data: 'unit_organisasi', title: 'Unit' },
-                { data: 'jenis_kelamin', searchable: false, title: 'Gender', width: '5px', className: 'text-center' },
-                { data: 'status', searchable: false, title: 'Status', className: 'text-center' },
-                { data: 'aksi', orderable: false, searchable: false, title: 'Action', className: 'text-center', width: '5px' }
+                { data: 'nm_pengguna', orderable: false, title: 'Nama' },
+                { data: 'username', title: 'Username' },
+                { data: 'email', orderable: false, title: 'Email' },
+                {
+                    data: 'a_aktif',
+                    title: 'Status',
+                    className: 'text-center',
+                    orderable: false,
+                    width: '5px',
+                    render: function(data,type,row) {
+                        return data=="1" ? `<span class="badge badge-success">Aktif</span>` : `<span class="badge badge-danger">Tidak</span>`;
+                    }
+                },
+                { data: 'sso', title: 'SSO', orderable: false, className: 'text-center', width: '5px' },
+                { data: 'aksi', orderable: false, title: 'Action', className: 'text-center', width: '5px' }
             ],
+            order: [[2, 'asc']],
             sDom: 'rt<"row"<"col-sm-12 col-md-3"l><"col-sm-12 col-md-3"i><"col-sm-12 col-md-6"p>>'
         } );
 
@@ -42,13 +50,13 @@
         </div><!-- /.card-header -->
         <div class="card-body">
             <div class="row px-2">
-                <div class="col-2">
+                <div class="col-md-2 col-6 py-1">
                     <a type="button" class="btn btn-info col-12" href="{{route('user.create')}}"><i class="fa fa-plus"></i> Tambah Data</a>
                 </div>
-                <div class="col-2">
-                    <a type="button" class="btn btn-primary col-12" href="{{route('radius.index')}}"><i class="fa fa-users"></i> Radius</a>
+                <div class="col-md-2 col-6 py-1">
+                    <a type="button" class="btn btn-primary col-12" href="{{route('radius.index')}}"><i class="fa fa-users"></i> SSO</a>
                 </div>
-                <div class="ml-auto px-2">
+                <div class="col-md-4 col-12 ml-auto py-1">
                     <div class="input-group">
                         <input type="text" id="search" placeholder="Pencarian" class="form-control">
                         <div class="input-group-append">

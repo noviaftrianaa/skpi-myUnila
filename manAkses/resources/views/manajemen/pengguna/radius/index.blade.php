@@ -72,10 +72,10 @@
         </div><!-- /.card-header -->
         <div class="card-body">
             <div class="row px-2">
-                <div class="col-2">
+                <div class="col-md-2 col-6 py-1">
                     <a type="button" class="btn btn-default col-12" href="{{ route('user.index') }}"><i class="fas fa-arrow-left mr-1"></i>Kembali</a>
                 </div>
-                <div class="col-2">
+                <div class="col-md-2 col-6 py-1">
                     <select class="form-control col-12" id="status">
                         <option value="all">Semua Peran</option>
                         @foreach ($status as $item)
@@ -83,7 +83,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="ml-auto px-2">
+                <div class="col-md-4 col-12 ml-auto py-1">
                     <div class="input-group">
                         <input type="text" id="search" placeholder="Pencarian" class="form-control">
                         <div class="input-group-append">

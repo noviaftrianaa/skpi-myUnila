@@ -1,6 +1,7 @@
 @extends('template.default.app')
 @section('title','Table Aplikasi '.$data->nm_aplikasi)
 @extends('__partial.datatable')
+@extends('__partial.select2')
 
 @section('content')
     <div class="card card-info">
@@ -93,7 +94,7 @@
                                 <div class="form-group form-group-default">
                                     <label>Table<sup style="color:red">*</sup></label>
                                     <select class="form-control select2" name="id_table_app" data-placeholder="Pilih Nama Table" required>
-                                        <!-- <option value="" selected disabled>Choose</option> -->
+                                        <option></option>
                                         @foreach($data_table AS $items)
                                         <option value="{{ $items->id_table_app }}">{{ $items->nm_table }}</option>
                                         @endforeach
@@ -166,7 +167,7 @@
                                 <div class="form-group form-group-default">
                                     <label>Table<sup style="color:red">*</sup></label>
                                     <select class="form-control select2" name="id_table_app" data-placeholder="Pilih Nama Table" required>
-                                        <!-- <option value="" selected disabled>Choose</option> -->
+                                        <option></option>
                                         @foreach($data_table AS $values)
                                         <option value="{{ $items->id_table_app }}" {{ ($items->id_table_app==$values->id_table_app) ? 'selected' : '' }}>{{ $items->nm_table }}</option>
                                         @endforeach

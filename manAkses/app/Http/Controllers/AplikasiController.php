@@ -158,22 +158,20 @@ class AplikasiController extends Controller
         $id = Crypt::decrypt($id);
         $data = Aplikasi::with('UnitOrganisasi','LargeObject')->lock('WITH(NOLOCK)')->where('id_aplikasi', $id)->first();
         $menus = collect(session()->get('login.menu'))->where('nm_file', $this->basepath.'.index')->first();
+        $user = \App\Models\User::lock('WITH(NOLOCK)')->where('soft_delete',0)->where('a_aktif',1)->select('nm_pengguna','id_pengguna','email')->get();
         // dd($menus);
 
         return view('manajemen.aplikasi.show', [
             'id'    => $id,
             'data'  => $data,
-            'menus' => $menus
+            'menus' => $menus,
+            'user'  => $user
         ]);
     }
 
     public function dataPJ($id)
     {
-        $data = DB::SELECT("
-            SELECT *
-            FROM man_akses.pj_aplikasi WITH (NOLOCK)
-            WHERE id_aplikasi='".$id."' AND soft_delete=0
-        ");
+        $data = \App\Models\PJAplikasi::where('id_aplikasi', $id)->where('soft_delete', 0)->orderBy('nm_pj','ASC')->get();
         return \DataTables::of($data)->addIndexColumn()->make(true);
     }
 

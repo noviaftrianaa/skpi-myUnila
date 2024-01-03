@@ -28,15 +28,19 @@ class MenuController extends Controller
     public function index(Request $request)
     {
         if($request->ajax()) {
-            $data = Menu::with('group_menu')->lock('WITH(NOLOCK)')->orderBy('nm_menu','ASC')->get();
+            if($request->aplikasi=="all") {
+                $data = Menu::with('aplikasi','group_menu')->lock('WITH(NOLOCK)')->orderBy('nm_menu','ASC')->get();
+            } else {
+                $data = Menu::with('aplikasi','group_menu')->lock('WITH(NOLOCK)')->where('id_aplikasi', $request->aplikasi)->orderBy('nm_menu','ASC')->get();
+            }
 
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->make(true);
         }
 
-        $menu = Menu::with('group_menu')->lock('WITH(NOLOCK)')->get();
-        return view('manajemen.menu.index', compact('menu'));
+        $aplikasi = Aplikasi::lock('WITH(NOLOCK)')->select('id_aplikasi','nm_aplikasi')->orderBy('nm_aplikasi','ASC')->get();
+        return view('manajemen.menu.index', compact('aplikasi'));
     }
 
     /**

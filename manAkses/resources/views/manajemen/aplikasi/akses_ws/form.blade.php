@@ -1,5 +1,6 @@
 @extends('template.default.app')
 @section('title','WS Access Permission | '.$aplikasi->nm_aplikasi)
+@extends('__partial.select2')
 
 @push('css')
 <style>

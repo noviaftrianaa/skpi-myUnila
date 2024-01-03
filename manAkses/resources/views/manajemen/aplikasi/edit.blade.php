@@ -1,6 +1,7 @@
 @extends('template.default.app')
 @section('title','Edit Aplikasi')
 @extends('__partial.datatable')
+@extends('__partial.select2')
 
 @section('content')
     <div class="card card-info">
@@ -16,7 +17,8 @@
                     <div class="col-sm-12">
                         <div class="form-group form-group-default">
                             <label>Unit Organisasi</label>
-                            <select class="form-control select2" name="id_organisasi">
+                            <select class="form-control select2" name="id_organisasi" data-placeholder="Pilih">
+                                <option></option>
                                 @foreach($unit as $item)
                                 <option value="{{$item->id_aplikasi}}" {{ ($item->id_organisasi==$data->id_organisasi) ? 'selected':''}}>{{$item->nm_lemb}}</option>
                                 @endforeach

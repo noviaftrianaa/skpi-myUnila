@@ -45,52 +45,18 @@ class UserController extends Controller
     public function index(Request $request)
     {
         if($request->ajax()) {
-            $user = DB::SELECT("
-                SELECT
-                    pengguna.id_pengguna,
-                    pengguna.nm_pengguna,
-                    pengguna.username,
-                    pengguna.jenis_kelamin,
-                    pengguna.a_aktif,
-                    (
-                        SELECT
-                            STRING_AGG(unit.nm_lemb, ', ')
-                        FROM
-                            (
-                                SELECT
-                                    DISTINCT role.id_pengguna,
-                                    unit.nm_lemb
-                                FROM
-                                    man_akses.role_pengguna AS role
-                                    JOIN man_akses.unit_organisasi AS unit ON unit.id_organisasi = role.id_organisasi
-                            ) AS unit
-                        WHERE
-                            unit.id_pengguna = pengguna.id_pengguna
-                    ) AS unit_organisasi
-                FROM
-                    man_akses.pengguna AS pengguna WITH(NOLOCK)
-                ORDER BY
-                    pengguna.a_aktif DESC,
-                    pengguna.nm_pengguna ASC
-            ");
+            $user = \App\Models\User::with('rolepengguna.unitorganisasi')->where('soft_delete',0);
             return DataTables::of($user)
                 ->addIndexColumn()
-                ->editColumn('jenis_kelamin', function($user) {
-                    return ($user->jenis_kelamin=="L") ? "Laki-laki" : "Perempuan";
-                })
-                ->addColumn('status', function($user) {
-                    if($user->a_aktif==1) {
-                        $button = '<span class="badge badge-success">Aktif</span>';
-                    } else {
-                        $button = '<span class="badge badge-danger">Tidak Aktif</span>';
-                    }
-                    return $button;
-                })
                 ->addColumn('aksi', function($user) {
                     $button = '<a class="btn btn-link btn-xs" title="Show User" href="'.route('user.detail', [Crypt::encrypt($user->id_pengguna)]).'"><i class="fas fa-search"></i></a>';
                     return $button;
                 })
-                ->rawColumns(['status','aksi'])
+                ->addColumn('sso', function($user) {
+                    $sso = \App\Models\Radius::where('username', $user->username)->first();
+                    return is_null($sso) ? '<span class="badge badge-danger"><i class="fas fa-close"></i></span>' : '<span class="badge badge-success"><i class="fas fa-check"></i></span>';
+                })
+                ->rawColumns(['aksi','sso'])
                 ->make(true);
         }
 

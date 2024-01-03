@@ -1,6 +1,7 @@
 @extends('template.default.app')
 @section('title','Tambah Pengguna')
 @extends('__partial.datatable')
+@extends('__partial.select2')
 
 @section('content')
 
@@ -86,8 +87,8 @@
                     <div class="col-sm-6">
                         <div class="form-group form-group-default">
                             <label>Unit Organisasi</label>
-                            <select name="id_organisasi" class="select2 form-control" data-placeholder="Pilih" required>
-                                <option selected disabled>Pilih</option>
+                            <select name="id_organisasi" class="form-control select2" data-placeholder="Pilih" required>
+                                <option></option>
                                 @foreach($unit as $item)
                                 <option value="{{$item->id_organisasi}}">{{$item->nm_lemb}}</option>
                                 @endforeach
@@ -98,6 +99,7 @@
                         <div class="form-group form-group-default">
                             <label>Peran</label>
                             <select name="id_peran[]" class="form-control select2" multiple="multiple" data-placeholder="Pilih" required>
+                                <option></option>
                                 @foreach($peran as $item)
                                 <option value="{{$item->id_peran}}">{{$item->nm_peran}}</option>
                                 @endforeach
@@ -119,7 +121,7 @@
                 </div>
             </div>
         </div>
-    
+
         <div class="modal-footer">
             <a type="button" class="btn btn-default" href="#" onclick="history.back()"><i class="fa fa-arrow-left"></i> Kembali</a>
             <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>

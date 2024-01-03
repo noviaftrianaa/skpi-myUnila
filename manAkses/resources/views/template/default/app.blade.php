@@ -18,9 +18,9 @@
     <!-- iCheck -->
     <link rel="stylesheet" href="{{ asset('master_template/plugins/icheck-bootstrap/icheck-bootstrap.min.css') }}">
     <!-- JQVMap -->
-    <!-- <link rel="stylesheet" href="{!! asset('node_modules/select2/dist/css/select2.min.css') !!}"> -->
+    {{-- <!-- <link rel="stylesheet" href="{!! asset('node_modules/select2/dist/css/select2.min.css') !!}"> -->
     <link rel="stylesheet" href="{{ asset('master_template/plugins/select2/css/select2.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('master_template/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('master_template/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}"> --}}
     <link rel="stylesheet" href="{{ asset('master_template/plugins/jqvmap/jqvmap.min.css') }}">
     <!-- Theme style -->
     <link rel="stylesheet" href="{{ asset('master_template/dist/css/adminlte.min.css') }}">
@@ -146,7 +146,7 @@
 <script>
     $.widget.bridge('uibutton', $.ui.button)
 </script>
-<script src="{{ asset('master_template/plugins/select2/js/select2.full.min.js') }}"></script>
+{{-- <script src="{{ asset('master_template/plugins/select2/js/select2.full.min.js') }}"></script> --}}
 <!-- Bootstrap 4 -->
 <script src="{{ asset('master_template/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 <!-- ChartJS -->
@@ -177,10 +177,6 @@
 <script src="{!! asset('js/konfirmasi.js') !!}"></script>
 <script src="{!! asset('js/konfirmasi_non_datatables.js') !!}"></script>
 <script type="text/javascript">
-
-    $(document).ready( function () {
-        $('.select2').select2();
-    });
 
     $(function () {
         $('[data-toggle="tooltip"]').tooltip();
