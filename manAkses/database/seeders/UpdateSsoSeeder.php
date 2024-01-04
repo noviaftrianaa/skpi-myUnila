@@ -27,7 +27,9 @@ class UpdateSsoSeeder extends Seeder
                 FROM
                     radcheck
                 WHERE
-                    status = 'Dosen'
+                    -- status = 'Mahasiswa'
+                    username IS NOT NULL
+                    AND tanggal_lahir != 0000-00-00
             ";
         $result = DB::connection('mysql')->select(DB::raw($query));
         $total_data = count($result);
@@ -89,7 +91,7 @@ class UpdateSsoSeeder extends Seeder
                         'password'      => $each_data->value,
                         // 'jenis_kelamin' => $each_data->jenis_kelamin,
                         // 'tempat_lahir'  => $each_data->tempat_lahir,
-                        'tgl_lahir'     => $each_data->tanggal_lahir,
+                        'tgl_lahir'     => $each_data->tanggal_lahir ?? null,
                         'email'     => $each_data->email,
                         // 'alamat'        => $each_data->alamat,
                         // 'jabatan'       => $each_data->jabatan,
@@ -117,9 +119,59 @@ class UpdateSsoSeeder extends Seeder
                             'id_updater' => $cek_user->id_pengguna,
                         ]);
                     }else{
+                        $peran = RolePengguna::where('id_peran', $id_peran)->where('soft_delete', 0)->first();
+                        if(!is_null($peran)){
+                            $role = RolePengguna::create([
+                                'id_role_pengguna' => guid(),
+                                'id_pengguna' => $cek_user->id_pengguna,
+                                'id_organisasi' => $id_organisasi,
+                                'id_peran' => $id_peran,
+                                // 'sk_penugasan' => $sk_penugasan,
+                                // 'tgl_sk_penugasan' => $tgl_sk_penugasan,
+                                'approval_peran' => 1,
+                                'tgl_create' => currDateTime(),
+                                'last_active' => currDateTime(),
+                                'last_update' => currDateTime(),
+                                'soft_delete' => 0,
+                                'last_sync' => currDateTime(),
+                                'id_updater' => $cek_user->id_pengguna,
+                            ]);
+                        }
+                    }
+
+                    echo "Data sudah ada, berhasil diupdate username: ".$cek_user->username." peran ".$id_peran." --------------\n";
+
+                }else{
+                    $data = User::lock('WITH(NOLOCK)')->create([
+                        'id_pengguna'   => guid(),
+                        'nm_pengguna'   => $each_data->nm_pengguna,
+                        'username'      => $each_data->username,
+                        'password'      => $each_data->value,
+                        'jenis_kelamin' => 'L',
+                        // 'tempat_lahir'  => $each_data->tempat_lahir,
+                        'tgl_lahir'     => $each_data->tanggal_lahir ?? null,
+                        'email'     => $each_data->email,
+                        // 'alamat'        => $each_data->alamat,
+                        // 'jabatan'       => $each_data->jabatan,
+                        // 'no_tel'        => $each_data->no_tel,
+                        // 'no_hp'         => $each_data->no_hp,
+                        'id_sdm_pengguna'     => $id_sdm_pengguna ?? null,
+                        'id_pd_pengguna'     => $id_pd_pengguna ?? null,
+                        'approval_pengguna' => 1,
+                        'a_aktif'       => 1,
+                        'disable'       => 0,
+                        'tgl_create'    => currDateTime(),
+                        'last_update'   => currDateTime(),
+                        'last_sync'     => currDateTime(),
+                        'id_updater'    => guid(),
+                        'soft_delete'   => 0
+                    ]);
+
+                    $peran = RolePengguna::where('id_peran', $id_peran)->where('soft_delete', 0)->first();
+                    if(!is_null($peran)){
                         $role = RolePengguna::create([
                             'id_role_pengguna' => guid(),
-                            'id_pengguna' => $cek_user->id_pengguna,
+                            'id_pengguna' => $data->id_pengguna,
                             'id_organisasi' => $id_organisasi,
                             'id_peran' => $id_peran,
                             // 'sk_penugasan' => $sk_penugasan,
@@ -130,53 +182,9 @@ class UpdateSsoSeeder extends Seeder
                             'last_update' => currDateTime(),
                             'soft_delete' => 0,
                             'last_sync' => currDateTime(),
-                            'id_updater' => $cek_user->id_pengguna,
+                            'id_updater' => $data->id_pengguna,
                         ]);
                     }
-
-                    echo "Data sudah ada, berhasil diupdate username: ".$cek_user->username." peran ".$id_peran." --------------\n";
-
-                }else{
-                    $data = User::lock('WITH(NOLOCK)')->create([
-                        'id_pengguna'   => $uuid,
-                        'nm_pengguna'   => $each_data->nm_pengguna,
-                        'username'      => $each_data->username,
-                        'password'      => $each_data->value,
-                        'jenis_kelamin' => 'L',
-                        // 'tempat_lahir'  => $each_data->tempat_lahir,
-                        'tgl_lahir'     => $each_data->tanggal_lahir,
-                        'email'     => $each_data->email,
-                        // 'alamat'        => $each_data->alamat,
-                        // 'jabatan'       => $each_data->jabatan,
-                        // 'no_tel'        => $each_data->no_tel,
-                        // 'no_hp'         => $each_data->no_hp,
-                        'id_sdm_pengguna'     => $id_sdm_pengguna,
-                        'id_pd_pengguna'     => $id_pd_pengguna,
-                        'approval_pengguna' => 1,
-                        'a_aktif'       => 1,
-                        'disable'       => 0,
-                        'tgl_create'    => currDateTime(),
-                        'last_update'   => currDateTime(),
-                        'last_sync'     => currDateTime(),
-                        'id_updater'    => $uuid,
-                        'soft_delete'   => 0
-                    ]);
-
-                    $role = RolePengguna::create([
-                        'id_role_pengguna' => guid(),
-                        'id_pengguna' => $data->id_pengguna,
-                        'id_organisasi' => $id_organisasi,
-                        'id_peran' => $id_peran,
-                        // 'sk_penugasan' => $sk_penugasan,
-                        // 'tgl_sk_penugasan' => $tgl_sk_penugasan,
-                        'approval_peran' => 1,
-                        'tgl_create' => currDateTime(),
-                        'last_active' => currDateTime(),
-                        'last_update' => currDateTime(),
-                        'soft_delete' => 0,
-                        'last_sync' => currDateTime(),
-                        'id_updater' => $data->id_pengguna,
-                    ]);
 
                     echo "Data berhasil disimpan username: ".$data->username." peran ".$role->id_peran."\n";
                 }

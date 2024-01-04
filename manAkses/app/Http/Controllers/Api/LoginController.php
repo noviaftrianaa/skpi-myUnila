@@ -8,10 +8,13 @@ use App\Models\Logger\LogJwt;
 use Illuminate\Http\Request;
 use Illuminate\Support\Env;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use Exception;
 use Illuminate\Encryption\Encrypter;
 use Config;
 use SSO\SSO;
+use Cookie;
 
 class LoginController extends Controller
 {
@@ -146,6 +149,8 @@ class LoginController extends Controller
                 'username' => $pengguna->username,
                 'nm_pengguna' => $user->nm_pengguna,
                 'peran_pengguna' => $pengguna->status ?? '-',
+                'id_sdm_pengguna' => $user->id_sdm_pengguna,
+                'id_pd_pengguna' => $user->id_pd_pengguna,
                 'email' => $pengguna->email,
                 'token_dibuat' => time(),
                 'token_kadarluwasa' => (time() + (60 * 60)),
@@ -169,6 +174,9 @@ class LoginController extends Controller
             $token = $AuthApi->decodedToken($this->request->input('token'));
             return WrapResponse(['data' => $token], 'Token aktif', TRUE);
         } catch (Exception $e) {
+            SSO::cookieClear();
+            Auth::logout();
+            Session::flush();
             return WrapResponse(['data' => ['errors' => $e->getMessage()]], 'Token tidak aktif', FALSE);
         }
     }
