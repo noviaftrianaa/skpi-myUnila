@@ -20,7 +20,7 @@ $customizerHidden = 'customizer-hide';
         <!-- Logo -->
         <div class="app-brand justify-content-center mb-4 mt-2">
           <a href="{{url('/')}}" class="app-brand-link gap-2">
-            <span class="app-brand-logo demo">@include('_partials.macros',['height'=>20,'withbg' => "fill: #fff;"])</span>
+            <span class="app-brand-logo demo"><img src="/images/logo-unila.png" height="20" /></span>
             <span class="app-brand-text demo text-body fw-bold ms-1">{{ config('variables.templateName') }}</span>
           </a>
         </div>

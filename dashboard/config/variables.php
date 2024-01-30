@@ -3,8 +3,8 @@
 return [
   "creatorName" => "Pixinvent",
   "creatorUrl" => "https://pixinvent.com",
-  "templateName" => "Vuexy",
-  "templateSuffix" => "Bootstrap Admin Template",
+  "templateName" => "My-UNILA",
+  "templateSuffix" => "Dashboard Universitas Lampung",
   "templateVersion" => "1.0.0",
   "templateFree" => false,
   "templateDescription" => "Start your development with a Dashboard for Bootstrap 5",
@@ -25,5 +25,8 @@ return [
   "twitterUrl" => "https://twitter.com/pixinvents",
   "githubUrl" => "https://github.com/pixinvent",
   "dribbbleUrl" => "https://dribbble.com/pixinvent",
-  "instagramUrl" => "https://www.instagram.com/pixinvents/"
+  "instagramUrl" => "https://www.instagram.com/pixinvents/",
+  "appName" => "My-UNILA",
+  "unitName" => "UPT TIK",
+  "unitUrl" => "https://tik.unila.ac.id",
 ];

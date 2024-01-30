@@ -5,7 +5,7 @@
       <div class="row gx-0 gy-4 g-md-5">
         <div class="col-lg-5">
           <a href="{{url('front-pages/landing')}}" class="app-brand-link mb-4">
-            <span class="app-brand-logo demo">@include('_partials.macros',['height'=>20,'withbg' => "fill: #fff;"])</span>
+            <span class="app-brand-logo demo"><img src="/images/logo-unila.png" height="20" /></span>
             <span class="app-brand-text demo footer-link fw-bold ms-2 ps-1">{{ config('variables.templateName') }}</span>
           </a>
           <p class="footer-text footer-logo-description mb-4">

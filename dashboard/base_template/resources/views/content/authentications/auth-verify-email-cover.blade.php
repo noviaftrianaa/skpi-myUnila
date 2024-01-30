@@ -31,7 +31,7 @@ $configData = Helper::appClasses();
       <div class="w-px-400 mx-auto">
         <div class="app-brand mb-4">
           <a href="{{url('/')}}" class="app-brand-link gap-2">
-            <span class="app-brand-logo demo">@include('_partials.macros',['height'=>20,'withbg' => "fill: #fff;"])</span>
+            <span class="app-brand-logo demo"><img src="/images/logo-unila.png" height="20" /></span>
           </a>
         </div>
         <h3 class="mb-1">Verify your email ✉️</h3>

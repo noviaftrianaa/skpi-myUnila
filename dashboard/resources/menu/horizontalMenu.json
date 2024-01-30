@@ -2,36 +2,41 @@
   "menu": [
     {
       "url": "/",
-      "name": "Home",
-      "icon": "menu-icon tf-icons ti ti-smart-home",
+      "name": "Halaman Utama",
+      "icon": "menu-icon tf-icons ti ti-home",
       "slug": "pages-home"
     },
     {
-      "url": "page-2",
-      "icon": "menu-icon tf-icons ti ti-file",
-      "name": "Page 2",
-      "slug": "pages-page-2"
-    },
-    {
-      "url": "pages/misc-error",
-      "name": "Error",
-      "icon": "menu-icon tf-icons ti ti-alert-triangle",
-      "slug": "pages-misc-error",
-      "target": "_blank"
-    },
-    {
-      "url": "auth/login-basic",
-      "name": "Login",
-      "icon": "menu-icon tf-icons ti ti-login",
-      "slug": "auth-login-basic",
-      "target": "_blank"
-    },
-    {
-      "url": "auth/register-basic",
-      "name": "Register",
-      "icon": "menu-icon tf-icons ti ti-user",
-      "slug": "auth-register-basic",
-      "target": "_blank"
+      "url": "#",
+      "name": "World Class University",
+      "icon": "menu-icon tf-icons ti ti-world",
+      "slug": ["pages-webometrics-ranking","pages-times-higher-education-ranking","pages-qs-world-university-ranking","pages-green-metric-ranking"],
+      "submenu": [
+        {
+          "url": "green_metric_ranking",
+          "icon": "menu-icon tf-icons ti ti-trophy",
+          "name": "Green Metric Ranking",
+          "slug": "pages-green-metric-ranking"
+        },
+        {
+          "url": "qs_world_university_ranking",
+          "icon": "menu-icon tf-icons ti ti-trophy",
+          "name": "QS World University Ranking",
+          "slug": "pages-qs-world-university-ranking"
+        },
+        {
+          "url": "times_higher_education_ranking",
+          "icon": "menu-icon tf-icons ti ti-trophy",
+          "name": "Times Higher Education Ranking",
+          "slug": "pages-times-higher-education-ranking"
+        },
+        {
+          "url": "webometrics_ranking",
+          "icon": "menu-icon tf-icons ti ti-trophy",
+          "name": "Webometrics Ranking",
+          "slug": "pages-webometrics-ranking"
+        }
+      ]
     }
   ]
 }

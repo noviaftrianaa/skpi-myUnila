@@ -32,7 +32,7 @@
         <div class="d-flex justify-content-between flex-xl-row flex-md-column flex-sm-row flex-column m-sm-3 m-0">
           <div class="mb-xl-0 mb-4">
             <div class="d-flex svg-illustration mb-4 gap-2 align-items-center">
-              @include('_partials.macros',["height"=>20,"withbg"=>''])
+              <img src="/images/logo-unila.png" height="20" />
               <span class="app-brand-text fw-bold fs-4">
                 {{ config('variables.templateName') }}
               </span>

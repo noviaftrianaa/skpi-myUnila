@@ -16,7 +16,7 @@
   <div class="d-flex justify-content-between flex-row">
     <div class="mb-4">
       <div class="d-flex svg-illustration mb-3 gap-2">
-        @include('_partials.macros',["height"=>20,"withbg"=>''])
+        <img src="/images/logo-unila.png" height="20" />
         <span class="app-brand-text fw-bold">
           {{ config('variables.templateName') }}
         </span>
