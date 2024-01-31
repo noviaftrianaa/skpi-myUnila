@@ -47,22 +47,37 @@ class LoginBasic extends Controller
   {
     Auth::loginUsingId($data->id_pengguna);
     Alert::success('You are logged in!');
-    $role = \App\Models\RolePengguna::where('id_pengguna', $data->id_pengguna)->where('id_peran', 1)->first();
-    if (is_null($role)) {
-        $role = \App\Models\RolePengguna::where('id_pengguna', $data->id_pengguna)->orderBy('last_active', 'DESC')->first();
-    }
+    $role = \App\Models\RolePengguna::where('id_pengguna', $data->id_pengguna)->orderBy('last_active', 'DESC')->first();
     Session::put('login.log_address', get_client_ip());
     Session::put('login.role', (!is_null($role)) ? $role : NULL);
-    // MenuRole();
+    MenuRole();
 
     return redirect()->to('/main');
   }
 
   public function logout()
   {
-    \Auth::logout(); //Destroy Auth
-    \Session::flush(); //Destroy Session
-    alert()->success('Berhasil logout'); //Alert
-    return redirect()->to('auth/login');
+    if (\Auth::check()) {
+      try {
+          // UPDATE LAST ACTIVE
+        $updateLastActive = \DB::table('man_akses.role_pengguna')->where('id_pengguna', \Auth::user()->id_pengguna)->where('id_peran', session()->get('login.role')->id_peran)->update(
+          [
+            'last_active' => NOW()
+          ]
+        );
+      } catch (HttpClientException $he) {
+          logger()->error(__CLASS__ . DIRECTORY_SEPARATOR . __FUNCTION__ . ':' . $he->getMessage());
+      } catch (Exception $e) {
+          logger()->error(__CLASS__ . DIRECTORY_SEPARATOR . __FUNCTION__ . ':' . $e->getMessage());
+      } finally {
+          \Auth::logout(); //Destroy Auth
+          \Session::flush(); //Destroy Session
+          \Alert::success('Berhasil logout'); //Alert
+
+          return redirect()->route('auth-login');
+      }
+    } else {
+      return redirect()->route('auth-login');
+    }
   }
 }

@@ -1,4 +1,5 @@
 @extends('layouts/layoutMaster')
+@include('_partials.datatables')
 
 @section('title', 'Halaman Utama')
 
@@ -105,168 +106,95 @@
                 <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab"
                         data-bs-target="#navs-dosen" aria-controls="navs-dosen" aria-selected="true"><i
                             class="ti ti-users-group ti-xs me-1"></i>Dosen</button></li>
-                            <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab"
-                                    data-bs-target="#navs-tendik" aria-controls="navs-tendik" aria-selected="true"><i
-                                        class="ti ti-users-group ti-xs me-1"></i>Tenaga Pendidik</button></li>
+                <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab"
+                        data-bs-target="#navs-tendik" aria-controls="navs-tendik" aria-selected="true"><i
+                            class="ti ti-users-group ti-xs me-1"></i>Tenaga Pendidik</button></li>
             </ul>
             <!--/ User Pills -->
 
             <!-- Project table -->
             <div class="card">
                 <!-- Program Studi -->
-                <div class="tab-content p-0">
+                <div class="tab-content pt-0">
                     <div class="tab-pane fade show active" id="navs-program-studi" role="tabpanel">
-                        <h5 class="card-header">Program Studi</h5>
-                        <div class="table-responsive text-nowrap">
-                            <table class="table table-hover programstudi">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th class="text-center">No.</th>
-                                        <th class="text-center">Kode</th>
-                                        <th>Nama Program Studi</th>
-                                        <th class="text-center">Jenjang</th>
-                                        <th class="text-center">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @php
-                                        $data = [];
-                                    @endphp
-                                    @forelse ($data as $no=>$item)
-                                        <tr>
-                                            <td>{{ $no + 1 }}</td>
-                                            <td>{{ $item->kd_sms }}</td>
-                                            <td>{{ $item->nm_sms }}</td>
-                                            <td>{{ $item->jenj_didik }}</td>
-                                            <td>{{ $item->status }}</td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="5" class="text-center">TIDAK ADA DATA</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
+                      <div class="card-header px-0 d-flex justify-content-between align-items-start">
+                        <h5>Program Studi</h5>
+                        <div class="card-tools">
+                          <button class="btn btn-default" id="programstudi"><i class="fas fa-refresh me-2"></i>Refresh</button>
+                        </div>
+                      </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover programstudi" style="width: 100% !important">
+                                <thead class="table-primary"></thead>
                             </table>
                         </div>
                     </div>
                     <!-- Mahasiswa -->
                     <div class="tab-pane fade" id="navs-mahasiswa" role="tabpanel">
-                        <h5 class="card-header">Mahasiswa</h5>
-                        <div class="table-responsive text-nowrap">
-                            <table class="table table-hover mahasiswa">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th rowspan="2" class="text-center">No.</th>
-                                        <th rowspan="2">Program Studi</th>
-                                        <th rowspan="2" class="text-center">Jenjang</th>
-                                        <th colspan="2" class="text-center">Nasional</th>
-                                        <th colspan="2" class="text-center">Internasional</th>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-center">Pria</td>
-                                        <td class="text-center">Wanita</td>
-                                        <td class="text-center">Pria</td>
-                                        <td class="text-center">Wanita</td>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @php
-                                        $data = [];
-                                    @endphp
-                                    @forelse ($data as $no=>$item)
-                                        <tr>
-                                            <td>{{ $no + 1 }}</td>
-                                            <td>{{ $item->kd_sms }}</td>
-                                            <td>{{ $item->nm_sms }}</td>
-                                            <td>{{ $item->jenj_didik }}</td>
-                                            <td>{{ $item->status }}</td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="7" class="text-center">TIDAK ADA DATA</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
+                        <div class="card-header px-0 d-flex justify-content-between align-items-start">
+                          <h5>Mahasiswa</h5>
+                          <div class="card-tools">
+                            <button class="btn btn-default" id="mahasiswa"><i class="fas fa-refresh me-2"></i>Refresh</button>
+                          </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover mahasiswa" style="width: 100% !important">
+                                <thead class="table-primary"></thead>
                             </table>
                         </div>
                     </div>
                     <!-- Dosen -->
                     <div class="tab-pane fade" id="navs-dosen" role="tabpanel">
-                        <h5 class="card-header">Dosen</h5>
-                        <div class="table-responsive text-nowrap">
-                            <table class="table table-hover">
-                                <thead class="table-light">
+                      <div class="card-header px-0 d-flex justify-content-between align-items-start">
+                        <h5>Dosen</h5>
+                        <div class="card-tools">
+                          <button class="btn btn-default" id="dosen"><i class="fas fa-refresh me-2"></i>Refresh</button>
+                        </div>
+                      </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover dosen" style="width: 100% !important">
+                                <thead class="table-primary">
                                     <tr>
-                                        <th rowspan="2" class="text-center">No.</th>
+                                        <th rowspan="2" width="5px">No.</th>
                                         <th rowspan="2">Program Studi</th>
-                                        <th rowspan="2" class="text-center">Jenjang</th>
+                                        <th rowspan="2" width="5px">Jenjang</th>
                                         <th colspan="2" class="text-center">PNS</th>
                                         <th colspan="2" class="text-center">Kontrak</th>
                                     </tr>
                                     <tr>
-                                        <td class="text-center">Pria</td>
-                                        <td class="text-center">Wanita</td>
-                                        <td class="text-center">Pria</td>
-                                        <td class="text-center">Wanita</td>
+                                        <td width="5px">Pria</td>
+                                        <td width="5px">Wanita</td>
+                                        <td width="5px">Pria</td>
+                                        <td width="5px">Wanita</td>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    @php
-                                        $data = [];
-                                    @endphp
-                                    @forelse ($data as $no=>$item)
-                                        <tr>
-                                            <td>{{ $no + 1 }}</td>
-                                            <td>{{ $item->kd_sms }}</td>
-                                            <td>{{ $item->nm_sms }}</td>
-                                            <td>{{ $item->jenj_didik }}</td>
-                                            <td>{{ $item->status }}</td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="7" class="text-center">TIDAK ADA DATA</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
                             </table>
                         </div>
                     </div>
                     <!-- Tenaga Pendidik -->
                     <div class="tab-pane fade" id="navs-tendik" role="tabpanel">
-                        <h5 class="card-header">Tenaga Pendidik</h5>
-                        <div class="table-responsive text-nowrap">
-                            <table class="table table-hover">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th rowspan="2" class="text-center">No.</th>
-                                        <th rowspan="2">Lembaga/Fakultas</th>
-                                        <th colspan="2" class="text-center">PNS</th>
-                                        <th colspan="2" class="text-center">Kontrak</th>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-center">Pria</td>
-                                        <td class="text-center">Wanita</td>
-                                        <td class="text-center">Pria</td>
-                                        <td class="text-center">Wanita</td>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @php
-                                        $data = [];
-                                    @endphp
-                                    @forelse ($data as $no=>$item)
-                                        <tr>
-                                            <td>{{ $no + 1 }}</td>
-                                            <td>{{ $item->kd_sms }}</td>
-                                            <td>{{ $item->nm_sms }}</td>
-                                            <td>{{ $item->jenj_didik }}</td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="6" class="text-center">TIDAK ADA DATA</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
+                      <div class="card-header px-0 d-flex justify-content-between align-items-start">
+                        <h5>Tenaga Pendidik</h5>
+                        <div class="card-tools">
+                          <button class="btn btn-default" id="tendik"><i class="fas fa-refresh me-2"></i>Refresh</button>
+                        </div>
+                      </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover tendik" style="width: 100% !important">
+                              <thead class="table-primary">
+                                  <tr>
+                                      <th rowspan="2" width="5px">No.</th>
+                                      <th rowspan="2">Lembaga/Fakultas</th>
+                                      <th colspan="2" class="text-center">PNS</th>
+                                      <th colspan="2" class="text-center">Kontrak</th>
+                                  </tr>
+                                  <tr>
+                                      <td width="5px">Pria</td>
+                                      <td width="5px">Wanita</td>
+                                      <td width="5px">Pria</td>
+                                      <td width="5px">Wanita</td>
+                                  </tr>
+                              </thead>
                             </table>
                         </div>
                     </div>
@@ -277,25 +205,194 @@
         <!--/ User Content -->
     </div>
     <!-- /Modal -->
+
 @endsection
 
-@push('page-style')
-<script>
-  function programstudi()
-  {
-    return $('.programstudi').DataTables();
-  }
-  function mahasiswa()
-  {
-    return $('.mahasiswa').DataTables();
-  }
-  function dosen()
-  {
-    return $('.dosen').DataTables();
-  }
-  function tendik()
-  {
-    return $('.tendik').DataTables();
-  }
-</script>
-@endpush
+@section('page-script')
+    <script>
+        function programstudi() {
+            return $('.programstudi').DataTable({
+                processing: true,
+                serverSide: true,
+                pagingType: "simple",
+                ajax: {
+                    url: "{{ route('pages-home-programstudi') }}"
+                },
+                columns: [{
+                        data: 'DT_RowIndex',
+                        orderable: false,
+                        searchable: false,
+                        title: 'No.',
+                        width: '5px',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'kode_prodi',
+                        title: 'Kode Prodi',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'nm_lemb',
+                        title: 'Program Studi'
+                    },
+                    {
+                        data: 'nm_jenj_didik',
+                        title: 'Jenjang',
+                        width: '5px',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'soft_delete',
+                        title: 'Status',
+                        width: '5px',
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            return data == '0' ? `<span class="badge bg-success">Aktif</span>` :
+                                `<span class="badge bg-danger">Tidak Aktif</span>`;
+                        }
+                    },
+                ],
+            });
+        }
+
+        function mahasiswa() {
+            return $('.mahasiswa').DataTable({
+                processing: true,
+                serverSide: true,
+                pagingType: "simple",
+                ajax: {
+                    url: "{{ route('pages-home-mahasiswa') }}"
+                },
+                columns: [{
+                        data: 'DT_RowIndex',
+                        orderable: false,
+                        searchable: false,
+                        title: 'No.',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'nm_lemb',
+                        title: 'Program Studi'
+                    },
+                    {
+                        data: 'nm_jenj_didik',
+                        className: 'text-center',
+                        title: 'Jenjang'
+                    },
+                    {
+                        data: 'nasional',
+                        className: 'text-center',
+                        title: 'Nasional'
+                    },
+                    {
+                        data: 'internasional',
+                        className: 'text-center',
+                        title: 'Internasional'
+                    },
+                ],
+            });
+        }
+
+        function dosen() {
+            return $('.dosen').DataTable({
+                processing: true,
+                serverSide: true,
+                pagingType: "simple",
+                ajax: {
+                    url: "{{ route('pages-home-dosen') }}"
+                },
+                columns: [{
+                        data: 'DT_RowIndex',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'nm_lemb',
+                    },
+                    {
+                        data: 'nm_jenj_didik',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'pns_pria',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'pns_wanita',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'kontrak_pria',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'kontrak_wanita',
+                        className: 'text-center'
+                    },
+                ],
+            });
+        }
+
+        function tendik() {
+            return $('.tendik').DataTable({
+                processing: true,
+                serverSide: true,
+                pagingType: "simple",
+                ajax: {
+                    url: "{{ route('pages-home-tendik') }}"
+                },
+                columns: [{
+                        data: 'DT_RowIndex',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'nm_lemb',
+                    },
+                    {
+                        data: 'pns_pria',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'pns_wanita',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'kontrak_pria',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'kontrak_wanita',
+                        className: 'text-center'
+                    },
+                ],
+            });
+        }
+
+        $(document).ready(function() {
+            programstudi();
+            mahasiswa();
+            dosen();
+            tendik();
+
+            $('#programstudi').on('click', function() {
+              $('.programstudi').DataTable().clear().destroy();
+              programstudi();
+            });
+            $('#mahasiswa').on('click', function() {
+              $('.mahasiswa').DataTable().clear().destroy();
+              mahasiswa();
+            });
+            $('#dosen').on('click', function() {
+              $('.dosen').DataTable().clear().destroy();
+              dosen();
+            });
+            $('#tendik').on('click', function() {
+              $('.tendik').DataTable().clear().destroy();
+              tendik();
+            });
+        });
+    </script>
+@endsection

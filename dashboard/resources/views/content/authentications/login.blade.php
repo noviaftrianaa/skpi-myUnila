@@ -42,7 +42,7 @@
                                 In - SSO UNILA</a>
                         </div>
                         <div class="my-3">
-                            <a href="https://login.unila.ac.id/help#faq" class="btn btn-info w-100" target="_blank"><i
+                            <a href="https://apps.unila.ac.id/#lupa" class="btn btn-info w-100" target="_blank"><i
                                     class="fas fa-info-circle me-2"></i>Lupa Kata Sandi</a>
                         </div>
                         <div class="my-3">

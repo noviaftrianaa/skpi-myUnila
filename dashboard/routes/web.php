@@ -24,6 +24,11 @@ Route::get('lang/{locale}', [LanguageController::class, 'swap'])->name('swap_lan
 
 // Dashboard Public
 Route::get('/', [DashboardController::class, 'index'])->name('pages-home');
+Route::get('/programstudi', [DashboardController::class, 'programstudi'])->name('pages-home-programstudi');
+Route::get('/mahasiswa', [DashboardController::class, 'mahasiswa'])->name('pages-home-mahasiswa');
+Route::get('/dosen', [DashboardController::class, 'dosen'])->name('pages-home-dosen');
+Route::get('/tendik', [DashboardController::class, 'tendik'])->name('pages-home-tendik');
+
 Route::get('/times_higher_education_ranking', [DashboardController::class, 'times_higher_education_ranking'])->name('pages-times-higher-education-ranking');
 Route::get('/qs_world_university_ranking', [DashboardController::class, 'qs_world_university_ranking'])->name('pages-qs-world-university-ranking');
 Route::get('/green_metric_ranking', [DashboardController::class, 'green_metric_ranking'])->name('pages-green-metric-ranking');
@@ -36,6 +41,10 @@ Route::post('/auth/captcha', [LoginBasic::class, 'captcha'])->name('auth-captcha
 Route::post('auth/logout', [LoginBasic::class, 'logout'])->name('auth-logout');
 
 //Auth Success
-Route::prefix('main')->group(function () {
-    Route::get('/', [MainDashboardController::class, 'index'])->name('main-index');
+Route::middleware(['auth'])->group(function () {
+  Route::prefix('main')->group(function () {
+      Route::get('/', [MainDashboardController::class, 'index'])->name('main-index');
+      Route::get('/peran', [MainDashboardController::class, 'peran'])->name('main-peran');
+      Route::get('/changePeran', [MainDashboardController::class, 'changePeran'])->name('main-changePeran');
+  });
 });

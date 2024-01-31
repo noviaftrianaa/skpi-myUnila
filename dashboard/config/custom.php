@@ -7,7 +7,7 @@
 
 return [
   'custom' => [
-    'myLayout' => 'horizontal', // Options[String]: vertical(default), horizontal
+    'myLayout' => 'vertical', // Options[String]: vertical(default), horizontal
     'myTheme' => 'theme-default', // Options[String]: theme-default(default), theme-bordered, theme-semi-dark
     'myStyle' => 'light', // Options[String]: light(default), dark & system mode
     'myRTLSupport' => true, // options[Boolean]: true(default), false // To provide RTLSupport or not

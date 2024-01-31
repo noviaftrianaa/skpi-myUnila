@@ -25,11 +25,45 @@ $configData = Helper::appClasses();
   <div class="menu-inner-shadow"></div>
 
   <ul class="menu-inner py-1">
-    @foreach ($menuData[0]->menu as $menu)
-
-    {{-- adding active and open class if child is active --}}
-
-    {{-- menu headers --}}
+    <!-- Dashboard -->
+    <li class="menu-item {{ AktifMenu('main-index', 1) }}">
+      <a href="{{ route('main-index') }}" class="menu-link">
+        <i class="menu-icon tf-icons fas fa-home text-center" style="font-size: 1em"></i>
+        Halaman Utama
+      </a>
+    </li>
+    <!-- Menu -->
+    @if(!empty(\Session::get('login.menu')))
+    @foreach(\Session::get('login.menu') AS $n=>$r)
+      @if(empty($r->sub))
+        <!-- Single Menu -->
+        <li class="menu-item {{ AktifMenu($r->nm_file, 1) }}">
+          <a href="#" class="menu-link">
+            <i class="menu-icon tf-icons {{ $r->icon }} text-center" style="font-size: 1em"></i>
+            {{ $r->nm_menu }}
+          </a>
+        </li>
+      @else
+      <!-- Sub Menu -->
+      <li class="menu-item {{ AktifMenu($r->nm_file, 1) }}">
+        <a href="#" class="menu-link menu-toggle">
+          <i class="menu-icon tf-icons {{ $r->icon }} text-center" style="font-size: 1em"></i>
+          {{ $r->nm_menu }}
+        </a>
+        <ul class="menu-sub">
+					@foreach($r->sub AS $t)
+          <li class="menu-item {{ AktifMenu($r->nm_file, 2) }}">
+            <a href="#" class="menu-link">
+              {{ $t->nm_menu }}
+            </a>
+          </li>
+          @endforeach
+        </ul>
+      </li>
+      @endif
+    @endforeach
+    @endif
+    {{-- @foreach ($menuData[0]->menu as $menu)
     @if (isset($menu->menuHeader))
     <li class="menu-header small text-uppercase">
       <span class="menu-header-text">{{ __($menu->menuHeader) }}</span>
@@ -37,7 +71,6 @@ $configData = Helper::appClasses();
 
     @else
 
-    {{-- active menu method --}}
     @php
     $activeClass = null;
     $currentRouteName = Route::currentRouteName();
@@ -62,7 +95,6 @@ $configData = Helper::appClasses();
     }
     @endphp
 
-    {{-- main menu --}}
     <li class="menu-item {{$activeClass}}">
       <a href="{{ isset($menu->url) ? url($menu->url) : 'javascript:void(0);' }}" class="{{ isset($menu->submenu) ? 'menu-link menu-toggle' : 'menu-link' }}" @if (isset($menu->target) and !empty($menu->target)) target="_blank" @endif>
         @isset($menu->icon)
@@ -75,13 +107,12 @@ $configData = Helper::appClasses();
         @endisset
       </a>
 
-      {{-- submenu --}}
       @isset($menu->submenu)
       @include('layouts.sections.menu.submenu',['menu' => $menu->submenu])
       @endisset
     </li>
     @endif
-    @endforeach
+    @endforeach --}}
   </ul>
 
 </aside>
