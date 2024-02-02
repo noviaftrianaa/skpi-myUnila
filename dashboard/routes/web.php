@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\language\LanguageController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProgramStudiController;
 use App\Http\Controllers\authentications\LoginBasic;
 use App\Http\Controllers\authentications\RegisterBasic;
 //MAIN
@@ -27,12 +28,23 @@ Route::get('/', [DashboardController::class, 'index'])->name('pages-home');
 Route::get('/programstudi', [DashboardController::class, 'programstudi'])->name('pages-home-programstudi');
 Route::get('/mahasiswa', [DashboardController::class, 'mahasiswa'])->name('pages-home-mahasiswa');
 Route::get('/dosen', [DashboardController::class, 'dosen'])->name('pages-home-dosen');
+Route::get('/dosen/detail', [DashboardController::class, 'detailDosen'])->name('pages-home-dosen-detail');
 Route::get('/tendik', [DashboardController::class, 'tendik'])->name('pages-home-tendik');
-
-Route::get('/times_higher_education_ranking', [DashboardController::class, 'times_higher_education_ranking'])->name('pages-times-higher-education-ranking');
-Route::get('/qs_world_university_ranking', [DashboardController::class, 'qs_world_university_ranking'])->name('pages-qs-world-university-ranking');
-Route::get('/green_metric_ranking', [DashboardController::class, 'green_metric_ranking'])->name('pages-green-metric-ranking');
-Route::get('/webometrics_ranking', [DashboardController::class, 'webometrics_ranking'])->name('pages-webometrics-ranking');
+//University Rank
+Route::get('/times_higher_education_ranking', [DashboardController::class, 'times_higher_education_ranking'])->name(
+  'pages-times-higher-education-ranking'
+);
+Route::get('/qs_world_university_ranking', [DashboardController::class, 'qs_world_university_ranking'])->name(
+  'pages-qs-world-university-ranking'
+);
+Route::get('/green_metric_ranking', [DashboardController::class, 'green_metric_ranking'])->name(
+  'pages-green-metric-ranking'
+);
+Route::get('/webometrics_ranking', [DashboardController::class, 'webometrics_ranking'])->name(
+  'pages-webometrics-ranking'
+);
+//Prodi
+Route::get('/prodi/{id}', [ProgramStudiController::class, 'index'])->name('pages-prodi');
 
 //Auth
 Route::get('/auth/login', [LoginBasic::class, 'index'])->name('auth-login');
@@ -40,11 +52,16 @@ Route::get('/auth/sso', [LoginBasic::class, 'sso'])->name('auth-sso');
 Route::post('/auth/captcha', [LoginBasic::class, 'captcha'])->name('auth-captcha');
 Route::post('auth/logout', [LoginBasic::class, 'logout'])->name('auth-logout');
 
+//Maintenance
+Route::get('maintanance', function () {
+  return view('maintenance');
+});
+
 //Auth Success
 Route::middleware(['auth'])->group(function () {
   Route::prefix('main')->group(function () {
-      Route::get('/', [MainDashboardController::class, 'index'])->name('main-index');
-      Route::get('/peran', [MainDashboardController::class, 'peran'])->name('main-peran');
-      Route::get('/changePeran', [MainDashboardController::class, 'changePeran'])->name('main-changePeran');
+    Route::get('/', [MainDashboardController::class, 'index'])->name('main-index');
+    Route::get('/peran', [MainDashboardController::class, 'peran'])->name('main-peran');
+    Route::get('/changePeran', [MainDashboardController::class, 'changePeran'])->name('main-changePeran');
   });
 });

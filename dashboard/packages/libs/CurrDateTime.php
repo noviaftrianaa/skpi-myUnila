@@ -1,8 +1,8 @@
 <?php
 
-if( !function_exists( 'currDateTime' ) ){
+if (!function_exists('currDateTime')) {
   function currDateTime()
   {
-      return date('Y-m-d H:i:s');
+    return date('Y-m-d H:i:s');
   }
 }

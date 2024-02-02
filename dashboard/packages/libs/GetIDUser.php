@@ -1,13 +1,14 @@
 <?php
 
-if( !function_exists('getIDUser')){
+if (!function_exists('getIDUser')) {
   /**
    *
    * Digunakan untuk menampilkan Judul halaman Aktif
    *
    * @return  string
    */
-  function getIDUser() {
-      return Auth::user()->id_pengguna;
+  function getIDUser()
+  {
+    return Auth::user()->id_pengguna;
   }
 }

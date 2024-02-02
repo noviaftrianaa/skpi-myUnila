@@ -1,7 +1,24 @@
 @extends('layouts/layoutMaster')
-@include('_partials.datatables')
 
 @section('title', 'Halaman Utama')
+
+@section('vendor-style')
+    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/bs-stepper/bs-stepper.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/bootstrap-select/bootstrap-select.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/dataTables.bootstrap5.min.css') }}" />
+@endsection
+
+@section('vendor-script')
+    <script src="{{ asset('assets/vendor/libs/bs-stepper/bs-stepper.js') }}"></script>
+    <script src="{{ asset('assets/vendor/libs/bootstrap-select/bootstrap-select.js') }}"></script>
+    <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
+    <script src="{{ asset('assets/js/form-wizard-icons.js') }}"></script>
+    <script src="{{ asset('js/jquery.min.js') }}"></script>
+    <script src="{{ asset('js/jquery-ui.min.js') }}"></script>
+    <script src="{{ asset('js/datatables.min.js') }}"></script>
+@endsection
 
 @section('content')
     <div class="row">
@@ -37,37 +54,20 @@
                             </div>
                         </div>
                     </div>
-                    <span class="my-3 badge bg-label-secondary">Information</span>
-                    <div class="info-container">
-                        <table class="table table-striped table-hover">
+                    <span class="my-3 badge bg-label-secondary">INFORMASI</span>
+                    <div class="table-responsive info-container">
+                        <table class="table table-striped table-striped table-hover table-sm"
+                            style="width: 100% !important">
 
                             <body>
-                                <tr>
-                                    <th>Kode PT</th>
-                                    <td>:</td>
-                                    <td>001026</td>
-                                </tr>
-                                <tr>
-                                    <th>Tanggal Berdiri</th>
-                                    <td>:</td>
-                                    <td>22 September 1965</td>
-                                </tr>
-                                <tr>
-                                    <th>Alamat</th>
-                                    <td>:</td>
-                                    <td>Jl Sumantri Brojonegoro No 1 Gedong Meneng, Kecamatan Rajabasa, Kota Bandar Lampung
-                                        35145</td>
-                                </tr>
-                                <tr>
-                                    <th>Telepon</th>
-                                    <td>:</td>
-                                    <td>(0721) 701609</td>
-                                </tr>
-                                <tr>
-                                    <th>Email</th>
-                                    <td>:</td>
-                                    <td>humas@kpa.unila.ac.id</td>
-                                </tr>
+                                {!! tableRow('Kode PT', '001026') !!}
+                                {!! tableRow('Tanggal Berdiri', '22 September 1965') !!}
+                                {!! tableRow(
+                                    'Alamat',
+                                    'Jl Sumantri Brojonegoro No 1 Gedong Meneng, Kecamatan Rajabasa, Kota Bandar Lampung 35145',
+                                ) !!}
+                                {!! tableRow('Telepon', '(0721) 701609') !!}
+                                {!! tableRow('Email', 'humas@kpa.unila.ac.id') !!}
                             </body>
                         </table>
                     </div>
@@ -76,11 +76,11 @@
             <!-- /User Card -->
             <!-- Plan Card -->
             <div class="card mb-4">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <span class="badge bg-label-secondary">MAPS</span>
-                    </div>
-                    <div class="d-grid w-100 mt-3">
+                <div class="card-body p-0">
+                    {{-- <div class="d-flex justify-content-center align-items-start my-3">
+												<span class="badge bg-label-secondary">MAPS</span>
+										</div> --}}
+                    <div class="d-grid w-100">
                         <iframe
                             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d63558.293854487536!2d105.22368909837614!3d-5.356795687097715!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e40c5f60802221d%3A0xac5d5819e12c9bcf!2sUniversitas%20Lampung%20(UNILA)!5e0!3m2!1sid!2sid!4v1706425991688!5m2!1sid!2sid"
                             width="100%" height="300" style="border:0;" allowfullscreen="" loading="lazy"
@@ -95,7 +95,62 @@
 
         <!-- User Content -->
         <div class="col-xl-8 col-lg-7 col-md-7 order-1 order-md-1">
+            <!-- Deskripsi, Visi, dan Misi -->
+            <div class="row">
+                <div class="col-12 mb-4">
+                    <div class="bs-stepper vertical wizard-vertical-icons-example">
+                        <div class="bs-stepper-header">
+                            <div class="step" data-target="#visi">
+                                <button type="button" class="step-trigger">
+                                    <span class="bs-stepper-circle">
+                                        <i class="fas fa-eye"></i>
+                                    </span>
+                                    <span class="bs-stepper-label">
+                                        <span class="bs-stepper-title">Visi</span>
+                                        <span class="bs-stepper-subtitle">Universitas Lampung</span>
+                                    </span>
+                                </button>
+                            </div>
+                            <div class="line"></div>
+                            <div class="step" data-target="#misi">
+                                <button type="button" class="step-trigger">
+                                    <span class="bs-stepper-circle"><i class="fas fa-bullseye"></i>
+                                    </span>
+                                    <span class="bs-stepper-label">
+                                        <span class="bs-stepper-title">Misi</span>
+                                        <span class="bs-stepper-subtitle">Universitas Lampung</span>
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="bs-stepper-content">
+                            <form onSubmit="return false">
+                                <!-- Visi -->
+                                <div id="visi" class="content">
+                                    <div class="content-header mb-3" style="text-align: justify">
+                                        Universitas Lampung menjadi <i class="fw-bold">Center of Excellence</i> di tingkat
+                                        Nasional dan
+                                        Internasional sebagai Institusi yang kuat <i class="fw-bold">(BE STRONG)</i>
+                                        berlandaskan
+                                        nilai-nilai luhur budaya Nasional dan Pancasila.
+                                    </div>
+                                </div>
+                                <!-- Misi -->
+                                <div id="misi" class="content">
+                                    <div class="content-header mb-3" style="text-align: justify">
+                                        Menerapkan <span class="fw-bold">Tridharma Perguruan Tinggi</span> yang berkualitas
+                                        guna menghasilkan
+                                        sumber daya manusia yang adaptif dan fleksibel terhadap perubahan serta
+                                        inovasi yang bermanfaat bagi peningkatan daya saing bangsa.
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <!-- User Pills -->
+
             <ul class="nav nav-pills flex-column flex-md-row mb-4">
                 <li class="nav-item"><button class="nav-link active" role="tab" data-bs-toggle="tab"
                         data-bs-target="#navs-program-studi" aria-controls="navs-program-studi" aria-selected="true"><i
@@ -117,14 +172,12 @@
                 <!-- Program Studi -->
                 <div class="tab-content pt-0">
                     <div class="tab-pane fade show active" id="navs-program-studi" role="tabpanel">
-                      <div class="card-header px-0 d-flex justify-content-between align-items-start">
-                        <h5>Program Studi</h5>
-                        <div class="card-tools">
-                          <button class="btn btn-default" id="programstudi"><i class="fas fa-refresh me-2"></i>Refresh</button>
+                        <div class="card-header px-0 d-flex justify-content-between align-items-start">
+                            <h5>Program Studi</h5>
                         </div>
-                      </div>
                         <div class="table-responsive">
-                            <table class="table table-hover programstudi" style="width: 100% !important">
+                            <table class="table table-striped table-hover programstudi table-sm text-nowrap"
+                                style="width: 100% !important">
                                 <thead class="table-primary"></thead>
                             </table>
                         </div>
@@ -132,27 +185,51 @@
                     <!-- Mahasiswa -->
                     <div class="tab-pane fade" id="navs-mahasiswa" role="tabpanel">
                         <div class="card-header px-0 d-flex justify-content-between align-items-start">
-                          <h5>Mahasiswa</h5>
-                          <div class="card-tools">
-                            <button class="btn btn-default" id="mahasiswa"><i class="fas fa-refresh me-2"></i>Refresh</button>
-                          </div>
+                            <h5>Mahasiswa</h5>
+                            <div class="float-end row">
+                                <div class="input-group">
+                                    <label class="input-group-text">Semester</label>
+                                    <select class="form-select text-center" id="periodeMahasiswa">
+                                        <option value="ALL">Semua Semester</option>
+                                        @foreach ($periode as $idThnAjaran => $item)
+                                            @foreach ($item as $value)
+                                                @php
+                                                    $text = substr($value->id_smt, 4, 1) == 1 ? 'Ganjil' : 'Genap';
+                                                @endphp
+                                                <option value="{{ $value->id_smt }}">
+                                                    {{ substr($value->id_smt, 0, 4) . ' ' . $text }}</option>
+                                            @endforeach
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                         <div class="table-responsive">
-                            <table class="table table-hover mahasiswa" style="width: 100% !important">
+                            <table class="table table-striped table-hover mahasiswa table-sm text-nowrap"
+                                style="width: 100% !important">
                                 <thead class="table-primary"></thead>
                             </table>
                         </div>
                     </div>
                     <!-- Dosen -->
                     <div class="tab-pane fade" id="navs-dosen" role="tabpanel">
-                      <div class="card-header px-0 d-flex justify-content-between align-items-start">
-                        <h5>Dosen</h5>
-                        <div class="card-tools">
-                          <button class="btn btn-default" id="dosen"><i class="fas fa-refresh me-2"></i>Refresh</button>
+                        <div class="card-header px-0 d-flex justify-content-between align-items-start">
+                            <h5>Dosen</h5>
+                            <div class="float-end row">
+                                <div class="input-group">
+                                    <label class="input-group-text">Tahun</label>
+                                    <select class="form-select text-center" id="periodeDosen">
+                                        {{-- <option value="ALL">Semua Tahun</option> --}}
+                                        @foreach ($periode as $idThnAjaran => $item)
+                                            <option value="{{ $idThnAjaran }}">{{ $idThnAjaran }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                      </div>
                         <div class="table-responsive">
-                            <table class="table table-hover dosen" style="width: 100% !important">
+                            <table class="table table-striped table-hover dosen table-sm text-nowrap"
+                                style="width: 100% !important">
                                 <thead class="table-primary">
                                     <tr>
                                         <th rowspan="2" width="5px">No.</th>
@@ -173,28 +250,26 @@
                     </div>
                     <!-- Tenaga Pendidik -->
                     <div class="tab-pane fade" id="navs-tendik" role="tabpanel">
-                      <div class="card-header px-0 d-flex justify-content-between align-items-start">
-                        <h5>Tenaga Pendidik</h5>
-                        <div class="card-tools">
-                          <button class="btn btn-default" id="tendik"><i class="fas fa-refresh me-2"></i>Refresh</button>
+                        <div class="card-header px-0 d-flex justify-content-between align-items-start">
+                            <h5>Tenaga Pendidik</h5>
                         </div>
-                      </div>
                         <div class="table-responsive">
-                            <table class="table table-hover tendik" style="width: 100% !important">
-                              <thead class="table-primary">
-                                  <tr>
-                                      <th rowspan="2" width="5px">No.</th>
-                                      <th rowspan="2">Lembaga/Fakultas</th>
-                                      <th colspan="2" class="text-center">PNS</th>
-                                      <th colspan="2" class="text-center">Kontrak</th>
-                                  </tr>
-                                  <tr>
-                                      <td width="5px">Pria</td>
-                                      <td width="5px">Wanita</td>
-                                      <td width="5px">Pria</td>
-                                      <td width="5px">Wanita</td>
-                                  </tr>
-                              </thead>
+                            <table class="table table-striped table-hover tendik table-sm text-nowrap"
+                                style="width: 100% !important">
+                                <thead class="table-primary">
+                                    <tr>
+                                        <th rowspan="2" width="5px">No.</th>
+                                        <th rowspan="2">Lembaga/Fakultas</th>
+                                        <th colspan="2" class="text-center">PNS</th>
+                                        <th colspan="2" class="text-center">Kontrak</th>
+                                    </tr>
+                                    <tr>
+                                        <td width="5px">Pria</td>
+                                        <td width="5px">Wanita</td>
+                                        <td width="5px">Pria</td>
+                                        <td width="5px">Wanita</td>
+                                    </tr>
+                                </thead>
                             </table>
                         </div>
                     </div>
@@ -206,15 +281,18 @@
     </div>
     <!-- /Modal -->
 
+    @include('content.pages.modal-dosen-list')
+
 @endsection
 
 @section('page-script')
+    <script src="{{ asset('assets/js/form-wizard-icons.js') }}"></script>
     <script>
         function programstudi() {
             return $('.programstudi').DataTable({
                 processing: true,
                 serverSide: true,
-                pagingType: "simple",
+                pageLength: 10,
                 ajax: {
                     url: "{{ route('pages-home-programstudi') }}"
                 },
@@ -233,7 +311,10 @@
                     },
                     {
                         data: 'nm_lemb',
-                        title: 'Program Studi'
+                        title: 'Program Studi',
+                        render: function(data, type, row) {
+                            return `<a href="{{ route('pages-prodi', '') }}/${row.id_sms}">${data}</a>`;
+                        }
                     },
                     {
                         data: 'nm_jenj_didik',
@@ -259,9 +340,12 @@
             return $('.mahasiswa').DataTable({
                 processing: true,
                 serverSide: true,
-                pagingType: "simple",
+                pageLength: 10,
                 ajax: {
-                    url: "{{ route('pages-home-mahasiswa') }}"
+                    url: "{{ route('pages-home-mahasiswa') }}",
+                    data: {
+                        periode: $('#periodeMahasiswa').val()
+                    }
                 },
                 columns: [{
                         data: 'DT_RowIndex',
@@ -297,9 +381,12 @@
             return $('.dosen').DataTable({
                 processing: true,
                 serverSide: true,
-                pagingType: "simple",
+                pageLength: 10,
                 ajax: {
-                    url: "{{ route('pages-home-dosen') }}"
+                    url: "{{ route('pages-home-dosen') }}",
+                    data: {
+                        periode: $('#periodeDosen').val()
+                    }
                 },
                 columns: [{
                         data: 'DT_RowIndex',
@@ -309,6 +396,9 @@
                     },
                     {
                         data: 'nm_lemb',
+                        render: function(data, type, row) {
+                            return `<a href="javascript:void(0);" id="btnModalDosen" data-id="${row.id_sms}" data-prodi="${row.nm_lemb}">${data}</a>`;
+                        }
                     },
                     {
                         data: 'nm_jenj_didik',
@@ -338,7 +428,7 @@
             return $('.tendik').DataTable({
                 processing: true,
                 serverSide: true,
-                pagingType: "simple",
+                pageLength: 10,
                 ajax: {
                     url: "{{ route('pages-home-tendik') }}"
                 },
@@ -374,24 +464,78 @@
         $(document).ready(function() {
             programstudi();
             mahasiswa();
-            dosen();
+            var tDosen = dosen();
             tendik();
 
-            $('#programstudi').on('click', function() {
-              $('.programstudi').DataTable().clear().destroy();
-              programstudi();
+            tDosen.on('click', '#btnModalDosen', function() {
+                var id = $(this).data('id');
+                $('#detProdi').html("Program Studi " + $(this).data('prodi'));
+
+                $('#modalDosenList').modal('show');
+                var oTable = $('#tDetailDosen').DataTable({
+                    "bDestroy": true,
+                    processing: true,
+                    serverSide: true,
+                    "ajax": {
+                        "url": "{{ route('pages-home-dosen-detail') }}",
+                        "type": "GET",
+                        "data": {
+                            id_sms: id,
+                            tahun: $('#periodeDosen').val()
+                        }
+                    },
+                    order: [
+                        [4, 'ASC']
+                    ],
+                    "columns": [{
+                            "data": "nm_sdm",
+                            "title": "Nama Dosen",
+                            "orderable": true,
+                        },
+                        {
+                            "data": "nidn",
+                            "title": "NIDN",
+                            "width": "5px",
+                            "orderable": false,
+                            "className": "text-center",
+                        },
+                        {
+                            "data": "nip",
+                            "title": "NIP",
+                            "width": "5px",
+                            "orderable": false,
+                            "className": "text-center",
+                        },
+                        {
+                            "data": "jk",
+                            "title": "Jenis Kelamin",
+                            "orderable": true,
+                            "className": "text-center",
+                        },
+                        {
+                            "data": "nm_stat_aktif",
+                            "title": "Status",
+                            "orderable": true,
+                            "className": "text-center",
+                            render: function(data, type, row) {
+                                return row.id_stat_aktif == 1 ?
+                                    `<span class="badge bg-success">${data}</span>` : (row
+                                        .id_stat_aktif == 27 ?
+                                        `<span class="badge bg-warning">${data}</span>` :
+                                        `<span class="badge bg-danger">${data}</span>`);
+                            }
+                        }
+                    ]
+                });
             });
-            $('#mahasiswa').on('click', function() {
-              $('.mahasiswa').DataTable().clear().destroy();
-              mahasiswa();
+
+            $('#periodeMahasiswa').on('change', function() {
+                $('.mahasiswa').DataTable().clear().destroy();
+                mahasiswa();
             });
-            $('#dosen').on('click', function() {
-              $('.dosen').DataTable().clear().destroy();
-              dosen();
-            });
-            $('#tendik').on('click', function() {
-              $('.tendik').DataTable().clear().destroy();
-              tendik();
+            $('#periodeDosen').on('change', function() {
+                $('.dosen').DataTable().clear().destroy();
+                tDosen = dosen();
             });
         });
     </script>

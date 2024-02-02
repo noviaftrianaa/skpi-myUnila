@@ -12,6 +12,7 @@
 <script src="{{asset('assets/vendor/libs/bs-stepper/bs-stepper.js')}}"></script>
 <script src="{{asset('assets/vendor/libs/bootstrap-select/bootstrap-select.js')}}"></script>
 <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
+<script src="{{asset('assets/js/form-wizard-icons.js')}}"></script>
 @endsection
 
 @section('page-script')

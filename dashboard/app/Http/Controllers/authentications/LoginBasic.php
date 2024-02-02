@@ -73,6 +73,7 @@ class LoginBasic extends Controller
           \Auth::logout(); //Destroy Auth
           \Session::flush(); //Destroy Session
           \Alert::success('Berhasil logout'); //Alert
+          SSO::cookieClear();
 
           return redirect()->route('auth-login');
       }

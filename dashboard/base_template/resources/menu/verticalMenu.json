@@ -4,10 +4,7 @@
       "name": "Dashboards",
       "icon": "menu-icon tf-icons ti ti-smart-home",
       "slug": "dashboard",
-      "badge": [
-        "primary",
-        "5"
-      ],
+      "badge": ["primary", "5"],
       "submenu": [
         {
           "url": "/",
@@ -341,10 +338,7 @@
       "name": "Invoice",
       "icon": "menu-icon tf-icons ti ti-file-dollar",
       "slug": "app-invoice",
-      "badge": [
-        "danger",
-        "4"
-      ],
+      "badge": ["danger", "4"],
       "submenu": [
         {
           "url": "app/invoice/list",
@@ -688,10 +682,7 @@
       "name": "Cards",
       "icon": "menu-icon tf-icons ti ti-id",
       "slug": "cards",
-      "badge": [
-        "primary",
-        "5"
-      ],
+      "badge": ["primary", "5"],
       "submenu": [
         {
           "url": "cards/basic",

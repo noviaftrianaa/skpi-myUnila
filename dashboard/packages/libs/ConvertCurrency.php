@@ -6,10 +6,10 @@
  * Time: 5:50 PM
  */
 if (!function_exists('number_to_currency')) {
-    function number_to_currency($number, $belakang_koma = 2)
-    {
-        $new_number = number_format($number, $belakang_koma, ',', '.');
+  function number_to_currency($number, $belakang_koma = 2)
+  {
+    $new_number = number_format($number, $belakang_koma, ',', '.');
 
-        return 'Rp. '.$new_number;
-    }
+    return 'Rp. ' . $new_number;
+  }
 }

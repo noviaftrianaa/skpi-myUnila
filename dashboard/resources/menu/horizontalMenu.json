@@ -10,7 +10,12 @@
       "url": "#",
       "name": "World Class University",
       "icon": "menu-icon tf-icons ti ti-world",
-      "slug": ["pages-webometrics-ranking","pages-times-higher-education-ranking","pages-qs-world-university-ranking","pages-green-metric-ranking"],
+      "slug": [
+        "pages-webometrics-ranking",
+        "pages-times-higher-education-ranking",
+        "pages-qs-world-university-ranking",
+        "pages-green-metric-ranking"
+      ],
       "submenu": [
         {
           "url": "green_metric_ranking",

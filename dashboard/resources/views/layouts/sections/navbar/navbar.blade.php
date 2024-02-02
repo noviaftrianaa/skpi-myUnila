@@ -73,33 +73,33 @@
     @if (Auth::check())
         <li class="nav-item navbar-dropdown dropdown-user dropdown">
             <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
-                <div class="avatar avatar-online">
-                    <img src="{{ asset('images/ghost_person.png') }}" alt class="h-auto rounded-circle">
+                <div class="d-flex">
+                    <div class="flex-shrink-0 me-2">
+                        <div class="avatar avatar-online">
+                            <img src="{{ asset('images/ghost_person.png') }}" alt class="h-auto rounded-circle">
+                        </div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <span class="fw-medium d-block">
+                            {{ Auth::user()->nm_pengguna }}
+                        </span>
+                        <small class="text-muted">
+                            {{ \App\Models\Peran::where('id_peran', session()->get('login.role')->id_peran)->pluck('nm_peran')[0] }}
+                        </small>
+                    </div>
                 </div>
+                {{-- <div class="d-flex d-xl-none">
+                  <div class="avatar avatar-online">
+                      <img src="{{ asset('images/ghost_person.png') }}" alt class="h-auto rounded-circle">
+                  </div>
+                </div> --}}
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
                 <li>
-                    <a class="dropdown-item"
-                        href="{{ Route::has('profile.show') ? route('profile.show') : 'javascript:void(0);' }}">
-                        <div class="d-flex">
-                            <div class="flex-shrink-0 me-3">
-                                <div class="avatar avatar-online">
-                                    <img src="{{ asset('images/ghost_person.png') }}" alt class="h-auto rounded-circle">
-                                </div>
-                            </div>
-                            <div class="flex-grow-1">
-                                <span class="fw-medium d-block">
-                                    {{ Auth::user()->nm_pengguna }}
-                                </span>
-                                <small class="text-muted">
-                                    {{ \App\Models\Peran::where('id_peran', session()->get('login.role')->id_peran)->pluck('nm_peran')[0] }}
-                                </small>
-                            </div>
-                        </div>
+                    <a class="dropdown-item" href="/" target="_blank">
+                        <i class="ti ti-user-edit me-2 ti-sm"></i>
+                        <span class="align-middle">Profil</span>
                     </a>
-                </li>
-                <li>
-                    <div class="dropdown-divider"></div>
                 </li>
                 <li>
                     <a class="dropdown-item" href="{{ url('https://apps.unila.ac.id/#password') }}" target="_blank">
@@ -129,12 +129,11 @@
                 </form>
             </ul>
         </li>
-        <!--/ User -->
-@else
-<li class="nav-item">
-    <a class="nav-link" href="{{ route('auth-login') }}">LOGIN</a>
-</li>
-@endif
+    @else
+        <li class="nav-item">
+            <a class="nav-link" href="{{ route('auth-login') }}">LOGIN</a>
+        </li>
+    @endif
 </ul>
 
 @if (!isset($navbarDetached))

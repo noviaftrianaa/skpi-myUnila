@@ -7,8 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Radius extends Model
 {
-    protected $connection = 'mysql';
-    protected $table = 'radcheck';
-    protected $primaryKey = 'id';
-    public $timestamps = false;
+  protected $connection = 'mysql';
+  protected $table = 'radcheck';
+  protected $primaryKey = 'id';
+  public $timestamps = false;
 }
