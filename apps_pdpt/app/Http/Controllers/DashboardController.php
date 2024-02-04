@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ManAkses\Peran;
 use App\Models\PDUT\Pdrd\SatuanPendidikan;
 use App\Models\PDUT\Pdrd\Sdm;
 use App\Models\PDUT\Pdrd\Sms;
 use App\Models\PDUT\Logger\LogLogin;
 use App\Models\PDUT\Man_akses\VersiDb;
+use App\Models\PDUT\Ref\Semester;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
@@ -26,13 +28,44 @@ class DashboardController extends Controller
         $this->id_sp = 'e2b705a7-173e-464a-9fac-509128709515';
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $side_active = 'dashboard';
         if (auth()->check()) {
-            $log_login = LogLogin::where('id_pengguna', \Auth::user()->id_pengguna)->orderBy('waktu_login', 'DESC')->first();
+            if ($request->has('smt')) {
+                $smt_pilih = $request->smt;
+            } else {
+                $smt_pilih = Semester::where('tgl_mulai','<',date('Y-m-d'))
+                    ->where('tgl_selesai','>=',date('Y-m-d'))
+                    ->whereNull('expired_date')
+                    ->first()->id_smt;
+            }
+            $log_login = LogLogin::where('id_pengguna', \Auth::user()->id_pengguna)
+                ->orderBy('waktu_login', 'DESC')->first();
             $versi_database = VersiDb::orderBy('tgl_update', 'DESC')->first();
-            return view('home.index', compact('side_active', 'log_login', 'versi_database'));
+            $role = session()->get('login.role')->toArray();
+            if ($role['id_peran']==42) {
+                $this->id_prodi = $role['id_organisasi'];
+                $unit = Sms::find($this->id_prodi);
+                $semester_list = Semester::select('id_smt','nm_smt')
+                    ->where('id_smt','>=',$unit->smt_mulai)
+                    ->where('tgl_mulai','<',date('Y-m-d'))
+                    ->whereNull('expired_date')
+                    ->where('smt','!=',3)
+                    ->pluck('nm_smt','id_smt')
+                    ->toArray();
+                $level = 'prodi';
+            } else {
+                $unit = SatuanPendidikan::find($this->id_sp);
+                $semester_list = Semester::select('id_smt','nm_smt')
+                    ->where('tgl_mulai','<',date('Y-m-d'))
+                    ->whereNull('expired_date')
+                    ->where('smt','!=',3)
+                    ->pluck('nm_smt','id_smt')
+                    ->toArray();
+                $level = 'pt';
+            }
+            return view('home.index', compact('side_active', 'log_login', 'versi_database','level','unit','smt_pilih','semester_list'));
         } else {
             $pt = SatuanPendidikan::find($this->id_sp);
             $total_dosen = json_encode(Sdm::dashboard_dosen('nomor_induk', get_tahun_keaktifan())->first());

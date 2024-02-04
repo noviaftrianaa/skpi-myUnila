@@ -21,7 +21,7 @@ class AkreditasiSeeder extends Seeder
         $id_sp = 'e2b705a7-173e-464a-9fac-509128709515';
         $kode_sp = '001026';
         $token = 'a934b2aa-ec1d-32a1-9d41-e982b6b1426c';
-        $cari_sms = Sms::where('id_sp',$id_sp)->where('id_jns_sms',3)->get();
+        $cari_sms = Sms::where('id_sp',$id_sp)->where('id_jns_sms',3)->where('stat_prodi','A')->get();
         $url = 'https://api.kemdikbud.go.id:8243/pddikti/1.2/pt';
         $akred = [];
         $belum_akred = [];

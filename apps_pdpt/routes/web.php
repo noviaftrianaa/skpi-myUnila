@@ -337,6 +337,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/sinkronisasi/sinkron',  [TableController::class, 'sinkron'])->name('sinkronisasi.sinkron');
     // });
 
+    Route::get('/sync_data', [App\Http\Controllers\Sync\SyncPusatController::class,'index'])->name('sync_data');
+
 });
 
 Auth::routes();

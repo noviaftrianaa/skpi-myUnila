@@ -25,6 +25,7 @@ class TarikSisterDosenSeeder extends Seeder
      */
     public function run()
     {
+        ini_set('memory_limit',-1);
         $waktu_sekarang = currDateTime();
         $tahun_ajaran = \DB::connection('pgsql_sister')->table('ref.tahun_ajaran')
             ->whereNull('expired_date')
@@ -88,7 +89,7 @@ class TarikSisterDosenSeeder extends Seeder
                 $simpan_gelar->fill($input_gelar)->save();
                 echo " (OK - tambah Gelar)\n";
             } else {
-                
+
                 if ($each_gelar->last_update>$cek_gelar->last_update) {
                     $input_gelar = (array) $each_gelar;
                     unset($input_gelar['csf']);
@@ -99,8 +100,10 @@ class TarikSisterDosenSeeder extends Seeder
                 }
             }
         }
-        $data_dosen_sister = \DB::connection('pgsql_sister')->table('pdrd.sdm')
-            ->where('id_jns_sdm',12)->where('soft_delete',0)
+        $data_dosen_sister = \DB::connection('pgsql_sister')->table('pdrd.sdm AS tsdm')
+            ->join('pdrd.reg_ptk AS tr','tr.id_sdm','=','tsdm.id_sdm')
+            ->where('tr.id_sp',strtolower(env('app_id_sp')))
+            ->where('tsdm.id_jns_sdm',12)->where('tsdm.soft_delete',0)
             ->get();
         $total_dosen_pdut = count($data_dosen_sister);
         foreach ($data_dosen_sister AS $no=>$each_dosen_sister) {
@@ -456,6 +459,8 @@ class TarikSisterDosenSeeder extends Seeder
                     $cek_fungsional_pdut = RwyFungsional::find($each_cari_fungsional->id_rwy_jabfung);
                     if (is_null($cek_fungsional_pdut)) {
                         $input_fungsional = (array)$each_cari_fungsional;
+                        $input_fungsional['bidang_ilmu'] = null;
+                        $input_fungsional['create_date'] = date('Y-m-d H:i:s',strtotime($each_cari_fungsional->create_date));
                         $input_fungsional['last_update'] = $waktu_sekarang;
                         $input_fungsional['last_sync'] = $waktu_sekarang;
                         $simpan_fungsional = new RwyFungsional();
@@ -464,6 +469,7 @@ class TarikSisterDosenSeeder extends Seeder
                     } else {
                         if ($each_cari_fungsional->last_update > $cek_fungsional_pdut->last_update) {
                             $input_fungsional = (array) $each_cari_fungsional;
+                            $input_fungsional['create_date'] = date('Y-m-d H:i:s',strtotime($each_cari_fungsional->create_date));
                             $input_fungsional['last_update'] = $waktu_sekarang;
                             $input_fungsional['last_sync'] = $waktu_sekarang;
                             $simpan_fungsional = RwyFungsional::find($each_cari_fungsional->id_rwy_jabfung);
