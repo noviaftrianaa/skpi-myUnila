@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\language\LanguageController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProgramStudiController;
+use App\Http\Controllers\SyncController;
 use App\Http\Controllers\authentications\LoginBasic;
 use App\Http\Controllers\authentications\RegisterBasic;
 //MAIN
@@ -64,4 +65,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/peran', [MainDashboardController::class, 'peran'])->name('main-peran');
     Route::get('/changePeran', [MainDashboardController::class, 'changePeran'])->name('main-changePeran');
   });
+
+  Route::get('sync_data',[SyncController::class,'index'])->name('sync_data');
 });

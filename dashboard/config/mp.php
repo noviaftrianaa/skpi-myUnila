@@ -104,6 +104,16 @@ return [
             'C' => 'Cuti',
             'I' => 'Izin',
             'H' => 'Hadir'
+        ],
+        'mode_kuliah' => [
+            'O' => 'Full Online',
+            'F' => 'Full Offline',
+            'M' => 'Online dan Offline',
+        ],
+        'lingkup_kelas' => [
+            1 => 'Luar prodi (Eksternal)',
+            2 => 'Campuran',
+            3 => 'Dalam prodi (Internal)'
         ]
     ],
     'ws'    => [

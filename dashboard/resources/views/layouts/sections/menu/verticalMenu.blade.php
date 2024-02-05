@@ -38,8 +38,8 @@
                 @if (empty($r->sub))
                     <!-- Single Menu -->
                     <li class="menu-item {{ AktifMenu($r->nm_file, 1) }}">
-                        <a href="#" class="menu-link">
-                            <i class="menu-icon tf-icons {{ $r->icon }} text-center" style="font-size: 1em"></i>
+                        <a href="{{ $r->nm_file }}" class="menu-link">
+                            <i class="menu-icon tf-icons {{ is_null($r->icon)?'fa-regular fa-circle':$r->icon }} text-center" style="font-size: 1em"></i>
                             <div>{{ $r->nm_menu }}</div>
                         </a>
                     </li>
@@ -47,13 +47,13 @@
                     <!-- Sub Menu -->
                     <li class="menu-item {{ AktifMenu($r->nm_file, 1) }}">
                         <a href="#" class="menu-link menu-toggle">
-                            <i class="menu-icon tf-icons {{ $r->icon }} text-center" style="font-size: 1em"></i>
+                            <i class="menu-icon tf-icons {{ is_null($r->icon)?'fa-regular fa-circle':$r->icon }} text-center" style="font-size: 1em"></i>
                             <div>{{ $r->nm_menu }}</div>
                         </a>
                         <ul class="menu-sub">
                             @foreach ($r->sub as $t)
                                 <li class="menu-item {{ AktifMenu($r->nm_file, 2) }}">
-                                    <a href="#" class="menu-link">
+                                    <a href="{{ $t->nm_file }}" class="menu-link">
                                         <div>{{ $t->nm_menu }}</div>
                                     </a>
                                 </li>
