@@ -26,7 +26,7 @@ class DashboardController extends Controller
       ->get();
     $periode = collect($getPeriode)->groupBy('id_thn_ajaran');
 
-    return view('content.pages.pages-home', [
+    return view('content.pages.dashboard.index', [
       'pageConfigs' => $pageConfigs,
       'periode' => $periode,
     ]);
@@ -316,52 +316,207 @@ class DashboardController extends Controller
       ->make(true);
   }
 
-  public function times_higher_education_ranking()
+  public function detailTendik(Request $request)
+  {
+    $data = \DB::SELECT("
+      SELECT
+        sdm.nm_sdm,
+        sdm.nip,
+        sdm.jk,
+        status.nm_stat_aktif,
+        status.id_stat_aktif
+      FROM
+        pdrd.sdm AS sdm
+        JOIN pdrd.reg_ptk AS ptk ON ptk.id_sdm=sdm.id_sdm AND ptk.soft_delete=0
+        JOIN ref.status_keaktifan_pegawai AS status ON status.id_stat_aktif=sdm.id_stat_aktif AND status.expired_date IS NULL
+      WHERE
+        sdm.soft_delete=0
+        AND ptk.id_sms = '".$request->id_sms."'
+        AND sdm.id_jns_sdm = 13
+      ORDER BY
+        status.id_stat_aktif ASC,
+        sdm.nm_sdm ASC
+    ");
+
+    return \DataTables::of($data)
+      ->addIndexColumn()
+      ->make(true);
+  }
+
+  public function times_higher_education_ranking(Request $request)
   {
     $title = 'Times Higher Education Ranking';
     $pageConfigs = ['myLayout' => 'horizontal'];
 
-    $TheWur = dom_xpath(
-      'https://www.timeshighereducation.com/world-university-rankings/university-lampung',
-      '/html/body/div[4]/div/section/div/div/div[1]/div/div/div[1]/div/section/div/div/div[4]/div/div/div[1]/span'
-    );
+    $tahun = $request->tahun ?? date('Y');
 
-    $dataTheWur['rank_by_world'] = trim(str_replace('th', '', $TheWur[0]->textContent));
-    $dataTheWur['rank_by_impact'] = trim(str_replace('th', '', $TheWur[1]->textContent));
-    $dataTheWur['rank_by_asian'] = trim(str_replace('th', '', $TheWur[2]->textContent));
+    if($tahun=="2024") {
+      //2024
+      $array = [];
+      $data = curlApi(url()->to('/wcu/the/the_2024.json'));
+      foreach($data AS $item) {
+        if(in_array($item['name'], ['Universitas Lampung','Lampung University','University of Lampung'])) {
+          $dataTheWur = $item;
+        }
+        if(in_array($item['location'], ['Indonesia','indonesia','Indonesian','indonesian'])) {
+          $array[] = $item;
+        }
+      }
+      $dataTheWur['indonesia'] = $array;
+      //2023
+      $array = [];
+      $data = curlApi(url()->to('/wcu/the/the_2023.json'));
+      foreach($data AS $item) {
+        if(in_array($item['name'], ['Universitas Lampung','Lampung University','University of Lampung'])) {
+          $dataPastTheWur = $item;
+        }
+        if(in_array($item['location'], ['Indonesia','indonesia','Indonesian','indonesian'])) {
+          $array[] = $item;
+        }
+      }
+      $dataPastTheWur['indonesia'] = $array;
+    } else if ($tahun=="2023") {
+      //2023
+      $array = [];
+      $data = curlApi(url()->to('/wcu/the/the_2023.json'));
+      foreach($data AS $item) {
+        if(in_array($item['name'], ['Universitas Lampung','Lampung University','University of Lampung'])) {
+          $dataTheWur = $item;
+        }
+        if(in_array($item['location'], ['Indonesia','indonesia','Indonesian','indonesian'])) {
+          $array[] = $item;
+        }
+      }
+      $dataTheWur['indonesia'] = $array;
+      //2022
+      $array = [];
+      $data = curlApi(url()->to('/wcu/the/the_2022.json'));
+      foreach($data AS $item) {
+        if(in_array($item['name'], ['Universitas Lampung','Lampung University','University of Lampung'])) {
+          $dataPastTheWur = $item;
+        }
+        if(in_array($item['location'], ['Indonesia','indonesia','Indonesian','indonesian'])) {
+          $array[] = $item;
+        }
+      }
+      $dataPastTheWur['indonesia'] = $array;
+    } else {
+      abort(404);
+    }
+    // dd($dataTheWur);
 
-    return view('content.pages.pages-times-higher-education-ranking', [
+    return view('content.pages.wcu.pages-times-higher-education-ranking', [
       'pageConfigs' => $pageConfigs,
       'title' => $title,
       'dataTheWur' => $dataTheWur,
+      'dataPastTheWur' => $dataPastTheWur
     ]);
   }
 
-  public function qs_world_university_ranking()
+  public function qs_world_university_ranking(Request $request)
   {
     $title = 'QS World University Ranking';
     $pageConfigs = ['myLayout' => 'horizontal'];
 
-    $QsWorld = dom_xpath('https://www.topuniversities.com/universities/university-lampung', '//*[@id="wur-tab"]/div');
-    $dataQsWordUniversity['rank_by_world'] = substr($QsWorld[0]->textContent, 1);
-    $QsAsian = dom_xpath('https://www.topuniversities.com/universities/university-lampung', '//*[@id="item-514"]/div');
-    $dataQsWordUniversity['rank_by_asia'] = substr($QsAsian[0]->textContent, 1);
-    $QsAsean = dom_xpath('https://www.topuniversities.com/universities/university-lampung', '//*[@id="item-4088"]/div');
-    $dataQsWordUniversity['rank_by_asean'] = substr($QsAsean[0]->textContent, 2);
+    $tahun = $request->tahun ?? date('Y');
 
-    return view('content.pages.pages-qs-world-university-ranking', [
+    if($tahun=="2024") {
+      //2024
+      $asian = [];
+      $indonesian = [];
+      $dataQsWordUniversity = collect();
+      $data = json_decode(\Http::get(url()->to('/wcu/qs/world_2024.json')))->score_nodes;
+      foreach($data AS $no=>$item) {
+        if(in_array($item->title, ['Universitas Lampung','Lampung University','University of Lampung'])) {
+          $dataQsWordUniversity = $item;
+        }
+        if(in_array($item->region, ['Asia'])) {
+          $asian[] = $item;
+        }
+        if(in_array($item->country, ['Indonesia'])) {
+          $indonesian[] = $item;
+        }
+      }
+      $dataQsWordUniversity->asian = $asian;
+      $dataQsWordUniversity->indonesian = $indonesian;
+      //2023
+      $asian = [];
+      $indonesian = [];
+      $dataPastQsWordUniversity = collect();
+      $data = json_decode(\Http::get(url()->to('/wcu/qs/world_2023.json')))->score_nodes;
+      foreach($data AS $no=>$item) {
+        if(in_array($item->title, ['Universitas Lampung','Lampung University','University of Lampung'])) {
+          $dataPastQsWordUniversity = $item;
+        }
+        if(in_array($item->region, ['Asia'])) {
+          $asian[] = $item;
+        }
+        if(in_array($item->country, ['Indonesia'])) {
+          $indonesian[] = $item;
+        }
+      }
+      $dataPastQsWordUniversity->asian = $asian;
+      $dataPastQsWordUniversity->indonesian = $indonesian;
+    } else if($tahun=="2023") {
+      //2023
+      $asian = [];
+      $indonesian = [];
+      $dataQsWordUniversity = collect();
+      $data = json_decode(\Http::get(url()->to('/wcu/qs/world_2023.json')))->score_nodes;
+      foreach($data AS $no=>$item) {
+        if(in_array($item->title, ['Universitas Lampung','Lampung University','University of Lampung'])) {
+          $dataQsWordUniversity = $item;
+        }
+        if(in_array($item->region, ['Asia'])) {
+          $asian[] = $item;
+        }
+        if(in_array($item->country, ['Indonesia'])) {
+          $indonesian[] = $item;
+        }
+      }
+      $dataQsWordUniversity->asian = $asian;
+      $dataQsWordUniversity->indonesian = $indonesian;
+      //2022
+      $asian = [];
+      $indonesian = [];
+      $dataPastQsWordUniversity = collect();
+      $data = json_decode(\Http::get(url()->to('/wcu/qs/world_2022.json')))->score_nodes;
+      foreach($data AS $no=>$item) {
+        if(in_array($item->title, ['Universitas Lampung','Lampung University','University of Lampung'])) {
+          $dataPastQsWordUniversity = $item;
+        }
+        if(in_array($item->region, ['Asia'])) {
+          $asian[] = $item;
+        }
+        if(in_array($item->country, ['Indonesia'])) {
+          $indonesian[] = $item;
+        }
+      }
+      $dataPastQsWordUniversity->asian = $asian;
+      $dataPastQsWordUniversity->indonesian = $indonesian;
+    } else {
+      abort(404);
+    }
+    $dataQsWordUniversity = collect($dataQsWordUniversity)->toArray();
+    $dataPastQsWordUniversity = collect($dataPastQsWordUniversity)->toArray();
+    // DD($dataQsWordUniversity);
+
+    return view('content.pages.wcu.pages-qs-world-university-ranking', [
       'pageConfigs' => $pageConfigs,
       'title' => $title,
       'dataQsWordUniversity' => $dataQsWordUniversity,
+      'dataPastQsWordUniversity' => $dataPastQsWordUniversity
     ]);
   }
 
-  public function green_metric_ranking()
+  public function green_metric_ranking(Request $request)
   {
     $title = 'Green Metric Ranking';
     $pageConfigs = ['myLayout' => 'horizontal'];
-    $year = date('Y') - 1;
+    $year = $request->tahun ?? date('Y') - 1;
+    $lastYear = $year - 1;
 
+    //NOW
     $GreenmetricWorld = dom_xpath(
       "https://greenmetric.ui.ac.id/rankings/overall-rankings-{$year}",
       '//table/tbody'
@@ -369,9 +524,15 @@ class DashboardController extends Controller
 
     foreach ($GreenmetricWorld as $singleTable) {
       $td = $singleTable->getElementsByTagName('td');
-      if (trim($td[1]->textContent) === 'Lampung University') {
+      if (in_array(trim($td[1]->textContent), ['Universitas Lampung','Lampung University'])) {
         $dataGreenmetric['rank_by_world'] = $td[0]->textContent;
         $dataGreenmetric['total_score'] = $td[3]->textContent;
+        $dataGreenmetric['setting_infrastructure'] = $td[4]->textContent;
+        $dataGreenmetric['energi_climate_change'] = $td[5]->textContent;
+        $dataGreenmetric['waste'] = $td[6]->textContent;
+        $dataGreenmetric['water'] = $td[7]->textContent;
+        $dataGreenmetric['transportation'] = $td[8]->textContent;
+        $dataGreenmetric['education_research'] = $td[9]->textContent;
         break;
       }
     }
@@ -383,7 +544,7 @@ class DashboardController extends Controller
 
     foreach ($GreenmetricIndo as $singleTable) {
       $td = $singleTable->getElementsByTagName('td');
-      if (trim($td[1]->textContent) === 'Lampung University') {
+      if (in_array(trim($td[1]->textContent), ['Universitas Lampung','Lampung University'])) {
         $dataGreenmetric['rank_by_indonesian'] = $td[0]->textContent;
         break;
       }
@@ -396,16 +557,64 @@ class DashboardController extends Controller
 
     foreach ($GreenmetricIndo as $singleTable) {
       $td = $singleTable->getElementsByTagName('td');
-      if (trim($td[1]->textContent) === 'Lampung University') {
+      if (in_array(trim($td[1]->textContent), ['Universitas Lampung','Lampung University'])) {
         $dataGreenmetric['rank_by_asian'] = $td[0]->textContent;
         break;
       }
     }
 
-    return view('content.pages.pages-green-metric', [
+    //PAST
+    $GreenmetricWorld = dom_xpath(
+      "https://greenmetric.ui.ac.id/rankings/overall-rankings-{$lastYear}",
+      '//table/tbody'
+    )[0]->getElementsByTagName('tr');
+
+    foreach ($GreenmetricWorld as $singleTable) {
+      $td = $singleTable->getElementsByTagName('td');
+      if (in_array(trim($td[1]->textContent), ['Universitas Lampung','Lampung University'])) {
+        $dataPastGreenmetric['rank_by_world'] = $td[0]->textContent;
+        $dataPastGreenmetric['total_score'] = $td[3]->textContent;
+        $dataPastGreenmetric['setting_infrastructure'] = $td[4]->textContent;
+        $dataPastGreenmetric['energi_climate_change'] = $td[5]->textContent;
+        $dataPastGreenmetric['waste'] = $td[6]->textContent;
+        $dataPastGreenmetric['water'] = $td[7]->textContent;
+        $dataPastGreenmetric['transportation'] = $td[8]->textContent;
+        $dataPastGreenmetric['education_research'] = $td[9]->textContent;
+        break;
+      }
+    }
+
+    $GreenmetricIndo = dom_xpath(
+      "https://greenmetric.ui.ac.id/rankings/ranking-by-country-{$lastYear}/Indonesia",
+      '//table/tbody'
+    )[0]->getElementsByTagName('tr');
+
+    foreach ($GreenmetricIndo as $singleTable) {
+      $td = $singleTable->getElementsByTagName('td');
+      if (in_array(trim($td[1]->textContent), ['Universitas Lampung','Lampung University'])) {
+        $dataPastGreenmetric['rank_by_indonesian'] = $td[0]->textContent;
+        break;
+      }
+    }
+
+    $GreenmetricIndo = dom_xpath(
+      "https://greenmetric.ui.ac.id/rankings/ranking-by-region-{$lastYear}/asia",
+      '//table/tbody'
+    )[0]->getElementsByTagName('tr');
+
+    foreach ($GreenmetricIndo as $singleTable) {
+      $td = $singleTable->getElementsByTagName('td');
+      if (in_array(trim($td[1]->textContent), ['Universitas Lampung','Lampung University'])) {
+        $dataPastGreenmetric['rank_by_asian'] = $td[0]->textContent;
+        break;
+      }
+    }
+
+    return view('content.pages.wcu.pages-green-metric', [
       'pageConfigs' => $pageConfigs,
       'title' => $title,
       'dataGreenmetric' => $dataGreenmetric,
+      'dataPastGreenmetric' => $dataPastGreenmetric
     ]);
   }
 
@@ -416,7 +625,7 @@ class DashboardController extends Controller
 
     $dataWebometrics = [];
 
-    return view('content.pages.pages-webometrics-ranking', [
+    return view('content.pages.wcu.pages-webometrics-ranking', [
       'pageConfigs' => $pageConfigs,
       'title' => $title,
       'dataWebometrics' => $dataWebometrics,

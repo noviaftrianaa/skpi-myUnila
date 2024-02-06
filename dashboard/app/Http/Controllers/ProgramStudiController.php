@@ -16,6 +16,7 @@ class ProgramStudiController extends Controller
     $detail = DB::table('pdrd.sms')
       ->where('id_sms', $id)
       ->first();
+
     $detail = DB::SELECT(
       "
         SELECT
@@ -65,9 +66,54 @@ class ProgramStudiController extends Controller
       "
       ) ?? null;
 
-    return view('content.pages.pages-prodi', [
+
+    $periodeAktif = DB::table('ref.semester')
+      ->whereNull('expired_date')
+      ->where('a_periode_aktif', 1)
+      ->distinct()
+      ->pluck('id_thn_ajaran')[0];
+    $getPeriode = DB::table('ref.semester')
+      ->whereNull('expired_date')
+      ->where(DB::raw('RIGHT(id_smt,1)'), '<', '3')
+      ->whereBetween('id_thn_ajaran', [$periodeAktif - 4, $periodeAktif])
+      ->select('id_thn_ajaran', 'id_smt')
+      ->orderByDesc('id_smt')
+      ->get();
+    $periode = collect($getPeriode)->groupBy('id_thn_ajaran');
+
+    $profil = \DB::table('pdrd.profil_prodi')->where('soft_delete',0)->where('id_sms', $id)->orderByDesc('last_update')->first();
+
+    return view('content.pages.prodi.detail', [
       'pageConfigs' => $pageConfigs,
       'detail' => $detail,
+      'id_sms' => $id,
+      'periode' => $periode,
+      'profil' => $profil
     ]);
+  }
+
+  public function mahasiswa($id)
+  {
+    $data = \DB::SELECT("
+      SELECT DISTINCT
+        kmh.id_smt,
+        COUNT(pd.id_pd) AS total
+      FROM
+        pdrd.kuliah_mhs AS kmh
+        JOIN pdrd.reg_pd AS reg ON reg.id_reg_pd=kmh.id_reg_pd AND reg.soft_delete=0
+        JOIN pdrd.peserta_didik AS pd ON pd.id_pd=reg.id_pd AND pd.soft_delete=0 AND pd.id_stat_mhs='A'
+      WHERE
+        kmh.soft_delete=0
+        AND kmh.id_stat_mhs='A'
+        AND reg.id_sms='".$id."'
+      GROUP BY
+        kmh.id_smt
+      ORDER BY
+        kmh.id_smt DESC
+    ");
+
+    return \DataTables::of($data)
+      ->addIndexColumn()
+      ->make(true);
   }
 }

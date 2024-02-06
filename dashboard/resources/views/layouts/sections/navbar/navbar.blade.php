@@ -76,7 +76,7 @@
                 <div class="d-flex">
                     <div class="flex-shrink-0 me-2">
                         <div class="avatar avatar-online">
-                            <img src="{{ asset('images/ghost_person.png') }}" alt class="h-auto rounded-circle">
+                          <span class="avatar-initial rounded-circle bg-label-primary">{{ substr(\Auth::user()->nm_pengguna, 0, 2) }}</span>
                         </div>
                     </div>
                     <div class="flex-grow-1">
@@ -88,11 +88,6 @@
                         </small>
                     </div>
                 </div>
-                {{-- <div class="d-flex d-xl-none">
-                  <div class="avatar avatar-online">
-                      <img src="{{ asset('images/ghost_person.png') }}" alt class="h-auto rounded-circle">
-                  </div>
-                </div> --}}
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
                 <li>
@@ -114,6 +109,14 @@
                         <span class="align-middle">Ganti Peran</span>
                     </a>
                 </li>
+                @if (!\Request::is('main*'))
+                  <li>
+                    <a class="dropdown-item text-primary" href="{{ route('main-index') }}">
+                      <i class="ti ti-home me-2 ti-sm"></i>
+                      <span class="align-middle">Dashboard Utama</span>
+                    </a>
+                  </li>
+                @endif
                 <li>
                     <div class="dropdown-divider"></div>
                 </li>

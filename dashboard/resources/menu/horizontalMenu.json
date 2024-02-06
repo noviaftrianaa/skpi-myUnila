@@ -2,7 +2,7 @@
   "menu": [
     {
       "url": "/",
-      "name": "Halaman Utama",
+      "name": "Homepage",
       "icon": "menu-icon tf-icons ti ti-home",
       "slug": "pages-home"
     },
