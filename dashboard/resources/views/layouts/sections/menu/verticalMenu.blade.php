@@ -4,6 +4,7 @@
 
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
 
+<<<<<<< Updated upstream
     <!-- ! Hide app brand if navbar-full -->
     @if (!isset($navbarFull))
         <div class="app-brand demo">
@@ -12,6 +13,60 @@
                     <img src="/images/logo-unila.png" height="20" />
                 </span>
                 <span class="app-brand-text demo menu-text fw-bold">{{ config('variables.appName') }}</span>
+=======
+  <!-- ! Hide app brand if navbar-full -->
+  @if(!isset($navbarFull))
+  <div class="app-brand demo">
+    <a href="{{url('/')}}" class="app-brand-link">
+      <span class="app-brand-logo demo">
+        <img src="/images/logo-unila.png" height="20" />
+      </span>
+      <span class="app-brand-text demo menu-text fw-bold">{{config('variables.appName')}}</span>
+    </a>
+
+    <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
+      <i class="ti menu-toggle-icon d-none d-xl-block ti-sm align-middle"></i>
+      <i class="ti ti-x d-block d-xl-none ti-sm align-middle"></i>
+    </a>
+  </div>
+  @endif
+
+
+  <div class="menu-inner-shadow"></div>
+
+  <ul class="menu-inner py-1">
+    <!-- Dashboard -->
+    <li class="menu-item {{ AktifMenu('main-index', 1) }}">
+      <a href="{{ route('main-index') }}" class="menu-link">
+        <i class="menu-icon tf-icons fas fa-home text-center" style="font-size: 1em"></i>
+        Halaman Utama
+      </a>
+    </li>
+    <!-- Menu -->
+    @if(!empty(\Session::get('login.menu')))
+    @foreach(\Session::get('login.menu') AS $n=>$r)
+      @if(empty($r->sub))
+        <!-- Single Menu -->
+        <li class="menu-item {{ AktifMenu($r->nm_file, 1) }}">
+          <a href="{{ route($r->nm_file) }}" class="menu-link {{ AktifMenu($r->nm_file, 2) }}">
+            <i class="menu-icon tf-icons {{ $r->icon }} text-center" style="font-size: 1em"></i>
+            {{ $r->nm_menu }}
+          </a>
+        </li>
+      @else
+      <!-- Sub Menu -->
+      <li class="menu-item {{ AktifMenu($r->nm_file, 1) }}">
+        {{-- <a href="#" class="menu-link menu-toggle"> --}}
+        <a href="{{ route($r->nm_file) }}" class="menu-link menu-toggle {{ AktifMenu($r->nm_file, 2) }}">
+          <i class="menu-icon tf-icons {{ $r->icon }} text-center" style="font-size: 1em"></i>
+          {{ $r->nm_menu }}
+        </a>
+        <ul class="menu-sub">
+					@foreach($r->sub AS $t)
+          <li class="menu-item {{ AktifMenu($r->nm_file, 2) }}">
+            <a href="{{ route($r->nm_file) }}" class="menu-link{{ AktifMenu($r->nm_file, 2) }}">
+              {{ $t->nm_menu }}
+>>>>>>> Stashed changes
             </a>
 
             <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
