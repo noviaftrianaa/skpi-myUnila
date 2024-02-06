@@ -31,6 +31,7 @@ Route::get('/mahasiswa', [DashboardController::class, 'mahasiswa'])->name('pages
 Route::get('/dosen', [DashboardController::class, 'dosen'])->name('pages-home-dosen');
 Route::get('/dosen/detail', [DashboardController::class, 'detailDosen'])->name('pages-home-dosen-detail');
 Route::get('/tendik', [DashboardController::class, 'tendik'])->name('pages-home-tendik');
+Route::get('/tendik/detail', [DashboardController::class, 'detailTendik'])->name('pages-home-tendik-detail');
 //University Rank
 Route::get('/times_higher_education_ranking', [DashboardController::class, 'times_higher_education_ranking'])->name(
   'pages-times-higher-education-ranking'
@@ -46,6 +47,7 @@ Route::get('/webometrics_ranking', [DashboardController::class, 'webometrics_ran
 );
 //Prodi
 Route::get('/prodi/{id}', [ProgramStudiController::class, 'index'])->name('pages-prodi');
+Route::get('/prodi/mahasiswa/{id}', [ProgramStudiController::class, 'mahasiswa'])->name('pages-prodi-mahasiswa');
 
 //Auth
 Route::get('/auth/login', [LoginBasic::class, 'index'])->name('auth-login');
