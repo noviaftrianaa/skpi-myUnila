@@ -38,7 +38,7 @@
                 @if (empty($r->sub))
                     <!-- Single Menu -->
                     <li class="menu-item {{ AktifMenu($r->nm_file, 1) }}">
-                        <a href="{{ $r->nm_file }}" class="menu-link">
+                        <a href="{{ route($r->nm_file) }}" class="menu-link">
                             <i class="menu-icon tf-icons {{ is_null($r->icon)?'fa-regular fa-circle':$r->icon }} text-center" style="font-size: 1em"></i>
                             <div>{{ $r->nm_menu }}</div>
                         </a>
@@ -53,7 +53,7 @@
                         <ul class="menu-sub">
                             @foreach ($r->sub as $t)
                                 <li class="menu-item {{ AktifMenu($r->nm_file, 2) }}">
-                                    <a href="{{ $t->nm_file }}" class="menu-link">
+                                    <a href="{{ route($t->nm_file) }}" class="menu-link">
                                         <div>{{ $t->nm_menu }}</div>
                                     </a>
                                 </li>
