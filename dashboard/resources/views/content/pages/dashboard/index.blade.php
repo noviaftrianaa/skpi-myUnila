@@ -2,7 +2,7 @@
 
 @section('title', 'Halaman Utama')
 
-@include('content.pages.dashboard.style-js')
+@include('content.pages.dashboard.function')
 
 @section('content')
     <div class="row">

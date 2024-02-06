@@ -217,6 +217,7 @@ class DashboardController extends Controller
 
     $data = \DB::SELECT("
       SELECT
+        sdm.id_sdm,
         sdm.nm_sdm,
         sdm.nidn,
         sdm.nip,
