@@ -183,6 +183,6 @@
     </div>
     <!-- /Modal -->
 
-    @include('content.pages.prodi.style-js')
+    @include('content.pages.prodi.function')
 
 @endsection

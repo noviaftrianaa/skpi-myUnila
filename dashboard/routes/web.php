@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\language\LanguageController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProgramStudiController;
+use App\Http\Controllers\DosenController;
 use App\Http\Controllers\SyncController;
 use App\Http\Controllers\authentications\LoginBasic;
 use App\Http\Controllers\authentications\RegisterBasic;
@@ -51,6 +52,8 @@ Route::get('/webometrics_ranking', [DashboardController::class, 'webometrics_ran
 //Prodi
 Route::get('/prodi/{id}', [ProgramStudiController::class, 'index'])->name('pages-prodi');
 Route::get('/prodi/mahasiswa/{id}', [ProgramStudiController::class, 'mahasiswa'])->name('pages-prodi-mahasiswa');
+//Dosen
+Route::get('/dosen/{id}', [DosenController::class, 'index'])->name('pages-dosen');
 
 //Auth
 Route::get('/auth/login', [LoginBasic::class, 'index'])->name('auth-login');
