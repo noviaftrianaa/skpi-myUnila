@@ -226,7 +226,6 @@ class TracerStudyController extends Controller
                     'ket' => $ket,
                     'id_creator' => guid(),
                     'id_updater' => guid(),
-                    'create_date' => currDateTime(),
                     'last_update' => currDateTime(),
                     'last_sync' => currDateTime(),
                     'soft_delete' => 0
