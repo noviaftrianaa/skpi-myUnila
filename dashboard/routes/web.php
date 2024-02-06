@@ -71,10 +71,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/changePeran', [MainDashboardController::class, 'changePeran'])->name('main-changePeran');
 
     //iku
-    Route::prefix('iku')->group(function () {
-      Route::get('/1', [IkuController::class, 'index'])->name('main-iku1');
+    // Route::prefix('iku')->group(function () {
+      Route::get('/main-iku1', [IkuController::class, 'index'])->name('main-iku1');
       Route::get('/json/point', [IkuController::class, 'listTotalPoint'])->name('json-iku1-point');
-    });
+    // });
   });
 
   Route::get('sync_data',[SyncController::class,'index'])->name('sync_data');
