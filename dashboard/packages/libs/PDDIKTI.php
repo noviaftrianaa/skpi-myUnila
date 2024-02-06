@@ -1,4 +1,27 @@
 <?php
+function curl_api_pddikti($url,$token) {
+  if (extension_loaded('curl') === true)
+  {
+    $ch = curl_init();
+    curl_setopt($ch,CURLOPT_HTTPHEADER, ['Content-Type: application/json','Authorization: Bearer '.$token]);
+    curl_setopt($ch,CURLOPT_URL, $url);
+//            curl_setopt($ch,CURLOPT_SSL_VERIFYPEER, FALSE);
+    curl_setopt($ch,CURLOPT_POST, false);
+    curl_setopt($ch,CURLOPT_RETURNTRANSFER, true);
+    $result = curl_exec ($ch);
+    if ($result === false) {
+      $info = curl_getinfo($ch);
+      curl_close($ch);
+      die('error occured during curl exec. Info: ' . var_export($info));
+    }
+    curl_close ($ch);
+  } else {
+    ini_set("allow_url_fopen", 1);
+    $result = file_get_contents($url);
+  }
+  $obj = json_decode($result, TRUE);
+  return $obj;
+}
 
 if (!function_exists('curl_api_neo_feeder')) {
   function curl_api_neo_feeder($url, $fields_string)
@@ -79,5 +102,64 @@ if (!function_exists('data_get_token_form_feeder')) {
       'username' => ENV('WS_USERNAME'),
       'password' => ENV('WS_PASSWORD'),
     ]);
+  }
+}
+
+if (!function_exists('data_get_token_form_sister')) {
+  function data_get_token_form_sister()
+  {
+    return json_encode([
+      'username' => ENV('WS_SISTER_USERNAME'),
+      'password' => ENV('WS_SISTER_PASSWORD'),
+      'id_pengguna' => ENV('WS_SISTER_PENGGUNA'),
+    ]);
+  }
+}
+
+if (!function_exists('curl_api_sister')) {
+  function curl_api_sister($url, $fields_string)
+  {
+    if (extension_loaded('curl') === true) {
+      $ch = curl_init();
+      curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+      curl_setopt($ch, CURLOPT_URL, $url);
+      //            curl_setopt($ch,CURLOPT_SSL_VERIFYPEER, FALSE);
+      curl_setopt($ch, CURLOPT_POST, true);
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $fields_string);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      $result = curl_exec($ch);
+      if ($result === false) {
+        $info = curl_getinfo($ch);
+        curl_close($ch);
+        die('error occured during curl exec. Info: ' . var_export($info));
+      }
+      curl_close($ch);
+    } else {
+      ini_set('allow_url_fopen', 1);
+      $result = file_get_contents($url);
+    }
+    $obj = json_decode($result, true);
+    return $obj;
+  }
+}
+
+if (!function_exists('generate_token_sister')) {
+  function generate_token_sister()
+  {
+    $url = ENV('URL_WS_SISTER').'/authorize';
+    $form_token = data_get_token_form_sister();
+    $get_token = curl_api_sister($url, $form_token);
+    $token = $get_token['token'];
+//    \DB::table('man_akses.access_token')->insert([
+//      'id_token' => guid(),
+//      'waktu_create' => currDateTime(),
+//      'waktu_expired' => config('mp.exp_data_row.waktu_expired_token'),
+//      'keterangan' => 'Token Seeder Data SISTER',
+//      'token_value' => $token,
+//      'is_seq_uri' => 0,
+//      'is_reg_user' => 1,
+//      'base_url' => $url,
+//    ]);
+    return $token;
   }
 }
