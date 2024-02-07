@@ -856,7 +856,7 @@ create table man_akses.kelompok_tabel_aplikasi (
    enpoint              varchar(200)         null,
    level                numeric(1)           not null default 0
       constraint ckc_level_kelompok check (level between 0 and 9),
-   constraint pk_man_akses.kelompok_tabel_aplikasi primary key (id_kel_table_app)
+   constraint pk_kelompok_tabel_aplikasi primary key (id_kel_table_app)
 )
 go
 
