@@ -69,14 +69,13 @@ class DashboardController extends Controller
         jenjang.nm_jenj_didik,
         (
           SELECT
-            COUNT(pd.id_pd)
+            COUNT(DISTINCT pd.id_pd)
           FROM
             pdrd.reg_pd AS reg
             JOIN pdrd.peserta_didik AS pd ON pd.id_pd=reg.id_pd AND pd.soft_delete = 0
-            JOIN pdrd.kuliah_mhs AS kmh ON kmh.id_reg_pd=reg.id_reg_pd AND kmh.soft_delete=0 AND kmh.id_stat_mhs='A'
+            JOIN pdrd.kuliah_mhs AS kmh ON kmh.id_reg_pd=reg.id_reg_pd AND kmh.soft_delete=0
           WHERE
             reg.soft_delete = 0
-            AND pd.id_stat_mhs = 'A'
             AND pd.id_kewarganegaraan = 'ID'
             " .
         $q .
@@ -85,14 +84,13 @@ class DashboardController extends Controller
         ) AS nasional,
         (
           SELECT
-            COUNT(pd.id_pd)
+            COUNT(DISTINCT pd.id_pd)
           FROM
             pdrd.reg_pd AS reg
             JOIN pdrd.peserta_didik AS pd ON pd.id_pd=reg.id_pd AND pd.soft_delete = 0
-            JOIN pdrd.kuliah_mhs AS kmh ON kmh.id_reg_pd=reg.id_reg_pd AND kmh.soft_delete=0 AND kmh.id_stat_mhs='A'
+            JOIN pdrd.kuliah_mhs AS kmh ON kmh.id_reg_pd=reg.id_reg_pd AND kmh.soft_delete=0
           WHERE
             reg.soft_delete = 0
-            AND pd.id_stat_mhs = 'A'
             AND pd.id_kewarganegaraan != 'ID'
             " .
         $q .
@@ -110,6 +108,44 @@ class DashboardController extends Controller
         jenjang.nm_jenj_didik ASC
     "
     );
+
+    return \DataTables::of($data)
+      ->addIndexColumn()
+      ->make(true);
+  }
+
+  public function detailMahasiswa(Request $request)
+  {
+    $q = $request->periode == 'ALL' ? ' ' : " AND kmh.id_smt = '" . $request->periode . "' ";
+    $status = $request->status == 'AKTIF' ? " AND reg.tgl_keluar IS NULL " : " AND reg.tgl_keluar IS NOT NULL ";
+
+    $data = \DB::SELECT("
+      SELECT DISTINCT
+        pd.id_pd,
+        pd.nm_pd,
+        reg.nipd,
+        pd.jk,
+        status.nm_stat_mhs,
+        pd.id_stat_mhs,
+        reg.id_smt,
+        reg.tgl_keluar,
+        reg.no_seri_ijazah,
+        reg.id_jns_keluar,
+        jenis.ket_keluar
+      FROM
+        pdrd.peserta_didik AS pd
+        JOIN ref.status_mahasiswa AS status ON status.id_stat_mhs=pd.id_stat_mhs AND status.expired_date IS NULL
+        JOIN pdrd.reg_pd AS reg ON reg.id_pd=pd.id_pd AND reg.soft_delete=0
+        JOIN pdrd.kuliah_mhs AS kmh ON kmh.id_reg_pd=reg.id_reg_pd AND kmh.soft_delete=0
+        LEFT JOIN ref.jenis_keluar AS jenis ON jenis.id_jns_keluar=reg.id_jns_keluar AND jenis.expired_date IS NULL
+      WHERE
+        pd.soft_delete=0
+        AND reg.id_sms='".$request->id_sms."'
+        ".$q."
+      ORDER BY
+
+        pd.nm_pd ASC
+    ");
 
     return \DataTables::of($data)
       ->addIndexColumn()

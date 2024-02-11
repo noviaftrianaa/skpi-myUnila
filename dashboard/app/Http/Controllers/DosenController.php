@@ -10,9 +10,6 @@ class DosenController extends Controller
   public function __construct()
   {
     $this->basepath = 'dosen';
-    // $this->sp = DB::table('pdrd.satuan_pendidikan')
-    //   ->where('id_sp', env('APP_ID_SP'))
-    //   ->first();
   }
 
   public function index($id)
@@ -26,12 +23,14 @@ class DosenController extends Controller
         sms.nm_lemb,
         jur.nm_lemb AS jur,
         fak.nm_lemb AS fak,
-        stat.nm_stat_aktif
+        stat.nm_stat_aktif,
+        jenjang.nm_jenj_didik
       FROM
         pdrd.sdm AS sdm
         JOIN pdrd.reg_ptk AS ptk ON ptk.id_sdm=sdm.id_sdm AND ptk.soft_delete=0
         JOIN pdrd.sms AS sms ON sms.id_sms=ptk.id_sms AND sms.soft_delete=0
         JOIN ref.status_keaktifan_pegawai AS stat ON stat.id_stat_aktif=sdm.id_stat_aktif AND stat.expired_date IS NULL
+        JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik=sms.id_jenj_didik AND jenjang.expired_date IS NULL
         LEFT JOIN pdrd.sms AS jur ON jur.id_sms=sms.id_jur_unila AND jur.soft_delete=0
         LEFT JOIN pdrd.sms AS fak ON fak.id_sms=sms.id_fak_unila AND fak.soft_delete=0
       WHERE

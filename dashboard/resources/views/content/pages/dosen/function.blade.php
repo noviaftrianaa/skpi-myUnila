@@ -58,8 +58,7 @@
                         data: 'id_smt',
                         title: 'Semester',
                         render: function(data, type, row) {
-                            return data.substring(4, 1) == 1 ? `${data.substring(0,4)} Ganjil` :
-                                `${data.substring(0,4)} Genap`;
+                          return data.substring(5,4)==1 ? `${data.substring(0,4)} Ganjil` : `${data.substring(0,4)} Genap`;
                         }
                     },
                     {
@@ -115,8 +114,7 @@
                         data: 'id_smt',
                         title: 'Semester',
                         render: function(data, type, row) {
-                            return data.substring(4, 1) == 1 ? `${data.substring(0,4)} Ganjil` :
-                                `${data.substring(0,4)} Genap`;
+                          return data.substring(5,4)==1 ? `${data.substring(0,4)} Ganjil` : `${data.substring(0,4)} Genap`;
                         }
                     },
                     {
@@ -168,8 +166,7 @@
                         data: 'id_smt',
                         title: 'Semester',
                         render: function(data, type, row) {
-                            return data.substring(4, 1) == 1 ? `${data.substring(0,4)} Ganjil` :
-                                `${data.substring(0,4)} Genap`;
+                          return data.substring(5,4)==1 ? `${data.substring(0,4)} Ganjil` : `${data.substring(0,4)} Genap`;
                         }
                     },
                     {

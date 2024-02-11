@@ -43,7 +43,7 @@
                         data: 'nm_lemb',
                         title: 'Program Studi',
                         render: function(data, type, row) {
-                            return `<a href="{{ route('pages-prodi', '') }}/${row.id_sms}">${data}</a>`;
+                            return `<a href="{{ route('pages-prodi', '') }}/${row.id_sms}" target=new>${data}</a>`;
                         }
                     },
                     {
@@ -86,7 +86,10 @@
                     },
                     {
                         data: 'nm_lemb',
-                        title: 'Program Studi'
+                        title: 'Program Studi',
+                        render: function(data, type, row) {
+                            return `<a href="javascript:void(0);" id="btnModalMahasiswa" data-id="${row.id_sms}" data-prodi="${row.nm_lemb}">${data}</a>`;
+                        }
                     },
                     {
                         data: 'nm_jenj_didik',
@@ -196,9 +199,73 @@
 
         $(document).ready(function() {
             programstudi();
-            mahasiswa();
+            var tMahasiswa = mahasiswa();
             var tDosen = dosen();
             var tTendik = tendik();
+
+            //Mahasiswa
+            tMahasiswa.on('click', '#btnModalMahasiswa', function() {
+                var id = $(this).data('id');
+                $('#detProdiMhs').html("Program Studi " + $(this).data('prodi'));
+
+                $('#modalMahasiswaList').modal('show');
+                var oTable = $('#tDetailMahasiswa').DataTable({
+                    "bDestroy": true,
+                    processing: true,
+                    serverSide: true,
+                    "ajax": {
+                        "url": "{{ route('pages-home-mahasiswa-detail') }}",
+                        "type": "GET",
+                        "data": {
+                            id_sms: id,
+                            periode: $('#periodeMahasiswa').val()
+                        }
+                    },
+                    "columns": [{
+                            "data": "nm_pd",
+                            "title": "Nama Mahasiswa",
+                            "orderable": true,
+                            render: function(data, type, row) {
+                              return `<a href="{{ route('pages-mahasiswa', '') }}/${row.id_pd}" target="_blank">${data}</a>`;
+                            }
+                        },
+                        {
+                            "data": "nipd",
+                            "title": "NPM",
+                            "width": "5px",
+                            "orderable": false,
+                            "className": "text-center",
+                        },
+                        {
+                            "data": "jk",
+                            "title": "Jenis Kelamin",
+                            "orderable": false,
+                            "className": "text-center",
+                        },
+                        {
+                            "data": "id_jns_keluar",
+                            "title": "Status",
+                            "orderable": true,
+                            "className": "text-center",
+                            render: function(data,type,row) {
+                              if(data==null) {
+                                return '<span class="badge bg-primary">AKTIF</span>';
+                              } else if (data == 1) {
+                                return `<span class="badge bg-success">${row.ket_keluar}</span>`;
+                              } else if (data == 'C') {
+                                return `<span class="badge bg-warning">${row.ket_keluar}</span>`;
+                              } else {
+                                return `<span class="badge bg-danger">${row.ket_keluar}</span>`;
+                              }
+                            }
+                        }
+                    ],
+                    order: [
+                        [3, 'ASC'],
+                        [0, 'ASC']
+                    ],
+                });
+            });
 
             tDosen.on('click', '#btnModalDosen', function() {
                 var id = $(this).data('id');

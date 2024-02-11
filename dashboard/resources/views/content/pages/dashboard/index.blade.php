@@ -267,5 +267,6 @@
 
     @include('content.pages.dashboard.modal-dosen-list')
     @include('content.pages.dashboard.modal-tendik-list')
+    @include('content.pages.dashboard.modal-mahasiswa-list')
 
 @endsection
