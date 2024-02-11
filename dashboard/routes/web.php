@@ -54,6 +54,9 @@ Route::get('/prodi/{id}', [ProgramStudiController::class, 'index'])->name('pages
 Route::get('/prodi/mahasiswa/{id}', [ProgramStudiController::class, 'mahasiswa'])->name('pages-prodi-mahasiswa');
 //Dosen
 Route::get('/dosen/{id}', [DosenController::class, 'index'])->name('pages-dosen');
+Route::get('/dosen/pengajaran/{id}', [DosenController::class, 'pengajaran'])->name('pages-dosen-pengajaran');
+Route::get('/dosen/bimbingan/{id}', [DosenController::class, 'bimbingan'])->name('pages-dosen-bimbingan');
+Route::get('/dosen/pengujian/{id}', [DosenController::class, 'pengujian'])->name('pages-dosen-pengujian');
 
 //Auth
 Route::get('/auth/login', [LoginBasic::class, 'index'])->name('auth-login');

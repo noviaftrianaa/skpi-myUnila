@@ -45,7 +45,7 @@
                                     <h1 class="mb-0">
                                         {{ intval($dataTheWur['rank']) > 0 ? intval($dataTheWur['rank']) : $dataTheWur['rank'] }}
                                     </h1>
-                                    {!! intval($dataPastTheWur['rank']??0) == 0 ? '<div class="badge rounded bg-label-success">+' . intval($dataTheWur['rank'] ?? 0) . '</div>' : (intval($dataTheWur['rank'] ?? 0) < intval($dataPastTheWur['rank'] ?? 0)
+                                    {!! intval($dataPastTheWur['rank']??0) == 0 ? '<div class="badge rounded bg-label-success">+' . intval($dataTheWur['rank'] ?? 0) . '</div>' : (intval($dataTheWur['rank'] ?? 0) <= intval($dataPastTheWur['rank'] ?? 0)
                                         ? '<div class="badge rounded bg-label-success">+' .
                                             intval($dataPastTheWur['rank'] ?? 0) -
                                             intval($dataTheWur['rank'] ?? 0) .
@@ -70,7 +70,7 @@
                                 </div>
                                 <div class="d-flex gap-2 align-items-center mb-2 pb-1 flex-wrap">
                                     <h3 class="my-2 pt-1">{{ $dataTheWur['scores_overall_rank'] }}</h3>
-                                    {!! intval($dataPastTheWur['scores_overall_rank']??0) == 0 ? '<div class="badge rounded bg-label-success">+' . intval($dataTheWur['scores_overall_rank'] ?? 0) . '</div>' : (intval($dataTheWur['scores_overall_rank'] ?? 0) < intval($dataPastTheWur['scores_overall_rank'] ?? 0)
+                                    {!! intval($dataPastTheWur['scores_overall_rank']??0) == 0 ? '<div class="badge rounded bg-label-success">+' . intval($dataTheWur['scores_overall_rank'] ?? 0) . '</div>' : (intval($dataTheWur['scores_overall_rank'] ?? 0) <= intval($dataPastTheWur['scores_overall_rank'] ?? 0)
                                         ? '<div class="badge rounded bg-label-success">+' .
                                             intval($dataPastTheWur['scores_overall_rank'] ?? 0) -
                                             intval($dataTheWur['scores_overall_rank'] ?? 0) .
@@ -108,7 +108,7 @@
                                         @endphp
                                         {{ $now }}
                                     </h3>
-                                    {!! $now < $last
+                                    {!! $now <= $last
                                         ? '<div class="badge rounded bg-label-success">+' . $last - $now . '</div>'
                                         : '<div class="badge rounded bg-label-danger">' . $last - $now . '</div>' !!}
                                 </div>
@@ -121,7 +121,7 @@
                                 </div>
                                 <div class="d-flex gap-2 align-items-center mb-2 pb-1 flex-wrap">
                                     <h3 class="my-2 pt-1">{{ $dataTheWur['scores_overall'] }}</h3>
-                                    {!! intval($dataPastTheWur['scores_overall']??0) == 0 ? '<div class="badge rounded bg-label-success">+' . intval($dataTheWur['scores_overall'] ?? 0) . '</div>' : (intval($dataTheWur['scores_overall'] ?? 0) > intval($dataPastTheWur['scores_overall'] ?? 0)
+                                    {!! intval($dataPastTheWur['scores_overall']??0) == 0 ? '<div class="badge rounded bg-label-success">+' . intval($dataTheWur['scores_overall'] ?? 0) . '</div>' : (intval($dataTheWur['scores_overall'] ?? 0) >= intval($dataPastTheWur['scores_overall'] ?? 0)
                                         ? '<div class="badge rounded bg-label-success">+' .
                                             intval($dataTheWur['scores_overall'] ?? 0) -
                                             intval($dataPastTheWur['scores_overall'] ?? 0) .

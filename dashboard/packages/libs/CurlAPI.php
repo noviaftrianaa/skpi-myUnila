@@ -22,6 +22,6 @@ if (!function_exists('curlApi')) {
       $result = file_get_contents($url);
     }
     $obj = json_decode($result, true);
-    return $obj['data'];
+    return $obj;
   }
 }

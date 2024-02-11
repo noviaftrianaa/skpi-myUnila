@@ -47,7 +47,7 @@
                                     </h1>
                                     {!! intval($dataPastQsWordUniversity['rank'] ?? 0) == 0
                                         ? '<div class="badge rounded bg-label-success">+' . intval($dataQsWordUniversity['rank'] ?? 0) . '</div>'
-                                        : (intval($dataQsWordUniversity['rank'] ?? 0) > intval($dataPastQsWordUniversity['rank'] ?? 0)
+                                        : (intval($dataQsWordUniversity['rank'] ?? 0) <= intval($dataPastQsWordUniversity['rank'] ?? 0)
                                             ? '<div class="badge rounded bg-label-success">+' .
                                                 intval($dataPastQsWordUniversity['rank'] ?? 0) -
                                                 intval($dataQsWordUniversity['rank'] ?? 0) .
@@ -77,7 +77,7 @@
                                             $last = 0;
                                             if (!empty($dataQsWordUniversity['asian'])) {
                                                 foreach ($dataQsWordUniversity['asian'] as $item) {
-                                                    if (in_array($item->title, ['Universitas Lampung', 'Lampung University', 'University of Lampung'])) {
+                                                    if (in_array($item['title'], ['Universitas Lampung', 'Lampung University', 'University of Lampung'])) {
                                                         $now++;
                                                         break;
                                                     }
@@ -86,7 +86,7 @@
                                             }
                                             if (!empty($dataPastQsWordUniversity['asian'])) {
                                                 foreach ($dataPastQsWordUniversity['asian'] as $item) {
-                                                    if (in_array($item->title, ['Universitas Lampung', 'Lampung University', 'University of Lampung'])) {
+                                                    if (in_array($item['title'], ['Universitas Lampung', 'Lampung University', 'University of Lampung'])) {
                                                         $last++;
                                                         break;
                                                     }
@@ -98,7 +98,7 @@
                                     </h3>
                                     {!! $last == 0
                                         ? '<div class="badge rounded bg-label-success">+' . $now . '</div>'
-                                        : ($now < $last
+                                        : ($now <= $last
                                             ? '<div class="badge rounded bg-label-success">+' . $last - $now . '</div>'
                                             : '<div class="badge rounded bg-label-danger">' . $last - $now . '</div>') !!}
                                 </div>
@@ -115,7 +115,7 @@
                                             $last = 0;
                                             if (!empty($dataQsWordUniversity['indonesian'])) {
                                                 foreach ($dataQsWordUniversity['indonesian'] as $item) {
-                                                    if (in_array($item->title, ['Universitas Lampung', 'Lampung University', 'University of Lampung'])) {
+                                                    if (in_array($item['title'], ['Universitas Lampung', 'Lampung University', 'University of Lampung'])) {
                                                         $now++;
                                                         break;
                                                     }
@@ -124,7 +124,7 @@
                                             }
                                             if (!empty($dataPastQsWordUniversity['indonesian'])) {
                                                 foreach ($dataPastQsWordUniversity['indonesian'] as $item) {
-                                                    if (in_array($item->title, ['Universitas Lampung', 'Lampung University', 'University of Lampung'])) {
+                                                    if (in_array($item['title'], ['Universitas Lampung', 'Lampung University', 'University of Lampung'])) {
                                                         $last++;
                                                         break;
                                                     }
@@ -136,7 +136,7 @@
                                     </h3>
                                     {!! $last == 0
                                         ? '<div class="badge rounded bg-label-success">+' . $now . '</div>'
-                                        : ($now < $last
+                                        : ($now <= $last
                                             ? '<div class="badge rounded bg-label-success">+' . $last - $now . '</div>'
                                             : '<div class="badge rounded bg-label-danger">' . $last - $now . '</div>') !!}
                                 </div>
@@ -151,7 +151,7 @@
                                     <h3 class="my-2 pt-1">{{ $dataQsWordUniversity['score_nid'] ?? 0 }}</h3>
                                     {!! intval($dataPastQsWordUniversity['score_nid'] ?? 0) == 0
                                         ? '<div class="badge rounded bg-label-success">+' . intval($dataQsWordUniversity['score_nid'] ?? 0) . '</div>'
-                                        : (intval($dataQsWordUniversity['score_nid'] ?? 0) > intval($dataPastQsWordUniversity['score_nid'] ?? 0)
+                                        : (intval($dataQsWordUniversity['score_nid'] ?? 0) >= intval($dataPastQsWordUniversity['score_nid'] ?? 0)
                                             ? '<div class="badge rounded bg-label-success">+' .
                                                 intval($dataQsWordUniversity['score_nid'] ?? 0) -
                                                 intval($dataPastQsWordUniversity['score_nid'] ?? 0) .
@@ -186,9 +186,9 @@
                                     <div class="badge bg-label-primary rounded p-2"><i
                                             class="ti ti-number-{{ $no + 1 }} ti-sm"></i></div>
                                     <div class="d-flex justify-content-between w-100 flex-wrap">
-                                        <h6 class="mb-0 ms-3">{{ $item->indicator_name }}</h6>
+                                        <h6 class="mb-0 ms-3">{{ $item['indicator_name'] }}</h6>
                                         <div class="d-flex">
-                                            <p class="mb-0 fw-medium text-primary">{{ $item->score }}</p>
+                                            <p class="mb-0 fw-medium text-primary">{{ $item['score'] }}</p>
                                         </div>
                                     </div>
                                 </li>
@@ -224,7 +224,7 @@
                                     <button type="button" class="step-trigger">
                                         <span class="bs-stepper-circle">{{ $no + 1 }}</span>
                                         <span class="bs-stepper-label">
-                                            <span class="bs-stepper-title">{{ $item->indicator_name }}</span>
+                                            <span class="bs-stepper-title">{{ $item['indicator_name'] }}</span>
                                         </span>
                                     </button>
                                 </div>
