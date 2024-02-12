@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\SDM;
+namespace App\Http\Controllers\Main\SDM;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;

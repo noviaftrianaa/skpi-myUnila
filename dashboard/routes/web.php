@@ -5,8 +5,8 @@ use App\Http\Controllers\language\LanguageController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProgramStudiController;
 use App\Http\Controllers\DosenController;
-use App\Http\Controllers\SDM\DosenController AS DosenSMSController;
-use App\Http\Controllers\SDM\TendikController AS TendikSMSController;
+use App\Http\Controllers\Main\SDM\DosenController AS DosenSMSController;
+use App\Http\Controllers\Main\SDM\TendikController AS TendikSMSController;
 use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\SyncController;
 use App\Http\Controllers\authentications\LoginBasic;
@@ -91,10 +91,11 @@ Route::middleware(['auth'])->group(function () {
       Route::get('/main-iku1', [IkuController::class, 'index'])->name('main-iku1');
       Route::get('/json/point', [IkuController::class, 'listTotalPoint'])->name('json-iku1-point');
     // });
+
+    //SDM
+    Route::get('sdm/dosen',[DosenSMSController::class,'index'])->name('sdm.dosen');
+    Route::get('sdm/tendik',[TendikSMSController::class])->name('sdm.tendik');
   });
 
   Route::get('sync_data',[SyncController::class,'index'])->name('sync_data');
-
-  Route::get('sdm/dosen',[DosenSMSController::class,'index'])->name('sdm.dosen');
-  Route::get('sdm/tendik',[TendikSMSController::class])->name('sdm.tendik');
 });

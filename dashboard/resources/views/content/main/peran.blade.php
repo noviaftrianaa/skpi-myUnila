@@ -3,11 +3,12 @@
 @section('title', 'Ganti Peran')
 
 @section('content')
-    <h4 class="py-3 mb-4">
-        <span class="text-muted fw-light">Main /</span> Ganti Peran
-    </h4>
+  <div class="d-flex justify-content-between mx-3">
+    <h4 class="my-3">Ganti Peran</h4>
+    <a href="{{ url('main') }}" class="btn btn-primary"><i class="ti ti-home me-2"></i>Back to Dashboard</a>
+  </div>
 
-    <div class="card">
+    <div class="card mx-3">
         <div class="card-header border-bottom">
             <h5 class="card-title">Peran</h5>
         </div>

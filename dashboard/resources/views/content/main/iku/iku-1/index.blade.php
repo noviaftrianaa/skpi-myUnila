@@ -34,21 +34,12 @@
 @endsection
 
 @section('content')
-<h4 class="py-3 mb-3">
-  @foreach(\Session::get('login.menu') AS $n=>$r)
-    @if(empty($r->sub))
-      <span class="text-muted fw-light">{{ $r->nm_menu }}
-    @else
-      <span class="text-muted fw-light">{{ $r->nm_menu }} /</span> IKU
-    @endif
-  @endforeach
+<h4>
+  Indikator Kinerja Utama
 </h4>
 
 <div class="row">
  <div class="col-md-12">
-  <div class="overlay dark" id="overlayLoading">
-    <i class="ti ti-loader ti-spin"></i>
-  </div>
   <!-- Vertical Wizard -->
   <div class="col-12 mb-4">
     <div class="bs-stepper wizard-vertical vertical mt-2">

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\SDM;
+namespace App\Http\Controllers\Main\SDM;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pdrd\SatuanPendidikan;
@@ -50,6 +50,6 @@ class DosenController extends Controller
             $judul = 'Dosen '.$sp->nm_lemb;
         }
         $data = SDM::get_data_all($unit->level_organisasi,$unit->id_jns_lemb,$unit->id_organisasi,$thn);
-        return view('sdm.dosen.index',compact('ta_list','thn','data','judul'));
+        return view('content.main.sdm.dosen.index',compact('ta_list','thn','data','judul'));
     }
 }
