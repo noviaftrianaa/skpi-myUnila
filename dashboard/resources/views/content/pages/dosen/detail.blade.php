@@ -29,10 +29,7 @@
                                         <i class='ti ti-building'></i>
                                         {{ $profil->fak ? 'Fakultas ' . ucwords(strtolower($profil->fak)) : ' ' }}
                                         {{ $profil->jur ? ', ' . ucwords(strtolower($profil->jur)) : '' }}
-                                        {{ $profil->nm_lemb ? ', Program Studi ' . ucwords(strtolower($profil->nm_lemb)) : '' }}
-                                    </li>
-                                    <li class="list-inline-item d-flex gap-1" title="NIDN">
-                                        <i class='ti ti-id'></i> {{ $profil->nidn ?? '-' }}
+                                        {!! $profil->nm_lemb ? ", Program Studi ".ucwords(strtolower($profil->nm_lemb))." ($profil->nm_jenj_didik)" : '' !!}
                                     </li>
                                     <li class="list-inline-item d-flex gap-1" title="NIP">
                                         <i class='ti ti-id-badge'></i> {{ $profil->nip ?? '-' }}
@@ -42,13 +39,11 @@
                                     </li>
                                 </ul>
                             </div>
-                            {{-- <a href="javascript:void(0)" class="btn btn-success"> --}}
                             {!! $profil->id_stat_aktif == 1
                                 ? '<a href="javascript:void(0)" class="btn btn-success">' . $profil->nm_stat_aktif . '</a>'
                                 : ($profil->id_stat_aktif == 27
                                     ? '<a href="javascript:void(0)" class="btn btn-warning">' . $profil->nm_stat_aktif . '</a>'
                                     : '<a href="javascript:void(0)" class="btn btn-danger">' . $profil->nm_stat_aktif . '</a>') !!}
-                            {{-- </a> --}}
                         </div>
                     </div>
                 </div>

@@ -39,6 +39,9 @@
                         "data": "nm_sdm",
                         "title": "Nama Dosen",
                         "orderable": true,
+                        render: function(data, type, row) {
+                          return `<a href="{{ route('pages-dosen', '') }}/${row.id_sdm}" target="_blank">${data}</a>`;
+                        }
                     },
                     {
                         "data": "nidn",
