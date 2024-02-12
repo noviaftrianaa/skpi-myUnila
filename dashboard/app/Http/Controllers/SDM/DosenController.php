@@ -25,7 +25,7 @@ class DosenController extends Controller
         if ($unit->id_jns_lemb==24) {
             $sms = Sms::find($unit->id_organisasi);
             $ta_list = TahunAjaran::select('id_thn_ajaran','nm_thn_ajaran')
-              ->where('id_thn_ajaran','>=',date('Y',$sms->smt_mulai))
+              ->where('id_thn_ajaran','>=',$sms->smt->id_thn_ajaran)
               ->where('id_thn_ajaran','<=',get_tahun_keaktifan())
               ->whereNull('expired_date')
               ->orderBy('id_thn_ajaran','DESC')
@@ -38,7 +38,7 @@ class DosenController extends Controller
         } elseif ($unit->id_jns_lemb==23) {
             $sms = Sms::find($unit->id_organisasi);
             $judul = 'Dosen Fakultas '.$sms->nm_lemb;
-        } {
+        } else {
             $sp = SatuanPendidikan::find(env('APP_ID_SP'));
             $ta_list = TahunAjaran::select('id_thn_ajaran','nm_thn_ajaran')
               ->where('id_thn_ajaran','>=',2000)
