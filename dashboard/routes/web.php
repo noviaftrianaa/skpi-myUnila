@@ -94,7 +94,7 @@ Route::middleware(['auth'])->group(function () {
 
     //SDM
     Route::get('sdm/dosen',[DosenSMSController::class,'index'])->name('sdm.dosen');
-    Route::get('sdm/tendik',[TendikSMSController::class])->name('sdm.tendik');
+    Route::get('sdm/tendik',[TendikSMSController::class,'index'])->name('sdm.tendik');
   });
 
   Route::get('sync_data',[SyncController::class,'index'])->name('sync_data');

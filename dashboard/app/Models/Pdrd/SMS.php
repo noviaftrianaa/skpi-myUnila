@@ -91,4 +91,14 @@ class SMS extends AbstractionModel
     {
       return $this->belongsTo('App\Models\Referensi\Semester', 'smt_mulai', 'id_smt');
     }
+
+    public function jurusan_unila()
+    {
+      return $this->belongsTo('App\Models\Pdrd\SMS','id_jur_unila','id_sms');
+    }
+
+    public function fakultas_unila()
+    {
+      return $this->belongsTo('App\Models\Pdrd\SMS','id_fak_unila','id_sms');
+    }
 }

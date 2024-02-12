@@ -119,4 +119,53 @@ class SDM extends AbstractionModel
         ";
         return DB::SELECT($query);
     }
+
+    public static function get_data_all_tendik($thn,$lvl,$unit_filter=null)
+    {
+        $filter = "";
+        if ($lvl>3) {
+            $filter.=" AND u3.nm_unit_orga LIKE '%".$unit_filter."%'";
+        }
+        $query = "
+            BEGIN
+                DECLARE @tahun_keaktifan CHAR(4), @tgl_batas DATE, @tgl_batas_usia DATE;
+                SET @tahun_keaktifan='".$thn."';
+                SET @tgl_batas = '".date($thn.'-12-31')."';
+                SET @tgl_batas_usia = '".date($thn.'-m-01')."';
+
+                SELECT
+                    p.id_pegawai,
+                    p.nm_pegawai,
+                    p.nip,
+                    p.tgl_lahir,
+                    CAST(ROUND(DATEDIFF(DAY, p.tgl_lahir, (CAST(@tgl_batas_usia AS DATETIME)))/365.25,2) AS NUMERIC (5,2)) AS umur,
+                    p.jns_pegawai,
+                    p.jns_tenaga,
+                    p.status,
+                    p.tmt_pensiun,
+                    pend.nm_pend,
+                    gol.nm_gol,
+                    jab.nm_jabfung,
+                    js.nm_jabstruk,
+                    u.nm_unit_orga AS unit,
+                    u1.nm_unit_orga AS unit1,
+                    u2.nm_unit_orga AS unit2,
+                    u3.nm_unit_orga AS unit3
+                FROM sikep.pegawai AS p
+                JOIN sikep.unit_orga AS u ON u.id_unit_orga=p.id_unit_orga
+                LEFT JOIN sikep.unit_orga AS u1 ON u1.id_unit_orga=p.id_unit_orga1
+                LEFT JOIN sikep.unit_orga AS u2 ON u2.id_unit_orga=p.id_unit_orga2
+                LEFT JOIN sikep.unit_orga AS u3 ON u3.id_unit_orga=p.id_unit_orga3
+                LEFT JOIN sikep.pendidikan AS pend ON pend.id_pend=p.id_pend
+                LEFT JOIN sikep.jabfung AS jab ON jab.id_jabfung=p.id_jabfung
+                LEFT JOIN sikep.golongan AS gol ON gol.id_gol=p.id_gol
+                LEFT JOIN sikep.jabstruk AS js ON js.id_jabstruk=p.id_jabstruk
+                WHERE p.jns_tenaga!='Dosen'
+                AND (p.tmt_pensiun IS NULL OR p.tmt_pensiun>=@tgl_batas)
+                ".$filter."
+                ORDER BY u3.nm_unit_orga ASC, p.nm_pegawai ASC
+            END
+        ";
+        return DB::SELECT($query);
+    }
 }

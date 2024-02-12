@@ -21,3 +21,4 @@
 
 <!-- Page Styles -->
 @yield('page-style')
+@stack('css')
