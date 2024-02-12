@@ -5,6 +5,8 @@ use App\Http\Controllers\language\LanguageController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProgramStudiController;
 use App\Http\Controllers\DosenController;
+use App\Http\Controllers\SDM\DosenController AS DosenSMSController;
+use App\Http\Controllers\SDM\TendikController AS TendikSMSController;
 use App\Http\Controllers\SyncController;
 use App\Http\Controllers\authentications\LoginBasic;
 use App\Http\Controllers\authentications\RegisterBasic;
@@ -84,4 +86,7 @@ Route::middleware(['auth'])->group(function () {
   });
 
   Route::get('sync_data',[SyncController::class,'index'])->name('sync_data');
+
+  Route::get('sdm/dosen',[DosenSMSController::class,'index'])->name('sdm.dosen');
+  Route::get('sdm/tendik',[TendikSMSController::class])->name('sdm.tendik');
 });
