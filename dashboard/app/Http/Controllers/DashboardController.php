@@ -125,25 +125,19 @@ class DashboardController extends Controller
         pd.nm_pd,
         reg.nipd,
         pd.jk,
-        status.nm_stat_mhs,
-        pd.id_stat_mhs,
-        reg.id_smt,
-        reg.tgl_keluar,
-        reg.no_seri_ijazah,
-        reg.id_jns_keluar,
-        jenis.ket_keluar
+        status.id_stat_mhs,
+        status.nm_stat_mhs
       FROM
         pdrd.peserta_didik AS pd
-        JOIN ref.status_mahasiswa AS status ON status.id_stat_mhs=pd.id_stat_mhs AND status.expired_date IS NULL
         JOIN pdrd.reg_pd AS reg ON reg.id_pd=pd.id_pd AND reg.soft_delete=0
         JOIN pdrd.kuliah_mhs AS kmh ON kmh.id_reg_pd=reg.id_reg_pd AND kmh.soft_delete=0
+        JOIN ref.status_mahasiswa AS status ON status.id_stat_mhs=kmh.id_stat_mhs AND status.expired_date IS NULL
         LEFT JOIN ref.jenis_keluar AS jenis ON jenis.id_jns_keluar=reg.id_jns_keluar AND jenis.expired_date IS NULL
       WHERE
         pd.soft_delete=0
         AND reg.id_sms='".$request->id_sms."'
         ".$q."
       ORDER BY
-
         pd.nm_pd ASC
     ");
 

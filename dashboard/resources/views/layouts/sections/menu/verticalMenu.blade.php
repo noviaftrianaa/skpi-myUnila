@@ -52,7 +52,7 @@
                         </a>
                         <ul class="menu-sub">
                             @foreach ($r->sub as $t)
-                                <li class="menu-item {{ AktifMenu($r->nm_file, 1) }}">
+                                <li class="menu-item {{ AktifMenu($t->nm_file, 2) }}">
                                     <a href="{{ route($t->nm_file) }}" class="menu-link">
                                         <div>{{ $t->nm_menu }}</div>
                                     </a>

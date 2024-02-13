@@ -49,6 +49,10 @@
                         data: 'prodi',
                         title: 'Program Studi',
                     },
+                    {
+                        data: 'univ',
+                        title: 'Lembaga',
+                    },
                 ]
             });
         }
@@ -89,6 +93,10 @@
                     {
                         data: 'prodi',
                         title: 'Program Studi',
+                    },
+                    {
+                        data: 'univ',
+                        title: 'Lembaga',
                     },
                 ]
             });
@@ -134,6 +142,10 @@
                     {
                         data: 'nm_lemb',
                         title: 'Program Studi',
+                    },
+                    {
+                        data: 'univ',
+                        title: 'Lembaga',
                     },
                 ]
             });

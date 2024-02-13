@@ -40,10 +40,10 @@
                                 </ul>
                             </div>
                             {!! $profil->id_stat_aktif == 1
-                                ? '<a href="javascript:void(0)" class="btn btn-success">' . $profil->nm_stat_aktif . '</a>'
+                                ? '<a href="javascript:void(0)" class="btn btn-label-primary">' . $profil->nm_stat_aktif . '</a>'
                                 : ($profil->id_stat_aktif == 27
-                                    ? '<a href="javascript:void(0)" class="btn btn-warning">' . $profil->nm_stat_aktif . '</a>'
-                                    : '<a href="javascript:void(0)" class="btn btn-danger">' . $profil->nm_stat_aktif . '</a>') !!}
+                                    ? '<a href="javascript:void(0)" class="btn btn-label-warning">' . $profil->nm_stat_aktif . '</a>'
+                                    : '<a href="javascript:void(0)" class="btn btn-label-danger">' . $profil->nm_stat_aktif . '</a>') !!}
                         </div>
                     </div>
                 </div>
