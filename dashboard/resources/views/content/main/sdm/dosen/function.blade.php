@@ -8,11 +8,13 @@
 @endsection
 
 @section('vendor-script')
+    <script src="{{asset('assets/vendor/libs/jquery-sticky/jquery-sticky.js')}}"></script>
     <script src="{{ asset('assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js') }}"></script>
     <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
 @endsection
 
 @section('page-script')
+    <script src="{{asset('assets/js/form-layouts.js')}}"></script>
     <script type="text/javascript">
         'use strict';
 
@@ -50,13 +52,13 @@
                         "sortDescending": ": activate to sort column descending"
                     }
                 },
+                sDom: 'rt<"row"<"col-sm-12 col-md-3"l><"col-sm-12 col-md-3"i><"col-sm-12 col-md-6"p>>',
                 buttons: [{
                     extend: 'collection',
                     className: 'btn btn-label-primary dropdown-toggle me-2',
                     text: '<i class="ti ti-file-export me-sm-1"></i> <span class="d-none d-sm-inline-bloc' +
                         'k">Export</span>',
-                    buttons: [
-                          {
+                    buttons: [{
                             extend: 'print',
                             text: '<i class="ti ti-printer me-1" ></i>Print',
                             className: 'dropdown-item',
@@ -89,30 +91,24 @@
                             text: '<i class="ti ti-copy me-1" ></i>Copy',
                             className: 'dropdown-item',
                         },
-                        // {
-                        //     extend: 'pdf',
-                        //     text: '<i class="ti ti-file-description me-1"></i>Pdf',
-                        //     className: 'dropdown-item',
-                        //     orientation: 'landscape',
-                        //     customize: function(win) {
-                        //         //customize print view for dark
-                        //         $(win.document.body)
-                        //             .css('color', config.colors.headingColor)
-                        //             .css('border-color', config.colors.borderColor)
-                        //             .css('background-color', config.colors.bodyBg);
-                        //         $(win.document.body)
-                        //             .find('table')
-                        //             .addClass('compact')
-                        //             .css('color', 'inherit')
-                        //             .css('border-color', 'inherit')
-                        //             .css('background-color', 'inherit');
-                        //     }
-                        // },
                     ]
+                }, {
+                    text: '<i class="ti ti-filter me-sm-1"></i> <span class="d-none d-sm-inline-block">Fi' +
+                        'lter Data</span>',
+                    className: 'add-new btn btn-primary',
+                    attr: {
+                        'data-bs-toggle': 'offcanvas',
+                        'data-bs-target': '#offcanvasAddUser'
+                    }
                 }],
             });
 
             table.buttons().containers().appendTo('#exportBtn');
+
+            $('#search').on('change', function() {
+                table.search($('#search').val()).draw();
+                $('#offcanvasAddUser').offcanvas('hide');
+            });
         });
     </script>
 @endsection

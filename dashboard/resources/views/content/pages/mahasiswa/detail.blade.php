@@ -34,13 +34,13 @@
                             </div>
 
                             @if (is_null($profil->id_jns_keluar))
-                                <a href="javascript:void(0)" class="btn btn-primary">AKTIF</a>
+                                <a href="javascript:void(0)" class="btn btn-label-primary">AKTIF</a>
                             @elseif($profil->id_jns_keluar == '1')
-                                <a href="javascript:void(0)" class="btn btn-success">{{ strtoupper($profil->ket_keluar) }}</a>
+                                <a href="javascript:void(0)" class="btn btn-label-success">{{ strtoupper($profil->ket_keluar) }}</a>
                             @elseif($profil->id_jns_keluar == 'C')
-                                <a href="javascript:void(0)" class="btn btn-warning">{{ strtoupper($profil->ket_keluar) }}</a>
+                                <a href="javascript:void(0)" class="btn btn-label-warning">{{ strtoupper($profil->ket_keluar) }}</a>
                             @else
-                                <a href="javascript:void(0)" class="btn btn-danger">{{ strtoupper($profil->ket_keluar) }}</a>
+                                <a href="javascript:void(0)" class="btn btn-label-danger">{{ strtoupper($profil->ket_keluar) }}</a>
                             @endif
                         </div>
                     </div>
@@ -100,7 +100,7 @@
               </div>
               <div class="card-body">
                   <div class="table-responsive">
-                      <table id="tSemester" class="table table-striped table-sm" width="100% !important">
+                      <table id="tSemester" class="table table-striped table-hover table-bordered table-sm" width="100% !important">
                           <thead class="table-primary"></thead>
                       </table>
                   </div>
@@ -112,7 +112,7 @@
               </div>
               <div class="card-body">
                   <div class="table-responsive">
-                      <table id="tMK" class="table table-striped table-sm" width="100% !important">
+                      <table id="tMK" class="table table-striped table-hover table-bordered table-sm" width="100% !important">
                           <thead class="table-primary"></thead>
                       </table>
                   </div>
@@ -124,7 +124,7 @@
               </div>
               <div class="card-body">
                   <div class="table-responsive">
-                      <table id="tAktivitas" class="table table-striped table-sm" width="100% !important">
+                      <table id="tAktivitas" class="table table-striped table-hover table-bordered table-sm" width="100% !important">
                           <thead class="table-primary"></thead>
                       </table>
                   </div>
@@ -136,7 +136,7 @@
               </div>
               <div class="card-body">
                   <div class="table-responsive">
-                      <table id="tPrestasi" class="table table-striped table-sm" width="100% !important">
+                      <table id="tPrestasi" class="table table-striped table-hover table-bordered table-sm" width="100% !important">
                           <thead class="table-primary"></thead>
                       </table>
                   </div>

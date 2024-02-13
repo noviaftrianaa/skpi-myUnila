@@ -74,12 +74,13 @@
         <li class="nav-item navbar-dropdown dropdown-user dropdown">
             <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
                 <div class="d-flex">
-                    <div class="flex-shrink-0 me-2">
+                    <div class="flex-shrink-0">
                         <div class="avatar avatar-online">
-                          <span class="avatar-initial rounded-circle bg-label-primary">{{ substr(\Auth::user()->nm_pengguna, 0, 2) }}</span>
+                            <span
+                                class="avatar-initial rounded-circle bg-label-primary">{{ substr(\Auth::user()->nm_pengguna, 0, 2) }}</span>
                         </div>
                     </div>
-                    <div class="flex-grow-1">
+                    <div class="flex-grow-1 d-none d-lg-inline-block ms-2">
                         <span class="fw-medium d-block">
                             {{ Auth::user()->nm_pengguna }}
                         </span>
@@ -90,6 +91,13 @@
                 </div>
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
+                <li class="d-lg-none bg-label-primary">
+                  <div class="dropdown-item">
+                    <i class="ti ti-user me-2 ti-sm"></i>
+                    <span class="align-middle">{{ Auth::user()->nm_pengguna }} <small class="fst-italic">({{ \App\Models\Peran::where('id_peran', session()->get('login.role')->id_peran)->pluck('nm_peran')[0] }})</small></span>
+                  </div>
+                  <div class="dropdown-divider"></div>
+                </li>
                 <li>
                     <a class="dropdown-item" href="/" target="_blank">
                         <i class="ti ti-user-edit me-2 ti-sm"></i>
@@ -110,12 +118,12 @@
                     </a>
                 </li>
                 @if (!\Request::is('main*'))
-                  <li>
-                    <a class="dropdown-item text-primary" href="{{ route('main-index') }}">
-                      <i class="ti ti-home me-2 ti-sm"></i>
-                      <span class="align-middle">Dashboard Utama</span>
-                    </a>
-                  </li>
+                    <li>
+                        <a class="dropdown-item text-primary" href="{{ route('main-index') }}">
+                            <i class="ti ti-home me-2 ti-sm"></i>
+                            <span class="align-middle">Dashboard Utama</span>
+                        </a>
+                    </li>
                 @endif
                 <li>
                     <div class="dropdown-divider"></div>

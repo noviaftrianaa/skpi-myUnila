@@ -9,8 +9,7 @@ class DashboardController extends Controller
 {
     public function index()
     {
-      $pageConfigs = ['myLayout' => 'vertical'];
-      return view('content.main.dashboard', ['pageConfigs' => $pageConfigs]);
+      return view('content.main.dashboard');
     }
 
     public function peran()
@@ -46,7 +45,7 @@ class DashboardController extends Controller
           'last_active' => NOW()
         ]
       );
-      //DELETE
+      //DESTROY SESSION
       session()->forget('login.role');
       //SET ROLE
       $array = $request->all();

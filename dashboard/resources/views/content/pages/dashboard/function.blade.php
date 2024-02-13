@@ -58,8 +58,8 @@
                         width: '5px',
                         className: 'text-center',
                         render: function(data, type, row) {
-                            return data == '0' ? `<span class="badge bg-success">Aktif</span>` :
-                                `<span class="badge bg-danger">Tidak Aktif</span>`;
+                            return data == '0' ? `<span class="badge bg-label-primary">Aktif</span>` :
+                                `<span class="badge bg-label-danger">Tidak Aktif</span>`;
                         }
                     },
                 ],
@@ -243,19 +243,19 @@
                             "className": "text-center",
                         },
                         {
-                            "data": "id_jns_keluar",
+                            "data": "id_stat_mhs",
                             "title": "Status",
                             "orderable": true,
                             "className": "text-center",
                             render: function(data,type,row) {
-                              if(data==null) {
-                                return '<span class="badge bg-primary">AKTIF</span>';
-                              } else if (data == 1) {
-                                return `<span class="badge bg-success">${row.ket_keluar}</span>`;
+                              if(data=="A" || data=="M") {
+                                return `<span class="badge bg-label-primary">${row.nm_stat_mhs}</span>`;
+                              } else if (data == 'L') {
+                                return `<span class="badge bg-label-success">${row.nm_stat_mhs}</span>`;
                               } else if (data == 'C') {
-                                return `<span class="badge bg-warning">${row.ket_keluar}</span>`;
+                                return `<span class="badge bg-label-warning">${row.nm_stat_mhs}</span>`;
                               } else {
-                                return `<span class="badge bg-danger">${row.ket_keluar}</span>`;
+                                return `<span class="badge bg-label-danger">${row.nm_stat_mhs}</span>`;
                               }
                             }
                         }
@@ -322,10 +322,10 @@
                             "className": "text-center",
                             render: function(data, type, row) {
                                 return row.id_stat_aktif == 1 ?
-                                    `<span class="badge bg-success">${data}</span>` : (row
+                                    `<span class="badge bg-label-primary">${data}</span>` : (row
                                         .id_stat_aktif == 27 ?
-                                        `<span class="badge bg-warning">${data}</span>` :
-                                        `<span class="badge bg-danger">${data}</span>`);
+                                        `<span class="badge bg-label-warning">${data}</span>` :
+                                        `<span class="badge bg-label-danger">${data}</span>`);
                             }
                         }
                     ]
@@ -376,10 +376,10 @@
                             "className": "text-center",
                             render: function(data, type, row) {
                                 return row.id_stat_aktif == 1 ?
-                                    `<span class="badge bg-success">${data}</span>` : (row
+                                    `<span class="badge bg-label-primary">${data}</span>` : (row
                                         .id_stat_aktif == 27 ?
-                                        `<span class="badge bg-warning">${data}</span>` :
-                                        `<span class="badge bg-danger">${data}</span>`);
+                                        `<span class="badge bg-label-warning">${data}</span>` :
+                                        `<span class="badge bg-label-danger">${data}</span>`);
                             }
                         }
                     ]

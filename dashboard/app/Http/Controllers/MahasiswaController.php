@@ -29,7 +29,8 @@ class MahasiswaController extends Controller
                 status.nm_stat_mhs,
                 jenjang.nm_jenj_didik,
                 reg.id_jns_keluar,
-                jenis.ket_keluar
+                jenis.ket_keluar,
+                sp.nm_lemb AS univ
             FROM
                 pdrd.peserta_didik AS pd
                 JOIN pdrd.reg_pd AS reg ON reg.id_pd=pd.id_pd AND reg.soft_delete=0
@@ -39,6 +40,7 @@ class MahasiswaController extends Controller
                 LEFT JOIN pdrd.sms AS jur ON jur.id_sms=sms.id_jur_unila AND jur.soft_delete=0
                 LEFT JOIN pdrd.sms AS fak ON fak.id_sms=sms.id_fak_unila AND fak.soft_delete=0
                 LEFT JOIN ref.jenis_keluar AS jenis ON jenis.id_jns_keluar=reg.id_jns_keluar AND jenis.expired_date IS NULL
+                LEFT JOIN pdrd.satuan_pendidikan AS sp ON sp.id_sp=sms.id_sp AND sp.soft_delete=0
             WHERE
                 pd.soft_delete=0
                 AND pd.id_pd='".$id."'
@@ -73,12 +75,14 @@ class MahasiswaController extends Controller
           kmh.id_smt,
           status.nm_stat_mhs,
           kmh.sks_semester,
-          sms.nm_lemb AS prodi
+          sms.nm_lemb AS prodi,
+          sp.nm_lemb AS univ
         FROM
           pdrd.reg_pd AS reg
           JOIN pdrd.kuliah_mhs AS kmh ON kmh.id_reg_pd=reg.id_reg_pd AND kmh.soft_delete=0
           JOIN ref.status_mahasiswa AS status ON status.id_stat_mhs=kmh.id_stat_mhs AND status.expired_date IS NULL
           JOIN pdrd.sms AS sms ON sms.id_sms=reg.id_sms AND sms.soft_delete=0
+          LEFT JOIN pdrd.satuan_pendidikan AS sp ON sp.id_sp=sms.id_sp AND sp.soft_delete=0
         WHERE
           reg.soft_delete=0
           AND reg.id_pd='".$id."'
@@ -110,13 +114,15 @@ class MahasiswaController extends Controller
               kuliah.soft_delete=0
               AND kuliah.id_smt=kk.id_smt
               AND kuliah.id_reg_pd=reg.id_reg_pd
-          ) AS id_stat_mhs
+          ) AS id_stat_mhs,
+          sp.nm_lemb AS univ
         FROM
           pdrd.reg_pd AS reg
           JOIN pdrd.nilai_smt_mhs AS nilai ON nilai.id_reg_pd=reg.id_reg_pd AND nilai.soft_delete=0
           JOIN pdrd.kelas_kuliah AS kk ON kk.id_kls=nilai.id_kls AND kk.soft_delete=0
           JOIN pdrd.matkul AS mk ON mk.id_mk=kk.id_mk AND mk.soft_delete=0
           JOIN pdrd.sms AS sms ON sms.id_sms=kk.id_sms AND sms.soft_delete=0
+          LEFT JOIN pdrd.satuan_pendidikan AS sp ON sp.id_sp=sms.id_sp AND sp.soft_delete=0
         WHERE
           reg.soft_delete=0
           AND reg.id_pd='".$id."'
@@ -146,13 +152,15 @@ class MahasiswaController extends Controller
           akt.lokasi_kegiatan,
           akt.sk_tugas,
           akt.tgl_sk_tugas,
-          sms.nm_lemb
+          sms.nm_lemb,
+          sp.nm_lemb AS univ
         FROM
           pdrd.reg_pd AS reg
           JOIN pdrd.anggota_akt_mhs AS ang ON ang.id_reg_pd=reg.id_reg_pd AND ang.soft_delete=0
           JOIN pdrd.akt_mhs AS akt ON akt.id_akt_mhs=ang.id_akt_mhs AND akt.soft_delete=0
           JOIN ref.jenis_akt_mhs AS jenis ON jenis.id_jns_akt_mhs=akt.id_jns_akt_mhs AND jenis.expired_date IS NULL
           LEFT JOIN pdrd.sms AS sms ON sms.id_sms=akt.id_sms AND sms.soft_delete=0
+          LEFT JOIN pdrd.satuan_pendidikan AS sp ON sp.id_sp=sms.id_sp AND sp.soft_delete=0
         WHERE
           reg.soft_delete=0
           AND reg.id_pd='".$id."'
