@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 use DB, Auth, Alert, Crypt, File, Excel;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Events\AfterSheet;
+use App\Models\Pdrd\SMS;
 
 class TemplateIku1Export implements FromView, ShouldAutoSize
 {
@@ -24,18 +25,27 @@ class TemplateIku1Export implements FromView, ShouldAutoSize
         $id_sms = $this->id_sms;
 
         if ($thn_iku == 2023) {
-          if (!is_null($id_sms)) {
-            $where = "
-              WHERE
-                fak.id_sms = '". $id_sms ."'
-                AND YEAR(reg.tgl_keluar) = '" . ($thn_iku - 1) . "'
+          if($id_sms == 'undefined'){
+              $where = "
+                WHERE
+                  tc.soft_delete = 0
+                  AND YEAR(reg.tgl_keluar) = '" . ($thn_iku - 1) . "'
               ";
-          } else {
-            $where = "
-              WHERE
-                tc.soft_delete = 0
-                AND YEAR(reg.tgl_keluar) = '" . ($thn_iku - 1) . "'
-            ";
+          }else{
+            $sms = Sms::where('id_sms', $id_sms)->first();
+            if($sms->id_jns_sms == 3){
+                $where = "
+                  WHERE
+                    prodi.id_sms = '". $id_sms ."'
+                    AND YEAR(reg.tgl_keluar) = '" . ($thn_iku - 1) . "'
+                ";
+            }else{
+                $where = "
+                  WHERE
+                    fak.id_sms = '". $id_sms ."'
+                    AND YEAR(reg.tgl_keluar) = '" . ($thn_iku - 1) . "'
+                ";
+            }
           }
           $select = "
               SELECT

@@ -9,7 +9,7 @@
         <div class="app-brand demo">
             <a href="{{ url('/') }}" class="app-brand-link">
                 <span class="app-brand-logo demo">
-                    <img src="/images/logo-unila.png" height="30" />
+                    <img src="{!! asset('images/logo-unila.png') !!}" height="30" />
                 </span>
                 <span class="app-brand-text demo menu-text fw-bold">{{ config('variables.appName') }}</span>
             </a>
@@ -45,14 +45,14 @@
                     </li>
                 @else
                     <!-- Sub Menu -->
-                    <li class="menu-item {{ AktifMenu($r->nm_file, 1) }}">
+                    <li class="menu-item {{ AktifMenu($r->nm_file, 1)=="active" ? "active open" : "" }} ">
                         <a href="#" class="menu-link menu-toggle">
                             <i class="menu-icon tf-icons {{ is_null($r->icon)?'fa-regular fa-circle':$r->icon }} text-center" style="font-size: 1em"></i>
                             <div>{{ $r->nm_menu }}</div>
                         </a>
                         <ul class="menu-sub">
                             @foreach ($r->sub as $t)
-                                <li class="menu-item {{ AktifMenu($r->nm_file, 2) }}">
+                                <li class="menu-item {{ AktifMenu($r->nm_file, 1) }}">
                                     <a href="{{ route($t->nm_file) }}" class="menu-link">
                                         <div>{{ $t->nm_menu }}</div>
                                     </a>

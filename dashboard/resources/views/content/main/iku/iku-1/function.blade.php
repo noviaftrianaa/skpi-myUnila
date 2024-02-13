@@ -237,7 +237,7 @@
         $('#title-modal').text('PROGRAM STUDI : ' + prodi);
 
         var dt_raw_bekber = $('.datatables-raw-bekber');
-        var dt_raw_lnjt_studi = $('.datatables-raw-lnjt_studi');
+        var dt_raw_lnjt_studi = $('.datatables-raw-lnjt-studi');
         var dt_raw_tdk_bekerja = $('.datatables-raw-tdk_bekerja');
         var data = [];
         var id_jns_sms = 3;
@@ -304,7 +304,7 @@
                             'col-md-6"i><"col-sm-12 col-md-6"p>>',
                         buttons: [{
                             extend: 'collection',
-                            className: 'btn btn-label-primary dropdown-toggle me-2',
+                            className: 'btn btn-label-primary dropdown-toggle me-2 toolbar',
                             text: '<i class="ti ti-file-export me-sm-1"></i> <span class="d-none d-sm-inline-bloc' +
                                 'k">Export</span>',
                             buttons: [{

@@ -16,6 +16,44 @@
 <link rel="stylesheet" href="{{asset('assets/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css')}}">
 <!-- Form Validation -->
 <link rel="stylesheet" href="{{asset('assets/vendor/libs/@form-validation/umd/styles/index.min.css')}}" />
+<style>
+  .bs-stepper.vertical .bs-stepper-header {
+      min-width: 25rem!important;
+  }
+  .bs-stepper .bs-stepper-header .step .step-trigger .bs-stepper-label {
+      max-width: 274px!important;
+  }
+  .light-style div.dtfc-left-top-blocker,
+  .light-style div.dtfc-right-top-blocker,
+  .light-style table.dataTable tbody tr > .dtfc-fixed-left,
+  .light-style table.dataTable tbody tr > .dtfc-fixed-right,
+  .light-style table.dataTable thead tr > .dtfc-fixed-left,
+  .light-style table.dataTable thead tr > .dtfc-fixed-right {
+      background-color: #dae6f8;
+  }
+  .select-iku {
+      border-radius: 4px;
+      margin-top: 8px;
+      padding: 5px 30px 0px 10px;
+      background: #fff;
+      box-shadow: 0 6px 10px rgba(0,0,0,.08), 0 0 6px rgba(0,0,0,.05);
+      transition: 0.3s transform cubic-bezier(.155,1.105,.295,1.12),.3s box-shadow,.3s -webkit-transform cubic-bezier(.155,1.105,.295,1.12);
+      cursor: pointer;
+  }
+  .select-iku:hover {
+      transform: scale(1.05);
+      box-shadow: 0 10px 20px rgba(0,0,0,.12), 0 4px 8px rgba(0,0,0,.06);
+  }
+  @media(max-width: 990px){
+    .select-iku{
+      padding: 5px 5px 0px 10px;
+    }
+  }
+  .zoom {
+    transform: scale(1.05);
+    box-shadow: 0 10px 20px rgba(0,0,0,.12), 0 4px 8px rgba(0,0,0,.06);
+  }
+</style>
 @endsection
 
 @section('vendor-script')
@@ -38,14 +76,8 @@
 @endsection
 
 @section('content')
-<h4 class="py-3 mb-3">
-  @foreach(\Session::get('login.menu') AS $n=>$r)
-    @if(empty($r->sub))
-      <span class="text-muted fw-light">{{ $r->nm_menu }}
-    @else
-      <span class="text-muted fw-light">{{ $r->nm_menu }} /</span> IKU
-    @endif
-  @endforeach
+<h4>
+  Indikator Kinerja Utama
 </h4>
 
 <div class="row">
@@ -54,7 +86,7 @@
   <div class="col-12 mb-4">
     <div class="bs-stepper wizard-vertical vertical mt-2">
       <div class="bs-stepper-header">
-        <div class="step crossed" data-target="#account-details-1">
+        <div class="step crossed select-iku zoom" data-target="#account-details-1">
           <button type="button" class="step-trigger">
            <span class="bs-stepper-circle">1</span>
             <span class="bs-stepper-label">
@@ -64,7 +96,7 @@
           </button>
         </div>
         <div class="line"></div>
-        <div class="step" data-target="#account-details-1">
+        <div class="step select-iku" data-target="#account-details-1">
           <button type="button" class="step-trigger">
            <span class="bs-stepper-circle">2</span>
             <span class="bs-stepper-label">
@@ -74,7 +106,7 @@
           </button>
         </div>
         <div class="line"></div>
-        <div class="step" data-target="#account-details-1">
+        <div class="step select-iku" data-target="#account-details-1">
           <button type="button" class="step-trigger">
            <span class="bs-stepper-circle">3</span>
             <span class="bs-stepper-label">
@@ -84,7 +116,7 @@
           </button>
         </div>
         <div class="line"></div>
-        <div class="step" data-target="#account-details-1">
+        <div class="step select-iku" data-target="#account-details-1">
           <button type="button" class="step-trigger">
            <span class="bs-stepper-circle">4</span>
             <span class="bs-stepper-label">
@@ -94,7 +126,7 @@
           </button>
         </div>
         <div class="line"></div>
-        <div class="step" data-target="#account-details-1">
+        <div class="step select-iku" data-target="#account-details-1">
           <button type="button" class="step-trigger">
            <span class="bs-stepper-circle">5</span>
             <span class="bs-stepper-label">
@@ -104,7 +136,7 @@
           </button>
         </div>
         <div class="line"></div>
-        <div class="step" data-target="#account-details-1">
+        <div class="step select-iku" data-target="#account-details-1">
           <button type="button" class="step-trigger">
            <span class="bs-stepper-circle">6</span>
             <span class="bs-stepper-label">
@@ -114,7 +146,7 @@
           </button>
         </div>
         <div class="line"></div>
-        <div class="step" data-target="#account-details-1">
+        <div class="step select-iku" data-target="#account-details-1">
           <button type="button" class="step-trigger">
            <span class="bs-stepper-circle">7</span>
             <span class="bs-stepper-label">
@@ -124,7 +156,7 @@
           </button>
         </div>
         <div class="line"></div>
-        <div class="step" data-target="#account-details-1">
+        <div class="step select-iku" data-target="#account-details-1">
           <button type="button" class="step-trigger">
            <span class="bs-stepper-circle">8</span>
             <span class="bs-stepper-label">
@@ -137,7 +169,7 @@
       </div>
 
       <div class="bs-stepper-content">
-        <h5 class="card-title mb-3" id="title">UNIVERSITAS LAMPUNG</h5>
+        <h5 class="card-title mb-3 ps-4" id="title">UNIVERSITAS LAMPUNG</h5>
         <div class="container">
         <!-- Card Border Shadow -->
         <div class="row">
@@ -146,7 +178,7 @@
               <div class="d-flex justify-content-center">
                 <p class="mb-0" style="color: #5599FE">Harap tunggu... </p>
                 <div class="sk-wave m-0">
-                    <div class="sk-rect sk-wave-rect primary"></div>
+                    <div class="sk-rect sk-wave-rect"></div>
                     <div class="sk-rect sk-wave-rect"></div>
                     <div class="sk-rect sk-wave-rect"></div>
                     <div class="sk-rect sk-wave-rect"></div>

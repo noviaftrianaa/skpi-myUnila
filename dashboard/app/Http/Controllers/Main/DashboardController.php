@@ -15,7 +15,7 @@ class DashboardController extends Controller
 
     public function peran()
     {
-      $pageConfigs = ['myLayout' => 'vertical'];
+      $pageConfigs = ['myLayout' => 'blank'];
       $peran = \DB::SELECT("
         SELECT
           rp.id_pengguna,

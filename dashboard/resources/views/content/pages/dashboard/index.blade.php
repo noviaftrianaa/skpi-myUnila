@@ -156,10 +156,10 @@
                 <!-- Program Studi -->
                 <div class="tab-content pt-0">
                     <div class="tab-pane fade show active" id="navs-program-studi" role="tabpanel">
-                        <div class="card-header px-0 d-flex justify-content-between align-items-start">
+                      <div class="card-header border-bottom d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0">
                             <h5>Program Studi</h5>
                         </div>
-                        <div class="table-responsive">
+                        <div class="table-responsive my-3">
                             <table class="table table-striped table-hover programstudi table-sm"
                                 style="width: 100% !important">
                                 <thead class="table-primary"></thead>
@@ -168,13 +168,13 @@
                     </div>
                     <!-- Mahasiswa -->
                     <div class="tab-pane fade" id="navs-mahasiswa" role="tabpanel">
-                        <div class="card-header px-0 d-flex justify-content-between align-items-start">
+                      <div class="card-header border-bottom d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0">
                             <h5>Mahasiswa</h5>
                             <div class="float-end row">
                                 <div class="input-group">
                                     <label class="input-group-text">Semester</label>
                                     <select class="form-select text-center" id="periodeMahasiswa">
-                                        <option value="ALL">Semua Semester</option>
+                                        <option value="ALL">Semua</option>
                                         @foreach ($periode as $idThnAjaran => $item)
                                             @foreach ($item as $value)
                                                 @php
@@ -188,7 +188,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="table-responsive">
+                        <div class="table-responsive my-3">
                             <table class="table table-striped table-hover mahasiswa table-sm"
                                 style="width: 100% !important">
                                 <thead class="table-primary"></thead>
@@ -197,7 +197,7 @@
                     </div>
                     <!-- Dosen -->
                     <div class="tab-pane fade" id="navs-dosen" role="tabpanel">
-                        <div class="card-header px-0 d-flex justify-content-between align-items-start">
+                      <div class="card-header border-bottom d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0">
                             <h5>Dosen</h5>
                             <div class="float-end row">
                                 <div class="input-group">
@@ -211,7 +211,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="table-responsive">
+                        <div class="table-responsive my-3">
                             <table class="table table-striped table-hover dosen table-sm"
                                 style="width: 100% !important">
                                 <thead class="table-primary">
@@ -234,10 +234,10 @@
                     </div>
                     <!-- Tenaga Pendidik -->
                     <div class="tab-pane fade" id="navs-tendik" role="tabpanel">
-                        <div class="card-header px-0 d-flex justify-content-between align-items-start">
+                      <div class="card-header border-bottom d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0">
                             <h5>Tenaga Pendidik</h5>
                         </div>
-                        <div class="table-responsive">
+                        <div class="table-responsive my-3">
                             <table class="table table-striped table-hover tendik table-sm"
                                 style="width: 100% !important">
                                 <thead class="table-primary">
@@ -267,5 +267,6 @@
 
     @include('content.pages.dashboard.modal-dosen-list')
     @include('content.pages.dashboard.modal-tendik-list')
+    @include('content.pages.dashboard.modal-mahasiswa-list')
 
 @endsection

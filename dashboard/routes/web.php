@@ -5,6 +5,9 @@ use App\Http\Controllers\language\LanguageController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProgramStudiController;
 use App\Http\Controllers\DosenController;
+use App\Http\Controllers\Main\SDM\DosenController AS DosenSMSController;
+use App\Http\Controllers\Main\SDM\TendikController AS TendikSMSController;
+use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\SyncController;
 use App\Http\Controllers\authentications\LoginBasic;
 use App\Http\Controllers\authentications\RegisterBasic;
@@ -32,6 +35,7 @@ Route::get('lang/{locale}', [LanguageController::class, 'swap'])->name('swap_lan
 Route::get('/', [DashboardController::class, 'index'])->name('pages-home');
 Route::get('/programstudi', [DashboardController::class, 'programstudi'])->name('pages-home-programstudi');
 Route::get('/mahasiswa', [DashboardController::class, 'mahasiswa'])->name('pages-home-mahasiswa');
+Route::get('/mahasiswa/detail', [DashboardController::class, 'detailMahasiswa'])->name('pages-home-mahasiswa-detail');
 Route::get('/dosen', [DashboardController::class, 'dosen'])->name('pages-home-dosen');
 Route::get('/dosen/detail', [DashboardController::class, 'detailDosen'])->name('pages-home-dosen-detail');
 Route::get('/tendik', [DashboardController::class, 'tendik'])->name('pages-home-tendik');
@@ -54,6 +58,15 @@ Route::get('/prodi/{id}', [ProgramStudiController::class, 'index'])->name('pages
 Route::get('/prodi/mahasiswa/{id}', [ProgramStudiController::class, 'mahasiswa'])->name('pages-prodi-mahasiswa');
 //Dosen
 Route::get('/dosen/{id}', [DosenController::class, 'index'])->name('pages-dosen');
+Route::get('/dosen/pengajaran/{id}', [DosenController::class, 'pengajaran'])->name('pages-dosen-pengajaran');
+Route::get('/dosen/bimbingan/{id}', [DosenController::class, 'bimbingan'])->name('pages-dosen-bimbingan');
+Route::get('/dosen/pengujian/{id}', [DosenController::class, 'pengujian'])->name('pages-dosen-pengujian');
+//Mahasiswa
+Route::get('/mahasiswa/{id}', [MahasiswaController::class, 'index'])->name('pages-mahasiswa');
+Route::get('/mahasiswa/semester/{id}', [MahasiswaController::class, 'semester'])->name('pages-mahasiswa-semester');
+Route::get('/mahasiswa/mk/{id}', [MahasiswaController::class, 'mk'])->name('pages-mahasiswa-mk');
+Route::get('/mahasiswa/aktivitas/{id}', [MahasiswaController::class, 'aktivitas'])->name('pages-mahasiswa-aktivitas');
+Route::get('/mahasiswa/prestasi/{id}', [MahasiswaController::class, 'prestasi'])->name('pages-mahasiswa-prestasi');
 
 //Auth
 Route::get('/auth/login', [LoginBasic::class, 'index'])->name('auth-login');
@@ -80,6 +93,10 @@ Route::middleware(['auth'])->group(function () {
       Route::get('/json/raw', [IkuController::class, 'listRawData'])->name('json-raw-iku1');
       Route::get('/download/raw', [IkuController::class, 'downloadRawData'])->name('download-raw-iku1');
     // });
+
+    //SDM
+    Route::get('sdm/dosen',[DosenSMSController::class,'index'])->name('sdm.dosen');
+    Route::get('sdm/tendik',[TendikSMSController::class,'index'])->name('sdm.tendik');
   });
 
   Route::get('sync_data',[SyncController::class,'index'])->name('sync_data');
