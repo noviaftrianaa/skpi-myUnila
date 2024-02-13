@@ -9,7 +9,7 @@
         <div class="app-brand demo">
             <a href="{{ url('/') }}" class="app-brand-link">
                 <span class="app-brand-logo demo">
-                    <img src="/images/logo-unila.png" height="20" />
+                    <img src="/images/logo-unila.png" height="30" />
                 </span>
                 <span class="app-brand-text demo menu-text fw-bold">{{ config('variables.appName') }}</span>
             </a>

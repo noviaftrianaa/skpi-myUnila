@@ -76,7 +76,9 @@ Route::middleware(['auth'])->group(function () {
     //iku
     // Route::prefix('iku')->group(function () {
       Route::get('/main-iku1', [IkuController::class, 'index'])->name('main-iku1');
-      Route::get('/json/point', [IkuController::class, 'listTotalPoint'])->name('json-iku1-point');
+      Route::get('/json/point', [IkuController::class, 'listTotalPoint'])->name('json-point-iku1');
+      Route::get('/json/raw', [IkuController::class, 'listRawData'])->name('json-raw-iku1');
+      Route::get('/download/raw', [IkuController::class, 'downloadRawData'])->name('download-raw-iku1');
     // });
   });
 

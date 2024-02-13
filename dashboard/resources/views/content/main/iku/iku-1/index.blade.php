@@ -7,8 +7,11 @@
 <link rel="stylesheet" href="{{asset('assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css')}}">
 <link rel="stylesheet" href="{{asset('assets/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css')}}">
 <link rel="stylesheet" href="{{asset('assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css')}}">
+<link rel="stylesheet" href="{{asset('assets/vendor/libs/datatables-fixedcolumns-bs5/fixedcolumns.bootstrap5.css')}}">
 <link rel="stylesheet" href="{{asset('assets/vendor/libs/bs-stepper/bs-stepper.css')}}" />
+<link rel="stylesheet" href="{{asset('assets/vendor/libs/loading/overlay.css')}}" />
 <link rel="stylesheet" href="{{asset('assets/vendor/libs/flatpickr/flatpickr.css')}}" />
+<link rel="stylesheet" href="{{asset('assets/vendor/libs/spinkit/spinkit.css')}}" />
 <!-- Row Group CSS -->
 <link rel="stylesheet" href="{{asset('assets/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css')}}">
 <!-- Form Validation -->
@@ -17,6 +20,7 @@
 
 @section('vendor-script')
 <script src="{{asset('assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js')}}"></script>
+<script src="{{asset('assets/vendor/libs/block-ui/block-ui.js')}}"></script>
 <!-- Flat Picker -->
 <script src="{{asset('assets/vendor/libs/moment/moment.js')}}"></script>
 <script src="{{asset('assets/vendor/libs/flatpickr/flatpickr.js')}}"></script>
@@ -46,9 +50,6 @@
 
 <div class="row">
  <div class="col-md-12">
-  <div class="overlay dark" id="overlayLoading">
-    <i class="ti ti-loader ti-spin"></i>
-  </div>
   <!-- Vertical Wizard -->
   <div class="col-12 mb-4">
     <div class="bs-stepper wizard-vertical vertical mt-2">
@@ -137,8 +138,23 @@
 
       <div class="bs-stepper-content">
         <h5 class="card-title mb-3" id="title">UNIVERSITAS LAMPUNG</h5>
+        <div class="container">
         <!-- Card Border Shadow -->
         <div class="row">
+          <div class="overlay" id="loading">
+            <div class="overlay-content">
+              <div class="d-flex justify-content-center">
+                <p class="mb-0" style="color: #5599FE">Harap tunggu... </p>
+                <div class="sk-wave m-0">
+                    <div class="sk-rect sk-wave-rect primary"></div>
+                    <div class="sk-rect sk-wave-rect"></div>
+                    <div class="sk-rect sk-wave-rect"></div>
+                    <div class="sk-rect sk-wave-rect"></div>
+                    <div class="sk-rect sk-wave-rect"></div>
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="col-sm-6 col-lg-3 mb-4">
             <div class="card card-border-shadow-primary">
               <div class="card-body">
@@ -245,6 +261,7 @@
                 </ul>
               </div>
             </div>
+          </div>
       </div>
     </div>
   </div>
@@ -254,7 +271,7 @@
 <!-- DataTable with Buttons -->
 <div class="card px-3">
   <div class="card-datatable table-responsive pt-0">
-    <table class="datatables-basic table">
+    <table class="datatables-point table table-bordered">
       <thead style="background-color:#ECF3FF">
         <tr>
           <th hidden>NO</th>
@@ -271,28 +288,29 @@
   </div>
 </div>
   <!-- Offcanvas to filter -->
-  <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasAddUser" aria-labelledby="offcanvasAddUserLabel">
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasFilter" aria-labelledby="offcanvasFilterLabel">
     <div class="offcanvas-header">
-      <h5 id="offcanvasAddUserLabel" class="offcanvas-title">Filter Tahun IKU</h5>
+      <h5 id="offcanvasFilterLabel" class="offcanvas-title">Filter Tahun IKU</h5>
       <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body mx-0 flex-grow-0 pt-0 h-100">
-      <form class="add-new-user pt-0" id="addNewUserForm" onsubmit="return false">
+      <form class="add-new-user pt-0" id="filterForm" onsubmit="return false">
         <div class="mb-3">
           <label class="form-label" for="country">Tahun IKU</label>
-          <select id="country" class="select2 form-select" required>
-            <option value="">Pilih</option>
-            <option value="2023">2023</option>
-            <option value="2022">2022</option>
-            <option value="2021">2021</option>
+          <select id="thn_iku" class="select2 form-select" required>
+            @foreach ($thn_iku as $idThnAjaran => $item)
+                <option value="{{ $idThnAjaran }}">{{ $idThnAjaran }}</option>
+            @endforeach
           </select>
         </div>
-        <button type="submit" class="btn btn-primary me-sm-3 me-1 data-submit">Submit</button>
+        <button class="btn btn-primary me-sm-3 me-1 data-submit" onclick="TablePointIku()" data-bs-dismiss="offcanvas"><i class="fas fa-filter me-2"></i> Submit</button>
         <button type="reset" class="btn btn-label-secondary" data-bs-dismiss="offcanvas">Cancel</button>
       </form>
     </div>
   </div>
   </div>
 </div>
+
+@include('content.main.iku.iku-1.detail')
 
 @endsection

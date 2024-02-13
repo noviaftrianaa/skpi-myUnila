@@ -15,7 +15,7 @@ $activeClass = in_array($currentRouteName, $activeRoutes) ? 'active' : '';
         </button>
         <!-- Mobile menu toggle: End-->
         <a href="javascript:;" class="app-brand-link">
-          <span class="app-brand-logo demo"><img src="/images/logo-unila.png" height="20" /></span>
+          <span class="app-brand-logo demo"><img src="/images/logo-unila.png" height="30" /></span>
           <span class="app-brand-text demo menu-text fw-bold ms-2 ps-1">{{ config('variables.templateName') }}</span>
         </a>
       </div>
