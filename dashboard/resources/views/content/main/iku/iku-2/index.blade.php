@@ -1,6 +1,6 @@
 @extends('layouts/layoutMaster')
 
-@section('title', 'Indikator Kinerja Utama - IKU 1 Universitas Lampung')
+@section('title', 'Indikator Kinerja Utama - IKU 2 Universitas Lampung')
 
 @section('vendor-style')
 <link rel="stylesheet" href="{{asset('assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css')}}">
@@ -85,7 +85,7 @@
 
 @section('content')
 <h4>
-  Indikator Kinerja Utama - IKU 1
+  Indikator Kinerja Utama - IKU 2
 </h4>
 
 <div class="row">
@@ -94,7 +94,7 @@
   <div class="col-12 mb-4">
     <div class="bs-stepper wizard-vertical vertical mt-2">
       <div class="bs-stepper-header">
-        <a class="step crossed select-iku zoom" href="{{ route('main-iku1') }}">
+        <a class="step select-iku" href="{{ route('main-iku1') }}">
           <button type="button" class="step-trigger">
            <span class="bs-stepper-circle">1</span>
             <span class="bs-stepper-label">
@@ -104,7 +104,7 @@
           </button>
         </a>
         <div class="line"></div>
-        <a class="step select-iku" href="{{ route('main-iku2') }}">
+        <a class="step crossed select-iku zoom" href="{{ route('main-iku2') }}">
           <button type="button" class="step-trigger">
            <span class="bs-stepper-circle">2</span>
             <span class="bs-stepper-label">

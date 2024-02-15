@@ -1,6 +1,11 @@
+@php
+$customizerHidden = 'customizer-hide';
+$configData = Helper::appClasses();
+@endphp
+
 @extends('layouts/layoutMaster')
 
-@section('title', 'Indikator Kinerja Utama - IKU 1 Universitas Lampung')
+@section('title', 'Indikator Kinerja Utama - IKU 3 Universitas Lampung')
 
 @section('vendor-style')
 <link rel="stylesheet" href="{{asset('assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css')}}">
@@ -12,6 +17,7 @@
 <link rel="stylesheet" href="{{asset('assets/vendor/libs/loading/overlay.css')}}" />
 <link rel="stylesheet" href="{{asset('assets/vendor/libs/flatpickr/flatpickr.css')}}" />
 <link rel="stylesheet" href="{{asset('assets/vendor/libs/spinkit/spinkit.css')}}" />
+<link rel="stylesheet" href="{{asset('assets/vendor/css/pages/page-misc.css')}}">
 <!-- Row Group CSS -->
 <link rel="stylesheet" href="{{asset('assets/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css')}}">
 <!-- Form Validation -->
@@ -85,7 +91,7 @@
 
 @section('content')
 <h4>
-  Indikator Kinerja Utama - IKU 1
+  Indikator Kinerja Utama - IKU 3
 </h4>
 
 <div class="row">
@@ -94,7 +100,7 @@
   <div class="col-12 mb-4">
     <div class="bs-stepper wizard-vertical vertical mt-2">
       <div class="bs-stepper-header">
-        <a class="step crossed select-iku zoom" href="{{ route('main-iku1') }}">
+        <a class="step select-iku" href="{{ route('main-iku1') }}">
           <button type="button" class="step-trigger">
            <span class="bs-stepper-circle">1</span>
             <span class="bs-stepper-label">
@@ -114,7 +120,7 @@
           </button>
         </a>
         <div class="line"></div>
-        <a class="step select-iku" href="{{ route('main-iku3') }}">
+        <a class="step crossed select-iku zoom" href="{{ route('main-iku3') }}">
           <button type="button" class="step-trigger">
            <span class="bs-stepper-circle">3</span>
             <span class="bs-stepper-label">
@@ -178,130 +184,22 @@
 
       <div class="bs-stepper-content">
         <h5 class="card-title mb-3 ps-4" id="title">UNIVERSITAS LAMPUNG</h5>
-        {{-- <div class="container"> --}}
         <!-- Card Border Shadow -->
         <div class="row">
-          <div class="overlay" id="loading">
-            <div class="overlay-content">
-              <div class="d-flex justify-content-center">
-                <p class="mb-0" style="color: #5599FE">Harap tunggu... </p>
-                <div class="sk-wave m-0">
-                    <div class="sk-rect sk-wave-rect"></div>
-                    <div class="sk-rect sk-wave-rect"></div>
-                    <div class="sk-rect sk-wave-rect"></div>
-                    <div class="sk-rect sk-wave-rect"></div>
-                    <div class="sk-rect sk-wave-rect"></div>
-                </div>
+          <!-- Coming soon -->
+          <div class="container-xxl container-p-y">
+            <div class="misc-wrapper">
+              <h2 class="mb-1 mx-2">We are launching soon</h2>
+              <p class="mb-4 mx-2">We're creating something awesome.</p>
+              <div class="mt-4">
+                <img src="{{ asset('assets/img/illustrations/page-misc-under-maintenance.png') }}" alt="page-misc-under-maintenance" width="550" class="img-fluid">
               </div>
             </div>
           </div>
-          <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card card-border-shadow-primary">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-2 pb-1">
-                    <span class="avatar-initial rounded bg-label-primary p-1"> <h4 class="ms-1 mb-0" id="total_point">0</h4></span>
-                </div>
-                <p class="mb-1">Total Point</p>
-              </div>
-            </div>
+          <div class="container-fluid misc-bg-wrapper">
+            <img src="{{ asset('assets/img/illustrations/bg-shape-image-'.$configData['style'].'.png') }}" alt="page-misc-coming-soon" data-app-light-img="illustrations/bg-shape-image-light.png" data-app-dark-img="illustrations/bg-shape-image-dark.png">
           </div>
-          <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card card-border-shadow-primary">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-2 pb-1">
-                    <span class="avatar-initial rounded bg-label-primary p-1"><h4 class="ms-1 mb-0" id="total_responden">0</h4></span>
-                </div>
-                <p class="mb-1">Total Responden</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card card-border-shadow-primary">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-2 pb-1">
-                    <span class="avatar-initial rounded bg-label-primary p-1"><h4 class="ms-1 mb-0" id="total_alumni">0</h4></span>
-                </div>
-                <p class="mb-1">Total Lulusan</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card card-border-shadow-primary">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-2 pb-1">
-                    <span class="avatar-initial rounded bg-label-primary p-1"><h4 class="ms-1 mb-0" id="pembentuk">0</h4></span>
-                </div>
-                <p class="mb-1">Pembentuk</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card card-border-shadow-primary">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-2 pb-1">
-                    <span class="avatar-initial rounded bg-label-primary p-1"><h4 class="ms-1 mb-0"id="pencapaian">0</h4></span>
-                </div>
-                <p class="mb-1">Pencapaian IKU</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card card-border-shadow-primary">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-2 pb-1">
-                    <span class="avatar-initial rounded bg-label-primary p-1"><h4 class="ms-1 mb-0" id="gold_standart">0</h4></span>
-                </div>
-                <p class="mb-1">Gold Standart</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card card-border-shadow-primary">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-2 pb-1">
-                    <span class="avatar-initial rounded bg-label-primary p-1"><h4 class="ms-1 mb-0" id="delta_gold_standart">0</h4></span>
-                </div>
-                <p class="mb-1">Delta Gold Standart</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card card-border-shadow-primary">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-2 pb-1">
-                    <span class="avatar-initial rounded bg-label-primary p-1"><h4 class="ms-1 mb-0" id="skor_pencapaian">0</h4></span>
-                </div>
-                <p class="mb-1">Skor Pencapaian</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!--/ Card Border Shadow -->
-          <div class="row g-3">
-              <div class="col-12">
-                <ul class="list-group">
-                  <li class="list-group-item d-flex justify-content-between flex-column flex-sm-row">
-                    <div class="offer">
-                      <p class="mb-0 fw-medium">Rumus Perhitungan</p>
-                      <span id="rumus">-</span>
-                    </div>
-                  </li>
-                  <li class="list-group-item d-flex justify-content-between flex-column flex-sm-row">
-                    <div class="offer">
-                      <p class="mb-0 fw-medium">Sumber Data</p>
-                      <span id="sumber_data">-</span>
-                    </div>
-                  </li>
-                  <li class="list-group-item d-flex justify-content-between flex-column flex-sm-row">
-                    <div class="offer">
-                      <p class="mb-0 fw-medium">Update Sync Data Terahkir</p>
-                      <span id="last_sync">-</span>
-                    </div>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          {{-- </div> --}}
+          <!-- /Coming soon -->
       </div>
     </div>
   </div>
@@ -351,6 +249,9 @@
   </div>
 </div>
 
+<div class="container-fluid misc-bg-wrapper">
+  <img src="{{ asset('assets/img/illustrations/bg-shape-image-'.$configData['style'].'.png') }}" alt="page-misc-coming-soon" data-app-light-img="illustrations/bg-shape-image-light.png" data-app-dark-img="illustrations/bg-shape-image-dark.png">
+</div>
 @include('content.main.iku.iku-1.detail')
 
 @endsection

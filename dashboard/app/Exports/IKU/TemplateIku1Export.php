@@ -94,7 +94,7 @@ class TemplateIku1Export implements FromView, ShouldAutoSize
                   tc.nm_prodi_lnjt,
                   tc.ket,
                   CASE
-                      WHEN tc.status_lulusan = 1 AND ( tc.wkt_tunggu = 1 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr))
+                      WHEN tc.status_lulusan = 1 AND ( tc.a_kerja_sblm_lulus = 1 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr))
                         OR ( tc.a_kerja_sblm_lulus = 0 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr)) AND tc.wkt_tunggu <= 6) ) THEN 1
                       WHEN tc.status_lulusan = 1 AND (tc.a_kerja_sblm_lulus = 0 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr)) AND tc.wkt_tunggu BETWEEN 7 AND 12) THEN 0.8
                       WHEN tc.status_lulusan = 1 AND ( tc.a_kerja_sblm_lulus = 1 AND (tc.income_per_bln < (1.2 * umr.besaran_umr))

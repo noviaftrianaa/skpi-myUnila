@@ -66,7 +66,7 @@ class Iku1Controller extends Controller
                   tc.id_hasil_tracer_study,
                   reg.id_reg_pd,
                   CASE
-                  WHEN tc.status_lulusan = 1 AND ( tc.wkt_tunggu = 1 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr))
+                  WHEN tc.status_lulusan = 1 AND ( tc.a_kerja_sblm_lulus = 1 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr))
                     OR ( tc.a_kerja_sblm_lulus = 0 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr)) AND tc.wkt_tunggu <= 6) ) THEN 1
                   WHEN tc.status_lulusan = 1 AND (tc.a_kerja_sblm_lulus = 0 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr)) AND tc.wkt_tunggu BETWEEN 7 AND 12) THEN 0.8
                   WHEN tc.status_lulusan = 1 AND ( tc.a_kerja_sblm_lulus = 1 AND (tc.income_per_bln < (1.2 * umr.besaran_umr))
@@ -138,7 +138,7 @@ class Iku1Controller extends Controller
                   tc.id_hasil_tracer_study,
                   reg.id_reg_pd,
                   CASE
-                  WHEN tc.status_lulusan = 1 AND ( tc.wkt_tunggu = 1 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr))
+                  WHEN tc.status_lulusan = 1 AND ( tc.a_kerja_sblm_lulus = 1 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr))
                     OR ( tc.a_kerja_sblm_lulus = 0 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr)) AND tc.wkt_tunggu <= 6) ) THEN 1
                   WHEN tc.status_lulusan = 1 AND (tc.a_kerja_sblm_lulus = 0 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr)) AND tc.wkt_tunggu BETWEEN 7 AND 12) THEN 0.8
                   WHEN tc.status_lulusan = 1 AND ( tc.a_kerja_sblm_lulus = 1 AND (tc.income_per_bln < (1.2 * umr.besaran_umr))
@@ -215,7 +215,13 @@ class Iku1Controller extends Controller
           $pencapaian = 0;
         }
         $gold_standart = 60;
-        $delta_gold_standart = $gold_standart - $pencapaian;
+
+        $sub = $gold_standart - $pencapaian;
+        if($pencapaian > $gold_standart){
+          $delta_gold_standart = abs($sub);
+        }else{
+          $delta_gold_standart = $sub;
+        }
         $skor_pencapaian = $pencapaian / $gold_standart;
 
         $iku['count'] = [
@@ -315,7 +321,7 @@ class Iku1Controller extends Controller
               tc.nm_prodi_lnjt,
               tc.ket,
               CASE
-                  WHEN tc.status_lulusan = 1 AND ( tc.wkt_tunggu = 1 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr))
+                  WHEN tc.status_lulusan = 1 AND ( tc.a_kerja_sblm_lulus = 1 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr))
                     OR ( tc.a_kerja_sblm_lulus = 0 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr)) AND tc.wkt_tunggu <= 6) ) THEN 1
                   WHEN tc.status_lulusan = 1 AND (tc.a_kerja_sblm_lulus = 0 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr)) AND tc.wkt_tunggu BETWEEN 7 AND 12) THEN 0.8
                   WHEN tc.status_lulusan = 1 AND ( tc.a_kerja_sblm_lulus = 1 AND (tc.income_per_bln < (1.2 * umr.besaran_umr))

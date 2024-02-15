@@ -14,19 +14,16 @@ use App\Http\Controllers\authentications\RegisterBasic;
 //MAIN
 use App\Http\Controllers\Main\DashboardController as MainDashboardController;
 
-//Iku
-use App\Http\Controllers\Main\iku\Iku1Controller as IkuController;
+//IKU
+use App\Http\Controllers\Main\iku\Iku1Controller as Iku1Controller;
+use App\Http\Controllers\Main\iku\Iku2Controller as Iku2Controller;
+use App\Http\Controllers\Main\iku\Iku3Controller as Iku3Controller;
+use App\Http\Controllers\Main\iku\Iku4Controller as Iku4Controller;
+use App\Http\Controllers\Main\iku\Iku5Controller as Iku5Controller;
+use App\Http\Controllers\Main\iku\Iku6Controller as Iku6Controller;
+use App\Http\Controllers\Main\iku\Iku7Controller as Iku7Controller;
+use App\Http\Controllers\Main\iku\Iku8Controller as Iku8Controller;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
 
 // locale
 Route::get('lang/{locale}', [LanguageController::class, 'swap'])->name('swap_language');
@@ -86,13 +83,46 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/peran', [MainDashboardController::class, 'peran'])->name('main-peran');
     Route::get('/changePeran', [MainDashboardController::class, 'changePeran'])->name('main-changePeran');
 
-    //iku
-    // Route::prefix('iku')->group(function () {
-      Route::get('/main-iku1', [IkuController::class, 'index'])->name('main-iku1');
-      Route::get('/json/point', [IkuController::class, 'listTotalPoint'])->name('json-point-iku1');
-      Route::get('/json/raw', [IkuController::class, 'listRawData'])->name('json-raw-iku1');
-      Route::get('/download/raw', [IkuController::class, 'downloadRawData'])->name('download-raw-iku1');
-    // });
+    //IKU
+    Route::get('iku1', [Iku1Controller::class, 'index'])->name('main-iku1');
+    Route::get('iku1/json/point', [Iku1Controller::class, 'listTotalPoint'])->name('json-point-iku1');
+    Route::get('iku1/json/raw', [Iku1Controller::class, 'listRawData'])->name('json-raw-iku1');
+    Route::get('iku1/download/raw', [Iku1Controller::class, 'downloadRawData'])->name('download-raw-iku1');
+
+    Route::get('iku2', [Iku2Controller::class, 'index'])->name('main-iku2');
+    Route::get('iku2/json/point', [Iku2Controller::class, 'listTotalPoint'])->name('json-point-iku2');
+    Route::get('iku2/json/raw', [Iku2Controller::class, 'listRawData'])->name('json-raw-iku2');
+    Route::get('iku2/download/raw', [Iku2Controller::class, 'downloadRawData'])->name('download-raw-iku2');
+
+    Route::get('iku3', [Iku3Controller::class, 'index'])->name('main-iku3');
+    Route::get('iku3/json/point', [Iku3Controller::class, 'listTotalPoint'])->name('json-point-iku3');
+    Route::get('iku3/json/raw', [Iku3Controller::class, 'listRawData'])->name('json-raw-iku3');
+    Route::get('iku3/download/raw', [Iku3Controller::class, 'downloadRawData'])->name('download-raw-iku3');
+
+    Route::get('iku4', [Iku4Controller::class, 'index'])->name('main-iku4');
+    Route::get('iku4/json/point', [Iku4Controller::class, 'listTotalPoint'])->name('json-point-iku4');
+    Route::get('iku4/json/raw', [Iku4Controller::class, 'listRawData'])->name('json-raw-iku4');
+    Route::get('iku4/download/raw', [Iku4Controller::class, 'downloadRawData'])->name('download-raw-iku4');
+
+    Route::get('iku5', [Iku5Controller::class, 'index'])->name('main-iku5');
+    Route::get('iku5/json/point', [Iku5Controller::class, 'listTotalPoint'])->name('json-point-iku5');
+    Route::get('iku5/json/raw', [Iku5Controller::class, 'listRawData'])->name('json-raw-iku5');
+    Route::get('iku5/download/raw', [Iku5Controller::class, 'downloadRawData'])->name('download-raw-iku5');
+
+    Route::get('iku6', [Iku6Controller::class, 'index'])->name('main-iku6');
+    Route::get('iku6/json/point', [Iku6Controller::class, 'listTotalPoint'])->name('json-point-iku6');
+    Route::get('iku6/json/raw', [Iku6Controller::class, 'listRawData'])->name('json-raw-iku6');
+    Route::get('iku6/download/raw', [Iku6Controller::class, 'downloadRawData'])->name('download-raw-iku6');
+
+    Route::get('iku7', [Iku7Controller::class, 'index'])->name('main-iku7');
+    Route::get('iku7/json/point', [Iku7Controller::class, 'listTotalPoint'])->name('json-point-iku7');
+    Route::get('iku7/json/raw', [Iku7Controller::class, 'listRawData'])->name('json-raw-iku7');
+    Route::get('iku7/download/raw', [Iku7Controller::class, 'downloadRawData'])->name('download-raw-iku7');
+
+    Route::get('iku8', [Iku8Controller::class, 'index'])->name('main-iku8');
+    Route::get('iku8/json/point', [Iku8Controller::class, 'listTotalPoint'])->name('json-point-iku8');
+    Route::get('iku8/json/raw', [Iku8Controller::class, 'listRawData'])->name('json-raw-iku8');
+    Route::get('iku8/download/raw', [Iku8Controller::class, 'downloadRawData'])->name('download-raw-iku8');
 
     //SDM
     Route::get('sdm/dosen',[DosenSMSController::class,'index'])->name('sdm.dosen');
