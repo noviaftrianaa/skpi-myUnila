@@ -177,9 +177,27 @@
       </div>
 
       <div class="bs-stepper-content">
-        <h5 class="card-title mb-3 ps-4" id="title">UNIVERSITAS LAMPUNG</h5>
-        {{-- <div class="container"> --}}
-        <!-- Card Border Shadow -->
+        <h5 class="card-title mb-3 mt-2" id="title">UNIVERSITAS LAMPUNG</h5>
+
+        <ul class="nav nav-pills flex-column flex-md-row mb-4 mt-4">
+          <li class="nav-item">
+              <button class="nav-link active" role="tab" id="tab-bekber" data-bs-toggle="tab"
+                  data-bs-target="#navs-bekber" aria-controls="navs-bekber" aria-selected="true">
+                  <i class="ti ti-category ti-xs me-1"></i>MBKM Non Pertukaran</button>
+          </li>
+          <li class="nav-item">
+              <button class="nav-link" role="tab" id="tab-lnjt-studi" data-bs-toggle="tab"
+                  data-bs-target="#navs-lnjt-studi" aria-controls="navs-lnjt-studi" aria-selected="true">
+                  <i class="ti ti-category ti-xs me-1"></i>MBKM Inbound </button>
+          </li>
+          <li class="nav-item">
+              <button class="nav-link" role="tab" id="tab-tdk-bekber" data-bs-toggle="tab"
+                  data-bs-target="#navs-tdk-bekber" aria-controls="navs-tdk-bekber" aria-selected="true">
+                  <i class="ti ti-category ti-xs me-1"></i>PRES</button>
+          </li>
+      </ul>
+
+        <!-- Card MBKM A -->
         <div class="row">
           <div class="overlay" id="loading">
             <div class="overlay-content">
@@ -276,7 +294,7 @@
             </div>
           </div>
         </div>
-        <!--/ Card Border Shadow -->
+        <!--/ Card MBKM A -->
           <div class="row g-3">
               <div class="col-12">
                 <ul class="list-group">
@@ -301,7 +319,7 @@
                 </ul>
               </div>
             </div>
-          {{-- </div> --}}
+
       </div>
     </div>
   </div>

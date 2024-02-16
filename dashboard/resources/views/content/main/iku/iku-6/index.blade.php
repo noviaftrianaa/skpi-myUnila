@@ -183,7 +183,7 @@ $configData = Helper::appClasses();
       </div>
 
       <div class="bs-stepper-content">
-        <h5 class="card-title mb-3 ps-4" id="title">UNIVERSITAS LAMPUNG</h5>
+        <h5 class="card-title mb-3 mt-2" id="title">UNIVERSITAS LAMPUNG</h5>
         <!-- Card Border Shadow -->
         <div class="row">
           <!-- Coming soon -->
