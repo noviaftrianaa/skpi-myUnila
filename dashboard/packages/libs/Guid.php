@@ -9,7 +9,7 @@ if (!function_exists('guid')) {
    */
   function guid()
   {
-    $sql = DB::SELECT(DB::raw('SELECT NEWID() as id'));
+    $sql = \DB::select('SELECT NEWID() as id');
     if (is_object($sql[0])) {
       return $sql[0]->id;
     } else {

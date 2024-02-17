@@ -31,8 +31,10 @@ class SyncController extends Controller
     public function store(Request $request)
     {
       $input = $request->all();
+      $input['level'] = 0;
       $data = new KelompokTabelAplikasi();
       $data->fill($data->prepare($input));
-      dd($data);
+      $data->save();
+      return redirect()->route('sinkronisasi');
     }
 }
