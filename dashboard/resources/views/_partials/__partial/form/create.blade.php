@@ -1,8 +1,8 @@
-@extends('template.default')
-@include('__partial.datetime')
+@extends('layouts/layoutMaster')
+@include('_partials.__partial.datetime')
 {{--@include('__partial.date')--}}
-@include('__partial.ckeditor')
-@include('__partial.select2')
+@include('_partials.__partial.ckeditor')
+@include('_partials.__partial.select2')
 
 @section('content')
     <div class="row">
@@ -38,7 +38,7 @@
                 </div>
                 <div class="card-footer">
                     <a href="{{ $backlink }}" class="btn btn-flat btn-default"><i class="fa fa-arrow-left"></i> Kembali</a>
-                    <div class="pull-right">
+                    <div class="float-end">
                         <button class="btn btn-primary btn-flat" type="submit"><i class="fa fa-save"></i> Simpan</button>
                     </div>
                 </div>

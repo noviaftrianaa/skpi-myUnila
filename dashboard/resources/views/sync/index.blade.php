@@ -1,4 +1,5 @@
 @extends('layouts/layoutMaster')
+@include('_partials.__partial.datatable')
 
 @section('title', 'Sync Data My Unila')
 
@@ -7,10 +8,12 @@
     <div class="col-md-12">
       <div class="card">
         <div class="card-header">
-          <h4 class="card-title"><i class="fa fa-dashboard"></i> Sync Data My Unila dan PDDIKTI/SISTER</h4>
+          <h4 class="card-title"><i class="fa fa-refresh"></i> Sync Data My Unila dan PDDIKTI/SISTER
+            <a href="{{ route('sinkronisasi.tambah') }}" class="btn btn-outline-primary float-end"><i class="fa fa-plus"></i> Tambah</a>
+          </h4>
         </div>
         <div class="card-body">
-          <table class="table table-striped table-bordered">
+          <table id="table-data" class="table table-striped table-bordered">
             <thead>
             <tr>
               <th>Sync Group</th>
@@ -20,6 +23,14 @@
             </tr>
             </thead>
             <tbody>
+            @foreach($data AS $each_data)
+              <tr>
+                <td>{{ $each_data->enpoint }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+            @endforeach
 
             </tbody>
           </table>

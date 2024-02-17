@@ -129,5 +129,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('sdm/tendik',[TendikSMSController::class,'index'])->name('sdm.tendik');
   });
 
-  Route::get('sync_data',[SyncController::class,'index'])->name('sync_data');
+  Route::get('sinkronisasi',[SyncController::class,'index'])->name('sinkronisasi');
+  Route::get('sinkronisasi/tambah',[SyncController::class,'create'])->name('sinkronisasi.tambah');
+  Route::post('sinkronisasi/simpan',[SyncController::class,'store'])->name('sinkronisasi.simpan');
 });

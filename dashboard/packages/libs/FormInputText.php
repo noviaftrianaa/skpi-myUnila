@@ -3,7 +3,7 @@
 if (!function_exists('FormInputText')) {
   function FormInputText($fieldname, $label, $type, $data = null, $etc = [])
   {
-    return view('__partial.form.form_input_text', [
+    return view('_partials.__partial.form.form_input_text', [
       'fieldname' => $fieldname,
       'label' => $label,
       'type' => $type,
