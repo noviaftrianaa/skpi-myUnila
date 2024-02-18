@@ -31,6 +31,7 @@
                     $backlink = route($backLink);
                 }
                 ?>
+                @stack('form_tambahan_awal')
                 <form action="{{ $url }}" enctype="multipart/form-data" method="post">
                 @csrf
                 <div class="card-body">
@@ -47,5 +48,5 @@
         </section>
     </div>
 
-    @stack('form_tambahan')
+    @stack('form_tambahan_akhir')
 @endsection

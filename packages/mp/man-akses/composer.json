@@ -2,13 +2,13 @@
     "name": "mp/man-akses",
     "description": "Packages Manajemen Akses",
     "require": {
-        "illuminate/database": "^8.5",
-        "illuminate/routing": "^8.5",
-        "illuminate/support": "^8.5",
-        "illuminate/http": "^8.5",
+        "illuminate/database": "^10.44",
+        "illuminate/routing": "^10.44",
+        "illuminate/support": "^10.44",
+        "illuminate/http": "^10.44",
         "laracasts/flash": "^3.2"
     },
-    "version": "0.7",
+    "version": "0.8",
     "license": "MIT",
     "authors": [
         {

@@ -42,7 +42,7 @@
         }
 
         .ReloadBtn {
-            background: url('/captcha/img/refresh.png') left top no-repeat;
+            background: url({!! asset('/captcha/img/refresh.png') !!}) left top no-repeat;
             background-size: 100%;
             width: 32px;
             height: 32px;

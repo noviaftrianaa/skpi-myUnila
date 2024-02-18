@@ -1,9 +1,9 @@
-@extends('template.default')
-@include('__partial.icheck')
+@extends('layouts/layoutMaster')
+@include('_partials.__partial.icheck')
 {{--@include('__partial.date')--}}
-@include('__partial.ckeditor')
-@include('__partial.datetime')
-@include('__partial.select2')
+@include('_partials.__partial.ckeditor')
+@include('_partials.__partial.datetime')
+@include('_partials.__partial.select2')
 
 @section('content')
     <div class="row">
@@ -41,7 +41,9 @@
                 </div>
                 <div class="card-footer">
                     <a href="{{ $backlink }}" class="btn btn-default btn-flat"><i class="fa fa-arrow-left"></i> Kembali</a>
-                    <button type="submit" class="btn btn-warning pull-right btn-flat"><i class="fa fa-pencil"></i> Ubah</button>
+                    <div class="float-end">
+                        <button type="submit" class="btn btn-warning btn-flat"><i class="fa fa-pencil"></i> Ubah</button>
+                    </div>
                 </div>
                 </form>
             </div>

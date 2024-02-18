@@ -27,7 +27,7 @@ function CreateCaptcha() {
         x = c.width / 2,
         img = new Image();
 
-    img.src = "/captcha/img/bg-capcha.jpg";
+    img.src = "http://localhost/unila/pdut-unila/dashboard/public/captcha/img/bg-capcha.jpg";
     img.onload = function () {
         var pattern = ctx.createPattern(img, "repeat");
         ctx.fillStyle = pattern;
