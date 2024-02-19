@@ -31,6 +31,7 @@ Route::get('lang/{locale}', [LanguageController::class, 'swap'])->name('swap_lan
 
 // Dashboard Public
 Route::get('/', [DashboardController::class, 'index'])->name('pages-home');
+Route::get('/dokumen_publik/{id_dok}', [DashboardController::class, 'dok_publik'])->name('dokumen_publik');
 Route::get('/programstudi', [DashboardController::class, 'programstudi'])->name('pages-home-programstudi');
 Route::get('/mahasiswa', [DashboardController::class, 'mahasiswa'])->name('pages-home-mahasiswa');
 Route::get('/mahasiswa/detail', [DashboardController::class, 'detailMahasiswa'])->name('pages-home-mahasiswa-detail');
