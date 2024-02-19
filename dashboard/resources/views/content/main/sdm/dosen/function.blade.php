@@ -94,7 +94,7 @@
                     ]
                 }, {
                     text: '<i class="ti ti-filter me-sm-1"></i> <span class="d-none d-sm-inline-block">Fi' +
-                        'lter Data</span>',
+                        'lter</span>',
                     className: 'add-new btn btn-primary',
                     attr: {
                         'data-bs-toggle': 'offcanvas',
@@ -106,6 +106,10 @@
             table.buttons().containers().appendTo('#exportBtn');
 
             $('#search').on('change', function() {
+                table.search($('#search').val()).draw();
+                $('#offcanvasAddUser').offcanvas('hide');
+            });
+            $('#btnSearch').on('click', function() {
                 table.search($('#search').val()).draw();
                 $('#offcanvasAddUser').offcanvas('hide');
             });

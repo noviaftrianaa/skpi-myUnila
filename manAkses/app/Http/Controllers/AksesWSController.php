@@ -54,7 +54,7 @@ class AksesWSController extends Controller
         $d['pengguna'] = \App\Models\User::where('soft_delete', 0)->where('a_aktif', 1)->orderBy('nm_pengguna','ASC')->get();
         $d['id'] = $id;
 
-        $endpoint = WSEndpoint::where('soft_delete',0)->where('a_active',1)->orderBy('nm_group')->orderBy('nm_method')->get();
+        $endpoint = WSEndpoint::where('soft_delete',0)->where('a_active',1)->where('id_aplikasi',$id)->orderBy('nm_group')->orderBy('nm_method')->get();
         $d['endpoint'] = collect($endpoint)->groupBy('nm_group');
 
         return view('manajemen.aplikasi.akses_ws.form', $d);
@@ -83,6 +83,7 @@ class AksesWSController extends Controller
             WHERE
                 wse.soft_delete=0
                 AND wse.a_active=1
+                AND wse.id_aplikasi='".$id_aplikasi."'
             ORDER BY
                 wse.nm_group,
                 wse.nm_method,

@@ -40,6 +40,22 @@ class DosenController extends Controller
         "'
     "
     )[0];
+    $profil->gelar = DB::SELECT("
+      SELECT DISTINCT
+        gel.singkat_gelar,
+        gel.posisi_gelar,
+        pen.thn_lulus
+      FROM
+        pdrd.rwy_pend_formal AS pen
+        JOIN ref.gelar_akademik AS gel ON gel.id_gelar_akad=pen.id_gelar_akad AND gel.expired_date IS NULL
+      WHERE
+        pen.soft_delete=0
+        AND pen.id_sdm='".$id."'
+        AND pen.thn_lulus IS NOT NULL
+      ORDER BY
+        pen.thn_lulus ASC,
+        gel.posisi_gelar ASC
+    ") ?? [];
 
     $kepangkatan = $this->kepangkatan($id);
 
@@ -132,7 +148,9 @@ class DosenController extends Controller
       DB::SELECT(
         "
             SELECT DISTINCT
-                pendidikan.*,
+                pendidikan.nm_sp_formal,
+                pendidikan.thn_lulus,
+                pendidikan.judul_tesis,
                 jenjang.nm_jenj_didik,
                 bidang.nm_bid_studi,
                 gelar.singkat_gelar,

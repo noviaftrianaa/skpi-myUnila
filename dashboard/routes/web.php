@@ -6,8 +6,9 @@ use App\Http\Controllers\language\LanguageController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProgramStudiController;
 use App\Http\Controllers\DosenController;
-use App\Http\Controllers\Main\SDM\DosenController AS DosenSMSController;
-use App\Http\Controllers\Main\SDM\TendikController AS TendikSMSController;
+use App\Http\Controllers\KelulusanTepatWaktuController;
+use App\Http\Controllers\Main\SDM\DosenController as DosenSMSController;
+use App\Http\Controllers\Main\SDM\TendikController as TendikSMSController;
 use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\SyncController;
 use App\Http\Controllers\authentications\LoginBasic;
@@ -24,7 +25,6 @@ use App\Http\Controllers\Main\iku\Iku5Controller as Iku5Controller;
 use App\Http\Controllers\Main\iku\Iku6Controller as Iku6Controller;
 use App\Http\Controllers\Main\iku\Iku7Controller as Iku7Controller;
 use App\Http\Controllers\Main\iku\Iku8Controller as Iku8Controller;
-
 
 // locale
 Route::get('lang/{locale}', [LanguageController::class, 'swap'])->name('swap_language');
@@ -52,6 +52,9 @@ Route::get('/green_metric_ranking', [DashboardController::class, 'green_metric_r
 Route::get('/webometrics_ranking', [DashboardController::class, 'webometrics_ranking'])->name(
   'pages-webometrics-ranking'
 );
+//Kelulusan Tepat Waktu
+Route::get('/ktw', [KelulusanTepatWaktuController::class, 'index'])->name('pages-ktw');
+Route::get('/ktw/data', [KelulusanTepatWaktuController::class, 'data'])->name('pages-ktw-data');
 //Prodi
 Route::get('/prodi/{id}', [ProgramStudiController::class, 'index'])->name('pages-prodi');
 Route::get('/prodi/mahasiswa/{id}', [ProgramStudiController::class, 'mahasiswa'])->name('pages-prodi-mahasiswa');
@@ -127,16 +130,20 @@ Route::middleware(['auth'])->group(function () {
     Route::get('iku8/download/raw', [Iku8Controller::class, 'downloadRawData'])->name('download-raw-iku8');
 
     //SDM
-    Route::get('sdm/dosen',[DosenSMSController::class,'index'])->name('sdm.dosen');
-    Route::get('sdm/tendik',[TendikSMSController::class,'index'])->name('sdm.tendik');
+    Route::get('sdm/dosen', [DosenSMSController::class, 'index'])->name('sdm.dosen');
+    Route::get('sdm/tendik', [TendikSMSController::class, 'index'])->name('sdm.tendik');
   });
 
-    Route::get('sinkronisasi',[SyncController::class,'index'])->name('sinkronisasi');
-    Route::get('sinkronisasi/tambah',[SyncController::class,'create'])->name('sinkronisasi.tambah');
-    Route::post('sinkronisasi/simpan',[SyncController::class,'store'])->name('sinkronisasi.simpan');
-    Route::get('sinkronisasi/{id}/ubah',[SyncController::class,'edit'])->name('sinkronisasi.ubah');
-    Route::put('sinkronisasi/{id}/update',[SyncController::class,'update'])->name('sinkronisasi.update');
-    Route::get('sinkronisasi/{id}/tabel',[SyncController::class,'show'])->name('sinkronisasi.tabel');
-    Route::get('sinkronisasi/{id}/tabel/tambah',[SyncDataController::class,'create'])->name('sinkronisasi.tabel.tambah');
-    Route::post('sinkronisasi/{id}/tabel/simpan',[SyncDataController::class,'store'])->name('sinkronisasi.tabel.simpan');
+  Route::get('sinkronisasi', [SyncController::class, 'index'])->name('sinkronisasi');
+  Route::get('sinkronisasi/tambah', [SyncController::class, 'create'])->name('sinkronisasi.tambah');
+  Route::post('sinkronisasi/simpan', [SyncController::class, 'store'])->name('sinkronisasi.simpan');
+  Route::get('sinkronisasi/{id}/ubah', [SyncController::class, 'edit'])->name('sinkronisasi.ubah');
+  Route::put('sinkronisasi/{id}/update', [SyncController::class, 'update'])->name('sinkronisasi.update');
+  Route::get('sinkronisasi/{id}/tabel', [SyncController::class, 'show'])->name('sinkronisasi.tabel');
+  Route::get('sinkronisasi/{id}/tabel/tambah', [SyncDataController::class, 'create'])->name(
+    'sinkronisasi.tabel.tambah'
+  );
+  Route::post('sinkronisasi/{id}/tabel/simpan', [SyncDataController::class, 'store'])->name(
+    'sinkronisasi.tabel.simpan'
+  );
 });

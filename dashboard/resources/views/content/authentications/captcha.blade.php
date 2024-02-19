@@ -127,10 +127,15 @@
                         </div>
 
                         <div class="my-4">
-                            <a href="{{ route('auth-logout') }}" class="btn btn-danger w-100">
+                            <a href="{{ route('auth-logout') }}"
+                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
+                                class="btn btn-danger w-100">
                                 Log Out
                                 <i class="fas fa-sign-out ms-2"></i>
                             </a>
+                            <form method="POST" id="logout-form" action="{{ route('auth-logout') }}">
+                                @csrf
+                            </form>
                         </div>
 
                         <div class="divider my-4">

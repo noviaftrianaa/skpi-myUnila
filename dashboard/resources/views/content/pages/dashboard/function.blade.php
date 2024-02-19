@@ -23,6 +23,30 @@
                 processing: true,
                 serverSide: true,
                 pageLength: 10,
+                "language": {
+                    "decimal": "",
+                    "emptyTable": "Tidak ada data pada tabel",
+                    "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ total data",
+                    "infoEmpty": "Tidak ada yang ditampilkan",
+                    "infoFiltered": "(Terfilter dari  _MAX_ total entitas)",
+                    "infoPostFix": "",
+                    "thousands": ",",
+                    "lengthMenu": "Menampilkan _MENU_ entitas",
+                    "loadingRecords": "Loading...",
+                    "processing": "Sedang dalam proses...",
+                    "search": "Pencarian:",
+                    "zeroRecords": "Tidak ada data yang cocok",
+                    "paginate": {
+                        "first": "Pertama",
+                        "last": "Terakhir",
+                        "next": "Selanjutnya",
+                        "previous": "Sebelumnya"
+                    },
+                    "aria": {
+                        "sortAscending": ": activate to sort column ascending",
+                        "sortDescending": ": activate to sort column descending"
+                    }
+                },
                 ajax: {
                     url: "{{ route('pages-home-programstudi') }}"
                 },
@@ -71,6 +95,30 @@
                 processing: true,
                 serverSide: true,
                 pageLength: 10,
+                "language": {
+                    "decimal": "",
+                    "emptyTable": "Tidak ada data pada tabel",
+                    "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ total data",
+                    "infoEmpty": "Tidak ada yang ditampilkan",
+                    "infoFiltered": "(Terfilter dari  _MAX_ total entitas)",
+                    "infoPostFix": "",
+                    "thousands": ",",
+                    "lengthMenu": "Menampilkan _MENU_ entitas",
+                    "loadingRecords": "Loading...",
+                    "processing": "Sedang dalam proses...",
+                    "search": "Pencarian:",
+                    "zeroRecords": "Tidak ada data yang cocok",
+                    "paginate": {
+                        "first": "Pertama",
+                        "last": "Terakhir",
+                        "next": "Selanjutnya",
+                        "previous": "Sebelumnya"
+                    },
+                    "aria": {
+                        "sortAscending": ": activate to sort column ascending",
+                        "sortDescending": ": activate to sort column descending"
+                    }
+                },
                 ajax: {
                     url: "{{ route('pages-home-mahasiswa') }}",
                     data: {
@@ -115,6 +163,30 @@
                 processing: true,
                 serverSide: true,
                 pageLength: 10,
+                "language": {
+                    "decimal": "",
+                    "emptyTable": "Tidak ada data pada tabel",
+                    "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ total data",
+                    "infoEmpty": "Tidak ada yang ditampilkan",
+                    "infoFiltered": "(Terfilter dari  _MAX_ total entitas)",
+                    "infoPostFix": "",
+                    "thousands": ",",
+                    "lengthMenu": "Menampilkan _MENU_ entitas",
+                    "loadingRecords": "Loading...",
+                    "processing": "Sedang dalam proses...",
+                    "search": "Pencarian:",
+                    "zeroRecords": "Tidak ada data yang cocok",
+                    "paginate": {
+                        "first": "Pertama",
+                        "last": "Terakhir",
+                        "next": "Selanjutnya",
+                        "previous": "Sebelumnya"
+                    },
+                    "aria": {
+                        "sortAscending": ": activate to sort column ascending",
+                        "sortDescending": ": activate to sort column descending"
+                    }
+                },
                 ajax: {
                     url: "{{ route('pages-home-dosen') }}",
                     data: {
@@ -162,8 +234,32 @@
                 processing: true,
                 serverSide: true,
                 pageLength: 10,
+                "language": {
+                    "decimal": "",
+                    "emptyTable": "Tidak ada data pada tabel",
+                    "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ total data",
+                    "infoEmpty": "Tidak ada yang ditampilkan",
+                    "infoFiltered": "(Terfilter dari  _MAX_ total entitas)",
+                    "infoPostFix": "",
+                    "thousands": ",",
+                    "lengthMenu": "Menampilkan _MENU_ entitas",
+                    "loadingRecords": "Loading...",
+                    "processing": "Sedang dalam proses...",
+                    "search": "Pencarian:",
+                    "zeroRecords": "Tidak ada data yang cocok",
+                    "paginate": {
+                        "first": "Pertama",
+                        "last": "Terakhir",
+                        "next": "Selanjutnya",
+                        "previous": "Sebelumnya"
+                    },
+                    "aria": {
+                        "sortAscending": ": activate to sort column ascending",
+                        "sortDescending": ": activate to sort column descending"
+                    }
+                },
                 ajax: {
-                    url: "{{ route('pages-home-tendik') }}"
+                    url: "{{ route('pages-home-tendik') }}",
                 },
                 columns: [{
                         data: 'DT_RowIndex',
@@ -172,9 +268,9 @@
                         className: 'text-center'
                     },
                     {
-                        data: 'nm_lemb',
+                        data: 'nm_unit_orga',
                         render: function(data, type, row) {
-                            return `<a href="javascript:void(0);" id="btnModalTendik" data-id="${row.id_sms}" data-prodi="${row.nm_lemb}">${data}</a>`;
+                            return `<a href="javascript:void(0);" id="btnModalTendik" data-id="${row.id_unit_orga}" data-prodi="${data}">${data}</a>`;
                         }
                     },
                     {
@@ -198,6 +294,7 @@
         }
 
         $(document).ready(function() {
+            let auth = "{{ auth()->check() }}";
             programstudi();
             var tMahasiswa = mahasiswa();
             var tDosen = dosen();
@@ -213,6 +310,30 @@
                     "bDestroy": true,
                     processing: true,
                     serverSide: true,
+                    "language": {
+                        "decimal": "",
+                        "emptyTable": "Tidak ada data pada tabel",
+                        "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ total data",
+                        "infoEmpty": "Tidak ada yang ditampilkan",
+                        "infoFiltered": "(Terfilter dari  _MAX_ total entitas)",
+                        "infoPostFix": "",
+                        "thousands": ",",
+                        "lengthMenu": "Menampilkan _MENU_ entitas",
+                        "loadingRecords": "Loading...",
+                        "processing": "Sedang dalam proses...",
+                        "search": "Pencarian:",
+                        "zeroRecords": "Tidak ada data yang cocok",
+                        "paginate": {
+                            "first": "Pertama",
+                            "last": "Terakhir",
+                            "next": "Selanjutnya",
+                            "previous": "Sebelumnya"
+                        },
+                        "aria": {
+                            "sortAscending": ": activate to sort column ascending",
+                            "sortDescending": ": activate to sort column descending"
+                        }
+                    },
                     "ajax": {
                         "url": "{{ route('pages-home-mahasiswa-detail') }}",
                         "type": "GET",
@@ -226,7 +347,9 @@
                             "title": "Nama Mahasiswa",
                             "orderable": true,
                             render: function(data, type, row) {
-                              return `<a href="{{ route('pages-mahasiswa', '') }}/${row.id_pd}" target="_blank">${data}</a>`;
+                                return auth ?
+                                    `<a href="{{ route('pages-mahasiswa', '') }}/${row.id_pd}" target="_blank">${data}</a>` :
+                                    data;
                             }
                         },
                         {
@@ -247,16 +370,16 @@
                             "title": "Status",
                             "orderable": true,
                             "className": "text-center",
-                            render: function(data,type,row) {
-                              if(data=="A" || data=="M") {
-                                return `<span class="badge bg-label-primary">${row.nm_stat_mhs}</span>`;
-                              } else if (data == 'L') {
-                                return `<span class="badge bg-label-success">${row.nm_stat_mhs}</span>`;
-                              } else if (data == 'C') {
-                                return `<span class="badge bg-label-warning">${row.nm_stat_mhs}</span>`;
-                              } else {
-                                return `<span class="badge bg-label-danger">${row.nm_stat_mhs}</span>`;
-                              }
+                            render: function(data, type, row) {
+                                if (data == "A" || data == "M") {
+                                    return `<span class="badge bg-label-primary">${row.nm_stat_mhs}</span>`;
+                                } else if (data == 'L') {
+                                    return `<span class="badge bg-label-success">${row.nm_stat_mhs}</span>`;
+                                } else if (data == 'C') {
+                                    return `<span class="badge bg-label-warning">${row.nm_stat_mhs}</span>`;
+                                } else {
+                                    return `<span class="badge bg-label-danger">${row.nm_stat_mhs}</span>`;
+                                }
                             }
                         }
                     ],
@@ -276,6 +399,30 @@
                     "bDestroy": true,
                     processing: true,
                     serverSide: true,
+                    "language": {
+                        "decimal": "",
+                        "emptyTable": "Tidak ada data pada tabel",
+                        "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ total data",
+                        "infoEmpty": "Tidak ada yang ditampilkan",
+                        "infoFiltered": "(Terfilter dari  _MAX_ total entitas)",
+                        "infoPostFix": "",
+                        "thousands": ",",
+                        "lengthMenu": "Menampilkan _MENU_ entitas",
+                        "loadingRecords": "Loading...",
+                        "processing": "Sedang dalam proses...",
+                        "search": "Pencarian:",
+                        "zeroRecords": "Tidak ada data yang cocok",
+                        "paginate": {
+                            "first": "Pertama",
+                            "last": "Terakhir",
+                            "next": "Selanjutnya",
+                            "previous": "Sebelumnya"
+                        },
+                        "aria": {
+                            "sortAscending": ": activate to sort column ascending",
+                            "sortDescending": ": activate to sort column descending"
+                        }
+                    },
                     "ajax": {
                         "url": "{{ route('pages-home-dosen-detail') }}",
                         "type": "GET",
@@ -292,7 +439,7 @@
                             "title": "Nama Dosen",
                             "orderable": true,
                             render: function(data, type, row) {
-                              return `<a href="{{ route('pages-dosen', '') }}/${row.id_sdm}" target="_blank">${data}</a>`;
+                                return `<a href="{{ route('pages-dosen', '') }}/${row.id_sdm}" target="_blank">${data}</a>`;
                             }
                         },
                         {
@@ -322,10 +469,12 @@
                             "className": "text-center",
                             render: function(data, type, row) {
                                 return row.id_stat_aktif == 1 ?
-                                    `<span class="badge bg-label-primary">${data}</span>` : (row
+                                    `<span class="badge bg-label-primary">${data}</span>` :
+                                    (row
                                         .id_stat_aktif == 27 ?
                                         `<span class="badge bg-label-warning">${data}</span>` :
-                                        `<span class="badge bg-label-danger">${data}</span>`);
+                                        `<span class="badge bg-label-danger">${data}</span>`
+                                    );
                             }
                         }
                     ]
@@ -341,18 +490,42 @@
                     "bDestroy": true,
                     processing: true,
                     serverSide: true,
+                    "language": {
+                        "decimal": "",
+                        "emptyTable": "Tidak ada data pada tabel",
+                        "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ total data",
+                        "infoEmpty": "Tidak ada yang ditampilkan",
+                        "infoFiltered": "(Terfilter dari  _MAX_ total entitas)",
+                        "infoPostFix": "",
+                        "thousands": ",",
+                        "lengthMenu": "Menampilkan _MENU_ entitas",
+                        "loadingRecords": "Loading...",
+                        "processing": "Sedang dalam proses...",
+                        "search": "Pencarian:",
+                        "zeroRecords": "Tidak ada data yang cocok",
+                        "paginate": {
+                            "first": "Pertama",
+                            "last": "Terakhir",
+                            "next": "Selanjutnya",
+                            "previous": "Sebelumnya"
+                        },
+                        "aria": {
+                            "sortAscending": ": activate to sort column ascending",
+                            "sortDescending": ": activate to sort column descending"
+                        }
+                    },
                     "ajax": {
                         "url": "{{ route('pages-home-tendik-detail') }}",
                         "type": "GET",
                         "data": {
-                            id_sms: id
+                            id_unit_orga: id
                         }
                     },
                     order: [
-                        [3, 'ASC']
+                        [4, 'ASC']
                     ],
                     "columns": [{
-                            "data": "nm_sdm",
+                            "data": "nm_pegawai",
                             "title": "Nama Tendik",
                             "orderable": true,
                         },
@@ -370,16 +543,19 @@
                             "className": "text-center",
                         },
                         {
-                            "data": "nm_stat_aktif",
+                            "data": "jns_pegawai",
+                            "title": "Jenis Pegawai",
+                            "orderable": true,
+                        },
+                        {
+                            "data": "status",
                             "title": "Status",
                             "orderable": true,
                             "className": "text-center",
                             render: function(data, type, row) {
-                                return row.id_stat_aktif == 1 ?
-                                    `<span class="badge bg-label-primary">${data}</span>` : (row
-                                        .id_stat_aktif == 27 ?
-                                        `<span class="badge bg-label-warning">${data}</span>` :
-                                        `<span class="badge bg-label-danger">${data}</span>`);
+                                return data == 'Aktif' ?
+                                    `<span class="badge bg-label-primary">${data}</span>` :
+                                    `<span class="badge bg-label-danger">${data}</span>`;
                             }
                         }
                     ]

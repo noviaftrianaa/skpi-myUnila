@@ -42,6 +42,12 @@
           "slug": "pages-webometrics-ranking"
         }
       ]
+    },
+    {
+      "url": "/ktw",
+      "name": "Kelulusan Tepat Waktu",
+      "icon": "menu-icon tf-icons ti ti-chart-bar",
+      "slug": "pages-ktw"
     }
   ]
 }

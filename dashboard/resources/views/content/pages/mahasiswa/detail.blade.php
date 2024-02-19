@@ -8,19 +8,18 @@
     <!-- Header -->
     <div class="row">
         <div class="col-12">
-            <div class="card mb-4 mt-5">
-                <div class="user-profile-header d-flex flex-column flex-sm-row text-sm-start text-center mb-4">
-                    <div class="flex-shrink-0 mt-n2 mx-sm-0 mx-auto">
+            <div class="card mb-4">
+              <div class="user-profile-header-banner pt-3 px-4 pb-5"></div>
+              <div class="user-profile-header d-flex flex-column flex-sm-row text-sm-start text-center mb-4">
+                  <div class="flex-shrink-0 mt-n1 mx-sm-0 mx-auto">
                         <img src="{{ asset('images/ghost_person.png') }}" alt="user image"
                             class="d-block h-auto ms-0 ms-sm-4 rounded user-profile-img">
                     </div>
-                    <div class="flex-grow-1 mt-3 mt-sm-5">
-                        <div
-                            class="d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start mx-4 flex-md-row flex-column gap-4">
+                    <div class="flex-grow-1">
+                      <div class="d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start mx-4 flex-md-row flex-column gap-4">
                             <div class="user-profile-info">
-                                <h4>{{ $profil->nm_pd }}</h4>
-                                <ul
-                                    class="list-inline mb-0 d-flex align-items-center flex-wrap justify-content-sm-start justify-content-center gap-2">
+                                <h5 class="mb-1">{{ $profil->nm_pd }}</h5>
+                                <ul class="list-inline d-flex d-lg-inline-block align-items-center flex-wrap justify-content-sm-start justify-content-center gap-2">
                                     <li class="list-inline-item d-flex gap-1" title="Prodi">
                                         <i class='ti ti-building'></i>
                                         {{ $profil->fak ? 'Fakultas ' . ucwords(strtolower($profil->fak)) : ' ' }}
@@ -54,9 +53,6 @@
       <div class="col-md-12">
           <ul class="nav nav-pills flex-column flex-md-row mb-4">
               <li class="nav-item"><button class="nav-link active" role="tab" data-bs-toggle="tab"
-                      data-bs-target="#profil" aria-controls="profil" aria-selected="true"><i
-                          class="ti ti-user ti-xs me-1"></i>Profil</button></li>
-              <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab"
                       data-bs-target="#semester" aria-controls="semester" aria-selected="true"><i
                           class="ti ti-book ti-xs me-1"></i>Riwayat Semester</button></li>
               <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab"
@@ -76,25 +72,7 @@
   <!-- User Profile Content -->
   <div class="card mb-4">
       <div class="tab-content pt-0">
-          <div class="tab-pane fade show active" id="profil" role="tabpanel">
-              <div class="card-header">
-                  <h5>Pendidikan</h5>
-              </div>
-              <div class="card-body">
-                  <ul>
-                      @forelse ($pendidikan as $item)
-                          <li>
-                              {{ $item->nm_gelar_akad }} ({{ $item->nm_bid_studi }}), {{ $item->nm_sp_formal }},
-                              {{ $item->thn_lulus }}
-                              {{ $item->judul_tesis != null ? ', Tesis: ' . $item->judul_tesis : '' }}
-                          </li>
-                      @empty
-                          <p>Tidak ada data</p>
-                      @endforelse
-                  </ul>
-              </div>
-          </div>
-          <div class="tab-pane fade" id="semester" role="tabpanel">
+          <div class="tab-pane fade show active" id="semester" role="tabpanel">
               <div class="card-header">
                   <h5>Riwayat Semester</h5>
               </div>

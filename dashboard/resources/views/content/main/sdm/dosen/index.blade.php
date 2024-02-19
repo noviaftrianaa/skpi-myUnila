@@ -69,17 +69,21 @@
             <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasAddUser"
                 aria-labelledby="offcanvasAddUserLabel">
                 <div class="offcanvas-header">
-                    <h5 id="offcanvasAddUserLabel" class="offcanvas-title">Filter Data</h5>
+                    <h5 id="offcanvasAddUserLabel" class="offcanvas-title">Filter</h5>
                     <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
                         aria-label="Close"></button>
                 </div>
                 <div class="offcanvas-body mx-0 flex-grow-0 pt-0 h-100">
                     <div class="mb-3">
-                        <input type="text" id="search" placeholder="Pencarian" class="form-control w-100">
+                        <div class="input-group w-100">
+                            <input type="text" id="search" placeholder="Pencarian" class="form-control">
+                            <button type="button" id="btnSearch" class="btn btn-primary"><i
+                                    class="fas fa-search"></i></button>
+                        </div>
                     </div>
                     <div class="my-3 border-bottom"></div>
                     <div class="mt-3">
-                        <label class="form-label">Tahun Ajaran</label>
+                      <label class="form-label">Tahun Ajaran</label>
                         <form action="{{ route('sdm.tendik') }}" method="GET">
                             <select name="tahun" id="tahun" class="form-select">
                                 @foreach ($ta_list as $id_thn_ajaran => $nm_thn_ajaran)

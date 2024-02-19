@@ -22,6 +22,30 @@
                 "bDestroy": true,
                 processing: true,
                 serverSide: true,
+                "language": {
+                    "decimal": "",
+                    "emptyTable": "Tidak ada data pada tabel",
+                    "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ total data",
+                    "infoEmpty": "Tidak ada yang ditampilkan",
+                    "infoFiltered": "(Terfilter dari  _MAX_ total entitas)",
+                    "infoPostFix": "",
+                    "thousands": ",",
+                    "lengthMenu": "Menampilkan _MENU_ entitas",
+                    "loadingRecords": "Loading...",
+                    "processing": "Sedang dalam proses...",
+                    "search": "Pencarian:",
+                    "zeroRecords": "Tidak ada data yang cocok",
+                    "paginate": {
+                        "first": "Pertama",
+                        "last": "Terakhir",
+                        "next": "Selanjutnya",
+                        "previous": "Sebelumnya"
+                    },
+                    "aria": {
+                        "sortAscending": ": activate to sort column ascending",
+                        "sortDescending": ": activate to sort column descending"
+                    }
+                },
                 lengthMenu: [
                     [10, 15, 25, 100, -1],
                     [10, 15, 25, 100, 'All']
@@ -78,6 +102,30 @@
                 "bDestroy": true,
                 processing: true,
                 serverSide: true,
+                "language": {
+                    "decimal": "",
+                    "emptyTable": "Tidak ada data pada tabel",
+                    "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ total data",
+                    "infoEmpty": "Tidak ada yang ditampilkan",
+                    "infoFiltered": "(Terfilter dari  _MAX_ total entitas)",
+                    "infoPostFix": "",
+                    "thousands": ",",
+                    "lengthMenu": "Menampilkan _MENU_ entitas",
+                    "loadingRecords": "Loading...",
+                    "processing": "Sedang dalam proses...",
+                    "search": "Pencarian:",
+                    "zeroRecords": "Tidak ada data yang cocok",
+                    "paginate": {
+                        "first": "Pertama",
+                        "last": "Terakhir",
+                        "next": "Selanjutnya",
+                        "previous": "Sebelumnya"
+                    },
+                    "aria": {
+                        "sortAscending": ": activate to sort column ascending",
+                        "sortDescending": ": activate to sort column descending"
+                    }
+                },
                 pageLength: 5,
                 lengthMenu: [
                     [5, 10, 25, -1],
@@ -130,6 +178,30 @@
                 "bDestroy": true,
                 processing: true,
                 serverSide: true,
+                "language": {
+                    "decimal": "",
+                    "emptyTable": "Tidak ada data pada tabel",
+                    "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ total data",
+                    "infoEmpty": "Tidak ada yang ditampilkan",
+                    "infoFiltered": "(Terfilter dari  _MAX_ total entitas)",
+                    "infoPostFix": "",
+                    "thousands": ",",
+                    "lengthMenu": "Menampilkan _MENU_ entitas",
+                    "loadingRecords": "Loading...",
+                    "processing": "Sedang dalam proses...",
+                    "search": "Pencarian:",
+                    "zeroRecords": "Tidak ada data yang cocok",
+                    "paginate": {
+                        "first": "Pertama",
+                        "last": "Terakhir",
+                        "next": "Selanjutnya",
+                        "previous": "Sebelumnya"
+                    },
+                    "aria": {
+                        "sortAscending": ": activate to sort column ascending",
+                        "sortDescending": ": activate to sort column descending"
+                    }
+                },
                 pageLength: 5,
                 lengthMenu: [
                     [5, 10, 25, -1],

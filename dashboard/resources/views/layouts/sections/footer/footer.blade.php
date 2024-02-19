@@ -7,10 +7,10 @@ $containerFooter = (isset($configData['contentLayout']) && $configData['contentL
   <div class="{{ $containerFooter }}">
     <div class="footer-container d-flex align-items-center justify-content-between py-2 flex-md-row flex-column">
       <div>
-        © <script>
+        My-UNILA © 2024
+        {{-- <script>
           document.write(new Date().getFullYear())
-
-      </script>
+      </script> --}}
       </div>
       <div class="d-none d-lg-inline-block">
         Created by <a href="{{ (!empty(config('variables.unitUrl')) ? config('variables.unitUrl') : '') }}" target="_blank" class="fw-medium">{{ (!empty(config('variables.unitName')) ? config('variables.unitName') : '') }}</a>

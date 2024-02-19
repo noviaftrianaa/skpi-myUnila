@@ -16,7 +16,7 @@
 <!--  Brand demo (display only for navbar-full and hide on below xl) -->
 @if (isset($navbarFull))
     <div class="navbar-brand app-brand demo d-none d-xl-flex py-0 me-4">
-        <a href="{{ url('/') }}" class="app-brand-link gap-2">
+        <a href="{{ auth()->check() ? route('main-index') : route('pages-home') }}" class="app-brand-link gap-2">
             <span class="app-brand-logo demo">
                 <img src="{!! asset('/images/logo-unila.png') !!}" height="30" />
             </span>
@@ -124,6 +124,13 @@
                             <span class="align-middle">Dashboard Utama</span>
                         </a>
                     </li>
+                @else
+                <li>
+                    <a class="dropdown-item text-primary" href="{{ route('pages-home') }}">
+                        <i class="ti ti-home me-2 ti-sm"></i>
+                        <span class="align-middle">Dashboard Publik</span>
+                    </a>
+                </li>
                 @endif
                 <li>
                     <div class="dropdown-divider"></div>

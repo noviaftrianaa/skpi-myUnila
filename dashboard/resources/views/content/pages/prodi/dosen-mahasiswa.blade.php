@@ -37,9 +37,14 @@
                         </div>
                     </div>
                     <div class="card-body">
+                      <div class="table-responsive my-3">
                         <table class="table table-striped table-hover dosen table-sm" style="width: 100% !important">
                             <thead class="table-primary">
                         </table>
+                      </div>
+                      <p class="alert alert-secondary">
+                        Pembaharuan data terakhir: {{ TglWaktuIndonesia(\DB::table('pdrd.sdm')->select('last_sync')->orderByDesc('last_sync')->pluck('last_sync')[0] ?? now()) }}
+                      </p>
                     </div>
                 </div>
                 <!-- Personal Info -->
@@ -48,10 +53,12 @@
                         <h5>Mahasiswa</h5>
                     </div>
                     <div class="card-body">
+                      <div class="table-responsive my-3">
                         <table class="table table-striped table-hover mahasiswa table-sm"
                             style="width: 100% !important">
                             <thead class="table-primary">
                         </table>
+                      </div>
                     </div>
                 </div>
             </form>

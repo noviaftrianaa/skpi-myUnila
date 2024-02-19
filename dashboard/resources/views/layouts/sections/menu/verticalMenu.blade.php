@@ -7,7 +7,7 @@
     <!-- ! Hide app brand if navbar-full -->
     @if (!isset($navbarFull))
         <div class="app-brand demo">
-            <a href="{{ url('/') }}" class="app-brand-link">
+            <a href="{{ auth()->check() ? route('main-index') : route('pages-home') }}" class="app-brand-link">
                 <span class="app-brand-logo demo">
                     <img src="{!! asset('images/logo-unila.png') !!}" height="30" />
                 </span>

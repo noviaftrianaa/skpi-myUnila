@@ -8,34 +8,45 @@
     <!-- Header -->
     <div class="row">
         <div class="col-12">
-            <div class="card mb-4 mt-5">
-                {{-- <div class="user-profile-header-banner pt-4 px-4 pb-5">
-                    <img src="{{ asset('images/Logo-Be-Strong-Unila-2023.png') }}" alt="Banner image"
-                        class="rounded-top h-100">
-                </div> --}}
+            <div class="card mb-4">
+                <div class="user-profile-header-banner pt-3 px-4 pb-5"></div>
                 <div class="user-profile-header d-flex flex-column flex-sm-row text-sm-start text-center mb-4">
-                    <div class="flex-shrink-0 mt-n2 mx-sm-0 mx-auto">
+                  <div class="flex-shrink-0 mt-n1 mx-sm-0 mx-auto">
                         <img src="{{ asset('images/ghost_person.png') }}" alt="user image"
                             class="d-block h-auto ms-0 ms-sm-4 rounded user-profile-img">
                     </div>
-                    <div class="flex-grow-1 mt-3 mt-sm-5">
-                        <div
-                            class="d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start mx-4 flex-md-row flex-column gap-4">
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start mx-4 flex-md-row flex-column gap-4">
                             <div class="user-profile-info">
-                                <h4>{{ $profil->nm_sdm }}</h4>
-                                <ul
-                                    class="list-inline mb-0 d-flex align-items-center flex-wrap justify-content-sm-start justify-content-center gap-2">
+                                <h5 class="mb-1">
+                                  @if(!is_null($profil->gelar))
+                                  @php
+                                    foreach ($profil->gelar as $item) {
+                                      if($item->posisi_gelar==1) {
+                                        $profil->nm_sdm = $item->singkat_gelar . (substr($item->singkat_gelar, -1)=='.' ? '' : '.') . ' ' . $profil->nm_sdm;
+                                      } else {
+                                        $profil->nm_sdm = $profil->nm_sdm . ', ' . $item->singkat_gelar . (substr($item->singkat_gelar, -1)=='.' ? '' : '.');
+                                      }
+                                    }
+                                  @endphp
+                                  @endif
+                                  {{ $profil->nm_sdm }}
+                                </h5>
+                                <ul class="list-inline d-flex d-lg-inline-block align-items-center flex-wrap justify-content-sm-start justify-content-center gap-2">
                                     <li class="list-inline-item d-flex gap-1" title="Prodi">
                                         <i class='ti ti-building'></i>
                                         {{ $profil->fak ? 'Fakultas ' . ucwords(strtolower($profil->fak)) : ' ' }}
                                         {{ $profil->jur ? ', ' . ucwords(strtolower($profil->jur)) : '' }}
                                         {!! $profil->nm_lemb ? ", Program Studi ".ucwords(strtolower($profil->nm_lemb))." ($profil->nm_jenj_didik)" : '' !!}
                                     </li>
+                                    <li class="list-inline-item d-flex gap-1" title="NIDN">
+                                        <i class='ti ti-id'></i> {{ $profil->nidn ?? '-' }}
+                                    </li>
                                     <li class="list-inline-item d-flex gap-1" title="NIP">
                                         <i class='ti ti-id-badge'></i> {{ $profil->nip ?? '-' }}
                                     </li>
                                     <li class="list-inline-item d-flex gap-1" title="Email">
-                                        <i class='ti ti-mail'></i> {{ $profil->email }}
+                                        <i class='ti ti-mail'></i> {{ $profil->email ?? '-' }}
                                     </li>
                                 </ul>
                             </div>

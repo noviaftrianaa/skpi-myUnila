@@ -70,14 +70,18 @@ class LoginBasic extends Controller
       } catch (Exception $e) {
           logger()->error(__CLASS__ . DIRECTORY_SEPARATOR . __FUNCTION__ . ':' . $e->getMessage());
       } finally {
+          SSO::cookieClear();
           \Auth::logout(); //Destroy Auth
           \Session::flush(); //Destroy Session
           \Alert::success('Berhasil logout'); //Alert
-          SSO::cookieClear();
 
           return redirect()->route('auth-login');
       }
     } else {
+      SSO::cookieClear();
+      \Auth::logout(); //Destroy Auth
+      \Session::flush(); //Destroy Session
+      \Alert::success('Berhasil logout'); //Alert
       return redirect()->route('auth-login');
     }
   }

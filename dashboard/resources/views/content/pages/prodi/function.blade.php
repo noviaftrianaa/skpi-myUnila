@@ -13,7 +13,7 @@
     <script src="{{ asset('js/jquery.min.js') }}"></script>
     <script src="{{ asset('js/jquery-ui.min.js') }}"></script>
     <script src="{{ asset('js/datatables.min.js') }}"></script>
-    <script src="{{asset('assets/js/form-wizard-numbered.js')}}"></script>
+    <script src="{{ asset('assets/js/form-wizard-numbered.js') }}"></script>
 @endsection
 
 @section('page-script')
@@ -24,6 +24,30 @@
                 "bDestroy": true,
                 processing: true,
                 serverSide: true,
+                "language": {
+                    "decimal": "",
+                    "emptyTable": "Tidak ada data pada tabel",
+                    "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ total data",
+                    "infoEmpty": "Tidak ada yang ditampilkan",
+                    "infoFiltered": "(Terfilter dari  _MAX_ total entitas)",
+                    "infoPostFix": "",
+                    "thousands": ",",
+                    "lengthMenu": "Menampilkan _MENU_ entitas",
+                    "loadingRecords": "Loading...",
+                    "processing": "Sedang dalam proses...",
+                    "search": "Pencarian:",
+                    "zeroRecords": "Tidak ada data yang cocok",
+                    "paginate": {
+                        "first": "Pertama",
+                        "last": "Terakhir",
+                        "next": "Selanjutnya",
+                        "previous": "Sebelumnya"
+                    },
+                    "aria": {
+                        "sortAscending": ": activate to sort column ascending",
+                        "sortDescending": ": activate to sort column descending"
+                    }
+                },
                 "ajax": {
                     "url": "{{ route('pages-home-dosen-detail') }}",
                     "type": "GET",
@@ -40,7 +64,7 @@
                         "title": "Nama Dosen",
                         "orderable": true,
                         render: function(data, type, row) {
-                          return `<a href="{{ route('pages-dosen', '') }}/${row.id_sdm}" target="_blank">${data}</a>`;
+                            return `<a href="{{ route('pages-dosen', '') }}/${row.id_sdm}" target="_blank">${data}</a>`;
                         }
                     },
                     {
@@ -70,10 +94,10 @@
                         "className": "text-center",
                         render: function(data, type, row) {
                             return row.id_stat_aktif == 1 ?
-                                `<span class="badge bg-success">${data}</span>` : (row
+                                `<span class="badge bg-label-primary">${data}</span>` : (row
                                     .id_stat_aktif == 27 ?
-                                    `<span class="badge bg-warning">${data}</span>` :
-                                    `<span class="badge bg-danger">${data}</span>`);
+                                    `<span class="badge bg-label-warning">${data}</span>` :
+                                    `<span class="badge bg-label-danger">${data}</span>`);
                         }
                     }
                 ]
@@ -85,8 +109,32 @@
                 "bDestroy": true,
                 processing: true,
                 serverSide: true,
+                "language": {
+                    "decimal": "",
+                    "emptyTable": "Tidak ada data pada tabel",
+                    "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ total data",
+                    "infoEmpty": "Tidak ada yang ditampilkan",
+                    "infoFiltered": "(Terfilter dari  _MAX_ total entitas)",
+                    "infoPostFix": "",
+                    "thousands": ",",
+                    "lengthMenu": "Menampilkan _MENU_ entitas",
+                    "loadingRecords": "Loading...",
+                    "processing": "Sedang dalam proses...",
+                    "search": "Pencarian:",
+                    "zeroRecords": "Tidak ada data yang cocok",
+                    "paginate": {
+                        "first": "Pertama",
+                        "last": "Terakhir",
+                        "next": "Selanjutnya",
+                        "previous": "Sebelumnya"
+                    },
+                    "aria": {
+                        "sortAscending": ": activate to sort column ascending",
+                        "sortDescending": ": activate to sort column descending"
+                    }
+                },
                 "ajax": {
-                    "url": "{{ route('pages-prodi-mahasiswa', '') }}"+"/"+id,
+                    "url": "{{ route('pages-prodi-mahasiswa', '') }}" + "/" + id,
                     "type": "GET"
                 },
                 order: [
@@ -96,8 +144,9 @@
                         "data": "id_smt",
                         "title": "Semester",
                         "orderable": true,
-                        render: function(data,type,row) {
-                          return data.substring(5,4)==1 ? `${data.substring(0,4)} Ganjil` : `${data.substring(0,4)} Genap`;
+                        render: function(data, type, row) {
+                            return data.substring(5, 4) == 1 ? `${data.substring(0,4)} Ganjil` :
+                                `${data.substring(0,4)} Genap`;
                         }
                     },
                     {
