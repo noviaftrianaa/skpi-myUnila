@@ -178,7 +178,7 @@ trait SyncTrait
                     $simpan_sms->fill($simpan_sms->prepare([
                         'id_sms'            => $detail_sms['id'],
                         'id_lemb_non_sp'    => $detail_sms['id_lembaga_penerbit'],
-                        'id_jur'            => $detail_sms['jurusan'][]['id'],
+                        'id_jur'            => $detail_sms['jurusan'][0]['id'],
                         'id_jenj_didik'     => $detail_sms['id_jenjang'],
                         'nm_lemb'           => str_replace($nama_pecah,'',$detail_sms['nama']),
                         'smt_mulai'         => $detail_sms['semester_mulai'],
@@ -196,7 +196,7 @@ trait SyncTrait
                         'id_jns_sms'        => $detail_sms['id_jenis_unit'],
                         'id_fungsi_lab'     => '*',
                         'id_kel_usaha'      => '*',
-                        'id_wil'            => $detail_sms['wilayah'][]['id'],
+                        'id_wil'            => $detail_sms['wilayah'][0]['id'],
                         'id_induk_sms'      => $detail_sms['id_induk_unit'],
                         'last_update'       => $update_time,
                         'last_sync'         => $update_time
@@ -206,7 +206,7 @@ trait SyncTrait
                         $cek_sms->fill($cek_sms->prepare([
                             '_method'           => 'PUT',
                             'id_lemb_non_sp'    => $detail_sms['id_lembaga_penerbit'],
-                            'id_jur'            => $detail_sms['jurusan'][]['id'],
+                            'id_jur'            => $detail_sms['jurusan'][0]['id'],
                             'id_jenj_didik'     => $detail_sms['id_jenjang'],
                             'nm_lemb'           => str_replace($nama_pecah,'',$detail_sms['nama']),
                             'smt_mulai'         => $detail_sms['semester_mulai'],
@@ -224,7 +224,7 @@ trait SyncTrait
                             'id_jns_sms'        => $detail_sms['id_jenis_unit'],
                             'id_fungsi_lab'     => '*',
                             'id_kel_usaha'      => '*',
-                            'id_wil'            => $detail_sms['wilayah'][]['id'],
+                            'id_wil'            => $detail_sms['wilayah'][0]['id'],
                             'id_induk_sms'      => $detail_sms['id_induk_unit'],
                             'last_update'       => $update_time,
                             'last_sync'         => $update_time
