@@ -22,13 +22,28 @@
                     <table id="table-data" class="table table-striped table-bordered">
                         <thead>
                         <tr>
-                            <th>Sync Group</th>
-                            <th>Keterangan</th>
-                            <th>Last Sync</th>
+                            <th>Nama Tabel</th>
+                            <th>URL</th>
+                            <th>Endpoint</th>
+                            <th>Mulai Sync</th>
+                            <th>Selesai Sync</th>
                             <th>Aksi</th>
                         </tr>
                         </thead>
                         <tbody>
+                        @foreach($data_tabel AS $each_data_tabel)
+                            <tr>
+                                <td>{{ $each_data_tabel->tabel_alias }}</td>
+                                <td>{{ $each_data_tabel->url }}</td>
+                                <td>{{ $each_data_tabel->enpoint }}</td>
+                                <td>{{ is_null($each_data_tabel->waktu_mulai_sync)?'--Belum Sync--':$each_data_tabel->waktu_mulai_sync }}</td>
+                                <td>{{ $each_data_tabel->waktu_selesai_sync }}</td>
+                                <td>
+                                    {!! buttonEditMultipleId('sinkronisasi.tabel.ubah','Ubah detail tabel',[Crypt::encrypt($data->id_kel_table_app),Crypt::encrypt($each_data_tabel->id_kel_table_app)]) !!}
+                                    <a href="{{ route('sinkronisasi.tabel.mulai_sync',[Crypt::encrypt($data->id_kel_table_app),Crypt::encrypt($each_data_tabel->id_kel_table_app)]) }}" class="btn btn-sm btn-primary">Mulai Sync</a>
+                                </td>
+                            </tr>
+                        @endforeach
                         </tbody>
                     </table>
                 </div>

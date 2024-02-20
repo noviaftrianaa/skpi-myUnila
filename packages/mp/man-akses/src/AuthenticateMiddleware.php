@@ -44,7 +44,7 @@ class AuthenticateMiddleware
             }
         }
 
-        if ($this->userCanAccess($request->route()->getName(), session()->get('login.role.id_peran'))) {
+        if ($this->userCanAccess($request->route()->getName(), session()->get('login.role')->id_peran)) {
             return $next($request);
         } else {
             alert()->error('Maaf, Anda tidak mempunyai akses untuk membuka halaman tersebut.');

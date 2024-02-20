@@ -38,6 +38,7 @@ if (!function_exists('MenuRole')) {
           "'
                   AND menu.id_group_menu IS NULL
                   AND menu.a_aktif=1
+                  AND menu.a_tampil=1
                   AND mrole.soft_delete=0
               ORDER BY
                   menu.level_menu, menu.urutan_menu ASC
@@ -67,6 +68,7 @@ if (!function_exists('MenuRole')) {
             $item->id_menu .
             "'
                       AND menu.a_aktif=1
+                      AND menu.a_tampil=1
                       AND mrole.soft_delete=0
                   ORDER BY
                       menu.level_menu, menu.urutan_menu ASC

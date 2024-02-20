@@ -23,8 +23,7 @@ if (!function_exists('check_akses')) {
             }
 
             $middleware = app()->make(\MP\ManAkses\AuthenticateMiddleware::class);
-
-            return $middleware->userCanAccess($route, session()->get('login.peran.id_peran'));
+            return $middleware->userCanAccess($route, session()->get('login.role')->id_peran);
         } else {
             return true;
         }

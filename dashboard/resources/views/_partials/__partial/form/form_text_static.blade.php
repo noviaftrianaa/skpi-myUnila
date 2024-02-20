@@ -1,4 +1,4 @@
-<div class="form-group row">
+<div class="mb-3 row">
     <label class="col-sm-2 col-form-label">{!! $label !!}</label>
     <div class="col-sm-10">
         <p class="form-control-plaintext">{!! $data !!}</p>

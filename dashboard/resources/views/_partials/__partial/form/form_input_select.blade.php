@@ -1,4 +1,4 @@
-<div class="form-group row">
+<div class="mb-3 row">
     <label for="{{ $fieldname }}" class="col-sm-{{ !is_null($column)?$column:2 }} col-form-label">{!! $label.($required==true?'<span style="color:red;"> *</span>':null) !!}</label>
     <div class="col-sm-{{ !is_null($column)?(12-$column):10 }}">
         <select name="{{ $fieldname }}" id="{{ $fieldname }}" class="form-control{{($errors->has($fieldname)?" is-invalid":"")}}"

@@ -46,7 +46,32 @@ class SyncController extends Controller
     {
         $id_kel_table_app = Crypt::decrypt($id);
         $data = KelompokTabelAplikasi::find($id_kel_table_app);
-        return view('sync.detail',compact('data'));
+        $data_tabel = DB::SELECT("
+            SELECT
+                kta.id_kel_table_app,
+                kta.enpoint,
+                kta.url,
+                kta.method,
+                ta.skema_tbl,
+                ta.nm_tbl,
+                ta.tabel_alias,
+                ta.kode_primary,
+                ta.sync_type,
+                ta.sync_seq,
+                lta.waktu_mulai,
+                lta.keterangan,
+                lta.waktu_mulai_sync,
+                lta.waktu_selesai_sync
+            FROM man_akses.kelompok_tabel_aplikasi AS kta
+            JOIN man_akses.table_aplikasi AS ta ON ta.id_table_app=kta.id_table_app AND ta.expired_date IS NULL
+                AND ta.a_table_aktif=1
+            LEFT JOIN logger.log_table_app AS lta ON lta.id_table_app=ta.id_table_app
+                AND lta.id_aplikasi='".env('app_id')."'
+            WHERE kta.expired_date IS NULL
+            AND kta.id_induk_kel_table_app='".$data->id_kel_table_app."'
+            ORDER BY ta.sync_type ASC, ta.sync_seq DESC
+        ");
+        return view('sync.detail',compact('data','data_tabel'));
     }
 
     public function edit($id)

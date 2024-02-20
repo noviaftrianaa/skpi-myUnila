@@ -10,7 +10,7 @@ if (!function_exists('buttonEditMultipleId')) {
         $all_attr .= " {$key}='{$val}' ";
       }
 
-      return view('__partial.button.button_edit', [
+      return view('_partials.__partial.button.button_edit', [
         'url' => $url . $params,
         'all_attr' => $all_attr,
         'title' => $title,

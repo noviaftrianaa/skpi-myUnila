@@ -1,4 +1,4 @@
-<div class="form-group row">
+<div class="mb-3 row">
     <label for="{{ $fieldname }}" class="col-sm-2 col-form-label">{!! $label.($required==true?'<span style="color:red;"> *</span>':null) !!}</label>
     <div class="col-sm-10">
         <textarea name="{{ $fieldname }}" id="{{ $fieldname }}" rows="5" class="form-control{{($errors->has($fieldname)?" is-invalid":"")}}" placeholder="{{ $label }}"

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Pdrd\RegPTK;
+use App\Models\Pdrd\SDM;
 use App\Models\Sync\KelompokTabelAplikasi;
 use App\Models\TableAplikasi;
 use Illuminate\Http\Request;
@@ -10,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 class SyncDataController extends Controller
 {
+    use SyncTrait;
     /**
      * Display a listing of the resource.
      */
@@ -95,17 +98,38 @@ class SyncDataController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($id,$id_tabel)
     {
-        //
+        $id_induk_kel_tabel_app = Crypt::decrypt($id);
+        $id_kel_tabel_app = Crypt::decrypt($id_tabel);
+        $data_induk = KelompokTabelAplikasi::find($id_induk_kel_tabel_app);
+        $data = KelompokTabelAplikasi::find($id_kel_tabel_app);
+        return view('_partials.__partial.form.edit',[
+            'data'          => $data,
+            'data_induk'    => $data_induk,
+            'id'            => $data->id_kel_table_app,
+            'param_form'    => $data_induk->id_kel_table_app,
+            'judul_halaman' => 'Ubah rincian tabel sync',
+            'route'         => 'sinkronisasi.tabel.update',
+            'backLink'      => 'sinkronisasi.tabel',
+            'form'          => 'sync.sync_data.edit'
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id,$id_tabel)
     {
-        //
+        $id_induk_kel_tabel_app = Crypt::decrypt($id);
+        $id_kel_tabel_app = Crypt::decrypt($id_tabel);
+        $input = $request->all();
+        $data_induk = KelompokTabelAplikasi::find($id_induk_kel_tabel_app);
+        $data = KelompokTabelAplikasi::find($id_kel_tabel_app);
+        $data->fill($data->prepare($input))->save();
+
+        alert()->success('Berhasil mengubah data')->persistent('OK');
+        return redirect()->route('sinkronisasi.tabel',Crypt::encrypt($data_induk->id_kel_table_app));
     }
 
     /**
@@ -114,5 +138,24 @@ class SyncDataController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function mulai_sync(Request $request, $id, $id_tabel)
+    {
+        ini_set('max_execution_time',0);
+        $waktu_mulai = currDateTime();
+        $id_induk_kel_tabel_app = Crypt::decrypt($id);
+        $id_kel_tabel_app = Crypt::decrypt($id_tabel);
+        $data_induk = KelompokTabelAplikasi::find($id_induk_kel_tabel_app);
+        $update_time = currDateTime();
+        $data = KelompokTabelAplikasi::find($id_kel_tabel_app);
+        $url = $data->url;
+        if ($url==env('URL_WS_SISTER')) {
+            $token = generate_token_sister();
+            $this->sync_table($data->tabel_app->skema_tbl,$data->tabel_app->nm_tbl,$token,$url,$data,$update_time,$waktu_mulai);
+        } elseif ($data->url==env('URL_WS_NEO_FEEDER')){
+            dd('');
+        }
+        return redirect()->back();
     }
 }

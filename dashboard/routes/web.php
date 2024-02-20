@@ -134,16 +134,19 @@ Route::middleware(['auth'])->group(function () {
     Route::get('sdm/tendik', [TendikSMSController::class, 'index'])->name('sdm.tendik');
   });
 
+  #sinkronisasi
   Route::get('sinkronisasi', [SyncController::class, 'index'])->name('sinkronisasi');
   Route::get('sinkronisasi/tambah', [SyncController::class, 'create'])->name('sinkronisasi.tambah');
   Route::post('sinkronisasi/simpan', [SyncController::class, 'store'])->name('sinkronisasi.simpan');
   Route::get('sinkronisasi/{id}/ubah', [SyncController::class, 'edit'])->name('sinkronisasi.ubah');
   Route::put('sinkronisasi/{id}/update', [SyncController::class, 'update'])->name('sinkronisasi.update');
+
+  #sinkronisasi tabel
   Route::get('sinkronisasi/{id}/tabel', [SyncController::class, 'show'])->name('sinkronisasi.tabel');
-  Route::get('sinkronisasi/{id}/tabel/tambah', [SyncDataController::class, 'create'])->name(
-    'sinkronisasi.tabel.tambah'
-  );
-  Route::post('sinkronisasi/{id}/tabel/simpan', [SyncDataController::class, 'store'])->name(
-    'sinkronisasi.tabel.simpan'
-  );
+  Route::get('sinkronisasi/{id}/tabel/tambah', [SyncDataController::class, 'create'])->name('sinkronisasi.tabel.tambah');
+  Route::post('sinkronisasi/{id}/tabel/simpan', [SyncDataController::class, 'store'])->name(    'sinkronisasi.tabel.simpan');
+  Route::get('sinkronisasi/{id}/tabel/{id_tabel}/ubah', [SyncDataController::class, 'edit'])->name('sinkronisasi.tabel.ubah');
+  Route::put('sinkronisasi/{id}/tabel/{id_tabel}/update', [SyncDataController::class, 'update'])->name(    'sinkronisasi.tabel.update');
+
+  Route::get('sinkronisasi/{id}/tabel/{id_tabel}/mulai_sync',[SyncDataController::class, 'mulai_sync'])->name('sinkronisasi.tabel.mulai_sync');
 });

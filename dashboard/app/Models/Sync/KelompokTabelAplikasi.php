@@ -28,4 +28,9 @@ class KelompokTabelAplikasi extends AbstractionModel
   ];
   public $timestamps = false;
   public $incrementing = false;
+
+  public function tabel_app()
+  {
+      return $this->belongsTo('App\Models\TableAplikasi','id_table_app','id_table_app');
+  }
 }
