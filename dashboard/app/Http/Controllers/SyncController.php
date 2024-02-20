@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\DB;
 
 class SyncController extends Controller
 {
-    use SyncTrait;
 
     public function index()
     {
