@@ -9,45 +9,50 @@ use Illuminate\Support\Facades\DB;
 
 class SDM extends AbstractionModel
 {
-    protected $keyType = 'string';
-    protected $table = 'pdrd.sdm';
-    protected $primaryKey = 'id_sdm';
-//    protected $fillable = [
-//      'id_menu',
-//      'nm_menu',
-//      'nm_file',
-//      'urutan_menu',
-//      'a_aktif',
-//      'a_tampil',
-//      'icon',
-//      'level_menu',
-//      'id_aplikasi',
-//      'id_group_menu',
-//      'tgl_create',
-//      'last_update',
-//      'expired_date',
-//      'last_sync',
-//    ];
-    public $timestamps = false;
-    public $incrementing = false;
+  protected $keyType = 'string';
+  protected $table = 'pdrd.sdm';
+  protected $primaryKey = 'id_sdm';
+  //    protected $fillable = [
+  //      'id_menu',
+  //      'nm_menu',
+  //      'nm_file',
+  //      'urutan_menu',
+  //      'a_aktif',
+  //      'a_tampil',
+  //      'icon',
+  //      'level_menu',
+  //      'id_aplikasi',
+  //      'id_group_menu',
+  //      'tgl_create',
+  //      'last_update',
+  //      'expired_date',
+  //      'last_sync',
+  //    ];
+  public $timestamps = false;
+  public $incrementing = false;
 
-    public static function get_data_all($lvl,$id_jns_lemb,$id_organisasi,$thn)
-    {
-        $filter = "";
-        if ($lvl>3) {
-            if ($id_jns_lemb==23) {
-                $filter =" AND tfak.id_sms='".$id_organisasi."'";
-            } elseif ($id_jns_lemb==28) {
-                $filter =" AND tprod.id_jur_unila='".$id_organisasi."'";
-            } elseif($id_jns_lemb==24) {
-                $filter =" AND tprod.id_sms='".$id_organisasi."'";
-            }
-        }
-        $query = "
+  public static function get_data_all($lvl, $id_jns_lemb, $id_organisasi, $thn)
+  {
+    $filter = '';
+    if ($lvl > 3) {
+      if ($id_jns_lemb == 23) {
+        $filter = " AND tfak.id_sms='" . $id_organisasi . "'";
+      } elseif ($id_jns_lemb == 28) {
+        $filter = " AND tprod.id_jur_unila='" . $id_organisasi . "'";
+      } elseif ($id_jns_lemb == 24) {
+        $filter = " AND tprod.id_sms='" . $id_organisasi . "'";
+      }
+    }
+    $query =
+      "
             BEGIN
                 DECLARE @tahun_keaktifan CHAR(4), @tgl_batas DATE;
-                SET @tahun_keaktifan='".$thn."';
-                SET @tgl_batas = '".$thn."-12-31';
+                SET @tahun_keaktifan='" .
+      $thn .
+      "';
+                SET @tgl_batas = '" .
+      $thn .
+      "-12-31';
 
                 SELECT
                     tsdm.id_sdm,
@@ -113,25 +118,34 @@ class SDM extends AbstractionModel
                 LEFT JOIN ref.ikatan_kerja_sdm AS tikat WITH ( NOLOCK ) ON tikat.id_ikatan_kerja= tr.id_ikatan_kerja AND tikat.expired_date IS NULL
                 JOIN ref.status_keaktifan_pegawai AS taktif WITH ( NOLOCK ) ON taktif.id_stat_aktif=tsdm.id_stat_aktif
                 WHERE tsdm.soft_delete=0 AND tsdm.id_jns_sdm=12
-                ".$filter."
+                " .
+      $filter .
+      "
                 ORDER BY tfak.nm_lemb ASC, tjur.nm_lemb ASC, tprod.id_jenj_didik ASC, tprod.nm_lemb ASC, tsdm.nm_sdm ASC
             END
         ";
-        return DB::SELECT($query);
-    }
+    return DB::SELECT($query);
+  }
 
-    public static function get_data_all_tendik($thn,$lvl,$unit_filter=null)
-    {
-        $filter = "";
-        if ($lvl>3) {
-            $filter.=" AND u3.nm_unit_orga LIKE '%".$unit_filter."%'";
-        }
-        $query = "
+  public static function get_data_all_tendik($thn, $lvl, $unit_filter = null)
+  {
+    $filter = '';
+    if ($lvl > 3) {
+      $filter .= " AND u3.nm_unit_orga LIKE '%" . $unit_filter . "%'";
+    }
+    $query =
+      "
             BEGIN
                 DECLARE @tahun_keaktifan CHAR(4), @tgl_batas DATE, @tgl_batas_usia DATE;
-                SET @tahun_keaktifan='".$thn."';
-                SET @tgl_batas = '".date($thn.'-12-31')."';
-                SET @tgl_batas_usia = '".date($thn.'-m-01')."';
+                SET @tahun_keaktifan='" .
+      $thn .
+      "';
+                SET @tgl_batas = '" .
+      date($thn . '-12-31') .
+      "';
+                SET @tgl_batas_usia = '" .
+      date($thn . '-m-01') .
+      "';
 
                 SELECT
                     p.id_pegawai,
@@ -162,10 +176,12 @@ class SDM extends AbstractionModel
                 LEFT JOIN sikep.jabstruk AS js ON js.id_jabstruk=p.id_jabstruk
                 WHERE p.jns_tenaga!='Dosen'
                 AND (p.tmt_pensiun IS NULL OR p.tmt_pensiun>=@tgl_batas)
-                ".$filter."
+                " .
+      $filter .
+      "
                 ORDER BY u3.nm_unit_orga ASC, p.nm_pegawai ASC
             END
         ";
-        return DB::SELECT($query);
-    }
+    return DB::SELECT($query);
+  }
 }

@@ -3,6 +3,7 @@
     <link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/vendor/libs/apex-charts/apex-charts.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/loading/overlay.css') }}" />
 @endsection
 
 @section('vendor-script')
@@ -10,104 +11,101 @@
     <script src="{{ asset('assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js') }}"></script>
     <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
     <script src="{{ asset('assets/vendor/libs/apex-charts/apexcharts.js') }}"></script>
+    <script src="{{ asset('assets/vendor/libs/moment/moment.js') }}"></script>
 @endsection
 
 @section('page-script')
     <script type="text/javascript">
         'use strict';
 
-        function ajaxChart(tahun) {
+        function setOptions(category, tepatWaktu, tidakTepatWaktu, title) {
+            var options = {
+                chart: {
+                    height: '400',
+                    type: "line",
+                    stacked: false
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                title: {
+                    text: title,
+                    align: "center"
+                },
+                colors: ['#0d6efd', '#dd4b39'],
+                series: [
+
+                    {
+                        name: 'Kelulusan Tepat Waktu',
+                        type: 'column',
+                        data: tepatWaktu
+                    },
+                    {
+                        name: "Kelulusan Tidak Tepat Waktu",
+                        type: 'column',
+                        data: tidakTepatWaktu
+                    }
+                ],
+                plotOptions: {
+                    bar: {
+                        columnWidth: "50%"
+                    }
+                },
+                xaxis: {
+                    categories: category
+                },
+                tooltip: {
+                    shared: false,
+                    intersect: true,
+                    x: {
+                        show: false
+                    }
+                },
+                legend: {
+                    horizontalAlign: "center",
+                    offsetX: 40
+                }
+            };
+            return options;
+        }
+
+        function ajaxChart() {
             $.ajax({
                 url: "{{ route('pages-ktw-data') }}",
                 type: "GET",
+                data: {
+                    tahun: $('#tahun').val(),
+                    id_sms: $('#sms').val()
+                },
                 success: function(res) {
-                    let temp = [];
-                    $.each(res, function(index, item) {
-                        temp[index] = [];
-                        let thn = tahun;
 
-                        let temps = [];
-                        temps[thn] = 0;
-                        temps[(thn - 1)] = 0;
-                        temps[(thn - 2)] = 0;
-                        temps[(thn - 3)] = 0;
-                        temps[(thn - 4)] = 0;
-                        console.log(temps);
-                        $.each(item, function(i, x) {
-                            let y;
-                            if (x.semester_keluar != null) {
-                                y = x.semester_keluar;
-                            } else {
-                                y = x.semester_masuk;
-                            }
-                            temps[y] += 1;
-                        });
-                        $.each(temps, function(index, value) {
-                            console.log(index, value);
-                        });
-                    });
+                    var options = setOptions(res['smt'], res['studi']['ktw_tepat'], res['studi'][
+                        'ktw_tidak_tepat'
+                    ], 'Berdasarkan Masa Studi 4 Tahun')
+                    var chart = new ApexCharts(document.querySelector("#studiChart"), options);
+                    chart.render();
 
-                    // var options = {
-                    //     colors: ['#0d6efd', '#ffc107', '#dc3545'],
-                    //     series: [{
-                    //         name: 'Tepat Waktu',
-                    //         data: temp['ktw_tepat']
-                    //     }, {
-                    //         name: 'Tidak Tepat Waktu',
-                    //         data: temp['ktw_tidak_tepat']
-                    //     }, {
-                    //         name: 'Tidak Lulus',
-                    //         data: temp['ktw_tidak_lulus']
-                    //     }],
-                    //     legend: {
-                    //         show: true,
-                    //         position: 'top',
-                    //         horizontalAlign: 'start'
-                    //     },
-                    //     chart: {
-                    //         type: 'bar',
-                    //         height: 'auto'
-                    //     },
-                    //     plotOptions: {
-                    //         bar: {
-                    //             horizontal: false,
-                    //             columnWidth: '55%',
-                    //             endingShape: 'rounded'
-                    //         },
-                    //     },
-                    //     dataLabels: {
-                    //         enabled: false
-                    //     },
-                    //     stroke: {
-                    //         show: true,
-                    //         width: 2,
-                    //         colors: ['transparent']
-                    //     },
-                    //     xaxis: {
-                    //         categories: ['2019', '2020', '2021', '2022', '2023'],
-                    //     },
-                    //     yaxis: {
-                    //         title: {
-                    //             text: 'Total'
-                    //         }
-                    //     },
-                    //     fill: {
-                    //         opacity: 1
-                    //     }
-                    // };
+                    var options = setOptions(res['smt'], res['ipk']['ktw_tepat'], res['ipk'][
+                        'ktw_tidak_tepat'
+                    ], 'Berdasarkan Masa Studi 4 Tahun dan IPK >= 3.00')
+                    var chart = new ApexCharts(document.querySelector("#ipkChart"), options);
+                    chart.render();
 
-                    // var chart = new ApexCharts(document.querySelector("#barChart"), options);
-                    // return chart.render();
+                    $('#loading').hide();
+
                 }
             });
         }
 
-        $(document).ready(function() {
+        function dateAgo(start, end) {
+            var startDate = new Date(start);
+            var diffDate = new Date(new Date(end) - startDate);
+            return ((diffDate.toISOString().slice(0, 4) - 1970) + " Tahun " +
+                diffDate.getMonth() + " Bulan " + (diffDate.getDate() - 1) + " Hari");
+        }
 
-            let tahun = <?php echo json_encode($tahun); ?>;
-            ajaxChart(tahun);
-
-            let table = $('#table-data').DataTable({
+        function datatables() {
+            return $('#table-data').DataTable({
                 "bDestroy": true,
                 processing: true,
                 serverSide: true,
@@ -159,36 +157,84 @@
                     {
                         data: 'prodi',
                         title: 'Prodi',
-                    },
-                    {
-                        data: 'jenjang',
-                        title: 'Jenjang',
+                        render: function(data, type, row) {
+                            return `${data} (${row.jenjang})`;
+                        }
                     },
                     {
                         data: 'sks_lulus',
                         title: 'SKS Lulus',
+                        width: '5px',
+                        className: 'text-center',
                     },
                     {
                         data: 'sks_total',
                         title: 'SKS Diambil',
-                    },
-                    {
-                        data: 'ip_mk',
-                        title: 'IP Total',
+                        width: '5px',
+                        className: 'text-center',
                     },
                     {
                         data: 'ipk',
                         title: 'IPK',
+                        width: '5px',
+                        className: 'text-center'
                     },
                     {
-                        data: 'semester_masuk',
-                        title: 'Tahun Masuk',
+                        data: 'tgl_masuk',
+                        title: 'Tgl Masuk',
+                        width: '5px',
+                        className: 'text-center',
                     },
                     {
-                        data: 'semester_keluar',
-                        title: 'Tahun Lulus',
+                        data: 'tgl_keluar',
+                        title: 'Tgl Lulus',
+                        width: '5px',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'thn_kuliah',
+                        title: 'Lama Studi (Tahun)',
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            return dateAgo(row.tgl_masuk, row.tgl_keluar);
+                        }
                     },
                 ],
+            });
+        }
+
+        $(document).ready(function() {
+
+            let tahun = <?php echo json_encode($tahun); ?>;
+            let auth = "{{ auth()->check() }}";
+            ajaxChart();
+
+            if (auth == true) {
+                let table = datatables();
+            }
+
+            $('#tahun').on('change', function() {
+                $('#loading').show();
+                $('#studiChart').html(null);
+                $('#ipkChart').html(null);
+                ajaxChart();
+
+                if (auth == true) {
+                    $('#table-data').DataTable().clear().destroy();
+                    table = datatables();
+                }
+            });
+
+            $('#sms').on('change', function() {
+                $('#loading').show();
+                $('#studiChart').html(null);
+                $('#ipkChart').html(null);
+                ajaxChart();
+
+                if (auth == true) {
+                    $('#table-data').DataTable().clear().destroy();
+                    table = datatables();
+                }
             });
         });
     </script>

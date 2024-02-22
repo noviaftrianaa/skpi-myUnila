@@ -23,46 +23,7 @@
             <div class="table-responsive text-nowrap">
                 <table class="table table-striped table-hover table-bordered table-sm" id="table-data"
                     style="width: 100% !important">
-                    <thead class="table-primary">
-                        <tr>
-                            <th>No.</th>
-                            <th>Nama Dosen</th>
-                            <th>NIDN</th>
-                            <th>NIP</th>
-                            <th>Fakultas</th>
-                            <th>Jurusan</th>
-                            <th>Prodi</th>
-                            <th>Pendidikan Terakhir</th>
-                            <th>Jabatan Fungsional</th>
-                            <th>Pangkat/Golongan</th>
-                            <th>Status Ikatan</th>
-                            <th>Status Kepegawaian</th>
-                            <th>Status Keaktifan</th>
-                            <th>Email</th>
-                            <th>ID SINTA</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($data as $no => $each_data)
-                            <tr>
-                                <td>{{ $no + 1 }}</td>
-                                <td>{{ $each_data->nm_sdm }}</td>
-                                <td>{{ $each_data->nidn }}</td>
-                                <td>{{ $each_data->nip }}</td>
-                                <td>{{ $each_data->fakultas }}</td>
-                                <td>{{ $each_data->jurusan }}</td>
-                                <td>{{ $each_data->homebase }}</td>
-                                <td>{{ $each_data->nm_jenj_didik }}</td>
-                                <td>{{ $each_data->nm_jabfung }}</td>
-                                <td>{{ $each_data->kode_gol }}</td>
-                                <td>{{ $each_data->nm_ikatan_kerja }}</td>
-                                <td>{{ $each_data->nm_stat_pegawai }}</td>
-                                <td>{{ $each_data->nm_stat_aktif }}</td>
-                                <td>{{ $each_data->email }}</td>
-                                <td>{{ $each_data->id_sinta }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
+                    <thead class="table-primary"></thead>
                 </table>
             </div>
             <!-- Offcanvas to filter -->
@@ -83,15 +44,13 @@
                     </div>
                     <div class="my-3 border-bottom"></div>
                     <div class="mt-3">
-                      <label class="form-label">Tahun Ajaran</label>
-                        <form action="{{ route('sdm.tendik') }}" method="GET">
-                            <select name="tahun" id="tahun" class="form-select">
-                                @foreach ($ta_list as $id_thn_ajaran => $nm_thn_ajaran)
-                                    <option value="{{ $id_thn_ajaran }}" {{ $id_thn_ajaran == $thn ? 'selected' : '' }}>
-                                        {{ $nm_thn_ajaran }}</option>
-                                @endforeach
-                            </select>
-                        </form>
+                        <label class="form-label">Tahun Ajaran</label>
+                        <select name="tahun" id="tahun" class="form-select">
+                            @foreach ($ta_list as $id_thn_ajaran => $nm_thn_ajaran)
+                                <option value="{{ $id_thn_ajaran }}" {{ $id_thn_ajaran == $thn ? 'selected' : '' }}>
+                                    {{ $nm_thn_ajaran }}</option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
             </div>

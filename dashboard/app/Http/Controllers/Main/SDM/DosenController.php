@@ -13,43 +13,56 @@ use Illuminate\Support\Facades\DB;
 
 class DosenController extends Controller
 {
-    public function index(Request $request)
-    {
-        if ($request->has('tahun')) {
-            $thn = $request->tahun;
-        } else {
-            $thn = get_tahun_keaktifan();
-        }
-        $role = session()->get('login.role');
-        $unit = UnitOrganisasi::find($role->id_organisasi);
-        if ($unit->id_jns_lemb==24) {
-            $sms = Sms::find($unit->id_organisasi);
-            $ta_list = TahunAjaran::select('id_thn_ajaran','nm_thn_ajaran')
-              ->where('id_thn_ajaran','>=',$sms->smt->id_thn_ajaran)
-              ->where('id_thn_ajaran','<=',get_tahun_keaktifan())
-              ->whereNull('expired_date')
-              ->orderBy('id_thn_ajaran','DESC')
-              ->pluck('nm_thn_ajaran','id_thn_ajaran')
-              ->toArray();
-            $judul = 'Dosen Program Studi '.$sms->nm_lemb.' ('.$sms->jenjang->nm_jenj_didik.')';
-        } elseif ($unit->id_jns_lemb==28) {
-            $sms = Sms::find($unit->id_organisasi);
-            $judul = 'Dosen Jurusan '.$sms->nm_lemb;
-        } elseif ($unit->id_jns_lemb==23) {
-            $sms = Sms::find($unit->id_organisasi);
-            $judul = 'Dosen Fakultas '.$sms->nm_lemb;
-        } else {
-            $sp = SatuanPendidikan::find(env('APP_ID_SP'));
-            $ta_list = TahunAjaran::select('id_thn_ajaran','nm_thn_ajaran')
-              ->where('id_thn_ajaran','>=',2000)
-              ->where('id_thn_ajaran','<=',get_tahun_keaktifan())
-              ->whereNull('expired_date')
-              ->orderBy('id_thn_ajaran','DESC')
-              ->pluck('nm_thn_ajaran','id_thn_ajaran')
-              ->toArray();
-            $judul = 'Dosen '.$sp->nm_lemb;
-        }
-        $data = SDM::get_data_all($unit->level_organisasi,$unit->id_jns_lemb,$unit->id_organisasi,$thn);
-        return view('content.main.sdm.dosen.index',compact('ta_list','thn','data','judul'));
+  public function index(Request $request)
+  {
+    if ($request->has('tahun')) {
+      $thn = $request->tahun;
+    } else {
+      $thn = get_tahun_keaktifan();
     }
+    $role = session()->get('login.role');
+    $unit = UnitOrganisasi::find($role->id_organisasi);
+    if ($unit->id_jns_lemb == 24) {
+      $sms = Sms::find($unit->id_organisasi);
+      $ta_list = TahunAjaran::select('id_thn_ajaran', 'nm_thn_ajaran')
+        ->where('id_thn_ajaran', '>=', $sms->smt->id_thn_ajaran)
+        ->where('id_thn_ajaran', '<=', get_tahun_keaktifan())
+        ->whereNull('expired_date')
+        ->orderBy('id_thn_ajaran', 'DESC')
+        ->pluck('nm_thn_ajaran', 'id_thn_ajaran')
+        ->toArray();
+      $judul = 'Dosen Program Studi ' . $sms->nm_lemb . ' (' . $sms->jenjang->nm_jenj_didik . ')';
+    } elseif ($unit->id_jns_lemb == 28) {
+      $sms = Sms::find($unit->id_organisasi);
+      $judul = 'Dosen Jurusan ' . $sms->nm_lemb;
+    } elseif ($unit->id_jns_lemb == 23) {
+      $sms = Sms::find($unit->id_organisasi);
+      $judul = 'Dosen Fakultas ' . $sms->nm_lemb;
+    } else {
+      $sp = SatuanPendidikan::find(env('APP_ID_SP'));
+      $ta_list = TahunAjaran::select('id_thn_ajaran', 'nm_thn_ajaran')
+        ->where('id_thn_ajaran', '>=', 2000)
+        ->where('id_thn_ajaran', '<=', get_tahun_keaktifan())
+        ->whereNull('expired_date')
+        ->orderBy('id_thn_ajaran', 'DESC')
+        ->pluck('nm_thn_ajaran', 'id_thn_ajaran')
+        ->toArray();
+      $judul = 'Dosen ' . $sp->nm_lemb;
+    }
+    return view('content.main.sdm.dosen.index', compact('ta_list', 'thn', 'judul', 'unit'));
+  }
+
+  public function data(Request $request)
+  {
+    $data = SDM::get_data_all(
+      $request->level_organisasi,
+      $request->id_jns_lemb,
+      $request->id_organisasi,
+      $request->tahun
+    );
+
+    return \DataTables::of($data)
+      ->addIndexColumn()
+      ->make(true);
+  }
 }

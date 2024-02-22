@@ -37,8 +37,7 @@
                                 </div>
                                 <small>Sumber: https://webometrics.info/</small>
                             </div>
-                            <img src="{{ asset('wcu/webometrics/webo.jpg') }}"
-                                class="img-fluid" style="height: 100px" />
+                            <img src="{{ asset('wcu/webometrics/webo.jpg') }}" class="img-fluid" style="height: 100px" />
                         </div>
                     </div>
                     <div class="border rounded p-3 mt-4">
@@ -49,7 +48,9 @@
                                     <h6 class="mb-0">Asian Ranking</h6>
                                 </div>
                                 <div class="d-flex gap-2 align-items-center mb-2 pb-1 flex-wrap">
-                                    <h3 class="my-2 pt-1">{{ intval($dataWebometrics['asian'] ?? 0) > 0 ? intval($dataWebometrics['asian'] ?? 0) : $dataWebometrics['asian'] ?? 0 }}</h3>
+                                    <h3 class="my-2 pt-1">
+                                        {{ intval($dataWebometrics['asian'] ?? 0) > 0 ? intval($dataWebometrics['asian'] ?? 0) : $dataWebometrics['asian'] ?? 0 }}
+                                    </h3>
                                 </div>
                             </div>
                             <div class="col-12 col-sm-4">
@@ -58,7 +59,9 @@
                                     <h6 class="mb-0">Asean Ranking</h6>
                                 </div>
                                 <div class="d-flex gap-2 align-items-center mb-2 pb-1 flex-wrap">
-                                    <h3 class="my-2 pt-1">{{ intval($dataWebometrics['asean'] ?? 0) > 0 ? intval($dataWebometrics['asean'] ?? 0) : $dataWebometrics['asean'] ?? 0 }}</h3>
+                                    <h3 class="my-2 pt-1">
+                                        {{ intval($dataWebometrics['asean'] ?? 0) > 0 ? intval($dataWebometrics['asean'] ?? 0) : $dataWebometrics['asean'] ?? 0 }}
+                                    </h3>
                                 </div>
                             </div>
                             <div class="col-12 col-sm-4">
@@ -68,7 +71,9 @@
                                     <h6 class="mb-0">Indonesian Ranking</h6>
                                 </div>
                                 <div class="d-flex gap-2 align-items-center mb-2 pb-1 flex-wrap">
-                                    <h3 class="my-2 pt-1">{{ intval($dataWebometrics['indonesian'] ?? 0) > 0 ? intval($dataWebometrics['indonesian'] ?? 0) : $dataWebometrics['indonesian'] ?? 0 }}</h3>
+                                    <h3 class="my-2 pt-1">
+                                        {{ intval($dataWebometrics['indonesian'] ?? 0) > 0 ? intval($dataWebometrics['indonesian'] ?? 0) : $dataWebometrics['indonesian'] ?? 0 }}
+                                    </h3>
                                 </div>
                             </div>
                         </div>
@@ -90,8 +95,7 @@
                 <div class="card-body">
                     <ul class="p-0 m-0">
                         <li class="mb-4 pb-1 d-flex justify-content-between align-items-center">
-                            <div class="badge bg-label-primary rounded p-2"><i
-                                    class="ti ti-number-1 ti-sm"></i></div>
+                            <div class="badge bg-label-primary rounded p-2"><i class="ti ti-number-1 ti-sm"></i></div>
                             <div class="d-flex justify-content-between w-100 flex-wrap">
                                 <h6 class="mb-0 ms-3">Impact</h6>
                                 <div class="d-flex">
@@ -100,8 +104,7 @@
                             </div>
                         </li>
                         <li class="mb-4 pb-1 d-flex justify-content-between align-items-center">
-                            <div class="badge bg-label-primary rounded p-2"><i
-                                    class="ti ti-number-2 ti-sm"></i></div>
+                            <div class="badge bg-label-primary rounded p-2"><i class="ti ti-number-2 ti-sm"></i></div>
                             <div class="d-flex justify-content-between w-100 flex-wrap">
                                 <h6 class="mb-0 ms-3">Openness</h6>
                                 <div class="d-flex">
@@ -110,8 +113,7 @@
                             </div>
                         </li>
                         <li class="mb-4 pb-1 d-flex justify-content-between align-items-center">
-                            <div class="badge bg-label-primary rounded p-2"><i
-                                    class="ti ti-number-3 ti-sm"></i></div>
+                            <div class="badge bg-label-primary rounded p-2"><i class="ti ti-number-3 ti-sm"></i></div>
                             <div class="d-flex justify-content-between w-100 flex-wrap">
                                 <h6 class="mb-0 ms-3">Excellence</h6>
                                 <div class="d-flex">
@@ -139,7 +141,8 @@
                                     <button type="button" class="step-trigger">
                                         <span class="bs-stepper-circle">{{ $no + 1 }}</span>
                                         <span class="bs-stepper-label">
-                                            <span class="bs-stepper-title">{{ ucwords(strtolower($item['indicator'])) }}</span>
+                                            <span
+                                                class="bs-stepper-title">{{ ucwords(strtolower($item['indicator'])) }}</span>
                                         </span>
                                     </button>
                                 </div>
@@ -158,23 +161,23 @@
                     </div>
                     <div class="bs-stepper-content">
                         <form onSubmit="return false">
-                          @if (!empty($methodology))
-                              @foreach ($methodology as $no => $item)
-                                <div id="data{{$no+1}}" class="content">
-                                    <div class="content-header mb-3" style="text-align: justify">
-                                        <h6 class="mb-0">{{ $item['indicator'] }} ({{ $item['weight']}})</h6>
-                                    </div>
-                                    <div class="row g-3">
-                                        <div class="col-12">
-                                            <h6>Meaning</h6>
-                                            <p>{{ $item['meaning'] }}</p>
-                                            <h6>Methodology</h6>
-                                            <p>{{ $item['methodology'] }}</p>
-                                            <h6>Source</h6>
-                                            <p>{{ $item['source'] }}</p>
+                            @if (!empty($methodology))
+                                @foreach ($methodology as $no => $item)
+                                    <div id="data{{ $no + 1 }}" class="content">
+                                        <div class="content-header mb-3" style="text-align: justify">
+                                            <h6 class="mb-0">{{ $item['indicator'] }} ({{ $item['weight'] }})</h6>
+                                        </div>
+                                        <div class="row g-3">
+                                            <div class="col-12">
+                                                <h6>Meaning</h6>
+                                                <p>{{ $item['meaning'] }}</p>
+                                                <h6>Methodology</h6>
+                                                <p>{{ $item['methodology'] }}</p>
+                                                <h6>Source</h6>
+                                                <p>{{ $item['source'] }}</p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
                                 @endforeach
                             @else
                                 <div id="data" class="content">

@@ -1,6 +1,6 @@
 @extends('layouts/layoutMaster')
 
-@section('title', 'Halaman Utama')
+@section('title', env('APP_NAME') ?? 'My-UNILA - Dashboard Universitas Lampung')
 
 @include('content.pages.dashboard.function')
 
@@ -156,7 +156,8 @@
                 <!-- Program Studi -->
                 <div class="tab-content pt-0">
                     <div class="tab-pane fade show active" id="navs-program-studi" role="tabpanel">
-                      <div class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0">
+                        <div
+                            class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0">
                             <h5>Program Studi</h5>
                         </div>
                         <div class="table-responsive my-3">
@@ -166,27 +167,29 @@
                             </table>
                         </div>
                         <p class="alert alert-secondary">
-                          Pembaharuan data terakhir: {{ TglWaktuIndonesia(\DB::table('pdrd.sms')->select('last_sync')->orderByDesc('last_sync')->pluck('last_sync')[0] ?? now()) }}
+                            Pembaharuan data terakhir:
+                            {{ TglWaktuIndonesia(\DB::table('pdrd.sms')->select('last_sync')->orderByDesc('last_sync')->pluck('last_sync')[0] ?? now()) }}
                         </p>
                     </div>
                     <!-- Mahasiswa -->
                     <div class="tab-pane fade" id="navs-mahasiswa" role="tabpanel">
-                      <div class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0">
+                        <div
+                            class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0">
                             <h5>Mahasiswa</h5>
                             <div class="float-end row">
                                 <div class="btn-group" role="group">
                                     <label class="input-group-text">Semester</label>
                                     <select class="form-select text-center" id="periodeMahasiswa">
-                                      @for($i=$tahun;$i>($tahun-10);$i--)
-                                      <option value="{{ $i }}2">{{ $i }} Genap</option>
-                                      <option value="{{ $i }}1">{{ $i }} Ganjil</option>
-                                      @endfor
+                                        @for ($i = $tahun; $i > $tahun - 10; $i--)
+                                            <option value="{{ $i }}2">{{ $i }} Genap</option>
+                                            <option value="{{ $i }}1">{{ $i }} Ganjil</option>
+                                        @endfor
                                     </select>
                                 </div>
                             </div>
                         </div>
                         <p class="alert alert-warning">
-                          Data mahasiswa tahun ajaran {{ $tahun }} sedang dalam proses sinkronisasi.
+                            Data mahasiswa tahun ajaran {{ $tahun }} sedang dalam proses sinkronisasi.
                         </p>
                         <div class="table-responsive my-3">
                             <table class="table table-striped table-hover mahasiswa table-sm"
@@ -195,27 +198,28 @@
                             </table>
                         </div>
                         <p class="alert alert-secondary">
-                          Pembaharuan data terakhir: {{ TglWaktuIndonesia(\DB::table('logger.log_sync_pd_sms')->orderByDesc('waktu_selesai_sync')->pluck('waktu_selesai_sync')[0] ?? now()) }}
+                            Pembaharuan data terakhir:
+                            {{ TglWaktuIndonesia(\DB::table('logger.log_sync_pd_sms')->orderByDesc('waktu_selesai_sync')->pluck('waktu_selesai_sync')[0] ?? now()) }}
                         </p>
                     </div>
                     <!-- Dosen -->
                     <div class="tab-pane fade" id="navs-dosen" role="tabpanel">
-                      <div class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0">
+                        <div
+                            class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0">
                             <h5>Dosen</h5>
                             <div class="float-end row">
                                 <div class="btn-group" role="group">
                                     <label class="input-group-text">Tahun</label>
                                     <select class="form-select text-center" id="periodeDosen">
-                                      @for($i=$tahun;$i>($tahun-10);$i--)
-                                      <option value="{{ $i }}">{{ $i }}</option>
-                                      @endfor
+                                        @for ($i = $tahun; $i > $tahun - 10; $i--)
+                                            <option value="{{ $i }}">{{ $i }}</option>
+                                        @endfor
                                     </select>
                                 </div>
                             </div>
                         </div>
                         <div class="table-responsive my-3">
-                            <table class="table table-striped table-hover dosen table-sm"
-                                style="width: 100% !important">
+                            <table class="table table-striped table-hover dosen table-sm" style="width: 100% !important">
                                 <thead class="table-primary">
                                     <tr>
                                         <th rowspan="2" width="5px">No.</th>
@@ -234,17 +238,18 @@
                             </table>
                         </div>
                         <p class="alert alert-secondary">
-                          Pembaharuan data terakhir: {{ TglWaktuIndonesia(\DB::table('pdrd.sdm')->select('last_sync')->orderByDesc('last_sync')->pluck('last_sync')[0] ?? now()) }}
+                            Pembaharuan data terakhir:
+                            {{ TglWaktuIndonesia(\DB::table('pdrd.sdm')->select('last_sync')->orderByDesc('last_sync')->pluck('last_sync')[0] ?? now()) }}
                         </p>
                     </div>
                     <!-- Tenaga Pendidik -->
                     <div class="tab-pane fade" id="navs-tendik" role="tabpanel">
-                      <div class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0">
+                        <div
+                            class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0">
                             <h5>Tenaga Kependidikan</h5>
                         </div>
                         <div class="table-responsive my-3">
-                            <table class="table table-striped table-hover tendik table-sm"
-                                style="width: 100% !important">
+                            <table class="table table-striped table-hover tendik table-sm" style="width: 100% !important">
                                 <thead class="table-primary">
                                     <tr>
                                         <th rowspan="2" width="5px">No.</th>
@@ -262,7 +267,8 @@
                             </table>
                         </div>
                         <p class="alert alert-secondary">
-                          Pembaharuan data terakhir: {{ TglWaktuIndonesia(\DB::table('pdrd.sdm')->select('last_sync')->orderByDesc('last_sync')->pluck('last_sync')[0] ?? now()) }}
+                            Pembaharuan data terakhir:
+                            {{ TglWaktuIndonesia(\DB::table('pdrd.sdm')->select('last_sync')->orderByDesc('last_sync')->pluck('last_sync')[0] ?? now()) }}
                         </p>
                     </div>
                 </div>

@@ -33,21 +33,25 @@
                 <!-- Login -->
                 <div class="card">
                     <div class="card-body">
-
-                        <h4 class="mb-1 pt-2">Welcome to {{ config('variables.templateName') }}! 👋</h4>
-                        <p class="mb-4">Please sign-in to your account</p>
-
+                        <div class="text-center">
+                            <img src="{{ asset('images/logo_unila_kampus_merdeka.png') }}" class="img-fluid" />
+                            <h5 class="mt-4 mb-1">My-UNILA</h5>
+                            <p class="text-muted mb-4">Dashboard Universitas Lampung</p>
+                        </div>
+                        <div class="my-4 border-bottom"></div>
                         <div class="my-3">
-                            <a href="{{ route('auth-sso') }}" class="btn btn-primary w-100"><i class="fas fa-user me-2"></i>Sign
+                            <a href="{{ route('auth-sso') }}" class="btn btn-primary w-100"><i
+                                    class="fas fa-user me-2"></i>Sign
                                 In - SSO UNILA</a>
                         </div>
                         <div class="my-3">
-                            <a href="https://apps.unila.ac.id/#lupa" class="btn btn-info w-100" target="_blank"><i
+                            <a href="https://apps.unila.ac.id/#lupa" class="btn btn-warning w-100" target="_blank"><i
                                     class="fas fa-info-circle me-2"></i>Lupa Kata Sandi</a>
                         </div>
+                        <div class="my-4 border-bottom"></div>
                         <div class="my-3">
-                            <a href="/" class="btn btn-default w-100"><i
-                                    class="fas fa-home me-2"></i>Dashboard</a>
+                            <a href="/" class="btn btn-info w-100"><i class="fas fa-home me-2"></i>Back to
+                                Dashboard</a>
                         </div>
 
                         <div class="divider my-4">

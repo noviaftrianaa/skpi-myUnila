@@ -18,7 +18,7 @@
     <script type="text/javascript">
         'use strict';
 
-        function datatables(unit) {
+        function datatables(unit, unit_filter) {
             let table = $('#table-data').DataTable({
                 "bDestroy": true,
                 processing: true,
@@ -50,11 +50,10 @@
                 sDom: 'rt<"row"<"col-sm-12 col-md-3"l><"col-sm-12 col-md-3"i><"col-sm-12 col-md-6"p>>',
 
                 ajax: {
-                    url: "{{ route('sdm.dosen.data') }}",
+                    url: "{{ route('sdm.tendik.data') }}",
                     data: {
                         level_organisasi: unit.level_organisasi,
-                        id_jns_lemb: unit.id_jns_lemb,
-                        id_organisasi: unit.id_organisasi,
+                        unit_filter: unit_filter,
                         tahun: $('#tahun').val()
                     }
                 },
@@ -67,31 +66,35 @@
                         className: 'text-center'
                     },
                     {
-                        data: 'nm_sdm',
-                        title: 'Nama Dosen'
-                    },
-                    {
-                        data: 'nidn',
-                        title: 'NIDN'
+                        data: 'nm_pegawai',
+                        title: 'Nama Pegawai'
                     },
                     {
                         data: 'nip',
                         title: 'NIP',
                     },
                     {
-                        data: 'fakultas',
-                        title: 'Fakultas',
+                        data: 'usia',
+                        title: 'Tgl Lahir',
                     },
                     {
-                        data: 'jurusan',
-                        title: 'Jurusan',
+                        data: 'unit',
+                        title: 'Unit Utama',
                     },
                     {
-                        data: 'homebase',
-                        title: 'Homebase',
+                        data: 'unit1',
+                        title: 'Unit 1',
                     },
                     {
-                        data: 'nm_jenj_didik',
+                        data: 'unit2',
+                        title: 'Unit 2',
+                    },
+                    {
+                        data: 'unit3',
+                        title: 'Unit 3',
+                    },
+                    {
+                        data: 'nm_pend',
                         title: 'Pendidikan Terakhir',
                     },
                     {
@@ -99,29 +102,21 @@
                         title: 'Jabatan Fungsional',
                     },
                     {
-                        data: 'kode_gol',
+                        data: 'nm_gol',
                         title: 'Pangkat/Golongan',
                     },
                     {
-                        data: 'nm_ikatan_kerja',
-                        title: 'Status Ikatan',
-                    },
-                    {
-                        data: 'nm_stat_pegawai',
+                        data: 'jns_pegawai',
                         title: 'Status Kepegawaian',
                     },
                     {
-                        data: 'nm_stat_aktif',
+                        data: 'status',
                         title: 'Status Keaktifan',
                     },
                     {
-                        data: 'email',
-                        title: 'Email',
+                        data: 'tmt_pensiun',
+                        title: 'TMT Pensiun',
                     },
-                    {
-                        data: 'id_sinta',
-                        title: 'ID Sinta',
-                    }
                 ],
                 buttons: [{
                     extend: 'collection',
@@ -182,7 +177,8 @@
         $(document).ready(function() {
 
             let unit = <?php echo json_encode($unit); ?>;
-            let table = datatables(unit);
+            let unit_filter = <?php echo json_encode($unit_filter); ?>;
+            let table = datatables(unit, unit_filter);
 
             $('#search').on('change', function() {
                 table.search($('#search').val()).draw();
@@ -194,7 +190,7 @@
             });
             $('#tahun').on('change', function() {
                 $('#table-data').DataTable().clear().destroy();
-                table = datatables(unit);
+                table = datatables(unit, unit_filter);
                 $('#offcanvasAddUser').offcanvas('hide');
             });
         });

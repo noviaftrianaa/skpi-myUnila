@@ -4,7 +4,8 @@
     <div class="modal-dialog modal-fullscreen">
         <div class="modal-content p-3 p-md-5">
             <div class="modal-body">
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="ClearCloseTable()"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                    onclick="ClearCloseTable()"></button>
                 <div class="text-center mb-4">
                     <h3 class="mb-3">Detail Raw Data IKU 1</h3>
                     <p class="text-muted" id="title-modal"></p>

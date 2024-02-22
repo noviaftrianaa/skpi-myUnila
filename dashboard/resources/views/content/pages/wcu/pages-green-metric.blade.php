@@ -30,8 +30,7 @@
                             <label class="input-group-text">Tahun</label>
                             <select class="form-control text-center" id="tahun">
                                 @for ($tahun = date('Y') - 1; $tahun >= date('Y') - 2; $tahun--)
-                                    <option value="{{ $tahun }}"
-                                        {{ request()->tahun == $tahun ? 'selected' : '' }}>
+                                    <option value="{{ $tahun }}" {{ request()->tahun == $tahun ? 'selected' : '' }}>
                                         {{ $tahun }}</option>
                                 @endfor
                             </select>
@@ -140,7 +139,8 @@
                             <div class="d-flex justify-content-between w-100 flex-wrap">
                                 <h6 class="mb-0 ms-3">Setting & Infrastructure</h6>
                                 <div class="d-flex">
-                                    <p class="mb-0 fw-medium text-primary">{{ $dataGreenmetric['setting_infrastructure'] }}</p>
+                                    <p class="mb-0 fw-medium text-primary">{{ $dataGreenmetric['setting_infrastructure'] }}
+                                    </p>
                                 </div>
                             </div>
                         </li>
@@ -149,7 +149,8 @@
                             <div class="d-flex justify-content-between w-100 flex-wrap">
                                 <h6 class="mb-0 ms-3">Energy & Climate Change</h6>
                                 <div class="d-flex">
-                                    <p class="mb-0 fw-medium text-primary">{{ $dataGreenmetric['energi_climate_change'] }}</p>
+                                    <p class="mb-0 fw-medium text-primary">{{ $dataGreenmetric['energi_climate_change'] }}
+                                    </p>
                                 </div>
                             </div>
                         </li>
@@ -195,7 +196,7 @@
         </div>
 
         <div class="col-12 col-md-8 mb-4">
-            <div class="card">
+            <div class="card h-100">
                 <div class="card-header d-flex justify-content-between">
                     <div class="card-title mb-0">
                         <h5 class="mb-0">Methodology</h5>
@@ -265,7 +266,9 @@
                                 </div>
                                 <div class="row g-3">
                                     <div class="col-12">
-                                        Basic information of the university policy towards green environment. Include space for greenery and in safeguarding environment, as well as developing sustainable energy.
+                                        Basic information of the university policy towards green environment. Include space
+                                        for greenery and in safeguarding environment, as well as developing sustainable
+                                        energy.
                                     </div>
                                 </div>
                             </div>
@@ -275,7 +278,9 @@
                                 </div>
                                 <div class="row g-3">
                                     <div class="col-12">
-                                        The university's attention to the use of energy and climate change issues. Universities are expected to increase the effort in energy efficiency on their buildings, nature and resources.
+                                        The university's attention to the use of energy and climate change issues.
+                                        Universities are expected to increase the effort in energy efficiency on their
+                                        buildings, nature and resources.
                                     </div>
                                 </div>
                             </div>
@@ -285,7 +290,9 @@
                                 </div>
                                 <div class="row g-3">
                                     <div class="col-12">
-                                        Waste treatment and recycling programs are major factors in creating a sustainable environment. Universities must take note on its waste production as well as recycling efforts.
+                                        Waste treatment and recycling programs are major factors in creating a sustainable
+                                        environment. Universities must take note on its waste production as well as
+                                        recycling efforts.
                                     </div>
                                 </div>
                             </div>
@@ -295,7 +302,9 @@
                                 </div>
                                 <div class="row g-3">
                                     <div class="col-12">
-                                        Universities are expected to decrease water usage, increase conversation program, and protect the habitat. This may include water conversation program and piped water usage.
+                                        Universities are expected to decrease water usage, increase conversation program,
+                                        and protect the habitat. This may include water conversation program and piped water
+                                        usage.
                                     </div>
                                 </div>
                             </div>
@@ -305,7 +314,9 @@
                                 </div>
                                 <div class="row g-3">
                                     <div class="col-12">
-                                        Universities policies in limiting the number of motor vehicles in campus, the use of campus bus and bicycle to encourage a healthier environment and reduce universities carbon footprint.
+                                        Universities policies in limiting the number of motor vehicles in campus, the use of
+                                        campus bus and bicycle to encourage a healthier environment and reduce universities
+                                        carbon footprint.
                                     </div>
                                 </div>
                             </div>
@@ -315,7 +326,8 @@
                                 </div>
                                 <div class="row g-3">
                                     <div class="col-12">
-                                        Universities effort in creating and supporting the new generation concern with sustainability issues.
+                                        Universities effort in creating and supporting the new generation concern with
+                                        sustainability issues.
                                     </div>
                                 </div>
                             </div>
