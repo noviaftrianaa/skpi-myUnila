@@ -1,5 +1,5 @@
 @extends('layouts/layoutMaster')
-@include('content.pages.ktw.function')
+@include('content.main.ktw.function')
 
 @section('title', $title)
 
@@ -37,6 +37,11 @@
                                 <option value="{{ $tahun - 5 }}">{{ $tahun - 9 }} - {{ $tahun - 5 }}</option>
                                 <option value="{{ $tahun - 10 }}">{{ $tahun - 14 }} - {{ $tahun - 10 }}</option>
                             </select>
+                            @if (auth()->check() and in_array(session()->get('login.role')->id_peran, [1, 32, 107]))
+                                <a href="#detailData" data-bs-toggle="modal" class="btn btn-label-primary ms-2"><i
+                                        class="fas fa-info-circle me-1"></i> Data</a>
+                                @include('content.main.ktw.modal')
+                            @endif
                         </div>
                     </div>
                 </div>

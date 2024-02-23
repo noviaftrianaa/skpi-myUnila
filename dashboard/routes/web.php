@@ -15,7 +15,7 @@ use App\Http\Controllers\authentications\LoginBasic;
 use App\Http\Controllers\authentications\RegisterBasic;
 //MAIN
 use App\Http\Controllers\Main\DashboardController as MainDashboardController;
-
+use App\Http\Controllers\Main\KTWController as MainKTWController;
 //IKU
 use App\Http\Controllers\Main\iku\Iku1Controller as Iku1Controller;
 use App\Http\Controllers\Main\iku\Iku2Controller as Iku2Controller;
@@ -87,6 +87,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/', [MainDashboardController::class, 'index'])->name('main-index');
     Route::get('/peran', [MainDashboardController::class, 'peran'])->name('main-peran');
     Route::get('/changePeran', [MainDashboardController::class, 'changePeran'])->name('main-changePeran');
+    //Kelulusan Tepat Waktu
+    Route::get('/ktw', [MainKTWController::class, 'index'])->name('main-ktw');
+    Route::get('/ktw/data', [MainKTWController::class, 'data'])->name('main-ktw-data');
 
     //IKU
     Route::get('iku1', [Iku1Controller::class, 'index'])->name('main-iku1');

@@ -1,20 +1,20 @@
 @section('vendor-style')
-    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/vendor/libs/apex-charts/apex-charts.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/vendor/libs/loading/overlay.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/bootstrap-select/bootstrap-select.css') }}" />
 @endsection
 
 @section('vendor-script')
     <script src="{{ asset('assets/vendor/libs/jquery-sticky/jquery-sticky.js') }}"></script>
-    <script src="{{ asset('assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js') }}"></script>
     <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
+    <script src="{{ asset('assets/vendor/libs/bootstrap-select/bootstrap-select.js') }}"></script>
     <script src="{{ asset('assets/vendor/libs/apex-charts/apexcharts.js') }}"></script>
     <script src="{{ asset('assets/vendor/libs/moment/moment.js') }}"></script>
 @endsection
 
 @section('page-script')
+    <script src="{{ asset('assets/js/forms-selects.js') }}"></script>
     <script type="text/javascript">
         'use strict';
 
@@ -36,12 +36,12 @@
                 series: [
 
                     {
-                        name: 'Kelulusan Tepat Waktu',
+                        name: 'Tepat Waktu',
                         type: 'column',
                         data: tepatWaktu
                     },
                     {
-                        name: "Kelulusan Tidak Tepat Waktu",
+                        name: "Tidak Tepat Waktu",
                         type: 'column',
                         data: tidakTepatWaktu
                     }
@@ -81,13 +81,13 @@
 
                     var options = setOptions(res['smt'], res['studi']['ktw_tepat'], res['studi'][
                         'ktw_tidak_tepat'
-                    ], 'Berdasarkan Masa Studi 4 Tahun')
+                    ], 'Berdasarkan Masa Studi Ideal')
                     var chart = new ApexCharts(document.querySelector("#studiChart"), options);
                     chart.render();
 
                     var options = setOptions(res['smt'], res['ipk']['ktw_tepat'], res['ipk'][
                         'ktw_tidak_tepat'
-                    ], 'Berdasarkan Masa Studi 4 Tahun dan IPK >= 3.00')
+                    ], 'Berdasarkan Masa Studi Ideal dan IPK >= 3.00')
                     var chart = new ApexCharts(document.querySelector("#ipkChart"), options);
                     chart.render();
 
@@ -104,125 +104,15 @@
                 diffDate.getMonth() + " Bulan " + (diffDate.getDate() - 1) + " Hari");
         }
 
-        function datatables() {
-            return $('#table-data').DataTable({
-                "bDestroy": true,
-                processing: true,
-                serverSide: true,
-                pageLength: 25,
-                "language": {
-                    "decimal": "",
-                    "emptyTable": "Tidak ada data pada tabel",
-                    "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ total data",
-                    "infoEmpty": "Tidak ada yang ditampilkan",
-                    "infoFiltered": "(Terfilter dari  _MAX_ total entitas)",
-                    "infoPostFix": "",
-                    "thousands": ",",
-                    "lengthMenu": "Menampilkan _MENU_ entitas",
-                    "loadingRecords": "Loading...",
-                    "processing": "Sedang dalam proses...",
-                    "search": "Pencarian:",
-                    "zeroRecords": "Tidak ada data yang cocok",
-                    "paginate": {
-                        "first": "Pertama",
-                        "last": "Terakhir",
-                        "next": "Selanjutnya",
-                        "previous": "Sebelumnya"
-                    },
-                    "aria": {
-                        "sortAscending": ": activate to sort column ascending",
-                        "sortDescending": ": activate to sort column descending"
-                    }
-                },
-                ajax: {
-                    url: "{{ route('pages-ktw-data') }}",
-                    data: {
-                        tahun: $('#tahun').val(),
-                        id_sms: $('#sms').val(),
-                        table: true,
-                    }
-                },
-                "columns": [{
-                        data: 'DT_RowIndex',
-                        orderable: false,
-                        searchable: false,
-                        title: 'No.',
-                        width: '5px',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'nm_pd',
-                        title: 'Mahasiswa',
-                    },
-                    {
-                        data: 'prodi',
-                        title: 'Prodi',
-                        render: function(data, type, row) {
-                            return `${data} (${row.jenjang})`;
-                        }
-                    },
-                    {
-                        data: 'sks_lulus',
-                        title: 'SKS Lulus',
-                        width: '5px',
-                        className: 'text-center',
-                    },
-                    {
-                        data: 'sks_total',
-                        title: 'SKS Diambil',
-                        width: '5px',
-                        className: 'text-center',
-                    },
-                    {
-                        data: 'ipk',
-                        title: 'IPK',
-                        width: '5px',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'tgl_masuk',
-                        title: 'Tgl Masuk',
-                        width: '5px',
-                        className: 'text-center',
-                    },
-                    {
-                        data: 'tgl_keluar',
-                        title: 'Tgl Lulus',
-                        width: '5px',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'thn_kuliah',
-                        title: 'Lama Studi (Tahun)',
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            return dateAgo(row.tgl_masuk, row.tgl_keluar);
-                        }
-                    },
-                ],
-            });
-        }
-
         $(document).ready(function() {
 
-            let tahun = <?php echo json_encode($tahun); ?>;
-            let auth = "{{ auth()->check() }}";
             ajaxChart();
-
-            if (auth == true) {
-                let table = datatables();
-            }
 
             $('#tahun').on('change', function() {
                 $('#loading').show();
                 $('#studiChart').html(null);
                 $('#ipkChart').html(null);
                 ajaxChart();
-
-                if (auth == true) {
-                    $('#table-data').DataTable().clear().destroy();
-                    table = datatables();
-                }
             });
 
             $('#sms').on('change', function() {
@@ -230,11 +120,6 @@
                 $('#studiChart').html(null);
                 $('#ipkChart').html(null);
                 ajaxChart();
-
-                if (auth == true) {
-                    $('#table-data').DataTable().clear().destroy();
-                    table = datatables();
-                }
             });
         });
     </script>

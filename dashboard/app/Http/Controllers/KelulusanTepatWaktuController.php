@@ -20,6 +20,15 @@ class KelulusanTepatWaktuController extends Controller
       ->orderBy('nm_lemb')
       ->get();
 
+    foreach ($sms as $item) {
+      $item->prodi = \App\Models\Pdrd\SMS::with('jenjang')
+        ->where('soft_delete', 0)
+        ->where('id_jns_sms', 3)
+        ->where('id_fak_unila', $item->id_sms)
+        ->orderBy('nm_lemb')
+        ->get();
+    }
+
     return view('content.pages.ktw.index', [
       'pageConfigs' => $pageConfigs,
       'title' => $title,
@@ -31,7 +40,10 @@ class KelulusanTepatWaktuController extends Controller
   public function data(Request $request)
   {
     $tahun = $request->tahun ?? get_tahun_keaktifan();
-    $sms = $request->id_sms == 'all' ? ' ' : " AND fak.id_sms='" . $request->id_sms . "' ";
+    $sms =
+      $request->id_sms == 'all'
+        ? ' '
+        : " AND (fak.id_sms='" . $request->id_sms . "' OR sms.id_sms='" . $request->id_sms . "') ";
 
     $data = collect(
       DB::SELECT(
@@ -97,18 +109,18 @@ class KelulusanTepatWaktuController extends Controller
                 ELSE 0
             END AS syarat_tahun_lulus,
             CASE
-                WHEN sms.id_jenj_didik = 20 AND DATEDIFF(YEAR, reg.tgl_masuk_sp, reg.tgl_keluar) <= 1 THEN 1
-                WHEN sms.id_jenj_didik = 21 AND DATEDIFF(YEAR, reg.tgl_masuk_sp, reg.tgl_keluar) <= 2 THEN 1
-                WHEN sms.id_jenj_didik = 22 AND DATEDIFF(YEAR, reg.tgl_masuk_sp, reg.tgl_keluar) <= 3 THEN 1
-                WHEN sms.id_jenj_didik = 23 AND DATEDIFF(YEAR, reg.tgl_masuk_sp, reg.tgl_keluar) <= 4 THEN 1
-                WHEN sms.id_jenj_didik = 30 AND DATEDIFF(YEAR, reg.tgl_masuk_sp, reg.tgl_keluar) <= 4 THEN 1
-                WHEN sms.id_jenj_didik = 31 AND DATEDIFF(YEAR, reg.tgl_masuk_sp, reg.tgl_keluar) <= 2 THEN 1
-                WHEN sms.id_jenj_didik = 32 AND DATEDIFF(YEAR, reg.tgl_masuk_sp, reg.tgl_keluar) <= 2 THEN 1
-                WHEN sms.id_jenj_didik = 35 AND DATEDIFF(YEAR, reg.tgl_masuk_sp, reg.tgl_keluar) <= 2 THEN 1
-                WHEN sms.id_jenj_didik = 36 AND DATEDIFF(YEAR, reg.tgl_masuk_sp, reg.tgl_keluar) <= 2 THEN 1
-                WHEN sms.id_jenj_didik = 37 AND DATEDIFF(YEAR, reg.tgl_masuk_sp, reg.tgl_keluar) <= 2 THEN 1
-                WHEN sms.id_jenj_didik = 40 AND DATEDIFF(YEAR, reg.tgl_masuk_sp, reg.tgl_keluar) <= 3 THEN 1
-                WHEN sms.id_jenj_didik = 41 AND DATEDIFF(YEAR, reg.tgl_masuk_sp, reg.tgl_keluar) <= 3 THEN 1
+                WHEN sms.id_jenj_didik = 20 AND ROUND(DATEDIFF(DAY, reg.tgl_masuk_sp, reg.tgl_keluar)/365.25, 2) <= 1 THEN 1
+                WHEN sms.id_jenj_didik = 21 AND ROUND(DATEDIFF(DAY, reg.tgl_masuk_sp, reg.tgl_keluar)/365.25, 2) <= 2 THEN 1
+                WHEN sms.id_jenj_didik = 22 AND ROUND(DATEDIFF(DAY, reg.tgl_masuk_sp, reg.tgl_keluar)/365.25, 2) <= 3 THEN 1
+                WHEN sms.id_jenj_didik = 23 AND ROUND(DATEDIFF(DAY, reg.tgl_masuk_sp, reg.tgl_keluar)/365.25, 2) <= 4 THEN 1
+                WHEN sms.id_jenj_didik = 30 AND ROUND(DATEDIFF(DAY, reg.tgl_masuk_sp, reg.tgl_keluar)/365.25, 2) <= 4 THEN 1
+                WHEN sms.id_jenj_didik = 31 AND ROUND(DATEDIFF(DAY, reg.tgl_masuk_sp, reg.tgl_keluar)/365.25, 2) <= 2 THEN 1
+                WHEN sms.id_jenj_didik = 32 AND ROUND(DATEDIFF(DAY, reg.tgl_masuk_sp, reg.tgl_keluar)/365.25, 2) <= 2 THEN 1
+                WHEN sms.id_jenj_didik = 35 AND ROUND(DATEDIFF(DAY, reg.tgl_masuk_sp, reg.tgl_keluar)/365.25, 2) <= 2 THEN 1
+                WHEN sms.id_jenj_didik = 36 AND ROUND(DATEDIFF(DAY, reg.tgl_masuk_sp, reg.tgl_keluar)/365.25, 2) <= 2 THEN 1
+                WHEN sms.id_jenj_didik = 37 AND ROUND(DATEDIFF(DAY, reg.tgl_masuk_sp, reg.tgl_keluar)/365.25, 2) <= 2 THEN 1
+                WHEN sms.id_jenj_didik = 40 AND ROUND(DATEDIFF(DAY, reg.tgl_masuk_sp, reg.tgl_keluar)/365.25, 2) <= 3 THEN 1
+                WHEN sms.id_jenj_didik = 41 AND ROUND(DATEDIFF(DAY, reg.tgl_masuk_sp, reg.tgl_keluar)/365.25, 2) <= 3 THEN 1
                 ELSE 0
             END AS status
         FROM
@@ -135,16 +147,8 @@ class KelulusanTepatWaktuController extends Controller
     "
       )
     );
-    // CONVERT(DECIMAL(10,2), ROUND(DATEDIFF(DAY, reg.tgl_masuk_sp, reg.tgl_keluar)/365.25, 2)) AS thn_kuliah,
-    // year(reg.tgl_keluar) - substring(reg.id_semester_masuk, 1, 4)
 
     $data = $data->whereBetween('semester_akhir', [$tahun - 4 . '1', $tahun . '2']);
-
-    if ($request->table == true) {
-      return DataTables::of($data)
-        ->addIndexColumn()
-        ->make(true);
-    }
 
     $temp['data'] = $data;
 
@@ -202,8 +206,9 @@ class KelulusanTepatWaktuController extends Controller
     $temp['ipk']['ktw_tepat'] = array_values($list);
 
     $ktw_tidak_tepat = $data
-      ->where('status', 0)
-      ->whereBetween('ipk', [3, 4])
+      ->filter(function ($q) {
+        return ($q->status == 1 && ($q->ipk >= '0.00' && $q->ipk < '3.00')) || $q->status == 0;
+      })
       ->pluck('semester_akhir');
     $ktw_tidak_tepat = array_count_values($ktw_tidak_tepat->toArray());
     $list = [];
