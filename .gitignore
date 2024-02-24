@@ -7,3 +7,4 @@ apps_pdpt/storage/api-docs/api-docs.json
 .idea/inspectionProfiles/Project_Default.xml
 .idea/jsLinters/jshint.xml
 dashboard/.env-mp
+dashboard/.env
