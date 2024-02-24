@@ -91,16 +91,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/ktw', [MainKTWController::class, 'index'])->name('main-ktw');
     Route::get('/ktw/data', [MainKTWController::class, 'data'])->name('main-ktw-data');
 
-    //IKU
-    Route::get('iku1', [Iku1Controller::class, 'index'])->name('main-iku1');
-    Route::get('iku1/json/point', [Iku1Controller::class, 'listTotalPoint'])->name('json-point-iku1');
-    Route::get('iku1/json/raw', [Iku1Controller::class, 'listRawData'])->name('json-raw-iku1');
-    Route::get('iku1/download/raw', [Iku1Controller::class, 'downloadRawData'])->name('download-raw-iku1');
+     //IKU
+     Route::get('iku1', [Iku1Controller::class, 'index'])->name('main-iku1');
+     Route::get('iku1/json/point', [Iku1Controller::class, 'listTotalPoint'])->name('json-point-iku1');
+     Route::get('iku1/json/raw', [Iku1Controller::class, 'listRawData'])->name('json-raw-iku1');
+     Route::get('iku1/download/raw', [Iku1Controller::class, 'downloadRawData'])->name('download-raw-iku1');
 
-    Route::get('iku2', [Iku2Controller::class, 'index'])->name('main-iku2');
-    Route::get('iku2/json/point', [Iku2Controller::class, 'listTotalPoint'])->name('json-point-iku2');
-    Route::get('iku2/json/raw', [Iku2Controller::class, 'listRawData'])->name('json-raw-iku2');
-    Route::get('iku2/download/raw', [Iku2Controller::class, 'downloadRawData'])->name('download-raw-iku2');
+     Route::get('iku2', [Iku2Controller::class, 'index'])->name('main-iku2');
+     Route::get('iku2/json/point', [Iku2Controller::class, 'listTotalPoint'])->name('json-point-iku2');
+     Route::get('iku2/json/raw', [Iku2Controller::class, 'listRawData'])->name('json-raw-iku2');
+     Route::get('iku2/download/raw', [Iku2Controller::class, 'downloadRawData'])->name('download-raw-iku2');
 
     Route::get('iku3', [Iku3Controller::class, 'index'])->name('main-iku3');
     Route::get('iku3/json/point', [Iku3Controller::class, 'listTotalPoint'])->name('json-point-iku3');

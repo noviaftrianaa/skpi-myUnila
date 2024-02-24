@@ -88,221 +88,247 @@
   Indikator Kinerja Utama - IKU 1
 </h4>
 
+<div class="overlay" id="loading">
+    <div class="overlay-content">
+    <div class="d-flex justify-content-center">
+        <p class="mb-0" style="color: #5599FE">Harap tunggu... </p>
+        <div class="sk-wave m-0">
+            <div class="sk-rect sk-wave-rect"></div>
+            <div class="sk-rect sk-wave-rect"></div>
+            <div class="sk-rect sk-wave-rect"></div>
+            <div class="sk-rect sk-wave-rect"></div>
+            <div class="sk-rect sk-wave-rect"></div>
+        </div>
+    </div>
+    </div>
+</div>
+
 <div class="row">
  <div class="col-md-12">
   <!-- Vertical Menu IKU -->
   <div class="col-12 mb-4">
     <div class="bs-stepper wizard-vertical vertical mt-2">
-      <div class="bs-stepper-header">
-        <a class="step crossed select-iku zoom" href="{{ route('main-iku1') }}">
-          <button type="button" class="step-trigger">
-           <span class="bs-stepper-circle">1</span>
-            <span class="bs-stepper-label">
-              <span class="bs-stepper-title">IKU 1</span>
-              <span class="bs-stepper-subtitle">Lulusan Mendapat Pekerjaan yang Layak</span>
-            </span>
-          </button>
-        </a>
-        <div class="line"></div>
-        <a class="step select-iku" href="{{ route('main-iku2') }}">
-          <button type="button" class="step-trigger">
-           <span class="bs-stepper-circle">2</span>
-            <span class="bs-stepper-label">
-              <span class="bs-stepper-title">IKU 2</span>
-              <span class="bs-stepper-subtitle">Mahasiswa MBKM / prestasi</span>
-            </span>
-          </button>
-        </a>
-        <div class="line"></div>
-        <a class="step select-iku" href="{{ route('main-iku3') }}">
-          <button type="button" class="step-trigger">
-           <span class="bs-stepper-circle">3</span>
-            <span class="bs-stepper-label">
-              <span class="bs-stepper-title">IKU 3</span>
-              <span class="bs-stepper-subtitle">Dosen di luar kampus</span>
-            </span>
-          </button>
-        </a>
-        <div class="line"></div>
-        <a class="step select-iku" href="{{ route('main-iku4') }}">
-          <button type="button" class="step-trigger">
-           <span class="bs-stepper-circle">4</span>
-            <span class="bs-stepper-label">
-              <span class="bs-stepper-title">IKU 4</span>
-              <span class="bs-stepper-subtitle">Kualifikasi dosen/pengajar</span>
-            </span>
-          </button>
-        </a>
-        <div class="line"></div>
-        <a class="step select-iku" href="{{ route('main-iku5') }}">
-          <button type="button" class="step-trigger">
-           <span class="bs-stepper-circle">5</span>
-            <span class="bs-stepper-label">
-              <span class="bs-stepper-title">IKU 5</span>
-              <span class="bs-stepper-subtitle">Penerapan karya dosen</span>
-            </span>
-          </button>
-        </a>
-        <div class="line"></div>
-        <a class="step select-iku" href="{{ route('main-iku6') }}">
-          <button type="button" class="step-trigger">
-           <span class="bs-stepper-circle">6</span>
-            <span class="bs-stepper-label">
-              <span class="bs-stepper-title">IKU 6</span>
-              <span class="bs-stepper-subtitle">Kemitraan program studi</span>
-            </span>
-          </button>
-        </a>
-        <div class="line"></div>
-        <a class="step select-iku" href="{{ route('main-iku7') }}">
-          <button type="button" class="step-trigger">
-           <span class="bs-stepper-circle">7</span>
-            <span class="bs-stepper-label">
-              <span class="bs-stepper-title">IKU 7</span>
-              <span class="bs-stepper-subtitle">Pembelajaran dalam kelas</span>
-            </span>
-          </button>
-        </a>
-        <div class="line"></div>
-        <a class="step select-iku" href="{{ route('main-iku8') }}">
-          <button type="button" class="step-trigger">
-           <span class="bs-stepper-circle">8</span>
-            <span class="bs-stepper-label">
-              <span class="bs-stepper-title">IKU 8</span>
-              <span class="bs-stepper-subtitle">Akreditasi Internasional</span>
-            </span>
-          </button>
-        </a>
-        <div class="line"></div>
-      </div>
-
-      <div class="bs-stepper-content">
-        <h5 class="card-title mb-3 mt-2" id="title">UNIVERSITAS LAMPUNG</h5>
-        {{-- <div class="container"> --}}
-        <!-- Card Border Shadow -->
-        <div class="row">
-          <div class="overlay" id="loading">
-            <div class="overlay-content">
-              <div class="d-flex justify-content-center">
-                <p class="mb-0" style="color: #5599FE">Harap tunggu... </p>
-                <div class="sk-wave m-0">
-                    <div class="sk-rect sk-wave-rect"></div>
-                    <div class="sk-rect sk-wave-rect"></div>
-                    <div class="sk-rect sk-wave-rect"></div>
-                    <div class="sk-rect sk-wave-rect"></div>
-                    <div class="sk-rect sk-wave-rect"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card card-border-shadow-primary">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-2 pb-1">
-                    <span class="avatar-initial rounded bg-label-primary p-1"> <h4 class="ms-1 mb-0" id="total_point">0</h4></span>
-                </div>
-                <p class="mb-1">Total Point</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card card-border-shadow-primary">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-2 pb-1">
-                    <span class="avatar-initial rounded bg-label-primary p-1"><h4 class="ms-1 mb-0" id="total_responden">0</h4></span>
-                </div>
-                <p class="mb-1">Total Responden</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card card-border-shadow-primary">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-2 pb-1">
-                    <span class="avatar-initial rounded bg-label-primary p-1"><h4 class="ms-1 mb-0" id="total_alumni">0</h4></span>
-                </div>
-                <p class="mb-1">Total Lulusan</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card card-border-shadow-primary">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-2 pb-1">
-                    <span class="avatar-initial rounded bg-label-primary p-1"><h4 class="ms-1 mb-0" id="pembentuk">0</h4></span>
-                </div>
-                <p class="mb-1">Pembentuk</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card card-border-shadow-primary">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-2 pb-1">
-                    <span class="avatar-initial rounded bg-label-primary p-1"><h4 class="ms-1 mb-0"id="pencapaian">0</h4></span>
-                </div>
-                <p class="mb-1">Pencapaian IKU</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card card-border-shadow-primary">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-2 pb-1">
-                    <span class="avatar-initial rounded bg-label-primary p-1"><h4 class="ms-1 mb-0" id="gold_standart">0</h4></span>
-                </div>
-                <p class="mb-1">Gold Standart</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card card-border-shadow-primary">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-2 pb-1">
-                    <span class="avatar-initial rounded bg-label-primary p-1"><h4 class="ms-1 mb-0" id="delta_gold_standart">0</h4></span>
-                </div>
-                <p class="mb-1">Delta Gold Standart</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card card-border-shadow-primary">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-2 pb-1">
-                    <span class="avatar-initial rounded bg-label-primary p-1"><h4 class="ms-1 mb-0" id="skor_pencapaian">0</h4></span>
-                </div>
-                <p class="mb-1">Skor Pencapaian</p>
-              </div>
-            </div>
-          </div>
+        <div class="bs-stepper-header">
+            <a class="step crossed select-iku zoom" href="{{ route('main-iku1') }}">
+            <button type="button" class="step-trigger">
+            <span class="bs-stepper-circle">1</span>
+                <span class="bs-stepper-label">
+                <span class="bs-stepper-title">IKU 1</span>
+                <span class="bs-stepper-subtitle">Lulusan Mendapat Pekerjaan yang Layak</span>
+                </span>
+            </button>
+            </a>
+            <div class="line"></div>
+            <a class="step select-iku" href="{{ route('main-iku2') }}">
+            <button type="button" class="step-trigger">
+            <span class="bs-stepper-circle">2</span>
+                <span class="bs-stepper-label">
+                <span class="bs-stepper-title">IKU 2</span>
+                <span class="bs-stepper-subtitle">Mahasiswa MBKM / prestasi</span>
+                </span>
+            </button>
+            </a>
+            <div class="line"></div>
+            <a class="step select-iku" href="{{ route('main-iku3') }}">
+            <button type="button" class="step-trigger">
+            <span class="bs-stepper-circle">3</span>
+                <span class="bs-stepper-label">
+                <span class="bs-stepper-title">IKU 3</span>
+                <span class="bs-stepper-subtitle">Dosen di luar kampus</span>
+                </span>
+            </button>
+            </a>
+            <div class="line"></div>
+            <a class="step select-iku" href="{{ route('main-iku4') }}">
+            <button type="button" class="step-trigger">
+            <span class="bs-stepper-circle">4</span>
+                <span class="bs-stepper-label">
+                <span class="bs-stepper-title">IKU 4</span>
+                <span class="bs-stepper-subtitle">Kualifikasi dosen/pengajar</span>
+                </span>
+            </button>
+            </a>
+            <div class="line"></div>
+            <a class="step select-iku" href="{{ route('main-iku5') }}">
+            <button type="button" class="step-trigger">
+            <span class="bs-stepper-circle">5</span>
+                <span class="bs-stepper-label">
+                <span class="bs-stepper-title">IKU 5</span>
+                <span class="bs-stepper-subtitle">Penerapan karya dosen</span>
+                </span>
+            </button>
+            </a>
+            <div class="line"></div>
+            <a class="step select-iku" href="{{ route('main-iku6') }}">
+            <button type="button" class="step-trigger">
+            <span class="bs-stepper-circle">6</span>
+                <span class="bs-stepper-label">
+                <span class="bs-stepper-title">IKU 6</span>
+                <span class="bs-stepper-subtitle">Kemitraan program studi</span>
+                </span>
+            </button>
+            </a>
+            <div class="line"></div>
+            <a class="step select-iku" href="{{ route('main-iku7') }}">
+            <button type="button" class="step-trigger">
+            <span class="bs-stepper-circle">7</span>
+                <span class="bs-stepper-label">
+                <span class="bs-stepper-title">IKU 7</span>
+                <span class="bs-stepper-subtitle">Pembelajaran dalam kelas</span>
+                </span>
+            </button>
+            </a>
+            <div class="line"></div>
+            <a class="step select-iku" href="{{ route('main-iku8') }}">
+            <button type="button" class="step-trigger">
+            <span class="bs-stepper-circle">8</span>
+                <span class="bs-stepper-label">
+                <span class="bs-stepper-title">IKU 8</span>
+                <span class="bs-stepper-subtitle">Akreditasi Internasional</span>
+                </span>
+            </button>
+            </a>
+            <div class="line"></div>
         </div>
-        <!--/ Card Border Shadow -->
-          <div class="row g-3">
-              <div class="col-12">
-                <ul class="list-group">
-                  <li class="list-group-item d-flex justify-content-between flex-column flex-sm-row">
-                    <div class="offer">
-                      <p class="mb-0 fw-medium">Rumus Perhitungan</p>
-                      <span id="rumus">-</span>
+
+        <div class="bs-stepper-content">
+            <h5 class="card-title mb-3 mt-2" id="title">UNIVERSITAS LAMPUNG</h5>
+            <p class="text-muted mt-3" id="tahun-index"></p>
+            <!-- Card Border Shadow -->
+            <div class="tab-content p-3 border">
+                <div class="row">
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="total_point">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Total Point</p>
+                            </div>
+                        </div>
                     </div>
-                  </li>
-                  <li class="list-group-item d-flex justify-content-between flex-column flex-sm-row">
-                    <div class="offer">
-                      <p class="mb-0 fw-medium">Sumber Data</p>
-                      <span id="sumber_data">-</span>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="total_responden">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Total Responden</p>
+                            </div>
+                        </div>
                     </div>
-                  </li>
-                  <li class="list-group-item d-flex justify-content-between flex-column flex-sm-row">
-                    <div class="offer">
-                      <p class="mb-0 fw-medium">Update Sync Data Terahkir</p>
-                      <span id="last_sync">-</span>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="total_alumni">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Total Lulusan</p>
+                            </div>
+                        </div>
                     </div>
-                  </li>
-                </ul>
-              </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h5 class="ms-1 mb-0" id="pembentuk">0</h5>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Pembentuk</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="pencapaian">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Pencapaian IKU</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="gold_standart">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Gold Standart</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="delta_gold_standart">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Delta Gold Standart</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="skor_pencapaian">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Skor Pencapaian</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!--/ Card Border Shadow -->
+                <div class="row g-3">
+                    <div class="col-12">
+                        <ul class="list-group">
+                            <li
+                                class="list-group-item d-flex justify-content-between flex-column flex-sm-row">
+                                <div class="offer">
+                                    <p class="mb-0 fw-medium">Rumus Perhitungan</p>
+                                    <span id="rumus">-</span>
+                                </div>
+                            </li>
+                            <li
+                                class="list-group-item d-flex justify-content-between flex-column flex-sm-row">
+                                <div class="offer">
+                                    <p class="mb-0 fw-medium">Sumber Data</p>
+                                    <span id="sumber_data">-</span>
+                                </div>
+                            </li>
+                            <li
+                                class="list-group-item d-flex justify-content-between flex-column flex-sm-row">
+                                <div class="offer">
+                                    <p class="mb-0 fw-medium">Update Sync Data Terahkir</p>
+                                    <span id="last_sync">-</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-          {{-- </div> --}}
-      </div>
+        </div>
     </div>
   </div>
   <!-- /Vertical Menu IKU -->
@@ -317,7 +343,7 @@
           <th hidden>NO</th>
           <th hidden>ID</th>
           <th></th>
-          <th width ="55%">Nama Fakultas/Program Studi</th>
+          <th width ="55%">Nama Fakultas / Program Studi</th>
           <th width ="10%">Total Point</th>
           <th width ="15%">Total Responden</th>
           <th width ="10%">Total Alumni</th>

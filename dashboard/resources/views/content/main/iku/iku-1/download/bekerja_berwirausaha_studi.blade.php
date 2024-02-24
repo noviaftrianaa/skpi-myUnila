@@ -7,6 +7,7 @@
       <td>Nama Alumni</td>
       <td>Fakultas</td>
       <td>Nama Prodi</td>
+      <td>Jenjang</td>
       <td>Tgl Lulus / Kompre</td>
       <td>Status Lulusan</td>
       <td>Apakah Kerja Sebelum Lulus ?</td>
@@ -27,6 +28,7 @@
         <td>{{ $each_data->nm_pd }}</td>
         <td>{{ $each_data->nm_fakultas }}</td>
         <td>{{ $each_data->nm_prodi }}</td>
+        <td>{{ $each_data->nm_jenj_didik }}</td>
         <td>{{ $each_data->tgl_keluar }}</td>
         <td>{{ $each_data->status_lulusan }}</td>
         <td>{{ $each_data->a_kerja_sblm_lulus }}</td>
