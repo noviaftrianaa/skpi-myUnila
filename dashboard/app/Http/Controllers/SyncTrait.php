@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Dok\DokPublikasi;
 use App\Models\Pdrd\KeaktifanPTK;
+use App\Models\Pdrd\Publikasi;
 use App\Models\Pdrd\RegPTK;
 use App\Models\Pdrd\SDM;
 use App\Models\Pdrd\SMS;
+use App\Models\Pdrd\TulisPub;
 use App\Models\Referensi\JenjangPendidikan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +17,98 @@ trait SyncTrait
 {
     function sync_table($skema='',$table='',$token,$url,$response,$update_time,$waktu_mulai){
         if ('pdrd'==$skema) {
-            if ('reg_ptk'==$table) {
+            if('publikasi'==$table) {
+                $dosen = SDM::where('soft_delete',0)->select('id_sdm')->get();
+                foreach ($dosen AS $setiap_dosen) {
+                    $semua_publikasi_dosen = curl_api_pddikti($url.'/publikasi?id_sdm='.$setiap_dosen->id_sdm,$token);
+                    foreach ($semua_publikasi_dosen AS $setiap_publikasi_dosen) {
+                        $detail_publikasi_dosen = curl_api_pddikti($url.'/publikasi/'.$setiap_publikasi_dosen['id'],$token);
+                        $cari_publikasi = Publikasi::find($setiap_publikasi_dosen['id']);
+                        if (is_null($cari_publikasi)) {
+                            $input_publikasi = [
+                                'id_publikasi'      => $detail_publikasi_dosen['id'],
+                                'id_jns_pub'        => $detail_publikasi_dosen['id_jenis_publikasi'],
+                                'judul'             => $detail_publikasi_dosen['judul'],
+                                'judul_chapter'     => $detail_publikasi_dosen['judul_artikel'],
+                                'judul_asli'        => $detail_publikasi_dosen['judul_asli'],
+//                                'abstrak'           => $detail_publikasi_dosen[''],
+                                'nama_jurnal'       => $detail_publikasi_dosen['nama_jurnal'],
+//                                'laman_jurnal'      => $detail_publikasi_dosen[''],
+                                'tgl_terbit'        => $detail_publikasi_dosen['tanggal'],
+                                'edisi'             => $detail_publikasi_dosen['edisi'],
+//                                'impact_jurnal'     => $detail_publikasi_dosen[''],
+                                'vol'               => $detail_publikasi_dosen['volume'],
+                                'no'                => $detail_publikasi_dosen['nomor'],
+                                'hal'               => $detail_publikasi_dosen['halaman'],
+                                'jml_hal'           => $detail_publikasi_dosen['jumlah_halaman'],
+                                'penerbit'          => $detail_publikasi_dosen['penerbit'],
+//                                'kota'              => $detail_publikasi_dosen[''],
+                                'a_seminar'         => $detail_publikasi_dosen['seminar'],
+                                'a_prosiding'       => $detail_publikasi_dosen['prosiding'],
+//                                'dimensi'           => $detail_publikasi_dosen[''],
+//                                'bahasa'            => $detail_publikasi_dosen[''],
+                                'no_paten'          => $detail_publikasi_dosen['nomor_paten'],
+                                'pemberi_paten'     => $detail_publikasi_dosen['pemberi_paten'],
+                                'doi'               => $detail_publikasi_dosen['doi'],
+                                'isbn'              => $detail_publikasi_dosen['isbn'],
+                                'issn'              => $detail_publikasi_dosen['issn'],
+                                'e_issn'            => $detail_publikasi_dosen['e_issn'],
+                                'url'               => $detail_publikasi_dosen['tautan'],
+                                'ket'               => $detail_publikasi_dosen['keterangan'],
+//                                'pengguna_produk_jasa'=> $detail_publikasi_dosen[''],
+//                                'a_komersialisasi'  => ,
+//                                'stat_impor_sinta'  => $detail_publikasi_dosen[''],
+                                'quartile'          => $detail_publikasi_dosen['quartile'],
+                                'id_kat_capaian'    => $detail_publikasi_dosen['id_kategori_capaian_luaran'],
+//                                'id_media_pub'      => $detail_publikasi_dosen[''],
+                                'id_litabmas'       => $detail_publikasi_dosen['id_litabmas'],
+                                'last_update'       => $update_time,
+                                'last_sync'         => $update_time
+                            ];
+                            $simpan_pub = new Publikasi();
+                            $simpan_pub->fill($simpan_pub->prepare($input_publikasi))->save();
+                        }
+
+                        // dokumen
+                        foreach ($detail_publikasi_dosen['dokumen'] AS $each_dokumen) {
+                            $cek_dokumen = DokPublikasi::where('id_publikasi',$detail_publikasi_dosen['id'])->where('id_dok',$each_dokumen['id'])->first();
+                            if (is_null($cek_dokumen)) {
+                                $simpan_dok = new DokPublikasi();
+                                $simpan_dok->fill($simpan_dok->prepare([
+                                    'id_publikasi'  => $detail_publikasi_dosen['id'],
+                                    'id_dok'        => $detail_publikasi_dosen['id_dok'],
+                                    'last_update'   => $update_time,
+                                    'last_sync'     => $update_time
+                                ]))->save();
+                            }
+                        }
+
+                        // tulis
+                        foreach ($detail_publikasi_dosen['penulis'] AS $setiap_penulis) {
+                            $simpan_tulis_pub = new TulisPub();
+                            $simpan_tulis_pub->fill($simpan_tulis_pub->prepare([
+                                'id_tulis_pub'  => $detail_publikasi_dosen['id_penulis'],
+                                'id_publikasi'  => $detail_publikasi_dosen['id'],
+                                'id_sdm'        => $setiap_penulis['id_sdm'],
+                                'id_katgiat'    => $detail_publikasi_dosen['id_kategori_kegiatan'],
+                                'id_pd'         => $setiap_penulis['id_peserta_didik'],
+                                'id_orang'      => $setiap_penulis['id_orang'],
+                                'urutan'        => $setiap_penulis['urutan'],
+                                'afiliasi'      => $setiap_penulis['afiliasi'],
+                                'peran_tulis'   => ($setiap_penulis['peran']=='Penulis'?'A':($setiap_penulis['peran']=='Editor'?'B':($setiap_penulis['peran']=='Penerjemah'?'C':'D'))),
+                                'jns_penulis'   => ($setiap_penulis['jenis']=='Dosen'?1:($setiap_penulis['jenis']=='Mahasiswa'?2:3)),
+                                'a_corr_author' => $setiap_penulis['corresponding_author'],
+                                'nm_pd'         => (is_null($setiap_penulis['id_peserta_didik'])?null:$setiap_penulis['nama']),
+                                'nipd'          => $setiap_penulis['nomor_induk_peserta_didik'],
+//                                'id_afiliasi'   => $setiap_penulis[''],
+//                                'jns_afiliasi'  => $setiap_penulis[''], // I, S
+                                'last_update'   => $update_time,
+                                'last_sync'     => $update_time
+                            ]))->save();
+                        }
+                    }
+                }
+            } elseif ('reg_ptk'==$table) {
                 $data_penugasan = curl_api_pddikti($url.'/penugasan?id_sdm='.$response['id_sdm'],$token);
                 foreach ($data_penugasan AS $each_data_penugasan) {
                     $detail_data_penugasan = curl_api_pddikti($url.'/penugasan/'.$each_data_penugasan['id'],$token);
@@ -155,7 +249,7 @@ trait SyncTrait
                 $this->update_log_sync('pdrd',$table,$update_time,currDateTime());
             } elseif('sms'==$table) {
                 $cek_sms = SMS::find($response);
-                $detail_sms = curl_api_pddikti($url.'referensi/detail_unit_kerja?id_unit_kerja='.$response,$token)[0];
+                $detail_sms = curl_api_pddikti($url.'/referensi/detail_unit_kerja?id_unit_kerja='.$response,$token)[0];
                 $jenjang = JenjangPendidikan::find($detail_sms['id_jenjang']);
                 $jenis_sms = DB::table('ref.jenis_sms')->where('id_jns_sms',$detail_sms['id_jenis_unit'])->first();
                 if ($detail_sms['id_jns_sms']!=3) {
