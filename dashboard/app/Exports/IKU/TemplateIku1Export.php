@@ -138,7 +138,7 @@ class TemplateIku1Export implements FromView, ShouldAutoSize
           $order_by = " ORDER BY fak.nm_lemb, prodi.nm_lemb, jenj.nm_jenj_didik, pd.nm_pd ASC ";
 
           $result = DB::select($select . $join . $where . $order_by);
-          return view('content.main.iku.iku-1.download', [
+          return view('content.main.iku.iku-1.download.bekerja_berwirausaha_studi', [
               'data' => $result
           ]);
         } else {

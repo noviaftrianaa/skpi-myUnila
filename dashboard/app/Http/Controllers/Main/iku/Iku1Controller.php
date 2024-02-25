@@ -208,7 +208,8 @@ class Iku1Controller extends Controller
         $total_point += $each_data->point;
         $total_responden += $each_data->total_responden;
         $total_alumni += $each_data->total_alumni;
-        $pembentuk = $total_point . '/' . $total_responden;
+        $pembentuk = '( '.$total_point . ' / ' . $total_responden .' ) * 100';
+
         if ($total_responden != 0) {
           $pencapaian = ($total_point / $total_responden) * 100;
         } else {
@@ -277,6 +278,7 @@ class Iku1Controller extends Controller
       $select = "
           SELECT
               reg.id_reg_pd,
+              reg.id_pd,
               YEAR(reg.tgl_keluar) AS tahun_lulus,
               tc.wkt_pengisian,
               reg.nipd,
@@ -370,6 +372,7 @@ class Iku1Controller extends Controller
         if($each_data->status_lulusan == 'Bekerja' || $each_data->status_lulusan == 'Berwirausaha'){
              $detail_iku['bekber'][] = [
               'id_reg_pd' => $each_data->id_reg_pd,
+              'id_pd' => $each_data->id_pd,
               'tgl_keluar' => $each_data->tgl_keluar,
               'nipd' => $each_data->nipd,
               'nm_pd' => $each_data->nm_pd,
@@ -389,6 +392,7 @@ class Iku1Controller extends Controller
         elseif($each_data->status_lulusan == 'Melanjutkan Studi'){
             $detail_iku['lnjt_studi'][] = [
               'id_reg_pd' => $each_data->id_reg_pd,
+              'id_pd' => $each_data->id_pd,
               'tgl_keluar' => $each_data->tgl_keluar,
               'nipd' => $each_data->nipd,
               'nm_pd' => $each_data->nm_pd,
@@ -406,6 +410,7 @@ class Iku1Controller extends Controller
         }elseif($each_data->status_lulusan == 'Tidak Bekerja'){
             $detail_iku['tdk_bekber'][] = [
               'id_reg_pd' => $each_data->id_reg_pd,
+              'id_pd' => $each_data->id_pd,
               'tgl_keluar' => $each_data->tgl_keluar,
               'nipd' => $each_data->nipd,
               'nm_pd' => $each_data->nm_pd,

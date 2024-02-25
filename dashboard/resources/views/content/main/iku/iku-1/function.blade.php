@@ -18,6 +18,7 @@
 
     // point datatable
     function TablePointIku(id_jns_sms, id, fak) {
+        $('#tahun-index').text('TAHUN : ' + $("#thn_iku").val());
         var dt_point_iku = $('.datatables-point'),
             dt_point;
         var data = [];
@@ -200,7 +201,7 @@
                             }
                         }
                     });
-                    $('#total_point').text(data.count.total_point);
+
                     $('#total_point').text(data.count.total_point);
                     $('#total_responden').text(data.count.total_responden);
                     $('#total_alumni').text(data.count.total_alumni);
@@ -231,6 +232,7 @@
     // raw datatable
     function TableRawIku(id, prodi) {
         $("#detailRawIkuModal").modal('show');
+        $('#tahun-modal').text('TAHUN : ' + $("#thn_iku").val());
         $('#title-modal').text('PROGRAM STUDI : ' + prodi);
 
         var dt_raw_bekber = $('.datatables-raw-bekber');
@@ -253,7 +255,7 @@
                 "success": function(data) {
                     $('#loading_raw_table').hide();
                     // bekber
-                    if (data.bekber.length) {
+                    if (dt_raw_bekber.length) {
                         dt_raw_bekber.DataTable({
                             bDestroy: true,
                             data: data.bekber, // Get the data object
@@ -303,7 +305,8 @@
                                     data: 'point'
                                 },
                             ],
-                            columnDefs: [{
+                            columnDefs: [
+                                {
                                     target: 0,
                                     visible: false
                                 },
@@ -311,8 +314,7 @@
                                     targets: 1,
                                     width: 30,
                                     render: function(data, type, row) {
-                                        return '<a href="#" onclick="ProfilMahasiswa(`' +
-                                            row.id_reg_pd + '`)">' + data + '</a>';
+                                       return `<a href="{{ route('pages-mahasiswa', '') }}/${row.id_pd}" target="_blank">${data}</a>`;
                                     }
                                 },
                                 {
@@ -334,7 +336,7 @@
                             scrollX: true,
                             scrollCollapse: true,
                             paging: false,
-                            info: false,
+                            info: true,
                             order: [
                                 [14, 'desc']
                             ],
@@ -478,8 +480,7 @@
                                     targets: 1,
                                     width: 30,
                                     render: function(data, type, row) {
-                                        return '<a href="#" onclick="ProfilMahasiswa(`' +
-                                            row.id_reg_pd + '`)">' + data + '</a>';
+                                       return `<a href="{{ route('pages-mahasiswa', '') }}/${row.id_pd}" target="_blank">${data}</a>`;
                                     }
                                 },
                                 {
@@ -501,7 +502,7 @@
                             scrollX: true,
                             scrollCollapse: true,
                             paging: false,
-                            info: false,
+                            info: true,
                             order: [
                                 [13, 'desc']
                             ],
@@ -633,8 +634,7 @@
                                     targets: 1,
                                     width: 30,
                                     render: function(data, type, row) {
-                                        return '<a href="#" onclick="ProfilMahasiswa(`' +
-                                            row.id_reg_pd + '`)">' + data + '</a>';
+                                       return `<a href="{{ route('pages-mahasiswa', '') }}/${row.id_pd}" target="_blank">${data}</a>`;
                                     }
                                 },
                                 {
@@ -656,7 +656,7 @@
                             scrollX: true,
                             scrollCollapse: true,
                             paging: false,
-                            info: false,
+                            info: true,
                             order: [
                                 [9, 'desc']
                             ],

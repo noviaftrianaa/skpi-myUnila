@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="{{asset('assets/vendor/libs/loading/overlay.css')}}" />
 <link rel="stylesheet" href="{{asset('assets/vendor/libs/flatpickr/flatpickr.css')}}" />
 <link rel="stylesheet" href="{{asset('assets/vendor/libs/spinkit/spinkit.css')}}" />
+<link rel="stylesheet" href="{{ asset(mix('assets/vendor/fonts/fontawesome.css')) }}" />
 <!-- Row Group CSS -->
 <link rel="stylesheet" href="{{asset('assets/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css')}}">
 <!-- Form Validation -->
@@ -80,13 +81,28 @@
 @endsection
 
 @section('page-script')
-  @include('content.main.iku.iku-1.function')
+  @include('content.main.iku.iku-2.function')
 @endsection
 
 @section('content')
 <h4>
   Indikator Kinerja Utama - IKU 2
 </h4>
+
+<div class="overlay" id="loading">
+    <div class="overlay-content">
+      <div class="d-flex justify-content-center">
+        <p class="mb-0" style="color: #5599FE">Harap tunggu... </p>
+        <div class="sk-wave m-0">
+            <div class="sk-rect sk-wave-rect"></div>
+            <div class="sk-rect sk-wave-rect"></div>
+            <div class="sk-rect sk-wave-rect"></div>
+            <div class="sk-rect sk-wave-rect"></div>
+            <div class="sk-rect sk-wave-rect"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
 <div class="row">
  <div class="col-md-12">
@@ -178,147 +194,299 @@
 
       <div class="bs-stepper-content">
         <h5 class="card-title mb-3 mt-2" id="title">UNIVERSITAS LAMPUNG</h5>
+        <p class="text-muted mt-3" id="tahun-index"></p>
 
         <ul class="nav nav-pills flex-column flex-md-row mb-4 mt-4">
-          <li class="nav-item">
-              <button class="nav-link active" role="tab" id="tab-bekber" data-bs-toggle="tab"
-                  data-bs-target="#navs-bekber" aria-controls="navs-bekber" aria-selected="true">
-                  <i class="ti ti-category ti-xs me-1"></i>MBKM Non Pertukaran</button>
-          </li>
-          <li class="nav-item">
-              <button class="nav-link" role="tab" id="tab-lnjt-studi" data-bs-toggle="tab"
-                  data-bs-target="#navs-lnjt-studi" aria-controls="navs-lnjt-studi" aria-selected="true">
-                  <i class="ti ti-category ti-xs me-1"></i>MBKM Inbound </button>
-          </li>
-          <li class="nav-item">
-              <button class="nav-link" role="tab" id="tab-tdk-bekber" data-bs-toggle="tab"
-                  data-bs-target="#navs-tdk-bekber" aria-controls="navs-tdk-bekber" aria-selected="true">
-                  <i class="ti ti-category ti-xs me-1"></i>PRES</button>
-          </li>
-      </ul>
+            <li class="nav-item">
+                <button
+                    class="nav-link active"
+                    role="tab"
+                    id="tab-mbkm"
+                    data-bs-toggle="tab"
+                    data-bs-target="#mbkm"
+                    aria-controls="mbkm"
+                    aria-selected="true">
+                    <i class="fas fa-flag fa-sm me-1"></i>Kategori MBKM</button>
+            </li>
+            <li class="nav-item">
+                <button
+                    class="nav-link"
+                    role="tab"
+                    id="tab-prestasi"
+                    data-bs-toggle="tab"
+                    data-bs-target="#prestasi"
+                    aria-controls="prestasi"
+                    aria-selected="true">
+                    <i class="fas fa-trophy fa-sm me-1"></i>Kategori Prestasi</button>
+            </li>
+        </ul>
 
-        <!-- Card MBKM A -->
-        <div class="row">
-          <div class="overlay" id="loading">
-            <div class="overlay-content">
-              <div class="d-flex justify-content-center">
-                <p class="mb-0" style="color: #5599FE">Harap tunggu... </p>
-                <div class="sk-wave m-0">
-                    <div class="sk-rect sk-wave-rect"></div>
-                    <div class="sk-rect sk-wave-rect"></div>
-                    <div class="sk-rect sk-wave-rect"></div>
-                    <div class="sk-rect sk-wave-rect"></div>
-                    <div class="sk-rect sk-wave-rect"></div>
+        <div class="tab-content p-3 border">
+            {{-- mbkm --}}
+            <div class="tab-pane fade show active" id="mbkm" role="tabpanel">
+                <div class="row">
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="point_a">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-3 mt-3">Point MBKM</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="point_b">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-3 mt-3">Point MBKM Inbound</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="peserta_mbkm">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-3 mt-3">Total Peserta MBKM</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h5 class="ms-1 mb-0" id="pembentuk_a">0</h5>
+                                        <h5 class="ms-1 mb-0" id="pembentuk_b"></h5>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Pembentuk</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card card-border-shadow-primary">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-2 pb-1">
-                    <span class="avatar-initial rounded bg-label-primary p-1"> <h4 class="ms-1 mb-0" id="total_point">0</h4></span>
+                <div class="row">
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="pencapaian_1">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Pencapaian IKU</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="gold_standart_1">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Gold Standart</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="delta_gold_standart_1">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Delta Gold Standart</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="skor_pencapaian_1">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Skor Pencapaian</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <p class="mb-1">Total Point</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card card-border-shadow-primary">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-2 pb-1">
-                    <span class="avatar-initial rounded bg-label-primary p-1"><h4 class="ms-1 mb-0" id="total_responden">0</h4></span>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <ul class="list-group">
+                            <li
+                                class="list-group-item d-flex justify-content-between flex-column flex-sm-row">
+                                <div class="offer">
+                                    <p class="mb-0 fw-medium">Rumus Perhitungan</p>
+                                    <span id="rumus_ab">-</span>
+                                </div>
+                            </li>
+                            <li
+                                class="list-group-item d-flex justify-content-between flex-column flex-sm-row">
+                                <div class="offer">
+                                    <p class="mb-0 fw-medium">Sumber Data</p>
+                                    <span id="sumber_data_ab">-</span>
+                                </div>
+                            </li>
+                            <li
+                                class="list-group-item d-flex justify-content-between flex-column flex-sm-row">
+                                <div class="offer">
+                                    <p class="mb-0 fw-medium">Update Sync Data Terahkir</p>
+                                    <span id="last_sync_ab">-</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-                <p class="mb-1">Total Responden</p>
-              </div>
             </div>
-          </div>
-          <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card card-border-shadow-primary">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-2 pb-1">
-                    <span class="avatar-initial rounded bg-label-primary p-1"><h4 class="ms-1 mb-0" id="total_alumni">0</h4></span>
+            {{-- mbkm --}}
+
+            {{-- prestasi --}}
+            <div class="tab-pane fade" id="prestasi" role="tabpanel">
+                <div class="row">
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="point_c">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-3 mt-3">Total Point</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="total_prestasi_c">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-3 mt-3">Total Prestasi</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="total_mhs_c">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-3 mt-3">Total Mahasiswa Aktif</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h5 class="ms-1 mb-0" id="pembentuk_c">0</h5>
+                                    </span>
+                                </div>
+                                <p class="mb-3 mt-3">Pembentuk</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <p class="mb-1">Total Lulusan</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card card-border-shadow-primary">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-2 pb-1">
-                    <span class="avatar-initial rounded bg-label-primary p-1"><h4 class="ms-1 mb-0" id="pembentuk">0</h4></span>
+                <div class="row">
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="pencapaian_2">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Pencapaian IKU</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="gold_standart_2">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Gold Standart</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="delta_gold_standart_2">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Delta Gold Standart</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="skor_pencapaian_2">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Skor Pencapaian</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <p class="mb-1">Pembentuk</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card card-border-shadow-primary">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-2 pb-1">
-                    <span class="avatar-initial rounded bg-label-primary p-1"><h4 class="ms-1 mb-0"id="pencapaian">0</h4></span>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <ul class="list-group">
+                            <li
+                                class="list-group-item d-flex justify-content-between flex-column flex-sm-row">
+                                <div class="offer">
+                                    <p class="mb-0 fw-medium">Rumus Perhitungan</p>
+                                    <span id="rumus_c">-</span>
+                                </div>
+                            </li>
+                            <li
+                                class="list-group-item d-flex justify-content-between flex-column flex-sm-row">
+                                <div class="offer">
+                                    <p class="mb-0 fw-medium">Sumber Data</p>
+                                    <span id="sumber_data_c">-</span>
+                                </div>
+                            </li>
+                            <li
+                                class="list-group-item d-flex justify-content-between flex-column flex-sm-row">
+                                <div class="offer">
+                                    <p class="mb-0 fw-medium">Update Sync Data Terahkir</p>
+                                    <span id="last_sync_c">-</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-                <p class="mb-1">Pencapaian IKU</p>
-              </div>
             </div>
-          </div>
-          <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card card-border-shadow-primary">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-2 pb-1">
-                    <span class="avatar-initial rounded bg-label-primary p-1"><h4 class="ms-1 mb-0" id="gold_standart">0</h4></span>
-                </div>
-                <p class="mb-1">Gold Standart</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card card-border-shadow-primary">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-2 pb-1">
-                    <span class="avatar-initial rounded bg-label-primary p-1"><h4 class="ms-1 mb-0" id="delta_gold_standart">0</h4></span>
-                </div>
-                <p class="mb-1">Delta Gold Standart</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card card-border-shadow-primary">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-2 pb-1">
-                    <span class="avatar-initial rounded bg-label-primary p-1"><h4 class="ms-1 mb-0" id="skor_pencapaian">0</h4></span>
-                </div>
-                <p class="mb-1">Skor Pencapaian</p>
-              </div>
-            </div>
-          </div>
+            {{-- prestasi--}}
         </div>
-        <!--/ Card MBKM A -->
-          <div class="row g-3">
-              <div class="col-12">
-                <ul class="list-group">
-                  <li class="list-group-item d-flex justify-content-between flex-column flex-sm-row">
-                    <div class="offer">
-                      <p class="mb-0 fw-medium">Rumus Perhitungan</p>
-                      <span id="rumus">-</span>
-                    </div>
-                  </li>
-                  <li class="list-group-item d-flex justify-content-between flex-column flex-sm-row">
-                    <div class="offer">
-                      <p class="mb-0 fw-medium">Sumber Data</p>
-                      <span id="sumber_data">-</span>
-                    </div>
-                  </li>
-                  <li class="list-group-item d-flex justify-content-between flex-column flex-sm-row">
-                    <div class="offer">
-                      <p class="mb-0 fw-medium">Update Sync Data Terahkir</p>
-                      <span id="last_sync">-</span>
-                    </div>
-                  </li>
-                </ul>
-              </div>
-            </div>
 
       </div>
     </div>
@@ -328,22 +496,39 @@
 
 <!-- DataTable with Buttons -->
 <div class="card px-3">
-  <div class="card-datatable table-responsive pt-0">
-    <table class="datatables-point table table-bordered">
-      <thead style="background-color:#ECF3FF">
-        <tr>
-          <th hidden>NO</th>
-          <th hidden>ID</th>
-          <th></th>
-          <th width ="55%">Nama Fakultas/Program Studi</th>
-          <th width ="10%">Total Point</th>
-          <th width ="15%">Total Responden</th>
-          <th width ="10%">Total Alumni</th>
-          <th width ="10%">Pencapaian</th>
-        </tr>
-      </thead>
-    </table>
-  </div>
+    <div class="mbkm card-datatable table-responsive pt-0">
+        <table class="datatables-point-mbkm table table-bordered">
+            <thead style="background-color:#ECF3FF">
+                <tr>
+                    <th hidden="hidden">NO</th>
+                    <th hidden="hidden">ID</th>
+                    <th></th>
+                    <th width="45%">Nama Fakultas / Program Studi</th>
+                    <th width="15%">Point MBKM</th>
+                    <th width="15%">Point MBKM Inbound</th>
+                    <th width="15%">Total Peserta MBKM</th>
+                    <th width="10%">Pencapaian</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+    <div class="prestasi card-datatable table-responsive pt-0">
+        <table class="datatables-point-prestasi table table-bordered">
+            <thead style="background-color:#ECF3FF">
+                <tr>
+                    <th hidden="hidden">NO</th>
+                    <th hidden="hidden">ID</th>
+                    <th></th>
+                    <th width="45%">Nama Fakultas/Program Studi</th>
+                    <th width="13%">Point Prestasi</th>
+                    <th width="17%">Total Mahasiswa Prestasi</th>
+                    <th width="15%">Total Mahasiswa Aktif</th>
+                    <th width="10%">Pencapaian</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+
 </div>
   <!-- Offcanvas to filter -->
   <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasFilter" aria-labelledby="offcanvasFilterLabel">
@@ -369,6 +554,6 @@
   </div>
 </div>
 
-@include('content.main.iku.iku-1.detail')
+@include('content.main.iku.iku-2.detail')
 
 @endsection
