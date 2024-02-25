@@ -32,8 +32,9 @@ class PublikasiDanPatenSeeder extends Seeder
                 JOIN pdrd.reg_ptk AS tr ON tr.id_sdm=tsdm.id_sdm AND tr.id_jns_keluar IS NULL
                 JOIN pdrd.keaktifan_ptk AS ta ON ta.id_reg_ptk=tr.id_reg_ptk AND ta.a_sp_homebase=1 AND ta.id_thn_ajaran >=2014
                 JOIN pdrd.satuan_pendidikan AS tsp ON tsp.id_sp=tr.id_sp AND tsp.npsn='001026'
-                JOIN pdrd.tulis_pub AS tp ON tp.id_sdm=tp.id_sdm AND tp.soft_delete=0
-                JOIN pdrd.publikasi AS p ON p.id_publikasi=tp.id_publikasi
+                JOIN pdrd.tulis_pub AS tp ON tp.id_sdm=tsdm.id_sdm AND tp.soft_delete=0
+                JOIN pdrd.publikasi AS p ON p.id_publikasi=tp.id_publikasi AND p.soft_delete NOT IN (1,5)
+                    AND p.id_jns_pub!=9999
             -- 	JOIN sdid.dok_litabmas AS dok ON dok.id_litabmas=l.id_litabmas AND dok.soft_delete=0
                 WHERE tsdm.soft_delete=0
         ");
