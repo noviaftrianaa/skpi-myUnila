@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\SyncDataController;
+use App\Http\Controllers\Tridarma\PenelitianController;
+use App\Http\Controllers\Tridarma\PengabdianController;
+use App\Http\Controllers\Tridarma\PublikasiController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\language\LanguageController;
 use App\Http\Controllers\DashboardController;
@@ -138,6 +141,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('sdm/tendik', [TendikSMSController::class, 'index'])->name('sdm.tendik');
     Route::get('sdm/tendik/data', [TendikSMSController::class, 'data'])->name('sdm.tendik.data');
   });
+
+  #penelitian
+  Route::get('pelaksanaan_penelitian/penelitian',[PenelitianController::class,'index'])->name('pelaksanaan_penelitian.penelitian');
+  Route::get('pelaksanaan_penelitian/penelitian/{id}/detail',[PenelitianController::class,'show'])->name('pelaksanaan_penelitian.penelitian.detail');
+
+  Route::get('pelaksanaan_penelitian/publikasi_karya',[PublikasiController::class,'index'])->name('pelaksanaan_penelitian.publikasi_karya');
+  Route::get('pelaksanaan_penelitian/publikasi_karya/{id}/detail',[PublikasiController::class,'show'])->name('pelaksanaan_penelitian.publikasi_karya.detail');
+
+  Route::get('pelaksanaan_pengabdian/pengabdian',[PengabdianController::class,'index'])->name('pelaksanaan_pengabdian.pengabdian');
+  Route::get('pelaksanaan_pengabdian/pengabdian/{id}/detail',[PengabdianController::class,'show'])->name('pelaksanaan_pengabdian.pengabdian.detail');
 
   #sinkronisasi
   Route::get('sinkronisasi', [SyncController::class, 'index'])->name('sinkronisasi');
