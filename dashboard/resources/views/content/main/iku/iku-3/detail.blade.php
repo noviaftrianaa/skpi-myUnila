@@ -6,7 +6,7 @@
             <div class="modal-body">
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="ClearCloseTable()"></button>
                 <div class="text-center mb-4">
-                    <h3 class="mb-3">Detail Raw Data IKU 1</h3>
+                    <h3 class="mb-3">Detail Raw Data IKU 3</h3>
                     <p class="text-muted" id="title-modal"></p>
                 </div>
 
@@ -55,7 +55,7 @@
                                             <th hidden>Fakultas</th>
                                             <th hidden>Prodi</th>
                                             <th hidden>Jenjang</th>
-                                            <th>Tgl Lulus/Kompre</th>
+                                            {{-- <th>Tgl Lulus/Kompre</th>
                                             <th>Status Lulusan</th>
                                             <th>Kerja Sebelum Lulus?</th>
                                             <th>Bulan Mendapatkan Pekerjaan</th>
@@ -63,7 +63,7 @@
                                             <th>Wilayah Bekerja</th>
                                             <th>1.2 UMP</th>
                                             <th>Pendapatan /Bulan</th>
-                                            <th>Point</th>
+                                            <th>Point</th> --}}
                                         </tr>
                                     </thead>
                                 </table>
