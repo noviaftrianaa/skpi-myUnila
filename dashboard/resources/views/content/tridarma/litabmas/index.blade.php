@@ -1,14 +1,14 @@
 @extends('layouts/layoutMaster')
 @include('_partials.__partial.datatable')
 
-@section('title', 'Pelaksanaan Penelitian/Penelitian')
+@section('title', 'Pelaksanaan '.($kode=='L'?'Penelitian/Penelitian':'Pengabdian/Pengabdian'))
 
 @section('content')
     <div class="row">
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h4 class="card-title"><i class="fas fa-flask"></i> {{ $judul }}</h4>
+                    <h4 class="card-title"><i class="fas fa-{{ ($kode=='L'?'flask':'chain') }}"></i> {{ $judul }}</h4>
                 </div>
                 <div class="card-body">
                     <table id="table-data" class="table table-striped table-bordered">
@@ -37,7 +37,7 @@
                                 <td>{{ $each_data->nm_ketua }}</td>
                                 <td>{{ $each_data->prodi_ketua }}</td>
                                 <td>
-                                    {!! buttonShow('pelaksanaan_penelitian.penelitian.detail',Crypt::encrypt($each_data->id_litabmas),'Detail penelitian') !!}
+                                    {!! buttonShow($base_route.'.detail',Crypt::encrypt($each_data->id_litabmas),'Detail penelitian') !!}
                                 </td>
                             </tr>
                         @endforeach

@@ -11,9 +11,24 @@ use App\Models\UnitOrganisasi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 
-class PenelitianController extends Controller
+class LitabmasController extends Controller
 {
+    public function __construct()
+    {
+        $route = Route::current()->getName();
+        if (strpos($route,'penelitian')>0) {
+            $this->title = 'Penelitian';
+            $this->kode_litabmas = 'L';
+            $this->base_route = 'pelaksanaan_penelitian.penelitian';
+        } else {
+            $this->title = 'Pengabdian';
+            $this->kode_litabmas = 'M';
+            $this->base_route = 'pelaksanaan_pengabdian.pengabdian';
+        }
+
+    }
     /**
      * Display a listing of the resource.
      */
@@ -24,19 +39,19 @@ class PenelitianController extends Controller
         if ($unit->id_jns_lemb == 24) {
             $sms = Sms::find($unit->id_organisasi);
             $sms_list[] = $sms->id_sms;
-            $judul = 'Penelitian Dosen Program Studi ' . $sms->nm_lemb . ' (' . $sms->jenjang->nm_jenj_didik . ')';
+            $judul = $this->title.' Dosen Program Studi ' . $sms->nm_lemb . ' (' . $sms->jenjang->nm_jenj_didik . ')';
         } elseif ($unit->id_jns_lemb == 28) {
             $sms = Sms::find($unit->id_organisasi);
             $sms_list = SMS::where('id_jur_unila',$sms->id_sms)
                 ->where('soft_delete',0)
                 ->select('id_sms')->pluck('id_sms')->toArray();
-            $judul = 'Penelitian Dosen Jurusan ' . $sms->nm_lemb;
+            $judul = $this->title.' Dosen Jurusan ' . $sms->nm_lemb;
         } elseif ($unit->id_jns_lemb == 23) {
             $sms = Sms::find($unit->id_organisasi);
             $sms_list = SMS::where('id_fak_unila',$sms->id_sms)
                 ->where('soft_delete',0)
                 ->select('id_sms')->pluck('id_sms')->toArray();
-            $judul = 'Penelitian Dosen Fakultas ' . $sms->nm_lemb;
+            $judul = $this->title.' Dosen Fakultas ' . $sms->nm_lemb;
         } else {
             $sp = SatuanPendidikan::find(env('APP_ID_SP'));
             $sms_list = [];
@@ -47,10 +62,12 @@ class PenelitianController extends Controller
                 ->orderBy('id_thn_ajaran', 'DESC')
                 ->pluck('nm_thn_ajaran', 'id_thn_ajaran')
                 ->toArray();
-            $judul = 'Penelitian Dosen ' . $sp->nm_lemb;
+            $judul = $this->title.' Dosen ' . $sp->nm_lemb;
         }
-        $data = Litabmas::get_data_litabmas('L',$sms_list);
-        return view('content.tridarma.penelitian.index',compact('judul','data'));
+        $data = Litabmas::get_data_litabmas($this->kode_litabmas,$sms_list);
+        $base_route = $this->base_route;
+        $kode = $this->kode_litabmas;
+        return view('content.tridarma.litabmas.index',compact('judul','data','base_route','kode'));
     }
 
     /**
@@ -79,7 +96,10 @@ class PenelitianController extends Controller
         $data['penulis'] = Litabmas::get_penulis($data['id_litabmas']);
         $data['dokumen'] = DB::table('dok.dok_litabmas')->where('id_litabmas',$data['id_litabmas'])
             ->pluck('id_dok')->toArray();
-        return view('content.tridarma.penelitian.detail',compact('data'));
+        $base_route = $this->base_route;
+        $kode = $this->kode_litabmas;
+        $judul = $this->title;
+        return view('content.tridarma.litabmas.detail',compact('data','base_route','kode','judul'));
     }
 
     /**
