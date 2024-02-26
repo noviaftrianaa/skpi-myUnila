@@ -51,10 +51,10 @@ class AksesWSController extends Controller
         $id_aplikasi = \Crypt::decrypt($id);
 
         $d['aplikasi'] = Aplikasi::findOrFail($id_aplikasi);
-        $d['pengguna'] = \App\Models\User::where('soft_delete', 0)->where('a_aktif', 1)->orderBy('nm_pengguna','ASC')->get();
         $d['id'] = $id;
+        $d['user'] = User::where('soft_delete',0)->where('a_aktif',1)->select('nm_pengguna','id_pengguna','email')->orderBy('nm_pengguna','ASC')->get();
 
-        $endpoint = WSEndpoint::where('soft_delete',0)->where('a_active',1)->where('id_aplikasi',$id)->orderBy('nm_group')->orderBy('nm_method')->get();
+        $endpoint = WSEndpoint::where('id_aplikasi',$id_aplikasi)->where('soft_delete',0)->where('a_active',1)->orderBy('nm_group')->orderBy('nm_method')->get();
         $d['endpoint'] = collect($endpoint)->groupBy('nm_group');
 
         return view('manajemen.aplikasi.akses_ws.form', $d);

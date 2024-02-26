@@ -1,15 +1,15 @@
 @extends('template.default.app')
-@section('title','WS Access Permission | '.$aplikasi->nm_aplikasi)
+@section('title', 'WS Access Permission | ' . $aplikasi->nm_aplikasi)
 
 @push('css')
-<style>
-    ul {
-        list-style-type: none;
-        columns: 3;
-        -webkit-columns: 3;
-        -moz-columns: 3;
-    }
-</style>
+    <style>
+        ul {
+            list-style-type: none;
+            columns: 3;
+            -webkit-columns: 3;
+            -moz-columns: 3;
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -18,7 +18,8 @@
             <h3 class="card-title"><i class="fa fa-list mr-2"></i> WS Access Permission | {!! $aplikasi->nm_aplikasi !!}</h3>
         </div><!-- /.card-header -->
         <div class="card-body">
-            <form action="{{ route('aplikasi.pj_aplikasi.akses_ws.store', Crypt::encrypt($id)) }}" method="post" enctype="multipart/form-data">
+            <form action="{{ route('aplikasi.pj_aplikasi.akses_ws.store', Crypt::encrypt($id)) }}" method="post"
+                enctype="multipart/form-data">
                 <input type="hidden" name="_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="_method" value="PUT">
                 <input type="hidden" name="id_pengguna" value="{{ $pengguna->id_pengguna }}">
@@ -48,33 +49,40 @@
                             </div>
                         </div>
                         @forelse ($endpoint as $method=>$ws)
-                        <div class="form-group row">
-                            <div class="Checkbox-parent Accordion col-3">
-                                <input class="checkbox__input mr-1" type="checkbox" id="{{$method}}" {{in_array(1, array_column($ws->toArray(), 'aktif'))==true?'checked':''}} />
-                                <span class="checkbox__label">
-                                    <strong>{{ strtoupper($method) }}</strong>
-                                    <a href="#" class="btn btn-link btnShow" data-id="{{$method}}" id="btn{{$method}}">{{in_array(1, array_column($ws->toArray(), 'aktif'))==true?'hide':'show'}}</a></span>
+                            <div class="form-group row">
+                                <div class="Checkbox-parent Accordion col-3">
+                                    <input class="checkbox__input mr-1" type="checkbox" id="{{ $method }}"
+                                        {{ in_array(1, array_column($ws->toArray(), 'aktif')) == true ? 'checked' : '' }} />
+                                    <span class="checkbox__label">
+                                        <strong>{{ strtoupper($method) }}</strong>
+                                        <a href="#" class="btn btn-link btnShow" data-id="{{ $method }}"
+                                            id="btn{{ $method }}">{{ in_array(1, array_column($ws->toArray(), 'aktif')) == true ? 'hide' : 'show' }}</a></span>
+                                </div>
+                                <div class="Accordion-panel collapse {{ in_array(1, array_column($ws->toArray(), 'aktif')) == true ? 'show' : '' }} col-9"
+                                    id="{{ $method }}-collapse">
+                                    <ul class="Checkbox-child p-0">
+                                        @foreach ($ws as $no => $item)
+                                            <li>
+                                                <input class="checkbox__input" type="checkbox" name="ws[]"
+                                                    value="{{ $item->id_ws_endpoint }}"
+                                                    {{ $item->aktif == 1 ? 'checked' : '' }} />
+                                                <span class="checkbox__label">[{{ $item->nm_method }}]
+                                                    {{ $item->path_url }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
                             </div>
-                            <div class="Accordion-panel collapse {{in_array(1, array_column($ws->toArray(), 'aktif'))==true?'show':''}} col-9" id="{{$method}}-collapse">
-                                <ul class="Checkbox-child p-0">
-                                    @foreach ($ws as $no=>$item)
-                                    <li>
-                                        <input class="checkbox__input" type="checkbox" name="ws[]" value="{{ $item->id_ws_endpoint }}" {{ $item->aktif==1?'checked':'' }} />
-                                        <span class="checkbox__label">[{{ $item->nm_method }}] {{ $item->path_url }}</span>
-                                    </li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        </div>
-                        <hr>
+                            <hr>
                         @empty
-                        <h3 class="text-center">TIDAK ADA ENDPOINT TERDATA !!!</p>
+                            <h3 class="text-center">TIDAK ADA ENDPOINT TERDATA !!!</p>
                         @endforelse
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <a type="button" class="btn btn-default" href="#" onclick="history.back()"><i class="fa fa-arrow-left"></i> Kembali</a>
+                    <a type="button" class="btn btn-default" href="#" onclick="history.back()"><i
+                            class="fa fa-arrow-left"></i> Kembali</a>
                     <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
                 </div>
             </form>
@@ -83,81 +91,80 @@
 @endsection
 
 @push('js')
-<script>
-    $(document).ready(function() {
+    <script>
+        $(document).ready(function() {
 
-        $('.btnShow').on('click', function() {
-            var id = $(this).data('id');
-            if($(this).html() == "show") {
-                $('#'+id+'-collapse').addClass('show');
-                $(this).html('hide');
-            } else {
-                $('#'+id+'-collapse').removeClass('show');
-                $(this).html('show');
-            }
-
-        });
-
-        $(".Checkbox-parent input").on('click',function(){
-            var _parent=$(this);
-            var nextli=$(this).parent().next().children().children();
-            var id = this.id;
-
-            if(_parent.prop('checked')){
-                console.log('Checkbox-parent checked');
-                nextli.each(function(){
-                    $(this).children().prop('checked',true);
-                });
-
-                $('#'+id+'-collapse').addClass('show');
-                $('#btn'+id).html('hide');
-
-            } else {
-                console.log('Checkbox-parent un checked');
-                nextli.each(function(){
-                    $(this).children().prop('checked',false);
-                });
-
-                $('#'+id+'-collapse').removeClass('show');
-                $('#btn'+id).html('show');
-            }
-        });
-
-        $(".Checkbox-child input").on('click',function(){
-            var ths=$(this);
-            var parentinput=ths.closest('div').prev().children();
-            var sibblingsli=ths.closest('ul').find('li');
-
-            if(ths.prop('checked')){
-                console.log('Checkbox-child checked');
-                parentinput.prop('checked',true);
-            }
-            else{
-                console.log('Checkbox-child unchecked');
-                var status=true;
-                sibblingsli.each(function(){
-                    console.log('sibb');
-                    if($(this).children().prop('checked')) status=false;
-                });
-                if(status) parentinput.prop('checked',false);
-            }
-        });
-
-        // show hide accordion
-        var acc = document.getElementsByClassName("Accordion");
-        var i;
-
-        for (i = 0; i < acc.length; i++) {
-            acc[i].addEventListener("click", function() {
-                this.classList.toggle("Accordion--active");
-                var panel = this.nextElementSibling;
-                if (panel.style.maxHeight){
-                    panel.style.maxHeight = null;
+            $('.btnShow').on('click', function() {
+                var id = $(this).data('id');
+                if ($(this).html() == "show") {
+                    $('#' + id + '-collapse').addClass('show');
+                    $(this).html('hide');
                 } else {
-                    panel.style.maxHeight = panel.scrollHeight + "px";
+                    $('#' + id + '-collapse').removeClass('show');
+                    $(this).html('show');
+                }
+
+            });
+
+            $(".Checkbox-parent input").on('click', function() {
+                var _parent = $(this);
+                var nextli = $(this).parent().next().children().children();
+                var id = this.id;
+
+                if (_parent.prop('checked')) {
+                    console.log('Checkbox-parent checked');
+                    nextli.each(function() {
+                        $(this).children().prop('checked', true);
+                    });
+
+                    $('#' + id + '-collapse').addClass('show');
+                    $('#btn' + id).html('hide');
+
+                } else {
+                    console.log('Checkbox-parent un checked');
+                    nextli.each(function() {
+                        $(this).children().prop('checked', false);
+                    });
+
+                    $('#' + id + '-collapse').removeClass('show');
+                    $('#btn' + id).html('show');
                 }
             });
-        }
-    });
-</script>
+
+            $(".Checkbox-child input").on('click', function() {
+                var ths = $(this);
+                var parentinput = ths.closest('div').prev().children();
+                var sibblingsli = ths.closest('ul').find('li');
+
+                if (ths.prop('checked')) {
+                    console.log('Checkbox-child checked');
+                    parentinput.prop('checked', true);
+                } else {
+                    console.log('Checkbox-child unchecked');
+                    var status = true;
+                    sibblingsli.each(function() {
+                        console.log('sibb');
+                        if ($(this).children().prop('checked')) status = false;
+                    });
+                    if (status) parentinput.prop('checked', false);
+                }
+            });
+
+            // show hide accordion
+            var acc = document.getElementsByClassName("Accordion");
+            var i;
+
+            for (i = 0; i < acc.length; i++) {
+                acc[i].addEventListener("click", function() {
+                    this.classList.toggle("Accordion--active");
+                    var panel = this.nextElementSibling;
+                    if (panel.style.maxHeight) {
+                        panel.style.maxHeight = null;
+                    } else {
+                        panel.style.maxHeight = panel.scrollHeight + "px";
+                    }
+                });
+            }
+        });
+    </script>
 @endpush

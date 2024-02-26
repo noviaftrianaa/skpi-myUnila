@@ -34,10 +34,10 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $datas = User::all();
-        $apps = Aplikasi::all();
-        $unit = UnitOrganisasi::all();
-        $role = Rolepengguna::all();
+        $datas = User::count();
+        $apps = Aplikasi::count();
+        $unit = UnitOrganisasi::count();
+        $role = Rolepengguna::count();
         $db = DB::table('man_akses.versi_db')->first();
         $app_inter = Aplikasi::with('LargeObject')->lock('WITH(NOLOCK)')->whereNull('expired_date')->orWhere('expired_date', '>=', currDateTime())->simplePaginate(20);
 

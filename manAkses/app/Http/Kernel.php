@@ -67,8 +67,8 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
         'main' => \App\Http\Middleware\MainMiddleware::class,
+        'one_data_man_akses' => \MP\ManAkses\ManAksesMiddleware::class,
         'auth.sso' => \App\Http\Middleware\AuthSSO::class,
         'openapi_live' => \App\Http\Middleware\OpenApiLive::class,
-        'one_data_man_akses'    => \MP\ManAkses\ManAksesMiddleware::class,
     ];
 }
