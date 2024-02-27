@@ -5,6 +5,7 @@ namespace App\Models\Pdrd;
 use App\Models\AbstractionModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class SMS extends AbstractionModel
 {
@@ -100,5 +101,55 @@ class SMS extends AbstractionModel
     public function fakultas_unila()
     {
       return $this->belongsTo('App\Models\Pdrd\SMS','id_fak_unila','id_sms');
+    }
+
+    public static function dashboard_tabel_list_sms($id_sms)
+    {
+        $condition = '';
+        if (count($id_sms)>0) {
+            $condition.=" AND tsms.id_sms IN ('".implode("','",$id_sms)."')";
+        }
+        $query = "
+            SELECT tsms.id_sms, tfak.nm_lemb AS nm_fak, tsms.nm_lemb, tj.nm_jenj_didik, tsms.stat_prodi,
+                SUM(CASE WHEN LEFT(tsdm.nidn,2) < '88' THEN 1 ELSE 0 END) AS total_dosen_nidn,
+                SUM(CASE WHEN LEFT(tsdm.nidn,2) IN ('88','89') THEN 1 ELSE 0 END) AS total_dosen_nidk,
+                SUM(CASE WHEN LEFT(tsdm.nidn,2) = '99' THEN 1 ELSE 0 END) AS total_dosen_nup,
+                COUNT(tsdm.id_sdm) AS total_dosen_homebase,
+                pd.mhs_aktif, pd.mhs_non_aktif, pd.mhs_do, pd.mhs_cuti, pd.mhs_keluar, pd.mhs_mbkm, pd.mhs_lulus, pd.mhs_indonesia, pd.mhs_asing, pd.total_mhs
+            FROM pdrd.sdm AS tsdm
+            JOIN pdrd.reg_ptk AS tr ON tr.id_sdm=tsdm.id_sdm AND tr.soft_delete=0
+                AND tr.id_jns_keluar IS NULL
+            JOIN pdrd.keaktifan_ptk AS ta ON ta.id_reg_ptk=tr.id_reg_ptk AND ta.soft_delete=0
+             AND ta.a_sp_homebase=1 AND ta.id_thn_ajaran=2023
+            JOIN pdrd.satuan_pendidikan AS tsp ON tsp.id_sp=tr.id_sp AND tsp.npsn='001026'
+            JOIN pdrd.sms AS tsms ON tsms.id_sms=tr.id_sms
+            LEFT JOIN pdrd.sms AS tfak ON tfak.id_sms=tsms.id_fak_unila
+            JOIN ref.jenjang_pendidikan AS tj ON tj.id_jenj_didik=tsms.id_jenj_didik
+            JOIN (
+                SELECT
+                    trpd.id_sms,
+                    SUM(CASE WHEN (akm.id_stat_mhs='L' OR trpd.id_jns_keluar='1') THEN 1 ELSE 0 END) AS mhs_lulus,
+                    SUM(CASE WHEN (akm.id_stat_mhs='K' OR trpd.id_jns_keluar IN ('2','4','6','7')) THEN 1 ELSE 0 END) AS mhs_keluar,
+                    SUM(CASE WHEN (akm.id_stat_mhs='A' AND trpd.id_jns_keluar IS NULL) THEN 1 ELSE 0 END) AS mhs_aktif,
+                    SUM(CASE WHEN (akm.id_stat_mhs='M' AND trpd.id_jns_keluar IS NULL) THEN 1 ELSE 0 END) AS mhs_mbkm,
+                    SUM(CASE WHEN (akm.id_stat_mhs='D' OR trpd.id_jns_keluar = '2') THEN 1 ELSE 0 END) AS mhs_do,
+                    SUM(CASE WHEN akm.id_stat_mhs='N' THEN 1 ELSE 0 END) AS mhs_non_aktif,
+                    SUM(CASE WHEN akm.id_stat_mhs='C' THEN 1 ELSE 0 END) AS mhs_cuti,
+                    SUM(CASE WHEN p.id_kewarganegaraan='ID' THEN 1 ELSE 0 END) AS mhs_indonesia,
+                    SUM(CASE WHEN p.id_kewarganegaraan!='ID' THEN 1 ELSE 0 END) AS mhs_asing,
+                    COUNT(DISTINCT trpd.id_pd) AS total_mhs
+                FROM pdrd.reg_pd AS trpd
+                JOIN pdrd.peserta_didik AS p ON p.id_pd=trpd.id_pd AND p.soft_delete=0
+                JOIN pdrd.kuliah_mhs AS akm ON akm.id_reg_pd=trpd.id_reg_pd AND akm.soft_delete=0
+                    AND akm.id_smt=20222
+                WHERE trpd.soft_delete=0
+                GROUP BY trpd.id_sms
+            ) AS pd ON pd.id_sms=tsms.id_sms
+            WHERE tsdm.soft_delete=0
+                ".$condition."
+            GROUP BY tsms.id_sms, tfak.nm_lemb, tsms.id_jur_unila, tsms.id_jenj_didik, tsms.nm_lemb, tsms.stat_prodi, tj.nm_jenj_didik, pd.mhs_aktif, pd.mhs_non_aktif, pd.mhs_do, pd.mhs_cuti, pd.mhs_keluar, pd.mhs_mbkm, pd.mhs_lulus, pd.mhs_indonesia, pd.mhs_asing, pd.total_mhs
+            ORDER BY tfak.nm_lemb ASC, tsms.id_jur_unila ASC, tsms.nm_lemb ASC, tsms.id_jenj_didik DESC
+        ";
+        return DB::SELECT($query);
     }
 }
