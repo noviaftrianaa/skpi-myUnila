@@ -9,6 +9,13 @@ use Illuminate\Support\Facades\Crypt;
 
 class DashboardController extends Controller
 {
+  private $id_sp;
+
+  public function __construct()
+  {
+    $this->id_sp = env('APP_ID_SP');
+  }
+
   public function index()
   {
     $pageConfigs = ['myLayout' => 'horizontal'];
@@ -36,7 +43,8 @@ class DashboardController extends Controller
 
   public function programstudi()
   {
-    $data = \DB::SELECT("
+    $data = \DB::SELECT(
+      "
       SELECT
         sms.id_sms,
         sms.kode_prodi,
@@ -49,10 +57,14 @@ class DashboardController extends Controller
       WHERE
         sms.kode_prodi IS NOT NULL
         AND sms.soft_delete = 0
+        AND sms.id_sp='" .
+        $this->id_sp .
+        "'
       ORDER BY
         sms.nm_lemb,
         jenjang.nm_jenj_didik ASC
-    ");
+    "
+    );
 
     return \DataTables::of($data)
       ->addIndexColumn()
@@ -105,6 +117,9 @@ class DashboardController extends Controller
       WHERE
         sms.kode_prodi IS NOT NULL
         AND sms.soft_delete = 0
+        AND sms.id_sp='" .
+        $this->id_sp .
+        "'
       ORDER BY
         sms.nm_lemb,
         jenjang.nm_jenj_didik ASC
@@ -238,6 +253,9 @@ class DashboardController extends Controller
       WHERE
         sms.kode_prodi IS NOT NULL
         AND sms.soft_delete = 0
+        AND sms.id_sp='" .
+        $this->id_sp .
+        "'
       ORDER BY
         sms.nm_lemb,
         jenjang.nm_jenj_didik ASC
@@ -590,31 +608,31 @@ class DashboardController extends Controller
       }
     }
 
-    $GreenmetricIndo = dom_xpath(
-      "https://greenmetric.ui.ac.id/rankings/ranking-by-country-{$year}/Indonesia",
-      '//table/tbody'
-    )[0]->getElementsByTagName('tr');
+    // $GreenmetricIndo = dom_xpath(
+    //   "https://greenmetric.ui.ac.id/rankings/ranking-by-country-{$year}/Indonesia",
+    //   '//table/tbody'
+    // )[0]->getElementsByTagName('tr');
 
-    foreach ($GreenmetricIndo as $singleTable) {
-      $td = $singleTable->getElementsByTagName('td');
-      if (in_array(trim($td[1]->textContent), ['Universitas Lampung', 'Lampung University'])) {
-        $dataGreenmetric['rank_by_indonesian'] = $td[0]->textContent;
-        break;
-      }
-    }
+    // foreach ($GreenmetricIndo as $singleTable) {
+    //   $td = $singleTable->getElementsByTagName('td');
+    //   if (in_array(trim($td[1]->textContent), ['Universitas Lampung', 'Lampung University'])) {
+    //     $dataGreenmetric['rank_by_indonesian'] = $td[0]->textContent;
+    //     break;
+    //   }
+    // }
 
-    $GreenmetricIndo = dom_xpath(
-      "https://greenmetric.ui.ac.id/rankings/ranking-by-region-{$year}/asia",
-      '//table/tbody'
-    )[0]->getElementsByTagName('tr');
+    // $GreenmetricIndo = dom_xpath(
+    //   "https://greenmetric.ui.ac.id/rankings/ranking-by-region-{$year}/asia",
+    //   '//table/tbody'
+    // )[0]->getElementsByTagName('tr');
 
-    foreach ($GreenmetricIndo as $singleTable) {
-      $td = $singleTable->getElementsByTagName('td');
-      if (in_array(trim($td[1]->textContent), ['Universitas Lampung', 'Lampung University'])) {
-        $dataGreenmetric['rank_by_asian'] = $td[0]->textContent;
-        break;
-      }
-    }
+    // foreach ($GreenmetricIndo as $singleTable) {
+    //   $td = $singleTable->getElementsByTagName('td');
+    //   if (in_array(trim($td[1]->textContent), ['Universitas Lampung', 'Lampung University'])) {
+    //     $dataGreenmetric['rank_by_asian'] = $td[0]->textContent;
+    //     break;
+    //   }
+    // }
 
     //PAST
     $GreenmetricWorld = dom_xpath(
@@ -637,31 +655,35 @@ class DashboardController extends Controller
       }
     }
 
-    $GreenmetricIndo = dom_xpath(
-      "https://greenmetric.ui.ac.id/rankings/ranking-by-country-{$lastYear}/Indonesia",
-      '//table/tbody'
-    )[0]->getElementsByTagName('tr');
+    // $GreenmetricIndo = dom_xpath(
+    //   "https://greenmetric.ui.ac.id/rankings/ranking-by-country-{$lastYear}/Indonesia",
+    //   '//table/tbody'
+    // )[0]->getElementsByTagName('tr');
 
-    foreach ($GreenmetricIndo as $singleTable) {
-      $td = $singleTable->getElementsByTagName('td');
-      if (in_array(trim($td[1]->textContent), ['Universitas Lampung', 'Lampung University'])) {
-        $dataPastGreenmetric['rank_by_indonesian'] = $td[0]->textContent;
-        break;
-      }
-    }
+    // foreach ($GreenmetricIndo as $singleTable) {
+    //   $td = $singleTable->getElementsByTagName('td');
+    //   if (in_array(trim($td[1]->textContent), ['Universitas Lampung', 'Lampung University'])) {
+    //     $dataPastGreenmetric['rank_by_indonesian'] = $td[0]->textContent;
+    //     break;
+    //   }
+    // }
 
-    $GreenmetricIndo = dom_xpath(
-      "https://greenmetric.ui.ac.id/rankings/ranking-by-region-{$lastYear}/asia",
-      '//table/tbody'
-    )[0]->getElementsByTagName('tr');
+    // $GreenmetricIndo = dom_xpath(
+    //   "https://greenmetric.ui.ac.id/rankings/ranking-by-region-{$lastYear}/asia",
+    //   '//table/tbody'
+    // )[0]->getElementsByTagName('tr');
 
-    foreach ($GreenmetricIndo as $singleTable) {
-      $td = $singleTable->getElementsByTagName('td');
-      if (in_array(trim($td[1]->textContent), ['Universitas Lampung', 'Lampung University'])) {
-        $dataPastGreenmetric['rank_by_asian'] = $td[0]->textContent;
-        break;
-      }
-    }
+    // foreach ($GreenmetricIndo as $singleTable) {
+    //   $td = $singleTable->getElementsByTagName('td');
+    //   if (in_array(trim($td[1]->textContent), ['Universitas Lampung', 'Lampung University'])) {
+    //     $dataPastGreenmetric['rank_by_asian'] = $td[0]->textContent;
+    //     break;
+    //   }
+    // }
+    $dataGreenmetric['rank_by_indonesian'] = $dataGreenmetric['rank_by_indonesian'] ?? 0;
+    $dataPastGreenmetric['rank_by_indonesian'] = $dataPastGreenmetric['rank_by_indonesian'] ?? 0;
+    $dataGreenmetric['rank_by_asian'] = $dataGreenmetric['rank_by_asian'] ?? 0;
+    $dataPastGreenmetric['rank_by_asian'] = $dataPastGreenmetric['rank_by_asian'] ?? 0;
 
     return view('content.pages.wcu.pages-green-metric', [
       'pageConfigs' => $pageConfigs,

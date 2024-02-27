@@ -92,14 +92,15 @@
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
                 <li class="d-lg-none bg-label-primary">
-                  <div class="dropdown-item">
-                    <i class="ti ti-user me-2 ti-sm"></i>
-                    <span class="align-middle">{{ Auth::user()->nm_pengguna }} <small class="fst-italic">({{ \App\Models\Peran::where('id_peran', session()->get('login.role')->id_peran)->pluck('nm_peran')[0] }})</small></span>
-                  </div>
-                  <div class="dropdown-divider"></div>
+                    <div class="dropdown-item">
+                        <i class="ti ti-user me-2 ti-sm"></i>
+                        <span class="align-middle">{{ Auth::user()->nm_pengguna }} <small
+                                class="fst-italic">({{ \App\Models\Peran::where('id_peran', session()->get('login.role')->id_peran)->pluck('nm_peran')[0] }})</small></span>
+                    </div>
+                    <div class="dropdown-divider"></div>
                 </li>
                 <li>
-                    <a class="dropdown-item" href="/" target="_blank">
+                    <a class="dropdown-item" href="{{ route('main-profil') }}" target="_blank">
                         <i class="ti ti-user-edit me-2 ti-sm"></i>
                         <span class="align-middle">Profil</span>
                     </a>
@@ -125,12 +126,12 @@
                         </a>
                     </li>
                 @else
-                <li>
-                    <a class="dropdown-item text-primary" href="{{ route('pages-home') }}">
-                        <i class="ti ti-home me-2 ti-sm"></i>
-                        <span class="align-middle">Dashboard Publik</span>
-                    </a>
-                </li>
+                    <li>
+                        <a class="dropdown-item text-primary" href="{{ route('pages-home') }}">
+                            <i class="ti ti-home me-2 ti-sm"></i>
+                            <span class="align-middle">Dashboard Publik</span>
+                        </a>
+                    </li>
                 @endif
                 <li>
                     <div class="dropdown-divider"></div>

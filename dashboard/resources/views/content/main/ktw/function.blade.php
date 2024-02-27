@@ -18,7 +18,7 @@
 @endsection
 
 @section('page-script')
-    <script src="{{ asset('assets/js/forms-selects.js') }}"></script>
+    <script src="{{ asset('assets/js/form-layouts.js') }}"></script>
     <script type="text/javascript">
         'use strict';
 
@@ -113,7 +113,7 @@
                 "bDestroy": true,
                 processing: true,
                 serverSide: true,
-                pageLength: 25,
+                pageLength: 50,
                 "language": {
                     "decimal": "",
                     "emptyTable": "Tidak ada data pada tabel",
@@ -146,6 +146,11 @@
                         table: true,
                     }
                 },
+                order: [
+                    [9, 'DESC'],
+                    [2, 'ASC'],
+                    [1, 'ASC'],
+                ],
                 "columns": [{
                         data: 'DT_RowIndex',
                         orderable: false,
@@ -186,13 +191,11 @@
                     {
                         data: 'tgl_masuk',
                         title: 'Tgl Masuk',
-                        width: '5px',
                         className: 'text-center',
                     },
                     {
                         data: 'tgl_keluar',
                         title: 'Tgl Lulus',
-                        width: '5px',
                         className: 'text-center'
                     },
                     {
@@ -218,6 +221,7 @@
         }
 
         $(document).ready(function() {
+            $('select').select2();
 
             let tahun = <?php echo json_encode($tahun); ?>;
             let auth = "{{ auth()->check() }}";

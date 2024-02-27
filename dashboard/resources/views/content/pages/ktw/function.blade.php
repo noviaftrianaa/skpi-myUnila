@@ -14,7 +14,6 @@
 @endsection
 
 @section('page-script')
-    <script src="{{ asset('assets/js/forms-selects.js') }}"></script>
     <script type="text/javascript">
         'use strict';
 
@@ -105,6 +104,8 @@
         }
 
         $(document).ready(function() {
+
+            $('select').select2();
 
             ajaxChart();
 
