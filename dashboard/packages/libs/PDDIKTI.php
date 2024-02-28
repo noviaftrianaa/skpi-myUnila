@@ -5,12 +5,13 @@ use Illuminate\Support\Facades\DB;
 function curl_api_pddikti($url, $token,$a_dokumen=false) {
     if (extension_loaded('curl') === true)
     {
-        $fp = fopen ('dokumen.pdf', 'w+');
+//        $fp = fopen ('dokumen.pdf', 'w+');
         $ch = curl_init();
         curl_setopt($ch,CURLOPT_HTTPHEADER, ['Content-Type: application/json','Authorization: Bearer '.$token]);
         curl_setopt($ch,CURLOPT_URL, $url);
         if (!is_development()) {
-            curl_setopt($ch,CURLOPT_SSL_VERIFYPEER, FALSE);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
         }
         curl_setopt($ch,CURLOPT_POST, false);
         curl_setopt($ch,CURLOPT_RETURNTRANSFER, true);
@@ -20,7 +21,7 @@ function curl_api_pddikti($url, $token,$a_dokumen=false) {
         if ($result === false) {
             $info = curl_getinfo($ch);
             curl_close($ch);
-            die('error occured during curl exec. Info: ' . var_export($info));
+            die('error occured during curl exec. Curl Error:'.curl_error($ch).' Info: ' . var_export($info));
         }
         curl_close ($ch);
     } else {
@@ -51,7 +52,7 @@ if (!function_exists('curl_api_neo_feeder')) {
             if ($result === false) {
                 $info = curl_getinfo($ch);
                 curl_close($ch);
-                die('error occured during curl exec. Info: ' . var_export($info));
+                die('error occured during curl exec. Curl Error:'.curl_error($ch).' Info: ' . var_export($info));
             }
             curl_close($ch);
         } else {
@@ -144,7 +145,7 @@ if (!function_exists('curl_api_sister')) {
             if ($result === false) {
                 $info = curl_getinfo($ch);
                 curl_close($ch);
-                die('error occured during curl exec. Info: ' . var_export($info));
+                die('error occured during curl exec. Curl Error:'.curl_error($ch).' Info: ' . var_export($info));
             }
             curl_close($ch);
         } else {
@@ -166,6 +167,7 @@ if (!function_exists('is_development')) {
         }
     }
 }
+
 if (!function_exists('generate_token_sister')) {
     function generate_token_sister()
     {
