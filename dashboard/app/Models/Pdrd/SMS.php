@@ -135,7 +135,7 @@ class SMS extends AbstractionModel
                     SUM(CASE WHEN (akm.id_stat_mhs='K' OR trpd.id_jns_keluar IN ('2','4','6','7')) THEN 1 ELSE 0 END) AS mhs_keluar,
                     SUM(CASE WHEN (akm.id_stat_mhs='A' AND trpd.id_jns_keluar IS NULL) THEN 1 ELSE 0 END) AS mhs_aktif,
                     SUM(CASE WHEN (akm.id_stat_mhs='M' AND trpd.id_jns_keluar IS NULL) THEN 1 ELSE 0 END) AS mhs_mbkm,
-                    SUM(CASE WHEN (akm.id_stat_mhs='D' OR trpd.id_jns_keluar = '2') THEN 1 ELSE 0 END) AS mhs_do,
+                    SUM(CASE WHEN (akm.id_stat_mhs='D' OR trpd.id_jns_keluar = '3') THEN 1 ELSE 0 END) AS mhs_do,
                     SUM(CASE WHEN akm.id_stat_mhs='N' THEN 1 ELSE 0 END) AS mhs_non_aktif,
                     SUM(CASE WHEN akm.id_stat_mhs='C' THEN 1 ELSE 0 END) AS mhs_cuti,
                     SUM(CASE WHEN p.id_kewarganegaraan='ID' THEN 1 ELSE 0 END) AS mhs_indonesia,

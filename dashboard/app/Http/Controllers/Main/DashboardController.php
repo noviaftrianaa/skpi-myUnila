@@ -23,9 +23,6 @@ class DashboardController extends Controller
                 ->whereNull('expired_date')
                 ->first()->id_smt;
         }
-//        $log_login = LogLogin::where('id_pengguna', \Auth::user()->id_pengguna)
-//            ->orderBy('waktu_login', 'DESC')->first();
-        $versi_database = VersiDb::orderBy('tgl_update', 'DESC')->first();
         $role = session()->get('login.role');
         $unit = UnitOrganisasi::find($role->id_organisasi);
         if ($unit->id_jns_lemb == 24) { // Jika Prodi login
@@ -52,6 +49,7 @@ class DashboardController extends Controller
             $judul = 'Program Studi '.$sms->nm_lemb.' ('.$sms->jenjang->nm_jenj_didik.')';
             return view('content.main.dashboard-prodi',compact('judul','semester_list','smt_pilih','level','data_list_tabel','data_profil_prodi','data_akreditasi_prodi','sms'));
         } else { // Jika level PT login
+            $data_list_tabel = SMS::dashboard_tabel_list_sms([],$smt_pilih);
             $pt = SatuanPendidikan::find(env('APP_ID_SP'));
             $semester_list = Semester::select('id_smt','nm_smt')
                 ->where('tgl_mulai','<',date('Y-m-d'))
@@ -108,5 +106,33 @@ class DashboardController extends Controller
 
       alert()->success('Role '.$peran->nm_peran.' Aktif');
       return redirect()->route('main-index');
+    }
+
+    public function dashboard_prodi(Request $request)
+    {
+        if ($request->has('smt')) {
+            $smt_pilih = $request->smt;
+        } else {
+            $smt_pilih = Semester::where('tgl_mulai','<',date('Y-m-d'))
+                ->where('tgl_selesai','>=',date('Y-m-d'))
+                ->whereNull('expired_date')
+                ->first()->id_smt;
+        }
+        $role = session()->get('login.role');
+        $unit = UnitOrganisasi::find($role->id_organisasi);
+        if ($unit->id_jns_lemb == 24) { // Jika Prodi login
+            $sms = SMS::find($unit->id_organisasi);
+            $semester_list = Semester::select('id_smt', 'nm_smt')
+                ->where('id_smt', '>=', $sms->smt_mulai)
+                ->where('tgl_mulai', '<', date('Y-m-d'))
+                ->whereNull('expired_date')
+                ->where('smt', '!=', 3)
+                ->orderBy('id_smt', 'DESC')
+                ->pluck('nm_smt', 'id_smt')
+                ->toArray();
+            $level = 'prodi';
+        } else {
+            //
+        }
     }
 }

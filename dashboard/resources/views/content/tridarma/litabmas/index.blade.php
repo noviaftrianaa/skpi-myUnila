@@ -16,9 +16,6 @@
                         <tr>
                             <th>No</th>
                             <th>Judul</th>
-                            <th>No. SK</th>
-                            <th>Tanggal SK</th>
-                            <th>Lokasi Kegiatan</th>
                             <th>Tahun Kegiatan</th>
                             <th>Ketua</th>
                             <th>Homebase Ketua</th>
@@ -30,9 +27,6 @@
                             <tr>
                                 <td>{{ $no+1 }}</td>
                                 <td>{{ $each_data->judul_litabmas }}</td>
-                                <td>{{ $each_data->sk_tugas }}</td>
-                                <td>{{ $each_data->tgl_sk_tugas }}</td>
-                                <td>{{ $each_data->lokasi_kegiatan }}</td>
                                 <td>{{ $each_data->thn_kegiatan }}</td>
                                 <td>{{ $each_data->nm_ketua }}</td>
                                 <td>{{ $each_data->prodi_ketua }}</td>
