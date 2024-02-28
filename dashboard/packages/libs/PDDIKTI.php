@@ -9,7 +9,9 @@ function curl_api_pddikti($url, $token,$a_dokumen=false) {
         $ch = curl_init();
         curl_setopt($ch,CURLOPT_HTTPHEADER, ['Content-Type: application/json','Authorization: Bearer '.$token]);
         curl_setopt($ch,CURLOPT_URL, $url);
-//            curl_setopt($ch,CURLOPT_SSL_VERIFYPEER, FALSE);
+        if (!is_development()) {
+            curl_setopt($ch,CURLOPT_SSL_VERIFYPEER, FALSE);
+        }
         curl_setopt($ch,CURLOPT_POST, false);
         curl_setopt($ch,CURLOPT_RETURNTRANSFER, true);
 //        curl_setopt($ch, CURLOPT_FILE,$fp);
@@ -154,6 +156,16 @@ if (!function_exists('curl_api_sister')) {
     }
 }
 
+if (!function_exists('is_development')) {
+    function is_development()
+    {
+        if (env('APP_ENV')!='production') {
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
 if (!function_exists('generate_token_sister')) {
     function generate_token_sister()
     {

@@ -3,6 +3,7 @@
 namespace App\Models\Pdrd;
 
 use App\Models\AbstractionModel;
+use App\Models\Referensi\Semester;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -103,8 +104,9 @@ class SMS extends AbstractionModel
       return $this->belongsTo('App\Models\Pdrd\SMS','id_fak_unila','id_sms');
     }
 
-    public static function dashboard_tabel_list_sms($id_sms)
+    public static function dashboard_tabel_list_sms($id_sms,$id_smt)
     {
+        $thn_ajaran = Semester::find($id_smt)->id_thn_ajaran;
         $condition = '';
         if (count($id_sms)>0) {
             $condition.=" AND tsms.id_sms IN ('".implode("','",$id_sms)."')";
@@ -115,13 +117,14 @@ class SMS extends AbstractionModel
                 SUM(CASE WHEN LEFT(tsdm.nidn,2) IN ('88','89') THEN 1 ELSE 0 END) AS total_dosen_nidk,
                 SUM(CASE WHEN LEFT(tsdm.nidn,2) = '99' THEN 1 ELSE 0 END) AS total_dosen_nup,
                 COUNT(tsdm.id_sdm) AS total_dosen_homebase,
+                snh.total_dosen_rasio,
                 pd.mhs_aktif, pd.mhs_non_aktif, pd.mhs_do, pd.mhs_cuti, pd.mhs_keluar, pd.mhs_mbkm, pd.mhs_lulus, pd.mhs_indonesia, pd.mhs_asing, pd.total_mhs
             FROM pdrd.sdm AS tsdm
             JOIN pdrd.reg_ptk AS tr ON tr.id_sdm=tsdm.id_sdm AND tr.soft_delete=0
                 AND tr.id_jns_keluar IS NULL
             JOIN pdrd.keaktifan_ptk AS ta ON ta.id_reg_ptk=tr.id_reg_ptk AND ta.soft_delete=0
-             AND ta.a_sp_homebase=1 AND ta.id_thn_ajaran=2023
-            JOIN pdrd.satuan_pendidikan AS tsp ON tsp.id_sp=tr.id_sp AND tsp.npsn='001026'
+             AND ta.a_sp_homebase=1 AND ta.id_thn_ajaran=".$thn_ajaran."
+            JOIN pdrd.satuan_pendidikan AS tsp ON tsp.id_sp=tr.id_sp AND tsp.id_sp='".env('APP_ID_SP')."'
             JOIN pdrd.sms AS tsms ON tsms.id_sms=tr.id_sms
             LEFT JOIN pdrd.sms AS tfak ON tfak.id_sms=tsms.id_fak_unila
             JOIN ref.jenjang_pendidikan AS tj ON tj.id_jenj_didik=tsms.id_jenj_didik
@@ -141,13 +144,23 @@ class SMS extends AbstractionModel
                 FROM pdrd.reg_pd AS trpd
                 JOIN pdrd.peserta_didik AS p ON p.id_pd=trpd.id_pd AND p.soft_delete=0
                 JOIN pdrd.kuliah_mhs AS akm ON akm.id_reg_pd=trpd.id_reg_pd AND akm.soft_delete=0
-                    AND akm.id_smt=20222
+                    AND akm.id_smt=".$id_smt."
                 WHERE trpd.soft_delete=0
                 GROUP BY trpd.id_sms
             ) AS pd ON pd.id_sms=tsms.id_sms
+            JOIN (
+                SELECT kk.id_sms, COUNT(DISTINCT trnh.id_sdm) AS total_dosen_rasio FROM pdrd.reg_ptk AS trnh
+                JOIN pdrd.akt_ajar_dosen AS ajar ON ajar.id_reg_ptk=trnh.id_reg_ptk AND ajar.soft_delete=0
+                JOIN pdrd.kelas_kuliah AS kk ON kk.id_kls=ajar.id_kls AND kk.soft_delete=0
+                    AND kk.id_smt=".$id_smt."
+                WHERE trnh.soft_delete=0
+                    AND trnh.id_jns_keluar IS NULL
+                    AND trnh.id_sp='".env('APP_ID_SP')."'
+                GROUP BY kk.id_sms
+            ) AS snh ON snh.id_sms=tsms.id_sms
             WHERE tsdm.soft_delete=0
                 ".$condition."
-            GROUP BY tsms.id_sms, tfak.nm_lemb, tsms.id_jur_unila, tsms.id_jenj_didik, tsms.nm_lemb, tsms.stat_prodi, tj.nm_jenj_didik, pd.mhs_aktif, pd.mhs_non_aktif, pd.mhs_do, pd.mhs_cuti, pd.mhs_keluar, pd.mhs_mbkm, pd.mhs_lulus, pd.mhs_indonesia, pd.mhs_asing, pd.total_mhs
+            GROUP BY tsms.id_sms, tfak.nm_lemb, tsms.id_jur_unila, tsms.id_jenj_didik, tsms.nm_lemb, tsms.stat_prodi, snh.total_dosen_rasio, tj.nm_jenj_didik, pd.mhs_aktif, pd.mhs_non_aktif, pd.mhs_do, pd.mhs_cuti, pd.mhs_keluar, pd.mhs_mbkm, pd.mhs_lulus, pd.mhs_indonesia, pd.mhs_asing, pd.total_mhs
             ORDER BY tfak.nm_lemb ASC, tsms.id_jur_unila ASC, tsms.nm_lemb ASC, tsms.id_jenj_didik DESC
         ";
         return DB::SELECT($query);

@@ -35,10 +35,11 @@ class DashboardController extends Controller
                 ->where('tgl_mulai','<',date('Y-m-d'))
                 ->whereNull('expired_date')
                 ->where('smt','!=',3)
+                ->orderBy('id_smt','DESC')
                 ->pluck('nm_smt','id_smt')
                 ->toArray();
             $level = 'prodi';
-            $data_list_tabel = SMS::dashboard_tabel_list_sms([$sms->id_sms]);
+            $data_list_tabel = SMS::dashboard_tabel_list_sms([$sms->id_sms],$smt_pilih);
             $data_profil_prodi = DB::table('pdrd.profil_prodi')->where('id_sms',$sms->id_sms)
                 ->where('soft_delete',0)
                 ->orderBy('id_thn_ajaran','DESC')->first();
@@ -49,7 +50,7 @@ class DashboardController extends Controller
                 ->orderBy('ap.tst_sk_akreditasi_prodi','DESC')
                 ->get();
             $judul = 'Program Studi '.$sms->nm_lemb.' ('.$sms->jenjang->nm_jenj_didik.')';
-            return view('content.main.dashboard-prodi',compact('judul','semester_list','level','data_list_tabel','data_profil_prodi','data_akreditasi_prodi','sms'));
+            return view('content.main.dashboard-prodi',compact('judul','semester_list','smt_pilih','level','data_list_tabel','data_profil_prodi','data_akreditasi_prodi','sms'));
         } else { // Jika level PT login
             $pt = SatuanPendidikan::find(env('APP_ID_SP'));
             $semester_list = Semester::select('id_smt','nm_smt')

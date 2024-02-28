@@ -89,22 +89,26 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-body">
+                    <form action="{{ route('main-index') }}" method="GET">
+                    {!! FormInputSelect('smt','Semester Aktif',$semester_list,false,false,$smt_pilih) !!}
+                    </form>
+                    <hr>
                     <div class="table-responsive">
                         <table class="table table-striped table-bordered">
                             <thead>
                             <tr>
-                                <th rowspan="3">Fakultas</th>
-                                <th rowspan="3">Program Studi</th>
-                                <th rowspan="3">Jenjang</th>
-                                <th colspan="5">Dosen</th>
-                                <th colspan="7">Mahasiswa</th>
+                                <th rowspan="3" class="align-middle">Fakultas</th>
+                                <th rowspan="3" class="align-middle">Program Studi</th>
+                                <th rowspan="3" class="align-middle">Jenjang</th>
+                                <th colspan="5" class="text-center">Dosen</th>
+                                <th colspan="7" class="text-center">Mahasiswa</th>
                             </tr>
                             <tr>
-                                <th colspan="4">&Sigma;Dosen Homebase</th>
-                                <th rowspan="2">&Sigma;Dosen Penghitung Rasio</th>
-                                <th colspan="4">&Sigma;Keaktifan Mahasiswa</th>
-                                <th colspan="2">&Sigma;Kewarganegaraan Mahasiswa</th>
-                                <th rowspan="2">&Sigma;Total</th>
+                                <th colspan="4" class="text-center">&Sigma;Homebase</th>
+                                <th rowspan="2" class="text-center align-middle">&Sigma;Penghitung Rasio</th>
+                                <th colspan="4" class="text-center">&Sigma;Keaktifan Mahasiswa</th>
+                                <th colspan="2" class="text-center">&Sigma;Kewarganegaraan Mahasiswa</th>
+                                <th rowspan="2" class="align-middle">&Sigma;Total</th>
                             </tr>
                             <tr>
                                 <th>NIDN</th>
@@ -124,19 +128,19 @@
                                 <tr>
                                     <td>{{ $each_data_list->nm_fak }}</td>
                                     <td>{{ $each_data_list->nm_lemb }}</td>
-                                    <td>{{ $each_data_list->nm_jenj_didik }}</td>
-                                    <td>{{ $each_data_list->total_dosen_nidn }}</td>
-                                    <td>{{ $each_data_list->total_dosen_nidk }}</td>
-                                    <td>{{ $each_data_list->total_dosen_nup }}</td>
-                                    <td>{{ $each_data_list->total_dosen_homebase }}</td>
-                                    <td></td>
-                                    <td>{{ $each_data_list->mhs_aktif }}</td>
-                                    <td>{{ $each_data_list->mhs_mbkm }}</td>
-                                    <td>{{ $each_data_list->mhs_non_aktif+$each_data_list->mhs_do+$each_data_list->mhs_cuti+$each_data_list->mhs_keluar }}</td>
-                                    <td>{{ $each_data_list->mhs_lulus }}</td>
-                                    <td>{{ $each_data_list->mhs_indonesia }}</td>
-                                    <td>{{ $each_data_list->mhs_asing }}</td>
-                                    <td>{{ $each_data_list->total_mhs }}</td>
+                                    <td class="text-center">{{ $each_data_list->nm_jenj_didik }}</td>
+                                    <td class="text-center">{{ $each_data_list->total_dosen_nidn }}</td>
+                                    <td class="text-center">{{ $each_data_list->total_dosen_nidk }}</td>
+                                    <td class="text-center">{{ $each_data_list->total_dosen_nup }}</td>
+                                    <td class="text-center">{{ $each_data_list->total_dosen_homebase }}</td>
+                                    <td class="text-center">{{ $each_data_list->total_dosen_rasio }}</td>
+                                    <td class="text-center">{{ $each_data_list->mhs_aktif }}</td>
+                                    <td class="text-center">{{ $each_data_list->mhs_mbkm }}</td>
+                                    <td class="text-center">{{ $each_data_list->mhs_non_aktif+$each_data_list->mhs_do+$each_data_list->mhs_cuti+$each_data_list->mhs_keluar }}</td>
+                                    <td class="text-center">{{ $each_data_list->mhs_lulus }}</td>
+                                    <td class="text-center">{{ $each_data_list->mhs_indonesia }}</td>
+                                    <td class="text-center">{{ $each_data_list->mhs_asing }}</td>
+                                    <td class="text-center">{{ $each_data_list->total_mhs }}</td>
                                 </tr>
                             @endforeach
                             </tbody>
@@ -147,3 +151,13 @@
         </div>
     </div>
 @endsection
+
+@push('js')
+    <script>
+        $(document).ready(function() {
+            $('#smt').on('change', function() {
+                this.form.submit();
+            });
+        });
+    </script>
+@endpush
