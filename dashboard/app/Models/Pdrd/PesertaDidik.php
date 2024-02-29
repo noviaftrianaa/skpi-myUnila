@@ -4,6 +4,7 @@ namespace App\Models\Pdrd;
 
 use App\Models\AbstractionModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\DB;
 
 class PesertaDidik extends AbstractionModel
 {
@@ -202,5 +203,119 @@ class PesertaDidik extends AbstractionModel
         $data = \DB::SELECT($query);
 
         return collect($data);
+    }
+
+    public static function dashboard_mahasiswa($tipe,$smt,$level,$sms)
+    {
+        $from   = "FROM pdrd.peserta_didik AS tpd WITH (NOLOCK)
+        ";
+        $where = " WHERE tpd.soft_delete=0
+                ";
+        $group = '';
+        $order = '';
+        $alternative_where = '';
+        if ($tipe=='rekap_mhs_semester') {
+            $select = "SELECT
+                CONCAT(tsms.nm_lemb,' (',tj.nm_jenj_didik,')') AS prodi,
+	            SUM(CASE WHEN (akm.id_stat_mhs='L' OR rpd.id_jns_keluar='1') THEN 1 ELSE 0 END) AS Lulus,
+	            SUM(CASE WHEN (akm.id_stat_mhs='K' OR rpd.id_jns_keluar IN ('2','4','6','7')) THEN 1 ELSE 0 END) AS Keluar,
+                SUM(CASE WHEN (akm.id_stat_mhs='A' AND rpd.id_jns_keluar IS NULL) THEN 1 ELSE 0 END) AS Aktif,
+                SUM(CASE WHEN (akm.id_stat_mhs='M' AND rpd.id_jns_keluar IS NULL) THEN 1 ELSE 0 END) AS MBKM,
+                SUM(CASE WHEN (akm.id_stat_mhs='D' OR rpd.id_jns_keluar = '3') THEN 1 ELSE 0 END) AS DO,
+                SUM(CASE WHEN akm.id_stat_mhs='N' THEN 1 ELSE 0 END) AS NonAktif,
+                SUM(CASE WHEN akm.id_stat_mhs='C' THEN 1 ELSE 0 END) AS Cuti
+            ";
+            $join = "
+                JOIN pdrd.reg_pd AS rpd ON rpd.id_pd=tpd.id_pd AND rpd.soft_delete=0
+                JOIN pdrd.kuliah_mhs AS akm ON akm.id_reg_pd=rpd.id_reg_pd AND akm.soft_delete=0
+                JOIN pdrd.sms AS tsms ON tsms.id_sms=rpd.id_sms AND tsms.soft_delete=0
+                JOIN ref.jenjang_pendidikan AS tj ON tj.id_jenj_didik=tsms.id_jenj_didik
+            ";
+            $where .= " AND akm.id_smt='".$smt."'";
+            $group .= " GROUP BY tsms.nm_lemb, tj.nm_jenj_didik";
+        } elseif($tipe=='rekap_kewarganegaraan_mhs_semester') {
+            $select = "SELECT
+                CONCAT(tsms.nm_lemb,' (',tj.nm_jenj_didik,')') AS prodi,
+                SUM(CASE WHEN tpd.id_kewarganegaraan='ID' THEN 1 ELSE 0 END) AS Indonesia,
+                SUM(CASE WHEN tpd.id_kewarganegaraan!='ID' THEN 1 ELSE 0 END) AS Asing
+            ";
+            $join = "
+                JOIN pdrd.reg_pd AS rpd ON rpd.id_pd=tpd.id_pd AND rpd.soft_delete=0
+                JOIN pdrd.kuliah_mhs AS akm ON akm.id_reg_pd=rpd.id_reg_pd AND akm.soft_delete=0
+                JOIN pdrd.sms AS tsms ON tsms.id_sms=rpd.id_sms AND tsms.soft_delete=0
+                JOIN ref.jenjang_pendidikan AS tj ON tj.id_jenj_didik=tsms.id_jenj_didik
+            ";
+            $where .= " AND akm.id_smt='".$smt."'";
+            $group .= " GROUP BY tsms.nm_lemb, tj.nm_jenj_didik";
+        } elseif($tipe=='rekap_ipk_mhs_semester') {
+            $select = "SELECT
+                CONCAT(tsms.nm_lemb,' (',tj.nm_jenj_didik,')') AS prodi,";
+            $select .= '
+                SUM(CASE WHEN akm.ipk>=3 THEN 1 ELSE 0 END) AS "ipk >= 3",
+                SUM(CASE WHEN akm.ipk<3 AND akm.ipk >=2.5 THEN 1 ELSE 0 END) AS "2,5 < ipk < 3",
+                SUM(CASE WHEN akm.ipk<2.5 AND akm.ipk >=2 THEN 1 ELSE 0 END) AS "2 < ipk < 2,5",
+                SUM(CASE WHEN akm.ipk<2 THEN 1 ELSE 0 END) AS "ipk < 2"
+            ';
+            $join = "
+                JOIN pdrd.reg_pd AS rpd ON rpd.id_pd=tpd.id_pd AND rpd.soft_delete=0
+                JOIN pdrd.kuliah_mhs AS akm ON akm.id_reg_pd=rpd.id_reg_pd AND akm.soft_delete=0
+                JOIN pdrd.sms AS tsms ON tsms.id_sms=rpd.id_sms AND tsms.soft_delete=0
+                JOIN ref.jenjang_pendidikan AS tj ON tj.id_jenj_didik=tsms.id_jenj_didik
+            ";
+            $where .= " AND akm.id_smt='".$smt."'";
+            $group .= " GROUP BY tsms.nm_lemb, tj.nm_jenj_didik";
+        } elseif($tipe=='rekap_masa_mukim_mhs_semester') {
+            $select = "SELECT
+                CONCAT(tsms.nm_lemb,' (',tj.nm_jenj_didik,')') AS prodi,";
+            $select .= '
+                SUM(CASE WHEN ((akm.id_stat_mhs=\'L\' OR rpd.id_jns_keluar=\'1\') AND (ROUND(DATEDIFF(DAY, rpd.tgl_masuk_sp, rpd.tgl_keluar)/365.25, 2) <= 4)) THEN 1 ELSE 0 END) AS "< 4 Tahun",
+                SUM(CASE WHEN ((akm.id_stat_mhs=\'L\' OR rpd.id_jns_keluar=\'1\') AND
+                    (
+                        ROUND(DATEDIFF(DAY, rpd.tgl_masuk_sp, rpd.tgl_keluar)/365.25, 2) > 4 AND
+                        ROUND(DATEDIFF(DAY, rpd.tgl_masuk_sp, rpd.tgl_keluar)/365.25, 2) <= 4.25
+                    )) THEN 1 ELSE 0 END) AS "4 < x < 4.25 Tahun",
+                SUM(CASE WHEN ((akm.id_stat_mhs=\'L\' OR rpd.id_jns_keluar=\'1\') AND
+                    (
+                        ROUND(DATEDIFF(DAY, rpd.tgl_masuk_sp, rpd.tgl_keluar)/365.25, 2) > 4.25 AND
+                        ROUND(DATEDIFF(DAY, rpd.tgl_masuk_sp, rpd.tgl_keluar)/365.25, 2) <= 4.5
+                    )) THEN 1 ELSE 0 END) AS "4.25 < x < 4.5 Tahun",
+                SUM(CASE WHEN ((akm.id_stat_mhs=\'L\' OR rpd.id_jns_keluar=\'1\') AND
+                    (
+                        ROUND(DATEDIFF(DAY, rpd.tgl_masuk_sp, rpd.tgl_keluar)/365.25, 2) > 4.5 AND
+                        ROUND(DATEDIFF(DAY, rpd.tgl_masuk_sp, rpd.tgl_keluar)/365.25, 2) <= 4.75
+                    )) THEN 1 ELSE 0 END) AS "4.5 < x < 4.75 Tahun",
+                SUM(CASE WHEN ((akm.id_stat_mhs=\'L\' OR rpd.id_jns_keluar=\'1\') AND
+                    (
+                        ROUND(DATEDIFF(DAY, rpd.tgl_masuk_sp, rpd.tgl_keluar)/365.25, 2) > 4.75 AND
+                        ROUND(DATEDIFF(DAY, rpd.tgl_masuk_sp, rpd.tgl_keluar)/365.25, 2) <= 5
+                    )) THEN 1 ELSE 0 END) AS "4.75 < x < 5 Tahun",
+                SUM(CASE WHEN ((akm.id_stat_mhs=\'L\' OR rpd.id_jns_keluar=\'1\') AND
+                    (
+                        ROUND(DATEDIFF(DAY, rpd.tgl_masuk_sp, rpd.tgl_keluar)/365.25, 2) > 5 AND
+                        ROUND(DATEDIFF(DAY, rpd.tgl_masuk_sp, rpd.tgl_keluar)/365.25, 2) <= 6
+                    )) THEN 1 ELSE 0 END) AS "5 < x < 6 Tahun",
+                SUM(CASE WHEN ((akm.id_stat_mhs=\'L\' OR rpd.id_jns_keluar=\'1\') AND ROUND(DATEDIFF(DAY, rpd.tgl_masuk_sp, rpd.tgl_keluar)/365.25, 2) > 6) THEN 1 ELSE 0 END) AS "> 6 Tahun"
+            ';
+            $join = "
+                JOIN pdrd.reg_pd AS rpd ON rpd.id_pd=tpd.id_pd AND rpd.soft_delete=0
+                JOIN pdrd.kuliah_mhs AS akm ON akm.id_reg_pd=rpd.id_reg_pd AND akm.soft_delete=0
+                JOIN pdrd.sms AS tsms ON tsms.id_sms=rpd.id_sms AND tsms.soft_delete=0
+                JOIN ref.jenjang_pendidikan AS tj ON tj.id_jenj_didik=tsms.id_jenj_didik
+            ";
+            $where .= " AND akm.id_smt='".$smt."'";
+            $group .= " GROUP BY tsms.nm_lemb, tj.nm_jenj_didik";
+        } else {
+
+        }
+        if ($level!='pt') {
+            if ($level=='prodi') {
+                $alternative_where.=" AND tsms.id_sms='".$sms."'";
+            } elseif ($level=='jurusan') {
+                $alternative_where.=" AND tsms.id_jur_unila='".$sms."'";
+            } elseif($level=='fakultas') {
+                $alternative_where.=" AND tsms.id_fak_unila='".$sms."'";
+            }
+        }
+        return DB::SELECT($select.$from.$join.$where.$alternative_where.$group.$order);
     }
 }

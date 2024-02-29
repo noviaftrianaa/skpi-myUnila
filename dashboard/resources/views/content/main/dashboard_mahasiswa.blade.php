@@ -8,7 +8,7 @@
             <div class="container">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title"><i class="fas fa-dashboard"></i> {{ $judul }} Tahun {{ $ta_pilih }}</h3>
+                        <h3 class="card-title"><i class="fas fa-dashboard"></i> {{ $judul }} Semester {{ $smt_pilih }}</h3>
                     </div>
                     <div class="card-body">
                         <form action="{{ route('dashboard_mahasiswa') }}" method="GET">
@@ -16,34 +16,18 @@
                         </form>
                         <div class="row">
                             <div class="col-sm-6">
-                                <div id="dosen"></div>
+                                <div id="rekap_mhs"></div>
                             </div>
                             <div class="col-sm-6">
-                                <div id="dosen_jabfung"></div>
+                                <div id="rekap_negara_mhs"></div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-sm-6">
-                                <div id="dosen_rasio_pendidikan"></div>
+                                <div id="rekap_ipk"></div>
                             </div>
                             <div class="col-sm-6">
-                                <div id="dosen_rasio_pangkat"></div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-6">
-                                <div id="dosen_rasio_ikatan_kerja"></div>
-                            </div>
-                            <div class="col-sm-6">
-                                <div id="dosen_berdasarkan_usia"></div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-4">
-                                <div id="litabmas_dosen"></div>
-                            </div>
-                            <div class="col-sm-8">
-                                <div id="publikasi_dosen"></div>
+                                <div id="rekap_masa_mukim"></div>
                             </div>
                         </div>
                     </div>
@@ -56,131 +40,53 @@
 @push('js')
     <script>
         $(document).ready( function () {
-            var tahun_1 = '{!! $ta_pilih !!}';
-            var tahun_2 = '{!! ($ta_pilih-1) !!}';
-            var tahun_3 = '{!! ($ta_pilih-2) !!}';
-            var dosen_nomor_induk = '{!! $total_dosen !!}';
-            var data_dosen_nomor_induk = [];
-            var kategori_dosen_nomor_induk = [];
-            $.each(JSON.parse(dosen_nomor_induk),function (i, k) {
-                data_dosen_nomor_induk.push([
-                    i, parseInt(k)
-                ]);
-                kategori_dosen_nomor_induk.push(i);
-            });
-
-            var dosen_jabfung = '{!! $total_dosen_jabfung !!}';
-            var data_dosen_jabfung = [];
-            var kategori_dosen_jabfung = [];
-            $.each(JSON.parse(dosen_jabfung),function (i, k) {
+            var mhs_dashboard = '{!! $dashboard_mhs !!}';
+            var data_mhs_dashboard = [];
+            $.each(JSON.parse(mhs_dashboard),function (i, k) {
                 if(parseInt(k)>0) {
-                    data_dosen_jabfung.push([
+                    data_mhs_dashboard.push([
                         i, parseInt(k)
                     ]);
-                    kategori_dosen_jabfung.push(i);
                 }
             });
+            reloadPieChart('rekap_mhs','Sebaran Dosen berdasarkan Status Semester',data_mhs_dashboard);
 
-            var litabmas = '{!! $data_litabmas !!}';
-            var data_pengmas = [];
-            var data_lit = [];
-            var kategori_litabmas = [];
-            var series_litabmas = [];
-            $.each(JSON.parse(litabmas),function (i, k) {
-                if(k.jns_litabmas=='M') {
-                    data_pengmas.push(parseInt(k.total_litabmas))
-                } else {
-                    data_lit.push(parseInt(k.total_litabmas))
-                }
-                if($.inArray(k.id_thn_kegiatan, kategori_litabmas)===-1) {
-                    kategori_litabmas.push(k.id_thn_kegiatan);
-                }
-            });
-            series_litabmas.push({
-                'name': 'Penelitian',
-                'data': data_lit
-            })
-            series_litabmas.push({
-                'name': 'Pengabdian',
-                'data': data_pengmas
-            })
-
-            var publikasi = '{!! $data_publikasi !!}';
-            var data_publikasi_1 = [];
-            var data_publikasi_2 = [];
-            var data_publikasi_3 = [];
-            var tahun_publikasi = [];
-            var kategori_publikasi = [];
-            var series_publikasi = [];
-            $.each(JSON.parse(publikasi),function (i, k) {
-                kategori_publikasi.push(i);
-                $.each(k,function(m,n) {
-                    if($.inArray(m, tahun_publikasi)===-1) {
-                        tahun_publikasi.push(m);
-                    }
-                    if(m==tahun_1) {
-                        data_publikasi_1.push(parseInt(n));
-                    } else if(m==tahun_2) {
-                        data_publikasi_2.push(parseInt(n));
-                    } else if(m==tahun_3) {
-                        data_publikasi_3.push(parseInt(n));
-                    }
-                })
-            });
-            series_publikasi.push({
-                'name': tahun_1,
-                'data': data_publikasi_1
-            })
-            series_publikasi.push({
-                'name': tahun_2,
-                'data': data_publikasi_2
-            })
-            series_publikasi.push({
-                'name': tahun_3,
-                'data': data_publikasi_3
-            })
-
-            var dosen_kepangkatan = '{!! $dosen_kepangkatan_detail !!}';
-            var data_dosen_kepangkatan = [];
-            var kategori_dosen_kepangkatan = [];
-            $.each(JSON.parse(dosen_kepangkatan),function (i, k) {
+            var mhs_negara_dashboard = '{!! $dashboard_mhs_asing !!}';
+            var data_mhs_negara_dashboard = [];
+            $.each(JSON.parse(mhs_negara_dashboard),function (i, k) {
                 if(parseInt(k)>0) {
-                    data_dosen_kepangkatan.push([
+                    data_mhs_negara_dashboard.push([
                         i, parseInt(k)
                     ]);
-                    kategori_dosen_kepangkatan.push(i);
                 }
             });
+            reloadPieChart('rekap_negara_mhs','Sebaran Dosen berdasarkan Kewarganegaraan',data_mhs_negara_dashboard);
 
-            var dosen_pendidikan = '{!! $dosen_pendidikan_detail !!}';
-            var data_dosen_pendidikan = [];
-            var kategori_dosen_pendidikan = [];
-            $.each(JSON.parse(dosen_pendidikan),function (i, k) {
+            var ipk_mhs = '{!! $dashboard_ipk_mhs !!}';
+            var data_ipk_mhs = [];
+            var kategori_ipk_mhs = [];
+            $.each(JSON.parse(ipk_mhs),function (i, k) {
                 if(parseInt(k)>0) {
-                    data_dosen_pendidikan.push([
+                    data_ipk_mhs.push([
                         i, parseInt(k)
                     ]);
-                    kategori_dosen_pendidikan.push(i);
+                    kategori_ipk_mhs.push(i);
                 }
             });
+            chart_show('Sebaran Mahasiswa','berdasarkan IPK Semester',data_ipk_mhs,'rekap_ipk','Jumlah Mahasiswa',kategori_ipk_mhs);
 
-            var dosen_ikatan = '{!! $dosen_ikatan_detail !!}';
-            var data_dosen_ikatan = [];
-            var kategori_dosen_ikatan = [];
-            $.each(JSON.parse(dosen_ikatan),function (i, k) {
-                data_dosen_ikatan.push([
-                    i, parseInt(k)
-                ]);
-                kategori_dosen_ikatan.push(i);
+            var masa_mukim_mhs = '{!! $dashboard_masa_mukim_mhs !!}';
+            var data_masa_mukim_mhs = [];
+            var kategori_masa_mukim_mhs = [];
+            $.each(JSON.parse(masa_mukim_mhs),function (i, k) {
+                if(parseInt(k)>0) {
+                    data_masa_mukim_mhs.push([
+                        i, parseInt(k)
+                    ]);
+                    kategori_masa_mukim_mhs.push(i);
+                }
             });
-
-            chart_show('Sebaran Dosen','berdasarkan Nomor Induk',data_dosen_nomor_induk,'dosen','Jumlah Dosen',kategori_dosen_nomor_induk,'');
-            chart_show('Sebaran Dosen','berdasarkan Jabatan Fungsional',data_dosen_jabfung,'dosen_jabfung','Jumlah Dosen',kategori_dosen_jabfung,'');
-            reloadPieChart('dosen_rasio_pendidikan','Sebaran Dosen berdasarkan Kualifikasi Pendidikan',data_dosen_pendidikan);
-            reloadPieChart('dosen_rasio_pangkat','Sebaran Dosen berdasarkan Pangkat Golongan',data_dosen_kepangkatan);
-            reloadPieChart('dosen_rasio_ikatan_kerja','Sebaran Dosen berdasarkan Ikatan Kerja',data_dosen_ikatan);
-            chart_tipe_show('Trend Penelitian dan Pengabdian','line','berdasarkan 3 tahun terakhir',series_litabmas,'litabmas_dosen','Jumlah Litabmas',kategori_litabmas,'Tahun Litabmas','Judul')
-            chart_tipe_show('Trend Publikasi Karya dan Paten/HKI','column','berdasarkan 3 tahun terakhir',series_publikasi,'publikasi_dosen','Jumlah Judul',kategori_publikasi,'Tahun Terbit','Judul')
+            chart_show('Sebaran Mahasiswa','berdasarkan Lama Studi',data_masa_mukim_mhs,'rekap_masa_mukim','Jumlah Mahasiswa',kategori_masa_mukim_mhs);
 
             function chart_show(title,subtitle,data,target,y_axis,kategori,title_kategori) {
                 chart = new Highcharts.Chart({
@@ -202,7 +108,7 @@
                     yAxis: {
                         min: 0,
                         title: {
-                            text: 'Jumlah Dosen',
+                            text: 'Jumlah Mahasiswa',
                         },
                     },
                     subtitle: {
@@ -374,118 +280,7 @@
                 });
             }
 
-            tempL       = [];
-            tempP       = [];
-            laki        = [];
-            perempuan   = [];
-            var categories          = ['0-30', '31-40', '41-50', '51-60', '61-80', '80+'];
-            var dosen_usia = '{!! $dosen_usia_detail !!}';
-            $.each(JSON.parse(dosen_usia), function(i, item) {
-                if(item.jk=='L'){
-                    tempL[item.umur] = item.total;
-                }
-                else{
-                    tempP[item.umur] = item.total;
-                }
-            });
-            for(i = 0; i < categories.length; i++){
-                if(tempL[categories[i]]){
-                    laki.push(Math.abs(parseInt(tempL[categories[i]])) * -1);
-                }
-                else{
-                    laki.push(0);
-                }
-            }
-            for(i = 0; i < categories.length; i++){
-                if(tempP[categories[i]]){
-                    perempuan.push(parseInt(tempP[categories[i]]));
-                }
-                else{
-                    perempuan.push(0);
-                }
-            }
-            dataUsia = [{
-                name: 'Laki-Laki',
-                data: laki
-            }, {
-                name: 'Perempuan',
-                data: perempuan
-            }];
-            reloadChartUsia('dosen_berdasarkan_usia','Sebaran Dosen berdasarkan Usia dan Jenis Kelamin',dataUsia)
-
-            function reloadChartUsia(target,title,data)
-            {
-                chartUsia = new Highcharts.Chart({
-                    chart: {
-                        renderTo: target,
-                        type: 'bar',
-                        backgroundColor: 'rgba(0,0,0,0)'
-                    },
-                    title: {
-                        text: title,
-                    },
-                    xAxis: [{
-                        categories: categories,
-                        reversed: false,
-                        labels: {
-                            step: 1,
-                        }
-                    }, { // mirror axis on right side
-                        opposite: true,
-                        reversed: false,
-                        categories: categories,
-                        linkedTo: 0,
-                        labels: {
-                            step: 1,
-                        }
-                    }],
-                    yAxis: {
-                        title: {
-                            text: null
-                        },
-                        labels: {
-                            formatter: function () {
-                                return Math.abs(this.value);
-                            },
-                        }
-                    },
-                    plotOptions: {
-                        series: {
-                            stacking: 'normal',
-                            dataLabels: {
-                                enabled: true,
-                                formatter: function () {
-                                    return Highcharts.numberFormat(Math.abs(this.point.y), 0);
-                                },
-                                crop: false,
-                                inside: false,
-                                overflow: 'none',
-                            }
-                        }
-                    },
-                    legend: {
-                        itemWidth: 220,
-                        itemStyle: {
-                            font: 'Trebuchet MS, Verdana, sans-serif',
-                        },
-                        itemHiddenStyle: {
-                            color: '#444'
-                        }
-                    },
-                    tooltip: {
-                        formatter: function () {
-                            return '<b>' + this.series.name + ', usia ' + this.point.category + '</b><br/>' +
-                                'Jumlah: ' + Highcharts.numberFormat(Math.abs(this.point.y), 0);
-                        }
-                    },
-                    series: data,
-                    credits: {
-                        enabled: false
-                    }
-                });
-            }
-
-            $('#id_ta').on('change', function() {
+            $('#smt').on('change', function() {
                 this.form.submit();
             });
         });

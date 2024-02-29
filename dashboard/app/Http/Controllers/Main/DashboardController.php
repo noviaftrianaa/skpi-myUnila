@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Main;
 
 use App\Http\Controllers\Controller;
+use App\Models\Pdrd\PesertaDidik;
 use App\Models\Pdrd\Publikasi;
 use App\Models\Pdrd\SatuanPendidikan;
 use App\Models\Pdrd\SDM;
@@ -162,10 +163,7 @@ class DashboardController extends Controller
         if ($request->has('smt')) {
             $smt_pilih = $request->smt;
         } else {
-            $smt_pilih = Semester::where('tgl_mulai','<',date('Y-m-d'))
-                ->where('tgl_selesai','>=',date('Y-m-d'))
-                ->whereNull('expired_date')
-                ->first()->id_smt;
+            $smt_pilih = config('mp.data_master.smt_aktif');
         }
         $role = session()->get('login.role');
         $unit = UnitOrganisasi::find($role->id_organisasi);
@@ -180,7 +178,12 @@ class DashboardController extends Controller
                 ->pluck('nm_smt', 'id_smt')
                 ->toArray();
             $level = 'prodi';
-            dd($sms);
+            $judul.= ' Prodi '.$sms->nm_lemb.' ('.$sms->jenjang->nm_jenj_didik.')';
+            $dashboard_mhs = json_encode(collect(PesertaDidik::dashboard_mahasiswa('rekap_mhs_semester',$smt_pilih,$level,$sms->id_sms))->first());
+            $dashboard_mhs_asing = json_encode(collect(PesertaDidik::dashboard_mahasiswa('rekap_kewarganegaraan_mhs_semester',$smt_pilih,$level,$sms->id_sms))->first());
+            $dashboard_ipk_mhs = json_encode(collect(PesertaDidik::dashboard_mahasiswa('rekap_ipk_mhs_semester',$smt_pilih,$level,$sms->id_sms))->first());
+            $dashboard_masa_mukim_mhs = json_encode(collect(PesertaDidik::dashboard_mahasiswa('rekap_masa_mukim_mhs_semester',$smt_pilih,$level,$sms->id_sms))->first());
+            return view('content.main.dashboard_mahasiswa',compact('smt_pilih','semester_list','judul','dashboard_mhs','dashboard_mhs_asing','dashboard_ipk_mhs','dashboard_masa_mukim_mhs'));
         } else {
             //
         }
