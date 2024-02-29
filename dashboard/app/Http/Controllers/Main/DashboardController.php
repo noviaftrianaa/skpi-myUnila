@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Main;
 
 use App\Http\Controllers\Controller;
+use App\Models\Pdrd\Publikasi;
 use App\Models\Pdrd\SatuanPendidikan;
+use App\Models\Pdrd\SDM;
 use App\Models\Pdrd\SMS;
 use App\Models\Referensi\Semester;
+use App\Models\Referensi\TahunAjaran;
 use App\Models\UnitOrganisasi;
 use App\Models\VersiDB;
 use Illuminate\Http\Request;
@@ -108,29 +111,36 @@ class DashboardController extends Controller
       return redirect()->route('main-index');
     }
 
-    public function dashboard_prodi(Request $request)
+    public function dashboard_dosen(Request $request)
     {
-        if ($request->has('smt')) {
-            $smt_pilih = $request->smt;
+        $judul = 'Dashboard Dosen ';
+        if ($request->has('id_ta')) {
+            $ta_pilih = $request->id_ta;
         } else {
-            $smt_pilih = Semester::where('tgl_mulai','<',date('Y-m-d'))
-                ->where('tgl_selesai','>=',date('Y-m-d'))
-                ->whereNull('expired_date')
-                ->first()->id_smt;
+            $ta_pilih = get_tahun_keaktifan();
         }
         $role = session()->get('login.role');
         $unit = UnitOrganisasi::find($role->id_organisasi);
         if ($unit->id_jns_lemb == 24) { // Jika Prodi login
             $sms = SMS::find($unit->id_organisasi);
-            $semester_list = Semester::select('id_smt', 'nm_smt')
-                ->where('id_smt', '>=', $sms->smt_mulai)
+            $ta_list = TahunAjaran::select('id_thn_ajaran', 'nm_thn_ajaran')
+                ->where('id_thn_ajaran', '>=', date('Y',strtotime($sms->tgl_berdiri)))
                 ->where('tgl_mulai', '<', date('Y-m-d'))
                 ->whereNull('expired_date')
-                ->where('smt', '!=', 3)
-                ->orderBy('id_smt', 'DESC')
-                ->pluck('nm_smt', 'id_smt')
+                ->orderBy('id_thn_ajaran', 'DESC')
+                ->pluck('nm_thn_ajaran', 'id_thn_ajaran')
                 ->toArray();
             $level = 'prodi';
+            $judul.= 'Prodi '.$sms->nm_lemb.' ('.$sms->jenjang->nm_jenj_didik.')';
+            $total_dosen = json_encode(SDM::dashboard_dosen('nomor_induk', $ta_pilih, $level, $sms->id_sms)->first());
+            $total_dosen_jabfung = json_encode(SDM::dashboard_dosen('dosen_jabfung', $ta_pilih, $level, $sms->id_sms)->first());
+            $dosen_kepangkatan_detail = json_encode(SDM::dashboard_dosen('dosen_kepangkatan_all', $ta_pilih, $level, $sms->id_sms)->first());
+            $dosen_pendidikan_detail = json_encode(SDM::dashboard_dosen('dosen_pendidikan_all', $ta_pilih, $level, $sms->id_sms)->first());
+            $dosen_ikatan_detail = json_encode(SDM::dashboard_dosen('dosen_ikatan_kerja', $ta_pilih, $level, $sms->id_sms)->first());
+            $dosen_usia_detail = json_encode(SDM::dashboard_dosen('dosen_usia', $ta_pilih, $level, $sms->id_sms));
+            $data_litabmas = json_encode(SDM::dashboard_dosen('litabmas',$ta_pilih,$level,$sms->id_sms));
+            $data_publikasi = json_encode(Publikasi::dashboard_publikasi($ta_pilih,$level,$sms->id_sms));
+            return view('content.main.dashboard_dosen',compact('ta_pilih','ta_list','total_dosen','total_dosen_jabfung','dosen_usia_detail','dosen_kepangkatan_detail','dosen_pendidikan_detail','dosen_ikatan_detail','judul','data_litabmas','data_publikasi'));
         } else {
             //
         }

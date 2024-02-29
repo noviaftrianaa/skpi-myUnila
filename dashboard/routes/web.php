@@ -93,7 +93,7 @@ Route::get('maintanance', function () {
 Route::middleware(['auth'])->group(function () {
   Route::prefix('main')->group(function () {
     Route::get('/', [MainDashboardController::class, 'index'])->name('main-index');
-    Route::get('/dashboard_prodi', [MainDashboardController::class, 'dashboard_prodi'])->name('dashboard_prodi');
+    Route::get('/dashboard_dosen', [MainDashboardController::class, 'dashboard_dosen'])->name('dashboard_dosen');
     Route::get('/peran', [MainDashboardController::class, 'peran'])->name('main-peran');
     Route::get('/changePeran', [MainDashboardController::class, 'changePeran'])->name('main-changePeran');
     //Kelulusan Tepat Waktu

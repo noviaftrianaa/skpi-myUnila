@@ -15,4 +15,12 @@ class TahunAjaran extends AbstractionModel
 
     public $timestamps = false;
     public $incrementing = false;
+
+    public static function tglSelesai($tahun)
+    {
+        $res = self::select('tgl_selesai')
+            ->where('id_thn_ajaran','=',$tahun)
+            ->first();
+        return $res->tgl_selesai;
+    }
 }
