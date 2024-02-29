@@ -66,4 +66,76 @@ class Publikasi extends AbstractionModel
         }
         return $data_pub;
     }
+
+    public static function get_data_pub($list_sms,$tipe)
+    {
+        $where_katgiat = '';
+        if ($tipe=='publikasi') {
+            $where_katgiat .= " AND tp.id_katgiat IN (120101, 120102, 120103, 120104, 120105, 120106, 120107, 120108, 120109, 120110, 120111, 120112, 120901, 120902, 120903, 120904, 120905, 120906, 120907, 120908, 120909, 120910, 120911, 120113, 120114, 120115, 120116, 120117, 120118, 120119, 120120, 120121, 120122, 120200, 120300, 121300, 130500, 130600)";
+        } else {
+            $where_katgiat .= " AND (kk.id_induk_katgiat IN (120400, 121100, 121200, 120504) OR tp.id_katgiat=121000)";
+        }
+        $condition = '';
+        if (count($list_sms)>0) {
+            $condition = " AND tr.id_sms IN ('".implode("','",$list_sms)."')";
+        }
+        $query = "
+            SELECT
+                 DISTINCT p.id_publikasi, jns.nm_jns_pub, p.judul, YEAR(p.tgl_terbit) AS thn_terbit, p.tgl_terbit, tp2.nm_ketua, tp2.prodi_ketua
+            FROM pdrd.sdm AS tsdm
+            JOIN pdrd.reg_ptk AS tr ON tr.id_sdm=tsdm.id_sdm AND tr.soft_delete=0
+                AND tr.id_jns_keluar IS NULL AND tr.id_sp='".env('APP_ID_SP')."'
+                ".$condition."
+            JOIN pdrd.keaktifan_ptk AS ta ON ta.id_reg_ptk=tr.id_reg_ptk AND ta.a_sp_homebase=1
+                AND ta.id_thn_ajaran=".get_tahun_keaktifan()."
+            JOIN pdrd.tulis_pub AS tp ON tp.id_sdm=tsdm.id_sdm AND tp.soft_delete=0
+            JOIN pdrd.publikasi AS p ON p.id_publikasi=tp.id_publikasi AND p.soft_delete=0
+                AND p.id_jns_pub!=9999
+            JOIN ref.jenis_publikasi AS jns ON jns.id_jns_pub=p.id_jns_pub AND jns.expired_date IS NULL
+            JOIN ref.kategori_kegiatan AS kk ON kk.id_katgiat=tp.id_katgiat AND kk.expired_date IS NULL
+            LEFT JOIN (
+                SELECT TOP 1 t.id_publikasi, CONCAT(sdm.nm_sdm,' (',sdm.nidn,')') AS nm_ketua, CONCAT(s.nm_lemb,' (',j.nm_jenj_didik,')') AS prodi_ketua
+                FROM pdrd.tulis_pub AS t
+                JOIN pdrd.sdm AS sdm ON sdm.id_sdm=t.id_sdm AND sdm.soft_delete=0
+                JOIN pdrd.reg_ptk AS r ON r.id_sdm=sdm.id_sdm AND r.soft_delete=0
+                    AND r.id_jns_keluar IS NULL
+                JOIN pdrd.keaktifan_ptk AS tk ON tk.id_reg_ptk=r.id_reg_ptk AND tk.soft_delete=0
+                    AND tk.a_sp_homebase=1 AND tk.id_thn_ajaran=".get_tahun_keaktifan()."
+                JOIN pdrd.sms AS s ON s.id_sms=r.id_sms AND s.soft_delete=0
+                JOIN ref.jenjang_pendidikan AS j ON j.id_jenj_didik=s.id_jenj_didik
+                WHERE t.soft_delete=0 AND t.urutan=1
+            ) AS tp2 ON tp2.id_publikasi=p.id_publikasi
+            WHERE tsdm.soft_delete=0
+            ".$where_katgiat."
+            ORDER BY p.tgl_terbit DESC
+	    ";
+        return DB::SELECT($query);
+    }
+
+    public static function get_penulis($id)
+    {
+        $query = "
+            SELECT
+                CASE
+                    WHEN tp.id_sdm IS NOT NULL THEN CONCAT(tsdm.nm_sdm,' (',tsdm.nidn,')')
+                    WHEN tp.id_pd IS NOT NULL THEN CONCAT(tp.nm_pd,' (',rpd.nipd,')')
+                    ELSE NULL
+                END AS nama,
+                tp.urutan,
+                CASE WHEN tp.id_sdm IS NOT NULL THEN js.nm_jns_sdm
+                    WHEN tp.id_pd IS NOT NULL THEN 'Mahasiswa'
+                    ELSE NULL
+                END AS jenis_penulis
+            FROM pdrd.tulis_pub AS tp
+            LEFT JOIN pdrd.sdm AS tsdm ON tsdm.id_sdm=tp.id_sdm
+            LEFT JOIN ref.jenis_sdm AS js ON js.id_jns_sdm=tsdm.id_jns_sdm
+            LEFT JOIN pdrd.peserta_didik AS pd ON pd.id_pd=tp.id_pd
+            LEFT JOIN pdrd.reg_pd AS rpd ON rpd.id_pd=pd.id_pd AND rpd.soft_delete=0
+            WHERE tp.soft_delete=0
+                AND tp.id_publikasi='".$id."'
+            ORDER BY tp.urutan ASC
+        ";
+        $data = collect(DB::SELECT($query))->toArray();
+        return $data;
+    }
 }

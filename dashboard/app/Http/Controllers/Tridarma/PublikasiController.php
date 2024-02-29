@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Tridarma;
 
 use App\Http\Controllers\Controller;
+use App\Models\Pdrd\Publikasi;
 use App\Models\Pdrd\SatuanPendidikan;
 use App\Models\Pdrd\SMS;
 use App\Models\Referensi\TahunAjaran;
 use App\Models\UnitOrganisasi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 class PublikasiController extends Controller
@@ -17,12 +20,14 @@ class PublikasiController extends Controller
         $route = Route::current()->getName();
         if (strpos($route,'publikasi')>0) {
             $this->title = 'Publikasi';
-            $this->kode_litabmas = 'L';
+            $this->tipe = 'publikasi';
+            $this->kode_litabmas = 'P';
             $this->base_route = 'pelaksanaan_penelitian.publikasi_karya';
         } else {
-            $this->title = 'paten_hki';
-            $this->kode_litabmas = 'M';
-            $this->base_route = 'pelaksanaan_pengabdian.paten_hki';
+            $this->title = 'Paten/HKI';
+            $this->tipe = 'paten';
+            $this->kode_litabmas = 'H';
+            $this->base_route = 'pelaksanaan_penelitian.paten';
         }
 
     }
@@ -52,15 +57,12 @@ class PublikasiController extends Controller
         } else {
             $sp = SatuanPendidikan::find(env('APP_ID_SP'));
             $sms_list = [];
-            $ta_list = TahunAjaran::select('id_thn_ajaran', 'nm_thn_ajaran')
-                ->where('id_thn_ajaran', '>=', 2000)
-                ->where('id_thn_ajaran', '<=', get_tahun_keaktifan())
-                ->whereNull('expired_date')
-                ->orderBy('id_thn_ajaran', 'DESC')
-                ->pluck('nm_thn_ajaran', 'id_thn_ajaran')
-                ->toArray();
             $judul = $this->title.' Dosen ' . $sp->nm_lemb;
         }
+        $kode = $this->kode_litabmas;
+        $data = Publikasi::get_data_pub($sms_list,$this->tipe);
+        $base_route = $this->base_route;
+        return view('content.tridarma.publikasi.index',compact('judul','data','kode','base_route'));
     }
 
     /**
@@ -84,7 +86,16 @@ class PublikasiController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $id_pub = Crypt::decrypt($id);
+        $data = Publikasi::find($id_pub)->toArray();
+        $jenis_pub = DB::table('ref.jenis_publikasi')->where('id_jns_pub',$data['id_jns_pub'])->first();
+        $data['penulis'] = Publikasi::get_penulis($data['id_publikasi']);
+        $data['dokumen'] = DB::table('dok.dok_pub')->where('id_publikasi',$data['id_publikasi'])
+            ->pluck('id_dok')->toArray();
+        $base_route = $this->base_route;
+        $kode = $this->kode_litabmas;
+        $judul = $this->title;
+        return view('content.tridarma.publikasi.detail',compact('data','base_route','kode','judul','jenis_pub'));
     }
 
     /**

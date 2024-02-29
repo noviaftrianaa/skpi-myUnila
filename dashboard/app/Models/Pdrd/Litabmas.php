@@ -46,9 +46,9 @@ class Litabmas extends AbstractionModel
                 FROM pdrd.sdm AS tsdm
                 JOIN pdrd.reg_ptk AS tr ON tr.id_sdm=tsdm.id_sdm AND tr.soft_delete=0
                     AND tr.id_jns_keluar IS NULL AND tr.id_sp='".env('APP_ID_SP')."'
+                    ".$condition."
                 JOIN pdrd.keaktifan_ptk AS taptk ON taptk.id_reg_ptk=tr.id_reg_ptk
                     AND taptk.soft_delete=0 AND taptk.a_sp_homebase=1 AND taptk.id_thn_ajaran=".get_tahun_keaktifan()."
-                    ".$condition."
                 JOIN pdrd.sdm_anggota_litabmas AS tsl ON tsl.id_sdm=tsdm.id_sdm AND tsl.soft_delete=0
                 JOIN pdrd.litabmas AS l ON l.id_litabmas=tsl.id_litabmas AND l.soft_delete=0
                     AND l.jns_litabmas='".$kode."'

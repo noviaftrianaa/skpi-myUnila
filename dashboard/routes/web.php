@@ -157,6 +157,9 @@ Route::middleware(['auth'])->group(function () {
   Route::get('pelaksanaan_penelitian/publikasi_karya',[PublikasiController::class,'index'])->name('pelaksanaan_penelitian.publikasi_karya');
   Route::get('pelaksanaan_penelitian/publikasi_karya/{id}/detail',[PublikasiController::class,'show'])->name('pelaksanaan_penelitian.publikasi_karya.detail');
 
+  Route::get('pelaksanaan_penelitian/paten',[PublikasiController::class,'index'])->name('pelaksanaan_penelitian.paten');
+  Route::get('pelaksanaan_penelitian/paten/{id}/detail',[PublikasiController::class,'show'])->name('pelaksanaan_penelitian.paten.detail');
+
   Route::get('pelaksanaan_pengabdian/pengabdian',[LitabmasController::class,'index'])->name('pelaksanaan_pengabdian.pengabdian');
   Route::get('pelaksanaan_pengabdian/pengabdian/{id}/detail',[LitabmasController::class,'show'])->name('pelaksanaan_pengabdian.pengabdian.detail');
 
