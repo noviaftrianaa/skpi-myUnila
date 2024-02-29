@@ -7,7 +7,6 @@ use App\Models\Referensi\TahunAjaran;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-use App\Models\Referensi\TahunAjaran;
 
 class SDM extends AbstractionModel
 {
@@ -192,11 +191,7 @@ class SDM extends AbstractionModel
     return DB::SELECT($query);
   }
 
-<<<<<<< Updated upstream
     public static function dashboard_dosen($tipe,$tahun,$level,$id_sms)
-=======
-  public static function dashboard_dosen($tipe,$tahun)
->>>>>>> Stashed changes
     {
         $tgl      = TahunAjaran::tglSelesai($tahun);
         $from   = "FROM pdrd.sdm AS tsdm WITH (NOLOCK)
@@ -301,7 +296,6 @@ class SDM extends AbstractionModel
                 SUM(CASE WHEN tjenj.id_jenj_didik=21 THEN 1 ELSE 0 END) AS 'D2',
                 SUM(CASE WHEN tjenj.id_jenj_didik=22 THEN 1 ELSE 0 END) AS 'D3',
                 SUM(CASE WHEN tjenj.id_jenj_didik=23 THEN 1 ELSE 0 END) AS 'D4',
-<<<<<<< Updated upstream
                 SUM(CASE WHEN tjenj.id_jenj_didik=30 THEN 1 ELSE 0 END) AS 'S1',
                 SUM(CASE WHEN tjenj.id_jenj_didik IN (25,31) THEN 1 ELSE 0 END) AS 'Profesi',
                 SUM(CASE WHEN tjenj.id_jenj_didik IN (32,35,36) THEN 1 ELSE 0 END) AS 'S2',
@@ -313,12 +307,11 @@ class SDM extends AbstractionModel
             $select = "SELECT l.id_thn_kegiatan, l.jns_litabmas, COUNT(DISTINCT l.id_litabmas) AS total_litabmas ";
             $group = " GROUP BY l.id_thn_kegiatan, l.jns_litabmas";
             $alternative_where = '';
-        }
-        $join = "JOIN pdrd.reg_ptk AS tr WITH (NOLOCK) ON tr.id_sdm=tsdm.id_sdm AND tr.soft_delete=0
+        } else {
+            $join = "JOIN pdrd.reg_ptk AS tr WITH (NOLOCK) ON tr.id_sdm=tsdm.id_sdm AND tr.soft_delete=0
                 AND tr.id_jns_keluar IS NULL AND (tr.tgl_ptk_keluar IS NULL OR tr.tgl_ptk_keluar>'".$tgl."')
                 AND tr.id_sp='".env('APP_ID_SP')."'
                 JOIN pdrd.sms AS tsms WITH (NOLOCK) ON tsms.id_sms=tr.id_sms AND tsms.soft_delete=0
-=======
                 SUM(CASE WHEN tjenj.id_jenj_didik=25 THEN 1 ELSE 0 END) AS 'Profesi',
                 SUM(CASE WHEN tjenj.id_jenj_didik=30 THEN 1 ELSE 0 END) AS 'S1',
                 SUM(CASE WHEN tjenj.id_jenj_didik=31 THEN 1 ELSE 0 END) AS 'Profesi',
@@ -334,7 +327,6 @@ class SDM extends AbstractionModel
         }
         $join = "JOIN pdrd.reg_ptk AS tr WITH (NOLOCK) ON tr.id_sdm=tsdm.id_sdm AND tr.soft_delete=0
                 AND tr.id_jns_keluar IS NULL AND (tr.tgl_ptk_keluar IS NULL OR tr.tgl_ptk_keluar>GETDATE())
->>>>>>> Stashed changes
                 JOIN pdrd.keaktifan_ptk AS tak WITH (NOLOCK) ON tak.id_reg_ptk=tr.id_reg_ptk AND tak.soft_delete=0
                 AND tak.a_sp_homebase=1 AND tak.id_thn_ajaran='".$tahun."'
                 JOIN ref.status_kepegawaian AS tsk WITH (NOLOCK) ON tsk.id_stat_pegawai=tr.id_stat_pegawai
@@ -348,11 +340,7 @@ class SDM extends AbstractionModel
                 FROM pdrd.rwy_fungsional WITH (NOLOCK)
                 LEFT JOIN ref.jabfung WITH (NOLOCK) ON jabfung.id_jabfung = rwy_fungsional.id_jabfung
                 WHERE soft_delete=0
-<<<<<<< Updated upstream
                 AND (tmt_sk_jabfung>'1970-01-01' OR tmt_sk_jabfung<='".$tgl."')
-=======
-                AND (tmt_sk_jabfung>'1970-01-01' OR tmt_sk_jabfung<=GETDATE())
->>>>>>> Stashed changes
                 AND jabfung.expired_date IS NULL
                 AND jabfung.id_kel_prof = '2'
                 GROUP BY id_sdm
@@ -367,11 +355,7 @@ class SDM extends AbstractionModel
                 FROM pdrd.rwy_kepangkatan WITH (NOLOCK)
                 LEFT JOIN ref.pangkat_golongan WITH (NOLOCK) ON pangkat_golongan.id_pangkat_gol = rwy_kepangkatan.id_pangkat_gol
                 WHERE soft_delete=0
-<<<<<<< Updated upstream
                 AND (tmt_sk_pangkat>'1970-01-01' OR tmt_sk_pangkat<='".$tgl."')
-=======
-                AND (tmt_sk_pangkat>'1970-01-01' OR tmt_sk_pangkat<=GETDATE())
->>>>>>> Stashed changes
                 AND pangkat_golongan.expired_date IS NULL
                 GROUP BY id_sdm
             ) AS trp ON trp.id_sdm=tsdm.id_sdm
@@ -390,7 +374,6 @@ class SDM extends AbstractionModel
             LEFT JOIN ref.jenjang_pendidikan AS tjenj WITH (NOLOCK) ON tjenj.id_jenj_didik=trp.id_jenj_didik
             ";
         }
-<<<<<<< Updated upstream
 
         if ($tipe=='litabmas') {
             $join .= "
@@ -399,13 +382,10 @@ class SDM extends AbstractionModel
                     AND l.id_thn_kegiatan BETWEEN ".($tahun-2)." AND ".$tahun."
             ";
         }
-=======
->>>>>>> Stashed changes
         $where = " WHERE tsdm.soft_delete=0
                 AND tsdm.id_jns_sdm=12
                 AND tsdm.id_stat_aktif IN (1,20,24,25,27)
                 ";
-<<<<<<< Updated upstream
         if ($level!='pt') {
             if ($level=='prodi') {
                 $alternative_where.=" AND tr.id_sms='".$id_sms."'";
@@ -415,10 +395,6 @@ class SDM extends AbstractionModel
                 $alternative_where.=" AND tsms.id_fak_unila='".$id_sms."'";
             }
         }
-        $data = \DB::SELECT($select.$from.$join.$where.$alternative_where.$group.$order);
-        return collect($data);
-    }
-=======
         $data = \DB::SELECT($select.$from.$join.$where.$alternative_where.$group.$order);
         return collect($data);
     }
@@ -461,5 +437,4 @@ class SDM extends AbstractionModel
 
         return collect($data);
     }
->>>>>>> Stashed changes
 }

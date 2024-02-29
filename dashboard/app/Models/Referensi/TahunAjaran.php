@@ -16,8 +16,6 @@ class TahunAjaran extends AbstractionModel
     public $timestamps = false;
     public $incrementing = false;
 
-<<<<<<< Updated upstream
-=======
     public static function getList()
     {
         $res = self::select('nm_thn_ajaran','id_thn_ajaran')
@@ -62,7 +60,6 @@ class TahunAjaran extends AbstractionModel
         return $res->id_thn_ajaran;
     }
 
->>>>>>> Stashed changes
     public static function tglSelesai($tahun)
     {
         $res = self::select('tgl_selesai')
@@ -70,8 +67,6 @@ class TahunAjaran extends AbstractionModel
             ->first();
         return $res->tgl_selesai;
     }
-<<<<<<< Updated upstream
-=======
 
     public static function tglMulai($tahun)
     {
@@ -93,5 +88,4 @@ class TahunAjaran extends AbstractionModel
 
         return $res;
     }
->>>>>>> Stashed changes
 }

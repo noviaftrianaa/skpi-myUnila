@@ -6,91 +6,9 @@
     <div class="row">
         <div class="col-md-12">
             <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title"><i class="fas fa-home"></i> {{ $judul }}</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-header bg-primary" style="padding-bottom: 0px;">
-                                    <h4 class="card-title text-white">Detail Prodi</h4>
-                                </div>
-                                <div class="card-body">
-                                    <table class="table table-striped mt-2">
-                                        <tbody>
-                                        {!! tableRow('Nama Prodi',$sms->nm_lemb) !!}
-                                        {!! tableRow('Jenjang Pendidikan',$sms->jenjang->nm_jenj_didik) !!}
-                                        {!! tableRow('Jurusan',$sms->jurusan_unila->nm_lemb) !!}
-                                        {!! tableRow('Fakultas',$sms->fakultas_unila->nm_lemb) !!}
-                                        {!! tableRow('Semester mulai berdiri',$sms->smt->nm_smt) !!}
-                                        {!! tableRow('Tanggal berdiri',$sms->tgl_berdiri) !!}
-                                        {!! tableRow('No SK',$sms->sk_selenggara) !!}
-                                        {!! tableRow('Tanggal SK',$sms->tgl_sk_selenggara) !!}
-                                        {!! tableRow('Status Prodi',config('mp.data_master.stat_prodi.'.$sms->stat_prodi)) !!}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-8">
-                            <div class="card">
-                                <div class="card-header bg-primary" style="padding-bottom: 0px;">
-                                    <h4 class="card-title text-white">Profil Prodi</h4>
-                                </div>
-                                <div class="card-body">
-                                    <table class="table table-striped mt-2">
-                                        <tbody>
-                                        {!! tableRow('Visi',$data_profil_prodi->visi) !!}
-                                        {!! tableRow('Misi',$data_profil_prodi->misi) !!}
-                                        {!! tableRow('Tujuan',$data_profil_prodi->tujuan) !!}
-                                        {!! tableRow('Capaian Pembelajaran',$data_profil_prodi->capaian_belajar) !!}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            <div class="card mt-4">
-                                <div class="card-header bg-primary" style="padding-bottom: 0px;">
-                                    <h4 class="card-title text-white">Riwayat Akreditasi</h4>
-                                </div>
-                                <div class="card-body">
-                                    <table class="table table-bordered mt-4">
-                                        <thead class="bg-dark-subtle">
-                                        <tr>
-                                            <th>SK Akreditasi</th>
-                                            <th>TMT SK Akreditasi</th>
-                                            <th>TST SK Akreditasi</th>
-                                            <th>Akreditasi</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        @foreach($data_akreditasi_prodi AS $no=>$each_akred)
-                                            <tr
-                                            @if($no==0) class="bg-success" @endif
-                                            >
-                                                <td>{{ $each_akred->sk_akreditasi_prodi }}</td>
-                                                <td>{{ $each_akred->tanggal_sk_akreditasi_prodi }}</td>
-                                                <td>{{ $each_akred->tst_sk_akreditasi_prodi }}</td>
-                                                <td>{{ $each_akred->nm_akred }}</td>
-                                            </tr>
-                                        @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <hr>
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
                 <div class="card-body">
                     <form action="{{ route('main-index') }}" method="GET">
-                    {!! FormInputSelect('smt','Semester Aktif',$semester_list,false,false,$smt_pilih) !!}
+                        {!! FormInputSelect('smt','Semester Aktif',$semester_list,false,false,$smt_pilih) !!}
                     </form>
                     <hr>
                     <div class="table-responsive">
@@ -145,6 +63,92 @@
                             @endforeach
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="fas fa-home"></i> {{ $judul }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-primary" style="padding-bottom: 0px;">
+                                    <h4 class="card-title text-white">Detail Prodi</h4>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-striped mt-2">
+                                        <tbody>
+                                        {!! tableRow('Nama Prodi',$sms->nm_lemb) !!}
+                                        {!! tableRow('Jenjang Pendidikan',$sms->jenjang->nm_jenj_didik) !!}
+                                        {!! tableRow('Jurusan',$sms->jurusan_unila->nm_lemb) !!}
+                                        {!! tableRow('Fakultas',$sms->fakultas_unila->nm_lemb) !!}
+                                        {!! tableRow('Semester mulai berdiri',$sms->smt->nm_smt) !!}
+                                        {!! tableRow('Tanggal berdiri',$sms->tgl_berdiri) !!}
+                                        {!! tableRow('No SK',$sms->sk_selenggara) !!}
+                                        {!! tableRow('Tanggal SK',$sms->tgl_sk_selenggara) !!}
+                                        {!! tableRow('Status Prodi',config('mp.data_master.stat_prodi.'.$sms->stat_prodi)) !!}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-primary" style="padding-bottom: 0px;">
+                                    <h4 class="card-title text-white">Riwayat Akreditasi</h4>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-bordered mt-4">
+                                        <thead class="bg-dark-subtle">
+                                        <tr>
+                                            <th>SK Akreditasi</th>
+                                            <th>TMT SK Akreditasi</th>
+                                            <th>TST SK Akreditasi</th>
+                                            <th>Akreditasi</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        @foreach($data_akreditasi_prodi AS $no=>$each_akred)
+                                            <tr
+                                                @if($no==0) class="bg-success" @endif
+                                            >
+                                                <td>{{ $each_akred->sk_akreditasi_prodi }}</td>
+                                                <td>{{ $each_akred->tanggal_sk_akreditasi_prodi }}</td>
+                                                <td>{{ $each_akred->tst_sk_akreditasi_prodi }}</td>
+                                                <td>{{ $each_akred->nm_akred }}</td>
+                                            </tr>
+                                        @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header bg-primary" style="padding-bottom: 0px;">
+                                    <h4 class="card-title text-white">Profil Prodi</h4>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-striped mt-2">
+                                        <tbody>
+                                        {!! tableRow('Visi',$data_profil_prodi->visi) !!}
+                                        {!! tableRow('Misi',$data_profil_prodi->misi) !!}
+                                        {!! tableRow('Tujuan',$data_profil_prodi->tujuan) !!}
+                                        {!! tableRow('Capaian Pembelajaran',$data_profil_prodi->capaian_belajar) !!}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

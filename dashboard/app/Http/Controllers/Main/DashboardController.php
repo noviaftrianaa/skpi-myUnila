@@ -18,7 +18,6 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-<<<<<<< Updated upstream
         if ($request->has('smt')) {
             $smt_pilih = $request->smt;
         } else {
@@ -64,9 +63,6 @@ class DashboardController extends Controller
             $level = 'pt';
             return view('content.main.dashboard');
         }
-=======
-        return view("content.main.dashboard");
->>>>>>> Stashed changes
     }
 
     public function peran()
@@ -155,6 +151,36 @@ class DashboardController extends Controller
             $data_litabmas = json_encode(SDM::dashboard_dosen('litabmas',$ta_pilih,$level,$sms->id_sms));
             $data_publikasi = json_encode(Publikasi::dashboard_publikasi($ta_pilih,$level,$sms->id_sms));
             return view('content.main.dashboard_dosen',compact('ta_pilih','ta_list','total_dosen','total_dosen_jabfung','dosen_usia_detail','dosen_kepangkatan_detail','dosen_pendidikan_detail','dosen_ikatan_detail','judul','data_litabmas','data_publikasi'));
+        } else {
+            //
+        }
+    }
+
+    public function dashboard_mahasiswa(Request $request)
+    {
+        $judul = 'Dashboard Mahasiswa ';
+        if ($request->has('smt')) {
+            $smt_pilih = $request->smt;
+        } else {
+            $smt_pilih = Semester::where('tgl_mulai','<',date('Y-m-d'))
+                ->where('tgl_selesai','>=',date('Y-m-d'))
+                ->whereNull('expired_date')
+                ->first()->id_smt;
+        }
+        $role = session()->get('login.role');
+        $unit = UnitOrganisasi::find($role->id_organisasi);
+        if ($unit->id_jns_lemb == 24) { // Jika Prodi login
+            $sms = SMS::find($unit->id_organisasi);
+            $semester_list = Semester::select('id_smt', 'nm_smt')
+                ->where('id_smt', '>=', $sms->smt_mulai)
+                ->where('tgl_mulai', '<', date('Y-m-d'))
+                ->whereNull('expired_date')
+                ->where('smt', '!=', 3)
+                ->orderBy('id_smt', 'DESC')
+                ->pluck('nm_smt', 'id_smt')
+                ->toArray();
+            $level = 'prodi';
+            dd($sms);
         } else {
             //
         }

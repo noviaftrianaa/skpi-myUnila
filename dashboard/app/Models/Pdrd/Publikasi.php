@@ -17,7 +17,6 @@ class Publikasi extends AbstractionModel
     public $timestamps = false;
     public $incrementing = false;
 
-<<<<<<< Updated upstream
     public static function dashboard_publikasi($id_thn, $level, $id_sms)
     {
         $alternative_where = '';
@@ -133,12 +132,12 @@ class Publikasi extends AbstractionModel
             LEFT JOIN pdrd.peserta_didik AS pd ON pd.id_pd=tp.id_pd
             LEFT JOIN pdrd.reg_pd AS rpd ON rpd.id_pd=pd.id_pd AND rpd.soft_delete=0
             WHERE tp.soft_delete=0
-                AND tp.id_publikasi='".$id."'
+                AND tp.id_publikasi='" . $id . "'
             ORDER BY tp.urutan ASC
         ";
         $data = collect(DB::SELECT($query))->toArray();
         return $data;
-=======
+    }
     public static function total_publikasi($tahun)
     {
         $query = "
@@ -217,6 +216,5 @@ class Publikasi extends AbstractionModel
         $data = \DB::SELECT($query);
 
         return collect($data);
->>>>>>> Stashed changes
     }
 }

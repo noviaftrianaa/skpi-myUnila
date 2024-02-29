@@ -101,6 +101,7 @@ Route::middleware(['auth'])->group(function () {
   Route::prefix('main')->group(function () {
     Route::get('/', [MainDashboardController::class, 'index'])->name('main-index');
     Route::get('/dashboard_dosen', [MainDashboardController::class, 'dashboard_dosen'])->name('dashboard_dosen');
+    Route::get('/dashboard_mahasiswa', [MainDashboardController::class, 'dashboard_mahasiswa'])->name('dashboard_mahasiswa');
     Route::get('/peran', [MainDashboardController::class, 'peran'])->name('main-peran');
     Route::get('/changePeran', [MainDashboardController::class, 'changePeran'])->name('main-changePeran');
     //Kelulusan Tepat Waktu
@@ -172,20 +173,11 @@ Route::middleware(['auth'])->group(function () {
     'pelaksanaan_penelitian.publikasi_karya.detail'
   );
 
-<<<<<<< Updated upstream
   Route::get('pelaksanaan_penelitian/paten',[PublikasiController::class,'index'])->name('pelaksanaan_penelitian.paten');
   Route::get('pelaksanaan_penelitian/paten/{id}/detail',[PublikasiController::class,'show'])->name('pelaksanaan_penelitian.paten.detail');
 
   Route::get('pelaksanaan_pengabdian/pengabdian',[LitabmasController::class,'index'])->name('pelaksanaan_pengabdian.pengabdian');
   Route::get('pelaksanaan_pengabdian/pengabdian/{id}/detail',[LitabmasController::class,'show'])->name('pelaksanaan_pengabdian.pengabdian.detail');
-=======
-  Route::get('pelaksanaan_pengabdian/pengabdian', [LitabmasController::class, 'index'])->name(
-    'pelaksanaan_pengabdian.pengabdian'
-  );
-  Route::get('pelaksanaan_pengabdian/pengabdian/{id}/detail', [LitabmasController::class, 'show'])->name(
-    'pelaksanaan_pengabdian.pengabdian.detail'
-  );
->>>>>>> Stashed changes
 
   #sinkronisasi
   Route::get('sinkronisasi', [SyncController::class, 'index'])->name('sinkronisasi');
