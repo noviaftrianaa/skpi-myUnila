@@ -9,7 +9,7 @@ class MahasiswaController extends Controller
 {
     public function __construct()
     {
-        $this->basepath = 'mahasiswa';
+        $this->basepath = "mahasiswa";
     }
 
     /**
@@ -17,8 +17,9 @@ class MahasiswaController extends Controller
      */
     public function index($id)
     {
-        $pageConfigs = ['myLayout' => 'horizontal'];
-        $profil = DB::SELECT("
+        $pageConfigs = ["myLayout" => "horizontal"];
+        $profil = DB::SELECT(
+            "
             SELECT
                 pd.*,
                 reg.nipd,
@@ -43,34 +44,38 @@ class MahasiswaController extends Controller
                 LEFT JOIN pdrd.satuan_pendidikan AS sp ON sp.id_sp=sms.id_sp AND sp.soft_delete=0
             WHERE
                 pd.soft_delete=0
-                AND pd.id_pd='".$id."'
-        ")[0];
+                AND pd.id_pd='" .
+                $id .
+                "'
+        "
+        )[0];
 
         $pendidikan = $this->pendidikan($id);
         $mk = $this->mk($id);
         $aktivitas = $this->aktivitas($id);
         $prestasi = $this->prestasi($id);
 
-        return view('content.pages.mahasiswa.detail', [
-          'pageConfigs' => $pageConfigs,
-          'profil' => $profil,
-          'pendidikan' => $pendidikan,
-          'mk' => $mk,
-          'aktivitas' => $aktivitas,
-          'prestasi' => $prestasi
+        return view("content.pages.mahasiswa.detail", [
+            "pageConfigs" => $pageConfigs,
+            "profil" => $profil,
+            "pendidikan" => $pendidikan,
+            "mk" => $mk,
+            "aktivitas" => $aktivitas,
+            "prestasi" => $prestasi,
         ]);
     }
 
     private function pendidikan($id)
     {
-      $data = [];
+        $data = [];
 
-      return $data;
+        return $data;
     }
 
     public function semester($id)
     {
-      $data = DB::SELECT("
+        $data = DB::SELECT(
+            "
         SELECT
           kmh.id_smt,
           status.nm_stat_mhs,
@@ -85,19 +90,23 @@ class MahasiswaController extends Controller
           LEFT JOIN pdrd.satuan_pendidikan AS sp ON sp.id_sp=sms.id_sp AND sp.soft_delete=0
         WHERE
           reg.soft_delete=0
-          AND reg.id_pd='".$id."'
+          AND reg.id_pd='" .
+                $id .
+                "'
         ORDER BY
           kmh.id_smt DESC
-      ");
+      "
+        );
 
-      return \DataTables::of($data)
-        ->addIndexColumn()
-        ->make(true);
+        return \DataTables::of($data)
+            ->addIndexColumn()
+            ->make(true);
     }
 
     public function mk($id)
     {
-      $data = DB::SELECT("
+        $data = DB::SELECT(
+            "
         SELECT
           kk.id_smt,
           mk.kode_mk,
@@ -125,26 +134,32 @@ class MahasiswaController extends Controller
           LEFT JOIN pdrd.satuan_pendidikan AS sp ON sp.id_sp=sms.id_sp AND sp.soft_delete=0
         WHERE
           reg.soft_delete=0
-          AND reg.id_pd='".$id."'
+          AND reg.id_pd='" .
+                $id .
+                "'
         ORDER BY
           kk.id_smt DESC,
           mk.nm_mk ASC
-      ");
+      "
+        );
 
-      return \DataTables::of($data)
-        ->addIndexColumn()
-        ->editColumn('id_smt', function($data) {
-          return substr($data->id_smt, 4, 1) == 1 ? substr($data->id_smt, 0, 4) . " Ganjil" : substr($data->id_smt, 0, 4) . " Genap";
-        })
-        ->editColumn('id_stat_mhs', function($data) {
-          return $data->id_stat_mhs=='M' ? 'MBKM' : 'Reguler';
-        })
-        ->make(true);
+        return \DataTables::of($data)
+            ->addIndexColumn()
+            ->editColumn("id_smt", function ($data) {
+                return substr($data->id_smt, 4, 1) == 1
+                    ? substr($data->id_smt, 0, 4) . " Ganjil"
+                    : substr($data->id_smt, 0, 4) . " Genap";
+            })
+            ->editColumn("id_stat_mhs", function ($data) {
+                return $data->id_stat_mhs == "M" ? "MBKM" : "Reguler";
+            })
+            ->make(true);
     }
 
     public function aktivitas($id)
     {
-      $data = DB::SELECT("
+        $data = DB::SELECT(
+            "
         SELECT
           akt.id_smt,
           jenis.nm_jns_akt_mhs,
@@ -163,27 +178,33 @@ class MahasiswaController extends Controller
           LEFT JOIN pdrd.satuan_pendidikan AS sp ON sp.id_sp=sms.id_sp AND sp.soft_delete=0
         WHERE
           reg.soft_delete=0
-          AND reg.id_pd='".$id."'
+          AND reg.id_pd='" .
+                $id .
+                "'
         ORDER BY
           akt.id_smt DESC,
           akt.id_jns_akt_mhs ASC,
           akt.judul_akt_mhs
-      ");
+      "
+        );
 
-      return \DataTables::of($data)
-        ->addIndexColumn()
-        ->editColumn('id_smt', function($data) {
-          return substr($data->id_smt, 4, 1) == 1 ? substr($data->id_smt, 0, 4) . " Ganjil" : substr($data->id_smt, 0, 4) . " Genap";
-        })
-        ->editColumn('tgl_sk_tugas', function($data) {
-          return TglIndonesia($data->tgl_sk_tugas);
-        })
-        ->make(true);
+        return \DataTables::of($data)
+            ->addIndexColumn()
+            ->editColumn("id_smt", function ($data) {
+                return substr($data->id_smt, 4, 1) == 1
+                    ? substr($data->id_smt, 0, 4) . " Ganjil"
+                    : substr($data->id_smt, 0, 4) . " Genap";
+            })
+            ->editColumn("tgl_sk_tugas", function ($data) {
+                return TglIndonesia($data->tgl_sk_tugas);
+            })
+            ->make(true);
     }
 
     public function prestasi($id)
     {
-      $data = DB::SELECT("
+        $data = DB::SELECT(
+            "
         SELECT
           jns.nm_jenis_prestasi,
           ps.nm_prestasi,
@@ -199,13 +220,16 @@ class MahasiswaController extends Controller
           LEFT JOIN ref.tingkat_prestasi AS tkt ON tkt.id_tkt_prestasi=ps.id_tkt_prestasi AND tkt.expired_date IS NULL
         WHERE
           ps.soft_delete=0
-          AND ps.id_pd='".$id."'
+          AND ps.id_pd='" .
+                $id .
+                "'
         ORDER BY
           ps.thn_prestasi DESC
-      ");
+      "
+        );
 
-      return \DataTables::of($data)
-        ->addIndexColumn()
-        ->make(true);
+        return \DataTables::of($data)
+            ->addIndexColumn()
+            ->make(true);
     }
 }

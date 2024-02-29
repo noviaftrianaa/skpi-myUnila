@@ -114,7 +114,13 @@ return [
             1 => 'Luar prodi (Eksternal)',
             2 => 'Campuran',
             3 => 'Dalam prodi (Internal)'
-        ]
+        ],
+        'peran_publikasi' => [
+            'A' => 'Penulis',
+            'B' => 'Editor',
+            'C' => 'Penerjemah',
+            'D' => 'Penemu/Investor'
+        ],
     ],
     'ws'    => [
         'pddikti'   => [

@@ -22,11 +22,11 @@
         "laravel/sanctum": "^2.11",
         "laravel/tinker": "^2.5",
         "laravel/ui": "^3.3",
-        "mp/man-akses": "*",
         "ramsey/uuid": "^4.2",
         "unila/sso": "dev-master",
         "uxweb/sweet-alert": "^2.0",
-        "yajra/laravel-datatables-oracle": "~9.0"
+        "yajra/laravel-datatables-oracle": "~9.0",
+        "mp/man-akses": "*"
     },
     "require-dev": {
         "facade/ignition": "^2.5",

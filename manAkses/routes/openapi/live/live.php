@@ -10,15 +10,15 @@ Route::group([
     'middleware' => ['openapi_live']
 ], function () {
     Route::post('/auth/login', 'LoginController@login');
-    Route::get('/auth/login/sso', 'LoginController@sso');
-    Route::post('/auth/cek_token', 'LoginController@checkToken');
+    Route::get('/auth/login/sso', 'LoginController@sso')->name('login.sso');
+    Route::post('/auth/cek_token', 'LoginController@checkToken')->name('check.token');
 
     Route::middleware('api', 'auth.api')->group(function () {
         //PENGGUNA
-        Route::get('/pengguna/list', 'PenggunaController@list');
-        // Route::post('/pengguna/tambah', 'PenggunaController@store');
-        Route::put('/pengguna/ubah_password', 'PenggunaController@password');
+        Route::get('/pengguna/list', 'PenggunaController@list')->name('pengguna.list');
+        // Route::post('/pengguna/tambah', 'PenggunaController@store')->name('pengguna.store');
+        Route::put('/pengguna/ubah_password', 'PenggunaController@password')->name('pengguna.ubah_password');
         //PERAN
-        Route::get('/peran/list', 'PeranController@list');
+        Route::get('/peran/list', 'PeranController@list')->name('peran.list');
     });
 });

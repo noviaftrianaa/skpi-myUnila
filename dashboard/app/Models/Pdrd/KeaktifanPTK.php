@@ -8,12 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class KeaktifanPTK extends AbstractionModel
 {
-    use HasFactory;
+  use HasFactory;
 
-    protected $keyType = 'string';
-    protected $table = 'pdrd.keaktifan_ptk';
-    protected $primaryKey = 'id_reg_ptk';
+  protected $keyType = 'string';
+  protected $table = 'pdrd.keaktifan_ptk';
+  protected $primaryKey = 'id_reg_ptk';
 
-    public $timestamps = false;
-    public $incrementing = false;
+  public $timestamps = false;
+  public $incrementing = false;
 }

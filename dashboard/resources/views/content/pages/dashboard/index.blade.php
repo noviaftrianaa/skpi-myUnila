@@ -112,20 +112,22 @@
                                 <!-- Visi -->
                                 <div id="visi" class="content">
                                     <div class="content-header mb-3" style="text-align: justify">
-                                        Universitas Lampung menjadi <i class="fw-bold">Center of Excellence</i> di tingkat
+                                        {{-- Universitas Lampung menjadi <i class="fw-bold">Center of Excellence</i> di tingkat
                                         Nasional dan
                                         Internasional sebagai Institusi yang kuat <i class="fw-bold">(BE STRONG)</i>
                                         berlandaskan
-                                        nilai-nilai luhur budaya Nasional dan Pancasila.
+                                        nilai-nilai luhur budaya Nasional dan Pancasila. --}}
+                                        {!! $profil_pt->visi !!}
                                     </div>
                                 </div>
                                 <!-- Misi -->
                                 <div id="misi" class="content">
                                     <div class="content-header mb-3" style="text-align: justify">
-                                        Menerapkan <span class="fw-bold">Tridharma Perguruan Tinggi</span> yang berkualitas
+                                        {{-- Menerapkan <span class="fw-bold">Tridharma Perguruan Tinggi</span> yang berkualitas
                                         guna menghasilkan
                                         sumber daya manusia yang adaptif dan fleksibel terhadap perubahan serta
-                                        inovasi yang bermanfaat bagi peningkatan daya saing bangsa.
+                                        inovasi yang bermanfaat bagi peningkatan daya saing bangsa. --}}
+                                        {!! $profil_pt->misi !!}
                                     </div>
                                 </div>
                             </form>
@@ -157,10 +159,10 @@
                 <div class="tab-content pt-0">
                     <div class="tab-pane fade show active" id="navs-program-studi" role="tabpanel">
                         <div
-                            class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0">
+                            class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0 pb-1">
                             <h5>Program Studi</h5>
                         </div>
-                        <div class="table-responsive my-3">
+                        <div class="table-responsive">
                             <table class="table table-striped table-hover programstudi table-sm"
                                 style="width: 100% !important">
                                 <thead class="table-primary"></thead>
@@ -173,8 +175,7 @@
                     </div>
                     <!-- Mahasiswa -->
                     <div class="tab-pane fade" id="navs-mahasiswa" role="tabpanel">
-                        <div
-                            class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0">
+                        <div class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0 pb-1">
                             <h5>Mahasiswa</h5>
                             <div class="float-end row">
                                 <div class="btn-group" role="group">
@@ -188,10 +189,10 @@
                                 </div>
                             </div>
                         </div>
-                        <p class="alert alert-warning">
+                        <p class="alert alert-warning mt-3">
                             Data mahasiswa tahun ajaran {{ $tahun }} sedang dalam proses sinkronisasi.
                         </p>
-                        <div class="table-responsive my-3">
+                        <div class="table-responsive">
                             <table class="table table-striped table-hover mahasiswa table-sm"
                                 style="width: 100% !important">
                                 <thead class="table-primary"></thead>
@@ -204,8 +205,7 @@
                     </div>
                     <!-- Dosen -->
                     <div class="tab-pane fade" id="navs-dosen" role="tabpanel">
-                        <div
-                            class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0">
+                        <div class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0 pb-1">
                             <h5>Dosen</h5>
                             <div class="float-end row">
                                 <div class="btn-group" role="group">
@@ -218,7 +218,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="table-responsive my-3">
+                        <div class="table-responsive">
                             <table class="table table-striped table-hover dosen table-sm" style="width: 100% !important">
                                 <thead class="table-primary">
                                     <tr>
@@ -244,11 +244,10 @@
                     </div>
                     <!-- Tenaga Pendidik -->
                     <div class="tab-pane fade" id="navs-tendik" role="tabpanel">
-                        <div
-                            class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0">
+                        <div class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0 pb-1">
                             <h5>Tenaga Kependidikan</h5>
                         </div>
-                        <div class="table-responsive my-3">
+                        <div class="table-responsive">
                             <table class="table table-striped table-hover tendik table-sm" style="width: 100% !important">
                                 <thead class="table-primary">
                                     <tr>

@@ -2,8 +2,8 @@
     <link rel="stylesheet" href="{{ asset('assets/vendor/libs/bs-stepper/bs-stepper.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/vendor/libs/bootstrap-select/bootstrap-select.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}" />
-    <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}" />
-    <link rel="stylesheet" href="{{ asset('css/dataTables.bootstrap5.min.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css') }}">
 @endsection
 
 @section('vendor-script')
@@ -11,9 +11,7 @@
     <script src="{{ asset('assets/vendor/libs/bootstrap-select/bootstrap-select.js') }}"></script>
     <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
     <script src="{{ asset('assets/js/form-wizard-icons.js') }}"></script>
-    <script src="{{ asset('js/jquery.min.js') }}"></script>
-    <script src="{{ asset('js/jquery-ui.min.js') }}"></script>
-    <script src="{{ asset('js/datatables.min.js') }}"></script>
+    <script src="{{ asset('assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js') }}"></script>
 @endsection
 
 @section('page-script')
@@ -65,10 +63,7 @@
                     },
                     {
                         data: 'nm_lemb',
-                        title: 'Program Studi',
-                        render: function(data, type, row) {
-                            return `<a href="{{ route('pages-prodi', '') }}/${row.id_sms}" target=new>${data}</a>`;
-                        }
+                        title: 'Program Studi'
                     },
                     {
                         data: 'nm_jenj_didik',
@@ -80,15 +75,11 @@
                         data: 'soft_delete',
                         title: 'Status',
                         width: '5px',
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            return data == '0' ? `<span class="badge bg-label-primary">Aktif</span>` :
-                                `<span class="badge bg-label-danger">Tidak Aktif</span>`;
-                        }
+                        className: 'text-center'
                     },
                 ],
             });
-        }
+        };
 
         function mahasiswa() {
             return $('.mahasiswa').DataTable({
@@ -135,9 +126,6 @@
                     {
                         data: 'nm_lemb',
                         title: 'Program Studi',
-                        render: function(data, type, row) {
-                            return `<a href="javascript:void(0);" id="btnModalMahasiswa" data-id="${row.id_sms}" data-prodi="${row.nm_lemb}">${data}</a>`;
-                        }
                     },
                     {
                         data: 'nm_jenj_didik',
@@ -156,7 +144,7 @@
                     },
                 ],
             });
-        }
+        };
 
         function dosen() {
             return $('.dosen').DataTable({
@@ -201,9 +189,6 @@
                     },
                     {
                         data: 'nm_lemb',
-                        render: function(data, type, row) {
-                            return `<a href="javascript:void(0);" id="btnModalDosen" data-id="${row.id_sms}" data-prodi="${row.nm_lemb}">${data}</a>`;
-                        }
                     },
                     {
                         data: 'nm_jenj_didik',
@@ -227,7 +212,7 @@
                     },
                 ],
             });
-        }
+        };
 
         function tendik() {
             return $('.tendik').DataTable({
@@ -268,10 +253,7 @@
                         className: 'text-center'
                     },
                     {
-                        data: 'nm_unit_orga',
-                        render: function(data, type, row) {
-                            return `<a href="javascript:void(0);" id="btnModalTendik" data-id="${row.id_unit_orga}" data-prodi="${data}">${data}</a>`;
-                        }
+                        data: 'nm_unit_orga'
                     },
                     {
                         data: 'pns_pria',
@@ -294,7 +276,7 @@
         }
 
         $(document).ready(function() {
-            let auth = "{{ auth()->check() }}";
+            let auth = <?php echo json_encode(auth()->check()) ?>;
             programstudi();
             var tMahasiswa = mahasiswa();
             var tDosen = dosen();
@@ -303,13 +285,14 @@
             //Mahasiswa
             tMahasiswa.on('click', '#btnModalMahasiswa', function() {
                 var id = $(this).data('id');
-                $('#detProdiMhs').html("Program Studi " + $(this).data('prodi'));
+                $('#detProdiMahasiswa').html("Program Studi " + $(this).data('prodi'));
 
                 $('#modalMahasiswaList').modal('show');
                 var oTable = $('#tDetailMahasiswa').DataTable({
                     "bDestroy": true,
                     processing: true,
                     serverSide: true,
+                    ordering: false,
                     "language": {
                         "decimal": "",
                         "emptyTable": "Tidak ada data pada tabel",
@@ -345,47 +328,23 @@
                     "columns": [{
                             "data": "nm_pd",
                             "title": "Nama Mahasiswa",
-                            "orderable": true,
-                            render: function(data, type, row) {
-                                return auth ?
-                                    `<a href="{{ route('pages-mahasiswa', '') }}/${row.id_pd}" target="_blank">${data}</a>` :
-                                    data;
-                            }
                         },
                         {
                             "data": "nipd",
                             "title": "NPM",
                             "width": "5px",
-                            "orderable": false,
                             "className": "text-center",
                         },
                         {
                             "data": "jk",
                             "title": "Jenis Kelamin",
-                            "orderable": false,
                             "className": "text-center",
                         },
                         {
                             "data": "id_stat_mhs",
                             "title": "Status",
-                            "orderable": true,
                             "className": "text-center",
-                            render: function(data, type, row) {
-                                if (data == "A" || data == "M") {
-                                    return `<span class="badge bg-label-primary">${row.nm_stat_mhs}</span>`;
-                                } else if (data == 'L') {
-                                    return `<span class="badge bg-label-success">${row.nm_stat_mhs}</span>`;
-                                } else if (data == 'C') {
-                                    return `<span class="badge bg-label-warning">${row.nm_stat_mhs}</span>`;
-                                } else {
-                                    return `<span class="badge bg-label-danger">${row.nm_stat_mhs}</span>`;
-                                }
-                            }
                         }
-                    ],
-                    order: [
-                        [3, 'ASC'],
-                        [0, 'ASC']
                     ],
                 });
             });
@@ -399,6 +358,7 @@
                     "bDestroy": true,
                     processing: true,
                     serverSide: true,
+                    ordering: false,
                     "language": {
                         "decimal": "",
                         "emptyTable": "Tidak ada data pada tabel",
@@ -431,51 +391,31 @@
                             tahun: $('#periodeDosen').val()
                         }
                     },
-                    order: [
-                        [4, 'ASC']
-                    ],
                     "columns": [{
                             "data": "nm_sdm",
                             "title": "Nama Dosen",
-                            "orderable": true,
-                            render: function(data, type, row) {
-                                return `<a href="{{ route('pages-dosen', '') }}/${row.id_sdm}" target="_blank">${data}</a>`;
-                            }
                         },
                         {
                             "data": "nidn",
                             "title": "NIDN",
                             "width": "5px",
-                            "orderable": false,
                             "className": "text-center",
                         },
                         {
                             "data": "nip",
                             "title": "NIP",
                             "width": "5px",
-                            "orderable": false,
                             "className": "text-center",
                         },
                         {
                             "data": "jk",
                             "title": "Jenis Kelamin",
-                            "orderable": true,
                             "className": "text-center",
                         },
                         {
                             "data": "nm_stat_aktif",
                             "title": "Status",
-                            "orderable": true,
                             "className": "text-center",
-                            render: function(data, type, row) {
-                                return row.id_stat_aktif == 1 ?
-                                    `<span class="badge bg-label-primary">${data}</span>` :
-                                    (row
-                                        .id_stat_aktif == 27 ?
-                                        `<span class="badge bg-label-warning">${data}</span>` :
-                                        `<span class="badge bg-label-danger">${data}</span>`
-                                    );
-                            }
                         }
                     ]
                 });
@@ -490,6 +430,7 @@
                     "bDestroy": true,
                     processing: true,
                     serverSide: true,
+                    ordering: false,
                     "language": {
                         "decimal": "",
                         "emptyTable": "Tidak ada data pada tabel",
@@ -521,42 +462,29 @@
                             id_unit_orga: id
                         }
                     },
-                    order: [
-                        [4, 'ASC']
-                    ],
                     "columns": [{
                             "data": "nm_pegawai",
                             "title": "Nama Tendik",
-                            "orderable": true,
                         },
                         {
                             "data": "nip",
                             "title": "NIP",
                             "width": "5px",
-                            "orderable": false,
                             "className": "text-center",
                         },
                         {
                             "data": "jk",
                             "title": "Jenis Kelamin",
-                            "orderable": true,
                             "className": "text-center",
                         },
                         {
                             "data": "jns_pegawai",
                             "title": "Jenis Pegawai",
-                            "orderable": true,
                         },
                         {
                             "data": "status",
                             "title": "Status",
-                            "orderable": true,
                             "className": "text-center",
-                            render: function(data, type, row) {
-                                return data == 'Aktif' ?
-                                    `<span class="badge bg-label-primary">${data}</span>` :
-                                    `<span class="badge bg-label-danger">${data}</span>`;
-                            }
                         }
                     ]
                 });
@@ -564,7 +492,7 @@
 
             $('#periodeMahasiswa').on('change', function() {
                 $('.mahasiswa').DataTable().clear().destroy();
-                mahasiswa();
+                tMahasiswa = mahasiswa();
             });
             $('#periodeDosen').on('change', function() {
                 $('.dosen').DataTable().clear().destroy();

@@ -48,6 +48,12 @@
       "name": "Kelulusan Tepat Waktu",
       "icon": "menu-icon tf-icons ti ti-chart-bar",
       "slug": "pages-ktw"
+    },
+    {
+      "url": "/infografis",
+      "name": "Infografis",
+      "icon": "menu-icon tf-icons ti ti-chart-infographic",
+      "slug": "pages-infografis"
     }
   ]
 }

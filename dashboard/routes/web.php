@@ -17,6 +17,7 @@ use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\SyncController;
 use App\Http\Controllers\authentications\LoginBasic;
 use App\Http\Controllers\authentications\RegisterBasic;
+use App\Http\Controllers\InfografisController;
 //MAIN
 use App\Http\Controllers\Main\DashboardController as MainDashboardController;
 use App\Http\Controllers\Main\KTWController as MainKTWController;
@@ -63,6 +64,12 @@ Route::get('/webometrics_ranking', [DashboardController::class, 'webometrics_ran
 //Kelulusan Tepat Waktu
 Route::get('/ktw', [KelulusanTepatWaktuController::class, 'index'])->name('pages-ktw');
 Route::get('/ktw/data', [KelulusanTepatWaktuController::class, 'data'])->name('pages-ktw-data');
+//Infografis
+Route::get('/infografis', [InfografisController::class, 'index'])->name('pages-infografis');
+Route::get('/infografis/dosen', [InfografisController::class, 'dosen'])->name('pages-infografis-dosen');
+Route::get('/infografis/mahasiswa', [InfografisController::class, 'mahasiswa'])->name('pages-infografis-mahasiswa');
+Route::get('/infografis/pubHaki', [InfografisController::class, 'pubHaki'])->name('pages-infografis-pubHaki');
+Route::get('/infografis/litabmas', [InfografisController::class, 'litabmas'])->name('pages-infografis-litabmas');
 //Prodi
 Route::get('/prodi/{id}', [ProgramStudiController::class, 'index'])->name('pages-prodi');
 Route::get('/prodi/mahasiswa/{id}', [ProgramStudiController::class, 'mahasiswa'])->name('pages-prodi-mahasiswa');
@@ -151,17 +158,34 @@ Route::middleware(['auth'])->group(function () {
   });
 
   #penelitian
-  Route::get('pelaksanaan_penelitian/penelitian',[LitabmasController::class,'index'])->name('pelaksanaan_penelitian.penelitian');
-  Route::get('pelaksanaan_penelitian/penelitian/{id}/detail',[LitabmasController::class,'show'])->name('pelaksanaan_penelitian.penelitian.detail');
+  Route::get('pelaksanaan_penelitian/penelitian', [LitabmasController::class, 'index'])->name(
+    'pelaksanaan_penelitian.penelitian'
+  );
+  Route::get('pelaksanaan_penelitian/penelitian/{id}/detail', [LitabmasController::class, 'show'])->name(
+    'pelaksanaan_penelitian.penelitian.detail'
+  );
 
-  Route::get('pelaksanaan_penelitian/publikasi_karya',[PublikasiController::class,'index'])->name('pelaksanaan_penelitian.publikasi_karya');
-  Route::get('pelaksanaan_penelitian/publikasi_karya/{id}/detail',[PublikasiController::class,'show'])->name('pelaksanaan_penelitian.publikasi_karya.detail');
+  Route::get('pelaksanaan_penelitian/publikasi_karya', [PublikasiController::class, 'index'])->name(
+    'pelaksanaan_penelitian.publikasi_karya'
+  );
+  Route::get('pelaksanaan_penelitian/publikasi_karya/{id}/detail', [PublikasiController::class, 'show'])->name(
+    'pelaksanaan_penelitian.publikasi_karya.detail'
+  );
 
+<<<<<<< Updated upstream
   Route::get('pelaksanaan_penelitian/paten',[PublikasiController::class,'index'])->name('pelaksanaan_penelitian.paten');
   Route::get('pelaksanaan_penelitian/paten/{id}/detail',[PublikasiController::class,'show'])->name('pelaksanaan_penelitian.paten.detail');
 
   Route::get('pelaksanaan_pengabdian/pengabdian',[LitabmasController::class,'index'])->name('pelaksanaan_pengabdian.pengabdian');
   Route::get('pelaksanaan_pengabdian/pengabdian/{id}/detail',[LitabmasController::class,'show'])->name('pelaksanaan_pengabdian.pengabdian.detail');
+=======
+  Route::get('pelaksanaan_pengabdian/pengabdian', [LitabmasController::class, 'index'])->name(
+    'pelaksanaan_pengabdian.pengabdian'
+  );
+  Route::get('pelaksanaan_pengabdian/pengabdian/{id}/detail', [LitabmasController::class, 'show'])->name(
+    'pelaksanaan_pengabdian.pengabdian.detail'
+  );
+>>>>>>> Stashed changes
 
   #sinkronisasi
   Route::get('sinkronisasi', [SyncController::class, 'index'])->name('sinkronisasi');

@@ -23,7 +23,7 @@ Route::get('php_info',function () {
 });
 
 Route::namespace('Auth')->group(function () {
-    Route::get('auth/login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::get('auth/login', [LoginController::class, 'showLoginForm'])->name('login.page');
     Route::post('auth/login', [LoginController::class, 'authenticate'])->name('auth.login');
     Route::get('auth/login/sso', [LoginController::class, 'signing_process'])->name('auth.signing_process');
     Route::post('auth/login/captcha', [LoginController::class, 'submitCaptcha'])->name('auth.login.captcha');

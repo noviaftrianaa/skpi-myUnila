@@ -18,56 +18,68 @@ class LitabmasController extends Controller
     public function __construct()
     {
         $route = Route::current()->getName();
-        if (strpos($route,'penelitian')>0) {
-            $this->title = 'Penelitian';
-            $this->kode_litabmas = 'L';
-            $this->base_route = 'pelaksanaan_penelitian.penelitian';
+        if (strpos($route, "penelitian") > 0) {
+            $this->title = "Penelitian";
+            $this->kode_litabmas = "L";
+            $this->base_route = "pelaksanaan_penelitian.penelitian";
         } else {
-            $this->title = 'Pengabdian';
-            $this->kode_litabmas = 'M';
-            $this->base_route = 'pelaksanaan_pengabdian.pengabdian';
+            $this->title = "Pengabdian";
+            $this->kode_litabmas = "M";
+            $this->base_route = "pelaksanaan_pengabdian.pengabdian";
         }
-
     }
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $role = session()->get('login.role');
+        $role = session()->get("login.role");
         $unit = UnitOrganisasi::find($role->id_organisasi);
         if ($unit->id_jns_lemb == 24) {
             $sms = Sms::find($unit->id_organisasi);
             $sms_list[] = $sms->id_sms;
-            $judul = $this->title.' Dosen Program Studi ' . $sms->nm_lemb . ' (' . $sms->jenjang->nm_jenj_didik . ')';
+            $judul =
+                $this->title .
+                " Dosen Program Studi " .
+                $sms->nm_lemb .
+                " (" .
+                $sms->jenjang->nm_jenj_didik .
+                ")";
         } elseif ($unit->id_jns_lemb == 28) {
             $sms = Sms::find($unit->id_organisasi);
-            $sms_list = SMS::where('id_jur_unila',$sms->id_sms)
-                ->where('soft_delete',0)
-                ->select('id_sms')->pluck('id_sms')->toArray();
-            $judul = $this->title.' Dosen Jurusan ' . $sms->nm_lemb;
+            $sms_list = SMS::where("id_jur_unila", $sms->id_sms)
+                ->where("soft_delete", 0)
+                ->select("id_sms")
+                ->pluck("id_sms")
+                ->toArray();
+            $judul = $this->title . " Dosen Jurusan " . $sms->nm_lemb;
         } elseif ($unit->id_jns_lemb == 23) {
             $sms = Sms::find($unit->id_organisasi);
-            $sms_list = SMS::where('id_fak_unila',$sms->id_sms)
-                ->where('soft_delete',0)
-                ->select('id_sms')->pluck('id_sms')->toArray();
-            $judul = $this->title.' Dosen Fakultas ' . $sms->nm_lemb;
-        } else {
-            $sp = SatuanPendidikan::find(env('APP_ID_SP'));
-            $sms_list = [];
-            $ta_list = TahunAjaran::select('id_thn_ajaran', 'nm_thn_ajaran')
-                ->where('id_thn_ajaran', '>=', 2000)
-                ->where('id_thn_ajaran', '<=', get_tahun_keaktifan())
-                ->whereNull('expired_date')
-                ->orderBy('id_thn_ajaran', 'DESC')
-                ->pluck('nm_thn_ajaran', 'id_thn_ajaran')
+            $sms_list = SMS::where("id_fak_unila", $sms->id_sms)
+                ->where("soft_delete", 0)
+                ->select("id_sms")
+                ->pluck("id_sms")
                 ->toArray();
-            $judul = $this->title.' Dosen ' . $sp->nm_lemb;
+            $judul = $this->title . " Dosen Fakultas " . $sms->nm_lemb;
+        } else {
+            $sp = SatuanPendidikan::find(env("APP_ID_SP"));
+            $sms_list = [];
+            $ta_list = TahunAjaran::select("id_thn_ajaran", "nm_thn_ajaran")
+                ->where("id_thn_ajaran", ">=", 2000)
+                ->where("id_thn_ajaran", "<=", get_tahun_keaktifan())
+                ->whereNull("expired_date")
+                ->orderBy("id_thn_ajaran", "DESC")
+                ->pluck("nm_thn_ajaran", "id_thn_ajaran")
+                ->toArray();
+            $judul = $this->title . " Dosen " . $sp->nm_lemb;
         }
-        $data = Litabmas::get_data_litabmas($this->kode_litabmas,$sms_list);
+        $data = Litabmas::get_data_litabmas($this->kode_litabmas, $sms_list);
         $base_route = $this->base_route;
         $kode = $this->kode_litabmas;
-        return view('content.tridarma.litabmas.index',compact('judul','data','base_route','kode'));
+        return view(
+            "content.tridarma.litabmas.index",
+            compact("judul", "data", "base_route", "kode")
+        );
     }
 
     /**
@@ -93,13 +105,18 @@ class LitabmasController extends Controller
     {
         $id_litabmas = Crypt::decrypt($id);
         $data = Litabmas::find($id_litabmas)->toArray();
-        $data['penulis'] = Litabmas::get_penulis($data['id_litabmas']);
-        $data['dokumen'] = DB::table('dok.dok_litabmas')->where('id_litabmas',$data['id_litabmas'])
-            ->pluck('id_dok')->toArray();
+        $data["penulis"] = Litabmas::get_penulis($data["id_litabmas"]);
+        $data["dokumen"] = DB::table("dok.dok_litabmas")
+            ->where("id_litabmas", $data["id_litabmas"])
+            ->pluck("id_dok")
+            ->toArray();
         $base_route = $this->base_route;
         $kode = $this->kode_litabmas;
         $judul = $this->title;
-        return view('content.tridarma.litabmas.detail',compact('data','base_route','kode','judul'));
+        return view(
+            "content.tridarma.litabmas.detail",
+            compact("data", "base_route", "kode", "judul")
+        );
     }
 
     /**

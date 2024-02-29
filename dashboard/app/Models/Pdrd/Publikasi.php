@@ -17,6 +17,7 @@ class Publikasi extends AbstractionModel
     public $timestamps = false;
     public $incrementing = false;
 
+<<<<<<< Updated upstream
     public static function dashboard_publikasi($id_thn, $level, $id_sms)
     {
         $alternative_where = '';
@@ -137,5 +138,85 @@ class Publikasi extends AbstractionModel
         ";
         $data = collect(DB::SELECT($query))->toArray();
         return $data;
+=======
+    public static function total_publikasi($tahun)
+    {
+        $query = "
+            SELECT
+                p.nm_lemb,
+                SUM(p.total) AS total
+            FROM
+                (
+                    SELECT
+                        fak.nm_lemb,
+                        (
+                            SELECT
+                                COUNT(DISTINCT pub.id_publikasi)
+                            FROM
+                                pdrd.publikasi AS pub WITH (NOLOCK)
+                                JOIN pdrd.tulis_pub AS tulis WITH (NOLOCK) ON tulis.id_publikasi=pub.id_publikasi AND tulis.soft_delete=0 AND tulis.peran_tulis='A'
+                                JOIN pdrd.reg_ptk AS ptk WITH (NOLOCK) ON ptk.id_sdm=tulis.id_sdm AND ptk.soft_delete=0
+                            WHERE
+                                pub.soft_delete=0
+                                AND YEAR(pub.tgl_terbit) = '".$tahun."'
+                                AND pub.id_jns_pub NOT IN (41,42,43,44)
+                                AND ptk.id_sms=sms.id_sms
+                        ) AS total
+                    FROM
+                        pdrd.sms AS sms WITH (NOLOCK)
+                        JOIN pdrd.sms AS fak WITH (NOLOCK) ON fak.id_sms=sms.id_fak_unila AND fak.soft_delete=0
+                    WHERE
+                        sms.soft_delete=0
+                ) AS p
+            GROUP BY
+                p.nm_lemb
+            ORDER BY
+                p.nm_lemb ASC
+        ";
+
+        $data = \DB::SELECT($query);
+
+        return collect($data);
+    }
+
+    public static function total_haki($tahun)
+    {
+        $query = "
+            SELECT
+                p.nm_lemb,
+                SUM(p.total) AS total
+            FROM
+                (
+                    SELECT
+                        fak.nm_lemb,
+                        (
+                            SELECT
+                                COUNT(DISTINCT pub.id_publikasi)
+                            FROM
+                                pdrd.publikasi AS pub WITH (NOLOCK)
+                                JOIN pdrd.tulis_pub AS tulis WITH (NOLOCK) ON tulis.id_publikasi=pub.id_publikasi AND tulis.soft_delete=0 AND tulis.peran_tulis='A'
+                                JOIN pdrd.reg_ptk AS ptk WITH (NOLOCK) ON ptk.id_sdm=tulis.id_sdm AND ptk.soft_delete=0
+                            WHERE
+                                pub.soft_delete=0
+                                AND YEAR(pub.tgl_terbit) = '".$tahun."'
+                                AND pub.id_jns_pub IN (41,42,43,44)
+                                AND ptk.id_sms=sms.id_sms
+                        ) AS total
+                    FROM
+                        pdrd.sms AS sms WITH (NOLOCK)
+                        JOIN pdrd.sms AS fak WITH (NOLOCK) ON fak.id_sms=sms.id_fak_unila AND fak.soft_delete=0
+                    WHERE
+                        sms.soft_delete=0
+                ) AS p
+            GROUP BY
+                p.nm_lemb
+            ORDER BY
+                p.nm_lemb ASC
+        ";
+
+        $data = \DB::SELECT($query);
+
+        return collect($data);
+>>>>>>> Stashed changes
     }
 }

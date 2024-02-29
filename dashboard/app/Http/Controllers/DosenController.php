@@ -7,17 +7,17 @@ use Illuminate\Support\Facades\DB;
 
 class DosenController extends Controller
 {
-  public function __construct()
-  {
-    $this->basepath = 'dosen';
-  }
+    public function __construct()
+    {
+        $this->basepath = "dosen";
+    }
 
-  public function index($id)
-  {
-    $pageConfigs = ['myLayout' => 'horizontal'];
+    public function index($id)
+    {
+        $pageConfigs = ["myLayout" => "horizontal"];
 
-    $profil = DB::SELECT(
-      "
+        $profil = DB::SELECT(
+            "
       SELECT
         sdm.*,
         sms.nm_lemb,
@@ -36,11 +36,13 @@ class DosenController extends Controller
       WHERE
         sdm.soft_delete=0
         AND sdm.id_sdm='" .
-        $id .
-        "'
+                $id .
+                "'
     "
-    )[0];
-    $profil->gelar = DB::SELECT("
+        )[0];
+        $profil->gelar =
+            DB::SELECT(
+                "
       SELECT DISTINCT
         gel.singkat_gelar,
         gel.posisi_gelar,
@@ -50,48 +52,51 @@ class DosenController extends Controller
         JOIN ref.gelar_akademik AS gel ON gel.id_gelar_akad=pen.id_gelar_akad AND gel.expired_date IS NULL
       WHERE
         pen.soft_delete=0
-        AND pen.id_sdm='".$id."'
+        AND pen.id_sdm='" .
+                    $id .
+                    "'
         AND pen.thn_lulus IS NOT NULL
       ORDER BY
         pen.thn_lulus ASC,
         gel.posisi_gelar ASC
-    ") ?? [];
+    "
+            ) ?? [];
 
-    $kepangkatan = $this->kepangkatan($id);
+        $kepangkatan = $this->kepangkatan($id);
 
-    $jabfung = $this->jabfung($id);
+        $jabfung = $this->jabfung($id);
 
-    $pendidikan = $this->pendidikan($id);
+        $pendidikan = $this->pendidikan($id);
 
-    $sertifikasi = $this->sertifikasi($id);
+        $sertifikasi = $this->sertifikasi($id);
 
-    $penelitian = $this->penelitian($id);
+        $penelitian = $this->penelitian($id);
 
-    $publikasi = $this->publikasi($id);
+        $publikasi = $this->publikasi($id);
 
-    $pengabdian = $this->pengabdian($id);
+        $pengabdian = $this->pengabdian($id);
 
-    $haki = $this->haki($id);
+        $haki = $this->haki($id);
 
-    return view('content.pages.dosen.detail', [
-      'pageConfigs' => $pageConfigs,
-      'profil' => $profil,
-      'pendidikan' => $pendidikan,
-      'sertifikasi' => $sertifikasi,
-      'penelitian' => $penelitian,
-      'publikasi' => $publikasi,
-      'pengabdian' => $pengabdian,
-      'haki' => $haki,
-      'kepangkatan' => $kepangkatan,
-      'jabfung' => $jabfung,
-    ]);
-  }
+        return view("content.pages.dosen.detail", [
+            "pageConfigs" => $pageConfigs,
+            "profil" => $profil,
+            "pendidikan" => $pendidikan,
+            "sertifikasi" => $sertifikasi,
+            "penelitian" => $penelitian,
+            "publikasi" => $publikasi,
+            "pengabdian" => $pengabdian,
+            "haki" => $haki,
+            "kepangkatan" => $kepangkatan,
+            "jabfung" => $jabfung,
+        ]);
+    }
 
-  private function kepangkatan($id)
-  {
-    $data =
-      DB::SELECT(
-        "
+    private function kepangkatan($id)
+    {
+        $data =
+            DB::SELECT(
+                "
             SELECT
                 pangkat.sk_pangkat,
                 pangkat.tgl_sk_pangkat,
@@ -111,16 +116,16 @@ class DosenController extends Controller
             ORDER BY
                 pangkat.tgl_sk_pangkat DESC
     "
-      ) ?? [];
+            ) ?? [];
 
-    return $data;
-  }
+        return $data;
+    }
 
-  private function jabfung($id)
-  {
-    $data =
-      DB::SELECT(
-        "
+    private function jabfung($id)
+    {
+        $data =
+            DB::SELECT(
+                "
         SELECT
             rwy.sk_jabfung,
             rwy.angka_kredit,
@@ -132,21 +137,21 @@ class DosenController extends Controller
         WHERE
             rwy.soft_delete=0
             AND rwy.id_sdm='" .
-                $id .
-                "'
+                    $id .
+                    "'
         ORDER BY
             rwy.tmt_sk_jabfung DESC
         "
-      ) ?? [];
+            ) ?? [];
 
-    return $data;
-  }
+        return $data;
+    }
 
-  private function pendidikan($id)
-  {
-    $data =
-      DB::SELECT(
-        "
+    private function pendidikan($id)
+    {
+        $data =
+            DB::SELECT(
+                "
             SELECT DISTINCT
                 pendidikan.nm_sp_formal,
                 pendidikan.thn_lulus,
@@ -169,16 +174,16 @@ class DosenController extends Controller
             ORDER BY
                 pendidikan.thn_lulus DESC
         "
-      ) ?? [];
+            ) ?? [];
 
-    return $data;
-  }
+        return $data;
+    }
 
-  private function sertifikasi($id)
-  {
-    $data =
-      DB::SELECT(
-        "
+    private function sertifikasi($id)
+    {
+        $data =
+            DB::SELECT(
+                "
             SELECT DISTINCT
                 sertifikasi.*,
                 jenis.nm_jns_sert,
@@ -196,16 +201,16 @@ class DosenController extends Controller
             ORDER BY
                 sertifikasi.thn_sert DESC
         "
-      ) ?? [];
+            ) ?? [];
 
-    return $data;
-  }
+        return $data;
+    }
 
-  private function penelitian($id)
-  {
-    $data =
-      DB::SELECT(
-        "
+    private function penelitian($id)
+    {
+        $data =
+            DB::SELECT(
+                "
             SELECT
                 pen.judul_litabmas,
                 pen.id_thn_laks,
@@ -241,16 +246,16 @@ class DosenController extends Controller
             ORDER BY
                 pen.id_thn_laks DESC
         "
-      ) ?? [];
+            ) ?? [];
 
-    return $data;
-  }
+        return $data;
+    }
 
-  private function publikasi($id)
-  {
-    $data =
-      DB::SELECT(
-        "
+    private function publikasi($id)
+    {
+        $data =
+            DB::SELECT(
+                "
             SELECT
                 pen.judul_litabmas,
                 pen.id_thn_laks,
@@ -301,16 +306,16 @@ class DosenController extends Controller
             ORDER BY
                 pen.id_thn_laks DESC
         "
-      ) ?? [];
+            ) ?? [];
 
-    return $data;
-  }
+        return $data;
+    }
 
-  private function pengabdian($id)
-  {
-    $data =
-      DB::SELECT(
-        "
+    private function pengabdian($id)
+    {
+        $data =
+            DB::SELECT(
+                "
             SELECT
                 pen.judul_litabmas,
                 pen.id_thn_laks,
@@ -355,16 +360,16 @@ class DosenController extends Controller
             ORDER BY
                 pen.id_thn_laks DESC
         "
-      ) ?? [];
+            ) ?? [];
 
-    return $data;
-  }
+        return $data;
+    }
 
-  private function haki($id)
-  {
-    $data =
-      DB::SELECT(
-        "
+    private function haki($id)
+    {
+        $data =
+            DB::SELECT(
+                "
             SELECT
                 pub.judul,
                 pub.tgl_terbit,
@@ -400,15 +405,15 @@ class DosenController extends Controller
             ORDER BY
                 pub.tgl_terbit DESC
         "
-      ) ?? [];
+            ) ?? [];
 
-    return $data;
-  }
+        return $data;
+    }
 
-  public function pengajaran($id)
-  {
-    $data = DB::SELECT(
-        "
+    public function pengajaran($id)
+    {
+        $data = DB::SELECT(
+            "
             SELECT DISTINCT
                 matkul.kode_mk,
                 matkul.nm_mk,
@@ -432,17 +437,17 @@ class DosenController extends Controller
             ORDER BY
                 kelas.id_smt DESC
         "
-    );
+        );
 
-    return \DataTables::of($data)
-      ->addIndexColumn()
-      ->make(true);
-  }
+        return \DataTables::of($data)
+            ->addIndexColumn()
+            ->make(true);
+    }
 
-  public function bimbingan($id)
-  {
-    $data = DB::SELECT(
-        "
+    public function bimbingan($id)
+    {
+        $data = DB::SELECT(
+            "
             SELECT
                 kat.nm_kat,
                 akt.judul_akt_mhs,
@@ -465,17 +470,17 @@ class DosenController extends Controller
             ORDER BY
                 akt.id_smt DESC
         "
-    );
+        );
 
-    return \DataTables::of($data)
-      ->addIndexColumn()
-      ->make(true);
-  }
+        return \DataTables::of($data)
+            ->addIndexColumn()
+            ->make(true);
+    }
 
-  public function pengujian($id)
-  {
-    $data = DB::SELECT(
-        "
+    public function pengujian($id)
+    {
+        $data = DB::SELECT(
+            "
             SELECT
                 kat.nm_kat,
                 akt.judul_akt_mhs,
@@ -497,10 +502,10 @@ class DosenController extends Controller
             ORDER BY
                 akt.id_smt DESC
         "
-    );
+        );
 
-    return \DataTables::of($data)
-      ->addIndexColumn()
-      ->make(true);
-  }
+        return \DataTables::of($data)
+            ->addIndexColumn()
+            ->make(true);
+    }
 }

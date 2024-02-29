@@ -18,6 +18,7 @@
 @endsection
 
 @section('page-script')
+    <script src="{{ asset('assets/js/forms-selects.js') }}"></script>
     <script src="{{ asset('assets/js/form-layouts.js') }}"></script>
     <script type="text/javascript">
         'use strict';
@@ -221,7 +222,9 @@
         }
 
         $(document).ready(function() {
-            $('select').select2();
+            $( 'select' ).wrap('<div class="position-relative"></div>').select2( {
+                width: $( this ).data( 'width' ) ? $( this ).data( 'width' ) : $( this ).hasClass( 'w-100' ) ? '100%' : 'style',
+            } );
 
             let tahun = <?php echo json_encode($tahun); ?>;
             let auth = "{{ auth()->check() }}";

@@ -18,6 +18,7 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
+<<<<<<< Updated upstream
         if ($request->has('smt')) {
             $smt_pilih = $request->smt;
         } else {
@@ -63,12 +64,16 @@ class DashboardController extends Controller
             $level = 'pt';
             return view('content.main.dashboard');
         }
+=======
+        return view("content.main.dashboard");
+>>>>>>> Stashed changes
     }
 
     public function peran()
     {
-      $pageConfigs = ['myLayout' => 'blank'];
-      $peran = \DB::SELECT("
+        $pageConfigs = ["myLayout" => "blank"];
+        $peran = \DB::SELECT(
+            "
         SELECT
           rp.id_pengguna,
           rp.id_peran,
@@ -78,37 +83,46 @@ class DashboardController extends Controller
           man_akses.role_pengguna AS rp
           JOIN man_akses.peran AS p ON rp.id_peran=p.id_peran AND p.expired_date IS NULL
         WHERE
-          rp.id_pengguna = '".\Auth::user()->id_pengguna."'
+          rp.id_pengguna = '" .
+                \Auth::user()->id_pengguna .
+                "'
           AND rp.soft_delete=0
           AND rp.approval_peran=1
         ORDER BY
           rp.last_active DESC
-      ");
-      return view('content.main.peran', [
-        'pageConfigs' => $pageConfigs,
-        'peran' => $peran
-      ]);
+      "
+        );
+        return view("content.main.peran", [
+            "pageConfigs" => $pageConfigs,
+            "peran" => $peran,
+        ]);
     }
 
     public function changePeran(Request $request)
     {
-      //UPDATE
-      $updateLastActive = \DB::table('man_akses.role_pengguna')->where('id_pengguna', \Auth::user()->id_pengguna)->where('id_peran', session()->get('login.role')->id_peran)->update(
-        [
-          'last_active' => NOW()
-        ]
-      );
-      //DESTROY SESSION
-      session()->forget('login.role');
-      //SET ROLE
-      $array = $request->all();
-      $role = \DB::table('man_akses.role_pengguna')->where('id_pengguna', \Auth::user()->id_pengguna)->where('id_peran',$array['id_peran'])->first();
-      session()->put('login.role', $role);
-      MenuRole();
-      $peran = \DB::table('man_akses.peran')->where('id_peran', $role->id_peran)->first();
+        //UPDATE
+        $updateLastActive = \DB::table("man_akses.role_pengguna")
+            ->where("id_pengguna", \Auth::user()->id_pengguna)
+            ->where("id_peran", session()->get("login.role")->id_peran)
+            ->update([
+                "last_active" => NOW(),
+            ]);
+        //DESTROY SESSION
+        session()->forget("login.role");
+        //SET ROLE
+        $array = $request->all();
+        $role = \DB::table("man_akses.role_pengguna")
+            ->where("id_pengguna", \Auth::user()->id_pengguna)
+            ->where("id_peran", $array["id_peran"])
+            ->first();
+        session()->put("login.role", $role);
+        MenuRole();
+        $peran = \DB::table("man_akses.peran")
+            ->where("id_peran", $role->id_peran)
+            ->first();
 
-      alert()->success('Role '.$peran->nm_peran.' Aktif');
-      return redirect()->route('main-index');
+        alert()->success("Role " . $peran->nm_peran . " Aktif");
+        return redirect()->route("main-index");
     }
 
     public function dashboard_dosen(Request $request)

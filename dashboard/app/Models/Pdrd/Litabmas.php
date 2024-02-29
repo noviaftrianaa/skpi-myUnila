@@ -111,4 +111,44 @@ class Litabmas extends AbstractionModel
         $data = collect(DB::SELECT($query))->toArray();
         return $data;
     }
+
+    public static function total($tahun, $jenis)
+    {
+        $query = "
+            SELECT
+                p.nm_lemb,
+                SUM(p.total) AS total
+            FROM
+                (
+                    SELECT
+                        fak.nm_lemb,
+                        (
+                            SELECT
+                                COUNT(DISTINCT litabmas.id_litabmas)
+                            FROM
+                                pdrd.litabmas AS litabmas WITH (NOLOCK)
+                                JOIN pdrd.sdm_anggota_litabmas AS tulis WITH (NOLOCK) ON tulis.id_litabmas=litabmas.id_litabmas AND tulis.soft_delete=0
+                                JOIN pdrd.reg_ptk AS ptk WITH (NOLOCK) ON ptk.id_sdm=tulis.id_sdm AND ptk.soft_delete=0
+                            WHERE
+                                litabmas.soft_delete=0
+                                AND litabmas.jns_litabmas = '".$jenis."'
+                                AND litabmas.id_thn_laks = '".$tahun."'
+                                AND ptk.id_sms=sms.id_sms
+                        ) AS total
+                    FROM
+                        pdrd.sms AS sms WITH (NOLOCK)
+                        JOIN pdrd.sms AS fak WITH (NOLOCK) ON fak.id_sms=sms.id_fak_unila AND fak.soft_delete=0
+                    WHERE
+                        sms.soft_delete=0
+                ) AS p
+            GROUP BY
+                p.nm_lemb
+            ORDER BY
+                p.nm_lemb ASC
+        ";
+
+        $data = \DB::SELECT($query);
+
+        return collect($data);
+    }
 }

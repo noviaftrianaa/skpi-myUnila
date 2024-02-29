@@ -16,4 +16,9 @@ class RegPTK extends AbstractionModel
 
     public $timestamps = false;
     public $incrementing = false;
+
+    public function sms()
+    {
+        return $this->belongsTo('\App\Models\Pdrd\SMS','id_sms','id_sms');
+    }
 }
