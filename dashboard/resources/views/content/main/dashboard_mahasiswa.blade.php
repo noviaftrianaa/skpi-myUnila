@@ -49,7 +49,7 @@
                     ]);
                 }
             });
-            reloadPieChart('rekap_mhs','Sebaran Dosen berdasarkan Status Semester',data_mhs_dashboard);
+            reloadPieChart('rekap_mhs','Sebaran Mahasiswa berdasarkan Status Semester',data_mhs_dashboard);
 
             var mhs_negara_dashboard = '{!! $dashboard_mhs_asing !!}';
             var data_mhs_negara_dashboard = [];
@@ -60,7 +60,7 @@
                     ]);
                 }
             });
-            reloadPieChart('rekap_negara_mhs','Sebaran Dosen berdasarkan Kewarganegaraan',data_mhs_negara_dashboard);
+            reloadPieChart('rekap_negara_mhs','Sebaran Mahasiswa berdasarkan Kewarganegaraan',data_mhs_negara_dashboard);
 
             var ipk_mhs = '{!! $dashboard_ipk_mhs !!}';
             var data_ipk_mhs = [];
