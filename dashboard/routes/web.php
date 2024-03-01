@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Main\DaftarMahasiswaController;
 use App\Http\Controllers\SyncDataController;
 use App\Http\Controllers\Tridarma\LitabmasController;
 use App\Http\Controllers\Tridarma\PenelitianController;
@@ -156,6 +157,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('sdm/dosen/data', [DosenSMSController::class, 'data'])->name('sdm.dosen.data');
     Route::get('sdm/tendik', [TendikSMSController::class, 'index'])->name('sdm.tendik');
     Route::get('sdm/tendik/data', [TendikSMSController::class, 'data'])->name('sdm.tendik.data');
+
+    Route::get('mahasiswa/daftar_mahasiswa', [DaftarMahasiswaController::class, 'index'])->name('mahasiswa.daftar_mahasiswa');
+    Route::get('mahasiswa/daftar_mahasiswa/{id}/detail', [DaftarMahasiswaController::class, 'show'])->name('mahasiswa.daftar_mahasiswa.detail');
   });
 
   #penelitian

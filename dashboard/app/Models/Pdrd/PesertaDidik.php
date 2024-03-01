@@ -318,4 +318,50 @@ class PesertaDidik extends AbstractionModel
         }
         return DB::SELECT($select.$from.$join.$where.$alternative_where.$group.$order);
     }
+
+    public static function get_daftar_mhs($level,$sms,$smt)
+    {
+        $query = "
+            SELECT
+                tpd.id_pd,
+                tpd.nm_pd,
+                rpd.nipd,
+                akm.total_sks,
+                akm.ipk,
+	            akm.sks_semester,
+                CASE WHEN rpd.id_jns_keluar IS NULL THEN sm.nm_stat_mhs ELSE jk.ket_keluar END status_mhs,
+                CONCAT(tsms.nm_lemb,' (',tj.nm_jenj_didik,')') AS prodi_homebase,
+                ROUND(DATEDIFF(DAY, rpd.tgl_masuk_sp, rpd.tgl_keluar)/365.25, 2) AS masa_mukim,
+                pa.nm_sdm
+            FROM pdrd.peserta_didik AS tpd
+            JOIN pdrd.reg_pd AS rpd ON rpd.id_pd=tpd.id_pd AND rpd.soft_delete=0
+            JOIN pdrd.sms AS tsms ON tsms.id_sms=rpd.id_sms AND tsms.soft_delete=0
+            JOIN ref.jenjang_pendidikan AS tj ON tj.id_jenj_didik=tsms.id_jenj_didik
+            JOIN pdrd.kuliah_mhs AS akm ON akm.id_reg_pd=rpd.id_reg_pd AND akm.soft_delete=0
+                AND akm.id_smt=".$smt."
+            JOIN ref.semester AS tsmt ON tsmt.id_smt=akm.id_smt
+            LEFT JOIN (
+                SELECT tsdm.nm_sdm, ang.id_reg_pd FROM pdrd.anggota_akt_mhs AS ang
+                JOIN pdrd.akt_mhs AS akt ON akt.id_akt_mhs=ang.id_akt_mhs AND akt.soft_delete=0
+                    AND akt.id_smt=".$smt."
+                JOIN pdrd.bimbing_mhs AS bm ON bm.id_akt_mhs=akt.id_akt_mhs AND bm.soft_delete=0
+                AND bm.id_katgiat='110601'
+                JOIN pdrd.sdm AS tsdm ON tsdm.id_sdm=bm.id_sdm AND tsdm.soft_delete=0
+                WHERE ang.soft_delete=0
+            ) AS pa ON pa.id_reg_pd=rpd.id_reg_pd
+            LEFT JOIN ref.jenis_keluar AS jk ON jk.id_jns_keluar=rpd.id_jns_keluar
+            LEFT JOIN ref.status_mahasiswa AS sm ON sm.id_stat_mhs=akm.id_stat_mhs
+            WHERE tpd.soft_delete=0
+        ";
+        if ($level!='pt') {
+            if ($level=='prodi') {
+                $query.=" AND tsms.id_sms='".$sms."'";
+            } elseif ($level=='jurusan') {
+                $query.=" AND tsms.id_jur_unila='".$sms."'";
+            } elseif($level=='fakultas') {
+                $query.=" AND tsms.id_fak_unila='".$sms."'";
+            }
+        }
+        return DB::SELECT($query);
+    }
 }
