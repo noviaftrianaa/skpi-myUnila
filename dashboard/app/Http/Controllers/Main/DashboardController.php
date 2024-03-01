@@ -22,10 +22,7 @@ class DashboardController extends Controller
         if ($request->has('smt')) {
             $smt_pilih = $request->smt;
         } else {
-            $smt_pilih = Semester::where('tgl_mulai','<',date('Y-m-d'))
-                ->where('tgl_selesai','>=',date('Y-m-d'))
-                ->whereNull('expired_date')
-                ->first()->id_smt;
+            $smt_pilih = config('mp.data_master.smt_aktif');
         }
         $role = session()->get('login.role');
         $unit = UnitOrganisasi::find($role->id_organisasi);

@@ -222,7 +222,7 @@ class PesertaDidik extends AbstractionModel
                 SUM(CASE WHEN (akm.id_stat_mhs='A' AND rpd.id_jns_keluar IS NULL) THEN 1 ELSE 0 END) AS Aktif,
                 SUM(CASE WHEN (akm.id_stat_mhs='M' AND rpd.id_jns_keluar IS NULL) THEN 1 ELSE 0 END) AS MBKM,
                 SUM(CASE WHEN (akm.id_stat_mhs='D' OR rpd.id_jns_keluar = '3') THEN 1 ELSE 0 END) AS DO,
-                SUM(CASE WHEN akm.id_stat_mhs='N' THEN 1 ELSE 0 END) AS NonAktif,
+                SUM(CASE WHEN (akm.id_stat_mhs='N' AND rpd.id_jns_keluar NOT IN ('2','3','4','6','7')) THEN 1 ELSE 0 END) AS NonAktif,
                 SUM(CASE WHEN akm.id_stat_mhs='C' THEN 1 ELSE 0 END) AS Cuti
             ";
             $join = "
