@@ -164,6 +164,7 @@ class DashboardController extends Controller
         }
         $role = session()->get('login.role');
         $unit = UnitOrganisasi::find($role->id_organisasi);
+        $semester = Semester::find($smt_pilih);
         if ($unit->id_jns_lemb == 24) { // Jika Prodi login
             $sms = SMS::find($unit->id_organisasi);
             $semester_list = Semester::select('id_smt', 'nm_smt')
@@ -180,7 +181,7 @@ class DashboardController extends Controller
             $dashboard_mhs_asing = json_encode(collect(PesertaDidik::dashboard_mahasiswa('rekap_kewarganegaraan_mhs_semester',$smt_pilih,$level,$sms->id_sms))->first());
             $dashboard_ipk_mhs = json_encode(collect(PesertaDidik::dashboard_mahasiswa('rekap_ipk_mhs_semester',$smt_pilih,$level,$sms->id_sms))->first());
             $dashboard_masa_mukim_mhs = json_encode(collect(PesertaDidik::dashboard_mahasiswa('rekap_masa_mukim_mhs_semester',$smt_pilih,$level,$sms->id_sms))->first());
-            return view('content.main.dashboard_mahasiswa',compact('smt_pilih','semester_list','judul','dashboard_mhs','dashboard_mhs_asing','dashboard_ipk_mhs','dashboard_masa_mukim_mhs'));
+            return view('content.main.dashboard_mahasiswa',compact('smt_pilih','semester_list','judul','dashboard_mhs','dashboard_mhs_asing','dashboard_ipk_mhs','dashboard_masa_mukim_mhs','semester'));
         } else {
             //
         }

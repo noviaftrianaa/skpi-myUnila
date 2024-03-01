@@ -40,7 +40,7 @@ return [
         'smt_batas_min' => 20101
     ],
     'data_master'   => [
-        'smt_aktif' => 20231,
+        'smt_aktif' => 20222,
         'smt'   => [
             1   => 'Ganjil',
             2   => 'Genap',

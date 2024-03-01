@@ -8,7 +8,7 @@
             <div class="container">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title"><i class="fas fa-dashboard"></i> {{ $judul }} Semester {{ $smt_pilih }}</h3>
+                        <h3 class="card-title"><i class="fas fa-dashboard"></i> {{ $judul }} Semester {{ $semester->nm_smt }}</h3>
                     </div>
                     <div class="card-body">
                         <form action="{{ route('dashboard_mahasiswa') }}" method="GET">
