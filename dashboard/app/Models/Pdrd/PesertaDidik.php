@@ -431,7 +431,9 @@ class PesertaDidik extends AbstractionModel
                 km.ipk,
                 km.total_sks,
                 pem.nm_pembiayaan,
-                km.biaya_smt
+                km.biaya_smt,
+                reg_kuliah.sks_reg,
+                mbkm_kuliah.sks_mbkm
             FROM pdrd.reg_pd AS rpd
             JOIN pdrd.sms AS tsms ON tsms.id_sms=rpd.id_sms
             JOIN ref.jenjang_pendidikan AS tj ON tj.id_jenj_didik=tsms.id_jenj_didik
@@ -440,6 +442,23 @@ class PesertaDidik extends AbstractionModel
             JOIN ref.semester AS smt ON smt.id_smt=km.id_smt
             LEFT JOIN ref.pembiayaan AS pem ON pem.id_pembiayaan=km.id_pembiayaan
             LEFT JOIN ref.status_mahasiswa AS sm ON sm.id_stat_mhs=km.id_stat_mhs
+            LEFT JOIN (
+                SELECT nilai.id_reg_pd, kk.id_smt, SUM(kk.sks_mk) AS sks_reg FROM pdrd.nilai_smt_mhs AS nilai
+                LEFT JOIN pdrd.kelas_kuliah AS kk ON kk.id_kls=nilai.id_kls AND kk.soft_delete=0
+                WHERE nilai.soft_delete=0
+                GROUP BY nilai.id_reg_pd, kk.id_smt
+            ) AS reg_kuliah ON reg_kuliah.id_smt=km.id_smt AND reg_kuliah.id_reg_pd=rpd.id_reg_pd
+            LEFT JOIN (
+                SELECT m.id_reg_pd, m.id_smt, SUM(m.sks_mk) AS sks_mbkm
+                FROM (
+                    SELECT DISTINCT ang.id_reg_pd, akt.id_smt, kam.id_mk, kam.sks_mk FROM mbkm.konversi_akt_mhs AS kam
+                    JOIN pdrd.anggota_akt_mhs AS ang ON ang.id_ang_akt_mhs=kam.id_ang_akt_mhs AND ang.soft_delete=0
+                        AND ang.id_akt_mhs=kam.id_akt_mhs
+                    JOIN pdrd.akt_mhs AS akt ON akt.id_akt_mhs=kam.id_akt_mhs AND akt.soft_delete=0
+                    WHERE kam.soft_delete=0
+                ) AS m
+                GROUP BY m.id_reg_pd, m.id_smt
+            ) AS mbkm_kuliah ON mbkm_kuliah.id_smt=km.id_smt AND mbkm_kuliah.id_reg_pd=rpd.id_reg_pd
             WHERE rpd.id_pd='".$id_pd."'
             ORDER BY rpd.id_smt DESC, km.id_smt DESC
         ");
