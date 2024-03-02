@@ -1,5 +1,5 @@
 @foreach($status_smt AS $prodi=>$data)
-    <table class="table table-striped table-bordered">
+    <table class="table table-striped table-bordered mt-4">
         <thead>
         <tr><th colspan="10">{{ $prodi }}</th></tr>
         <tr>
