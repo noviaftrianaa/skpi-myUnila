@@ -128,7 +128,7 @@ class SMS extends AbstractionModel
             JOIN pdrd.sms AS tsms ON tsms.id_sms=tr.id_sms
             LEFT JOIN pdrd.sms AS tfak ON tfak.id_sms=tsms.id_fak_unila
             JOIN ref.jenjang_pendidikan AS tj ON tj.id_jenj_didik=tsms.id_jenj_didik
-            JOIN (
+            LEFT JOIN (
                 SELECT
                     trpd.id_sms,
                     SUM(CASE WHEN (akm.id_stat_mhs='L' OR trpd.id_jns_keluar='1') THEN 1 ELSE 0 END) AS mhs_lulus,
@@ -148,7 +148,7 @@ class SMS extends AbstractionModel
                 WHERE trpd.soft_delete=0
                 GROUP BY trpd.id_sms
             ) AS pd ON pd.id_sms=tsms.id_sms
-            JOIN (
+            LEFT JOIN (
                 SELECT kk.id_sms, COUNT(DISTINCT trnh.id_sdm) AS total_dosen_rasio FROM pdrd.reg_ptk AS trnh
                 JOIN pdrd.akt_ajar_dosen AS ajar ON ajar.id_reg_ptk=trnh.id_reg_ptk AND ajar.soft_delete=0
                 JOIN pdrd.kelas_kuliah AS kk ON kk.id_kls=ajar.id_kls AND kk.soft_delete=0

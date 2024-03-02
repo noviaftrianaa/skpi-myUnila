@@ -8,6 +8,7 @@ use App\Models\Pdrd\SMS;
 use App\Models\Referensi\Semester;
 use App\Models\UnitOrganisasi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 
 class DaftarMahasiswaController extends Controller
 {
@@ -63,9 +64,19 @@ class DaftarMahasiswaController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request, $id)
     {
-        //
+        if ($request->has('kode')) {
+            $kode = $request->kode;
+        } else {
+            $kode = 'homebase';
+        }
+        $id_pd = Crypt::decrypt($id);
+        $pd = PesertaDidik::getDetail($id_pd);
+        $homebase = PesertaDidik::getDetailHomebase($id_pd);
+        $status_smt = PesertaDidik::getStatusSmtMhs($id_pd);
+        $base_route = route('mahasiswa.daftar_mahasiswa.detail',Crypt::encrypt($pd->id_pd));
+        return view('content.main.mahasiswa.detail',compact('pd','kode','homebase','base_route','status_smt'));
     }
 
     /**

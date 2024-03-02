@@ -364,4 +364,85 @@ class PesertaDidik extends AbstractionModel
         }
         return DB::SELECT($query);
     }
+
+    public static function getDetail($id_pd)
+    {
+        $data = DB::SELECT("
+            SELECT
+                tpd.id_pd,
+                tpd.nm_pd,
+                tpd.jk,
+                tpd.nisn,
+                tpd.nik,
+                tpd.tmpt_lahir,
+                tpd.tgl_lahir,
+                tpd.jln,
+                tpd.rt,
+                tpd.rw,
+                tpd.nm_dsn,
+                tpd.ds_kel,
+                a.nm_agama AS agama,
+                n.nm_negara AS kewarganegaraan,
+                sm.nm_stat_mhs
+            FROM pdrd.peserta_didik AS tpd
+            JOIN ref.agama AS a ON a.id_agama=tpd.id_agama
+            JOIN ref.negara AS n ON n.id_negara=tpd.id_kewarganegaraan
+            JOIN ref.status_mahasiswa AS sm ON sm.id_stat_mhs=tpd.id_stat_mhs
+            WHERE tpd.id_pd='".$id_pd."'
+        ");
+        return collect($data)->first();
+    }
+
+    public static function getDetailHomebase($id_pd)
+    {
+        $data = DB::SELECT("
+            SELECT
+                rpd.id_reg_pd,
+                CONCAT(tsms.nm_lemb,' (',tj.nm_jenj_didik,')') AS prodi,
+                rpd.nipd AS nim,
+                jp.nm_jns_daftar,
+                rpd.tgl_masuk_sp,
+                rpd.tgl_keluar,
+                jk.ket_keluar,
+                smt.nm_smt,
+                sp.nm_lemb AS nm_pt
+            FROM pdrd.reg_pd AS rpd
+            JOIN pdrd.sms AS tsms ON tsms.id_sms=rpd.id_sms
+            JOIN ref.jenjang_pendidikan AS tj ON tj.id_jenj_didik=tsms.id_jenj_didik
+            JOIN ref.jenis_pendaftaran AS jp ON jp.id_jns_daftar=rpd.id_jns_daftar
+            LEFT JOIN ref.jenis_keluar AS jk ON jk.id_jns_keluar=rpd.id_jns_keluar
+            JOIN ref.semester AS smt ON smt.id_smt=rpd.id_smt
+            JOIN pdrd.satuan_pendidikan AS sp ON sp.id_sp=rpd.id_sp
+            WHERE rpd.id_pd='".$id_pd."'
+            ORDER BY rpd.id_smt DESC
+        ");
+        return $data;
+    }
+
+    public static function getStatusSmtMhs($id_pd)
+    {
+        $data = DB::SELECT("
+            SELECT
+                rpd.id_reg_pd,
+                CONCAT(sp.nm_lemb,' - ',tsms.nm_lemb,' (',tj.nm_jenj_didik,') - ',rpd.nipd) AS prodi,
+                sm.nm_stat_mhs,
+                smt.nm_smt,
+                km.ips,
+                km.ipk,
+                km.total_sks,
+                pem.nm_pembiayaan,
+                km.biaya_smt
+            FROM pdrd.reg_pd AS rpd
+            JOIN pdrd.sms AS tsms ON tsms.id_sms=rpd.id_sms
+            JOIN ref.jenjang_pendidikan AS tj ON tj.id_jenj_didik=tsms.id_jenj_didik
+            JOIN pdrd.satuan_pendidikan AS sp ON sp.id_sp=rpd.id_sp
+            JOIN pdrd.kuliah_mhs AS km ON km.id_reg_pd=rpd.id_reg_pd AND km.soft_delete=0
+            JOIN ref.semester AS smt ON smt.id_smt=km.id_smt
+            LEFT JOIN ref.pembiayaan AS pem ON pem.id_pembiayaan=km.id_pembiayaan
+            LEFT JOIN ref.status_mahasiswa AS sm ON sm.id_stat_mhs=km.id_stat_mhs
+            WHERE rpd.id_pd='".$id_pd."'
+            ORDER BY rpd.id_smt DESC, km.id_smt DESC
+        ");
+        return collect($data)->groupBy('prodi')->toArray();
+    }
 }
