@@ -50,7 +50,7 @@
                 sDom: 'rt<"row"<"col-sm-12 col-md-3"l><"col-sm-12 col-md-3"i><"col-sm-12 col-md-6"p>>',
 
                 ajax: {
-                    url: "{{ route('mahasiswa.kampus_merdeka.data') }}",
+                    url: "{{ route('mahasiswa.aktivitas_mahasiswa.data') }}",
                     data: {
                         level_organisasi: unit.level_organisasi,
                         id_jns_lemb: unit.id_jns_lemb,
@@ -85,25 +85,14 @@
                         data: 'nm_smt', title: 'Semester'
                     },
                     {
-                        data: 'nm_jns_akt_mhs', title: 'Kategori MBKM'
+                        data: 'nm_jns_akt_mhs', title: 'Jenis Aktivitas'
                     },
                     {
-                        data: 'judul_akt_mhs', title: 'Nama Program MBKM'
+                        data: 'judul_akt_mhs', title: 'Nama Aktivitas Mahasiswa'
                     },
                     {
                         data: 'lokasi_kegiatan', title: 'Lokasi Kegiatan'
-                    },
-                    {
-                        data: 'total_sks', title: 'Total SKS Semester'
-                    },
-                    {
-                        data: 'sks_konversi', title: 'Total SKS Konversi'
-                    },
-                    {
-                        data: 'sks_reguler', title: 'Total SKS Reguler'
                     }
-
-
                 ],
                 buttons: [{
                     extend: 'collection',

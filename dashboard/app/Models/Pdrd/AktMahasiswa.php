@@ -30,6 +30,65 @@ class AktMahasiswa extends Model
 	'last_sync',
     ];
 
+    public static function getRawDataAktivitasMhs($lvl, $id_jns_lemb, $id_organisasi, $thn)
+    {
+        $filter = '';
+        if ($lvl > 3) {
+          if ($id_jns_lemb == 23) {
+            $filter = " AND fak.id_sms='" . $id_organisasi . "'";
+          } elseif ($id_jns_lemb == 28) {
+            $filter = " AND prodi.id_jur_unila='" . $id_organisasi . "'";
+          } elseif ($id_jns_lemb == 24) {
+            $filter = " AND prodi.id_sms='" . $id_organisasi . "'";
+          }
+        }
+
+        $query = "
+            SELECT
+                reg.id_reg_pd,
+                reg.id_pd,
+                akt.id_smt,
+                reg.nipd,
+                pd.nm_pd,
+                fak.nm_lemb AS nm_fakultas,
+                jur.nm_lemb AS nm_jur,
+                CONCAT(prodi.nm_lemb, ' (', jenj.nm_jenj_didik, ')') AS nm_prodi,
+                smt.nm_smt,
+                jns_akt.nm_jns_akt_mhs,
+                akt.judul_akt_mhs,
+                akt.lokasi_kegiatan
+            FROM
+                pdrd.anggota_akt_mhs AS ang WITH(NOLOCK)
+                JOIN pdrd.akt_mhs AS akt WITH(NOLOCK) ON akt.id_akt_mhs = ang.id_akt_mhs
+                AND akt.soft_delete = 0
+                JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = akt.id_smt
+                AND smt.expired_date IS NULL
+                AND smt.id_smt = '". $thn ."'
+                JOIN ref.jenis_akt_mhs AS jns_akt WITH(NOLOCK) ON jns_akt.id_jns_akt_mhs = akt.id_jns_akt_mhs
+                AND jns_akt.expired_date IS NULL
+                JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_reg_pd = ang.id_reg_pd
+                AND reg.soft_delete = 0
+                JOIN pdrd.peserta_didik AS pd ON pd.id_pd = reg.id_pd
+                AND pd.soft_delete = 0
+                JOIN pdrd.sms AS prodi WITH(NOLOCK) ON prodi.id_sms = reg.id_sms
+                AND prodi.soft_delete = 0
+                LEFT JOIN pdrd.sms AS jur WITH(NOLOCK) ON jur.id_sms = prodi.id_jur_unila
+                AND jur.soft_delete = 0
+                JOIN pdrd.sms AS fak WITH(NOLOCK) ON fak.id_sms = prodi.id_fak_unila
+                AND fak.soft_delete = 0
+                JOIN ref.jenjang_pendidikan AS jenj WITH(NOLOCK) ON jenj.id_jenj_didik = prodi.id_jenj_didik
+                AND jenj.expired_date IS NULL
+            WHERE
+                ang.soft_delete = 0
+                " . $filter . "
+            ORDER BY
+                fak.nm_lemb,
+                prodi.nm_lemb ASC
+        ";
+
+        return DB::SELECT($query);
+    }
+
     public static function getRawDataMbkm($lvl, $id_jns_lemb, $id_organisasi, $thn)
     {
         $filter = '';
@@ -53,6 +112,7 @@ class AktMahasiswa extends Model
                         reg.id_reg_pd,
                         reg.id_pd,
                         kul.id_smt,
+                        smt.nm_smt,
                         reg.nipd,
                         pd.nm_pd,
                         fak.nm_lemb AS nm_fakultas,
@@ -175,6 +235,8 @@ class AktMahasiswa extends Model
                                 sks_semester
                         ) AS reguler ON reguler.id_smt = kul.id_smt
                         AND reguler.id_reg_pd = reg.id_reg_pd
+                        LEFT JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = reguler.id_smt
+                        AND smt.expired_date IS NULL
                     WHERE
                         reg.soft_delete = 0
                         " . $filter . "
