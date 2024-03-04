@@ -61,9 +61,9 @@ class KelulusanTepatWaktuController extends Controller
 
         $temp = [];
         $getSmt = [];
-        for ($i = $tahun; $i >= $tahun - 4; $i--) {
-            $getSmt[] = $i . "2";
+        for ($i = $tahun - 4; $i <= $tahun; $i++) {
             $getSmt[] = $i . "1";
+            $getSmt[] = $i . "2";
         }
         $temp["smt"] = $getSmt;
 

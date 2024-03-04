@@ -51,7 +51,7 @@ class DashboardController extends Controller
             return view('content.main.dashboard-prodi',compact('judul','semester_list','smt_pilih','level','data_list_tabel','data_profil_prodi','data_akreditasi_prodi','sms'));
         } else { // Jika level PT login
             $data_list_tabel = SMS::dashboard_tabel_list_sms([],$smt_pilih);
-            $pt = SatuanPendidikan::find(env('APP_ID_SP'));
+            $pt = SatuanPendidikan::find(env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515'));
             $semester_list = Semester::select('id_smt','nm_smt')
                 ->where('tgl_mulai','<',date('Y-m-d'))
                 ->whereNull('expired_date')

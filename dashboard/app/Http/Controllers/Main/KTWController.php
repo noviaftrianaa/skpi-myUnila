@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Main;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Pdrd\PesertaDidik;
+use App\Models\UnitOrganisasi;
 use DB;
 use Session;
 use Alert;
@@ -18,122 +19,59 @@ class KTWController extends Controller
     {
         $title = "Kelulusan Tepat Waktu";
 
-        if(!is_null(\Auth::user()->id_sdm_pengguna)) {
-            $sdm = DB::SELECT("
-                SELECT
-                    sdm.id_sdm,
-                    sdm.nip,
-                    sms.id_sms,
-                    sms.nm_lemb AS prodi,
-                    jur.id_sms AS id_jur_unila,
-                    jur.nm_lemb AS jurusan,
-                    fak.id_sms AS id_fak_unila,
-                    fak.nm_lemb AS fakultas
-                FROM
-                    pdrd.sdm AS sdm WITH (NOLOCK)
-                    JOIN pdrd.reg_ptk AS ptk WITH (NOLOCK) ON ptk.id_sdm=sdm.id_sdm AND ptk.soft_delete=0
-                    JOIN pdrd.sms AS sms WITH (NOLOCK) ON sms.id_sms=ptk.id_sms AND sms.soft_delete=0
-                    LEFT JOIN pdrd.sms AS jur WITH (NOLOCK) ON jur.id_sms=sms.id_jur_unila AND jur.soft_delete=0
-                    LEFT JOIN pdrd.sms AS fak WITH (NOLOCK) ON fak.id_sms=sms.id_fak_unila AND fak.soft_delete=0
-                WHERE
-                    sdm.soft_delete=0
-                    AND sdm.id_sdm = '".\Auth::user()->id_sdm_pengguna."'
-                ORDER BY
-                    ptk.tgl_srt_tgs DESC
-            ");
+        $role = session()->get("login.role");
+        $unit = UnitOrganisasi::find($role->id_organisasi);
 
-            if(!is_null($sdm)) {
-                $jabstuk = \DB::SELECT("
-                    SELECT
-                        jabstruk.nm_jabstruk
-                    FROM
-                        sikep.pegawai AS pegawai WITH (NOLOCK)
-                        JOIN sikep.jabstruk AS jabstruk WITH (NOLOCK) ON jabstruk.id_jabstruk=pegawai.id_jabstruk AND jabstruk.soft_delete=0
-                    WHERE
-                        pegawai.soft_delete=0
-                        AND pegawai.tmt_pensiun IS NULL
-                        AND pegawai.nip = '".$sdm->nip."'
-                ")[0] ?? null;
+        if ($unit->id_jns_lemb == 24) {
+            $sms = \App\Models\Pdrd\SMS::with("jenjang")
+                ->where("soft_delete", 0)
+                ->where('id_sms', $unit->id_organisasi)
+                ->orderBy("nm_lemb")
+                ->get();
+        } elseif ($unit->id_jns_lemb == 28) {
+            $jur = \App\Models\Pdrd\SMS::find($unit->id_organisasi);
+            $sms = \App\Models\Pdrd\SMS::with("jenjang")
+                ->where("soft_delete", 0)
+                ->where('id_jur_unila', $jur->id_sms)
+                ->orderBy("nm_lemb")
+                ->get();
+        } elseif ($unit->id_jns_lemb == 23) {
+            $sms = \App\Models\Pdrd\SMS::where("soft_delete", 0)
+            ->where('id_sms', $unit->id_organisasi)
+            ->select('id_sms','nm_lemb')
+            ->orderBy("nm_lemb")
+            ->get();
+            foreach ($sms as $item) {
+                $item->prodi = \App\Models\Pdrd\SMS::with("jenjang")
+                    ->where("soft_delete", 0)
+                    ->where("id_jns_sms", 3)
+                    ->where("id_fak_unila", $item->id_sms)
+                    ->orderBy('nm_lemb')
+                    ->get();
+            }
+        } else if (in_array($unit->id_jns_lemb, [21,22])) {
+            $sms = new Collection();
+            $sms->push((object)['id_sms' => 'all', 'nm_lemb' => 'Semua Fakultas']);
+            foreach ($sms as $item) {
+                $item->fakultas = \App\Models\Pdrd\SMS::where("soft_delete", 0)
+                    ->where("id_jns_sms", 1)
+                    ->whereNotIn("nm_lemb", ["FKIP"])
+                    ->select('id_sms','nm_lemb')
+                    ->orderBy("nm_lemb")
+                    ->get();
 
-                if(!is_null($jabstuk)) {
-                    if(Str::contains($jabstuk->nm_jabstruk, 'Dekan')) {
-                        $sms = \App\Models\Pdrd\SMS::where("soft_delete", 0)
-                            ->where('id_sms', $sdm->id_fak_unila)
-                            ->select('id_sms','nm_lemb')
-                            ->orderBy("nm_lemb")
-                            ->get();
-
-                        foreach ($sms as $item) {
-                            $item->prodi = \App\Models\Pdrd\SMS::with("jenjang")
-                                ->where("soft_delete", 0)
-                                ->where("id_jns_sms", 3)
-                                ->where("id_fak_unila", $item->id_sms)
-                                ->orderBy('nm_lemb')
-                                ->get();
-                        }
-                    } else if (Str::contains($jabstuk->nm_jabstruk, 'Ketua Jurusan')) {
-                        $sms = \App\Models\Pdrd\SMS::with("jenjang")
-                            ->where("soft_delete", 0)
-                            ->where('id_jur_unila', $sdm->id_jur_unila)
-                            ->orderBy("nm_lemb")
-                            ->get();
-                    } else if (Str::contains($jabstuk->nm_jabstruk, 'Ketua Program Studi') || Str::contains($jabstuk->nm_jabstruk, 'Kepala Program Studi')) {
-                        $sms = \App\Models\Pdrd\SMS::with("jenjang")
-                            ->where("soft_delete", 0)
-                            ->where('id_sms', $sdm->id_sms)
-                            ->orderBy("nm_lemb")
-                            ->get();
-                    } else if(Str::contains($jabstuk->nm_jabstruk, 'Rektor')) {
-                        $sms = new Collection();
-                        $sms->push((object)['id_sms' => 'all', 'nm_lemb' => 'Semua Fakultas']);
-                        foreach ($sms as $item) {
-                            $item->fakultas = \App\Models\Pdrd\SMS::where("soft_delete", 0)
-                                ->where("id_jns_sms", 1)
-                                ->whereNotIn("nm_lemb", ["FKIP"])
-                                ->select('id_sms','nm_lemb')
-                                ->orderBy("nm_lemb")
-                                ->get();
-
-                            foreach($item->fakultas AS $value) {
-                                $value->prodi = \App\Models\Pdrd\SMS::with("jenjang")
-                                    ->where("soft_delete", 0)
-                                    ->where("id_jns_sms", 3)
-                                    ->where("id_fak_unila", $value->id_sms)
-                                    ->orderBy("nm_lemb")
-                                    ->get();
-                            }
-                        }
-                    } else {
-                        $sms = new Collection();
-                        $sms->push((object)['id_sms' => 'all', 'nm_lemb' => 'Semua Fakultas']);
-                    }
+                foreach($item->fakultas AS $value) {
+                    $value->prodi = \App\Models\Pdrd\SMS::with("jenjang")
+                        ->where("soft_delete", 0)
+                        ->where("id_jns_sms", 3)
+                        ->where("id_fak_unila", $value->id_sms)
+                        ->orderBy("nm_lemb")
+                        ->get();
                 }
-            } else {
-                $sms = new Collection();
-                $sms->push((object)['id_sms' => 'all', 'nm_lemb' => 'Semua Fakultas']);
             }
         } else {
             $sms = new Collection();
             $sms->push((object)['id_sms' => 'all', 'nm_lemb' => 'Semua Fakultas']);
-            if(in_array(Session::get('login.role')->id_peran, [1,32,107])) {
-                foreach ($sms as $item) {
-                    $item->fakultas = \App\Models\Pdrd\SMS::where("soft_delete", 0)
-                        ->where("id_jns_sms", 1)
-                        ->whereNotIn("nm_lemb", ["FKIP"])
-                        ->select('id_sms','nm_lemb')
-                        ->orderBy("nm_lemb")
-                        ->get();
-
-                    foreach($item->fakultas AS $value) {
-                        $value->prodi = \App\Models\Pdrd\SMS::with("jenjang")
-                            ->where("soft_delete", 0)
-                            ->where("id_jns_sms", 3)
-                            ->where("id_fak_unila", $value->id_sms)
-                            ->orderBy("nm_lemb")
-                            ->get();
-                    }
-                }
-            }
         }
 
         return view("content.main.ktw.index", [
@@ -172,9 +110,9 @@ class KTWController extends Controller
 
         $temp = [];
         $getSmt = [];
-        for ($i = $tahun; $i >= $tahun - 4; $i--) {
-            $getSmt[] = $i . "2";
+        for ($i = $tahun - 4; $i <= $tahun; $i++) {
             $getSmt[] = $i . "1";
+            $getSmt[] = $i . "2";
         }
         $temp["smt"] = $getSmt;
 

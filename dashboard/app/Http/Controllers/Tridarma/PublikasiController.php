@@ -55,7 +55,7 @@ class PublikasiController extends Controller
                 ->select('id_sms')->pluck('id_sms')->toArray();
             $judul = $this->title.' Dosen Fakultas ' . $sms->nm_lemb;
         } else {
-            $sp = SatuanPendidikan::find(env('APP_ID_SP'));
+            $sp = SatuanPendidikan::find(env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515'));
             $sms_list = [];
             $judul = $this->title.' Dosen ' . $sp->nm_lemb;
         }

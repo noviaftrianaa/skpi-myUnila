@@ -124,7 +124,7 @@ class SMS extends AbstractionModel
                 AND tr.id_jns_keluar IS NULL
             JOIN pdrd.keaktifan_ptk AS ta ON ta.id_reg_ptk=tr.id_reg_ptk AND ta.soft_delete=0
              AND ta.a_sp_homebase=1 AND ta.id_thn_ajaran=".$thn_ajaran."
-            JOIN pdrd.satuan_pendidikan AS tsp ON tsp.id_sp=tr.id_sp AND tsp.id_sp='".env('APP_ID_SP')."'
+            JOIN pdrd.satuan_pendidikan AS tsp ON tsp.id_sp=tr.id_sp AND tsp.id_sp='".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
             JOIN pdrd.sms AS tsms ON tsms.id_sms=tr.id_sms
             LEFT JOIN pdrd.sms AS tfak ON tfak.id_sms=tsms.id_fak_unila
             JOIN ref.jenjang_pendidikan AS tj ON tj.id_jenj_didik=tsms.id_jenj_didik
@@ -155,7 +155,7 @@ class SMS extends AbstractionModel
                     AND kk.id_smt=".$id_smt."
                 WHERE trnh.soft_delete=0
                     AND trnh.id_jns_keluar IS NULL
-                    AND trnh.id_sp='".env('APP_ID_SP')."'
+                    AND trnh.id_sp='".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
                 GROUP BY kk.id_sms
             ) AS snh ON snh.id_sms=tsms.id_sms
             WHERE tsdm.soft_delete=0

@@ -45,7 +45,7 @@ class Litabmas extends AbstractionModel
                     ang2.prodi_ketua
                 FROM pdrd.sdm AS tsdm
                 JOIN pdrd.reg_ptk AS tr ON tr.id_sdm=tsdm.id_sdm AND tr.soft_delete=0
-                    AND tr.id_jns_keluar IS NULL AND tr.id_sp='".env('APP_ID_SP')."'
+                    AND tr.id_jns_keluar IS NULL AND tr.id_sp='".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
                     ".$condition."
                 JOIN pdrd.keaktifan_ptk AS taptk ON taptk.id_reg_ptk=tr.id_reg_ptk
                     AND taptk.soft_delete=0 AND taptk.a_sp_homebase=1 AND taptk.id_thn_ajaran=".get_tahun_keaktifan()."
@@ -60,7 +60,7 @@ class Litabmas extends AbstractionModel
                         AND taptk.soft_delete=0 AND taptk.a_sp_homebase=1 AND taptk.id_thn_ajaran=".get_tahun_keaktifan()."
                     JOIN pdrd.sms AS tsms ON tsms.id_sms=tr.id_sms
                     JOIN ref.jenjang_pendidikan AS tj ON tj.id_jenj_didik=tsms.id_jenj_didik
-                    WHERE tr.id_sp='".env('APP_ID_SP')."'
+                    WHERE tr.id_sp='".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
                     AND t1.peran_litabmas='K'
                 ) AS ang2 ON l.id_litabmas=ang2.id_litabmas
                 WHERE tsdm.soft_delete=0

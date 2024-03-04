@@ -251,7 +251,7 @@ class Iku2Controller extends Controller
                                 ) AS mbkm ON mbkm.id_reg_pd = reg.id_reg_pd
                             WHERE
                                 reg.soft_delete = 0
-                                AND reg.id_sp = '".env('APP_ID_SP')."'
+                                AND reg.id_sp = '".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
                                 AND reg.soft_delete = 0
                         ) AS mbkm
                 ) AS point_mbkm ON point_mbkm.id_sms = lemb.id_sms
@@ -374,7 +374,7 @@ class Iku2Controller extends Controller
                                 ) AS mbkm ON mbkm.id_reg_pd = reg.id_reg_pd
                             WHERE
                                 reg.soft_delete = 0
-                                AND reg.id_sp = '".env('APP_ID_SP')."'
+                                AND reg.id_sp = '".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
                                 AND reg.soft_delete = 0
                         ) AS mbkm
                 ) AS point_mbkm ON point_mbkm.id_sms = lemb.id_sms
@@ -511,7 +511,7 @@ class Iku2Controller extends Controller
                             AND pres.soft_delete = 0
                     ) AS prestasi ON prestasi.id_pd = reg.id_pd
                 WHERE
-                    reg.id_sp = '".env('APP_ID_SP')."'
+                    reg.id_sp = '".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
                     AND reg.soft_delete = 0
             ) AS prestasi ON prestasi.id_sms = lemb.id_sms
         ";
@@ -594,7 +594,7 @@ class Iku2Controller extends Controller
                             AND pres.soft_delete = 0
                     ) AS prestasi ON prestasi.id_pd = reg.id_pd
                 WHERE
-                    reg.id_sp = '".env('APP_ID_SP')."'
+                    reg.id_sp = '".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
                     AND reg.soft_delete = 0
             ) AS prestasi ON prestasi.id_sms = lemb.id_sms
         ";
@@ -843,7 +843,7 @@ class Iku2Controller extends Controller
             ) AS mbkm ON mbkm.id_reg_pd = reg.id_reg_pd
             WHERE
             reg.soft_delete = 0
-            AND reg.id_sp = '".env('APP_ID_SP')."'
+            AND reg.id_sp = '".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
             AND reg.soft_delete = 0
             ) AS mbkm
         ) al
@@ -860,7 +860,7 @@ class Iku2Controller extends Controller
         $where = "
             WHERE
                 reg.soft_delete = 0
-                AND reg.id_sp = '".env('APP_ID_SP')."'
+                AND reg.id_sp = '".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
                 AND reg.id_sms = '". $id_sms ."'
             ";
 
@@ -868,7 +868,7 @@ class Iku2Controller extends Controller
         $where = "
             WHERE
                 reg.soft_delete = 0
-                AND reg.id_sp = '".env('APP_ID_SP')."'
+                AND reg.id_sp = '".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
                 AND reg.soft_delete = 0
             ";
     }
@@ -985,14 +985,14 @@ class Iku2Controller extends Controller
     if (!is_null($id_sms)) {
         $where = "
             WHERE
-                reg.id_sp = '".env('APP_ID_SP')."'
+                reg.id_sp = '".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
                 AND reg.soft_delete = 0
                 AND reg.id_sms = '". $id_sms ."'
         ";
     } else {
         $where = "
             WHERE
-                reg.id_sp = '".env('APP_ID_SP')."'
+                reg.id_sp = '".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
                 AND reg.soft_delete = 0
         ";
     }

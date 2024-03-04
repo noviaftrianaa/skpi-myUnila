@@ -8,12 +8,11 @@
     <div class="row">
         <div class="col-12 mb-4">
             <div class="card">
-                <div
-                    class="card-header d-flex justify-content-between align-items-md-center align-items-start border-bottom">
+                <div class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 border-bottom">
                     <h4 class="card-title mb-0">Infografis Dosen</h4>
                     <div class="float-end">
                         <div class="btn-group" role="group">
-                            <label class="input-group-text ms-2">Tahun</label>
+                            <label class="input-group-text ms-2 d-none d-sm-inline-block">Tahun</label>
                             <select class="form-select w-auto" id="selectTahunDosen">
                                 @for ($i=get_tahun_keaktifan(); $i>=(get_tahun_keaktifan()-4); $i--)
                                     <option value="{{ $i }}">{{ $i }}</option>
@@ -39,12 +38,11 @@
         </div>
         <div class="col-12 mb-4">
             <div class="card">
-                <div
-                    class="card-header d-flex justify-content-between align-items-md-center align-items-start border-bottom">
+                <div class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 border-bottom">
                     <h4 class="card-title mb-0">Infografis Mahasiswa</h4>
                     <div class="float-end">
                         <div class="btn-group" role="group">
-                            <label class="input-group-text ms-2">Tahun</label>
+                            <label class="input-group-text ms-2 d-none d-sm-inline-block">Tahun</label>
                             <select class="form-select w-auto" id="selectTahunMahasiswa">
                                 @for ($i=get_tahun_keaktifan(); $i>=(get_tahun_keaktifan()-4); $i--)
                                     <option value="{{ $i }}">{{ $i }}</option>
@@ -67,12 +65,11 @@
         </div>
         <div class="col-12 mb-4">
             <div class="card">
-                <div
-                    class="card-header d-flex justify-content-between align-items-md-center align-items-start border-bottom">
-                    <h4 class="card-title mb-0">Infografis Publikasi dan HAKI</h4>
+                <div class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 border-bottom">
+                    <h4 class="card-title mb-0">Infografis Publikasi & HAKI</h4>
                     <div class="float-end">
                         <div class="btn-group" role="group">
-                            <label class="input-group-text ms-2">Tahun</label>
+                            <label class="input-group-text ms-2 d-none d-sm-inline-block">Tahun</label>
                             <select class="form-select w-auto" id="selectTahunPubHaki">
                                 @for ($i=get_tahun_keaktifan(); $i>=(get_tahun_keaktifan()-4); $i--)
                                     <option value="{{ $i }}">{{ $i }}</option>
@@ -93,14 +90,13 @@
                 </div>
             </div>
         </div>
-        <div class="col-12 mb-4">
+        <div class="col-12">
             <div class="card">
-                <div
-                    class="card-header d-flex justify-content-between align-items-md-center align-items-start border-bottom">
-                    <h4 class="card-title mb-0">Infografis Penelitian dan Pengabdian</h4>
+                <div class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 border-bottom">
+                    <h4 class="card-title mb-0">Infografis Penelitian & Pengabdian</h4>
                     <div class="float-end">
                         <div class="btn-group" role="group">
-                            <label class="input-group-text ms-2">Tahun</label>
+                            <label class="input-group-text ms-2 d-none d-sm-inline-block">Tahun</label>
                             <select class="form-select w-auto" id="selectTahunLitabmas">
                                 @for ($i=get_tahun_keaktifan(); $i>=(get_tahun_keaktifan()-4); $i--)
                                     <option value="{{ $i }}">{{ $i }}</option>

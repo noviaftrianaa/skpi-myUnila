@@ -84,7 +84,7 @@ class Publikasi extends AbstractionModel
                  DISTINCT p.id_publikasi, jns.nm_jns_pub, p.judul, YEAR(p.tgl_terbit) AS thn_terbit, p.tgl_terbit, tp2.nm_ketua, tp2.prodi_ketua
             FROM pdrd.sdm AS tsdm
             JOIN pdrd.reg_ptk AS tr ON tr.id_sdm=tsdm.id_sdm AND tr.soft_delete=0
-                AND tr.id_jns_keluar IS NULL AND tr.id_sp='".env('APP_ID_SP')."'
+                AND tr.id_jns_keluar IS NULL AND tr.id_sp='".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
                 ".$condition."
             JOIN pdrd.keaktifan_ptk AS ta ON ta.id_reg_ptk=tr.id_reg_ptk AND ta.a_sp_homebase=1
                 AND ta.id_thn_ajaran=".get_tahun_keaktifan()."
@@ -138,6 +138,10 @@ class Publikasi extends AbstractionModel
         $data = collect(DB::SELECT($query))->toArray();
         return $data;
     }
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
     public static function total_publikasi($tahun)
     {
         $query = "

@@ -14,18 +14,23 @@
 @endsection
 
 @section('page-script')
+    <script src="{{ asset('assets/js/forms-selects.js') }}"></script>
     <script type="text/javascript">
         'use strict';
 
         function setOptions(category, tepatWaktu, tidakTepatWaktu, title) {
             var options = {
                 chart: {
-                    height: '400',
-                    type: "line",
+                    height: '500',
+                    type: "bar",
                     stacked: false
                 },
                 dataLabels: {
-                    enabled: false
+                    enabled: true,
+                    style: {
+                        colors: ['#000']
+                    },
+                    offsetY: -20,
                 },
                 title: {
                     text: title,
@@ -47,17 +52,22 @@
                 ],
                 plotOptions: {
                     bar: {
-                        columnWidth: "50%"
+                        dataLabels: {
+                            position: 'top',
+                        }
                     }
                 },
                 xaxis: {
-                    categories: category
+                    categories: category,
+                    labels: {
+                        rotate: 0
+                    }
                 },
                 tooltip: {
                     shared: false,
                     intersect: true,
                     x: {
-                        show: false
+                        show: true
                     }
                 },
                 legend: {
@@ -104,8 +114,9 @@
         }
 
         $(document).ready(function() {
-
-            $('select').select2();
+            $( 'select' ).wrap('<div class="position-relative"></div>').select2( {
+                width: $( this ).data( 'width' ) ? $( this ).data( 'width' ) : $( this ).hasClass( 'w-100' ) ? '100%' : 'style',
+            } );
 
             ajaxChart();
 

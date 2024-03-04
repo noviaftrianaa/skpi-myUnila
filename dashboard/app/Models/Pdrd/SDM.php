@@ -310,7 +310,7 @@ class SDM extends AbstractionModel
         } else {
             $join = "JOIN pdrd.reg_ptk AS tr WITH (NOLOCK) ON tr.id_sdm=tsdm.id_sdm AND tr.soft_delete=0
                 AND tr.id_jns_keluar IS NULL AND (tr.tgl_ptk_keluar IS NULL OR tr.tgl_ptk_keluar>'".$tgl."')
-                AND tr.id_sp='".env('APP_ID_SP')."'
+                AND tr.id_sp='".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
                 JOIN pdrd.sms AS tsms WITH (NOLOCK) ON tsms.id_sms=tr.id_sms AND tsms.soft_delete=0
                 SUM(CASE WHEN tjenj.id_jenj_didik=25 THEN 1 ELSE 0 END) AS 'Profesi',
                 SUM(CASE WHEN tjenj.id_jenj_didik=30 THEN 1 ELSE 0 END) AS 'S1',
@@ -401,6 +401,7 @@ class SDM extends AbstractionModel
 
     public static function total_dosen_fakultas($tahun)
     {
+        $tgl = TahunAjaran::tglSelesai($tahun);
         $query = "
             SELECT
                 p.nm_lemb,
@@ -414,11 +415,13 @@ class SDM extends AbstractionModel
                                 COUNT(DISTINCT sdm.id_sdm)
                             FROM
                                 pdrd.sdm AS sdm WITH (NOLOCK)
-                                JOIN pdrd.reg_ptk AS ptk WITH (NOLOCK) ON ptk.id_sdm=sdm.id_sdm AND ptk.soft_delete=0
+                                JOIN pdrd.reg_ptk AS ptk WITH (NOLOCK) ON ptk.id_sdm=sdm.id_sdm AND ptk.soft_delete=0 AND ptk.id_jns_keluar IS NULL AND (ptk.tgl_ptk_keluar IS NULL OR ptk.tgl_ptk_keluar>'".$tgl."') AND ptk.id_sp='".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
+                                JOIN pdrd.keaktifan_ptk AS tak WITH (NOLOCK) ON tak.id_reg_ptk=ptk.id_reg_ptk AND tak.soft_delete=0
+                                AND tak.a_sp_homebase=1 AND tak.id_thn_ajaran='".$tahun."'
                             WHERE
                                 sdm.soft_delete=0
                                 AND sdm.id_jns_sdm = 12
-                                AND (ptk.tgl_ptk_keluar IS NULL OR YEAR(ptk.tgl_ptk_keluar)<='".$tahun."')
+                                AND sdm.id_stat_aktif IN (1,20,24,25,27)
                                 AND ptk.id_sms=sms.id_sms
                         ) AS total
                     FROM
