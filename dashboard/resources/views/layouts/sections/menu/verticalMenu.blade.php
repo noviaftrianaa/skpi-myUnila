@@ -52,11 +52,13 @@
                         </a>
                         <ul class="menu-sub">
                             @foreach ($r->sub as $t)
-                                <li class="menu-item {{ AktifMenu($t->nm_file, 2) }}">
-                                    <a href="{{ route($t->nm_file) }}" class="menu-link">
-                                        <div>{{ $t->nm_menu }}</div>
-                                    </a>
-                                </li>
+                                @if(\Route::has($t->nm_file))
+                                    <li class="menu-item {{ AktifMenu($t->nm_file, 2) }}">
+                                        <a href="{{ route($t->nm_file) }}" class="menu-link">
+                                            <div>{{ $t->nm_menu }}</div>
+                                        </a>
+                                    </li>
+                                @endif
                             @endforeach
                         </ul>
                     </li>
