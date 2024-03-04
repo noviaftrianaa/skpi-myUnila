@@ -1,12 +1,12 @@
 @extends('layouts/layoutMaster')
-@include('content.main.sdm.tendik.function')
+@include('content.main.mahasiswa.kampus-merdeka.function')
 
 @section('title', $judul)
 
 @section('content')
 
     <h4>
-        <span class="text-muted fw-light">Sumberdaya Manusia /</span> Tendik
+        <span class="text-muted fw-light">Mahasiswa / Kampus Merdeka</span>
     </h4>
 
     <div class="card">
@@ -44,11 +44,11 @@
                     </div>
                     <div class="my-3 border-bottom"></div>
                     <div class="mt-3">
-                        <label class="form-label">Tahun Ajaran</label>
+                        <label class="form-label">Tahun Semester</label>
                         <select name="tahun" id="tahun" class="form-select">
-                            @foreach ($ta_list as $id_thn_ajaran => $nm_thn_ajaran)
-                                <option value="{{ $id_thn_ajaran }}" {{ $id_thn_ajaran == $thn ? 'selected' : '' }}>
-                                    {{ $nm_thn_ajaran }}</option>
+                            @foreach ($ta_list as $id_smt => $nm_smt)
+                                <option value="{{ $id_smt }}" {{ $id_smt == $thn ? 'selected' : '' }}>
+                                    {{ $nm_smt }}</option>
                             @endforeach
                         </select>
                     </div>

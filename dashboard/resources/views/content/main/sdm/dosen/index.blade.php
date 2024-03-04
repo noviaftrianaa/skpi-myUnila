@@ -12,14 +12,14 @@
     <div class="card">
         <div
             class="card-header sticky-element bg-label-light d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4">
-            <h5 class="card-title">{{ $judul }}</h5>
+            <h5 class="card-title mt-4">{{ $judul }}</h5>
             <div class="float-end">
                 <div class="btn-group" role="group">
                     <div id="exportBtn"></div>
                 </div>
             </div>
         </div>
-        <div class="card-body my-3">
+        <div class="card-body">
             <div class="table-responsive text-nowrap">
                 <table class="table table-striped table-hover table-bordered table-sm" id="table-data"
                     style="width: 100% !important">

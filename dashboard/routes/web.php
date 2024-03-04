@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Main\Mahasiswa\DaftarMahasiswaController;
+use App\Http\Controllers\Main\Mahasiswa\KampusMerdekaController;
 use App\Http\Controllers\Main\Mahasiswa\TracerStudyController;
 use App\Http\Controllers\SyncDataController;
 use App\Http\Controllers\tridarma\LitabmasController;
@@ -166,6 +167,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('mahasiswa/tracer_study', [TracerStudyController::class, 'index'])->name('mahasiswa.tracer_study');
     Route::get('mahasiswa/tracer_study/data', [TracerStudyController::class, 'data'])->name('mahasiswa.tracer_study.data');
+
+    Route::get('mahasiswa/kampus_merdeka', [KampusMerdekaController::class, 'index'])->name('mahasiswa.kampus_merdeka');
+    Route::get('mahasiswa/kampus_merdeka/data', [KampusMerdekaController::class, 'data'])->name('mahasiswa.kampus_merdeka.data');
 
   });
 

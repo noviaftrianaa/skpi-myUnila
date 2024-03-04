@@ -50,7 +50,7 @@
                 sDom: 'rt<"row"<"col-sm-12 col-md-3"l><"col-sm-12 col-md-3"i><"col-sm-12 col-md-6"p>>',
 
                 ajax: {
-                    url: "{{ route('mahasiswa.tracer_study.data') }}",
+                    url: "{{ route('mahasiswa.kampus_merdeka.data') }}",
                     data: {
                         level_organisasi: unit.level_organisasi,
                         id_jns_lemb: unit.id_jns_lemb,
@@ -67,73 +67,39 @@
                         className: 'text-center'
                     },
                     {
-                        data: 'nm_pd',
-                        title: 'Nama Alumni'
+                        data: 'nm_pd', title: 'Nama Mahasiswa'
                     },
                     {
-                        data: 'nipd',
-                        title: 'NPM'
+                        data: 'nipd', title: 'NPM'
                     },
                     {
-                        data: 'nm_fakultas',
-                        title: 'Fakultas'
+                        data: 'nm_fakultas', title: 'Fakultas'
                     },
                     {
-                        data: 'nm_jur',
-                        title: 'Jurusan'
+                        data: 'nm_jur', title: 'Jurusan'
                     },
                     {
-                        data: 'nm_prodi',
-                        title: 'Prodi'
+                        data: 'nm_prodi', title: 'Prodi'
                     },
                     {
-                        data: 'tgl_keluar',
-                        title: 'Tanggal Kompre'
+                        data: 'nm_jns_akt_mhs', title: 'Kategori MBKM'
                     },
                     {
-                        data: 'tgl_sk_yudisium',
-                        title: 'Tanggal Wisuda'
+                        data: 'judul_akt_mhs', title: 'Nama Program'
                     },
                     {
-                        data: 'wkt_pengisian',
-                        title: 'Waktu Pengisian Tracer'
+                        data: 'lokasi_kegiatan', title: 'Lokasi Kegiatan'
                     },
                     {
-                        data: 'status_lulusan',
-                        title: 'Status Lulusan'
+                        data: 'total_sks', title: 'Total SKS Semester'
                     },
                     {
-                        data: 'a_kerja_sblm_lulus',
-                        title: 'Apakah Kerja Sebelum Lulus?'
+                        data: 'sks_konversi', title: 'Total SKS Konversi'
                     },
                     {
-                        data: 'bln_dpt_kerja',
-                        title: 'Waktu Tunggu'
-                    },
-                    {
-                        data: 'income_per_bln',
-                        title: 'Pendapatan Perbulan'
-                    },
-                    {
-                        data: 'nm_tmpt_bekerja',
-                        title: 'Nama Tempat Bekerja/Berwirausaha'
-                    },
-                    {
-                        data: 'nm_wil',
-                        title: 'Provinsi Bekerja/Berwirausaha'
-                    },
-                    {
-                        data: 'nm_pt_lnjt',
-                        title: 'Nama PT Studi Lanjut'
-                    },
-                    {
-                        data: 'nm_prodi_lnjt',
-                        title: 'Nama Prodi Studi Lanjut'
-                    },
-                    {
-                        data: 'ket',
-                        title: 'Alasan tidak bekerja/berwirausaha'
-                    },
+                        data: 'sks_reguler', title: 'Total SKS Reguler'
+                    }
+
 
                 ],
                 buttons: [{

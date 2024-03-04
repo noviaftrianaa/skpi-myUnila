@@ -194,7 +194,7 @@ class Iku1Controller extends Controller
       }
       $result = DB::select($select . $join . $where . $group_by);
       $last_sync = collect(
-        DB::select('SELECT last_sync FROM tracer.hasil_tracer_study WHERE soft_delete=0 ORDER BY last_sync DESC')
+        DB::select('SELECT last_sync AS time FROM tracer.hasil_tracer_study WHERE soft_delete=0 ORDER BY last_sync DESC')
       )->first();
 
       $iku = array();
@@ -234,7 +234,7 @@ class Iku1Controller extends Controller
           'gold_standart' => number_format($gold_standart, 2) . '%',
           'delta_gold_standart' => number_format($delta_gold_standart, 2) . '%',
           'skor_pencapaian' => number_format($skor_pencapaian, 2) . '%',
-          'last_sync' => tglWaktuIndonesia(currDateTime($last_sync)),
+          'last_sync' => tglWaktuIndonesia($last_sync->time),
           'rumus' => $rumus,
           'sumber_data' => $sumber_data,
         ];
