@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Main\Mahasiswa\DaftarMahasiswaController;
 use App\Http\Controllers\Main\Mahasiswa\KampusMerdekaController;
+use App\Http\Controllers\Main\Mahasiswa\PrestasiController;
+use App\Http\Controllers\Main\Mahasiswa\AktivitasMahasiswaController;
 use App\Http\Controllers\Main\Mahasiswa\TracerStudyController;
 use App\Http\Controllers\SyncDataController;
 use App\Http\Controllers\tridarma\LitabmasController;
@@ -168,8 +170,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('mahasiswa/tracer_study', [TracerStudyController::class, 'index'])->name('mahasiswa.tracer_study');
     Route::get('mahasiswa/tracer_study/data', [TracerStudyController::class, 'data'])->name('mahasiswa.tracer_study.data');
 
+    Route::get('mahasiswa/aktivitas_mahasiswa', [AktivitasMahasiswaController::class, 'index'])->name('mahasiswa.aktivitas_mahasiswa');
+    Route::get('mahasiswa/aktivitas_mahasiswa/data', [AktivitasMahasiswaController::class, 'data'])->name('mahasiswa.aktivitas_mahasiswa.data');
+
     Route::get('mahasiswa/kampus_merdeka', [KampusMerdekaController::class, 'index'])->name('mahasiswa.kampus_merdeka');
     Route::get('mahasiswa/kampus_merdeka/data', [KampusMerdekaController::class, 'data'])->name('mahasiswa.kampus_merdeka.data');
+
+    Route::get('mahasiswa/prestasi', [PrestasiController::class, 'index'])->name('mahasiswa.prestasi');
+    Route::get('mahasiswa/prestasi/data', [PrestasiController::class, 'data'])->name('mahasiswa.prestasi.data');
 
   });
 
