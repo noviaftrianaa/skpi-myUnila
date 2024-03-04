@@ -250,4 +250,71 @@ class AktMahasiswa extends Model
 
         return DB::SELECT($query);
     }
+
+    public static function getRawDataPrestasi($lvl, $id_jns_lemb, $id_organisasi, $thn)
+    {
+        $filter = '';
+        if ($lvl > 3) {
+          if ($id_jns_lemb == 23) {
+            $filter = " AND fak.id_sms='" . $id_organisasi . "'";
+          } elseif ($id_jns_lemb == 28) {
+            $filter = " AND prodi.id_jur_unila='" . $id_organisasi . "'";
+          } elseif ($id_jns_lemb == 24) {
+            $filter = " AND prodi.id_sms='" . $id_organisasi . "'";
+          }
+        }
+
+        $query = "
+            SELECT
+                reg.id_reg_pd,
+                reg.id_pd,
+                reg.nipd,
+                pd.nm_pd,
+                fak.nm_lemb AS nm_fakultas,
+                jur.nm_lemb AS nm_jur,
+                CONCAT(prodi.nm_lemb, ' (', jenj.nm_jenj_didik, ')') AS nm_prodi,
+                prestasi.thn_prestasi,
+                prestasi.nm_prestasi,
+                prestasi.penyelenggara,
+                jns_prestasi.nm_jenis_prestasi,
+                tkt_prestasi.nm_tkt_prestasi,
+                prestasi.peringkat,
+                sdm.nm_sdm AS pembimbing
+            FROM
+                pdrd.prestasi AS prestasi WITH(NOLOCK)
+                JOIN pdrd.akt_mhs AS akt WITH(NOLOCK) ON akt.id_akt_mhs = prestasi.id_akt_mhs
+                AND akt.soft_delete = 0
+                JOIN ref.semester AS smt ON smt.id_smt = akt.id_smt
+                AND smt.expired_date IS NULL
+                JOIN pdrd.peserta_didik AS pd WITH(NOLOCK) ON pd.id_pd = prestasi.id_pd
+                AND pd.soft_delete = 0
+                JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
+                AND reg.soft_delete = 0
+                JOIN pdrd.sms AS prodi WITH(NOLOCK) ON prodi.id_sms = reg.id_sms
+                AND prodi.soft_delete = 0
+                LEFT JOIN pdrd.sms AS jur WITH(NOLOCK) ON jur.id_sms = prodi.id_jur_unila
+                AND jur.soft_delete = 0
+                LEFT JOIN pdrd.sms AS fak WITH(NOLOCK) ON fak.id_sms = prodi.id_fak_unila
+                AND fak.soft_delete = 0
+                LEFT JOIN ref.jenjang_pendidikan AS jenj WITH(NOLOCK) ON jenj.id_jenj_didik = prodi.id_jenj_didik
+                AND jenj.expired_date IS NULL
+                LEFT JOIN ref.jenis_prestasi AS jns_prestasi WITH(NOLOCK) ON jns_prestasi.id_jenis_prestasi = prestasi.id_jenis_prestasi
+                AND jns_prestasi.expired_date IS NULL
+                LEFT JOIN ref.tingkat_prestasi AS tkt_prestasi WITH(NOLOCK) ON tkt_prestasi.id_tkt_prestasi = prestasi.id_tkt_prestasi
+                AND tkt_prestasi.expired_date IS NULL
+                LEFT JOIN pdrd.bimbing_mhs AS bimbing_mhs WITH(NOLOCK) ON bimbing_mhs.id_akt_mhs = akt.id_akt_mhs
+                AND bimbing_mhs.soft_delete = 0
+                LEFT JOIN pdrd.sdm AS sdm WITH(NOLOCK) ON sdm.id_sdm = bimbing_mhs.id_sdm
+                AND sdm.soft_delete = 0
+            WHERE
+                prestasi.soft_delete = 0
+                AND prestasi.thn_prestasi = '". $thn ."'
+                " . $filter . "
+            ORDER BY
+                fak.nm_lemb,
+                prodi.nm_lemb ASC
+        ";
+
+        return DB::SELECT($query);
+    }
 }
