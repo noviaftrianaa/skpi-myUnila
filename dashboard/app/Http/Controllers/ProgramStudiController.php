@@ -7,12 +7,15 @@ use Illuminate\Http\Request;
 use Auth;
 use Session;
 use DB;
+use Crypt;
 
 class ProgramStudiController extends Controller
 {
     public function index($id)
     {
         $pageConfigs = ["myLayout" => "horizontal"];
+        $id = Crypt::decrypt($id);
+
         $detail = DB::table("pdrd.sms")
             ->where("id_sms", $id)
             ->first();

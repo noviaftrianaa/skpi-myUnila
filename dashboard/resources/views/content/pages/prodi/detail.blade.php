@@ -14,8 +14,8 @@
                             <img class="img-fluid rounded mb-3 pt-1 mt-4" src="{{ asset('images/logo-unila.png') }}"
                                 height="100" width="100" alt="User avatar" />
                             <div class="user-info text-center">
-                                <h4 class="mb-2">{{ $detail->nm_lemb }}</h4>
-                                <span class="badge bg-label-secondary text-dark">{{ $detail->nm_jenj_didik }}</span>
+                                <h4 class="mb-2">{{ $detail->nm_lemb }} ({{ $detail->nm_jenj_didik }})</h4>
+                                <span class="badge bg-label-secondary text-dark">{ Nama Dekan }</span>
                             </div>
                         </div>
                     </div>
@@ -69,7 +69,7 @@
                                     </span>
                                     <span class="bs-stepper-label">
                                         <span class="bs-stepper-title">Deskripsi</span>
-                                        <span class="bs-stepper-subtitle">{{ $detail->nm_lemb }}</span>
+                                        <span class="bs-stepper-subtitle">{!! $detail->nm_lemb !!}</span>
                                     </span>
                                 </button>
                             </div>
@@ -81,7 +81,7 @@
                                     </span>
                                     <span class="bs-stepper-label">
                                         <span class="bs-stepper-title">Visi</span>
-                                        <span class="bs-stepper-subtitle">{{ $detail->nm_lemb }}</span>
+                                        <span class="bs-stepper-subtitle">{!! $detail->nm_lemb !!}</span>
                                     </span>
                                 </button>
                             </div>
@@ -92,7 +92,7 @@
                                     </span>
                                     <span class="bs-stepper-label">
                                         <span class="bs-stepper-title">Misi</span>
-                                        <span class="bs-stepper-subtitle">{{ $detail->nm_lemb }}</span>
+                                        <span class="bs-stepper-subtitle">{!! $detail->nm_lemb !!}</span>
                                     </span>
                                 </button>
                             </div>
@@ -103,7 +103,7 @@
                                     </span>
                                     <span class="bs-stepper-label">
                                         <span class="bs-stepper-title">Kompetensi Program Studi</span>
-                                        <span class="bs-stepper-subtitle">{{ $detail->nm_lemb }}</span>
+                                        <span class="bs-stepper-subtitle">{!! $detail->nm_lemb !!}</span>
                                     </span>
                                 </button>
                             </div>
@@ -113,25 +113,25 @@
                                 <!-- Deskripsi -->
                                 <div id="deskripsi" class="content">
                                     <div class="content-header mb-3" style="text-align: justify">
-                                        {{ $profil->desk_singkat ?? "-" }}
+                                        {!! $profil->desk_singkat ?? "-" !!}
                                     </div>
                                 </div>
                                 <!-- Visi -->
                                 <div id="visi" class="content">
                                     <div class="content-header mb-3" style="text-align: justify">
-                                      {{ $profil->visi ?? "-" }}
+                                      {!! $profil->visi ?? "-" !!}
                                     </div>
                                 </div>
                                 <!-- Misi -->
                                 <div id="misi" class="content">
                                     <div class="content-header mb-3" style="text-align: justify">
-                                      {{ $profil->misi ?? "-" }}
+                                      {!! $profil->misi ?? "-" !!}
                                     </div>
                                 </div>
                                 <!-- Kompetensi Program Studi -->
                                 <div id="kompetensi" class="content">
                                     <div class="content-header mb-3" style="text-align: justify">
-                                      {{ $profil->kompetensi ?? "-" }}
+                                      {!! $profil->kompetensi ?? "-" !!}
                                     </div>
                                 </div>
                             </form>

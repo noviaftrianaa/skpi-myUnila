@@ -109,7 +109,7 @@ class Iku3Controller extends Controller
                         FROM
                             pdrd.sdm AS sdm WITH(NOLOCK)
                             JOIN pdrd.reg_ptk AS ptk WITH(NOLOCK) ON ptk.id_sdm = sdm.id_sdm
-                            AND ptk.id_sp = '".env('APP_ID_SP')."'
+                            AND ptk.id_sp = '".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
                             AND ptk.soft_delete = 0
                             AND ptk.id_jns_keluar IS NULL
                             AND ptk.id_ikatan_kerja IN('A', 'B', 'D', 'E', 'G', 'H', 'I')
@@ -134,7 +134,7 @@ class Iku3Controller extends Controller
                                 WHERE
                                     lit.soft_delete = 0
                                     AND (
-                                        lit.id_lemb_iptek != '".env('APP_ID_SP')."'
+                                        lit.id_lemb_iptek != '".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
                                         OR lit.lokasi_kegiatan LIKE '%LK%'
                                     )
                                     AND lit.id_thn_kegiatan >= ($thn_iku - 5)
@@ -155,7 +155,7 @@ class Iku3Controller extends Controller
                                     AND smt.expired_date IS NULL
                                 WHERE
                                     smt.id_thn_ajaran >= ($thn_iku - 5)
-                                    AND ptk.id_sp != '".env('APP_ID_SP')."'
+                                    AND ptk.id_sp != '".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
                                     AND ptk.soft_delete = 0
                                 GROUP BY
                                     ptk.id_sdm
@@ -172,7 +172,7 @@ class Iku3Controller extends Controller
                                     JOIN pdrd.akt_mhs AS akt ON akt.id_akt_mhs = bimbing_mhs.id_akt_mhs
                                     AND akt.soft_delete = 0
                                     JOIN pdrd.sms AS sms ON sms.id_sms = akt.id_sms
-                                    AND sms.id_sp != '".env('APP_ID_SP')."'
+                                    AND sms.id_sp != '".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
                                     AND sms.soft_delete = 0
                                     JOIN ref.semester AS smt ON smt.id_smt = akt.id_smt
                                     AND smt.expired_date IS NULL
@@ -196,7 +196,7 @@ class Iku3Controller extends Controller
                                     JOIN pdrd.akt_mhs AS akt ON akt.id_akt_mhs = uji_mhs.id_akt_mhs
                                     AND akt.soft_delete = 0
                                     JOIN pdrd.sms AS sms ON sms.id_sms = akt.id_sms
-                                    AND sms.id_sp != '".env('APP_ID_SP')."'
+                                    AND sms.id_sp != '".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
                                     AND sms.soft_delete = 0
                                     JOIN ref.semester AS smt ON smt.id_smt = akt.id_smt
                                     AND smt.expired_date IS NULL
@@ -376,7 +376,7 @@ class Iku3Controller extends Controller
                         FROM
                             pdrd.sdm AS sdm WITH(NOLOCK)
                             JOIN pdrd.reg_ptk AS ptk WITH(NOLOCK) ON ptk.id_sdm = sdm.id_sdm
-                            AND ptk.id_sp = '".env('APP_ID_SP')."'
+                            AND ptk.id_sp = '".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
                             AND ptk.soft_delete = 0
                             AND ptk.id_jns_keluar IS NULL
                             AND ptk.id_ikatan_kerja IN('A', 'B', 'D', 'E', 'G', 'H', 'I')
@@ -401,7 +401,7 @@ class Iku3Controller extends Controller
                                 WHERE
                                     lit.soft_delete = 0
                                     AND (
-                                        lit.id_lemb_iptek != '".env('APP_ID_SP')."'
+                                        lit.id_lemb_iptek != '".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
                                         OR lit.lokasi_kegiatan LIKE '%LK%'
                                     )
                                     AND lit.id_thn_kegiatan >= ($thn_iku - 5)
@@ -422,7 +422,7 @@ class Iku3Controller extends Controller
                                     AND smt.expired_date IS NULL
                                 WHERE
                                     smt.id_thn_ajaran >= ($thn_iku - 5)
-                                    AND ptk.id_sp != '".env('APP_ID_SP')."'
+                                    AND ptk.id_sp != '".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
                                     AND ptk.soft_delete = 0
                                 GROUP BY
                                     ptk.id_sdm
@@ -439,7 +439,7 @@ class Iku3Controller extends Controller
                                     JOIN pdrd.akt_mhs AS akt ON akt.id_akt_mhs = bimbing_mhs.id_akt_mhs
                                     AND akt.soft_delete = 0
                                     JOIN pdrd.sms AS sms ON sms.id_sms = akt.id_sms
-                                    AND sms.id_sp != '".env('APP_ID_SP')."'
+                                    AND sms.id_sp != '".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
                                     AND sms.soft_delete = 0
                                     JOIN ref.semester AS smt ON smt.id_smt = akt.id_smt
                                     AND smt.expired_date IS NULL
@@ -463,7 +463,7 @@ class Iku3Controller extends Controller
                                     JOIN pdrd.akt_mhs AS akt ON akt.id_akt_mhs = uji_mhs.id_akt_mhs
                                     AND akt.soft_delete = 0
                                     JOIN pdrd.sms AS sms ON sms.id_sms = akt.id_sms
-                                    AND sms.id_sp != '".env('APP_ID_SP')."'
+                                    AND sms.id_sp != '".env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')."'
                                     AND sms.soft_delete = 0
                                     JOIN ref.semester AS smt ON smt.id_smt = akt.id_smt
                                     AND smt.expired_date IS NULL

@@ -13,31 +13,17 @@ class DashboardController extends Controller
 
     public function __construct()
     {
-        $this->id_sp = env("APP_ID_SP");
+        $this->id_sp = env("APP_ID_SP", "E2B705A7-173E-464A-9FAC-509128709515");
     }
 
     public function index()
     {
         $pageConfigs = ["myLayout" => "horizontal"];
         $profil_pt = \DB::table('pdrd.profil_pt')->where('soft_delete', 0)->where('id_sp', $this->id_sp)->first();
-        $periodeAktif = DB::table("ref.semester")
-            ->whereNull("expired_date")
-            ->where("a_periode_aktif", 1)
-            ->distinct()
-            ->pluck("id_thn_ajaran")[0];
-        $getPeriode = DB::table("ref.semester")
-            ->whereNull("expired_date")
-            ->where(DB::raw("RIGHT(id_smt,1)"), "<", "3")
-            ->whereBetween("id_thn_ajaran", [$periodeAktif - 4, $periodeAktif])
-            ->select("id_thn_ajaran", "id_smt")
-            ->orderByDesc("id_smt")
-            ->get();
-        $periode = collect($getPeriode)->groupBy("id_thn_ajaran");
         $tahun = get_tahun_keaktifan();
 
         return view("content.pages.dashboard.index", [
             "pageConfigs" => $pageConfigs,
-            "periode" => $periode,
             "tahun" => $tahun,
             'profil_pt' => $profil_pt
         ]);
@@ -48,7 +34,7 @@ class DashboardController extends Controller
         $data = \DB::SELECT(
             "
             SELECT
-                CAST(sms.id_sms AS uniqueidentifier) AS id_sms,
+                sms.id_sms,
                 sms.kode_prodi,
                 sms.nm_lemb,
                 jenjang.nm_jenj_didik,
@@ -72,7 +58,7 @@ class DashboardController extends Controller
             ->addIndexColumn()
             ->editColumn("nm_lemb", function ($data) {
                 return '<a href="' .
-                    route("pages-prodi", $data->id_sms) .
+                    route("pages-prodi", \Crypt::encrypt($data->id_sms)) .
                     '" target=new>' .
                     $data->nm_lemb .
                     "</a>";
@@ -96,7 +82,7 @@ class DashboardController extends Controller
         $data = \DB::SELECT(
             "
       SELECT
-        CAST(sms.id_sms AS uniqueidentifier) AS id_sms,
+        sms.id_sms,
         sms.nm_lemb,
         jenjang.nm_jenj_didik,
         (
@@ -173,7 +159,7 @@ class DashboardController extends Controller
         $data = \DB::SELECT(
             "
                 SELECT DISTINCT
-                    CAST(pd.id_pd AS uniqueidentifier) AS id_pd,
+                    pd.id_pd,
                     pd.nm_pd,
                     reg.nipd,
                     pd.jk,
@@ -199,7 +185,7 @@ class DashboardController extends Controller
             ->addIndexColumn()
             ->editColumn('nm_pd', function($data) {
                 if(\Auth::check()) {
-                    return '<a href="'.route('pages-mahasiswa', $data->id_pd).'" target=new>'.$data->nm_pd.'</a>';
+                    return '<a href="'.route('pages-mahasiswa', \Crypt::encrypt($data->id_pd)).'" target=new>'.$data->nm_pd.'</a>';
                 } else {
                     return $data->nm_pd;
                 }
@@ -229,7 +215,7 @@ class DashboardController extends Controller
         $data = \DB::SELECT(
             "
       SELECT
-        CAST(sms.id_sms AS uniqueidentifier) AS id_sms,
+        sms.id_sms,
         sms.nm_lemb,
         jenjang.nm_jenj_didik,
         (
@@ -340,7 +326,7 @@ class DashboardController extends Controller
         $data = \DB::SELECT(
             "
                 SELECT
-                    CAST(sdm.id_sdm AS uniqueidentifier) AS id_sdm,
+                    sdm.id_sdm,
                     sdm.nm_sdm,
                     sdm.nidn,
                     sdm.nip,
@@ -370,7 +356,7 @@ class DashboardController extends Controller
         return \DataTables::of($data)
             ->addIndexColumn()
             ->editColumn('nm_sdm', function($data) {
-                return '<a href="'.route('pages-dosen', $data->id_sdm).'" target=new>'.$data->nm_sdm.'</a>';
+                return '<a href="'.route('pages-dosen', \Crypt::encrypt($data->id_sdm)).'" target=new>'.$data->nm_sdm.'</a>';
             })
             ->editColumn('nm_stat_aktif', function($data) {
                 if ($data->id_stat_aktif == 1) {
@@ -795,31 +781,31 @@ class DashboardController extends Controller
             }
         }
 
-        // $GreenmetricIndo = dom_xpath(
-        //   "https://greenmetric.ui.ac.id/rankings/ranking-by-country-{$year}/Indonesia",
-        //   '//table/tbody'
-        // )[0]->getElementsByTagName('tr');
+        $GreenmetricIndo = dom_xpath(
+          "https://greenmetric.ui.ac.id/rankings/ranking-by-country-{$year}/Indonesia",
+          '//table/tbody'
+        )[0]->getElementsByTagName('tr');
 
-        // foreach ($GreenmetricIndo as $singleTable) {
-        //   $td = $singleTable->getElementsByTagName('td');
-        //   if (in_array(trim($td[1]->textContent), ['Universitas Lampung', 'Lampung University'])) {
-        //     $dataGreenmetric['rank_by_indonesian'] = $td[0]->textContent;
-        //     break;
-        //   }
-        // }
+        foreach ($GreenmetricIndo as $singleTable) {
+          $td = $singleTable->getElementsByTagName('td');
+          if (in_array(trim($td[1]->textContent), ['Universitas Lampung', 'Lampung University'])) {
+            $dataGreenmetric['rank_by_indonesian'] = $td[0]->textContent;
+            break;
+          }
+        }
 
-        // $GreenmetricIndo = dom_xpath(
-        //   "https://greenmetric.ui.ac.id/rankings/ranking-by-region-{$year}/asia",
-        //   '//table/tbody'
-        // )[0]->getElementsByTagName('tr');
+        $GreenmetricIndo = dom_xpath(
+          "https://greenmetric.ui.ac.id/rankings/ranking-by-region-{$year}/asia",
+          '//table/tbody'
+        )[0]->getElementsByTagName('tr');
 
-        // foreach ($GreenmetricIndo as $singleTable) {
-        //   $td = $singleTable->getElementsByTagName('td');
-        //   if (in_array(trim($td[1]->textContent), ['Universitas Lampung', 'Lampung University'])) {
-        //     $dataGreenmetric['rank_by_asian'] = $td[0]->textContent;
-        //     break;
-        //   }
-        // }
+        foreach ($GreenmetricIndo as $singleTable) {
+          $td = $singleTable->getElementsByTagName('td');
+          if (in_array(trim($td[1]->textContent), ['Universitas Lampung', 'Lampung University'])) {
+            $dataGreenmetric['rank_by_asian'] = $td[0]->textContent;
+            break;
+          }
+        }
 
         //PAST
         $GreenmetricWorld = dom_xpath(
@@ -850,31 +836,31 @@ class DashboardController extends Controller
             }
         }
 
-        // $GreenmetricIndo = dom_xpath(
-        //   "https://greenmetric.ui.ac.id/rankings/ranking-by-country-{$lastYear}/Indonesia",
-        //   '//table/tbody'
-        // )[0]->getElementsByTagName('tr');
+        $GreenmetricIndo = dom_xpath(
+          "https://greenmetric.ui.ac.id/rankings/ranking-by-country-{$lastYear}/Indonesia",
+          '//table/tbody'
+        )[0]->getElementsByTagName('tr');
 
-        // foreach ($GreenmetricIndo as $singleTable) {
-        //   $td = $singleTable->getElementsByTagName('td');
-        //   if (in_array(trim($td[1]->textContent), ['Universitas Lampung', 'Lampung University'])) {
-        //     $dataPastGreenmetric['rank_by_indonesian'] = $td[0]->textContent;
-        //     break;
-        //   }
-        // }
+        foreach ($GreenmetricIndo as $singleTable) {
+          $td = $singleTable->getElementsByTagName('td');
+          if (in_array(trim($td[1]->textContent), ['Universitas Lampung', 'Lampung University'])) {
+            $dataPastGreenmetric['rank_by_indonesian'] = $td[0]->textContent;
+            break;
+          }
+        }
 
-        // $GreenmetricIndo = dom_xpath(
-        //   "https://greenmetric.ui.ac.id/rankings/ranking-by-region-{$lastYear}/asia",
-        //   '//table/tbody'
-        // )[0]->getElementsByTagName('tr');
+        $GreenmetricIndo = dom_xpath(
+          "https://greenmetric.ui.ac.id/rankings/ranking-by-region-{$lastYear}/asia",
+          '//table/tbody'
+        )[0]->getElementsByTagName('tr');
 
-        // foreach ($GreenmetricIndo as $singleTable) {
-        //   $td = $singleTable->getElementsByTagName('td');
-        //   if (in_array(trim($td[1]->textContent), ['Universitas Lampung', 'Lampung University'])) {
-        //     $dataPastGreenmetric['rank_by_asian'] = $td[0]->textContent;
-        //     break;
-        //   }
-        // }
+        foreach ($GreenmetricIndo as $singleTable) {
+          $td = $singleTable->getElementsByTagName('td');
+          if (in_array(trim($td[1]->textContent), ['Universitas Lampung', 'Lampung University'])) {
+            $dataPastGreenmetric['rank_by_asian'] = $td[0]->textContent;
+            break;
+          }
+        }
         $dataGreenmetric["rank_by_indonesian"] =
             $dataGreenmetric["rank_by_indonesian"] ?? 0;
         $dataPastGreenmetric["rank_by_indonesian"] =

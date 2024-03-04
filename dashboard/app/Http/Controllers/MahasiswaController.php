@@ -18,6 +18,8 @@ class MahasiswaController extends Controller
     public function index($id)
     {
         $pageConfigs = ["myLayout" => "horizontal"];
+        $id = \Crypt::decrypt($id);
+
         $profil = DB::SELECT(
             "
             SELECT

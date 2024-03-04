@@ -99,12 +99,12 @@
                     </div>
                     <div class="dropdown-divider"></div>
                 </li>
-                <li>
+                {{-- <li>
                     <a class="dropdown-item" href="{{ route('main-profil') }}" target="_blank">
                         <i class="ti ti-user-edit me-2 ti-sm"></i>
                         <span class="align-middle">Profil</span>
                     </a>
-                </li>
+                </li> --}}
                 <li>
                     <a class="dropdown-item" href="{{ url('https://apps.unila.ac.id/#password') }}" target="_blank">
                         <i class="ti ti-key me-2 ti-sm"></i>

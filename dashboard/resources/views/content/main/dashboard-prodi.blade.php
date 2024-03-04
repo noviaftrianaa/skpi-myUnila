@@ -140,10 +140,10 @@
                                 <div class="card-body">
                                     <table class="table table-striped mt-2">
                                         <tbody>
-                                        {!! tableRow('Visi',$data_profil_prodi->visi) !!}
-                                        {!! tableRow('Misi',$data_profil_prodi->misi) !!}
-                                        {!! tableRow('Tujuan',$data_profil_prodi->tujuan) !!}
-                                        {!! tableRow('Sasaran dan Strategi Pencapaiannya',$data_profil_prodi->capaian_belajar) !!}
+                                        {!! tableRow('Visi',$data_profil_prodi->visi ?? "-") !!}
+                                        {!! tableRow('Misi',$data_profil_prodi->misi ?? "-") !!}
+                                        {!! tableRow('Tujuan',$data_profil_prodi->tujuan ?? "-") !!}
+                                        {!! tableRow('Sasaran dan Strategi Pencapaiannya',$data_profil_prodi->capaian_belajar ?? "-") !!}
                                         </tbody>
                                     </table>
                                 </div>

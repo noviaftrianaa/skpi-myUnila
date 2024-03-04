@@ -12,7 +12,8 @@
             chart: {
                 height: '400',
                 type: typeChart,
-                stacked: false
+                stacked: false,
+
             },
             dataLabels: {
                 enabled: true,
@@ -22,6 +23,7 @@
                 offsetY: isHorizontal ? 0 : -20,
                 offsetX: isHorizontal ? 30 : 0,
             },
+            colors: ['#0d6efd'],
             title: {
                 text: title,
                 align: "center"
@@ -43,12 +45,6 @@
                         position: isHorizontal ? 'top' : 'top',
                     }
                 },
-            },
-            xaxis: {
-                categories: kategori,
-                labels: {
-                    rotate: 0
-                }
             },
             xaxis: {
                 categories: kategori,

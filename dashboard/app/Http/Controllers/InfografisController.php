@@ -15,7 +15,7 @@ class InfografisController extends Controller
 
     public function __construct()
     {
-        $this->id_sp = env('APP_ID_SP');
+        $this->id_sp = env("APP_ID_SP", "E2B705A7-173E-464A-9FAC-509128709515");
     }
 
 	public function index()
@@ -39,8 +39,8 @@ class InfografisController extends Controller
     public function dosen(Request $request)
     {
         $tahun = $request->tahun ?? get_tahun_keaktifan();
-        $total_dosen = json_encode(SDM::dashboard_dosen('nomor_induk', $tahun)->first());
-        $total_dosen_jabfung = json_encode(SDM::dashboard_dosen('dosen_jabfung', $tahun)->first());
+        $total_dosen = json_encode(SDM::dashboard_dosen('nomor_induk', $tahun, 'pt', null)->first());
+        $total_dosen_jabfung = json_encode(SDM::dashboard_dosen('dosen_jabfung', $tahun, 'pt', null)->first());
         $total_dosen_fakultas = json_encode(SDM::total_dosen_fakultas($tahun));
 
         return [

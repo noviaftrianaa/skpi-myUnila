@@ -10,12 +10,12 @@
         <div class="col-12 mb-4">
             <div class="card">
                 <div
-                    class="card-header d-flex justify-content-between align-items-md-center align-items-start border-bottom">
+                    class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 border-bottom">
                     <h4 class="card-title mb-0">Kelulusan Tepat Waktu</h4>
                     <div class="float-end">
                         <div class="btn-group" role="group">
-                            <label class="input-group-text">Fakultas</label>
-                            <select class="select2 form-select w-auto" id="sms" data-allow-clear="true">
+                            <label class="input-group-text d-none d-sm-inline-block">Fakultas</label>
+                            <select class="form-select" id="sms">
                                 <option value="all" selected>SEMUA FAKULTAS</option>
                                 @foreach ($sms as $item)
                                     <option value="{{ $item->id_sms }}">{{ $item->nm_lemb }}</option>
@@ -30,8 +30,9 @@
                                     @endif
                                 @endforeach
                             </select>
-                            <label class="input-group-text ms-2">Tahun</label>
-                            <select class="form-select w-auto" id="tahun">
+                            <div class="m-1"></div>
+                            <label class="input-group-text d-none d-sm-inline-block">Tahun</label>
+                            <select class="form-select" id="tahun">
                                 <option value="{{ $tahun }}" selected>{{ $tahun - 4 }} - {{ $tahun }}
                                 </option>
                                 <option value="{{ $tahun - 5 }}">{{ $tahun - 9 }} - {{ $tahun - 5 }}</option>
