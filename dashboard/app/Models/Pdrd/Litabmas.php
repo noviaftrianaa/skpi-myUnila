@@ -27,6 +27,7 @@ class Litabmas extends AbstractionModel
     public static function get_data_litabmas($kode='L',$list_sms,$thn=null)
     {
         $condition = '';
+        $condition_thn = '';
         if (count($list_sms)>0) {
             $condition = " AND tr.id_sms IN ('".implode("','",$list_sms)."')";
         }
