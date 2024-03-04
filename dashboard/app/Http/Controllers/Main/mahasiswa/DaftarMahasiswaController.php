@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Main;
+namespace App\Http\Controllers\Main\mahasiswa;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pdrd\PesertaDidik;

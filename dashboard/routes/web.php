@@ -1,19 +1,20 @@
 <?php
 
-use App\Http\Controllers\Main\DaftarMahasiswaController;
+use App\Http\Controllers\Main\Mahasiswa\DaftarMahasiswaController;
+use App\Http\Controllers\Main\Mahasiswa\TracerStudyController;
 use App\Http\Controllers\SyncDataController;
-use App\Http\Controllers\Tridarma\LitabmasController;
-use App\Http\Controllers\Tridarma\PenelitianController;
-use App\Http\Controllers\Tridarma\PengabdianController;
-use App\Http\Controllers\Tridarma\PublikasiController;
+use App\Http\Controllers\tridarma\LitabmasController;
+use App\Http\Controllers\tridarma\PenelitianController;
+use App\Http\Controllers\tridarma\PengabdianController;
+use App\Http\Controllers\tridarma\PublikasiController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\language\LanguageController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProgramStudiController;
 use App\Http\Controllers\DosenController;
 use App\Http\Controllers\KelulusanTepatWaktuController;
-use App\Http\Controllers\Main\SDM\DosenController as DosenSMSController;
-use App\Http\Controllers\Main\SDM\TendikController as TendikSMSController;
+use App\Http\Controllers\Main\sdm\DosenController as DosenSMSController;
+use App\Http\Controllers\Main\sdm\TendikController as TendikSMSController;
 use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\SyncController;
 use App\Http\Controllers\authentications\LoginBasic;
@@ -158,8 +159,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('sdm/tendik', [TendikSMSController::class, 'index'])->name('sdm.tendik');
     Route::get('sdm/tendik/data', [TendikSMSController::class, 'data'])->name('sdm.tendik.data');
 
+
+    //Mahasiswa
     Route::get('mahasiswa/daftar_mahasiswa', [DaftarMahasiswaController::class, 'index'])->name('mahasiswa.daftar_mahasiswa');
     Route::get('mahasiswa/daftar_mahasiswa/{id}/detail', [DaftarMahasiswaController::class, 'show'])->name('mahasiswa.daftar_mahasiswa.detail');
+
+    Route::get('mahasiswa/tracer_study', [TracerStudyController::class, 'index'])->name('mahasiswa.tracer_study');
+    Route::get('mahasiswa/tracer_study/data', [TracerStudyController::class, 'data'])->name('mahasiswa.tracer_study.data');
+
   });
 
   #penelitian

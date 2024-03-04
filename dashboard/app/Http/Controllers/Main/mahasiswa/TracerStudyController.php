@@ -1,18 +1,21 @@
 <?php
 
-namespace App\Http\Controllers\Main\sdm;
+namespace App\Http\Controllers\Main\mahasiswa;
 
 use App\Http\Controllers\Controller;
+use App\Models\Pdrd\PesertaDidik;
 use App\Models\Pdrd\SatuanPendidikan;
-use App\Models\Pdrd\SDM;
 use App\Models\Pdrd\SMS;
 use App\Models\Referensi\TahunAjaran;
+use App\Models\Referensi\Semester;
+use App\Models\Tracer\HasilTracerStudy;
 use App\Models\UnitOrganisasi;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Crypt;
 
-class DosenController extends Controller
+class TracerStudyController extends Controller
 {
+
     public function index(Request $request)
     {
         if ($request->has("tahun")) {
@@ -32,37 +35,37 @@ class DosenController extends Controller
                 ->pluck("nm_thn_ajaran", "id_thn_ajaran")
                 ->toArray();
             $judul =
-                "Dosen Program Studi " .
+                "Tracer Study Program Studi " .
                 $sms->nm_lemb .
                 " (" .
                 $sms->jenjang->nm_jenj_didik .
                 ")";
         } elseif ($unit->id_jns_lemb == 28) {
             $sms = Sms::find($unit->id_organisasi);
-            $judul = "Dosen Jurusan " . $sms->nm_lemb;
+            $judul = "Tracer Study Jurusan " . $sms->nm_lemb;
         } elseif ($unit->id_jns_lemb == 23) {
             $sms = Sms::find($unit->id_organisasi);
-            $judul = "Dosen Fakultas " . $sms->nm_lemb;
+            $judul = "Tracer Study Fakultas " . $sms->nm_lemb;
         } else {
             $sp = SatuanPendidikan::find(env("APP_ID_SP"));
             $ta_list = TahunAjaran::select("id_thn_ajaran", "nm_thn_ajaran")
-                ->where("id_thn_ajaran", ">=", 2000)
-                ->where("id_thn_ajaran", "<=", get_tahun_keaktifan())
+                ->where("id_thn_ajaran", ">=", 2019)
+                ->where("id_thn_ajaran", "<=", get_tahun_keaktifan() - 1)
                 ->whereNull("expired_date")
                 ->orderBy("id_thn_ajaran", "DESC")
                 ->pluck("nm_thn_ajaran", "id_thn_ajaran")
                 ->toArray();
-            $judul = "Dosen " . $sp->nm_lemb;
+            $judul = "Tracer Study " . $sp->nm_lemb;
         }
         return view(
-            "content.main.sdm.dosen.index",
+            "content.main.mahasiswa.tracer-study.index",
             compact("ta_list", "thn", "judul", "unit")
         );
     }
 
     public function data(Request $request)
     {
-        $data = SDM::get_data_all(
+        $data = HasilTracerStudy::getRawData(
             $request->level_organisasi,
             $request->id_jns_lemb,
             $request->id_organisasi,
@@ -73,4 +76,6 @@ class DosenController extends Controller
             ->addIndexColumn()
             ->make(true);
     }
+
+
 }
