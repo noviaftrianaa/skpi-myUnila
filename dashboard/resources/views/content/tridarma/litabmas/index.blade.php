@@ -11,6 +11,53 @@
                     <h4 class="card-title"><i class="fas fa-{{ ($kode=='L'?'flask':'chain') }}"></i> {{ $judul }}</h4>
                 </div>
                 <div class="card-body">
+                    <form action="{{ route($base_route) }}" method="GET">
+                        {!! FormInputSelect('thn','Tahun Kegiatan',$list_tahun,false,false,$thn_pilih) !!}
+                    </form>
+                    <hr>
+                    <div class="row">
+                        <div class="col-lg-2 col-sm-6 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between">
+                                        <small class="d-block mb-1 text-muted">Total Judul</small>
+                                    </div>
+                                    <h4 class="card-title mb-1">{{ count($data) }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-sm-6 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between">
+                                        <small class="d-block mb-1 text-muted">Dana DIKTI</small>
+                                    </div>
+                                    <h4 class="card-title mb-1">{{ number_to_currency(collect($data)->sum('dana_dikti')) }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-sm-6 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between">
+                                        <small class="d-block mb-1 text-muted">Dana PT</small>
+                                    </div>
+                                    <h4 class="card-title mb-1">{{ number_to_currency(collect($data)->sum('dana_pt')) }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-sm-6 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between">
+                                        <small class="d-block mb-1 text-muted">Dana Instansi Lain</small>
+                                    </div>
+                                    <h4 class="card-title mb-1">{{ number_to_currency(collect($data)->sum('dana_instansi_lain')) }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
                     <table id="table-data" class="table table-striped table-bordered">
                         <thead>
                         <tr>
@@ -42,3 +89,13 @@
         </div>
     </div>
 @endsection
+
+@push('js')
+    <script>
+        $(document).ready(function() {
+            $('#thn').on('change', function() {
+                this.form.submit();
+            });
+        })
+    </script>
+@endpush

@@ -34,8 +34,14 @@ class PublikasiController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        ini_set('max_execution_time',0);
+        if ($request->has('thn') && 'semua'!=$request->thn) {
+            $thn_pilih = $request->thn;
+        } else {
+            $thn_pilih = null;
+        }
         $role = session()->get('login.role');
         $unit = UnitOrganisasi::find($role->id_organisasi);
         if ($unit->id_jns_lemb == 24) {
@@ -60,9 +66,15 @@ class PublikasiController extends Controller
             $judul = $this->title.' Dosen ' . $sp->nm_lemb;
         }
         $kode = $this->kode_litabmas;
-        $data = Publikasi::get_data_pub($sms_list,$this->tipe);
+        $data = Publikasi::get_data_pub($sms_list,$this->tipe,$thn_pilih);
         $base_route = $this->base_route;
-        return view('content.tridarma.publikasi.index',compact('judul','data','kode','base_route'));
+        $list_tahun = [];
+        $list_tahun['semua']   = 'Semua Tahun';
+        for ($i=(get_tahun_keaktifan()+1);$i>=2008;$i--) {
+            $list_tahun[$i] = $i;
+        }
+        $group_publikasi = collect($data)->groupBy('nm_jns_pub');
+        return view('content.tridarma.publikasi.index',compact('judul','data','kode','base_route','thn_pilih','list_tahun','group_publikasi'));
     }
 
     /**

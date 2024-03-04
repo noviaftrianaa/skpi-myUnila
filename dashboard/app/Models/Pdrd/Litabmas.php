@@ -24,11 +24,14 @@ class Litabmas extends AbstractionModel
         'last_sync'
     ];
 
-    public static function get_data_litabmas($kode='L',$list_sms)
+    public static function get_data_litabmas($kode='L',$list_sms,$thn=null)
     {
         $condition = '';
         if (count($list_sms)>0) {
             $condition = " AND tr.id_sms IN ('".implode("','",$list_sms)."')";
+        }
+        if (!is_null($thn)) {
+            $condition_thn = " AND l.id_thn_kegiatan={$thn}";
         }
         $query = "
             SELECT DISTINCT a.* FROM (
@@ -52,6 +55,7 @@ class Litabmas extends AbstractionModel
                 JOIN pdrd.sdm_anggota_litabmas AS tsl ON tsl.id_sdm=tsdm.id_sdm AND tsl.soft_delete=0
                 JOIN pdrd.litabmas AS l ON l.id_litabmas=tsl.id_litabmas AND l.soft_delete=0
                     AND l.jns_litabmas='".$kode."'
+                    ".$condition_thn."
                 LEFT JOIN (
                     SELECT t1.id_litabmas, tsdm.nm_sdm, t1.peran_litabmas, CONCAT(tsms.nm_lemb,' (',tj.nm_jenj_didik,')') AS prodi_ketua FROM pdrd.sdm_anggota_litabmas AS t1
                     JOIN pdrd.sdm AS tsdm ON tsdm.id_sdm=t1.id_sdm
