@@ -67,7 +67,7 @@ class Publikasi extends AbstractionModel
         return $data_pub;
     }
 
-    public static function get_data_pub($list_sms,$tipe)
+    public static function get_data_pub($list_sms,$tipe,$thn=null)
     {
         $where_katgiat = '';
         if ($tipe=='publikasi') {
@@ -78,6 +78,9 @@ class Publikasi extends AbstractionModel
         $condition = '';
         if (count($list_sms)>0) {
             $condition = " AND tr.id_sms IN ('".implode("','",$list_sms)."')";
+        }
+        if (!is_null($thn)) {
+            $where_katgiat .= " AND YEAR(p.tgl_terbit)={$thn}";
         }
         $query = "
             SELECT
@@ -138,10 +141,7 @@ class Publikasi extends AbstractionModel
         $data = collect(DB::SELECT($query))->toArray();
         return $data;
     }
-<<<<<<< Updated upstream
-=======
 
->>>>>>> Stashed changes
     public static function total_publikasi($tahun)
     {
         $query = "

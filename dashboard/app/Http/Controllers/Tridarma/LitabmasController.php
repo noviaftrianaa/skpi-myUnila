@@ -35,6 +35,11 @@ class LitabmasController extends Controller
     {
         $role = session()->get("login.role");
         $unit = UnitOrganisasi::find($role->id_organisasi);
+        if ($request->has('thn') && 'semua'!=$request->thn) {
+            $thn_pilih = $request->thn;
+        } else {
+            $thn_pilih = null;
+        }
         if ($unit->id_jns_lemb == 24) {
             $sms = Sms::find($unit->id_organisasi);
             $sms_list[] = $sms->id_sms;
@@ -64,21 +69,19 @@ class LitabmasController extends Controller
         } else {
             $sp = SatuanPendidikan::find(env("APP_ID_SP"));
             $sms_list = [];
-            $ta_list = TahunAjaran::select("id_thn_ajaran", "nm_thn_ajaran")
-                ->where("id_thn_ajaran", ">=", 2000)
-                ->where("id_thn_ajaran", "<=", get_tahun_keaktifan())
-                ->whereNull("expired_date")
-                ->orderBy("id_thn_ajaran", "DESC")
-                ->pluck("nm_thn_ajaran", "id_thn_ajaran")
-                ->toArray();
             $judul = $this->title . " Dosen " . $sp->nm_lemb;
         }
-        $data = Litabmas::get_data_litabmas($this->kode_litabmas, $sms_list);
+        $data = Litabmas::get_data_litabmas($this->kode_litabmas, $sms_list,$thn_pilih);
+        $list_tahun = [];
+        $list_tahun['semua']   = 'Semua Tahun';
+        for ($i=get_tahun_keaktifan();$i>=2008;$i--) {
+            $list_tahun[$i] = $i;
+        }
         $base_route = $this->base_route;
         $kode = $this->kode_litabmas;
         return view(
             "content.tridarma.litabmas.index",
-            compact("judul", "data", "base_route", "kode")
+            compact("judul", "data", "base_route", "kode","list_tahun","thn_pilih")
         );
     }
 

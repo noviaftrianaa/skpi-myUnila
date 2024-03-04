@@ -11,11 +11,23 @@
                     <h4 class="card-title"><i class="fas fa-flask"></i> {{ $judul }}</h4>
                 </div>
                 <div class="card-body">
+                    <form action="{{ route($base_route) }}" method="GET">
+                        {!! FormInputSelect('thn','Tahun Kegiatan',$list_tahun,false,false,$thn_pilih) !!}
+                    </form>
+                    <hr>
+                        <table class="table table-hover">
+                            <tbody>
+                            @foreach($group_publikasi AS $each_grup=>$detail_group)
+                                {!! tableRow($each_grup,count($detail_group)) !!}
+                            @endforeach
+                            </tbody>
+                        </table>
+                    <hr>
                     <table id="table-data" class="table table-striped table-bordered">
                         <thead>
                         <tr>
                             <th>No</th>
-                            <th>Jenis Publikasi</th>
+                            <th>Jenis</th>
                             <th>Judul</th>
                             <th>Tahun Terbit</th>
                             <th>Tanggal Terbit</th>
@@ -46,3 +58,13 @@
         </div>
     </div>
 @endsection
+
+@push('js')
+    <script>
+        $(document).ready(function() {
+            $('#thn').on('change', function() {
+                this.form.submit();
+            });
+        })
+    </script>
+@endpush
