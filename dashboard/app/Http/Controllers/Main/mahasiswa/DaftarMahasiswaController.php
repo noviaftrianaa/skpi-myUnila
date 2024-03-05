@@ -9,6 +9,7 @@ use App\Models\Referensi\Semester;
 use App\Models\UnitOrganisasi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use App\Models\Pdrd\SatuanPendidikan;
 
 class DaftarMahasiswaController extends Controller
 {
@@ -37,11 +38,23 @@ class DaftarMahasiswaController extends Controller
                 ->pluck('nm_smt', 'id_smt')
                 ->toArray();
             $level = 'prodi';
-            $judul.= ' Prodi '.$sms->nm_lemb.' ('.$sms->jenjang->nm_jenj_didik.')';
+            $judul.= ' Daftar Mahasiswa '.$sms->nm_lemb.' ('.$sms->jenjang->nm_jenj_didik.')';
             $data = PesertaDidik::get_daftar_mhs($level,$sms->id_sms,$smt_pilih);
             return view('content.main.mahasiswa.index',compact('data','smt_pilih','semester_list','judul','semester'));
         } else {
-            //
+        //     $sp = SatuanPendidikan::find(env("APP_ID_SP"));
+        //     $semester_list = Semester::select('id_smt', 'nm_smt')
+        //     ->where('tgl_mulai', '<', date('Y-m-d'))
+        //     ->whereNull('expired_date')
+        //     ->where('smt', '!=', 3)
+        //     ->orderBy('id_smt', 'DESC')
+        //     ->pluck('nm_smt', 'id_smt')
+        //     ->toArray();
+        // $level = 'pt';
+        // $judul.= ' Daftar Mahasiswa '. $sp->nm_lemb;
+        // $data = PesertaDidik::get_daftar_mhs($level,$sp->id_sp,$smt_pilih);
+
+        // return view('content.main.mahasiswa.index',compact('data','smt_pilih','semester_list','judul','semester'));
         }
     }
 

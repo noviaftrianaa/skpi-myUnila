@@ -44,7 +44,7 @@ class Iku1Controller extends Controller
     $id_jns_sms = $this->request->id_jns_sms;
     $id_sms = $this->request->id_sms;
 
-    if ($thn_iku == 2023) {
+    // if ($thn_iku == 2023) {
       if ($id_jns_sms == 3 && !is_null($id_sms)) {
         $select = "
           SELECT
@@ -54,7 +54,8 @@ class Iku1Controller extends Controller
             SUM(iku.point) AS point,
             COUNT(iku.id_hasil_tracer_study) AS total_responden,
             COUNT(iku.id_reg_pd) AS total_alumni,
-            FORMAT((NULLIF(SUM(iku.point), 0) / COUNT(iku.id_hasil_tracer_study)), 'P') AS capaian
+            -- FORMAT((NULLIF(SUM(iku.point), 0) / COUNT(iku.id_hasil_tracer_study)), 'P') AS capaian
+            ROUND(NULLIF(SUM(iku.point), 0) * 100/ COUNT(iku.id_hasil_tracer_study), 0) AS capaian
             FROM pdrd.sms AS lemb
         ";
         $join = "
@@ -128,7 +129,8 @@ class Iku1Controller extends Controller
             SUM(iku.point) AS point,
             COUNT(iku.id_hasil_tracer_study) AS total_responden,
             COUNT(iku.id_reg_pd) AS total_alumni,
-            FORMAT((NULLIF(SUM(iku.point), 0) / COUNT(iku.id_hasil_tracer_study)), 'P') AS capaian
+            -- FORMAT((NULLIF(SUM(iku.point), 0) / COUNT(iku.id_hasil_tracer_study)), 'P') AS capaian
+            ROUND(NULLIF(SUM(iku.point), 0) * 100/ COUNT(iku.id_hasil_tracer_study), 0) AS capaian
             FROM pdrd.sms AS lemb
         ";
         $join = "
@@ -245,15 +247,15 @@ class Iku1Controller extends Controller
           'point' => $each_data->point,
           'total_responden' => $each_data->total_responden,
           'total_alumni' => $each_data->total_alumni,
-          'capaian' => $each_data->capaian,
+          'capaian' => number_format($each_data->capaian, 2) . '%',
         ];
       }
 
       return response()->json($iku);
-    } else {
-      $result = [];
-      return response()->json($result);
-    }
+    // } else {
+    //   $result = [];
+    //   return response()->json($result);
+    // }
   }
 
   public function listRawData()
@@ -261,7 +263,7 @@ class Iku1Controller extends Controller
     $thn_iku = $this->request->thn_iku;
     $id_sms = $this->request->id_sms;
 
-    if ($thn_iku == 2023) {
+    // if ($thn_iku == 2023) {
       if (!is_null($id_sms)) {
         $where = "
           WHERE
@@ -426,10 +428,10 @@ class Iku1Controller extends Controller
       return response()->json($detail_iku);
 
 
-    } else {
-      $result = [];
-      return response()->json($result);
-    }
+    // } else {
+    //   $result = [];
+    //   return response()->json($result);
+    // }
   }
 
   public function downloadRawData()

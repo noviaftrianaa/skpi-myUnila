@@ -29,7 +29,7 @@ class TracerStudyController extends Controller
             $sms = Sms::find($unit->id_organisasi);
             $ta_list = TahunAjaran::select("id_thn_ajaran", "nm_thn_ajaran")
                 ->where("id_thn_ajaran", ">=", $sms->smt->id_thn_ajaran)
-                ->where("id_thn_ajaran", "<=", get_tahun_keaktifan())
+                ->where("id_thn_ajaran", "<=", get_tahun_keaktifan() - 1)
                 ->whereNull("expired_date")
                 ->orderBy("id_thn_ajaran", "DESC")
                 ->pluck("nm_thn_ajaran", "id_thn_ajaran")

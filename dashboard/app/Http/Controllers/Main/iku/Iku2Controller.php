@@ -168,13 +168,16 @@ class Iku2Controller extends Controller
                         mbkm.id_reg_pd,
                         mbkm.konversi_a,
                         CASE
-                            WHEN (mbkm.id_jenj_didik IN (22, 23, 30) AND mbkm.konversi_a >= 10) THEN CAST(mbkm.konversi_a / 20 AS DECIMAL(7, 2))
-                            WHEN (mbkm.id_jenj_didik IN (20, 21) AND mbkm.konversi_a >= 5 ) THEN CAST(mbkm.konversi_a / 20 AS DECIMAL(7, 2))
+                            WHEN (mbkm.id_jenj_didik IN (22, 23, 30) AND mbkm.konversi_a >= 10) AND mbkm.konversi_a >= 20 THEN CAST(20 / 20 AS DECIMAL(7, 2))
+                            WHEN (mbkm.id_jenj_didik IN (22, 23, 30) AND mbkm.konversi_a >= 10) AND mbkm.konversi_a <= 20 THEN CAST(mbkm.konversi_a / 20 AS DECIMAL(7, 2))
+                            WHEN (mbkm.id_jenj_didik IN (20, 21) AND mbkm.konversi_a >= 5 ) AND mbkm.konversi_a >= 20 THEN CAST(20 / 20 AS DECIMAL(7, 2))
+                            WHEN (mbkm.id_jenj_didik IN (20, 21) AND mbkm.konversi_a >= 5 ) AND mbkm.konversi_a <= 20 THEN CAST(mbkm.konversi_a / 20 AS DECIMAL(7, 2))
                             ELSE 0
                         END AS point_a,
                         mbkm.konversi_b,
                         CASE
-                            WHEN mbkm.konversi_b > 0 THEN CAST(mbkm.konversi_b / 20 AS DECIMAL(7, 2))
+                            WHEN mbkm.konversi_b > 0 AND mbkm.konversi_b >= 20 THEN CAST(20 / 20 AS DECIMAL(7, 2))
+                            WHEN mbkm.konversi_b > 0 AND mbkm.konversi_b <= 20 THEN CAST(mbkm.konversi_b / 20 AS DECIMAL(7, 2))
                             ELSE 0
                         END AS point_b
                     FROM
@@ -291,13 +294,16 @@ class Iku2Controller extends Controller
                         mbkm.id_reg_pd,
                         mbkm.konversi_a,
                         CASE
-                            WHEN (mbkm.id_jenj_didik IN (22, 23, 30) AND mbkm.konversi_a >= 10) THEN CAST(mbkm.konversi_a / 20 AS DECIMAL(7, 2))
-                            WHEN (mbkm.id_jenj_didik IN (20, 21) AND mbkm.konversi_a >= 5 ) THEN CAST(mbkm.konversi_a / 20 AS DECIMAL(7, 2))
+                            WHEN (mbkm.id_jenj_didik IN (22, 23, 30) AND mbkm.konversi_a >= 10) AND mbkm.konversi_a >= 20 THEN CAST(20 / 20 AS DECIMAL(7, 2))
+                            WHEN (mbkm.id_jenj_didik IN (22, 23, 30) AND mbkm.konversi_a >= 10) AND mbkm.konversi_a <= 20 THEN CAST(mbkm.konversi_a / 20 AS DECIMAL(7, 2))
+                            WHEN (mbkm.id_jenj_didik IN (20, 21) AND mbkm.konversi_a >= 5 ) AND mbkm.konversi_a >= 20 THEN CAST(20 / 20 AS DECIMAL(7, 2))
+                            WHEN (mbkm.id_jenj_didik IN (20, 21) AND mbkm.konversi_a >= 5 ) AND mbkm.konversi_a <= 20 THEN CAST(mbkm.konversi_a / 20 AS DECIMAL(7, 2))
                             ELSE 0
                         END AS point_a,
                         mbkm.konversi_b,
                         CASE
-                            WHEN mbkm.konversi_b > 0 THEN CAST(mbkm.konversi_b / 20 AS DECIMAL(7, 2))
+                            WHEN mbkm.konversi_b > 0 AND mbkm.konversi_b >= 20 THEN CAST(20 / 20 AS DECIMAL(7, 2))
+                            WHEN mbkm.konversi_b > 0 AND mbkm.konversi_b <= 20 THEN CAST(mbkm.konversi_b / 20 AS DECIMAL(7, 2))
                             ELSE 0
                         END AS point_b
                     FROM
@@ -748,12 +754,15 @@ class Iku2Controller extends Controller
                     mbkm.nm_prodi,
                     mbkm.nm_jenj_didik,
                     CASE
-                        WHEN (mbkm.id_jenj_didik IN (22, 23, 30) AND mbkm.konversi_a >= 10) THEN mbkm.konversi_a / 20
-                        WHEN (mbkm.id_jenj_didik IN (20, 21) AND mbkm.konversi_a >= 5 ) THEN mbkm.konversi_a / 20
+                        WHEN (mbkm.id_jenj_didik IN (22, 23, 30) AND mbkm.konversi_a >= 10) AND mbkm.konversi_a >= 20 THEN CAST(20 / 20 AS DECIMAL(7, 2))
+                        WHEN (mbkm.id_jenj_didik IN (22, 23, 30) AND mbkm.konversi_a >= 10) AND mbkm.konversi_a <= 20 THEN CAST(mbkm.konversi_a / 20 AS DECIMAL(7, 2))
+                        WHEN (mbkm.id_jenj_didik IN (20, 21) AND mbkm.konversi_a >= 5 ) AND mbkm.konversi_a >= 20 THEN CAST(20 / 20 AS DECIMAL(7, 2))
+                        WHEN (mbkm.id_jenj_didik IN (20, 21) AND mbkm.konversi_a >= 5 ) AND mbkm.konversi_a <= 20 THEN CAST(mbkm.konversi_a / 20 AS DECIMAL(7, 2))
                         ELSE 0
                     END AS point_a,
                     CASE
-                        WHEN mbkm.konversi_b > 0 THEN mbkm.konversi_b / 20
+                        WHEN mbkm.konversi_b > 0 AND mbkm.konversi_b >= 20 THEN CAST(20 / 20 AS DECIMAL(7, 2))
+                        WHEN mbkm.konversi_b > 0 AND mbkm.konversi_b <= 20 THEN CAST(mbkm.konversi_b / 20 AS DECIMAL(7, 2))
                         ELSE 0
                     END AS point_b,
                     CASE WHEN mbkm.konversi_a > 0 THEN mbkm.konversi_a ELSE 0 END AS konversi_a,
