@@ -45,6 +45,9 @@ class Litabmas extends AbstractionModel
                     l.lokasi_kegiatan,
                     l.id_thn_usulan AS thn_usulan,
                     l.id_thn_kegiatan AS thn_kegiatan,
+                    l.dana_dikti,
+                    l.dana_pt,
+                    l.dana_institusi_lain,
                     ang2.nm_sdm AS nm_ketua,
                     ang2.prodi_ketua
                 FROM pdrd.sdm AS tsdm
