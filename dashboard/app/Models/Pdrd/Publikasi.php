@@ -51,7 +51,7 @@ class Publikasi extends AbstractionModel
         $data = DB::SELECT($query);
         $data_group = collect($data)->groupBy('nm_jns_pub')->toArray();
         $data_pub = [];
-        for ($i=($id_thn-2);$i<=$id_thn;$i++) {
+        for ($i=$id_thn;$i>=($id_thn-2);$i--) {
             foreach ($data_group AS $key_pub=>$each_pub) {
                 $data_pub[$key_pub][$i] = 0;
             }
