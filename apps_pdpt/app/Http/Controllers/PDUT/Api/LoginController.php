@@ -100,13 +100,13 @@ class LoginController extends Controller
                     'asal_domain' => $asal_domain,
                 ]], 'Gagal Otentikasi. ID Aplikasi Tidak Cocok Dengan Akun Anda', false);
             }
-            if (parse_url($dPengguna[0]->url, PHP_URL_HOST) != $asal_domain) {
-                return WrapResponse(['data' => [
-                    'id_aplikasi' => $id_aplikasi,
-                    'username' => $username,
-                    'asal_domain' => $asal_domain,
-                ]], 'Gagal Otentikasi. Akses Ditolak, Asal IP atau Domain Anda Tidak Sesuai Dengan Yang Terdaftar', false);
-            }
+            // if (parse_url($dPengguna[0]->url, PHP_URL_HOST) != $asal_domain) {
+            //     return WrapResponse(['data' => [
+            //         'id_aplikasi' => $id_aplikasi,
+            //         'username' => $username,
+            //         'asal_domain' => $asal_domain,
+            //     ]], 'Gagal Otentikasi. Akses Ditolak, Asal IP atau Domain Anda Tidak Sesuai Dengan Yang Terdaftar', false);
+            // }
             $header = [
                 "alg" => "HS256",
                 "typ" => "JWT"

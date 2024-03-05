@@ -53,7 +53,7 @@ class AuthApi
                 $decode_token_jwt->id_aplikasi,
                 $decode_token_jwt->id_pengguna,
             ]);
-            if (count($ws_aut) > 0) {
+            // if (count($ws_aut) > 0) {
                 foreach ($ws_aut as $wa) {
                     if (!empty($wa->nm_req)) {
                         $res_invalid_terms = WrapResponse([
@@ -136,14 +136,14 @@ class AuthApi
                     }
                 }
                 return $next($request);
-            } else {
-                return WrapResponse([
-                    'data' => [
-                        'path_url' => $path_url,
-                        'request_body' => $request->all(),
-                    ]
-                ], 'Akeses Ditolak. Akun Anda Tidak Diatur Untuk Mengakses path_url Ini', false);
-            }
+            // } else {
+            //     return WrapResponse([
+            //         'data' => [
+            //             'path_url' => $path_url,
+            //             'request_body' => $request->all(),
+            //         ]
+            //     ], 'Akeses Ditolak. Akun Anda Tidak Diatur Untuk Mengakses path_url Ini', false);
+            // }
         } catch (QueryException $qe) {
             logger($this->request->ip(), [$this->request->fullUrl(), __CLASS__, __FUNCTION__, $qe->getLine(), $qe->getMessage()]);
             return WrapResponse(['error' => ['internal' => 'QueryException'], 'data' => null], 'Internal Server Error', false);
