@@ -30,6 +30,7 @@ include $path . 'CheckAkses.php';
 include $path . 'ConvertCurrency.php';
 include $path . 'ConvertInt.php';
 include $path . 'CurlAPI.php';
+include $path . 'CurlApiSiakadu.php';
 include $path . 'FormInputStatic.php';
 include $path . 'FormInputSelect.php';
 include $path . 'FormInputText.php';
