@@ -66,33 +66,15 @@
                         width: '5px',
                         className: 'text-center'
                     },
-                    {
-                        data: 'nm_pd', title: 'Nama Mahasiswa'
-                    },
-                    {
-                        data: 'nipd', title: 'NPM'
-                    },
-                    {
-                        data: 'nm_fakultas', title: 'Fakultas'
-                    },
-                    {
-                        data: 'nm_jur', title: 'Jurusan'
-                    },
-                    {
-                        data: 'nm_prodi', title: 'Prodi'
-                    },
-                    {
-                        data: 'nm_smt', title: 'Semester'
-                    },
-                    {
-                        data: 'nm_jns_akt_mhs', title: 'Jenis Aktivitas'
-                    },
-                    {
-                        data: 'judul_akt_mhs', title: 'Nama Aktivitas Mahasiswa'
-                    },
-                    {
-                        data: 'lokasi_kegiatan', title: 'Lokasi Kegiatan'
-                    }
+                    { data: 'nm_pd', title: 'Nama Mahasiswa'},
+                    { data: 'nipd', title: 'NPM'},
+                    { data: 'nm_smt', title: 'Semester'},
+                    { data: 'nm_jns_akt_mhs', title: 'Jenis Aktivitas'},
+                    { data: 'judul_akt_mhs', title: 'Nama Aktivitas Mahasiswa'},
+                    { data: 'lokasi_kegiatan', title: 'Lokasi Kegiatan'},
+                    { data: 'nm_fakultas', title: 'Fakultas'},
+                    { data: 'nm_jur', title: 'Jurusan'},
+                    { data: 'nm_prodi', title: 'Prodi'}
                 ],
                 buttons: [{
                     extend: 'collection',

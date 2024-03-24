@@ -1,12 +1,12 @@
 @extends('layouts/layoutMaster')
-@include('content.main.perkuliahan.kurikulum.function')
+@include('content.main.perkuliahan.kelaskuliah.function')
 
 @section('title', $judul)
 
 @section('content')
 
     <h4>
-        <span class="text-muted fw-light">Perkuliahan / Kurikulum</span>
+        <span class="text-muted fw-light">Perkuliahan / Mata Kuliah</span>
     </h4>
 
     <div class="card">
@@ -27,7 +27,6 @@
                 </table>
             </div>
 
-
             <!-- Offcanvas to filter -->
             <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasAddUser"
                 aria-labelledby="offcanvasAddUserLabel">
@@ -46,14 +45,12 @@
                     </div>
                     <div class="my-3 border-bottom"></div>
                     <div class="mt-3">
-                        <label class="form-label">Tahun Kurikulum</label>
-                        <select name="thn_kurikulum" id="thn_kurikulum" class="form-select">
-                            @if (isset($ta_list))
-                                @foreach ($ta_list as $each_thn)
-                                <option value="{{ $each_thn['thn_kurikulum'] }}" {{ $each_thn['thn_kurikulum'] == $thn ? 'selected' : '' }}>
-                                        {{ $each_thn['thn_kurikulum'] }}</option>
-                                @endforeach
-                            @endif
+                        <label class="form-label">Tahun Semester</label>
+                        <select name="id_semester" id="id_semester" class="form-select">
+                            @foreach ($ta_list as $id_smt => $nm_smt)
+                                <option value="{{ $id_smt }}" {{ $id_smt == $thn ? 'selected' : '' }}>
+                                    {{ $nm_smt }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="mt-3">
@@ -62,7 +59,7 @@
                             @if (isset($list_prodi))
                             <option value="" disabled selected>Pilih program studi</option>
                                 @foreach ($list_prodi as $each_prodi)
-                                    <option value="{{ $each_prodi['id_unit'] }}" {{ $each_prodi['nm_unit'] == $select_unit ? 'selected' : '' }}>
+                                <option value="{{ $each_prodi['id_unit'] }}" {{ $each_prodi['nm_unit'] == $select_unit ? 'selected' : '' }}>
                                         {{ $each_prodi['nm_unit'] }}</option>
                                 @endforeach
                             @endif

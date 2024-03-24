@@ -22,6 +22,7 @@
             let table = $('#table-data').DataTable({
                 "bDestroy": true,
                 processing: true,
+                serverSide: true,
                 pageLength: 25,
                 "language": {
                     "decimal": "",
@@ -48,14 +49,10 @@
                     }
                 },
                 sDom: 'rt<"row"<"col-sm-12 col-md-3"l><"col-sm-12 col-md-3"i><"col-sm-12 col-md-6"p>>',
-
                 ajax: {
-                    url: "{{ route('mahasiswa.prestasi.data') }}",
+                    url: "{{ route('mahasiswa.daftar_mahasiswa.data') }}",
                     data: {
-                        level_organisasi: unit.level_organisasi,
-                        id_jns_lemb: unit.id_jns_lemb,
-                        id_organisasi: unit.id_organisasi,
-                        tahun: $('#tahun').val()
+                        smt: $('#tahun').val()
                     }
                 },
                 "columns": [{
@@ -66,19 +63,12 @@
                         width: '5px',
                         className: 'text-center'
                     },
-                    { data: 'nm_pd', title: 'Nama Alumni' },
-                    { data: 'nipd', title: 'NPM' },
-                    { data: 'thn_prestasi', title: 'Tahun Prestasi' },
-                    { data: 'nm_prestasi', title: 'Nama Prestasi' },
-                    { data: 'penyelenggara', title: 'Penyelenggara' },
-                    { data: 'nm_jenis_prestasi', title: 'Jenis Prestasi' },
-                    { data: 'nm_tkt_prestasi', title: 'Tingkat Prestasi' },
-                    { data: 'peringkat', title: 'Peringkat' },
-                    { data: 'pembimbing', title: 'Pembimbing'},
-                    { data: 'nm_fakultas', title: 'Fakultas' },
-                    { data: 'nm_jur', title: 'Jurusan' },
-                    { data: 'nm_prodi', title: 'Prodi' }
-
+                    { data: 'nm_pd', title: 'Nama Mahasiswa'},
+                    { data: 'nipd', title: 'NPM'},
+                    { data: 'status_mhs', title: 'Status Mahasiswa'},
+                    { data: 'ipk', title: 'IPK'},
+                    { data: 'total_sks', title: 'Total SKS'},
+                    { data: 'prodi_homebase', title: 'Prodi Homebase'}
                 ],
                 buttons: [{
                     extend: 'collection',
@@ -138,8 +128,7 @@
 
         $(document).ready(function() {
 
-            let unit = <?php echo json_encode($unit); ?>;
-            let table = datatables(unit);
+            let table = datatables();
 
             $('#search').on('change', function() {
                 table.search($('#search').val()).draw();
@@ -151,7 +140,7 @@
             });
             $('#tahun').on('change', function() {
                 $('#table-data').DataTable().clear().destroy();
-                table = datatables(unit);
+                table = datatables();
                 $('#offcanvasAddUser').offcanvas('hide');
             });
         });

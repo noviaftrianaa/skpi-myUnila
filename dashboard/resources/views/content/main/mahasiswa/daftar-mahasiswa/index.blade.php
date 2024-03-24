@@ -1,12 +1,12 @@
 @extends('layouts/layoutMaster')
-@include('content.main.perkuliahan.kurikulum.function')
+@include('content.main.mahasiswa.daftar-mahasiswa.function')
 
 @section('title', $judul)
 
 @section('content')
 
     <h4>
-        <span class="text-muted fw-light">Perkuliahan / Kurikulum</span>
+        <span class="text-muted fw-light">Mahasiswa / Daftar Mahasiswa</span>
     </h4>
 
     <div class="card">
@@ -26,8 +26,6 @@
                     <thead class="table-primary"></thead>
                 </table>
             </div>
-
-
             <!-- Offcanvas to filter -->
             <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasAddUser"
                 aria-labelledby="offcanvasAddUserLabel">
@@ -46,26 +44,12 @@
                     </div>
                     <div class="my-3 border-bottom"></div>
                     <div class="mt-3">
-                        <label class="form-label">Tahun Kurikulum</label>
-                        <select name="thn_kurikulum" id="thn_kurikulum" class="form-select">
-                            @if (isset($ta_list))
-                                @foreach ($ta_list as $each_thn)
-                                <option value="{{ $each_thn['thn_kurikulum'] }}" {{ $each_thn['thn_kurikulum'] == $thn ? 'selected' : '' }}>
-                                        {{ $each_thn['thn_kurikulum'] }}</option>
-                                @endforeach
-                            @endif
-                        </select>
-                    </div>
-                    <div class="mt-3">
-                        <label class="form-label">Program Studi</label>
-                        <select name="id_unit" id="id_unit" class="form-select" >
-                            @if (isset($list_prodi))
-                            <option value="" disabled selected>Pilih program studi</option>
-                                @foreach ($list_prodi as $each_prodi)
-                                    <option value="{{ $each_prodi['id_unit'] }}" {{ $each_prodi['nm_unit'] == $select_unit ? 'selected' : '' }}>
-                                        {{ $each_prodi['nm_unit'] }}</option>
-                                @endforeach
-                            @endif
+                        <label class="form-label">Tahun Semester Aktif</label>
+                        <select name="tahun" id="tahun" class="form-select">
+                            @foreach ($semester_list as $id_smt => $nm_smt)
+                                <option value="{{ $id_smt }}" {{ $id_smt == $smt_pilih ? 'selected' : '' }}>
+                                    {{ $nm_smt }}</option>
+                            @endforeach
                         </select>
                     </div>
                 </div>

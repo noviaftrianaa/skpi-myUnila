@@ -1,12 +1,12 @@
 @extends('layouts/layoutMaster')
-@include('content.main.perkuliahan.kurikulum.function')
+@include('content.main.perkuliahan.matakuliah.function')
 
 @section('title', $judul)
 
 @section('content')
 
     <h4>
-        <span class="text-muted fw-light">Perkuliahan / Kurikulum</span>
+        <span class="text-muted fw-light">Perkuliahan / Mata Kuliah</span>
     </h4>
 
     <div class="card">
@@ -26,7 +26,6 @@
                     <thead class="table-primary"></thead>
                 </table>
             </div>
-
 
             <!-- Offcanvas to filter -->
             <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasAddUser"
@@ -62,7 +61,7 @@
                             @if (isset($list_prodi))
                             <option value="" disabled selected>Pilih program studi</option>
                                 @foreach ($list_prodi as $each_prodi)
-                                    <option value="{{ $each_prodi['id_unit'] }}" {{ $each_prodi['nm_unit'] == $select_unit ? 'selected' : '' }}>
+                                <option value="{{ $each_prodi['id_unit'] }}" {{ $each_prodi['nm_unit'] == $select_unit ? 'selected' : '' }}>
                                         {{ $each_prodi['nm_unit'] }}</option>
                                 @endforeach
                             @endif

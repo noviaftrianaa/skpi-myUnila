@@ -39,11 +39,11 @@
                     </ul>
                     <div class="mt-4">
                         @if($kode=='homebase')
-                            @include('content.main.mahasiswa.detail.homebase')
+                            @include('content.main.mahasiswa.daftar-mahasiswa.detail.homebase')
                         @elseif($kode=='status_semester')
-                            @include('content.main.mahasiswa.detail.status_semester')
+                            @include('content.main.mahasiswa.daftar-mahasiswa.detail.status_semester')
                         @elseif($kode=='rwy_nilai')
-                            @include('content.main.mahasiswa.detail.rwy_nilai')
+                            @include('content.main.mahasiswa.daftar-mahasiswa.detail.rwy_nilai')
                         @endif
                     </div>
                 </div>

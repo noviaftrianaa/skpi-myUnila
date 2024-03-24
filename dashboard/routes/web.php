@@ -19,6 +19,8 @@ use App\Http\Controllers\KelulusanTepatWaktuController;
 use App\Http\Controllers\Main\sdm\DosenController as DosenSMSController;
 use App\Http\Controllers\Main\sdm\TendikController as TendikSMSController;
 use App\Http\Controllers\Main\perkuliahan\KurikulumController;
+use App\Http\Controllers\Main\perkuliahan\MataKuliahController;
+use App\Http\Controllers\Main\perkuliahan\KelasKuliahController;
 use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\SyncController;
 use App\Http\Controllers\authentications\LoginBasic;
@@ -166,6 +168,7 @@ Route::middleware(['auth'])->group(function () {
 
     //Mahasiswa
     Route::get('mahasiswa/daftar_mahasiswa', [DaftarMahasiswaController::class, 'index'])->name('mahasiswa.daftar_mahasiswa');
+    Route::get('mahasiswa/daftar_mahasiswa/data', [DaftarMahasiswaController::class, 'listMahasiswa'])->name('mahasiswa.daftar_mahasiswa.data');
     Route::get('mahasiswa/daftar_mahasiswa/{id}/detail', [DaftarMahasiswaController::class, 'show'])->name('mahasiswa.daftar_mahasiswa.detail');
 
     Route::get('mahasiswa/tracer_study', [TracerStudyController::class, 'index'])->name('mahasiswa.tracer_study');
@@ -207,9 +210,10 @@ Route::middleware(['auth'])->group(function () {
   #perkuliahan
   Route::get('perkuliahan/kurikulum',[KurikulumController::class,'index'])->name('perkuliahan.kurikulum');
   Route::get('perkuliahan/kurikulum/json/list', [KurikulumController::class, 'list'])->name('json-list-kurikulum');
-
-  Route::get('perkuliahan/matkul',[MatkulController::class,'index'])->name('perkuliahan.matkul');
-  Route::get('perkuliahan/kelas',[KelasController::class,'index'])->name('perkuliahan.kelas');
+  Route::get('perkuliahan/matakuliah',[MataKuliahController::class,'index'])->name('perkuliahan.matakuliah');
+  Route::get('perkuliahan/matakuliah/json/list', [MataKuliahController::class, 'list'])->name('json-list-matakuliah');
+  Route::get('perkuliahan/kelas',[KelasKuliahController::class,'index'])->name('perkuliahan.kelas');
+  Route::get('perkuliahan/kelas/json/list', [KelasKuliahController::class, 'list'])->name('json-list-kelas');
 
   #sinkronisasi
   Route::get('sinkronisasi', [SyncController::class, 'index'])->name('sinkronisasi');

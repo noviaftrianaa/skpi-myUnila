@@ -32,7 +32,7 @@
                     "infoPostFix": "",
                     "thousands": ",",
                     "lengthMenu": "Menampilkan _MENU_ entitas",
-                    "loadingRecords": "Loading...",
+                    "loadingRecords": "API not connected...",
                     "processing": "Sedang dalam proses...",
                     "search": "Pencarian:",
                     "zeroRecords": "Tidak ada data yang cocok",
@@ -50,42 +50,30 @@
                 sDom: 'rt<"row"<"col-sm-12 col-md-3"l><"col-sm-12 col-md-3"i><"col-sm-12 col-md-6"p>>',
 
                 ajax: {
-                    url: "{{ route('mahasiswa.prestasi.data') }}",
+                    url: "{{ route('json-list-matakuliah') }}",
                     data: {
-                        level_organisasi: unit.level_organisasi,
-                        id_jns_lemb: unit.id_jns_lemb,
-                        id_organisasi: unit.id_organisasi,
-                        tahun: $('#tahun').val()
+                        thn_kurikulum: $('#thn_kurikulum').val(),
+                        id_unit: $('#id_unit').val()
                     }
                 },
-                "columns": [{
-                        data: 'DT_RowIndex',
-                        orderable: false,
-                        searchable: false,
-                        title: 'No.',
-                        width: '5px',
-                        className: 'text-center'
-                    },
-                    { data: 'nm_pd', title: 'Nama Alumni' },
-                    { data: 'nipd', title: 'NPM' },
-                    { data: 'thn_prestasi', title: 'Tahun Prestasi' },
-                    { data: 'nm_prestasi', title: 'Nama Prestasi' },
-                    { data: 'penyelenggara', title: 'Penyelenggara' },
-                    { data: 'nm_jenis_prestasi', title: 'Jenis Prestasi' },
-                    { data: 'nm_tkt_prestasi', title: 'Tingkat Prestasi' },
-                    { data: 'peringkat', title: 'Peringkat' },
-                    { data: 'pembimbing', title: 'Pembimbing'},
+                "columns": [
+                    { data: 'thn_kurikulum', title: 'Tahun Kurikulum' },
+                    { data: 'kode_mk', title: 'Kode Mata Kuliah' },
+                    { data: 'nm_mk', title: 'Nama Mata Kuliah' },
+                    { data: 'sks_mk', title: 'SKS Mata Kuliah' },
+                    { data: 'id_jns_mk', title: 'Jenis' },
+                    { data: 'id_kelompok_mk', title: 'Kelompok' },
                     { data: 'nm_fakultas', title: 'Fakultas' },
-                    { data: 'nm_jur', title: 'Jurusan' },
+                    { data: 'nm_jurusan', title: 'Jurusan' },
                     { data: 'nm_prodi', title: 'Prodi' }
-
                 ],
                 buttons: [{
                     extend: 'collection',
                     className: 'btn btn-label-primary dropdown-toggle me-2',
                     text: '<i class="ti ti-file-export me-sm-1"></i> <span class="d-none d-sm-inline-bloc' +
                         'k">Export</span>',
-                    buttons: [{
+                    buttons:
+                    [{
                             extend: 'print',
                             text: '<i class="ti ti-printer me-1" ></i>Print',
                             className: 'dropdown-item',
@@ -149,7 +137,12 @@
                 table.search($('#search').val()).draw();
                 $('#offcanvasAddUser').offcanvas('hide');
             });
-            $('#tahun').on('change', function() {
+            $('#thn_kurikulum').on('change', function() {
+                $('#table-data').DataTable().clear().destroy();
+                table = datatables(unit);
+                $('#offcanvasAddUser').offcanvas('hide');
+            });
+            $('#id_unit').on('change', function() {
                 $('#table-data').DataTable().clear().destroy();
                 table = datatables(unit);
                 $('#offcanvasAddUser').offcanvas('hide');

@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
 
-class KurikulumController extends Controller
+class MataKuliahController extends Controller
 {
     private $url;
 
@@ -45,7 +45,7 @@ class KurikulumController extends Controller
 
         if ($unit->id_jns_lemb == 24) {
             $sms = Sms::find($unit->id_organisasi);
-            $judul = "Kurikulum Program Studi " . $sms->nm_lemb . " (" . $sms->jenjang->nm_jenj_didik . ")";
+            $judul = "Mata Kuliah Program Studi " . $sms->nm_lemb . " (" . $sms->jenjang->nm_jenj_didik . ")";
             $jenj= JenjangPendidikan::find($sms->id_jenj_didik);
             $nm_lemb = $jenj->nm_jenj_didik .'-'.$sms->nm_lemb;
             $jns_unit = 'P';
@@ -61,7 +61,7 @@ class KurikulumController extends Controller
               }
         } elseif ($unit->id_jns_lemb == 28) {
             $sms = Sms::find($unit->id_organisasi);
-            $judul = "Kurikulum Jurusan " . $sms->nm_lemb;
+            $judul = "Mata Kuliah Jurusan " . $sms->nm_lemb;
             $jenj= JenjangPendidikan::find($sms->id_jenj_didik);
             $nm_lemb = $jenj->nm_jenj_didik .'-'.$sms->nm_lemb;
             $jns_unit = 'J';
@@ -77,7 +77,7 @@ class KurikulumController extends Controller
               }
         } elseif ($unit->id_jns_lemb == 23) {
             $sms = Sms::find($unit->id_organisasi);
-            $judul = "Kurikulum Fakultas " . $sms->nm_lemb;
+            $judul = "Mata Kuliah Fakultas " . $sms->nm_lemb;
             $jenj= JenjangPendidikan::find($sms->id_jenj_didik);
             $nm_lemb = $jenj->nm_jenj_didik .'-'.$sms->nm_lemb;
             $jns_unit = 'F';
@@ -93,13 +93,13 @@ class KurikulumController extends Controller
               }
         } else {
             $sp = SatuanPendidikan::find(env("APP_ID_SP"));
-            $judul = "Kurikulum " . $sp->nm_lemb;
+            $judul = "Mata Kuliah " . $sp->nm_lemb;
             $jns_unit = '';
             $list_prodi = $this->unitProdi($jns_unit);
         }
 
         return view(
-            "content.main.perkuliahan.kurikulum.index",
+            "content.main.perkuliahan.matakuliah.index",
             compact("ta_list", "thn", "judul", "unit", "list_prodi", "select_unit")
         );
     }
@@ -122,7 +122,7 @@ class KurikulumController extends Controller
         }else{
             $query = "page=".$page."&page_size=".$page_size;
         }
-        $response = curlApiSiakadu('GET', $this->url . '/kurikulum/list?'. $query, null, $token);
+        $response = curlApiSiakadu('GET', $this->url . '/matakuliah/list?'. $query, null, $token);
 
         if(isset($response['success'])){
             return [
@@ -137,15 +137,12 @@ class KurikulumController extends Controller
 
     }
 
-    public function unitProdi($jns_unit){
-        if($jns_unit != ''){
-            $query = "jns_unit=".$jns_unit;
-        }else{
-            $query = '';
-        }
+    public function unitProdi(){
         $token = cek_token_siakadu();
-        $response = curlApiSiakadu('GET', $this->url . '/referensi/unit/list?'. $query, null, $token);
+        $jns_unit = 'P';
+        $response = curlApiSiakadu('GET', $this->url . '/referensi/unit/list?jns_unit='.$jns_unit, null, $token);
         $unit = $response['payload'];
+
         return $unit;
     }
 
