@@ -62,7 +62,7 @@
                             @if (isset($list_prodi))
                             <option value="" disabled selected>Pilih program studi</option>
                                 @foreach ($list_prodi as $each_prodi)
-                                    <option value="{{ $each_prodi['id_unit'] }}" {{ $each_prodi['nm_unit'] == $select_unit ? 'selected' : '' }}>
+                                    <option value="{{ $each_prodi['nm_unit'] }}" {{ $each_prodi['nm_unit'] == $select_unit ? 'selected' : '' }}>
                                         {{ $each_prodi['nm_unit'] }}</option>
                                 @endforeach
                             @endif

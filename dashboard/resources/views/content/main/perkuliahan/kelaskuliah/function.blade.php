@@ -53,7 +53,7 @@
                     url: "{{ route('json-list-kelas') }}",
                     data: {
                         id_semester: $('#id_semester').val(),
-                        id_unit: $('#id_unit').val()
+                        search: $('#id_unit').val()
                     }
                 },
                 "columns": [

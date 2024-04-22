@@ -53,7 +53,7 @@
                     url: "{{ route('json-list-matakuliah') }}",
                     data: {
                         thn_kurikulum: $('#thn_kurikulum').val(),
-                        id_unit: $('#id_unit').val()
+                        search: $('#id_unit').val()
                     }
                 },
                 "columns": [

@@ -348,7 +348,8 @@ class MahasiswaController extends Controller
                 pd.jln,
                 pd.tlpn_hp,
                 pd.email,
-                kul.id_stat_mhs AS status
+                kul.id_stat_mhs AS status,
+                reg.id_sp
             FROM
                 pdrd.peserta_didik AS pd WITH(NOLOCK)
                 JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
@@ -417,6 +418,7 @@ class MahasiswaController extends Controller
                 'jln' => $each_data->jln,
                 'tlpn_hp' => $each_data->tlpn_hp,
                 'email' => $each_data->email,
+                'id_sp' => $each_data->id_sp,
                 'waktu_data_ditambahkan' => date('Y-m-d H:i:s', strtotime($each_data->waktu_data_ditambahkan)),
                 'terakhir_diubah' => date('Y-m-d H:i:s', strtotime($each_data->terakhir_diubah))
             ];

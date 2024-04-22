@@ -53,16 +53,9 @@ class KelasKuliahController extends Controller
             $jenj= JenjangPendidikan::find($sms->id_jenj_didik);
             $nm_lemb = $jenj->nm_jenj_didik .'-'.$sms->nm_lemb;
             $jns_unit = 'P';
-            $list_prodi = $this->unitProdi($jns_unit);
-            foreach( $list_prodi as $target){
-                if(is_array($target)){
-                  foreach($target as $index => $value){
-                    if(strpos($target[$index], $nm_lemb) !== false){
-                      $select_unit = $target[$index];
-                    }
-                  }
-                }
-              }
+            $list_prodi = $this->unitProdi($jns_unit, $nm_lemb);
+            $select_unit = $list_prodi[0]['nm_unit'];
+
         } elseif ($unit->id_jns_lemb == 28) {
             $sms = Sms::find($unit->id_organisasi);
             $ta_list = Semester::select('id_smt', 'nm_smt')
@@ -74,20 +67,12 @@ class KelasKuliahController extends Controller
                 ->pluck('nm_smt', 'id_smt')
                 ->toArray();
 
-            $judul = "Kelas Kuliah Jurusan " . $sms->nm_lemb . " (" . $sms->jenjang->nm_jenj_didik . ")";
-            $jenj= JenjangPendidikan::find($sms->id_jenj_didik);
-            $nm_lemb = $jenj->nm_jenj_didik .'-'.$sms->nm_lemb;
+            $judul = "Kelas Kuliah Jurusan " . $sms->nm_lemb;
+            $nm_lemb = $sms->nm_lemb;
             $jns_unit = 'J';
-            $list_prodi = $this->unitProdi($jns_unit);
-            foreach( $list_prodi as $target){
-                if(is_array($target)){
-                  foreach($target as $index => $value){
-                    if(strpos($target[$index], $nm_lemb) !== false){
-                      $select_unit = $target[$index];
-                    }
-                  }
-                }
-              }
+            $list_prodi = $this->unitProdi($jns_unit, $nm_lemb);
+            $select_unit = $list_prodi[0]['nm_unit'];
+
         } elseif ($unit->id_jns_lemb == 23) {
             $sms = Sms::find($unit->id_organisasi);
             $ta_list = Semester::select('id_smt', 'nm_smt')
@@ -99,20 +84,12 @@ class KelasKuliahController extends Controller
                 ->pluck('nm_smt', 'id_smt')
                 ->toArray();
 
-            $judul = "Kelas Kuliah Fakultas " . $sms->nm_lemb . " (" . $sms->jenjang->nm_jenj_didik . ")";
-            $jenj= JenjangPendidikan::find($sms->id_jenj_didik);
-            $nm_lemb = $jenj->nm_jenj_didik .'-'.$sms->nm_lemb;
+            $judul = "Kelas Kuliah Fakultas " . $sms->nm_lemb;
+            $nm_lemb = $sms->nm_lemb;
             $jns_unit = 'F';
-            $list_prodi = $this->unitProdi($jns_unit);
-            foreach( $list_prodi as $target){
-                if(is_array($target)){
-                  foreach($target as $index => $value){
-                    if(strpos($target[$index], $nm_lemb) !== false){
-                      $select_unit = $target[$index];
-                    }
-                  }
-                }
-              }
+            $list_prodi = $this->unitProdi($jns_unit, $nm_lemb);
+            $select_unit = $list_prodi[0]['nm_unit'];
+
         } else {
             $sp = SatuanPendidikan::find(env("APP_ID_SP"));
             $token = cek_token_siakadu();
@@ -127,7 +104,7 @@ class KelasKuliahController extends Controller
 
             $judul = "Kelas Kuliah " . $sp->nm_lemb;
             $jns_unit = '';
-            $list_prodi = $this->unitProdi($jns_unit);
+            $list_prodi = $this->unitProdi($jns_unit, $select_unit);
         }
         return view(
             "content.main.perkuliahan.kelaskuliah.index",
@@ -143,13 +120,14 @@ class KelasKuliahController extends Controller
         $page_size = 99999999999;
         $id_semester = $request->input('id_semester');
         $id_unit = $request->input('id_unit');
+        $search = $request->input('search');
 
         if(!is_null($id_semester) && !is_null($id_unit)){
-            $query = "page=".$page."&page_size=".$page_size."&id_semester=".$id_semester."&id_unit=".$id_unit;
+            $query = "page=".$page."&page_size=".$page_size."&id_semester=".$id_semester."&id_unit=".$id_unit."&search=".urlencode($search);
         }elseif(!is_null($id_semester)){
-            $query = "page=".$page."&page_size=".$page_size."&id_semester=".$id_semester;
-        }elseif(!is_null($id_semester)){
-            $query = "page=".$page."&page_size=".$page_size."&id_unit=".$id_unit;
+            $query = "page=".$page."&page_size=".$page_size."&id_semester=".$id_semester."&search=".urlencode($search);
+        }elseif(!is_null($id_unit)){
+            $query = "page=".$page."&page_size=".$page_size."&id_unit=".$id_unit."&search=".urlencode($search);
         }else{
             $query = "page=".$page."&page_size=".$page_size;
         }
@@ -168,13 +146,16 @@ class KelasKuliahController extends Controller
 
     }
 
-    public function unitProdi(){
+    public function unitProdi($jns_unit, $nm_lemb){
         $token = cek_token_siakadu();
-        $jns_unit = 'P';
-        $response = curlApiSiakadu('GET', $this->url . '/referensi/unit/list?jns_unit='.$jns_unit, null, $token);
-        $unit = $response['payload'];
-
-        return $unit;
+        $response = curlApiSiakadu('GET', $this->url.'/referensi/unit/list?jns_unit='.$jns_unit.'&search='.urlencode($nm_lemb), null, $token);
+        if(isset($response['payload'])){
+            $unit = $response['payload'];
+            return $unit;
+        }else{
+            $unit = [];
+            return $unit;
+        }
     }
 
 }
