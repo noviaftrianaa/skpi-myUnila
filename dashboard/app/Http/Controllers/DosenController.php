@@ -216,25 +216,19 @@ class DosenController extends Controller
                 pen.judul_litabmas,
                 pen.id_thn_laks,
                 (
-                SELECT
-                    STRING_AGG(sdm.nm_sdm, ',')
-                FROM
-                    pdrd.sdm_anggota_litabmas AS anggota
-                    JOIN pdrd.sdm AS sdm ON sdm.id_sdm=anggota.id_sdm AND sdm.soft_delete=0
-                WHERE
-                    anggota.soft_delete=0
-                    AND anggota.id_litabmas=pen.id_litabmas
-                ) AS anggota,
-                (
-                SELECT
-                    STRING_AGG(anggota.peran_litabmas, ',')
-                FROM
-                    pdrd.sdm_anggota_litabmas AS anggota
-                    JOIN pdrd.sdm AS sdm ON sdm.id_sdm=anggota.id_sdm AND sdm.soft_delete=0
-                WHERE
-                    anggota.soft_delete=0
-                    AND anggota.id_litabmas=pen.id_litabmas
-                ) AS peran
+                    SELECT
+                        STRING_AGG(
+                            CONCAT (CASE WHEN anggota.peran_litabmas = 'K' THEN '(Ketua Peneliti)'
+                            ELSE '(Anggota Peneliti)' END, ' ', sdm.nm_sdm)
+                            , ', '
+                        )
+                    FROM
+                        pdrd.sdm_anggota_litabmas AS anggota
+                        JOIN pdrd.sdm AS sdm ON sdm.id_sdm=anggota.id_sdm AND sdm.soft_delete=0
+                    WHERE
+                        anggota.soft_delete=0
+                        AND anggota.id_litabmas=pen.id_litabmas
+                ) AS anggota
             FROM
                 pdrd.litabmas AS pen
                 JOIN pdrd.sdm_anggota_litabmas AS ang ON ang.id_litabmas=pen.id_litabmas AND ang.soft_delete=0 AND ang.stat_aktif=1
@@ -261,25 +255,19 @@ class DosenController extends Controller
                 pen.judul_litabmas,
                 pen.id_thn_laks,
                 (
-                SELECT
-                    STRING_AGG(sdm.nm_sdm, ',')
-                FROM
-                    pdrd.sdm_anggota_litabmas AS anggota
-                    JOIN pdrd.sdm AS sdm ON sdm.id_sdm=anggota.id_sdm AND sdm.soft_delete=0
-                WHERE
-                    anggota.soft_delete=0
-                    AND anggota.id_litabmas=pen.id_litabmas
-                ) AS anggota,
-                (
-                SELECT
-                    STRING_AGG(anggota.peran_litabmas, ',')
-                FROM
-                    pdrd.sdm_anggota_litabmas AS anggota
-                    JOIN pdrd.sdm AS sdm ON sdm.id_sdm=anggota.id_sdm AND sdm.soft_delete=0
-                WHERE
-                    anggota.soft_delete=0
-                    AND anggota.id_litabmas=pen.id_litabmas
-                ) AS peran
+                    SELECT
+                        STRING_AGG(
+                            CONCAT (CASE WHEN anggota.peran_litabmas = 'K' THEN '(Ketua Peneliti)'
+                            ELSE '(Anggota Peneliti)' END, ' ', sdm.nm_sdm)
+                            , ', '
+                        )
+                    FROM
+                        pdrd.sdm_anggota_litabmas AS anggota
+                        JOIN pdrd.sdm AS sdm ON sdm.id_sdm=anggota.id_sdm AND sdm.soft_delete=0
+                    WHERE
+                        anggota.soft_delete=0
+                        AND anggota.id_litabmas=pen.id_litabmas
+                ) AS anggota
             FROM
                 pdrd.litabmas AS pen
                 JOIN pdrd.sdm_anggota_litabmas AS ang ON ang.id_litabmas=pen.id_litabmas AND ang.soft_delete=0 AND ang.stat_aktif=1
@@ -321,25 +309,19 @@ class DosenController extends Controller
                 pen.judul_litabmas,
                 pen.id_thn_laks,
                 (
-                SELECT
-                    STRING_AGG(sdm.nm_sdm, ',')
-                FROM
-                    pdrd.sdm_anggota_litabmas AS anggota
-                    JOIN pdrd.sdm AS sdm ON sdm.id_sdm=anggota.id_sdm AND sdm.soft_delete=0
-                WHERE
-                    anggota.soft_delete=0
-                    AND anggota.id_litabmas=pen.id_litabmas
-                ) AS anggota,
-                (
-                SELECT
-                    STRING_AGG(anggota.peran_litabmas, ',')
-                FROM
-                    pdrd.sdm_anggota_litabmas AS anggota
-                    JOIN pdrd.sdm AS sdm ON sdm.id_sdm=anggota.id_sdm AND sdm.soft_delete=0
-                WHERE
-                    anggota.soft_delete=0
-                    AND anggota.id_litabmas=pen.id_litabmas
-                ) AS peran
+                    SELECT
+                        STRING_AGG(
+                            CONCAT (CASE WHEN anggota.peran_litabmas = 'K' THEN '(Ketua Peneliti)'
+                            ELSE '(Anggota Peneliti)' END, ' ', sdm.nm_sdm)
+                            , ', '
+                        )
+                    FROM
+                        pdrd.sdm_anggota_litabmas AS anggota
+                        JOIN pdrd.sdm AS sdm ON sdm.id_sdm=anggota.id_sdm AND sdm.soft_delete=0
+                    WHERE
+                        anggota.soft_delete=0
+                        AND anggota.id_litabmas=pen.id_litabmas
+                ) AS anggota
             FROM
                 pdrd.litabmas AS pen
                 JOIN pdrd.sdm_anggota_litabmas AS ang ON ang.id_litabmas=pen.id_litabmas AND ang.soft_delete=0 AND ang.stat_aktif=1
