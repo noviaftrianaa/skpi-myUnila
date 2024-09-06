@@ -300,6 +300,10 @@ Route::group([
             Route::post('tambah_daya_tampung', 'DayaTampungController@tambah');
             Route::put('ubah_daya_tampung', 'DayaTampungController@ubahDayaTampung');
             Route::delete('hapus_daya_tampung', 'DayaTampungController@destroy');
+            Route::get('list_pengumuman', 'PengumumanMandiriController@getAllPengumuman');
+            Route::post('tambah_pengumuman', 'PengumumanMandiriController@tambahPengumuman');
+            Route::put('ubah_pengumuman', 'PengumumanMandiriController@ubahPengumuman');
+            Route::delete('hapus_pengumuman', 'PengumumanMandiriController@hapusPengumuman');
         });
 
         Route::group([

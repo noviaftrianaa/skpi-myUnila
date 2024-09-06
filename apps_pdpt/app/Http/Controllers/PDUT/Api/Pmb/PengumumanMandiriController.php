@@ -1,0 +1,260 @@
+<?php
+
+namespace App\Http\Controllers\PDUT\Api\Pmb;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule as ValidationRule;
+use Exception;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+
+class PengumumanMandiriController extends Controller
+{
+    protected $request;
+
+    public function __construct(Request $request)
+    {
+        $this->request = $request;
+    }
+
+    public function getAllPengumuman()
+    {
+        InputValidator([
+            'sortby' => [
+                'alpha',
+                ValidationRule::in(['ASC', 'DESC', 'asc', 'desc'])
+            ],
+            'page' => 'numeric|min:1',
+            'count' => 'numeric|min:1|max:50'
+        ]);
+
+        $sortby = $this->request->input('sortby', 'DESC');
+        try {
+            $query =  "
+                SELECT
+                    id_pengumuman,
+                    id_thn_ajaran,
+                    no_peserta,
+                    nm_peserta,
+                    tgl_lahir,
+                    jns_kelamin,
+                    nm_slta,
+                    prov_slta,
+                    wil_tmpt_tinggal,
+                    jenis_pendaftaran,
+                    status_lulus,
+                    fak_lulus,
+                    prodi_lulus,
+                    kuota,
+                    pil_lulus,
+                    prodi_pilihan_1,
+                    prodi_pilihan_2,
+                    prodi_pilihan_3,
+                    prodi_pilihan_4,
+                    nilai_utbk,
+                    nilai_wawancara,
+                    create_date,
+                    id_creator,
+                    soft_delete,
+                    last_sync
+                FROM
+                    temp_pmb.pengumuman WITH(NOLOCK)
+                WHERE
+                    soft_delete = 0
+                ORDER BY
+                    nm_peserta " . $sortby . "
+            ";
+
+            $pagination = CustomPagination($query);
+            $query = $pagination['query'];
+
+            $query = DB::select($query);
+            if (empty($query)) {
+                return WrapResponse(['data' => NULL], 'Data pengumuman tidak ditemukan', FALSE);
+            }
+
+            $data = [];
+            foreach ($query as $value) {
+                $data[] = (array) $value;
+            }
+
+            return WrapResponse(compact('data'), 'sukses');
+        } catch (Exception $e) {
+            Log::error(__FUNCTION__ . ' - ' . $e->getMessage());
+            return WrapResponse([], "Tidak dapat mengambil data pengumuman", FALSE);
+        }
+    }
+
+    public function tambahPengumuman()
+    {
+        InputValidator([
+            'id_thn_ajaran' => 'required|numeric',
+            'no_peserta' => 'required|string|max:24',
+            'nm_peserta' => 'required|string|max:120',
+            'tgl_lahir' => 'required|date',
+            'jns_kelamin' => 'required|in:L,P',
+            'nm_slta' => 'required|string|max:120',
+            'prov_slta' => 'required|string|max:60',
+            'wil_tmpt_tinggal' => 'required|string|max:120',
+            'jenis_pendaftaran' => 'required|string|max:20',
+            'status_lulus' => 'required|string|max:20',
+            'fak_lulus' => 'required|uuid',
+            'prodi_lulus' => 'required|uuid',
+            'kuota' => 'required|numeric',
+            'pil_lulus' => 'required|numeric|max:9',
+            'prodi_pilihan_1' => 'nullable|uuid',
+            'prodi_pilihan_2' => 'nullable|uuid',
+            'prodi_pilihan_3' => 'nullable|uuid',
+            'prodi_pilihan_4' => 'nullable|uuid',
+            'nilai_utbk' => 'nullable|numeric|max:999.99',
+            'nilai_wawancara' => 'nullable|numeric|max:999.99',
+        ]);
+
+        $id_pengumuman = guid();
+        $creatorId = '26004417-6e92-463c-bf35-f741817121dc';
+
+        $data = [
+            'id_pengumuman' => $id_pengumuman,
+            'id_thn_ajaran' => $this->request->input('id_thn_ajaran'),
+            'no_peserta' => $this->request->input('no_peserta'),
+            'nm_peserta' => $this->request->input('nm_peserta'),
+            'tgl_lahir' => $this->request->input('tgl_lahir'),
+            'jns_kelamin' => $this->request->input('jns_kelamin'),
+            'nm_slta' => $this->request->input('nm_slta'),
+            'prov_slta' => $this->request->input('prov_slta'),
+            'wil_tmpt_tinggal' => $this->request->input('wil_tmpt_tinggal'),
+            'jenis_pendaftaran' => $this->request->input('jenis_pendaftaran'),
+            'status_lulus' => $this->request->input('status_lulus'),
+            'fak_lulus' => $this->request->input('fak_lulus'),
+            'prodi_lulus' => $this->request->input('prodi_lulus'),
+            'kuota' => $this->request->input('kuota'),
+            'pil_lulus' => $this->request->input('pil_lulus'),
+            'prodi_pilihan_1' => $this->request->input('prodi_pilihan_1'),
+            'prodi_pilihan_2' => $this->request->input('prodi_pilihan_2'),
+            'prodi_pilihan_3' => $this->request->input('prodi_pilihan_3'),
+            'prodi_pilihan_4' => $this->request->input('prodi_pilihan_4'),
+            'nilai_utbk' => $this->request->input('nilai_utbk'),
+            'nilai_wawancara' => $this->request->input('nilai_wawancara'),
+            'create_date' => currDateTime(),
+            'id_creator' => $creatorId,
+            'soft_delete' => 0,
+            'last_sync' => currDateTime(),
+        ];
+
+        DB::beginTransaction();
+        try {
+            DB::table('temp_pmb.pengumuman')->insert($data);
+            DB::commit();
+            return WrapResponse(array('data' => array('id_pengumuman' => $id_pengumuman)), 'sukses menambahkan pengumuman', TRUE);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
+            return WrapResponse(['data' => null], 'gagal menambahkan pengumuman', FALSE);
+        }
+    }
+
+    public function ubahPengumuman()
+    {
+        InputValidator([
+            'id_pengumuman' => 'required|uuid',
+            'id_thn_ajaran' => 'required|numeric',
+            'no_peserta' => 'required|string|max:24',
+            'nm_peserta' => 'required|string|max:120',
+            'tgl_lahir' => 'required|date',
+            'jns_kelamin' => 'required|in:L,P',
+            'nm_slta' => 'required|string|max:120',
+            'prov_slta' => 'required|string|max:60',
+            'wil_tmpt_tinggal' => 'required|string|max:120',
+            'jenis_pendaftaran' => 'required|string|max:20',
+            'status_lulus' => 'required|string|max:20',
+            'fak_lulus' => 'required|uuid',
+            'prodi_lulus' => 'required|uuid',
+            'kuota' => 'required|numeric',
+            'pil_lulus' => 'required|numeric|max:9',
+            'prodi_pilihan_1' => 'nullable|uuid',
+            'prodi_pilihan_2' => 'nullable|uuid',
+            'prodi_pilihan_3' => 'nullable|uuid',
+            'prodi_pilihan_4' => 'nullable|uuid',
+            'nilai_utbk' => 'nullable|numeric|max:999.99',
+            'nilai_wawancara' => 'nullable|numeric|max:999.99',
+        ]);
+
+        $id_pengumuman = $this->request->input('id_pengumuman');
+
+        $data = [
+            'id_thn_ajaran' => $this->request->input('id_thn_ajaran'),
+            'no_peserta' => $this->request->input('no_peserta'),
+            'nm_peserta' => $this->request->input('nm_peserta'),
+            'tgl_lahir' => $this->request->input('tgl_lahir'),
+            'jns_kelamin' => $this->request->input('jns_kelamin'),
+            'nm_slta' => $this->request->input('nm_slta'),
+            'prov_slta' => $this->request->input('prov_slta'),
+            'wil_tmpt_tinggal' => $this->request->input('wil_tmpt_tinggal'),
+            'jenis_pendaftaran' => $this->request->input('jenis_pendaftaran'),
+            'status_lulus' => $this->request->input('status_lulus'),
+            'fak_lulus' => $this->request->input('fak_lulus'),
+            'prodi_lulus' => $this->request->input('prodi_lulus'),
+            'kuota' => $this->request->input('kuota'),
+            'pil_lulus' => $this->request->input('pil_lulus'),
+            'prodi_pilihan_1' => $this->request->input('prodi_pilihan_1'),
+            'prodi_pilihan_2' => $this->request->input('prodi_pilihan_2'),
+            'prodi_pilihan_3' => $this->request->input('prodi_pilihan_3'),
+            'prodi_pilihan_4' => $this->request->input('prodi_pilihan_4'),
+            'nilai_utbk' => $this->request->input('nilai_utbk'),
+            'nilai_wawancara' => $this->request->input('nilai_wawancara'),
+            'last_sync' => currDateTime(),
+        ];
+
+        DB::beginTransaction();
+        try {
+            $affected = DB::table('temp_pmb.pengumuman')
+                ->where('id_pengumuman', $id_pengumuman)
+                ->where('soft_delete', 0)
+                ->update($data);
+
+            if ($affected == 0) {
+                throw new ModelNotFoundException('Data pengumuman tidak ditemukan atau tidak diubah');
+            }
+
+            DB::commit();
+            return WrapResponse([], 'sukses memperbarui pengumuman', TRUE);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
+            return WrapResponse(['data' => null], 'gagal memperbarui pengumuman', FALSE);
+        }
+    }
+
+    public function hapusPengumuman()
+    {
+        InputValidator([
+            'id_pengumuman' => 'required|uuid'
+        ]);
+
+        $id_pengumuman = $this->request->input('id_pengumuman');
+
+        DB::beginTransaction();
+        try {
+            $affected = DB::table('temp_pmb.pengumuman')
+                ->where('id_pengumuman', $id_pengumuman)
+                ->where('soft_delete', 0)
+                ->update([
+                    'soft_delete' => 1,
+                    'last_sync' => currDateTime()
+                ]);
+
+            if ($affected == 0) {
+                throw new ModelNotFoundException('Data pengumuman tidak ditemukan atau sudah dihapus');
+            }
+
+            DB::commit();
+            return WrapResponse([], 'sukses menghapus pengumuman', TRUE);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage() . ' on line ' . $e->getLine());
+            return WrapResponse(['data' => null], 'gagal menghapus pengumuman', FALSE);
+        }
+    }
+}

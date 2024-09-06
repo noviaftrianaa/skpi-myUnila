@@ -354,7 +354,7 @@ class MahasiswaController extends Controller
                 pdrd.peserta_didik AS pd WITH(NOLOCK)
                 JOIN pdrd.reg_pd AS reg WITH(NOLOCK) ON reg.id_pd = pd.id_pd
                 AND reg.id_sms = '" . $id_prodi . "'
-                AND reg.id_jns_keluar IS NULL
+                -- AND reg.id_jns_keluar IS NULL
                 AND reg.soft_delete = 0
                 JOIN ref.semester AS smt WITH(NOLOCK) ON smt.id_smt = reg.id_semester_masuk
                 AND smt.expired_date IS NULL
