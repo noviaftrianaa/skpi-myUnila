@@ -98,10 +98,8 @@
     <div class="card mb-4">
         <div class="tab-content pt-0">
             <div class="tab-pane fade show active" id="profil" role="tabpanel">
-                <div class="card-header">
-                    <h5>Pendidikan</h5>
-                </div>
                 <div class="card-body">
+                    <h5 class="card-title">Pendidikan</h5>
                     <ul>
                         @forelse ($pendidikan as $item)
                             <li>
@@ -114,10 +112,9 @@
                         @endforelse
                     </ul>
                 </div>
-                <div class="card-header">
-                    <h5>Sertifikasi</h5>
-                </div>
+                <hr class="m-0">
                 <div class="card-body">
+                    <h5 class="card-title">Sertifikasi</h5>
                     <ul>
                         @forelse ($sertifikasi as $item)
                             <li>
@@ -128,10 +125,9 @@
                         @endforelse
                     </ul>
                 </div>
-                <div class="card-header">
-                    <h5>Kepangkatan</h5>
-                </div>
+                <hr class="m-0">
                 <div class="card-body">
+                    <h5 class="card-title">Kepangkatan</h5>
                     <ul>
                         @forelse ($kepangkatan as $item)
                             <li>
@@ -143,10 +139,9 @@
                         @endforelse
                     </ul>
                 </div>
-                <div class="card-header">
-                    <h5>Jabatan Fungsional</h5>
-                </div>
+                <hr class="m-0">
                 <div class="card-body">
+                    <h5 class="card-title">Jabatan Fungsional</h5>
                     <ul>
                         @forelse ($jabfung as $item)
                             <li>
@@ -197,26 +192,24 @@
                     <h5>Penelitian</h5>
                 </div>
                 <div class="card-body">
-                    <ul>
+                    <ol>
                         @forelse ($penelitian as $item)
                             <li>
                                 <strong>{{ $item->judul_litabmas }} ({{ $item->id_thn_laks }})</strong>
                                 @php
-                                    $anggota = explode(',', $item->anggota);
-                                    $peran = explode(',', $item->peran);
+                                    $explode = explode(', ', $item->anggota);
+                                    rsort($explode);
+                                    $item->anggota = implode(', ', $explode);
                                 @endphp
-
-                                <p>
-                                    @for ($i = 0; $i < count($anggota); $i++)
-                                        {{ $peran[$i] ?? '-' == 'K' ? '(Ketua)' : '(Anggota)' }}
-                                        {{ $anggota[$i] ?? '-' }},
-                                    @endfor
-                                </p>
+                                <br>
+                                <small>
+                                    {{ $item->anggota }}
+                                </small>
                             </li>
                         @empty
                             <p>Tidak ada data</p>
                         @endforelse
-                    </ul>
+                    </ol>
                 </div>
             </div>
             <div class="tab-pane fade" id="publikasi" role="tabpanel">
@@ -224,26 +217,24 @@
                     <h5>Publikasi</h5>
                 </div>
                 <div class="card-body">
-                    <ul>
+                    <ol>
                         @forelse ($publikasi as $item)
                             <li>
                                 <strong>{{ $item->judul_litabmas }} ({{ $item->id_thn_laks }})</strong>
                                 @php
-                                    $anggota = explode(',', $item->anggota);
-                                    $peran = explode(',', $item->peran);
+                                    $explode = explode(', ', $item->anggota);
+                                    rsort($explode);
+                                    $item->anggota = implode(', ', $explode);
                                 @endphp
-
-                                <p>
-                                    @for ($i = 0; $i < count($anggota); $i++)
-                                        {{ $peran[$i] ?? '-' == 'K' ? '(Ketua)' : '(Anggota)' }}
-                                        {{ $anggota[$i] ?? '-' }},
-                                    @endfor
-                                </p>
+                                <br>
+                                <small>
+                                    {{ $item->anggota }}
+                                </small>
                             </li>
                         @empty
                             <p>Tidak ada data</p>
                         @endforelse
-                    </ul>
+                    </ol>
                 </div>
             </div>
             <div class="tab-pane fade" id="pengabdian" role="tabpanel">
@@ -251,26 +242,24 @@
                     <h5>Pengabdian</h5>
                 </div>
                 <div class="card-body">
-                    <ul>
+                    <ol>
                         @forelse ($pengabdian as $item)
                             <li>
                                 <strong>{{ $item->judul_litabmas }} ({{ $item->id_thn_laks }})</strong>
                                 @php
-                                    $anggota = explode(',', $item->anggota);
-                                    $peran = explode(',', $item->peran);
+                                    $explode = explode(', ', $item->anggota);
+                                    rsort($explode);
+                                    $item->anggota = implode(', ', $explode);
                                 @endphp
-
-                                <p>
-                                    @for ($i = 0; $i < count($anggota); $i++)
-                                        {{ $peran[$i] ?? '-' == 'K' ? '(Ketua)' : '(Anggota)' }}
-                                        {{ $anggota[$i] ?? '-' }},
-                                    @endfor
-                                </p>
+                                <br>
+                                <small>
+                                    {{ $item->anggota }}
+                                </small>
                             </li>
                         @empty
                             <p>Tidak ada data</p>
                         @endforelse
-                    </ul>
+                    </ol>
                 </div>
             </div>
             <div class="tab-pane fade" id="haki" role="tabpanel">
@@ -278,7 +267,7 @@
                     <h5>HAKI</h5>
                 </div>
                 <div class="card-body">
-                    <ul>
+                    <ol>
                         @forelse ($haki as $item)
                             <li>
                                 <strong>{{ $item->judul }} ({{ date('Y', strtotime($item->tgl_terbit)) }})</strong>
@@ -286,8 +275,8 @@
                                     $anggota = explode(',', $item->anggota);
                                     $peran = explode(',', $item->peran);
                                 @endphp
-
-                                <p>
+                                <br>
+                                <small>
                                     @for ($i = 0; $i < count($anggota); $i++)
                                         {{ $anggota[$i] ?? '-' }},
                                     @endfor
