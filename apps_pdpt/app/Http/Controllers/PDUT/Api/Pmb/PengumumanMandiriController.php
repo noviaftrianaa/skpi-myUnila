@@ -55,9 +55,6 @@ class PengumumanMandiriController extends Controller
                     prodi_pilihan_4,
                     nilai_utbk,
                     nilai_wawancara,
-                    create_date,
-                    id_creator,
-                    soft_delete,
                     last_sync
                 FROM
                     temp_pmb.pengumuman WITH(NOLOCK)
@@ -92,18 +89,18 @@ class PengumumanMandiriController extends Controller
         InputValidator([
             'id_thn_ajaran' => 'required|numeric',
             'no_peserta' => 'required|string|max:24',
-            'nm_peserta' => 'required|string|max:120',
+            'nm_peserta' => 'required|string',
             'tgl_lahir' => 'required|date',
             'jns_kelamin' => 'required|in:L,P',
-            'nm_slta' => 'required|string|max:120',
+            'nm_slta' => 'required|string',
             'prov_slta' => 'required|string|max:60',
-            'wil_tmpt_tinggal' => 'required|string|max:120',
-            'jenis_pendaftaran' => 'required|string|max:20',
-            'status_lulus' => 'required|string|max:20',
+            'wil_tmpt_tinggal' => 'required|string',
+            'jenis_pendaftaran' => 'required|string',
+            'status_lulus' => 'required|string',
             'fak_lulus' => 'required|uuid',
             'prodi_lulus' => 'required|uuid',
             'kuota' => 'required|numeric',
-            'pil_lulus' => 'required|numeric|max:9',
+            'pil_lulus' => 'required|numeric',
             'prodi_pilihan_1' => 'nullable|uuid',
             'prodi_pilihan_2' => 'nullable|uuid',
             'prodi_pilihan_3' => 'nullable|uuid',
@@ -112,8 +109,15 @@ class PengumumanMandiriController extends Controller
             'nilai_wawancara' => 'nullable|numeric|max:999.99',
         ]);
 
-        $id_pengumuman = guid();
         $creatorId = '26004417-6e92-463c-bf35-f741817121dc';
+
+        $existingData = DB::table('temp_pmb.pengumuman')
+            ->where('no_peserta', $this->request->input('no_peserta'))
+            ->where('id_thn_ajaran', $this->request->input('id_thn_ajaran'))
+            ->where('soft_delete', 0)
+            ->first();
+
+        $id_pengumuman = $existingData ? $existingData->id_pengumuman : guid();
 
         $data = [
             'id_pengumuman' => $id_pengumuman,
@@ -145,15 +149,23 @@ class PengumumanMandiriController extends Controller
 
         DB::beginTransaction();
         try {
-            DB::table('temp_pmb.pengumuman')->insert($data);
+            DB::table('temp_pmb.pengumuman')->updateOrInsert(
+                [
+                    'no_peserta' => $this->request->input('no_peserta'),
+                    'id_thn_ajaran' => $this->request->input('id_thn_ajaran')
+                ],
+                $data
+            );
+
             DB::commit();
-            return WrapResponse(array('data' => array('id_pengumuman' => $id_pengumuman)), 'sukses menambahkan pengumuman', TRUE);
+            return WrapResponse(['data' => ['id_pengumuman' => $id_pengumuman]], 'sukses menambahkan atau memperbarui pengumuman', TRUE);
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e->getMessage() . ' on line ' . $e->getLine());
-            return WrapResponse(['data' => null], 'gagal menambahkan pengumuman', FALSE);
+            return WrapResponse(['data' => null], 'gagal menambahkan atau memperbarui pengumuman', FALSE);
         }
     }
+
 
     public function ubahPengumuman()
     {
@@ -161,14 +173,14 @@ class PengumumanMandiriController extends Controller
             'id_pengumuman' => 'required|uuid',
             'id_thn_ajaran' => 'required|numeric',
             'no_peserta' => 'required|string|max:24',
-            'nm_peserta' => 'required|string|max:120',
+            'nm_peserta' => 'required|string',
             'tgl_lahir' => 'required|date',
             'jns_kelamin' => 'required|in:L,P',
-            'nm_slta' => 'required|string|max:120',
+            'nm_slta' => 'required|string',
             'prov_slta' => 'required|string|max:60',
-            'wil_tmpt_tinggal' => 'required|string|max:120',
-            'jenis_pendaftaran' => 'required|string|max:20',
-            'status_lulus' => 'required|string|max:20',
+            'wil_tmpt_tinggal' => 'required|string',
+            'jenis_pendaftaran' => 'required|string',
+            'status_lulus' => 'required|string',
             'fak_lulus' => 'required|uuid',
             'prodi_lulus' => 'required|uuid',
             'kuota' => 'required|numeric',
