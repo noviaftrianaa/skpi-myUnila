@@ -118,7 +118,6 @@ class PengumumanMandiriController extends Controller
             ->first();
 
         $id_pengumuman = $existingData ? $existingData->id_pengumuman : guid();
-
         $data = [
             'id_pengumuman' => $id_pengumuman,
             'id_thn_ajaran' => $this->request->input('id_thn_ajaran'),
@@ -135,10 +134,6 @@ class PengumumanMandiriController extends Controller
             'prodi_lulus' => $this->request->input('prodi_lulus'),
             'kuota' => $this->request->input('kuota'),
             'pil_lulus' => $this->request->input('pil_lulus'),
-            'prodi_pilihan_1' => $this->request->input('prodi_pilihan_1'),
-            'prodi_pilihan_2' => $this->request->input('prodi_pilihan_2'),
-            'prodi_pilihan_3' => $this->request->input('prodi_pilihan_3'),
-            'prodi_pilihan_4' => $this->request->input('prodi_pilihan_4'),
             'nilai_utbk' => $this->request->input('nilai_utbk'),
             'nilai_wawancara' => $this->request->input('nilai_wawancara'),
             'create_date' => currDateTime(),
@@ -146,6 +141,23 @@ class PengumumanMandiriController extends Controller
             'soft_delete' => 0,
             'last_sync' => currDateTime(),
         ];
+
+        $prodiPilihanFields = [
+            'prodi_pilihan_1',
+            'prodi_pilihan_2',
+            'prodi_pilihan_3',
+            'prodi_pilihan_4'
+        ];
+
+        foreach ($prodiPilihanFields as $field) {
+            $prodiValue = $this->request->input($field);
+            if ($prodiValue && !DB::table('pdrd.sms')->where('id_sms', $prodiValue)->exists()) {
+                $data[$field] = null;
+            } else {
+                $data[$field] = $prodiValue;
+            }
+        }
+
 
         DB::beginTransaction();
         try {
@@ -210,14 +222,26 @@ class PengumumanMandiriController extends Controller
             'prodi_lulus' => $this->request->input('prodi_lulus'),
             'kuota' => $this->request->input('kuota'),
             'pil_lulus' => $this->request->input('pil_lulus'),
-            'prodi_pilihan_1' => $this->request->input('prodi_pilihan_1'),
-            'prodi_pilihan_2' => $this->request->input('prodi_pilihan_2'),
-            'prodi_pilihan_3' => $this->request->input('prodi_pilihan_3'),
-            'prodi_pilihan_4' => $this->request->input('prodi_pilihan_4'),
             'nilai_utbk' => $this->request->input('nilai_utbk'),
             'nilai_wawancara' => $this->request->input('nilai_wawancara'),
             'last_sync' => currDateTime(),
         ];
+
+        $prodiPilihanFields = [
+            'prodi_pilihan_1',
+            'prodi_pilihan_2',
+            'prodi_pilihan_3',
+            'prodi_pilihan_4'
+        ];
+
+        foreach ($prodiPilihanFields as $field) {
+            $prodiValue = $this->request->input($field);
+            if ($prodiValue && !DB::table('pdrd.sms')->where('id_sms', $prodiValue)->exists()) {
+                $data[$field] = null;
+            } else {
+                $data[$field] = $prodiValue;
+            }
+        }
 
         DB::beginTransaction();
         try {
@@ -238,6 +262,7 @@ class PengumumanMandiriController extends Controller
             return WrapResponse(['data' => null], 'gagal memperbarui pengumuman', FALSE);
         }
     }
+
 
     public function hapusPengumuman()
     {
