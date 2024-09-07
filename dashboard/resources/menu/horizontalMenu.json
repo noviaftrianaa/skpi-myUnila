@@ -54,6 +54,12 @@
       "name": "Infografis",
       "icon": "menu-icon tf-icons ti ti-chart-infographic",
       "slug": "pages-infografis"
+    },
+    {
+        "url": "/pmb",
+        "name": "PMB Mandiri",
+        "icon": "menu-icon tf-icons ti ti-chart-pie",
+        "slug": "pages-pmb"
     }
   ]
 }

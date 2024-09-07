@@ -16,6 +16,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProgramStudiController;
 use App\Http\Controllers\DosenController;
 use App\Http\Controllers\KelulusanTepatWaktuController;
+use App\Http\Controllers\PmbMandiriController;
 use App\Http\Controllers\Main\sdm\DosenController as DosenSMSController;
 use App\Http\Controllers\Main\sdm\TendikController as TendikSMSController;
 use App\Http\Controllers\Main\perkuliahan\KurikulumController;
@@ -78,6 +79,10 @@ Route::get('/infografis/dosen', [InfografisController::class, 'dosen'])->name('p
 Route::get('/infografis/mahasiswa', [InfografisController::class, 'mahasiswa'])->name('pages-infografis-mahasiswa');
 Route::get('/infografis/pubHaki', [InfografisController::class, 'pubHaki'])->name('pages-infografis-pubHaki');
 Route::get('/infografis/litabmas', [InfografisController::class, 'litabmas'])->name('pages-infografis-litabmas');
+//pmb
+Route::get('/pmb', [PmbMandiriController::class, 'index'])->name('pages-pmb');
+Route::get('/pmb/data', [PmbMandiriController::class, 'data'])->name('pages-pmb-data');
+
 //Prodi
 Route::get('/prodi/{id}', [ProgramStudiController::class, 'index'])->name('pages-prodi');
 Route::get('/prodi/mahasiswa/{id}', [ProgramStudiController::class, 'mahasiswa'])->name('pages-prodi-mahasiswa');
