@@ -3,12 +3,34 @@
     <link rel="stylesheet" href="{{ asset('assets/vendor/libs/loading/overlay.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/vendor/libs/bootstrap-select/bootstrap-select.css') }}" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
 
     #chart-total-penerimaan,
     #chart-jenis-pendaftaran,
-    #chart-kategori-usia {
+    #chart-kategori-usia
+    #chart-jenis-kelamin
+    #chart-fakultas-prodi
+    #chart-top-prodi
+    #chart-nilai-utbk
+    #chart-nilai-wawancara
+    {
         height: 400px;
+    }
+    .card-shadow {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Bayangan lembut */
+        transition: box-shadow 0.3s ease-in-out;
+    }
+    .card-shadow:hover {
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Bayangan lebih dalam saat hover */
+    }
+    .custom-title {
+        font-family: 'Helvetica, Arial, sans-serif';
+        font-size: 18px;
+        font-weight: 900;
+        color: #373d3f;
+        text-align: center;
+        margin-bottom: 20px;
     }
 
     </style>
@@ -20,6 +42,7 @@
     <script src="{{ asset('assets/vendor/libs/bootstrap-select/bootstrap-select.js') }}"></script>
     <script src="{{ asset('assets/vendor/libs/apex-charts/apexcharts.js') }}"></script>
     <script src="{{ asset('assets/vendor/libs/moment/moment.js') }}"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 @endsection
 
 @section('page-script')
@@ -33,6 +56,7 @@
     @include('content.pages.pmb.dashboard.chart.fakultas-prodi')
     @include('content.pages.pmb.dashboard.chart.top-prodi')
     @include('content.pages.pmb.dashboard.chart.kategori-nilai')
+    @include('content.pages.pmb.dashboard.chart.sebaran-wilayah')
 
     <script type="text/javascript">
         'use strict';
@@ -54,6 +78,7 @@
                         renderFakultasChart(data);
                         renderTopProdiChart(data);
                         renderNilaiChart(data);
+                        renderSebaranWilayah(data);
                     },
                     error: function (xhr, status, error) {
                         console.error('Error fetching data:', error);

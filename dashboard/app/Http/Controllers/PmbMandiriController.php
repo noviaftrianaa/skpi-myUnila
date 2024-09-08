@@ -35,6 +35,7 @@ class PmbMandiriController extends Controller
         $topProdiData = Pengumuman::getTopProdiData($tahun);
         $rataRataData = Pengumuman::getRataRataData($tahun);
         $nilaiData = Pengumuman::getNilaiData($tahun);
+        $wilayahData = Pengumuman::getWilayahData($tahun);
 
         $formattedData = [
             'status' => [
@@ -73,7 +74,8 @@ class PmbMandiriController extends Controller
             'kategori_nilai' => [
                 'utbk' => [],
                 'wawancara' => []
-            ]
+            ],
+            'wilayah' => []
         ];
 
         foreach ($statusData as $row) {
@@ -108,19 +110,28 @@ class PmbMandiriController extends Controller
         }
 
         foreach ($nilaiData as $row) {
-            // UTBK
             $formattedData['kategori_nilai']['utbk'][] = [
                 'kategori_nilai' => $row->kategori_nilai_utbk,
                 'total_peserta' => $row->total_peserta
             ];
-
-            // Wawancara
             $formattedData['kategori_nilai']['wawancara'][] = [
                 'kategori_nilai' => $row->kategori_nilai_wawancara,
                 'total_peserta' => $row->total_peserta
             ];
         }
 
+        foreach ($wilayahData as $row) {
+            if ($row->lat && $row->lon) {
+                $formattedData['wilayah'][] = [
+                    'name' => $row->wilayah,
+                    'total' => $row->total_peserta,
+                    'lat' => $row->lat,
+                    'lon' => $row->lon
+                ];
+            }
+        }
+
         return response()->json($formattedData);
     }
+
 }

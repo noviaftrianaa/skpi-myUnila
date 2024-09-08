@@ -179,4 +179,24 @@ class Pengumuman extends Model
         ", [$tahun]);
     }
 
+    public static function getWilayahData($tahun)
+    {
+        return DB::select("
+            SELECT
+                pmb.wil_tmpt_tinggal AS wilayah,
+                pmb.lat,
+                pmb.lon,
+                COUNT(pmb.no_peserta) AS total_peserta
+            FROM temp_pmb.pengumuman AS pmb
+            WHERE pmb.soft_delete = 0
+            AND pmb.id_thn_ajaran = ?
+            GROUP BY
+                pmb.wil_tmpt_tinggal,
+                pmb.lat,
+                pmb.lon
+            ORDER BY
+                total_peserta DESC
+        ", [$tahun]);
+    }
+
 }

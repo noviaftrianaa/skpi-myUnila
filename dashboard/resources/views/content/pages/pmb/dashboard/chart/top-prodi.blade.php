@@ -65,7 +65,7 @@
                     bar: {
                         horizontal: true,
                         dataLabels: {
-                            position: 'right'
+                            position: 'top'
                         }
                     }
                 },
@@ -74,7 +74,7 @@
                     style: {
                         colors: ['#000']
                     },
-                    offsetX: 10,
+                    offsetX: 20,
                 },
                 colors: randomColors,
                 series: [

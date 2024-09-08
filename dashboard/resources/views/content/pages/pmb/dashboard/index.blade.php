@@ -37,17 +37,17 @@
                         </div>
                     </div>
 
-                    <div class="container">
+                    <div class="container mt-5">
                         <div class="row equal-height">
                             <div class="col-md-6 col-12 mb-3 mt-3">
-                                <div class="card h-100">
+                                <div class="card-shadow h-100">
                                     <div class="card-body">
                                         <div id="chart-total-penerimaan"></div>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-6 col-12 mb-3 mt-3">
-                                <div class="card h-100">
+                                <div class="card-shadow h-100">
                                     <div class="card-body">
                                         <div id="chart-jenis-pendaftaran"></div>
                                     </div>
@@ -56,14 +56,14 @@
                         </div>
                         <div class="row equal-height">
                             <div class="col-md-6 col-12 mb-3 mt-3">
-                                <div class="card h-100">
+                                <div class="card-shadow h-100">
                                     <div class="card-body">
                                         <div id="chart-kategori-usia"></div>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-6 col-12 mb-3 mt-3">
-                                <div class="card h-100">
+                                <div class="card-shadow h-100">
                                     <div class="card-body">
                                         <div id="chart-jenis-kelamin"></div>
                                     </div>
@@ -72,14 +72,14 @@
                         </div>
                         <div class="row equal-height">
                             <div class="col-md-6 col-12 mb-3 mt-3">
-                                <div class="card h-100">
+                                <div class="card-shadow h-100">
                                     <div class="card-body">
                                         <div id="chart-fakultas-prodi"></div>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-6 col-12 mb-3 mt-3">
-                                <div class="card h-100">
+                                <div class="card-shadow h-100">
                                     <div class="card-body">
                                         <div id="chart-top-prodi"></div>
                                     </div>
@@ -88,16 +88,26 @@
                         </div>
                         <div class="row equal-height">
                             <div class="col-md-6 col-12 mb-3 mt-3">
-                                <div class="card h-100">
+                                <div class="card-shadow h-100">
                                     <div class="card-body">
                                         <div id="chart-nilai-utbk"></div>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-6 col-12 mb-3 mt-3">
-                                <div class="card h-100">
+                                <div class="card-shadow h-100">
                                     <div class="card-body">
                                         <div id="chart-nilai-wawancara"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row equal-height">
+                            <div class="col-md-12 col-12 mb-3 mt-3">
+                                <div class="card-shadow h-100">
+                                    <div class="card-body">
+                                        <h4 class="custom-title">Sebaran Wilayah Peserta</h4>
+                                        <div id="sebaran-wilayah" style="height: 500px; width: 100%;"></div>
                                     </div>
                                 </div>
                             </div>
