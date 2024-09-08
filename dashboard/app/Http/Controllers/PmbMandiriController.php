@@ -31,6 +31,10 @@ class PmbMandiriController extends Controller
         $usiaData = Pengumuman::getUsiaData($tahun);
         $jenisPendaftaranData = Pengumuman::getJenisPendaftaranData($tahun);
         $jenisKelaminData = Pengumuman::getJenisKelaminData($tahun);
+        $fakultasData = Pengumuman::getFakultasData($tahun);
+        $topProdiData = Pengumuman::getTopProdiData($tahun);
+        $rataRataData = Pengumuman::getRataRataData($tahun);
+        $nilaiData = Pengumuman::getNilaiData($tahun);
 
         $formattedData = [
             'status' => [
@@ -49,6 +53,26 @@ class PmbMandiriController extends Controller
             'jenis_kelamin' => [
                 'categories' => [],
                 'total' => []
+            ],
+            'fakultas' => [
+                'categories' => [],
+                'total' => []
+            ],
+            'top_prodi' => [
+                'categories' => [],
+                'total' => []
+            ],
+            'rata_rata_nilai' => [
+                'max_nilai_utbk' => $rataRataData[0]->max_nilai_utbk,
+                'avg_nilai_utbk' => $rataRataData[0]->avg_nilai_utbk,
+                'min_nilai_utbk' => $rataRataData[0]->min_nilai_utbk,
+                'max_nilai_wawancara' => $rataRataData[0]->max_nilai_wawancara,
+                'avg_nilai_wawancara' => $rataRataData[0]->avg_nilai_wawancara,
+                'min_nilai_wawancara' => $rataRataData[0]->min_nilai_wawancara,
+            ],
+            'kategori_nilai' => [
+                'utbk' => [],
+                'wawancara' => []
             ]
         ];
 
@@ -71,6 +95,30 @@ class PmbMandiriController extends Controller
         foreach ($jenisKelaminData as $row) {
             $formattedData['jenis_kelamin']['categories'][] = $row->jns_kelamin;
             $formattedData['jenis_kelamin']['total'][] = $row->total;
+        }
+
+        foreach ($fakultasData as $row) {
+            $formattedData['fakultas']['categories'][] = $row->nama_fakultas;
+            $formattedData['fakultas']['total'][] = $row->total;
+        }
+
+        foreach ($topProdiData as $row) {
+            $formattedData['top_prodi']['categories'][] = $row->nm_prodi_lulus;
+            $formattedData['top_prodi']['total'][] = $row->total;
+        }
+
+        foreach ($nilaiData as $row) {
+            // UTBK
+            $formattedData['kategori_nilai']['utbk'][] = [
+                'kategori_nilai' => $row->kategori_nilai_utbk,
+                'total_peserta' => $row->total_peserta
+            ];
+
+            // Wawancara
+            $formattedData['kategori_nilai']['wawancara'][] = [
+                'kategori_nilai' => $row->kategori_nilai_wawancara,
+                'total_peserta' => $row->total_peserta
+            ];
         }
 
         return response()->json($formattedData);

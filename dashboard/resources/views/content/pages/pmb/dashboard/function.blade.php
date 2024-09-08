@@ -30,6 +30,9 @@
     @include('content.pages.pmb.dashboard.chart.jenis-pendaftaran')
     @include('content.pages.pmb.dashboard.chart.kategori-usia')
     @include('content.pages.pmb.dashboard.chart.jenis-kelamin')
+    @include('content.pages.pmb.dashboard.chart.fakultas-prodi')
+    @include('content.pages.pmb.dashboard.chart.top-prodi')
+    @include('content.pages.pmb.dashboard.chart.kategori-nilai')
 
     <script type="text/javascript">
         'use strict';
@@ -48,6 +51,9 @@
                         renderJenisPendaftaranChart(data);
                         renderKategoriUsiaChart(data);
                         renderJenisKelaminChart(data);
+                        renderFakultasChart(data);
+                        renderTopProdiChart(data);
+                        renderNilaiChart(data);
                     },
                     error: function (xhr, status, error) {
                         console.error('Error fetching data:', error);
