@@ -4,9 +4,7 @@
 @section('title', $title)
 
 @section('content')
-    <!-- Chart -->
     <div class="row">
-
         <div class="col-12 mb-4">
             <div class="card">
                 <div
@@ -38,27 +36,45 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-body">
-                                    <div id="chart-status"></div>
+
+                    <div class="container">
+                        <div class="row equal-height">
+                            <div class="col-md-6 col-12 mb-3 mt-3">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div id="chart-total-penerimaan"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-12 mb-3 mt-3">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div id="chart-jenis-pendaftaran"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-body">
-                                    <div id="chart-age"></div>
+                        <div class="row equal-height">
+                            <div class="col-md-6 col-12 mb-3 mt-3">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div id="chart-kategori-usia"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-12 mb-3 mt-3">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div id="chart-jenis-kelamin"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="border-bottom"></div>
+
                 </div>
             </div>
         </div>
     </div>
-
 @endsection
+

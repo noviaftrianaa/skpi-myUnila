@@ -1,12 +1,12 @@
 <script type="text/javascript">
-    function renderAgeChart(data) {
-        var ageData = {
-            categories: data.age.categories,
-            total: data.age.total
+    function renderKategoriUsiaChart(data) {
+        var usiaData = {
+            categories: data.kategori_usia.categories,
+            total: data.kategori_usia.total
         };
 
-        var combinedData = ageData.categories.map(function(category, index) {
-            return { category: category, total: ageData.total[index] };
+        var combinedData = usiaData.categories.map(function(category, index) {
+            return { category: category, total: usiaData.total[index] };
         });
 
         combinedData.sort(function(a, b) {
@@ -20,53 +20,94 @@
         var sortedTotals = combinedData.map(function(item) {
             return item.total;
         });
+        const randomColors = generateRandomColors(data.kategori_usia.categories.length);
 
-        var optionsAge = {
-            chart: {
-                type: 'bar',
-                height: 400
-            },
-            title: {
-                text: 'Rata-Rata Usia',
-                align: "center"
-            },
-            xaxis: {
-                categories: sortedCategories,
-                labels: {
-                    rotate: 0
-                }
-            },
-            plotOptions: {
-                bar: {
-                    dataLabels: {
-                        position: 'top',
-                    }
-                }
-            },
-            dataLabels: {
-                enabled: true,
-                style: {
-                    colors: ['#000']
+        if (window.chartUsia) {
+            window.chartUsia.updateOptions({
+                xaxis: {
+                    categories: sortedCategories
                 },
-                offsetY: -20,
-            },
-            colors: ['#17a2b8'],
-            series: [
-                {
-                    name: 'Jumlah',
-                    data: sortedTotals
-                }
-            ],
-            tooltip: {
-                y: {
-                    formatter: function (val) {
-                        return val + " peserta";
+                series: [
+                    {
+                        name: 'Jumlah',
+                        data: sortedTotals
+                    }
+                ]
+            });
+        } else {
+            var optionsAge = {
+                chart: {
+                    type: 'bar',
+                    height: 400,
+                    toolbar: {
+                        show: true,
+                        tools: {
+                            download: true,
+                            selection: false,
+                            zoom: false,
+                            zoomin: false,
+                            zoomout: false,
+                            pan: false,
+                            reset: false,
+                        },
+                        export: {
+                            csv: {
+                                filename: 'kategori_usia',
+                                columnDelimiter: ',',
+                                headerCategory: 'Kategori',
+                                headerValue: 'Total',
+                            },
+                            svg: {
+                                filename: 'kategori_usia'
+                            },
+                            png: {
+                                filename: 'kategori_usia'
+                            }
+                        }
+                    },
+                },
+                title: {
+                    text: 'Rata-Rata Usia',
+                    align: "center"
+                },
+                xaxis: {
+                    categories: sortedCategories,
+                    labels: {
+                        rotate: 0
+                    }
+                },
+                plotOptions: {
+                    bar: {
+                        dataLabels: {
+                            position: 'top',
+                        }
+                    }
+                },
+                dataLabels: {
+                    enabled: true,
+                    style: {
+                        colors: ['#000']
+                    },
+                    offsetY: -20,
+                },
+                colors:randomColors,
+                series: [
+                    {
+                        name: 'Jumlah',
+                        data: sortedTotals
+                    }
+                ],
+                tooltip: {
+                    y: {
+                        formatter: function (val) {
+                            return val + " peserta";
+                        }
                     }
                 }
-            }
-        };
+            };
 
-        var chartAge = new ApexCharts(document.querySelector("#chart-age"), optionsAge);
-        chartAge.render();
+            window.chartUsia = new ApexCharts(document.querySelector("#chart-kategori-usia"), optionsAge);
+            window.chartUsia.render();
+        }
     }
 </script>

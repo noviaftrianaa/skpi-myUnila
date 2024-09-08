@@ -28,7 +28,9 @@ class PmbMandiriController extends Controller
         $tahun = $request->tahun ?? get_tahun_keaktifan();
 
         $statusData = Pengumuman::getStatusData($tahun);
-        $ageData = Pengumuman::getAgeData($tahun);
+        $usiaData = Pengumuman::getUsiaData($tahun);
+        $jenisPendaftaranData = Pengumuman::getJenisPendaftaranData($tahun);
+        $jenisKelaminData = Pengumuman::getJenisKelaminData($tahun);
 
         $formattedData = [
             'status' => [
@@ -36,7 +38,15 @@ class PmbMandiriController extends Controller
                 'lulus' => [],
                 'tidak_lulus' => []
             ],
-            'age' => [
+            'jenis_pendaftaran' => [
+                'categories' => [],
+                'total' => []
+            ],
+            'kategori_usia' => [
+                'categories' => [],
+                'total' => []
+            ],
+            'jenis_kelamin' => [
                 'categories' => [],
                 'total' => []
             ]
@@ -48,9 +58,19 @@ class PmbMandiriController extends Controller
             $formattedData['status']['tidak_lulus'][] = $row->tidak_lulus;
         }
 
-        foreach ($ageData as $row) {
-            $formattedData['age']['categories'][] = $row->usia_kategori;
-            $formattedData['age']['total'][] = $row->total;
+        foreach ($jenisPendaftaranData as $row) {
+            $formattedData['jenis_pendaftaran']['categories'][] = $row->jenis_pendaftaran;
+            $formattedData['jenis_pendaftaran']['total'][] = $row->total;
+        }
+
+        foreach ($usiaData as $row) {
+            $formattedData['kategori_usia']['categories'][] = $row->kategori_usia;
+            $formattedData['kategori_usia']['total'][] = $row->total;
+        }
+
+        foreach ($jenisKelaminData as $row) {
+            $formattedData['jenis_kelamin']['categories'][] = $row->jns_kelamin;
+            $formattedData['jenis_kelamin']['total'][] = $row->total;
         }
 
         return response()->json($formattedData);

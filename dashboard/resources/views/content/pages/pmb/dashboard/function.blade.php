@@ -3,6 +3,15 @@
     <link rel="stylesheet" href="{{ asset('assets/vendor/libs/loading/overlay.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/vendor/libs/bootstrap-select/bootstrap-select.css') }}" />
+    <style>
+
+    #chart-total-penerimaan,
+    #chart-jenis-pendaftaran,
+    #chart-kategori-usia {
+        height: 400px;
+    }
+
+    </style>
 @endsection
 
 @section('vendor-script')
@@ -16,14 +25,17 @@
 @section('page-script')
     <script src="{{ asset('assets/js/forms-selects.js') }}"></script>
 
-    @include('content.pages.pmb.dashboard.chart.status-lulus')
+    @include('content.pages.pmb.dashboard.chart.random-color')
+    @include('content.pages.pmb.dashboard.chart.total-penerimaan')
+    @include('content.pages.pmb.dashboard.chart.jenis-pendaftaran')
     @include('content.pages.pmb.dashboard.chart.kategori-usia')
+    @include('content.pages.pmb.dashboard.chart.jenis-kelamin')
 
     <script type="text/javascript">
         'use strict';
 
         $(document).ready(function () {
-            function fetchDataByYear(year) {
+            function fetchData(year) {
                 $('#loading').show();
 
                 $.ajax({
@@ -33,7 +45,9 @@
                     success: function (data) {
                         $('#loading').hide();
                         renderStatusChart(data);
-                        renderAgeChart(data);
+                        renderJenisPendaftaranChart(data);
+                        renderKategoriUsiaChart(data);
+                        renderJenisKelaminChart(data);
                     },
                     error: function (xhr, status, error) {
                         console.error('Error fetching data:', error);
@@ -43,11 +57,11 @@
             }
 
             const initialYear = $('#periodeTahun').val();
-            fetchDataByYear(initialYear);
+            fetchData(initialYear);
 
             $('#periodeTahun').change(function () {
                 const selectedYear = $(this).val();
-                fetchDataByYear(selectedYear);
+                fetchData(selectedYear);
             });
         });
     </script>

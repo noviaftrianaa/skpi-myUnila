@@ -29,7 +29,20 @@ class Pengumuman extends Model
 
     }
 
-    public static function getAgeData($tahun)
+    public static function getJenisPendaftaranData($tahun)
+    {
+        return DB::select("
+            SELECT
+                pmb.jenis_pendaftaran,
+                COUNT(*) AS total
+            FROM temp_pmb.pengumuman AS pmb WITH(NOLOCK)
+            WHERE pmb.soft_delete = 0
+            AND pmb.id_thn_ajaran = ?
+            GROUP BY pmb.jenis_pendaftaran
+        ", [$tahun]);
+    }
+
+    public static function getUsiaData($tahun)
     {
         return DB::select("
             SELECT
@@ -38,9 +51,9 @@ class Pengumuman extends Model
                     WHEN AgeCalc.age BETWEEN 18 AND 19 THEN '18-19'
                     WHEN AgeCalc.age BETWEEN 20 AND 21 THEN '20-21'
                     ELSE '> 21'
-                END AS usia_kategori,
+                END AS kategori_usia,
                 COUNT(*) AS total
-            FROM temp_pmb.pengumuman AS pmb
+            FROM temp_pmb.pengumuman AS pmb WITH(NOLOCK)
                 CROSS APPLY (
             SELECT CAST(pmb.id_thn_ajaran AS INT) - YEAR(pmb.tgl_lahir) AS age
         ) AS AgeCalc
@@ -52,6 +65,22 @@ class Pengumuman extends Model
                 WHEN AgeCalc.age BETWEEN 20 AND 21 THEN '20-21'
                 ELSE '> 21'
             END
+        ", [$tahun]);
+    }
+
+    public static function getJenisKelaminData($tahun)
+    {
+        return DB::select("
+            SELECT
+                CASE
+                    WHEN pmb.jns_kelamin = 'L' THEN 'Laki-laki'
+                    WHEN pmb.jns_kelamin = 'P' THEN 'Perempuan'
+                END AS jns_kelamin,
+                COUNT(*) AS total
+            FROM temp_pmb.pengumuman AS pmb WITH(NOLOCK)
+            WHERE pmb.soft_delete = 0
+            AND pmb.id_thn_ajaran = ?
+            GROUP BY pmb.jns_kelamin
         ", [$tahun]);
     }
 }
