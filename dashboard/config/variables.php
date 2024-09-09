@@ -1,14 +1,14 @@
 <?php
 // Variables
 return [
-  'creatorName' => 'Pixinvent',
-  'creatorUrl' => 'https://pixinvent.com',
-  'templateName' => 'My-UNILA',
+  'creatorName' => 'MyUnila',
+  'creatorUrl' => 'https://tik.unila.ac.id',
+  'templateName' => 'MyUnila',
   'templateSuffix' => 'Dashboard Universitas Lampung',
   'templateVersion' => '1.0.0',
   'templateFree' => false,
-  'templateDescription' => 'Start your development with a Dashboard for Bootstrap 5',
-  'templateKeyword' => 'dashboard, bootstrap 5 dashboard, bootstrap 5 design, bootstrap 5',
+  'templateDescription' => 'MyUnila Dashboard',
+  'templateKeyword' => 'dashboard, myunila, universitas lampung',
   'licenseUrl' => 'https://themeforest.net/licenses/standard',
   'livePreview' => 'https://demos.pixinvent.com/vuexy-html-admin-template/landing/',
   'productPage' => 'https://1.envato.market/vuexy_admin',
@@ -26,7 +26,7 @@ return [
   'githubUrl' => 'https://github.com/pixinvent',
   'dribbbleUrl' => 'https://dribbble.com/pixinvent',
   'instagramUrl' => 'https://www.instagram.com/pixinvents/',
-  'appName' => 'My-UNILA',
+  'appName' => 'MyUnila',
   'unitName' => 'UPT TIK',
   'unitUrl' => 'https://tik.unila.ac.id',
 ];
