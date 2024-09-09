@@ -2,7 +2,14 @@
     'use strict';
 
     function renderSebaranWilayah(data) {
+
+        if (window.mapSebaranWilayah) {
+            window.mapSebaranWilayah.remove();
+        }
+
         var map = L.map('sebaran-wilayah').setView([-0.789275, 113.921327], 5);
+
+        window.mapSebaranWilayah = map;
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
