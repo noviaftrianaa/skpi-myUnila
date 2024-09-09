@@ -32,7 +32,16 @@
         text-align: center;
         margin-bottom: 20px;
     }
-
+    @media (max-width: 768px) {
+        .row {
+            margin-right: 0;
+            margin-left: 0;
+        }
+        .col-12 {
+            padding-right: 0;
+            padding-left: 0;
+        }
+    }
     </style>
 @endsection
 

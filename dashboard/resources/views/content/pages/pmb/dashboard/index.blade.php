@@ -37,7 +37,7 @@
                         </div>
                     </div>
 
-                    <div class="container mt-5">
+                    <div class="container-fluid mt-5">
                         <div class="row equal-height">
                             <div class="col-md-6 col-12 mb-3 mt-3">
                                 <div class="card-shadow h-100">
@@ -112,6 +112,9 @@
                                 </div>
                             </div>
                         </div>
+                        <p class="alert alert-secondary mt-3 text-center">
+                            Sinkronisasi data terakhir (sumber : mandiri.unila.ac.id): {{ TglWaktuIndonesia(\DB::table('temp_pmb.pengumuman')->select('last_sync')->orderByDesc('last_sync')->pluck('last_sync')[0] ?? now()) }}
+                        </p>
                     </div>
 
                 </div>
