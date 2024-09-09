@@ -89,7 +89,7 @@
                             return val + " peserta";
                         }
                     }
-                },
+                }
             };
 
             window.chartFakultas = new ApexCharts(document.querySelector("#chart-fakultas-prodi"), optionsFakultas);

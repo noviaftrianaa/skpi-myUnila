@@ -41,6 +41,9 @@
             padding-right: 0;
             padding-left: 0;
         }
+        .apexcharts-toolbar {
+            display: none !important;
+        }
     }
     </style>
 @endsection
