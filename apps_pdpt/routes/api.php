@@ -304,10 +304,10 @@ Route::group([
             Route::post('tambah_pengumuman', 'PengumumanMandiriController@tambahPengumuman');
             Route::put('ubah_pengumuman', 'PengumumanMandiriController@ubahPengumuman');
             Route::delete('hapus_pengumuman', 'PengumumanMandiriController@hapusPengumuman');
-            Route::get('list_minat_prodi', 'MinatProdiMandiriController@getAllMintaProdi');
-            Route::post('tambah_minat_prodi', 'MinatProdiMandiriController@tambahMintaProdi');
-            Route::put('ubah_minat_prodi', 'MinatProdiMandiriController@ubahMintaProdi');
-            Route::delete('hapus_minat_prodi', 'MinatProdiMandiriController@hapusMintaProdi');
+            Route::get('list_minat_prodi', 'MinatProdiMandiriController@getAllMinatProdi');
+            Route::post('tambah_minat_prodi', 'MinatProdiMandiriController@tambahMinatProdi');
+            Route::put('ubah_minat_prodi', 'MinatProdiMandiriController@ubahMinatProdi');
+            Route::delete('hapus_minat_prodi', 'MinatProdiMandiriController@hapusMinatProdi');
         });
 
         Route::group([
