@@ -83,10 +83,16 @@ class MinatProdiMandiriController extends Controller
         ]);
 
         $creatorId = '26004417-6e92-463c-bf35-f741817121dc';
+        $id_prodi = $this->request->input('id_prodi');
+
+        $prodiExists = DB::table('pdrd.sms')->where('id_sms', $id_prodi)->exists();
+        if (!$prodiExists) {
+            return WrapResponse(['data' => null], 'ID Prodi tidak ditemukan di tabel pdrd.sms', FALSE);
+        }
 
         $existingData = DB::table('temp_pmb.minat_prodi')
             ->where('id_thn_ajaran', $this->request->input('id_thn_ajaran'))
-            ->where('id_prodi', $this->request->input('id_prodi'))
+            ->where('id_prodi', $id_prodi)
             ->where('soft_delete', 0)
             ->first();
 
@@ -94,7 +100,7 @@ class MinatProdiMandiriController extends Controller
         $data = [
             'id_minat_prodi' => $id_minat_prodi,
             'id_thn_ajaran' => $this->request->input('id_thn_ajaran'),
-            'id_prodi' => $this->request->input('id_prodi'),
+            'id_prodi' => $id_prodi,
             'kategori' => $this->request->input('kategori'),
             'jml_peminat' => $this->request->input('jml_peminat'),
             'create_date' => currDateTime(),
@@ -110,17 +116,17 @@ class MinatProdiMandiriController extends Controller
             DB::table('temp_pmb.minat_prodi')->updateOrInsert(
                 [
                     'id_thn_ajaran' => $this->request->input('id_thn_ajaran'),
-                    'id_prodi' => $this->request->input('id_prodi')
+                    'id_prodi' => $id_prodi
                 ],
                 $data
             );
 
             DB::commit();
-            return WrapResponse(['data' => ['id_minat_prodi' => $id_minat_prodi]], 'sukses menambahkan atau memperbarui minat prodi', TRUE);
+            return WrapResponse(['data' => ['id_minat_prodi' => $id_minat_prodi]], 'Sukses menambahkan atau memperbarui minat prodi', TRUE);
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e->getMessage() . ' on line ' . $e->getLine());
-            return WrapResponse(['data' => null], 'gagal menambahkan atau memperbarui minat prodi', FALSE);
+            return WrapResponse(['data' => null], 'Gagal menambahkan atau memperbarui minat prodi', FALSE);
         }
     }
 
@@ -135,10 +141,17 @@ class MinatProdiMandiriController extends Controller
         ]);
 
         $id_minat_prodi = $this->request->input('id_minat_prodi');
+        $id_prodi = $this->request->input('id_prodi');
+
+        // Pengecekan apakah id_prodi ada di tabel pdrd.sms
+        $prodiExists = DB::table('pdrd.sms')->where('id_sms', $id_prodi)->exists();
+        if (!$prodiExists) {
+            return WrapResponse(['data' => null], 'ID Prodi tidak ditemukan di tabel pdrd.sms', FALSE);
+        }
 
         $data = [
             'id_thn_ajaran' => $this->request->input('id_thn_ajaran'),
-            'id_prodi' => $this->request->input('id_prodi'),
+            'id_prodi' => $id_prodi,
             'kategori' => $this->request->input('kategori'),
             'jml_peminat' => $this->request->input('jml_peminat'),
             'last_update' => currDateTime(),
@@ -158,13 +171,14 @@ class MinatProdiMandiriController extends Controller
             }
 
             DB::commit();
-            return WrapResponse([], 'sukses memperbarui minat prodi', TRUE);
+            return WrapResponse([], 'Sukses memperbarui minat prodi', TRUE);
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e->getMessage() . ' on line ' . $e->getLine());
-            return WrapResponse(['data' => null], 'gagal memperbarui minat prodi', FALSE);
+            return WrapResponse(['data' => null], 'Gagal memperbarui minat prodi', FALSE);
         }
     }
+
 
     public function hapusMinatProdi()
     {
