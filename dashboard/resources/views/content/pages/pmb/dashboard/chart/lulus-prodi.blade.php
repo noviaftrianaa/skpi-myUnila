@@ -1,29 +1,29 @@
 <script type="text/javascript">
-    function renderTopProdiChart(data) {
-        var topProdiData = {
-            categories: data.top_prodi.categories,
-            total: data.top_prodi.total
+    function renderLulusProdiChart(data) {
+        var lulusProdiData = {
+            categories: data.lulus_prodi.categories,
+            total: data.lulus_prodi.total
         };
 
-        const randomColors = generateRandomColors(topProdiData.categories.length);
+        const randomColors = generateRandomColors(lulusProdiData.categories.length);
 
-        if (window.chartTopProdi) {
-            window.chartTopProdi.updateOptions({
+        if (window.chartLulusProdi) {
+            window.chartLulusProdi.updateOptions({
                 xaxis: {
-                    categories: topProdiData.categories
+                    categories: lulusProdiData.categories
                 },
                 series: [
                     {
-                        name: 'Jumlah Lulus',
-                        data: topProdiData.total
+                        name: 'Jumlah Peserta Lulus',
+                        data: lulusProdiData.total
                     }
                 ]
             });
         } else {
-            var optionsTopProdi = {
+            var optionsLulusProdi = {
                 chart: {
                     type: 'bar',
-                    height: 400,
+                    height: lulusProdiData.categories.length * 30,
                     toolbar: {
                         show: true,
                         tools: {
@@ -50,13 +50,14 @@
                             }
                         }
                     },
+                    parentHeightOffset: 0
                 },
                 title: {
-                    text: 'Top 10 Prodi Minat Tebanyak',
+                    text: 'Jumlah Peserta Lulus per Prodi',
                     align: "center"
                 },
                 xaxis: {
-                    categories: topProdiData.categories,
+                    categories: lulusProdiData.categories,
                     labels: {
                         rotate: 0
                     }
@@ -79,8 +80,8 @@
                 colors: randomColors,
                 series: [
                     {
-                        name: 'Jumlah Lulus',
-                        data: topProdiData.total
+                        name: 'Jumlah Peserta Lulus',
+                        data: lulusProdiData.total
                     }
                 ],
                 tooltip: {
@@ -92,8 +93,8 @@
                 }
             };
 
-            window.chartTopProdi = new ApexCharts(document.querySelector("#chart-top-prodi"), optionsTopProdi);
-            window.chartTopProdi.render();
+            window.chartLulusProdi = new ApexCharts(document.querySelector("#chart-lulus-prodi"), optionsLulusProdi);
+            window.chartLulusProdi.render();
         }
     }
 </script>

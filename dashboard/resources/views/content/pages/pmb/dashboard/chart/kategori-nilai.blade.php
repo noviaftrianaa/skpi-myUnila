@@ -65,7 +65,7 @@
                 },
             },
             title: {
-                text: 'Perbandingan Nilai UTBK',
+                text: 'Perbandingan Nilai Peserta UTBK',
                 align: "center"
             },
             xaxis: {
@@ -155,7 +155,7 @@
                 },
             },
             title: {
-                text: 'Perbandingan Nilai Wawancara',
+                text: 'Perbandingan Nilai Peserta Wawancara',
                 align: "center"
             },
             xaxis: {

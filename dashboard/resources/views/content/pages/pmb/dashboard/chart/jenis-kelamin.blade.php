@@ -41,7 +41,7 @@
                     },
                 },
                 title: {
-                    text: 'Jenis Kelamin',
+                    text: 'Jenis Kelamin Pendaftar',
                     align: "center",
                     floating: false,
                     offsetY: 0

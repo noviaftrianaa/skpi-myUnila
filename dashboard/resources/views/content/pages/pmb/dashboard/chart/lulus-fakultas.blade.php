@@ -1,26 +1,26 @@
 <script type="text/javascript">
-    function renderFakultasChart(data) {
-        var fakultasData = {
-            categories: data.fakultas.categories,
-            total: data.fakultas.total
+    function renderLulusFakultasChart(data) {
+        var lulusFakultasData = {
+            categories: data.lulus_fakultas.categories,
+            total: data.lulus_fakultas.total
         };
 
-        const randomColors = generateRandomColors(fakultasData.categories.length);
+        const randomColors = generateRandomColors(lulusFakultasData.categories.length);
 
-        if (window.chartFakultas) {
-            window.chartFakultas.updateOptions({
+        if (window.chartLulusFakultas) {
+            window.chartLulusFakultas.updateOptions({
                 xaxis: {
-                    categories: fakultasData.categories
+                    categories: lulusFakultasData.categories
                 },
                 series: [
                     {
-                        name: 'Jumlah Lulus',
-                        data: fakultasData.total
+                        name: 'Jumlah Peseta Lulus',
+                        data: lulusFakultasData.total
                     }
                 ]
             });
         } else {
-            var optionsFakultas = {
+            var optionsLulusFakultas = {
                 chart: {
                     type: 'bar',
                     height: 400,
@@ -52,11 +52,11 @@
                     },
                 },
                 title: {
-                    text: 'Jumlah Lulus per Fakultas',
+                    text: 'Jumlah Peserta Lulus per Fakultas',
                     align: "center"
                 },
                 xaxis: {
-                    categories: fakultasData.categories,
+                    categories: lulusFakultasData.categories,
                     labels: {
                         rotate: 0
                     }
@@ -79,8 +79,8 @@
                 colors: randomColors,
                 series: [
                     {
-                        name: 'Jumlah Lulus',
-                        data: fakultasData.total
+                        name: 'Jumlah Peserta Lulus',
+                        data: lulusFakultasData.total
                     }
                 ],
                 tooltip: {
@@ -92,8 +92,8 @@
                 }
             };
 
-            window.chartFakultas = new ApexCharts(document.querySelector("#chart-fakultas-prodi"), optionsFakultas);
-            window.chartFakultas.render();
+            window.chartLulusFakultas = new ApexCharts(document.querySelector("#chart-lulus-fakultas"), optionsLulusFakultas);
+            window.chartLulusFakultas.render();
         }
     }
 </script>

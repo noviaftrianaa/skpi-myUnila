@@ -10,12 +10,15 @@
     #chart-jenis-pendaftaran,
     #chart-kategori-usia
     #chart-jenis-kelamin
-    #chart-fakultas-prodi
-    #chart-top-prodi
+    #chart-lulus-fakultas
+    #chart-lulus-prodi
+    #chart-minat-saintek
+    #chart-minat-soshum
     #chart-nilai-utbk
     #chart-nilai-wawancara
     {
         height: 400px;
+        z-index: 1 !important;
     }
     .card-shadow {
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Bayangan lembut */
@@ -45,6 +48,8 @@
             display: none !important;
         }
     }
+</style>
+
     </style>
 @endsection
 
@@ -65,8 +70,9 @@
     @include('content.pages.pmb.dashboard.chart.jenis-pendaftaran')
     @include('content.pages.pmb.dashboard.chart.kategori-usia')
     @include('content.pages.pmb.dashboard.chart.jenis-kelamin')
-    @include('content.pages.pmb.dashboard.chart.fakultas-prodi')
-    @include('content.pages.pmb.dashboard.chart.top-prodi')
+    @include('content.pages.pmb.dashboard.chart.minat-prodi')
+    @include('content.pages.pmb.dashboard.chart.lulus-fakultas')
+    @include('content.pages.pmb.dashboard.chart.lulus-prodi')
     @include('content.pages.pmb.dashboard.chart.kategori-nilai')
     @include('content.pages.pmb.dashboard.chart.sebaran-wilayah')
 
@@ -87,8 +93,9 @@
                         renderJenisPendaftaranChart(data);
                         renderKategoriUsiaChart(data);
                         renderJenisKelaminChart(data);
-                        renderFakultasChart(data);
-                        renderTopProdiChart(data);
+                        renderMinatProdiChart(data);
+                        renderLulusFakultasChart(data);
+                        renderLulusProdiChart(data);
                         renderNilaiChart(data);
                         renderSebaranWilayah(data);
                     },

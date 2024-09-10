@@ -8,6 +8,7 @@ use Session;
 use Alert;
 use DataTables;
 use App\Models\Pmb\Pengumuman;
+use App\Models\Pmb\MinatProdi;
 
 class PmbMandiriController extends Controller
 {
@@ -31,11 +32,13 @@ class PmbMandiriController extends Controller
         $usiaData = Pengumuman::getUsiaData($tahun);
         $jenisPendaftaranData = Pengumuman::getJenisPendaftaranData($tahun);
         $jenisKelaminData = Pengumuman::getJenisKelaminData($tahun);
-        $fakultasData = Pengumuman::getFakultasData($tahun);
-        $topProdiData = Pengumuman::getTopProdiData($tahun);
+        $lulusfakultasData = Pengumuman::getLulusFakultasData($tahun);
+        $lulusProdiData = Pengumuman::getLulusProdiData($tahun);
         $rataRataData = Pengumuman::getRataRataData($tahun);
         $nilaiData = Pengumuman::getNilaiData($tahun);
         $wilayahData = Pengumuman::getWilayahData($tahun);
+        $saintekData = MinatProdi::getTopMinatProdi($tahun, 'SAINTEK');
+        $soshumData = MinatProdi::getTopMinatProdi($tahun, 'SOSHUM');
 
         $formattedData = [
             'status' => [
@@ -55,11 +58,11 @@ class PmbMandiriController extends Controller
                 'categories' => [],
                 'total' => []
             ],
-            'fakultas' => [
+            'lulus_fakultas' => [
                 'categories' => [],
                 'total' => []
             ],
-            'top_prodi' => [
+            'lulus_prodi' => [
                 'categories' => [],
                 'total' => []
             ],
@@ -75,7 +78,17 @@ class PmbMandiriController extends Controller
                 'utbk' => [],
                 'wawancara' => []
             ],
-            'wilayah' => []
+            'wilayah' => [],
+            'minat_prodi' => [
+                'saintek' => [
+                    'categories' => [],
+                    'total' => []
+                ],
+                'soshum' => [
+                    'categories' => [],
+                    'total' => []
+                ]
+            ],
         ];
 
         foreach ($statusData as $row) {
@@ -99,14 +112,14 @@ class PmbMandiriController extends Controller
             $formattedData['jenis_kelamin']['total'][] = $row->total;
         }
 
-        foreach ($fakultasData as $row) {
-            $formattedData['fakultas']['categories'][] = $row->nama_fakultas;
-            $formattedData['fakultas']['total'][] = $row->total;
+        foreach ($lulusfakultasData as $row) {
+            $formattedData['lulus_fakultas']['categories'][] = $row->nama_fakultas;
+            $formattedData['lulus_fakultas']['total'][] = $row->total;
         }
 
-        foreach ($topProdiData as $row) {
-            $formattedData['top_prodi']['categories'][] = $row->nm_prodi_lulus;
-            $formattedData['top_prodi']['total'][] = $row->total;
+        foreach ($lulusProdiData as $row) {
+            $formattedData['lulus_prodi']['categories'][] = $row->nm_prodi_lulus;
+            $formattedData['lulus_prodi']['total'][] = $row->total;
         }
 
         foreach ($nilaiData as $row) {
@@ -129,6 +142,16 @@ class PmbMandiriController extends Controller
                     'lon' => $row->lon
                 ];
             }
+        }
+
+        foreach ($saintekData as $row) {
+            $formattedData['minat_prodi']['saintek']['categories'][] = $row->nm_prodi_lulus;
+            $formattedData['minat_prodi']['saintek']['total'][] = $row->jml_peminat;
+        }
+
+        foreach ($soshumData as $row) {
+            $formattedData['minat_prodi']['soshum']['categories'][] = $row->nm_prodi_lulus;
+            $formattedData['minat_prodi']['soshum']['total'][] = $row->jml_peminat;
         }
 
         return response()->json($formattedData);

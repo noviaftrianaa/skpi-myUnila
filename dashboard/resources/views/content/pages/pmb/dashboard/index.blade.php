@@ -74,14 +74,32 @@
                             <div class="col-md-6 col-12 mb-3 mt-3">
                                 <div class="card-shadow h-100">
                                     <div class="card-body">
-                                        <div id="chart-fakultas-prodi"></div>
+                                        <div id="chart-minat-saintek"></div>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-6 col-12 mb-3 mt-3">
                                 <div class="card-shadow h-100">
                                     <div class="card-body">
-                                        <div id="chart-top-prodi"></div>
+                                        <div id="chart-minat-soshum"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row equal-height">
+                            <div class="col-md-6 col-12 mb-3 mt-3">
+                                <div class="card-shadow h-100">
+                                    <div class="card-body">
+                                        <div id="chart-lulus-fakultas"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-12 mb-3 mt-3">
+                                <div class="card-shadow h-100">
+                                    <div class="card-body">
+                                        <div id="chart-lulus-prodi-container" style="height: 400px; max-height: 400px; overflow-y: auto;">
+                                            <div id="chart-lulus-prodi"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -106,7 +124,7 @@
                             <div class="col-md-12 col-12 mb-3 mt-3">
                                 <div class="card-shadow h-100">
                                     <div class="card-body">
-                                        <h4 class="custom-title">Sebaran Wilayah Peserta</h4>
+                                        <h4 class="custom-title">Sebaran Wilayah Pendaftar</h4>
                                         <div id="sebaran-wilayah" style="height: 500px; width: 100%;"></div>
                                     </div>
                                 </div>

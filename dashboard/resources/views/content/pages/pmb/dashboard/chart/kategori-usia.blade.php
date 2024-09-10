@@ -67,7 +67,7 @@
                     },
                 },
                 title: {
-                    text: 'Rata-Rata Usia',
+                    text: 'Rata-Rata Usia Pendaftar',
                     align: "center"
                 },
                 xaxis: {

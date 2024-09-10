@@ -84,7 +84,7 @@ class Pengumuman extends Model
         ", [$tahun]);
     }
 
-    public static function getFakultasData($tahun)
+    public static function getLulusFakultasData($tahun)
     {
         return DB::select("
             SELECT
@@ -101,10 +101,10 @@ class Pengumuman extends Model
         ", [$tahun]);
     }
 
-    public static function getTopProdiData($tahun)
+    public static function getLulusProdiData($tahun)
     {
         return DB::select("
-            SELECT TOP 10
+            SELECT
                 CONCAT(jenj_lulus.nm_jenj_didik, '-', prodi_lulus.nm_lemb) AS nm_prodi_lulus,
                 COUNT(pmb.no_peserta) AS total
             FROM
@@ -120,7 +120,7 @@ class Pengumuman extends Model
             GROUP BY
                 CONCAT(jenj_lulus.nm_jenj_didik, '-', prodi_lulus.nm_lemb)
             ORDER BY
-                total DESC
+                nm_prodi_lulus ASC
         ", [$tahun]);
     }
 
