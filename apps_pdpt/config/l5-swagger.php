@@ -5,7 +5,7 @@ return [
     'documentations' => [
         'sandbox' => [
             'api' => [
-                'title' => 'MY UNILA Web Service Sandbox 0.1',
+                'title' => 'One Data Web Service Sandbox 0.1',
             ],
             'routes' => [
                 'api' => 'api/sandbox/0.1',
@@ -40,7 +40,7 @@ return [
         ],
         'live' => [
             'api' => [
-                'title' => 'MY UNILA Web Service Live 0.1',
+                'title' => 'One Data Web Service Live 0.1',
             ],
             'routes' => [
                 'api' => 'api/live/0.1',

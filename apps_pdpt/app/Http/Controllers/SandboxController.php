@@ -5,7 +5,7 @@ class SandboxController
     /**
      * @OA\Info(
      *      version="0.1.0",
-     *      title="MY UNILA - Sandbox Web Service",
+     *      title="One Data - Sandbox Web Service",
      *      description="Versi 0.1.0",
      *      @OA\Contact(
      *          email="mahendra.pratama15@eng.unila.ac.id"

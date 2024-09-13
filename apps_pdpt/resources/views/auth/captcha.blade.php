@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Captcha Verification : MY UNILA</title>
+    <title>Captcha Verification : One Data</title>
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
     <link rel="stylesheet" href="{{ asset('master_template/plugins/fontawesome-free/css/all.min.css') }}">
@@ -66,7 +66,7 @@
         <div class="card ">
             <div class="card-header text-center mt-4">
                 <a href="{{ url('/') }}"><img src="{{ asset('images/logo_unila_kampus_merdeka.png') }}"></a>
-                <p class="text-sm mt-4"><strong>CAPTCHA VERIFICATION</strong><br/>MY UNILA APPS</p>
+                <p class="text-sm mt-4"><strong>CAPTCHA VERIFICATION</strong><br/>One Data Dashboard</p>
             </div>
             <div class="card-body">
                 <form action="{{ route('auth.login.captcha') }}" method="POST" enctype="multipart/form-data" id="formCaptcha">

@@ -5,7 +5,7 @@ class LiveController
     /**
      * @OA\Info(
      *      version="0.1.0",
-     *      title="My UNILA - Live Web Service",
+     *      title="One Data - Live Web Service",
      *      description="Versi 0.1.0",
      *      @OA\Contact(
      *          email="mahendra.pratama15@eng.unila.ac.id"
@@ -29,7 +29,7 @@ class LiveController
      *
      * @OA\SecurityScheme(
      *     type="apiKey",
-     *     description="My Unila WebService Auth",
+     *     description="One Data WebService Auth",
      *     in="header",
      *     securityScheme="token",
      *     name="Authorization"

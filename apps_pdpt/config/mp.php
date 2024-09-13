@@ -2,7 +2,7 @@
 return [
     'apps'  => [
         'id_app'    => '948DF317-78F7-4B92-A53F-0A56215E07DE',
-        'title' => 'MY UNILA',
+        'title' => 'One Data',
         'acronym_title' => 'ODU',
         'year_development' => 2021,
         'year_launch' => 2021,
