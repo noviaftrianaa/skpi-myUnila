@@ -75,8 +75,10 @@
                         }, {
                             data: 'point_b'
                         }, {
-                            data: 'peserta_mbkm'
+                            data: 'total_mhs'
                         }, {
+                            data: 'peserta_mbkm'
+                        },{
                             data: 'capaian'
                         }],
                         columnDefs: [{
@@ -129,7 +131,7 @@
                                 text: '<i class="ti ti-printer me-1" ></i>Print',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [3, 4, 5, 6, 7]
+                                    columns: [3, 4, 5, 6, 7, 8]
                                 },
                                 customize: function(win) {
                                     //customize print view for dark
@@ -152,21 +154,21 @@
                                 text: '<i class="ti ti-file-text me-1" ></i>Csv',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [3, 4, 5, 6, 7]
+                                    columns: [3, 4, 5, 6, 7, 8]
                                 }
                             },{
                                 extend: 'pdf',
                                 text: '<i class="ti ti-file-description me-1"></i>Pdf',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [3, 4, 5, 6, 7]
+                                    columns: [3, 4, 5, 6, 7, 8]
                                 }
                             }, {
                                 extend: 'copy',
                                 text: '<i class="ti ti-copy me-1" ></i>Copy',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [3, 4, 5, 6, 7]
+                                    columns: [3, 4, 5, 6, 7, 8]
                                 }
                             },
                             {
@@ -407,11 +409,11 @@
                     $('#skor_pencapaian_2').text(data.count.skor_pencapaian);
 
                     //mbkm
-                    $('#point_a').text(data.count.point_a);
-                    $('#point_b').text(data.count.point_b);
+                    $('#point_mbkm').text(data.count.point_ab);
                     $('#pembentuk_a').text(data.count.pembentuk_a);
                     $('#pembentuk_b').text(data.count.pembentuk_b);
                     $('#peserta_mbkm').text(data.count.peserta_mbkm);
+                    $('#total_mhs').text(data.count.total_mhs);
 
                     $('#rumus_ab').text(data.count.rumus_ab);
                     $('#sumber_data_ab').text(data.count.sumber_data_ab);

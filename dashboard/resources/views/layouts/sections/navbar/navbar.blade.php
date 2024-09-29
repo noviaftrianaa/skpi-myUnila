@@ -149,14 +149,21 @@
             </ul>
         </li>
     @else
-        <li class="nav-item">
-            <a class="nav-link" href="{{ route('auth-login') }}">LOGIN</a>
-        </li>
+    <li class="nav-item">
+        <a class="nav-link btn btn-primary px-4 text-white" href="{{ route('auth-login') }}">
+            <i class="fas fa-sign-in-alt me-2"></i>
+            LOGIN
+        </a>
+    </li>
+
     @endif
 </ul>
 
 @if (!isset($navbarDetached))
     </div>
 @endif
+
 </nav>
 <!-- / Navbar -->
+
+

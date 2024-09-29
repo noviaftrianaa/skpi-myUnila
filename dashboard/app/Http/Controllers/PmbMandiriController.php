@@ -9,6 +9,7 @@ use Alert;
 use DataTables;
 use App\Models\Pmb\Pengumuman;
 use App\Models\Pmb\MinatProdi;
+use Carbon\Carbon;
 
 class PmbMandiriController extends Controller
 {
@@ -20,13 +21,13 @@ class PmbMandiriController extends Controller
         return view("content.pages.pmb.dashboard.index", [
             "pageConfigs" => $pageConfigs,
             "title" => $title,
-            "tahun" => get_tahun_keaktifan()
+            "tahun" => Carbon::now()->year
         ]);
     }
 
     public function data(Request $request)
     {
-        $tahun = $request->tahun ?? get_tahun_keaktifan();
+        $tahun = $request->tahun ?? Carbon::now()->year;
 
         $statusData = Pengumuman::getStatusData($tahun);
         $usiaData = Pengumuman::getUsiaData($tahun);

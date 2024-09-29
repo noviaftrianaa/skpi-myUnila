@@ -363,11 +363,11 @@
       <form class="add-new-user pt-0" id="filterForm" onsubmit="return false">
         <div class="mb-3">
           <label class="form-label" for="country">Tahun IKU</label>
-          <select id="thn_iku" class="select2 form-select" required>
-            @foreach ($thn_iku as $idThnAjaran => $item)
-                <option value="{{ $idThnAjaran }}">{{ $idThnAjaran }}</option>
-            @endforeach
-          </select>
+          <select class="select2 form-select" id="thn_iku">
+            @for ($i = $thn_iku; $i > $thn_iku - 2; $i--)
+                <option value="{{ $i }}">{{ $i }}</option>
+            @endfor
+        </select>
         </div>
         <button class="btn btn-primary me-sm-3 me-1 data-submit" onclick="TablePointIku()" data-bs-dismiss="offcanvas"><i class="fas fa-filter me-2"></i> Submit</button>
         <button type="reset" class="btn btn-label-secondary" data-bs-dismiss="offcanvas">Cancel</button>

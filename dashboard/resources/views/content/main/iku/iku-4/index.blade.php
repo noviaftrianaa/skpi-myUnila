@@ -1,8 +1,3 @@
-@php
-$customizerHidden = 'customizer-hide';
-$configData = Helper::appClasses();
-@endphp
-
 @extends('layouts/layoutMaster')
 
 @section('title', 'Indikator Kinerja Utama - IKU 4 Universitas Lampung')
@@ -17,7 +12,7 @@ $configData = Helper::appClasses();
 <link rel="stylesheet" href="{{asset('assets/vendor/libs/loading/overlay.css')}}" />
 <link rel="stylesheet" href="{{asset('assets/vendor/libs/flatpickr/flatpickr.css')}}" />
 <link rel="stylesheet" href="{{asset('assets/vendor/libs/spinkit/spinkit.css')}}" />
-<link rel="stylesheet" href="{{asset('assets/vendor/css/pages/page-misc.css')}}">
+<link rel="stylesheet" href="{{ asset(mix('assets/vendor/fonts/fontawesome.css')) }}" />
 <!-- Row Group CSS -->
 <link rel="stylesheet" href="{{asset('assets/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css')}}">
 <!-- Form Validation -->
@@ -86,13 +81,28 @@ $configData = Helper::appClasses();
 @endsection
 
 @section('page-script')
-  @include('content.main.iku.iku-1.function')
+  @include('content.main.iku.iku-4.function')
 @endsection
 
 @section('content')
 <h4>
   Indikator Kinerja Utama - IKU 4
 </h4>
+
+<div class="overlay" id="loading">
+    <div class="overlay-content">
+      <div class="d-flex justify-content-center">
+        <p class="mb-0" style="color: #5599FE">Harap tunggu... </p>
+        <div class="sk-wave m-0">
+            <div class="sk-rect sk-wave-rect"></div>
+            <div class="sk-rect sk-wave-rect"></div>
+            <div class="sk-rect sk-wave-rect"></div>
+            <div class="sk-rect sk-wave-rect"></div>
+            <div class="sk-rect sk-wave-rect"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
 <div class="row">
  <div class="col-md-12">
@@ -184,22 +194,299 @@ $configData = Helper::appClasses();
 
       <div class="bs-stepper-content">
         <h5 class="card-title mb-3 mt-2" id="title">UNIVERSITAS LAMPUNG</h5>
-        <!-- Card Border Shadow -->
-        <div class="row">
-          <!-- Coming soon -->
-          <div class="container-xxl container-p-y">
-            <div class="misc-wrapper">
-              <h2 class="mb-1 mx-2">We are launching soon</h2>
-              <p class="mb-4 mx-2">We're creating something awesome.</p>
-              <div class="mt-4">
-                <img src="{{ asset('assets/img/illustrations/page-misc-under-maintenance.png') }}" alt="page-misc-under-maintenance" width="550" class="img-fluid">
-              </div>
+        <p class="text-muted mt-3" id="tahun-index"></p>
+
+        <ul class="nav nav-pills flex-column flex-md-row mb-4 mt-4">
+            <li class="nav-item">
+                <button
+                    class="nav-link active"
+                    role="tab"
+                    id="tab-sertifikasi"
+                    data-bs-toggle="tab"
+                    data-bs-target="#sertifikasi"
+                    aria-controls="sertifikasi"
+                    aria-selected="true">
+                    <i class="fas fa-certificate fa-sm me-1"></i>Kategori Sertifikasi</button>
+            </li>
+            <li class="nav-item">
+                <button
+                    class="nav-link"
+                    role="tab"
+                    id="tab-praktisi"
+                    data-bs-toggle="tab"
+                    data-bs-target="#praktisi"
+                    aria-controls="praktisi"
+                    aria-selected="true">
+                    <i class="fas fa-chalkboard-teacher fa-sm me-1"></i>Kategori Praktisi</button>
+            </li>
+        </ul>
+
+        <div class="tab-content p-3 border">
+            {{-- sertifikasi --}}
+            <div class="tab-pane fade show active" id="sertifikasi" role="tabpanel">
+                <div class="row">
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="point_a">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-3 mt-3">Total Point A</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="total_sertif">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-3 mt-3">Jumlah Dosen Bersertifikat</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="total_dosen_a">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-3 mt-3">Total Dosen (NIDN/NIDK)</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h5 class="ms-1 mb-0" id="pembentuk_a">0</h5>
+                                    </span>
+                                </div>
+                                <p class="mb-3 mt-3">Pembentuk</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="pencapaian_1">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Pencapaian IKU</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="gold_standart_1">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Gold Standart</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="delta_gold_standart_1">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Delta Gold Standart</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="skor_pencapaian_1">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Skor Pencapaian</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <ul class="list-group">
+                            <li
+                                class="list-group-item d-flex justify-content-between flex-column flex-sm-row">
+                                <div class="offer">
+                                    <p class="mb-0 fw-medium">Rumus Perhitungan</p>
+                                    <span id="rumus_a">-</span>
+                                </div>
+                            </li>
+                            <li
+                                class="list-group-item d-flex justify-content-between flex-column flex-sm-row">
+                                <div class="offer">
+                                    <p class="mb-0 fw-medium">Sumber Data</p>
+                                    <span id="sumber_a">-</span>
+                                </div>
+                            </li>
+                            <li
+                                class="list-group-item d-flex justify-content-between flex-column flex-sm-row">
+                                <div class="offer">
+                                    <p class="mb-0 fw-medium">Update Sync Data Terahkir</p>
+                                    <span id="last_sync_a">-</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-          </div>
-          <div class="container-fluid misc-bg-wrapper">
-            <img src="{{ asset('assets/img/illustrations/bg-shape-image-'.$configData['style'].'.png') }}" alt="page-misc-coming-soon" data-app-light-img="illustrations/bg-shape-image-light.png" data-app-dark-img="illustrations/bg-shape-image-dark.png">
-          </div>
-          <!-- /Coming soon -->
+            {{-- sertifikasi --}}
+
+            {{-- praktisi --}}
+            <div class="tab-pane fade" id="praktisi" role="tabpanel">
+                <div class="row">
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="point_b">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-3 mt-3">Total Point B</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="total_praktisi">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-3 mt-3">Total Praktisi Mengajar</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="total_dosen_b">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-3 mt-3">Total Dosen (NIDN/NIDK/NUP)</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h5 class="ms-1 mb-0" id="pembentuk_b">0</h5>
+                                    </span>
+                                </div>
+                                <p class="mb-3 mt-3">Pembentuk</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="pencapaian_2">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Pencapaian IKU</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="gold_standart_2">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Gold Standart</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="delta_gold_standart_2">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Delta Gold Standart</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="skor_pencapaian_2">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-1">Skor Pencapaian</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <ul class="list-group">
+                            <li
+                                class="list-group-item d-flex justify-content-between flex-column flex-sm-row">
+                                <div class="offer">
+                                    <p class="mb-0 fw-medium">Rumus Perhitungan</p>
+                                    <span id="rumus_b">-</span>
+                                </div>
+                            </li>
+                            <li
+                                class="list-group-item d-flex justify-content-between flex-column flex-sm-row">
+                                <div class="offer">
+                                    <p class="mb-0 fw-medium">Sumber Data</p>
+                                    <span id="sumber_b">-</span>
+                                </div>
+                            </li>
+                            <li
+                                class="list-group-item d-flex justify-content-between flex-column flex-sm-row">
+                                <div class="offer">
+                                    <p class="mb-0 fw-medium">Update Sync Data Terahkir</p>
+                                    <span id="last_sync_b">-</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {{-- praktisi--}}
+        </div>
+
       </div>
     </div>
   </div>
@@ -208,22 +495,37 @@ $configData = Helper::appClasses();
 
 <!-- DataTable with Buttons -->
 <div class="card px-3">
-  <div class="card-datatable table-responsive pt-0">
-    <table class="datatables-point table table-bordered">
-      <thead style="background-color:#ECF3FF">
-        <tr>
-          <th hidden>NO</th>
-          <th hidden>ID</th>
-          <th></th>
-          <th width ="55%">Nama Fakultas/Program Studi</th>
-          <th width ="10%">Total Point</th>
-          <th width ="15%">Total Responden</th>
-          <th width ="10%">Total Alumni</th>
-          <th width ="10%">Pencapaian</th>
-        </tr>
-      </thead>
-    </table>
-  </div>
+    <div class="sertifikasi card-datatable table-responsive pt-0">
+        <table class="datatables-point-sertifikasi table table-bordered">
+            <thead style="background-color:#ECF3FF">
+                <tr>
+                    <th hidden="hidden">NO</th>
+                    <th hidden="hidden">ID</th>
+                    <th></th>
+                    <th width="45%">Nama Fakultas / Program Studi</th>
+                    <th width="15%">Total Sertifikasi</th>
+                    <th width="15%">Total Dosen (NIDN/NIDK)</th>
+                    <th width="10%">Pencapaian</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+    <div class="praktisi card-datatable table-responsive pt-0">
+        <table class="datatables-point-praktisi table table-bordered">
+            <thead style="background-color:#ECF3FF">
+                <tr>
+                    <th hidden="hidden">NO</th>
+                    <th hidden="hidden">ID</th>
+                    <th></th>
+                    <th width="45%">Nama Fakultas / Program Studi</th>
+                    <th width="15%">Total Praktisi</th>
+                    <th width="15%">Total Dosen (NIDN/NIDK/NUP)</th>
+                    <th width="10%">Pencapaian</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+
 </div>
   <!-- Offcanvas to filter -->
   <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasFilter" aria-labelledby="offcanvasFilterLabel">
@@ -235,11 +537,11 @@ $configData = Helper::appClasses();
       <form class="add-new-user pt-0" id="filterForm" onsubmit="return false">
         <div class="mb-3">
           <label class="form-label" for="country">Tahun IKU</label>
-          <select id="thn_iku" class="select2 form-select" required>
-            @foreach ($thn_iku as $idThnAjaran => $item)
-                <option value="{{ $idThnAjaran }}">{{ $idThnAjaran }}</option>
-            @endforeach
-          </select>
+          <select class="select2 form-select" id="thn_iku">
+            @for ($i = $thn_iku; $i > $thn_iku - 2; $i--)
+                <option value="{{ $i }}">{{ $i }}</option>
+            @endfor
+        </select>
         </div>
         <button class="btn btn-primary me-sm-3 me-1 data-submit" onclick="TablePointIku()" data-bs-dismiss="offcanvas"><i class="fas fa-filter me-2"></i> Submit</button>
         <button type="reset" class="btn btn-label-secondary" data-bs-dismiss="offcanvas">Cancel</button>
@@ -249,9 +551,6 @@ $configData = Helper::appClasses();
   </div>
 </div>
 
-<div class="container-fluid misc-bg-wrapper">
-  <img src="{{ asset('assets/img/illustrations/bg-shape-image-'.$configData['style'].'.png') }}" alt="page-misc-coming-soon" data-app-light-img="illustrations/bg-shape-image-light.png" data-app-dark-img="illustrations/bg-shape-image-dark.png">
-</div>
-@include('content.main.iku.iku-1.detail')
+@include('content.main.iku.iku-4.detail')
 
 @endsection

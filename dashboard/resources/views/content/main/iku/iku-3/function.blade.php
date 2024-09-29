@@ -40,27 +40,17 @@
                         bDestroy: true,
                         data: data.data, // Get the data object
                         columns: [
-                        {
-                            data: ''
-                        }, {
-                            data: 'id_sms'
-                        }, {
-                            data: 'id_jns_sms'
-                        }, {
-                            data: 'nm_lemb'
-                        }, {
-                            data: 'point_tridharma'
-                        }, {
-                            data: 'point_praktisi'
-                        }, {
-                            data: 'point_bimbing_prestasi'
-                        }, {
-                            data: 'total_dosen'
-                        }, {
-                            data: 'total_point'
-                        }, {
-                            data: 'capaian'
-                        }],
+                            { data: '' },
+                            { data: 'id_sms' },
+                            { data: 'id_jns_sms' },
+                            { data: 'nm_lemb' },
+                            { data: 'point_tridharma' },
+                            { data: 'point_praktisi' },
+                            { data: 'point_bimbing_prestasi' },
+                            { data: 'total_dosen' },
+                            { data: 'total_point' },
+                            { data: 'capaian' }
+                        ],
                         columnDefs: [{
                                 // For Responsive
                                 className: 'control',
@@ -151,13 +141,6 @@
                                             columns: [3, 4, 5, 6, 7,8,9]
                                         }
                                     },
-                                    {
-                                        text: '<i class="ti ti-file-spreadsheet me-1"></i>All Raw Excel',
-                                        className: 'dropdown-item',
-                                        action: function() {
-                                            DownloadAllRaw(id_jns_sms, id);
-                                        }
-                                    },
                                 ]
                             },
                             {
@@ -243,13 +226,12 @@
         $('#tahun-modal').text('TAHUN : ' + $("#thn_iku").val());
         $('#title-modal').text('PROGRAM STUDI : ' + prodi);
 
-        var dt_raw_bekber = $('.datatables-raw-bekber');
-        var dt_raw_lnjt_studi = $('.datatables-raw-lnjt-studi');
-        var dt_raw_tdk_bekerja = $('.datatables-raw-tdk_bekerja');
+        var dt_raw_iku3 = $('.datatables-raw-iku3');
+            dt_raw_iku3;
         var data = [];
         var id_jns_sms = 3;
 
-        if (dt_raw_bekber.length) {
+        if (dt_raw_iku3.length) {
             $('#loading_raw_table').show();
             $.ajax({
                 url: '{!! route('json-raw-iku3') !!}',
@@ -262,56 +244,21 @@
                 },
                 "success": function(data) {
                     $('#loading_raw_table').hide();
-                    // bekber
-                    if (dt_raw_bekber.length) {
-                        dt_raw_bekber.DataTable({
+                    dt_raw_iku3 = dt_raw_iku3.DataTable({
                             bDestroy: true,
-                            data: data.bekber, // Get the data object
-                            columns: [{
-                                    data: 'id_reg_pd'
-                                },
-                                {
-                                    data: 'nm_pd'
-                                },
-                                {
-                                    data: 'nipd'
-                                },
-                                {
-                                    data: 'nm_fakultas'
-                                },
-                                {
-                                    data: 'nm_prodi'
-                                },
-                                {
-                                    data: 'nm_jenj_didik'
-                                },
-                                {
-                                    data: 'tgl_keluar'
-                                },
-                                {
-                                    data: 'status_lulusan'
-                                },
-                                {
-                                    data: 'a_kerja_sblm_lulus'
-                                },
-                                {
-                                    data: 'bln_dpt_kerja'
-                                },
-                                {
-                                    data: 'nm_tmpt_bekerja'
-                                },
-                                {
-                                    data: 'nm_wil'
-                                },
-                                {
-                                    data: 'ump'
-                                },
-                                {
-                                    data: 'income_per_bln'
-                                },
-                                {
-                                    data: 'point'
-                                },
+                            data: data,
+                            columns:[
+                                { data: 'id_sdm' },
+                                { data: 'nm_sdm', title: 'Nama Dosen' },
+                                { data: 'nidn', title: 'NIDN' },
+                                { data: 'fakultas', title: 'Fakultas', },
+                                { data: 'nm_prodi',  title: 'Prodi', },
+                                { data: 'nm_jenj_didik', title: 'Jenjang' },
+                                { data: 'total_tridharma_litabmas', title: 'Total Tridharma Litabmas' },
+                                { data: 'total_tridharma_mengajar', title: 'Total Tridharma Mengajar' },
+                                { data: 'total_tridharma_menguji', title: 'Total Tridharma Menguji' },
+                                { data: 'total_praktisi', title: 'Total Praktisi' },
+                                { data: 'total_bimbing_prestasi', title: 'Total Membimbing Prestasi' }
                             ],
                             columnDefs: [
                                 {
@@ -322,7 +269,7 @@
                                     targets: 1,
                                     width: 30,
                                     render: function(data, type, row) {
-                                       return `<a href="{{ route('pages-mahasiswa', '') }}/${row.id_pd}" target="_blank">${data}</a>`;
+                                       return `<a href="{{ route('pages-dosen', '') }}/${row.encrypted_id_sdm}" target="_blank">${data}</a>`;
                                     }
                                 },
                                 {
@@ -346,7 +293,7 @@
                             paging: false,
                             info: true,
                             order: [
-                                [14, 'desc']
+                                [1, 'asc']
                             ],
                             dom: '<"card-header flex-column flex-md-row"<"head-label text-center"><"dt-action-bu' +
                                 'ttons text-end pt-3 pt-md-0"B>><"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md' +
@@ -362,8 +309,7 @@
                                         text: '<i class="ti ti-printer me-1" ></i>Print',
                                         className: 'dropdown-item',
                                         exportOptions: {
-                                            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-                                                12, 13, 14
+                                            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10
                                             ]
                                         },
                                         customize: function(win) {
@@ -388,8 +334,7 @@
                                         text: '<i class="ti ti-file-text me-1" ></i>Csv',
                                         className: 'dropdown-item',
                                         exportOptions: {
-                                            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-                                                12, 13, 14
+                                            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10
                                             ]
                                         }
                                     }, {
@@ -397,8 +342,7 @@
                                         text: '<i class="ti ti-file-spreadsheet me-1"></i>Excel',
                                         className: 'dropdown-item',
                                         exportOptions: {
-                                            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-                                                12, 13, 14
+                                            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10
                                             ]
                                         }
                                     }, {
@@ -406,8 +350,7 @@
                                         text: '<i class="ti ti-file-description me-1"></i>Pdf',
                                         className: 'dropdown-item',
                                         exportOptions: {
-                                            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-                                                12, 13, 14
+                                            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10
                                             ]
                                         }
                                     }, {
@@ -415,345 +358,24 @@
                                         text: '<i class="ti ti-copy me-1" ></i>Copy',
                                         className: 'dropdown-item',
                                         exportOptions: {
-                                            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-                                                12, 13, 14
+                                            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10
                                             ]
                                         },
-                                    },
-                                    {
-                                        text: '<i class="ti ti-file-spreadsheet me-1"></i>All Raw Excel',
-                                        className: 'dropdown-item',
-                                        action: function() {
-                                            DownloadAllRaw(id_jns_sms, id);
-                                        }
                                     },
                                 ]
                             }, ],
                         });
-                    }
-
-                    // lnjt_studi
-                    if (dt_raw_lnjt_studi.length) {
-                        dt_raw_lnjt_studi.DataTable({
-                            bDestroy: true,
-                            data: data.lnjt_studi, // Get the data object
-                            columns: [{
-                                    data: 'id_reg_pd'
-                                },
-                                {
-                                    data: 'nm_pd'
-                                },
-                                {
-                                    data: 'nipd'
-                                },
-                                {
-                                    data: 'nm_fakultas'
-                                },
-                                {
-                                    data: 'nm_prodi'
-                                },
-                                {
-                                    data: 'nm_jenj_didik'
-                                },
-                                {
-                                    data: 'tgl_keluar'
-                                },
-                                {
-                                    data: 'status_lulusan'
-                                },
-                                {
-                                    data: 'nm_wil'
-                                },
-                                {
-                                    data: 'nm_pt_lnjt'
-                                },
-                                {
-                                    data: 'nm_prodi_lnjt'
-                                },
-                                {
-                                    data: 'wkt_masuk_lnjt_study'
-                                },
-                                {
-                                    data: 'jarak_wkt_masuk_lnjt_study'
-                                },
-                                {
-                                    data: 'point'
-                                },
-                            ],
-                            columnDefs: [{
-                                    target: 0,
-                                    visible: false
-                                },
-                                {
-                                    targets: 1,
-                                    width: 30,
-                                    render: function(data, type, row) {
-                                       return `<a href="{{ route('pages-mahasiswa', '') }}/${row.id_pd}" target="_blank">${data}</a>`;
-                                    }
-                                },
-                                {
-                                    target: 3,
-                                    visible: false
-                                },
-                                {
-                                    target: 4,
-                                    visible: false
-                                },
-                                {
-                                    target: 5,
-                                    visible: false
-                                },
-                            ],
-                            fixedColumns: {
-                                left: 1
-                            },
-                            scrollX: true,
-                            scrollCollapse: true,
-                            paging: false,
-                            info: true,
-                            order: [
-                                [13, 'desc']
-                            ],
-                            dom: '<"card-header flex-column flex-md-row"<"head-label text-center"><"dt-action-bu' +
-                                'ttons text-end pt-3 pt-md-0"B>><"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md' +
-                                '-6 d-flex justify-content-center justify-content-md-end"f>>t<"row"<"col-sm-12 ' +
-                                'col-md-6"i><"col-sm-12 col-md-6"p>>',
-                            buttons: [{
-                                extend: 'collection',
-                                className: 'btn btn-label-primary dropdown-toggle me-2',
-                                text: '<i class="ti ti-file-export me-sm-1"></i> <span class="d-none d-sm-inline-bloc' +
-                                    'k">Export</span>',
-                                buttons: [{
-                                        extend: 'print',
-                                        text: '<i class="ti ti-printer me-1" ></i>Print',
-                                        className: 'dropdown-item',
-                                        exportOptions: {
-                                            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-                                                12, 13
-                                            ]
-                                        },
-                                        customize: function(win) {
-                                            //customize print view for dark
-                                            $(win.document.body)
-                                                .css('color', config.colors
-                                                    .headingColor)
-                                                .css('border-color', config.colors
-                                                    .borderColor)
-                                                .css('background-color', config
-                                                    .colors
-                                                    .bodyBg);
-                                            $(win.document.body)
-                                                .find('table')
-                                                .addClass('compact')
-                                                .css('color', 'inherit')
-                                                .css('border-color', 'inherit')
-                                                .css('background-color', 'inherit');
-                                        }
-                                    }, {
-                                        extend: 'csv',
-                                        text: '<i class="ti ti-file-text me-1" ></i>Csv',
-                                        className: 'dropdown-item',
-                                        exportOptions: {
-                                            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-                                                12, 13
-                                            ]
-                                        }
-                                    }, {
-                                        extend: 'excel',
-                                        text: '<i class="ti ti-file-spreadsheet me-1"></i>Excel',
-                                        className: 'dropdown-item',
-                                        exportOptions: {
-                                            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-                                                12, 13
-                                            ]
-                                        }
-                                    }, {
-                                        extend: 'pdf',
-                                        text: '<i class="ti ti-file-description me-1"></i>Pdf',
-                                        className: 'dropdown-item',
-                                        exportOptions: {
-                                            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-                                                12, 13
-                                            ]
-                                        }
-                                    }, {
-                                        extend: 'copy',
-                                        text: '<i class="ti ti-copy me-1" ></i>Copy',
-                                        className: 'dropdown-item',
-                                        exportOptions: {
-                                            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-                                                12, 13
-                                            ]
-                                        },
-                                    },
-                                    {
-                                        text: '<i class="ti ti-file-spreadsheet me-1"></i>All Raw Excel',
-                                        className: 'dropdown-item',
-                                        action: function() {
-                                            DownloadAllRaw(id_jns_sms, id);
-                                        }
-                                    },
-                                ]
-                            }, ],
-                        });
-                    }
-
-                    //tdk _bekber
-                    if (dt_raw_tdk_bekerja.length) {
-                        dt_raw_tdk_bekerja.DataTable({
-                            bDestroy: true,
-                            data: data.tdk_bekber, // Get the data object
-                            columns: [{
-                                    data: 'id_reg_pd'
-                                },
-                                {
-                                    data: 'nm_pd'
-                                },
-                                {
-                                    data: 'nipd'
-                                },
-                                {
-                                    data: 'nm_fakultas'
-                                },
-                                {
-                                    data: 'nm_prodi'
-                                },
-                                {
-                                    data: 'nm_jenj_didik'
-                                },
-                                {
-                                    data: 'tgl_keluar'
-                                },
-                                {
-                                    data: 'status_lulusan'
-                                },
-                                {
-                                    data: 'ket'
-                                },
-                                {
-                                    data: 'point'
-                                },
-                            ],
-                            columnDefs: [{
-                                    target: 0,
-                                    visible: false
-                                },
-                                {
-                                    targets: 1,
-                                    width: 30,
-                                    render: function(data, type, row) {
-                                       return `<a href="{{ route('pages-mahasiswa', '') }}/${row.id_pd}" target="_blank">${data}</a>`;
-                                    }
-                                },
-                                {
-                                    target: 3,
-                                    visible: false
-                                },
-                                {
-                                    target: 4,
-                                    visible: false
-                                },
-                                {
-                                    target: 5,
-                                    visible: false
-                                },
-                            ],
-                            fixedColumns: {
-                                left: 1
-                            },
-                            scrollX: true,
-                            scrollCollapse: true,
-                            paging: false,
-                            info: true,
-                            order: [
-                                [9, 'desc']
-                            ],
-                            dom: '<"card-header flex-column flex-md-row"<"head-label text-center"><"dt-action-bu' +
-                                'ttons text-end pt-3 pt-md-0"B>><"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md' +
-                                '-6 d-flex justify-content-center justify-content-md-end"f>>t<"row"<"col-sm-12 ' +
-                                'col-md-6"i><"col-sm-12 col-md-6"p>>',
-                            buttons: [{
-                                extend: 'collection',
-                                className: 'btn btn-label-primary dropdown-toggle me-2',
-                                text: '<i class="ti ti-file-export me-sm-1"></i> <span class="d-none d-sm-inline-bloc' +
-                                    'k">Export</span>',
-                                buttons: [{
-                                        extend: 'print',
-                                        text: '<i class="ti ti-printer me-1" ></i>Print',
-                                        className: 'dropdown-item',
-                                        exportOptions: {
-                                            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9]
-                                        },
-                                        customize: function(win) {
-                                            //customize print view for dark
-                                            $(win.document.body)
-                                                .css('color', config.colors
-                                                    .headingColor)
-                                                .css('border-color', config.colors
-                                                    .borderColor)
-                                                .css('background-color', config
-                                                    .colors
-                                                    .bodyBg);
-                                            $(win.document.body)
-                                                .find('table')
-                                                .addClass('compact')
-                                                .css('color', 'inherit')
-                                                .css('border-color', 'inherit')
-                                                .css('background-color', 'inherit');
-                                        }
-                                    }, {
-                                        extend: 'csv',
-                                        text: '<i class="ti ti-file-text me-1" ></i>Csv',
-                                        className: 'dropdown-item',
-                                        exportOptions: {
-                                            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9]
-                                        }
-                                    }, {
-                                        extend: 'excel',
-                                        text: '<i class="ti ti-file-spreadsheet me-1"></i>Excel',
-                                        className: 'dropdown-item',
-                                        exportOptions: {
-                                            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9]
-                                        }
-                                    }, {
-                                        extend: 'pdf',
-                                        text: '<i class="ti ti-file-description me-1"></i>Pdf',
-                                        className: 'dropdown-item',
-                                        exportOptions: {
-                                            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9]
-                                        }
-                                    }, {
-                                        extend: 'copy',
-                                        text: '<i class="ti ti-copy me-1" ></i>Copy',
-                                        className: 'dropdown-item',
-                                        exportOptions: {
-                                            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9]
-                                        }
-                                    },
-                                    {
-                                        text: '<i class="ti ti-file-spreadsheet me-1"></i>All Raw Excel',
-                                        className: 'dropdown-item',
-                                        action: function() {
-                                            DownloadAllRaw(id_jns_sms, id);
-                                        }
-                                    },
-                                ]
-                            }, ],
-                        });
-                    }
                 }
             });
         }
 
-        $('button[data-bs-toggle="tab"]').first().tab('show');
-        $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function(e) {
-            $($.fn.dataTable.tables(true)).DataTable().columns.adjust();
-        });
+        if ($.fn.DataTable.isDataTable('.datatables-raw-iku3')) {
+            $('.datatables-raw-iku3').DataTable().destroy();
+        }
+
     };
 
     function ClearCloseTable() {
-        $('.datatables-raw-bekber').DataTable().clear().draw();
-        $('.datatables-raw-lnjt-studi').DataTable().clear().draw();
-        $('.datatables-raw-tdk_bekerja').DataTable().clear().draw();
+        $('.datatables-raw-iku3').DataTable().clear().draw();
     }
 </script>

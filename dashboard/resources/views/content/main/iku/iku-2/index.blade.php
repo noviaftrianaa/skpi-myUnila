@@ -230,22 +230,10 @@
                             <div class="card-body">
                                 <div class="d-flex align-items-center mb-2 pb-1">
                                     <span class="avatar-initial rounded bg-label-primary p-1">
-                                        <h4 class="ms-1 mb-0" id="point_a">0</h4>
+                                        <h4 class="ms-1 mb-0" id="point_mbkm">0</h4>
                                     </span>
                                 </div>
                                 <p class="mb-3 mt-3">Point MBKM</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 col-lg-3 mb-4">
-                        <div class="card card-border-shadow-primary">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center mb-2 pb-1">
-                                    <span class="avatar-initial rounded bg-label-primary p-1">
-                                        <h4 class="ms-1 mb-0" id="point_b">0</h4>
-                                    </span>
-                                </div>
-                                <p class="mb-3 mt-3">Point MBKM Inbound</p>
                             </div>
                         </div>
                     </div>
@@ -258,6 +246,18 @@
                                     </span>
                                 </div>
                                 <p class="mb-3 mt-3">Total Peserta MBKM</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="card card-border-shadow-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2 pb-1">
+                                    <span class="avatar-initial rounded bg-label-primary p-1">
+                                        <h4 class="ms-1 mb-0" id="total_mhs">0</h4>
+                                    </span>
+                                </div>
+                                <p class="mb-3 mt-3">Total Mahasiswa Memenuhi Syarat</p>
                             </div>
                         </div>
                     </div>
@@ -506,6 +506,7 @@
                     <th width="45%">Nama Fakultas / Program Studi</th>
                     <th width="15%">Point MBKM</th>
                     <th width="15%">Point MBKM Inbound</th>
+                    <th width="15%">Total Mahasiswa Memenuhi Syarat</th>
                     <th width="15%">Total Peserta MBKM</th>
                     <th width="10%">Pencapaian</th>
                 </tr>
@@ -540,11 +541,11 @@
       <form class="add-new-user pt-0" id="filterForm" onsubmit="return false">
         <div class="mb-3">
           <label class="form-label" for="country">Tahun IKU</label>
-          <select id="thn_iku" class="select2 form-select" required>
-            @foreach ($thn_iku as $idThnAjaran => $item)
-                <option value="{{ $idThnAjaran }}">{{ $idThnAjaran }}</option>
-            @endforeach
-          </select>
+          <select class="select2 form-select" id="thn_iku">
+            @for ($i = $thn_iku; $i > $thn_iku - 2; $i--)
+                <option value="{{ $i }}">{{ $i }}</option>
+            @endfor
+        </select>
         </div>
         <button class="btn btn-primary me-sm-3 me-1 data-submit" onclick="TablePointIku()" data-bs-dismiss="offcanvas"><i class="fas fa-filter me-2"></i> Submit</button>
         <button type="reset" class="btn btn-label-secondary" data-bs-dismiss="offcanvas">Cancel</button>

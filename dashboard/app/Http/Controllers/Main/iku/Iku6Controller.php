@@ -15,26 +15,9 @@ class Iku6Controller extends Controller
     $this->request = app(Request::class);
   }
 
-  public function tahunIku()
-  {
-      $periodeAktif = DB::table('ref.semester')
-      ->whereNull('expired_date')
-      ->where('a_periode_aktif', 1)
-      ->distinct()
-      ->pluck('id_thn_ajaran')[0];
-      $getPeriode = DB::table('ref.semester')
-        ->whereNull('expired_date')
-        ->where(DB::raw('RIGHT(id_smt,1)'), '<', '3')
-        ->whereBetween('id_thn_ajaran', [$periodeAktif - 2, $periodeAktif])
-        ->select('id_thn_ajaran', 'id_smt')
-        ->orderByDesc('id_smt')
-        ->get();
-      return $periode = collect($getPeriode)->groupBy('id_thn_ajaran');
-  }
-
   public function index()
   {
-    $thn_iku = $this->tahunIku();
+    $thn_iku = get_tahun_keaktifan();
     return view('content.main.iku.iku-6.index', compact('thn_iku'));
   }
 

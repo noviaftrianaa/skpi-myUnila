@@ -85,7 +85,7 @@
 
 @section('content')
 <h4>
-  Indikator Kinerja Utama - IKU 2
+  Indikator Kinerja Utama - IKU 3
 </h4>
 
 <div class="overlay" id="loading">
@@ -217,7 +217,7 @@
                                         <h4 class="ms-1 mb-0" id="total_tpb">0</h4>
                                     </span>
                                 </div>
-                                <p class="mb-1">Tridharma, Praktisi, Prestasi</p>
+                                <p class="mb-1">Tridharma, Praktisi, Bimbing</p>
                             </div>
                         </div>
                     </div>
@@ -229,7 +229,7 @@
                                         <h4 class="ms-1 mb-0" id="total_dosen">0</h4>
                                     </span>
                                 </div>
-                                <p class="mb-1">Total Dosen</p>
+                                <p class="mb-1">Total Dosen NIDN</p>
                             </div>
                         </div>
                     </div>
@@ -346,7 +346,7 @@
           <th width ="40%">Nama Fakultas / Program Studi</th>
           <th width ="13%">Point Tridharma</th>
           <th width ="13%">Point Praktisi</th>
-          <th width ="13%">Point Bimbing Prestasi</th>
+          <th width ="13%">Point Membimbing Mahasiswa</th>
           <th width ="10%">Total Dosen</th>
           <th width ="13%">Total Point</th>
           <th width ="10%">Pencapaian</th>
@@ -365,11 +365,11 @@
       <form class="add-new-user pt-0" id="filterForm" onsubmit="return false">
         <div class="mb-3">
           <label class="form-label" for="country">Tahun IKU</label>
-          <select id="thn_iku" class="select2 form-select" required>
-            @foreach ($thn_iku as $idThnAjaran => $item)
-                <option value="{{ $idThnAjaran }}">{{ $idThnAjaran }}</option>
-            @endforeach
-          </select>
+          <select class="select2 form-select" id="thn_iku">
+            @for ($i = $thn_iku; $i > $thn_iku - 2; $i--)
+                <option value="{{ $i }}">{{ $i }}</option>
+            @endfor
+        </select>
         </div>
         <button class="btn btn-primary me-sm-3 me-1 data-submit" onclick="TablePointIku()" data-bs-dismiss="offcanvas"><i class="fas fa-filter me-2"></i> Submit</button>
         <button type="reset" class="btn btn-label-secondary" data-bs-dismiss="offcanvas">Cancel</button>

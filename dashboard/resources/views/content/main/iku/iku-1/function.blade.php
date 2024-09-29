@@ -314,7 +314,7 @@
                                     targets: 1,
                                     width: 30,
                                     render: function(data, type, row) {
-                                       return `<a href="{{ route('pages-mahasiswa', '') }}/${row.id_pd}" target="_blank">${data}</a>`;
+                                       return `<a href="{{ route('pages-mahasiswa', '') }}/${row.encrypted_id_pd}" target="_blank">${data}</a>`;
                                     }
                                 },
                                 {
@@ -480,7 +480,7 @@
                                     targets: 1,
                                     width: 30,
                                     render: function(data, type, row) {
-                                       return `<a href="{{ route('pages-mahasiswa', '') }}/${row.id_pd}" target="_blank">${data}</a>`;
+                                       return `<a href="{{ route('pages-mahasiswa', '') }}/${row.encrypted_id_pd}" target="_blank">${data}</a>`;
                                     }
                                 },
                                 {
@@ -634,7 +634,7 @@
                                     targets: 1,
                                     width: 30,
                                     render: function(data, type, row) {
-                                       return `<a href="{{ route('pages-mahasiswa', '') }}/${row.id_pd}" target="_blank">${data}</a>`;
+                                       return `<a href="{{ route('pages-mahasiswa', '') }}/${row.encrypted_id_pd}" target="_blank">${data}</a>`;
                                     }
                                 },
                                 {

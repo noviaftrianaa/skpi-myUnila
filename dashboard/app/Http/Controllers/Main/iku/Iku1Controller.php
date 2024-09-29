@@ -15,79 +15,63 @@ class Iku1Controller extends Controller
     $this->request = app(Request::class);
   }
 
-  public function tahunIku()
-  {
-      $periodeAktif = DB::table('ref.semester')
-      ->whereNull('expired_date')
-      ->where('a_periode_aktif', 1)
-      ->distinct()
-      ->pluck('id_thn_ajaran')[0];
-      $getPeriode = DB::table('ref.semester')
-        ->whereNull('expired_date')
-        ->where(DB::raw('RIGHT(id_smt,1)'), '<', '3')
-        ->whereBetween('id_thn_ajaran', [$periodeAktif - 2, $periodeAktif])
-        ->select('id_thn_ajaran', 'id_smt')
-        ->orderByDesc('id_smt')
-        ->get();
-      return $periode = collect($getPeriode)->groupBy('id_thn_ajaran');
-  }
-
   public function index()
   {
-    $thn_iku = $this->tahunIku();
+    $thn_iku = get_tahun_keaktifan();
     return view('content.main.iku.iku-1.index', compact('thn_iku'));
   }
 
   public function listTotalPoint()
   {
-    $thn_iku = $this->request->thn_iku;
-    $id_jns_sms = $this->request->id_jns_sms;
-    $id_sms = $this->request->id_sms;
+      $thn_iku = $this->request->thn_iku;
+      $id_jns_sms = $this->request->id_jns_sms;
+      $id_sms = $this->request->id_sms;
 
-    // if ($thn_iku == 2023) {
+      // IF-ELSE untuk menentukan query berdasarkan kondisi
       if ($id_jns_sms == 3 && !is_null($id_sms)) {
-        $select = "
-          SELECT
-            lemb.id_sms,
-            lemb.id_jns_sms,
-            UPPER(CONCAT(lemb.nm_lemb, ' (', jenj.nm_jenj_didik, ')')) AS nm_lemb,
-            SUM(iku.point) AS point,
-            COUNT(iku.id_hasil_tracer_study) AS total_responden,
-            COUNT(iku.id_reg_pd) AS total_alumni,
-            -- FORMAT((NULLIF(SUM(iku.point), 0) / COUNT(iku.id_hasil_tracer_study)), 'P') AS capaian
-            ROUND(NULLIF(SUM(iku.point), 0) * 100/ COUNT(iku.id_hasil_tracer_study), 0) AS capaian
-            FROM pdrd.sms AS lemb
-        ";
-        $join = "
-          JOIN ref.jenjang_pendidikan AS jenj WITH(NOLOCK) ON jenj.id_jenj_didik = lemb.id_jenj_didik
-          AND jenj.expired_date IS NULL
-          LEFT JOIN (
-              SELECT
-                  prodi.id_sms,
-                  tc.id_hasil_tracer_study,
-                  reg.id_reg_pd,
-                  CASE
-                  WHEN tc.status_lulusan = 1 AND ( tc.a_kerja_sblm_lulus = 1 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr))
-                    OR ( tc.a_kerja_sblm_lulus = 0 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr)) AND tc.wkt_tunggu <= 6) ) THEN 1
-                  WHEN tc.status_lulusan = 1 AND (tc.a_kerja_sblm_lulus = 0 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr)) AND tc.wkt_tunggu BETWEEN 7 AND 12) THEN 0.8
-                  WHEN tc.status_lulusan = 1 AND ( tc.a_kerja_sblm_lulus = 1 AND (tc.income_per_bln < (1.2 * umr.besaran_umr))
-                    OR (tc.a_kerja_sblm_lulus = 0 AND (tc.income_per_bln < (1.2 * umr.besaran_umr)) AND tc.wkt_tunggu <= 6) ) THEN 0.7
-                  WHEN tc.status_lulusan = 1 AND (tc.a_kerja_sblm_lulus = 0 AND (tc.income_per_bln < (1.2 * umr.besaran_umr)) AND tc.wkt_tunggu BETWEEN 7 AND 12) THEN 0.5
-
-                  WHEN tc.status_lulusan = 2 AND ( tc.a_kerja_sblm_lulus = 1 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr))
-                    OR ( tc.a_kerja_sblm_lulus = 0 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr)) AND tc.wkt_tunggu <= 6) )THEN 1.2
-                  WHEN tc.status_lulusan = 2 AND (tc.a_kerja_sblm_lulus = 0 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr)) AND tc.wkt_tunggu BETWEEN 7 AND 12) THEN 1.0
-                  WHEN tc.status_lulusan = 2 AND ( tc.a_kerja_sblm_lulus = 1 AND (tc.income_per_bln < (1.2 * umr.besaran_umr))
-                    OR (tc.a_kerja_sblm_lulus = 0 AND (tc.income_per_bln < (1.2 * umr.besaran_umr)) AND tc.wkt_tunggu <= 6) ) THEN 1.0
-                  WHEN tc.status_lulusan = 2 AND (tc.a_kerja_sblm_lulus = 0 AND (tc.income_per_bln < (1.2 * umr.besaran_umr)) AND tc.wkt_tunggu BETWEEN 7 AND 12) THEN 0.8
-
-                  WHEN tc.status_lulusan = 3 AND ( DATEDIFF(DAY, reg.tgl_keluar, tc.wkt_masuk) < 365) THEN 1
-              ELSE 0
-            END AS point
-              FROM
-                  pdrd.reg_pd AS reg
+          // Query jika $id_jns_sms == 3 dan $id_sms tidak null
+          $select = "
+              WITH CTE_MaxPoints AS (
+                  SELECT
+                      tc.id_hasil_tracer_study,
+                      reg.id_reg_pd,
+                      prodi.id_sms,
+                      CASE
+                          -- Kriteria Bekerja
+                          WHEN tc.status_lulusan = 1 AND tc.income_per_bln >= (1.2 * umr.besaran_umr) AND tc.wkt_tunggu <= 6 THEN 1.0
+                          WHEN tc.status_lulusan = 1 AND tc.income_per_bln >= (1.2 * umr.besaran_umr) AND tc.wkt_tunggu BETWEEN 7 AND 12 THEN 0.8
+                          WHEN tc.status_lulusan = 1 AND tc.income_per_bln < (1.2 * umr.besaran_umr) AND tc.wkt_tunggu <= 6 THEN 0.7
+                          WHEN tc.status_lulusan = 1 AND tc.income_per_bln < (1.2 * umr.besaran_umr) AND tc.wkt_tunggu BETWEEN 7 AND 12 THEN 0.5
+                          -- Kriteria Wirausaha
+                          WHEN tc.status_lulusan = 2 AND tc.income_per_bln >= (1.2 * umr.besaran_umr) AND tc.wkt_tunggu <= 6 THEN 1.2
+                          WHEN tc.status_lulusan = 2 AND tc.income_per_bln >= (1.2 * umr.besaran_umr) AND tc.wkt_tunggu BETWEEN 7 AND 12 THEN 1.0
+                          WHEN tc.status_lulusan = 2 AND tc.income_per_bln < (1.2 * umr.besaran_umr) AND tc.wkt_tunggu <= 6 THEN 1.0
+                          WHEN tc.status_lulusan = 2 AND tc.income_per_bln < (1.2 * umr.besaran_umr) AND tc.wkt_tunggu BETWEEN 7 AND 12 THEN 0.8
+                          -- Kriteria Melanjutkan Studi
+                          WHEN tc.status_lulusan = 3 AND DATEDIFF(DAY, reg.tgl_keluar, tc.wkt_masuk) < 365 THEN 1
+                          ELSE 0
+                      END AS point,
+                      ROW_NUMBER() OVER (PARTITION BY reg.id_reg_pd ORDER BY
+                          CASE
+                              -- Kriteria Bekerja
+                              WHEN tc.status_lulusan = 1 AND tc.income_per_bln >= (1.2 * umr.besaran_umr) AND tc.wkt_tunggu <= 6 THEN 1.0
+                              WHEN tc.status_lulusan = 1 AND tc.income_per_bln >= (1.2 * umr.besaran_umr) AND tc.wkt_tunggu BETWEEN 7 AND 12 THEN 0.8
+                              WHEN tc.status_lulusan = 1 AND tc.income_per_bln < (1.2 * umr.besaran_umr) AND tc.wkt_tunggu <= 6 THEN 0.7
+                              WHEN tc.status_lulusan = 1 AND tc.income_per_bln < (1.2 * umr.besaran_umr) AND tc.wkt_tunggu BETWEEN 7 AND 12 THEN 0.5
+                              -- Kriteria Wirausaha
+                              WHEN tc.status_lulusan = 2 AND tc.income_per_bln >= (1.2 * umr.besaran_umr) AND tc.wkt_tunggu <= 6 THEN 1.2
+                              WHEN tc.status_lulusan = 2 AND tc.income_per_bln >= (1.2 * umr.besaran_umr) AND tc.wkt_tunggu BETWEEN 7 AND 12 THEN 1.0
+                              WHEN tc.status_lulusan = 2 AND tc.income_per_bln < (1.2 * umr.besaran_umr) AND tc.wkt_tunggu <= 6 THEN 1.0
+                              WHEN tc.status_lulusan = 2 AND tc.income_per_bln < (1.2 * umr.besaran_umr) AND tc.wkt_tunggu BETWEEN 7 AND 12 THEN 0.8
+                              -- Kriteria Melanjutkan Studi
+                              WHEN tc.status_lulusan = 3 AND DATEDIFF(DAY, reg.tgl_keluar, tc.wkt_masuk) < 365 THEN 1
+                              ELSE 0
+                          END DESC) AS rank_order
+                  FROM
+                      pdrd.reg_pd AS reg
                   LEFT JOIN tracer.hasil_tracer_study AS tc ON tc.id_reg_pd = reg.id_reg_pd
                   AND tc.soft_delete = 0
+                  AND tc.status_lulusan IN (1, 2, 3)
                   JOIN pdrd.sms AS prodi WITH(NOLOCK) ON prodi.id_sms = reg.id_sms
                   AND prodi.soft_delete = 0
                   AND prodi.stat_prodi = 'A'
@@ -97,108 +81,157 @@ class Iku1Controller extends Controller
                   AND jenj.expired_date IS NULL
                   AND jenj.id_jenj_didik IN (20, 21, 22, 23, 30)
                   LEFT JOIN tracer.umr_wilayah AS umr WITH(NOLOCK) ON umr.id_wil = tc.id_wil
-                  AND umr.id_tahun_anggaran = YEAR(reg.tgl_keluar) + 1
+                  AND umr.id_tahun_anggaran = '" . ($thn_iku) . "'
                   AND umr.soft_delete = 0
-              WHERE
-                  reg.soft_delete = 0
-                  AND reg.id_jns_keluar = '1'
-                  AND YEAR(reg.tgl_keluar) = '" . ($thn_iku - 1) . "'
-          ) AS iku ON iku.id_sms = lemb.id_sms
-      WHERE
-          lemb.soft_delete = 0
-        ";
-        $where = "
-          AND lemb.id_jns_sms = 3
-          AND lemb.stat_prodi = 'A'
-          AND lemb.id_jenj_didik IN (20, 21, 22, 23, 30)
-          AND lemb.id_fak_unila = '" . $id_sms . "'
-        ";
-        $group_by = "
-          GROUP BY
-          lemb.id_sms,
-          lemb.nm_lemb,
-          lemb.id_jns_sms,
-          jenj.nm_jenj_didik
-        ";
-      } else {
-        $select = "
-          SELECT
-            lemb.id_sms,
-            lemb.id_jns_sms,
-            UPPER(lemb.nm_lemb) AS nm_lemb,
-            SUM(iku.point) AS point,
-            COUNT(iku.id_hasil_tracer_study) AS total_responden,
-            COUNT(iku.id_reg_pd) AS total_alumni,
-            -- FORMAT((NULLIF(SUM(iku.point), 0) / COUNT(iku.id_hasil_tracer_study)), 'P') AS capaian
-            ROUND(NULLIF(SUM(iku.point), 0) * 100/ COUNT(iku.id_hasil_tracer_study), 0) AS capaian
-            FROM pdrd.sms AS lemb
-        ";
-        $join = "
-          LEFT JOIN (
+                  WHERE
+                      reg.soft_delete = 0
+                      AND reg.id_jns_keluar = '1'
+                      AND YEAR(reg.tgl_keluar) = '" . ($thn_iku - 1) . "'
+                      AND fak.id_sms NOT IN ('61752f1d-2cd6-4186-a2da-8189e2c3bc0c')
+              )
+
               SELECT
-                  fak.id_sms,
-                  tc.id_hasil_tracer_study,
-                  reg.id_reg_pd,
-                  CASE
-                  WHEN tc.status_lulusan = 1 AND ( tc.a_kerja_sblm_lulus = 1 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr))
-                    OR ( tc.a_kerja_sblm_lulus = 0 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr)) AND tc.wkt_tunggu <= 6) ) THEN 1
-                  WHEN tc.status_lulusan = 1 AND (tc.a_kerja_sblm_lulus = 0 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr)) AND tc.wkt_tunggu BETWEEN 7 AND 12) THEN 0.8
-                  WHEN tc.status_lulusan = 1 AND ( tc.a_kerja_sblm_lulus = 1 AND (tc.income_per_bln < (1.2 * umr.besaran_umr))
-                    OR (tc.a_kerja_sblm_lulus = 0 AND (tc.income_per_bln < (1.2 * umr.besaran_umr)) AND tc.wkt_tunggu <= 6) ) THEN 0.7
-                  WHEN tc.status_lulusan = 1 AND (tc.a_kerja_sblm_lulus = 0 AND (tc.income_per_bln < (1.2 * umr.besaran_umr)) AND tc.wkt_tunggu BETWEEN 7 AND 12) THEN 0.5
-
-                  WHEN tc.status_lulusan = 2 AND ( tc.a_kerja_sblm_lulus = 1 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr))
-                    OR ( tc.a_kerja_sblm_lulus = 0 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr)) AND tc.wkt_tunggu <= 6) )THEN 1.2
-                  WHEN tc.status_lulusan = 2 AND (tc.a_kerja_sblm_lulus = 0 AND (tc.income_per_bln >= (1.2 * umr.besaran_umr)) AND tc.wkt_tunggu BETWEEN 7 AND 12) THEN 1.0
-                  WHEN tc.status_lulusan = 2 AND ( tc.a_kerja_sblm_lulus = 1 AND (tc.income_per_bln < (1.2 * umr.besaran_umr))
-                    OR (tc.a_kerja_sblm_lulus = 0 AND (tc.income_per_bln < (1.2 * umr.besaran_umr)) AND tc.wkt_tunggu <= 6) ) THEN 1.0
-                  WHEN tc.status_lulusan = 2 AND (tc.a_kerja_sblm_lulus = 0 AND (tc.income_per_bln < (1.2 * umr.besaran_umr)) AND tc.wkt_tunggu BETWEEN 7 AND 12) THEN 0.8
-
-                  WHEN tc.status_lulusan = 3 AND ( DATEDIFF(DAY, reg.tgl_keluar, tc.wkt_masuk) < 365) THEN 1
-              ELSE 0
-            END AS point
+                  lemb.id_sms,
+                  lemb.id_jns_sms,
+                  UPPER(CONCAT(lemb.nm_lemb, ' (', jenj.nm_jenj_didik, ')')) AS nm_lemb,
+                  SUM(iku.point) AS point,
+                  COUNT(iku.id_hasil_tracer_study) AS total_responden,
+                  COUNT(iku.id_reg_pd) AS total_alumni,
+                  CONCAT(
+                      CAST(
+                          ( NULLIF(SUM(iku.point), 0) * 100 / COUNT(iku.id_hasil_tracer_study)) AS DECIMAL(5, 2)
+                      ), '%'
+                  ) AS capaian
               FROM
-                  pdrd.reg_pd AS reg
-                  LEFT JOIN tracer.hasil_tracer_study AS tc ON tc.id_reg_pd = reg.id_reg_pd
-                  AND tc.soft_delete = 0
-                  JOIN pdrd.sms AS prodi WITH(NOLOCK) ON prodi.id_sms = reg.id_sms
-                  AND prodi.soft_delete = 0
-                  AND prodi.stat_prodi = 'A'
-                  LEFT JOIN pdrd.sms AS fak WITH(NOLOCK) ON fak.id_sms = prodi.id_fak_unila
-                  AND fak.soft_delete = 0
-                  JOIN ref.jenjang_pendidikan AS jenj WITH(NOLOCK) ON jenj.id_jenj_didik = prodi.id_jenj_didik
-                  AND jenj.expired_date IS NULL
-                  AND jenj.id_jenj_didik IN (20, 21, 22, 23, 30)
-                  LEFT JOIN tracer.umr_wilayah AS umr WITH(NOLOCK) ON umr.id_wil = tc.id_wil
-                  AND umr.id_tahun_anggaran = YEAR(reg.tgl_keluar) + 1
-                  AND umr.soft_delete = 0
+                  pdrd.sms AS lemb
+              LEFT JOIN (
+                  SELECT
+                      prodi.id_sms,
+                      tc.id_hasil_tracer_study,
+                      tc.id_reg_pd,
+                      point
+                  FROM CTE_MaxPoints AS tc
+                  LEFT JOIN pdrd.sms AS prodi ON prodi.id_sms = tc.id_sms
+                  WHERE prodi.soft_delete = 0
+                  AND tc.rank_order = 1  -- Ambil hanya poin tertinggi untuk setiap alumni
+              ) AS iku ON iku.id_sms = lemb.id_sms
+              JOIN ref.jenjang_pendidikan AS jenj WITH(NOLOCK) ON jenj.id_jenj_didik = lemb.id_jenj_didik
+              AND jenj.expired_date IS NULL
               WHERE
-                  reg.soft_delete = 0
-                  AND reg.id_jns_keluar = '1'
-                  AND YEAR(reg.tgl_keluar) = '" . ($thn_iku - 1) . "'
-          ) AS iku ON iku.id_sms = lemb.id_sms
-      WHERE
-          lemb.soft_delete = 0
-        ";
-        $where = "
-          AND lemb.id_jns_sms = 1
-          AND lemb.id_sms NOT IN (
-            '61752f1d-2cd6-4186-a2da-8189e2c3bc0c',
-            '9b467728-ca97-4922-a9bd-75eb7ec512e1'
-            )
+                  lemb.soft_delete = 0
+                  AND lemb.id_jns_sms = 3
+                  AND lemb.id_sms NOT IN ('61752f1d-2cd6-4186-a2da-8189e2c3bc0c', '9b467728-ca97-4922-a9bd-75eb7ec512e1')
+                  AND lemb.id_fak_unila = '" . $id_sms . "'
+              GROUP BY
+                  lemb.id_sms,
+                  lemb.nm_lemb,
+                  lemb.id_jns_sms,
+                  jenj.nm_jenj_didik;
           ";
-        $group_by = "
-          GROUP BY
-          lemb.id_sms,
-          lemb.nm_lemb,
-          lemb.id_jns_sms
-      ";
+
+      } else {
+          // Query jika $id_jns_sms != 3 atau $id_sms null
+          $select = "
+                WITH CTE_MaxPoints AS (
+                  SELECT
+                      tc.id_hasil_tracer_study,
+                      reg.id_reg_pd,
+                      fak.id_sms,
+                      CASE
+                          WHEN tc.status_lulusan = 1 AND tc.income_per_bln >= (1.2 * umr.besaran_umr) AND tc.wkt_tunggu <= 6 THEN 1.0
+                          WHEN tc.status_lulusan = 1 AND tc.income_per_bln >= (1.2 * umr.besaran_umr) AND tc.wkt_tunggu BETWEEN 7 AND 12 THEN 0.8
+                          WHEN tc.status_lulusan = 1 AND tc.income_per_bln < (1.2 * umr.besaran_umr) AND tc.wkt_tunggu <= 6 THEN 0.7
+                          WHEN tc.status_lulusan = 1 AND tc.income_per_bln < (1.2 * umr.besaran_umr) AND tc.wkt_tunggu BETWEEN 7 AND 12 THEN 0.5
+                          -- Kriteria Wirausaha
+                          WHEN tc.status_lulusan = 2 AND tc.income_per_bln >= (1.2 * umr.besaran_umr) AND tc.wkt_tunggu <= 6 THEN 1.2
+                          WHEN tc.status_lulusan = 2 AND tc.income_per_bln >= (1.2 * umr.besaran_umr) AND tc.wkt_tunggu BETWEEN 7 AND 12 THEN 1.0
+                          WHEN tc.status_lulusan = 2 AND tc.income_per_bln < (1.2 * umr.besaran_umr) AND tc.wkt_tunggu <= 6 THEN 1.0
+                          WHEN tc.status_lulusan = 2 AND tc.income_per_bln < (1.2 * umr.besaran_umr) AND tc.wkt_tunggu BETWEEN 7 AND 12 THEN 0.8
+                          -- Kriteria Melanjutkan Studi
+                          WHEN tc.status_lulusan = 3 AND DATEDIFF(DAY, reg.tgl_keluar, tc.wkt_masuk) < 365 THEN 1
+                          ELSE 0
+                      END AS point,
+                      ROW_NUMBER() OVER (PARTITION BY reg.id_reg_pd ORDER BY
+                          CASE
+                              WHEN tc.status_lulusan = 1 AND tc.income_per_bln >= (1.2 * umr.besaran_umr) AND tc.wkt_tunggu <= 6 THEN 1.0
+                              WHEN tc.status_lulusan = 1 AND tc.income_per_bln >= (1.2 * umr.besaran_umr) AND tc.wkt_tunggu BETWEEN 7 AND 12 THEN 0.8
+                              WHEN tc.status_lulusan = 1 AND tc.income_per_bln < (1.2 * umr.besaran_umr) AND tc.wkt_tunggu <= 6 THEN 0.7
+                              WHEN tc.status_lulusan = 1 AND tc.income_per_bln < (1.2 * umr.besaran_umr) AND tc.wkt_tunggu BETWEEN 7 AND 12 THEN 0.5
+                              WHEN tc.status_lulusan = 2 AND tc.income_per_bln >= (1.2 * umr.besaran_umr) AND tc.wkt_tunggu <= 6 THEN 1.2
+                              WHEN tc.status_lulusan = 2 AND tc.income_per_bln >= (1.2 * umr.besaran_umr) AND tc.wkt_tunggu BETWEEN 7 AND 12 THEN 1.0
+                              WHEN tc.status_lulusan = 2 AND tc.income_per_bln < (1.2 * umr.besaran_umr) AND tc.wkt_tunggu <= 6 THEN 1.0
+                              WHEN tc.status_lulusan = 2 AND tc.income_per_bln < (1.2 * umr.besaran_umr) AND tc.wkt_tunggu BETWEEN 7 AND 12 THEN 0.8
+                              WHEN tc.status_lulusan = 3 AND DATEDIFF(DAY, reg.tgl_keluar, tc.wkt_masuk) < 365 THEN 1
+                              ELSE 0
+                          END DESC) AS rank_order
+                  FROM
+                      pdrd.reg_pd AS reg
+                  LEFT JOIN tracer.hasil_tracer_study AS tc ON tc.id_reg_pd = reg.id_reg_pd
+                  AND tc.soft_delete = 0
+                  AND tc.status_lulusan IN (1, 2, 3)
+                  JOIN pdrd.sms AS prodi WITH(NOLOCK) ON prodi.id_sms = reg.id_sms
+                  AND prodi.soft_delete = 0
+                  AND prodi.stat_prodi = 'A'
+                  LEFT JOIN pdrd.sms AS fak WITH(NOLOCK) ON fak.id_sms = prodi.id_fak_unila
+                  AND fak.soft_delete = 0
+                  JOIN ref.jenjang_pendidikan AS jenj WITH(NOLOCK) ON jenj.id_jenj_didik = prodi.id_jenj_didik
+                  AND jenj.expired_date IS NULL
+                  AND jenj.id_jenj_didik IN (20, 21, 22, 23, 30)
+                  LEFT JOIN tracer.umr_wilayah AS umr WITH(NOLOCK) ON umr.id_wil = tc.id_wil
+                  AND umr.id_tahun_anggaran = '" . ($thn_iku) . "'
+                  AND umr.soft_delete = 0
+                  WHERE
+                      reg.soft_delete = 0
+                      AND reg.id_jns_keluar = '1'
+                      AND YEAR(reg.tgl_keluar) = '" . ($thn_iku - 1) . "'
+                      AND fak.id_sms NOT IN ('61752f1d-2cd6-4186-a2da-8189e2c3bc0c')
+              )
+
+              SELECT
+                  lemb.id_sms,
+                  lemb.id_jns_sms,
+                  UPPER(lemb.nm_lemb) AS nm_lemb,
+                  SUM(iku.point) AS point,
+                  COUNT(iku.id_hasil_tracer_study) AS total_responden,
+                  COUNT(iku.id_reg_pd) AS total_alumni,
+                  CONCAT(
+                      CAST(
+                          ( NULLIF(SUM(iku.point), 0) * 100 / COUNT(iku.id_hasil_tracer_study)) AS DECIMAL(5, 2)
+                      ), '%'
+                  ) AS capaian
+              FROM
+                  pdrd.sms AS lemb
+              LEFT JOIN (
+                  SELECT
+                      fak.id_sms,
+                      tc.id_hasil_tracer_study,
+                      tc.id_reg_pd,
+                      point
+                  FROM CTE_MaxPoints AS tc
+                  LEFT JOIN pdrd.sms AS fak ON fak.id_sms = tc.id_sms
+                  WHERE fak.soft_delete = 0
+                  AND tc.rank_order = 1  -- Ambil hanya poin tertinggi untuk setiap alumni
+              ) AS iku ON iku.id_sms = lemb.id_sms
+              WHERE
+                  lemb.soft_delete = 0
+                  AND lemb.id_jns_sms = 1
+                  AND lemb.id_sms NOT IN ('61752f1d-2cd6-4186-a2da-8189e2c3bc0c', '9b467728-ca97-4922-a9bd-75eb7ec512e1')
+              GROUP BY
+                  lemb.id_sms,
+                  lemb.nm_lemb,
+                  lemb.id_jns_sms;
+          ";
       }
-      $result = DB::select($select . $join . $where . $group_by);
+
+      // Eksekusi query
+      $result = DB::select($select);
+
+      // Dapatkan data sinkronisasi terakhir
       $last_sync = collect(
-        DB::select('SELECT last_sync AS time FROM tracer.hasil_tracer_study WHERE soft_delete=0 ORDER BY last_sync DESC')
+          DB::select('SELECT last_sync AS time FROM tracer.hasil_tracer_study WHERE soft_delete=0 ORDER BY last_sync DESC')
       )->first();
 
+      // Inisialisasi variabel
       $iku = array();
       $total_point = 0;
       $total_responden = 0;
@@ -206,57 +239,58 @@ class Iku1Controller extends Controller
       $rumus = 'Kepdirjen 173/E/KPT/2023';
       $sumber_data = 'Sistem Tracer Study Universitas Lampung - CCED';
 
+      // Proses hasil query
       foreach ($result as $index => $each_data) {
-        $total_point += $each_data->point;
-        $total_responden += $each_data->total_responden;
-        $total_alumni += $each_data->total_alumni;
-        $pembentuk = '( '.$total_point . ' / ' . $total_responden .' ) * 100';
+          $total_point += $each_data->point;
+          $total_responden += $each_data->total_responden;
+          $total_alumni += $each_data->total_alumni;
+          $pembentuk = '( '.$total_point . ' / ' . $total_responden .' ) * 100';
 
-        if ($total_responden != 0) {
-          $pencapaian = ($total_point / $total_responden) * 100;
-        } else {
-          $pencapaian = 0;
-        }
-        $gold_standart = 60;
+          // Hitung pencapaian
+          if ($total_responden != 0) {
+              $pencapaian = ($total_point / $total_responden) * 100;
+          } else {
+              $pencapaian = 0;
+          }
 
-        $sub = $gold_standart - $pencapaian;
-        if($pencapaian > $gold_standart){
-          $delta_gold_standart = abs($sub);
-        }else{
-          $delta_gold_standart = $sub;
-        }
-        $skor_pencapaian = $pencapaian / $gold_standart;
+          $gold_standart = 60;
 
-        $iku['count'] = [
-          'total_point' => number_format($total_point, 2),
-          'total_responden' => $total_responden,
-          'total_alumni' => $total_alumni,
-          'pembentuk' => $pembentuk,
-          'pencapaian' => number_format($pencapaian, 2) . '%',
-          'gold_standart' => number_format($gold_standart, 2) . '%',
-          'delta_gold_standart' => number_format($delta_gold_standart, 2) . '%',
-          'skor_pencapaian' => number_format($skor_pencapaian, 2) . '%',
-          'last_sync' => tglWaktuIndonesia($last_sync->time),
-          'rumus' => $rumus,
-          'sumber_data' => $sumber_data,
-        ];
-        $iku['data'][$index] = [
-          'id_sms' => $each_data->id_sms,
-          'id_jns_sms' => $each_data->id_jns_sms,
-          'nm_lemb' => $each_data->nm_lemb,
-          'point' => $each_data->point,
-          'total_responden' => $each_data->total_responden,
-          'total_alumni' => $each_data->total_alumni,
-          'capaian' => number_format($each_data->capaian, 2) . '%',
-        ];
+          // Hitung delta gold standar
+          $sub = $gold_standart - $pencapaian;
+          $delta_gold_standart = $pencapaian > $gold_standart ? abs($sub) : $sub;
+          $skor_pencapaian = $pencapaian / $gold_standart;
+
+          // Buat array hasil
+          $iku['count'] = [
+              'total_point' => number_format($total_point, 2),
+              'total_responden' => $total_responden,
+              'total_alumni' => $total_alumni,
+              'pembentuk' => $pembentuk,
+              'pencapaian' => number_format($pencapaian, 2) . '%',
+              'gold_standart' => number_format($gold_standart, 2) . '%',
+              'delta_gold_standart' => number_format($delta_gold_standart, 2) . '%',
+              'skor_pencapaian' => number_format($skor_pencapaian, 2) . '%',
+              'last_sync' => tglWaktuIndonesia($last_sync->time),
+              'rumus' => $rumus,
+              'sumber_data' => $sumber_data,
+          ];
+
+          // Data per entitas
+          $iku['data'][$index] = [
+              'id_sms' => $each_data->id_sms,
+              'id_jns_sms' => $each_data->id_jns_sms,
+              'nm_lemb' => $each_data->nm_lemb,
+              'point' => $each_data->point,
+              'total_responden' => $each_data->total_responden,
+              'total_alumni' => $each_data->total_alumni,
+              'capaian' => $each_data->capaian
+          ];
       }
 
       return response()->json($iku);
-    // } else {
-    //   $result = [];
-    //   return response()->json($result);
-    // }
   }
+
+
 
   public function listRawData()
   {
@@ -368,6 +402,9 @@ class Iku1Controller extends Controller
       ";
       $order_by = " ORDER BY fak.nm_lemb, prodi.nm_lemb, jenj.nm_jenj_didik, pd.nm_pd ASC ";
       $result = DB::select($select . $join . $where . $order_by);
+      foreach ($result as $key => $row) {
+        $result[$key]->encrypted_id_pd = \Crypt::encrypt($row->id_pd);
+      }
 
       $detail_iku = array();
       foreach ($result as $index => $each_data) {
@@ -375,6 +412,7 @@ class Iku1Controller extends Controller
              $detail_iku['bekber'][] = [
               'id_reg_pd' => $each_data->id_reg_pd,
               'id_pd' => $each_data->id_pd,
+              'encrypted_id_pd' => $each_data->encrypted_id_pd,
               'tgl_keluar' => $each_data->tgl_keluar,
               'nipd' => $each_data->nipd,
               'nm_pd' => $each_data->nm_pd,
@@ -395,6 +433,7 @@ class Iku1Controller extends Controller
             $detail_iku['lnjt_studi'][] = [
               'id_reg_pd' => $each_data->id_reg_pd,
               'id_pd' => $each_data->id_pd,
+              'encrypted_id_pd' => $each_data->encrypted_id_pd,
               'tgl_keluar' => $each_data->tgl_keluar,
               'nipd' => $each_data->nipd,
               'nm_pd' => $each_data->nm_pd,
@@ -413,6 +452,7 @@ class Iku1Controller extends Controller
             $detail_iku['tdk_bekber'][] = [
               'id_reg_pd' => $each_data->id_reg_pd,
               'id_pd' => $each_data->id_pd,
+              'encrypted_id_pd' => $each_data->encrypted_id_pd,
               'tgl_keluar' => $each_data->tgl_keluar,
               'nipd' => $each_data->nipd,
               'nm_pd' => $each_data->nm_pd,
