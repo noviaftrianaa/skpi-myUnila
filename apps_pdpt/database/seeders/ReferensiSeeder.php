@@ -25,13 +25,16 @@ class ReferensiSeeder extends Seeder
 //            'Kebutuhan Khusus'      => 'GetKebutuhanKhusus',
 //           'Jenis Keluar'      => 'GetJenisKeluar',
 //            'Jalur Masuk'           => 'GetJalurMasuk',
-            'Status Mahasiswa'      => 'GetStatusMahasiswa',
-            'Alat Transportasi'     => 'GetAlatTransportasi',
-            'Jenis Tinggal'         => 'GetJenisTinggal',
-            'Penghasilan'           => 'GetPenghasilan',
-            'Pembiayaan'            => 'GetPembiayaan',
-            'Jenis Prestasi'        => 'GetJenisPrestasi',
-            'Tingkat Prestasi'      => 'GetTingkatPrestasi',
+//            'Status Mahasiswa'      => 'GetStatusMahasiswa',
+//            'Alat Transportasi'     => 'GetAlatTransportasi',
+//            'Jenis Tinggal'         => 'GetJenisTinggal',
+//            'Penghasilan'           => 'GetPenghasilan',
+//            'Pembiayaan'            => 'GetPembiayaan',
+//            'Jenis Prestasi'        => 'GetJenisPrestasi',
+//            'Tingkat Prestasi'      => 'GetTingkatPrestasi',
+            'Jenis Sertifikasi'     => 'GetJenisSertifikasi',
+            'Status Keaktifan Pegawai'     => 'GetStatusKeaktifanPegawai',
+            'Status Kepegawaian'     => 'GetStatusKepegawaian',
         ];
         foreach ($method_alias AS $name_alias=>$each_method) {
             echo "Mendapatkan data Referensi ".$name_alias."\n";
@@ -150,6 +153,17 @@ class ReferensiSeeder extends Seeder
                         DB::table('ref.jenis_prestasi')->insert([
                             'id_jenis_prestasi' => $each_data['id_jenis_prestasi'],
                             'nm_jenis_prestasi' => $each_data['nama_jenis_prestasi'],
+                            'create_date' => currDateTime(),
+                            'last_update' => currDateTime(),
+                            'last_sync' => currDateTime()
+                        ]);
+                    }
+                } elseif ($each_method=='GetJenisSertifikasi') {
+                    $cari_data = DB::table('ref.jenis_sert')->where('id_jns_sert',$each_data['id_jenis_sertifikasi'])->first();
+                    if (is_null($cari_data)) {
+                        DB::table('ref.jenis_prestasi')->insert([
+                            'id_jns_sert' => $each_data['id_jenis_sertifikasi'],
+                            'nm_jns_sert' => $each_data['nama_jenis_sertifikasi'],
                             'create_date' => currDateTime(),
                             'last_update' => currDateTime(),
                             'last_sync' => currDateTime()

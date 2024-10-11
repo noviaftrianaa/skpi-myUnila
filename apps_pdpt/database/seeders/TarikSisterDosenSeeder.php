@@ -11,7 +11,9 @@ use App\Models\PDUT\Pdrd\RwyPendFormal;
 use App\Models\PDUT\Pdrd\RwySertifikasi;
 use App\Models\PDUT\Pdrd\Sdm;
 use App\Models\PDUT\Pdrd\Sms;
+use App\Models\PDUT\Ref\LembagaSertifikasi;
 use App\Models\PDUT\Ref\Semester;
+use App\Models\PDUT\Ref\StatusKepegawaian;
 use App\Models\PDUT\Ref\TahunAjaran;
 use App\Models\PDUT\Ref\GelarAkademik;
 use Illuminate\Database\Seeder;
@@ -89,7 +91,6 @@ class TarikSisterDosenSeeder extends Seeder
                 $simpan_gelar->fill($input_gelar)->save();
                 echo " (OK - tambah Gelar)\n";
             } else {
-
                 if ($each_gelar->last_update>$cek_gelar->last_update) {
                     $input_gelar = (array) $each_gelar;
                     unset($input_gelar['csf']);
@@ -97,6 +98,58 @@ class TarikSisterDosenSeeder extends Seeder
                     $input_gelar['last_sync']     = $waktu_sekarang;
                     $cek_gelar->fill($input_gelar)->save();
                     echo " (OK - tambah Gelar)\n";
+                }
+            }
+        }
+        $data_lembaga_sertifikasi = \DB::connection('pgsql_sister')->table('ref.lembaga_sertifikasi')
+            ->whereNull('expired_date')
+            ->get();
+        foreach ($data_lembaga_sertifikasi AS $each_lembaga_sert) {
+            $cek_lembaga_sert = LembagaSertifikasi::find($each_lembaga_sert->id_lemb_sert);
+            if (is_null($cek_lembaga_sert)) {
+                $input_lembaga_sert = (array) $each_lembaga_sert;
+                unset($input_lembaga_sert['csf']);
+                $input_lembaga_sert['last_update']   = $waktu_sekarang;
+                $input_lembaga_sert['last_sync']     = $waktu_sekarang;
+                $simpan_lembaga_sert = new StatusKepegawaian();
+                $simpan_lembaga_sert->fill($input_lembaga_sert)->save();
+                echo " (OK - tambah Lembaga Sertifikasi)\n";
+            } else {
+                if ($each_lembaga_sert->last_update>$cek_lembaga_sert->last_update) {
+                    $input_lembaga_sert = (array) $each_lembaga_sert;
+                    unset($input_lembaga_sert['csf']);
+                    $input_lembaga_sert['last_update']   = $waktu_sekarang;
+                    $input_lembaga_sert['last_sync']     = $waktu_sekarang;
+                    $cek_lembaga_sert->fill($input_lembaga_sert)->save();
+                    echo " (OK - tambah Lembaga Sertifikasi)\n";
+                }
+            }
+        }
+        $data_dosen_status_kepegawaian = \DB::connection('pgsql_sister')->table('ref.status_kepegawaian')
+            ->whereNull('expired_date')
+            ->get();
+        foreach ($data_dosen_status_kepegawaian AS $each_status_kepegawaian) {
+            $cek_status_kepegawaian = StatusKepegawaian::find($each_status_kepegawaian->id_stat_pegawai);
+            if (is_null($cek_status_kepegawaian)) {
+                $input_status_kepegawaian = (array) $each_status_kepegawaian;
+                unset($input_status_kepegawaian['ket_stat_pegawai']);
+                unset($input_status_kepegawaian['a_ptk_dikti']);
+                unset($input_status_kepegawaian['csf']);
+                $input_status_kepegawaian['last_update']   = $waktu_sekarang;
+                $input_status_kepegawaian['last_sync']     = $waktu_sekarang;
+                $simpan_status_kepegawaian = new StatusKepegawaian();
+                $simpan_status_kepegawaian->fill($input_status_kepegawaian)->save();
+                echo " (OK - tambah Status Kepegawaian)\n";
+            } else {
+                if ($each_status_kepegawaian->last_update>$cek_status_kepegawaian->last_update) {
+                    $input_status_kepegawaian = (array) $each_status_kepegawaian;
+                    unset($input_status_kepegawaian['csf']);
+                    unset($input_status_kepegawaian['ket_stat_pegawai']);
+                    unset($input_status_kepegawaian['a_ptk_dikti']);
+                    $input_status_kepegawaian['last_update']   = $waktu_sekarang;
+                    $input_status_kepegawaian['last_sync']     = $waktu_sekarang;
+                    $cek_status_kepegawaian->fill($input_status_kepegawaian)->save();
+                    echo " (OK - tambah Status Kepegawaian)\n";
                 }
             }
         }
@@ -597,6 +650,9 @@ class TarikSisterDosenSeeder extends Seeder
                     'id_rwy_sert',
                     'id_jns_sert',
                     'id_bid_studi',
+                    'id_lemb_sert',
+                    'tmt_sert',
+                    'tst_sert',
                     'id_sdm',
                     'thn_sert',
                     'sk_sert',
@@ -609,6 +665,7 @@ class TarikSisterDosenSeeder extends Seeder
                     'soft_delete',
                     'last_sync'
                 ])
+                ->where('id_jns_sert','!=',5)
                 ->where('id_sdm',$each_dosen_sister->id_sdm)->get();
             if (count($cari_sert)>0) {
                 $total_dosen_sert = count($cari_sert);

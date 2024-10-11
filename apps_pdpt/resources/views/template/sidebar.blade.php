@@ -52,12 +52,14 @@
 			<li class="nav-header text-bold">MANAJEMEN</li>
 			@foreach(\Session::get('login.menu') AS $n=>$r)
 			@if(empty($r->sub))
+                        @if(\Route::has($t->nm_file))
 			<li class="nav-item">
 				<a href="{{ route($r->nm_file) }}" class="nav-link {{ AktifMenu($r->nm_file, 1) }}">
 					<i class="nav-icon {{ $r->icon }}"></i>
 					<p>{{ $r->nm_menu }}</p>
 				</a>
 			</li>
+                            @endif
 			@else
 			<li class="nav-item {{ AktifMenu($r->nm_file, 1) == 'active' ? 'menu-open' : '' }}">
 				<a href="#" class="nav-link">
