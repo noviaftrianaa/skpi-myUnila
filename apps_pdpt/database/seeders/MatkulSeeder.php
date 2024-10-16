@@ -60,6 +60,8 @@ class MatkulSeeder extends Seeder
             $cari_mk = DB::table('pdrd.matkul')->where('id_mk',$each_mk->id_mk)->first();
             if (is_null($cari_mk)) {
                 $input_mk = (array) $each_mk;
+                $input_mk['last_update'] = date('Y-m-d H:i:s', strtotime($input_mk['last_update']));
+                $input_mk['last_sync'] = date('Y-m-d H:i:s', strtotime($input_mk['last_sync']));
                 unset($input_mk['nm_lemb']);
                 $mk = new Matkul();
                 $mk->fill($input_mk)->save();
@@ -68,6 +70,8 @@ class MatkulSeeder extends Seeder
                     $input_mk = (array) $each_mk;
                     unset($input_mk['id_mk']);
                     unset($input_mk['nm_lemb']);
+                    $input_mk['last_update'] = date('Y-m-d H:i:s', strtotime($input_mk['last_update']));
+                    $input_mk['last_sync'] = date('Y-m-d H:i:s', strtotime($input_mk['last_sync']));
                     $mk = Matkul::find($cari_mk->id_mk);
                     $mk->fill($input_mk)->save();
                 }
@@ -103,12 +107,16 @@ class MatkulSeeder extends Seeder
                     $cari_kelas = DB::table('pdrd.kelas_kuliah')->where('id_kls',$each_kelas->id_kls)->first();
                     if (is_null($cari_kelas)) {
                         $input_kelas = (array) $each_kelas;
+                        $input_kelas['last_update'] = date('Y-m-d H:i:s', strtotime($input_kelas['last_update']));
+                        $input_kelas['last_sync'] = date('Y-m-d H:i:s', strtotime($input_kelas['last_sync']));
                         $kelas = new KelasKuliah();
                         $kelas->fill($input_kelas)->save();
                     } else {
                         if (strtotime($each_kelas->last_update)>strtotime($cari_kelas->last_update)) {
                             $input_kelas = (array) $each_kelas;
                             unset($input_kelas['id_kls']);
+                            $input_kelas['last_update'] = date('Y-m-d H:i:s', strtotime($input_kelas['last_update']));
+                            $input_kelas['last_sync'] = date('Y-m-d H:i:s', strtotime($input_kelas['last_sync']));
                             $kelas = KelasKuliah::find($cari_kelas->id_kls);
                             $kelas->fill($input_kelas)->save();
                         }
@@ -145,12 +153,16 @@ class MatkulSeeder extends Seeder
                                 $cari_akt = DB::table('pdrd.akt_ajar_dosen')->where('id_ajar',$each_akt->id_ajar)->first();
                                 if (is_null($cari_akt)) {
                                     $input_akt = (array) $each_akt;
+                                    $input_akt['last_update'] = date('Y-m-d H:i:s', strtotime($input_akt['last_update']));
+                                    $input_akt['last_sync'] = date('Y-m-d H:i:s', strtotime($input_akt['last_sync']));
                                     $akt = new AktAjarDosen();
                                     $akt->fill($input_akt)->save();
                                     echo "(Tambah)";
                                 } else {
                                     if (strtotime($each_akt->last_update)>strtotime($cari_akt->last_update)) {
                                         $input_akt = (array) $each_akt;
+                                        $input_akt['last_update'] = date('Y-m-d H:i:s', strtotime($input_akt['last_update']));
+                                        $input_akt['last_sync'] = date('Y-m-d H:i:s', strtotime($input_akt['last_sync']));
                                         unset($input_akt['id_ajar']);
                                         $akt = AktAjarDosen::find($cari_akt->id_ajar);
                                         $akt->fill($input_akt)->save();

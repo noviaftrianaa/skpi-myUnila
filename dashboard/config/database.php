@@ -78,6 +78,21 @@ return [
       'sslmode' => 'prefer',
     ],
 
+    'pgsql_siakadu' => [
+      'driver' => 'pgsql',
+      'url' => env('DATABASE_URL_SIAKADU', 'siakadu.unila.ac.id'),
+      'host' => env('DB_HOST_SIAKADU', '127.0.0.1'),
+      'port' => env('DB_PORT_SIAKADU', '5432'),
+      'database' => env('DB_DATABASE_SIAKADU', 'siakadu'),
+      'username' => env('DB_USERNAME_SIAKADU', 'mahendra'),
+      'password' => env('DB_PASSWORD_SIAKADU', 'mahendra'),
+      'charset' => 'utf8',
+      'prefix' => '',
+      'prefix_indexes' => true,
+      'search_path' => 'public',
+      'sslmode' => 'prefer',
+    ],
+
     'sqlsrv' => [
       'driver' => 'sqlsrv',
       'url' => env('DATABASE_URL'),
