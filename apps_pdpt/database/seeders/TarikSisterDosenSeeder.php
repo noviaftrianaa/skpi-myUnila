@@ -11,6 +11,7 @@ use App\Models\PDUT\Pdrd\RwyPendFormal;
 use App\Models\PDUT\Pdrd\RwySertifikasi;
 use App\Models\PDUT\Pdrd\Sdm;
 use App\Models\PDUT\Pdrd\Sms;
+use App\Models\PDUT\Ref\IkatanKerjaSdm;
 use App\Models\PDUT\Ref\LembagaSertifikasi;
 use App\Models\PDUT\Ref\Semester;
 use App\Models\PDUT\Ref\StatusKepegawaian;
@@ -150,6 +151,32 @@ class TarikSisterDosenSeeder extends Seeder
                     $input_status_kepegawaian['last_sync']     = $waktu_sekarang;
                     $cek_status_kepegawaian->fill($input_status_kepegawaian)->save();
                     echo " (OK - tambah Status Kepegawaian)\n";
+                }
+            }
+        }
+        $data_dosen_ikatan_kerja = \DB::connection('pgsql_sister')->table('ref.ikatan_kerja_sdm')
+            ->whereNull('expired_date')
+            ->get();
+        foreach ($data_dosen_ikatan_kerja AS $each_ikatan_kerja) {
+            $cek_ikatan_kerja = IkatanKerjaSdm::find($each_ikatan_kerja->id_ikatan_kerja);
+            if (is_null($cek_ikatan_kerja)) {
+                $input_ikatan_kerja = (array) $each_ikatan_kerja;
+                unset($input_ikatan_kerja['csf']);
+                $input_ikatan_kerja['a_ref_pddikti'] = 1;
+                $input_ikatan_kerja['last_update']   = $waktu_sekarang;
+                $input_ikatan_kerja['last_sync']     = $waktu_sekarang;
+                $simpan_ikatan_kerja = new StatusKepegawaian();
+                $simpan_ikatan_kerja->fill($input_ikatan_kerja)->save();
+                echo " (OK - tambah Ikatan Kerja SDM)\n";
+            } else {
+                if ($each_ikatan_kerja->last_update>$cek_ikatan_kerja->last_update) {
+                    $input_ikatan_kerja = (array) $each_ikatan_kerja;
+                    unset($input_ikatan_kerja['csf']);
+                    $input_ikatan_kerja['a_ref_pddikti'] = 1;
+                    $input_ikatan_kerja['last_update']   = $waktu_sekarang;
+                    $input_ikatan_kerja['last_sync']     = $waktu_sekarang;
+                    $cek_ikatan_kerja->fill($input_ikatan_kerja)->save();
+                    echo " (OK - tambah Ikatan Kerja SDM)\n";
                 }
             }
         }
