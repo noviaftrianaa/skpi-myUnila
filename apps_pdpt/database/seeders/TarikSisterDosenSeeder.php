@@ -165,7 +165,7 @@ class TarikSisterDosenSeeder extends Seeder
                 $input_ikatan_kerja['a_ref_pddikti'] = 1;
                 $input_ikatan_kerja['last_update']   = $waktu_sekarang;
                 $input_ikatan_kerja['last_sync']     = $waktu_sekarang;
-                $simpan_ikatan_kerja = new StatusKepegawaian();
+                $simpan_ikatan_kerja = new IkatanKerjaSdm();
                 $simpan_ikatan_kerja->fill($input_ikatan_kerja)->save();
                 echo " (OK - tambah Ikatan Kerja SDM)\n";
             } else {

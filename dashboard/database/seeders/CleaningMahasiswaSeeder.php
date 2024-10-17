@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Pdrd\KuliahMhs;
+use App\Models\Pdrd\NilaiSmtMhs;
 use App\Models\Pdrd\RegPd;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -15,6 +16,7 @@ class CleaningMahasiswaSeeder extends Seeder
      */
     public function run(): void
     {
+        ini_set('memory_limit',-1);
         #get_reg_pd_temp_baru
         $get_update_reg_pd = DB::SELECT("
             SELECT
@@ -87,6 +89,63 @@ class CleaningMahasiswaSeeder extends Seeder
                 if (is_null($cari_kuliah_mhs)) {
                     $input['last_sync'] = currDateTime();
                     $data_kuliah = new KuliahMhs();
+                    $data_kuliah->fill($input)->save();
+                    echo " (berhasil menambahkan)\n";
+                } else {
+                    echo " (gagal menambahkan)\n";
+                }
+            }
+        }
+
+
+
+        #nilai_kelas_mhs
+        $get_update_nilai_smt_mhs = DB::SELECT("
+            SELECT
+                DISTINCT rpd_new.*
+            FROM temp.nilai_smt_mhs_temp AS rpd_new
+            LEFT JOIN pdrd.nilai_smt_mhs AS rpd_old ON rpd_old.id_reg_pd=rpd_new.id_reg_pd
+                AND rpd_old.id_kls=rpd_new.id_kls
+            WHERE rpd_new.last_update>rpd_old.last_update
+        ");
+        $total_update_get_nilai_smt_mhs = count($get_update_nilai_smt_mhs);
+        if ($total_update_get_nilai_smt_mhs>0) {
+            foreach ($get_update_nilai_smt_mhs AS $no_nilai_smt_mhs_update=>$each_get_nilai_smt_mhs_update) {
+                echo "Mengupdate data nilai_smt_mhs ".($no_nilai_smt_mhs_update+1)." dari ".$total_update_get_nilai_smt_mhs;
+                $input = (array) $each_get_nilai_smt_mhs_update;
+                $cari_nilai_smt_mhs = NilaiSmtMhs::where('id_reg_pd',$input['id_reg_pd'])
+                    ->where('id_kls',$input['id_kls'])->first();
+                if (!is_null($cari_nilai_smt_mhs)) {
+                    unset($input['id_reg_pd']);
+                    unset($input['id_kls']);
+                    $input['last_sync'] = currDateTime();
+                    NilaiSmtMhs::where('id_reg_pd',$cari_nilai_smt_mhs->id_reg_pd)
+                        ->where('id_kls',$cari_nilai_smt_mhs->id_kls)->update($input);
+                    echo " (berhasil update)\n";
+                } else {
+                    echo " (gagal update)\n";
+                }
+            }
+        }
+
+        $get_insert_nilai_smt_mhs = DB::SELECT("
+            SELECT
+                DISTINCT rpd_new.*
+            FROM temp.nilai_smt_mhs_temp AS rpd_new
+            LEFT JOIN pdrd.nilai_smt_mhs AS rpd_old ON rpd_old.id_reg_pd=rpd_new.id_reg_pd
+                AND rpd_old.id_kls=rpd_new.id_kls
+            WHERE (rpd_old.id_reg_pd IS NULL AND rpd_old.id_kls IS NULL)
+        ");
+        $total_insert_get_nilai_smt_mhs = count($get_insert_nilai_smt_mhs);
+        if ($total_insert_get_nilai_smt_mhs>0) {
+            foreach ($get_insert_nilai_smt_mhs AS $no_nilai_smt_mhs_insert=>$each_get_nilai_smt_mhs_insert) {
+                echo "Menambahkan data nilai_smt_mhs ".($no_nilai_smt_mhs_insert+1)." dari ".$total_insert_get_nilai_smt_mhs;
+                $input = (array) $each_get_nilai_smt_mhs_insert;
+                $cari_nilai_smt_mhs = NilaiSmtMhs::where('id_reg_pd',$input['id_reg_pd'])
+                    ->where('id_kls',$input['id_kls'])->first();
+                if (is_null($cari_nilai_smt_mhs)) {
+                    $input['last_sync'] = currDateTime();
+                    $data_kuliah = new NilaiSmtMhs();
                     $data_kuliah->fill($input)->save();
                     echo " (berhasil menambahkan)\n";
                 } else {
