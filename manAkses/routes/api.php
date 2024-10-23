@@ -10,7 +10,7 @@ Route::group([
 ], function () {
 
     Route::middleware('api')->group(function () {
-        
+
         Route::prefix('peran')->group(function () {
             Route::get('', 'manAksesController@peran');
         });

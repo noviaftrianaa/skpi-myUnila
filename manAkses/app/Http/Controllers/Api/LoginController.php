@@ -115,6 +115,61 @@ class LoginController extends Controller
         return $this->generateJwt($header, $payload);
     }
 
+    public function ssoLogin(Request $request)
+    {
+        InputValidator([
+            'app_key' => ['required'],
+            'username' => ['required'],
+            'password' => ['required']
+        ]);
+
+        $app_key   = $this->request->input('app_key');
+        $crypt_app_key = $this->encryptAppKey($app_key);
+
+        $aplikasi = \App\Models\Aplikasi::where('app_key', $crypt_app_key)->first();
+        if (empty($aplikasi)) {
+            return WrapResponse(['data' => null], 'App Key tidak cocok dengan aplikasi apapun!', FALSE);
+        }
+
+        $pengguna = \App\Models\Radius::where('username', $this->request->input('username'))->first();
+        if (empty($pengguna)) {
+            return WrapResponse(['data' => null], 'Pengguna tidak ditemukan!', FALSE);
+        }
+
+        if($pengguna->value == SHA1($this->request->input('password'))) {
+
+            // CHECK ON AKSES
+            $user = \App\Models\User::where('username', $pengguna->username)->first();
+            if (empty($user)) {
+                return WrapResponse(['data' => null], 'Pengguna tidak ditemukan!', FALSE);
+            }
+
+            $header = [
+                "alg" => "HS256",
+                "typ" => "JWT"
+            ];
+
+            $payload = [
+                'id_aplikasi' => $aplikasi->id_aplikasi,
+                'url_aplikasi' => $aplikasi->url,
+                'id_pengguna' => $user->id_pengguna,
+                'username' => $pengguna->username,
+                'email' => $pengguna->email,
+                'peran_pengguna' => $pengguna->status ?? "-",
+                'token_dibuat' => time(),
+                'token_kadarluwasa' => (time() + (60 * 60)),
+                'asal_domain' => $this->request->getUri(),
+                'ip_address' => $this->request->ip(),
+                'sso' => false
+            ];
+
+            return $this->generateJwt($header, $payload);
+        } else {
+            return WrapResponse(['data' => null], 'Password salah!', FALSE);
+        }
+
+    }
+
     public function sso(Request $request)
     {
         InputValidator([
