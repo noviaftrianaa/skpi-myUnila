@@ -258,7 +258,7 @@ class LoginController extends Controller
         ]);
 
         if($url === null) {
-            return WrapResponse(['data' => ['type' => 'bearer', 'token' => $jwt]], 'Berhasil mendapatkan token otorisasi!', TRUE);
+            return WrapResponse(['data' => ['type' => 'bearer', 'token' => $jwt], 'id_pengguna' => $payload['id_pengguna'], 'waktu_expired' => date('Y-m-d H:i:s', $payload['token_kadarluwasa'])], 'Berhasil mendapatkan token otorisasi!', TRUE);
         } else {
             return redirect()->to($url . '/auth/sso/callback?token=' . $jwt);
         }
