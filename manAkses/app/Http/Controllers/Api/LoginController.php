@@ -156,6 +156,8 @@ class LoginController extends Controller
                 'username' => $pengguna->username,
                 'email' => $pengguna->email,
                 'peran_pengguna' => $pengguna->status ?? "-",
+                'id_pd_pengguna' => $user->id_pd_pengguna,
+                'id_sdm_pengguna' => $user->id_sdm_pengguna,
                 'token_dibuat' => time(),
                 'token_kadarluwasa' => (time() + (60 * 60)),
                 'asal_domain' => $this->request->getUri(),
