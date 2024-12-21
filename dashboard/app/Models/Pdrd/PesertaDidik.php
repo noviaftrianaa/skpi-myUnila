@@ -326,7 +326,7 @@ class PesertaDidik extends AbstractionModel
                 tpd.id_pd,
                 tpd.nm_pd,
                 rpd.nipd,
-                akm.total_sks,
+                CAST(akm.total_sks AS INT) AS total_sks,
                 akm.ipk,
 	            akm.sks_semester,
                 CASE WHEN rpd.id_jns_keluar IS NULL THEN sm.nm_stat_mhs ELSE jk.ket_keluar END status_mhs,

@@ -81,7 +81,7 @@ class MahasiswaController extends Controller
         SELECT
           kmh.id_smt,
           status.nm_stat_mhs,
-          kmh.sks_semester,
+          CAST(kmh.sks_semester AS INT) AS sks_semester,
           sms.nm_lemb AS prodi,
           sp.nm_lemb AS univ
         FROM
@@ -114,7 +114,7 @@ class MahasiswaController extends Controller
           mk.kode_mk,
           mk.nm_mk,
           mk.jns_mk,
-          mk.sks_mk,
+          CAST(mk.sks_mk AS INT) AS sks_mk,
           sms.nm_lemb AS prodi,
           (
             SELECT

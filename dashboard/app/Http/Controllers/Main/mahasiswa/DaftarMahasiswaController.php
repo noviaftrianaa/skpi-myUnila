@@ -18,7 +18,7 @@ class DaftarMahasiswaController extends Controller
      */
     public function index(Request $request)
     {
-        $judul = 'Daftar Mahasiswa ';
+        $judul =  '';
         if ($request->has('smt')) {
             $smt_pilih = $request->smt;
         } else {

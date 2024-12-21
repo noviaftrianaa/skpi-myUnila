@@ -20,14 +20,14 @@
             <tr>
                 <td>{{ $each_data->nm_smt }}</td>
                 <td>{{ $each_data->nm_stat_mhs }}</td>
-                <td>{{ $each_data->total_sks }}</td>
+                <td>{{ number_format($each_data->total_sks, 0, ',', '.') }}</td>
                 <td>{{ $each_data->ipk }}</td>
                 <td>{{ ($each_data->sks_reg+0).' SKS' }}</td>
                 <td>{{ ($each_data->sks_mbkm+0).' SKS' }}</td>
                 <td>{{ ($each_data->sks_mbkm+$each_data->sks_reg).' SKS' }}</td>
-                <td>{{ $each_data->ips }}</td>
+                <td>{{ rtrim(rtrim(number_format($each_data->ips, 2, ',', '.'), '0'), ',') }}</td>
                 <td>{{ $each_data->nm_pembiayaan }}</td>
-                <td>{{ $each_data->biaya_smt }}</td>
+                <td>Rp {{ number_format($each_data->biaya_smt, 0, ',', '.') }}</td>
             </tr>
         @endforeach
         </tbody>
