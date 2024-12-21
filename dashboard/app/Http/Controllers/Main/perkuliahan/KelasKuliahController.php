@@ -14,6 +14,7 @@ use App\Models\UnitOrganisasi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
+use DB;
 
 class KelasKuliahController extends Controller
 {
@@ -26,74 +27,38 @@ class KelasKuliahController extends Controller
         $this->url = ENV('URL_WS_SIAKADU');
     }
 
-
     public function index(Request $request)
     {
-        if ($request->has("tahun")) {
-            $thn = $request->tahun;
-        } else {
-            $thn = get_tahun_keaktifan();
-        }
-
-        $select_unit = '';
+        $thn = $request->has("tahun") ? $request->tahun : get_tahun_keaktifan();
         $role = session()->get("login.role");
         $unit = UnitOrganisasi::find($role->id_organisasi);
+        $token = cek_token_siakadu();
+        $select_unit = '';
+
         if ($unit->id_jns_lemb == 24) {
-            $sms = Sms::find($unit->id_organisasi);
-            $ta_list = Semester::select('id_smt', 'nm_smt')
-                ->where('id_smt', '>=', $sms->smt_mulai)
-                ->where('tgl_mulai', '<', date('Y-m-d'))
-                ->whereNull('expired_date')
-                ->where('smt', '!=', 3)
-                ->orderBy('id_smt', 'DESC')
-                ->pluck('nm_smt', 'id_smt')
-                ->toArray();
-
+            $sms = SMS::find($unit->id_organisasi);
             $judul = "Kelas Program Studi " . $sms->nm_lemb . " (" . $sms->jenjang->nm_jenj_didik . ")";
-            $jenj= JenjangPendidikan::find($sms->id_jenj_didik);
-            $nm_lemb = $jenj->nm_jenj_didik .'-'.$sms->nm_lemb;
             $jns_unit = 'P';
-            $list_prodi = $this->unitProdi($jns_unit, $nm_lemb);
-            $select_unit = $list_prodi[0]['nm_unit'];
-
+            $id_sms = $sms->id_sms;
         } elseif ($unit->id_jns_lemb == 28) {
-            $sms = Sms::find($unit->id_organisasi);
-            $ta_list = Semester::select('id_smt', 'nm_smt')
-                ->where('id_smt', '>=', 20191)
-                ->where('tgl_mulai', '<', date('Y-m-d'))
-                ->whereNull('expired_date')
-                ->where('smt', '!=', 3)
-                ->orderBy('id_smt', 'DESC')
-                ->pluck('nm_smt', 'id_smt')
-                ->toArray();
-
+            $sms = SMS::find($unit->id_organisasi);
             $judul = "Kelas Kuliah Jurusan " . $sms->nm_lemb;
-            $nm_lemb = $sms->nm_lemb;
             $jns_unit = 'J';
-            $list_prodi = $this->unitProdi($jns_unit, $nm_lemb);
-            $select_unit = $list_prodi[0]['nm_unit'];
-
+            $id_sms = $sms->id_sms;
         } elseif ($unit->id_jns_lemb == 23) {
-            $sms = Sms::find($unit->id_organisasi);
-            $ta_list = Semester::select('id_smt', 'nm_smt')
-                ->where('id_smt', '>=', 20191)
-                ->where('tgl_mulai', '<', date('Y-m-d'))
-                ->whereNull('expired_date')
-                ->where('smt', '!=', 3)
-                ->orderBy('id_smt', 'DESC')
-                ->pluck('nm_smt', 'id_smt')
-                ->toArray();
-
+            $sms = SMS::find($unit->id_organisasi);
             $judul = "Kelas Kuliah Fakultas " . $sms->nm_lemb;
-            $nm_lemb = $sms->nm_lemb;
             $jns_unit = 'F';
-            $list_prodi = $this->unitProdi($jns_unit, $nm_lemb);
-            $select_unit = $list_prodi[0]['nm_unit'];
-
+            $id_sms = $sms->id_sms;
         } else {
             $sp = SatuanPendidikan::find(env("APP_ID_SP"));
-            $token = cek_token_siakadu();
-            $ta_list = Semester::select('id_smt', 'nm_smt')
+            $judul = "Kelas Kuliah " . $sp->nm_lemb;
+            $jns_unit = '';
+            $id_sms = '';
+        }
+
+        // Mendapatkan daftar semester
+        $ta_list = Semester::select('id_smt', 'nm_smt')
             ->where('id_smt', '>=', 20191)
             ->where('tgl_mulai', '<', date('Y-m-d'))
             ->whereNull('expired_date')
@@ -102,60 +67,64 @@ class KelasKuliahController extends Controller
             ->pluck('nm_smt', 'id_smt')
             ->toArray();
 
-            $judul = "Kelas Kuliah " . $sp->nm_lemb;
-            $jns_unit = '';
-            $list_prodi = $this->unitProdi($jns_unit, $select_unit);
-        }
         return view(
             "content.main.perkuliahan.kelaskuliah.index",
-            compact("ta_list", "thn", "judul", "unit", "list_prodi", "select_unit")
+            compact("ta_list", "thn", "judul", "unit", "select_unit", "jns_unit", "id_sms")
         );
     }
 
     public function list(Request $request)
     {
-        // dd($request->all());
         $token = cek_token_siakadu();
         $page = 1;
         $page_size = 99999999999;
         $id_semester = $request->input('id_semester');
-        $id_unit = $request->input('id_unit');
+        $jns_unit = $request->input('jns_unit');
+        $id_sms = $request->input('id_sms');
         $search = $request->input('search');
 
-        if(!is_null($id_semester) && !is_null($id_unit)){
-            $query = "page=".$page."&page_size=".$page_size."&id_semester=".$id_semester."&id_unit=".$id_unit."&search=".urlencode($search);
-        }elseif(!is_null($id_semester)){
-            $query = "page=".$page."&page_size=".$page_size."&id_semester=".$id_semester."&search=".urlencode($search);
-        }elseif(!is_null($id_unit)){
-            $query = "page=".$page."&page_size=".$page_size."&id_unit=".$id_unit."&search=".urlencode($search);
-        }else{
-            $query = "page=".$page."&page_size=".$page_size;
-        }
-        $response = curlApiSiakadu('GET', $this->url . '/kelas/list?'. $query, null, $token);
+        // Mencari id_unit siakad
+        $id_units = getSiakadUnits($jns_unit, $id_sms);
 
-        if(isset($response['success'])){
-            return [
-                'draw' => intval($request->input('draw')), // Penting untuk sinkronisasi request
-                'recordsTotal' => intval($response['query']['total_count']), // Total record tanpa filtering
-                'recordsFiltered' => intval($response['query']['page_size']), // Total record setelah diterapkan filtering
-                'data' => $response['payload'] // Data yang akan ditampilkan
-            ];
-        }else{
-            return $response;
+        // Ambil data dari API
+        $mergedResponse = [];
+
+        // Inisialisasi query dasar
+        $query = "page=" . $page . "&page_size=" . $page_size;
+
+        // Tambahkan parameter id_semester jika ada
+        if (!empty($id_semester)) {
+            $query .= "&id_semester=" . $id_semester;
         }
 
+        if (empty($jns_unit)) {
+            // Jika $jns_unit kosong, gunakan query tanpa id_unit
+            $response = curlApiSiakadu('GET', $this->url . '/kelas/list?' . $query, null, $token);
+
+            if (isset($response['success']) && $response['success']) {
+                $mergedResponse = $response['payload'];
+            }
+        } else {
+            // Jika $jns_unit tidak kosong, proses unit-unit yang ada
+            foreach ($id_units as $id_unit) {
+                $queryWithUnit = $query . "&id_unit=" . $id_unit;
+
+                // Panggil API untuk setiap unit
+                $response = curlApiSiakadu('GET', $this->url . '/kelas/list?' . $queryWithUnit, null, $token);
+
+                // Validasi respons dan payload sebelum digabungkan
+                if (isset($response['success']) && $response['success']) {
+                    if (!empty($response['payload']) && is_array($response['payload'])) {
+                        // Gabungkan payload hanya jika tidak kosong
+                        $mergedResponse = array_merge($mergedResponse, $response['payload']);
+                    }
+                }
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $mergedResponse
+        ]);
     }
-
-    public function unitProdi($jns_unit, $nm_lemb){
-        $token = cek_token_siakadu();
-        $response = curlApiSiakadu('GET', $this->url.'/referensi/unit/list?jns_unit='.$jns_unit.'&search='.urlencode($nm_lemb), null, $token);
-        if(isset($response['payload'])){
-            $unit = $response['payload'];
-            return $unit;
-        }else{
-            $unit = [];
-            return $unit;
-        }
-    }
-
 }

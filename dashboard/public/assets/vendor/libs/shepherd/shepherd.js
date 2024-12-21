@@ -17,28 +17,28 @@ return /******/ (function() { // webpackBootstrap
   \******************************************************/
 /***/ (function(module, exports, __webpack_require__) {
 
-var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _callSuper(t, o, e) { return o = _getPrototypeOf(o), _possibleConstructorReturn(t, _isNativeReflectConstruct() ? Reflect.construct(o, e || [], _getPrototypeOf(t).constructor) : o.apply(t, e)); }
-function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
+function _possibleConstructorReturn(t, e) { if (e && ("object" == _typeof(e) || "function" == typeof e)) return e; if (void 0 !== e) throw new TypeError("Derived constructors may only return object or undefined"); return _assertThisInitialized(t); }
+function _assertThisInitialized(e) { if (void 0 === e) throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); return e; }
 function _isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+function _getPrototypeOf(t) { return _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function (t) { return t.__proto__ || Object.getPrototypeOf(t); }, _getPrototypeOf(t); }
+function _inherits(t, e) { if ("function" != typeof e && null !== e) throw new TypeError("Super expression must either be null or a function"); t.prototype = Object.create(e && e.prototype, { constructor: { value: t, writable: !0, configurable: !0 } }), Object.defineProperty(t, "prototype", { writable: !1 }), e && _setPrototypeOf(t, e); }
+function _setPrototypeOf(t, e) { return _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function (t, e) { return t.__proto__ = e, t; }, _setPrototypeOf(t, e); }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t.return && (u = t.return(), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
-function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : String(i); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
+function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
+function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 /*! shepherd.js 10.0.1 */
@@ -198,7 +198,7 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
     function Evented() {
       _classCallCheck(this, Evented);
     }
-    _createClass(Evented, [{
+    return _createClass(Evented, [{
       key: "on",
       value: function on(event, handler, ctx, once) {
         if (once === void 0) {
@@ -262,7 +262,6 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
         return this;
       }
     }]);
-    return Evented;
   }();
   /**
    * Binds all the methods on a JS Class to the `this` context of the class.
@@ -2492,7 +2491,7 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
     function SvelteComponent() {
       _classCallCheck(this, SvelteComponent);
     }
-    _createClass(SvelteComponent, [{
+    return _createClass(SvelteComponent, [{
       key: "$destroy",
       value: function $destroy() {
         destroy_component(this, 1);
@@ -2518,7 +2517,6 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
         }
       }
     }]);
-    return SvelteComponent;
   }();
   /* src/js/components/shepherd-button.svelte generated by Svelte v3.49.0 */
   function create_fragment$8(ctx) {
@@ -2533,8 +2531,8 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
         attr(button, "aria-label", button_aria_label_value = /*label*/
         ctx[3] ? /*label*/
         ctx[3] : null);
-        attr(button, "class", button_class_value = "".concat( /*classes*/
-        ctx[1] || '', " shepherd-button ").concat( /*secondary*/
+        attr(button, "class", button_class_value = "".concat(/*classes*/
+        ctx[1] || '', " shepherd-button ").concat(/*secondary*/
         ctx[4] ? 'shepherd-button-secondary' : ''));
         button.disabled = /*disabled*/
         ctx[2];
@@ -2546,7 +2544,7 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
         ctx[5];
         if (!mounted) {
           dispose = listen(button, "click", function () {
-            if (is_function( /*action*/
+            if (is_function(/*action*/
             ctx[0])) /*action*/
               ctx[0].apply(this, arguments);
           });
@@ -2567,8 +2565,8 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
           attr(button, "aria-label", button_aria_label_value);
         }
         if (dirty & /*classes, secondary*/
-        18 && button_class_value !== (button_class_value = "".concat( /*classes*/
-        ctx[1] || '', " shepherd-button ").concat( /*secondary*/
+        18 && button_class_value !== (button_class_value = "".concat(/*classes*/
+        ctx[1] || '', " shepherd-button ").concat(/*secondary*/
         ctx[4] ? 'shepherd-button-secondary' : ''))) {
           attr(button, "class", button_class_value);
         }
@@ -2617,17 +2615,17 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
     return [action, classes, disabled, label, secondary, text, config, step];
   }
   var Shepherd_button = /*#__PURE__*/function (_SvelteComponent) {
-    _inherits(Shepherd_button, _SvelteComponent);
     function Shepherd_button(options) {
       var _this3;
       _classCallCheck(this, Shepherd_button);
       _this3 = _callSuper(this, Shepherd_button);
-      init(_assertThisInitialized(_this3), options, instance$8, create_fragment$8, safe_not_equal, {
+      init(_this3, options, instance$8, create_fragment$8, safe_not_equal, {
         config: 6,
         step: 7
       });
       return _this3;
     }
+    _inherits(Shepherd_button, _SvelteComponent);
     return _createClass(Shepherd_button);
   }(SvelteComponent);
   /* src/js/components/shepherd-footer.svelte generated by Svelte v3.49.0 */
@@ -2773,7 +2771,7 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
       p: function p(ctx, _ref) {
         var _ref8 = _slicedToArray(_ref, 1),
           dirty = _ref8[0];
-        if ( /*buttons*/
+        if (/*buttons*/
         ctx[1]) {
           if (if_block) {
             if_block.p(ctx, dirty);
@@ -2825,16 +2823,16 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
     return [step, buttons];
   }
   var Shepherd_footer = /*#__PURE__*/function (_SvelteComponent2) {
-    _inherits(Shepherd_footer, _SvelteComponent2);
     function Shepherd_footer(options) {
       var _this4;
       _classCallCheck(this, Shepherd_footer);
       _this4 = _callSuper(this, Shepherd_footer);
-      init(_assertThisInitialized(_this4), options, instance$7, create_fragment$7, safe_not_equal, {
+      init(_this4, options, instance$7, create_fragment$7, safe_not_equal, {
         step: 0
       });
       return _this4;
     }
+    _inherits(Shepherd_footer, _SvelteComponent2);
     return _createClass(Shepherd_footer);
   }(SvelteComponent);
   /* src/js/components/shepherd-cancel-icon.svelte generated by Svelte v3.49.0 */
@@ -2902,17 +2900,17 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
     return [cancelIcon, handleCancelClick, step];
   }
   var Shepherd_cancel_icon = /*#__PURE__*/function (_SvelteComponent3) {
-    _inherits(Shepherd_cancel_icon, _SvelteComponent3);
     function Shepherd_cancel_icon(options) {
       var _this5;
       _classCallCheck(this, Shepherd_cancel_icon);
       _this5 = _callSuper(this, Shepherd_cancel_icon);
-      init(_assertThisInitialized(_this5), options, instance$6, create_fragment$6, safe_not_equal, {
+      init(_this5, options, instance$6, create_fragment$6, safe_not_equal, {
         cancelIcon: 0,
         step: 2
       });
       return _this5;
     }
+    _inherits(Shepherd_cancel_icon, _SvelteComponent3);
     return _createClass(Shepherd_cancel_icon);
   }(SvelteComponent);
   /* src/js/components/shepherd-title.svelte generated by Svelte v3.49.0 */
@@ -2974,18 +2972,18 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
     return [element, labelId, title, h3_binding];
   }
   var Shepherd_title = /*#__PURE__*/function (_SvelteComponent4) {
-    _inherits(Shepherd_title, _SvelteComponent4);
     function Shepherd_title(options) {
       var _this6;
       _classCallCheck(this, Shepherd_title);
       _this6 = _callSuper(this, Shepherd_title);
-      init(_assertThisInitialized(_this6), options, instance$5, create_fragment$5, safe_not_equal, {
+      init(_this6, options, instance$5, create_fragment$5, safe_not_equal, {
         labelId: 1,
         element: 0,
         title: 2
       });
       return _this6;
     }
+    _inherits(Shepherd_title, _SvelteComponent4);
     return _createClass(Shepherd_title);
   }(SvelteComponent);
   /* src/js/components/shepherd-header.svelte generated by Svelte v3.49.0 */
@@ -3103,7 +3101,7 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
       p: function p(ctx, _ref) {
         var _ref11 = _slicedToArray(_ref, 1),
           dirty = _ref11[0];
-        if ( /*title*/
+        if (/*title*/
         ctx[2]) {
           if (if_block0) {
             if_block0.p(ctx, dirty);
@@ -3124,7 +3122,7 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
           });
           check_outros();
         }
-        if ( /*cancelIcon*/
+        if (/*cancelIcon*/
         ctx[3] && /*cancelIcon*/
         ctx[3].enabled) {
           if (if_block1) {
@@ -3185,17 +3183,17 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
     return [labelId, step, title, cancelIcon];
   }
   var Shepherd_header = /*#__PURE__*/function (_SvelteComponent5) {
-    _inherits(Shepherd_header, _SvelteComponent5);
     function Shepherd_header(options) {
       var _this7;
       _classCallCheck(this, Shepherd_header);
       _this7 = _callSuper(this, Shepherd_header);
-      init(_assertThisInitialized(_this7), options, instance$4, create_fragment$4, safe_not_equal, {
+      init(_this7, options, instance$4, create_fragment$4, safe_not_equal, {
         labelId: 0,
         step: 1
       });
       return _this7;
     }
+    _inherits(Shepherd_header, _SvelteComponent5);
     return _createClass(Shepherd_header);
   }(SvelteComponent);
   /* src/js/components/shepherd-text.svelte generated by Svelte v3.49.0 */
@@ -3262,18 +3260,18 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
     return [element, descriptionId, step, div_binding];
   }
   var Shepherd_text = /*#__PURE__*/function (_SvelteComponent6) {
-    _inherits(Shepherd_text, _SvelteComponent6);
     function Shepherd_text(options) {
       var _this8;
       _classCallCheck(this, Shepherd_text);
       _this8 = _callSuper(this, Shepherd_text);
-      init(_assertThisInitialized(_this8), options, instance$3, create_fragment$3, safe_not_equal, {
+      init(_this8, options, instance$3, create_fragment$3, safe_not_equal, {
         descriptionId: 1,
         element: 0,
         step: 2
       });
       return _this8;
     }
+    _inherits(Shepherd_text, _SvelteComponent6);
     return _createClass(Shepherd_text);
   }(SvelteComponent);
   /* src/js/components/shepherd-content.svelte generated by Svelte v3.49.0 */
@@ -3405,15 +3403,15 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
   }
   function create_fragment$2(ctx) {
     var div;
-    var show_if_2 = !isUndefined( /*step*/
+    var show_if_2 = !isUndefined(/*step*/
     ctx[2].options.title) || /*step*/
     ctx[2].options.cancelIcon && /*step*/
     ctx[2].options.cancelIcon.enabled;
     var t0;
-    var show_if_1 = !isUndefined( /*step*/
+    var show_if_1 = !isUndefined(/*step*/
     ctx[2].options.text);
     var t1;
-    var show_if = Array.isArray( /*step*/
+    var show_if = Array.isArray(/*step*/
     ctx[2].options.buttons) && /*step*/
     ctx[2].options.buttons.length;
     var current;
@@ -3443,7 +3441,7 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
         var _ref13 = _slicedToArray(_ref, 1),
           dirty = _ref13[0];
         if (dirty & /*step*/
-        4) show_if_2 = !isUndefined( /*step*/
+        4) show_if_2 = !isUndefined(/*step*/
         ctx[2].options.title) || /*step*/
         ctx[2].options.cancelIcon && /*step*/
         ctx[2].options.cancelIcon.enabled;
@@ -3468,7 +3466,7 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
           check_outros();
         }
         if (dirty & /*step*/
-        4) show_if_1 = !isUndefined( /*step*/
+        4) show_if_1 = !isUndefined(/*step*/
         ctx[2].options.text);
         if (show_if_1) {
           if (if_block1) {
@@ -3491,7 +3489,7 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
           check_outros();
         }
         if (dirty & /*step*/
-        4) show_if = Array.isArray( /*step*/
+        4) show_if = Array.isArray(/*step*/
         ctx[2].options.buttons) && /*step*/
         ctx[2].options.buttons.length;
         if (show_if) {
@@ -3548,18 +3546,18 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
     return [descriptionId, labelId, step];
   }
   var Shepherd_content = /*#__PURE__*/function (_SvelteComponent7) {
-    _inherits(Shepherd_content, _SvelteComponent7);
     function Shepherd_content(options) {
       var _this9;
       _classCallCheck(this, Shepherd_content);
       _this9 = _callSuper(this, Shepherd_content);
-      init(_assertThisInitialized(_this9), options, instance$2, create_fragment$2, safe_not_equal, {
+      init(_this9, options, instance$2, create_fragment$2, safe_not_equal, {
         descriptionId: 0,
         labelId: 1,
         step: 2
       });
       return _this9;
     }
+    _inherits(Shepherd_content, _SvelteComponent7);
     return _createClass(Shepherd_content);
   }(SvelteComponent);
   /* src/js/components/shepherd-element.svelte generated by Svelte v3.49.0 */
@@ -3604,7 +3602,7 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
       }
     });
     var div_levels = [{
-      "aria-describedby": div_aria_describedby_value = !isUndefined( /*step*/
+      "aria-describedby": div_aria_describedby_value = !isUndefined(/*step*/
       ctx[4].options.text) ? /*descriptionId*/
       ctx[2] : null
     }, {
@@ -3652,7 +3650,7 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
       p: function p(ctx, _ref) {
         var _ref14 = _slicedToArray(_ref, 1),
           dirty = _ref14[0];
-        if ( /*step*/
+        if (/*step*/
         ctx[4].options.arrow && /*step*/
         ctx[4].options.attachTo && /*step*/
         ctx[4].options.attachTo.element && /*step*/
@@ -3678,7 +3676,7 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
         ctx[4];
         shepherdcontent.$set(shepherdcontent_changes);
         set_attributes(div, div_data = get_spread_update(div_levels, [(!current || dirty & /*step, descriptionId*/
-        20 && div_aria_describedby_value !== (div_aria_describedby_value = !isUndefined( /*step*/
+        20 && div_aria_describedby_value !== (div_aria_describedby_value = !isUndefined(/*step*/
         ctx[4].options.text) ? /*descriptionId*/
         ctx[2] : null)) && {
           "aria-describedby": div_aria_describedby_value
@@ -3855,12 +3853,11 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
     return [element, dataStepId, descriptionId, labelId, step, hasCancelIcon, hasTitle, handleKeyDown, firstFocusableElement, focusableElements, lastFocusableElement, classPrefix, getElement, div_binding];
   }
   var Shepherd_element = /*#__PURE__*/function (_SvelteComponent8) {
-    _inherits(Shepherd_element, _SvelteComponent8);
     function Shepherd_element(options) {
       var _this10;
       _classCallCheck(this, Shepherd_element);
       _this10 = _callSuper(this, Shepherd_element);
-      init(_assertThisInitialized(_this10), options, instance$1, create_fragment$1, safe_not_equal, {
+      init(_this10, options, instance$1, create_fragment$1, safe_not_equal, {
         classPrefix: 11,
         element: 0,
         descriptionId: 2,
@@ -3874,13 +3871,13 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
       });
       return _this10;
     }
-    _createClass(Shepherd_element, [{
+    _inherits(Shepherd_element, _SvelteComponent8);
+    return _createClass(Shepherd_element, [{
       key: "getElement",
       get: function get() {
         return this.$$.ctx[12];
       }
     }]);
-    return Shepherd_element;
   }(SvelteComponent);
   function createCommonjsModule(fn, module) {
     return module = {
@@ -4206,7 +4203,6 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
    * @extends {Evented}
    */
   var Step = /*#__PURE__*/function (_Evented) {
-    _inherits(Step, _Evented);
     /**
      * Create a step
      * @param {Tour} tour The tour for the step
@@ -4313,15 +4309,16 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
        */
 
       _this11._resolvedAttachTo = null;
-      autoBind(_assertThisInitialized(_this11));
+      autoBind(_this11);
       _this11._setOptions(options);
-      return _possibleConstructorReturn(_this11, _assertThisInitialized(_this11));
+      return _possibleConstructorReturn(_this11, _this11);
     }
     /**
      * Cancel the tour
      * Triggers the `cancel` event
      */
-    _createClass(Step, [{
+    _inherits(Step, _Evented);
+    return _createClass(Step, [{
       key: "cancel",
       value: function cancel() {
         this.tour.cancel();
@@ -4633,7 +4630,6 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
         target.classList.remove('shepherd-target-click-disabled', "".concat(this.classPrefix, "shepherd-enabled"), "".concat(this.classPrefix, "shepherd-target"));
       }
     }]);
-    return Step;
   }(Evented);
   /**
    * Cleanup the steps and set pointerEvents back to 'auto'
@@ -4691,7 +4687,7 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
         path = svg_element("path");
         attr(path, "d", /*pathDefinition*/
         ctx[2]);
-        attr(svg, "class", svg_class_value = "".concat( /*modalIsVisible*/
+        attr(svg, "class", svg_class_value = "".concat(/*modalIsVisible*/
         ctx[1] ? 'shepherd-modal-is-visible' : '', " shepherd-modal-overlay-container"));
       },
       m: function m(target, anchor) {
@@ -4715,7 +4711,7 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
           ctx[2]);
         }
         if (dirty & /*modalIsVisible*/
-        2 && svg_class_value !== (svg_class_value = "".concat( /*modalIsVisible*/
+        2 && svg_class_value !== (svg_class_value = "".concat(/*modalIsVisible*/
         ctx[1] ? 'shepherd-modal-is-visible' : '', " shepherd-modal-overlay-container"))) {
           attr(svg, "class", svg_class_value);
         }
@@ -4880,12 +4876,12 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
         modalOverlayOpeningRadius = _step$options.modalOverlayOpeningRadius;
       var scrollParent = _getScrollParent(step.target); // Setup recursive function to call requestAnimationFrame to update the modal opening position
 
-      var rafLoop = function rafLoop() {
+      var _rafLoop = function rafLoop() {
         rafId = undefined;
         positionModal(modalOverlayOpeningPadding, modalOverlayOpeningRadius, scrollParent, step.target);
-        rafId = requestAnimationFrame(rafLoop);
+        rafId = requestAnimationFrame(_rafLoop);
       };
-      rafLoop();
+      _rafLoop();
       _addStepEventListeners();
     }
     function svg_binding($$value) {
@@ -4907,12 +4903,11 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
     return [element, modalIsVisible, pathDefinition, _preventModalOverlayTouch, openingProperties, getElement, closeModalOpening, hide, positionModal, setupForStep, show, svg_binding];
   }
   var Shepherd_modal = /*#__PURE__*/function (_SvelteComponent9) {
-    _inherits(Shepherd_modal, _SvelteComponent9);
     function Shepherd_modal(options) {
       var _this15;
       _classCallCheck(this, Shepherd_modal);
       _this15 = _callSuper(this, Shepherd_modal);
-      init(_assertThisInitialized(_this15), options, instance, create_fragment, safe_not_equal, {
+      init(_this15, options, instance, create_fragment, safe_not_equal, {
         element: 0,
         openingProperties: 4,
         getElement: 5,
@@ -4924,7 +4919,8 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
       });
       return _this15;
     }
-    _createClass(Shepherd_modal, [{
+    _inherits(Shepherd_modal, _SvelteComponent9);
+    return _createClass(Shepherd_modal, [{
       key: "getElement",
       get: function get() {
         return this.$$.ctx[5];
@@ -4955,7 +4951,6 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
         return this.$$.ctx[10];
       }
     }]);
-    return Shepherd_modal;
   }(SvelteComponent);
   var Shepherd = new Evented();
   /**
@@ -4963,7 +4958,6 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
    * @extends {Evented}
    */
   var Tour = /*#__PURE__*/function (_Evented2) {
-    _inherits(Tour, _Evented2);
     /**
      * @param {Object} options The options for the tour
      * @param {boolean} options.confirmCancel If true, will issue a `window.confirm` before cancelling
@@ -4994,7 +4988,7 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
         options = {};
       }
       _this16 = _callSuper(this, Tour, [options]);
-      autoBind(_assertThisInitialized(_this16));
+      autoBind(_this16);
       var defaultTourOptions = {
         exitOnEsc: true,
         keyboardNavigation: true
@@ -5009,13 +5003,13 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
         (function (e) {
           _this16.on(e, function (opts) {
             opts = opts || {};
-            opts.tour = _assertThisInitialized(_this16);
+            opts.tour = _this16;
             Shepherd.trigger(e, opts);
           });
         })(event);
       });
       _this16._setTourID();
-      return _possibleConstructorReturn(_this16, _assertThisInitialized(_this16));
+      return _possibleConstructorReturn(_this16, _this16);
     }
     /**
      * Adds a new step to the tour
@@ -5024,7 +5018,8 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
      * is added to the end of the array.
      * @return {Step} The newly added step
      */
-    _createClass(Tour, [{
+    _inherits(Tour, _Evented2);
+    return _createClass(Tour, [{
       key: "addStep",
       value: function addStep(options, index) {
         var step = options;
@@ -5323,7 +5318,6 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
         this.id = "".concat(tourName, "--").concat(uuid());
       }
     }]);
-    return Tour;
   }(Evented);
   Object.assign(Shepherd, {
     Tour: Tour,

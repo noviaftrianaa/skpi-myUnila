@@ -27,6 +27,14 @@ class DaftarMahasiswaController extends Controller
         $role = session()->get('login.role');
         $unit = UnitOrganisasi::find($role->id_organisasi);
         $semester = Semester::find($smt_pilih);
+        $semester_list = Semester::select('id_smt', 'nm_smt')
+            ->where('tgl_mulai', '<', date('Y-m-d'))
+            ->whereNull('expired_date')
+            ->where('smt', '!=', 3)
+            ->orderBy('id_smt', 'DESC')
+            ->pluck('nm_smt', 'id_smt')
+            ->toArray();
+
         if ($unit->id_jns_lemb == 24) { // Jika Prodi login
             $sms = SMS::find($unit->id_organisasi);
             $semester_list = Semester::select('id_smt', 'nm_smt')
@@ -40,21 +48,21 @@ class DaftarMahasiswaController extends Controller
             $level = 'prodi';
             $judul.= ' Daftar Mahasiswa '.$sms->nm_lemb.' ('.$sms->jenjang->nm_jenj_didik.')';
 
-            return view('content.main.mahasiswa.daftar-mahasiswa.index',compact('smt_pilih','semester_list','judul','semester'));
+        } elseif ($unit->id_jns_lemb == 28) {
+            $sms = Sms::find($unit->id_organisasi);
+            $level = 'jurusan';
+            $judul = "Daftar Mahasiswa Jurusan " . $sms->nm_lemb;
+        } elseif ($unit->id_jns_lemb == 23) {
+            $sms = Sms::find($unit->id_organisasi);
+            $level = 'fakultas';
+            $judul = "Daftar Mahasiswa Fakultas " . $sms->nm_lemb;
         } else {
             $sp = SatuanPendidikan::find(env("APP_ID_SP"));
-            $semester_list = Semester::select('id_smt', 'nm_smt')
-            ->where('tgl_mulai', '<', date('Y-m-d'))
-            ->whereNull('expired_date')
-            ->where('smt', '!=', 3)
-            ->orderBy('id_smt', 'DESC')
-            ->pluck('nm_smt', 'id_smt')
-            ->toArray();
             $level = 'pt';
             $judul.= ' Daftar Mahasiswa '. $sp->nm_lemb;
 
-            return view('content.main.mahasiswa.daftar-mahasiswa.index',compact('smt_pilih','semester_list','judul','semester'));
         }
+        return view('content.main.mahasiswa.daftar-mahasiswa.index',compact('smt_pilih','semester_list','judul','semester'));
     }
 
     public function listMahasiswa(Request $request)
@@ -71,7 +79,16 @@ class DaftarMahasiswaController extends Controller
             $sms = SMS::find($unit->id_organisasi);
             $level = 'prodi';
             $data = PesertaDidik::get_daftar_mhs($level,$sms->id_sms,$smt_pilih);
-        } else {
+        } elseif ($unit->id_jns_lemb == 28) {
+            $sms = SMS::find($unit->id_organisasi);
+            $level = 'jurusan';
+            $data = PesertaDidik::get_daftar_mhs($level,$sms->id_sms,$smt_pilih);
+        } elseif ($unit->id_jns_lemb == 23) {
+            $sms = SMS::find($unit->id_organisasi);
+            $level = 'fakultas';
+            $data = PesertaDidik::get_daftar_mhs($level,$sms->id_sms,$smt_pilih);
+        }
+        else {
             $sp = SatuanPendidikan::find(env("APP_ID_SP"));
             $level = 'pt';
             $data = PesertaDidik::get_daftar_mhs($level,$sp->id_sp,$smt_pilih);

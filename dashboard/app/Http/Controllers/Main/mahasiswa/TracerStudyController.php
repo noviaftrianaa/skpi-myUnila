@@ -23,8 +23,17 @@ class TracerStudyController extends Controller
         } else {
             $thn = get_tahun_keaktifan();
         }
+
         $role = session()->get("login.role");
         $unit = UnitOrganisasi::find($role->id_organisasi);
+        $ta_list = TahunAjaran::select("id_thn_ajaran", "nm_thn_ajaran")
+            ->where("id_thn_ajaran", ">=", 2019)
+            ->where("id_thn_ajaran", "<=", get_tahun_keaktifan() - 1)
+            ->whereNull("expired_date")
+            ->orderBy("id_thn_ajaran", "DESC")
+            ->pluck("nm_thn_ajaran", "id_thn_ajaran")
+            ->toArray();
+
         if ($unit->id_jns_lemb == 24) {
             $sms = Sms::find($unit->id_organisasi);
             $ta_list = TahunAjaran::select("id_thn_ajaran", "nm_thn_ajaran")
@@ -48,13 +57,7 @@ class TracerStudyController extends Controller
             $judul = "Tracer Study Fakultas " . $sms->nm_lemb;
         } else {
             $sp = SatuanPendidikan::find(env("APP_ID_SP"));
-            $ta_list = TahunAjaran::select("id_thn_ajaran", "nm_thn_ajaran")
-                ->where("id_thn_ajaran", ">=", 2019)
-                ->where("id_thn_ajaran", "<=", get_tahun_keaktifan() - 1)
-                ->whereNull("expired_date")
-                ->orderBy("id_thn_ajaran", "DESC")
-                ->pluck("nm_thn_ajaran", "id_thn_ajaran")
-                ->toArray();
+
             $judul = "Tracer Study " . $sp->nm_lemb;
         }
         return view(

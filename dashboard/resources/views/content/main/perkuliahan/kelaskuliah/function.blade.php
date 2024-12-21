@@ -19,6 +19,9 @@
         'use strict';
 
         function datatables(unit) {
+            var id_sms = @json($id_sms);
+            var jns_unit = @json($jns_unit);
+
             let table = $('#table-data').DataTable({
                 "bDestroy": true,
                 processing: true,
@@ -51,9 +54,12 @@
 
                 ajax: {
                     url: "{{ route('json-list-kelas') }}",
-                    data: {
-                        id_semester: $('#id_semester').val(),
-                        search: $('#id_unit').val()
+                    data: function (d) {
+                        // Tambahkan parameter tambahan ke data yang dikirim
+                        d.id_semester = $('#id_semester').val();
+                        d.search = $('#id_unit').val();
+                        d.id_sms = id_sms; // Kirim id_sms ke server
+                        d.jns_unit = jns_unit; // Kirim id_sms ke server
                     }
                 },
                 "columns": [
@@ -66,7 +72,19 @@
                     { data: 'daya_tampung', title: 'Daya Tammpung' },
                     { data: 'jumlah_peserta', title: 'Jumlah Peserta' },
                     { data: 'status_kelas', title: 'Status Kelas' },
-                    { data: 'dosen', title: 'Dosen Pengampu' },
+                    {
+                        data: 'dosen',
+                        title: 'Dosen Pengampu',
+                        render: function(data, type, row) {
+                            // Pastikan data dosen ada dan berupa array
+                            if (Array.isArray(data) && data.length > 0) {
+                                return data.map(function(d) {
+                                    return `${d.nip_ajar} - ${d.nm_ajar} (${d.status_pj})`;
+                                }).join('<br>'); // Gabungkan dengan line break
+                            }
+                            return "Tidak ada data dosen";
+                        }
+                    },
                     { data: 'nm_fakultas', title: 'Fakultas' },
                     { data: 'nm_jurusan', title: 'Jurusan' },
                     { data: 'nm_prodi', title: 'Prodi' }

@@ -19,6 +19,9 @@
         'use strict';
 
         function datatables(unit) {
+            var id_sms = @json($id_sms);
+            var jns_unit = @json($jns_unit);
+
             let table = $('#table-data').DataTable({
                 "bDestroy": true,
                 processing: true,
@@ -51,9 +54,12 @@
 
                 ajax: {
                     url: "{{ route('json-list-kurikulum') }}",
-                    data: {
-                        thn_kurikulum: $('#thn_kurikulum').val(),
-                        search: $('#id_unit').val()
+                    data: function (d) {
+                        // Tambahkan parameter tambahan ke data yang dikirim
+                        d.thn_kurikulum = $('#thn_kurikulum').val();
+                        d.search = $('#id_unit').val();
+                        d.id_sms = id_sms; // Kirim id_sms ke server
+                        d.jns_unit = jns_unit; // Kirim id_sms ke server
                     }
                 },
                 "columns": [

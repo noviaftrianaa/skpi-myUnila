@@ -25,6 +25,15 @@ class AktivitasMahasiswaController extends Controller
         }
         $role = session()->get("login.role");
         $unit = UnitOrganisasi::find($role->id_organisasi);
+        $ta_list = Semester::select('id_smt', 'nm_smt')
+            ->where('id_smt', '>=', 20191)
+            ->where('tgl_mulai', '<', date('Y-m-d'))
+            ->whereNull('expired_date')
+            ->where('smt', '!=', 3)
+            ->orderBy('id_smt', 'DESC')
+            ->pluck('nm_smt', 'id_smt')
+            ->toArray();
+
         if ($unit->id_jns_lemb == 24) {
             $sms = Sms::find($unit->id_organisasi);
             $ta_list = Semester::select('id_smt', 'nm_smt')
@@ -50,14 +59,6 @@ class AktivitasMahasiswaController extends Controller
             $judul = "Aktivitas Mahasiswa Fakultas " . $sms->nm_lemb;
         } else {
             $sp = SatuanPendidikan::find(env("APP_ID_SP"));
-            $ta_list = Semester::select('id_smt', 'nm_smt')
-                ->where('id_smt', '>=', 20191)
-                ->where('tgl_mulai', '<', date('Y-m-d'))
-                ->whereNull('expired_date')
-                ->where('smt', '!=', 3)
-                ->orderBy('id_smt', 'DESC')
-                ->pluck('nm_smt', 'id_smt')
-                ->toArray();
 
             $judul = "Aktivitas Mahasiswa " . $sp->nm_lemb;
         }

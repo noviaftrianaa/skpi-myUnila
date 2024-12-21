@@ -23,17 +23,19 @@ class PrestasiController extends Controller
         } else {
             $thn = get_tahun_keaktifan();
         }
+
         $role = session()->get("login.role");
         $unit = UnitOrganisasi::find($role->id_organisasi);
+        $ta_list = TahunAjaran::select("id_thn_ajaran", "nm_thn_ajaran")
+            ->where("id_thn_ajaran", ">=", 2019)
+            ->where("id_thn_ajaran", "<=", get_tahun_keaktifan())
+            ->whereNull("expired_date")
+            ->orderBy("id_thn_ajaran", "DESC")
+            ->pluck("nm_thn_ajaran", "id_thn_ajaran")
+            ->toArray();
+
         if ($unit->id_jns_lemb == 24) {
             $sms = Sms::find($unit->id_organisasi);
-            $ta_list = TahunAjaran::select("id_thn_ajaran", "nm_thn_ajaran")
-                ->where("id_thn_ajaran", ">=", $sms->smt->id_thn_ajaran)
-                ->where("id_thn_ajaran", "<=", get_tahun_keaktifan())
-                ->whereNull("expired_date")
-                ->orderBy("id_thn_ajaran", "DESC")
-                ->pluck("nm_thn_ajaran", "id_thn_ajaran")
-                ->toArray();
             $judul =
                 "Prestasi Mahasiswa Program Studi " .
                 $sms->nm_lemb .
@@ -48,13 +50,7 @@ class PrestasiController extends Controller
             $judul = "Prestasi Mahasiswa Fakultas " . $sms->nm_lemb;
         } else {
             $sp = SatuanPendidikan::find(env("APP_ID_SP"));
-            $ta_list = TahunAjaran::select("id_thn_ajaran", "nm_thn_ajaran")
-                ->where("id_thn_ajaran", ">=", 2019)
-                ->where("id_thn_ajaran", "<=", get_tahun_keaktifan())
-                ->whereNull("expired_date")
-                ->orderBy("id_thn_ajaran", "DESC")
-                ->pluck("nm_thn_ajaran", "id_thn_ajaran")
-                ->toArray();
+
             $judul = "Prestasi Mahasiswa " . $sp->nm_lemb;
         }
         return view(

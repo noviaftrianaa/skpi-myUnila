@@ -23,19 +23,21 @@ class KampusMerdekaController extends Controller
         } else {
             $thn = get_tahun_keaktifan();
         }
+
         $role = session()->get("login.role");
         $unit = UnitOrganisasi::find($role->id_organisasi);
+        $ta_list = Semester::select('id_smt', 'nm_smt')
+            ->where('id_smt', '>=', 20212)
+            ->where('id_smt', '<=', 20222)
+            ->where('tgl_mulai', '<', date('Y-m-d'))
+            ->whereNull('expired_date')
+            ->where('smt', '!=', 3)
+            ->orderBy('id_smt', 'DESC')
+            ->pluck('nm_smt', 'id_smt')
+            ->toArray();
+
         if ($unit->id_jns_lemb == 24) {
             $sms = Sms::find($unit->id_organisasi);
-            $ta_list = Semester::select('id_smt', 'nm_smt')
-                ->where('id_smt', '>=', 20212)
-                ->where('id_smt', '<=', 20222)
-                ->where('tgl_mulai', '<', date('Y-m-d'))
-                ->whereNull('expired_date')
-                ->where('smt', '!=', 3)
-                ->orderBy('id_smt', 'DESC')
-                ->pluck('nm_smt', 'id_smt')
-                ->toArray();
 
             $judul =
                 "Kampus Merdeka (MBKM) Program Studi " .
@@ -51,15 +53,6 @@ class KampusMerdekaController extends Controller
             $judul = "Kampus Merdeka (MBKM) Fakultas " . $sms->nm_lemb;
         } else {
             $sp = SatuanPendidikan::find(env("APP_ID_SP"));
-            $ta_list = Semester::select('id_smt', 'nm_smt')
-                ->where('id_smt', '>=', 20212)
-                ->where('id_smt', '<=', 20222)
-                ->where('tgl_mulai', '<', date('Y-m-d'))
-                ->whereNull('expired_date')
-                ->where('smt', '!=', 3)
-                ->orderBy('id_smt', 'DESC')
-                ->pluck('nm_smt', 'id_smt')
-                ->toArray();
 
             $judul = "Kampus Merdeka (MBKM) " . $sp->nm_lemb;
         }

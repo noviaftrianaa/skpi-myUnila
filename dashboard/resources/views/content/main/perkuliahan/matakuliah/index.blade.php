@@ -55,7 +55,7 @@
                             @endif
                         </select>
                     </div>
-                    <div class="mt-3">
+                    {{-- <div class="mt-3">
                         <label class="form-label">Program Studi</label>
                         <select name="id_unit" id="id_unit" class="form-select" >
                             @if (isset($list_prodi))
@@ -66,7 +66,7 @@
                                 @endforeach
                             @endif
                         </select>
-                    </div>
+                    </div> --}}
                 </div>
             </div>
         </div>

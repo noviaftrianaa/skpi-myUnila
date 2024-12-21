@@ -275,6 +275,22 @@ div:where(.swal2-container) div:where(.swal2-popup):focus {
 div:where(.swal2-container) div:where(.swal2-popup).swal2-loading {
   overflow-y: hidden;
 }
+div:where(.swal2-container) div:where(.swal2-popup).swal2-draggable {
+  cursor: -webkit-grab;
+  cursor: grab;
+}
+div:where(.swal2-container) div:where(.swal2-popup).swal2-draggable div:where(.swal2-icon) {
+  cursor: -webkit-grab;
+  cursor: grab;
+}
+div:where(.swal2-container) div:where(.swal2-popup).swal2-dragging {
+  cursor: -webkit-grabbing;
+  cursor: grabbing;
+}
+div:where(.swal2-container) div:where(.swal2-popup).swal2-dragging div:where(.swal2-icon) {
+  cursor: -webkit-grabbing;
+  cursor: grabbing;
+}
 div:where(.swal2-container) h2:where(.swal2-title) {
   position: relative;
   max-width: 100%;
@@ -286,6 +302,7 @@ div:where(.swal2-container) h2:where(.swal2-title) {
   text-align: center;
   text-transform: none;
   word-wrap: break-word;
+  cursor: initial;
 }
 div:where(.swal2-container) div:where(.swal2-actions) {
   display: -ms-flexbox;
@@ -337,7 +354,7 @@ div:where(.swal2-container) button:where(.swal2-styled) {
 div:where(.swal2-container) button:where(.swal2-styled):not([disabled]) {
   cursor: pointer;
 }
-div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm {
+div:where(.swal2-container) button:where(.swal2-styled):where(.swal2-confirm) {
   border: 0;
   border-radius: 0.25em;
   background: initial;
@@ -345,10 +362,10 @@ div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm {
   color: #fff;
   font-size: 1em;
 }
-div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm:focus {
+div:where(.swal2-container) button:where(.swal2-styled):where(.swal2-confirm):focus-visible {
   box-shadow: 0 0 0 3px rgba(112, 102, 224, 0.5);
 }
-div:where(.swal2-container) button:where(.swal2-styled).swal2-deny {
+div:where(.swal2-container) button:where(.swal2-styled):where(.swal2-deny) {
   border: 0;
   border-radius: 0.25em;
   background: initial;
@@ -356,10 +373,10 @@ div:where(.swal2-container) button:where(.swal2-styled).swal2-deny {
   color: #fff;
   font-size: 1em;
 }
-div:where(.swal2-container) button:where(.swal2-styled).swal2-deny:focus {
+div:where(.swal2-container) button:where(.swal2-styled):where(.swal2-deny):focus-visible {
   box-shadow: 0 0 0 3px rgba(220, 55, 65, 0.5);
 }
-div:where(.swal2-container) button:where(.swal2-styled).swal2-cancel {
+div:where(.swal2-container) button:where(.swal2-styled):where(.swal2-cancel) {
   border: 0;
   border-radius: 0.25em;
   background: initial;
@@ -367,13 +384,13 @@ div:where(.swal2-container) button:where(.swal2-styled).swal2-cancel {
   color: #fff;
   font-size: 1em;
 }
-div:where(.swal2-container) button:where(.swal2-styled).swal2-cancel:focus {
+div:where(.swal2-container) button:where(.swal2-styled):where(.swal2-cancel):focus-visible {
   box-shadow: 0 0 0 3px rgba(110, 120, 129, 0.5);
 }
-div:where(.swal2-container) button:where(.swal2-styled).swal2-default-outline:focus {
+div:where(.swal2-container) button:where(.swal2-styled).swal2-default-outline:focus-visible {
   box-shadow: 0 0 0 3px rgba(100, 150, 200, 0.5);
 }
-div:where(.swal2-container) button:where(.swal2-styled):focus {
+div:where(.swal2-container) button:where(.swal2-styled):focus-visible {
   outline: none;
 }
 div:where(.swal2-container) button:where(.swal2-styled)::-moz-focus-inner {
@@ -386,6 +403,7 @@ div:where(.swal2-container) div:where(.swal2-footer) {
   color: inherit;
   font-size: 1em;
   text-align: center;
+  cursor: initial;
 }
 div:where(.swal2-container) .swal2-timer-progress-bar-container {
   position: absolute;
@@ -405,6 +423,7 @@ div:where(.swal2-container) div:where(.swal2-timer-progress-bar) {
 div:where(.swal2-container) img:where(.swal2-image) {
   max-width: 100%;
   margin: 2em auto 1em;
+  cursor: initial;
 }
 div:where(.swal2-container) button:where(.swal2-close) {
   z-index: 2;
@@ -435,7 +454,7 @@ div:where(.swal2-container) button:where(.swal2-close):hover {
   background: transparent;
   color: #f27474;
 }
-div:where(.swal2-container) button:where(.swal2-close):focus {
+div:where(.swal2-container) button:where(.swal2-close):focus-visible {
   outline: none;
   box-shadow: inset 0 0 0 3px rgba(100, 150, 200, 0.5);
 }
@@ -446,8 +465,8 @@ div:where(.swal2-container) .swal2-html-container {
   z-index: 1;
   -ms-flex-pack: center;
       justify-content: center;
-  margin: 1em 1.6em 0.3em;
-  padding: 0;
+  margin: 0;
+  padding: 1em 1.6em 0.3em;
   overflow: auto;
   color: inherit;
   font-size: 1.125em;
@@ -456,6 +475,7 @@ div:where(.swal2-container) .swal2-html-container {
   text-align: center;
   word-wrap: break-word;
   word-break: break-word;
+  cursor: initial;
 }
 div:where(.swal2-container) input:where(.swal2-input),
 div:where(.swal2-container) input:where(.swal2-file),
@@ -1380,7 +1400,7 @@ div:where(.swal2-icon).swal2-success.swal2-icon-show .swal2-success-circular-lin
     opacity: 1;
   }
 }
-body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown) {
+body.swal2-shown:not(.swal2-no-backdrop, .swal2-toast-shown) {
   overflow: hidden;
 }
 body.swal2-height-auto {
@@ -1397,13 +1417,13 @@ body.swal2-no-backdrop .swal2-container .swal2-modal {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
 }
 @media print {
-  body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown) {
+  body.swal2-shown:not(.swal2-no-backdrop, .swal2-toast-shown) {
     overflow-y: scroll !important;
   }
-  body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown) > [aria-hidden=true] {
+  body.swal2-shown:not(.swal2-no-backdrop, .swal2-toast-shown) > [aria-hidden=true] {
     display: none;
   }
-  body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown) .swal2-container {
+  body.swal2-shown:not(.swal2-no-backdrop, .swal2-toast-shown) .swal2-container {
     position: static !important;
   }
 }

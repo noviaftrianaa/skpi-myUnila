@@ -65,3 +65,4 @@ include $path . 'PDDIKTI.php';
 include $path . 'DomXpath.php';
 include $path . 'DecodeTokenJwt.php';
 include $path . 'MenuRole.php';
+include $path . 'SiakaduHelper.php';
