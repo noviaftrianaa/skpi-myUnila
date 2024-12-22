@@ -31,6 +31,7 @@ use App\Http\Controllers\InfografisController;
 use App\Http\Controllers\Main\DashboardController as MainDashboardController;
 use App\Http\Controllers\Main\KTWController as MainKTWController;
 use App\Http\Controllers\Main\ProfilController as MainProfilController;
+use App\Http\Controllers\Main\ProfilPTController as MainProfilPTController;
 //IKU
 use App\Http\Controllers\Main\iku\Iku1Controller as Iku1Controller;
 use App\Http\Controllers\Main\iku\Iku2Controller as Iku2Controller;
@@ -122,6 +123,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/ktw/data', [MainKTWController::class, 'data'])->name('main-ktw-data');
     //Profil
     Route::get('/profil', [MainProfilController::class, 'index'])->name('main-profil');
+    //Profil PT
+    Route::get('direktori_pt', [MainProfilPTController::class, 'index'])->name('main-profil-pt');
+    Route::get('direktori_pt/data', [MainProfilPTController::class, 'data'])->name('main-profil-pt.data');
+    Route::get('direktori_pt/data/detail', [MainProfilPTController::class, 'dataDetail'])->name('main-profil-pt.data.detail');
 
     //IKU
     Route::get('iku1', [Iku1Controller::class, 'index'])->name('main-iku1');
