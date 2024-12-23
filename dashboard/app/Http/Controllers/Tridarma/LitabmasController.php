@@ -12,6 +12,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Yajra\DataTables\Facades\DataTables;
+use Yajra\DataTables\QueryDataTable;
 
 class LitabmasController extends Controller
 {
@@ -33,6 +35,8 @@ class LitabmasController extends Controller
      */
     public function index(Request $request)
     {
+        ini_set('max_execution_time',0);
+        ini_set('memory_limit',-1);
         $role = session()->get("login.role");
         $unit = UnitOrganisasi::find($role->id_organisasi);
         if ($request->has('thn') && 'semua'!=$request->thn) {
@@ -79,6 +83,15 @@ class LitabmasController extends Controller
         }
         $base_route = $this->base_route;
         $kode = $this->kode_litabmas;
+
+//        $data_new = [
+//            'data'          => $data->paginate(),
+//            'dana_dikti'    => number_to_currency(collect($data)->sum('dana_dikti')),
+//            'dana_pt'       => number_to_currency(collect($data)->sum('dana_pt')),
+//            'dana_lain'     => number_to_currency(collect($data)->sum('dana_instansi_lain'))
+//        ];
+//        dd($data_new);
+
         return view(
             "content.tridarma.litabmas.index",
             compact("judul", "data", "base_route", "kode","list_tahun","thn_pilih")

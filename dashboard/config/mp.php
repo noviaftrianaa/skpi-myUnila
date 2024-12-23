@@ -40,7 +40,7 @@ return [
         'smt_batas_min' => 20101
     ],
     'data_master'   => [
-        'smt_aktif' => 20222,
+        'smt_aktif' => 20241,
         'smt'   => [
             1   => 'Ganjil',
             2   => 'Genap',
@@ -138,5 +138,6 @@ return [
             'username'  => '',
             'password'  => '',
         ]
-    ]
+    ],
+    'id_sp' => 'E2B705A7-173E-464A-9FAC-509128709515'
 ];

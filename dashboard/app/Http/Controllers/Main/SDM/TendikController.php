@@ -49,6 +49,12 @@ class TendikController extends Controller
             $unit_filter = "Fakultas " . $sms->fakultas_unila->nm_lemb;
         } elseif ($unit->id_jns_lemb == 23) {
             $sms = Sms::find($unit->id_organisasi);
+            $ta_list = TahunAjaran::select("id_thn_ajaran", "nm_thn_ajaran")
+                ->where("id_thn_ajaran", "<=", get_tahun_keaktifan())
+                ->whereNull("expired_date")
+                ->orderBy("id_thn_ajaran", "DESC")
+                ->pluck("nm_thn_ajaran", "id_thn_ajaran")
+                ->toArray();
             $judul = "Tenaga Kependidikan Fakultas " . $sms->nm_lemb;
             $unit_filter = "Fakultas " . $sms->nm_lemb;
         } else {

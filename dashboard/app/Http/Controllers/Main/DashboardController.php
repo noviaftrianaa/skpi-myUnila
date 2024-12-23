@@ -149,6 +149,25 @@ class DashboardController extends Controller
             $data_litabmas = json_encode(SDM::dashboard_dosen('litabmas',$ta_pilih,$level,$sms->id_sms));
             $data_publikasi = json_encode(Publikasi::dashboard_publikasi($ta_pilih,$level,$sms->id_sms));
             return view('content.main.dashboard_dosen',compact('ta_pilih','ta_list','total_dosen','total_dosen_jabfung','dosen_usia_detail','dosen_kepangkatan_detail','dosen_pendidikan_detail','dosen_ikatan_detail','judul','data_litabmas','data_publikasi'));
+        } elseif ($unit->id_jns_lemb == 23) {
+            $sms = Sms::find($unit->id_organisasi);
+            $ta_list = TahunAjaran::select('id_thn_ajaran', 'nm_thn_ajaran')
+                ->where('tgl_mulai', '<', date('Y-m-d'))
+                ->whereNull('expired_date')
+                ->orderBy('id_thn_ajaran', 'DESC')
+                ->pluck('nm_thn_ajaran', 'id_thn_ajaran')
+                ->toArray();
+            $level = 'fakultas';
+            $judul = "Fakultas " . $sms->nm_lemb;
+            $total_dosen = json_encode(SDM::dashboard_dosen('nomor_induk', $ta_pilih, $level, $sms->id_sms)->first());
+            $total_dosen_jabfung = json_encode(SDM::dashboard_dosen('dosen_jabfung', $ta_pilih, $level, $sms->id_sms)->first());
+            $dosen_kepangkatan_detail = json_encode(SDM::dashboard_dosen('dosen_kepangkatan_all', $ta_pilih, $level, $sms->id_sms)->first());
+            $dosen_pendidikan_detail = json_encode(SDM::dashboard_dosen('dosen_pendidikan_all', $ta_pilih, $level, $sms->id_sms)->first());
+            $dosen_ikatan_detail = json_encode(SDM::dashboard_dosen('dosen_ikatan_kerja', $ta_pilih, $level, $sms->id_sms)->first());
+            $dosen_usia_detail = json_encode(SDM::dashboard_dosen('dosen_usia', $ta_pilih, $level, $sms->id_sms));
+            $data_litabmas = json_encode(SDM::dashboard_dosen('litabmas',$ta_pilih,$level,$sms->id_sms));
+            $data_publikasi = json_encode(Publikasi::dashboard_publikasi($ta_pilih,$level,$sms->id_sms));
+            return view('content.main.dashboard_dosen',compact('ta_pilih','ta_list','total_dosen','total_dosen_jabfung','dosen_usia_detail','dosen_kepangkatan_detail','dosen_pendidikan_detail','dosen_ikatan_detail','judul','data_litabmas','data_publikasi'));
         } else {
             //
         }
@@ -177,6 +196,22 @@ class DashboardController extends Controller
                 ->toArray();
             $level = 'prodi';
             $judul.= ' Prodi '.$sms->nm_lemb.' ('.$sms->jenjang->nm_jenj_didik.')';
+            $dashboard_mhs = json_encode(collect(PesertaDidik::dashboard_mahasiswa('rekap_mhs_semester',$smt_pilih,$level,$sms->id_sms))->first());
+            $dashboard_mhs_asing = json_encode(collect(PesertaDidik::dashboard_mahasiswa('rekap_kewarganegaraan_mhs_semester',$smt_pilih,$level,$sms->id_sms))->first());
+            $dashboard_ipk_mhs = json_encode(collect(PesertaDidik::dashboard_mahasiswa('rekap_ipk_mhs_semester',$smt_pilih,$level,$sms->id_sms))->first());
+            $dashboard_masa_mukim_mhs = json_encode(collect(PesertaDidik::dashboard_mahasiswa('rekap_masa_mukim_mhs_semester',$smt_pilih,$level,$sms->id_sms))->first());
+            return view('content.main.dashboard_mahasiswa',compact('smt_pilih','semester_list','judul','dashboard_mhs','dashboard_mhs_asing','dashboard_ipk_mhs','dashboard_masa_mukim_mhs','semester'));
+        } elseif ($unit->id_jns_lemb == 23) {
+            $sms = Sms::find($unit->id_organisasi);
+            $semester_list = Semester::select('id_smt', 'nm_smt')
+                ->where('tgl_mulai', '<', date('Y-m-d'))
+                ->whereNull('expired_date')
+                ->where('smt', '!=', 3)
+                ->orderBy('id_smt', 'DESC')
+                ->pluck('nm_smt', 'id_smt')
+                ->toArray();
+            $judul = " Fakultas " . $sms->nm_lemb;
+            $level = 'fakultas';
             $dashboard_mhs = json_encode(collect(PesertaDidik::dashboard_mahasiswa('rekap_mhs_semester',$smt_pilih,$level,$sms->id_sms))->first());
             $dashboard_mhs_asing = json_encode(collect(PesertaDidik::dashboard_mahasiswa('rekap_kewarganegaraan_mhs_semester',$smt_pilih,$level,$sms->id_sms))->first());
             $dashboard_ipk_mhs = json_encode(collect(PesertaDidik::dashboard_mahasiswa('rekap_ipk_mhs_semester',$smt_pilih,$level,$sms->id_sms))->first());

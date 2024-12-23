@@ -329,6 +329,7 @@ class SDM extends AbstractionModel
                 AND tr.id_jns_keluar IS NULL AND (tr.tgl_ptk_keluar IS NULL OR tr.tgl_ptk_keluar>GETDATE())
                 JOIN pdrd.keaktifan_ptk AS tak WITH (NOLOCK) ON tak.id_reg_ptk=tr.id_reg_ptk AND tak.soft_delete=0
                 AND tak.a_sp_homebase=1 AND tak.id_thn_ajaran='".$tahun."'
+                JOIN pdrd.sms AS tsms WITH (NOLOCK) ON tsms.id_sms=tr.id_sms
                 JOIN ref.status_kepegawaian AS tsk WITH (NOLOCK) ON tsk.id_stat_pegawai=tr.id_stat_pegawai
                 JOIN ref.status_keaktifan_pegawai AS ta WITH (NOLOCK) ON ta.id_stat_aktif=tsdm.id_stat_aktif
                 JOIN ref.ikatan_kerja_sdm AS ti WITH (NOLOCK) ON ti.id_ikatan_kerja=tr.id_ikatan_kerja
