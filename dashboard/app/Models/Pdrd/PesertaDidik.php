@@ -409,9 +409,9 @@ class PesertaDidik extends AbstractionModel
             FROM pdrd.reg_pd AS rpd
             JOIN pdrd.sms AS tsms ON tsms.id_sms=rpd.id_sms
             JOIN ref.jenjang_pendidikan AS tj ON tj.id_jenj_didik=tsms.id_jenj_didik
-            JOIN ref.jenis_pendaftaran AS jp ON jp.id_jns_daftar=rpd.id_jns_daftar
+            LEFT JOIN ref.jenis_pendaftaran AS jp ON jp.id_jns_daftar=rpd.id_jns_daftar
             LEFT JOIN ref.jenis_keluar AS jk ON jk.id_jns_keluar=rpd.id_jns_keluar
-            JOIN ref.semester AS smt ON smt.id_smt=rpd.id_smt
+            LEFT JOIN ref.semester AS smt ON smt.id_smt=rpd.id_semester_masuk
             JOIN pdrd.satuan_pendidikan AS sp ON sp.id_sp=rpd.id_sp
             WHERE rpd.id_pd='".$id_pd."'
             ORDER BY rpd.id_smt DESC

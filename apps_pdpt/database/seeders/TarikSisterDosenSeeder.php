@@ -12,6 +12,7 @@ use App\Models\PDUT\Pdrd\RwySertifikasi;
 use App\Models\PDUT\Pdrd\Sdm;
 use App\Models\PDUT\Pdrd\Sms;
 use App\Models\PDUT\Ref\IkatanKerjaSdm;
+use App\Models\PDUT\Ref\JenisKeluar;
 use App\Models\PDUT\Ref\LembagaSertifikasi;
 use App\Models\PDUT\Ref\Semester;
 use App\Models\PDUT\Ref\StatusKepegawaian;
@@ -177,6 +178,33 @@ class TarikSisterDosenSeeder extends Seeder
                     $input_ikatan_kerja['last_sync']     = $waktu_sekarang;
                     $cek_ikatan_kerja->fill($input_ikatan_kerja)->save();
                     echo " (OK - tambah Ikatan Kerja SDM)\n";
+                }
+            }
+        }
+
+        $data_dosen_jenis_keluar = \DB::connection('pgsql_sister')->table('ref.jenis_keluar')
+            ->whereNull('expired_date')
+            ->get();
+        foreach ($data_dosen_jenis_keluar AS $each_jenis_keluar) {
+            $cek_jenis_keluar = JenisKeluar::find($each_jenis_keluar->id_jns_keluar);
+            if (is_null($cek_jenis_keluar)) {
+                $input_jenis_keluar = (array) $each_jenis_keluar;
+                unset($input_jenis_keluar['csf']);
+                $input_jenis_keluar['a_ref_pddikti'] = 1;
+                $input_jenis_keluar['last_update']   = $waktu_sekarang;
+                $input_jenis_keluar['last_sync']     = $waktu_sekarang;
+                $simpan_jenis_keluar = new JenisKeluar();
+                $simpan_jenis_keluar->fill($input_jenis_keluar)->save();
+                echo " (OK - tambah Jenis Keluar)\n";
+            } else {
+                if ($each_jenis_keluar->last_update>$cek_jenis_keluar->last_update) {
+                    $input_jenis_keluar = (array) $each_jenis_keluar;
+                    unset($input_jenis_keluar['csf']);
+                    $input_jenis_keluar['a_ref_pddikti'] = 1;
+                    $input_jenis_keluar['last_update']   = $waktu_sekarang;
+                    $input_jenis_keluar['last_sync']     = $waktu_sekarang;
+                    $cek_jenis_keluar->fill($input_jenis_keluar)->save();
+                    echo " (OK - tambah Jenis Keluar)\n";
                 }
             }
         }
