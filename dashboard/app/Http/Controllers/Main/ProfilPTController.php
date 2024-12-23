@@ -99,7 +99,7 @@ class ProfilPTController extends Controller
         return \DataTables::of($data)
             ->addIndexColumn()
             ->addColumn('aksi', function($data) {
-                $button = '<div class="btn-group w-100"> <button class="btn btn-primary btn-sm" data-toggle="tooltip" id="btnDetail" data-name="'.$data->nm_lemb.'" data-sms="'.$data->id_sms.'" data-fak="'.$data->id_fak_unila.'" data-jur="'.$data->id_jur_unila.'" data-placement="top" title="Details"><i class="fas fa-info mr-1"></i>Detail</button> </div>';
+                $button = '<button class="btn btn-link p-0" data-toggle="tooltip" id="btnDetail" data-name="'.$data->nm_lemb.'" data-sms="'.$data->id_sms.'" data-fak="'.$data->id_fak_unila.'" data-jur="'.$data->id_jur_unila.'" data-placement="top" title="Details">'.$data->nm_lemb.'</button>';
                 return $button;
             })
             ->rawColumns(['aksi'])

@@ -7,28 +7,12 @@
     <link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-fixedcolumns-bs5/fixedcolumns.bootstrap5.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/bs-stepper/bs-stepper.css') }}" />
-    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/loading/overlay.css') }}" />
-    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/flatpickr/flatpickr.css') }}" />
-    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/spinkit/spinkit.css') }}" />
     <!-- Row Group CSS -->
-    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css') }}">>
 @endsection
 
 @section('vendor-script')
-    <script src="{{ asset('assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js') }}"></script>
-    <script src="{{ asset('assets/vendor/libs/block-ui/block-ui.js') }}"></script>
-    <!-- Flat Picker -->
-    <script src="{{ asset('assets/vendor/libs/moment/moment.js') }}"></script>
-    <script src="{{ asset('assets/vendor/libs/flatpickr/flatpickr.js') }}"></script>
-    <!-- Form Validation -->
-    <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
-    <script src="{{ asset('assets/vendor/libs/@form-validation/umd/bundle/popular.min.js') }}"></script>
-    <script src="{{ asset('assets/vendor/libs/@form-validation/umd/plugin-bootstrap5/index.min.js') }}"></script>
-    <script src="{{ asset('assets/vendor/libs/@form-validation/umd/plugin-auto-focus/index.min.js') }}"></script>
-    <script src="{{ asset('assets/vendor/libs/cleavejs/cleave.js') }}"></script>
-    <script src="{{ asset('assets/vendor/libs/cleavejs/cleave-phone.js') }}"></script>
+    <script src="{{ asset('js/datatables.min.js') }}"></script>
 @endsection
 
 @section('content')
@@ -42,16 +26,16 @@
             <div class="d-lg-flex d-block mb-3 px-2">
                 <div class="btn-group">
                     <button class="btn btn-warning text-dark btn-sm reload_data">
-                        <i class="fa fa-refresh reload-card"></i>
+                        <i class="fa fa-refresh reload-card me-2"></i>
                         Reload Data
                     </button>
                 </div>
                 <span class="text-dark p-2" id="name"></span>
-                <div class="ml-auto">
+                <div class="ms-auto">
                     <div class="input-group">
                         <input type="text" id="search" placeholder="Pencarian" class="form-control">
                         <div class="input-group-append">
-                            <button class="btn btn-primary btn-sm" data-toggle="tooltip" data-placement="top"
+                            <button class="btn btn-primary" data-toggle="tooltip" data-placement="top"
                                 title="Cari">
                                 <i class="fa fa-search search-icon"></i>
                             </button>
@@ -67,7 +51,6 @@
                             <th class="text-bold">Lembaga</th>
                             <th class="text-bold text-center">Jumlah Dosen</th>
                             <th class="text-bold text-center">Jumlah Tendik</th>
-                            <th width="7%" class="text-bold text-center">#</th>
                         </tr>
                     </thead>
                 </table>
@@ -107,7 +90,7 @@
 
 @endsection
 
-@push('js')
+@section('page-script')
     <script type="text/javascript">
         function datatables(link) {
             let table = $('#table-data').DataTable({
@@ -122,7 +105,7 @@
                         searchable: false
                     },
                     {
-                        data: 'nm_lemb'
+                        data: 'aksi'
                     },
                     {
                         data: 'jml_dosen',
@@ -138,11 +121,6 @@
                             return (data) ? data : 0;
                         }
                     },
-                    {
-                        data: 'aksi',
-                        className: 'text-center',
-                        orderable: false
-                    }
                 ],
                 "language": {
                     "decimal": "",
@@ -180,7 +158,7 @@
                 '74393186-b8fb-4f21-b4ac-8e3f1f15b6b3'
             ];
             let table = datatables(url);
-            let name = $('#name').append(`Universitas Lampung`);
+            let name = $('#name').append(`UNIVERSITAS LAMPUNG`);
 
             $('#search').on('change', function() {
                 table.search($('#search').val()).draw();
@@ -189,7 +167,7 @@
             $('.reload_data').on('click', function() {
                 table.clear().destroy();
                 table = datatables(url);
-                $('#name').html('Universitas Lampung');
+                $('#name').html('UNIVERSITAS LAMPUNG');
             });
 
             table.on('click', '#btnDetail', function(event) {
@@ -282,4 +260,4 @@
             });
         }
     </script>
-@endpush
+@endsection
