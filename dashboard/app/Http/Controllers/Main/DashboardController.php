@@ -49,6 +49,24 @@ class DashboardController extends Controller
                 ->get();
             $judul = 'Program Studi '.$sms->nm_lemb.' ('.$sms->jenjang->nm_jenj_didik.')';
             return view('content.main.dashboard-prodi',compact('judul','semester_list','smt_pilih','level','data_list_tabel','data_profil_prodi','data_akreditasi_prodi','sms'));
+        } elseif ($unit->id_jns_lemb == 23) { // Jika Fakultas login
+            $sms = SMS::find($unit->id_organisasi);
+            $semester_list = Semester::select('id_smt','nm_smt')
+                ->where('tgl_mulai','<',date('Y-m-d'))
+                ->whereNull('expired_date')
+                ->where('smt','!=',3)
+                ->orderBy('id_smt','DESC')
+                ->pluck('nm_smt','id_smt')
+                ->toArray();
+            $sms_list = SMS::where("id_fak_unila", $sms->id_sms)
+                ->where("soft_delete", 0)
+                ->select("id_sms")
+                ->pluck("id_sms")
+                ->toArray();
+            $level = 'fakultas';
+            $data_list_tabel = SMS::dashboard_tabel_list_sms($sms_list,$smt_pilih);
+            $judul = 'Fakultas '.$sms->nm_lemb;
+            return view('content.main.dashboard-fakultas',compact('judul','semester_list','smt_pilih','level','data_list_tabel','sms'));
         } else { // Jika level PT login
             $data_list_tabel = SMS::dashboard_tabel_list_sms([],$smt_pilih);
             $pt = SatuanPendidikan::find(env('APP_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515'));
