@@ -21,7 +21,7 @@
                 </div>
                 <!-- Profile Info -->
                 <div class="flex-grow-1 mt-3 mt-lg-0 ps-lg-4">
-                    <h4 class="mb-2">M. Abdul Adhim</h4>
+                    <h4 class="mb-2">{{ $profile->nm_pd }} | <span class=" text-sm badge bg-primary">{{ $profile->nipd }}</span></h4>
                     <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-2">
                         <span class="badge text-dark" style="background-color: #ACCDFF;">S1 - Ilmu Komputer</span>
                         <span class="badge text-dark" style="background-color: #ACCDFF;">Masuk 2024 Ganjil</span>
@@ -84,15 +84,15 @@
                                 <tr>
                                     <th>Jenis Kelamin</th>
                                     <td><span class="badge text-dark" style="background-color: #ACCDFF;"><i class="bi bi-gender-male"></i>
-                                            Laki-Laki</span></td>
+                                            {{ $profile->jk === 'L' ? 'Laki-Laki' : 'Perempuan' }}</span></td>
                                 </tr>
                                 <tr>
                                     <th>Tempat Lahir</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">Lampung Tengah</span></td>
+                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">{{ $profile->tmpt_lahir }}</span></td>
                                 </tr>
                                 <tr>
                                     <th>Tanggal Lahir</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">Tgl Bulan Tahun</span></td>
+                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">{{ tglIndonesia($profile->tgl_lahir) }}</span></td>
                                 </tr>
                                 <tr>
                                     <th>Agama</th>
@@ -127,7 +127,7 @@
                             <tbody>
                                 <tr>
                                     <th>Email Kampus</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">030@student.unila.ac.id</span>
+                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">{{ $profile->email }}</span>
                                     </td>
                                 </tr>
                                 <tr>
