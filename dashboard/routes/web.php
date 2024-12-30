@@ -1,46 +1,47 @@
 <?php
 
-use App\Http\Controllers\Main\Mahasiswa\DaftarMahasiswaController;
-use App\Http\Controllers\Main\Mahasiswa\KampusMerdekaController;
-use App\Http\Controllers\Main\Mahasiswa\PrestasiController;
-use App\Http\Controllers\Main\Mahasiswa\AktivitasMahasiswaController;
-use App\Http\Controllers\Main\Mahasiswa\TracerStudyController;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SyncController;
+use App\Http\Controllers\DosenController;
 use App\Http\Controllers\SyncDataController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MahasiswaController;
+use App\Http\Controllers\InfografisController;
+use App\Http\Controllers\PmbMandiriController;
+use App\Http\Controllers\ProgramStudiController;
+use App\Http\Controllers\authentications\LoginBasic;
+use App\Http\Controllers\language\LanguageController;
 use App\Http\Controllers\tridarma\LitabmasController;
+use App\Http\Controllers\tridarma\PublikasiController;
+use App\Http\Controllers\authentications\RegisterBasic;
+use App\Http\Controllers\KelulusanTepatWaktuController;
 use App\Http\Controllers\tridarma\PenelitianController;
 use App\Http\Controllers\tridarma\PengabdianController;
-use App\Http\Controllers\tridarma\PublikasiController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\language\LanguageController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\ProgramStudiController;
-use App\Http\Controllers\DosenController;
-use App\Http\Controllers\KelulusanTepatWaktuController;
-use App\Http\Controllers\PmbMandiriController;
-use App\Http\Controllers\Main\sdm\DosenController as DosenSMSController;
-use App\Http\Controllers\Main\sdm\TendikController as TendikSMSController;
+use App\Http\Controllers\Main\Mahasiswa\PrestasiController;
+use App\Http\Controllers\Main\Mahasiswa\TracerStudyController;
 use App\Http\Controllers\Main\perkuliahan\KurikulumController;
 use App\Http\Controllers\Main\perkuliahan\MataKuliahController;
+use App\Http\Controllers\Main\Mahasiswa\KampusMerdekaController;
 use App\Http\Controllers\Main\perkuliahan\KelasKuliahController;
-use App\Http\Controllers\MahasiswaController;
-use App\Http\Controllers\SyncController;
-use App\Http\Controllers\authentications\LoginBasic;
-use App\Http\Controllers\authentications\RegisterBasic;
-use App\Http\Controllers\InfografisController;
-//MAIN
-use App\Http\Controllers\Main\DashboardController as MainDashboardController;
 use App\Http\Controllers\Main\KTWController as MainKTWController;
-use App\Http\Controllers\Main\ProfilController as MainProfilController;
-use App\Http\Controllers\Main\ProfilPTController as MainProfilPTController;
-//IKU
+use App\Http\Controllers\Main\Mahasiswa\DaftarMahasiswaController;
 use App\Http\Controllers\Main\iku\Iku1Controller as Iku1Controller;
 use App\Http\Controllers\Main\iku\Iku2Controller as Iku2Controller;
+//MAIN
 use App\Http\Controllers\Main\iku\Iku3Controller as Iku3Controller;
 use App\Http\Controllers\Main\iku\Iku4Controller as Iku4Controller;
 use App\Http\Controllers\Main\iku\Iku5Controller as Iku5Controller;
 use App\Http\Controllers\Main\iku\Iku6Controller as Iku6Controller;
+//IKU
 use App\Http\Controllers\Main\iku\Iku7Controller as Iku7Controller;
 use App\Http\Controllers\Main\iku\Iku8Controller as Iku8Controller;
+use App\Http\Controllers\Main\mahasiswa\ProfileMahasiswaController;
+use App\Http\Controllers\Main\Mahasiswa\AktivitasMahasiswaController;
+use App\Http\Controllers\Main\ProfilController as MainProfilController;
+use App\Http\Controllers\Main\sdm\DosenController as DosenSMSController;
+use App\Http\Controllers\Main\sdm\TendikController as TendikSMSController;
+use App\Http\Controllers\Main\ProfilPTController as MainProfilPTController;
+use App\Http\Controllers\Main\DashboardController as MainDashboardController;
 
 // locale
 Route::get('lang/{locale}', [LanguageController::class, 'swap'])->name('swap_language');
@@ -123,6 +124,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/ktw/data', [MainKTWController::class, 'data'])->name('main-ktw-data');
     //Profil
     Route::get('/profil', [MainProfilController::class, 'index'])->name('main-profil');
+
+    Route::get('/profile_mhs', [ProfileMahasiswaController::class, 'index'])->name('profile-mhs');
+
     //Profil PT
     Route::get('direktori_pt', [MainProfilPTController::class, 'index'])->name('main-profil-pt');
     Route::get('direktori_pt/data', [MainProfilPTController::class, 'data'])->name('main-profil-pt.data');
