@@ -57,8 +57,8 @@
                         data-bs-target="#navs-dosen" aria-controls="navs-dosen" aria-selected="true"><i
                             class="ti ti-users-group ti-xs me-1"></i>Dosen</button></li>
                 <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab"
-                        data-bs-target="#navs-tendik" aria-controls="navs-tendik" aria-selected="true"><i
-                            class="ti ti-users-group ti-xs me-1"></i>Tenaga Kependidikan</button></li>
+                        data-bs-target="#perguruan-tinggi" aria-controls="navs-tendik" aria-selected="true"><i
+                            class="fa-solid fa-graduation-cap ti-xs me-1"></i>Perguruan Tinggi</button></li>
             </ul>
         </div>
     </div>
@@ -208,30 +208,58 @@
                 Pembaharuan data terakhir:
             </p>
         </div>
-        <!-- Tenaga Pendidik -->
-        <div class="tab-pane fade" id="navs-tendik" role="tabpanel">
+        <!-- Perguruan Tinggi -->
+        <div class="tab-pane fade" id="perguruan-tinggi" role="tabpanel">
             <div class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0 pb-1">
-                <h5>Tenaga Kependidikan</h5>
+                <h5>Perguruan Tinggi</h5>
             </div>
-            <div class="table-responsive">
-                <table class="table table-striped table-hover tendik table-sm" style="width: 100% !important">
-                    <thead class="table-primary">
-                        <tr>
-                            <th rowspan="2" width="5px">No.</th>
-                            <th rowspan="2">Lembaga/Fakultas</th>
-                            <th colspan="2" class="text-center">PNS</th>
-                            <th colspan="2" class="text-center">Kontrak</th>
-                        </tr>
-                        <tr>
-                            <td width="5px">Pria</td>
-                            <td width="5px">Wanita</td>
-                            <td width="5px">Pria</td>
-                            <td width="5px">Wanita</td>
-                        </tr>
-                    </thead>
-                </table>
-            </div>
+            <div class="row">
+                <div class="row">
+                    <!-- Kolom Kiri -->
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tbody>
+                                <tr>
+                                    <th>Perguruan Tinggi Asal</th>
+                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">-</span></td>
+                                </tr>
+                                <tr>
+                                    <th>Program Studi Asal</th>
+                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">-</span></td>
+                                </tr>
+                                <tr>
+                                    <th>NIM Asal</th>
+                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">-</span></td>
+                                </tr>
+                                <tr>
+                                    <th>IPK Asal</th>
+                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">-</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
+                    <!-- Kolom Kiri -->
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tbody>
+                                <tr>
+                                    <th>SKS Asal (Diakui)</th>
+                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">-</span></td>
+                                </tr>
+                                <tr>
+                                    <th>Surat Rekomen. Pindah</th>
+                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">-</span></td>
+                                </tr>
+                                <tr>
+                                    <th>Transkrip Asal</th>
+                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">-</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
