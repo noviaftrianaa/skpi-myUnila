@@ -54,8 +54,8 @@
                         data-bs-target="#navs-mahasiswa" aria-controls="navs-mahasiswa" aria-selected="true">
                         <i class="fa-solid fa-location-dot me-1"></i>Domisili</button></li>
                 <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab"
-                        data-bs-target="#navs-dosen" aria-controls="navs-dosen" aria-selected="true"><i
-                            class="ti ti-users-group ti-xs me-1"></i>Dosen</button></li>
+                        data-bs-target="#sekolah" aria-controls="sekolah" aria-selected="true">
+                            <i class="fa-solid fa-school ti-xs me-1"></i> Sekolah</button></li>
                 <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab"
                         data-bs-target="#navs-tendik" aria-controls="navs-tendik" aria-selected="true"><i
                             class="ti ti-users-group ti-xs me-1"></i>Tenaga Kependidikan</button></li>
@@ -170,44 +170,66 @@
 
             </div>
         </div>
-        <!-- Dosen -->
-        <div class="tab-pane fade" id="navs-dosen" role="tabpanel">
-            <div class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0 pb-1">
-                <h5>Dosen</h5>
-                <div class="float-end row">
-                    <div class="btn-group" role="group">
-                        <label class="input-group-text">Tahun</label>
-                        <select class="form-select text-center" id="periodeDosen">
-                            {{-- @for ($i = $tahun; $i > $tahun - 10; $i--)
-                                <option value="{{ $i }}">{{ $i }}</option>
-                            @endfor --}}
-                        </select>
+        <!-- Sekolah -->
+        <div class="tab-pane fade" id="sekolah" role="tabpanel">
+            <div
+                class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0 pb-1">
+                <h5>Sekolah</h5>
+            </div>
+            <div class="row">
+                <div class="row">
+                    <!-- Kolom Kiri -->
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tbody>
+                                <tr>
+                                    <th>Pendidikan Asal</th>
+                                    <td><span class="badge text-dark"  style="background-color: #ACCDFF;">SMA</span></td>
+                                </tr>
+                                <tr>
+                                    <th>Provinsi Sekolah</th>
+                                    <td><span class="badge text-dark"  style="background-color: #ACCDFF;">Lampung</td>
+                                </tr>
+                                <tr>
+                                    <th>Kota Sekolah</th>
+                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">Lampung Tengah</span></td>
+                                </tr>
+                                <tr>
+                                    <th>NISN</th>
+                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">12301995</span></td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Kolom Kanan -->
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tbody>
+                                <tr>
+                                    <th>Alamat Sekolah</th>
+                                    <td><span class="badge text-dark"  style="background-color: #ACCDFF;">Bandar Lampung</span></td>
+                                </tr>
+                                <tr>
+                                    <th>Telepon Sekolah</th>
+                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">masih kosong</span></td>
+                                </tr>
+                                <tr>
+                                    <th>Nomor Ijazah Sekolah</th>
+                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">masih kosong</span></td>
+                                </tr>
+                                <tr>
+                                    <th>File Ijazah SMA</th>
+                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">masih kosong</span></td>
+                                </tr>
+
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-            <div class="table-responsive">
-                <table class="table table-striped table-hover dosen table-sm" style="width: 100% !important">
-                    <thead class="table-primary">
-                        <tr>
-                            <th rowspan="2" width="5px">No.</th>
-                            <th rowspan="2">Program Studi</th>
-                            <th rowspan="2" width="5px">Jenjang</th>
-                            <th colspan="2" class="text-center">PNS</th>
-                            <th colspan="2" class="text-center">Kontrak</th>
-                        </tr>
-                        <tr>
-                            <td width="5px">Pria</td>
-                            <td width="5px">Wanita</td>
-                            <td width="5px">Pria</td>
-                            <td width="5px">Wanita</td>
-                        </tr>
-                    </thead>
-                </table>
-            </div>
-            <p class="alert alert-secondary">
-                Pembaharuan data terakhir:
-            </p>
         </div>
+
         <!-- Tenaga Pendidik -->
         <div class="tab-pane fade" id="navs-tendik" role="tabpanel">
             <div class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0 pb-1">
