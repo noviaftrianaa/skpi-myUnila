@@ -51,8 +51,8 @@
                         </span>
                         Informasi Umum</button></li>
                 <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab"
-                        data-bs-target="#navs-mahasiswa" aria-controls="navs-mahasiswa" aria-selected="true"><i
-                            class="ti ti-users ti-xs me-1"></i>Mahasiswa</button></li>
+                        data-bs-target="#navs-mahasiswa" aria-controls="navs-mahasiswa" aria-selected="true">
+                        <i class="fa-solid fa-location-dot me-1"></i>Domisili</button></li>
                 <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab"
                         data-bs-target="#navs-dosen" aria-controls="navs-dosen" aria-selected="true"><i
                             class="ti ti-users-group ti-xs me-1"></i>Dosen</button></li>
@@ -72,38 +72,103 @@
                 class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0 pb-1">
                 <h5>Informasi Umum</h5>
             </div>
-            <div class="table-responsive">
-                <table class="table table-striped table-hover programstudi table-sm"
-                    style="width: 100% !important">
-                    <thead class="table-primary"></thead>
-                </table>
+            <div class="row">
+                <div class="row">
+                    <!-- Kolom Kiri -->
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tbody>
+                                <tr>
+                                    <th>Jenis Kelamin</th>
+                                    <td><span class="badge bg-primary"><i class="bi bi-gender-male"></i> Laki-Laki</span></td>
+                                </tr>
+                                <tr>
+                                    <th>Tempat Lahir</th>
+                                    <td>Lampung Tengah</td>
+                                </tr>
+                                <tr>
+                                    <th>Tanggal Lahir</th>
+                                    <td><span class="badge bg-light  text-dark">Tgl Bulan Tahun</span></td>
+                                </tr>
+                                <tr>
+                                    <th>Agama</th>
+                                    <td><span class="badge bg-light text-dark">-</span></td>
+                                </tr>
+                                <tr>
+                                    <th>Suku</th>
+                                    <td><span class="badge bg-light text-dark">-</span></td>
+                                </tr>
+                                <tr>
+                                    <th>Golongan Darah</th>
+                                    <td><span class="badge bg-light text-dark">-</span></td>
+                                </tr>
+                                <tr>
+                                    <th>Berat Badan (kg)</th>
+                                    <td><span class="badge bg-light text-dark">68</span></td>
+                                </tr>
+                                <tr>
+                                    <th>Tinggi Badan (cm)</th>
+                                    <td><span class="badge bg-light text-dark">172</span></td>
+                                </tr>
+                                <tr>
+                                    <th>No. Telp./No. HP</th>
+                                    <td><span class="badge bg-light text-dark">081271545451</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Kolom Kanan -->
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tbody>
+                                <tr>
+                                    <th>Email Kampus</th>
+                                    <td><span class="badge bg-light text-dark">2217051030@student.unila.ac.id</span></td>
+                                </tr>
+                                <tr>
+                                    <th>Email Pribadi</th>
+                                    <td><span class="badge bg-light text-dark">office.m.abdul@gmail.com</span></td>
+                                </tr>
+                                <tr>
+                                    <th>Status Nikah</th>
+                                    <td><span class="badge bg-light text-dark">Lajang</span></td>
+                                </tr>
+                                <tr>
+                                    <th>NIK</th>
+                                    <td><span class="badge bg-light text-dark">0000000000000000</span></td>
+                                </tr>
+                                <tr>
+                                    <th>No. KK</th>
+                                    <td><span class="badge bg-light text-dark">0000000000000000</span></td>
+                                </tr>
+                                <tr>
+                                    <th>No. KPS</th>
+                                    <td><span class="badge bg-light text-dark">-</span></td>
+                                </tr>
+                                <tr>
+                                    <th>Pekerjaan</th>
+                                    <td><span class="badge bg-light text-dark">-</span></td>
+                                </tr>
+                                <tr>
+                                    <th>Penghasilan</th>
+                                    <td><span class="badge bg-light text-dark">-</span></td>
+                                </tr>
+                                <tr>
+                                    <th>Instansi Pekerjaan</th>
+                                    <td><span class="badge bg-light text-dark">-</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
         <!-- Mahasiswa -->
         <div class="tab-pane fade" id="navs-mahasiswa" role="tabpanel">
             <div class="card-header d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start flex-md-row flex-column gap-4 px-0 pb-1">
-                <h5>Mahasiswa</h5>
-                <div class="float-end row">
-                    <div class="btn-group" role="group">
-                        <label class="input-group-text">Semester</label>
-                        <select class="form-select text-center" id="periodeMahasiswa">
+                <h5>Domisili</h5>
 
-                        </select>
-                    </div>
-                </div>
             </div>
-            <p class="alert alert-warning mt-3">
-                Data mahasiswa tahun ajaran  sedang dalam proses sinkronisasi.
-            </p>
-            <div class="table-responsive">
-                <table class="table table-striped table-hover mahasiswa table-sm"
-                    style="width: 100% !important">
-                    <thead class="table-primary"></thead>
-                </table>
-            </div>
-            <p class="alert alert-secondary">
-
-            </p>
         </div>
         <!-- Dosen -->
         <div class="tab-pane fade" id="navs-dosen" role="tabpanel">
