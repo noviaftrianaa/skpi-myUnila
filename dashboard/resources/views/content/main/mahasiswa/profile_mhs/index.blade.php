@@ -8,32 +8,46 @@
         <div class="card mb-4">
             <!-- Banner -->
             <div class="position-relative">
+                <!-- Banner Image -->
                 <img src="/assets/img/pages/profile-banner.png" alt="Banner image" class="img-fluid rounded-top w-100"
                     style="height: 200px; object-fit: cover;">
-            </div>
-            <!-- Profile Header -->
-            <div class="card-body d-flex flex-column flex-lg-row text-center text-lg-start align-items-center mt-5">
-                <!-- Profile Image -->
-                <div class="flex-shrink-0 mt-n5">
-                    <img src="/assets/img/avatars/1.png" alt="user image"
-                        class="rounded-circle border border-3 border-white shadow-sm"
-                        style="width: 120px; height: 120px;">
-                </div>
-                <!-- Profile Info -->
-                <div class="flex-grow-1 mt-3 mt-lg-0 ps-lg-4">
-                    <h4 class="mb-2">{{ $profile->nm_pd }} | <span class=" text-sm badge bg-primary">{{ $profile->nipd }}</span></h4>
-                    <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-2">
-                        <span class="badge text-dark" style="background-color: #ACCDFF;">{{ $profile->nm_jenj_didik }} - {{ $profile->nm_lemb }}</span>
-                        <span class="badge text-dark" style="background-color: #ACCDFF;">Masuk 2024 Ganjil</span>
-                        <span class="badge text-dark" style="background-color: #ACCDFF;">Jalur {{ $profile->nm_jalur_daftar }}</span>
-                        <span class="badge text-dark" style="background-color: #ACCDFF;">Tidak Beasiswa</span>
-                    </div>
-                </div>
-                <!-- Action Button -->
-                <div class="mt-3 mt-lg-0">
+                <!-- Cetak Biodata Button -->
+                <div class="position-absolute top-0 end-0 m-3">
                     <a href="javascript:void(0)" class="btn btn-primary">
-                        <i class="bi bi-printer"></i> Cetak Biodata
+                        <i class="fas fa-file-alt me-1"></i> Cetak Biodata
                     </a>
+                </div>
+            </div>
+
+            <!-- Profile Section -->
+            <div class="card-body">
+                <div class="d-flex flex-column flex-lg-row align-items-start">
+                    <!-- Profile Image -->
+                    <div class="position-relative">
+                        <img src="/assets/img/avatars/1.png" alt="user image"
+                            class=" border border-3 border-white shadow-sm"
+                            style="width: 150px; height: 150px; object-fit: cover; margin-top: -75px;">
+                    </div>
+                    
+                    <!-- Status Aktif & IPK -->
+                    <div class="ms-lg-4 mt-4 mt-lg-0">
+                        <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center gap-3">
+                            <span class="badge px-3 py-2" style="background-color: #ACCDFF82; color:#444050">
+                                <i class="fas fa-check-circle me-1" style="color:#0F71FD"></i> Status Aktif
+                            </span>
+                            <span class="badge px-3 py-2" style="background-color: #ACCDFF82;  color:#444050">
+                                <span style=" color:#1172FD">IPK </span> 3.54
+                            </span>
+                        </div>
+                        <!-- Profile Header -->
+                        <h4 class="mt-3 mb-2">{{ $profile->nm_pd }} | <span class=" text-sm badge bg-primary">{{ $profile->nipd }}</span></h4>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">{{ $profile->nm_jenj_didik }} - {{ $profile->nm_lemb }}</span>
+                            <span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">Masuk 2024 Ganjil</span>
+                            <span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">Jalur {{ $profile->nm_jalur_daftar }}</span>
+                            <span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">Tidak Beasiswa</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -80,24 +94,24 @@
                             <tbody>
                                 <tr>
                                     <th>Jenis Kelamin</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;"><i class="bi bi-gender-male"></i>
+                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050; "><i class="bi bi-gender-male"></i>
                                             {{ $profile->jk === 'L' ? 'Laki-Laki' : 'Perempuan' }}</span></td>
                                 </tr>
                                 <tr>
                                     <th>Tempat Lahir</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">{{ $profile->tmpt_lahir }}</span></td>
+                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">{{ $profile->tmpt_lahir }}</span></td>
                                 </tr>
                                 <tr>
                                     <th>Tanggal Lahir</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">{{ tglIndonesia($profile->tgl_lahir) }}</span></td>
+                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">{{ tglIndonesia($profile->tgl_lahir) }}</span></td>
                                 </tr>
                                 <tr>
                                     <th>Agama</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">{{ $agama }}</span></td>
+                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">{{ $agama }}</span></td>
                                 </tr>
                                 <tr>
                                     <th>No. Telp./No. HP</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">{{ $profile->tlpn_hp }}</span></td>
+                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">{{ $profile->tlpn_hp }}</span></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -108,16 +122,16 @@
                             <tbody>
                                 <tr>
                                     <th>Email Kampus</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">{{ $profile->email }}</span>
+                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">{{ $profile->email }}</span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <th>Email Pribadi</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">office.m.abdul@gmail.com</span></td>
+                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">office.m.abdul@gmail.com</span></td>
                                 </tr>
                                 <tr>
                                     <th>NIK</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">{{ $profile->nik }}</span></td>
+                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">{{ $profile->nik }}</span></td>
                                 </tr>
                                 {{-- <tr>
                                     <th>Pekerjaan</th>
@@ -149,39 +163,39 @@
                     <tbody>
                         <tr>
                             <th>Alamat</th>
-                            <td><span class="badge text-dark" style="background-color: #ACCDFF;">{{ $profile->jln }}</span></td>
+                            <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">{{ $profile->jln }}</span></td>
                         </tr>
                         <tr>
                             <th>RT/RW</th>
-                            <td><span class="badge text-dark" style="background-color: #ACCDFF;">{{ $profile->rt }} / {{ $profile->rw ?? '-' }}</span></td>
+                            <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">{{ $profile->rt }} / {{ $profile->rw ?? '-' }}</span></td>
                         </tr>
                         <tr>
                             <th>Dusun</th>
-                            <td><span class="badge text-dark" style="background-color: #ACCDFF;">Dusun 12</span></td>
+                            <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">Dusun 12</span></td>
                         </tr>
                         <tr>
                             <th>Desa/Kelurahan</th>
-                            <td><span class="badge text-dark" style="background-color: #ACCDFF;">-</span></td>
+                            <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">-</span></td>
                         </tr>
                         <tr>
                             <th>Kota</th>
-                            <td><span class="badge text-dark" style="background-color: #ACCDFF;">-</span></td>
+                            <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">-</span></td>
                         </tr>
                         <tr>
                             <th>Kecamatan</th>
-                            <td><span class="badge text-dark" style="background-color: #ACCDFF;">-</span></td>
+                            <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">-</span></td>
                         </tr>
                         <tr>
                             <th>Provinsi</th>
-                            <td><span class="badge text-dark" style="background-color: #ACCDFF;">68</span></td>
+                            <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">68</span></td>
                         </tr>
                         <tr>
                             <th>Kewarganegaraan</th>
-                            <td><span class="badge text-dark" style="background-color: #ACCDFF;">172</span></td>
+                            <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">172</span></td>
                         </tr>
                         <tr>
                             <th>Kode Pos</th>
-                            <td><span class="badge text-dark" style="background-color: #ACCDFF;">34164</span></td>
+                            <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">34164</span></td>
                         </tr>
                     </tbody>
                 </table>
@@ -202,19 +216,19 @@
                             <tbody>
                                 <tr>
                                     <th>Pendidikan Asal</th>
-                                    <td><span class="badge text-dark"  style="background-color: #ACCDFF;">SMA</span></td>
+                                    <td><span class="badge fw-semibold"  style="background-color: #ACCDFF; color: #444050">SMA</span></td>
                                 </tr>
                                 <tr>
                                     <th>Provinsi Sekolah</th>
-                                    <td><span class="badge text-dark"  style="background-color: #ACCDFF;">Lampung</td>
+                                    <td><span class="badge fw-semibold"  style="background-color: #ACCDFF; color: #444050">Lampung</td>
                                 </tr>
                                 <tr>
                                     <th>Kota Sekolah</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">Lampung Tengah</span></td>
+                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">Lampung Tengah</span></td>
                                 </tr>
                                 <tr>
                                     <th>NISN</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">12301995</span></td>
+                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">12301995</span></td>
                                 </tr>
 
                             </tbody>
@@ -226,19 +240,19 @@
                             <tbody>
                                 <tr>
                                     <th>Alamat Sekolah</th>
-                                    <td><span class="badge text-dark"  style="background-color: #ACCDFF;">Bandar Lampung</span></td>
+                                    <td><span class="badge fw-semibold"  style="background-color: #ACCDFF; color: #444050">Bandar Lampung</span></td>
                                 </tr>
                                 <tr>
                                     <th>Telepon Sekolah</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">masih kosong</span></td>
+                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">masih kosong</span></td>
                                 </tr>
                                 <tr>
                                     <th>Nomor Ijazah Sekolah</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">masih kosong</span></td>
+                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">masih kosong</span></td>
                                 </tr>
                                 <tr>
                                     <th>File Ijazah SMA</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">masih kosong</span></td>
+                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">masih kosong</span></td>
                                 </tr>
 
                             </tbody>
@@ -260,19 +274,19 @@
                             <tbody>
                                 <tr>
                                     <th>Perguruan Tinggi Asal</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">-</span></td>
+                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">-</span></td>
                                 </tr>
                                 <tr>
                                     <th>Program Studi Asal</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">-</span></td>
+                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">-</span></td>
                                 </tr>
                                 <tr>
                                     <th>NIM Asal</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">-</span></td>
+                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">-</span></td>
                                 </tr>
                                 <tr>
                                     <th>IPK Asal</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">-</span></td>
+                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">-</span></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -284,15 +298,15 @@
                             <tbody>
                                 <tr>
                                     <th>SKS Asal (Diakui)</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">-</span></td>
+                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">-</span></td>
                                 </tr>
                                 <tr>
                                     <th>Surat Rekomen. Pindah</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">-</span></td>
+                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">-</span></td>
                                 </tr>
                                 <tr>
                                     <th>Transkrip Asal</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">-</span></td>
+                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">-</span></td>
                                 </tr>
                             </tbody>
                         </table>
