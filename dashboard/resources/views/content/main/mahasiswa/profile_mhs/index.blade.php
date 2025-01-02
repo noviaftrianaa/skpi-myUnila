@@ -23,12 +23,9 @@
                 <div class="flex-grow-1 mt-3 mt-lg-0 ps-lg-4">
                     <h4 class="mb-2">{{ $profile->nm_pd }} | <span class=" text-sm badge bg-primary">{{ $profile->nipd }}</span></h4>
                     <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-2">
-                        <span class="badge text-dark" style="background-color: #ACCDFF;">S1 - Ilmu Komputer</span>
+                        <span class="badge text-dark" style="background-color: #ACCDFF;">{{ $profile->nm_jenj_didik }} - {{ $profile->nm_lemb }}</span>
                         <span class="badge text-dark" style="background-color: #ACCDFF;">Masuk 2024 Ganjil</span>
-                        <span class="badge text-dark" style="background-color: #ACCDFF;">Sistem Kuliah Reguler</span>
-                        <span class="badge text-dark" style="background-color: #ACCDFF;">Peserta Didik Baru</span>
-                        <span class="badge text-dark" style="background-color: #ACCDFF;">Jalur SNMPTN</span>
-                        <span class="badge text-dark" style="background-color: #ACCDFF;">Gelombang 1</span>
+                        <span class="badge text-dark" style="background-color: #ACCDFF;">Jalur {{ $profile->nm_jalur_daftar }}</span>
                         <span class="badge text-dark" style="background-color: #ACCDFF;">Tidak Beasiswa</span>
                     </div>
                 </div>
@@ -96,27 +93,11 @@
                                 </tr>
                                 <tr>
                                     <th>Agama</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">-</span></td>
-                                </tr>
-                                <tr>
-                                    <th>Suku</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">-</span></td>
-                                </tr>
-                                <tr>
-                                    <th>Golongan Darah</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">-</span></td>
-                                </tr>
-                                <tr>
-                                    <th>Berat Badan (kg)</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">68</span></td>
-                                </tr>
-                                <tr>
-                                    <th>Tinggi Badan (cm)</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">172</span></td>
+                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">{{ $agama }}</span></td>
                                 </tr>
                                 <tr>
                                     <th>No. Telp./No. HP</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">081271545451</span></td>
+                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">{{ $profile->tlpn_hp }}</span></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -135,22 +116,10 @@
                                     <td><span class="badge text-dark" style="background-color: #ACCDFF;">office.m.abdul@gmail.com</span></td>
                                 </tr>
                                 <tr>
-                                    <th>Status Nikah</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">Lajang</span></td>
-                                </tr>
-                                <tr>
                                     <th>NIK</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">0000000000000000</span></td>
+                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">{{ $profile->nik }}</span></td>
                                 </tr>
-                                <tr>
-                                    <th>No. KK</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">0000000000000000</span></td>
-                                </tr>
-                                <tr>
-                                    <th>No. KPS</th>
-                                    <td><span class="badge text-dark" style="background-color: #ACCDFF;">-</span></td>
-                                </tr>
-                                <tr>
+                                {{-- <tr>
                                     <th>Pekerjaan</th>
                                     <td><span class="badge text-dark" style="background-color: #ACCDFF;">-</span></td>
                                 </tr>
@@ -161,7 +130,7 @@
                                 <tr>
                                     <th>Instansi Pekerjaan</th>
                                     <td><span class="badge text-dark" style="background-color: #ACCDFF;">-</span></td>
-                                </tr>
+                                </tr> --}}
                             </tbody>
                         </table>
                     </div>
@@ -180,12 +149,11 @@
                     <tbody>
                         <tr>
                             <th>Alamat</th>
-                            <td><span class="badge text-dark" style="background-color: #ACCDFF;">PT GPM, Perum 2, Blok F-98, RT. 05, RW. 10, Kel.
-                                    Mataram Udik</span></td>
+                            <td><span class="badge text-dark" style="background-color: #ACCDFF;">{{ $profile->jln }}</span></td>
                         </tr>
                         <tr>
                             <th>RT/RW</th>
-                            <td><span class="badge text-dark" style="background-color: #ACCDFF;">Lampung Tengah</span></td>
+                            <td><span class="badge text-dark" style="background-color: #ACCDFF;">{{ $profile->rt }} / {{ $profile->rw ?? '-' }}</span></td>
                         </tr>
                         <tr>
                             <th>Dusun</th>
