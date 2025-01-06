@@ -1,6 +1,8 @@
 @extends('layouts/layoutMaster')
 
-@section('title', 'Halaman Utama ' . $judul)
+@section('title', $judul)
+
+@include('content.main.mahasiswa.profile_mhs.function')
 
 @section('content')
 <div class="row">
@@ -28,12 +30,12 @@
                             class=" border border-3 border-white shadow-sm"
                             style="width: 150px; height: 150px; object-fit: cover; margin-top: -75px;">
                     </div>
-                    
+
                     <!-- Status Aktif & IPK -->
                     <div class="ms-lg-4 mt-4 mt-lg-0">
                         <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center gap-3">
                             <span class="badge px-3 py-2" style="background-color: #ACCDFF82; color:#444050">
-                                <i class="fas fa-check-circle me-1" style="color:#0F71FD"></i> Status Aktif
+                                <i class="fas fa-check-circle me-1" style="color:#0F71FD"></i> Status {{ $profile->nm_stat_mhs }}
                             </span>
                             <span class="badge px-3 py-2" style="background-color: #ACCDFF82;  color:#444050">
                                 <span style=" color:#1172FD">IPK </span> 3.54
@@ -73,6 +75,16 @@
                 <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab"
                         data-bs-target="#perguruan-tinggi" aria-controls="navs-tendik" aria-selected="true"><i
                             class="fa-solid fa-graduation-cap ti-xs me-1"></i>Perguruan Tinggi</button></li>
+                <li class="nav-item">
+                    <button class=" nav-link" data-bs-target="#modalSemester" data-bs-toggle="modal" >
+                        <i class="fa-solid fa-calendar-days ti-xs me-1"></i>    Rincian Semester
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class=" nav-link" data-bs-target="#modalTranskip" data-bs-toggle="modal">
+                        <i class="fa-solid fa-file-certificate ti-xs me-1"></i>    Rincian Transkip
+                    </button>
+                </li>
             </ul>
         </div>
     </div>
@@ -107,7 +119,7 @@
                                 </tr>
                                 <tr>
                                     <th>Agama</th>
-                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">{{ $agama }}</span></td>
+                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">{{ $profile->nm_agama }}</span></td>
                                 </tr>
                                 <tr>
                                     <th>No. Telp./No. HP</th>
@@ -122,12 +134,12 @@
                             <tbody>
                                 <tr>
                                     <th>Email Kampus</th>
-                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">{{ $profile->email }}</span>
+                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">{{ $profile->email_kampus }}</span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <th>Email Pribadi</th>
-                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">office.m.abdul@gmail.com</span></td>
+                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">{{ $profile->email_pribadi ?? '-' }}</span></td>
                                 </tr>
                                 <tr>
                                     <th>NIK</th>
@@ -171,11 +183,11 @@
                         </tr>
                         <tr>
                             <th>Dusun</th>
-                            <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">Dusun 12</span></td>
+                            <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">{{ $profile->nm_dsn ?? '-' }}</span></td>
                         </tr>
                         <tr>
                             <th>Desa/Kelurahan</th>
-                            <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">-</span></td>
+                            <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">{{ $profile->ds_kel }}</span></td>
                         </tr>
                         <tr>
                             <th>Kota</th>
@@ -191,11 +203,11 @@
                         </tr>
                         <tr>
                             <th>Kewarganegaraan</th>
-                            <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">172</span></td>
+                            <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">{{ $profile->nm_negara }}</span></td>
                         </tr>
                         <tr>
                             <th>Kode Pos</th>
-                            <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">34164</span></td>
+                            <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">{{ $profile->kode_pos }}</span></td>
                         </tr>
                     </tbody>
                 </table>
@@ -228,7 +240,7 @@
                                 </tr>
                                 <tr>
                                     <th>NISN</th>
-                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">12301995</span></td>
+                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">{{ $profile->nisn }}</span></td>
                                 </tr>
 
                             </tbody>
@@ -316,6 +328,10 @@
         </div>
     </div>
 </div>
+
+@include('content.main.mahasiswa.profile_mhs.modal-semester')
+@include('content.main.mahasiswa.profile_mhs.modal-transkip')
+@include('content.main.mahasiswa.profile_mhs.modal-khs')
 <!-- /Project table -->
 </div>
 @endsection
