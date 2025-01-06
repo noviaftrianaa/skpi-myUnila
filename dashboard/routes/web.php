@@ -126,6 +126,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profil', [MainProfilController::class, 'index'])->name('main-profil');
 
     Route::get('/profile_mhs', [ProfileMahasiswaController::class, 'index'])->name('profile-mhs');
+    Route::get('/smst_mhs', [ProfileMahasiswaController::class, 'SemesterMahasiswa'])->name('profile.smst-mhs');
+    Route::get('/khs_mhs', [ProfileMahasiswaController::class, 'KHSMahasiswa'])->name('profile.khs-mhs');
 
     //Profil PT
     Route::get('direktori_pt', [MainProfilPTController::class, 'index'])->name('main-profil-pt');
