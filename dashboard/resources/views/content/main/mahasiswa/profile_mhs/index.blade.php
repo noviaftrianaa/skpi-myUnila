@@ -4,6 +4,21 @@
 
 @include('content.main.mahasiswa.profile_mhs.function')
 
+@section('page-style')
+    <style>
+            .accordion-button.collapsed::after {
+            color: white; /* Ikon panah ketika accordion tertutup */
+        }
+        .accordion-button::after {
+            color: white; /* Ikon panah ketika accordion terbuka */
+        }
+        .accordion-item {
+            border-radius: 8px; /* Membulatkan sudut seluruh item accordion */
+            overflow: hidden; /* Agar bagian konten tetap rapi dan tidak keluar dari border */
+        }
+    </style>
+@endsection
+
 @section('content')
 <div class="row">
     <div class="col-12">
@@ -69,13 +84,13 @@
                 <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#domisili"
                         aria-controls="navs-mahasiswa" aria-selected="true">
                         <i class="fa-solid fa-location-dot me-1"></i>Domisili</button></li>
-                <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab"
+                {{-- <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab"
                         data-bs-target="#sekolah" aria-controls="sekolah" aria-selected="true">
-                            <i class="fa-solid fa-school ti-xs me-1"></i> Sekolah</button></li>
+                            <i class="fa-solid fa-school ti-xs me-1"></i> Sekolah</button></li> --}}
                 <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab"
                         data-bs-target="#perguruan-tinggi" aria-controls="navs-tendik" aria-selected="true"><i
                             class="fa-solid fa-graduation-cap ti-xs me-1"></i>Perguruan Tinggi</button></li>
-                <li class="nav-item">
+                {{-- <li class="nav-item">
                     <button class=" nav-link" data-bs-target="#modalSemester" data-bs-toggle="modal" >
                         <i class="fa-solid fa-calendar-days ti-xs me-1"></i>    Rincian Semester
                     </button>
@@ -84,7 +99,7 @@
                     <button class=" nav-link" data-bs-target="#modalTranskip" data-bs-toggle="modal">
                         <i class="fa-solid fa-file-certificate ti-xs me-1"></i>    Rincian Transkip
                     </button>
-                </li>
+                </li> --}}
             </ul>
         </div>
     </div>
@@ -279,54 +294,61 @@
                 <h5>Perguruan Tinggi</h5>
             </div>
             <div class="row">
-                <div class="row">
-                    <!-- Kolom Kiri -->
-                    <div class="col-md-6">
-                        <table class="table table-borderless">
-                            <tbody>
-                                <tr>
-                                    <th>Perguruan Tinggi Asal</th>
-                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">-</span></td>
-                                </tr>
-                                <tr>
-                                    <th>Program Studi Asal</th>
-                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">-</span></td>
-                                </tr>
-                                <tr>
-                                    <th>NIM Asal</th>
-                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">-</span></td>
-                                </tr>
-                                <tr>
-                                    <th>IPK Asal</th>
-                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">-</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                @foreach ($reg_pd as $i => $item)
+                    <div id="accordionCustomIcon" class="accordion mt-4 accordion-custom-button">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header text-body d-flex justify-content-between bg-primary text-white" id="accordionCustomIconOne">
+                                <button type="button" class="accordion-button {{ $i === 0 ? '' : 'collapsed' }} bg-primary text-white" data-bs-toggle="collapse" aria-expanded="{{ $i === 0 ? 'true' : 'false' }}" data-bs-target="#accordion_{{ $i }}" aria-controls="accordion_{{ $i }}">
+                                    {{ $item->nm_jenj_didik }} {{ $item->nm_lemb }}
+                                </button>
+                            </h2>
 
-                    <!-- Kolom Kiri -->
-                    <div class="col-md-6">
-                        <table class="table table-borderless">
-                            <tbody>
-                                <tr>
-                                    <th>SKS Asal (Diakui)</th>
-                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">-</span></td>
-                                </tr>
-                                <tr>
-                                    <th>Surat Rekomen. Pindah</th>
-                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">-</span></td>
-                                </tr>
-                                <tr>
-                                    <th>Transkrip Asal</th>
-                                    <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">-</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                            <div id="accordion_{{ $i }}" class="accordion-collapse collapse {{ $i === 0 ? 'show' : '' }} mt-3" data-bs-parent="#accordionCustomIcon">
+                                <div class="accordion-body">
+                                    <div class="row">
+                                        <!-- Kolom Kiri -->
+                                        <div class="col-md-6">
+                                            <table class="table table-borderless">
+                                                <tbody>
+                                                    <tr>
+                                                        <th>Tanggal Masuk </th>
+                                                        <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">{{ tglIndonesia($item->tgl_masuk_sp) }}</span></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Jalur Daftar</th>
+                                                        <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">{{ $item->nm_jalur_daftar }}</span></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Jenis Daftar</th>
+                                                        <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">{{ $item->nm_jns_daftar }}</span></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <!-- Kolom Kanan -->
+                                        <div class="col-md-6">
+                                            <table class="table table-borderless">
+                                                <tbody>
+                                                    <tr>
+                                                        <th>Tanggal Keluar</th>
+                                                        <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">{{ $item->tgl_keluar ? tglIndonesia($item->tgl_keluar) : '-' }}</span></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Jenis Keluar</th>
+                                                        <td><span class="badge fw-semibold" style="background-color: #ACCDFF; color: #444050">{{ $item->ket_keluar ?? '-' }}</span></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                @endforeach
             </div>
         </div>
-    </div>
 </div>
 
 @include('content.main.mahasiswa.profile_mhs.modal-semester')

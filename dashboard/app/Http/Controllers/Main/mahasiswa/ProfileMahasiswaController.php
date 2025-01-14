@@ -59,8 +59,45 @@ class ProfileMahasiswaController extends Controller
                 peserta.soft_delete = 0 AND peserta.id_pd = ?
         ";
 
-        $profile = \DB::selectOne($q, [$this->id_pd_auth]);
+        $q_reg_pd = "
 
+            SELECT
+                pd.id_pd,
+                trpd.id_reg_pd,
+                pd.nm_pd,
+                trpd.nipd,
+                tsms.nm_lemb,
+                rj.nm_jenj_didik,
+                rjp.nm_jns_daftar,
+                rjk.ket_keluar,
+                trpd.tgl_masuk_sp,
+                trpd.tgl_keluar,
+                rjd.nm_jalur_daftar,
+                trpd.*
+
+            FROM
+            pdrd.peserta_didik AS pd
+            JOIN pdrd.reg_pd AS trpd ON trpd.id_pd= pd.id_pd
+            AND trpd.soft_delete= 0
+
+            JOIN pdrd.sms AS psms ON psms.id_sms = trpd.id_sms
+            AND psms.soft_delete = 0
+
+            JOIN ref.jenjang_pendidikan AS rj ON psms.id_jenj_didik = rj.id_jenj_didik
+            JOIN pdrd.sms AS tsms ON tsms.id_sms= trpd.id_sms
+            AND tsms.soft_delete= 0
+            JOIN ref.jenis_pendaftaran as rjp ON rjp.id_jns_daftar = trpd.id_jns_daftar
+            JOIN ref.jalur_daftar as rjd ON rjd.id_jalur_daftar = trpd.id_jalur_daftar
+            LEFT JOIN ref.jenis_keluar as rjk ON rjk.id_jns_keluar = trpd.id_jns_keluar
+            WHERE
+                pd.soft_delete= 0 AND
+                pd.id_pd= ?
+            ORDER BY
+                trpd.tgl_masuk_sp DESC
+        ";
+
+        $profile = \DB::selectOne($q, [$this->id_pd_auth]);
+        $reg_pd = \DB::select($q_reg_pd, [$this->id_pd_auth]);
         $judul = "Halaman Profile ".$profile->nm_pd;
 
 
@@ -69,6 +106,7 @@ class ProfileMahasiswaController extends Controller
         return view($this->path_view.'profile_mhs.index', compact(
             'judul',
             'profile',
+            'reg_pd',
         ));
     }
 
@@ -94,7 +132,7 @@ class ProfileMahasiswaController extends Controller
                 FROM
                 pdrd.peserta_didik AS pd
                 JOIN pdrd.reg_pd AS trpd ON trpd.id_pd= pd.id_pd
-                AND trpd.soft_delete= 0 
+                AND trpd.soft_delete= 0
                 JOIN pdrd.kuliah_mhs AS kmhs ON kmhs.id_reg_pd= trpd.id_reg_pd
                 AND kmhs.soft_delete= 0
                 JOIN ref.semester AS smt ON smt.id_smt= kmhs.id_smt
