@@ -342,6 +342,10 @@
                                             </table>
                                         </div>
                                     </div>
+                                    <div class="d-flex justify-content-end mt-3">
+                                        <button class="btn btn-primary me-2"><i class="fa-solid fa-calendar-days me-2"></i> Rincian Semester</button>
+                                        <button class="btn btn-primary"><i class="fa-solid fa-file me-2"></i>Rincian Transkrip</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
