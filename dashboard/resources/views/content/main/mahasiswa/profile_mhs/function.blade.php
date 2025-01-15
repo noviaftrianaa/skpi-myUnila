@@ -19,70 +19,75 @@
         $(document).ready(() => {
             let semesterTable;
             let khsTable;
+            let transkripTable;
+            // Tangkap klik tombol rincian semester
+            $(document).on('click', '.btn-rincian-semester', function() {
+                const idRegPd = $(this).data('id_reg_pd'); // Ambil data-id_reg_pd dari tombol
 
-            $('#modalSemester').on('shown.bs.modal', function () {
-                if (!$.fn.DataTable.isDataTable('#tSemester')) {
-                    semesterTable = $('#tSemester').DataTable({
-                        processing: true,
-                        serverSide: true,
-                        ajax: "{{ route('profile.smst-mhs') }}", // Sesuaikan dengan route backend
-                        columns: [
-                            { data: 'nm_smt', name: 'nm_smt', title: 'Semester' },
-                            { data: 'nm_lemb', name: 'nm_lemb', title: 'Nama Prodi' },
-                            { data: 'nm_stat_mhs', name: 'nm_stat_mhs', title: 'Status Semester' },
-                            { data: 'ips', name: 'ips', title: 'IPS' },
-                            { data: 'ipk', name: 'ipk', title: 'IPK' },
-                            { data: 'sks_semester', name: 'sks_semester', title: 'SKS Semester' },
-                            { data: 'nm_pembiayaan', name: 'nm_pembiayaan', title: 'Pembiayaan' },
-                            { data: 'total_sks', name: 'total_sks', title: 'Total SKS' },
-                            {
-                                data: 'biaya_smt',
-                                name: 'biaya_smt',
-                                title: 'Biaya Semester',
-                                render: function(data) {
-                                    return new Intl.NumberFormat('id-ID', {
-                                        style: 'currency',
-                                        currency: 'IDR'
-                                    }).format(data);
+                // Saat modal dibuka, kirimkan data ke server
+                $('#modalSemester').on('shown.bs.modal', function ()  {
+                    if (!$.fn.DataTable.isDataTable('#tSemester')) {
+                        semesterTable = $('#tSemester').DataTable({
+                            processing: true,
+                            serverSide: true,
+                            ajax: {
+                                url: "{{ route('profile.smst-mhs') }}", // URL backend
+                                type: 'GET',
+                                data: (d) => {
+                                    d.id_reg_pd = idRegPd; // Kirim data-id_reg_pd ke server
                                 }
                             },
-                            { data: 'action', name: 'Detail', orderable: false, searchable: false, title: 'Action' }
-
-                        ],
-                        "language": {
-                            "decimal": "",
-                            "emptyTable": "Tidak ada data pada tabel",
-                            "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ total data",
-                            "infoEmpty": "Tidak ada yang ditampilkan",
-                            "infoFiltered": "(Terfilter dari  _MAX_ total entitas)",
-                            "infoPostFix": "",
-                            "thousands": ",",
-                            "lengthMenu": "Menampilkan _MENU_ entitas",
-                            "loadingRecords": "Loading...",
-                            "processing": "Sedang dalam proses...",
-                            "search": "Pencarian:",
-                            "zeroRecords": "Tidak ada data yang cocok",
-                            "paginate": {
-                                "first": "Pertama",
-                                "last": "Terakhir",
-                                "next": "Selanjutnya",
-                                "previous": "Sebelumnya"
-                            },
-                            "aria": {
-                                "sortAscending": ": activate to sort column ascending",
-                                "sortDescending": ": activate to sort column descending"
+                            columns: [
+                                { data: 'nm_smt', name: 'nm_smt', title: 'Semester' },
+                                { data: 'nm_lemb', name: 'nm_lemb', title: 'Nama Prodi' },
+                                { data: 'nm_stat_mhs', name: 'nm_stat_mhs', title: 'Status Semester' },
+                                { data: 'ips', name: 'ips', title: 'IPS' },
+                                { data: 'ipk', name: 'ipk', title: 'IPK' },
+                                { data: 'sks_semester', name: 'sks_semester', title: 'SKS Semester' },
+                                { data: 'nm_pembiayaan', name: 'nm_pembiayaan', title: 'Pembiayaan' },
+                                { data: 'total_sks', name: 'total_sks', title: 'Total SKS' },
+                                {
+                                    data: 'biaya_smt',
+                                    name: 'biaya_smt',
+                                    title: 'Biaya Semester',
+                                    render: function(data) {
+                                        return new Intl.NumberFormat('id-ID', {
+                                            style: 'currency',
+                                            currency: 'IDR'
+                                        }).format(data);
+                                    }
+                                },
+                                { data: 'action', name: 'Detail', orderable: false, searchable: false, title: 'Action' }
+                            ],
+                            language: {
+                                decimal: "",
+                                emptyTable: "Tidak ada data pada tabel",
+                                info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ total data",
+                                infoEmpty: "Tidak ada yang ditampilkan",
+                                infoFiltered: "(Terfilter dari  _MAX_ total entitas)",
+                                lengthMenu: "Menampilkan _MENU_ entitas",
+                                loadingRecords: "Loading...",
+                                processing: "Sedang dalam proses...",
+                                search: "Pencarian:",
+                                zeroRecords: "Tidak ada data yang cocok",
+                                paginate: {
+                                    first: "Pertama",
+                                    last: "Terakhir",
+                                    next: "Selanjutnya",
+                                    previous: "Sebelumnya"
+                                }
                             }
-                        }
-                    });
-                } else {
-                    semesterTable.ajax.reload(); // Reload data jika DataTable sudah ada
-                }
+                        });
+                    } else {
+                        // Reload data jika DataTable sudah ada, kirimkan id_reg_pd baru
+                        semesterTable.ajax.url("{{ route('profile.smst-mhs') }}?id_reg_pd=" + idRegPd).load();
+                    }
+                });
             });
 
                // Event untuk tombol "Lihat KHS"
-            $('#tSemester').on('click', '.btn-khs', function () {
+            $('#tSemester').on('click', '.btn-khs',  function ()  {
                 const idSmt = $(this).data('id-smt'); // Ambil ID semester dari atribut tombol
-
                 // Buka modal KHS
                 $('#modalKHS').modal('show');
 
@@ -142,6 +147,57 @@
                     khsTable.clear().destroy(); // Hancurkan tabel saat modal ditutup
                     $('#tKHS').empty(); // Kosongkan tabel
                 }
+            });
+
+            $(document).on('click', '.btn-transkrip', function() {
+                const idRegPd = $(this).data('id_reg_pd'); // Ambil data-id_reg_pd dari tombol
+
+                // Ketika modal dibuka, jalankan fungsi inisialisasi atau reload DataTable
+                $('#modalTranskip').on('shown.bs.modal', function() {
+                    if ($.fn.DataTable.isDataTable('#tTranskrip')) {
+                        // Hapus DataTable sebelumnya jika ada
+                        $('#tTranskrip').DataTable().destroy();
+                    }
+
+                    // Inisialisasi DataTable baru
+                    $('#tTranskrip').DataTable({
+                        processing: true,
+                        serverSide: true,
+                        ajax: {
+                            url: "{{ route('profile.transkrip_mhs') }}", // URL backend
+                            type: 'GET',
+                            data: { id_reg_pd: idRegPd } // Kirim data-id_reg_pd ke server
+                        },
+                        columns: [
+                            { data: 'nm_smt', name: 'nm_smt', title: 'Semester' },
+                            { data: 'nm_prodi', name: 'nm_prodi', title: 'Nama Prodi' },
+                            { data: 'kode_mk', name: 'kode_mk', title: 'Kode MK' },
+                            { data: 'nm_mk', name: 'nm_mk', title: 'Nama MK' },
+                            { data: 'sks_mk', name: 'sks_mk', title: 'SKS MK' },
+                            { data: 'nm_kls', name: 'nm_kls', title: 'Kelas MK' },
+                            { data: 'nilai_angka', name: 'nilai_angka', title: 'Nilai Angka' },
+                            { data: 'nilai_huruf', name: 'nilai_huruf', title: 'Nilai Huruf' },
+                            { data: 'nilai_indeks', name: 'nilai_indeks', title: 'Nilai Index' }
+                        ],
+                        language: {
+                            emptyTable: "Tidak ada data pada tabel",
+                            info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ total data",
+                            infoEmpty: "Tidak ada yang ditampilkan",
+                            infoFiltered: "(Terfilter dari  _MAX_ total entitas)",
+                            lengthMenu: "Menampilkan _MENU_ entitas",
+                            loadingRecords: "Loading...",
+                            processing: "Sedang dalam proses...",
+                            search: "Pencarian:",
+                            zeroRecords: "Tidak ada data yang cocok",
+                            paginate: {
+                                first: "Pertama",
+                                last: "Terakhir",
+                                next: "Selanjutnya",
+                                previous: "Sebelumnya"
+                            }
+                        }
+                    });
+                });
             });
         });
     </script>

@@ -114,7 +114,7 @@
                 <h5>Informasi Umum</h5>
             </div>
             <div class="row">
-                <div class="row">
+                <div class="row table-responsive">
                     <!-- Kolom Kiri -->
                     <div class="col-md-6">
                         <table class="table table-borderless">
@@ -185,7 +185,7 @@
                 <h5>Domisili</h5>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-6 table-responsive">
                 <table class="table table-borderless">
                     <tbody>
                         <tr>
@@ -236,7 +236,7 @@
                 <h5>Sekolah</h5>
             </div>
             <div class="row">
-                <div class="row">
+                <div class="row table-responsive">
                     <!-- Kolom Kiri -->
                     <div class="col-md-6">
                         <table class="table table-borderless">
@@ -343,8 +343,10 @@
                                         </div>
                                     </div>
                                     <div class="d-flex justify-content-end mt-3">
-                                        <button class="btn btn-primary me-2"><i class="fa-solid fa-calendar-days me-2"></i> Rincian Semester</button>
-                                        <button class="btn btn-primary"><i class="fa-solid fa-file me-2"></i>Rincian Transkrip</button>
+                                        <button class="btn btn-primary me-2 btn-rincian-semester" data-bs-toggle="modal" data-bs-target="#modalSemester" data-id_reg_pd="{{ $item->id_reg_pd }}">
+                                            <i class="fa-solid fa-calendar-days me-2"></i> Rincian Semester
+                                        </button>
+                                        <button class="btn btn-primary btn-transkrip" data-bs-toggle="modal" data-bs-target="#modalTranskip" data-id_reg_pd="{{ $item->id_reg_pd }}" ><i class="fa-solid fa-file me-2"></i>Rincian Transkrip</button>
                                     </div>
                                 </div>
                             </div>

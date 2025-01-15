@@ -111,7 +111,7 @@ class ProfileMahasiswaController extends Controller
     }
 
 
-    public function SemesterMahasiswa(){
+    public function SemesterMahasiswa(Request $request){
         $this->id_pd_auth = \Auth::user()->id_pd_pengguna;
 
             $q = "
@@ -132,7 +132,7 @@ class ProfileMahasiswaController extends Controller
                 FROM
                 pdrd.peserta_didik AS pd
                 JOIN pdrd.reg_pd AS trpd ON trpd.id_pd= pd.id_pd
-                AND trpd.soft_delete= 0
+                AND trpd.soft_delete= 0 AND trpd.id_reg_pd = ?
                 JOIN pdrd.kuliah_mhs AS kmhs ON kmhs.id_reg_pd= trpd.id_reg_pd
                 AND kmhs.soft_delete= 0
                 JOIN ref.semester AS smt ON smt.id_smt= kmhs.id_smt
@@ -146,7 +146,7 @@ class ProfileMahasiswaController extends Controller
 
             ";
 
-        $semester = \DB::select($q, [$this->id_pd_auth]);
+        $semester = \DB::select($q, [$request->get('id_reg_pd'),$this->id_pd_auth]);
 
         return \DataTables::of($semester)
         ->addColumn('action', function ($row) {
@@ -191,6 +191,41 @@ class ProfileMahasiswaController extends Controller
         $khs = \DB::select($q, [$id_smt,$this->id_pd_auth ]);
         // dd($khs);
         return \DataTables::of($khs)
+        ->make(true);
+    }
+
+    public function transkrip(Request $request){
+        $this->id_pd_auth = \Auth::user()->id_pd_pengguna;
+
+
+        $q= "
+            SELECT
+                smt.nm_smt,
+                CONCAT(tsms.nm_lemb,' (',tj.nm_jenj_didik,')') AS nm_prodi,
+                mk.kode_mk,
+                mk.nm_mk,
+                mk.jns_mk,
+                mk.kel_mk,
+                kk.sks_mk,
+                kk.nm_kls,
+                nilai.nilai_angka,
+                nilai.nilai_huruf,
+                nilai.nilai_indeks
+            FROM pdrd.peserta_didik AS pd
+            JOIN pdrd.reg_pd AS trpd ON trpd.id_pd=pd.id_pd AND trpd.soft_delete=0 AND trpd.id_reg_pd = ?
+            JOIN pdrd.nilai_smt_mhs AS nilai ON nilai.id_reg_pd=trpd.id_reg_pd AND nilai.soft_delete=0
+            JOIN pdrd.kelas_kuliah AS kk ON kk.id_kls=nilai.id_kls AND kk.soft_delete=0
+            JOIN pdrd.sms AS tsms ON tsms.id_sms=kk.id_sms AND tsms.soft_delete=0
+            JOIN pdrd.matkul AS mk ON mk.id_mk=kk.id_mk AND mk.soft_delete=0
+            JOIN ref.semester AS smt ON smt.id_smt=kk.id_smt
+            JOIN ref.jenjang_pendidikan AS tj ON tj.id_jenj_didik=tsms.id_jenj_didik
+            WHERE pd.soft_delete=0
+            AND pd.id_pd= ?;
+        ";
+
+        $transkrip = \DB::select($q, [$request->get('id_reg_pd'),$this->id_pd_auth ]);
+        // dd($transkrip);
+        return \DataTables::of($transkrip)
         ->make(true);
     }
 
