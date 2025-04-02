@@ -73,7 +73,7 @@
             url: "{{ route('pages-infografis-dosen') }}",
             type: "GET",
             data: {
-                tahun: $('#selectTahunDosen').val()
+                tahun: $('#selectTahun').val()
             },
             success: function(res) {
                 console.log(res);
@@ -116,7 +116,7 @@
             url: "{{ route('pages-infografis-mahasiswa') }}",
             type: "GET",
             data: {
-                tahun: $('#selectTahunMahasiswa').val()
+                tahun: $('#selectTahun').val()
             },
             success: function(res) {
                 var total_mhs_fakultas = res['total_mhs_fakultas'];
@@ -149,7 +149,7 @@
             url: "{{ route('pages-infografis-pubHaki') }}",
             type: "GET",
             data: {
-                tahun: $('#selectTahunPubHaki').val()
+                tahun: $('#selectTahun').val()
             },
             success: function(res) {
                 var total_publikasi = res['publikasi'];
@@ -182,7 +182,7 @@
             url: "{{ route('pages-infografis-litabmas') }}",
             type: "GET",
             data: {
-                tahun: $('#selectTahunLitabmas').val()
+                tahun: $('#selectTahun').val()
             },
             success: function(res) {
                 var total_penelitian = res['penelitian'];
@@ -216,18 +216,21 @@
         pubHaki();
         litabmas();
 
-        $('#selectTahunDosen').change(function() {
+        $('#selectTahun').change(function() {
             dosen();
-        });
-        $('#selectTahunMahasiswa').change(function() {
             mahasiswa();
-        });
-        $('#selectTahunPubHaki').change(function() {
             pubHaki();
-        });
-        $('#selectTahunLitabmas').change(function() {
             litabmas();
         });
+        // $('#selectTahunMahasiswa').change(function() {
+        //     mahasiswa();
+        // });
+        // $('#selectTahunPubHaki').change(function() {
+        //     pubHaki();
+        // });
+        // $('#selectTahunLitabmas').change(function() {
+        //     litabmas();
+        // });
     });
 </script>
 @endpush

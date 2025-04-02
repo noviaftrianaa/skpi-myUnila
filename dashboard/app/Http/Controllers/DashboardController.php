@@ -6,14 +6,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Collection;
 
 class DashboardController extends Controller
 {
     private $id_sp;
+    protected $ttl, $namespace;
 
     public function __construct()
     {
         $this->id_sp = env("APP_ID_SP", "E2B705A7-173E-464A-9FAC-509128709515");
+        $this->ttl = 600; //10 menit
+        $this->namespace = 'dashboard';
     }
 
     public function index()
@@ -31,40 +35,49 @@ class DashboardController extends Controller
 
     public function programstudi()
     {
-        $data = \DB::SELECT(
-            "
-            SELECT
-                sms.id_sms,
-                sms.kode_prodi,
-                sms.nm_lemb,
-                jenjang.nm_jenj_didik,
-                sms.soft_delete
-            FROM
-                pdrd.sms AS sms
-                JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik=sms.id_jenj_didik AND jenjang.expired_date IS NULL
-            WHERE
-                sms.kode_prodi IS NOT NULL
-                AND sms.soft_delete = 0
-                AND sms.id_sp='" .
-                        $this->id_sp .
-                        "'
-            ORDER BY
-                sms.nm_lemb,
-                jenjang.nm_jenj_didik ASC
-            "
-        );
+        $cacheKey = $this->namespace . '_programstudi';
+
+        if(Cache::has($cacheKey)) {
+            $getData = Cache::get($cacheKey);
+            $data = new Collection(json_decode($getData, true));
+        } else {
+            $data = new Collection(json_decode(Cache::remember($cacheKey, $this->ttl, function () {
+              return collect(DB::SELECT(
+                "
+                    SELECT
+                        sms.id_sms,
+                        sms.kode_prodi,
+                        sms.nm_lemb,
+                        jenjang.nm_jenj_didik,
+                        sms.soft_delete
+                    FROM
+                        pdrd.sms AS sms
+                        JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik=sms.id_jenj_didik AND jenjang.expired_date IS NULL
+                    WHERE
+                        sms.kode_prodi IS NOT NULL
+                        AND sms.soft_delete = 0
+                        AND sms.id_sp='" .
+                                $this->id_sp .
+                                "'
+                    ORDER BY
+                        sms.nm_lemb,
+                        jenjang.nm_jenj_didik ASC
+                    "
+              ))->toJson();
+            }), true));
+        }
 
         return \DataTables::of($data)
             ->addIndexColumn()
             ->editColumn("nm_lemb", function ($data) {
                 return '<a href="' .
-                    route("pages-prodi", \Crypt::encrypt($data->id_sms)) .
+                    route("pages-prodi", \Crypt::encrypt($data['id_sms'])) .
                     '" target=new>' .
-                    $data->nm_lemb .
+                    $data['nm_lemb'] .
                     "</a>";
             })
             ->editColumn("soft_delete", function ($data) {
-                return $data->soft_delete == 0
+                return $data['soft_delete'] == 0
                     ? '<span class="badge bg-label-primary">Aktif</span>'
                     : '<span class="badge bg-label-danger">Tidak Aktif</span>';
             })
@@ -79,66 +92,75 @@ class DashboardController extends Controller
                 ? " "
                 : " AND kmh.id_smt = '" . $request->periode . "' ";
 
-        $data = \DB::SELECT(
-            "
-      SELECT
-        sms.id_sms,
-        sms.nm_lemb,
-        jenjang.nm_jenj_didik,
-        (
-          SELECT
-            COUNT(DISTINCT pd.id_pd)
-          FROM
-            pdrd.reg_pd AS reg
-            JOIN pdrd.peserta_didik AS pd ON pd.id_pd=reg.id_pd AND pd.soft_delete = 0
-            JOIN pdrd.kuliah_mhs AS kmh ON kmh.id_reg_pd=reg.id_reg_pd AND kmh.soft_delete=0
-          WHERE
-            reg.soft_delete = 0
-            AND pd.id_kewarganegaraan = 'ID'
-            " .
-                $q .
-                "
-            AND reg.id_sms=sms.id_sms
-        ) AS nasional,
-        (
-          SELECT
-            COUNT(DISTINCT pd.id_pd)
-          FROM
-            pdrd.reg_pd AS reg
-            JOIN pdrd.peserta_didik AS pd ON pd.id_pd=reg.id_pd AND pd.soft_delete = 0
-            JOIN pdrd.kuliah_mhs AS kmh ON kmh.id_reg_pd=reg.id_reg_pd AND kmh.soft_delete=0
-          WHERE
-            reg.soft_delete = 0
-            AND pd.id_kewarganegaraan != 'ID'
-            " .
-                $q .
-                "
-            AND reg.id_sms=sms.id_sms
-        ) AS internasional
-      FROM
-        pdrd.sms AS sms
-        JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik=sms.id_jenj_didik AND jenjang.expired_date IS NULL
-      WHERE
-        sms.kode_prodi IS NOT NULL
-        AND sms.soft_delete = 0
-        AND sms.id_sp='" .
-                $this->id_sp .
-                "'
-      ORDER BY
-        sms.nm_lemb,
-        jenjang.nm_jenj_didik ASC
-    "
-        );
+        $cacheKey = $this->namespace . '_mahasiswa_' . $request->periode;
+
+        if(Cache::has($cacheKey)) {
+            $getData = Cache::get($cacheKey);
+            $data = new Collection(json_decode($getData, true));
+        } else {
+            $data = new Collection(json_decode(Cache::remember($cacheKey, $this->ttl, function () use ($q) {
+                return collect(DB::SELECT(
+                    "
+                        SELECT
+                            sms.id_sms,
+                            sms.nm_lemb,
+                            jenjang.nm_jenj_didik,
+                            (
+                            SELECT
+                                COUNT(DISTINCT pd.id_pd)
+                            FROM
+                                pdrd.reg_pd AS reg
+                                JOIN pdrd.peserta_didik AS pd ON pd.id_pd=reg.id_pd AND pd.soft_delete = 0
+                                JOIN pdrd.kuliah_mhs AS kmh ON kmh.id_reg_pd=reg.id_reg_pd AND kmh.soft_delete=0
+                            WHERE
+                                reg.soft_delete = 0
+                                AND pd.id_kewarganegaraan = 'ID'
+                                " .
+                                    $q .
+                                    "
+                                AND reg.id_sms=sms.id_sms
+                            ) AS nasional,
+                            (
+                            SELECT
+                                COUNT(DISTINCT pd.id_pd)
+                            FROM
+                                pdrd.reg_pd AS reg
+                                JOIN pdrd.peserta_didik AS pd ON pd.id_pd=reg.id_pd AND pd.soft_delete = 0
+                                JOIN pdrd.kuliah_mhs AS kmh ON kmh.id_reg_pd=reg.id_reg_pd AND kmh.soft_delete=0
+                            WHERE
+                                reg.soft_delete = 0
+                                AND pd.id_kewarganegaraan != 'ID'
+                                " .
+                                    $q .
+                                    "
+                                AND reg.id_sms=sms.id_sms
+                            ) AS internasional
+                        FROM
+                            pdrd.sms AS sms
+                            JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik=sms.id_jenj_didik AND jenjang.expired_date IS NULL
+                        WHERE
+                            sms.kode_prodi IS NOT NULL
+                            AND sms.soft_delete = 0
+                            AND sms.id_sp='" .
+                                    $this->id_sp .
+                                    "'
+                        ORDER BY
+                            sms.nm_lemb,
+                            jenjang.nm_jenj_didik ASC
+                    "
+                ))->toJson();
+            }), true));
+        }
 
         return \DataTables::of($data)
             ->addIndexColumn()
             ->editColumn("nm_lemb", function ($data) {
                 return '<a href="javascript:void(0);" id="btnModalMahasiswa" data-id="' .
-                    $data->id_sms .
+                    $data['id_sms'] .
                     '" data-prodi="' .
-                    $data->nm_lemb. ' ('.$data->nm_jenj_didik.')' .
+                    $data['nm_lemb']. ' ('.$data['nm_jenj_didik'].')' .
                     '">' .
-                    $data->nm_lemb .
+                    $data['nm_lemb'] .
                     "</a>";
             })
             ->rawColumns(["nm_lemb"])
@@ -212,104 +234,113 @@ class DashboardController extends Controller
                 ? " "
                 : " AND aktif.id_thn_ajaran = '" . $request->periode . "' ";
 
-        $data = \DB::SELECT(
-            "
-      SELECT
-        sms.id_sms,
-        sms.nm_lemb,
-        jenjang.nm_jenj_didik,
-        (
-          SELECT
-            COUNT(sdm.id_sdm)
-          FROM
-            pdrd.reg_ptk AS ptk
-            JOIN pdrd.sdm AS sdm ON sdm.id_sdm=ptk.id_sdm AND sdm.soft_delete=0
-            JOIN pdrd.keaktifan_ptk AS aktif ON aktif.id_reg_ptk=ptk.id_reg_ptk AND aktif.soft_delete=0
-          WHERE
-            ptk.soft_delete = 0
-            AND LEFT(sdm.nidn, 2) < 88
-            AND sdm.jk = 'L'
-            AND sdm.id_jns_sdm = 12
-            " .
-                $q .
-                "
-            AND ptk.id_sms=sms.id_sms
-        ) AS pns_pria,
-        (
-          SELECT
-            COUNT(sdm.id_sdm)
-          FROM
-            pdrd.reg_ptk AS ptk
-            JOIN pdrd.sdm AS sdm ON sdm.id_sdm=ptk.id_sdm AND sdm.soft_delete=0
-            JOIN pdrd.keaktifan_ptk AS aktif ON aktif.id_reg_ptk=ptk.id_reg_ptk AND aktif.soft_delete=0
-          WHERE
-            ptk.soft_delete = 0
-            AND LEFT(sdm.nidn, 2) < 88
-            AND sdm.jk = 'P'
-            AND sdm.id_jns_sdm = 12
-            " .
-                $q .
-                "
-            AND ptk.id_sms=sms.id_sms
-        ) AS pns_wanita,
-        (
-          SELECT
-            COUNT(sdm.id_sdm)
-          FROM
-            pdrd.reg_ptk AS ptk
-            JOIN pdrd.sdm AS sdm ON sdm.id_sdm=ptk.id_sdm AND sdm.soft_delete=0
-            JOIN pdrd.keaktifan_ptk AS aktif ON aktif.id_reg_ptk=ptk.id_reg_ptk AND aktif.soft_delete=0
-          WHERE
-            ptk.soft_delete = 0
-            AND LEFT(sdm.nidn, 2) IN (88,89)
-            AND sdm.jk = 'L'
-            AND sdm.id_jns_sdm = 12
-            " .
-                $q .
-                "
-            AND ptk.id_sms=sms.id_sms
-        ) AS kontrak_pria,
-        (
-          SELECT
-            COUNT(sdm.id_sdm)
-          FROM
-            pdrd.reg_ptk AS ptk
-            JOIN pdrd.sdm AS sdm ON sdm.id_sdm=ptk.id_sdm AND sdm.soft_delete=0
-            JOIN pdrd.keaktifan_ptk AS aktif ON aktif.id_reg_ptk=ptk.id_reg_ptk AND aktif.soft_delete=0
-          WHERE
-            ptk.soft_delete = 0
-            AND LEFT(sdm.nidn, 2) IN (88,89)
-            AND sdm.jk = 'P'
-            AND sdm.id_jns_sdm = 12
-            " .
-                $q .
-                "
-            AND ptk.id_sms=sms.id_sms
-        ) AS kontrak_wanita
-      FROM
-        pdrd.sms AS sms
-        JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik=sms.id_jenj_didik AND jenjang.expired_date IS NULL
-      WHERE
-        sms.kode_prodi IS NOT NULL
-        AND sms.soft_delete = 0
-        AND sms.id_sp='" .
-                $this->id_sp .
-                "'
-      ORDER BY
-        sms.nm_lemb,
-        jenjang.nm_jenj_didik ASC
-    "
-        );
+        $cacheKey = $this->namespace . '_dosen_' . $request->periode;
+
+        if(Cache::has($cacheKey)) {
+            $getData = Cache::get($cacheKey);
+            $data = new Collection(json_decode($getData, true));
+        } else {
+            $data = new Collection(json_decode(Cache::remember($cacheKey, $this->ttl, function () use ($q) {
+                return collect(DB::SELECT(
+                    "
+                        SELECT
+                            sms.id_sms,
+                            sms.nm_lemb,
+                            jenjang.nm_jenj_didik,
+                            (
+                            SELECT
+                                COUNT(sdm.id_sdm)
+                            FROM
+                                pdrd.reg_ptk AS ptk
+                                JOIN pdrd.sdm AS sdm ON sdm.id_sdm=ptk.id_sdm AND sdm.soft_delete=0
+                                JOIN pdrd.keaktifan_ptk AS aktif ON aktif.id_reg_ptk=ptk.id_reg_ptk AND aktif.soft_delete=0
+                            WHERE
+                                ptk.soft_delete = 0
+                                AND LEFT(sdm.nidn, 2) < 88
+                                AND sdm.jk = 'L'
+                                AND sdm.id_jns_sdm = 12
+                                " .
+                                    $q .
+                                    "
+                                AND ptk.id_sms=sms.id_sms
+                            ) AS pns_pria,
+                            (
+                            SELECT
+                                COUNT(sdm.id_sdm)
+                            FROM
+                                pdrd.reg_ptk AS ptk
+                                JOIN pdrd.sdm AS sdm ON sdm.id_sdm=ptk.id_sdm AND sdm.soft_delete=0
+                                JOIN pdrd.keaktifan_ptk AS aktif ON aktif.id_reg_ptk=ptk.id_reg_ptk AND aktif.soft_delete=0
+                            WHERE
+                                ptk.soft_delete = 0
+                                AND LEFT(sdm.nidn, 2) < 88
+                                AND sdm.jk = 'P'
+                                AND sdm.id_jns_sdm = 12
+                                " .
+                                    $q .
+                                    "
+                                AND ptk.id_sms=sms.id_sms
+                            ) AS pns_wanita,
+                            (
+                            SELECT
+                                COUNT(sdm.id_sdm)
+                            FROM
+                                pdrd.reg_ptk AS ptk
+                                JOIN pdrd.sdm AS sdm ON sdm.id_sdm=ptk.id_sdm AND sdm.soft_delete=0
+                                JOIN pdrd.keaktifan_ptk AS aktif ON aktif.id_reg_ptk=ptk.id_reg_ptk AND aktif.soft_delete=0
+                            WHERE
+                                ptk.soft_delete = 0
+                                AND LEFT(sdm.nidn, 2) IN (88,89)
+                                AND sdm.jk = 'L'
+                                AND sdm.id_jns_sdm = 12
+                                " .
+                                    $q .
+                                    "
+                                AND ptk.id_sms=sms.id_sms
+                            ) AS kontrak_pria,
+                            (
+                            SELECT
+                                COUNT(sdm.id_sdm)
+                            FROM
+                                pdrd.reg_ptk AS ptk
+                                JOIN pdrd.sdm AS sdm ON sdm.id_sdm=ptk.id_sdm AND sdm.soft_delete=0
+                                JOIN pdrd.keaktifan_ptk AS aktif ON aktif.id_reg_ptk=ptk.id_reg_ptk AND aktif.soft_delete=0
+                            WHERE
+                                ptk.soft_delete = 0
+                                AND LEFT(sdm.nidn, 2) IN (88,89)
+                                AND sdm.jk = 'P'
+                                AND sdm.id_jns_sdm = 12
+                                " .
+                                    $q .
+                                    "
+                                AND ptk.id_sms=sms.id_sms
+                            ) AS kontrak_wanita
+                        FROM
+                            pdrd.sms AS sms
+                            JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik=sms.id_jenj_didik AND jenjang.expired_date IS NULL
+                        WHERE
+                            sms.kode_prodi IS NOT NULL
+                            AND sms.soft_delete = 0
+                            AND sms.id_sp='" .
+                                    $this->id_sp .
+                                    "'
+                        ORDER BY
+                            sms.nm_lemb,
+                            jenjang.nm_jenj_didik ASC
+                    "
+                ))->toJson();
+            }), true));
+        }
 
         return \DataTables::of($data)
             ->addIndexColumn()
             ->editColumn("nm_lemb", function ($data) {
                 return '<a href="javascript:void(0);" id="btnModalDosen" data-id="' .
-                    $data->id_sms .
+                    $data['id_sms'] .
                     '" data-prodi="' .
-                    $data->nm_lemb. ' ('.$data->nm_jenj_didik.')' .
+                    $data['nm_lemb']. ' ('.$data['nm_jenj_didik'].')' .
                     '">' .
-                    $data->nm_lemb .
+                    $data['nm_lemb'] .
                     "</a>";
             })
             ->rawColumns(["nm_lemb"])
@@ -373,90 +404,101 @@ class DashboardController extends Controller
 
     public function tendik()
     {
-        $data = \DB::SELECT("
-            SELECT
-                u.id_unit_orga,
-                u.nm_unit_orga,
-                (
-                    SELECT
-                        COUNT(p.id_pegawai)
-                    FROM
-                        sikep.pegawai AS p
-                    WHERE
-                        p.soft_delete=0
-                        AND p.status IN ('Aktif','AKTIF')
-                        AND p.jk IN ('l','L')
-                        AND p.jns_tenaga!='Dosen'
-                        AND p.jns_pegawai IN ('pns','PNS','cpns','CPNS')
-                        AND p.id_unit_orga=u.id_unit_orga
-                ) AS pns_pria,
-                (
-                    SELECT
-                        COUNT(p.id_pegawai)
-                    FROM
-                        sikep.pegawai AS p
-                    WHERE
-                        p.soft_delete=0
-                        AND p.status IN ('Aktif','AKTIF')
-                        AND p.jk IN ('p','P')
-                        AND p.jns_tenaga!='Dosen'
-                        AND p.jns_pegawai IN ('pns','PNS','cpns','CPNS')
-                        AND p.id_unit_orga=u.id_unit_orga
-                ) AS pns_wanita,
-                (
-                    SELECT
-                        COUNT(p.id_pegawai)
-                    FROM
-                        sikep.pegawai AS p
-                    WHERE
-                        p.soft_delete=0
-                        AND p.status IN ('Aktif','AKTIF')
-                        AND p.jk IN ('l','L')
-                        AND p.jns_tenaga!='Dosen'
-                        AND p.jns_pegawai NOT IN ('pns','PNS','cpns','CPNS')
-                        AND p.id_unit_orga=u.id_unit_orga
-                ) AS kontrak_pria,
-                (
-                    SELECT
-                        COUNT(p.id_pegawai)
-                    FROM
-                        sikep.pegawai AS p
-                    WHERE
-                        p.soft_delete=0
-                        AND p.status IN ('Aktif','AKTIF')
-                        AND p.jk IN ('p','P')
-                        AND p.jns_tenaga != 'Dosen'
-                        AND p.jns_pegawai NOT IN ('pns','PNS','cpns','CPNS')
-                        AND p.id_unit_orga=u.id_unit_orga
-                ) AS kontrak_wanita,
-                (
-                    SELECT
-                        COUNT(p.id_pegawai)
-                    FROM
-                        sikep.pegawai AS p
-                    WHERE
-                        p.soft_delete=0
-                        AND p.status IN ('Aktif','AKTIF')
-                        AND p.jns_tenaga != 'Dosen'
-                        AND p.id_unit_orga=u.id_unit_orga
-                ) AS total
-            FROM
-                sikep.unit_orga AS u
-            WHERE
-                u.soft_delete=0
-            ORDER BY
-                u.nm_unit_orga ASC
-        ");
+        $cacheKey = $this->namespace . '_tendik';
+
+        if(Cache::has($cacheKey)) {
+            $getData = Cache::get($cacheKey);
+            $data = new Collection(json_decode($getData, true));
+        } else {
+            $data = new Collection(json_decode(Cache::remember($cacheKey, $this->ttl, function () {
+                return collect(DB::SELECT(
+                    "
+                        SELECT
+                            u.id_unit_orga,
+                            u.nm_unit_orga,
+                            (
+                                SELECT
+                                    COUNT(p.id_pegawai)
+                                FROM
+                                    sikep.pegawai AS p
+                                WHERE
+                                    p.soft_delete=0
+                                    AND p.status IN ('Aktif','AKTIF')
+                                    AND p.jk IN ('l','L')
+                                    AND p.jns_tenaga!='Dosen'
+                                    AND p.jns_pegawai IN ('pns','PNS','cpns','CPNS')
+                                    AND p.id_unit_orga=u.id_unit_orga
+                            ) AS pns_pria,
+                            (
+                                SELECT
+                                    COUNT(p.id_pegawai)
+                                FROM
+                                    sikep.pegawai AS p
+                                WHERE
+                                    p.soft_delete=0
+                                    AND p.status IN ('Aktif','AKTIF')
+                                    AND p.jk IN ('p','P')
+                                    AND p.jns_tenaga!='Dosen'
+                                    AND p.jns_pegawai IN ('pns','PNS','cpns','CPNS')
+                                    AND p.id_unit_orga=u.id_unit_orga
+                            ) AS pns_wanita,
+                            (
+                                SELECT
+                                    COUNT(p.id_pegawai)
+                                FROM
+                                    sikep.pegawai AS p
+                                WHERE
+                                    p.soft_delete=0
+                                    AND p.status IN ('Aktif','AKTIF')
+                                    AND p.jk IN ('l','L')
+                                    AND p.jns_tenaga!='Dosen'
+                                    AND p.jns_pegawai NOT IN ('pns','PNS','cpns','CPNS')
+                                    AND p.id_unit_orga=u.id_unit_orga
+                            ) AS kontrak_pria,
+                            (
+                                SELECT
+                                    COUNT(p.id_pegawai)
+                                FROM
+                                    sikep.pegawai AS p
+                                WHERE
+                                    p.soft_delete=0
+                                    AND p.status IN ('Aktif','AKTIF')
+                                    AND p.jk IN ('p','P')
+                                    AND p.jns_tenaga != 'Dosen'
+                                    AND p.jns_pegawai NOT IN ('pns','PNS','cpns','CPNS')
+                                    AND p.id_unit_orga=u.id_unit_orga
+                            ) AS kontrak_wanita,
+                            (
+                                SELECT
+                                    COUNT(p.id_pegawai)
+                                FROM
+                                    sikep.pegawai AS p
+                                WHERE
+                                    p.soft_delete=0
+                                    AND p.status IN ('Aktif','AKTIF')
+                                    AND p.jns_tenaga != 'Dosen'
+                                    AND p.id_unit_orga=u.id_unit_orga
+                            ) AS total
+                        FROM
+                            sikep.unit_orga AS u
+                        WHERE
+                            u.soft_delete=0
+                        ORDER BY
+                            u.nm_unit_orga ASC
+                    "
+                ))->toJson();
+            }), true));
+        }
 
         return \DataTables::of($data)
             ->addIndexColumn()
             ->editColumn("nm_unit_orga", function ($data) {
                 return '<a href="javascript:void(0);" id="btnModalTendik" data-id="' .
-                    $data->id_unit_orga .
+                    $data['id_unit_orga'] .
                     '" data-prodi="' .
-                    $data->nm_unit_orga.
+                    $data['nm_unit_orga'].
                     '">' .
-                    $data->nm_unit_orga .
+                    $data['nm_unit_orga'] .
                     "</a>";
             })
             ->rawColumns(["nm_unit_orga"])
@@ -507,112 +549,58 @@ class DashboardController extends Controller
         $pageConfigs = ["myLayout" => "horizontal"];
 
         $tahun = $request->tahun ?? date("Y");
+        $lastYear = $tahun - 1;
 
-        if ($tahun == "2024") {
-            //2024
-            $array = [];
-            $data = curlApi(url()->to("/wcu/the/the_2024.json"))["data"];
-            foreach ($data as $item) {
-                if (
-                    in_array($item["name"], [
-                        "Universitas Lampung",
-                        "Lampung University",
-                        "University of Lampung",
-                    ])
-                ) {
-                    $dataTheWur = $item;
-                }
-                if (
-                    in_array($item["location"], [
-                        "Indonesia",
-                        "indonesia",
-                        "Indonesian",
-                        "indonesian",
-                    ])
-                ) {
-                    $array[] = $item;
-                }
+        $array = [];
+        $data = curlApi(url()->to("/wcu/the/the_$tahun.json"))["data"];
+        foreach ($data as $item) {
+            if (
+                in_array($item["name"], [
+                    "Universitas Lampung",
+                    "Lampung University",
+                    "University of Lampung",
+                ])
+            ) {
+                $dataTheWur = $item;
             }
-            $dataTheWur["indonesia"] = $array;
-            //2023
-            $array = [];
-            $data = curlApi(url()->to("/wcu/the/the_2023.json"))["data"];
-            foreach ($data as $item) {
-                if (
-                    in_array($item["name"], [
-                        "Universitas Lampung",
-                        "Lampung University",
-                        "University of Lampung",
-                    ])
-                ) {
-                    $dataPastTheWur = $item;
-                }
-                if (
-                    in_array($item["location"], [
-                        "Indonesia",
-                        "indonesia",
-                        "Indonesian",
-                        "indonesian",
-                    ])
-                ) {
-                    $array[] = $item;
-                }
+            if (
+                in_array($item["location"], [
+                    "Indonesia",
+                    "indonesia",
+                    "Indonesian",
+                    "indonesian",
+                ])
+            ) {
+                $array[] = $item;
             }
-            $dataPastTheWur["indonesia"] = $array;
-        } elseif ($tahun == "2023") {
-            //2023
-            $array = [];
-            $data = curlApi(url()->to("/wcu/the/the_2023.json"))["data"];
-            foreach ($data as $item) {
-                if (
-                    in_array($item["name"], [
-                        "Universitas Lampung",
-                        "Lampung University",
-                        "University of Lampung",
-                    ])
-                ) {
-                    $dataTheWur = $item;
-                }
-                if (
-                    in_array($item["location"], [
-                        "Indonesia",
-                        "indonesia",
-                        "Indonesian",
-                        "indonesian",
-                    ])
-                ) {
-                    $array[] = $item;
-                }
-            }
-            $dataTheWur["indonesia"] = $array;
-            //2022
-            $array = [];
-            $data = curlApi(url()->to("/wcu/the/the_2022.json"))["data"];
-            foreach ($data as $item) {
-                if (
-                    in_array($item["name"], [
-                        "Universitas Lampung",
-                        "Lampung University",
-                        "University of Lampung",
-                    ])
-                ) {
-                    $dataPastTheWur = $item;
-                }
-                if (
-                    in_array($item["location"], [
-                        "Indonesia",
-                        "indonesia",
-                        "Indonesian",
-                        "indonesian",
-                    ])
-                ) {
-                    $array[] = $item;
-                }
-            }
-            $dataPastTheWur["indonesia"] = $array;
-        } else {
-            abort(404);
         }
+        $dataTheWur["indonesia"] = $array;
+
+        //PAST
+        $array = [];
+        $data = curlApi(url()->to("/wcu/the/the_$lastYear.json"))["data"];
+        foreach ($data as $item) {
+            if (
+                in_array($item["name"], [
+                    "Universitas Lampung",
+                    "Lampung University",
+                    "University of Lampung",
+                ])
+            ) {
+                $dataPastTheWur = $item;
+            }
+            if (
+                in_array($item["location"], [
+                    "Indonesia",
+                    "indonesia",
+                    "Indonesian",
+                    "indonesian",
+                ])
+            ) {
+                $array[] = $item;
+            }
+        }
+        $dataPastTheWur["indonesia"] = $array;
 
         return view("content.pages.wcu.pages-times-higher-education-ranking", [
             "pageConfigs" => $pageConfigs,
@@ -627,117 +615,68 @@ class DashboardController extends Controller
         $title = "QS World University Ranking";
         $pageConfigs = ["myLayout" => "horizontal"];
 
-        $tahun = $request->tahun ?? date("Y");
+        $tahun = $request->tahun ?? date('Y');
+        $lastYear = $tahun - 1;
 
-        if ($tahun == "2024") {
-            //2024
-            $asian = [];
-            $indonesian = [];
-            $dataQsWordUniversity = collect();
-            $data = curlApi(url()->to("/wcu/qs/world_2024.json"))[
-                "score_nodes"
-            ];
-            foreach ($data as $no => $item) {
-                if (
-                    in_array($item["title"], [
-                        "Universitas Lampung",
-                        "Lampung University",
-                        "University of Lampung",
-                    ])
-                ) {
-                    $dataQsWordUniversity = $item;
-                }
-                if (in_array($item["region"], ["Asia"])) {
-                    $asian[] = $item;
-                }
-                if (in_array($item["country"], ["Indonesia"])) {
-                    $indonesian[] = $item;
-                }
-            }
-            $dataQsWordUniversity["asian"] = $asian;
-            $dataQsWordUniversity["indonesian"] = $indonesian;
-            //2023
-            $asian = [];
-            $indonesian = [];
-            $dataPastQsWordUniversity = collect();
-            $data = curlApi(url()->to("/wcu/qs/world_2023.json"))[
-                "score_nodes"
-            ];
-            foreach ($data as $no => $item) {
-                if (
-                    in_array($item["title"], [
-                        "Universitas Lampung",
-                        "Lampung University",
-                        "University of Lampung",
-                    ])
-                ) {
-                    $dataPastQsWordUniversity = $item;
-                }
-                if (in_array($item["region"], ["Asia"])) {
-                    $asian[] = $item;
-                }
-                if (in_array($item["country"], ["Indonesia"])) {
-                    $indonesian[] = $item;
-                }
-            }
-            $dataPastQsWordUniversity["asian"] = $asian;
-            $dataPastQsWordUniversity["indonesian"] = $indonesian;
-        } elseif ($tahun == "2023") {
-            //2023
-            $asian = [];
-            $indonesian = [];
-            $dataQsWordUniversity = collect();
-            $data = curlApi(url()->to("/wcu/qs/world_2023.json"))[
-                "score_nodes"
-            ];
-            foreach ($data as $no => $item) {
-                if (
-                    in_array($item["title"], [
-                        "Universitas Lampung",
-                        "Lampung University",
-                        "University of Lampung",
-                    ])
-                ) {
-                    $dataQsWordUniversity = $item;
-                }
-                if (in_array($item["region"], ["Asia"])) {
-                    $asian[] = $item;
-                }
-                if (in_array($item["country"], ["Indonesia"])) {
-                    $indonesian[] = $item;
-                }
-            }
-            $dataQsWordUniversity["asian"] = $asian;
-            $dataQsWordUniversity["indonesian"] = $indonesian;
-            //2022
-            $asian = [];
-            $indonesian = [];
-            $dataPastQsWordUniversity = collect();
-            $data = curlApi(url()->to("/wcu/qs/world_2022.json"))[
-                "score_nodes"
-            ];
-            foreach ($data as $no => $item) {
-                if (
-                    in_array($item["title"], [
-                        "Universitas Lampung",
-                        "Lampung University",
-                        "University of Lampung",
-                    ])
-                ) {
-                    $dataPastQsWordUniversity = $item;
-                }
-                if (in_array($item["region"], ["Asia"])) {
-                    $asian[] = $item;
-                }
-                if (in_array($item["country"], ["Indonesia"])) {
-                    $indonesian[] = $item;
-                }
-            }
-            $dataPastQsWordUniversity["asian"] = $asian;
-            $dataPastQsWordUniversity["indonesian"] = $indonesian;
-        } else {
+        $asian = [];
+        $indonesian = [];
+        $dataQsWordUniversity = collect();
+        $data = curlApi(url()->to("/wcu/qs/world_$tahun.json"));
+        if(!$data) {
             abort(404);
         }
+        foreach ($data['score_nodes'] as $no => $item) {
+            if (
+                in_array($item["title"], [
+                    "Universitas Lampung",
+                    "Lampung University",
+                    "University of Lampung",
+                ])
+            ) {
+                $dataQsWordUniversity = $item;
+            }
+            if (in_array($item["region"], ["Asia"])) {
+                $asian[] = $item;
+            }
+            if (in_array($item["country"], ["Indonesia"])) {
+                $indonesian[] = $item;
+            }
+        }
+        if($tahun>=2025) {
+            $dataQsWordUniversity['scores'] = array_merge(...array_values($dataQsWordUniversity['scores']));
+        }
+        $dataQsWordUniversity["asian"] = $asian;
+        $dataQsWordUniversity["indonesian"] = $indonesian;
+        //2023
+        $asian = [];
+        $indonesian = [];
+        $dataPastQsWordUniversity = collect();
+        $data = curlApi(url()->to("/wcu/qs/world_$lastYear.json"));
+        if(!$data) {
+            abort(404);
+        }
+        foreach ($data['score_nodes'] as $no => $item) {
+            if (
+                in_array($item["title"], [
+                    "Universitas Lampung",
+                    "Lampung University",
+                    "University of Lampung",
+                ])
+            ) {
+                $dataPastQsWordUniversity = $item;
+            }
+            if (in_array($item["region"], ["Asia"])) {
+                $asian[] = $item;
+            }
+            if (in_array($item["country"], ["Indonesia"])) {
+                $indonesian[] = $item;
+            }
+        }
+        if($lastYear>=2025) {
+            $dataPastQsWordUniversity['scores'] = array_merge(...array_values($dataPastQsWordUniversity['scores']));
+        }
+        $dataPastQsWordUniversity["asian"] = $asian;
+        $dataPastQsWordUniversity["indonesian"] = $indonesian;
 
         return view("content.pages.wcu.pages-qs-world-university-ranking", [
             "pageConfigs" => $pageConfigs,
@@ -753,128 +692,223 @@ class DashboardController extends Controller
         $pageConfigs = ["myLayout" => "horizontal"];
         $year = $request->tahun ?? date("Y") - 1;
         $lastYear = $year - 1;
+        $plus = 0;
+        $minus = 0;
 
-        //NOW
-        $GreenmetricWorld = dom_xpath(
-            "https://greenmetric.ui.ac.id/rankings/overall-rankings-{$year}",
-            "//table/tbody"
-        )[0]->getElementsByTagName("tr");
+        $cacheKey = $this->namespace . '_gmr_' . $year;
 
-        foreach ($GreenmetricWorld as $singleTable) {
-            $td = $singleTable->getElementsByTagName("td");
-            if (
-                in_array(trim($td[1]->textContent), [
-                    "Universitas Lampung",
-                    "Lampung University",
-                ])
-            ) {
-                $dataGreenmetric["rank_by_world"] = $td[0]->textContent;
-                $dataGreenmetric["total_score"] = $td[3]->textContent;
-                $dataGreenmetric["setting_infrastructure"] =
-                    $td[4]->textContent;
-                $dataGreenmetric["energi_climate_change"] = $td[5]->textContent;
-                $dataGreenmetric["waste"] = $td[6]->textContent;
-                $dataGreenmetric["water"] = $td[7]->textContent;
-                $dataGreenmetric["transportation"] = $td[8]->textContent;
-                $dataGreenmetric["education_research"] = $td[9]->textContent;
-                break;
-            }
+        if(Cache::has($cacheKey)) {
+            $data = Cache::get($cacheKey);
+        } else {
+            $data = Cache::remember($cacheKey, $this->ttl, function () use ($year, $lastYear, $plus, $minus) {
+                $dataGreenmetric = [];
+                $dataPastGreenmetric = [];
+
+                //NOW
+                $GreenmetricWorld = dom_xpath(
+                    "https://greenmetric.ui.ac.id/rankings/overall-rankings-{$year}",
+                    "//table/tbody"
+                );
+                if(empty($GreenmetricWorld->length)) {
+                    $dataGreenmetric["rank_by_world"] = 0;
+                    $dataGreenmetric["total_score"] = 0;
+                    $dataGreenmetric["setting_infrastructure"] = 0;
+                    $dataGreenmetric["energi_climate_change"] = 0;
+                    $dataGreenmetric["waste"] = 0;
+                    $dataGreenmetric["water"] = 0;
+                    $dataGreenmetric["transportation"] = 0;
+                    $dataGreenmetric["education_research"] = 0;
+                    $dataGreenmetric['rank_by_indonesian'] = 0;
+                    $dataGreenmetric['rank_by_asian'] = 0;
+                } else {
+                    $GreenmetricWorld = $GreenmetricWorld[0]->getElementsByTagName("tr");
+
+                    foreach ($GreenmetricWorld as $singleTable) {
+                        $td = $singleTable->getElementsByTagName("td");
+                        $names = preg_replace("/[^a-zA-Z0-9]+/", " ", $td[1]->textContent);
+                        if($year==2024) {
+                            $names = preg_replace("/[^a-zA-Z0-9]+/", " ", $td[3]->textContent);
+                            $plus = 1;
+                        }
+                        if($year==2023) {
+                            $minus = 1;
+                        }
+                        if (
+                            str_contains($names, "Universitas Lampung") ||
+                            str_contains($names, "Lampung University") ||
+                            str_contains($names, "University of Lampung")
+                        ) {
+                            $dataGreenmetric["rank_by_world"] = $td[0]->textContent;
+                            $dataGreenmetric['rank_by_indonesian'] = $td[1]->textContent;
+                            $dataGreenmetric['rank_by_asian'] = $td[2]->textContent;
+                            $dataGreenmetric["total_score"] = $td[3+$plus-$minus]->textContent;
+                            $dataGreenmetric["setting_infrastructure"] =
+                                $td[4+$plus-$minus]->textContent;
+                            $dataGreenmetric["energi_climate_change"] = $td[5+$plus-$minus]->textContent;
+                            $dataGreenmetric["waste"] = $td[6+$plus-$minus]->textContent;
+                            $dataGreenmetric["water"] = $td[7+$plus-$minus]->textContent;
+                            $dataGreenmetric["transportation"] = $td[8+$plus-$minus]->textContent;
+                            $dataGreenmetric["education_research"] = $td[9+$plus]->textContent;
+                            if($year==2023) {
+                                $dataGreenmetric["education_research"] = $td[8]->textContent;
+                            }
+                            break;
+                        } else {
+                            $dataGreenmetric["rank_by_world"] = 0;
+                            $dataGreenmetric["total_score"] = 0;
+                            $dataGreenmetric["setting_infrastructure"] = 0;
+                            $dataGreenmetric["energi_climate_change"] = 0;
+                            $dataGreenmetric["waste"] = 0;
+                            $dataGreenmetric["water"] = 0;
+                            $dataGreenmetric["transportation"] = 0;
+                            $dataGreenmetric["education_research"] = 0;
+                            $dataGreenmetric['rank_by_indonesian'] = 0;
+                            $dataGreenmetric['rank_by_asian'] = 0;
+                        }
+                    }
+                }
+
+                if($year<2024) {
+                    $GreenmetricIndo = dom_xpath(
+                        "https://greenmetric.ui.ac.id/rankings/ranking-by-country-{$year}/Indonesia",
+                        '//table/tbody'
+                    );
+                    if(empty($GreenmetricIndo->length)) {
+                        $dataGreenmetric['rank_by_indonesian'] = 0;
+                    } else {
+                        $GreenmetricIndo = $GreenmetricIndo[0]->getElementsByTagName("tr");
+
+                        foreach ($GreenmetricIndo as $singleTable) {
+                            $td = $singleTable->getElementsByTagName('td');
+                            if (in_array(trim($td[1]->textContent), ['Universitas Lampung', 'Lampung University'])) {
+                            $dataGreenmetric['rank_by_indonesian'] = $td[0]->textContent;
+                            break;
+                            }
+                        }
+                    }
+
+                    $GreenmetricIndo = dom_xpath(
+                        "https://greenmetric.ui.ac.id/rankings/ranking-by-region-{$year}/asia",
+                        '//table/tbody'
+                    );
+                    if(empty($GreenmetricIndo->length)) {
+                        $dataGreenmetric['rank_by_asian'] = 0;
+                    } else {
+                        $GreenmetricIndo = $GreenmetricIndo[0]->getElementsByTagName("tr");
+
+                        foreach ($GreenmetricIndo as $singleTable) {
+                            $td = $singleTable->getElementsByTagName('td');
+                            if (in_array(trim($td[1]->textContent), ['Universitas Lampung', 'Lampung University'])) {
+                            $dataGreenmetric['rank_by_asian'] = $td[0]->textContent;
+                            break;
+                            }
+                        }
+                    }
+                }
+
+                #################################################################################################################
+
+                $plus = 0;
+                $minus = 0;
+
+                //PAST
+                $GreenmetricWorld = dom_xpath(
+                    "https://greenmetric.ui.ac.id/rankings/overall-rankings-{$lastYear}",
+                    "//table/tbody"
+                );
+                if(empty($GreenmetricWorld->length)) {
+                    $dataPastGreenmetric["rank_by_world"] = 0;
+                    $dataPastGreenmetric["total_score"] = 0;
+                    $dataPastGreenmetric["setting_infrastructure"] = 0;
+                    $dataPastGreenmetric["energi_climate_change"] = 0;
+                    $dataPastGreenmetric["waste"] = 0;
+                    $dataPastGreenmetric["water"] = 0;
+                    $dataPastGreenmetric["transportation"] = 0;
+                    $dataPastGreenmetric["education_research"] = 0;
+                    $dataPastGreenmetric['rank_by_indonesian'] = 0;
+                    $dataPastGreenmetric['rank_by_asian'] = 0;
+                } else {
+                    $GreenmetricWorld = $GreenmetricWorld[0]->getElementsByTagName("tr");
+
+                    foreach ($GreenmetricWorld as $singleTable) {
+                        $td = $singleTable->getElementsByTagName("td");
+                        $names = preg_replace("/[^a-zA-Z0-9]+/", " ", $td[1]->textContent);
+                        if($lastYear==2024) {
+                            $names = preg_replace("/[^a-zA-Z0-9]+/", " ", $td[3]->textContent);
+                            $plus = 1;
+                        }
+                        if($lastYear==2023) {
+                            $minus = 1;
+                        }
+                        if (
+                            str_contains($names, "Universitas Lampung") ||
+                            str_contains($names, "Lampung University") ||
+                            str_contains($names, "University of Lampung")
+                        ) {
+                            $dataPastGreenmetric["rank_by_world"] = $td[0]->textContent;
+                            $dataPastGreenmetric["total_score"] = $td[3+$plus-$minus]->textContent;
+                            $dataPastGreenmetric['rank_by_indonesian'] = $td[1]->textContent;
+                            $dataPastGreenmetric['rank_by_asian'] = $td[2]->textContent;
+                            break;
+                        } else {
+                            $dataPastGreenmetric["rank_by_world"] = 0;
+                            $dataPastGreenmetric["total_score"] = 0;
+                            $dataPastGreenmetric['rank_by_indonesian'] = 0;
+                            $dataPastGreenmetric['rank_by_asian'] = 0;
+                        }
+                    }
+                }
+
+                if($lastYear<2024) {
+                    $GreenmetricIndo = dom_xpath(
+                        "https://greenmetric.ui.ac.id/rankings/ranking-by-country-{$lastYear}/Indonesia",
+                        '//table/tbody'
+                    );
+                    if(empty($GreenmetricIndo->length)) {
+                        $dataPastGreenmetric['rank_by_indonesian'] = 0;
+                    } else {
+                        $GreenmetricIndo = $GreenmetricIndo[0]->getElementsByTagName('tr');
+
+                        foreach ($GreenmetricIndo as $singleTable) {
+                        $td = $singleTable->getElementsByTagName('td');
+                        if (in_array(trim($td[1]->textContent), ['Universitas Lampung', 'Lampung University'])) {
+                            $dataPastGreenmetric['rank_by_indonesian'] = $td[0]->textContent;
+                            break;
+                        }
+                        }
+                    }
+
+                    $GreenmetricIndo = dom_xpath(
+                        "https://greenmetric.ui.ac.id/rankings/ranking-by-region-{$lastYear}/asia",
+                        '//table/tbody'
+                    );
+                    if(empty($GreenmetricIndo->length)) {
+                        $dataPastGreenmetric['rank_by_asian'] = 0;
+                    } else {
+                        $GreenmetricIndo = $GreenmetricIndo[0]->getElementsByTagName('tr');
+
+                        foreach ($GreenmetricIndo as $singleTable) {
+                        $td = $singleTable->getElementsByTagName('td');
+                        if (in_array(trim($td[1]->textContent), ['Universitas Lampung', 'Lampung University'])) {
+                            $dataPastGreenmetric['rank_by_asian'] = $td[0]->textContent;
+                            break;
+                        }
+                        }
+                    }
+                }
+
+                return [
+                    "dataGreenmetric" => $dataGreenmetric,
+                    "dataPastGreenmetric" => $dataPastGreenmetric,
+                ];
+            });
         }
-
-        $GreenmetricIndo = dom_xpath(
-          "https://greenmetric.ui.ac.id/rankings/ranking-by-country-{$year}/Indonesia",
-          '//table/tbody'
-        )[0]->getElementsByTagName('tr');
-
-        foreach ($GreenmetricIndo as $singleTable) {
-          $td = $singleTable->getElementsByTagName('td');
-          if (in_array(trim($td[1]->textContent), ['Universitas Lampung', 'Lampung University'])) {
-            $dataGreenmetric['rank_by_indonesian'] = $td[0]->textContent;
-            break;
-          }
-        }
-
-        $GreenmetricIndo = dom_xpath(
-          "https://greenmetric.ui.ac.id/rankings/ranking-by-region-{$year}/asia",
-          '//table/tbody'
-        )[0]->getElementsByTagName('tr');
-
-        foreach ($GreenmetricIndo as $singleTable) {
-          $td = $singleTable->getElementsByTagName('td');
-          if (in_array(trim($td[1]->textContent), ['Universitas Lampung', 'Lampung University'])) {
-            $dataGreenmetric['rank_by_asian'] = $td[0]->textContent;
-            break;
-          }
-        }
-
-        //PAST
-        $GreenmetricWorld = dom_xpath(
-            "https://greenmetric.ui.ac.id/rankings/overall-rankings-{$lastYear}",
-            "//table/tbody"
-        )[0]->getElementsByTagName("tr");
-
-        foreach ($GreenmetricWorld as $singleTable) {
-            $td = $singleTable->getElementsByTagName("td");
-            if (
-                in_array(trim($td[1]->textContent), [
-                    "Universitas Lampung",
-                    "Lampung University",
-                ])
-            ) {
-                $dataPastGreenmetric["rank_by_world"] = $td[0]->textContent;
-                $dataPastGreenmetric["total_score"] = $td[3]->textContent;
-                $dataPastGreenmetric["setting_infrastructure"] =
-                    $td[4]->textContent;
-                $dataPastGreenmetric["energi_climate_change"] =
-                    $td[5]->textContent;
-                $dataPastGreenmetric["waste"] = $td[6]->textContent;
-                $dataPastGreenmetric["water"] = $td[7]->textContent;
-                $dataPastGreenmetric["transportation"] = $td[8]->textContent;
-                $dataPastGreenmetric["education_research"] =
-                    $td[9]->textContent;
-                break;
-            }
-        }
-
-        $GreenmetricIndo = dom_xpath(
-          "https://greenmetric.ui.ac.id/rankings/ranking-by-country-{$lastYear}/Indonesia",
-          '//table/tbody'
-        )[0]->getElementsByTagName('tr');
-
-        foreach ($GreenmetricIndo as $singleTable) {
-          $td = $singleTable->getElementsByTagName('td');
-          if (in_array(trim($td[1]->textContent), ['Universitas Lampung', 'Lampung University'])) {
-            $dataPastGreenmetric['rank_by_indonesian'] = $td[0]->textContent;
-            break;
-          }
-        }
-
-        $GreenmetricIndo = dom_xpath(
-          "https://greenmetric.ui.ac.id/rankings/ranking-by-region-{$lastYear}/asia",
-          '//table/tbody'
-        )[0]->getElementsByTagName('tr');
-
-        foreach ($GreenmetricIndo as $singleTable) {
-          $td = $singleTable->getElementsByTagName('td');
-          if (in_array(trim($td[1]->textContent), ['Universitas Lampung', 'Lampung University'])) {
-            $dataPastGreenmetric['rank_by_asian'] = $td[0]->textContent;
-            break;
-          }
-        }
-        $dataGreenmetric["rank_by_indonesian"] =
-            $dataGreenmetric["rank_by_indonesian"] ?? 0;
-        $dataPastGreenmetric["rank_by_indonesian"] =
-            $dataPastGreenmetric["rank_by_indonesian"] ?? 0;
-        $dataGreenmetric["rank_by_asian"] =
-            $dataGreenmetric["rank_by_asian"] ?? 0;
-        $dataPastGreenmetric["rank_by_asian"] =
-            $dataPastGreenmetric["rank_by_asian"] ?? 0;
 
         return view("content.pages.wcu.pages-green-metric", [
             "pageConfigs" => $pageConfigs,
             "title" => $title,
-            "dataGreenmetric" => $dataGreenmetric,
-            "dataPastGreenmetric" => $dataPastGreenmetric,
+            "dataGreenmetric" => $data['dataGreenmetric'],
+            "dataPastGreenmetric" => $data['dataPastGreenmetric'],
         ]);
     }
 
