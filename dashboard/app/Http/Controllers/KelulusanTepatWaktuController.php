@@ -4,30 +4,55 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Pdrd\PesertaDidik;
-use DB;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Collection;
 use Session;
 use Alert;
 use DataTables;
 
 class KelulusanTepatWaktuController extends Controller
 {
+    private $id_sp;
+    protected $ttl, $namespace;
+
+    public function __construct()
+    {
+        $this->id_sp = env("APP_ID_SP", "E2B705A7-173E-464A-9FAC-509128709515");
+        $this->ttl = 600; //10 menit
+        $this->namespace = 'ktw';
+    }
+
     public function index(Request $request)
     {
         $pageConfigs = ["myLayout" => "horizontal"];
         $title = "Kelulusan Tepat Waktu";
-        $sms = \App\Models\Pdrd\SMS::where("soft_delete", 0)
-            ->where("id_jns_sms", 1)
-            ->whereNotIn("nm_lemb", ["FKIP"])
-            ->orderBy("nm_lemb")
-            ->get();
 
-        foreach ($sms as $item) {
-            $item->prodi = \App\Models\Pdrd\SMS::with("jenjang")
-                ->where("soft_delete", 0)
-                ->where("id_jns_sms", 3)
-                ->where("id_fak_unila", $item->id_sms)
-                ->orderBy("nm_lemb")
-                ->get();
+        $cacheKey = $this->namespace . '_index';
+
+        if(Cache::has($cacheKey)) {
+            $getSms = Cache::get($cacheKey);
+            $sms = new Collection(json_decode($getSms, true));
+        } else {
+            $sms = new Collection(json_decode(Cache::remember($cacheKey, $this->ttl, function () {
+                $sms = \App\Models\Pdrd\SMS::where("soft_delete", 0)
+                    ->where("id_jns_sms", 1)
+                    ->whereNotIn("nm_lemb", ["FKIP"])
+                    ->orderBy("nm_lemb")
+                    ->get();
+
+                foreach ($sms as $item) {
+                    $item->prodi = \App\Models\Pdrd\SMS::with("jenjang")
+                        ->where("soft_delete", 0)
+                        ->where("id_jns_sms", 3)
+                        ->where("id_fak_unila", $item->id_sms)
+                        ->orderBy("nm_lemb")
+                        ->get();
+                }
+
+                return $sms->toJson();
+            }), true));
         }
 
         return view("content.pages.ktw.index", [
