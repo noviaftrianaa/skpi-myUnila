@@ -11,7 +11,7 @@
             $('#' + target).html(null);
             var options = {
                 chart: {
-                    height: '400',
+                    height: '300',
                     type: typeChart,
                     stacked: false,
 
@@ -67,6 +67,56 @@
             return chart.render();
         }
 
+        function pieChart(title, subtitle, data, kategori, target) {
+            var options = {
+                series: data,
+                chart: {
+                    height: 300,
+                    type: 'pie',
+                    stacked: false,
+                },
+                title: {
+                    text: title,
+                    align: "center"
+                },
+                subtitle: {
+                    text: subtitle,
+                    align: "center"
+                },
+                theme: {
+                    monochrome: {
+                        enabled: true,
+                    },
+                },
+                plotOptions: {
+                    pie: {
+                        dataLabels: {
+                            offset: -10
+                        },
+                    },
+                },
+                labels: kategori,
+                responsive: [{
+                    breakpoint: 480,
+                    options: {
+                        chart: {
+                            width: 200
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }],
+                legend: {
+                    position: 'bottom',
+                    fontWeight: 600,
+                },
+            };
+
+            var chart = new ApexCharts(document.querySelector("#" + target), options);
+            return chart.render();
+        }
+
         function dosen() {
             $('#accDosen').removeClass('show').addClass('show');
             $.ajax({
@@ -79,12 +129,27 @@
                     var dosen_nomor_induk = res['total_dosen'];
                     var dosen_jabfung = res['total_dosen_jabfung'];
                     var dosen_fakultas = res['total_dosen_fakultas'];
+                    var dosen_rasio_jk = res['dosen_jk'];
+                    var dosen_kepangkatan_detail = res['dosen_kepangkatan_detail'];
+                    var dosen_pendidikan_detail = res['dosen_pendidikan_detail'];
+                    var dosen_ikatan_detail = res['dosen_ikatan_detail'];
+
                     var data_dosen_nomor_induk = [];
                     var data_dosen_jabfung = [];
                     var data_dosen_fakultas = [];
+                    var data_dosen_rasio_jk = [];
+                    var data_dosen_kepangkatan_detail = [];
+                    var data_dosen_pendidikan_detail = [];
+                    var data_dosen_ikatan_detail = [];
+
                     var kategori_dosen_nomor_induk = [];
                     var kategori_dosen_jabfung = [];
                     var kategori_dosen_fakultas = [];
+                    var kategori_dosen_rasio_jk = [];
+                    var kategori_dosen_kepangkatan_detail = [];
+                    var kategori_dosen_pendidikan_detail = [];
+                    var kategori_dosen_ikatan_detail = [];
+
                     $.each(JSON.parse(dosen_nomor_induk), function(i, k) {
                         data_dosen_nomor_induk.push(
                             parseInt(k)
@@ -103,12 +168,47 @@
                         );
                         kategori_dosen_fakultas.push(k.nm_lemb.split(" "));
                     });
-                    setOptions('bar', 'Sebaran Dosen', 'berdasarkan Nomor Induk', data_dosen_nomor_induk,
-                        kategori_dosen_nomor_induk, '', 'dosen', false);
-                    setOptions('bar', 'Sebaran Dosen', 'berdasarkan Jabatan Fungsional', data_dosen_jabfung,
-                        kategori_dosen_jabfung, '', 'dosen_jabfung', false);
+                    $.each(JSON.parse(dosen_rasio_jk), function(i, k) {
+                        data_dosen_rasio_jk.push(
+                            parseInt(k)
+                        );
+                        kategori_dosen_rasio_jk.push(i);
+                    });
+                    $.each(JSON.parse(dosen_kepangkatan_detail), function(i, k) {
+                        data_dosen_kepangkatan_detail.push(
+                            parseInt(k)
+                        );
+                        kategori_dosen_kepangkatan_detail.push(i);
+                    });
+                    $.each(JSON.parse(dosen_pendidikan_detail), function(i, k) {
+                        data_dosen_pendidikan_detail.push(
+                            parseInt(k)
+                        );
+                        kategori_dosen_pendidikan_detail.push(i);
+                    });
+                    $.each(JSON.parse(dosen_ikatan_detail), function(i, k) {
+                        data_dosen_ikatan_detail.push(
+                            parseInt(k)
+                        );
+                        kategori_dosen_ikatan_detail.push(i);
+                    });
+
+                    pieChart('Sebaran Dosen', 'berdasarkan Nomor Induk', data_dosen_nomor_induk,
+                        kategori_dosen_nomor_induk, 'dosen');
+                    pieChart('Sebaran Dosen', 'berdasarkan Jabatan Fungsional', data_dosen_jabfung,
+                        kategori_dosen_jabfung, 'dosen_jabfung');
                     setOptions('bar', 'Sebaran Dosen', 'berdasarkan Fakultas', data_dosen_fakultas,
                         kategori_dosen_fakultas, '', 'total_dosen', false);
+                    pieChart('Sebaran Dosen', 'berdasarkan Jenis Kelamin', data_dosen_rasio_jk,
+                        kategori_dosen_rasio_jk, 'dosen_rasio_jk');
+                    pieChart('Sebaran Dosen', 'berdasarkan Pangkat Golongan',
+                        data_dosen_kepangkatan_detail,
+                        kategori_dosen_kepangkatan_detail, 'dosen_rasio_pangkat');
+                    pieChart('Sebaran Dosen', 'berdasarkan Kualifikasi Pendidikan',
+                        data_dosen_pendidikan_detail, kategori_dosen_pendidikan_detail,
+                        'dosen_rasio_pendidikan');
+                    pieChart('Sebaran Dosen', 'berdasarkan Ikatan Kerja', data_dosen_ikatan_detail,
+                        kategori_dosen_ikatan_detail, 'dosen_rasio_ikatan_kerja');
                     $('#accDosen').removeClass('show');
                 }
             });

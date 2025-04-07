@@ -45,6 +45,8 @@ class InfografisController extends Controller
 
     public function dosen(Request $request)
     {
+        ini_set('max_execution_time', 0);
+        ini_set('memory_limit', '-1');
         $tahun = $request->tahun ?? get_tahun_keaktifan();
         $cacheKey = $this->namespace . '_dosen_' . $tahun;
 
@@ -56,10 +58,23 @@ class InfografisController extends Controller
                 $total_dosen_jabfung = json_encode(SDM::dashboard_dosen('dosen_jabfung', $tahun, 'pt', null)->first());
                 $total_dosen_fakultas = json_encode(SDM::total_dosen_fakultas($tahun));
 
+                $dosen_jk = json_encode(Sdm::dashboard_dosen('dosen_jk', $tahun, 'pt')->first());
+                // $dosen_jabfung_detail = json_encode(Sdm::dashboard_dosen('dosen_jabfung_all', $tahun, 'pt')->first());
+                $dosen_kepangkatan_detail = json_encode(Sdm::dashboard_dosen('dosen_kepangkatan_all', $tahun, 'pt')->first());
+                $dosen_pendidikan_detail = json_encode(Sdm::dashboard_dosen('dosen_pendidikan_all', $tahun, 'pt')->first());
+                $dosen_ikatan_detail = json_encode(Sdm::dashboard_dosen('dosen_ikatan_kerja', $tahun, 'pt')->first());
+                $dosen_usia_detail = json_encode(Sdm::dashboard_dosen('dosen_usia', $tahun, 'pt'));
+
                 return [
                     'total_dosen' => $total_dosen,
                     'total_dosen_jabfung' => $total_dosen_jabfung,
-                    'total_dosen_fakultas' => $total_dosen_fakultas
+                    'total_dosen_fakultas' => $total_dosen_fakultas,
+                    'dosen_jk' => $dosen_jk,
+                    // 'dosen_jabfung_detail' => $dosen_jabfung_detail,
+                    'dosen_kepangkatan_detail' => $dosen_kepangkatan_detail,
+                    'dosen_pendidikan_detail' => $dosen_pendidikan_detail,
+                    'dosen_ikatan_detail' => $dosen_ikatan_detail,
+                    'dosen_usia_detail' => $dosen_usia_detail
                 ];
             });
         }
