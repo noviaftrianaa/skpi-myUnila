@@ -65,6 +65,8 @@ class KelulusanTepatWaktuController extends Controller
 
     public function data(Request $request)
     {
+        ini_set('max_execution_time', 0);
+        ini_set('memory_limit', '-1');
         $tahun = $request->tahun ?? get_tahun_keaktifan();
         $sms =
             $request->id_sms == "all"
