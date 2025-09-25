@@ -11,6 +11,7 @@
     <script src="{{ asset('assets/vendor/libs/jquery-sticky/jquery-sticky.js') }}"></script>
     <script src="{{ asset('js/datatables.min.js') }}"></script>
     <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
+    <script src="{{ asset('js/buttons.print.min.js') }}"></script>
 @endsection
 
 @section('page-script')
