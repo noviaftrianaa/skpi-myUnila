@@ -6,7 +6,6 @@
 @section('content')
     <!-- Chart -->
     <div class="row">
-
         <div class="col-12 mb-4">
             <div class="card">
                 <div
@@ -18,12 +17,12 @@
                             <select class="form-select" id="sms">
                                 <option value="all" selected>SEMUA FAKULTAS</option>
                                 @foreach ($sms as $item)
-                                    <option value="{{ $item->id_sms }}">{{ $item->nm_lemb }}</option>
-                                    @if (!is_null($item->prodi))
-                                        @foreach ($item->prodi as $value)
-                                            <option value="{{ $value->id_sms }}">
-                                                {{ $value->nm_lemb }}
-                                                ({{ $value->jenjang->nm_jenj_didik }})
+                                    <option value="{{ $item['id_sms'] }}">{{ $item['nm_lemb'] }}</option>
+                                    @if (!is_null($item['prodi']))
+                                        @foreach ($item['prodi'] as $value)
+                                            <option value="{{ $value['id_sms'] }}">
+                                                {{ $value['nm_lemb'] }}
+                                                ({{ $value['jenjang']['nm_jenj_didik'] }})
                                                 </span>
                                             </option>
                                         @endforeach
@@ -36,7 +35,8 @@
                                 <option value="{{ $tahun }}" selected>{{ $tahun - 4 }} - {{ $tahun }}
                                 </option>
                                 <option value="{{ $tahun - 5 }}">{{ $tahun - 9 }} - {{ $tahun - 5 }}</option>
-                                <option value="{{ $tahun - 10 }}">{{ $tahun - 14 }} - {{ $tahun - 10 }}</option>
+                                <option value="{{ $tahun - 10 }}">{{ $tahun - 14 }} - {{ $tahun - 10 }}
+                                </option>
                             </select>
                         </div>
                     </div>

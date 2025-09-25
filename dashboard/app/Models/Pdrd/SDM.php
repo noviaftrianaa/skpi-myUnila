@@ -191,7 +191,7 @@ class SDM extends AbstractionModel
     return DB::SELECT($query);
   }
 
-    public static function dashboard_dosen($tipe,$tahun,$level,$id_sms)
+    public static function dashboard_dosen($tipe,$tahun,$level,$id_sms=null)
     {
         $tgl      = TahunAjaran::tglSelesai($tahun);
         $from   = "FROM pdrd.sdm AS tsdm WITH (NOLOCK)

@@ -29,7 +29,7 @@
                         <div class="input-group">
                             <label class="input-group-text">Tahun</label>
                             <select class="form-control text-center" id="tahun">
-                                @for ($tahun = date('Y') - 1; $tahun >= date('Y') - 2; $tahun--)
+                                @for ($tahun = get_tahun_keaktifan(); $tahun >= get_tahun_keaktifan() - 2; $tahun--)
                                     <option value="{{ $tahun }}" {{ request()->tahun == $tahun ? 'selected' : '' }}>
                                         {{ $tahun }}</option>
                                 @endfor
