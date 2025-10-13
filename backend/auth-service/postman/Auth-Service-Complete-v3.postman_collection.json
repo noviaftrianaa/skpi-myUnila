@@ -1,0 +1,446 @@
+{
+	"info": {
+		"_postman_id": "auth-service-2025-v3",
+		"name": "Auth Service - My Unila (v3 - With Redis Cache)",
+		"description": "Complete API collection with Token Management + Redis Caching",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "auth-service-v3"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{access_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8081/auth-service",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refresh_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "🏥 Health Check",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/health",
+					"host": ["{{base_url}}"],
+					"path": ["api", "health"]
+				},
+				"description": "Check if the service is running.\n\n**Response:**\n```json\n{\n  \"status\": \"ok\",\n  \"service\": \"auth-service\",\n  \"timestamp\": \"2025-10-12T05:47:18.000Z\"\n}\n```"
+			},
+			"response": []
+		},
+		{
+			"name": "🔐 Authentication",
+			"item": [
+				{
+					"name": "1. Login (Standard)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data.tokens) {",
+									"        // Save access token",
+									"        pm.collectionVariables.set('access_token', response.data.tokens.access_token);",
+									"        pm.collectionVariables.set('user_id', response.data.user.id);",
+									"        console.log('✅ Access token saved');",
+									"        console.log('✅ User ID saved:', response.data.user.id);",
+									"        ",
+									"        // Save refresh token dari cookie",
+									"        const cookies = pm.cookies.all();",
+									"        const refreshCookie = cookies.find(c => c.name === 'refresh_token');",
+									"        if (refreshCookie) {",
+									"            pm.collectionVariables.set('refresh_token', refreshCookie.value);",
+									"            console.log('✅ Refresh token saved from cookie');",
+									"        }",
+									"        ",
+									"        console.log('User:', response.data.user.name);",
+									"        console.log('Token expires in:', response.data.tokens.expires_in, 'seconds');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"DWI.RETNO21\",\n  \"password\": \"test123\",\n  \"device_name\": \"postman-cache-test\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "login"]
+						},
+						"description": "Login dengan username & password.\n\n**✅ Features:**\n- Password SHA1 hashed\n- Log ke `logger.log_login`\n- Log JWT ke `logger.log_jwt`\n- Generate access token (15 min)\n- Generate refresh token (7 days)\n- Save token metadata to Redis\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"8A9B55FC...\",\n      \"username\": \"DWI.RETNO21\",\n      \"name\": \"DWI RETNO SEPTIANA\",\n      \"email\": \"...\",\n      \"role\": \"user\"\n    },\n    \"tokens\": {\n      \"access_token\": \"eyJ0eXAi...\",\n      \"token_type\": \"Bearer\",\n      \"expires_in\": 900\n    }\n  }\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "2. Get Current User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/me",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "me"]
+						},
+						"description": "Get authenticated user info menggunakan access token.\n\n**Auth:** Bearer Token (auto dari collection variable)\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"...\",\n      \"username\": \"...\",\n      \"name\": \"...\",\n      \"email\": \"...\",\n      \"role\": \"...\"\n    }\n  }\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "3. Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data.access_token) {",
+									"        pm.collectionVariables.set('access_token', response.data.access_token);",
+									"        console.log('✅ Access token refreshed successfully');",
+									"        console.log('New token expires in:', response.data.expires_in, 'seconds');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "refresh_token={{refresh_token}}",
+								"description": "Refresh token dari cookie"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/refresh",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "refresh"]
+						},
+						"description": "Refresh access token menggunakan refresh token.\n\n**⏰ Kapan digunakan:**\n- Access token expired (15 minutes)\n- Response 401 Unauthorized\n\n**✅ Features:**\n- Validate refresh token dari database\n- Check if revoked\n- Generate new access token\n- Log ke `logger.log_jwt`\n- Update Redis cache\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"access_token\": \"eyJ0eXAi...\",\n    \"token_type\": \"Bearer\",\n    \"expires_in\": 900\n  }\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "4. Logout (Single Device)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    pm.collectionVariables.set('access_token', '');",
+									"    pm.collectionVariables.set('refresh_token', '');",
+									"    console.log('✅ Logged out successfully');",
+									"    console.log('✅ Tokens cleared from collection variables');",
+									"    console.log('✅ Redis cache invalidated');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/logout",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "logout"]
+						},
+						"description": "Logout dari current device.\n\n**✅ Features:**\n- Revoke refresh token\n- Expire access token\n- Update `logger.log_login` (set waktu_logout)\n- **Invalidate user cache (NEW!)** ← Redis cache cleared\n- Clear session\n\n**Auth:** Bearer Token required\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"message\": \"Logout successful\"\n}\n```\n\n**🚀 Redis Cache Cleared:**\n- `auth:user:session:{userId}`\n- `auth:user:tokens:{userId}`\n- `auth:jwt:log:{userId}`"
+					},
+					"response": []
+				},
+				{
+					"name": "5. Logout All Devices",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    pm.collectionVariables.set('access_token', '');",
+									"    pm.collectionVariables.set('refresh_token', '');",
+									"    console.log('✅ Logged out from all devices');",
+									"    console.log('✅ All Redis caches invalidated');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/logout-all",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "logout-all"]
+						},
+						"description": "Logout dari SEMUA devices.\n\n**✅ Features:**\n- Revoke ALL refresh tokens for user\n- Expire ALL access tokens\n- Update ALL login sessions\n- **Invalidate all user caches (NEW!)** ← All Redis caches cleared\n\n**⚠️ Use case:**\n- Suspected account breach\n- Change password\n- Force re-authentication\n\n**Auth:** Bearer Token required"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "📊 Token Management",
+			"item": [
+				{
+					"name": "Get Active Sessions (With Cache)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/sessions",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "sessions"]
+						},
+						"description": "Get all active sessions/tokens for current user.\n\n**🚀 NEW: Redis Cache Enabled!**\n- First request: Query database (~180ms)\n- Subsequent requests: From Redis (~15ms) ← **90% FASTER!**\n- Cache TTL: 15 minutes\n- Auto-invalidate on logout/revoke\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"sessions\": [\n      {\n        \"session_id\": \"uuid\",\n        \"device_name\": \"postman\",\n        \"ip_address\": \"127.0.0.1\",\n        \"browser\": \"PostmanRuntime\",\n        \"os\": \"Unknown\",\n        \"created_at\": \"2025-10-12 00:45:12\",\n        \"is_active\": true\n      }\n    ],\n    \"active_tokens\": 12,\n    \"total_sessions\": 5,\n    \"cached\": true  ← Shows if data from cache\n  }\n}\n```\n\n**Performance:**\n- Cache MISS (first request): ~180ms\n- Cache HIT (subsequent): ~15ms\n- **90% faster with cache!**"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Token Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/token-info",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "token-info"]
+						},
+						"description": "Get info tentang current access token.\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"jti\": \"uuid\",\n    \"type\": \"access\",\n    \"user_id\": \"uuid\",\n    \"issued_at\": \"2025-10-12 00:45:12\",\n    \"expires_at\": \"2025-10-12 01:00:12\",\n    \"time_remaining\": \"854 seconds\",\n    \"ip_address\": \"127.0.0.1\",\n    \"url\": \"/api/v1/auth/login\",\n    \"is_expired\": false\n  }\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Revoke Specific Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token_id\": \"refresh-token-jti-here\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/revoke",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "revoke"]
+						},
+						"description": "Revoke specific refresh token by JTI.\n\n**Use case:**\n- Revoke token dari device tertentu\n- User melihat login mencurigakan di /sessions\n\n**Body:**\n```json\n{\n  \"token_id\": \"uuid-of-refresh-token-jti\"\n}\n```\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"message\": \"Token revoked successfully\"\n}\n```"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🚀 Cache Management (NEW!)",
+			"item": [
+				{
+					"name": "Cache Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/cache/health",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "cache", "health"]
+						},
+						"description": "Check Redis connection status.\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"status\": \"healthy\",\n  \"message\": \"Redis is connected\"\n}\n```\n\n**Status Codes:**\n- 200: Redis healthy\n- 503: Redis unavailable"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Cache Statistics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/cache/stats",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "cache", "stats"]
+						},
+						"description": "Get Redis cache statistics.\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"cache_keys\": {\n      \"user_sessions\": 25,\n      \"user_tokens\": 25,\n      \"jwt_logs\": 15,\n      \"refresh_tokens\": 120,\n      \"token_meta\": 50,\n      \"blacklist\": 2,\n      \"memory_used\": \"3.2M\"\n    },\n    \"total_keys\": 237,\n    \"memory\": \"3.2M\",\n    \"redis_status\": \"connected\"\n  }\n}\n```\n\n**Use For:**\n- Monitoring cache usage\n- Checking memory consumption\n- Debugging cache issues"
+					},
+					"response": []
+				},
+				{
+					"name": "Clear All Caches (DANGER!)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"confirm\": \"yes\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/cache/clear",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "cache", "clear"]
+						},
+						"description": "**⚠️ DANGER:** Clear ALL auth-related caches.\n\n**Use Cases:**\n- Development/testing\n- After database migration\n- Debugging cache issues\n\n**⚠️ Production Warning:**\n- This will cause cache misses for ALL users\n- Next requests will be slower (rebuild from DB)\n- Use with caution!\n\n**Required Body:**\n```json\n{\n  \"confirm\": \"yes\"\n}\n```\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"message\": \"All auth caches cleared successfully\",\n  \"note\": \"Next requests will rebuild cache from database\"\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Invalidate User Cache",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user_id\": \"{{user_id}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/cache/invalidate-user",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "cache", "invalidate-user"]
+						},
+						"description": "Invalidate cache for specific user.\n\n**Use Cases:**\n- User reported stale data\n- After manual database update\n- Testing cache behavior\n\n**Body:**\n```json\n{\n  \"user_id\": \"8A9B55FC-E142-4DCE-A736-0000356DE151\"\n}\n```\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"message\": \"Cache invalidated for user {user_id}\"\n}\n```\n\n**Caches Cleared:**\n- `auth:user:session:{userId}`\n- `auth:user:tokens:{userId}`\n- `auth:jwt:log:{userId}`"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🔍 Debug & Utility",
+			"item": [
+				{
+					"name": "Check JWT Logs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/debug/jwt-logs?limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "debug", "jwt-logs"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Number of records to return"
+								}
+							]
+						},
+						"description": "**[DEV ONLY]** Get recent JWT logs dari `logger.log_jwt`\n\n**Query Params:**\n- `limit`: Jumlah records (default: 10, max: 100)\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"total\": 3,\n    \"active\": 1,\n    \"expired\": 2,\n    \"logs\": [\n      {\n        \"id\": \"uuid\",\n        \"user_id\": \"uuid\",\n        \"app_id\": \"uuid\",\n        \"url\": \"/api/v1/auth/login\",\n        \"ip_address\": \"127.0.0.1\",\n        \"created_at\": \"2025-10-12 05:47:18\",\n        \"expires_at\": \"2025-10-12 06:02:18\",\n        \"is_expired\": false,\n        \"time_remaining\": \"854 seconds\"\n      }\n    ]\n  }\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Check Refresh Token Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/debug/refresh-token-status?jti=CA6220BD-EFD6-49BF-8C51-9074C6EB8A38",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "debug", "refresh-token-status"],
+							"query": [
+								{
+									"key": "jti",
+									"value": "CA6220BD-EFD6-49BF-8C51-9074C6EB8A38",
+									"description": "JTI UUID of refresh token"
+								},
+								{
+									"key": "refresh_token",
+									"value": "",
+									"description": "Or full JWT refresh token",
+									"disabled": true
+								}
+							]
+						},
+						"description": "**[DEV ONLY]** Check status refresh token.\n\n**Query Params (choose one):**\n- `jti`: JTI UUID directly\n- `refresh_token`: Full JWT token (will decode to get JTI)\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"jti\": \"CA6220BD-EFD6-49BF-8C51-9074C6EB8A38\",\n    \"exists\": true,\n    \"created_at\": \"2025-10-12 01:35:27\",\n    \"expires_at\": \"2025-10-19 01:35:31\",\n    \"is_revoked\": false,\n    \"is_expired\": false,\n    \"is_active\": true,\n    \"revoked_at\": null,\n    \"revoked_reason\": null,\n    \"time_remaining\": \"6 days\"\n  }\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Active Sessions (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/debug/all-sessions?limit=20",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "debug", "all-sessions"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "**[ADMIN ONLY]** Get all active sessions from all users.\n\n**Query Params:**\n- `limit`: Number of sessions (default: 20)\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"total_active_sessions\": 150,\n    \"sessions\": [...]\n  }\n}\n```"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

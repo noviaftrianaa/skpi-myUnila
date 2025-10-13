@@ -1,15 +1,186 @@
-/node_modules
-/public/hot
-/public/storage
-/storage/*.key
-/vendor
-.env
-.env.backup
-.phpunit.result.cache
-docker-compose.override.yml
-Homestead.json
-Homestead.yaml
+# ========================================
+# Laravel / PHP
+# ========================================
+vendor/
+node_modules/
 npm-debug.log
 yarn-error.log
-/.idea
-/.vscode
+
+# ========================================
+# Environment files - Microservices
+# ========================================
+.env
+.env.backup
+.env.production
+.env.shared
+*.env.local
+*-service/.env
+*-service/.env.backup
+*-service/.env.production
+auth-service/.env
+
+# ========================================
+# IDE & Development
+# ========================================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Claude AI artifacts & documentation
+# Keep .claude for documentation but ignore it from commits
+# Documentation should be generated from code annotations
+.claude/
+
+# ========================================
+# Laravel specific
+# ========================================
+*/storage/*.key
+*/storage/framework/cache/data/*
+*/storage/framework/sessions/*
+*/storage/framework/testing/*
+*/storage/framework/views/*
+*/storage/logs/*
+*/bootstrap/cache/*
+!*/storage/app/.gitignore
+!*/storage/framework/.gitignore
+!*/storage/framework/cache/.gitignore
+!*/storage/framework/sessions/.gitignore
+!*/storage/framework/testing/.gitignore
+!*/storage/framework/views/.gitignore
+!*/storage/logs/.gitignore
+!*/bootstrap/cache/.gitignore
+
+# ========================================
+# Docker
+# ========================================
+*.log
+docker-compose.override.yml
+
+# ========================================
+# Testing
+# ========================================
+.phpunit.result.cache
+phpunit.xml
+coverage/
+.coverage
+
+# ========================================
+# OS Files
+# ========================================
+Thumbs.db
+.DS_Store
+
+# ========================================
+# Composer
+# ========================================
+composer.lock
+*-service/composer.lock
+auth-service/composer.lock
+
+# ========================================
+# Build & Temp
+# ========================================
+*.cache
+*.tmp
+temp/
+tmp/
+
+# ========================================
+# Backup files
+# ========================================
+*.bak
+*.backup
+*~
+.env.example.bak
+*-service/.env.example.bak
+
+# ========================================
+# Database
+# ========================================
+*.sqlite
+*.sqlite-journal
+database.sqlite
+
+# ========================================
+# Microservices Specific
+# ========================================
+# Each service storage (keep .gitignore files)
+*-service/storage/app/*
+!*-service/storage/app/.gitignore
+!*-service/storage/app/public
+*-service/storage/app/public/*
+!*-service/storage/app/public/.gitignore
+*-service/storage/framework/cache/*
+!*-service/storage/framework/cache/.gitignore
+*-service/storage/framework/sessions/*
+!*-service/storage/framework/sessions/.gitignore
+*-service/storage/framework/testing/*
+!*-service/storage/framework/testing/.gitignore
+*-service/storage/framework/views/*
+!*-service/storage/framework/views/.gitignore
+*-service/storage/logs/*
+!*-service/storage/logs/.gitignore
+*-service/bootstrap/cache/*
+!*-service/bootstrap/cache/.gitignore
+
+# IDE Helper files
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php
+*-service/_ide_helper.php
+*-service/_ide_helper_models.php
+*-service/.phpstorm.meta.php
+
+# ========================================
+# Docker & Kong Gateway
+# ========================================
+docker/volumes/*
+docker/logs/*
+kong-gateway/data/*
+kong-gateway/logs/*
+!docker/.gitkeep
+!kong-gateway/.gitkeep
+
+# ========================================
+# Module System (Laravel Modules)
+# ========================================
+modules_statuses.json
+
+# ========================================
+# Additional Microservices Files
+# ========================================
+# Service-specific node modules
+*-service/node_modules/
+*-service/public/hot
+*-service/public/storage
+*-service/public/mix-manifest.json
+
+# Service-specific test results
+*-service/.phpunit.result.cache
+*-service/phpunit.xml
+
+# ========================================
+# Debug & Development Files
+# ========================================
+check_*.php
+set_test_password.php
+*-service/check_*.php
+*-service/set_test_password.php
+*.bat
+
+# ========================================
+# API Documentation (Auto-generated)
+# ========================================
+# Generated Swagger/OpenAPI docs (regenerate from annotations)
+*-service/storage/api-docs/*.json
+*-service/storage/api-docs/*.yaml
+storage/api-docs/*.json
+storage/api-docs/*.yaml
+
+# Keep directory structure
+!*-service/storage/api-docs/.gitkeep
+!storage/api-docs/.gitkeep
+.claude

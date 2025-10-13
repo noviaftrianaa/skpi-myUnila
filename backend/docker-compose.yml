@@ -1,0 +1,163 @@
+# version: '3.8'  # Deprecated in newer docker-compose
+
+services:
+  # ========================================
+  # Infrastructure Services (No Database)
+  # ========================================
+
+  # Redis for Cache & Queue
+  redis:
+    image: redis:7-alpine
+    container_name: myunila-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - myunila-network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ========================================
+  # Kong API Gateway (DISABLED - Uncomment when needed)
+  # ========================================
+
+  # # Kong Database Migration (Using External PostgreSQL)
+  # kong-migration:
+  #   image: kong:3.4-alpine
+  #   container_name: myunila-kong-migration
+  #   command: kong migrations bootstrap
+  #   environment:
+  #     KONG_DATABASE: postgres
+  #     KONG_PG_HOST: ${DB_PGSQL_HOST:-host.docker.internal}
+  #     KONG_PG_PORT: ${DB_PGSQL_PORT:-5432}
+  #     KONG_PG_DATABASE: ${DB_KONG_DATABASE:-kong}
+  #     KONG_PG_USER: ${DB_PGSQL_USERNAME:-postgres}
+  #     KONG_PG_PASSWORD: ${DB_PGSQL_PASSWORD}
+  #   networks:
+  #     - myunila-network
+  #   restart: on-failure
+
+  # # Kong Gateway
+  # kong:
+  #   image: kong:3.4-alpine
+  #   container_name: myunila-kong
+  #   environment:
+  #     KONG_DATABASE: postgres
+  #     KONG_PG_HOST: ${DB_PGSQL_HOST:-host.docker.internal}
+  #     KONG_PG_PORT: ${DB_PGSQL_PORT:-5432}
+  #     KONG_PG_DATABASE: ${DB_KONG_DATABASE:-kong}
+  #     KONG_PG_USER: ${DB_PGSQL_USERNAME:-postgres}
+  #     KONG_PG_PASSWORD: ${DB_PGSQL_PASSWORD}
+  #     KONG_PROXY_ACCESS_LOG: /dev/stdout
+  #     KONG_ADMIN_ACCESS_LOG: /dev/stdout
+  #     KONG_PROXY_ERROR_LOG: /dev/stderr
+  #     KONG_ADMIN_ERROR_LOG: /dev/stderr
+  #     KONG_ADMIN_LISTEN: 0.0.0.0:8001
+  #     KONG_PROXY_LISTEN: 0.0.0.0:8000
+  #     KONG_ADMIN_GUI_URL: http://localhost:8002
+  #   ports:
+  #     - "8000:8000"  # Proxy port (API Gateway)
+  #     - "8443:8443"  # Proxy SSL port
+  #     - "8001:8001"  # Admin API port
+  #     - "8444:8444"  # Admin API SSL port
+  #     - "8002:8002"  # Kong Manager (GUI)
+  #   networks:
+  #     - myunila-network
+  #   depends_on:
+  #     - kong-migration
+  #   healthcheck:
+  #     test: ["CMD", "kong", "health"]
+  #     interval: 10s
+  #     timeout: 10s
+  #     retries: 10
+  #   restart: unless-stopped
+
+  # # Konga - Kong Admin GUI (Using External PostgreSQL)
+  # konga:
+  #   image: pantsel/konga:latest
+  #   container_name: myunila-konga
+  #   environment:
+  #     NODE_ENV: production
+  #     DB_ADAPTER: postgres
+  #     DB_HOST: ${DB_PGSQL_HOST:-host.docker.internal}
+  #     DB_PORT: ${DB_PGSQL_PORT:-5432}
+  #     DB_DATABASE: ${DB_KONGA_DATABASE:-konga}
+  #     DB_USER: ${DB_PGSQL_USERNAME:-postgres}
+  #     DB_PASSWORD: ${DB_PGSQL_PASSWORD}
+  #   ports:
+  #     - "1337:1337"
+  #   networks:
+  #     - myunila-network
+  #   depends_on:
+  #     - kong
+  #   restart: unless-stopped
+
+  # ========================================
+  # Microservices (Using External Databases)
+  # ========================================
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: myunila-auth-service
+    working_dir: /var/www
+    env_file:
+      - ./auth-service/.env
+    environment:
+      # Override for Docker networking only
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - ./auth-service:/var/www
+      - auth_vendor:/var/www/vendor
+    networks:
+      - myunila-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+
+  # ========================================
+  # Nginx Web Server
+  # ========================================
+  nginx:
+    image: nginx:alpine
+    container_name: myunila-nginx
+    ports:
+      - "8081:80"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/conf.d/auth-only.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./auth-service/public:/var/www/auth-service/public
+    networks:
+      - myunila-network
+    depends_on:
+      - auth-service
+    restart: unless-stopped
+
+# ========================================
+# Networks
+# ========================================
+networks:
+  myunila-network:
+    driver: bridge
+    name: myunila-network
+
+# ========================================
+# Volumes (Redis data and auth-service vendor only)
+# ========================================
+volumes:
+  redis_data:
+    driver: local
+  auth_vendor:
+    driver: local
