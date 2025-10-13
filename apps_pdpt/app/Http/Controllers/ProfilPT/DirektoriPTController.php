@@ -16,7 +16,7 @@ class DirektoriPTController extends Controller
 {
     protected $basepath;
     protected $id_sp;
-    
+
     public function __construct()
     {
         $this->basepath = 'direktori_pt';
@@ -96,7 +96,7 @@ class DirektoriPTController extends Controller
             ORDER BY
                 sms.nm_lemb ASC
         ");
-        
+
         return \DataTables::of($data)
             ->addIndexColumn()
             ->addColumn('aksi', function($data) {
