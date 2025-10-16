@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Main\dosen\PangGolController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SyncController;
 use App\Http\Controllers\DosenController;
@@ -131,6 +132,12 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/jabfung/load', action: [JabFungControlller::class, 'load'])->name('dashboard_dosen.jabfung_chart_load');
             Route::post('/jabfung/reload', action: [JabFungControlller::class, 'reload'])->name('dashboard_dosen.jabfung_chart_reload');
 
+            Route::get('/pang_gol', [PangGolController::class, 'index'])->name('dashboard_dosen.panggol');
+            Route::post('/pang_gol', action: [PangGolController::class, 'chart'])->name('dashboard_dosen.panggol_chart');
+            Route::get('/pang_gol/load', action: [PangGolController::class, 'load'])->name('dashboard_dosen.panggol_chart_load');
+            Route::post('/pang_gol/reload', action: [PangGolController::class, 'reload'])->name('dashboard_dosen.panggol_chart_reload');
+
+            
         });
 
 
