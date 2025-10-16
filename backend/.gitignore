@@ -169,7 +169,10 @@ check_*.php
 set_test_password.php
 *-service/check_*.php
 *-service/set_test_password.php
-*.bat
+
+# Keep important startup scripts
+!start-all.bat
+!stop-all.bat
 
 # ========================================
 # API Documentation (Auto-generated)
