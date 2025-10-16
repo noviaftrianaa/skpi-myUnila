@@ -196,6 +196,8 @@
                     },
                     success: function(data){
                         $("#chartDetail").modal('hide');
+                                                    $("#last-update").html(data.last_update);
+
                         if(drillDown){
                             $('#filterWilayah').val('all');
                         }
