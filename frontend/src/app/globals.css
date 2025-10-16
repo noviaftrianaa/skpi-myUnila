@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ====================================
+   PROFIL MYUNILA - GLOBAL STYLES
+   ==================================== */
+
+/* Remove default focus outline from all inputs */
+@layer base {
+  input:focus,
+  input:focus-visible,
+  textarea:focus,
+  textarea:focus-visible,
+  select:focus,
+  select:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Remove HeroUI default focus ring */
+  [data-focus="true"],
+  [data-focus-visible="true"],
+  .heroui-input:focus,
+  .heroui-input:focus-visible,
+  .heroui-input-wrapper:focus-within {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+}
+
+@layer components {
+  /* Gradient Buttons */
+  .btn-gradient-primary {
+    @apply bg-gradient-blue-modern text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105;
+  }
+
+  .btn-gradient-ocean {
+    @apply bg-gradient-ocean text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105;
+  }
+
+  .btn-gradient-twilight {
+    @apply bg-gradient-twilight text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105;
+  }
+
+  .btn-outline-primary {
+    @apply border-2 border-blue-500 text-blue-600 font-semibold hover:bg-blue-50 transition-all duration-300 hover:scale-105;
+  }
+
+  /* Text Gradients */
+  .text-gradient-primary {
+    @apply bg-gradient-to-r from-blue-600 via-blue-500 to-blue-700 bg-clip-text text-transparent;
+  }
+
+  .text-gradient-ocean {
+    @apply bg-gradient-to-r from-cyan-500 via-blue-500 to-blue-700 bg-clip-text text-transparent;
+  }
+
+  .text-gradient-twilight {
+    @apply bg-gradient-to-r from-purple-600 via-blue-500 to-pink-500 bg-clip-text text-transparent;
+  }
+
+  /* Card Styles */
+  .card-elevated {
+    @apply shadow-2xl border-none bg-white rounded-xl;
+  }
+
+  .card-gradient-header {
+    @apply bg-gradient-to-br from-white to-blue-50;
+  }
+
+  /* Background Patterns */
+  .bg-pattern-primary {
+    @apply bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50;
+  }
+
+  .bg-pattern-light {
+    @apply bg-gradient-to-br from-gray-50 to-blue-50;
+  }
+
+  /* Animations */
+  .animate-fade-in {
+    @apply opacity-0 animate-[fadeIn_0.5s_ease-in-out_forwards];
+  }
+
+  .animate-scale-in {
+    @apply scale-0 animate-[scaleIn_0.3s_ease-in-out_forwards];
+  }
+}
+
+@layer utilities {
+  /* Custom hover effects */
+  .hover-lift {
+    @apply transition-transform duration-300 hover:-translate-y-1;
+  }
+
+  .hover-glow {
+    @apply transition-shadow duration-300 hover:shadow-2xl hover:shadow-blue-500/20;
+  }
+
+  /* Animation keyframes */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      transform: scale(0);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes blob {
+    0% {
+      transform: translate(0px, 0px) scale(1);
+    }
+    33% {
+      transform: translate(30px, -50px) scale(1.1);
+    }
+    66% {
+      transform: translate(-20px, 20px) scale(0.9);
+    }
+    100% {
+      transform: translate(0px, 0px) scale(1);
+    }
+  }
+
+  .animate-blob {
+    animation: blob 7s infinite;
+  }
+
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+}
