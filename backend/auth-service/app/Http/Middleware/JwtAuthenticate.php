@@ -3,11 +3,11 @@
 namespace App\Http\Middleware;
 
 use App\Services\TokenService;
-use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
+use stdClass;
 
 class JwtAuthenticate
 {
@@ -74,17 +74,22 @@ class JwtAuthenticate
             ], 403);
         }
 
-        // Create User model instance for compatibility
-        $user = new User();
-        $user->exists = true;
-        foreach ($userData as $key => $value) {
-            $user->setAttribute($key, $value);
+        // Convert stdClass to array for easier access
+        $userArray = (array) $userData;
+
+        // Create a simple user object
+        $user = new stdClass();
+        foreach ($userArray as $key => $value) {
+            $user->$key = $value;
         }
 
         // Attach user to request
         $request->setUserResolver(function () use ($user) {
             return $user;
         });
+
+        // Also attach to request attributes for easier access
+        $request->attributes->set('auth_user', $user);
 
         return $next($request);
     }

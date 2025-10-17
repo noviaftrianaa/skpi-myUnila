@@ -47,10 +47,10 @@ return [
 
                 /*
                  * Absolute paths to directory containing the swagger annotations are stored.
+                 * ONLY scan OpenApi folder to prevent accidental controller deletion
                  */
                 'annotations' => [
-                    base_path('app/Http/Controllers'),
-                    base_path('app/Swagger'),
+                    base_path('app/Http/Controllers/OpenApi'),
                 ],
             ],
         ],

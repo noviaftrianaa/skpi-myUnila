@@ -159,7 +159,7 @@
         </div>
 
         <div class="text-center text-white mt-8">
-            <p class="text-sm opacity-75">My Unila • Kong 3.4 • Powered by Tailwind CSS</p>
+            <p class="text-sm opacity-75">My Unila • Kong 3.4 • Powered by UPA TIK UNILA</p>
         </div>
     </div>
 
@@ -170,35 +170,51 @@
                 name: 'Auth Service',
                 desc: 'Authentication & Authorization',
                 icon: '🔐',
-                host: 'myunila-nginx',
+                host: 'nginx',
                 port: 80,
                 externalPort: 8081,
                 swagger: 'http://localhost:8081/api/documentation',
                 color: 'blue'
             },
+            'dashboard-service': {
+                name: 'Dashboard Service',
+                desc: 'Public University Info & Homepage',
+                icon: '🏛️',
+                host: 'nginx',
+                port: 81,
+                externalPort: 8082,
+                swagger: 'http://localhost:8082/api/documentation',
+                color: 'purple'
+            },
             'portal-service': {
                 name: 'Portal Service',
-                desc: 'Dashboard & Profile',
+                desc: 'Student & Staff Portal',
                 icon: '🏠',
-                port: 8082,
-                swagger: 'http://localhost:8082/portal-service/api/documentation',
-                color: 'purple'
+                host: 'nginx',
+                port: 82,
+                externalPort: 8083,
+                swagger: 'http://localhost:8083/api/documentation',
+                color: 'green'
             },
             'akademik-service': {
                 name: 'Akademik Service',
                 desc: 'Academic Operations',
                 icon: '📚',
-                port: 8084,
-                swagger: 'http://localhost:8084/akademik-service/api/documentation',
-                color: 'green'
+                host: 'nginx',
+                port: 83,
+                externalPort: 8084,
+                swagger: 'http://localhost:8084/api/documentation',
+                color: 'orange'
             },
             'integrator-service': {
                 name: 'Integrator Service',
                 desc: 'External API Integration',
                 icon: '🔗',
-                port: 8083,
-                swagger: 'http://localhost:8083/integrator-service/api/documentation',
-                color: 'orange'
+                host: 'nginx',
+                port: 84,
+                externalPort: 8085,
+                swagger: 'http://localhost:8085/api/documentation',
+                color: 'pink'
             }
         };
 
@@ -226,7 +242,8 @@
                 blue: 'from-blue-500 to-blue-600',
                 purple: 'from-purple-500 to-purple-600',
                 green: 'from-green-500 to-green-600',
-                orange: 'from-orange-500 to-orange-600'
+                orange: 'from-orange-500 to-orange-600',
+                pink: 'from-pink-500 to-pink-600'
             };
 
             let html = '';

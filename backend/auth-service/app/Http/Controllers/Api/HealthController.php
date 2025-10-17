@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\ApiController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Traits\ApiResponse;
 
-class HealthController extends ApiController
+/**
+ * Health Controller
+ * Check service health status
+ */
+class HealthController extends Controller
 {
+    use ApiResponse;
+
     /**
      * Check service health
-     *
-     * @return \Illuminate\Http\JsonResponse
      */
     public function check()
     {

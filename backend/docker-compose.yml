@@ -126,6 +126,30 @@ services:
       - redis
     restart: unless-stopped
 
+  # Dashboard Service
+  dashboard-service:
+    build:
+      context: ./dashboard-service
+      dockerfile: Dockerfile
+    container_name: myunila-dashboard-service
+    working_dir: /var/www
+    env_file:
+      - ./dashboard-service/.env
+    environment:
+      # Override for Docker networking only
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - ./dashboard-service:/var/www
+      - dashboard_vendor:/var/www/vendor
+    networks:
+      - myunila-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - redis
+    restart: unless-stopped
+
 
   # ========================================
   # Nginx Web Server
@@ -135,14 +159,18 @@ services:
     container_name: myunila-nginx
     ports:
       - "8081:80"
+      - "8082:81"
     volumes:
       - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./docker/nginx/conf.d/auth-only.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./docker/nginx/conf.d/auth-service.conf:/etc/nginx/conf.d/auth-service.conf:ro
+      - ./docker/nginx/conf.d/dashboard-service.conf:/etc/nginx/conf.d/dashboard-service.conf:ro
       - ./auth-service/public:/var/www/auth-service/public
+      - ./dashboard-service/public:/var/www/dashboard-service/public
     networks:
       - myunila-network
     depends_on:
       - auth-service
+      - dashboard-service
     restart: unless-stopped
 
 # ========================================
@@ -154,10 +182,12 @@ networks:
     name: myunila-network
 
 # ========================================
-# Volumes (Redis data and auth-service vendor only)
+# Volumes
 # ========================================
 volumes:
   redis_data:
     driver: local
   auth_vendor:
+    driver: local
+  dashboard_vendor:
     driver: local

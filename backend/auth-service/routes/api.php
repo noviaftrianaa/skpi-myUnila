@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\MfaController;
 use App\Http\Controllers\SsoController;
 use App\Http\Controllers\DebugController;
 use App\Http\Controllers\CacheController;
@@ -34,7 +33,6 @@ Route::prefix('v1')->group(function () {
     Route::prefix('auth')->group(function () {
         // Standard Authentication
         Route::post('/login', [AuthController::class, 'login']);
-        Route::post('/verify-mfa', [AuthController::class, 'verifyMfa']);
         Route::post('/refresh', [AuthController::class, 'refresh']);
 
         // SSO Authentication (CAS Unila)
@@ -61,16 +59,6 @@ Route::prefix('v1')->group(function () {
         // Token management endpoints
         Route::get('/auth/sessions', [AuthController::class, 'activeSessions']);
         Route::get('/auth/token-info', [AuthController::class, 'tokenInfo']);
-        Route::post('/auth/revoke', [AuthController::class, 'revokeToken']);
-
-        // MFA management endpoints
-        Route::prefix('mfa')->group(function () {
-            Route::post('/setup', [MfaController::class, 'setup']);
-            Route::post('/enable', [MfaController::class, 'enable']);
-            Route::post('/disable', [MfaController::class, 'disable']);
-            Route::post('/generate-backup-codes', [MfaController::class, 'generateBackupCodes']);
-            Route::get('/status', [MfaController::class, 'status']);
-        });
 
         // Debug endpoints (Development only)
         Route::prefix('debug')->group(function () {

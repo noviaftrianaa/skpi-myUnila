@@ -1,0 +1,20 @@
+// Script untuk cek environment variables
+console.log('='.repeat(60));
+console.log('Environment Variables Check');
+console.log('='.repeat(60));
+console.log('');
+console.log('NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
+console.log('NEXT_PUBLIC_API_TIMEOUT:', process.env.NEXT_PUBLIC_API_TIMEOUT);
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('');
+console.log('='.repeat(60));
+console.log('');
+console.log('✅ Expected API URL: http://localhost:9800/auth-service/api/v1');
+console.log('');
+console.log('If the URL above shows kong-gateway instead of localhost:');
+console.log('1. Stop the dev server (Ctrl+C)');
+console.log('2. Delete .next folder: rm -rf .next');
+console.log('3. Clear node_modules cache: rm -rf node_modules/.cache');
+console.log('4. Restart: npm run dev');
+console.log('');
+console.log('='.repeat(60));

@@ -1,0 +1,326 @@
+{
+	"info": {
+		"_postman_id": "auth-service-2025-v2",
+		"name": "Auth Service - My Unila (v2 - Token Management)",
+		"description": "Complete API collection with Token Logging, Refresh, and Revoke",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{access_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8081/auth-service",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refresh_token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "🏥 Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/health",
+					"host": ["{{base_url}}"],
+					"path": ["api", "health"]
+				},
+				"description": "Check if the service is running"
+			},
+			"response": []
+		},
+		{
+			"name": "🔐 Authentication",
+			"item": [
+				{
+					"name": "1. Login (Standard)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data.tokens) {",
+									"        // Save access token",
+									"        pm.collectionVariables.set('access_token', response.data.tokens.access_token);",
+									"        console.log('✅ Access token saved');",
+									"        ",
+									"        // Save refresh token dari cookie",
+									"        const cookies = pm.cookies.all();",
+									"        const refreshCookie = cookies.find(c => c.name === 'refresh_token');",
+									"        if (refreshCookie) {",
+									"            pm.collectionVariables.set('refresh_token', refreshCookie.value);",
+									"            console.log('✅ Refresh token saved from cookie');",
+									"        }",
+									"        ",
+									"        console.log('User:', response.data.user.name);",
+									"        console.log('Token expires in:', response.data.tokens.expires_in, 'seconds');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"DWI.RETNO21\",\n  \"password\": \"test123\",\n  \"device_name\": \"postman\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "login"]
+						},
+						"description": "Login dengan username & password.\n\n**✅ Features:**\n- Password SHA1 hashed\n- Log ke `logger.log_login`\n- Log JWT ke `logger.log_jwt`\n- Generate access token (15 min)\n- Generate refresh token (7 days)\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"user\": {...},\n    \"tokens\": {\n      \"access_token\": \"...\",\n      \"token_type\": \"Bearer\",\n      \"expires_in\": 900\n    }\n  }\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "2. Get Current User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/me",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "me"]
+						},
+						"description": "Get authenticated user info menggunakan access token.\n\n**Auth:** Bearer Token (auto dari collection variable)"
+					},
+					"response": []
+				},
+				{
+					"name": "3. Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data.access_token) {",
+									"        pm.collectionVariables.set('access_token', response.data.access_token);",
+									"        console.log('✅ Access token refreshed successfully');",
+									"        console.log('New token expires in:', response.data.expires_in, 'seconds');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "refresh_token={{refresh_token}}",
+								"description": "Refresh token dari cookie"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/refresh",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "refresh"]
+						},
+						"description": "Refresh access token menggunakan refresh token.\n\n**⏰ Kapan digunakan:**\n- Access token expired (15 minutes)\n- Response 401 Unauthorized\n\n**✅ Features:**\n- Validate refresh token dari database\n- Check if revoked\n- Generate new access token\n- Log ke `logger.log_jwt`\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"access_token\": \"...\",\n    \"token_type\": \"Bearer\",\n    \"expires_in\": 900\n  }\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "4. Logout (Single Device)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    pm.collectionVariables.set('access_token', '');",
+									"    pm.collectionVariables.set('refresh_token', '');",
+									"    console.log('✅ Logged out successfully');",
+									"    console.log('Tokens cleared from collection variables');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/logout",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "logout"]
+						},
+						"description": "Logout dari current device.\n\n**✅ Features:**\n- Revoke refresh token\n- Expire access token\n- Update `logger.log_login` (set waktu_logout)\n- Clear session\n\n**Auth:** Bearer Token required\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"message\": \"Logged out successfully\"\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "5. Logout All Devices",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    pm.collectionVariables.set('access_token', '');",
+									"    pm.collectionVariables.set('refresh_token', '');",
+									"    console.log('✅ Logged out from all devices');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/logout-all",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "logout-all"]
+						},
+						"description": "Logout dari SEMUA devices.\n\n**✅ Features:**\n- Revoke ALL refresh tokens for user\n- Expire ALL access tokens\n- Update ALL login sessions\n\n**⚠️ Use case:**\n- Suspected account breach\n- Change password\n- Force re-authentication\n\n**Auth:** Bearer Token required"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "📊 Token Management",
+			"item": [
+				{
+					"name": "Get Active Sessions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/sessions",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "sessions"]
+						},
+						"description": "Get all active sessions/tokens for current user.\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"sessions\": [\n      {\n        \"device_name\": \"postman\",\n        \"ip_address\": \"127.0.0.1\",\n        \"browser\": \"PostmanRuntime\",\n        \"created_at\": \"2025-10-12 00:45:12\",\n        \"expires_at\": \"2025-10-19 00:45:12\",\n        \"is_current\": true\n      }\n    ]\n  }\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Token Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/token-info",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "token-info"]
+						},
+						"description": "Get info tentang current access token.\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"jti\": \"uuid\",\n    \"issued_at\": \"2025-10-12 00:45:12\",\n    \"expires_at\": \"2025-10-12 01:00:12\",\n    \"time_remaining\": \"14 minutes\",\n    \"token_type\": \"access\",\n    \"device\": \"postman\",\n    \"ip\": \"127.0.0.1\"\n  }\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Revoke Specific Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token_id\": \"refresh-token-jti-here\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/revoke",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "revoke"]
+						},
+						"description": "Revoke specific refresh token by JTI.\n\n**Use case:**\n- Revoke token dari device tertentu\n- User melihat login mencurigakan di /sessions\n\n**Body:**\n```json\n{\n  \"token_id\": \"uuid-of-refresh-token-jti\"\n}\n```"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🔍 Debug & Utility",
+			"item": [
+				{
+					"name": "Check JWT Logs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/debug/jwt-logs?limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "debug", "jwt-logs"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "**[DEV ONLY]** Get recent JWT logs dari `logger.log_jwt`\n\n**Query Params:**\n- `limit`: Jumlah records (default: 10)"
+					},
+					"response": []
+				},
+				{
+					"name": "Check Refresh Token Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/debug/refresh-token-status?jti={{refresh_token_jti}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "debug", "refresh-token-status"],
+							"query": [
+								{
+									"key": "jti",
+									"value": "{{refresh_token_jti}}"
+								}
+							]
+						},
+						"description": "**[DEV ONLY]** Check status refresh token.\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"exists\": true,\n    \"is_revoked\": false,\n    \"is_expired\": false,\n    \"is_active\": true,\n    \"revoked_at\": null,\n    \"revoked_reason\": null\n  }\n}\n```"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
