@@ -26,7 +26,14 @@ class UserRepository
                 password_encrypt,
                 id_pd_pengguna,
                 id_sdm_pengguna,
-                id_user_sikep
+                id_user_sikep,
+                google2fa_enabled,
+                google2fa_secret,
+                google2fa_enabled_at,
+                failed_login_attempts,
+                locked_until,
+                last_login_at,
+                last_login_ip
             FROM man_akses.pengguna
             WHERE username = ?
               AND soft_delete = 0
@@ -50,7 +57,14 @@ class UserRepository
                 password_encrypt,
                 id_pd_pengguna,
                 id_sdm_pengguna,
-                id_user_sikep
+                id_user_sikep,
+                google2fa_enabled,
+                google2fa_secret,
+                google2fa_enabled_at,
+                failed_login_attempts,
+                locked_until,
+                last_login_at,
+                last_login_ip
             FROM man_akses.pengguna
             WHERE id_pengguna = ?
               AND soft_delete = 0

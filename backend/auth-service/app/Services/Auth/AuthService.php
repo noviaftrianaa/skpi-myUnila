@@ -41,6 +41,35 @@ class AuthService
             throw new \Exception('Invalid credentials', 401);
         }
 
+        // Debug: Check MFA status
+        Log::info('Login MFA Check', [
+            'user_id' => $user->id_pengguna,
+            'username' => $user->username,
+            'google2fa_enabled' => $user->google2fa_enabled ?? 'null',
+            'google2fa_enabled_type' => gettype($user->google2fa_enabled ?? null),
+            'google2fa_secret' => !empty($user->google2fa_secret) ? 'EXISTS' : 'NULL',
+        ]);
+
+        // Check if MFA is enabled for this user
+        // Must explicitly be 1 AND have a secret key
+        if (
+            isset($user->google2fa_enabled) &&
+            ((int)$user->google2fa_enabled === 1) &&
+            !empty($user->google2fa_secret)
+        ) {
+            // Return MFA required response instead of token
+            Log::info('MFA Required for user', [
+                'user_id' => $user->id_pengguna,
+                'username' => $user->username,
+            ]);
+
+            return [
+                'mfa_required' => true,
+                'user_id' => $user->id_pengguna,
+                'message' => 'MFA verification required',
+            ];
+        }
+
         // Get user roles
         $roles = $this->userRepo->getUserRoles($user->id_pengguna);
 
@@ -72,6 +101,98 @@ class AuthService
 
         // Log successful login
         $this->logSuccessfulLogin($user, $ipAddress, $userAgent);
+
+        // Build response
+        return [
+            'user' => [
+                'id' => $userDetail->id_pengguna ?? $user->id_pengguna,
+                'username' => $userDetail->username ?? $user->username,
+                'name' => $userDetail->nm_pengguna ?? $user->nm_pengguna,
+                'email' => $userDetail->email ?? $user->email,
+                'role' => $userDetail->nm_peran ?? $activeRole,
+                'roles' => $roles,
+                'satuan_pendidikan' => $userDetail->nm_satuan_pendidikan ?? null,
+                'fakultas' => $userDetail->nm_fakultas ?? null,
+                'jurusan' => $userDetail->nm_jurusan ?? null,
+                'prodi' => $userDetail->nm_prodi_jenjang ?? null,
+                'id_pd_pengguna' => $user->id_pd_pengguna ?? null,
+                'id_sdm_pengguna' => $user->id_sdm_pengguna ?? null,
+                'id_user_sikep' => $user->id_user_sikep ?? null,
+                'id_lembaga' => null,
+                'kode_organisasi' => null,
+                'a_aktif' => 1,
+            ],
+            'tokens' => [
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => config('jwt.ttl', 15) * 60,
+            ],
+        ];
+    }
+
+    /**
+     * Login with MFA verification
+     *
+     * @return array ['user' => array, 'tokens' => array]
+     * @throws \Exception
+     */
+    public function loginWithMfa(string $userId, string $mfaCode, string $ipAddress, string $userAgent): array
+    {
+        // Get user from repository
+        $user = $this->userRepo->findById($userId);
+
+        if (!$user) {
+            throw new \Exception('User not found', 404);
+        }
+
+        // Check if MFA is enabled
+        if (!$user->google2fa_enabled) {
+            throw new \Exception('MFA not enabled for this user', 400);
+        }
+
+        // Verify MFA code
+        $mfaService = app(MfaService::class);
+        $isValid = $mfaService->verifyCode($user, $mfaCode);
+
+        if (!$isValid) {
+            Log::warning('MFA verification failed during login', [
+                'user_id' => $userId,
+                'ip_address' => $ipAddress,
+            ]);
+            throw new \Exception('Invalid MFA code', 401);
+        }
+
+        // Get user roles
+        $roles = $this->userRepo->getUserRoles($user->id_pengguna);
+
+        if (empty($roles)) {
+            throw new \Exception('User has no assigned roles', 403);
+        }
+
+        // Get active role
+        $activeRole = $this->userRepo->getActiveRole($user->id_pengguna);
+
+        // Get user detail
+        $userDetail = $this->userRepo->getUserDetail($user->id_pengguna);
+
+        // Generate JWT token
+        $token = $this->tokenService->generateAccessTokenFromArray(
+            [
+                'id' => $user->id_pengguna,
+                'username' => $user->username,
+                'email' => $user->email,
+                'name' => $user->nm_pengguna,
+                'role' => $activeRole,
+                'roles' => $roles,
+            ],
+            [
+                'ip_address' => $ipAddress,
+                'user_agent' => $userAgent,
+            ]
+        );
+
+        // Log successful login with MFA
+        $this->logSuccessfulLoginWithMfa($user, $ipAddress, $userAgent);
 
         // Build response
         return [
@@ -352,6 +473,32 @@ class AuthService
             'platform' => $deviceInfo['platform'],
             'location' => DeviceDetector::getLocationFromIp($ipAddress),
             'mfa_verified' => 0,
+            'a_sesi_aktif' => 1,
+        ]);
+    }
+
+    /**
+     * Log successful login with MFA
+     */
+    private function logSuccessfulLoginWithMfa(object $user, string $ipAddress, string $userAgent): void
+    {
+        $deviceInfo = DeviceDetector::parse($userAgent);
+
+        $this->tokenRepo->logLogin([
+            'id_log_login' => Str::uuid()->toString(),
+            'id_aplikasi' => config('app.aplikasi_id'),
+            'id_pengguna' => $user->id_pengguna,
+            'username' => $user->username,
+            'email' => $user->email,
+            'status' => 'success',
+            'ip_address' => $ipAddress,
+            'user_agent' => $userAgent,
+            'browser' => $deviceInfo['browser'],
+            'os' => $deviceInfo['os'],
+            'device_type' => $deviceInfo['device_type'],
+            'platform' => $deviceInfo['platform'],
+            'location' => DeviceDetector::getLocationFromIp($ipAddress),
+            'mfa_verified' => 1, // MFA verified!
             'a_sesi_aktif' => 1,
         ]);
     }

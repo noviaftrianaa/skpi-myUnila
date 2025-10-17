@@ -32,6 +32,13 @@ class AuthService {
 
       // Check if login was successful
       if (response.data.success) {
+        // Check if MFA is required
+        if (response.data.data.mfa_required) {
+          console.log('🔐 MFA verification required');
+          // Return MFA required response - will be handled by AuthContext
+          return response.data;
+        }
+
         const { user, tokens } = response.data.data;
         const { access_token } = tokens;
 
@@ -78,6 +85,36 @@ class AuthService {
 
       // Otherwise, handle axios error
       console.error('❌ Login failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Login with MFA code
+   */
+  async loginWithMfa(userId: string, code: string): Promise<LoginResponse> {
+    try {
+      const response = await apiClient.post<LoginResponse>('/auth/login-mfa', {
+        user_id: userId,
+        code: code,
+      });
+
+      console.log('🔍 MFA Login response:', response.data);
+
+      if (response.data.success) {
+        const { user, tokens } = response.data.data;
+        const { access_token } = tokens;
+
+        // Store access token and user
+        setToken('ACCESS', access_token);
+        setToken('USER', JSON.stringify(user));
+
+        console.log('✅ MFA Login successful:', user.username);
+      }
+
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ MFA Login failed:', error);
       throw error;
     }
   }
@@ -270,6 +307,71 @@ class AuthService {
       throw new Error('Failed to switch role');
     } catch (error: any) {
       console.error('❌ Switch role failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get MFA status
+   */
+  async getMfaStatus(): Promise<any> {
+    try {
+      const response = await apiClient.get('/mfa/status');
+      return response.data;
+    } catch (error) {
+      console.error('❌ Get MFA status failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Setup MFA - Generate QR code and secret
+   */
+  async setupMfa(): Promise<any> {
+    try {
+      const response = await apiClient.post('/mfa/setup');
+      return response.data;
+    } catch (error) {
+      console.error('❌ MFA setup failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Enable MFA - Verify code and activate
+   */
+  async enableMfa(code: string): Promise<any> {
+    try {
+      const response = await apiClient.post('/mfa/enable', { code });
+      return response.data;
+    } catch (error) {
+      console.error('❌ Enable MFA failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Disable MFA
+   */
+  async disableMfa(code: string): Promise<any> {
+    try {
+      const response = await apiClient.post('/mfa/disable', { code });
+      return response.data;
+    } catch (error) {
+      console.error('❌ Disable MFA failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Verify MFA code
+   */
+  async verifyMfa(code: string): Promise<any> {
+    try {
+      const response = await apiClient.post('/mfa/verify', { code });
+      return response.data;
+    } catch (error) {
+      console.error('❌ Verify MFA failed:', error);
       throw error;
     }
   }

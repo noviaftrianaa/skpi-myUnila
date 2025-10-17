@@ -2,9 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\RefreshToken;
-use App\Models\TokenBlacklist;
-use App\Models\User;
 use App\Repositories\TokenRepository;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
@@ -32,19 +29,20 @@ class TokenService
 
     /**
      * Generate access and refresh tokens for a user.
+     * NOTE: User model removed - use generateTokensFromArray instead
      */
-    public function generateTokens(User $user, array $metadata = []): array
-    {
-        $accessToken = $this->generateAccessToken($user);
-        $refreshToken = $this->generateRefreshToken($user, $metadata);
-
-        return [
-            'access_token' => $accessToken,
-            'refresh_token' => $refreshToken['token'],
-            'token_type' => 'Bearer',
-            'expires_in' => $this->accessTtl,
-        ];
-    }
+    // public function generateTokens(User $user, array $metadata = []): array
+    // {
+    //     $accessToken = $this->generateAccessToken($user);
+    //     $refreshToken = $this->generateRefreshToken($user, $metadata);
+    //
+    //     return [
+    //         'access_token' => $accessToken,
+    //         'refresh_token' => $refreshToken['token'],
+    //         'token_type' => 'Bearer',
+    //         'expires_in' => $this->accessTtl,
+    //     ];
+    // }
 
     /**
      * Generate tokens from array data (without User model).
@@ -64,40 +62,12 @@ class TokenService
 
     /**
      * Generate access token (JWT).
+     * NOTE: User model removed - use generateAccessTokenFromArray instead
      */
-    public function generateAccessToken(User $user): string
-    {
-        $now = time();
-        $payload = [
-            'iss' => config('app.url'),
-            'iat' => $now,
-            'exp' => $now + $this->accessTtl,
-            'nbf' => $now,
-            'sub' => $user->id,
-            'jti' => Str::uuid()->toString(),
-            'type' => 'access',
-            'user' => [
-                'id' => $user->id,
-                'sso_id' => $user->sso_id,
-                'email' => $user->email,
-                'name' => $user->name,
-                'role' => $user->role,
-                'npm' => $user->npm,
-                'nip' => $user->nip,
-            ],
-        ];
-
-        $token = JWT::encode($payload, $this->secret, $this->algo);
-
-        // Store token metadata in Redis for quick validation
-        $this->storeTokenMetadata($payload['jti'], [
-            'user_id' => $user->id,
-            'type' => 'access',
-            'expires_at' => $payload['exp'],
-        ], $this->accessTtl);
-
-        return $token;
-    }
+    // public function generateAccessToken(User $user): string
+    // {
+    //     ...
+    // }
 
     /**
      * Generate access token from array data (without User model).
@@ -146,52 +116,12 @@ class TokenService
 
     /**
      * Generate refresh token.
+     * NOTE: User model removed - use generateRefreshTokenFromArray instead
      */
-    public function generateRefreshToken(User $user, array $metadata = []): array
-    {
-        $now = time();
-        $tokenId = Str::uuid()->toString();
-        $rawToken = Str::random(64);
-        $tokenHash = hash('sha256', $rawToken);
-
-        $payload = [
-            'iss' => config('app.url'),
-            'iat' => $now,
-            'exp' => $now + $this->refreshTtl,
-            'nbf' => $now,
-            'sub' => $user->id,
-            'jti' => $tokenId,
-            'type' => 'refresh',
-        ];
-
-        $token = JWT::encode($payload, $this->secret, $this->algo);
-
-        // Store refresh token in database
-        RefreshToken::create([
-            'user_id' => $user->id,
-            'token_id' => $tokenId,
-            'token_hash' => $tokenHash,
-            'device_name' => $metadata['device_name'] ?? null,
-            'device_type' => $metadata['device_type'] ?? 'web',
-            'ip_address' => $metadata['ip_address'] ?? request()->ip(),
-            'user_agent' => $metadata['user_agent'] ?? request()->userAgent(),
-            'expires_at' => now()->addSeconds($this->refreshTtl),
-        ]);
-
-        // Store in Redis for quick validation
-        $this->storeTokenMetadata($tokenId, [
-            'user_id' => $user->id,
-            'type' => 'refresh',
-            'token_hash' => $tokenHash,
-            'expires_at' => $payload['exp'],
-        ], $this->refreshTtl);
-
-        return [
-            'token' => $token,
-            'raw_token' => $rawToken, // Only for cookie storage
-            'token_id' => $tokenId,
-        ];
-    }
+    // public function generateRefreshToken(User $user, array $metadata = []): array
+    // {
+    //     ...
+    // }
 
     /**
      * Generate refresh token from array data (without User model).
@@ -241,22 +171,12 @@ class TokenService
 
     /**
      * Generate temporary token for MFA verification.
+     * NOTE: User model removed - not currently used
      */
-    public function generateMfaTempToken(User $user): string
-    {
-        $now = time();
-        $payload = [
-            'iss' => config('app.url'),
-            'iat' => $now,
-            'exp' => $now + $this->mfaTempTtl,
-            'nbf' => $now,
-            'sub' => $user->id,
-            'jti' => Str::uuid()->toString(),
-            'type' => 'mfa_temp',
-        ];
-
-        return JWT::encode($payload, $this->secret, $this->algo);
-    }
+    // public function generateMfaTempToken(User $user): string
+    // {
+    //     ...
+    // }
 
     /**
      * Validate and decode token.
@@ -291,77 +211,21 @@ class TokenService
 
     /**
      * Refresh access token using refresh token.
+     * NOTE: User and RefreshToken models removed - not currently used
      */
-    public function refreshAccessToken(string $refreshToken, string $rawToken): ?array
-    {
-        $decoded = $this->validateToken($refreshToken);
-
-        if (!$decoded || $decoded->type !== 'refresh') {
-            return null;
-        }
-
-        // Verify raw token hash matches
-        $tokenHash = hash('sha256', $rawToken);
-        $storedToken = RefreshToken::where('token_id', $decoded->jti)
-            ->where('is_revoked', false)
-            ->first();
-
-        if (!$storedToken || $storedToken->token_hash !== $tokenHash) {
-            return null;
-        }
-
-        if ($storedToken->isExpired()) {
-            return null;
-        }
-
-        // Get user
-        $user = User::find($decoded->sub);
-        if (!$user || !$user->is_active) {
-            return null;
-        }
-
-        // Mark refresh token as used
-        $storedToken->markAsUsed();
-
-        // Rotate refresh token (optional but recommended)
-        $oldTokenId = $decoded->jti;
-        $newTokens = $this->generateTokens($user, [
-            'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-        ]);
-
-        // Revoke old refresh token
-        $storedToken->revoke('rotated');
-
-        // Log rotation in history
-        \DB::table('refresh_token_history')->insert([
-            'user_id' => $user->id,
-            'old_token_id' => $oldTokenId,
-            'new_token_id' => $this->extractTokenId($newTokens['refresh_token']),
-            'ip_address' => request()->ip(),
-            'rotated_at' => now(),
-        ]);
-
-        return $newTokens;
-    }
+    // public function refreshAccessToken(string $refreshToken, string $rawToken): ?array
+    // {
+    //     ...
+    // }
 
     /**
      * Revoke all tokens for a user.
+     * NOTE: User and RefreshToken models removed - not currently used
      */
-    public function revokeAllTokens(User $user, string $reason = 'logout'): void
-    {
-        // Revoke all refresh tokens
-        RefreshToken::where('user_id', $user->id)
-            ->where('is_revoked', false)
-            ->update([
-                'is_revoked' => true,
-                'revoked_at' => now(),
-                'revoked_reason' => $reason,
-            ]);
-
-        // Clear Redis cache for user tokens
-        $this->clearUserTokensFromCache($user->id);
-    }
+    // public function revokeAllTokens(User $user, string $reason = 'logout'): void
+    // {
+    //     ...
+    // }
 
     /**
      * Blacklist a token.
@@ -373,14 +237,7 @@ class TokenService
             return;
         }
 
-        TokenBlacklist::create([
-            'token_id' => $decoded->jti,
-            'user_id' => $userId,
-            'blacklisted_at' => now(),
-            'expires_at' => now()->addSeconds($decoded->exp - time()),
-            'reason' => $reason,
-        ]);
-
+        // TokenBlacklist model removed - only use Redis
         // Add to Redis blacklist
         Redis::setex(
             "blacklist:{$decoded->jti}",
@@ -399,8 +256,8 @@ class TokenService
             return true;
         }
 
-        // Check database
-        return TokenBlacklist::isBlacklisted($tokenId);
+        // TokenBlacklist model removed - only use Redis for now
+        return false;
     }
 
     /**
@@ -461,10 +318,8 @@ class TokenService
      */
     public function cleanupExpiredTokens(): void
     {
-        // Delete expired refresh tokens
-        RefreshToken::expired()->delete();
-
-        // Delete expired blacklist entries
-        TokenBlacklist::expired()->delete();
+        // TokenBlacklist and RefreshToken models removed
+        // Redis handles TTL automatically for blacklisted tokens
+        // Cleanup is not needed for Redis-based token management
     }
 }

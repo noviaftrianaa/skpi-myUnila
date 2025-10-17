@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SsoController;
 use App\Http\Controllers\DebugController;
 use App\Http\Controllers\CacheController;
+use App\Http\Controllers\MfaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,6 +34,7 @@ Route::prefix('v1')->group(function () {
     Route::prefix('auth')->group(function () {
         // Standard Authentication
         Route::post('/login', [AuthController::class, 'login']);
+        Route::post('/login-mfa', [AuthController::class, 'loginWithMfa']); // MFA login
         Route::post('/refresh', [AuthController::class, 'refresh']);
 
         // SSO Authentication (CAS Unila)
@@ -48,6 +50,11 @@ Route::prefix('v1')->group(function () {
         // Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     });
 
+    // MFA routes (public - for login verification)
+    Route::prefix('mfa')->group(function () {
+        Route::post('/verify', [MfaController::class, 'verify']); // Verify MFA code during login
+    });
+
     // Protected routes (JWT authentication required)
     Route::middleware('jwt.auth')->group(function () {
         // Auth endpoints
@@ -59,6 +66,14 @@ Route::prefix('v1')->group(function () {
         // Token management endpoints
         Route::get('/auth/sessions', [AuthController::class, 'activeSessions']);
         Route::get('/auth/token-info', [AuthController::class, 'tokenInfo']);
+
+        // MFA endpoints (Protected)
+        Route::prefix('mfa')->group(function () {
+            Route::post('/setup', [MfaController::class, 'setup']);     // Generate secret & QR
+            Route::post('/enable', [MfaController::class, 'enable']);   // Enable MFA
+            Route::post('/disable', [MfaController::class, 'disable']); // Disable MFA
+            Route::get('/status', [MfaController::class, 'status']);    // Get MFA status
+        });
 
         // Debug endpoints (Development only)
         Route::prefix('debug')->group(function () {

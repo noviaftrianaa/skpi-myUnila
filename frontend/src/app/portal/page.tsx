@@ -32,11 +32,13 @@ import {
   FiChevronRight,
   FiHome,
   FiGrid,
+  FiInfo,
 } from "react-icons/fi";
 import { AiFillAppstore } from "react-icons/ai";
 import Link from "next/link";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
 
 // Import icons dari react-icons
 import {
@@ -109,6 +111,9 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string>("");
+  const [showComingSoonModal, setShowComingSoonModal] = useState(false);
+  const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+  const router = useRouter();
 
   // Simulate loading data
   useEffect(() => {
@@ -203,21 +208,12 @@ export default function DashboardPage() {
         },
         {
           id: "myunila-siakadu",
-          name: "Siakadu (Reguler)",
-          description: "Sistem Akademik Reguler",
+          name: "SIAKADU",
+          description: "Sistem Informasi Akademik",
           icon: <HiClipboardList className="w-6 h-6" />,
           color: "bg-blue-600",
           isFavorite: true,
-          href: "#",
-        },
-        {
-          id: "myunila-siakad-profesi",
-          name: "Siakad Profesi",
-          description: "Sistem Akademik Profesi",
-          icon: <MdSchool className="w-6 h-6" />,
-          color: "bg-purple-500",
-          isFavorite: false,
-          href: "#",
+          href: "/dashboard/siakadu",
         },
         {
           id: "myunila-e-kkn",
@@ -239,7 +235,7 @@ export default function DashboardPage() {
         },
         {
           id: "myunila-classroom",
-          name: "Classroom (V-CLASS)",
+          name: "V-CLASS",
           description: "Platform Pembelajaran Virtual",
           icon: <HiLibrary className="w-6 h-6" />,
           color: "bg-cyan-500",
@@ -255,20 +251,20 @@ export default function DashboardPage() {
           isFavorite: false,
           href: "#",
         },
+        {
+          id: "myunila-sikep",
+          name: "SIKEP",
+          description: "Sistem Kepegawaian",
+          icon: <BsPeopleFill className="w-6 h-6" />,
+          color: "bg-blue-500",
+          isFavorite: false,
+          href: "#",
+        },
       ],
     },
     {
       category: "Riset dan Kerjasama",
       apps: [
-        {
-          id: "heti-research",
-          name: "HETI Research",
-          description: "Riset HETI ASIE",
-          icon: <HiBeaker className="w-6 h-6" />,
-          color: "bg-rose-500",
-          isFavorite: false,
-          href: "#",
-        },
         {
           id: "penelitian",
           name: "SI Penelitian",
@@ -361,15 +357,6 @@ export default function DashboardPage() {
           href: "#",
         },
         {
-          id: "portofolio-alumni",
-          name: "Portofolio Alumni",
-          description: "Portfolio dan Prestasi Alumni",
-          icon: <FaBriefcase className="w-6 h-6" />,
-          color: "bg-indigo-500",
-          isFavorite: false,
-          href: "#",
-        },
-        {
           id: "service-layanan",
           name: "Service Layanan",
           description: "Layanan untuk Alumni",
@@ -413,7 +400,7 @@ export default function DashboardPage() {
           icon: <FaDatabase className="w-6 h-6" />,
           color: "bg-cyan-600",
           isFavorite: false,
-          href: "#",
+          href: "/dashboard/feeder-integrator",
         },
         {
           id: "sister-integrator",
@@ -421,15 +408,6 @@ export default function DashboardPage() {
           description: "Integrasi SISTER Kemenristekdikti",
           icon: <FaDatabase className="w-6 h-6" />,
           color: "bg-purple-600",
-          isFavorite: false,
-          href: "#",
-        },
-        {
-          id: "myunila-integrator",
-          name: "myUnila Integrator",
-          description: "Integrasi Sistem myUnila",
-          icon: <FaPlug className="w-6 h-6" />,
-          color: "bg-blue-700",
           isFavorite: false,
           href: "#",
         },
@@ -454,7 +432,7 @@ export default function DashboardPage() {
           icon: <FaHeadset className="w-6 h-6" />,
           color: "bg-red-500",
           isFavorite: false,
-          href: "#",
+          href: "https://helpdesktik.unila.ac.id",
         },
         {
           id: "blog-unila",
@@ -491,7 +469,7 @@ export default function DashboardPage() {
     {
       id: 2,
       title: "Pengumuman Penghapusan Akun",
-      description: "Dalam rangka implementasi kebijakan ITS, UPA TIK mengumumkan bahwa akun email...",
+      description: "Dalam rangka implementasi kebijakan TIK, UPA TIK mengumumkan bahwa akun email...",
       category: "Lainnya",
       date: "28 Desember 2024",
       isNew: false,
@@ -505,6 +483,18 @@ export default function DashboardPage() {
         !newApps[categoryIndex].apps[appIndex].isFavorite;
       return newApps;
     });
+  };
+
+  // Handle app click
+  const handleAppClick = (app: Application) => {
+    if (app.href === "#") {
+      // Show coming soon modal
+      setSelectedApp(app);
+      setShowComingSoonModal(true);
+    } else {
+      // Navigate to the app
+      router.push(app.href);
+    }
   };
 
   const filteredApplications = applications.map((category) => ({
@@ -872,6 +862,7 @@ export default function DashboardPage() {
                           >
                             <Card
                               isPressable
+                              onPress={() => handleAppClick(app)}
                               className="bg-white hover:shadow-lg transition-all duration-300 border border-gray-100 h-full w-full"
                             >
                               <CardBody className="p-3 sm:p-4 flex flex-col h-full">
@@ -984,7 +975,7 @@ export default function DashboardPage() {
                       <h3 className="font-semibold text-sm mb-2">{user.name}</h3>
                       {/* Organization Info */}
                       <div className="space-y-1 mb-3">
-                        {/* Show fakultas and prodi if available, otherwise show satuan_pendidikan */}
+                        {/* Show fakultas and prodi if available, otherwise show satuan_pendidikan or default */}
                         {user.fakultas || user.prodi ? (
                           <>
                             {user.fakultas && (
@@ -994,10 +985,10 @@ export default function DashboardPage() {
                               <p className="text-xs text-blue-100 leading-relaxed">{user.prodi}</p>
                             )}
                           </>
+                        ) : user.satuan_pendidikan ? (
+                          <p className="text-xs text-blue-100 leading-relaxed">{user.satuan_pendidikan}</p>
                         ) : (
-                          user.satuan_pendidikan && (
-                            <p className="text-xs text-blue-100 leading-relaxed">{user.satuan_pendidikan}</p>
-                          )
+                          <p className="text-xs text-blue-100 leading-relaxed">Universitas Lampung</p>
                         )}
                       </div>
                       <Dropdown placement="bottom-start">
@@ -1035,6 +1026,8 @@ export default function DashboardPage() {
                           <DropdownItem
                             key="settings"
                             startContent={<FiSettings className="w-4 h-4" />}
+                            as={Link}
+                            href="/portal/settings"
                           >
                             Pengaturan
                           </DropdownItem>
@@ -1137,6 +1130,7 @@ export default function DashboardPage() {
                       {favoriteApps.slice(0, 5).map((app) => (
                         <button
                           key={app.id}
+                          onClick={() => handleAppClick(app)}
                           className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group"
                         >
                           <div
@@ -1302,11 +1296,72 @@ export default function DashboardPage() {
                     // Apply the selected role
                     if (selectedRole) {
                       handleRoleChange(selectedRole);
+                      onClose(); // Close modal after applying
                     }
                   }}
                   size="md"
                 >
                   Terapkan
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      {/* Coming Soon Modal */}
+      <Modal
+        isOpen={showComingSoonModal}
+        onOpenChange={setShowComingSoonModal}
+        size="md"
+        backdrop="blur"
+        classNames={{
+          backdrop: "bg-black/50 backdrop-blur-sm",
+          base: "bg-white",
+          header: "bg-white border-b border-gray-200",
+          body: "bg-white",
+          footer: "bg-white border-t border-gray-200",
+        }}
+      >
+        <ModalContent className="bg-white">
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                <div className="flex items-center gap-3">
+                  <FiInfo className="w-6 h-6 text-blue-600" />
+                  <h3 className="text-xl font-bold text-gray-800">
+                    Aplikasi Belum Tersedia
+                  </h3>
+                </div>
+              </ModalHeader>
+              <ModalBody>
+                <div className="text-center py-4">
+                  {selectedApp && (
+                    <div className="mb-4">
+                      <div
+                        className={`${selectedApp.color} w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-3`}
+                      >
+                        <div className="text-white">{selectedApp.icon}</div>
+                      </div>
+                      <h4 className="font-semibold text-lg text-gray-800 mb-2">
+                        {selectedApp.name}
+                      </h4>
+                    </div>
+                  )}
+                  <p className="text-gray-600">
+                    Mohon maaf, aplikasi ini sedang dalam tahap integrasi sistem.
+                    Silakan coba lagi nanti atau hubungi tim TIK untuk informasi
+                    lebih lanjut.
+                  </p>
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <Button
+                  color="primary"
+                  onPress={onClose}
+                  className="bg-myunila text-white"
+                >
+                  Mengerti
                 </Button>
               </ModalFooter>
             </>

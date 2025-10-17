@@ -45,6 +45,34 @@ class AuthController extends Controller
     }
 
     /**
+     * Login with MFA verification
+     */
+    public function loginWithMfa(Request $request): JsonResponse
+    {
+        try {
+            // Validate input
+            $validated = $request->validate([
+                'user_id' => 'required|string',
+                'code' => 'required|string|size:6',
+            ]);
+
+            $result = $this->authService->loginWithMfa(
+                $validated['user_id'],
+                $validated['code'],
+                $request->ip(),
+                $request->userAgent()
+            );
+
+            return $this->successResponse($result, 'Login with MFA successful');
+        } catch (\Exception $e) {
+            return $this->errorResponse(
+                $e->getMessage(),
+                $e->getCode() ?: 500
+            );
+        }
+    }
+
+    /**
      * Refresh access token
      */
     public function refresh(RefreshTokenRequest $request): JsonResponse

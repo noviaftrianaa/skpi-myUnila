@@ -103,6 +103,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const response = await authService.login(credentials);
 
       if (response.success) {
+        // Check if MFA is required
+        if (response.data.mfa_required) {
+          // Don't set user or redirect - let login page handle MFA
+          console.log('🔐 MFA required, returning to login page for verification');
+          return; // Return early, login page will show MFA modal
+        }
+
         setUser(response.data.user);
 
         // Check if there's a redirect URL

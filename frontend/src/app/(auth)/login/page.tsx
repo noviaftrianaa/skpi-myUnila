@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Button, Input } from "@heroui/react";
+import { Button, Input, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/react";
 import Link from "next/link";
 import { Logo } from "@/shared/components";
 import { useAuth } from "@/contexts/AuthContext";
+import { authService } from "@/lib/services/auth.service";
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function LoginPage() {
   const searchParams = useSearchParams();
@@ -17,6 +19,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+
+  // MFA States
+  const [showMfaModal, setShowMfaModal] = useState(false);
+  const [mfaUserId, setMfaUserId] = useState("");
+  const [mfaCode, setMfaCode] = useState("");
+  const [isMfaLoading, setIsMfaLoading] = useState(false);
+  const [mfaError, setMfaError] = useState("");
 
   // Redirect to portal if already authenticated
   useEffect(() => {
@@ -51,10 +60,70 @@ export default function LoginPage() {
     }
 
     try {
+      const response = await authService.login({ username, password });
+
+      // Check if MFA is required
+      if (response.success && response.data.mfa_required) {
+        setMfaUserId(response.data.user_id);
+        setShowMfaModal(true);
+        return;
+      }
+
+      // If no MFA required, login is complete
       await login({ username, password });
-      // Redirect handled by AuthContext
     } catch (err: any) {
       setLocalError(err.message || "Login gagal. Periksa username dan password Anda.");
+    }
+  };
+
+  const handleMfaSubmit = async () => {
+    if (!mfaCode || mfaCode.length !== 6) {
+      const errorMsg = "Masukkan kode verifikasi 6 digit";
+      setMfaError(errorMsg);
+      toast.error(errorMsg, {
+        duration: 3000,
+        position: 'top-center',
+      });
+      return;
+    }
+
+    setIsMfaLoading(true);
+    setMfaError("");
+
+    try {
+      const response = await authService.loginWithMfa(mfaUserId, mfaCode);
+
+      if (response.success) {
+        toast.success("Login berhasil! Mengalihkan...", {
+          duration: 2000,
+          position: 'top-center',
+          icon: '🎉',
+        });
+
+        // Set user and redirect
+        setTimeout(() => {
+          router.push('/portal');
+          window.location.reload(); // Reload to update auth state
+        }, 1000);
+      } else {
+        const errorMsg = response.message || "Kode verifikasi salah";
+        setMfaError(errorMsg);
+        toast.error(errorMsg, {
+          duration: 4000,
+          position: 'top-center',
+          icon: '🔐',
+        });
+      }
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.message || "Kode verifikasi salah";
+      setMfaError(errorMsg);
+      toast.error(errorMsg, {
+        duration: 4000,
+        position: 'top-center',
+        icon: '🔐',
+      });
+    } finally {
+      setIsMfaLoading(false);
     }
   };
 
@@ -82,6 +151,35 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 relative overflow-hidden">
+      {/* Toast Notifications */}
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#fff',
+            color: '#363636',
+            padding: '16px',
+            borderRadius: '12px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+            fontWeight: '500',
+          },
+          success: {
+            iconTheme: {
+              primary: '#10b981',
+              secondary: '#fff',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#fff',
+            },
+          },
+        }}
+      />
+
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
@@ -174,7 +272,7 @@ export default function LoginPage() {
               {/* Features */}
               <div className="space-y-4">
                 {[
-                  { icon: "🔐", title: "MFA", desc: "Multi-Factor Authentication menggunakan Google Authenticator OTP", active: true },
+                  { icon: "🔐", title: "Multi-Factor Authentication", desc: "Keamanan ekstra dengan Google Authenticator", active: true },
                   { icon: "⚡", title: "Platform Responsif", desc: "Akses cepat dengan performa optimal dan data real-time", active: false },
                 ].map((feature, idx) => (
                   <motion.div
@@ -369,6 +467,87 @@ export default function LoginPage() {
           </motion.div>
         </div>
       </motion.div>
+
+      {/* MFA Verification Modal */}
+      <Modal
+        isOpen={showMfaModal}
+        onOpenChange={setShowMfaModal}
+        size="md"
+        backdrop="blur"
+        isDismissable={false}
+        hideCloseButton
+        classNames={{
+          backdrop: "bg-black/50 backdrop-blur-sm",
+          base: "bg-white dark:bg-gray-800",
+          header: "bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700",
+          body: "bg-white dark:bg-gray-800",
+          footer: "bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700",
+        }}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                  </svg>
+                  <span>Verifikasi Dua Faktor</span>
+                </div>
+              </ModalHeader>
+              <ModalBody>
+                <div className="space-y-4">
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      Buka aplikasi Google Authenticator di smartphone Anda dan masukkan kode 6 digit yang ditampilkan.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Kode Verifikasi
+                    </label>
+                    <Input
+                      placeholder="000000"
+                      value={mfaCode}
+                      onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      maxLength={6}
+                      size="lg"
+                      classNames={{
+                        input: "text-center text-2xl tracking-widest font-mono",
+                      }}
+                      isInvalid={!!mfaError}
+                      errorMessage={mfaError}
+                      autoFocus
+                    />
+                  </div>
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <Button
+                  variant="flat"
+                  onPress={() => {
+                    setShowMfaModal(false);
+                    setMfaCode("");
+                    setMfaError("");
+                  }}
+                  disabled={isMfaLoading}
+                >
+                  Batal
+                </Button>
+                <Button
+                  color="primary"
+                  onPress={handleMfaSubmit}
+                  isDisabled={mfaCode.length !== 6}
+                  isLoading={isMfaLoading}
+                >
+                  Verifikasi
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
 }
