@@ -274,101 +274,120 @@ export default function KongAdminPage() {
               return (
                 <motion.div
                   key={service.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{
+                    delay: index * 0.05,
+                    type: "spring",
+                    stiffness: 200,
+                    damping: 20
+                  }}
+                  whileHover={{ y: -4 }}
                   className="h-full"
                 >
-                  <Card className="bg-white shadow-lg border border-gray-100 hover:shadow-xl transition-all h-full">
-                    <CardBody className="p-4 flex flex-col h-full">
+                  <Card className="bg-gradient-to-br from-white to-gray-50/50 shadow-md border border-gray-200/60 hover:shadow-2xl hover:border-blue-300/40 transition-all duration-300 h-full overflow-hidden group">
+                    <CardBody className="p-5 flex flex-col h-full relative">
+                      {/* Status Badge - Top Right */}
+                      <div className="absolute top-3 right-3">
+                        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${
+                          service.enabled === false
+                            ? "bg-red-100/80 backdrop-blur-sm"
+                            : "bg-emerald-100/80 backdrop-blur-sm"
+                        }`}>
+                          <div className={`w-1.5 h-1.5 rounded-full ${
+                            service.enabled === false ? "bg-red-500" : "bg-emerald-500 animate-pulse"
+                          }`}></div>
+                          <span className={`text-[10px] font-semibold ${
+                            service.enabled === false ? "text-red-700" : "text-emerald-700"
+                          }`}>
+                            {service.enabled === false ? "Offline" : "Online"}
+                          </span>
+                        </div>
+                      </div>
+
                       {/* Service Header */}
-                      <div className="flex items-start gap-3 mb-3">
-                        <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-2 rounded-lg flex-shrink-0">
-                          <FiServer className="w-4 h-4 text-white" />
+                      <div className="flex items-start gap-3 mb-4 pr-16">
+                        <div className="relative">
+                          <div className="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 p-2.5 rounded-xl shadow-lg group-hover:shadow-blue-500/30 transition-shadow">
+                            <FiServer className="w-5 h-5 text-white" />
+                          </div>
+                          <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-blue-400 rounded-full animate-ping"></div>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-base font-bold text-gray-800 truncate mb-1">
+                          <h3 className="text-base font-bold text-gray-900 truncate mb-0.5 group-hover:text-blue-600 transition-colors">
                             {service.name}
                           </h3>
-                          <Chip
-                            size="sm"
-                            className={
-                              service.enabled === false
-                                ? "bg-red-100 text-red-700"
-                                : "bg-green-100 text-green-700"
-                            }
-                          >
-                            {service.enabled === false ? "Disabled" : "Active"}
-                          </Chip>
+                          <p className="text-[11px] text-gray-500 font-medium">
+                            API Service
+                          </p>
                         </div>
                       </div>
 
                       {/* Service URL */}
-                      <div className="mb-3">
-                        <p className="text-xs text-gray-500 mb-1">Endpoint:</p>
-                        <p className="text-xs font-mono text-gray-700 bg-gray-50 p-2 rounded break-all">
-                          {service.protocol}://{service.host}:{service.port}
-                          {service.path || "/"}
-                        </p>
+                      <div className="mb-4">
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <FiGlobe className="w-3 h-3 text-gray-400" />
+                          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">
+                            Endpoint
+                          </p>
+                        </div>
+                        <div className="relative group/url">
+                          <p className="text-xs font-mono text-gray-700 bg-gradient-to-r from-gray-100 to-gray-50 px-3 py-2 rounded-lg border border-gray-200/50 break-all group-hover/url:border-blue-300/50 transition-colors">
+                            {service.protocol}://{service.host}:{service.port}
+                            {service.path || "/"}
+                          </p>
+                        </div>
                       </div>
 
                       {/* Routes */}
                       {serviceRoutes.length > 0 && (
-                        <div className="mb-3 flex-1">
-                          <p className="text-xs font-semibold text-gray-500 mb-2">
-                            Routes ({serviceRoutes.length})
-                          </p>
-                          <div className="flex flex-wrap gap-1">
-                            {serviceRoutes.slice(0, 3).map((route) => (
-                              <Chip
+                        <div className="mb-4 flex-1">
+                          <div className="flex items-center gap-1.5 mb-2">
+                            <div className="w-1 h-4 bg-gradient-to-b from-purple-500 to-purple-600 rounded-full"></div>
+                            <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">
+                              Routes ({serviceRoutes.length})
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {serviceRoutes.slice(0, 4).map((route) => (
+                              <div
                                 key={route.id}
-                                size="sm"
-                                className="bg-purple-50 text-purple-700 font-mono text-xs"
+                                className="px-2.5 py-1 bg-gradient-to-r from-purple-50 to-purple-100/50 text-purple-700 rounded-md border border-purple-200/50 text-[11px] font-mono font-medium hover:shadow-sm transition-shadow"
                               >
                                 {route.paths && route.paths.length > 0
                                   ? route.paths[0]
                                   : route.name || "No path"}
-                              </Chip>
+                              </div>
                             ))}
-                            {serviceRoutes.length > 3 && (
-                              <Chip size="sm" className="bg-gray-100 text-gray-600 text-xs">
-                                +{serviceRoutes.length - 3}
-                              </Chip>
+                            {serviceRoutes.length > 4 && (
+                              <div className="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-md text-[11px] font-semibold">
+                                +{serviceRoutes.length - 4}
+                              </div>
                             )}
                           </div>
                         </div>
                       )}
 
-                      {/* Action Buttons */}
-                      <div className="flex flex-col gap-2 pt-3 border-t border-gray-100 mt-auto">
-                        {docsUrl && (
+                      {/* Action Button */}
+                      {docsUrl && (
+                        <div className="mt-auto pt-4 border-t border-gray-200/50">
                           <Button
                             as="a"
                             href={docsUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            startContent={<SiSwagger className="w-3 h-3" />}
-                            endContent={<FiExternalLink className="w-3 h-3" />}
-                            className="bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 w-full"
+                            className="w-full bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 text-white hover:from-emerald-600 hover:via-green-600 hover:to-teal-600 shadow-md hover:shadow-lg hover:shadow-emerald-500/30 font-semibold transition-all duration-300"
                             size="sm"
                           >
-                            <span className="text-xs">API Docs</span>
+                            <SiSwagger className="w-3.5 h-3.5" />
+                            <span className="text-xs">View API Documentation</span>
+                            <FiExternalLink className="w-3.5 h-3.5" />
                           </Button>
-                        )}
-                        <Button
-                          as="a"
-                          href={`http://localhost:9801/services/${service.id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          startContent={<FiBook className="w-3 h-3" />}
-                          endContent={<FiExternalLink className="w-3 h-3" />}
-                          variant="flat"
-                          className="bg-blue-50 text-blue-600 hover:bg-blue-100 w-full"
-                          size="sm"
-                        >
-                          <span className="text-xs">Kong Admin</span>
-                        </Button>
-                      </div>
+                        </div>
+                      )}
+
+                      {/* Decorative gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 via-transparent to-purple-500/0 group-hover:from-blue-500/5 group-hover:to-purple-500/5 transition-all duration-500 pointer-events-none rounded-xl"></div>
                     </CardBody>
                   </Card>
                 </motion.div>
