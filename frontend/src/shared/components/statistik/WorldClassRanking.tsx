@@ -36,10 +36,12 @@ export default function WorldClassRanking() {
         ]);
 
         if (latestResponse.success) {
+          console.log('Latest Rankings Data:', latestResponse.data.rankings);
           setLatestRankings(latestResponse.data.rankings);
         }
 
         if (chartResponse.success) {
+          console.log('Chart Data Categories:', chartResponse.data.categories);
           setChartCategories(chartResponse.data.categories);
         }
       } catch (error) {
@@ -284,7 +286,7 @@ export default function WorldClassRanking() {
                   <div className="h-10 w-24 bg-gray-300 rounded"></div>
                 </div>
               ))
-            ) : (
+            ) : latestRankings.length > 0 ? (
               latestRankings.map((ranking, index) => {
                 // Map category code to icon and gradient
                 const categoryMeta: Record<string, { icon: string; gradient: string }> = {
@@ -297,6 +299,14 @@ export default function WorldClassRanking() {
                 const meta = categoryMeta[ranking.category.code] || { icon: "🏆", gradient: "from-gray-500 to-gray-600" };
                 const change = ranking.change || 0;
                 const isImprovement = change < 0; // Negative change = rank improvement (lower number)
+
+                console.log(`Rendering card ${index}:`, {
+                  code: ranking.category.code,
+                  name: ranking.category.name,
+                  worldRank: ranking.ranks.world,
+                  nationalRank: ranking.ranks.national,
+                  change: change
+                });
 
                 return (
                   <motion.div
@@ -333,6 +343,11 @@ export default function WorldClassRanking() {
                   </motion.div>
                 );
               })
+            ) : (
+              // No data fallback
+              <div className="col-span-full text-center py-8 text-gray-500">
+                <p>Data ranking belum tersedia</p>
+              </div>
             )}
           </motion.div>
 
