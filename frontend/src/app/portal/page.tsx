@@ -436,7 +436,7 @@ export default function DashboardPage() {
           icon: <FaChartLine className="w-6 h-6" />,
           color: "bg-orange-600",
           isFavorite: false,
-          href: "http://localhost:3002",
+          href: "/portal/monitoring",
           requireRole: "Developer", // Only for Developer role
         },
       ],

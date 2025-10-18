@@ -9,8 +9,9 @@ datasources:
     isDefault: true
     editable: true
     jsonData:
-      timeInterval: '15s'
-      httpMethod: 'POST'
+      timeInterval: 15s
+      queryTimeout: 60s
+      httpMethod: POST
 
   # Loki datasource for logs
   - name: Loki
@@ -20,3 +21,16 @@ datasources:
     editable: true
     jsonData:
       maxLines: 1000
+
+  # Redis datasource (optional, if plugin installed)
+  - name: Redis
+    type: redis-datasource
+    access: proxy
+    url: redis://myunila-redis:6379
+    editable: true
+    jsonData:
+      client: standalone
+      poolSize: 5
+      timeout: 10
+      pingInterval: 0
+      pipelineWindow: 0

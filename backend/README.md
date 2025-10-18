@@ -736,7 +736,127 @@ php artisan migrate:fresh
 
 ---
 
-## 📊 Monitoring
+## 🎨 Frontend Portal
+
+### Overview
+Frontend Portal Next.js dengan role-based access control dan integrated monitoring tools.
+
+**URL**: http://localhost:3001
+
+**Key Features**:
+- ✅ Portal aplikasi terintegrasi (70+ apps)
+- ✅ Role-based menu filtering
+- ✅ JWT authentication
+- ✅ Kong Admin management (Developer only)
+- ✅ Monitoring & Observability dashboard (Developer only)
+
+### Developer Tools (Role: Developer)
+
+#### Kong Admin (`/portal/kong-admin`)
+**Purpose**: API Gateway management & service documentation
+
+**Access**: http://localhost:3001/portal/kong-admin
+
+**Features**:
+- Services list with routes
+- API Documentation links (Swagger UI)
+- Kong Admin API access
+- Real-time service status
+
+**Security**:
+- Role-based: Only `Developer` role can access
+- JWT authentication required
+- Menu hidden for non-Developer users
+
+#### Monitoring & Observability (`/portal/monitoring`)
+**Purpose**: System monitoring & observability
+
+**Access**: http://localhost:3001/portal/monitoring
+
+**Tools Available**:
+1. **Grafana** (http://localhost:3002)
+   - Real-time dashboards
+   - Custom visualizations
+   - Multi-datasource support
+
+2. **Prometheus** (http://localhost:9090)
+   - Time-series metrics database
+   - PromQL query language
+   - Service discovery
+
+3. **Loki** (http://localhost:3100)
+   - Log aggregation system
+   - LogQL query language
+   - 31-day retention
+
+4. **Promtail**
+   - Docker log collection
+   - 15 containers monitored
+   - Auto-discovery
+
+5. **cAdvisor** (http://localhost:8090)
+   - Container resource metrics
+   - Memory & CPU stats
+   - Network statistics
+
+6. **Node Exporter** (http://localhost:9100)
+   - Host system metrics
+   - 1500+ metrics exposed
+
+**Security**:
+- Role-based: Only `Developer` role can access
+- JWT authentication required
+- Unified access point for all monitoring tools
+
+---
+
+## 📊 Monitoring Stack
+
+### Architecture
+
+```
+Container Logs → Promtail → Loki → Grafana
+Container/System Metrics → Exporters → Prometheus → Grafana
+```
+
+### Quick Start Monitoring
+
+```bash
+# Start monitoring stack
+docker-compose -f docker-compose-monitoring.yml up -d
+
+# Check status
+docker ps --filter "name=myunila" | grep -E "grafana|prometheus|loki"
+
+# Access Grafana
+open http://localhost:3002
+# Default login: admin / admin
+```
+
+### Pre-configured Dashboards
+
+**MyUnila - Application Logs**:
+- URL: http://localhost:3002/d/myunila-logs
+- Description: All application logs in one dashboard
+- Features: Real-time logs, error filtering, container filtering
+
+**System Overview**:
+- URL: http://localhost:3002/dashboards
+- Description: CPU, Memory, Disk, Network metrics
+
+**Container Metrics**:
+- URL: http://localhost:3002/dashboards
+- Description: Docker container resource usage
+
+### Monitoring Endpoints
+
+| Service | URL | Purpose |
+|---------|-----|---------|
+| Grafana | http://localhost:3002 | Visualization & Dashboards |
+| Prometheus | http://localhost:9090 | Metrics Database |
+| Loki | http://localhost:3100 | Log Storage |
+| cAdvisor | http://localhost:8090 | Container Metrics |
+| Node Exporter | http://localhost:9100 | System Metrics |
 
 ### Service Health Checks
 
@@ -753,6 +873,12 @@ curl http://localhost:9800/dashboard-service/api/v1/health
 
 # Kong Gateway
 curl http://localhost:9801/status
+
+# Loki
+curl http://localhost:3100/ready
+
+# Prometheus
+curl http://localhost:9090/-/healthy
 ```
 
 ### Docker Health Status
@@ -770,8 +896,15 @@ docker-compose logs -f dashboard-service
 docker-compose logs -f kong
 ```
 
-### Laravel Logs
+### Application Logs
 
+#### Via Grafana (Recommended)
+1. Open http://localhost:3002
+2. Navigate to "MyUnila - Application Logs" dashboard
+3. Filter by container, time range, search keywords
+4. View real-time logs with live tail
+
+#### Via Docker
 ```bash
 # Real-time logs dengan Pail (recommended)
 cd auth-service
@@ -781,27 +914,42 @@ php artisan pail
 tail -f auth-service/storage/logs/laravel.log
 tail -f dashboard-service/storage/logs/laravel.log
 
-# In Docker
+# Docker logs
 docker logs -f myunila-auth-service
+docker logs -f myunila-dashboard-service
 ```
 
-### Kong Admin Dashboard
+### Log Queries (Grafana Explore)
 
-**Kong Manager** (GUI):
-- URL: http://localhost:9802
-- Features: Services, Routes, Plugins, Consumers
+```logql
+# All logs from auth-service
+{container="myunila-auth-service"}
 
-**Konga** (Advanced GUI):
-- URL: http://localhost:9803
-- Features: Full Kong management, monitoring, analytics
+# Error logs from all containers
+{container=~"myunila-.*"} |~ "(?i)(error|exception|fatal)"
 
-**Setup Konga**:
-1. Open http://localhost:9803
-2. Create admin account
-3. Add connection:
-   - Name: `Kong`
-   - URL: `http://kong:8001`
-4. Click "Activate"
+# Login activity
+{container="myunila-auth-service"} |~ "(?i)login"
+
+# HTTP errors (4xx, 5xx)
+{container="myunila-nginx"} |~ "HTTP.*[45][0-9]{2}"
+```
+
+### Metrics Queries (Prometheus)
+
+```promql
+# Container CPU usage
+rate(container_cpu_usage_seconds_total{name=~"myunila-.*"}[5m])
+
+# Container memory usage
+container_memory_usage_bytes{name=~"myunila-.*"}
+
+# Redis operations
+redis_commands_total
+
+# Node CPU usage
+node_cpu_seconds_total
+```
 
 ---
 

@@ -42,12 +42,29 @@ scrape_configs:
           service: 'nginx'
           environment: 'development'
 
-  # Redis exporter (optional - requires redis_exporter sidecar)
-  # - job_name: 'redis'
-  #   static_configs:
-  #     - targets: ['myunila-redis-exporter:9121']
-  #       labels:
-  #         service: 'redis'
+  # Redis exporter - Now enabled
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['myunila-redis-exporter:9121']
+        labels:
+          service: 'redis'
+          environment: 'development'
+
+  # Node Exporter - Host system metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['myunila-node-exporter:9100']
+        labels:
+          service: 'node-exporter'
+          environment: 'development'
+
+  # cAdvisor - Docker container metrics
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['myunila-cadvisor:8080']
+        labels:
+          service: 'container-metrics'
+          environment: 'development'
 
   # PostgreSQL exporter (optional - requires postgres_exporter)
   # - job_name: 'postgresql'
@@ -55,10 +72,3 @@ scrape_configs:
   #     - targets: ['postgres-exporter:9187']
   #       labels:
   #         service: 'kong-database'
-
-  # Docker containers metrics (requires cAdvisor)
-  # - job_name: 'cadvisor'
-  #   static_configs:
-  #     - targets: ['cadvisor:8080']
-  #       labels:
-  #         service: 'container-metrics'
