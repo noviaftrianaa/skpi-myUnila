@@ -65,6 +65,7 @@ import {
   BsPeopleFill,
   BsLightbulb,
   BsGlobe,
+  BsCash,
 } from "react-icons/bs";
 import {
   RiFileList3Fill,
@@ -81,6 +82,7 @@ import {
   FaPlug,
   FaHeadset,
   FaBlog,
+  FaIdCard,
 } from "react-icons/fa";
 
 interface Application {
@@ -248,11 +250,20 @@ export default function DashboardPage() {
           href: "#",
         },
         {
+          id: "myunila-sikebas",
+          name: "SIKEBAS",
+          description: "Sistem Keringanan & Bebas UKT",
+          icon: <BsCash className="w-6 h-6" />,
+          color: "bg-emerald-600",
+          isFavorite: false,
+          href: "#",
+        },
+        {
           id: "myunila-sikep",
           name: "SIKEP",
           description: "Sistem Kepegawaian",
-          icon: <BsPeopleFill className="w-6 h-6" />,
-          color: "bg-blue-500",
+          icon: <FaIdCard className="w-6 h-6" />,
+          color: "bg-slate-600",
           isFavorite: false,
           href: "#",
         },
