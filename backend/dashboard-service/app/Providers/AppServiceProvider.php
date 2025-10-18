@@ -32,6 +32,22 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\RankingService::class,
             \App\Services\RankingService::class
         );
+
+        // Register Program Studi Repository
+        $this->app->singleton(
+            \App\Repositories\ProgramStudiRepository::class,
+            \App\Repositories\ProgramStudiRepository::class
+        );
+
+        // Register Program Studi Service (with Repository Dependency Injection)
+        $this->app->singleton(
+            \App\Services\ProgramStudiService::class,
+            function ($app) {
+                return new \App\Services\ProgramStudiService(
+                    $app->make(\App\Repositories\ProgramStudiRepository::class)
+                );
+            }
+        );
     }
 
     /**

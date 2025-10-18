@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UniversityProfileController;
 use App\Http\Controllers\UserFavoriteController;
 use App\Http\Controllers\RankingController;
+use App\Http\Controllers\ProgramStudiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,6 +46,14 @@ Route::prefix('v1')->group(function () {
         Route::get('/statistics', [RankingController::class, 'getStatistics']);
         Route::get('/{categoryCode}', [RankingController::class, 'getRankingByCategory']);
         Route::get('/{categoryCode}/history', [RankingController::class, 'getRankingHistory']);
+    });
+
+    // Program Studi
+    Route::prefix('program-studi')->group(function () {
+        Route::get('/', [ProgramStudiController::class, 'index']);
+        Route::get('/statistics', [ProgramStudiController::class, 'statistics']);
+        Route::get('/periods', [ProgramStudiController::class, 'periods']);
+        Route::get('/filter-options', [ProgramStudiController::class, 'filterOptions']);
     });
 
     // TODO: Add more public endpoints
