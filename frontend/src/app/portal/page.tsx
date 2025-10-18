@@ -859,7 +859,7 @@ export default function DashboardPage() {
                             <Card
                               isPressable
                               onPress={() => handleAppClick(app)}
-                              className="bg-white hover:shadow-lg transition-all duration-300 border border-gray-100 h-full w-full"
+                              className="bg-white hover:shadow-lg transition-all duration-300 border border-gray-100 h-full w-full relative"
                             >
                               <CardBody className="p-3 sm:p-4 flex flex-col h-full">
                                 {/* Mobile Layout */}
@@ -876,24 +876,6 @@ export default function DashboardPage() {
                                       {app.name}
                                     </h4>
                                   </div>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      toggleFavorite(
-                                        originalCatIndex,
-                                        originalAppIndex
-                                      );
-                                    }}
-                                    className="absolute top-2 right-2"
-                                  >
-                                    <FiStar
-                                      className={`w-4 h-4 transition-colors ${
-                                        app.isFavorite
-                                          ? "fill-yellow-400 text-yellow-400"
-                                          : "text-gray-300"
-                                      }`}
-                                    />
-                                  </button>
                                 </div>
 
                                 {/* Desktop/Tablet Layout */}
@@ -913,26 +895,27 @@ export default function DashboardPage() {
                                       {app.description}
                                     </p>
                                   </div>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      toggleFavorite(
-                                        originalCatIndex,
-                                        originalAppIndex
-                                      );
-                                    }}
-                                    className="flex-shrink-0"
-                                  >
-                                    <FiStar
-                                      className={`w-5 h-5 transition-colors ${
-                                        app.isFavorite
-                                          ? "fill-yellow-400 text-yellow-400"
-                                          : "text-gray-300 hover:text-yellow-400"
-                                      }`}
-                                    />
-                                  </button>
                                 </div>
                               </CardBody>
+                              {/* Favorite Button - Outside CardBody to avoid nesting */}
+                              <div
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleFavorite(
+                                    originalCatIndex,
+                                    originalAppIndex
+                                  );
+                                }}
+                                className="absolute top-2 right-2 sm:top-4 sm:right-4 cursor-pointer z-10 p-1 hover:bg-white/80 rounded-full transition-colors"
+                              >
+                                <FiStar
+                                  className={`w-4 h-4 sm:w-5 sm:h-5 transition-colors ${
+                                    app.isFavorite
+                                      ? "fill-yellow-400 text-yellow-400"
+                                      : "text-gray-300 hover:text-yellow-400"
+                                  }`}
+                                />
+                              </div>
                             </Card>
                           </motion.div>
                         );
