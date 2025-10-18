@@ -28,27 +28,16 @@ class AuthService {
     try {
       const response = await apiClient.post<LoginResponse>('/auth/login', credentials);
 
-      console.log('🔍 Login response:', response.data);
-
       // Check if login was successful
       if (response.data.success) {
         // Check if MFA is required
         if (response.data.data.mfa_required) {
-          console.log('🔐 MFA verification required');
           // Return MFA required response - will be handled by AuthContext
           return response.data;
         }
 
         const { user, tokens } = response.data.data;
         const { access_token } = tokens;
-
-        // Debug: Log what we received
-        console.log('🔍 Tokens received:', {
-          access_token: access_token ? `${access_token.substring(0, 20)}...` : 'undefined',
-          user: user?.username || 'undefined',
-          token_type: tokens.token_type,
-          expires_in: tokens.expires_in
-        });
 
         // Validate token exists
         if (!access_token) {
@@ -60,19 +49,8 @@ class AuthService {
         // Note: refresh_token is stored in HTTP-only cookie by backend
         setToken('ACCESS', access_token);
         setToken('USER', JSON.stringify(user));
-
-        // Verify token was stored
-        const storedAccess = getToken('ACCESS');
-        console.log('🔍 Tokens stored verification:', {
-          access_stored: !!storedAccess,
-          user_stored: !!getToken('USER'),
-          refresh_in_cookie: '(stored by backend in HTTP-only cookie)'
-        });
-
-        console.log('✅ Login successful:', user.username);
       } else {
         // Backend returned success: false (invalid credentials, etc)
-        console.error('❌ Login failed:', response.data.message);
         throw new Error(response.data.message || 'Login failed');
       }
 
@@ -84,7 +62,6 @@ class AuthService {
       }
 
       // Otherwise, handle axios error
-      console.error('❌ Login failed:', error);
       throw error;
     }
   }
@@ -99,8 +76,6 @@ class AuthService {
         code: code,
       });
 
-      console.log('🔍 MFA Login response:', response.data);
-
       if (response.data.success) {
         const { user, tokens } = response.data.data;
         const { access_token } = tokens;
@@ -108,13 +83,10 @@ class AuthService {
         // Store access token and user
         setToken('ACCESS', access_token);
         setToken('USER', JSON.stringify(user));
-
-        console.log('✅ MFA Login successful:', user.username);
       }
 
       return response.data;
     } catch (error: any) {
-      console.error('❌ MFA Login failed:', error);
       throw error;
     }
   }
@@ -124,8 +96,8 @@ class AuthService {
    */
   async logout(): Promise<void> {
     // Call logout endpoint to revoke tokens on server (fire and forget)
-    apiClient.post('/auth/logout').catch((error) => {
-      console.error('⚠️  Logout API call failed (non-blocking):', error);
+    apiClient.post('/auth/logout').catch(() => {
+      // Silently ignore logout API errors
     });
 
     // Clear all tokens and user data immediately
@@ -149,16 +121,11 @@ class AuthService {
       // Update access token
       if (response.data.success) {
         const { access_token } = response.data.data;
-
         setToken('ACCESS', access_token);
-
-        console.log('✅ Token refreshed successfully');
       }
 
       return response.data;
     } catch (error) {
-      console.error('❌ Token refresh failed:', error);
-
       // Clear tokens and redirect to login
       clearTokens();
       if (typeof window !== 'undefined') {
@@ -300,13 +267,11 @@ class AuthService {
         // Update stored user data with new role
         setToken('USER', JSON.stringify(user));
 
-        console.log('✅ Role switched successfully to:', roleName);
         return user;
       }
 
       throw new Error('Failed to switch role');
     } catch (error: any) {
-      console.error('❌ Switch role failed:', error);
       throw error;
     }
   }
@@ -319,7 +284,6 @@ class AuthService {
       const response = await apiClient.get('/mfa/status');
       return response.data;
     } catch (error) {
-      console.error('❌ Get MFA status failed:', error);
       throw error;
     }
   }
@@ -332,7 +296,6 @@ class AuthService {
       const response = await apiClient.post('/mfa/setup');
       return response.data;
     } catch (error) {
-      console.error('❌ MFA setup failed:', error);
       throw error;
     }
   }
@@ -345,7 +308,6 @@ class AuthService {
       const response = await apiClient.post('/mfa/enable', { code });
       return response.data;
     } catch (error) {
-      console.error('❌ Enable MFA failed:', error);
       throw error;
     }
   }
@@ -358,7 +320,6 @@ class AuthService {
       const response = await apiClient.post('/mfa/disable', { code });
       return response.data;
     } catch (error) {
-      console.error('❌ Disable MFA failed:', error);
       throw error;
     }
   }
@@ -371,7 +332,6 @@ class AuthService {
       const response = await apiClient.post('/mfa/verify', { code });
       return response.data;
     } catch (error) {
-      console.error('❌ Verify MFA failed:', error);
       throw error;
     }
   }

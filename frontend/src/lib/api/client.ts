@@ -17,7 +17,6 @@ const getApiUrl = () => {
   // If running in browser and env has kong-gateway, replace with localhost
   if (typeof window !== 'undefined' && envUrl?.includes('kong-gateway')) {
     const fixedUrl = envUrl.replace('kong-gateway', 'localhost');
-    console.warn('⚠️ API URL contained kong-gateway, replacing with localhost:', fixedUrl);
     return fixedUrl;
   }
 
@@ -26,13 +25,6 @@ const getApiUrl = () => {
 
 const API_URL = getApiUrl();
 const API_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '30000');
-
-// Debug: Log API_URL untuk memastikan
-console.log('🔧 API Client Configuration:', {
-  API_URL,
-  ORIGINAL_ENV: process.env.NEXT_PUBLIC_API_URL,
-  NODE_ENV: process.env.NODE_ENV,
-});
 
 /**
  * Token Storage Keys
@@ -101,21 +93,9 @@ const createApiClient = (): AxiosInstance => {
         config.headers.Authorization = `Bearer ${token}`;
       }
 
-      // Log request in development
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🚀 API Request:', {
-          method: config.method?.toUpperCase(),
-          url: config.url,
-          baseURL: config.baseURL,
-          fullURL: `${config.baseURL}${config.url}`,
-          hasToken: !!token,
-        });
-      }
-
       return config;
     },
     (error) => {
-      console.error('❌ Request Error:', error);
       return Promise.reject(error);
     }
   );
@@ -127,27 +107,10 @@ const createApiClient = (): AxiosInstance => {
    */
   instance.interceptors.response.use(
     (response) => {
-      // Log response in development
-      if (process.env.NODE_ENV === 'development') {
-        console.log('✅ API Response:', {
-          status: response.status,
-          url: response.config.url,
-        });
-      }
-
       return response;
     },
     async (error: AxiosError) => {
       const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
-
-      // Log error in development
-      if (process.env.NODE_ENV === 'development') {
-        console.error('❌ API Error:', {
-          status: error.response?.status,
-          url: error.config?.url,
-          message: error.message,
-        });
-      }
 
       // Handle 401 Unauthorized - Token Expired
       // Don't try to refresh token for login/refresh endpoints
@@ -174,8 +137,6 @@ const createApiClient = (): AxiosInstance => {
             // Update access token only (refresh token stays in cookie)
             setToken('ACCESS', access_token);
 
-            console.log('✅ Token refreshed successfully');
-
             // Retry original request with new token
             if (originalRequest.headers) {
               originalRequest.headers.Authorization = `Bearer ${access_token}`;
@@ -187,7 +148,6 @@ const createApiClient = (): AxiosInstance => {
           }
         } catch (refreshError) {
           // Refresh failed - logout user
-          console.error('❌ Token refresh failed:', refreshError);
           clearTokens();
 
           // Redirect to login

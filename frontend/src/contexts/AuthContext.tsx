@@ -79,13 +79,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
             const freshUser = await authService.getCurrentUser();
             setUser(freshUser);
           } catch (err) {
-            console.warn('⚠️  Could not verify user with backend:', err);
             // Keep using stored user if backend verification fails
           }
         }
       }
     } catch (err) {
-      console.error('❌ Auth initialization error:', err);
       setError(handleApiError(err));
     } finally {
       setIsLoading(false);
@@ -106,7 +104,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // Check if MFA is required
         if (response.data.mfa_required) {
           // Don't set user or redirect - let login page handle MFA
-          console.log('🔐 MFA required, returning to login page for verification');
           return; // Return early, login page will show MFA modal
         }
 
@@ -144,7 +141,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(null);
       router.push('/login');
     } catch (err) {
-      console.error('❌ Logout error:', err);
       // Clear user even if API call fails
       setUser(null);
       router.push('/login');
@@ -161,7 +157,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const freshUser = await authService.getCurrentUser();
       setUser(freshUser);
     } catch (err) {
-      console.error('❌ Refresh user error:', err);
       setError(handleApiError(err));
       throw err;
     }
@@ -177,10 +172,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       const updatedUser = await authService.switchRole(roleName);
       setUser(updatedUser);
-
-      console.log('✅ Role switched in context:', roleName);
     } catch (err) {
-      console.error('❌ Switch role error:', err);
       const apiError = handleApiError(err);
       setError(apiError);
       throw apiError;

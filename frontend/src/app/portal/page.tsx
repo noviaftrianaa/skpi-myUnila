@@ -137,12 +137,8 @@ export default function DashboardPage() {
       await switchRole(newRole);
       setSelectedRole(newRole);
       setShowRoleModal(false);
-
-      // Show success notification (optional - you can add a toast library)
-      console.log('✅ Role berhasil diganti ke:', newRole);
-    } catch (error) {
-      console.error('❌ Gagal mengganti role:', error);
-      // Show error notification (optional)
+    } catch {
+      // Handle error silently or show user-friendly message
     }
   };
 
