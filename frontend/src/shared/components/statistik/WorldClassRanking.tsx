@@ -295,9 +295,23 @@ export default function WorldClassRanking() {
                 };
 
                 const meta = categoryMeta[ranking.category.code] || { icon: "🏆", gradient: "from-gray-500 to-gray-600" };
+
                 // Convert change to number (API might return string)
-                const change = typeof ranking.change === 'string' ? parseInt(ranking.change) : (ranking.change || 0);
+                const rawChange = ranking.change;
+                const change = typeof rawChange === 'string' ? parseInt(rawChange) : (rawChange || 0);
                 const isImprovement = change < 0; // Negative change = rank improvement (lower number)
+
+                // Debug log
+                if (ranking.category.code === 'webometrics') {
+                  console.log('Webometrics card:', {
+                    rawChange,
+                    typeofRawChange: typeof rawChange,
+                    parsedChange: change,
+                    typeofParsed: typeof change,
+                    isNotZero: change !== 0,
+                    willShowBadge: change !== 0
+                  });
+                }
 
                 return (
                   <motion.div
