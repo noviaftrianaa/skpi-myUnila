@@ -17,7 +17,7 @@ import type {
 } from '@/lib/types/dashboard.types';
 
 // Dashboard Service Base URL - Via Kong Gateway
-const DASHBOARD_API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/api/v1';
+const DASHBOARD_API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL;
 
 /**
  * Dashboard Service Class

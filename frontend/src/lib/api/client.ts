@@ -10,20 +10,8 @@
 
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
-// TEMPORARY FIX: Force localhost URL untuk development
-const getApiUrl = () => {
-  const envUrl = process.env.NEXT_PUBLIC_API_URL;
-
-  // If running in browser and env has kong-gateway, replace with localhost
-  if (typeof window !== 'undefined' && envUrl?.includes('kong-gateway')) {
-    const fixedUrl = envUrl.replace('kong-gateway', 'localhost');
-    return fixedUrl;
-  }
-
-  return envUrl || 'http://localhost:9800/auth-service/api/v1';
-};
-
-const API_URL = getApiUrl();
+// Auth API URL from environment variable (via Kong Gateway)
+const API_URL = process.env.NEXT_PUBLIC_AUTH_API_URL || 'http://localhost:9800/auth-service/api/v1';
 const API_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '30000');
 
 /**
