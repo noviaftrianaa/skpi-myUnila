@@ -36,12 +36,10 @@ export default function WorldClassRanking() {
         ]);
 
         if (latestResponse.success) {
-          console.log('Latest Rankings Data:', latestResponse.data.rankings);
           setLatestRankings(latestResponse.data.rankings);
         }
 
         if (chartResponse.success) {
-          console.log('Chart Data Categories:', chartResponse.data.categories);
           setChartCategories(chartResponse.data.categories);
         }
       } catch (error) {
@@ -300,14 +298,6 @@ export default function WorldClassRanking() {
                 const change = ranking.change || 0;
                 const isImprovement = change < 0; // Negative change = rank improvement (lower number)
 
-                console.log(`Rendering card ${index}:`, {
-                  code: ranking.category.code,
-                  name: ranking.category.name,
-                  worldRank: ranking.ranks.world,
-                  nationalRank: ranking.ranks.national,
-                  change: change
-                });
-
                 return (
                   <motion.div
                     key={index}
@@ -318,6 +308,9 @@ export default function WorldClassRanking() {
                     <div className="relative z-10">
                       <div className="text-3xl mb-3">{meta.icon}</div>
                       <div className="text-sm font-semibold opacity-90 mb-2">{ranking.category.name}</div>
+                      <div className="text-xs opacity-75 mb-2">
+                        {ranking.year} {ranking.period && `(${ranking.period})`}
+                      </div>
                       <div className="flex items-baseline gap-2">
                         <div className="text-4xl font-bold">#{ranking.ranks.world}</div>
                         {change !== 0 && (
@@ -375,13 +368,30 @@ export default function WorldClassRanking() {
           {/* Info */}
           <motion.div variants={itemVariants} className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
             <div className="flex items-start gap-4">
-              <div className="text-3xl">📈</div>
+              <div className="text-3xl">📊</div>
               <div>
-                <h4 className="font-bold text-gray-800 mb-2">Peningkatan Konsisten</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  Universitas Lampung menunjukkan tren positif dengan peningkatan peringkat yang konsisten di semua ranking universitas dunia.
-                  Pencapaian ini mencerminkan komitmen institusi dalam meningkatkan kualitas pendidikan, penelitian, dan keberlanjutan lingkungan.
+                <h4 className="font-bold text-gray-800 mb-2">Prestasi Ranking Universitas Dunia</h4>
+                <p className="text-sm text-gray-600 leading-relaxed mb-3">
+                  Universitas Lampung menunjukkan komitmen kuat dalam peningkatan kualitas dengan meraih berbagai prestasi di ranking universitas dunia:
                 </p>
+                <ul className="text-sm text-gray-600 space-y-2 leading-relaxed">
+                  <li className="flex items-start gap-2">
+                    <span className="text-emerald-600 font-bold mt-0.5">•</span>
+                    <span><strong>UI GreenMetric 2024:</strong> Peringkat 13 nasional dari 183 universitas di Indonesia, fokus pada keberlanjutan lingkungan dan kampus hijau</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-600 font-bold mt-0.5">•</span>
+                    <span><strong>QS World 2025:</strong> Ranking 1401+ dunia, masuk 3 besar universitas terbaik di Sumatra</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-purple-600 font-bold mt-0.5">•</span>
+                    <span><strong>Times Higher Ed. 2024:</strong> Top 1500 dunia dari 1.904 universitas di 108 negara, peringkat 16 terbaik di Indonesia</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-600 font-bold mt-0.5">•</span>
+                    <span><strong>Webometrics 2025:</strong> Ranking 1588 dunia, peringkat 17 nasional, PTN nomor 1 di luar Pulau Jawa berdasarkan web presence</span>
+                  </li>
+                </ul>
               </div>
             </div>
           </motion.div>
