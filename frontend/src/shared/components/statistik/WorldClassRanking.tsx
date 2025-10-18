@@ -248,7 +248,7 @@ export default function WorldClassRanking() {
         },
       },
     ],
-  }), []);
+  }), [rankingData]);
 
   return (
     <section className="py-20 bg-white relative">
