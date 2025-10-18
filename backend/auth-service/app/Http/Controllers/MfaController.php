@@ -162,7 +162,14 @@ class MfaController extends Controller
             }
 
             // Enable MFA
-            $backupCodes = $this->mfaService->enableMfa($user);
+            $result = $this->mfaService->enableMfa($user);
+
+            if (!$result) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal mengaktifkan MFA',
+                ], 500);
+            }
 
             Log::info('MFA Enabled successfully', [
                 'user_id' => $user->id_pengguna,
@@ -171,11 +178,7 @@ class MfaController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'MFA berhasil diaktifkan',
-                'data' => [
-                    'backup_codes' => $backupCodes,
-                    'enabled_at' => $user->google2fa_enabled_at,
-                ],
+                'message' => 'MFA berhasil diaktifkan. Untuk recovery, hubungi Helpdesk TIK.',
             ]);
 
         } catch (\Exception $e) {

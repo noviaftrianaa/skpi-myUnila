@@ -50,8 +50,6 @@ export default function SettingsPage() {
   const [mfaSecret, setMfaSecret] = useState("");
   const [mfaQrCodeSvg, setMfaQrCodeSvg] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
-  const [backupCodes, setBackupCodes] = useState<string[]>([]);
-  const [showBackupCodes, setShowBackupCodes] = useState(false);
   const [isSettingUpMfa, setIsSettingUpMfa] = useState(false);
   const [isEnablingMfa, setIsEnablingMfa] = useState(false);
   const [isDisablingMfa, setIsDisablingMfa] = useState(false);
@@ -134,19 +132,17 @@ export default function SettingsPage() {
       const response = await authService.enableMfa(verificationCode);
 
       if (response.success) {
-        // Set backup codes if provided
-        if (response.data?.backup_codes) {
-          setBackupCodes(response.data.backup_codes);
-        }
         setMfaEnabled(true);
-        setShowBackupCodes(true);
         setShowMfaSetup(false);
         setVerificationCode("");
 
-        toast.success("🎉 MFA berhasil diaktifkan! Simpan backup codes Anda.", {
-          duration: 5000,
+        toast.success("🎉 MFA berhasil diaktifkan! Akun Anda sekarang lebih aman.", {
+          duration: 4000,
           position: 'top-right',
         });
+
+        // Reload MFA status
+        loadMfaStatus();
       } else {
         const errorMsg = response.message || "Kode verifikasi salah";
         setMfaError(errorMsg);
@@ -638,107 +634,6 @@ export default function SettingsPage() {
                   isLoading={isEnablingMfa}
                 >
                   Aktifkan 2FA
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-
-      {/* Backup Codes Modal */}
-      <Modal
-        isOpen={showBackupCodes}
-        onOpenChange={setShowBackupCodes}
-        size="lg"
-        backdrop="blur"
-        classNames={{
-          backdrop: "bg-black/50 backdrop-blur-sm",
-          base: "bg-white dark:bg-gray-800",
-          header: "bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700",
-          body: "bg-white dark:bg-gray-800",
-          footer: "bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700",
-        }}
-      >
-        <ModalContent className="bg-white dark:bg-gray-800">
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                  <FiKey className="w-5 h-5 text-primary-600" />
-                  <span>Backup Recovery Codes</span>
-                </div>
-              </ModalHeader>
-              <ModalBody>
-                <div className="space-y-4">
-                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <div className="flex items-start gap-2">
-                      <FiAlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                      <div className="text-sm text-yellow-800">
-                        <p className="font-medium mb-2">⚠️ PENTING: Simpan kode ini dengan aman!</p>
-                        <div className="space-y-2 text-xs">
-                          <p className="font-semibold">Apa itu Backup Recovery Codes?</p>
-                          <p>
-                            Ini adalah kode cadangan untuk login darurat jika Anda:
-                          </p>
-                          <ul className="list-disc ml-4 space-y-1">
-                            <li>Kehilangan akses ke Google Authenticator</li>
-                            <li>HP hilang/rusak dan tidak bisa buka app</li>
-                            <li>Ganti HP baru dan lupa backup authenticator</li>
-                          </ul>
-                          <p className="font-semibold mt-2">Catatan:</p>
-                          <ul className="list-disc ml-4 space-y-1">
-                            <li>Setiap kode hanya dapat digunakan <span className="font-bold">SATU KALI</span></li>
-                            <li>Simpan di tempat aman (password manager, notes terenkripsi, dll)</li>
-                            <li>Jangan bagikan ke siapapun!</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {backupCodes.length > 0 ? (
-                    <>
-                      <div className="grid grid-cols-2 gap-3">
-                        {backupCodes.map((code, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center gap-2 p-3 bg-gray-50 border border-gray-200 rounded-lg"
-                          >
-                            <code className="flex-1 text-sm font-mono text-gray-900">
-                              {code}
-                            </code>
-                            <Button
-                              isIconOnly
-                              size="sm"
-                              variant="light"
-                              onClick={() => copyToClipboard(code)}
-                            >
-                              <FiCopy className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-
-                      <Button
-                        className="w-full"
-                        variant="flat"
-                        color="primary"
-                        startContent={<FiCopy className="w-4 h-4" />}
-                        onClick={() => copyToClipboard(backupCodes.join("\n"))}
-                      >
-                        Salin Semua Kode
-                      </Button>
-                    </>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <p className="text-sm">Tidak ada backup codes tersedia</p>
-                    </div>
-                  )}
-                </div>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="primary" onPress={onClose}>
-                  Saya Sudah Menyimpan Kode Ini
                 </Button>
               </ModalFooter>
             </>

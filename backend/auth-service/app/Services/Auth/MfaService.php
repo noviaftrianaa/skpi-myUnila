@@ -5,7 +5,6 @@ namespace App\Services\Auth;
 use PragmaRX\Google2FALaravel\Google2FA;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 /**
  * MFA Service
@@ -99,15 +98,13 @@ class MfaService
 
     /**
      * Enable MFA for user
+     * Note: MFA recovery is handled via Helpdesk TIK (https://helpdesktik.unila.ac.id)
      *
      * @param object $user stdClass from UserRepository
-     * @return array Backup codes
+     * @return bool
      */
-    public function enableMfa($user): array
+    public function enableMfa($user): bool
     {
-        // Generate backup codes (8 codes)
-        $backupCodes = $this->generateBackupCodes(8);
-
         // Enable MFA
         DB::table('man_akses.pengguna')
             ->where('id_pengguna', $user->id_pengguna)
@@ -116,11 +113,7 @@ class MfaService
                 'google2fa_enabled_at' => now(),
             ]);
 
-        // Store backup codes (encrypted) - you might want to create a separate table
-        // For now, we'll return them to be displayed once
-        // In production, store these in a separate mfa_backup_codes table
-
-        return $backupCodes;
+        return true;
     }
 
     /**
@@ -139,28 +132,7 @@ class MfaService
                 'google2fa_enabled_at' => null,
             ]);
 
-        // Also delete backup codes if you have a separate table
-
         return true;
-    }
-
-    /**
-     * Generate Backup Recovery Codes
-     *
-     * @param int $count
-     * @return array
-     */
-    protected function generateBackupCodes(int $count = 8): array
-    {
-        $codes = [];
-
-        for ($i = 0; $i < $count; $i++) {
-            // Generate 8-character alphanumeric code
-            $code = strtoupper(Str::random(8));
-            $codes[] = $code;
-        }
-
-        return $codes;
     }
 
     /**

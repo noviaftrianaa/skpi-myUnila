@@ -521,6 +521,21 @@ export default function LoginPage() {
                       autoFocus
                     />
                   </div>
+
+                  {/* Help Link */}
+                  <div className="flex items-center justify-center pt-2">
+                    <a
+                      href="https://helpdesktik.unila.ac.id"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-1"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                      </svg>
+                      Tidak bisa akses MFA? Hubungi Helpdesk TIK
+                    </a>
+                  </div>
                 </div>
               </ModalBody>
               <ModalFooter>
