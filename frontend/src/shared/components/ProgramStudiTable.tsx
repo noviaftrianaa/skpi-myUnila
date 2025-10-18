@@ -1,82 +1,24 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import DataTable, { Column } from "./ui/DataTable";
 import { Chip, Select, SelectItem } from "@heroui/react";
-
-interface ProgramStudi {
-  kode: string;
-  nama: string;
-  status: string;
-  jenjang: string;
-  akreditasi: string;
-  dosenRasio: number;
-  dosenTetap: number;
-  dosenTidakTetap: number;
-  totalDosen: number;
-  mahasiswa: number;
-  rasio: string;
-  periode: string;
-}
-
-const programStudiData: ProgramStudi[] = [
-  { kode: "86104", nama: "Administrasi Pendidikan", status: "Aktif", jenjang: "S2", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 6, dosenTidakTetap: 0, totalDosen: 6, mahasiswa: 45, rasio: "1:7.5", periode: "Genap 2024" },
-  { kode: "63411", nama: "Administrasi Perkantoran", status: "Aktif", jenjang: "D3", akreditasi: "Baik Sekali", dosenRasio: 0, dosenTetap: 8, dosenTidakTetap: 3, totalDosen: 11, mahasiswa: 76, rasio: "1:6.9", periode: "Genap 2024" },
-  { kode: "54101", nama: "Agribisnis", status: "Aktif", jenjang: "S2", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 5, dosenTidakTetap: 0, totalDosen: 5, mahasiswa: 38, rasio: "1:7.6", periode: "Genap 2024" },
-  { kode: "54201", nama: "Agribisnis", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 13, dosenTidakTetap: 1, totalDosen: 14, mahasiswa: 466, rasio: "1:33.3", periode: "Genap 2024" },
-  { kode: "54204", nama: "Agronomi", status: "Aktif", jenjang: "S1", akreditasi: "Baik Sekali", dosenRasio: 0, dosenTetap: 13, dosenTidakTetap: 0, totalDosen: 13, mahasiswa: 405, rasio: "1:31.2", periode: "Genap 2024" },
-  { kode: "54301", nama: "Agroekoteknologi", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 15, dosenTidakTetap: 2, totalDosen: 17, mahasiswa: 512, rasio: "1:30.1", periode: "Genap 2024" },
-  { kode: "45201", nama: "Akuntansi", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 18, dosenTidakTetap: 4, totalDosen: 22, mahasiswa: 628, rasio: "1:28.5", periode: "Genap 2024" },
-  { kode: "45101", nama: "Akuntansi", status: "Aktif", jenjang: "D3", akreditasi: "Baik Sekali", dosenRasio: 0, dosenTetap: 10, dosenTidakTetap: 3, totalDosen: 13, mahasiswa: 142, rasio: "1:10.9", periode: "Genap 2024" },
-  { kode: "86201", nama: "Bahasa Indonesia", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 12, dosenTidakTetap: 2, totalDosen: 14, mahasiswa: 385, rasio: "1:27.5", periode: "Genap 2024" },
-  { kode: "86301", nama: "Bahasa Inggris", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 14, dosenTidakTetap: 3, totalDosen: 17, mahasiswa: 445, rasio: "1:26.2", periode: "Genap 2024" },
-  { kode: "54401", nama: "Biologi", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 16, dosenTidakTetap: 1, totalDosen: 17, mahasiswa: 328, rasio: "1:19.3", periode: "Genap 2024" },
-  { kode: "54501", nama: "Budidaya Perairan", status: "Aktif", jenjang: "S1", akreditasi: "Baik Sekali", dosenRasio: 0, dosenTetap: 11, dosenTidakTetap: 2, totalDosen: 13, mahasiswa: 296, rasio: "1:22.8", periode: "Genap 2024" },
-  { kode: "21201", nama: "Fisika", status: "Aktif", jenjang: "S1", akreditasi: "Baik Sekali", dosenRasio: 0, dosenTetap: 13, dosenTidakTetap: 1, totalDosen: 14, mahasiswa: 187, rasio: "1:13.4", periode: "Genap 2024" },
-  { kode: "62201", nama: "Geofisika", status: "Aktif", jenjang: "S1", akreditasi: "Baik Sekali", dosenRasio: 0, dosenTetap: 9, dosenTidakTetap: 2, totalDosen: 11, mahasiswa: 156, rasio: "1:14.2", periode: "Genap 2024" },
-  { kode: "86401", nama: "Bimbingan dan Konseling", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 10, dosenTidakTetap: 1, totalDosen: 11, mahasiswa: 298, rasio: "1:27.1", periode: "Genap 2024" },
-  { kode: "22201", nama: "Ilmu Administrasi Negara", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 15, dosenTidakTetap: 3, totalDosen: 18, mahasiswa: 542, rasio: "1:30.1", periode: "Genap 2024" },
-  { kode: "22301", nama: "Ilmu Administrasi Niaga/Bisnis", status: "Aktif", jenjang: "S1", akreditasi: "Baik Sekali", dosenRasio: 0, dosenTetap: 14, dosenTidakTetap: 2, totalDosen: 16, mahasiswa: 478, rasio: "1:29.9", periode: "Genap 2024" },
-  { kode: "22401", nama: "Ilmu Hubungan Internasional", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 12, dosenTidakTetap: 4, totalDosen: 16, mahasiswa: 412, rasio: "1:25.8", periode: "Genap 2024" },
-  { kode: "22501", nama: "Ilmu Komunikasi", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 16, dosenTidakTetap: 5, totalDosen: 21, mahasiswa: 598, rasio: "1:28.5", periode: "Genap 2024" },
-  { kode: "21301", nama: "Ilmu Komputer", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 20, dosenTidakTetap: 3, totalDosen: 23, mahasiswa: 687, rasio: "1:29.9", periode: "Genap 2024" },
-  { kode: "21401", nama: "Ilmu Tanah", status: "Aktif", jenjang: "S1", akreditasi: "Baik Sekali", dosenRasio: 0, dosenTetap: 11, dosenTidakTetap: 1, totalDosen: 12, mahasiswa: 234, rasio: "1:19.5", periode: "Genap 2024" },
-  { kode: "62301", nama: "Kehutanan", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 17, dosenTidakTetap: 2, totalDosen: 19, mahasiswa: 456, rasio: "1:24.0", periode: "Genap 2024" },
-  { kode: "21501", nama: "Kimia", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 15, dosenTidakTetap: 2, totalDosen: 17, mahasiswa: 312, rasio: "1:18.4", periode: "Genap 2024" },
-  { kode: "45301", nama: "Manajemen", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 22, dosenTidakTetap: 6, totalDosen: 28, mahasiswa: 856, rasio: "1:30.6", periode: "Genap 2024" },
-  { kode: "21601", nama: "Matematika", status: "Aktif", jenjang: "S1", akreditasi: "Baik Sekali", dosenRasio: 0, dosenTetap: 14, dosenTidakTetap: 1, totalDosen: 15, mahasiswa: 276, rasio: "1:18.4", periode: "Genap 2024" },
-  { kode: "86501", nama: "Pendidikan Biologi", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 13, dosenTidakTetap: 2, totalDosen: 15, mahasiswa: 398, rasio: "1:26.5", periode: "Genap 2024" },
-  { kode: "86601", nama: "Pendidikan Ekonomi", status: "Aktif", jenjang: "S1", akreditasi: "Baik Sekali", dosenRasio: 0, dosenTetap: 11, dosenTidakTetap: 3, totalDosen: 14, mahasiswa: 334, rasio: "1:23.9", periode: "Genap 2024" },
-  { kode: "86701", nama: "Pendidikan Fisika", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 12, dosenTidakTetap: 1, totalDosen: 13, mahasiswa: 287, rasio: "1:22.1", periode: "Genap 2024" },
-  { kode: "86801", nama: "Pendidikan Geografi", status: "Aktif", jenjang: "S1", akreditasi: "Baik Sekali", dosenRasio: 0, dosenTetap: 10, dosenTidakTetap: 2, totalDosen: 12, mahasiswa: 245, rasio: "1:20.4", periode: "Genap 2024" },
-  { kode: "86901", nama: "Pendidikan Guru Sekolah Dasar", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 18, dosenTidakTetap: 4, totalDosen: 22, mahasiswa: 678, rasio: "1:30.8", periode: "Genap 2024" },
-  { kode: "87001", nama: "Pendidikan Jasmani", status: "Aktif", jenjang: "S1", akreditasi: "Baik Sekali", dosenRasio: 0, dosenTetap: 14, dosenTidakTetap: 3, totalDosen: 17, mahasiswa: 445, rasio: "1:26.2", periode: "Genap 2024" },
-  { kode: "87101", nama: "Pendidikan Kimia", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 11, dosenTidakTetap: 1, totalDosen: 12, mahasiswa: 298, rasio: "1:24.8", periode: "Genap 2024" },
-  { kode: "87201", nama: "Pendidikan Matematika", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 15, dosenTidakTetap: 2, totalDosen: 17, mahasiswa: 456, rasio: "1:26.8", periode: "Genap 2024" },
-  { kode: "87301", nama: "Pendidikan Pancasila dan Kewarganegaraan", status: "Aktif", jenjang: "S1", akreditasi: "Baik Sekali", dosenRasio: 0, dosenTetap: 9, dosenTidakTetap: 2, totalDosen: 11, mahasiswa: 234, rasio: "1:21.3", periode: "Genap 2024" },
-  { kode: "87401", nama: "Pendidikan Sejarah", status: "Aktif", jenjang: "S1", akreditasi: "Baik Sekali", dosenRasio: 0, dosenTetap: 8, dosenTidakTetap: 1, totalDosen: 9, mahasiswa: 187, rasio: "1:20.8", periode: "Genap 2024" },
-  { kode: "62401", nama: "Perikanan", status: "Aktif", jenjang: "S1", akreditasi: "Baik Sekali", dosenRasio: 0, dosenTetap: 12, dosenTidakTetap: 2, totalDosen: 14, mahasiswa: 312, rasio: "1:22.3", periode: "Genap 2024" },
-  { kode: "62501", nama: "Peternakan", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 16, dosenTidakTetap: 3, totalDosen: 19, mahasiswa: 523, rasio: "1:27.5", periode: "Genap 2024" },
-  { kode: "21701", nama: "Proteksi Tanaman", status: "Aktif", jenjang: "S1", akreditasi: "Baik Sekali", dosenRasio: 0, dosenTetap: 10, dosenTidakTetap: 1, totalDosen: 11, mahasiswa: 256, rasio: "1:23.3", periode: "Genap 2024" },
-  { kode: "21801", nama: "Sistem Informasi", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 18, dosenTidakTetap: 4, totalDosen: 22, mahasiswa: 612, rasio: "1:27.8", periode: "Genap 2024" },
-  { kode: "22601", nama: "Sosiologi", status: "Aktif", jenjang: "S1", akreditasi: "Baik Sekali", dosenRasio: 0, dosenTetap: 11, dosenTidakTetap: 2, totalDosen: 13, mahasiswa: 298, rasio: "1:22.9", periode: "Genap 2024" },
-  { kode: "21901", nama: "Teknik Elektro", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 17, dosenTidakTetap: 3, totalDosen: 20, mahasiswa: 534, rasio: "1:26.7", periode: "Genap 2024" },
-  { kode: "22001", nama: "Teknik Geofisika", status: "Aktif", jenjang: "S1", akreditasi: "Baik Sekali", dosenRasio: 0, dosenTetap: 12, dosenTidakTetap: 2, totalDosen: 14, mahasiswa: 298, rasio: "1:21.3", periode: "Genap 2024" },
-  { kode: "22101", nama: "Teknik Geologi", status: "Aktif", jenjang: "S1", akreditasi: "Baik Sekali", dosenRasio: 0, dosenTetap: 13, dosenTidakTetap: 1, totalDosen: 14, mahasiswa: 312, rasio: "1:22.3", periode: "Genap 2024" },
-  { kode: "22201", nama: "Teknik Industri", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 19, dosenTidakTetap: 4, totalDosen: 23, mahasiswa: 645, rasio: "1:28.0", periode: "Genap 2024" },
-  { kode: "22301", nama: "Teknik Kimia", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 16, dosenTidakTetap: 2, totalDosen: 18, mahasiswa: 478, rasio: "1:26.6", periode: "Genap 2024" },
-  { kode: "22401", nama: "Teknik Mesin", status: "Aktif", jenjang: "S1", akreditasi: "Baik Sekali", dosenRasio: 0, dosenTetap: 15, dosenTidakTetap: 3, totalDosen: 18, mahasiswa: 456, rasio: "1:25.3", periode: "Genap 2024" },
-  { kode: "22501", nama: "Teknik Pertanian", status: "Aktif", jenjang: "S1", akreditasi: "Baik Sekali", dosenRasio: 0, dosenTetap: 14, dosenTidakTetap: 2, totalDosen: 16, mahasiswa: 389, rasio: "1:24.3", periode: "Genap 2024" },
-  { kode: "22601", nama: "Teknik Sipil", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 21, dosenTidakTetap: 5, totalDosen: 26, mahasiswa: 734, rasio: "1:28.2", periode: "Genap 2024" },
-  { kode: "62601", nama: "Teknologi Hasil Pertanian", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 15, dosenTidakTetap: 2, totalDosen: 17, mahasiswa: 445, rasio: "1:26.2", periode: "Genap 2024" },
-  { kode: "62701", nama: "Teknologi Industri Pertanian", status: "Aktif", jenjang: "S1", akreditasi: "Baik Sekali", dosenRasio: 0, dosenTetap: 13, dosenTidakTetap: 3, totalDosen: 16, mahasiswa: 378, rasio: "1:23.6", periode: "Genap 2024" },
-  { kode: "45401", nama: "Ekonomi Pembangunan", status: "Aktif", jenjang: "S1", akreditasi: "Unggul", dosenRasio: 0, dosenTetap: 17, dosenTidakTetap: 4, totalDosen: 21, mahasiswa: 589, rasio: "1:28.0", periode: "Genap 2024" },
-  { kode: "87501", nama: "Pendidikan Anak Usia Dini", status: "Aktif", jenjang: "S1", akreditasi: "Baik Sekali", dosenRasio: 0, dosenTetap: 10, dosenTidakTetap: 2, totalDosen: 12, mahasiswa: 298, rasio: "1:24.8", periode: "Genap 2024" },
-];
+import dashboardService from "@/lib/services/dashboard.service";
+import type { ProgramStudi, ProgramStudiStatistics, ProgramStudiPeriod } from "@/lib/types/dashboard.types";
 
 export default function ProgramStudiTable() {
-  const [selectedPeriode, setSelectedPeriode] = useState<string>("Genap 2024");
+  const [data, setData] = useState<ProgramStudi[]>([]);
+  const [statistics, setStatistics] = useState<ProgramStudiStatistics | null>(null);
+  const [periods, setPeriods] = useState<ProgramStudiPeriod[]>([]);
+  const [selectedPeriode, setSelectedPeriode] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [sortBy, setSortBy] = useState("nama");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -97,16 +39,60 @@ export default function ProgramStudiTable() {
     }
   };
 
-  // Filter data berdasarkan periode
-  const filteredData = useMemo(() => {
-    return programStudiData.filter(item => item.periode === selectedPeriode);
-  }, [selectedPeriode]);
-
-  // Daftar periode yang tersedia
-  const periodeOptions = useMemo(() => {
-    const periodes = Array.from(new Set(programStudiData.map(item => item.periode)));
-    return periodes.sort().reverse(); // Urutkan terbaru dulu
+  // Load periods on mount
+  useEffect(() => {
+    const loadPeriods = async () => {
+      try {
+        const response = await dashboardService.getProgramStudiPeriods();
+        if (response.success && response.data.length > 0) {
+          setPeriods(response.data);
+          setSelectedPeriode(response.data[0].id_smt);
+        }
+      } catch (error) {
+        console.error('Error loading periods:', error);
+      }
+    };
+    loadPeriods();
   }, []);
+
+  // Load data when filters change
+  useEffect(() => {
+    if (!selectedPeriode) return;
+
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const [listResponse, statsResponse] = await Promise.all([
+          dashboardService.getProgramStudiList({
+            periode: selectedPeriode,
+            search: searchQuery || undefined,
+            page: currentPage,
+            per_page: rowsPerPage,
+            sort_by: sortBy,
+            sort_order: sortOrder,
+          }),
+          dashboardService.getProgramStudiStatistics({
+            periode: selectedPeriode,
+          })
+        ]);
+
+        if (listResponse.success) {
+          setData(listResponse.data);
+          setTotalRecords(listResponse.pagination.total);
+        }
+
+        if (statsResponse.success) {
+          setStatistics(statsResponse.data);
+        }
+      } catch (error) {
+        console.error('Error loading program studi data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [selectedPeriode, searchQuery, currentPage, rowsPerPage, sortBy, sortOrder]);
 
   // Function to create slug from nama program studi
   const createSlug = (nama: string) => {
@@ -134,38 +120,28 @@ export default function ProgramStudiTable() {
         </Link>
       )
     },
-    { key: "status", label: "STATUS", align: "center", width: "80px", render: (item) => <Chip size="sm" color="success" variant="flat" className="font-semibold">{item.status}</Chip> },
+    {
+      key: "status",
+      label: "STATUS",
+      align: "center",
+      width: "80px",
+      render: (item) => (
+        <Chip
+          size="sm"
+          color={item.status === "Aktif" ? "success" : "default"}
+          variant="flat"
+          className="font-semibold"
+        >
+          {item.status}
+        </Chip>
+      )
+    },
     { key: "jenjang", label: "JENJANG", align: "center", width: "80px", sortable: true, render: (item) => <span className="font-bold text-blue-600">{item.jenjang}</span> },
     { key: "akreditasi", label: "AKREDITASI", align: "center", width: "110px", sortable: true, render: (item) => <Chip size="sm" color={getAkreditasiColor(item.akreditasi)} variant="flat" className="font-semibold">{item.akreditasi}</Chip> },
-    { key: "dosenRasio", label: "DOSEN", align: "center", width: "70px", sortable: true, headerRender: () => <div className="text-center">JUMLAH DOSEN</div>, render: (item) => <span className="font-bold text-gray-900">{item.dosenRasio}</span> },
-    { key: "tendik", label: "TENDIK", align: "center", width: "90px", sortable: true, headerRender: () => <div className="text-center">JUMLAH TENDIK</div>, render: (item) => <span className="font-bold text-blue-600">{item.totalDosen}</span> },
-    { key: "mahasiswa", label: "MAHASISWA", align: "center", width: "90px", sortable: true, headerRender: () => <div className="text-center"><div>JUMLAH</div><div>MAHASISWA</div></div>, render: (item) => <span className="font-bold text-indigo-600">{item.mahasiswa}</span> },
+    { key: "total_dosen", label: "DOSEN", align: "center", width: "70px", sortable: true, headerRender: () => <div className="text-center">JUMLAH DOSEN</div>, render: (item) => <span className="font-bold text-gray-900">{item.total_dosen}</span> },
+    { key: "total_mahasiswa", label: "MAHASISWA", align: "center", width: "90px", sortable: true, headerRender: () => <div className="text-center"><div>JUMLAH</div><div>MAHASISWA</div></div>, render: (item) => <span className="font-bold text-indigo-600">{item.total_mahasiswa.toLocaleString('id-ID')}</span> },
     { key: "rasio", label: "RASIO", align: "center", width: "80px", headerRender: () => <div className="text-center"><div>RASIO DOSEN /</div><div>MAHASISWA</div></div>, render: (item) => <span className="text-gray-700 font-semibold">{item.rasio}</span> },
   ];
-
-  // Calculate summary statistics
-  const summary = useMemo(() => {
-    const totalProdi = filteredData.length;
-    const totalDosen = filteredData.reduce((sum, item) => sum + item.dosenRasio, 0);
-    const totalTendik = filteredData.reduce((sum, item) => sum + item.totalDosen, 0);
-    const totalMahasiswa = filteredData.reduce((sum, item) => sum + item.mahasiswa, 0);
-    const avgRasio = totalDosen > 0 ? Math.round(totalMahasiswa / totalDosen) : 0;
-
-    const akreditasiCount = {
-      unggul: filteredData.filter(item => item.akreditasi === "Unggul").length,
-      baikSekali: filteredData.filter(item => item.akreditasi === "Baik Sekali").length,
-      baik: filteredData.filter(item => item.akreditasi === "Baik").length,
-    };
-
-    return {
-      totalProdi,
-      totalDosen,
-      totalTendik,
-      totalMahasiswa,
-      avgRasio,
-      akreditasiCount,
-    };
-  }, [filteredData]);
 
   return (
     <section className="py-20 bg-gradient-to-b from-blue-50/30 via-white to-indigo-50/20 relative">
@@ -181,20 +157,37 @@ export default function ProgramStudiTable() {
 
           <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
             <DataTable
-              data={filteredData}
+              data={data}
               columns={columns}
               searchable={true}
               searchKeys={["nama", "kode"]}
               searchPlaceholder="Cari: [Nama Program Studi] / [Kode]"
-              defaultRowsPerPage={5}
-              rowsPerPageOptions={[5, 10, 15, 25]}
+              defaultRowsPerPage={10}
+              rowsPerPageOptions={[5, 10, 15, 25, 50]}
               noWrapper={true}
+              loading={loading}
+              serverSide={true}
+              totalRecords={totalRecords}
+              onPageChange={(page) => setCurrentPage(page)}
+              onRowsPerPageChange={(rows) => {
+                setRowsPerPage(rows);
+                setCurrentPage(1);
+              }}
+              onSearchChange={(query) => {
+                setSearchQuery(query);
+                setCurrentPage(1);
+              }}
+              onSortChange={(key, order) => {
+                setSortBy(key);
+                setSortOrder(order);
+                setCurrentPage(1);
+              }}
               filterSlot={
                 <div className="flex items-center gap-3">
                   <span className="text-white font-semibold text-sm whitespace-nowrap">Periode:</span>
                   <Select
                     placeholder="Pilih Periode"
-                    selectedKeys={[selectedPeriode]}
+                    selectedKeys={selectedPeriode ? [selectedPeriode] : []}
                     onChange={(e) => setSelectedPeriode(e.target.value)}
                     classNames={{
                       base: "flex-1 min-w-[180px]",
@@ -210,9 +203,9 @@ export default function ProgramStudiTable() {
                       </svg>
                     }
                   >
-                    {periodeOptions.map((periode) => (
-                      <SelectItem key={periode}>
-                        {periode}
+                    {periods.map((periode) => (
+                      <SelectItem key={periode.id_smt} value={periode.id_smt}>
+                        {periode.name}
                       </SelectItem>
                     ))}
                   </Select>
@@ -221,28 +214,26 @@ export default function ProgramStudiTable() {
             />
 
             {/* Footer Summary */}
-            <div className="border-t-2 border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-              <div className="px-6 py-4">
-                <div className="grid grid-cols-4 gap-4">
-                  <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-blue-100">
-                    <div className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Total Dosen</div>
-                    <div className="text-2xl font-bold text-gray-900">{summary.totalDosen.toLocaleString('id-ID')}</div>
-                  </div>
-                  <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-blue-100">
-                    <div className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Total Tendik</div>
-                    <div className="text-2xl font-bold text-blue-600">{summary.totalTendik.toLocaleString('id-ID')}</div>
-                  </div>
-                  <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-blue-100">
-                    <div className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Total Mahasiswa</div>
-                    <div className="text-2xl font-bold text-indigo-600">{summary.totalMahasiswa.toLocaleString('id-ID')}</div>
-                  </div>
-                  <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-blue-100">
-                    <div className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Rasio Dosen:Mahasiswa</div>
-                    <div className="text-2xl font-bold text-emerald-600">1:{summary.avgRasio}</div>
+            {statistics && (
+              <div className="border-t-2 border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+                <div className="px-6 py-4">
+                  <div className="grid grid-cols-3 gap-6">
+                    <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-blue-100">
+                      <div className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Total Dosen</div>
+                      <div className="text-2xl font-bold text-gray-900">{statistics.total_dosen.toLocaleString('id-ID')}</div>
+                    </div>
+                    <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-blue-100">
+                      <div className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Total Mahasiswa</div>
+                      <div className="text-2xl font-bold text-indigo-600">{statistics.total_mahasiswa.toLocaleString('id-ID')}</div>
+                    </div>
+                    <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-blue-100">
+                      <div className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Rasio Dosen:Mahasiswa</div>
+                      <div className="text-2xl font-bold text-emerald-600">1:{statistics.avg_rasio}</div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </motion.div>
         </motion.div>
       </div>

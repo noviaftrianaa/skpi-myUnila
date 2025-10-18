@@ -14,6 +14,10 @@ import type {
   ChartDataResponse,
   CategoriesResponse,
   StatisticsResponse,
+  ProgramStudiListResponse,
+  ProgramStudiStatisticsResponse,
+  ProgramStudiPeriodsResponse,
+  ProgramStudiFilterOptionsResponse,
 } from '@/lib/types/dashboard.types';
 
 // Dashboard Service Base URL - Via Kong Gateway
@@ -95,6 +99,96 @@ class DashboardService {
     try {
       const response = await axios.get<StatisticsResponse>(
         `${DASHBOARD_API_URL}/rankings/statistics`
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // ============================================
+  // Program Studi Methods
+  // ============================================
+
+  /**
+   * Get program studi list with filters and pagination
+   */
+  async getProgramStudiList(params?: {
+    periode?: string;
+    jenjang?: string;
+    akreditasi?: string;
+    fakultas?: string;
+    search?: string;
+    page?: number;
+    per_page?: number;
+    sort_by?: string;
+    sort_order?: string;
+  }): Promise<ProgramStudiListResponse> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params?.periode) queryParams.append('periode', params.periode);
+      if (params?.jenjang) queryParams.append('jenjang', params.jenjang);
+      if (params?.akreditasi) queryParams.append('akreditasi', params.akreditasi);
+      if (params?.fakultas) queryParams.append('fakultas', params.fakultas);
+      if (params?.search) queryParams.append('search', params.search);
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+      if (params?.sort_by) queryParams.append('sort_by', params.sort_by);
+      if (params?.sort_order) queryParams.append('sort_order', params.sort_order);
+
+      const response = await axios.get<ProgramStudiListResponse>(
+        `${DASHBOARD_API_URL}/program-studi?${queryParams.toString()}`
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Get program studi statistics
+   */
+  async getProgramStudiStatistics(params?: {
+    periode?: string;
+    jenjang?: string;
+    akreditasi?: string;
+  }): Promise<ProgramStudiStatisticsResponse> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params?.periode) queryParams.append('periode', params.periode);
+      if (params?.jenjang) queryParams.append('jenjang', params.jenjang);
+      if (params?.akreditasi) queryParams.append('akreditasi', params.akreditasi);
+
+      const response = await axios.get<ProgramStudiStatisticsResponse>(
+        `${DASHBOARD_API_URL}/program-studi/statistics?${queryParams.toString()}`
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Get available periods
+   */
+  async getProgramStudiPeriods(): Promise<ProgramStudiPeriodsResponse> {
+    try {
+      const response = await axios.get<ProgramStudiPeriodsResponse>(
+        `${DASHBOARD_API_URL}/program-studi/periods`
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Get filter options
+   */
+  async getProgramStudiFilterOptions(): Promise<ProgramStudiFilterOptionsResponse> {
+    try {
+      const response = await axios.get<ProgramStudiFilterOptionsResponse>(
+        `${DASHBOARD_API_URL}/program-studi/filter-options`
       );
       return response.data;
     } catch (error) {

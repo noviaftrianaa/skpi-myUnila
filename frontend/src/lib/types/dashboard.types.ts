@@ -164,3 +164,117 @@ export interface StatisticsResponse {
     }[];
   };
 }
+
+// ============================================
+// Program Studi Types
+// ============================================
+
+/**
+ * Program Studi Item
+ */
+export interface ProgramStudi {
+  id: string;
+  kode: string;
+  nama: string;
+  status: string;
+  jenjang: string;
+  akreditasi: string;
+  fakultas: string | null;
+  jurusan: string | null;
+  dosen_tetap: number;
+  dosen_tidak_tetap: number;
+  dosen_pns: number;
+  dosen_non_pns: number;
+  total_dosen: number;
+  total_tendik: number;
+  total_mahasiswa: number;
+  rasio: string;
+  periode: string;
+}
+
+/**
+ * Program Studi List Response
+ */
+export interface ProgramStudiListResponse {
+  success: boolean;
+  message: string;
+  data: ProgramStudi[];
+  pagination: {
+    total: number;
+    per_page: number;
+    current_page: number;
+    last_page: number;
+    from: number;
+    to: number;
+  };
+}
+
+/**
+ * Program Studi Statistics
+ */
+export interface ProgramStudiStatistics {
+  total_prodi: number;
+  total_dosen: number;
+  total_tendik: number;
+  total_mahasiswa: number;
+  avg_rasio: number;
+  akreditasi_count: {
+    unggul: number;
+    baik_sekali: number;
+    baik: number;
+    belum_akreditasi: number;
+  };
+  jenjang_count: {
+    S3: number;
+    S2: number;
+    S1: number;
+    D4: number;
+    D3: number;
+  };
+  periode: string;
+}
+
+/**
+ * Program Studi Statistics Response
+ */
+export interface ProgramStudiStatisticsResponse {
+  success: boolean;
+  message: string;
+  data: ProgramStudiStatistics;
+}
+
+/**
+ * Program Studi Period
+ */
+export interface ProgramStudiPeriod {
+  id_smt: string;
+  name: string;
+  year: string;
+}
+
+/**
+ * Program Studi Periods Response
+ */
+export interface ProgramStudiPeriodsResponse {
+  success: boolean;
+  message: string;
+  data: ProgramStudiPeriod[];
+}
+
+/**
+ * Program Studi Filter Options
+ */
+export interface ProgramStudiFilterOptions {
+  fakultas: string[];
+  jenjang: string[];
+  akreditasi: string[];
+}
+
+/**
+ * Program Studi Filter Options Response
+ */
+export interface ProgramStudiFilterOptionsResponse {
+  success: boolean;
+  message: string;
+  data: ProgramStudiFilterOptions;
+}

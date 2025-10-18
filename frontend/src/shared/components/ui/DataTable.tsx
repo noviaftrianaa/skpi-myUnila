@@ -38,6 +38,13 @@ interface DataTableProps<T> {
   className?: string;
   filterSlot?: React.ReactNode;
   noWrapper?: boolean;
+  loading?: boolean;
+  serverSide?: boolean;
+  totalRecords?: number;
+  onPageChange?: (page: number) => void;
+  onRowsPerPageChange?: (rows: number) => void;
+  onSearchChange?: (query: string) => void;
+  onSortChange?: (key: string, order: "asc" | "desc") => void;
 }
 
 export default function DataTable<T extends Record<string, any>>({
@@ -51,6 +58,13 @@ export default function DataTable<T extends Record<string, any>>({
   className = "",
   filterSlot,
   noWrapper = false,
+  loading = false,
+  serverSide = false,
+  totalRecords,
+  onPageChange,
+  onRowsPerPageChange,
+  onSearchChange,
+  onSortChange,
 }: DataTableProps<T>) {
   const [searchValue, setSearchValue] = useState("");
   const [page, setPage] = useState(1);
@@ -70,8 +84,9 @@ export default function DataTable<T extends Record<string, any>>({
     ];
   }, [rowsPerPageOptions]);
 
-  // Filter data based on search
+  // For server-side mode, use data as-is. For client-side, filter and paginate
   const filteredData = useMemo(() => {
+    if (serverSide) return data;
     if (!searchValue || searchKeys.length === 0) return data;
 
     return data.filter((item) =>
@@ -81,11 +96,11 @@ export default function DataTable<T extends Record<string, any>>({
           .includes(searchValue.toLowerCase())
       )
     );
-  }, [data, searchValue, searchKeys]);
+  }, [data, searchValue, searchKeys, serverSide]);
 
-  // Sort data
+  // Sort data (only for client-side)
   const sortedData = useMemo(() => {
-    if (!sortColumn) return filteredData;
+    if (serverSide || !sortColumn) return filteredData;
 
     return [...filteredData].sort((a, b) => {
       const aValue = a[sortColumn];
@@ -106,26 +121,40 @@ export default function DataTable<T extends Record<string, any>>({
         return bString.localeCompare(aString);
       }
     });
-  }, [filteredData, sortColumn, sortDirection]);
+  }, [filteredData, sortColumn, sortDirection, serverSide]);
 
-  // Paginate data
+  // Paginate data (only for client-side)
   const paginatedData = useMemo(() => {
+    if (serverSide) return data; // Server already paginated
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
     return sortedData.slice(start, end);
-  }, [sortedData, page, rowsPerPage]);
+  }, [sortedData, page, rowsPerPage, data, serverSide]);
 
-  const totalPages = Math.ceil(sortedData.length / rowsPerPage);
+  const totalPages = serverSide
+    ? Math.ceil((totalRecords || 0) / rowsPerPage)
+    : Math.ceil(sortedData.length / rowsPerPage);
+
+  const totalDataCount = serverSide ? (totalRecords || 0) : sortedData.length;
 
   // Handle sort column click
   const handleSort = (key: string) => {
+    let newDirection: "asc" | "desc";
+
     if (sortColumn === key) {
       // Toggle direction if same column
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+      newDirection = sortDirection === "asc" ? "desc" : "asc";
+      setSortDirection(newDirection);
     } else {
       // New column, default to ascending
       setSortColumn(key);
-      setSortDirection("asc");
+      newDirection = "asc";
+      setSortDirection(newDirection);
+    }
+
+    // Call parent callback for server-side sorting
+    if (serverSide && onSortChange) {
+      onSortChange(key, newDirection);
     }
   };
 
@@ -158,6 +187,9 @@ export default function DataTable<T extends Record<string, any>>({
                 onValueChange={(value) => {
                   setSearchValue(value);
                   setPage(1);
+                  if (serverSide && onSearchChange) {
+                    onSearchChange(value);
+                  }
                 }}
               />
             </div>
@@ -172,8 +204,22 @@ export default function DataTable<T extends Record<string, any>>({
               onChange={(e) => {
                 const value = e.target.value;
                 setSelectedKey(value);
-                setRowsPerPage(value === "all" ? filteredData.length : parseInt(value));
-                setPage(1);
+                if (value === "all") {
+                  // For "Semua", use total data count
+                  const newRowsPerPage = serverSide ? (totalRecords || 9999) : filteredData.length;
+                  setRowsPerPage(newRowsPerPage);
+                  setPage(1);
+                  if (serverSide && onRowsPerPageChange) {
+                    onRowsPerPageChange(newRowsPerPage);
+                  }
+                } else {
+                  const newRowsPerPage = parseInt(value);
+                  setRowsPerPage(newRowsPerPage);
+                  setPage(1);
+                  if (serverSide && onRowsPerPageChange) {
+                    onRowsPerPageChange(newRowsPerPage);
+                  }
+                }
               }}
               classNames={{
                 base: "w-20",
@@ -243,7 +289,10 @@ export default function DataTable<T extends Record<string, any>>({
               </TableColumn>
             ))}
           </TableHeader>
-          <TableBody emptyContent="Tidak ada data yang ditemukan">
+          <TableBody
+            emptyContent={loading ? "Memuat data..." : "Tidak ada data yang ditemukan"}
+            isLoading={loading}
+          >
             {paginatedData.map((item, index) => (
               <TableRow key={index}>
                 {columns.map((column) => (
@@ -264,14 +313,14 @@ export default function DataTable<T extends Record<string, any>>({
           <div className="text-xs text-gray-600 font-medium">
             Menampilkan{" "}
             <span className="font-bold text-blue-600">
-              {filteredData.length === 0 ? 0 : (page - 1) * rowsPerPage + 1}
+              {totalDataCount === 0 ? 0 : (page - 1) * rowsPerPage + 1}
             </span>
             {" - "}
             <span className="font-bold text-blue-600">
-              {Math.min(page * rowsPerPage, filteredData.length)}
+              {Math.min(page * rowsPerPage, totalDataCount)}
             </span>
             {" dari "}
-            <span className="font-bold text-blue-600">{filteredData.length}</span> data
+            <span className="font-bold text-blue-600">{totalDataCount.toLocaleString('id-ID')}</span> data
           </div>
 
           {/* Pagination */}
@@ -279,7 +328,12 @@ export default function DataTable<T extends Record<string, any>>({
             <Pagination
               total={totalPages}
               page={page}
-              onChange={setPage}
+              onChange={(newPage) => {
+                setPage(newPage);
+                if (serverSide && onPageChange) {
+                  onPageChange(newPage);
+                }
+              }}
               size="sm"
               showControls
               classNames={{
