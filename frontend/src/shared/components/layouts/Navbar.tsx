@@ -147,11 +147,11 @@ export default function Navbar() {
             {isAuthenticated ? (
               <Button
                 as={Link}
-                href="/dashboard"
+                href="/portal"
                 size="sm"
                 className="btn-gradient-primary font-semibold px-3 sm:px-6 md:px-8 shadow-md rounded-lg text-xs sm:text-sm h-9 sm:h-10 min-w-0"
               >
-                <span className="hidden xs:inline">Dashboard</span>
+                <span className="hidden xs:inline">Portal</span>
                 <span className="xs:hidden">Portal</span>
               </Button>
             ) : (

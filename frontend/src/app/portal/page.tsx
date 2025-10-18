@@ -93,6 +93,7 @@ interface Application {
   color: string;
   isFavorite: boolean;
   href: string;
+  requireRole?: string; // Optional: Only show to specific role
 }
 
 interface AppCategory {
@@ -421,11 +422,22 @@ export default function DashboardPage() {
         {
           id: "api-gateway",
           name: "API Gateway",
-          description: "Gateway Integrasi API",
+          description: "Kong Dashboard - Developer Only",
           icon: <FaPlug className="w-6 h-6" />,
           color: "bg-slate-700",
           isFavorite: false,
-          href: "#",
+          href: "/portal/kong-admin",
+          requireRole: "Developer", // Only for Developer role
+        },
+        {
+          id: "monitoring",
+          name: "Monitoring & Observability",
+          description: "Grafana, Prometheus, Loki - Developer Only",
+          icon: <FaChartLine className="w-6 h-6" />,
+          color: "bg-orange-600",
+          isFavorite: false,
+          href: "http://localhost:3002",
+          requireRole: "Developer", // Only for Developer role
         },
       ],
     },
@@ -511,12 +523,17 @@ export default function DashboardPage() {
         app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         app.description.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesFavorite = !showFavoritesOnly || app.isFavorite;
-      return matchesSearch && matchesFavorite;
+      // Role check: Only show apps that match user's role or have no role requirement
+      const matchesRole = !app.requireRole || user?.role === app.requireRole;
+      return matchesSearch && matchesFavorite && matchesRole;
     }),
   })).filter((category) => category.apps.length > 0);
 
   const favoriteApps = applications.flatMap((cat) =>
-    cat.apps.filter((app) => app.isFavorite)
+    cat.apps.filter((app) => {
+      const matchesRole = !app.requireRole || user?.role === app.requireRole;
+      return app.isFavorite && matchesRole;
+    })
   );
 
   // Show loading while checking authentication or loading data
@@ -898,8 +915,8 @@ export default function DashboardPage() {
                                       {app.icon}
                                     </div>
                                   </div>
-                                  <div className="flex-1 min-w-0">
-                                    <h4 className="font-semibold text-gray-800 text-sm mb-1 truncate">
+                                  <div className="flex-1 min-w-0 pr-6">
+                                    <h4 className="font-semibold text-gray-800 text-sm mb-1 line-clamp-1">
                                       {app.name}
                                     </h4>
                                     <p className="text-xs text-gray-500 line-clamp-2">
