@@ -1,0 +1,28 @@
+category_code,year,period,world_rank,world_rank_numeric,national_rank,regional_rank,overall_score,rank_change,trend,source_url,notes
+greenmetric,2024,Annual,577,577,13,,,,-15,up,https://greenmetric.ui.ac.id/rankings/overall-rankings-2024,"Example: UI GreenMetric 2024 ranking"
+qs,2025,Annual,1401+,1401,,,,,stable,https://www.topuniversities.com/universities/university-lampung,"Example: QS World University Rankings 2025"
+the,2024,Annual,1500,1500,16,,,,,up,https://www.timeshighereducation.com/world-university-rankings/university-lampung,"Example: Times Higher Education 2024"
+webometrics,2025,January,1588,1588,17,,,-10,down,https://webometrics.info/en/Asia/Indonesia,"Example: Webometrics January 2025"
+
+# COLUMN DEFINITIONS:
+# category_code      : Category code (greenmetric, qs, the, webometrics)
+# year              : Year of ranking (e.g., 2024, 2025)
+# period            : Period (Annual, January, July, etc.) - can be empty
+# world_rank        : World ranking as displayed (can be text like "1401+", "TBD")
+# world_rank_numeric: Numeric value for sorting (integer only, leave empty if not applicable)
+# national_rank     : National ranking (Indonesia) - integer or empty
+# regional_rank     : Regional ranking (Asia/ASEAN) - integer or empty
+# overall_score     : Overall score (decimal) - can be empty
+# rank_change       : Change from previous period (integer: -10 = improved 10 positions, +5 = dropped 5)
+# trend             : Trend indicator (up, down, stable, new)
+# source_url        : Source URL for verification
+# notes             : Additional notes or description
+
+# TIPS:
+# 1. Keep the header row as-is
+# 2. category_code must match existing categories
+# 3. Combination of category_code + year + period must be unique
+# 4. If a record exists, it will be UPDATED. If not, it will be INSERTED
+# 5. Empty cells are treated as NULL
+# 6. Use quotes if your text contains commas (CSV standard)
+# 7. world_rank can be text (e.g., "1401+", "TBD"), but world_rank_numeric must be integer
