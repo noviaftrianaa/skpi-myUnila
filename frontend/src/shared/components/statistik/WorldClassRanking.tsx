@@ -301,18 +301,6 @@ export default function WorldClassRanking() {
                 const change = typeof rawChange === 'string' ? parseInt(rawChange) : (rawChange || 0);
                 const isImprovement = change < 0; // Negative change = rank improvement (lower number)
 
-                // Debug log
-                if (ranking.category.code === 'webometrics') {
-                  console.log('Webometrics card:', {
-                    rawChange,
-                    typeofRawChange: typeof rawChange,
-                    parsedChange: change,
-                    typeofParsed: typeof change,
-                    isNotZero: change !== 0,
-                    willShowBadge: change !== 0
-                  });
-                }
-
                 return (
                   <motion.div
                     key={index}
