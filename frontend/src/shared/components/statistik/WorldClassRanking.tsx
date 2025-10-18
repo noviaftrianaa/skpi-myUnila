@@ -295,7 +295,8 @@ export default function WorldClassRanking() {
                 };
 
                 const meta = categoryMeta[ranking.category.code] || { icon: "🏆", gradient: "from-gray-500 to-gray-600" };
-                const change = ranking.change || 0;
+                // Convert change to number (API might return string)
+                const change = typeof ranking.change === 'string' ? parseInt(ranking.change) : (ranking.change || 0);
                 const isImprovement = change < 0; // Negative change = rank improvement (lower number)
 
                 return (
