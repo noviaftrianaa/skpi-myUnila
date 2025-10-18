@@ -298,7 +298,7 @@ export default function WorldClassRanking() {
 
                 // Convert change to number (API might return string)
                 const rawChange = ranking.change;
-                const change = typeof rawChange === 'string' ? parseInt(rawChange) : (rawChange || 0);
+                const change = typeof rawChange === 'string' ? parseInt(rawChange) : (rawChange ?? 0);
                 const isImprovement = change < 0; // Negative change = rank improvement (lower number)
 
                 return (
