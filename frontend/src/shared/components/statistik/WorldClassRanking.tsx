@@ -296,11 +296,6 @@ export default function WorldClassRanking() {
 
                 const meta = categoryMeta[ranking.category.code] || { icon: "🏆", gradient: "from-gray-500 to-gray-600" };
 
-                // Convert change to number (API might return string)
-                const rawChange = ranking.change;
-                const change = typeof rawChange === 'string' ? parseInt(rawChange) : (rawChange ?? 0);
-                const isImprovement = change < 0; // Negative change = rank improvement (lower number)
-
                 return (
                   <motion.div
                     key={index}
@@ -316,20 +311,6 @@ export default function WorldClassRanking() {
                       </div>
                       <div className="flex items-baseline gap-2">
                         <div className="text-4xl font-bold">#{ranking.ranks.world}</div>
-                        {change !== 0 && (
-                          <div className="flex items-center gap-1 text-xs font-bold bg-white/20 px-2 py-1 rounded-full">
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                              {isImprovement ? (
-                                // Up arrow (improvement)
-                                <path fillRule="evenodd" d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                              ) : (
-                                // Down arrow (decline)
-                                <path fillRule="evenodd" d="M14.707 12.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                              )}
-                            </svg>
-                            {Math.abs(change)}
-                          </div>
-                        )}
                       </div>
                       {ranking.ranks.national && (
                         <div className="text-xs opacity-75 mt-2">National Rank: #{ranking.ranks.national}</div>
