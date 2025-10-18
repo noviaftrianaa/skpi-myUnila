@@ -266,7 +266,7 @@ export default function KongAdminPage() {
             </CardBody>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
             {services.map((service, index) => {
               const serviceRoutes = getServiceRoutes(service.id);
               const docsUrl = serviceDocsMap[service.name];
@@ -276,77 +276,83 @@ export default function KongAdminPage() {
                   key={service.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="h-full"
                 >
-                  <Card className="bg-white shadow-lg border border-gray-100 hover:shadow-xl transition-all">
-                    <CardBody className="p-6">
+                  <Card className="bg-white shadow-lg border border-gray-100 hover:shadow-xl transition-all h-full">
+                    <CardBody className="p-4 flex flex-col h-full">
                       {/* Service Header */}
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-2 rounded-lg">
-                              <FiServer className="w-5 h-5 text-white" />
-                            </div>
-                            <h3 className="text-xl font-bold text-gray-800">
-                              {service.name}
-                            </h3>
-                            <Chip
-                              size="sm"
-                              className={
-                                service.enabled === false
-                                  ? "bg-red-100 text-red-700"
-                                  : "bg-green-100 text-green-700"
-                              }
-                            >
-                              {service.enabled === false ? "Disabled" : "Active"}
-                            </Chip>
-                          </div>
-                          <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-                            <span className="flex items-center gap-1 font-mono">
-                              <FiGlobe className="w-4 h-4" />
-                              {service.protocol}://{service.host}:{service.port}
-                              {service.path || "/"}
-                            </span>
-                          </div>
-
-                          {/* Routes */}
-                          {serviceRoutes.length > 0 && (
-                            <div className="mb-3">
-                              <p className="text-xs font-semibold text-gray-500 uppercase mb-2">
-                                Routes ({serviceRoutes.length})
-                              </p>
-                              <div className="flex flex-wrap gap-2">
-                                {serviceRoutes.map((route) => (
-                                  <Chip
-                                    key={route.id}
-                                    size="sm"
-                                    className="bg-purple-50 text-purple-700 font-mono"
-                                  >
-                                    {route.paths && route.paths.length > 0
-                                      ? route.paths.join(", ")
-                                      : route.name || "No path"}
-                                  </Chip>
-                                ))}
-                              </div>
-                            </div>
-                          )}
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-2 rounded-lg flex-shrink-0">
+                          <FiServer className="w-4 h-4 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-base font-bold text-gray-800 truncate mb-1">
+                            {service.name}
+                          </h3>
+                          <Chip
+                            size="sm"
+                            className={
+                              service.enabled === false
+                                ? "bg-red-100 text-red-700"
+                                : "bg-green-100 text-green-700"
+                            }
+                          >
+                            {service.enabled === false ? "Disabled" : "Active"}
+                          </Chip>
                         </div>
                       </div>
 
+                      {/* Service URL */}
+                      <div className="mb-3">
+                        <p className="text-xs text-gray-500 mb-1">Endpoint:</p>
+                        <p className="text-xs font-mono text-gray-700 bg-gray-50 p-2 rounded break-all">
+                          {service.protocol}://{service.host}:{service.port}
+                          {service.path || "/"}
+                        </p>
+                      </div>
+
+                      {/* Routes */}
+                      {serviceRoutes.length > 0 && (
+                        <div className="mb-3 flex-1">
+                          <p className="text-xs font-semibold text-gray-500 mb-2">
+                            Routes ({serviceRoutes.length})
+                          </p>
+                          <div className="flex flex-wrap gap-1">
+                            {serviceRoutes.slice(0, 3).map((route) => (
+                              <Chip
+                                key={route.id}
+                                size="sm"
+                                className="bg-purple-50 text-purple-700 font-mono text-xs"
+                              >
+                                {route.paths && route.paths.length > 0
+                                  ? route.paths[0]
+                                  : route.name || "No path"}
+                              </Chip>
+                            ))}
+                            {serviceRoutes.length > 3 && (
+                              <Chip size="sm" className="bg-gray-100 text-gray-600 text-xs">
+                                +{serviceRoutes.length - 3}
+                              </Chip>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Action Buttons */}
-                      <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
+                      <div className="flex flex-col gap-2 pt-3 border-t border-gray-100 mt-auto">
                         {docsUrl && (
                           <Button
                             as="a"
                             href={docsUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            startContent={<SiSwagger className="w-4 h-4" />}
-                            endContent={<FiExternalLink className="w-4 h-4" />}
-                            className="bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700"
+                            startContent={<SiSwagger className="w-3 h-3" />}
+                            endContent={<FiExternalLink className="w-3 h-3" />}
+                            className="bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 w-full"
                             size="sm"
                           >
-                            API Documentation
+                            <span className="text-xs">API Docs</span>
                           </Button>
                         )}
                         <Button
@@ -354,13 +360,13 @@ export default function KongAdminPage() {
                           href={`http://localhost:9801/services/${service.id}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          startContent={<FiBook className="w-4 h-4" />}
-                          endContent={<FiExternalLink className="w-4 h-4" />}
+                          startContent={<FiBook className="w-3 h-3" />}
+                          endContent={<FiExternalLink className="w-3 h-3" />}
                           variant="flat"
-                          className="bg-blue-50 text-blue-600 hover:bg-blue-100"
+                          className="bg-blue-50 text-blue-600 hover:bg-blue-100 w-full"
                           size="sm"
                         >
-                          View Details (Kong Admin)
+                          <span className="text-xs">Kong Admin</span>
                         </Button>
                       </div>
                     </CardBody>
