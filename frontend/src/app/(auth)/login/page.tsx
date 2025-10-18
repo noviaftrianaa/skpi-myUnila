@@ -272,8 +272,18 @@ export default function LoginPage() {
               {/* Features */}
               <div className="space-y-4">
                 {[
-                  { icon: "🔐", title: "Multi-Factor Authentication", desc: "Keamanan ekstra dengan Google Authenticator", active: true },
-                  { icon: "⚡", title: "Platform Responsif", desc: "Akses cepat dengan performa optimal dan data real-time", active: false },
+                  {
+                    icon: "🔐",
+                    title: "SSO & Autentikasi Berlapis",
+                    desc: "Satu akun terpusat untuk semua layanan Unila dengan keamanan berlapis Google Authenticator",
+                    active: true
+                  },
+                  {
+                    icon: "⚡",
+                    title: "Platform Terintegrasi",
+                    desc: "Akses cepat ke 20+ aplikasi kampus dengan sinkronisasi data real-time",
+                    active: false
+                  },
                 ].map((feature, idx) => (
                   <motion.div
                     key={idx}

@@ -2,11 +2,17 @@
 
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { dashboardService } from "@/lib/services/dashboard.service";
+import type { Ranking, ChartDataCategory } from "@/lib/types/dashboard.types";
 
 const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });
 
 export default function WorldClassRanking() {
+  const [latestRankings, setLatestRankings] = useState<Ranking[]>([]);
+  const [chartCategories, setChartCategories] = useState<ChartDataCategory[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
@@ -17,14 +23,73 @@ export default function WorldClassRanking() {
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
 
-  // Data ranking per tahun
-  const rankingData = {
-    years: ["2020", "2021", "2022", "2023", "2024"],
-    greenMetric: [285, 268, 245, 228, 215],
-    qsWorld: [1201, 1185, 1150, 1120, 1095],
-    timesHigher: [1001, 985, 950, 920, 895],
-    webometrics: [3250, 3120, 2985, 2850, 2715],
-  };
+  // Fetch ranking data
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        // Fetch latest rankings and chart data
+        const [latestResponse, chartResponse] = await Promise.all([
+          dashboardService.getLatestRankings(),
+          dashboardService.getChartData(2020, 2025), // Last 5 years
+        ]);
+
+        if (latestResponse.success) {
+          setLatestRankings(latestResponse.data.rankings);
+        }
+
+        if (chartResponse.success) {
+          setChartCategories(chartResponse.data.categories);
+        }
+      } catch (error) {
+        console.error('Failed to fetch ranking data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Transform chart data for ECharts
+  const rankingData = useMemo(() => {
+    if (chartCategories.length === 0) {
+      return {
+        years: [],
+        greenMetric: [],
+        qsWorld: [],
+        timesHigher: [],
+        webometrics: [],
+      };
+    }
+
+    // Get all unique years sorted
+    const allYears = new Set<string>();
+    chartCategories.forEach(cat => {
+      cat.data.forEach(d => allYears.add(d.year));
+    });
+    const years = Array.from(allYears).sort();
+
+    // Helper to get data for category
+    const getCategoryData = (code: string) => {
+      const category = chartCategories.find(c => c.category.code === code);
+      if (!category) return [];
+
+      return years.map(year => {
+        const item = category.data.find(d => d.year === year);
+        return item?.world_rank_numeric || null;
+      });
+    };
+
+    return {
+      years,
+      greenMetric: getCategoryData('greenmetric'),
+      qsWorld: getCategoryData('qs'),
+      timesHigher: getCategoryData('the'),
+      webometrics: getCategoryData('webometrics'),
+    };
+  }, [chartCategories]);
 
   // Chart configuration
   const chartOption = useMemo(() => ({
@@ -210,62 +275,65 @@ export default function WorldClassRanking() {
 
           {/* Current Rankings */}
           <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-            {[
-              {
-                name: "Green Metric",
-                rank: 215,
-                change: -13,
-                icon: "🌱",
-                gradient: "from-emerald-500 to-emerald-600",
-                desc: "UI GreenMetric World University Ranking"
-              },
-              {
-                name: "QS World",
-                rank: 1095,
-                change: -25,
-                icon: "🌏",
-                gradient: "from-blue-500 to-blue-600",
-                desc: "QS World University Rankings"
-              },
-              {
-                name: "Times Higher Ed.",
-                rank: 895,
-                change: -25,
-                icon: "🎓",
-                gradient: "from-purple-500 to-purple-600",
-                desc: "Times Higher Education Ranking"
-              },
-              {
-                name: "Webometrics",
-                rank: 2715,
-                change: -135,
-                icon: "🌐",
-                gradient: "from-amber-500 to-amber-600",
-                desc: "Webometrics Ranking of World Universities"
-              },
-            ].map((item, index) => (
-              <motion.div
-                key={index}
-                variants={itemVariants}
-                className={`bg-gradient-to-br ${item.gradient} rounded-xl p-6 text-white shadow-lg relative overflow-hidden`}
-              >
-                <div className="absolute top-0 right-0 text-8xl opacity-10 -mt-4 -mr-4">{item.icon}</div>
-                <div className="relative z-10">
-                  <div className="text-3xl mb-3">{item.icon}</div>
-                  <div className="text-sm font-semibold opacity-90 mb-2">{item.name}</div>
-                  <div className="flex items-baseline gap-2">
-                    <div className="text-4xl font-bold">#{item.rank}</div>
-                    <div className="flex items-center gap-1 text-xs font-bold bg-white/20 px-2 py-1 rounded-full">
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                      </svg>
-                      {Math.abs(item.change)}
-                    </div>
-                  </div>
-                  <div className="text-xs opacity-75 mt-2">{item.desc}</div>
+            {loading ? (
+              // Loading skeleton
+              [1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-gray-200 rounded-xl p-6 animate-pulse">
+                  <div className="h-8 w-8 bg-gray-300 rounded mb-3"></div>
+                  <div className="h-4 w-20 bg-gray-300 rounded mb-2"></div>
+                  <div className="h-10 w-24 bg-gray-300 rounded"></div>
                 </div>
-              </motion.div>
-            ))}
+              ))
+            ) : (
+              latestRankings.map((ranking, index) => {
+                // Map category code to icon and gradient
+                const categoryMeta: Record<string, { icon: string; gradient: string }> = {
+                  greenmetric: { icon: "🌱", gradient: "from-emerald-500 to-emerald-600" },
+                  qs: { icon: "🌏", gradient: "from-blue-500 to-blue-600" },
+                  the: { icon: "🎓", gradient: "from-purple-500 to-purple-600" },
+                  webometrics: { icon: "🌐", gradient: "from-amber-500 to-amber-600" },
+                };
+
+                const meta = categoryMeta[ranking.category.code] || { icon: "🏆", gradient: "from-gray-500 to-gray-600" };
+                const change = ranking.change || 0;
+                const isImprovement = change < 0; // Negative change = rank improvement (lower number)
+
+                return (
+                  <motion.div
+                    key={index}
+                    variants={itemVariants}
+                    className={`bg-gradient-to-br ${meta.gradient} rounded-xl p-6 text-white shadow-lg relative overflow-hidden`}
+                  >
+                    <div className="absolute top-0 right-0 text-8xl opacity-10 -mt-4 -mr-4">{meta.icon}</div>
+                    <div className="relative z-10">
+                      <div className="text-3xl mb-3">{meta.icon}</div>
+                      <div className="text-sm font-semibold opacity-90 mb-2">{ranking.category.name}</div>
+                      <div className="flex items-baseline gap-2">
+                        <div className="text-4xl font-bold">#{ranking.ranks.world}</div>
+                        {change !== 0 && (
+                          <div className="flex items-center gap-1 text-xs font-bold bg-white/20 px-2 py-1 rounded-full">
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              {isImprovement ? (
+                                // Up arrow (improvement)
+                                <path fillRule="evenodd" d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                              ) : (
+                                // Down arrow (decline)
+                                <path fillRule="evenodd" d="M14.707 12.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              )}
+                            </svg>
+                            {Math.abs(change)}
+                          </div>
+                        )}
+                      </div>
+                      {ranking.ranks.national && (
+                        <div className="text-xs opacity-75 mt-2">National Rank: #{ranking.ranks.national}</div>
+                      )}
+                      <div className="text-xs opacity-75 mt-1">{ranking.category.full_name}</div>
+                    </div>
+                  </motion.div>
+                );
+              })
+            )}
           </motion.div>
 
           {/* Chart */}

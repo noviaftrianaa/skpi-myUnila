@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UniversityProfileController;
 use App\Http\Controllers\UserFavoriteController;
+use App\Http\Controllers\RankingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,6 +36,16 @@ Route::prefix('v1')->group(function () {
     Route::get('/university-profile', [UniversityProfileController::class, 'index']);
     Route::get('/university-profile/quick-facts', [UniversityProfileController::class, 'quickFacts']);
     Route::get('/university-profile/contact', [UniversityProfileController::class, 'contact']);
+
+    // University Rankings - World Class University Rankings
+    Route::prefix('rankings')->group(function () {
+        Route::get('/latest', [RankingController::class, 'getLatestRankings']);
+        Route::get('/chart', [RankingController::class, 'getChartData']);
+        Route::get('/categories', [RankingController::class, 'getCategories']);
+        Route::get('/statistics', [RankingController::class, 'getStatistics']);
+        Route::get('/{categoryCode}', [RankingController::class, 'getRankingByCategory']);
+        Route::get('/{categoryCode}/history', [RankingController::class, 'getRankingHistory']);
+    });
 
     // TODO: Add more public endpoints
     // Route::get('/news', [NewsController::class, 'index']);

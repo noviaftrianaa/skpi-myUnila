@@ -26,6 +26,12 @@ class AppServiceProvider extends ServiceProvider
                 );
             }
         );
+
+        // Register Ranking Service
+        $this->app->singleton(
+            \App\Services\RankingService::class,
+            \App\Services\RankingService::class
+        );
     }
 
     /**
