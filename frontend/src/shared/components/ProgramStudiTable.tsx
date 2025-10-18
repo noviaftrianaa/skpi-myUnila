@@ -226,15 +226,15 @@ export default function ProgramStudiTable() {
                 <div className="grid grid-cols-4 gap-4">
                   <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-blue-100">
                     <div className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Total Dosen</div>
-                    <div className="text-2xl font-bold text-gray-900">{summary.totalDosen.toLocaleString()}</div>
+                    <div className="text-2xl font-bold text-gray-900">{summary.totalDosen.toLocaleString('id-ID')}</div>
                   </div>
                   <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-blue-100">
                     <div className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Total Tendik</div>
-                    <div className="text-2xl font-bold text-blue-600">{summary.totalTendik.toLocaleString()}</div>
+                    <div className="text-2xl font-bold text-blue-600">{summary.totalTendik.toLocaleString('id-ID')}</div>
                   </div>
                   <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-blue-100">
                     <div className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Total Mahasiswa</div>
-                    <div className="text-2xl font-bold text-indigo-600">{summary.totalMahasiswa.toLocaleString()}</div>
+                    <div className="text-2xl font-bold text-indigo-600">{summary.totalMahasiswa.toLocaleString('id-ID')}</div>
                   </div>
                   <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-blue-100">
                     <div className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Rasio Dosen:Mahasiswa</div>
