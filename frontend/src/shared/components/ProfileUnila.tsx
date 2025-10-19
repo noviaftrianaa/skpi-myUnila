@@ -2,12 +2,13 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import dashboardService from "@/lib/services/dashboard.service";
-import type { UnilaStatistics } from "@/lib/types/dashboard.types";
+import type { UnilaStatistics, UnilaProfile } from "@/lib/types/dashboard.types";
 
 export default function ProfileUnila() {
   const [statistics, setStatistics] = useState<UnilaStatistics | null>(null);
+  const [profile, setProfile] = useState<UnilaProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   const containerVariants = {
@@ -31,23 +32,58 @@ export default function ProfileUnila() {
     },
   };
 
-  // Load statistics from API
+  // Load statistics and profile from API
   useEffect(() => {
-    const loadStatistics = async () => {
+    const loadData = async () => {
       setLoading(true);
       try {
-        const response = await dashboardService.getUnilaStatistics();
-        if (response.success) {
-          setStatistics(response.data);
+        const [statisticsResponse, profileResponse] = await Promise.all([
+          dashboardService.getUnilaStatistics(),
+          dashboardService.getUnilaProfile(),
+        ]);
+
+        if (statisticsResponse.success) {
+          setStatistics(statisticsResponse.data);
+        }
+
+        if (profileResponse.success) {
+          setProfile(profileResponse.data);
         }
       } catch (error) {
-        console.error('Error loading Unila statistics:', error);
+        console.error('Error loading Unila data:', error);
       } finally {
         setLoading(false);
       }
     };
-    loadStatistics();
+    loadData();
   }, []);
+
+  // Format date helper
+  const formatDate = (dateString: string | null): string => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+  };
+
+  // Format status PT
+  const getStatusPT = (status: string | null): string => {
+    if (!status) return 'Aktif';
+    return status === 'A' ? 'Aktif' : 'Tidak Aktif';
+  };
+
+  // Format currency in IDR
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
 
   return (
     <section className="py-20 bg-gradient-to-b from-white via-blue-50/30 to-white relative">
@@ -109,10 +145,10 @@ export default function ProfileUnila() {
                         </div>
                       </motion.div>
                       <h3 className="text-2xl md:text-3xl font-bold mb-2 drop-shadow-lg">
-                        Universitas Lampung
+                        {profile?.nama_lengkap || "Universitas Lampung"}
                       </h3>
                       <p className="text-sm md:text-base opacity-95 drop-shadow">
-                        Kota Bandar Lampung, Prov. Lampung
+                        {profile?.kota || "Kota Bandar Lampung, Prov. Lampung"}
                       </p>
                     </div>
                   </div>
@@ -124,7 +160,7 @@ export default function ProfileUnila() {
                     <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    <span className="text-white font-bold text-sm">Unggul</span>
+                    <span className="text-white font-bold text-sm">{profile?.akreditasi || "A"}</span>
                   </div>
                 </div>
               </div>
@@ -133,19 +169,19 @@ export default function ProfileUnila() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 border border-blue-100">
                   <div className="text-xs text-gray-600 mb-1">Kode PT</div>
-                  <div className="text-lg font-bold text-gray-800">001026</div>
+                  <div className="text-lg font-bold text-gray-800">{profile?.kode_pt || "001026"}</div>
                 </div>
                 <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-5 border border-purple-100">
                   <div className="text-xs text-gray-600 mb-1">SK PT</div>
-                  <div className="text-lg font-bold text-gray-800">Aktif</div>
+                  <div className="text-lg font-bold text-gray-800">{getStatusPT(profile?.status_pt || null)}</div>
                 </div>
                 <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-5 border border-emerald-100">
                   <div className="text-xs text-gray-600 mb-1">Akreditasi</div>
-                  <div className="text-lg font-bold text-gray-800">Unggul</div>
+                  <div className="text-lg font-bold text-gray-800">{profile?.akreditasi || "A"}</div>
                 </div>
                 <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-5 border border-orange-100">
                   <div className="text-xs text-gray-600 mb-1">Tanggal Berdiri</div>
-                  <div className="text-sm font-bold text-gray-800">21 Sep 1965</div>
+                  <div className="text-sm font-bold text-gray-800">{formatDate(profile?.tanggal_berdiri || null)}</div>
                 </div>
               </div>
             </motion.div>
@@ -167,7 +203,7 @@ export default function ProfileUnila() {
                     </svg>
                     <div>
                       <div className="text-xs text-gray-500">No. Telepon</div>
-                      <div className="text-sm font-semibold text-gray-800">0721701609</div>
+                      <div className="text-sm font-semibold text-gray-800">{profile?.telepon || "0721701609"}</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -176,7 +212,7 @@ export default function ProfileUnila() {
                     </svg>
                     <div>
                       <div className="text-xs text-gray-500">Fax</div>
-                      <div className="text-sm font-semibold text-gray-800">0721701609</div>
+                      <div className="text-sm font-semibold text-gray-800">{profile?.fax || "0721701609"}</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -186,8 +222,8 @@ export default function ProfileUnila() {
                     </svg>
                     <div>
                       <div className="text-xs text-gray-500">Email</div>
-                      <a href="mailto:humas@unila.ac.id" className="text-sm font-semibold text-blue-600 hover:text-blue-700 break-all">
-                        humas@unila.ac.id
+                      <a href={`mailto:${profile?.email || "humas@unila.ac.id"}`} className="text-sm font-semibold text-blue-600 hover:text-blue-700 break-all">
+                        {profile?.email || "humas@unila.ac.id"}
                       </a>
                     </div>
                   </div>
@@ -197,8 +233,8 @@ export default function ProfileUnila() {
                     </svg>
                     <div>
                       <div className="text-xs text-gray-500">Website</div>
-                      <a href="https://www.unila.ac.id" target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-blue-600 hover:text-blue-700 break-all">
-                        www.unila.ac.id
+                      <a href={`https://${profile?.website || "www.unila.ac.id"}`} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-blue-600 hover:text-blue-700 break-all">
+                        {profile?.website || "www.unila.ac.id"}
                       </a>
                     </div>
                   </div>
@@ -214,7 +250,7 @@ export default function ProfileUnila() {
                   Alamat
                 </h3>
                 <p className="text-gray-700 leading-relaxed">
-                  Jl Sumantri Brojonegoro No 1 Gedong Meneng, Kec. Rajabasa, Kota Bandar Lampung, Prov. Lampung
+                  {profile?.alamat || "Jl Sumantri Brojonegoro No 1 Gedong Meneng"}, {profile?.kota || "Kota Bandar Lampung, Prov. Lampung"}
                 </p>
               </div>
 
@@ -228,7 +264,10 @@ export default function ProfileUnila() {
                   Range Biaya Kuliah
                 </h3>
                 <div className="text-2xl font-bold text-gray-800">
-                  Rp500.000 - Rp2.500.000
+                  {profile?.biaya_kuliah?.min && profile?.biaya_kuliah?.max
+                    ? `${formatCurrency(profile.biaya_kuliah.min)} - ${formatCurrency(profile.biaya_kuliah.max)}`
+                    : 'Memuat data...'
+                  }
                 </div>
                 <div className="text-sm text-gray-600 mt-1">Per Semester</div>
               </div>

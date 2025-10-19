@@ -306,3 +306,48 @@ export interface UnilaStatisticsResponse {
   message: string;
   data: UnilaStatistics;
 }
+
+// ============================================
+// Unila Profile Types
+// ============================================
+
+/**
+ * Unila Profile
+ */
+export interface UnilaProfile {
+  id_sp: string;
+  nama_lengkap: string;
+  nama_singkat: string;
+  kode_pt: string;
+  alamat: string;
+  kota: string;
+  kode_pos: string;
+  telepon: string;
+  fax: string;
+  email: string;
+  website: string;
+  status_pt: string;
+  sk_pendirian: string;
+  tanggal_sk_pendirian: string | null;
+  tanggal_berdiri: string | null;
+  luas_tanah_milik: number;
+  luas_tanah_bukan_milik: number;
+  npwp: string | null;
+  akreditasi: string | null;
+  sk_akreditasi: string | null;
+  tanggal_sk_akreditasi: string | null;
+  tanggal_berakhir_akreditasi: string | null;
+  biaya_kuliah: {
+    min: number;
+    max: number;
+  };
+}
+
+/**
+ * Unila Profile Response
+ */
+export interface UnilaProfileResponse {
+  success: boolean;
+  message: string;
+  data: UnilaProfile;
+}

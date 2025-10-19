@@ -19,6 +19,7 @@ import type {
   ProgramStudiPeriodsResponse,
   ProgramStudiFilterOptionsResponse,
   UnilaStatisticsResponse,
+  UnilaProfileResponse,
 } from '@/lib/types/dashboard.types';
 
 // Dashboard Service Base URL - Via Kong Gateway
@@ -208,6 +209,24 @@ class DashboardService {
     try {
       const response = await axios.get<UnilaStatisticsResponse>(
         `${DASHBOARD_API_URL}/unila/statistics`
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // ============================================
+  // Unila Profile Methods
+  // ============================================
+
+  /**
+   * Get Universitas Lampung profile information
+   */
+  async getUnilaProfile(): Promise<UnilaProfileResponse> {
+    try {
+      const response = await axios.get<UnilaProfileResponse>(
+        `${DASHBOARD_API_URL}/unila/profile`
       );
       return response.data;
     } catch (error) {
