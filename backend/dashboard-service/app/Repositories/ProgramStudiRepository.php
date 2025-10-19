@@ -146,11 +146,21 @@ class ProgramStudiRepository
                     SUM(CASE WHEN ptk.id_stat_pegawai IN ('1','13','14') THEN 1 ELSE 0 END) AS dosen_pns,
                     SUM(CASE WHEN ptk.id_stat_pegawai NOT IN ('1','13','14') THEN 1 ELSE 0 END) AS dosen_non_pns
                 FROM pdrd.reg_ptk AS ptk
-                JOIN pdrd.sdm AS sdm ON sdm.id_sdm = ptk.id_sdm AND sdm.soft_delete = 0
+                JOIN pdrd.sdm AS sdm
+                    ON sdm.id_sdm = ptk.id_sdm
+                    AND sdm.soft_delete = 0
+                    AND sdm.id_jns_sdm = '12'
+                -- JOIN pdrd.keaktifan_ptk AS ta
+                --     ON ta.id_reg_ptk = ptk.id_reg_ptk
+                --     AND ta.soft_delete = 0
+                --     AND ta.a_sp_homebase = 1
+                -- JOIN ref.semester AS smt
+                --     ON smt.id_smt = ?
+                --     AND smt.expired_date IS NULL
+                --     AND ta.id_thn_ajaran = smt.id_thn_ajaran
                 WHERE ptk.soft_delete = 0
                     AND ptk.id_jns_keluar IS NULL
                     AND CAST(ptk.id_sp AS VARCHAR(50)) = '" . strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')) . "'
-                    AND sdm.id_jns_sdm = '12'
                 GROUP BY ptk.id_sms
             ) AS dosen ON dosen.id_sms = sms.id_sms
             LEFT JOIN (
@@ -360,11 +370,21 @@ class ProgramStudiRepository
                     SUM(CASE WHEN ptk.id_stat_pegawai IN ('1','13','14') THEN 1 ELSE 0 END) AS dosen_pns,
                     SUM(CASE WHEN ptk.id_stat_pegawai NOT IN ('1','13','14') THEN 1 ELSE 0 END) AS dosen_non_pns
                 FROM pdrd.reg_ptk AS ptk
-                JOIN pdrd.sdm AS sdm ON sdm.id_sdm = ptk.id_sdm AND sdm.soft_delete = 0
+                JOIN pdrd.sdm AS sdm
+                    ON sdm.id_sdm = ptk.id_sdm
+                    AND sdm.soft_delete = 0
+                    AND sdm.id_jns_sdm = '12'
+                -- JOIN pdrd.keaktifan_ptk AS ta
+                --     ON ta.id_reg_ptk = ptk.id_reg_ptk
+                --     AND ta.soft_delete = 0
+                --     AND ta.a_sp_homebase = 1
+                -- JOIN ref.semester AS smt
+                --     ON smt.id_smt = ?
+                --     AND smt.expired_date IS NULL
+                --     AND ta.id_thn_ajaran = smt.id_thn_ajaran
                 WHERE ptk.soft_delete = 0
                     AND ptk.id_jns_keluar IS NULL
                     AND CAST(ptk.id_sp AS VARCHAR(50)) = '" . strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')) . "'
-                    AND sdm.id_jns_sdm = '12'
                 GROUP BY ptk.id_sms
             ) AS dosen ON dosen.id_sms = sms.id_sms
             LEFT JOIN (

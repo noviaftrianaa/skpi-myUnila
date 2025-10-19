@@ -2,11 +2,16 @@
 
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
+import dashboardService from "@/lib/services/dashboard.service";
+import type { ProgramStudiStatistics } from "@/lib/types/dashboard.types";
 
 const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });
 
 export default function AkreditasiProdi() {
+  const [statistics, setStatistics] = useState<ProgramStudiStatistics | null>(null);
+  const [loading, setLoading] = useState(true);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
@@ -17,14 +22,60 @@ export default function AkreditasiProdi() {
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
 
-  // Data akreditasi (dari data yang sudah ada di ProgramStudiTable)
-  const akreditasiData = [
-    { status: "Unggul", jumlah: 42, persentase: 56, color: "#10b981" },
-    { status: "Baik Sekali", jumlah: 30, persentase: 40, color: "#3b82f6" },
-    { status: "Baik", jumlah: 3, persentase: 4, color: "#f59e0b" },
-  ];
+  // Load statistics from API
+  useEffect(() => {
+    const loadStatistics = async () => {
+      setLoading(true);
+      try {
+        const response = await dashboardService.getProgramStudiStatistics();
+        if (response.success) {
+          setStatistics(response.data);
+        }
+      } catch (error) {
+        console.error('Error loading akreditasi statistics:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadStatistics();
+  }, []);
 
-  const totalProdi = akreditasiData.reduce((sum, item) => sum + item.jumlah, 0);
+  // Calculate akreditasi data from API response
+  const akreditasiData = useMemo(() => {
+    if (!statistics) return [];
+
+    const total = statistics.total_prodi || 1; // Avoid division by zero
+
+    return [
+      {
+        status: "Unggul",
+        jumlah: statistics.akreditasi_count.unggul,
+        persentase: Math.round((statistics.akreditasi_count.unggul / total) * 100),
+        color: "#10b981"
+      },
+      {
+        status: "Baik Sekali",
+        jumlah: statistics.akreditasi_count.baik_sekali,
+        persentase: Math.round((statistics.akreditasi_count.baik_sekali / total) * 100),
+        color: "#3b82f6"
+      },
+      {
+        status: "Baik",
+        jumlah: statistics.akreditasi_count.baik,
+        persentase: Math.round((statistics.akreditasi_count.baik / total) * 100),
+        color: "#f59e0b"
+      },
+    ];
+  }, [statistics]);
+
+  const totalProdi = statistics?.total_prodi || 0;
+
+  // Calculate percentage of Unggul + Baik Sekali
+  const excellencePercentage = useMemo(() => {
+    if (!statistics || !statistics.total_prodi) return 0;
+    const excellent = statistics.akreditasi_count.unggul + statistics.akreditasi_count.baik_sekali;
+    return Math.round((excellent / statistics.total_prodi) * 100);
+  }, [statistics]);
 
   const chartOption = useMemo(() => ({
     tooltip: {
@@ -109,10 +160,22 @@ export default function AkreditasiProdi() {
         })),
       },
     ],
-  }), []);
+  }), [akreditasiData]);
 
   return (
     <section className="py-20 bg-gradient-to-b from-blue-50/30 via-white to-indigo-50/20 relative">
+      {/* Loading Overlay */}
+      {loading && (
+        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3">
+            <div className="relative">
+              <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            </div>
+            <p className="text-sm font-semibold text-gray-700">Memuat data akreditasi...</p>
+          </div>
+        </div>
+      )}
+
       <div className="container mx-auto px-6">
         <motion.div
           initial="hidden"
@@ -210,7 +273,7 @@ export default function AkreditasiProdi() {
                   </div>
                   <div>
                     <div className="text-sm font-medium text-white/90">Pencapaian</div>
-                    <div className="text-2xl font-bold">96%</div>
+                    <div className="text-2xl font-bold">{excellencePercentage}%</div>
                   </div>
                 </div>
                 <div className="text-sm text-white/90">
