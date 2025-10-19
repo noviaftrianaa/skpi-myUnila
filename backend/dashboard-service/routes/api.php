@@ -6,6 +6,7 @@ use App\Http\Controllers\UserFavoriteController;
 use App\Http\Controllers\RankingController;
 use App\Http\Controllers\OpenApi\ProgramStudiController;
 use App\Http\Controllers\OpenApi\UnilaStatisticsController;
+use App\Http\Controllers\OpenApi\UnilaProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -57,9 +58,10 @@ Route::prefix('v1')->group(function () {
         Route::get('/filter-options', [ProgramStudiController::class, 'filterOptions']);
     });
 
-    // Universitas Lampung Statistics
+    // Universitas Lampung
     Route::prefix('unila')->group(function () {
         Route::get('/statistics', [UnilaStatisticsController::class, 'index']);
+        Route::get('/profile', [UnilaProfileController::class, 'index']);
     });
 
     // TODO: Add more public endpoints

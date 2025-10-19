@@ -64,6 +64,22 @@ class AppServiceProvider extends ServiceProvider
                 );
             }
         );
+
+        // Register Unila Profile Repository
+        $this->app->singleton(
+            \App\Repositories\UnilaProfileRepository::class,
+            \App\Repositories\UnilaProfileRepository::class
+        );
+
+        // Register Unila Profile Service (with Repository Dependency Injection)
+        $this->app->singleton(
+            \App\Services\UnilaProfileService::class,
+            function ($app) {
+                return new \App\Services\UnilaProfileService(
+                    $app->make(\App\Repositories\UnilaProfileRepository::class)
+                );
+            }
+        );
     }
 
     /**
