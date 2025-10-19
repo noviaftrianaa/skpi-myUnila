@@ -240,7 +240,19 @@ export default function DataTable<T extends Record<string, any>>({
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto px-6 py-4">
+      <div className="overflow-x-auto px-6 py-4 relative">
+        {/* Loading Overlay */}
+        {loading && (
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-3">
+              <div className="relative">
+                <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+              </div>
+              <p className="text-sm font-semibold text-gray-700">Memuat data...</p>
+            </div>
+          </div>
+        )}
+
         <Table
           aria-label="Data Table"
           removeWrapper
@@ -290,8 +302,7 @@ export default function DataTable<T extends Record<string, any>>({
             ))}
           </TableHeader>
           <TableBody
-            emptyContent={loading ? "Memuat data..." : "Tidak ada data yang ditemukan"}
-            isLoading={loading}
+            emptyContent="Tidak ada data yang ditemukan"
           >
             {paginatedData.map((item, index) => (
               <TableRow key={index}>
