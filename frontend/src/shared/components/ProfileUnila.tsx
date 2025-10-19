@@ -2,8 +2,14 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { useState, useEffect } from "react";
+import dashboardService from "@/lib/services/dashboard.service";
+import type { UnilaStatistics } from "@/lib/types/dashboard.types";
 
 export default function ProfileUnila() {
+  const [statistics, setStatistics] = useState<UnilaStatistics | null>(null);
+  const [loading, setLoading] = useState(true);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -24,6 +30,24 @@ export default function ProfileUnila() {
       },
     },
   };
+
+  // Load statistics from API
+  useEffect(() => {
+    const loadStatistics = async () => {
+      setLoading(true);
+      try {
+        const response = await dashboardService.getUnilaStatistics();
+        if (response.success) {
+          setStatistics(response.data);
+        }
+      } catch (error) {
+        console.error('Error loading Unila statistics:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadStatistics();
+  }, []);
 
   return (
     <section className="py-20 bg-gradient-to-b from-white via-blue-50/30 to-white relative">
@@ -225,55 +249,67 @@ export default function ProfileUnila() {
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent max-w-md"></div>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="mt-12">
+          <motion.div variants={itemVariants} className="mt-12 relative">
+            {/* Loading Overlay */}
+            {loading && (
+              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center rounded-2xl">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="relative">
+                    <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                  </div>
+                  <p className="text-sm font-semibold text-gray-700">Memuat statistik...</p>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
               {[
                 {
                   icon: (<svg className="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" /></svg>),
                   label: "Mahasiswa Aktif",
-                  value: "25,000+",
+                  value: statistics?.mahasiswa_aktif.toLocaleString('id-ID') || "0",
                   gradient: "from-blue-500 to-cyan-500"
                 },
                 {
                   icon: (<svg className="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" /></svg>),
                   label: "Dosen",
-                  value: "1,200+",
+                  value: statistics?.dosen.toLocaleString('id-ID') || "0",
                   gradient: "from-indigo-500 to-purple-500"
                 },
                 {
                   icon: (<svg className="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clipRule="evenodd" /><path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z" /></svg>),
                   label: "Tendik",
-                  value: "800+",
+                  value: statistics?.tendik.toLocaleString('id-ID') || "0",
                   gradient: "from-emerald-500 to-teal-500"
                 },
                 {
                   icon: (<svg className="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg>),
                   label: "Fakultas",
-                  value: "9",
+                  value: statistics?.fakultas.toString() || "0",
                   gradient: "from-orange-500 to-red-500"
                 },
                 {
                   icon: (<svg className="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>),
                   label: "Pascasarjana",
-                  value: "15+",
+                  value: statistics?.pascasarjana.toString() || "0",
                   gradient: "from-pink-500 to-rose-500"
                 },
                 {
                   icon: (<svg className="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" /></svg>),
                   label: "Program Studi",
-                  value: "80+",
+                  value: statistics?.program_studi.toString() || "0",
                   gradient: "from-violet-500 to-purple-500"
                 },
                 {
                   icon: (<svg className="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>),
                   label: "Guru Besar",
-                  value: "150+",
+                  value: statistics?.guru_besar > 0 ? statistics.guru_besar.toLocaleString('id-ID') : "-",
                   gradient: "from-amber-500 to-yellow-500"
                 },
                 {
                   icon: (<svg className="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" /></svg>),
                   label: "Publikasi",
-                  value: "5,000+",
+                  value: statistics?.publikasi > 0 ? statistics.publikasi.toLocaleString('id-ID') : "-",
                   gradient: "from-sky-500 to-blue-500"
                 },
               ].map((stat, index) => (

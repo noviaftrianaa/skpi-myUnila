@@ -4,7 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UniversityProfileController;
 use App\Http\Controllers\UserFavoriteController;
 use App\Http\Controllers\RankingController;
-use App\Http\Controllers\ProgramStudiController;
+use App\Http\Controllers\OpenApi\ProgramStudiController;
+use App\Http\Controllers\OpenApi\UnilaStatisticsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,6 +55,11 @@ Route::prefix('v1')->group(function () {
         Route::get('/statistics', [ProgramStudiController::class, 'statistics']);
         Route::get('/periods', [ProgramStudiController::class, 'periods']);
         Route::get('/filter-options', [ProgramStudiController::class, 'filterOptions']);
+    });
+
+    // Universitas Lampung Statistics
+    Route::prefix('unila')->group(function () {
+        Route::get('/statistics', [UnilaStatisticsController::class, 'index']);
     });
 
     // TODO: Add more public endpoints

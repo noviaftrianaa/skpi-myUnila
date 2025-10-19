@@ -278,3 +278,31 @@ export interface ProgramStudiFilterOptionsResponse {
   message: string;
   data: ProgramStudiFilterOptions;
 }
+
+// ============================================
+// Unila Statistics Types
+// ============================================
+
+/**
+ * Unila Statistics
+ */
+export interface UnilaStatistics {
+  mahasiswa_aktif: number;
+  dosen: number;
+  tendik: number;
+  fakultas: number;
+  pascasarjana: number;
+  program_studi: number;
+  guru_besar: number;
+  publikasi: number;
+  periode: string;
+}
+
+/**
+ * Unila Statistics Response
+ */
+export interface UnilaStatisticsResponse {
+  success: boolean;
+  message: string;
+  data: UnilaStatistics;
+}
