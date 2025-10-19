@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UniversityProfileController;
 use App\Http\Controllers\UserFavoriteController;
 use App\Http\Controllers\RankingController;
-use App\Http\Controllers\ProgramStudiController;
+use App\Http\Controllers\OpenApi\ProgramStudiController;
 use App\Http\Controllers\OpenApi\UnilaStatisticsController;
 
 /*
