@@ -93,56 +93,124 @@ export default function ProgramStudiDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Back Button */}
-        <motion.button
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          onClick={() => router.back()}
-          className="mb-6 flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors group"
-        >
-          <FaArrowLeft className="group-hover:-translate-x-1 transition-transform" />
-          <span className="font-medium">Kembali</span>
-        </motion.button>
+    <>
+      {/* Hero Section */}
+      <section className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 pt-32 pb-20 overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}></div>
+        </div>
 
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl shadow-xl p-8 mb-6"
-        >
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
-                  {detail.jenjang}
-                </span>
-                <span className={`text-sm font-semibold text-white px-3 py-1 rounded-full ${getAkreditasiColor(detail.akreditasi)}`}>
-                  {detail.akreditasi}
-                </span>
-                <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
-                  detail.status === 'Aktif' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
-                }`}>
-                  {detail.status}
-                </span>
-              </div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-                {detail.nama}
-              </h1>
-              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                <div className="flex items-center gap-2">
-                  <FaFileAlt className="text-gray-400" />
-                  <span>Kode: <strong>{detail.kode}</strong></span>
+        <div className="container mx-auto px-6 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-5xl mx-auto"
+          >
+            {/* Back Button */}
+            <motion.button
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              onClick={() => router.back()}
+              className="mb-8 flex items-center gap-2 text-white/90 hover:text-white transition-colors group"
+            >
+              <FaArrowLeft className="group-hover:-translate-x-1 transition-transform" />
+              <span className="font-medium">Kembali ke Daftar Program Studi</span>
+            </motion.button>
+
+            {/* Badges */}
+            <div className="flex flex-wrap items-center gap-3 mb-6">
+              <span className="text-sm font-semibold text-white bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full border border-white/30">
+                {detail.jenjang}
+              </span>
+              <span className={`text-sm font-semibold text-white px-4 py-2 rounded-full ${getAkreditasiColor(detail.akreditasi)} shadow-lg`}>
+                Akreditasi {detail.akreditasi}
+              </span>
+              <span className={`text-sm font-semibold px-4 py-2 rounded-full ${
+                detail.status === 'Aktif'
+                  ? 'bg-green-500 text-white'
+                  : 'bg-gray-400 text-white'
+              } shadow-lg`}>
+                {detail.status}
+              </span>
+            </div>
+
+            {/* Main Title */}
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+              {detail.nama}
+            </h1>
+
+            {/* Meta Info */}
+            <div className="flex flex-wrap items-center gap-6 text-white/90">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 backdrop-blur-sm p-3 rounded-lg">
+                  <FaFileAlt className="text-xl" />
                 </div>
-                <div className="flex items-center gap-2">
-                  <FaCalendar className="text-gray-400" />
-                  <span>Berdiri: <strong>{new Date(detail.tanggal_berdiri).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</strong></span>
+                <div>
+                  <div className="text-sm text-white/70">Kode Program Studi</div>
+                  <div className="font-bold text-lg">{detail.kode}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 backdrop-blur-sm p-3 rounded-lg">
+                  <FaCalendar className="text-xl" />
+                </div>
+                <div>
+                  <div className="text-sm text-white/70">Tanggal Berdiri</div>
+                  <div className="font-bold text-lg">
+                    {new Date(detail.tanggal_berdiri).toLocaleDateString('id-ID', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </motion.div>
+
+            {/* Fakultas & Jurusan */}
+            <div className="mt-8 grid md:grid-cols-2 gap-4">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20">
+                <div className="flex items-center gap-3">
+                  <FaBuilding className="text-3xl text-white/80" />
+                  <div>
+                    <div className="text-sm text-white/70">Fakultas</div>
+                    <div className="font-bold text-white text-lg">
+                      {detail.organisasi.fakultas.nama || 'Tidak ada data'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {detail.organisasi.jurusan.nama && (
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20">
+                  <div className="flex items-center gap-3">
+                    <FaBuilding className="text-3xl text-white/80" />
+                    <div>
+                      <div className="text-sm text-white/70">Jurusan</div>
+                      <div className="font-bold text-white text-lg">
+                        {detail.organisasi.jurusan.nama}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Wave Separator */}
+        <div className="absolute bottom-0 left-0 right-0">
+          <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
+            <path d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="#F9FAFB"/>
+          </svg>
+        </div>
+      </section>
+
+      {/* Main Content */}
+      <div className="bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
 
         {/* Content Grid */}
         <div className="grid lg:grid-cols-3 gap-6">
@@ -304,7 +372,8 @@ export default function ProgramStudiDetailPage() {
             </motion.div>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
