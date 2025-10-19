@@ -95,7 +95,7 @@ export default function ProgramStudiDetailPage() {
   return (
     <>
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 pt-32 pb-20 overflow-hidden">
+      <section className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 pt-24 pb-32 overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0" style={{
@@ -103,32 +103,32 @@ export default function ProgramStudiDetailPage() {
           }}></div>
         </div>
 
-        <div className="container mx-auto px-6 relative z-10">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="max-w-5xl mx-auto"
+            className="max-w-6xl mx-auto"
           >
             {/* Back Button */}
             <motion.button
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               onClick={() => router.back()}
-              className="mb-8 flex items-center gap-2 text-white/90 hover:text-white transition-colors group"
+              className="mb-6 flex items-center gap-2 text-white/90 hover:text-white transition-colors group"
             >
               <FaArrowLeft className="group-hover:-translate-x-1 transition-transform" />
               <span className="font-medium">Kembali ke Daftar Program Studi</span>
             </motion.button>
 
             {/* Badges */}
-            <div className="flex flex-wrap items-center gap-3 mb-6">
-              <span className="text-sm font-semibold text-white bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full border border-white/30">
+            <div className="flex flex-wrap items-center gap-2 mb-5">
+              <span className="text-xs sm:text-sm font-semibold text-white bg-white/20 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-white/30">
                 {detail.jenjang}
               </span>
-              <span className={`text-sm font-semibold text-white px-4 py-2 rounded-full ${getAkreditasiColor(detail.akreditasi)} shadow-lg`}>
+              <span className={`text-xs sm:text-sm font-semibold text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full ${getAkreditasiColor(detail.akreditasi)} shadow-lg`}>
                 Akreditasi {detail.akreditasi}
               </span>
-              <span className={`text-sm font-semibold px-4 py-2 rounded-full ${
+              <span className={`text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full ${
                 detail.status === 'Aktif'
                   ? 'bg-green-500 text-white'
                   : 'bg-gray-400 text-white'
@@ -138,58 +138,66 @@ export default function ProgramStudiDetailPage() {
             </div>
 
             {/* Main Title */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-8 leading-tight">
               {detail.nama}
             </h1>
 
-            {/* Meta Info */}
-            <div className="flex flex-wrap items-center gap-6 text-white/90">
-              <div className="flex items-center gap-3">
-                <div className="bg-white/20 backdrop-blur-sm p-3 rounded-lg">
-                  <FaFileAlt className="text-xl" />
-                </div>
-                <div>
-                  <div className="text-sm text-white/70">Kode Program Studi</div>
-                  <div className="font-bold text-lg">{detail.kode}</div>
+            {/* Meta Info Grid */}
+            <div className="grid sm:grid-cols-2 gap-4 mb-6">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                <div className="flex items-center gap-3">
+                  <div className="bg-white/20 p-2.5 rounded-lg shrink-0">
+                    <FaFileAlt className="text-lg text-white" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs text-white/70 mb-0.5">Kode Program Studi</div>
+                    <div className="font-bold text-white text-base truncate">{detail.kode}</div>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="bg-white/20 backdrop-blur-sm p-3 rounded-lg">
-                  <FaCalendar className="text-xl" />
-                </div>
-                <div>
-                  <div className="text-sm text-white/70">Tanggal Berdiri</div>
-                  <div className="font-bold text-lg">
-                    {new Date(detail.tanggal_berdiri).toLocaleDateString('id-ID', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                <div className="flex items-center gap-3">
+                  <div className="bg-white/20 p-2.5 rounded-lg shrink-0">
+                    <FaCalendar className="text-lg text-white" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs text-white/70 mb-0.5">Tanggal Berdiri</div>
+                    <div className="font-bold text-white text-base truncate">
+                      {new Date(detail.tanggal_berdiri).toLocaleDateString('id-ID', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Fakultas & Jurusan */}
-            <div className="mt-8 grid md:grid-cols-2 gap-4">
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                 <div className="flex items-center gap-3">
-                  <FaBuilding className="text-3xl text-white/80" />
-                  <div>
-                    <div className="text-sm text-white/70">Fakultas</div>
-                    <div className="font-bold text-white text-lg">
+                  <div className="bg-white/20 p-2.5 rounded-lg shrink-0">
+                    <FaBuilding className="text-xl text-white" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs text-white/70 mb-0.5">Fakultas</div>
+                    <div className="font-bold text-white text-sm sm:text-base line-clamp-2">
                       {detail.organisasi.fakultas.nama || 'Tidak ada data'}
                     </div>
                   </div>
                 </div>
               </div>
               {detail.organisasi.jurusan.nama && (
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20">
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                   <div className="flex items-center gap-3">
-                    <FaBuilding className="text-3xl text-white/80" />
-                    <div>
-                      <div className="text-sm text-white/70">Jurusan</div>
-                      <div className="font-bold text-white text-lg">
+                    <div className="bg-white/20 p-2.5 rounded-lg shrink-0">
+                      <FaBuilding className="text-xl text-white" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xs text-white/70 mb-0.5">Jurusan</div>
+                      <div className="font-bold text-white text-sm sm:text-base line-clamp-2">
                         {detail.organisasi.jurusan.nama}
                       </div>
                     </div>
@@ -201,9 +209,18 @@ export default function ProgramStudiDetailPage() {
         </div>
 
         {/* Wave Separator */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
-            <path d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="#F9FAFB"/>
+        <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
+          <svg
+            viewBox="0 0 1440 80"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-full h-auto"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M0,32L48,37.3C96,43,192,53,288,58.7C384,64,480,64,576,58.7C672,53,768,43,864,42.7C960,43,1056,53,1152,53.3C1248,53,1344,43,1392,37.3L1440,32L1440,80L1392,80C1344,80,1248,80,1152,80C1056,80,960,80,864,80C768,80,672,80,576,80C480,80,384,80,288,80C192,80,96,80,48,80L0,80Z"
+              fill="#F9FAFB"
+            />
           </svg>
         </div>
       </section>
