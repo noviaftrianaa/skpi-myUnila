@@ -279,31 +279,42 @@ class UnilaStatisticsRepository
     }
 
     /**
-     * Get total publikasi
+     * Get total publikasi (5 years from active period)
      *
      * @param string $idSp
      * @return int
      */
     private function getTotalPublikasi(string $idSp): int
     {
-        // Check if publikasi table exists
-        $sql = "
-            SELECT COUNT(*) AS total
-            FROM pdrd.publikasi_dosen AS pub
-            INNER JOIN pdrd.sdm AS sdm
-                ON sdm.id_sdm = pub.id_sdm
-                AND sdm.soft_delete = 0
-                AND sdm.id_jns_sdm = '12'
-            INNER JOIN pdrd.reg_ptk AS ptk
-                ON ptk.id_sdm = sdm.id_sdm
-                AND ptk.soft_delete = 0
-                AND ptk.id_jns_keluar IS NULL
-                AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
-            WHERE pub.soft_delete = 0
-        ";
-
         try {
-            $result = DB::connection('sqlsrv')->select($sql, [$idSp]);
+            // Get active period to calculate year range
+            $activePeriod = $this->getActivePeriod();
+            $activeYear = (int) substr($activePeriod, 0, 4); // Extract year from period (e.g., 20242 -> 2024)
+            $startYear = $activeYear - 5; // 5 years back
+
+            // Count publications from last 5 years based on tgl_terbit
+            $sql = "
+                SELECT COUNT(*) AS total
+                FROM pdrd.publikasi AS pub
+                INNER JOIN pdrd.tulis_pub AS tulis
+                    ON tulis.id_publikasi = pub.id_publikasi
+                    AND tulis.soft_delete = 0
+                INNER JOIN pdrd.sdm AS sdm
+                    ON sdm.id_sdm = tulis.id_sdm
+                    AND sdm.soft_delete = 0
+                    AND sdm.id_jns_sdm = '12'
+                INNER JOIN pdrd.reg_ptk AS ptk
+                    ON ptk.id_sdm = sdm.id_sdm
+                    AND ptk.soft_delete = 0
+                    AND ptk.id_jns_keluar IS NULL
+                    AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+                WHERE pub.soft_delete = 0
+                    AND pub.tgl_terbit IS NOT NULL
+                    AND YEAR(pub.tgl_terbit) >= ?
+                    AND YEAR(pub.tgl_terbit) <= ?
+            ";
+
+            $result = DB::connection('sqlsrv')->select($sql, [$idSp, $startYear, $activeYear]);
             return (int) ($result[0]->total ?? 0);
         } catch (\Exception $e) {
             // If table doesn't exist or error, return 0
