@@ -94,16 +94,6 @@ export default function ProgramStudiTable() {
     loadData();
   }, [selectedPeriode, searchQuery, currentPage, rowsPerPage, sortBy, sortOrder]);
 
-  // Function to create slug from nama program studi
-  const createSlug = (nama: string) => {
-    return nama
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim();
-  };
-
   const columns: Column<ProgramStudi>[] = [
     { key: "kode", label: "KODE", align: "center", width: "70px", sortable: true, render: (item) => <span className="font-bold text-gray-900">{item.kode}</span> },
     {
@@ -113,7 +103,7 @@ export default function ProgramStudiTable() {
       sortable: true,
       render: (item) => (
         <Link
-          href={`/program-studi/${createSlug(item.nama)}`}
+          href={`/program-studi/detail/${item.id}`}
           className="font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
         >
           {item.nama}
