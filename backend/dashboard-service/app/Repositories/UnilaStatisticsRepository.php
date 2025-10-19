@@ -236,7 +236,8 @@ class UnilaStatisticsRepository
      */
     private function getTotalGuruBesar(string $idSp): int
     {
-        // Try to get guru besar count, return 0 if table not found
+        // Get guru besar from rwy_fungsional table (latest jabatan fungsional per dosen)
+        // Try multiple possible names for Profesor jabatan
         try {
             $sql = "
                 SELECT COUNT(DISTINCT ptk.id_sdm) AS total
@@ -247,16 +248,25 @@ class UnilaStatisticsRepository
                     AND sdm.id_jns_sdm = '12'
                 LEFT JOIN (
                     SELECT
-                        rjf.id_sdm,
-                        rjf.id_jab_fung,
-                        ROW_NUMBER() OVER (PARTITION BY rjf.id_sdm ORDER BY rjf.tgl_sk_jab_fung DESC) AS rn
-                    FROM pdrd.riwayat_jab_fung AS rjf
-                    WHERE rjf.soft_delete = 0
-                ) AS jab ON jab.id_sdm = ptk.id_sdm AND jab.rn = 1
+                        rwy.id_sdm,
+                        jab.nm_jabfung,
+                        jab.id_jabfung,
+                        ROW_NUMBER() OVER (PARTITION BY rwy.id_sdm ORDER BY rwy.tmt_sk_jabfung DESC) AS rn
+                    FROM pdrd.rwy_fungsional AS rwy
+                    LEFT JOIN ref.jabfung AS jab
+                        ON jab.id_jabfung = rwy.id_jabfung
+                        AND jab.expired_date IS NULL
+                    WHERE rwy.soft_delete = 0
+                ) AS jabfung ON jabfung.id_sdm = sdm.id_sdm AND jabfung.rn = 1
                 WHERE ptk.soft_delete = 0
                     AND ptk.id_jns_keluar IS NULL
                     AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
-                    AND jab.id_jab_fung = '14'
+                    AND (
+                        jabfung.nm_jabfung LIKE '%Profesor%'
+                        OR jabfung.nm_jabfung LIKE '%Guru Besar%'
+                        OR jabfung.nm_jabfung LIKE 'IV/%'
+                        OR jabfung.nm_jabfung LIKE 'Pembina%'
+                    )
             ";
 
             $result = DB::connection('sqlsrv')->select($sql, [$idSp]);
