@@ -222,7 +222,11 @@ export interface ProgramStudiStatistics {
     unggul: number;
     baik_sekali: number;
     baik: number;
-    belum_akreditasi: number;
+    a: number;
+    b: number;
+    c: number;
+    tidak_terakreditasi: number;
+    belum_terakreditasi: number;
   };
   jenjang_count: {
     S3: number;

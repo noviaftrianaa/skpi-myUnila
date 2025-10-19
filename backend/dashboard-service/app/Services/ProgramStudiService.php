@@ -100,7 +100,11 @@ class ProgramStudiService
                     'unggul' => (int) $stats->akred_unggul,
                     'baik_sekali' => (int) $stats->akred_baik_sekali,
                     'baik' => (int) $stats->akred_baik,
-                    'belum_akreditasi' => (int) $stats->akred_belum,
+                    'a' => (int) $stats->akred_a,
+                    'b' => (int) $stats->akred_b,
+                    'c' => (int) $stats->akred_c,
+                    'tidak_terakreditasi' => (int) $stats->akred_tidak_terakreditasi,
+                    'belum_terakreditasi' => (int) $stats->akred_belum_terakreditasi,
                 ],
                 'jenjang_count' => [
                     'S3' => (int) $stats->jenjang_s3,

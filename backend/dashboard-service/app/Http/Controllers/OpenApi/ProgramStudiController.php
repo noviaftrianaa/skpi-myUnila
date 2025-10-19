@@ -239,10 +239,14 @@ class ProgramStudiController extends Controller
                                 new OA\Property(
                                     property: 'akreditasi_count',
                                     properties: [
-                                        new OA\Property(property: 'unggul', type: 'integer', example: 5),
-                                        new OA\Property(property: 'baik_sekali', type: 'integer', example: 16),
-                                        new OA\Property(property: 'baik', type: 'integer', example: 8),
-                                        new OA\Property(property: 'belum_akreditasi', type: 'integer', example: 97),
+                                        new OA\Property(property: 'unggul', type: 'integer', example: 48),
+                                        new OA\Property(property: 'baik_sekali', type: 'integer', example: 45),
+                                        new OA\Property(property: 'baik', type: 'integer', example: 16),
+                                        new OA\Property(property: 'a', type: 'integer', example: 8),
+                                        new OA\Property(property: 'b', type: 'integer', example: 11),
+                                        new OA\Property(property: 'c', type: 'integer', example: 0),
+                                        new OA\Property(property: 'tidak_terakreditasi', type: 'integer', example: 0),
+                                        new OA\Property(property: 'belum_terakreditasi', type: 'integer', example: 26),
                                     ],
                                     type: 'object'
                                 ),

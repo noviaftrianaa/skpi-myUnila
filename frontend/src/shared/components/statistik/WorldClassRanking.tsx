@@ -35,17 +35,36 @@ export default function WorldClassRanking() {
           dashboardService.getChartData(2020, 2025), // Last 5 years
         ]);
 
-        if (latestResponse.success) {
+        console.log('Latest Rankings Response:', latestResponse);
+        console.log('Chart Response:', chartResponse);
+
+        if (latestResponse.success && latestResponse.data?.rankings) {
+          console.log('Setting rankings:', latestResponse.data.rankings);
+          console.log('Rankings array length:', latestResponse.data.rankings.length);
           setLatestRankings(latestResponse.data.rankings);
+        } else {
+          console.warn('Latest rankings response not successful or no data');
+          setLatestRankings([]);
         }
 
-        if (chartResponse.success) {
+        if (chartResponse.success && chartResponse.data?.categories) {
           setChartCategories(chartResponse.data.categories);
+        } else {
+          console.warn('Chart response not successful or no data');
+          setChartCategories([]);
         }
       } catch (error) {
         console.error('Failed to fetch ranking data:', error);
+        // Set empty array to prevent undefined state
+        setLatestRankings([]);
+        setChartCategories([]);
       } finally {
         setLoading(false);
+        console.log('Loading complete, final state check in 100ms...');
+        setTimeout(() => {
+          console.log('Final latestRankings state:', latestRankings);
+          console.log('Final loading state:', loading);
+        }, 100);
       }
     };
 
@@ -255,8 +274,7 @@ export default function WorldClassRanking() {
       <div className="container mx-auto px-6">
         <motion.div
           initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
+          animate="visible"
           variants={containerVariants}
           className="max-w-7xl mx-auto"
         >
@@ -274,58 +292,72 @@ export default function WorldClassRanking() {
           </motion.div>
 
           {/* Current Rankings */}
-          <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-            {loading ? (
-              // Loading skeleton
-              [1, 2, 3, 4].map((i) => (
-                <div key={i} className="bg-gray-200 rounded-xl p-6 animate-pulse">
-                  <div className="h-8 w-8 bg-gray-300 rounded mb-3"></div>
-                  <div className="h-4 w-20 bg-gray-300 rounded mb-2"></div>
-                  <div className="h-10 w-24 bg-gray-300 rounded"></div>
-                </div>
-              ))
-            ) : latestRankings.length > 0 ? (
-              latestRankings.map((ranking, index) => {
-                // Map category code to icon and gradient
-                const categoryMeta: Record<string, { icon: string; gradient: string }> = {
-                  greenmetric: { icon: "🌱", gradient: "from-emerald-500 to-emerald-600" },
-                  qs: { icon: "🌏", gradient: "from-blue-500 to-blue-600" },
-                  the: { icon: "🎓", gradient: "from-purple-500 to-purple-600" },
-                  webometrics: { icon: "🌐", gradient: "from-amber-500 to-amber-600" },
-                };
+          <motion.div
+            key={`rankings-${latestRankings.length}-${loading}`}
+            variants={itemVariants}
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12"
+          >
+            {(() => {
+              console.log('Rendering check - loading:', loading);
+              console.log('Rendering check - latestRankings:', latestRankings);
+              console.log('Rendering check - latestRankings.length:', latestRankings?.length);
 
-                const meta = categoryMeta[ranking.category.code] || { icon: "🏆", gradient: "from-gray-500 to-gray-600" };
+              if (loading) {
+                console.log('Rendering: Loading skeleton');
+                return [1, 2, 3, 4].map((i) => (
+                  <div key={i} className="bg-gray-200 rounded-xl p-6 animate-pulse">
+                    <div className="h-8 w-8 bg-gray-300 rounded mb-3"></div>
+                    <div className="h-4 w-20 bg-gray-300 rounded mb-2"></div>
+                    <div className="h-10 w-24 bg-gray-300 rounded"></div>
+                  </div>
+                ));
+              } else if (latestRankings && latestRankings.length > 0) {
+                console.log('Rendering: Ranking cards, count:', latestRankings.length);
+                return latestRankings.map((ranking, index) => {
+                  console.log(`Rendering card ${index}:`, ranking);
+                  // Map category code to icon and gradient
+                  const categoryMeta: Record<string, { icon: string; gradient: string }> = {
+                    greenmetric: { icon: "🌱", gradient: "from-emerald-500 to-emerald-600" },
+                    qs: { icon: "🌏", gradient: "from-blue-500 to-blue-600" },
+                    the: { icon: "🎓", gradient: "from-purple-500 to-purple-600" },
+                    webometrics: { icon: "🌐", gradient: "from-amber-500 to-amber-600" },
+                  };
 
+                  const meta = categoryMeta[ranking.category.code] || { icon: "🏆", gradient: "from-gray-500 to-gray-600" };
+
+                  return (
+                    <motion.div
+                      key={index}
+                      variants={itemVariants}
+                      className={`bg-gradient-to-br ${meta.gradient} rounded-xl p-6 text-white shadow-lg relative overflow-hidden`}
+                    >
+                      <div className="absolute top-0 right-0 text-8xl opacity-10 -mt-4 -mr-4">{meta.icon}</div>
+                      <div className="relative z-10">
+                        <div className="text-3xl mb-3">{meta.icon}</div>
+                        <div className="text-sm font-semibold opacity-90 mb-2">{ranking.category.name}</div>
+                        <div className="text-xs opacity-75 mb-2">
+                          {ranking.year} {ranking.period && `(${ranking.period})`}
+                        </div>
+                        <div className="flex items-baseline gap-2">
+                          <div className="text-4xl font-bold">#{ranking.ranks.world}</div>
+                        </div>
+                        {ranking.ranks.national && (
+                          <div className="text-xs opacity-75 mt-2">National Rank: #{ranking.ranks.national}</div>
+                        )}
+                        <div className="text-xs opacity-75 mt-1">{ranking.category.full_name}</div>
+                      </div>
+                    </motion.div>
+                  );
+                });
+              } else {
+                console.log('Rendering: No data fallback');
                 return (
-                  <motion.div
-                    key={index}
-                    variants={itemVariants}
-                    className={`bg-gradient-to-br ${meta.gradient} rounded-xl p-6 text-white shadow-lg relative overflow-hidden`}
-                  >
-                    <div className="absolute top-0 right-0 text-8xl opacity-10 -mt-4 -mr-4">{meta.icon}</div>
-                    <div className="relative z-10">
-                      <div className="text-3xl mb-3">{meta.icon}</div>
-                      <div className="text-sm font-semibold opacity-90 mb-2">{ranking.category.name}</div>
-                      <div className="text-xs opacity-75 mb-2">
-                        {ranking.year} {ranking.period && `(${ranking.period})`}
-                      </div>
-                      <div className="flex items-baseline gap-2">
-                        <div className="text-4xl font-bold">#{ranking.ranks.world}</div>
-                      </div>
-                      {ranking.ranks.national && (
-                        <div className="text-xs opacity-75 mt-2">National Rank: #{ranking.ranks.national}</div>
-                      )}
-                      <div className="text-xs opacity-75 mt-1">{ranking.category.full_name}</div>
-                    </div>
-                  </motion.div>
+                  <div className="col-span-full text-center py-8 text-gray-500">
+                    <p>Data ranking belum tersedia</p>
+                  </div>
                 );
-              })
-            ) : (
-              // No data fallback
-              <div className="col-span-full text-center py-8 text-gray-500">
-                <p>Data ranking belum tersedia</p>
-              </div>
-            )}
+              }
+            })()}
           </motion.div>
 
           {/* Chart */}

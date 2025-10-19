@@ -39,7 +39,17 @@ class DashboardService {
       );
       return response.data;
     } catch (error) {
-      throw error;
+      console.error('Error fetching latest rankings:', error);
+      // Return empty but valid response instead of throwing
+      return {
+        success: false,
+        message: 'Failed to fetch rankings',
+        data: {
+          rankings: [],
+          university: 'Universitas Lampung',
+          last_updated: new Date().toISOString()
+        }
+      };
     }
   }
 
@@ -76,7 +86,17 @@ class DashboardService {
       );
       return response.data;
     } catch (error) {
-      throw error;
+      console.error('Error fetching chart data:', error);
+      // Return empty but valid response instead of throwing
+      return {
+        success: false,
+        message: 'Failed to fetch chart data',
+        data: {
+          start_year: startYear || 2020,
+          end_year: endYear || 2025,
+          categories: []
+        }
+      };
     }
   }
 
