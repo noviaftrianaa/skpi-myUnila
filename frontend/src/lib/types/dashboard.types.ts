@@ -283,6 +283,55 @@ export interface ProgramStudiFilterOptionsResponse {
   data: ProgramStudiFilterOptions;
 }
 
+/**
+ * Program Studi Detail
+ */
+export interface ProgramStudiDetail {
+  id: string;
+  id_original: string;
+  kode: string;
+  nama: string;
+  status: string;
+  jenjang: string;
+  tanggal_berdiri: string;
+  sk_penyelenggara: string;
+  akreditasi: string;
+  organisasi: {
+    fakultas: {
+      id: string | null;
+      nama: string | null;
+    };
+    jurusan: {
+      id: string | null;
+      nama: string | null;
+    };
+  };
+  sdm: {
+    dosen: {
+      tetap: number;
+      tidak_tetap: number;
+      pns: number;
+      non_pns: number;
+      total: number;
+    };
+    tendik: number;
+  };
+  mahasiswa: {
+    total: number;
+  };
+  rasio_dosen_mahasiswa: string;
+  periode: string;
+}
+
+/**
+ * Program Studi Detail Response
+ */
+export interface ProgramStudiDetailResponse {
+  success: boolean;
+  message: string;
+  data: ProgramStudiDetail;
+}
+
 // ============================================
 // Unila Statistics Types
 // ============================================

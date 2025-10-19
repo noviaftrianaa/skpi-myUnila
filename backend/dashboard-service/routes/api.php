@@ -56,6 +56,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/statistics', [ProgramStudiController::class, 'statistics']);
         Route::get('/periods', [ProgramStudiController::class, 'periods']);
         Route::get('/filter-options', [ProgramStudiController::class, 'filterOptions']);
+        Route::get('/{id}', [ProgramStudiController::class, 'show']);
     });
 
     // Universitas Lampung

@@ -18,6 +18,7 @@ import type {
   ProgramStudiStatisticsResponse,
   ProgramStudiPeriodsResponse,
   ProgramStudiFilterOptionsResponse,
+  ProgramStudiDetailResponse,
   UnilaStatisticsResponse,
   UnilaProfileResponse,
 } from '@/lib/types/dashboard.types';
@@ -214,6 +215,23 @@ class DashboardService {
       );
       return response.data;
     } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Get program studi detail by ID
+   */
+  async getProgramStudiDetail(id: string, periode?: string): Promise<ProgramStudiDetailResponse> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (periode) queryParams.append('periode', periode);
+
+      const url = `${DASHBOARD_API_URL}/program-studi/${id}${periode ? `?${queryParams.toString()}` : ''}`;
+      const response = await axios.get<ProgramStudiDetailResponse>(url);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching program studi detail:', error);
       throw error;
     }
   }

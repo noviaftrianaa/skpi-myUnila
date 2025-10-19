@@ -39,7 +39,7 @@ class ProgramStudiService
             // Process data
             $processedData = $data->map(function ($item) {
                 return [
-                    'id' => $item->id_sms,
+                    'id' => base64_encode($item->id_sms), // Encrypted ID
                     'kode' => $item->kode_prodi,
                     'nama' => $item->nm_lemb,
                     'status' => $item->stat_prodi === 'A' ? 'Aktif' : 'Tidak Aktif',
@@ -147,6 +147,69 @@ class ProgramStudiService
     {
         return Cache::remember('program_studi_filter_options', 3600, function () {
             return $this->repository->getFilterOptions();
+        });
+    }
+
+    /**
+     * Get program studi detail by ID
+     *
+     * @param string $idSms
+     * @param string|null $periode
+     * @return array|null
+     */
+    public function getProgramStudiDetail(string $idSms, ?string $periode = null): ?array
+    {
+        $cacheKey = 'program_studi_detail_' . $idSms . '_' . ($periode ?? 'default');
+
+        return Cache::remember($cacheKey, 3600, function () use ($idSms, $periode) {
+            $detail = $this->repository->getProgramStudiDetail($idSms, $periode);
+
+            if (!$detail) {
+                return null;
+            }
+
+            $totalDosen = (int) ($detail->dosen_tetap + $detail->dosen_tidak_tetap);
+            $totalMahasiswa = (int) $detail->total_mahasiswa;
+
+            // Encrypt ID untuk keamanan
+            $encryptedId = base64_encode($detail->id_sms);
+
+            return [
+                'id' => $encryptedId,
+                'id_original' => $detail->id_sms, // For internal use only
+                'kode' => $detail->kode_prodi,
+                'nama' => $detail->nama_prodi,
+                'status' => $detail->stat_prodi === 'A' ? 'Aktif' : 'Tidak Aktif',
+                'jenjang' => $detail->jenjang,
+                'tanggal_berdiri' => $detail->tgl_berdiri,
+                'sk_penyelenggara' => $detail->sk_selenggara,
+                'akreditasi' => $detail->akreditasi ?? 'Belum Akreditasi',
+                'organisasi' => [
+                    'fakultas' => [
+                        'id' => $detail->id_fakultas ? base64_encode($detail->id_fakultas) : null,
+                        'nama' => $detail->fakultas,
+                    ],
+                    'jurusan' => [
+                        'id' => $detail->id_jurusan ? base64_encode($detail->id_jurusan) : null,
+                        'nama' => $detail->jurusan,
+                    ],
+                ],
+                'sdm' => [
+                    'dosen' => [
+                        'tetap' => (int) $detail->dosen_tetap,
+                        'tidak_tetap' => (int) $detail->dosen_tidak_tetap,
+                        'pns' => (int) $detail->dosen_pns,
+                        'non_pns' => (int) $detail->dosen_non_pns,
+                        'total' => $totalDosen,
+                    ],
+                    'tendik' => (int) $detail->total_tendik,
+                ],
+                'mahasiswa' => [
+                    'total' => $totalMahasiswa,
+                ],
+                'rasio_dosen_mahasiswa' => $this->calculateRasio($totalDosen, $totalMahasiswa),
+                'periode' => $detail->periode,
+            ];
         });
     }
 

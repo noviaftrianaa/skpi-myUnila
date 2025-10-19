@@ -475,4 +475,117 @@ class ProgramStudiRepository
             'akreditasi' => array_column($akreditasi, 'nm_akred'),
         ];
     }
+
+    /**
+     * Get program studi detail by ID
+     *
+     * @param string $idSms
+     * @param string|null $periode
+     * @return object|null
+     */
+    public function getProgramStudiDetail(string $idSms, ?string $periode = null): ?object
+    {
+        $periode = $periode ?? $this->getActivePeriod();
+
+        $sql = "
+            SELECT
+                sms.id_sms,
+                sms.kode_prodi,
+                sms.nm_lemb AS nama_prodi,
+                sms.stat_prodi,
+                sms.tgl_berdiri,
+                sms.sk_selenggara,
+                didik.nm_jenj_didik AS jenjang,
+                akred.nm_akred AS akreditasi,
+                fak.nm_lemb AS fakultas,
+                fak.id_sms AS id_fakultas,
+                jur.nm_lemb AS jurusan,
+                jur.id_sms AS id_jurusan,
+                ISNULL(dosen.dosen_tetap, 0) AS dosen_tetap,
+                ISNULL(dosen.dosen_tidak_tetap, 0) AS dosen_tidak_tetap,
+                ISNULL(dosen.dosen_pns, 0) AS dosen_pns,
+                ISNULL(dosen.dosen_non_pns, 0) AS dosen_non_pns,
+                ISNULL(tendik.total_tendik, 0) AS total_tendik,
+                ISNULL(mhs.total_mahasiswa, 0) AS total_mahasiswa,
+                ? AS periode
+            FROM pdrd.sms AS sms
+            INNER JOIN ref.jenjang_pendidikan AS didik
+                ON didik.id_jenj_didik = sms.id_jenj_didik
+                AND didik.expired_date IS NULL
+            LEFT JOIN pdrd.sms AS jur
+                ON jur.id_sms = sms.id_jur_unila
+                AND jur.soft_delete = 0
+            LEFT JOIN pdrd.sms AS fak
+                ON fak.id_sms = sms.id_fak_unila
+                AND fak.soft_delete = 0
+            LEFT JOIN (
+                SELECT
+                    ap.id_sms,
+                    na.nm_akred,
+                    ROW_NUMBER() OVER (PARTITION BY ap.id_sms ORDER BY ap.tst_sk_akreditasi_prodi DESC) AS rn
+                FROM pdrd.akreditasi_prodi AS ap
+                JOIN ref.nilai_akred AS na
+                    ON na.id_akred = ap.id_akred
+                    AND na.expired_date IS NULL
+                WHERE ap.soft_delete = 0
+                    AND ap.a_aktif = 1
+            ) AS akred ON akred.id_sms = sms.id_sms AND akred.rn = 1
+            LEFT JOIN (
+                SELECT
+                    reg.id_sms,
+                    COUNT(DISTINCT pd.id_pd) AS total_mahasiswa
+                FROM pdrd.kuliah_mhs AS kmh
+                JOIN pdrd.reg_pd AS reg
+                    ON reg.id_reg_pd = kmh.id_reg_pd
+                    AND reg.soft_delete = 0
+                JOIN pdrd.peserta_didik AS pd
+                    ON pd.id_pd = reg.id_pd
+                    AND pd.soft_delete = 0
+                    AND pd.id_stat_mhs = 'A'
+                WHERE kmh.soft_delete = 0
+                    AND kmh.id_stat_mhs = 'A'
+                    AND kmh.id_smt = ?
+                GROUP BY reg.id_sms
+            ) AS mhs ON mhs.id_sms = sms.id_sms
+            LEFT JOIN (
+                SELECT
+                    ptk.id_sms,
+                    SUM(CASE WHEN ptk.id_ikatan_kerja IN ('A','B','E','F','H','I','N') THEN 1 ELSE 0 END) AS dosen_tetap,
+                    SUM(CASE WHEN ptk.id_ikatan_kerja = 'G' THEN 1 ELSE 0 END) AS dosen_tidak_tetap,
+                    SUM(CASE WHEN ptk.id_stat_pegawai IN ('1','13','14') THEN 1 ELSE 0 END) AS dosen_pns,
+                    SUM(CASE WHEN ptk.id_stat_pegawai NOT IN ('1','13','14') THEN 1 ELSE 0 END) AS dosen_non_pns
+                FROM pdrd.reg_ptk AS ptk
+                JOIN pdrd.sdm AS sdm
+                    ON sdm.id_sdm = ptk.id_sdm
+                    AND sdm.soft_delete = 0
+                    AND sdm.id_jns_sdm = '12'
+                WHERE ptk.soft_delete = 0
+                    AND ptk.id_jns_keluar IS NULL
+                    AND CAST(ptk.id_sp AS VARCHAR(50)) = '" . strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')) . "'
+                GROUP BY ptk.id_sms
+            ) AS dosen ON dosen.id_sms = sms.id_sms
+            LEFT JOIN (
+                SELECT
+                    ptk.id_sms,
+                    COUNT(DISTINCT sdm.id_sdm) AS total_tendik
+                FROM pdrd.reg_ptk AS ptk
+                INNER JOIN pdrd.sdm AS sdm
+                    ON sdm.id_sdm = ptk.id_sdm
+                    AND sdm.soft_delete = 0
+                    AND sdm.id_jns_sdm = '13'
+                WHERE ptk.soft_delete = 0
+                    AND ptk.id_jns_keluar IS NULL
+                    AND CAST(ptk.id_sp AS VARCHAR(50)) = '" . strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')) . "'
+                GROUP BY ptk.id_sms
+            ) AS tendik ON tendik.id_sms = sms.id_sms
+            WHERE sms.id_sms = ?
+                AND sms.soft_delete = 0
+                AND CAST(sms.id_sp AS VARCHAR(50)) = '" . strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')) . "'
+        ";
+
+        $params = [$periode, $periode, $idSms];
+        $results = DB::connection('sqlsrv')->select($sql, $params);
+
+        return $results[0] ?? null;
+    }
 }
