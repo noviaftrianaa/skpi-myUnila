@@ -19,6 +19,11 @@ import type {
   ProgramStudiPeriodsResponse,
   ProgramStudiFilterOptionsResponse,
   ProgramStudiDetailResponse,
+  DosenListResponse,
+  MahasiswaTrendResponse,
+  KurikulumListResponse,
+  MataKuliahResponse,
+  TracerStudyResponse,
   UnilaStatisticsResponse,
   UnilaProfileResponse,
 } from '@/lib/types/dashboard.types';
@@ -232,6 +237,81 @@ class DashboardService {
       return response.data;
     } catch (error) {
       console.error('Error fetching program studi detail:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get dosen list by program studi
+   */
+  async getDosenByProgramStudi(id: string): Promise<DosenListResponse> {
+    try {
+      const response = await axios.get<DosenListResponse>(
+        `${DASHBOARD_API_URL}/program-studi/${id}/dosen`
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching dosen list:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get mahasiswa trend for 5 latest semesters
+   */
+  async getMahasiswaTrend(id: string): Promise<MahasiswaTrendResponse> {
+    try {
+      const response = await axios.get<MahasiswaTrendResponse>(
+        `${DASHBOARD_API_URL}/program-studi/${id}/mahasiswa-trend`
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching mahasiswa trend:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get kurikulum list by program studi
+   */
+  async getKurikulumByProgramStudi(id: string): Promise<KurikulumListResponse> {
+    try {
+      const response = await axios.get<KurikulumListResponse>(
+        `${DASHBOARD_API_URL}/program-studi/${id}/kurikulum`
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching kurikulum list:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get mata kuliah by kurikulum (grouped by semester)
+   */
+  async getMataKuliahByKurikulum(idKurikulum: string): Promise<MataKuliahResponse> {
+    try {
+      const response = await axios.get<MataKuliahResponse>(
+        `${DASHBOARD_API_URL}/program-studi/kurikulum/${idKurikulum}/mata-kuliah`
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching mata kuliah list:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get tracer study data by program studi
+   */
+  async getTracerStudyByProgramStudi(id: string): Promise<TracerStudyResponse> {
+    try {
+      const response = await axios.get<TracerStudyResponse>(
+        `${DASHBOARD_API_URL}/program-studi/${id}/tracer-study`
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching tracer study data:', error);
       throw error;
     }
   }
