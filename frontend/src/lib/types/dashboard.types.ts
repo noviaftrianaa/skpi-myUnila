@@ -306,6 +306,15 @@ export interface ProgramStudiDetail {
       nama: string | null;
     };
   };
+  profil: {
+    visi: string | null;
+    misi: string | null;
+    tujuan: string | null;
+    sasaran: string | null;
+    kompetensi: string | null;
+    capaian_belajar: string | null;
+    deskripsi_singkat: string | null;
+  };
   sdm: {
     dosen: {
       tetap: number;
@@ -330,6 +339,192 @@ export interface ProgramStudiDetailResponse {
   success: boolean;
   message: string;
   data: ProgramStudiDetail;
+}
+
+/**
+ * Dosen Item
+ */
+export interface Dosen {
+  id: string;
+  nama: string;
+  nidn: string;
+  nip: string;
+  jenis_kelamin: string;
+  ikatan_kerja: {
+    id: string;
+    nama: string;
+    status: string;
+  };
+  jabatan_fungsional: string;
+  pendidikan_terakhir: string;
+  status_keaktifan: {
+    id: number;
+    nama: string;
+    status: string;
+  };
+}
+
+/**
+ * Dosen List Response
+ */
+export interface DosenListResponse {
+  success: boolean;
+  message: string;
+  data: Dosen[];
+}
+
+/**
+ * Mahasiswa Trend Item
+ */
+export interface MahasiswaTrendItem {
+  semester: string;
+  nama_semester: string;
+  total_mahasiswa: number;
+}
+
+/**
+ * Mahasiswa Trend Response
+ */
+export interface MahasiswaTrendResponse {
+  success: boolean;
+  message: string;
+  data: MahasiswaTrendItem[];
+}
+
+/**
+ * Kurikulum Item
+ */
+export interface Kurikulum {
+  id: string;
+  nama: string;
+  sks_lulus: number;
+  sks_wajib: number;
+  sks_pilihan: number;
+  jumlah_semester_normal: number;
+  digunakan: boolean;
+  jenjang: {
+    id: string;
+    nama: string;
+  };
+  semester: {
+    id: string;
+    nama: string;
+  };
+  prodi: {
+    id: string;
+    nama: string;
+  };
+}
+
+/**
+ * Kurikulum List Response
+ */
+export interface KurikulumListResponse {
+  success: boolean;
+  message: string;
+  data: Kurikulum[];
+}
+
+/**
+ * Mata Kuliah Item
+ */
+export interface MataKuliah {
+  kode: string;
+  nama: string;
+  sks: number;
+  sks_tm: number;
+  sks_prak: number;
+  sks_prak_lap: number;
+  sks_sim: number;
+  status_wajib: string;
+  is_wajib: boolean;
+}
+
+/**
+ * Semester Mata Kuliah (Grouped by Semester)
+ */
+export interface SemesterMataKuliah {
+  semester_ke: number;
+  mata_kuliah: MataKuliah[];
+  total_sks: number;
+  total_sks_wajib: number;
+  total_sks_pilihan: number;
+  jumlah_matkul: number;
+  jumlah_wajib: number;
+  jumlah_pilihan: number;
+}
+
+/**
+ * Mata Kuliah Response
+ */
+export interface MataKuliahResponse {
+  success: boolean;
+  message: string;
+  data: SemesterMataKuliah[];
+}
+
+// ============================================
+// Tracer Study Types
+// ============================================
+
+/**
+ * Kesesuaian Bidang Kerja
+ */
+export interface KesesuaianBidang {
+  tingkat: number;
+  label: string;
+  jumlah: number;
+}
+
+/**
+ * Level Perusahaan
+ */
+export interface LevelPerusahaan {
+  level: string;
+  jumlah: number;
+}
+
+/**
+ * Waktu Tunggu Trend
+ */
+export interface WaktuTungguTrend {
+  tahun: number;
+  avg_waktu_tunggu: number;
+  jumlah: number;
+}
+
+/**
+ * Status Lulusan
+ */
+export interface StatusLulusan {
+  bekerja: number;
+  wiraswasta: number;
+  kuliah_lanjut: number;
+  belum_bekerja: number;
+}
+
+/**
+ * Tracer Study Data
+ */
+export interface TracerStudyData {
+  total_alumni: number;
+  avg_waktu_tunggu: number;
+  avg_income: number;
+  bekerja_sebelum_lulus: number;
+  persentase_bekerja_sebelum_lulus: number;
+  status_lulusan: StatusLulusan;
+  kesesuaian_bidang: KesesuaianBidang[];
+  level_perusahaan: LevelPerusahaan[];
+  waktu_tunggu_trend: WaktuTungguTrend[];
+}
+
+/**
+ * Tracer Study Response
+ */
+export interface TracerStudyResponse {
+  success: boolean;
+  message: string;
+  data: TracerStudyData;
 }
 
 // ============================================

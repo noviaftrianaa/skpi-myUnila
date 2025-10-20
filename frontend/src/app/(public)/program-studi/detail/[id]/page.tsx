@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
@@ -12,10 +12,21 @@ import {
   FaBuilding,
   FaUsers,
   FaChartLine,
-  FaFileAlt
+  FaFileAlt,
+  FaInfoCircle,
+  FaBook,
+  FaLaptop,
+  FaTrophy,
+  FaHandshake,
 } from 'react-icons/fa';
 import { dashboardService } from '@/lib/services/dashboard.service';
 import type { ProgramStudiDetail } from '@/lib/types/dashboard.types';
+import DosenTable from '@/shared/components/DosenTable';
+import MahasiswaTrendChart from '@/shared/components/MahasiswaTrendChart';
+import KurikulumList from '@/shared/components/KurikulumList';
+import TracerStudySection from '@/shared/components/TracerStudySection';
+
+type TabType = 'profile' | 'dosen' | 'mahasiswa' | 'kurikulum' | 'alumni';
 
 export default function ProgramStudiDetailPage() {
   const params = useParams();
@@ -23,30 +34,91 @@ export default function ProgramStudiDetailPage() {
   const [detail, setDetail] = useState<ProgramStudiDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<TabType>('profile');
 
   useEffect(() => {
-    const fetchDetail = async () => {
-      try {
-        setLoading(true);
-        const response = await dashboardService.getProgramStudiDetail(params.id as string);
+    let isMounted = true;
+    let retryCount = 0;
+    const maxRetries = 2;
 
-        if (response.success) {
-          setDetail(response.data);
-        } else {
-          setError(response.message);
+    const fetchDetail = async () => {
+      // Get the ID from params
+      const id = params.id as string;
+
+      // Validate ID exists and is not empty
+      if (!id || id === '' || id === 'undefined' || id === 'null') {
+        console.error('Invalid ID:', id);
+        if (isMounted) {
+          setError('ID program studi tidak valid');
+          setLoading(false);
         }
-      } catch (err) {
-        console.error('Error fetching program studi detail:', err);
-        setError('Gagal memuat detail program studi');
+        return;
+      }
+
+      try {
+        if (isMounted) {
+          setLoading(true);
+          setError(null);
+        }
+
+        console.log('[DetailPage] Fetching program studi detail with ID:', id);
+        const response = await dashboardService.getProgramStudiDetail(id);
+
+        console.log('[DetailPage] Response received:', {
+          success: response.success,
+          hasData: !!response.data,
+          message: response.message
+        });
+
+        if (!isMounted) return;
+
+        if (response.success && response.data) {
+          setDetail(response.data);
+          setError(null);
+        } else {
+          // Retry if no data and we haven't exceeded max retries
+          if (!response.data && retryCount < maxRetries) {
+            retryCount++;
+            console.log(`[DetailPage] Retrying fetch (${retryCount}/${maxRetries})...`);
+            setTimeout(() => fetchDetail(), 500);
+            return;
+          }
+
+          setDetail(null);
+          setError(response.message || 'Data tidak ditemukan');
+        }
+      } catch (err: any) {
+        console.error('[DetailPage] Error fetching program studi detail:', err);
+
+        if (!isMounted) return;
+
+        // Retry on network error if we haven't exceeded max retries
+        if (retryCount < maxRetries) {
+          retryCount++;
+          console.log(`[DetailPage] Retrying after error (${retryCount}/${maxRetries})...`);
+          setTimeout(() => fetchDetail(), 500);
+          return;
+        }
+
+        setDetail(null);
+        setError(err?.response?.data?.message || err?.message || 'Gagal memuat detail program studi');
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
-    if (params.id) {
-      fetchDetail();
-    }
+    fetchDetail();
+
+    return () => {
+      isMounted = false;
+    };
   }, [params.id]);
+
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+  };
 
   if (loading) {
     return (
@@ -91,6 +163,14 @@ export default function ProgramStudiDetailPage() {
     };
     return colors[akreditasi] || 'bg-gray-500';
   };
+
+  const tabs = [
+    { id: 'profile' as TabType, label: 'Profil & Info', icon: FaInfoCircle },
+    { id: 'dosen' as TabType, label: 'Daftar Dosen', icon: FaChalkboardTeacher },
+    { id: 'mahasiswa' as TabType, label: 'Statistik Mahasiswa', icon: FaUserGraduate },
+    { id: 'kurikulum' as TabType, label: 'Kurikulum', icon: FaBook },
+    { id: 'alumni' as TabType, label: 'Capaian Alumni', icon: FaTrophy },
+  ];
 
   return (
     <>
@@ -207,188 +287,351 @@ export default function ProgramStudiDetailPage() {
             </div>
           </motion.div>
         </div>
-
-        {/* Wave Separator */}
-        <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
-          <svg
-            viewBox="0 0 1440 80"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-full h-auto"
-            preserveAspectRatio="none"
-          >
-            <path
-              d="M0,32L48,37.3C96,43,192,53,288,58.7C384,64,480,64,576,58.7C672,53,768,43,864,42.7C960,43,1056,53,1152,53.3C1248,53,1344,43,1392,37.3L1440,32L1440,80L1392,80C1344,80,1248,80,1152,80C1056,80,960,80,864,80C768,80,672,80,576,80C480,80,384,80,288,80C192,80,96,80,48,80L0,80Z"
-              fill="#F9FAFB"
-            />
-          </svg>
-        </div>
       </section>
 
-      {/* Main Content */}
-      <div className="bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-
-        {/* Content Grid */}
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Left Column - Main Info */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Organisasi */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="bg-white rounded-2xl shadow-xl p-6"
-            >
-              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <FaBuilding className="text-blue-600" />
-                Struktur Organisasi
-              </h2>
-              <div className="space-y-3">
-                <div className="border-l-4 border-blue-600 pl-4">
-                  <div className="text-sm text-gray-500">Fakultas</div>
-                  <div className="text-lg font-semibold text-gray-900">
-                    {detail.organisasi.fakultas.nama || 'Tidak ada data'}
-                  </div>
-                </div>
-                {detail.organisasi.jurusan.nama && (
-                  <div className="border-l-4 border-purple-600 pl-4">
-                    <div className="text-sm text-gray-500">Jurusan</div>
-                    <div className="text-lg font-semibold text-gray-900">
-                      {detail.organisasi.jurusan.nama}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-
-            {/* SDM - Dosen */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="bg-white rounded-2xl shadow-xl p-6"
-            >
-              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <FaChalkboardTeacher className="text-green-600" />
-                Sumber Daya Manusia
-              </h2>
-
-              {/* Dosen Grid */}
-              <div className="grid md:grid-cols-2 gap-4 mb-6">
-                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4">
-                  <div className="text-sm text-green-700 mb-1">Dosen Tetap</div>
-                  <div className="text-3xl font-bold text-green-800">{detail.sdm.dosen.tetap}</div>
-                </div>
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
-                  <div className="text-sm text-blue-700 mb-1">Dosen Tidak Tetap</div>
-                  <div className="text-3xl font-bold text-blue-800">{detail.sdm.dosen.tidak_tetap}</div>
-                </div>
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4">
-                  <div className="text-sm text-purple-700 mb-1">Dosen PNS</div>
-                  <div className="text-3xl font-bold text-purple-800">{detail.sdm.dosen.pns}</div>
-                </div>
-                <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-4">
-                  <div className="text-sm text-pink-700 mb-1">Dosen Non-PNS</div>
-                  <div className="text-3xl font-bold text-pink-800">{detail.sdm.dosen.non_pns}</div>
-                </div>
-              </div>
-
-              {/* Total */}
-              <div className="border-t pt-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-sm text-gray-500">Total Dosen</div>
-                    <div className="text-2xl font-bold text-gray-900">{detail.sdm.dosen.total}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-500">Tenaga Kependidikan</div>
-                    <div className="text-2xl font-bold text-gray-900">{detail.sdm.tendik}</div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
+      {/* Navigation Tabs - Improved Responsive Design */}
+      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex justify-center">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => handleTabChange(tab.id)}
+                  className={`flex items-center gap-2 px-6 lg:px-8 py-4 font-semibold text-sm whitespace-nowrap border-b-3 transition-all duration-300 relative ${
+                    activeTab === tab.id
+                      ? 'border-blue-600 text-blue-600'
+                      : 'border-transparent text-gray-600 hover:text-blue-600 hover:bg-blue-50/50'
+                  }`}
+                >
+                  <Icon className={`text-lg transition-transform duration-300 ${
+                    activeTab === tab.id ? 'scale-110' : ''
+                  }`} />
+                  <span className="hidden lg:inline">{tab.label}</span>
+                  <span className="lg:hidden">{tab.label.split(' ')[0]}</span>
+                  {activeTab === tab.id && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"
+                      initial={false}
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    />
+                  )}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Right Column - Stats */}
-          <div className="space-y-6">
-            {/* Mahasiswa */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-xl p-6 text-white"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="bg-white/20 p-3 rounded-xl">
-                  <FaUserGraduate className="text-2xl" />
-                </div>
-                <div>
-                  <div className="text-sm text-blue-100">Total Mahasiswa</div>
-                  <div className="text-3xl font-bold">{detail.mahasiswa.total}</div>
-                </div>
-              </div>
-              <div className="text-sm text-blue-100">
-                Periode: {detail.periode}
-              </div>
-            </motion.div>
-
-            {/* Rasio */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-xl p-6 text-white"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="bg-white/20 p-3 rounded-xl">
-                  <FaChartLine className="text-2xl" />
-                </div>
-                <div>
-                  <div className="text-sm text-purple-100">Rasio Dosen:Mahasiswa</div>
-                  <div className="text-3xl font-bold">{detail.rasio_dosen_mahasiswa}</div>
-                </div>
-              </div>
-              <div className="text-sm text-purple-100">
-                Ideal: 1:20 - 1:30
-              </div>
-            </motion.div>
-
-            {/* Akreditasi Detail */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="bg-white rounded-2xl shadow-xl p-6"
-            >
-              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <FaAward className="text-yellow-600" />
-                Akreditasi
-              </h2>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Nilai</span>
-                  <span className={`font-bold text-white px-3 py-1 rounded-lg ${getAkreditasiColor(detail.akreditasi)}`}>
-                    {detail.akreditasi}
-                  </span>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* SK Penyelenggara */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="bg-white rounded-2xl shadow-xl p-6"
-            >
-              <h2 className="text-lg font-bold text-gray-900 mb-3">SK Penyelenggara</h2>
-              <div className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3 font-mono">
-                {detail.sk_penyelenggara.trim()}
-              </div>
-            </motion.div>
+          {/* Mobile Navigation - Horizontal Scroll */}
+          <div className="md:hidden overflow-x-auto scrollbar-hide">
+            <div className="flex gap-1 py-2 min-w-max">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleTabChange(tab.id)}
+                    className={`flex flex-col items-center justify-center gap-1 px-4 py-2.5 rounded-lg font-medium text-xs whitespace-nowrap transition-all duration-300 min-w-[70px] ${
+                      activeTab === tab.id
+                        ? 'bg-blue-600 text-white shadow-lg scale-105'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    <Icon className={`text-base ${
+                      activeTab === tab.id ? 'animate-bounce' : ''
+                    }`} />
+                    <span className="text-[10px] font-semibold leading-tight text-center">
+                      {tab.label.split(' ')[0]}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="bg-gradient-to-br from-gray-50 to-gray-100 px-4 sm:px-6 lg:px-8 min-h-screen">
+        <div className="max-w-7xl mx-auto py-6">
+
+          {/* Profile & Info Umum Section */}
+          {activeTab === 'profile' && (
+          <section>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="bg-white rounded-2xl shadow-xl p-6 sm:p-8"
+            >
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <div className="bg-blue-100 p-3 rounded-lg">
+                  <FaInfoCircle className="text-blue-600 text-xl" />
+                </div>
+                Profil & Informasi Umum
+              </h2>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Left Column */}
+                <div className="space-y-4">
+                  <div className="border-l-4 border-blue-600 pl-4">
+                    <div className="text-sm text-gray-500 mb-1">Fakultas</div>
+                    <div className="text-lg font-semibold text-gray-900">
+                      {detail.organisasi.fakultas.nama || 'Tidak ada data'}
+                    </div>
+                  </div>
+                  {detail.organisasi.jurusan.nama && (
+                    <div className="border-l-4 border-purple-600 pl-4">
+                      <div className="text-sm text-gray-500 mb-1">Jurusan</div>
+                      <div className="text-lg font-semibold text-gray-900">
+                        {detail.organisasi.jurusan.nama}
+                      </div>
+                    </div>
+                  )}
+                  <div className="border-l-4 border-green-600 pl-4">
+                    <div className="text-sm text-gray-500 mb-1">Status</div>
+                    <div className="text-lg font-semibold text-gray-900">{detail.status}</div>
+                  </div>
+                </div>
+
+                {/* Right Column */}
+                <div className="space-y-4">
+                  <div className="border-l-4 border-yellow-600 pl-4">
+                    <div className="text-sm text-gray-500 mb-1">Akreditasi</div>
+                    <div className="text-lg font-semibold text-gray-900">{detail.akreditasi}</div>
+                  </div>
+                  <div className="border-l-4 border-indigo-600 pl-4">
+                    <div className="text-sm text-gray-500 mb-1">SK Penyelenggara</div>
+                    <div className="text-sm font-mono text-gray-700 bg-gray-50 rounded p-2">
+                      {detail.sk_penyelenggara.trim()}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Visi, Misi, Tujuan */}
+              {(detail.profil.visi || detail.profil.misi || detail.profil.tujuan || detail.profil.capaian_belajar) && (
+                <div className="mt-6 space-y-4">
+                  {/* Visi */}
+                  {detail.profil.visi && (
+                    <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                      <div className="flex items-start gap-4">
+                        <div className="text-3xl shrink-0">🎯</div>
+                        <div className="flex-1 overflow-hidden">
+                          <h4 className="font-bold text-gray-800 mb-3 text-lg">Visi</h4>
+                          <div
+                            className="prose prose-sm max-w-none text-gray-700 [&>p]:mb-2 [&>ul]:ml-4 [&>ol]:ml-4"
+                            dangerouslySetInnerHTML={{ __html: detail.profil.visi }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Misi */}
+                  {detail.profil.misi && (
+                    <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-100">
+                      <div className="flex items-start gap-4">
+                        <div className="text-3xl shrink-0">🚀</div>
+                        <div className="flex-1 overflow-hidden">
+                          <h4 className="font-bold text-gray-800 mb-3 text-lg">Misi</h4>
+                          <div
+                            className="prose prose-sm max-w-none text-gray-700 [&>p]:mb-2 [&>ul]:ml-4 [&>ol]:ml-4"
+                            dangerouslySetInnerHTML={{ __html: detail.profil.misi }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tujuan */}
+                  {detail.profil.tujuan && (
+                    <div className="p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-100">
+                      <div className="flex items-start gap-4">
+                        <div className="text-3xl shrink-0">📌</div>
+                        <div className="flex-1 overflow-hidden">
+                          <h4 className="font-bold text-gray-800 mb-3 text-lg">Tujuan</h4>
+                          <div
+                            className="prose prose-sm max-w-none text-gray-700 [&>p]:mb-2 [&>ul]:ml-4 [&>ol]:ml-4"
+                            dangerouslySetInnerHTML={{ __html: detail.profil.tujuan }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Capaian Belajar / Sasaran */}
+                  {detail.profil.capaian_belajar && (
+                    <div className="p-6 bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl border border-amber-100">
+                      <div className="flex items-start gap-4">
+                        <div className="text-3xl shrink-0">✨</div>
+                        <div className="flex-1 overflow-hidden">
+                          <h4 className="font-bold text-gray-800 mb-3 text-lg">Sasaran & Strategi Pencapaian</h4>
+                          <div
+                            className="prose prose-sm max-w-none text-gray-700 [&>p]:mb-2 [&>ul]:ml-4 [&>ol]:ml-4"
+                            dangerouslySetInnerHTML={{ __html: detail.profil.capaian_belajar }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Placeholder jika tidak ada data profil */}
+              {!detail.profil.visi && !detail.profil.misi && !detail.profil.tujuan && !detail.profil.capaian_belajar && (
+                <div className="mt-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                  <div className="flex items-start gap-4">
+                    <div className="text-4xl">📋</div>
+                    <div>
+                      <h4 className="font-bold text-gray-800 mb-2">Deskripsi Program Studi</h4>
+                      <p className="text-sm text-gray-600 italic">
+                        Informasi deskripsi, visi, dan misi program studi akan segera tersedia.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </section>
+          )}
+
+          {/* Daftar Dosen Section */}
+          {activeTab === 'dosen' && (
+          <section>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="bg-white rounded-2xl shadow-xl p-6 sm:p-8"
+            >
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <div className="bg-green-100 p-3 rounded-lg">
+                  <FaChalkboardTeacher className="text-green-600 text-xl" />
+                </div>
+                Daftar Dosen
+              </h2>
+
+              {/* Statistik Dosen */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4">
+                  <div className="text-xs text-green-700 mb-1">Dosen Tetap</div>
+                  <div className="text-2xl font-bold text-green-800">{detail.sdm.dosen.tetap}</div>
+                </div>
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
+                  <div className="text-xs text-blue-700 mb-1">Tidak Tetap</div>
+                  <div className="text-2xl font-bold text-blue-800">{detail.sdm.dosen.tidak_tetap}</div>
+                </div>
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4">
+                  <div className="text-xs text-purple-700 mb-1">Dosen PNS</div>
+                  <div className="text-2xl font-bold text-purple-800">{detail.sdm.dosen.pns}</div>
+                </div>
+                <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-4">
+                  <div className="text-xs text-pink-700 mb-1">Non-PNS</div>
+                  <div className="text-2xl font-bold text-pink-800">{detail.sdm.dosen.non_pns}</div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600 font-medium">Total Dosen</span>
+                  <span className="text-3xl font-bold text-indigo-800">{detail.sdm.dosen.total}</span>
+                </div>
+              </div>
+
+              {/* Dosen Table */}
+              <DosenTable programStudiId={detail.id} />
+            </motion.div>
+          </section>
+          )}
+
+          {/* Statistik Mahasiswa Section */}
+          {activeTab === 'mahasiswa' && (
+          <section>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="bg-white rounded-2xl shadow-xl p-6 sm:p-8"
+            >
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <div className="bg-blue-100 p-3 rounded-lg">
+                  <FaUserGraduate className="text-blue-600 text-xl" />
+                </div>
+                Statistik Mahasiswa
+              </h2>
+
+              {/* Current Stats */}
+              <div className="grid md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white">
+                  <div className="text-sm text-blue-100 mb-2">Total Mahasiswa Aktif</div>
+                  <div className="text-4xl font-bold">{detail.mahasiswa.total}</div>
+                  <div className="text-xs text-blue-100 mt-2">Periode: {detail.periode}</div>
+                </div>
+                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white">
+                  <div className="text-sm text-purple-100 mb-2">Rasio Dosen:Mahasiswa</div>
+                  <div className="text-4xl font-bold">{detail.rasio_dosen_mahasiswa}</div>
+                  <div className="text-xs text-purple-100 mt-2">Ideal: 1:20 - 1:30</div>
+                </div>
+                <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl p-6 text-white">
+                  <div className="text-sm text-indigo-100 mb-2">Total Dosen</div>
+                  <div className="text-4xl font-bold">{detail.sdm.dosen.total}</div>
+                  <div className="text-xs text-indigo-100 mt-2">Pengajar Aktif</div>
+                </div>
+              </div>
+
+              {/* Mahasiswa Trend Chart */}
+              <MahasiswaTrendChart programStudiId={detail.id} />
+            </motion.div>
+          </section>
+          )}
+
+          {/* Kurikulum Section */}
+          {activeTab === 'kurikulum' && (
+          <section>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="bg-white rounded-2xl shadow-xl p-6 sm:p-8"
+            >
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <div className="bg-amber-100 p-3 rounded-lg">
+                  <FaBook className="text-amber-600 text-xl" />
+                </div>
+                Kurikulum
+              </h2>
+              <KurikulumList programStudiId={detail.id} />
+            </motion.div>
+          </section>
+          )}
+
+          {/* Capaian Alumni Section */}
+          {activeTab === 'alumni' && (
+          <section>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                  <div className="bg-yellow-100 p-3 rounded-lg">
+                    <FaTrophy className="text-yellow-600 text-xl" />
+                  </div>
+                  Capaian Alumni (Tracer Study)
+                </h2>
+                <p className="text-gray-600 mt-2 ml-14">
+                  Statistik dan informasi alumni berdasarkan hasil tracer study
+                </p>
+              </div>
+              <TracerStudySection programStudiId={detail.id} />
+            </motion.div>
+          </section>
+          )}
+
         </div>
       </div>
     </>
