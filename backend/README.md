@@ -105,10 +105,17 @@ Microservices architecture untuk backend Portal myUnila - Sistem informasi terin
 - **PostgreSQL** - Kong Gateway database
 
 ### Security & Auth
-- **Firebase JWT** `^6.10` - JSON Web Token authentication
+- **Firebase JWT** `^6.10` - JSON Web Token authentication (Laravel services)
+- **golang-jwt/jwt** `v5` - JWT validation (Go services)
 - **Laravel Sanctum** - API token authentication
 - **Google2FA** `^2.3` - Two-factor authentication (MFA)
 - **Kong JWT Plugin** - Gateway-level auth
+
+**JWT Flow**:
+1. User login via Auth Service → receives JWT token
+2. Client includes token in `Authorization: Bearer <token>` header
+3. Services validate JWT signature using shared `JWT_SECRET`
+4. Role-based authorization (e.g., Developer-only endpoints)
 
 ### API Documentation
 - **L5-Swagger** - OpenAPI/Swagger documentation generator
@@ -187,7 +194,60 @@ GET  /api/v1/statistics        - Get statistics
 
 ---
 
-### 3. **Kong API Gateway** (Port 9800)
+### 3. **Sister Service** (Port 8083)
+**Responsibility**: Data synchronization from Sister Kemdikbud API
+
+**Features**:
+- ✅ JWT Authentication (validates tokens from auth-service)
+- ✅ Role-Based Authorization (Developer only)
+- ✅ Sync referensi data (Agama, Negara, Wilayah, dll)
+- ✅ Sync mahasiswa data
+- ✅ Sync dosen data
+- ✅ Sync program studi data
+- ✅ Real-time Sister API integration
+- ✅ Automatic data transformation
+- ✅ Sync history tracking
+
+**Endpoints**:
+
+*Public Endpoints (No authentication required):*
+```
+GET  /                                   - Welcome message
+GET  /health                             - Health check
+GET  /api/documentation                  - Swagger UI (redirect)
+GET  /swagger/*                          - Swagger documentation
+```
+
+*Protected Endpoints (Require: JWT + Developer role):*
+```
+GET  /api/v1/referensi/agama            - Get all agama
+GET  /api/v1/referensi/agama/:id        - Get agama by ID
+POST /api/v1/referensi/agama/sync       - Sync from Sister API
+```
+
+**Authentication Flow**:
+1. Get JWT token from Auth Service (`POST /api/v1/auth/login`)
+2. Include token in header: `Authorization: Bearer <token>`
+3. Sister Service validates JWT signature and role
+4. Only "Developer" role can access sync endpoints
+
+**Database**: SQL Server (pddikti)
+
+**Tech Stack**:
+- Go 1.22.6 + Fiber Framework
+- golang-jwt/jwt (JWT validation)
+- SQL Server Driver (go-mssqldb)
+- Sister Kemdikbud API Client
+- DDD Architecture
+
+**Documentation**:
+- [sister-service/README.md](sister-service/README.md)
+- [sister-service/AUTHORIZATION.md](sister-service/AUTHORIZATION.md)
+- [sister-service/DEPLOYMENT.md](sister-service/DEPLOYMENT.md)
+
+---
+
+### 4. **Kong API Gateway** (Port 9800)
 **Responsibility**: API Gateway & Traffic Management
 
 **Features**:
@@ -210,6 +270,7 @@ GET  /api/v1/statistics        - Get statistics
 ```
 /auth-service/*      → auth-service:8081
 /dashboard-service/* → dashboard-service:8082
+/sister-service/*    → sister-service:8083
 ```
 
 ---
@@ -257,6 +318,7 @@ Pastikan ports berikut tersedia:
 - `6379` - Redis
 - `8081` - Auth Service (Nginx)
 - `8082` - Dashboard Service (Nginx)
+- `8083` - Sister Service (Go + Fiber)
 - `9800` - Kong Proxy (API Gateway)
 - `9801` - Kong Admin API
 - `9802` - Kong Manager
@@ -310,6 +372,9 @@ Pastikan SQL Server sudah running, lalu create databases:
 CREATE DATABASE auth_db;
 CREATE DATABASE dashboard_db;
 GO
+
+-- Run migration untuk sister-service (add sync tracking columns)
+-- File: sister-service/database/migrations/001_create_ref_lv_agama_sync_columns.sql
 ```
 
 ### 5. Start All Services (One Command)
@@ -450,6 +515,31 @@ CACHE_STORE=redis
 REDIS_HOST=redis
 REDIS_PORT=6379
 ```
+
+#### `sister-service/.env`:
+```bash
+APP_NAME=Sister Service
+APP_PORT=:8083
+APP_ENV=development
+
+# JWT Configuration (MUST match auth-service)
+JWT_SECRET=same_as_auth_service_jwt_secret
+JWT_ALGO=HS256
+
+# Sister API Kemdikbud
+SISTER_API_BASE_URL=https://api-sister.kemdikbud.go.id/ws
+SISTER_API_TOKEN=your_sister_api_token_here
+
+# SQL Server Database (PDDIKTI)
+DB_DRIVER=sqlserver
+DB_HOST=host.docker.internal
+DB_PORT=1433
+DB_USER=sa
+DB_PASSWORD=YourStrong@Passw0rd
+DB_NAME=pddikti
+```
+
+**⚠️ IMPORTANT**: Sister Service `JWT_SECRET` **MUST** match Auth Service untuk JWT validation!
 
 ---
 
@@ -867,9 +957,13 @@ curl http://localhost:8081/api/v1/health
 # Dashboard Service
 curl http://localhost:8082/api/v1/health
 
+# Sister Service
+curl http://localhost:8083/health
+
 # Via Kong Gateway
 curl http://localhost:9800/auth-service/api/v1/health
 curl http://localhost:9800/dashboard-service/api/v1/health
+curl http://localhost:9800/sister-service/health
 
 # Kong Gateway
 curl http://localhost:9801/status
@@ -967,14 +1061,26 @@ Setiap service memiliki interactive API documentation:
 - Swagger UI: http://localhost:8082/api/documentation
 - OpenAPI JSON: http://localhost:8082/api/documentation/json
 
+**Sister Service**:
+- Swagger UI: http://localhost:8083/api/documentation
+- OpenAPI JSON: http://localhost:8083/swagger/doc.json
+- 🔐 **Protected endpoints require JWT token** (click "Authorize" button)
+
 ### Generate/Update Documentation
 
 ```bash
+# Laravel Services (Auth & Dashboard)
 cd auth-service
 php artisan l5-swagger:generate
 
 cd ../dashboard-service
 php artisan l5-swagger:generate
+
+# Go Service (Sister)
+cd ../sister-service
+swag init -g cmd/api/main.go -o docs
+# Or use Go installed swag:
+~/go/bin/swag init -g cmd/api/main.go -o docs
 ```
 
 ### Postman Collections
@@ -1030,7 +1136,7 @@ php artisan test
 ### Manual Testing
 
 ```bash
-# Test Auth Service
+# 1. Login to get JWT token
 curl -X POST http://localhost:8081/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
@@ -1038,18 +1144,39 @@ curl -X POST http://localhost:8081/api/v1/auth/login \
     "password": "password"
   }'
 
-# Test with JWT
+# Save the access_token from response
 TOKEN="your_jwt_token_here"
+
+# 2. Test Auth Service with JWT
 curl http://localhost:8081/api/v1/auth/me \
   -H "Authorization: Bearer $TOKEN"
 
-# Test via Kong Gateway
+# 3. Test Dashboard Service with JWT
+curl http://localhost:8082/api/v1/dashboard \
+  -H "Authorization: Bearer $TOKEN"
+
+# 4. Test Sister Service (Public - no auth)
+curl http://localhost:8083/health
+
+# 5. Test Sister Service (Protected - requires Developer role)
+curl http://localhost:8083/api/v1/referensi/agama \
+  -H "Authorization: Bearer $TOKEN"
+
+# Expected responses:
+# - 401 Unauthorized: Missing or invalid token
+# - 403 Forbidden: Valid token but not Developer role
+# - 200 OK: Valid token with Developer role
+
+# 6. Test via Kong Gateway
 curl -X POST http://localhost:9800/auth-service/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "username": "admin",
     "password": "password"
   }'
+
+curl http://localhost:9800/sister-service/api/v1/referensi/agama \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 ---
@@ -1133,7 +1260,7 @@ curl http://localhost:9801/services/auth-service/health
 
 **Solution**:
 ```bash
-# Check JWT_SECRET sama di semua services
+# Check JWT_SECRET sama di SEMUA services (termasuk sister-service!)
 # Root .env
 grep JWT_SECRET .env
 
@@ -1143,12 +1270,37 @@ grep JWT_SECRET auth-service/.env
 # Dashboard Service .env
 grep JWT_SECRET dashboard-service/.env
 
+# Sister Service .env (Go)
+grep JWT_SECRET sister-service/.env
+
 # Generate new JWT secret
 openssl rand -base64 32
 
-# Update semua .env files dengan secret yang sama
+# Update SEMUA .env files dengan secret yang sama
 # Restart services
 docker-compose restart
+```
+
+**⚠️ CRITICAL**: Sister Service JWT_SECRET **MUST** match Auth Service exactly!
+
+### 4b. Sister Service - 403 Forbidden
+
+**Problem**: Valid JWT token but getting 403 Forbidden from Sister Service
+
+**Solution**:
+```bash
+# Check user role in token
+# Decode JWT token at https://jwt.io
+# Look for: "user": { "role": "Developer" }
+
+# Sister Service requires "Developer" role for sync endpoints
+# Update user role in auth-service database
+UPDATE users SET role = 'Developer' WHERE username = 'your_username';
+
+# Login again to get new token with updated role
+curl -X POST http://localhost:8081/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "your_username", "password": "your_password"}'
 ```
 
 ### 5. Permission Denied (Storage)
@@ -1230,11 +1382,20 @@ ports:
 
 ## 📚 Additional Documentation
 
+### General Documentation
 - **[QUICK-START.md](QUICK-START.md)** - Panduan cepat start all services
 - **[WINDOWS-GUIDE.md](WINDOWS-GUIDE.md)** - Panduan khusus Windows
 - **[KONG-JWT-TESTING.md](KONG-JWT-TESTING.md)** - Testing Kong JWT authentication
+- **[API-DOCUMENTATION-STANDARDS.md](API-DOCUMENTATION-STANDARDS.md)** - API documentation standards
+
+### Service Documentation
 - **Auth Service**: [auth-service/README.md](auth-service/README.md)
 - **Dashboard Service**: [dashboard-service/README.md](dashboard-service/README.md)
+- **Sister Service**:
+  - [sister-service/README.md](sister-service/README.md) - Service overview
+  - [sister-service/AUTHORIZATION.md](sister-service/AUTHORIZATION.md) - JWT & Role-based auth
+  - [sister-service/DEPLOYMENT.md](sister-service/DEPLOYMENT.md) - Deployment guide
+  - [sister-service/CHANGELOG.md](sister-service/CHANGELOG.md) - Version history
 
 ---
 

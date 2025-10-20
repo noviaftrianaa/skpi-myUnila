@@ -194,6 +194,21 @@ class ProgramStudiService
                         'nama' => $detail->jurusan,
                     ],
                 ],
+                'kontak' => [
+                    'website' => !empty($detail->website) ? trim($detail->website) : null,
+                    'email' => !empty($detail->email) ? trim($detail->email) : null,
+                    'telepon' => !empty($detail->no_tel) ? trim($detail->no_tel) : null,
+                    'fax' => !empty($detail->no_fax) ? trim($detail->no_fax) : null,
+                ],
+                'profil' => [
+                    'visi' => $detail->visi ?? null,
+                    'misi' => $detail->misi ?? null,
+                    'tujuan' => $detail->tujuan ?? null,
+                    'sasaran' => $detail->sasaran ?? null,
+                    'kompetensi' => $detail->kompetensi ?? null,
+                    'capaian_belajar' => $detail->capaian_belajar ?? null,
+                    'deskripsi_singkat' => $detail->desk_singkat ?? null,
+                ],
                 'sdm' => [
                     'dosen' => [
                         'tetap' => (int) $detail->dosen_tetap,
@@ -209,6 +224,205 @@ class ProgramStudiService
                 ],
                 'rasio_dosen_mahasiswa' => $this->calculateRasio($totalDosen, $totalMahasiswa),
                 'periode' => $detail->periode,
+            ];
+        });
+    }
+
+    /**
+     * Get daftar dosen by program studi
+     *
+     * @param string $idSms
+     * @return array
+     */
+    public function getDosenByProgramStudi(string $idSms): array
+    {
+        $cacheKey = 'dosen_list_prodi_' . $idSms;
+
+        return Cache::remember($cacheKey, 3600, function () use ($idSms) {
+            $dosenList = $this->repository->getDosenByProgramStudi($idSms);
+
+            return $dosenList->map(function ($dosen) {
+                return [
+                    'id' => $dosen->id_sdm,
+                    'nama' => $dosen->nama,
+                    'nidn' => $dosen->nidn ?? '-',
+                    'nip' => $dosen->nip ?? '-',
+                    'jenis_kelamin' => $dosen->jenis_kelamin ?? 'Tidak Diketahui',
+                    'ikatan_kerja' => [
+                        'id' => $dosen->id_ikatan_kerja ?? '-',
+                        'nama' => $dosen->ikatan_kerja ?? '-',
+                        'status' => $dosen->ikatan_kerja ?? '-',
+                    ],
+                    'jabatan_fungsional' => $dosen->jabatan_fungsional ?? '-',
+                    'pendidikan_terakhir' => $dosen->pendidikan_terakhir ?? '-',
+                    'status_keaktifan' => [
+                        'id' => $dosen->id_stat_aktif ?? 1,
+                        'nama' => $dosen->status_keaktifan ?? 'Aktif',
+                        'status' => $dosen->status_keaktifan ?? 'Aktif',
+                    ],
+                ];
+            })->toArray();
+        });
+    }
+
+    /**
+     * Get mahasiswa trend for 5 latest semesters
+     *
+     * @param string $idSms
+     * @return array
+     */
+    public function getMahasiswaTrendByProgramStudi(string $idSms): array
+    {
+        $cacheKey = 'mahasiswa_trend_prodi_' . $idSms;
+
+        return Cache::remember($cacheKey, 3600, function () use ($idSms) {
+            $trendData = $this->repository->getMahasiswaTrendByProgramStudi($idSms);
+
+            return $trendData->map(function ($item) {
+                return [
+                    'semester' => $item->semester,
+                    'nama_semester' => $item->nama_semester,
+                    'total_mahasiswa' => (int) $item->total_mahasiswa,
+                ];
+            })->toArray();
+        });
+    }
+
+    /**
+     * Get kurikulum by program studi
+     *
+     * @param string $idSms
+     * @return array
+     */
+    public function getKurikulumByProgramStudi(string $idSms): array
+    {
+        $cacheKey = 'kurikulum_list_prodi_' . $idSms . '_v3'; // Changed cache key
+
+        return Cache::remember($cacheKey, 3600, function () use ($idSms) {
+            $kurikulumList = $this->repository->getKurikulumByProgramStudi($idSms);
+
+            return $kurikulumList->map(function ($kurikulum) {
+                return [
+                    'id' => $kurikulum->id_kurikulum_sp ?? null,
+                    'nama' => $kurikulum->nm_kurikulum_sp ?? '-',
+                    'sks_lulus' => (int) ($kurikulum->jmlh_sks_lulus ?? 0),
+                    'sks_wajib' => (int) ($kurikulum->jmlh_sks_wajib ?? 0),
+                    'sks_pilihan' => (int) ($kurikulum->jmlh_sks_pilihan ?? 0),
+                    'jumlah_semester_normal' => (int) ($kurikulum->jmlh_smt_normal ?? 0),
+                    'digunakan' => (bool) ($kurikulum->a_digunakan ?? false),
+                    'jenjang' => [
+                        'id' => $kurikulum->id_jenj_didik ?? null,
+                        'nama' => $kurikulum->jenjang ?? '-',
+                    ],
+                    'semester' => [
+                        'id' => $kurikulum->id_smt ?? null,
+                        'nama' => $kurikulum->semester ?? '-',
+                    ],
+                    'prodi' => [
+                        'id' => $kurikulum->id_sms ?? null,
+                        'nama' => $kurikulum->nama_prodi ?? '-',
+                    ],
+                ];
+            })->toArray();
+        });
+    }
+
+    /**
+     * Get mata kuliah by kurikulum (grouped by semester)
+     *
+     * @param string $idKurikulum
+     * @return array
+     */
+    public function getMataKuliahByKurikulum(string $idKurikulum): array
+    {
+        $cacheKey = 'matkul_kurikulum_' . $idKurikulum . '_v4';
+
+        return Cache::remember($cacheKey, 3600, function () use ($idKurikulum) {
+            $matkulList = $this->repository->getMataKuliahByKurikulum($idKurikulum);
+
+            if ($matkulList->isEmpty()) {
+                return [];
+            }
+
+            // Group by semester
+            $grouped = $matkulList->groupBy('semester_ke');
+
+            $result = [];
+            foreach ($grouped as $semesterKe => $matkuls) {
+                $semesterData = [
+                    'semester_ke' => (int) $semesterKe,
+                    'mata_kuliah' => [],
+                    'total_sks' => 0,
+                    'total_sks_wajib' => 0,
+                    'total_sks_pilihan' => 0,
+                    'jumlah_matkul' => 0,
+                    'jumlah_wajib' => 0,
+                    'jumlah_pilihan' => 0,
+                ];
+
+                foreach ($matkuls as $matkul) {
+                    $sksMatkul = (int) ($matkul->sks_mk ?? 0);
+                    $isWajib = (bool) ($matkul->a_wajib ?? false);
+
+                    $semesterData['mata_kuliah'][] = [
+                        'kode' => $matkul->kode_mk ?? '-',
+                        'nama' => $matkul->nama_matkul ?? '-',
+                        'sks' => $sksMatkul,
+                        'sks_tm' => (int) ($matkul->sks_tm ?? 0),
+                        'sks_prak' => (int) ($matkul->sks_prak ?? 0),
+                        'sks_prak_lap' => (int) ($matkul->sks_prak_lap ?? 0),
+                        'sks_sim' => (int) ($matkul->sks_sim ?? 0),
+                        'status_wajib' => $matkul->status_wajib ?? ($isWajib ? 'Wajib' : 'Pilihan'),
+                        'is_wajib' => $isWajib,
+                    ];
+
+                    $semesterData['total_sks'] += $sksMatkul;
+                    $semesterData['jumlah_matkul']++;
+
+                    if ($isWajib) {
+                        $semesterData['total_sks_wajib'] += $sksMatkul;
+                        $semesterData['jumlah_wajib']++;
+                    } else {
+                        $semesterData['total_sks_pilihan'] += $sksMatkul;
+                        $semesterData['jumlah_pilihan']++;
+                    }
+                }
+
+                $result[] = $semesterData;
+            }
+
+            // Sort by semester
+            usort($result, function ($a, $b) {
+                return $a['semester_ke'] <=> $b['semester_ke'];
+            });
+
+            return $result;
+        });
+    }
+
+    /**
+     * Get tracer study data for a program studi
+     *
+     * @param string $idSms
+     * @return array
+     */
+    public function getTracerStudyData(string $idSms): array
+    {
+        $cacheKey = 'tracer_study_prodi_' . $idSms;
+
+        return Cache::remember($cacheKey, 3600, function () use ($idSms) {
+            $tracerData = $this->repository->getTracerStudyData($idSms);
+
+            return [
+                'total_alumni' => $tracerData->total_alumni,
+                'avg_waktu_tunggu' => $tracerData->avg_waktu_tunggu,
+                'avg_income' => $tracerData->avg_income,
+                'bekerja_sebelum_lulus' => $tracerData->bekerja_sebelum_lulus,
+                'persentase_bekerja_sebelum_lulus' => $tracerData->persentase_bekerja_sebelum_lulus,
+                'status_lulusan' => $tracerData->status_lulusan,
+                'kesesuaian_bidang' => $tracerData->kesesuaian_bidang,
+                'level_perusahaan' => $tracerData->level_perusahaan,
+                'waktu_tunggu_trend' => $tracerData->waktu_tunggu_trend,
             ];
         });
     }

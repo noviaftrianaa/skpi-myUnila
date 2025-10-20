@@ -93,15 +93,32 @@ class UnilaStatisticsRepository
      */
     private function getTotalMahasiswa(string $periode): int
     {
-        // Count distinct students who are still active (not graduated/dropped out)
+        // Count distinct students who are active in the current semester
+        // Must match the same query as ProgramStudiRepository statistics
         $sql = "
             SELECT COUNT(DISTINCT pd.id_pd) AS total
-            FROM pdrd.reg_pd AS pd
-            WHERE pd.soft_delete = 0
-                AND pd.id_jns_keluar IS NULL
+            FROM pdrd.kuliah_mhs AS kmh
+            JOIN pdrd.reg_pd AS reg
+                ON reg.id_reg_pd = kmh.id_reg_pd
+                AND reg.soft_delete = 0
+            JOIN pdrd.peserta_didik AS pd
+                ON pd.id_pd = reg.id_pd
+                AND pd.soft_delete = 0
+                AND pd.id_stat_mhs = 'A'
+            INNER JOIN pdrd.sms AS sms
+                ON sms.id_sms = reg.id_sms
+                AND sms.soft_delete = 0
+                AND sms.stat_prodi = 'A'
+            INNER JOIN ref.jenjang_pendidikan AS didik
+                ON didik.id_jenj_didik = sms.id_jenj_didik
+                AND didik.expired_date IS NULL
+                AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
+            WHERE kmh.soft_delete = 0
+                AND kmh.id_stat_mhs = 'A'
+                AND kmh.id_smt = ?
         ";
 
-        $result = DB::connection('sqlsrv')->select($sql);
+        $result = DB::connection('sqlsrv')->select($sql, [$periode]);
 
         return (int) ($result[0]->total ?? 0);
     }
@@ -114,16 +131,25 @@ class UnilaStatisticsRepository
      */
     private function getTotalDosen(string $idSp): int
     {
+        // Count dosen yang terdaftar di prodi aktif (D% atau S%), hindari double count
         $sql = "
-            SELECT COUNT(DISTINCT sdm.id_sdm) AS total
-            FROM pdrd.sdm AS sdm
-            INNER JOIN pdrd.reg_ptk AS ptk
-                ON ptk.id_sdm = sdm.id_sdm
-                AND ptk.soft_delete = 0
+            SELECT COUNT(DISTINCT ptk.id_sdm) AS total
+            FROM pdrd.reg_ptk AS ptk
+            INNER JOIN pdrd.sdm AS sdm
+                ON sdm.id_sdm = ptk.id_sdm
+                AND sdm.soft_delete = 0
+                AND sdm.id_jns_sdm = '12'
+            INNER JOIN pdrd.sms AS sms
+                ON sms.id_sms = ptk.id_sms
+                AND sms.soft_delete = 0
+                AND sms.stat_prodi = 'A'
+            INNER JOIN ref.jenjang_pendidikan AS didik
+                ON didik.id_jenj_didik = sms.id_jenj_didik
+                AND didik.expired_date IS NULL
+                AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
+            WHERE ptk.soft_delete = 0
                 AND ptk.id_jns_keluar IS NULL
                 AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
-            WHERE sdm.soft_delete = 0
-                AND sdm.id_jns_sdm = '12'
         ";
 
         $result = DB::connection('sqlsrv')->select($sql, [$idSp]);
@@ -139,21 +165,35 @@ class UnilaStatisticsRepository
      */
     private function getTotalTendik(string $idSp): int
     {
-        $sql = "
-            SELECT COUNT(DISTINCT sdm.id_sdm) AS total
-            FROM pdrd.sdm AS sdm
-            INNER JOIN pdrd.reg_ptk AS ptk
-                ON ptk.id_sdm = sdm.id_sdm
-                AND ptk.soft_delete = 0
-                AND ptk.id_jns_keluar IS NULL
-                AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
-            WHERE sdm.soft_delete = 0
-                AND sdm.id_jns_sdm = '13'
-        ";
+        // Get tendik from sikep.pegawai with status='Aktif'
+        try {
+            $sql = "
+                SELECT COUNT(*) AS total
+                FROM sikep.pegawai
+                WHERE status = 'Aktif'
+            ";
 
-        $result = DB::connection('sqlsrv')->select($sql, [$idSp]);
+            $result = DB::connection('sqlsrv')->select($sql);
 
-        return (int) ($result[0]->total ?? 0);
+            return (int) ($result[0]->total ?? 0);
+        } catch (\Exception $e) {
+            // If sikep schema doesn't exist, fallback to old query
+            $sql = "
+                SELECT COUNT(DISTINCT sdm.id_sdm) AS total
+                FROM pdrd.sdm AS sdm
+                INNER JOIN pdrd.reg_ptk AS ptk
+                    ON ptk.id_sdm = sdm.id_sdm
+                    AND ptk.soft_delete = 0
+                    AND ptk.id_jns_keluar IS NULL
+                    AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+                WHERE sdm.soft_delete = 0
+                    AND sdm.id_jns_sdm = '13'
+            ";
+
+            $result = DB::connection('sqlsrv')->select($sql, [$idSp]);
+
+            return (int) ($result[0]->total ?? 0);
+        }
     }
 
     /**

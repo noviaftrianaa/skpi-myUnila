@@ -313,13 +313,122 @@ class ProgramStudiRepository
     public function getStatistics(array $filters): object
     {
         $periode = $filters['periode'] ?? $this->getActivePeriod();
+        $unilaIdSp = strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515'));
 
-        $sql = "
+        // Build filter WHERE clause
+        $filterWhere = "";
+        $filterParams = [];
+
+        if (!empty($filters['jenjang'])) {
+            $filterWhere .= " AND didik.nm_jenj_didik = ?";
+            $filterParams[] = $filters['jenjang'];
+        }
+
+        if (!empty($filters['akreditasi'])) {
+            $filterWhere .= " AND akred.nm_akred = ?";
+            $filterParams[] = $filters['akreditasi'];
+        }
+
+        // Get total prodi
+        $sqlProdi = "
+            SELECT COUNT(*) AS total
+            FROM pdrd.sms AS sms
+            INNER JOIN ref.jenjang_pendidikan AS didik
+                ON didik.id_jenj_didik = sms.id_jenj_didik
+                AND didik.expired_date IS NULL
+            LEFT JOIN (
+                SELECT
+                    ap.id_sms,
+                    na.nm_akred,
+                    ROW_NUMBER() OVER (PARTITION BY ap.id_sms ORDER BY ap.tst_sk_akreditasi_prodi DESC) AS rn
+                FROM pdrd.akreditasi_prodi AS ap
+                JOIN ref.nilai_akred AS na
+                    ON na.id_akred = ap.id_akred
+                    AND na.expired_date IS NULL
+                WHERE ap.soft_delete = 0
+                    AND ap.a_aktif = 1
+            ) AS akred ON akred.id_sms = sms.id_sms AND akred.rn = 1
+            WHERE sms.soft_delete = 0
+                AND sms.stat_prodi = 'A'
+                AND CAST(sms.id_sp AS VARCHAR(50)) = '{$unilaIdSp}'
+                AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
+                {$filterWhere}
+        ";
+
+        // Get total dosen DISTINCT (avoid double count)
+        $sqlDosen = "
+            SELECT COUNT(DISTINCT ptk.id_sdm) AS total
+            FROM pdrd.reg_ptk AS ptk
+            INNER JOIN pdrd.sdm AS sdm
+                ON sdm.id_sdm = ptk.id_sdm
+                AND sdm.soft_delete = 0
+                AND sdm.id_jns_sdm = '12'
+            INNER JOIN pdrd.sms AS sms
+                ON sms.id_sms = ptk.id_sms
+                AND sms.soft_delete = 0
+                AND sms.stat_prodi = 'A'
+            INNER JOIN ref.jenjang_pendidikan AS didik
+                ON didik.id_jenj_didik = sms.id_jenj_didik
+                AND didik.expired_date IS NULL
+                AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
+            LEFT JOIN (
+                SELECT
+                    ap.id_sms,
+                    na.nm_akred,
+                    ROW_NUMBER() OVER (PARTITION BY ap.id_sms ORDER BY ap.tst_sk_akreditasi_prodi DESC) AS rn
+                FROM pdrd.akreditasi_prodi AS ap
+                JOIN ref.nilai_akred AS na
+                    ON na.id_akred = ap.id_akred
+                    AND na.expired_date IS NULL
+                WHERE ap.soft_delete = 0
+                    AND ap.a_aktif = 1
+            ) AS akred ON akred.id_sms = sms.id_sms AND akred.rn = 1
+            WHERE ptk.soft_delete = 0
+                AND ptk.id_jns_keluar IS NULL
+                AND CAST(ptk.id_sp AS VARCHAR(50)) = '{$unilaIdSp}'
+                {$filterWhere}
+        ";
+
+        // Get total mahasiswa DISTINCT
+        $sqlMahasiswa = "
+            SELECT COUNT(DISTINCT pd.id_pd) AS total
+            FROM pdrd.kuliah_mhs AS kmh
+            JOIN pdrd.reg_pd AS reg
+                ON reg.id_reg_pd = kmh.id_reg_pd
+                AND reg.soft_delete = 0
+            JOIN pdrd.peserta_didik AS pd
+                ON pd.id_pd = reg.id_pd
+                AND pd.soft_delete = 0
+                AND pd.id_stat_mhs = 'A'
+            INNER JOIN pdrd.sms AS sms
+                ON sms.id_sms = reg.id_sms
+                AND sms.soft_delete = 0
+                AND sms.stat_prodi = 'A'
+            INNER JOIN ref.jenjang_pendidikan AS didik
+                ON didik.id_jenj_didik = sms.id_jenj_didik
+                AND didik.expired_date IS NULL
+                AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
+            LEFT JOIN (
+                SELECT
+                    ap.id_sms,
+                    na.nm_akred,
+                    ROW_NUMBER() OVER (PARTITION BY ap.id_sms ORDER BY ap.tst_sk_akreditasi_prodi DESC) AS rn
+                FROM pdrd.akreditasi_prodi AS ap
+                JOIN ref.nilai_akred AS na
+                    ON na.id_akred = ap.id_akred
+                    AND na.expired_date IS NULL
+                WHERE ap.soft_delete = 0
+                    AND ap.a_aktif = 1
+            ) AS akred ON akred.id_sms = sms.id_sms AND akred.rn = 1
+            WHERE kmh.soft_delete = 0
+                AND kmh.id_stat_mhs = 'A'
+                AND kmh.id_smt = ?
+                {$filterWhere}
+        ";
+
+        // Get akreditasi and jenjang breakdown
+        $sqlBreakdown = "
             SELECT
-                COUNT(*) AS total_prodi,
-                SUM(ISNULL(dosen.dosen_tetap, 0) + ISNULL(dosen.dosen_tidak_tetap, 0)) AS total_dosen,
-                SUM(ISNULL(tendik.total_tendik, 0)) AS total_tendik,
-                SUM(ISNULL(mhs.total_mahasiswa, 0)) AS total_mahasiswa,
                 SUM(CASE WHEN akred.nm_akred = 'Unggul' THEN 1 ELSE 0 END) AS akred_unggul,
                 SUM(CASE WHEN akred.nm_akred = 'Baik Sekali' THEN 1 ELSE 0 END) AS akred_baik_sekali,
                 SUM(CASE WHEN akred.nm_akred = 'Baik' THEN 1 ELSE 0 END) AS akred_baik,
@@ -349,85 +458,39 @@ class ProgramStudiRepository
                 WHERE ap.soft_delete = 0
                     AND ap.a_aktif = 1
             ) AS akred ON akred.id_sms = sms.id_sms AND akred.rn = 1
-            LEFT JOIN (
-                SELECT
-                    reg.id_sms,
-                    COUNT(DISTINCT pd.id_pd) AS total_mahasiswa
-                FROM pdrd.kuliah_mhs AS kmh
-                JOIN pdrd.reg_pd AS reg
-                    ON reg.id_reg_pd = kmh.id_reg_pd
-                    AND reg.soft_delete = 0
-                JOIN pdrd.peserta_didik AS pd
-                    ON pd.id_pd = reg.id_pd
-                    AND pd.soft_delete = 0
-                    AND pd.id_stat_mhs = 'A'
-                WHERE kmh.soft_delete = 0
-                    AND kmh.id_stat_mhs = 'A'
-                    AND kmh.id_smt = ?
-                GROUP BY reg.id_sms
-            ) AS mhs ON mhs.id_sms = sms.id_sms
-            LEFT JOIN (
-                SELECT
-                    ptk.id_sms,
-                    SUM(CASE WHEN ptk.id_ikatan_kerja IN ('A','B','E','F','H','I','N') THEN 1 ELSE 0 END) AS dosen_tetap,
-                    SUM(CASE WHEN ptk.id_ikatan_kerja = 'G' THEN 1 ELSE 0 END) AS dosen_tidak_tetap,
-                    SUM(CASE WHEN ptk.id_stat_pegawai IN ('1','13','14') THEN 1 ELSE 0 END) AS dosen_pns,
-                    SUM(CASE WHEN ptk.id_stat_pegawai NOT IN ('1','13','14') THEN 1 ELSE 0 END) AS dosen_non_pns
-                FROM pdrd.reg_ptk AS ptk
-                JOIN pdrd.sdm AS sdm
-                    ON sdm.id_sdm = ptk.id_sdm
-                    AND sdm.soft_delete = 0
-                    AND sdm.id_jns_sdm = '12'
-                -- JOIN pdrd.keaktifan_ptk AS ta
-                --     ON ta.id_reg_ptk = ptk.id_reg_ptk
-                --     AND ta.soft_delete = 0
-                --     AND ta.a_sp_homebase = 1
-                -- JOIN ref.semester AS smt
-                --     ON smt.id_smt = ?
-                --     AND smt.expired_date IS NULL
-                --     AND ta.id_thn_ajaran = smt.id_thn_ajaran
-                WHERE ptk.soft_delete = 0
-                    AND ptk.id_jns_keluar IS NULL
-                    AND CAST(ptk.id_sp AS VARCHAR(50)) = '" . strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')) . "'
-                GROUP BY ptk.id_sms
-            ) AS dosen ON dosen.id_sms = sms.id_sms
-            LEFT JOIN (
-                SELECT
-                    ptk.id_sms,
-                    COUNT(DISTINCT sdm.id_sdm) AS total_tendik
-                FROM pdrd.reg_ptk AS ptk
-                INNER JOIN pdrd.sdm AS sdm
-                    ON sdm.id_sdm = ptk.id_sdm
-                    AND sdm.soft_delete = 0
-                    AND sdm.id_jns_sdm = '13'
-                WHERE ptk.soft_delete = 0
-                    AND ptk.id_jns_keluar IS NULL
-                    AND CAST(ptk.id_sp AS VARCHAR(50)) = '" . strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')) . "'
-                GROUP BY ptk.id_sms
-            ) AS tendik ON tendik.id_sms = sms.id_sms
             WHERE sms.soft_delete = 0
                 AND sms.stat_prodi = 'A'
-                AND CAST(sms.id_sp AS VARCHAR(50)) = '" . strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')) . "'
+                AND CAST(sms.id_sp AS VARCHAR(50)) = '{$unilaIdSp}'
                 AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
+                {$filterWhere}
         ";
 
-        $params = [$periode];
+        // Execute queries
+        $totalProdi = DB::connection('sqlsrv')->select($sqlProdi, $filterParams);
+        $totalDosen = DB::connection('sqlsrv')->select($sqlDosen, $filterParams);
+        $totalMahasiswa = DB::connection('sqlsrv')->select($sqlMahasiswa, array_merge([$periode], $filterParams));
+        $breakdown = DB::connection('sqlsrv')->select($sqlBreakdown, $filterParams);
 
-        // Add jenjang filter
-        if (!empty($filters['jenjang'])) {
-            $sql .= " AND didik.nm_jenj_didik = ?";
-            $params[] = $filters['jenjang'];
-        }
-
-        // Add akreditasi filter
-        if (!empty($filters['akreditasi'])) {
-            $sql .= " AND akred.nm_akred = ?";
-            $params[] = $filters['akreditasi'];
-        }
-
-        $result = DB::connection('sqlsrv')->select($sql, $params);
-
-        return $result[0];
+        // Combine results
+        return (object) [
+            'total_prodi' => (int) ($totalProdi[0]->total ?? 0),
+            'total_dosen' => (int) ($totalDosen[0]->total ?? 0),
+            'total_tendik' => 0, // Will be calculated separately if needed
+            'total_mahasiswa' => (int) ($totalMahasiswa[0]->total ?? 0),
+            'akred_unggul' => (int) ($breakdown[0]->akred_unggul ?? 0),
+            'akred_baik_sekali' => (int) ($breakdown[0]->akred_baik_sekali ?? 0),
+            'akred_baik' => (int) ($breakdown[0]->akred_baik ?? 0),
+            'akred_a' => (int) ($breakdown[0]->akred_a ?? 0),
+            'akred_b' => (int) ($breakdown[0]->akred_b ?? 0),
+            'akred_c' => (int) ($breakdown[0]->akred_c ?? 0),
+            'akred_tidak_terakreditasi' => (int) ($breakdown[0]->akred_tidak_terakreditasi ?? 0),
+            'akred_belum_terakreditasi' => (int) ($breakdown[0]->akred_belum_terakreditasi ?? 0),
+            'jenjang_s3' => (int) ($breakdown[0]->jenjang_s3 ?? 0),
+            'jenjang_s2' => (int) ($breakdown[0]->jenjang_s2 ?? 0),
+            'jenjang_s1' => (int) ($breakdown[0]->jenjang_s1 ?? 0),
+            'jenjang_d4' => (int) ($breakdown[0]->jenjang_d4 ?? 0),
+            'jenjang_d3' => (int) ($breakdown[0]->jenjang_d3 ?? 0),
+        ];
     }
 
     /**
@@ -495,6 +558,10 @@ class ProgramStudiRepository
                 sms.stat_prodi,
                 sms.tgl_berdiri,
                 sms.sk_selenggara,
+                sms.website,
+                sms.email,
+                sms.no_tel,
+                sms.no_fax,
                 didik.nm_jenj_didik AS jenjang,
                 akred.nm_akred AS akreditasi,
                 fak.nm_lemb AS fakultas,
@@ -507,6 +574,13 @@ class ProgramStudiRepository
                 ISNULL(dosen.dosen_non_pns, 0) AS dosen_non_pns,
                 ISNULL(tendik.total_tendik, 0) AS total_tendik,
                 ISNULL(mhs.total_mahasiswa, 0) AS total_mahasiswa,
+                pp.visi,
+                pp.misi,
+                pp.tujuan,
+                pp.sasaran,
+                pp.kompetensi,
+                pp.capaian_belajar,
+                pp.desk_singkat,
                 ? AS periode
             FROM pdrd.sms AS sms
             INNER JOIN ref.jenjang_pendidikan AS didik
@@ -518,6 +592,20 @@ class ProgramStudiRepository
             LEFT JOIN pdrd.sms AS fak
                 ON fak.id_sms = sms.id_fak_unila
                 AND fak.soft_delete = 0
+            LEFT JOIN (
+                SELECT
+                    pp_sub.id_sms,
+                    pp_sub.visi,
+                    pp_sub.misi,
+                    pp_sub.tujuan,
+                    pp_sub.sasaran,
+                    pp_sub.kompetensi,
+                    pp_sub.capaian_belajar,
+                    pp_sub.desk_singkat,
+                    ROW_NUMBER() OVER (PARTITION BY pp_sub.id_sms ORDER BY pp_sub.id_thn_ajaran DESC) AS rn
+                FROM pdrd.profil_prodi AS pp_sub
+                WHERE pp_sub.soft_delete = 0
+            ) AS pp ON pp.id_sms = sms.id_sms AND pp.rn = 1
             LEFT JOIN (
                 SELECT
                     ap.id_sms,
@@ -587,5 +675,321 @@ class ProgramStudiRepository
         $results = DB::connection('sqlsrv')->select($sql, $params);
 
         return $results[0] ?? null;
+    }
+
+    /**
+     * Get daftar dosen by program studi (homebase)
+     *
+     * @param string $idSms
+     * @return Collection
+     */
+    public function getDosenByProgramStudi(string $idSms): Collection
+    {
+        $sql = "
+            SELECT
+                sdm.id_sdm,
+                sdm.nm_sdm AS nama,
+                sdm.nidn,
+                ISNULL(sdm.nip, '-') AS nip,
+                CASE
+                    WHEN sdm.jk = 'L' THEN 'Laki-laki'
+                    WHEN sdm.jk = 'P' THEN 'Perempuan'
+                    ELSE 'Tidak Diketahui'
+                END AS jenis_kelamin,
+                ISNULL(ptk.id_ikatan_kerja, '-') AS id_ikatan_kerja,
+                CASE
+                    WHEN ptk.id_ikatan_kerja IN ('A','B','E','F','H','I','N') THEN 'Dosen Tetap'
+                    WHEN ptk.id_ikatan_kerja = 'G' THEN 'Dosen Tidak Tetap'
+                    ELSE 'Lainnya'
+                END AS ikatan_kerja,
+                ISNULL(ptk.id_stat_pegawai, '-') AS id_stat_pegawai,
+                CASE
+                    WHEN ptk.id_stat_pegawai IN ('1','13','14') THEN 'PNS'
+                    ELSE 'Non-PNS'
+                END AS status_kepegawaian,
+                ISNULL(jabfung_terakhir.nm_jabfung, '-') AS jabatan_fungsional,
+                ISNULL(pend_terakhir.nm_jenj_didik, '-') AS pendidikan_terakhir,
+                ISNULL(sdm.id_stat_aktif, 1) AS id_stat_aktif,
+                ISNULL(stat_aktif.nm_stat_aktif, 'Aktif') AS status_keaktifan
+            FROM pdrd.reg_ptk AS ptk
+            INNER JOIN pdrd.sdm AS sdm
+                ON sdm.id_sdm = ptk.id_sdm
+                AND sdm.soft_delete = 0
+                AND sdm.id_jns_sdm = '12'
+            LEFT JOIN ref.status_keaktifan_pegawai AS stat_aktif
+                ON stat_aktif.id_stat_aktif = sdm.id_stat_aktif
+                AND stat_aktif.expired_date IS NULL
+            LEFT JOIN (
+                SELECT
+                    rf.id_sdm,
+                    jf.nm_jabfung,
+                    ROW_NUMBER() OVER (PARTITION BY rf.id_sdm ORDER BY rf.tmt_sk_jabfung DESC) AS rn
+                FROM pdrd.rwy_fungsional AS rf
+                LEFT JOIN ref.jabfung AS jf
+                    ON jf.id_jabfung = rf.id_jabfung
+                    AND jf.expired_date IS NULL
+                WHERE rf.soft_delete = 0
+            ) AS jabfung_terakhir
+                ON jabfung_terakhir.id_sdm = sdm.id_sdm
+                AND jabfung_terakhir.rn = 1
+            LEFT JOIN (
+                SELECT
+                    rp.id_sdm,
+                    jd.nm_jenj_didik,
+                    ROW_NUMBER() OVER (PARTITION BY rp.id_sdm ORDER BY rp.thn_lulus DESC) AS rn
+                FROM pdrd.rwy_pend_formal AS rp
+                LEFT JOIN ref.jenjang_pendidikan AS jd
+                    ON jd.id_jenj_didik = rp.id_jenj_didik
+                    AND jd.expired_date IS NULL
+                WHERE rp.soft_delete = 0
+            ) AS pend_terakhir
+                ON pend_terakhir.id_sdm = sdm.id_sdm
+                AND pend_terakhir.rn = 1
+            WHERE ptk.soft_delete = 0
+                AND ptk.id_jns_keluar IS NULL
+                AND ptk.id_sms = ?
+                AND CAST(ptk.id_sp AS VARCHAR(50)) = '" . strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')) . "'
+            ORDER BY sdm.nm_sdm ASC
+        ";
+
+        $results = DB::connection('sqlsrv')->select($sql, [$idSms]);
+
+        return collect($results);
+    }
+
+    /**
+     * Get mahasiswa trend for 5 latest semesters by program studi
+     *
+     * @param string $idSms
+     * @return Collection
+     */
+    public function getMahasiswaTrendByProgramStudi(string $idSms): Collection
+    {
+        $sql = "
+            SELECT TOP 5
+                kmh.id_smt AS semester,
+                smt.nm_smt AS nama_semester,
+                COUNT(DISTINCT pd.id_pd) AS total_mahasiswa
+            FROM pdrd.kuliah_mhs AS kmh
+            JOIN pdrd.reg_pd AS reg
+                ON reg.id_reg_pd = kmh.id_reg_pd
+                AND reg.soft_delete = 0
+                AND reg.id_sms = ?
+            JOIN pdrd.peserta_didik AS pd
+                ON pd.id_pd = reg.id_pd
+                AND pd.soft_delete = 0
+            JOIN ref.semester AS smt
+                ON smt.id_smt = kmh.id_smt
+                AND smt.expired_date IS NULL
+                AND RIGHT(smt.id_smt, 1) < '3'
+            WHERE kmh.soft_delete = 0
+                AND kmh.id_stat_mhs = 'A'
+                AND CAST(reg.id_sp AS VARCHAR(50)) = '" . strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')) . "'
+            GROUP BY kmh.id_smt, smt.nm_smt
+            ORDER BY kmh.id_smt DESC
+        ";
+
+        $results = DB::connection('sqlsrv')->select($sql, [$idSms]);
+
+        return collect($results);
+    }
+
+    /**
+     * Get kurikulum by program studi
+     *
+     * @param string $idSms
+     * @return Collection
+     */
+    public function getKurikulumByProgramStudi(string $idSms): Collection
+    {
+        $sql = "
+            SELECT
+                k.*,
+                jd.nm_jenj_didik AS jenjang,
+                smt.nm_smt AS semester,
+                sms.nm_lemb AS nama_prodi
+            FROM pdrd.kurikulum_sp AS k
+            INNER JOIN ref.jenjang_pendidikan AS jd
+                ON jd.id_jenj_didik = k.id_jenj_didik
+                AND jd.expired_date IS NULL
+            INNER JOIN ref.semester AS smt
+                ON smt.id_smt = k.id_smt
+                AND smt.expired_date IS NULL
+            INNER JOIN pdrd.sms AS sms
+                ON sms.id_sms = k.id_sms
+                AND sms.soft_delete = 0
+            WHERE k.soft_delete = 0
+                AND k.id_sms = ?
+            ORDER BY k.id_smt DESC
+        ";
+
+        $results = DB::connection('sqlsrv')->select($sql, [$idSms]);
+
+        return collect($results);
+    }
+
+    /**
+     * Get mata kuliah by kurikulum (grouped by semester)
+     *
+     * @param string $idKurikulum
+     * @return Collection
+     */
+    public function getMataKuliahByKurikulum(string $idKurikulum): Collection
+    {
+        $sql = "
+            SELECT
+                mk_kur.id_kurikulum_sp,
+                mk_kur.id_mk,
+                mk_kur.smt AS semester_ke,
+                mk_kur.sks_mk,
+                mk_kur.sks_tm,
+                mk_kur.sks_prak,
+                mk_kur.sks_prak_lap,
+                mk_kur.sks_sim,
+                mk_kur.a_wajib,
+                mk.kode_mk,
+                mk.nm_mk AS nama_matkul,
+                CASE
+                    WHEN mk_kur.a_wajib = 1 THEN 'Wajib'
+                    ELSE 'Pilihan'
+                END AS status_wajib
+            FROM pdrd.matkul_kurikulum AS mk_kur
+            INNER JOIN pdrd.matkul AS mk
+                ON mk.id_mk = mk_kur.id_mk
+                AND mk.soft_delete = 0
+            WHERE mk_kur.soft_delete = 0
+                AND mk_kur.id_kurikulum_sp = ?
+            ORDER BY mk_kur.smt ASC, mk_kur.a_wajib DESC, mk.nm_mk ASC
+        ";
+
+        $results = DB::connection('sqlsrv')->select($sql, [$idKurikulum]);
+
+        return collect($results);
+    }
+
+    /**
+     * Get tracer study data for a program studi
+     *
+     * @param string $idSms
+     * @return object
+     */
+    public function getTracerStudyData(string $idSms): object
+    {
+        // Get total alumni and basic stats
+        $sqlStats = "
+            SELECT
+                COUNT(*) AS total_alumni,
+                AVG(CASE WHEN wkt_tunggu IS NOT NULL THEN CAST(wkt_tunggu AS FLOAT) ELSE NULL END) AS avg_waktu_tunggu,
+                AVG(CASE WHEN income_per_bln IS NOT NULL AND income_per_bln >= 100000 AND income_per_bln <= 50000000 THEN CAST(income_per_bln AS FLOAT) ELSE NULL END) AS avg_income,
+                SUM(CASE WHEN a_kerja_sblm_lulus = 1 THEN 1 ELSE 0 END) AS bekerja_sebelum_lulus,
+                SUM(CASE WHEN status_lulusan = 1 THEN 1 ELSE 0 END) AS status_bekerja,
+                SUM(CASE WHEN status_lulusan = 2 THEN 1 ELSE 0 END) AS status_wiraswasta,
+                SUM(CASE WHEN status_lulusan = 3 THEN 1 ELSE 0 END) AS status_kuliah_lanjut,
+                SUM(CASE WHEN status_lulusan = 4 THEN 1 ELSE 0 END) AS status_belum_bekerja
+            FROM tracer.hasil_tracer_study AS hts
+            INNER JOIN pdrd.reg_pd AS reg
+                ON reg.id_reg_pd = hts.id_reg_pd
+                AND reg.soft_delete = 0
+            WHERE hts.soft_delete = 0
+                AND reg.id_sms = ?
+        ";
+
+        // Get kesesuaian bidang kerja distribution
+        $sqlKesesuaian = "
+            SELECT
+                hub_bidang_kerja,
+                COUNT(*) AS jumlah
+            FROM tracer.hasil_tracer_study AS hts
+            INNER JOIN pdrd.reg_pd AS reg
+                ON reg.id_reg_pd = hts.id_reg_pd
+                AND reg.soft_delete = 0
+            WHERE hts.soft_delete = 0
+                AND reg.id_sms = ?
+                AND hts.hub_bidang_kerja IS NOT NULL
+            GROUP BY hub_bidang_kerja
+            ORDER BY hub_bidang_kerja
+        ";
+
+        // Get level perusahaan distribution
+        $sqlLevelPerusahaan = "
+            SELECT
+                level_perusahaan,
+                COUNT(*) AS jumlah
+            FROM tracer.hasil_tracer_study AS hts
+            INNER JOIN pdrd.reg_pd AS reg
+                ON reg.id_reg_pd = hts.id_reg_pd
+                AND reg.soft_delete = 0
+            WHERE hts.soft_delete = 0
+                AND reg.id_sms = ?
+                AND hts.level_perusahaan IS NOT NULL
+            GROUP BY level_perusahaan
+        ";
+
+        // Get waktu tunggu distribution by year
+        $sqlWaktuTungguTrend = "
+            SELECT TOP 5
+                id_thn_ajaran,
+                AVG(CASE WHEN wkt_tunggu IS NOT NULL THEN CAST(wkt_tunggu AS FLOAT) ELSE NULL END) AS avg_waktu_tunggu,
+                COUNT(*) AS jumlah
+            FROM tracer.hasil_tracer_study AS hts
+            INNER JOIN pdrd.reg_pd AS reg
+                ON reg.id_reg_pd = hts.id_reg_pd
+                AND reg.soft_delete = 0
+            WHERE hts.soft_delete = 0
+                AND reg.id_sms = ?
+                AND hts.wkt_tunggu IS NOT NULL
+            GROUP BY id_thn_ajaran
+            ORDER BY id_thn_ajaran DESC
+        ";
+
+        // Execute queries
+        $stats = DB::connection('sqlsrv')->select($sqlStats, [$idSms]);
+        $kesesuaian = DB::connection('sqlsrv')->select($sqlKesesuaian, [$idSms]);
+        $levelPerusahaan = DB::connection('sqlsrv')->select($sqlLevelPerusahaan, [$idSms]);
+        $waktuTungguTrend = DB::connection('sqlsrv')->select($sqlWaktuTungguTrend, [$idSms]);
+
+        $statsData = $stats[0] ?? null;
+
+        return (object) [
+            'total_alumni' => (int) ($statsData->total_alumni ?? 0),
+            'avg_waktu_tunggu' => round((float) ($statsData->avg_waktu_tunggu ?? 0), 1),
+            'avg_income' => (float) ($statsData->avg_income ?? 0),
+            'bekerja_sebelum_lulus' => (int) ($statsData->bekerja_sebelum_lulus ?? 0),
+            'persentase_bekerja_sebelum_lulus' => $statsData && $statsData->total_alumni > 0
+                ? round(($statsData->bekerja_sebelum_lulus / $statsData->total_alumni) * 100, 1)
+                : 0,
+            'status_lulusan' => [
+                'bekerja' => (int) ($statsData->status_bekerja ?? 0),
+                'wiraswasta' => (int) ($statsData->status_wiraswasta ?? 0),
+                'kuliah_lanjut' => (int) ($statsData->status_kuliah_lanjut ?? 0),
+                'belum_bekerja' => (int) ($statsData->status_belum_bekerja ?? 0),
+            ],
+            'kesesuaian_bidang' => array_map(function ($item) {
+                $labels = [
+                    1 => 'Sangat Sesuai',
+                    2 => 'Sesuai',
+                    3 => 'Cukup Sesuai',
+                    4 => 'Tidak Sesuai',
+                ];
+                return [
+                    'tingkat' => (int) $item->hub_bidang_kerja,
+                    'label' => $labels[$item->hub_bidang_kerja] ?? 'Tidak Diketahui',
+                    'jumlah' => (int) $item->jumlah,
+                ];
+            }, $kesesuaian),
+            'level_perusahaan' => array_map(function ($item) {
+                return [
+                    'level' => $item->level_perusahaan,
+                    'jumlah' => (int) $item->jumlah,
+                ];
+            }, $levelPerusahaan),
+            'waktu_tunggu_trend' => array_map(function ($item) {
+                return [
+                    'tahun' => (int) $item->id_thn_ajaran,
+                    'avg_waktu_tunggu' => round((float) $item->avg_waktu_tunggu, 1),
+                    'jumlah' => (int) $item->jumlah,
+                ];
+            }, $waktuTungguTrend),
+        ];
     }
 }

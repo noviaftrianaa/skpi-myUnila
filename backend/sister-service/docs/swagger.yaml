@@ -1,0 +1,160 @@
+basePath: /
+definitions:
+  referensi.Agama:
+    properties:
+      expired_date:
+        type: string
+      id_agama:
+        type: integer
+      last_sync:
+        type: string
+      nama_agama:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.SyncResponse:
+    properties:
+      message:
+        type: string
+      synced_by:
+        type: string
+      total_records:
+        type: integer
+    type: object
+  response.APIResponse:
+    properties:
+      data: {}
+      error: {}
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+host: localhost:8083
+info:
+  contact:
+    email: support@unila.ac.id
+    name: API Support
+  description: API for synchronizing data from Sister Kemdikbud to MyUnila/OneData
+    PDDIKTI
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Sister Service API
+  version: "1.0"
+paths:
+  /api/v1/referensi/agama:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all agama (religion) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.Agama'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all agama
+      tags:
+      - Referensi
+  /api/v1/referensi/agama/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve agama (religion) reference data by ID
+      parameters:
+      - description: Agama ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.Agama'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get agama by ID
+      tags:
+      - Referensi
+  /api/v1/referensi/agama/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize agama (religion) data from Sister Kemdikbud API. User
+        identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync agama from Sister API
+      tags:
+      - Referensi
+schemes:
+- http
+- https
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

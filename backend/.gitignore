@@ -186,4 +186,29 @@ storage/api-docs/*.yaml
 # Keep directory structure
 !*-service/storage/api-docs/.gitkeep
 !storage/api-docs/.gitkeep
-.claude
+
+# ========================================
+# Go / Sister Service
+# ========================================
+# Binaries
+sister-service/sister-service
+sister-service/sister-service.exe
+sister-service/sister-service-linux
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binaries
+*.test
+
+# Go workspace file
+go.work
+
+# Go build cache
+sister-service/.cache/
+
+# Go coverage files
+*.out
+coverage.txt
+coverage.html

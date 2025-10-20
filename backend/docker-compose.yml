@@ -150,6 +150,40 @@ services:
       - redis
     restart: unless-stopped
 
+  # Sister Service (Go + Fiber)
+  sister-service:
+    build:
+      context: ./sister-service
+      dockerfile: Dockerfile
+    container_name: myunila-sister-service
+    ports:
+      - "8083:8083"
+    environment:
+      - APP_NAME=Sister Service
+      - APP_PORT=:8083
+      - APP_ENV=production
+      - DB_DRIVER=sqlserver
+      - DB_HOST=192.168.123.119
+      - DB_PORT=1433
+      - DB_USER=mizarzulmi
+      - DB_PASSWORD=Fogging204
+      - DB_NAME=pdut_dev
+      - DB_MAX_OPEN_CONNS=25
+      - DB_MAX_IDLE_CONNS=5
+      - DB_CONN_MAX_LIFETIME=5m
+      - SISTER_API_BASE_URL=https://sister-api.kemdikbud.go.id/ws.php
+      - SISTER_API_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjVlNjQzMS03NzI3LTQwMmUtYWRiNS0yNGQ0MTBhZjQ5M2MiLCJpc3MiOiJodHRwOlwvXC9zaXN0ZXItYXBpLmtlbWRpa2J1ZC5nby5pZFwvd3MucGhwXC8xLjBcL2F1dGhvcml6ZSIsImlhdCI6MTc2MDkzMjU0MiwiZXhwIjoxNzYwOTM2MTQyLCJuYmYiOjE3NjA5MzI1NDIsImp0aSI6Ijg3ZjFkZDcwMTY1Yzg4YWQifQ.dI5ve0q8DGCUheAFLyspaszmrQBVufE4pXrTpPjxAUg
+    networks:
+      - myunila-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8083/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # ========================================
   # Nginx Web Server

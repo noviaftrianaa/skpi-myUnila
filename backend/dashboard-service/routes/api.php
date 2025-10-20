@@ -57,6 +57,11 @@ Route::prefix('v1')->group(function () {
         Route::get('/periods', [ProgramStudiController::class, 'periods']);
         Route::get('/filter-options', [ProgramStudiController::class, 'filterOptions']);
         Route::get('/{id}', [ProgramStudiController::class, 'show']);
+        Route::get('/{id}/dosen', [ProgramStudiController::class, 'dosen']);
+        Route::get('/{id}/mahasiswa-trend', [ProgramStudiController::class, 'mahasiswaTrend']);
+        Route::get('/{id}/kurikulum', [ProgramStudiController::class, 'kurikulum']);
+        Route::get('/{id}/tracer-study', [ProgramStudiController::class, 'tracerStudy']);
+        Route::get('/kurikulum/{id_kurikulum}/mata-kuliah', [ProgramStudiController::class, 'mataKuliahByKurikulum']);
     });
 
     // Universitas Lampung

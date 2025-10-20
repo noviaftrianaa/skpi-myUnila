@@ -585,4 +585,515 @@ class ProgramStudiController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get daftar dosen by program studi
+     */
+    #[OA\Get(
+        path: '/api/v1/program-studi/{id}/dosen',
+        operationId: 'getDosenByProgramStudi',
+        summary: 'Get list of dosen by program studi',
+        description: 'Retrieve list of dosen (lecturers) who have homebase in a specific program studi',
+        tags: ['Program Studi'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                description: 'Program studi ID (encrypted id_sms)',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'string', example: 'MEMzNzVBQUEtMTNBQS00NEEyLTkxODgtRTU1RDM5QTcwNUZD')
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Successful operation',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'message', type: 'string', example: 'Dosen list retrieved successfully'),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'array',
+                            items: new OA\Items(
+                                properties: [
+                                    new OA\Property(property: 'id', type: 'string', example: 'ABCD-1234-EFGH'),
+                                    new OA\Property(property: 'nama', type: 'string', example: 'Dr. John Doe, S.Kom., M.T.'),
+                                    new OA\Property(property: 'nidn', type: 'string', example: '1234567890'),
+                                    new OA\Property(property: 'jenis_kelamin', type: 'string', example: 'Laki-laki'),
+                                    new OA\Property(
+                                        property: 'ikatan_kerja',
+                                        properties: [
+                                            new OA\Property(property: 'id', type: 'string', example: 'A'),
+                                            new OA\Property(property: 'nama', type: 'string', example: 'Dosen Tetap'),
+                                            new OA\Property(property: 'status', type: 'string', example: 'Dosen Tetap'),
+                                        ],
+                                        type: 'object'
+                                    ),
+                                    new OA\Property(
+                                        property: 'kepegawaian',
+                                        properties: [
+                                            new OA\Property(property: 'id', type: 'string', example: '1'),
+                                            new OA\Property(property: 'nama', type: 'string', example: 'PNS'),
+                                            new OA\Property(property: 'status', type: 'string', example: 'PNS'),
+                                        ],
+                                        type: 'object'
+                                    ),
+                                    new OA\Property(property: 'jabatan_fungsional', type: 'string', example: 'Lektor Kepala'),
+                                    new OA\Property(property: 'pendidikan_terakhir', type: 'string', example: 'S3'),
+                                    new OA\Property(property: 'bidang_keahlian', type: 'string', example: 'Teknik Informatika'),
+                                ],
+                                type: 'object'
+                            )
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Invalid program studi ID format',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(property: 'message', type: 'string', example: 'Invalid program studi ID format'),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 500,
+                description: 'Server error'
+            ),
+        ]
+    )]
+    public function dosen(string $id): JsonResponse
+    {
+        try {
+            // Decode base64 ID
+            $decodedId = base64_decode($id);
+
+            // Validate if it's a valid GUID format
+            if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $decodedId)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid program studi ID format',
+                ], 400);
+            }
+
+            $dosenList = $this->programStudiService->getDosenByProgramStudi($decodedId);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Dosen list retrieved successfully',
+                'data' => $dosenList,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve dosen list',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get mahasiswa trend for 5 latest semesters
+     */
+    #[OA\Get(
+        path: '/api/v1/program-studi/{id}/mahasiswa-trend',
+        operationId: 'getMahasiswaTrendByProgramStudi',
+        summary: 'Get mahasiswa trend data',
+        description: 'Retrieve total mahasiswa for the latest 5 semesters by program studi',
+        tags: ['Program Studi'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                description: 'Program studi ID (encrypted id_sms)',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'string')
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Successful operation',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'message', type: 'string', example: 'Mahasiswa trend retrieved successfully'),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'array',
+                            items: new OA\Items(
+                                properties: [
+                                    new OA\Property(property: 'semester', type: 'string', example: '20242'),
+                                    new OA\Property(property: 'nama_semester', type: 'string', example: '2024/2025 Genap'),
+                                    new OA\Property(property: 'total_mahasiswa', type: 'integer', example: 450),
+                                ],
+                                type: 'object'
+                            )
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Invalid program studi ID format'
+            ),
+            new OA\Response(
+                response: 500,
+                description: 'Server error'
+            ),
+        ]
+    )]
+    public function mahasiswaTrend(string $id): JsonResponse
+    {
+        try {
+            // Decode base64 ID
+            $decodedId = base64_decode($id);
+
+            // Validate if it's a valid GUID format
+            if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $decodedId)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid program studi ID format',
+                ], 400);
+            }
+
+            $trendData = $this->programStudiService->getMahasiswaTrendByProgramStudi($decodedId);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Mahasiswa trend retrieved successfully',
+                'data' => $trendData,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve mahasiswa trend',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get kurikulum by program studi
+     */
+    #[OA\Get(
+        path: '/api/v1/program-studi/{id}/kurikulum',
+        operationId: 'getKurikulumByProgramStudi',
+        summary: 'Get kurikulum by program studi',
+        description: 'Retrieve list of curriculum (kurikulum) for a specific program studi',
+        tags: ['Program Studi'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                description: 'Program studi ID (encrypted id_sms)',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'string')
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Successful operation',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'message', type: 'string', example: 'Kurikulum list retrieved successfully'),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'array',
+                            items: new OA\Items(
+                                properties: [
+                                    new OA\Property(property: 'id', type: 'string', example: 'ABC123-DEF456'),
+                                    new OA\Property(property: 'nama', type: 'string', example: 'Kurikulum 2020'),
+                                    new OA\Property(property: 'sks_lulus', type: 'integer', example: 144),
+                                    new OA\Property(property: 'sks_wajib', type: 'integer', example: 120),
+                                    new OA\Property(property: 'sks_pilihan', type: 'integer', example: 24),
+                                    new OA\Property(
+                                        property: 'jenjang',
+                                        properties: [
+                                            new OA\Property(property: 'id', type: 'integer', example: 11),
+                                            new OA\Property(property: 'nama', type: 'string', example: 'S1'),
+                                        ],
+                                        type: 'object'
+                                    ),
+                                    new OA\Property(
+                                        property: 'semester',
+                                        properties: [
+                                            new OA\Property(property: 'id', type: 'string', example: '20201'),
+                                            new OA\Property(property: 'nama', type: 'string', example: '2020/2021 Ganjil'),
+                                        ],
+                                        type: 'object'
+                                    ),
+                                    new OA\Property(
+                                        property: 'prodi',
+                                        properties: [
+                                            new OA\Property(property: 'id', type: 'string'),
+                                            new OA\Property(property: 'nama', type: 'string', example: 'Teknik Informatika'),
+                                        ],
+                                        type: 'object'
+                                    ),
+                                    new OA\Property(property: 'tanggal_mulai_efektif', type: 'string', format: 'date', example: '2020-09-01'),
+                                    new OA\Property(property: 'tanggal_akhir_efektif', type: 'string', format: 'date', example: '2025-08-31', nullable: true),
+                                    new OA\Property(property: 'status', type: 'string', example: 'Aktif'),
+                                ],
+                                type: 'object'
+                            )
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Invalid program studi ID format'
+            ),
+            new OA\Response(
+                response: 500,
+                description: 'Server error'
+            ),
+        ]
+    )]
+    public function kurikulum(string $id): JsonResponse
+    {
+        try {
+            // Decode base64 ID
+            $decodedId = base64_decode($id);
+
+            // Validate if it's a valid GUID format
+            if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $decodedId)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid program studi ID format',
+                ], 400);
+            }
+
+            $kurikulumList = $this->programStudiService->getKurikulumByProgramStudi($decodedId);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Kurikulum list retrieved successfully',
+                'data' => $kurikulumList,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve kurikulum list',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get mata kuliah by kurikulum (grouped by semester)
+     */
+    #[OA\Get(
+        path: '/api/v1/program-studi/kurikulum/{id_kurikulum}/mata-kuliah',
+        operationId: 'getMataKuliahByKurikulum',
+        summary: 'Get mata kuliah by kurikulum',
+        description: 'Retrieve list of mata kuliah (courses) for a specific kurikulum, grouped by semester',
+        tags: ['Program Studi'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id_kurikulum',
+                description: 'Kurikulum ID (id_kurikulum_sp)',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'string')
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Successful operation',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'message', type: 'string', example: 'Mata kuliah list retrieved successfully'),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'array',
+                            items: new OA\Items(
+                                properties: [
+                                    new OA\Property(property: 'semester_ke', type: 'integer', example: 1),
+                                    new OA\Property(
+                                        property: 'mata_kuliah',
+                                        type: 'array',
+                                        items: new OA\Items(
+                                            properties: [
+                                                new OA\Property(property: 'id', type: 'string'),
+                                                new OA\Property(property: 'kode', type: 'string', example: 'IF101'),
+                                                new OA\Property(property: 'nama', type: 'string', example: 'Pengantar Teknologi Informasi'),
+                                                new OA\Property(property: 'sks', type: 'integer', example: 3),
+                                                new OA\Property(property: 'jenis', type: 'string', example: 'Teori'),
+                                                new OA\Property(property: 'status_wajib', type: 'string', example: 'Wajib'),
+                                                new OA\Property(property: 'is_wajib', type: 'boolean', example: true),
+                                            ],
+                                            type: 'object'
+                                        )
+                                    ),
+                                    new OA\Property(property: 'total_sks', type: 'integer', example: 18),
+                                    new OA\Property(property: 'total_sks_wajib', type: 'integer', example: 15),
+                                    new OA\Property(property: 'total_sks_pilihan', type: 'integer', example: 3),
+                                    new OA\Property(property: 'jumlah_matkul', type: 'integer', example: 6),
+                                    new OA\Property(property: 'jumlah_wajib', type: 'integer', example: 5),
+                                    new OA\Property(property: 'jumlah_pilihan', type: 'integer', example: 1),
+                                ],
+                                type: 'object'
+                            )
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 500,
+                description: 'Server error'
+            ),
+        ]
+    )]
+    public function mataKuliahByKurikulum(string $id_kurikulum): JsonResponse
+    {
+        try {
+            $matkulList = $this->programStudiService->getMataKuliahByKurikulum($id_kurikulum);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Mata kuliah list retrieved successfully',
+                'data' => $matkulList,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve mata kuliah list',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get tracer study data for a program studi
+     */
+    #[OA\Get(
+        path: '/api/v1/program-studi/{id}/tracer-study',
+        operationId: 'getTracerStudyByProgramStudi',
+        summary: 'Get tracer study data',
+        description: 'Retrieve tracer study data including employment statistics, salary averages, and alumni outcomes for a specific program studi',
+        tags: ['Program Studi'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                description: 'Program studi ID (encrypted id_sms)',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'string')
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Successful operation',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'message', type: 'string', example: 'Tracer study data retrieved successfully'),
+                        new OA\Property(
+                            property: 'data',
+                            properties: [
+                                new OA\Property(property: 'total_alumni', type: 'integer', example: 150),
+                                new OA\Property(property: 'avg_waktu_tunggu', type: 'number', format: 'float', example: 3.5),
+                                new OA\Property(property: 'avg_income', type: 'number', format: 'float', example: 5000000),
+                                new OA\Property(property: 'bekerja_sebelum_lulus', type: 'integer', example: 45),
+                                new OA\Property(property: 'persentase_bekerja_sebelum_lulus', type: 'number', format: 'float', example: 30.0),
+                                new OA\Property(
+                                    property: 'status_lulusan',
+                                    properties: [
+                                        new OA\Property(property: 'bekerja', type: 'integer', example: 120),
+                                        new OA\Property(property: 'wiraswasta', type: 'integer', example: 15),
+                                        new OA\Property(property: 'kuliah_lanjut', type: 'integer', example: 10),
+                                        new OA\Property(property: 'belum_bekerja', type: 'integer', example: 5),
+                                    ],
+                                    type: 'object'
+                                ),
+                                new OA\Property(
+                                    property: 'kesesuaian_bidang',
+                                    type: 'array',
+                                    items: new OA\Items(
+                                        properties: [
+                                            new OA\Property(property: 'tingkat', type: 'integer', example: 1),
+                                            new OA\Property(property: 'label', type: 'string', example: 'Sangat Sesuai'),
+                                            new OA\Property(property: 'jumlah', type: 'integer', example: 85),
+                                        ],
+                                        type: 'object'
+                                    )
+                                ),
+                                new OA\Property(
+                                    property: 'level_perusahaan',
+                                    type: 'array',
+                                    items: new OA\Items(
+                                        properties: [
+                                            new OA\Property(property: 'level', type: 'string', example: 'Perusahaan Multinasional'),
+                                            new OA\Property(property: 'jumlah', type: 'integer', example: 45),
+                                        ],
+                                        type: 'object'
+                                    )
+                                ),
+                                new OA\Property(
+                                    property: 'waktu_tunggu_trend',
+                                    type: 'array',
+                                    items: new OA\Items(
+                                        properties: [
+                                            new OA\Property(property: 'tahun', type: 'integer', example: 2024),
+                                            new OA\Property(property: 'avg_waktu_tunggu', type: 'number', format: 'float', example: 3.2),
+                                            new OA\Property(property: 'jumlah', type: 'integer', example: 35),
+                                        ],
+                                        type: 'object'
+                                    )
+                                ),
+                            ],
+                            type: 'object'
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Invalid program studi ID format'
+            ),
+            new OA\Response(
+                response: 500,
+                description: 'Server error'
+            ),
+        ]
+    )]
+    public function tracerStudy(string $id): JsonResponse
+    {
+        try {
+            // Decode base64 ID
+            $decodedId = base64_decode($id);
+
+            // Validate if it's a valid GUID format
+            if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $decodedId)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid program studi ID format',
+                ], 400);
+            }
+
+            $tracerData = $this->programStudiService->getTracerStudyData($decodedId);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tracer study data retrieved successfully',
+                'data' => $tracerData,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve tracer study data',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }
