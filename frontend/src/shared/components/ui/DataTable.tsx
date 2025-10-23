@@ -22,7 +22,7 @@ export interface Column<T> {
   align?: "start" | "center" | "end";
   width?: string;
   minWidth?: string;
-  render?: (item: T) => React.ReactNode;
+  render?: (item: T, index?: number) => React.ReactNode;
   headerRender?: () => React.ReactNode;
   sortable?: boolean;
 }
@@ -161,7 +161,7 @@ export default function DataTable<T extends Record<string, any>>({
   const content = (
     <>
       {/* Search & Controls Bar */}
-      <div className={`px-4 sm:px-6 py-4 sm:py-5 bg-blue-600 ${!noWrapper ? 'rounded-t-2xl' : ''}`}>
+      <div className={`px-4 sm:px-6 py-4 sm:py-5 bg-blue-600 ${!noWrapper ? 'rounded-t-2xl' : 'rounded-t-xl'}`}>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-center">
           {/* Filter (jika ada) - Kiri */}
           {filterSlot && (
@@ -304,21 +304,25 @@ export default function DataTable<T extends Record<string, any>>({
           <TableBody
             emptyContent="Tidak ada data yang ditemukan"
           >
-            {paginatedData.map((item, index) => (
-              <TableRow key={index}>
-                {columns.map((column) => (
-                  <TableCell key={column.key} className={column.align === "center" ? "text-center" : column.align === "end" ? "text-right" : ""}>
-                    {column.render ? column.render(item) : item[column.key]}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
+            {paginatedData.map((item, index) => {
+              // Calculate global index for row numbering
+              const globalIndex = (page - 1) * rowsPerPage + index;
+              return (
+                <TableRow key={index}>
+                  {columns.map((column) => (
+                    <TableCell key={column.key} className={column.align === "center" ? "text-center" : column.align === "end" ? "text-right" : ""}>
+                      {column.render ? column.render(item, globalIndex) : item[column.key]}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
 
       {/* Pagination Footer */}
-      <div className="px-6 py-4 border-t border-gray-200 bg-gray-50/50 rounded-b-2xl">
+      <div className={`px-6 py-4 border-t border-gray-200 bg-gray-50/50 ${!noWrapper ? 'rounded-b-2xl' : 'rounded-b-xl'}`}>
         <div className="flex flex-col sm:flex-row gap-3 justify-between items-center">
           {/* Info */}
           <div className="text-xs text-gray-600 font-medium">

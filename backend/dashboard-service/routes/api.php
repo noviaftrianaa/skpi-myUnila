@@ -8,6 +8,11 @@ use App\Http\Controllers\OpenApi\ProgramStudiController;
 use App\Http\Controllers\OpenApi\UnilaStatisticsController;
 use App\Http\Controllers\OpenApi\UnilaProfileController;
 use App\Http\Controllers\OpenApi\MahasiswaSebaranController;
+use App\Http\Controllers\OpenApi\DosenController;
+use App\Http\Controllers\OpenApi\PublikasiController;
+use App\Http\Controllers\OpenApi\PenelitianController;
+use App\Http\Controllers\OpenApi\KelulusanController;
+use App\Http\Controllers\OpenApi\CapaianLulusanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -76,6 +81,33 @@ Route::prefix('v1')->group(function () {
         Route::get('/kabupaten', [MahasiswaSebaranController::class, 'getSebaranByKabupaten']);
         Route::get('/provinsi', [MahasiswaSebaranController::class, 'getSebaranByProvinsi']);
         Route::get('/statistics', [MahasiswaSebaranController::class, 'getSebaranStatistics']);
+    });
+
+    // Dosen
+    Route::prefix('dosen')->group(function () {
+        Route::get('/pendidikan', [DosenController::class, 'getDosenByJenjangPendidikan']);
+        Route::get('/jabatan', [DosenController::class, 'getDosenByJabatanFungsional']);
+        Route::get('/statistics', [DosenController::class, 'getStatistics']);
+    });
+
+    // Publikasi
+    Route::prefix('publikasi')->group(function () {
+        Route::get('/statistics', [PublikasiController::class, 'getStatistics']);
+    });
+
+    // Penelitian
+    Route::prefix('penelitian')->group(function () {
+        Route::get('/statistics', [PenelitianController::class, 'getStatistics']);
+    });
+
+    // Kelulusan
+    Route::prefix('kelulusan')->group(function () {
+        Route::get('/statistics', [KelulusanController::class, 'getStatistics']);
+    });
+
+    // Capaian Lulusan (Tracer Study)
+    Route::prefix('capaian-lulusan')->group(function () {
+        Route::get('/statistics', [CapaianLulusanController::class, 'getStatistics']);
     });
 
     // TODO: Add more public endpoints

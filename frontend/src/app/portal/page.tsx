@@ -414,10 +414,11 @@ export default function DashboardPage() {
           id: "sister-integrator",
           name: "SISTER Integrator",
           description: "Integrasi SISTER Kemenristekdikti",
-          icon: <FaDatabase className="w-6 h-6" />,
+          icon: <RiGovernmentFill className="w-6 h-6" />,
           color: "bg-purple-600",
           isFavorite: false,
-          href: "#",
+          href: "/dashboard/sister-integrator",
+          requireRole: "Developer", // Only for Developer role
         },
         {
           id: "api-gateway",

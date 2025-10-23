@@ -2,12 +2,31 @@
 
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { dosenService, type DosenStatistics } from "@/lib/services/dosenService";
 
 // Import ECharts dynamically to avoid SSR issues
 const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });
 
 export default function DataDosen() {
+  const [statistics, setStatistics] = useState<DosenStatistics | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await dosenService.getStatistics();
+        setStatistics(data);
+      } catch (error) {
+        console.error("Error fetching dosen statistics:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
@@ -19,22 +38,28 @@ export default function DataDosen() {
   };
 
   // Data dosen berdasarkan jenjang pendidikan
-  const pendidikanData = [
-    { jenjang: "S3/Doktor", jumlah: 285, persentase: 42.5, color: "#10b981" },
-    { jenjang: "S2/Magister", jumlah: 350, persentase: 52.2, color: "#3b82f6" },
-    { jenjang: "S1/Sarjana", jumlah: 35, persentase: 5.3, color: "#f59e0b" },
-  ];
+  const pendidikanData = statistics?.pendidikan.data || [];
 
-  // Data dosen berdasarkan jabatan fungsional
-  const jabatanData = [
-    { jabatan: "Guru Besar", jumlah: 95 },
-    { jabatan: "Lektor Kepala", jumlah: 185 },
-    { jabatan: "Lektor", jumlah: 280 },
-    { jabatan: "Asisten Ahli", jumlah: 110 },
-  ];
+  // Data dosen berdasarkan jabatan fungsional (top 4)
+  const jabatanData = statistics?.jabatan.data.slice(0, 4) || [];
+
+  // Summary data
+  const summary = statistics?.summary || {
+    total_dosen: 0,
+    total_guru_besar: 0,
+    total_doktor: 0,
+    rasio_dosen_mahasiswa: "1:0"
+  };
 
   // Chart configuration untuk jenjang pendidikan
-  const pendidikanChartOption = useMemo(() => ({
+  const pendidikanChartOption = useMemo(() => {
+    if (!pendidikanData || pendidikanData.length === 0) {
+      return {
+        series: [{ type: "pie", data: [] }]
+      };
+    }
+
+    return {
     tooltip: {
       trigger: "item",
       formatter: (params: any) => {
@@ -97,10 +122,20 @@ export default function DataDosen() {
         })),
       },
     ],
-  }), []);
+  };
+  }, [pendidikanData]);
 
   // Chart configuration untuk jabatan fungsional
-  const jabatanChartOption = useMemo(() => ({
+  const jabatanChartOption = useMemo(() => {
+    if (!jabatanData || jabatanData.length === 0) {
+      return {
+        xAxis: { type: "category", data: [] },
+        yAxis: { type: "value" },
+        series: [{ type: "bar", data: [] }]
+      };
+    }
+
+    return {
     tooltip: {
       trigger: "axis",
       axisPointer: {
@@ -194,7 +229,23 @@ export default function DataDosen() {
         },
       },
     ],
-  }), []);
+  };
+  }, [jabatanData]);
+
+  if (loading) {
+    return (
+      <section className="py-20 bg-gradient-to-b from-gray-50 to-white relative">
+        <div className="container mx-auto px-6">
+          <div className="max-w-7xl mx-auto text-center">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-200 rounded w-64 mx-auto mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-96 mx-auto"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-20 bg-gradient-to-b from-gray-50 to-white relative">
@@ -222,10 +273,10 @@ export default function DataDosen() {
           {/* Quick Stats */}
           <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
             {[
-              { label: "Total Dosen", value: "670", icon: "👨‍🏫", gradient: "from-blue-500 to-blue-600" },
-              { label: "Guru Besar", value: "95", icon: "🎓", gradient: "from-emerald-500 to-emerald-600" },
-              { label: "Bergelar Doktor", value: "285", icon: "📚", gradient: "from-purple-500 to-purple-600" },
-              { label: "Rasio Dosen:Mhs", value: "1:24", icon: "📊", gradient: "from-pink-500 to-pink-600" },
+              { label: "Total Dosen", value: summary.total_dosen.toLocaleString(), icon: "👨‍🏫", gradient: "from-blue-500 to-blue-600" },
+              { label: "Guru Besar", value: summary.total_guru_besar.toLocaleString(), icon: "🎓", gradient: "from-emerald-500 to-emerald-600" },
+              { label: "Bergelar Doktor", value: summary.total_doktor.toLocaleString(), icon: "📚", gradient: "from-purple-500 to-purple-600" },
+              { label: "Rasio Dosen:Mhs", value: summary.rasio_dosen_mahasiswa, icon: "📊", gradient: "from-pink-500 to-pink-600" },
             ].map((stat, index) => (
               <motion.div
                 key={index}
@@ -314,9 +365,11 @@ export default function DataDosen() {
               <div>
                 <h4 className="font-bold text-gray-800 mb-2">Kualifikasi Dosen Universitas Lampung</h4>
                 <p className="text-sm text-gray-600 leading-relaxed">
-                  Universitas Lampung memiliki 670 dosen berkualitas dengan mayoritas bergelar Magister (52.2%) dan Doktor (42.5%).
-                  Sebanyak 95 dosen telah mencapai jabatan fungsional tertinggi sebagai Guru Besar, menunjukkan komitmen institusi
-                  terhadap pengembangan SDM akademik berkualitas tinggi.
+                  Universitas Lampung memiliki {summary.total_dosen.toLocaleString()} dosen berkualitas dengan mayoritas bergelar
+                  Magister ({pendidikanData.find(p => p.jenjang === 'S2/Magister')?.persentase || 0}%) dan
+                  Doktor ({pendidikanData.find(p => p.jenjang === 'S3/Doktor')?.persentase || 0}%).
+                  Sebanyak {summary.total_guru_besar.toLocaleString()} dosen telah mencapai jabatan fungsional tertinggi sebagai Guru Besar,
+                  menunjukkan komitmen institusi terhadap pengembangan SDM akademik berkualitas tinggi.
                 </p>
               </div>
             </div>

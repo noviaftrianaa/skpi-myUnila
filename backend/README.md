@@ -28,80 +28,135 @@ Microservices architecture untuk backend Portal myUnila - Sistem informasi terin
 ## 🏗 Arsitektur
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    Frontend (Next.js)                   │
-│                   http://localhost:3000                 │
-└────────────────────┬────────────────────────────────────┘
-                     │
-                     │ HTTP Requests
-                     ↓
-┌─────────────────────────────────────────────────────────┐
-│              Kong API Gateway (Port 9800)               │
-│            ┌─────────────────────────────┐              │
-│            │   JWT Authentication        │              │
-│            │   Rate Limiting             │              │
-│            │   CORS Handling             │              │
-│            │   Request Routing           │              │
-│            └─────────────────────────────┘              │
-└──────┬──────────────────┬──────────────────┬───────────┘
-       │                  │                  │
-       │                  │                  │
-   ┌───▼────┐       ┌────▼─────┐      ┌────▼─────┐
-   │ Auth   │       │Dashboard │      │  Other   │
-   │Service │       │ Service  │      │ Services │
-   │Port    │       │Port      │      │  ...     │
-   │8081    │       │8082      │      │          │
-   └───┬────┘       └────┬─────┘      └────┬─────┘
-       │                 │                  │
-       └─────────────────┼──────────────────┘
-                         │
-                         │ External Databases
-                         │
-            ┌────────────┴────────────┐
-            │                         │
-    ┌───────▼────────┐      ┌────────▼──────┐
-    │  SQL Server    │      │  PostgreSQL   │
-    │  (External)    │      │  (External)   │
-    │  Port 1433     │      │  Port 5432    │
-    └────────────────┘      └───────────────┘
-            │
-            │ Shared Infrastructure
-            │
-    ┌───────▼────────┐
-    │     Redis      │
-    │  Cache/Queue   │
-    │  Port 6379     │
-    └────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                     Frontend (Next.js)                               │
+│                    http://localhost:3001                             │
+│   ┌──────────────┬──────────────┬────────────────┬────────────────┐ │
+│   │  Portal UI   │ Kong Admin   │   Monitoring   │  Applications  │ │
+│   │              │ (Developer)  │  (Developer)   │     Catalog    │ │
+│   └──────────────┴──────────────┴────────────────┴────────────────┘ │
+└────────────────────────────┬─────────────────────────────────────────┘
+                             │ HTTP/HTTPS Requests
+                             ↓
+┌──────────────────────────────────────────────────────────────────────┐
+│                    Kong API Gateway (Port 9800)                      │
+│  ┌────────────────────────────────────────────────────────────────┐  │
+│  │  🔐 JWT Authentication  │ 🚦 Rate Limiting  │ 🌐 CORS          │  │
+│  │  🔀 Request Routing     │ 📊 Monitoring     │ ⚡ Load Balancing │  │
+│  └────────────────────────────────────────────────────────────────┘  │
+│  Admin: 9801 │ Manager: 9802 │ UI Dashboard: 9803                    │
+└─┬──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┬───┘
+  │      │      │      │      │      │      │      │      │      │
+  ↓      ↓      ↓      ↓      ↓      ↓      ↓      ↓      ↓      ↓
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                    Current Microservices (Phase 1)                  │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│ ┌────────────┐  ┌────────────┐  ┌────────────┐                    │
+│ │   Auth     │  │ Dashboard  │  │   Sister   │                    │
+│ │  Service   │  │  Service   │  │  Service   │                    │
+│ │ Port: 8081 │  │ Port: 8082 │  │ Port: 8083 │                    │
+│ │            │  │            │  │            │                    │
+│ │ • Login    │  │ • Profile  │  │ • Sync     │                    │
+│ │ • JWT      │  │ • Dashboard│  │ • Sister   │                    │
+│ │ • SSO      │  │ • Apps     │  │ • PDDIKTI  │                    │
+│ │ • MFA      │  │ • Favs     │  │ • Dosen    │                    │
+│ └────────────┘  └────────────┘  └────────────┘                    │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│              Future Microservices (Phase 2-4) 🔜                    │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐  │
+│ │  Feeder  │ │ Akademik │ │Mahasiswa │ │  Dosen   │ │Notif     │  │
+│ │   8084   │ │   8085   │ │   8086   │ │   8087   │ │   8088   │  │
+│ └──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘  │
+│                                                                     │
+│ ┌──────────┐ ┌──────────┐ ┌──────────┐                             │
+│ │   File   │ │ Reporting│ │ Payment  │                             │
+│ │   8089   │ │   8090   │ │   8091   │                             │
+│ └──────────┘ └──────────┘ └──────────┘                             │
+└─────────────────────────────────────────────────────────────────────┘
+         │                                                       │
+         └───────────────────────┬───────────────────────────────┘
+                                 │
+         ┌───────────────────────▼───────────────────────┐
+         │          Shared Infrastructure                │
+         │                                               │
+    ┌────▼─────┐  ┌──────────┐  ┌──────────┐  ┌────────▼────┐
+    │  Redis   │  │  Nginx   │  │PostgreSQL│  │ SQL Server  │
+    │ Port:6379│  │8081-8091 │  │ Port:5432│  │ Port: 1433  │
+    │          │  │          │  │          │  │             │
+    │ • Cache  │  │ • Proxy  │  │ • Kong DB│  │ • auth_db   │
+    │ • Queue  │  │ • SSL    │  │ • Logs   │  │ • dashboard │
+    │ • Pub/Sub│  │ • WS     │  │ • Search │  │ • pddikti   │
+    │ • Session│  │ • LB     │  └──────────┘  │ • akademik  │
+    └──────────┘  └──────────┘                │ • mahasiswa │
+                                              │ • dosen     │
+    ┌──────────┐  ┌──────────┐                │ • etc...    │
+    │  MinIO   │  │ RabbitMQ │                └─────────────┘
+    │  Future  │  │  Future  │
+    │ • Files  │  │ • Queue  │
+    │ • Images │  │ • Events │
+    └──────────┘  └──────────┘
+
+┌──────────────────────────────────────────────────────────────────────┐
+│                   Monitoring & Observability Stack                   │
+│                         (Developer Access Only)                      │
+├──────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  ┌─────────────┐  ┌──────────────┐  ┌─────────────┐  ┌───────────┐ │
+│  │  Grafana    │  │  Prometheus  │  │    Loki     │  │  cAdvisor │ │
+│  │  Port: 3002 │  │  Port: 9090  │  │ Port: 3100  │  │Port: 8090 │ │
+│  │             │  │              │  │             │  │           │ │
+│  │ Dashboards  │←─│   Metrics    │  │ Log Aggr.   │←─│ Container │ │
+│  │ & Alerts    │  │  Database    │  │ 31d Retention│ │  Metrics  │ │
+│  └──────┬──────┘  └──────────────┘  └─────────────┘  └───────────┘ │
+│         │                                                            │
+│         │          ┌───────────────┐  ┌──────────────┐              │
+│         └─────────→│   Promtail    │  │Node Exporter │              │
+│                    │ Log Shipper   │  │ Port: 9100   │              │
+│                    │ 15+ Containers│  │ Host Metrics │              │
+│                    └───────────────┘  └──────────────┘              │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Alur Request:
 
 1. **Frontend** → Kirim request ke Kong Gateway (`:9800`)
-2. **Kong Gateway** → Validasi JWT, routing ke service yang tepat
-3. **Service** (auth/dashboard) → Process request, akses database
+2. **Kong Gateway** → Validasi JWT, rate limiting, routing ke service
+3. **Service** (auth/dashboard/sister) → Process request, akses database
 4. **Database** → SQL Server (eksternal) untuk data persistence
 5. **Redis** → Caching & queue management
+6. **Monitoring** → Prometheus/Loki collect metrics & logs
+7. **Visualization** → Grafana dashboards untuk observability
 
 ---
 
 ## 🚀 Tech Stack
 
-### Core Framework
-- **Laravel** `11.31` - PHP framework dengan modern architecture
+### Core Frameworks
+- **Laravel** `11.31` - PHP framework dengan modern architecture (Auth, Dashboard)
+- **Go** `1.22.6` + **Fiber** `v2` - High-performance Go framework (Sister Service)
 - **PHP** `8.2+` - Latest PHP features & performance
 
 ### API Gateway
 - **Kong Gateway** `3.4` - Cloud-native API Gateway
-- **Konga** - Kong admin GUI untuk management
-- **PostgreSQL** `15` - Kong database
+- **Kong UI Dashboard** - Custom admin interface
+- **PostgreSQL** `9.6` - Kong database
 
 ### Infrastructure
 - **Docker** & **Docker Compose** - Containerization
 - **Nginx** `alpine` - Web server & reverse proxy
-- **Redis** `7-alpine` - Cache & queue backend
+- **Redis** `7-alpine` - Cache, queue & session backend
 
 ### Database Drivers
 - **SQL Server PDO** - Primary database (Microsoft SQL Server)
+  - `auth_db` - Auth Service database
+  - `dashboard_db` - Dashboard Service database
+  - `pddikti` - Sister Service database (PDDIKTI data)
 - **PostgreSQL** - Kong Gateway database
 
 ### Security & Auth
@@ -109,22 +164,34 @@ Microservices architecture untuk backend Portal myUnila - Sistem informasi terin
 - **golang-jwt/jwt** `v5` - JWT validation (Go services)
 - **Laravel Sanctum** - API token authentication
 - **Google2FA** `^2.3` - Two-factor authentication (MFA)
-- **Kong JWT Plugin** - Gateway-level auth
+- **Kong JWT Plugin** - Gateway-level authentication
 
 **JWT Flow**:
 1. User login via Auth Service → receives JWT token
 2. Client includes token in `Authorization: Bearer <token>` header
-3. Services validate JWT signature using shared `JWT_SECRET`
-4. Role-based authorization (e.g., Developer-only endpoints)
+3. Kong Gateway validates JWT before forwarding request
+4. Services re-validate JWT signature using shared `JWT_SECRET`
+5. Role-based authorization (e.g., Developer-only endpoints)
+
+### Monitoring & Observability
+- **Grafana** `latest` - Visualization & dashboards
+- **Prometheus** `latest` - Metrics collection & storage
+- **Loki** `latest` - Log aggregation system (31-day retention)
+- **Promtail** `latest` - Log shipper for Docker containers
+- **cAdvisor** `latest` - Container resource metrics
+- **Node Exporter** `latest` - Host system metrics
+- **Redis Exporter** `latest` - Redis metrics
 
 ### API Documentation
-- **L5-Swagger** - OpenAPI/Swagger documentation generator
+- **L5-Swagger** - OpenAPI/Swagger for Laravel services
+- **Swag** - OpenAPI/Swagger for Go services
 - **Postman Collections** - Pre-configured API testing
 
 ### Development Tools
 - **Laravel Pint** - Code style fixer
 - **Laravel Pail** - Real-time log viewer
 - **PHPUnit** `^11.0` - Unit & feature testing
+- **Air** - Live reload for Go development (optional)
 
 ---
 
@@ -247,7 +314,217 @@ POST /api/v1/referensi/agama/sync       - Sync from Sister API
 
 ---
 
-### 4. **Kong API Gateway** (Port 9800)
+## 🚧 Future Services (In Development)
+
+Berikut adalah microservices yang akan dikembangkan untuk melengkapi ekosistem myUnila:
+
+### 4. **Feeder Service** (Port 8084) - 🔜 Coming Soon
+**Responsibility**: PDDIKTI Feeder Integration & Data Management
+
+**Planned Features**:
+- 🔄 Bi-directional sync dengan Feeder PDDIKTI
+- 📊 Data validation before upload to Feeder
+- 📈 Upload statistics & monitoring
+- 🔍 Data comparison (local vs Feeder)
+- 📝 Audit trail untuk setiap upload
+- ⚠️ Error handling & retry mechanism
+- 📋 Bulk operations support
+
+**Tech Stack**: Go + Fiber (planned)
+**Database**: SQL Server (pddikti)
+
+---
+
+### 5. **Akademik Service** (Port 8085) - 🔜 Coming Soon
+**Responsibility**: Academic Data Management & Operations
+
+**Planned Features**:
+- 📚 Curriculum management (Kurikulum, Mata Kuliah)
+- 📝 Course offerings (Kelas perkuliahan)
+- 📊 Grade management (Nilai mahasiswa)
+- 📅 Academic calendar
+- 🎓 Graduation requirements tracking
+- 📈 Academic analytics & reports
+- 🔍 Transcript generation
+
+**Tech Stack**: Laravel 11 (planned)
+**Database**: SQL Server (akademik_db)
+
+---
+
+### 6. **Mahasiswa Service** (Port 8086) - 🔜 Coming Soon
+**Responsibility**: Student Data Management & Services
+
+**Planned Features**:
+- 👨‍🎓 Student profile management
+- 📋 Student registration (KRS)
+- 💳 Payment management
+- 📄 Document requests (Surat keterangan, Transkrip)
+- 🎯 Academic progress tracking
+- 📊 Student statistics
+- 🏆 Scholarship management
+
+**Tech Stack**: Laravel 11 (planned)
+**Database**: SQL Server (mahasiswa_db)
+
+---
+
+### 7. **Dosen Service** (Port 8087) - 🔜 Coming Soon
+**Responsibility**: Faculty Data Management & Services
+
+**Planned Features**:
+- 👨‍🏫 Faculty profile management
+- 📚 Teaching load management
+- 📝 Grade submission
+- 📊 Teaching evaluation
+- 🔬 Research tracking
+- 📄 Publication management
+- 🎓 Academic advisory
+
+**Tech Stack**: Laravel 11 (planned)
+**Database**: SQL Server (dosen_db)
+
+---
+
+### 8. **Notification Service** (Port 8088) - 🔜 Coming Soon
+**Responsibility**: Multi-channel Notification System
+
+**Planned Features**:
+- 📧 Email notifications
+- 📱 Push notifications (Web & Mobile)
+- 💬 SMS notifications (optional)
+- 📮 In-app notifications
+- 🔔 Real-time notification delivery
+- 📊 Notification analytics
+- ⏰ Scheduled notifications
+- 📝 Notification templates
+
+**Tech Stack**: Go + Fiber + WebSocket (planned)
+**Message Queue**: Redis Pub/Sub or RabbitMQ
+
+---
+
+### 9. **File Service** (Port 8089) - 🔜 Coming Soon
+**Responsibility**: Centralized File Storage & Management
+
+**Planned Features**:
+- 📁 File upload/download
+- 🖼️ Image processing & optimization
+- 📄 Document conversion (PDF, Office)
+- 🗂️ File versioning
+- 🔒 Access control
+- 📊 Storage analytics
+- 🔍 File search & indexing
+- ♻️ Automatic cleanup & archiving
+
+**Tech Stack**: Go + MinIO/S3 (planned)
+**Storage**: MinIO or AWS S3
+
+---
+
+### 10. **Reporting Service** (Port 8090) - 🔜 Coming Soon
+**Responsibility**: Report Generation & Analytics
+
+**Planned Features**:
+- 📊 Custom report builder
+- 📈 Data visualization
+- 📉 Statistical analysis
+- 📅 Scheduled reports
+- 📧 Report distribution
+- 🔍 Advanced filtering
+- 📑 Multiple export formats (PDF, Excel, CSV)
+- 🎨 Template management
+
+**Tech Stack**: Laravel 11 + Chart.js (planned)
+**Database**: SQL Server (reporting_db)
+
+---
+
+### 11. **Payment Service** (Port 8091) - 🔜 Coming Soon
+**Responsibility**: Payment Processing & Financial Management
+
+**Planned Features**:
+- 💳 Payment gateway integration
+- 🧾 Invoice generation
+- 📊 Payment tracking
+- 💰 Refund management
+- 📈 Financial reports
+- 🔔 Payment reminders
+- 🏦 Multiple payment methods
+- 📝 Transaction history
+
+**Tech Stack**: Laravel 11 (planned)
+**Database**: SQL Server (payment_db)
+**Payment Gateways**: Midtrans, Bank Transfer, VA
+
+---
+
+### Service Architecture Overview (Future)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                   Kong API Gateway (:9800)                      │
+│              Central Entry Point for All Services               │
+└────┬────┬────┬────┬────┬────┬────┬────┬────┬────┬────┬────────┘
+     │    │    │    │    │    │    │    │    │    │    │
+     │    │    │    │    │    │    │    │    │    │    │
+┌────▼┐ ┌─▼──┐ ┌▼──┐ ┌▼──┐ ┌▼──┐ ┌▼──┐ ┌▼──┐ ┌▼──┐ ┌▼──┐ ┌▼──┐ ┌▼──┐
+│Auth│ │Dash│ │Sis│ │Feed│ │Akd│ │Mhs│ │Dsn│ │Not│ │Fil│ │Rep│ │Pay│
+│8081│ │8082│ │8083│ │8084│ │8085│ │8086│ │8087│ │8088│ │8089│ │8090│ │8091│
+└─┬──┘ └─┬──┘ └─┬─┘ └─┬─┘ └─┬─┘ └─┬─┘ └─┬─┘ └─┬─┘ └─┬─┘ └─┬─┘ └─┬─┘
+  │      │      │     │     │     │     │     │     │     │     │
+  └──────┴──────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┘
+         │                                                   │
+         │         Shared Infrastructure Layer               │
+         │                                                   │
+    ┌────▼─────────────────────────────────────────────────▼────┐
+    │  Redis    SQL Server    PostgreSQL    MinIO    RabbitMQ   │
+    │  Cache    Databases     Kong DB       Storage  Queue      │
+    └──────────────────────────────────────────────────────────┘
+```
+
+**Legend**:
+- Auth = Auth Service
+- Dash = Dashboard Service
+- Sis = Sister Service
+- Feed = Feeder Service
+- Akd = Akademik Service
+- Mhs = Mahasiswa Service
+- Dsn = Dosen Service
+- Not = Notification Service
+- Fil = File Service
+- Rep = Reporting Service
+- Pay = Payment Service
+
+---
+
+### Development Roadmap
+
+**Phase 1 (Current)** ✅:
+- Auth Service
+- Dashboard Service
+- Sister Service
+- Kong API Gateway
+- Monitoring Stack
+
+**Phase 2 (Q1 2026)** 🔜:
+- Feeder Service
+- Akademik Service
+- Notification Service (basic)
+
+**Phase 3 (Q2 2026)** 📋:
+- Mahasiswa Service
+- Dosen Service
+- File Service
+
+**Phase 4 (Q3 2026)** 📋:
+- Reporting Service
+- Payment Service
+- Advanced Analytics
+
+---
+
+## 🌐 Kong API Gateway (Port 9800)
 **Responsibility**: API Gateway & Traffic Management
 
 **Features**:
@@ -275,19 +552,57 @@ POST /api/v1/referensi/agama/sync       - Sync from Sister API
 
 ---
 
-### 4. **Infrastructure Services**
+## 🏗️ Infrastructure Services
 
-#### Redis (Port 6379)
-- Session storage
-- Cache management
-- Queue backend
-- Rate limiting data
+### Redis (Port 6379)
+**Current Services**:
+- Session storage (Auth Service)
+- Cache management (all services)
+- Queue backend (background jobs)
+- Rate limiting data (Kong Gateway)
 
-#### Nginx (Ports 8081-8082)
-- Reverse proxy untuk services
+**Future Usage**:
+- Pub/Sub for Notification Service
+- Real-time data streaming
+- Distributed locks
+- Leaderboard/ranking data
+
+### Nginx (Ports 8081-8091)
+**Current Services**:
+- Reverse proxy untuk Auth, Dashboard, Sister
 - Static file serving
-- Load balancing
-- SSL termination (production)
+- Request buffering
+- Header manipulation
+
+**Future Services**:
+- Load balancing untuk scaled services
+- SSL/TLS termination (production)
+- Rate limiting per service
+- WebSocket proxy (Notification Service)
+
+### PostgreSQL (Port 5432)
+**Current Usage**:
+- Kong Gateway database
+- Kong Admin data
+
+**Future Usage**:
+- Time-series data (optional)
+- Full-text search (optional)
+- Geospatial data (optional)
+
+### MinIO / S3 (Future)
+**Planned for File Service**:
+- Document storage
+- Image storage
+- Backup storage
+- Static assets CDN
+
+### RabbitMQ (Future)
+**Planned for Message Queue**:
+- Async task processing
+- Inter-service communication
+- Event-driven architecture
+- Notification delivery queue
 
 ---
 
@@ -829,16 +1144,25 @@ php artisan migrate:fresh
 ## 🎨 Frontend Portal
 
 ### Overview
-Frontend Portal Next.js dengan role-based access control dan integrated monitoring tools.
+Frontend Portal Next.js dengan role-based access control dan integrated developer tools.
 
+**Repository**: `my-unila/frontend`
 **URL**: http://localhost:3001
 
 **Key Features**:
 - ✅ Portal aplikasi terintegrasi (70+ apps)
-- ✅ Role-based menu filtering
-- ✅ JWT authentication
+- ✅ Role-based menu filtering (Mahasiswa, Dosen, Admin, Developer)
+- ✅ JWT authentication via Auth Service
 - ✅ Kong Admin management (Developer only)
 - ✅ Monitoring & Observability dashboard (Developer only)
+- ✅ Responsive design (Mobile, Tablet, Desktop)
+- ✅ Real-time notifications
+
+### User Roles & Access
+- **Mahasiswa**: Basic portal access, student applications
+- **Dosen**: Faculty applications, academic tools
+- **Admin**: Administrative tools, user management
+- **Developer**: Full access + Kong Admin + Monitoring tools
 
 ### Developer Tools (Role: Developer)
 
@@ -848,10 +1172,16 @@ Frontend Portal Next.js dengan role-based access control dan integrated monitori
 **Access**: http://localhost:3001/portal/kong-admin
 
 **Features**:
-- Services list with routes
-- API Documentation links (Swagger UI)
-- Kong Admin API access
-- Real-time service status
+- 📋 Services list with routes
+- 📖 API Documentation links (Swagger UI)
+- 🔧 Kong Admin API access
+- 🟢 Real-time service health status
+- 🔍 Route debugging tools
+
+**Available Services**:
+- Auth Service API Docs → http://localhost:8081/api/documentation
+- Dashboard Service API Docs → http://localhost:8082/api/documentation
+- Sister Service API Docs → http://localhost:8083/api/documentation
 
 **Security**:
 - Role-based: Only `Developer` role can access
@@ -859,94 +1189,174 @@ Frontend Portal Next.js dengan role-based access control dan integrated monitori
 - Menu hidden for non-Developer users
 
 #### Monitoring & Observability (`/portal/monitoring`)
-**Purpose**: System monitoring & observability
+**Purpose**: System monitoring, logging & observability
 
 **Access**: http://localhost:3001/portal/monitoring
 
-**Tools Available**:
+**Unified Dashboard for**:
 1. **Grafana** (http://localhost:3002)
-   - Real-time dashboards
-   - Custom visualizations
-   - Multi-datasource support
+   - 🎨 Real-time dashboards
+   - 📊 Custom visualizations
+   - 🔗 Multi-datasource support
+   - 📈 Pre-configured "MyUnila Application Logs" dashboard
+   - 🔔 Alert management
 
 2. **Prometheus** (http://localhost:9090)
-   - Time-series metrics database
-   - PromQL query language
-   - Service discovery
+   - ⏱️ Time-series metrics database
+   - 🔍 PromQL query language
+   - 🎯 Service discovery & scraping
+   - 📉 Target health monitoring
 
 3. **Loki** (http://localhost:3100)
-   - Log aggregation system
-   - LogQL query language
-   - 31-day retention
+   - 📝 Log aggregation system
+   - 🔎 LogQL query language
+   - 🗄️ 31-day log retention
+   - 🏷️ Label-based indexing
 
-4. **Promtail**
-   - Docker log collection
-   - 15 containers monitored
-   - Auto-discovery
+4. **Promtail** (Background Service)
+   - 📦 Docker log collection
+   - 🔄 Auto-discovery (15+ containers)
+   - 🚀 Real-time log streaming
 
 5. **cAdvisor** (http://localhost:8090)
-   - Container resource metrics
-   - Memory & CPU stats
-   - Network statistics
+   - 📊 Container resource metrics
+   - 💾 Memory & CPU statistics
+   - 🌐 Network I/O stats
+   - 💽 Disk usage monitoring
 
 6. **Node Exporter** (http://localhost:9100)
-   - Host system metrics
-   - 1500+ metrics exposed
+   - 🖥️ Host system metrics
+   - 📈 1500+ metrics exposed
+   - 🔋 CPU, RAM, Disk, Network
+
+**Quick Actions**:
+- View all application logs in Grafana
+- Query specific errors or exceptions
+- Monitor container resource usage
+- Track API response times
+- Alert on service failures
 
 **Security**:
 - Role-based: Only `Developer` role can access
 - JWT authentication required
 - Unified access point for all monitoring tools
+- Grafana credentials: `admin` / `makinjaya`
 
 ---
 
 ## 📊 Monitoring Stack
 
+### Overview
+Comprehensive monitoring & observability stack untuk production-ready system monitoring.
+
 ### Architecture
 
 ```
-Container Logs → Promtail → Loki → Grafana
-Container/System Metrics → Exporters → Prometheus → Grafana
+┌─────────────────────────────────────────────────────────────┐
+│                     Data Collection                         │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Container Logs → Promtail → Loki (31d retention)          │
+│                                                             │
+│  Containers     → cAdvisor  → Prometheus                    │
+│  Host System    → Node Exp. → Prometheus                    │
+│  Redis          → Redis Exp.→ Prometheus                    │
+│                                                             │
+│                           ↓                                 │
+│                     ┌──────────┐                            │
+│                     │ Grafana  │                            │
+│                     │ Port 3002│                            │
+│                     └──────────┘                            │
+│                                                             │
+│  📊 Dashboards  📝 Logs  🔔 Alerts  📈 Metrics             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ### Quick Start Monitoring
 
 ```bash
-# Start monitoring stack
+# 1. Start core services first
+docker-compose up -d
+
+# 2. Start monitoring stack
 docker-compose -f docker-compose-monitoring.yml up -d
 
-# Check status
-docker ps --filter "name=myunila" | grep -E "grafana|prometheus|loki"
+# 3. Wait for all services to be healthy (~30 seconds)
+docker ps --filter "name=myunila"
 
-# Access Grafana
+# 4. Access Grafana
 open http://localhost:3002
-# Default login: admin / admin
+# Login: admin / makinjaya
+
+# 5. Navigate to "MyUnila - Application Logs" dashboard
+# Pre-configured at: http://localhost:3002/d/myunila-logs
 ```
+
+### Monitoring Components
+
+| Component | Port | Purpose | Retention |
+|-----------|------|---------|-----------|
+| **Grafana** | 3002 | Visualization & Dashboards | N/A |
+| **Prometheus** | 9090 | Metrics Database | 15 days |
+| **Loki** | 3100 | Log Storage | 31 days |
+| **Promtail** | - | Log Shipper (15 containers) | N/A |
+| **cAdvisor** | 8090 | Container Metrics | N/A |
+| **Node Exporter** | 9100 | Host Metrics | N/A |
+| **Redis Exporter** | 9121 | Redis Metrics | N/A |
 
 ### Pre-configured Dashboards
 
-**MyUnila - Application Logs**:
-- URL: http://localhost:3002/d/myunila-logs
-- Description: All application logs in one dashboard
-- Features: Real-time logs, error filtering, container filtering
+**1. MyUnila - Application Logs** (Main Dashboard)
+- **URL**: http://localhost:3002/d/myunila-logs
+- **Description**: Centralized application logs dari semua containers
+- **Features**:
+  - 📊 Real-time log streaming
+  - 🔍 Full-text search & filtering
+  - 🏷️ Container-based filtering
+  - ⚠️ Error/Exception highlighting
+  - 📈 Log volume charts
+  - ⏱️ Customizable time ranges
 
-**System Overview**:
-- URL: http://localhost:3002/dashboards
-- Description: CPU, Memory, Disk, Network metrics
+**2. Container Resource Metrics**
+- **URL**: Auto-created via Prometheus datasource
+- **Description**: Docker container resource monitoring
+- **Metrics**:
+  - 💾 Memory usage per container
+  - ⚡ CPU usage & throttling
+  - 🌐 Network I/O (RX/TX)
+  - 💽 Disk I/O & usage
+  - 🔄 Container restart counts
 
-**Container Metrics**:
-- URL: http://localhost:3002/dashboards
-- Description: Docker container resource usage
+**3. System Overview**
+- **URL**: Auto-created via Node Exporter
+- **Description**: Host system monitoring
+- **Metrics**:
+  - 🖥️ CPU load & utilization
+  - 💾 Memory & swap usage
+  - 💽 Disk space & I/O
+  - 🌐 Network interfaces
+  - ⏰ System uptime
+
+**4. Redis Metrics**
+- **URL**: Auto-created via Redis Exporter
+- **Description**: Redis performance monitoring
+- **Metrics**:
+  - 📊 Commands per second
+  - 💾 Memory usage & fragmentation
+  - 🔑 Keyspace statistics
+  - 👥 Connected clients
+  - 🔄 Evicted & expired keys
 
 ### Monitoring Endpoints
 
-| Service | URL | Purpose |
-|---------|-----|---------|
-| Grafana | http://localhost:3002 | Visualization & Dashboards |
-| Prometheus | http://localhost:9090 | Metrics Database |
-| Loki | http://localhost:3100 | Log Storage |
-| cAdvisor | http://localhost:8090 | Container Metrics |
-| Node Exporter | http://localhost:9100 | System Metrics |
+| Service | URL | Purpose | Credentials |
+|---------|-----|---------|-------------|
+| **Grafana** | http://localhost:3002 | Visualization & Dashboards | `admin` / `makinjaya` |
+| **Prometheus** | http://localhost:9090 | Metrics Database & PromQL | None |
+| **Loki** | http://localhost:3100 | Log Storage API | None |
+| **cAdvisor** | http://localhost:8090 | Container Metrics UI | None |
+| **Node Exporter** | http://localhost:9100 | System Metrics (raw) | None |
+| **Redis Exporter** | http://localhost:9121 | Redis Metrics (raw) | None |
 
 ### Service Health Checks
 

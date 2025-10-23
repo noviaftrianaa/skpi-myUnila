@@ -160,7 +160,7 @@ export default function Navbar() {
                 size="sm"
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold px-4 sm:px-6 md:px-8 py-1 shadow-md rounded-lg text-xs sm:text-sm"
               >
-                Login SSO
+                Login ke Portal
               </Button>
             )}
           </NavbarItem>

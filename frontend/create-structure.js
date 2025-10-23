@@ -200,7 +200,7 @@ export function createClient(baseURL: string): AxiosInstance {
 `);
 
 createFile(path.join(basePath, 'shared/api/config.ts'), `export const API_CONFIG = {
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
   timeout: 30000,
 };
 `);

@@ -1,16 +1,73 @@
-# Dashboard Service - MyUnila Backend
+# Dashboard Service - MyUnila User Dashboard & Profile
+
+Laravel-based dashboard & profile management service untuk Portal myUnila.
+
+![Laravel](https://img.shields.io/badge/Laravel-11.31-FF2D20?logo=laravel)
+![PHP](https://img.shields.io/badge/PHP-8.2-777BB4?logo=php)
+![JWT](https://img.shields.io/badge/JWT-Authenticated-000000?logo=jsonwebtokens)
+
+## 📋 Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
+- [Installation](#installation)
+- [API Endpoints](#api-endpoints)
+- [Testing](#testing)
+- [Troubleshooting](#troubleshooting)
+
+---
 
 ## Overview
 
-Dashboard Service adalah microservice public yang menyediakan informasi umum tentang Universitas Lampung untuk ditampilkan di homepage frontend. Service ini tidak memerlukan authentication (public endpoint).
+Dashboard Service adalah microservice yang bertanggung jawab untuk:
+- ✅ User dashboard data & personalization
+- ✅ User profile management (public & protected)
+- ✅ Application catalog (70+ integrated apps)
+- ✅ Favorites management
+- ✅ Announcements & news
+- ✅ Statistics & analytics
+- ✅ University public information
+
+**Service URL**: http://localhost:8082
+**Via Kong Gateway**: http://localhost:9800/dashboard-service
+
+---
 
 ## Features
 
-✅ **Public API** - Tidak perlu authentication
-✅ **University Profile** - Informasi lengkap tentang Universitas Lampung
-✅ **Quick Facts** - Data statistik universitas
-✅ **Contact Information** - Informasi kontak dan lokasi
-✅ **CORS Enabled** - Bisa diakses dari frontend
+### 🏠 Dashboard
+- **Personalized Dashboard** - User-specific dashboard data
+- **Quick Access** - Favorite applications for quick access
+- **Recent Activity** - User activity tracking
+- **Announcements** - Important announcements display
+- **Statistics** - Usage statistics & analytics
+
+### 👤 User Profile
+- **Public Profile** - University profile information (no auth)
+- **User Profile** - Authenticated user profile data
+- **Profile Update** - Update user information
+- **Avatar Management** - Profile picture upload/update
+- **Preferences** - User preferences & settings
+
+### 📱 Application Catalog
+- **70+ Applications** - Integrated university applications
+- **Role-based Filtering** - Apps filtered by user role
+- **Categories** - Apps grouped by category
+- **Search & Filter** - Find apps quickly
+- **Favorites** - Save favorite apps for quick access
+
+### 📢 Announcements & News
+- **Announcements** - Important system announcements
+- **News Feed** - University news & updates
+- **Categories** - Filtered by category (Academic, Events, etc.)
+- **Read Tracking** - Track read/unread announcements
+
+### 📊 Statistics
+- **Usage Analytics** - User activity statistics
+- **Application Usage** - Most used applications
+- **System Statistics** - Overall system usage stats
 
 ---
 
