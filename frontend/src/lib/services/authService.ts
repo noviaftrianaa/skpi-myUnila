@@ -15,7 +15,7 @@ import type {
   LoginResponse,
   RefreshTokenResponse,
   UserResponse,
-} from '@/lib/types/auth.types';
+} from '@/lib/types/authTypes';
 
 /**
  * Auth Service Class

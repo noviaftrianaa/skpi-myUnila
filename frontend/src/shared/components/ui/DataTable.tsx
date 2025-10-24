@@ -160,9 +160,9 @@ export default function DataTable<T extends Record<string, any>>({
 
   const content = (
     <>
-      {/* Search & Controls Bar */}
-      <div className={`px-4 sm:px-6 py-4 sm:py-5 bg-blue-600 ${!noWrapper ? 'rounded-t-2xl' : 'rounded-t-xl'}`}>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-center">
+      {/* Search & Controls Bar - Modern Design */}
+      <div className={`px-6 py-3 bg-gradient-to-r from-slate-50 via-white to-slate-50 border-b border-gray-200 ${!noWrapper ? 'rounded-t-2xl' : 'rounded-t-xl'}`}>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
           {/* Filter (jika ada) - Kiri */}
           {filterSlot && (
             <div className="lg:col-span-3">
@@ -177,12 +177,17 @@ export default function DataTable<T extends Record<string, any>>({
                 isClearable
                 classNames={{
                   base: "w-full",
-                  inputWrapper: "bg-white/95 backdrop-blur-sm shadow-sm h-10 rounded-lg border-0 focus-within:bg-white focus-within:shadow-md transition-all",
-                  input: "text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none",
-                  clearButton: "text-slate-400 hover:text-slate-600",
+                  inputWrapper: "bg-white shadow-sm h-9 rounded-xl border border-gray-200 hover:border-blue-400 focus-within:border-blue-500 focus-within:shadow-lg focus-within:ring-2 focus-within:ring-blue-100 transition-all duration-200",
+                  input: "text-sm text-gray-700 placeholder:text-gray-400",
+                  clearButton: "text-gray-400 hover:text-gray-600",
                 }}
                 placeholder={searchPlaceholder}
                 size="md"
+                startContent={
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                }
                 value={searchValue}
                 onValueChange={(value) => {
                   setSearchValue(value);
@@ -196,8 +201,8 @@ export default function DataTable<T extends Record<string, any>>({
           )}
 
           {/* Rows per page selector - Kanan */}
-          <div className="lg:col-span-3 flex gap-2 items-center justify-start lg:justify-end">
-            <span className="text-white font-semibold text-sm whitespace-nowrap">Tampilkan</span>
+          <div className="lg:col-span-3 flex gap-3 items-center justify-start lg:justify-end">
+            <span className="text-gray-600 font-medium text-sm whitespace-nowrap">Tampilkan</span>
             <Select
               size="sm"
               selectedKeys={[selectedKey]}
@@ -223,10 +228,10 @@ export default function DataTable<T extends Record<string, any>>({
               }}
               classNames={{
                 base: "w-20",
-                trigger: "bg-white h-10 min-h-0 rounded-lg shadow-sm hover:shadow-md transition-all",
-                value: "text-sm font-semibold pr-2 text-slate-700",
-                selectorIcon: "right-2 text-slate-400",
-                popoverContent: "bg-white rounded-lg shadow-xl",
+                trigger: "bg-white h-9 min-h-0 rounded-xl border border-gray-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all duration-200",
+                value: "text-sm font-semibold text-gray-700",
+                selectorIcon: "text-gray-500",
+                popoverContent: "bg-white rounded-xl shadow-2xl border border-gray-100",
               }}
             >
               {selectItems.map((item) => (
@@ -259,10 +264,10 @@ export default function DataTable<T extends Record<string, any>>({
           classNames={{
             base: "min-w-full",
             table: "min-w-full",
-            thead: "[&>tr]:bg-white",
-            th: "bg-white text-gray-900 font-bold text-[11px] uppercase tracking-wide border-b-2 border-gray-200 px-4 py-3 first:pl-0 last:pr-0",
-            td: "text-xs border-b border-gray-100 px-4 py-3.5 first:pl-0 last:pr-0",
-            tr: "hover:bg-blue-50/50 transition-colors duration-150",
+            thead: "[&>tr]:bg-gradient-to-b [&>tr]:from-gray-50 [&>tr]:to-gray-100/80",
+            th: "bg-transparent text-gray-700 font-bold text-xs uppercase tracking-wider border-b-2 border-gray-300 px-5 py-4 first:pl-0 last:pr-0 shadow-sm",
+            td: "text-sm text-gray-700 px-5 py-4 first:pl-0 last:pr-0",
+            tr: "border-b border-gray-100 hover:bg-gradient-to-r hover:from-blue-50/50 hover:via-blue-50/30 hover:to-transparent hover:shadow-sm transition-all duration-200 [&:nth-child(odd)]:bg-gray-50/30",
           }}
         >
           <TableHeader>
@@ -274,11 +279,11 @@ export default function DataTable<T extends Record<string, any>>({
               >
                 {column.sortable ? (
                   <div
-                    className="flex items-center gap-1 cursor-pointer select-none hover:text-blue-600 transition-colors"
+                    className="flex items-center gap-2 cursor-pointer select-none hover:text-blue-600 transition-colors group"
                     onClick={() => handleSort(column.key)}
                   >
                     {column.headerRender ? column.headerRender() : column.label}
-                    <div className="flex flex-col">
+                    <div className="flex flex-col opacity-60 group-hover:opacity-100 transition-opacity">
                       <svg
                         className={`w-3 h-3 -mb-1 transition-colors ${sortColumn === column.key && sortDirection === "asc" ? "text-blue-600" : "text-gray-400"}`}
                         fill="currentColor"
@@ -321,11 +326,11 @@ export default function DataTable<T extends Record<string, any>>({
         </Table>
       </div>
 
-      {/* Pagination Footer */}
-      <div className={`px-6 py-4 border-t border-gray-200 bg-gray-50/50 ${!noWrapper ? 'rounded-b-2xl' : 'rounded-b-xl'}`}>
+      {/* Pagination Footer - Modern Design */}
+      <div className={`px-6 py-3 border-t border-gray-200 bg-gradient-to-r from-slate-50 via-white to-slate-50 ${!noWrapper ? 'rounded-b-2xl' : 'rounded-b-xl'}`}>
         <div className="flex flex-col sm:flex-row gap-3 justify-between items-center">
           {/* Info */}
-          <div className="text-xs text-gray-600 font-medium">
+          <div className="text-sm text-gray-600 font-medium">
             Menampilkan{" "}
             <span className="font-bold text-blue-600">
               {totalDataCount === 0 ? 0 : (page - 1) * rowsPerPage + 1}
@@ -353,10 +358,10 @@ export default function DataTable<T extends Record<string, any>>({
               showControls
               classNames={{
                 wrapper: "gap-1.5",
-                item: "min-w-8 w-8 h-8 text-xs bg-white border border-gray-300 font-semibold hover:bg-blue-50 hover:border-blue-400 transition-colors rounded-lg",
-                cursor: "bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold shadow-lg border-0 rounded-lg",
-                prev: "min-w-8 w-8 h-8 bg-white border border-gray-300 hover:bg-blue-50 hover:border-blue-400 rounded-lg",
-                next: "min-w-8 w-8 h-8 bg-white border border-gray-300 hover:bg-blue-50 hover:border-blue-400 rounded-lg",
+                item: "min-w-8 w-8 h-8 text-xs bg-white border border-gray-200 font-semibold hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 transition-all duration-200 rounded-lg shadow-sm",
+                cursor: "bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-lg hover:shadow-xl border-0 rounded-lg scale-105",
+                prev: "min-w-8 w-8 h-8 bg-white border border-gray-200 hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 rounded-lg shadow-sm transition-all duration-200",
+                next: "min-w-8 w-8 h-8 bg-white border border-gray-200 hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 rounded-lg shadow-sm transition-all duration-200",
               }}
             />
           )}
@@ -374,7 +379,7 @@ export default function DataTable<T extends Record<string, any>>({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden ${className}`}
+      className={`bg-white rounded-2xl shadow-lg hover:shadow-xl border border-gray-200 overflow-hidden transition-shadow duration-300 ${className}`}
     >
       {content}
     </motion.div>

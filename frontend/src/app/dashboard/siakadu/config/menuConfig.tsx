@@ -16,7 +16,7 @@ import {
   FiClipboard,
 } from "react-icons/fi";
 import { MdDashboard, MdSchool } from "react-icons/md";
-import type { MenuItem } from "@/lib/types/dashboard.types";
+import type { MenuItem } from "@/lib/types/dashboardTypes";
 
 export const siakaduMenuConfig: MenuItem[] = [
   {

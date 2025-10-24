@@ -27,20 +27,20 @@ export default function BottomNav() {
       )
     },
     {
-      name: "Akademik",
-      href: "/akademik",
-      icon: (
-        <svg className="w-7 h-7 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-          <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
-        </svg>
-      )
-    },
-    {
       name: "Layanan",
       href: "/layanan",
       icon: (
         <svg className="w-7 h-7 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
           <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
+        </svg>
+      )
+    },
+    {
+      name: "Tentang",
+      href: "/tentang",
+      icon: (
+        <svg className="w-7 h-7 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
         </svg>
       )
     },
@@ -57,55 +57,79 @@ export default function BottomNav() {
       <div className="flex items-center justify-around h-20 px-2 max-w-md mx-auto">
         {navItems.map((item) => {
           const active = isActive(item.href);
+          const isExternal = item.href.startsWith('http');
+          const Component = isExternal ? 'a' : Link;
 
           return (
-            <Link
+            <Component
               key={item.name}
               href={item.href}
-              className="relative flex flex-col items-center justify-center flex-1 h-full group"
+              className="relative flex flex-col items-center justify-center flex-1 h-full group transition-all duration-300"
             >
-              {/* Active Background */}
-              {active && (
-                <motion.div
-                  layoutId="bottom-nav-indicator"
-                  className="absolute inset-0 mx-2 rounded-2xl bg-gradient-blue-modern/10"
-                  initial={false}
-                  transition={{
-                    type: "spring",
-                    stiffness: 380,
-                    damping: 30,
-                  }}
-                />
-              )}
+              {/* Active/Hover Background */}
+              <motion.div
+                className={`
+                  absolute inset-0 mx-2 rounded-2xl transition-all duration-300
+                  ${active
+                    ? 'bg-gradient-to-br from-blue-50 to-indigo-50 shadow-sm'
+                    : 'bg-transparent group-hover:bg-gray-50'
+                  }
+                `}
+                animate={{
+                  scale: active ? 1 : 0.95,
+                  opacity: active ? 1 : 0,
+                }}
+                whileHover={{
+                  scale: 1,
+                  opacity: 1,
+                }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 25,
+                }}
+              />
 
               {/* Icon */}
               <motion.div
-                className="relative"
+                className="relative z-10"
                 animate={{
-                  scale: active ? 1.1 : 1,
+                  scale: active ? 1.05 : 1,
+                  y: active ? -2 : 0,
+                }}
+                whileHover={{
+                  scale: 1.1,
+                  y: -3,
+                }}
+                whileTap={{
+                  scale: 0.95,
                 }}
                 transition={{ duration: 0.2 }}
               >
                 <div
                   className={`
-                    mb-1 transition-all duration-200
-                    ${active ? 'text-myunila drop-shadow-lg' : 'text-gray-400 group-hover:text-myunila'}
+                    mb-1 transition-all duration-300
+                    ${active
+                      ? 'text-myunila filter drop-shadow-[0_2px_8px_rgba(59,130,246,0.3)]'
+                      : 'text-gray-400 group-hover:text-myunila group-hover:drop-shadow-[0_2px_4px_rgba(59,130,246,0.2)]'
+                    }
                   `}
                 >
                   {item.icon}
                 </div>
 
-                {/* Active Dot */}
+                {/* Active Indicator Dot */}
                 {active && (
                   <motion.div
                     layoutId="bottom-nav-dot"
-                    className="absolute -top-1 -right-1 w-2 h-2 bg-gradient-blue-modern rounded-full"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1 w-2 h-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full shadow-lg"
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
                     transition={{
                       type: "spring",
-                      stiffness: 500,
-                      damping: 30,
+                      stiffness: 400,
+                      damping: 20,
                     }}
                   />
                 )}
@@ -114,22 +138,24 @@ export default function BottomNav() {
               {/* Label */}
               <motion.span
                 className={`
-                  text-xs font-semibold transition-colors duration-200 relative z-10
-                  ${active ? 'text-myunila' : 'text-gray-500 group-hover:text-myunila'}
+                  text-xs font-semibold transition-all duration-300 relative z-10
+                  ${active
+                    ? 'text-myunila font-bold'
+                    : 'text-gray-500 group-hover:text-myunila group-hover:font-semibold'
+                  }
                 `}
                 animate={{
-                  y: active ? -2 : 0,
+                  y: active ? 0 : 0,
+                  scale: active ? 1.05 : 1,
                 }}
+                whileHover={{
+                  scale: 1.05,
+                }}
+                transition={{ duration: 0.2 }}
               >
                 {item.name}
               </motion.span>
-
-              {/* Ripple Effect on Tap */}
-              <motion.div
-                className="absolute inset-0"
-                whileTap={{ scale: 0.95 }}
-              />
-            </Link>
+            </Component>
           );
         })}
       </div>

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { FaBook } from 'react-icons/fa';
-import { dashboardService } from '@/lib/services/dashboard.service';
-import type { Kurikulum, SemesterMataKuliah } from '@/lib/types/dashboard.types';
+import { dashboardService } from '@/lib/services/dashboardService';
+import type { Kurikulum, SemesterMataKuliah } from '@/lib/types/dashboardTypes';
 
 interface KurikulumListProps {
   programStudiId: string;

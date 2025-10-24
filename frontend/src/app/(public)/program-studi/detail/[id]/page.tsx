@@ -19,8 +19,8 @@ import {
   FaTrophy,
   FaHandshake,
 } from 'react-icons/fa';
-import { dashboardService } from '@/lib/services/dashboard.service';
-import type { ProgramStudiDetail } from '@/lib/types/dashboard.types';
+import { dashboardService } from '@/lib/services/dashboardService';
+import type { ProgramStudiDetail } from '@/lib/types/dashboardTypes';
 import DosenTable from '@/shared/components/DosenTable';
 import MahasiswaTrendChart from '@/shared/components/MahasiswaTrendChart';
 import KurikulumList from '@/shared/components/KurikulumList';

@@ -19,7 +19,7 @@ import {
 import { MdDashboard, MdSync } from "react-icons/md";
 import { BsCloudUpload, BsCloudDownload } from "react-icons/bs";
 import { RiDashboardFill } from "react-icons/ri";
-import type { MenuItem } from "@/lib/types/dashboard.types";
+import type { MenuItem } from "@/lib/types/dashboardTypes";
 
 export const feederIntegratorMenuConfig: MenuItem[] = [
   {

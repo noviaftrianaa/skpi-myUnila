@@ -18,19 +18,21 @@ export default function FiturIntegrasi() {
 
   const fiturCategories = [
     {
-      name: "Akademik",
+      name: "Akademik & Kemahasiswaan",
       icon: "🎓",
       color: "blue",
       systems: [
-        "Siakadu - Sistem Akademik Universitas",
-        "E-Learning - Platform Pembelajaran Daring",
-        "Siakad Profesi Guru - Sistem Profesi Guru",
+        "Siakadu Reguler",
+        "Siakad Profesi Guru",
+        "Siakad Profesi Dokter",
+        "E-Learning - Platform Pembelajaran",
         "Kampus Berdampak / MBKM",
-        "Portal Mahasiswa",
-        "Portal Dosen",
-        "Repositori Tugas Akhir",
-        "E-Journal",
+        "E-KKN",
         "Perpustakaan Digital",
+        "SKPI",
+        "SI Prestasi",
+        "Asesmen Online BK",
+        "Tracer Studi",
       ],
     },
     {
@@ -38,26 +40,20 @@ export default function FiturIntegrasi() {
       icon: "🏛️",
       color: "indigo",
       systems: [
-        "Simanila - Sistem Manajemen Unila",
-        "SPMI - Penjaminan Mutu Internal",
-        "Surat Menyurat Elektronik",
-        "Sistem Arsip Digital",
+        "Sistem Penjaminan Mutu Internal",
+        "Sistem Administrasi Surat",
         "Manajemen Aset",
-        "Monitoring Kinerja",
-        "Dashboard Eksekutif",
+        "Dashboard IKU",
+        "Dashboard Pimpinan",
       ],
     },
     {
-      name: "SDM & Kepegawaian",
+      name: "Kepegawaian",
       icon: "👥",
       color: "emerald",
       systems: [
-        "SISTER - Sumber Daya Terintegrasi",
-        "Kepegawaian Online",
-        "Presensi & Absensi",
-        "Penilaian Kinerja",
-        "Pengembangan Karir",
-        "Cuti & Izin Online",
+        "SIKEP - Sistem Informasi Kepegawaian",
+        "SIRANDU - Sistem Presensi dan Cuti",
       ],
     },
     {
@@ -65,11 +61,9 @@ export default function FiturIntegrasi() {
       icon: "💰",
       color: "amber",
       systems: [
-        "Sistem Pembayaran UKT",
-        "Pengelolaan Anggaran",
-        "Pelaporan Keuangan",
-        "E-Billing",
-        "Rekonsiliasi Bank",
+        "REMUN - Sistem Remunerasi Dosen/Tendik",
+        "SIMPONILA - Sistem Informasi PNBP Online",
+        "SIKEBAS - Sistem Keringanan dan Bebas UKT",
       ],
     },
     {
@@ -77,36 +71,7 @@ export default function FiturIntegrasi() {
       icon: "🔬",
       color: "purple",
       systems: [
-        "Sistem Proposal Penelitian",
-        "Monitoring Penelitian",
-        "Publikasi & HAKI",
-        "Pengabdian Masyarakat",
-        "Jurnal Elektronik",
-      ],
-    },
-    {
-      name: "Kemahasiswaan",
-      icon: "🎒",
-      color: "pink",
-      systems: [
-        "PKM - Program Kreativitas Mahasiswa",
-        "Beasiswa Online",
-        "UKM & Organisasi",
-        "Tracer Study Alumni",
-        "Layanan Konseling",
-        "Prestasi Mahasiswa",
-      ],
-    },
-    {
-      name: "Layanan Umum",
-      icon: "🏥",
-      color: "rose",
-      systems: [
-        "SIMRS - Rumah Sakit",
-        "Legalisir Online",
-        "Penerimaan Mahasiswa Baru",
-        "Portal Stakeholder",
-        "Pengaduan & Keluhan",
+        "SILEMLIT21 - Sistem Layanan Penelitian dan Pengabdian Masyarakat",
       ],
     },
     {
@@ -114,11 +79,21 @@ export default function FiturIntegrasi() {
       icon: "📊",
       color: "cyan",
       systems: [
-        "PDDIKTI Integration",
-        "Business Intelligence",
-        "Data Warehouse",
-        "Statistik & Analitik",
-        "Pelaporan Otomatis",
+        "Integrator Feeder/PDDIKTI",
+        "Integrator SISTER",
+        "myUnila Web Service",
+      ],
+    },
+    {
+      name: "Layanan Umum",
+      icon: "🌐",
+      color: "rose",
+      systems: [
+        "Marketlab - Marketplace Laboratorium",
+        "PMB Mandiri Simanila",
+        "Helpdesk TIK",
+        "Hummas dan Informasi",
+        "Blog Resmi UNILA",
       ],
     },
   ];
@@ -186,22 +161,18 @@ export default function FiturIntegrasi() {
           </motion.div>
 
           {/* Stats */}
-          <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+          <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
             <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg text-center">
               <div className="text-4xl font-bold mb-1">70+</div>
               <div className="text-sm font-semibold opacity-90">Sistem Terintegrasi</div>
             </div>
             <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg text-center">
-              <div className="text-4xl font-bold mb-1">8</div>
+              <div className="text-4xl font-bold mb-1">7</div>
               <div className="text-sm font-semibold opacity-90">Kategori Layanan</div>
             </div>
             <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg text-center">
               <div className="text-4xl font-bold mb-1">25K+</div>
               <div className="text-sm font-semibold opacity-90">Pengguna Aktif</div>
-            </div>
-            <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl p-6 text-white shadow-lg text-center">
-              <div className="text-4xl font-bold mb-1">99.9%</div>
-              <div className="text-sm font-semibold opacity-90">Uptime</div>
             </div>
           </motion.div>
 

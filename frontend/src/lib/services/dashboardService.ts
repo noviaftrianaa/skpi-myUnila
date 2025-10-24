@@ -26,10 +26,10 @@ import type {
   TracerStudyResponse,
   UnilaStatisticsResponse,
   UnilaProfileResponse,
-} from '@/lib/types/dashboard.types';
+} from '@/lib/types/dashboardTypes';
 
 // Dashboard Service Base URL - Via Kong Gateway
-const DASHBOARD_API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/public/api/v1';
 
 /**
  * Dashboard Service Class

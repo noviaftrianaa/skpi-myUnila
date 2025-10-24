@@ -13,6 +13,7 @@ use App\Http\Controllers\OpenApi\PublikasiController;
 use App\Http\Controllers\OpenApi\PenelitianController;
 use App\Http\Controllers\OpenApi\KelulusanController;
 use App\Http\Controllers\OpenApi\CapaianLulusanController;
+use App\Http\Controllers\SurveyController;
 
 /*
 |--------------------------------------------------------------------------
@@ -108,6 +109,14 @@ Route::prefix('v1')->group(function () {
     // Capaian Lulusan (Tracer Study)
     Route::prefix('capaian-lulusan')->group(function () {
         Route::get('/statistics', [CapaianLulusanController::class, 'getStatistics']);
+    });
+
+    // Survey
+    Route::prefix('survey')->group(function () {
+        Route::get('/{slug}', [SurveyController::class, 'getSurvey']);
+        Route::post('/{slug}/submit', [SurveyController::class, 'submitSurvey']);
+        Route::get('/{slug}/statistics', [SurveyController::class, 'getStatistics']);
+        Route::get('/{slug}/analytics/{questionCode}', [SurveyController::class, 'getQuestionAnalytics']);
     });
 
     // TODO: Add more public endpoints

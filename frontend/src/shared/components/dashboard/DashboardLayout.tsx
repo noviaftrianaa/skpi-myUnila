@@ -4,7 +4,7 @@ import { ReactNode, useState } from "react";
 import Sidebar from "./Sidebar";
 import DashboardNavbar from "./DashboardNavbar";
 import BottomNavigation from "./BottomNavigation";
-import type { MenuItem } from "@/lib/types/dashboard.types";
+import type { MenuItem } from "@/lib/types/dashboardTypes";
 
 interface DashboardLayoutProps {
   children: ReactNode;

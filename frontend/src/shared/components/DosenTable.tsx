@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { FaMale, FaFemale } from 'react-icons/fa';
-import { dashboardService } from '@/lib/services/dashboard.service';
-import type { Dosen } from '@/lib/types/dashboard.types';
+import { dashboardService } from '@/lib/services/dashboardService';
+import type { Dosen } from '@/lib/types/dashboardTypes';
 import DataTable, { Column } from '@/shared/components/ui/DataTable';
 
 interface DosenTableProps {

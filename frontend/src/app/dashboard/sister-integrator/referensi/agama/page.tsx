@@ -4,16 +4,11 @@ import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DataTable, { type Column } from "@/shared/components/ui/DataTable";
 import {
   Card,
   CardBody,
   Button,
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
   Chip,
   Progress,
   Modal,
@@ -22,7 +17,6 @@ import {
   ModalBody,
   ModalFooter,
   Spinner,
-  Avatar,
 } from "@heroui/react";
 import {
   FiRefreshCw,
@@ -32,6 +26,7 @@ import {
   FiDatabase,
   FiDownload,
   FiArrowLeft,
+  FiUser,
 } from "react-icons/fi";
 import { MdSync, MdCloudDone } from "react-icons/md";
 import { RiGovernmentFill } from "react-icons/ri";
@@ -145,6 +140,78 @@ export default function AgamaPage() {
     });
   };
 
+  // Define DataTable columns
+  const columns: Column<AgamaData>[] = [
+    {
+      key: "no",
+      label: "NO",
+      width: "60px",
+      align: "center",
+      render: (_item, index) => (
+        <span className="font-semibold text-gray-700">{(index ?? 0) + 1}</span>
+      ),
+    },
+    {
+      key: "id_agama",
+      label: "ID AGAMA",
+      width: "100px",
+      sortable: true,
+      render: (item) => (
+        <span className="font-mono text-sm font-semibold text-purple-600 dark:text-purple-400">
+          {item.id_agama}
+        </span>
+      ),
+    },
+    {
+      key: "nama_agama",
+      label: "NAMA AGAMA",
+      sortable: true,
+      render: (item) => (
+        <span className="font-semibold text-gray-900 dark:text-white">
+          {item.nama_agama}
+        </span>
+      ),
+    },
+    {
+      key: "last_sync",
+      label: "TERAKHIR SYNC",
+      width: "200px",
+      sortable: true,
+      render: (item) => (
+        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+          <FiClock className="w-4 h-4 flex-shrink-0" />
+          <span>{formatDate(item.last_sync)}</span>
+        </div>
+      ),
+    },
+    {
+      key: "synced_by",
+      label: "SYNCED BY",
+      width: "150px",
+      render: (item) => (
+        <span className="text-sm text-gray-700 dark:text-gray-300">
+          {item.synced_by || "System"}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      label: "STATUS",
+      width: "120px",
+      align: "center",
+      render: () => (
+        <Chip
+          size="sm"
+          variant="flat"
+          color="success"
+          startContent={<FiCheckCircle className="w-3 h-3" />}
+        >
+          Synced
+        </Chip>
+      ),
+    },
+  ];
+
   return (
     <DashboardLayout
       appName="SISTER Integrator"
@@ -170,83 +237,134 @@ export default function AgamaPage() {
               Sinkronisasi dan kelola data referensi agama dari SISTER API
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button
-              color="primary"
-              startContent={<FiRefreshCw className="w-4 h-4" />}
-              onClick={handleSyncClick}
-              isLoading={isSyncing}
-              className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg hover:shadow-xl"
-            >
-              Sinkronisasi Data
-            </Button>
-            <Button
-              variant="bordered"
-              startContent={<FiDatabase className="w-4 h-4" />}
-              onClick={fetchAgamaData}
-              isLoading={isLoading}
-            >
-              Refresh
-            </Button>
-          </div>
+          <Button
+            color="primary"
+            size="lg"
+            startContent={<MdSync className="w-5 h-5" />}
+            onClick={handleSyncClick}
+            isLoading={isSyncing}
+            className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all rounded-xl"
+          >
+            Sinkronisasi Data
+          </Button>
         </div>
 
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card className="border-none shadow-md">
-            <CardBody className="p-4">
+        {/* Statistics Cards - Compact Horizontal Layout */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Total Records Card */}
+          <Card className="bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
+            <CardBody className="p-4 relative z-10">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
-                  <FiDatabase className="w-6 h-6" />
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
+                  <FiDatabase className="w-7 h-7 text-white" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase">
-                    Total Records
-                  </p>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-purple-100">Total Records</p>
+                    <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
+                      <span className="text-[10px] font-semibold text-white">Live</span>
+                    </div>
+                  </div>
+                  <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
                     {agamaList.length}
                   </h3>
-                  <p className="text-xs text-gray-400">Data agama tersimpan</p>
+                  <p className="text-[10px] text-purple-100/80 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                    Data agama tersimpan
+                  </p>
                 </div>
               </div>
             </CardBody>
           </Card>
 
-          <Card className="border-none shadow-md">
-            <CardBody className="p-4">
+          {/* Status Card */}
+          <Card className="bg-gradient-to-br from-emerald-500 via-green-600 to-teal-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
+            <CardBody className="p-4 relative z-10">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white shadow-lg">
-                  <FiCheckCircle className="w-6 h-6" />
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
+                  {agamaList.length > 0 ? (
+                    <FiCheckCircle className="w-7 h-7 text-white" />
+                  ) : (
+                    <FiAlertCircle className="w-7 h-7 text-white" />
+                  )}
                 </div>
-                <div className="flex-1">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase">
-                    Status
-                  </p>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-emerald-100">Sync Status</p>
+                    <div className={`px-2 py-0.5 rounded-full backdrop-blur-sm ${agamaList.length > 0 ? 'bg-white/20' : 'bg-white/30'}`}>
+                      <span className="text-[10px] font-semibold text-white">
+                        {agamaList.length > 0 ? '✓ Active' : '⚠ Pending'}
+                      </span>
+                    </div>
+                  </div>
+                  <h3 className="text-2xl font-bold text-white tracking-tight leading-none mb-1">
                     {agamaList.length > 0 ? "Synced" : "Not Synced"}
                   </h3>
-                  <p className="text-xs text-gray-400">Kondisi sinkronisasi</p>
+                  <p className="text-[10px] text-emerald-100/80">
+                    Kondisi sinkronisasi terkini
+                  </p>
                 </div>
               </div>
             </CardBody>
           </Card>
 
-          <Card className="border-none shadow-md">
-            <CardBody className="p-4">
+          {/* Last Sync Card */}
+          <Card className="bg-gradient-to-br from-blue-500 via-cyan-600 to-sky-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
+            <CardBody className="p-4 relative z-10">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
-                  <FiClock className="w-6 h-6" />
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
+                  <FiClock className="w-7 h-7 text-white" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase">
-                    Last Sync
-                  </p>
-                  <h3 className="text-sm font-bold text-gray-900 dark:text-white line-clamp-1">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-blue-100">Last Sync</p>
+                    <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
+                      <span className="text-[10px] font-semibold text-white">Recent</span>
+                    </div>
+                  </div>
+                  <h3 className="text-base font-bold text-white leading-tight mb-1 truncate">
                     {agamaList.length > 0 && agamaList[0].last_sync
                       ? formatDate(agamaList[0].last_sync)
                       : "Belum pernah"}
                   </h3>
-                  <p className="text-xs text-gray-400">Terakhir sinkronisasi</p>
+                  <p className="text-[10px] text-blue-100/80">
+                    Terakhir sinkronisasi data
+                  </p>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* Synced By Card */}
+          <Card className="bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
+            <CardBody className="p-4 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
+                  <FiUser className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-orange-100">Synced By</p>
+                    <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
+                      <span className="text-[10px] font-semibold text-white">User</span>
+                    </div>
+                  </div>
+                  <h3 className="text-base font-bold text-white leading-tight mb-1 truncate">
+                    {agamaList.length > 0 && agamaList[0].synced_by
+                      ? agamaList[0].synced_by
+                      : "System"}
+                  </h3>
+                  <p className="text-[10px] text-orange-100/80">
+                    Terakhir oleh pengguna ini
+                  </p>
                 </div>
               </div>
             </CardBody>
@@ -254,107 +372,44 @@ export default function AgamaPage() {
         </div>
 
         {/* Data Table */}
-        <Card className="border-none shadow-md">
-          <CardBody className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                <FiDatabase className="w-5 h-5 text-purple-600" />
-                Daftar Data Agama
-              </h3>
-              <Chip size="sm" variant="flat" color="primary">
-                {agamaList.length} records
-              </Chip>
-            </div>
-
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Spinner size="lg" color="primary" />
-              </div>
-            ) : agamaList.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                  <FiDatabase className="w-8 h-8 text-gray-400" />
+        {agamaList.length === 0 && !isLoading ? (
+          <Card className="border-none shadow-md">
+            <CardBody className="p-12">
+              <div className="text-center">
+                <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/20 dark:to-indigo-900/20 flex items-center justify-center">
+                  <FiDatabase className="w-10 h-10 text-purple-600 dark:text-purple-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                   Belum Ada Data
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                  Klik tombol "Sinkronisasi Data" untuk mengambil data dari SISTER API
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                  Klik tombol "Sinkronisasi Data" untuk mengambil data referensi agama dari SISTER API Kemdikbud
                 </p>
                 <Button
                   color="primary"
-                  startContent={<FiRefreshCw className="w-4 h-4" />}
+                  size="lg"
+                  startContent={<MdSync className="w-5 h-5" />}
                   onClick={handleSyncClick}
-                  className="bg-gradient-to-r from-purple-600 to-indigo-600"
+                  className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg hover:shadow-xl"
                 >
                   Sinkronisasi Sekarang
                 </Button>
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table
-                  aria-label="Tabel Data Agama"
-                  classNames={{
-                    wrapper: "shadow-none",
-                    th: "bg-purple-50 dark:bg-purple-900/20 text-purple-900 dark:text-purple-100 font-semibold",
-                  }}
-                >
-                  <TableHeader>
-                    <TableColumn>ID</TableColumn>
-                    <TableColumn>NAMA AGAMA</TableColumn>
-                    <TableColumn>LAST SYNC</TableColumn>
-                    <TableColumn>SYNCED BY</TableColumn>
-                    <TableColumn>STATUS</TableColumn>
-                  </TableHeader>
-                  <TableBody>
-                    {agamaList.map((agama) => (
-                      <TableRow key={agama.id_agama}>
-                        <TableCell>
-                          <span className="font-mono text-sm font-semibold text-purple-600">
-                            {agama.id_agama}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-medium text-gray-900 dark:text-white">
-                            {agama.nama_agama}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                            <FiClock className="w-4 h-4" />
-                            {formatDate(agama.last_sync)}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Avatar
-                              size="sm"
-                              name={agama.synced_by || "System"}
-                              className="w-6 h-6 text-xs"
-                            />
-                            <span className="text-sm text-gray-700 dark:text-gray-300">
-                              {agama.synced_by || "-"}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            size="sm"
-                            variant="flat"
-                            color="success"
-                            startContent={<FiCheckCircle className="w-3 h-3" />}
-                          >
-                            Synced
-                          </Chip>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardBody>
-        </Card>
+            </CardBody>
+          </Card>
+        ) : (
+          <DataTable
+            data={agamaList}
+            columns={columns}
+            searchable={true}
+            searchKeys={["nama_agama", "id_agama"]}
+            searchPlaceholder="Cari agama..."
+            defaultRowsPerPage={5}
+            rowsPerPageOptions={[3, 5, 10, 25, 50, 100]}
+            loading={isLoading}
+            className="shadow-lg"
+          />
+        )}
       </div>
 
       {/* Confirmation Modal */}

@@ -40,20 +40,20 @@ export default function Navbar() {
       )
     },
     {
-      name: "Akademik",
-      href: "/akademik",
-      icon: (
-        <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-          <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
-        </svg>
-      )
-    },
-    {
       name: "Layanan",
       href: "/layanan",
       icon: (
         <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
           <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
+        </svg>
+      )
+    },
+    {
+      name: "Tentang",
+      href: "/tentang",
+      icon: (
+        <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
         </svg>
       )
     },
@@ -114,31 +114,36 @@ export default function Navbar() {
 
         {/* Desktop Menu (Center) - Hidden on mobile */}
         <NavbarContent className="hidden lg:flex gap-6 xl:gap-8" justify="center">
-          {menuItems.map((item) => (
-            <NavbarItem key={item.name} isActive={isActive(item.href)}>
-              <Link
-                href={item.href}
-                className={`relative font-semibold text-sm xl:text-base transition-all duration-300 py-2.5 px-3 xl:py-3 xl:px-4 rounded-lg inline-flex ${
-                  isActive(item.href)
-                    ? scrolled
-                      ? "text-myunila bg-blue-50"
-                      : isHomePage
-                        ? "text-blue-700 bg-blue-100/90"
-                        : "text-white bg-white/20"
-                    : scrolled
-                      ? "text-gray-700 hover:text-myunila hover:bg-gray-50"
-                      : isHomePage
-                        ? "text-blue-700 bg-blue-50/80 hover:bg-blue-100/90"
-                        : "text-white hover:bg-white/20"
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  {item.icon}
-                  <span className="whitespace-nowrap">{item.name}</span>
-                </span>
-              </Link>
-            </NavbarItem>
-          ))}
+          {menuItems.map((item) => {
+            const isExternal = item.href.startsWith('http');
+            const Component = isExternal ? 'a' : Link;
+
+            return (
+              <NavbarItem key={item.name} isActive={isActive(item.href)}>
+                <Component
+                  href={item.href}
+                  className={`relative font-semibold text-sm xl:text-base transition-all duration-300 py-2.5 px-3 xl:py-3 xl:px-4 rounded-lg inline-flex ${
+                    isActive(item.href)
+                      ? scrolled
+                        ? "text-myunila bg-blue-50"
+                        : isHomePage
+                          ? "text-blue-700 bg-blue-100/90"
+                          : "text-white bg-white/20"
+                      : scrolled
+                        ? "text-gray-700 hover:text-myunila hover:bg-gray-50"
+                        : isHomePage
+                          ? "text-blue-700 bg-blue-50/80 hover:bg-blue-100/90"
+                          : "text-white hover:bg-white/20"
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    {item.icon}
+                    <span className="whitespace-nowrap">{item.name}</span>
+                  </span>
+                </Component>
+              </NavbarItem>
+            );
+          })}
         </NavbarContent>
 
         {/* CTA Buttons (Right side) */}

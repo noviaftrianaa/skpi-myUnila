@@ -17,41 +17,49 @@ export default function TimelinePengembangan() {
     {
       year: "2021",
       title: "Perencanaan & Desain",
-      description: "Inisiasi proyek myUnila, analisis kebutuhan, dan perancangan arsitektur sistem terintegrasi",
+      description: "Perancangan kamus data, repositori data, dan database Satu Data UNILA sebagai fondasi integrasi sistem informasi",
       icon: "📋",
       color: "blue",
       status: "Selesai",
     },
     {
       year: "2022",
-      title: "Pengembangan Fase 1",
-      description: "Pembangunan core system, SSO authentication, dan integrasi 20 sistem prioritas",
+      title: "Pengembangan Core System",
+      description: "Pembangunan core system, SSO authentication, Web Service API, dan integrator layanan eksternal UNILA",
       icon: "⚙️",
       color: "indigo",
       status: "Selesai",
     },
     {
       year: "2023",
-      title: "Pengembangan Fase 2",
-      description: "Ekspansi integrasi ke 50+ sistem, implementasi dashboard analytics, dan mobile responsive",
-      icon: "🚀",
+      title: "Implementasi Dashboard OneData",
+      description: "Launching dashboard pimpinan versi 1.0 OneData dan pengembangan sistem pendukungnya",
+      icon: "📊",
       color: "purple",
       status: "Selesai",
     },
     {
       year: "2024",
-      title: "Pengembangan Fase 3",
-      description: "Integrasi 70+ sistem, AI-powered features, advanced analytics, dan performance optimization",
+      title: "Soft Launching myUnila",
+      description: "Peluncuran soft dashboard myUnila dan integrasi SISTER serta Feeder PDDIKTI untuk sinkronisasi data nasional",
       icon: "🎯",
       color: "emerald",
+      status: "Selesai",
+    },
+    {
+      year: "2025-2026",
+      title: "Super App myUnila v2.0",
+      description: "Transformasi ke arsitektur microservice modern dengan API Gateway, service mesh, dan containerization untuk skalabilitas tinggi",
+      icon: "✨",
+      color: "sky",
       status: "Berlangsung",
     },
     {
-      year: "2025",
-      title: "Penyempurnaan & Scale-Up",
-      description: "Fine-tuning sistem, penambahan fitur berbasis feedback, dan persiapan untuk ekspansi nasional",
-      icon: "✨",
-      color: "amber",
+      year: "2027",
+      title: "Ekspansi & Inovasi",
+      description: "Optimalisasi infrastruktur cloud, implementasi AI/ML untuk analytics predictive, dan ekspansi fitur menuju World Class University",
+      icon: "🚀",
+      color: "violet",
       status: "Direncanakan",
     },
   ];
@@ -141,27 +149,30 @@ export default function TimelinePengembangan() {
           {/* Current Status */}
           <motion.div
             variants={itemVariants}
-            className="mt-16 bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl p-8 border border-emerald-100"
+            className="mt-16 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-2xl p-8 border border-indigo-100"
           >
             <div className="flex items-start gap-4">
-              <div className="text-5xl">🎉</div>
+              <div className="text-5xl">🚀</div>
               <div>
                 <h3 className="text-2xl font-bold text-gray-800 mb-3">Status Pengembangan Saat Ini</h3>
                 <p className="text-gray-700 leading-relaxed mb-4">
-                  myUnila saat ini berada di <span className="font-bold text-emerald-600">Fase 3 Pengembangan (2024)</span> dengan
-                  lebih dari <span className="font-bold">70 sistem terintegrasi</span> dan terus berkembang.
-                  Tim pengembangan aktif menambahkan fitur-fitur baru dan melakukan optimalisasi performa untuk memberikan
-                  pengalaman terbaik bagi pengguna.
+                  myUnila sedang berada pada <span className="font-bold text-indigo-600">tahap pengembangan microservice</span> yang
+                  mengintegrasikan sistem layanan UNILA ke dalam satu portal terpadu. Dengan pendekatan <span className="font-semibold">Super App myUnila versi 2.0</span>,
+                  kami membangun arsitektur microservice yang scalable, resilient, dan mudah dikembangkan untuk mendukung
+                  <span className="font-bold"> lebih dari 70+ sistem informasi</span> yang ada di lingkungan Universitas Lampung.
                 </p>
                 <div className="flex flex-wrap gap-3">
-                  <div className="bg-white px-4 py-2 rounded-lg border border-emerald-200 text-sm font-semibold text-gray-700">
-                    ✅ 70+ Sistem Aktif
+                  <div className="bg-white px-4 py-2 rounded-lg border border-indigo-200 text-sm font-semibold text-gray-700">
+                    ✅ 70+ Sistem Terintegrasi
                   </div>
-                  <div className="bg-white px-4 py-2 rounded-lg border border-emerald-200 text-sm font-semibold text-gray-700">
-                    🔄 Continuous Development
+                  <div className="bg-white px-4 py-2 rounded-lg border border-indigo-200 text-sm font-semibold text-gray-700">
+                    🔄 Microservice Architecture
                   </div>
-                  <div className="bg-white px-4 py-2 rounded-lg border border-emerald-200 text-sm font-semibold text-gray-700">
-                    📈 Monthly Updates
+                  <div className="bg-white px-4 py-2 rounded-lg border border-indigo-200 text-sm font-semibold text-gray-700">
+                    🚀 Continuous Integration
+                  </div>
+                  <div className="bg-white px-4 py-2 rounded-lg border border-indigo-200 text-sm font-semibold text-gray-700">
+                    📊 API Gateway Ready
                   </div>
                 </div>
               </div>

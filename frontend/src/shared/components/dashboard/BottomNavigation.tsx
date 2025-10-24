@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import type { MenuItem } from "@/lib/types/dashboard.types";
+import type { MenuItem } from "@/lib/types/dashboardTypes";
 
 interface BottomNavigationProps {
   menuItems: MenuItem[]; // Max 4-5 items untuk bottom nav

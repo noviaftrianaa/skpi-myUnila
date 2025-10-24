@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { FaUserGraduate, FaBriefcase, FaMoneyBillWave, FaClock, FaChartBar, FaBuilding } from 'react-icons/fa';
-import { dashboardService } from '@/lib/services/dashboard.service';
-import type { TracerStudyData } from '@/lib/types/dashboard.types';
+import { dashboardService } from '@/lib/services/dashboardService';
+import type { TracerStudyData } from '@/lib/types/dashboardTypes';
 
 interface TracerStudySectionProps {
   programStudiId: string;

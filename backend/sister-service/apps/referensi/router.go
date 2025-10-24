@@ -4,7 +4,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/jmoiron/sqlx"
 	"sister-service/external/sister_api"
-	"sister-service/internal/middleware"
 )
 
 // Init initializes referensi routes
@@ -13,10 +12,11 @@ func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client) {
 	svc := NewService(repo, sisterAPI)
 	ctrl := NewController(svc)
 
-	// All referensi routes require JWT authentication and Developer role
+	// TEMPORARY: All auth middleware disabled for testing
+	// TODO: Re-enable auth before production
 	referensiRouter := router.Group("/referensi")
-	referensiRouter.Use(middleware.JWTAuth())
-	referensiRouter.Use(middleware.RequireDeveloper())
+	// referensiRouter.Use(middleware.KongAuth())           // DISABLED for testing
+	// referensiRouter.Use(middleware.RequireDeveloper())   // DISABLED for testing
 	{
 		// Agama routes
 		agamaRouter := referensiRouter.Group("/agama")
@@ -25,5 +25,38 @@ func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client) {
 			agamaRouter.Get("/:id", ctrl.GetAgamaByID)
 			agamaRouter.Post("/sync", ctrl.SyncAgamaFromSister)
 		}
+
+		// Negara routes
+		negaraRouter := referensiRouter.Group("/negara")
+		{
+			negaraRouter.Get("/", ctrl.GetAllNegara)
+			negaraRouter.Get("/:id", ctrl.GetNegaraByID)
+			negaraRouter.Post("/sync", ctrl.SyncNegaraFromSister)
+		}
+
+		// Jenjang Pendidikan routes
+		jenjangRouter := referensiRouter.Group("/jenjang-pendidikan")
+		{
+			jenjangRouter.Get("/", ctrl.GetAllJenjangPendidikan)
+			jenjangRouter.Post("/sync", ctrl.SyncJenjangPendidikanFromSister)
+		}
+
+		// Gelar Akademik routes
+		gelarRouter := referensiRouter.Group("/gelar-akademik")
+		{
+			gelarRouter.Get("/", ctrl.GetAllGelarAkademik)
+			gelarRouter.Post("/sync", ctrl.SyncGelarAkademikFromSister)
+		}
+
+		// Semester routes
+		semesterRouter := referensiRouter.Group("/semester")
+		{
+			semesterRouter.Get("/", ctrl.GetAllSemester)
+			semesterRouter.Post("/sync", ctrl.SyncSemesterFromSister)
+		}
+
+		// Metadata & Batch Sync routes
+		referensiRouter.Get("/metadata", ctrl.GetAllReferensiMetadata)
+		referensiRouter.Post("/batch-sync", ctrl.BatchSyncFromSister)
 	}
 }

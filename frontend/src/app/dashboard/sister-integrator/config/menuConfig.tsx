@@ -19,7 +19,7 @@ import {
 } from "react-icons/fi";
 import { MdDashboard, MdSync } from "react-icons/md";
 import { RiGovernmentFill } from "react-icons/ri";
-import type { MenuItem } from "@/lib/types/dashboard.types";
+import type { MenuItem } from "@/lib/types/dashboardTypes";
 
 export const sisterIntegratorMenuConfig: MenuItem[] = [
   {
@@ -31,24 +31,8 @@ export const sisterIntegratorMenuConfig: MenuItem[] = [
   {
     title: "Referensi",
     icon: <FiBookOpen className="w-5 h-5" />,
+    href: "/dashboard/sister-integrator/referensi",
     roles: ["developer"],
-    children: [
-      {
-        title: "Agama",
-        icon: <FiDatabase className="w-4 h-4" />,
-        href: "/dashboard/sister-integrator/referensi/agama",
-      },
-      {
-        title: "Negara",
-        icon: <FiDatabase className="w-4 h-4" />,
-        href: "/dashboard/sister-integrator/referensi/negara",
-      },
-      {
-        title: "Wilayah",
-        icon: <FiDatabase className="w-4 h-4" />,
-        href: "/dashboard/sister-integrator/referensi/wilayah",
-      },
-    ],
   },
   {
     title: "Monitoring",

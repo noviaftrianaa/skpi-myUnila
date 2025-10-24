@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FiHome, FiChevronDown, FiChevronRight, FiX } from "react-icons/fi";
 import { MdSchool } from "react-icons/md";
 import { useAuth } from "@/contexts/AuthContext";
-import type { MenuItem } from "@/lib/types/dashboard.types";
+import type { MenuItem } from "@/lib/types/dashboardTypes";
 
 interface SidebarProps {
   appName: string;

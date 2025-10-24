@@ -3,8 +3,8 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useState, useEffect, useMemo } from "react";
-import dashboardService from "@/lib/services/dashboard.service";
-import type { UnilaStatistics, UnilaProfile } from "@/lib/types/dashboard.types";
+import dashboardService from "@/lib/services/dashboardService";
+import type { UnilaStatistics, UnilaProfile } from "@/lib/types/dashboardTypes";
 
 export default function ProfileUnila() {
   const [statistics, setStatistics] = useState<UnilaStatistics | null>(null);

@@ -219,7 +219,29 @@ func (c *Client) Post(endpoint string, payload interface{}) ([]byte, error) {
 	return body, nil
 }
 
+// ==================== REFERENSI ENDPOINTS ====================
+
 // GetReferensiAgama fetches list of religions from Sister API
 func (c *Client) GetReferensiAgama() ([]byte, error) {
 	return c.Get("/1.0/referensi/agama")
+}
+
+// GetReferensiNegara fetches list of countries from Sister API
+func (c *Client) GetReferensiNegara() ([]byte, error) {
+	return c.Get("/1.0/referensi/negara")
+}
+
+// GetReferensiJenjangPendidikan fetches list of education levels from Sister API
+func (c *Client) GetReferensiJenjangPendidikan() ([]byte, error) {
+	return c.Get("/1.0/referensi/jenjang_pendidikan")
+}
+
+// GetReferensiGelarAkademik fetches list of academic titles from Sister API
+func (c *Client) GetReferensiGelarAkademik() ([]byte, error) {
+	return c.Get("/1.0/referensi/gelar_akademik")
+}
+
+// GetReferensiSemester fetches list of semesters from Sister API
+func (c *Client) GetReferensiSemester() ([]byte, error) {
+	return c.Get("/1.0/referensi/semester")
 }
