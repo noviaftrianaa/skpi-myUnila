@@ -38,8 +38,8 @@ type SisterNegara struct {
 
 // JenjangPendidikan represents education level reference data
 type JenjangPendidikan struct {
-	IDJenjangPendidikan int        `json:"id_jenjang_pendidikan" db:"id_jenjang_didik"`
-	NamaJenjang         string     `json:"nama_jenjang" db:"nm_jenjang_didik"`
+	IDJenjangPendidikan int        `json:"id_jenjang_pendidikan" db:"id_jenj_didik"`
+	NamaJenjang         string     `json:"nama_jenjang" db:"nama_jenjang"`
 	ExpiredDate         *time.Time `json:"expired_date,omitempty" db:"expired_date"`
 	LastSync            *time.Time `json:"last_sync,omitempty" db:"last_sync"`
 	SyncedBy            *string    `json:"synced_by,omitempty" db:"synced_by"`
@@ -53,8 +53,10 @@ type SisterJenjangPendidikan struct {
 
 // GelarAkademik represents academic title reference data
 type GelarAkademik struct {
-	IDGelarAkademik int        `json:"id_gelar_akademik" db:"id_gelar_akademik"`
-	NamaGelar       string     `json:"nama_gelar" db:"nm_gelar_akademik"`
+	IDGelarAkademik int        `json:"id_gelar_akademik" db:"id_gelar_akad"`
+	NamaGelar       string     `json:"nama_gelar" db:"nama_gelar"`
+	SingkatGelar    *string    `json:"singkat_gelar,omitempty" db:"singkat_gelar"`
+	PosisiGelar     *int       `json:"posisi_gelar,omitempty" db:"posisi_gelar"` // 1=depan, 2=belakang, 3=tengah
 	ExpiredDate     *time.Time `json:"expired_date,omitempty" db:"expired_date"`
 	LastSync        *time.Time `json:"last_sync,omitempty" db:"last_sync"`
 	SyncedBy        *string    `json:"synced_by,omitempty" db:"synced_by"`
@@ -62,18 +64,19 @@ type GelarAkademik struct {
 
 // SisterGelarAkademik from Sister API
 type SisterGelarAkademik struct {
-	ID   string `json:"id"`    // Sister API returns string
+	ID   int    `json:"id"`    // Sister API returns int
 	Nama string `json:"nama"`
 }
 
 // Semester represents semester reference data
 type Semester struct {
-	IDSemester  string     `json:"id_semester" db:"id_smt"`
-	NamaSemester string     `json:"nama_semester" db:"nm_smt"`
-	TahunAjaran string     `json:"tahun_ajaran,omitempty" db:"a_periode_aktif"`
-	ExpiredDate *time.Time `json:"expired_date,omitempty" db:"expired_date"`
-	LastSync    *time.Time `json:"last_sync,omitempty" db:"last_sync"`
-	SyncedBy    *string    `json:"synced_by,omitempty" db:"synced_by"`
+	IDSemester    string     `json:"id_semester" db:"id_smt"`
+	NamaSemester  string     `json:"nama_semester" db:"nama_semester"`
+	IDTahunAjaran *int       `json:"id_tahun_ajaran,omitempty" db:"id_thn_ajaran"`
+	PeriodeAktif  int        `json:"periode_aktif" db:"tahun_ajaran"` // 1=active, 0=inactive
+	ExpiredDate   *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync      *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy      *string    `json:"synced_by,omitempty" db:"synced_by"`
 }
 
 // SisterSemester from Sister API

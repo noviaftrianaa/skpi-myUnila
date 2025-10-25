@@ -689,6 +689,62 @@ class ProgramStudiRepository
             SELECT
                 sdm.id_sdm,
                 sdm.nm_sdm AS nama,
+                -- Build full name with gelar
+                LTRIM(RTRIM(
+                    ISNULL((
+                        SELECT STUFF((
+                            SELECT '. ' + ga.singkat_gelar
+                            FROM pdrd.rwy_pend_formal AS rpf
+                            LEFT JOIN ref.gelar_akademik AS ga
+                                ON ga.id_gelar_akad = rpf.id_gelar_akad
+                            LEFT JOIN ref.jenjang_pendidikan AS jenj
+                                ON jenj.id_jenj_didik = rpf.id_jenj_didik
+                                AND jenj.expired_date IS NULL
+                            WHERE rpf.id_sdm = sdm.id_sdm
+                                AND rpf.soft_delete = 0
+                                AND rpf.thn_lulus IS NOT NULL
+                                AND ga.singkat_gelar IS NOT NULL
+                                AND ga.posisi_gelar = 1
+                            ORDER BY
+                                CASE
+                                    WHEN jenj.nm_jenj_didik LIKE 'D%' THEN 1
+                                    WHEN jenj.nm_jenj_didik LIKE 'S1%' THEN 2
+                                    WHEN jenj.nm_jenj_didik LIKE 'S2%' THEN 3
+                                    WHEN jenj.nm_jenj_didik LIKE 'S3%' THEN 4
+                                    ELSE 5
+                                END,
+                                rpf.thn_lulus
+                            FOR XML PATH(''), TYPE
+                        ).value('.', 'NVARCHAR(MAX)'), 1, 2, '') + '. '
+                    ), '') +
+                    sdm.nm_sdm +
+                    ISNULL((
+                        SELECT ', ' + STUFF((
+                            SELECT ', ' + ga.singkat_gelar
+                            FROM pdrd.rwy_pend_formal AS rpf
+                            LEFT JOIN ref.gelar_akademik AS ga
+                                ON ga.id_gelar_akad = rpf.id_gelar_akad
+                            LEFT JOIN ref.jenjang_pendidikan AS jenj
+                                ON jenj.id_jenj_didik = rpf.id_jenj_didik
+                                AND jenj.expired_date IS NULL
+                            WHERE rpf.id_sdm = sdm.id_sdm
+                                AND rpf.soft_delete = 0
+                                AND rpf.thn_lulus IS NOT NULL
+                                AND ga.singkat_gelar IS NOT NULL
+                                AND ga.posisi_gelar = 2
+                            ORDER BY
+                                CASE
+                                    WHEN jenj.nm_jenj_didik LIKE 'D%' THEN 1
+                                    WHEN jenj.nm_jenj_didik LIKE 'S1%' THEN 2
+                                    WHEN jenj.nm_jenj_didik LIKE 'S2%' THEN 3
+                                    WHEN jenj.nm_jenj_didik LIKE 'S3%' THEN 4
+                                    ELSE 5
+                                END,
+                                rpf.thn_lulus
+                            FOR XML PATH(''), TYPE
+                        ).value('.', 'NVARCHAR(MAX)'), 1, 2, '')
+                    ), '')
+                )) AS nama_lengkap,
                 sdm.nidn,
                 ISNULL(sdm.nip, '-') AS nip,
                 CASE

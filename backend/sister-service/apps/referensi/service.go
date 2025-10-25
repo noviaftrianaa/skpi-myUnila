@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"sync"
 	"time"
+	appLogger "sister-service/apps/logger"
 	"sister-service/external/sister_api"
 )
 
@@ -41,15 +42,17 @@ type Service interface {
 }
 
 type service struct {
-	repo      Repository
-	sisterAPI *sister_api.Client
+	repo          Repository
+	sisterAPI     *sister_api.Client
+	loggerService appLogger.Service
 }
 
 // NewService creates a new service instance
-func NewService(repo Repository, sisterAPI *sister_api.Client) Service {
+func NewService(repo Repository, sisterAPI *sister_api.Client, loggerSvc appLogger.Service) Service {
 	return &service{
-		repo:      repo,
-		sisterAPI: sisterAPI,
+		repo:          repo,
+		sisterAPI:     sisterAPI,
+		loggerService: loggerSvc,
 	}
 }
 
@@ -65,23 +68,34 @@ func (s *service) GetAgamaByID(ctx context.Context, id int) (*Agama, error) {
 
 // SyncAgamaFromSister synchronizes agama data from Sister API
 func (s *service) SyncAgamaFromSister(ctx context.Context, syncedBy string) (int, error) {
+	startTime := time.Now()
+	var totalRecords int
+	var syncErr error
+
+	defer func() {
+		s.logSyncResult(ctx, "Agama", "agama", "manual", syncedBy, totalRecords, startTime, syncErr)
+	}()
+
 	log.Println("🔄 Starting sync agama from Sister API...")
 
 	// 1. Fetch data from Sister API
 	rawData, err := s.sisterAPI.GetReferensiAgama()
 	if err != nil {
 		log.Printf("Error fetching agama from Sister API: %v", err)
-		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+		syncErr = fmt.Errorf("failed to fetch from Sister API: %w", err)
+		return 0, syncErr
 	}
 
 	// 2. Parse Sister API response
 	var sisterAgamaList []SisterAgama
 	if err := json.Unmarshal(rawData, &sisterAgamaList); err != nil {
 		log.Printf("Error parsing Sister API response: %v", err)
-		return 0, fmt.Errorf("failed to parse Sister API response: %w", err)
+		syncErr = fmt.Errorf("failed to parse Sister API response: %w", err)
+		return 0, syncErr
 	}
 
-	log.Printf("✅ Fetched %d agama from Sister API", len(sisterAgamaList))
+	totalRecords = len(sisterAgamaList)
+	log.Printf("✅ Fetched %d agama from Sister API", totalRecords)
 
 	// 3. Transform to domain entity
 	agamaList := make([]Agama, len(sisterAgamaList))
@@ -98,7 +112,8 @@ func (s *service) SyncAgamaFromSister(ctx context.Context, syncedBy string) (int
 	// 4. Bulk upsert to database
 	if err := s.repo.BulkUpsertAgama(ctx, agamaList); err != nil {
 		log.Printf("Error upserting agama to database: %v", err)
-		return 0, fmt.Errorf("failed to save to database: %w", err)
+		syncErr = fmt.Errorf("failed to save to database: %w", err)
+		return 0, syncErr
 	}
 
 	log.Printf("✅ Successfully synced %d agama records", len(agamaList))
@@ -229,14 +244,8 @@ func (s *service) SyncGelarAkademikFromSister(ctx context.Context, syncedBy stri
 
 	list := make([]GelarAkademik, 0, len(sisterList))
 	for _, item := range sisterList {
-		id, err := strconv.Atoi(item.ID)
-		if err != nil {
-			log.Printf("⚠️ Skipping invalid ID: %s", item.ID)
-			continue
-		}
-
 		list = append(list, GelarAkademik{
-			IDGelarAkademik: id,
+			IDGelarAkademik: item.ID,
 			NamaGelar:       item.Nama,
 			SyncedBy:        &syncedBy,
 		})
@@ -281,7 +290,6 @@ func (s *service) SyncSemesterFromSister(ctx context.Context, syncedBy string) (
 		list[i] = Semester{
 			IDSemester:   item.ID,
 			NamaSemester: item.Nama,
-			TahunAjaran:  "",
 			SyncedBy:     &syncedBy,
 		}
 	}

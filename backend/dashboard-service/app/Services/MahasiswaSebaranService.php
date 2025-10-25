@@ -154,6 +154,70 @@ class MahasiswaSebaranService
     }
 
     /**
+     * Get sebaran mahasiswa by fakultas with caching
+     *
+     * @return array
+     */
+    public function getSebaranByFakultas(): array
+    {
+        $cacheKey = 'mahasiswa_sebaran_fakultas';
+        $cacheDuration = 3600; // 1 hour
+
+        return Cache::remember($cacheKey, $cacheDuration, function () {
+            $data = $this->repository->getSebaranMahasiswaByFakultas();
+
+            // Calculate total and percentage
+            $total = array_sum(array_column($data, 'jumlah_mahasiswa'));
+
+            return [
+                'data' => array_map(function($item) use ($total) {
+                    return [
+                        'id_fakultas' => $item['id_fakultas'],
+                        'nama_fakultas' => $item['nama_fakultas'],
+                        'jumlah_mahasiswa' => $item['jumlah_mahasiswa'],
+                        'persentase' => $total > 0 ? round(($item['jumlah_mahasiswa'] / $total) * 100, 2) : 0,
+                    ];
+                }, $data),
+                'total_mahasiswa' => $total,
+                'jumlah_fakultas' => count($data),
+            ];
+        });
+    }
+
+    /**
+     * Get sebaran mahasiswa by prodi dalam fakultas with caching
+     *
+     * @param string $idFakultas
+     * @return array
+     */
+    public function getSebaranByProdiInFakultas(string $idFakultas): array
+    {
+        $cacheKey = "mahasiswa_sebaran_prodi_{$idFakultas}";
+        $cacheDuration = 3600; // 1 hour
+
+        return Cache::remember($cacheKey, $cacheDuration, function () use ($idFakultas) {
+            $data = $this->repository->getSebaranMahasiswaByProdiInFakultas($idFakultas);
+
+            // Calculate total and percentage
+            $total = array_sum(array_column($data, 'jumlah_mahasiswa'));
+
+            return [
+                'data' => array_map(function($item) use ($total) {
+                    return [
+                        'id_prodi' => $item['id_prodi'],
+                        'nama_prodi' => $item['nama_prodi'],
+                        'jenjang' => $item['jenjang'],
+                        'jumlah_mahasiswa' => $item['jumlah_mahasiswa'],
+                        'persentase' => $total > 0 ? round(($item['jumlah_mahasiswa'] / $total) * 100, 2) : 0,
+                    ];
+                }, $data),
+                'total_mahasiswa' => $total,
+                'jumlah_prodi' => count($data),
+            ];
+        });
+    }
+
+    /**
      * Get combined statistics
      *
      * @return array

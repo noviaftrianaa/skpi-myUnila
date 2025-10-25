@@ -288,11 +288,11 @@ func (r *repository) BulkUpsertNegara(ctx context.Context, negaraList []Negara) 
 
 func (r *repository) GetAllJenjangPendidikan(ctx context.Context) ([]JenjangPendidikan, error) {
 	query := `
-		SELECT id_jenjang_didik, nm_jenjang_didik as nama_jenjang,
-		       expired_date, last_sync, synced_by
+		SELECT id_jenj_didik, nm_jenj_didik as nama_jenjang,
+		       expired_date, last_sync
 		FROM ref.jenjang_pendidikan
 		WHERE expired_date IS NULL
-		ORDER BY nm_jenjang_didik ASC`
+		ORDER BY nm_jenj_didik ASC`
 
 	var list []JenjangPendidikan
 	err := r.db.SelectContext(ctx, &list, query)
@@ -319,17 +319,16 @@ func (r *repository) BulkUpsertJenjangPendidikan(ctx context.Context, list []Jen
 
 	query := `
 		MERGE ref.jenjang_pendidikan AS target
-		USING (SELECT @p1 AS id_jenjang_didik, @p2 AS nm_jenjang_didik, @p3 AS synced_by) AS source
-		ON target.id_jenjang_didik = source.id_jenjang_didik
+		USING (SELECT @p1 AS id_jenj_didik, @p2 AS nm_jenj_didik) AS source
+		ON target.id_jenj_didik = source.id_jenj_didik
 		WHEN MATCHED THEN
 			UPDATE SET
-				nm_jenjang_didik = source.nm_jenjang_didik,
+				nm_jenj_didik = source.nm_jenj_didik,
 				last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-				last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-				synced_by = source.synced_by
+				last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 		WHEN NOT MATCHED THEN
-			INSERT (id_jenjang_didik, a_ref_pddikti, a_ref_unila, nm_jenjang_didik, create_date, last_update, expired_date, last_sync, synced_by)
-			VALUES (source.id_jenjang_didik, 0, 0, source.nm_jenjang_didik, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), source.synced_by);`
+			INSERT (id_jenj_didik, a_ref_pddikti, a_ref_unila, nm_jenj_didik, create_date, last_update, expired_date, last_sync)
+			VALUES (source.id_jenj_didik, 0, 0, source.nm_jenj_didik, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));`
 
 	stmt, err := tx.PreparexContext(ctx, query)
 	if err != nil {
@@ -339,12 +338,7 @@ func (r *repository) BulkUpsertJenjangPendidikan(ctx context.Context, list []Jen
 	defer stmt.Close()
 
 	for _, item := range list {
-		syncedBy := ""
-		if item.SyncedBy != nil {
-			syncedBy = *item.SyncedBy
-		}
-
-		_, err = stmt.ExecContext(ctx, item.IDJenjangPendidikan, item.NamaJenjang, syncedBy)
+		_, err = stmt.ExecContext(ctx, item.IDJenjangPendidikan, item.NamaJenjang)
 		if err != nil {
 			log.Printf("❌ Error executing statement for ID %d: %v", item.IDJenjangPendidikan, err)
 			return fmt.Errorf("failed to execute statement: %w", err)
@@ -366,11 +360,11 @@ func (r *repository) BulkUpsertJenjangPendidikan(ctx context.Context, list []Jen
 
 func (r *repository) GetAllGelarAkademik(ctx context.Context) ([]GelarAkademik, error) {
 	query := `
-		SELECT id_gelar_akademik, nm_gelar_akademik as nama_gelar,
-		       expired_date, last_sync, synced_by
+		SELECT id_gelar_akad, nm_gelar_akad as nama_gelar, singkat_gelar, posisi_gelar,
+		       expired_date, last_sync
 		FROM ref.gelar_akademik
 		WHERE expired_date IS NULL
-		ORDER BY nm_gelar_akademik ASC`
+		ORDER BY nm_gelar_akad ASC`
 
 	var list []GelarAkademik
 	err := r.db.SelectContext(ctx, &list, query)
@@ -397,17 +391,27 @@ func (r *repository) BulkUpsertGelarAkademik(ctx context.Context, list []GelarAk
 
 	query := `
 		MERGE ref.gelar_akademik AS target
-		USING (SELECT @p1 AS id_gelar_akademik, @p2 AS nm_gelar_akademik, @p3 AS synced_by) AS source
-		ON target.id_gelar_akademik = source.id_gelar_akademik
+		USING (SELECT @p1 AS id_gelar_akad, @p2 AS nm_gelar_akad) AS source
+		ON target.id_gelar_akad = source.id_gelar_akad
 		WHEN MATCHED THEN
 			UPDATE SET
-				nm_gelar_akademik = source.nm_gelar_akademik,
+				nm_gelar_akad = source.nm_gelar_akad,
 				last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-				last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-				synced_by = source.synced_by
+				last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 		WHEN NOT MATCHED THEN
-			INSERT (id_gelar_akademik, a_ref_pddikti, a_ref_unila, nm_gelar_akademik, create_date, last_update, expired_date, last_sync, synced_by)
-			VALUES (source.id_gelar_akademik, 0, 0, source.nm_gelar_akademik, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), source.synced_by);`
+			INSERT (id_gelar_akad, a_ref_pddikti, a_ref_unila, singkat_gelar, nm_gelar_akad, posisi_gelar, create_date, last_update, expired_date, last_sync)
+			VALUES (
+				source.id_gelar_akad,
+				0,
+				0,
+				COALESCE((SELECT TOP 1 singkat_gelar FROM ref.gelar_akademik WHERE nm_gelar_akad LIKE '%' + LEFT(source.nm_gelar_akad, 10) + '%' AND singkat_gelar IS NOT NULL AND singkat_gelar != ''), '-'),
+				source.nm_gelar_akad,
+				COALESCE((SELECT TOP 1 posisi_gelar FROM ref.gelar_akademik WHERE nm_gelar_akad LIKE '%' + LEFT(source.nm_gelar_akad, 10) + '%' AND posisi_gelar IS NOT NULL), 2),
+				DATEADD(HOUR, 7, GETUTCDATE()),
+				DATEADD(HOUR, 7, GETUTCDATE()),
+				NULL,
+				DATEADD(HOUR, 7, GETUTCDATE())
+			);`
 
 	stmt, err := tx.PreparexContext(ctx, query)
 	if err != nil {
@@ -417,12 +421,7 @@ func (r *repository) BulkUpsertGelarAkademik(ctx context.Context, list []GelarAk
 	defer stmt.Close()
 
 	for _, item := range list {
-		syncedBy := ""
-		if item.SyncedBy != nil {
-			syncedBy = *item.SyncedBy
-		}
-
-		_, err = stmt.ExecContext(ctx, item.IDGelarAkademik, item.NamaGelar, syncedBy)
+		_, err = stmt.ExecContext(ctx, item.IDGelarAkademik, item.NamaGelar)
 		if err != nil {
 			log.Printf("❌ Error executing statement for ID %d: %v", item.IDGelarAkademik, err)
 			return fmt.Errorf("failed to execute statement: %w", err)
@@ -445,7 +444,7 @@ func (r *repository) BulkUpsertGelarAkademik(ctx context.Context, list []GelarAk
 func (r *repository) GetAllSemester(ctx context.Context) ([]Semester, error) {
 	query := `
 		SELECT id_smt, nm_smt as nama_semester, a_periode_aktif as tahun_ajaran,
-		       expired_date, last_sync, synced_by
+		       expired_date, last_sync
 		FROM ref.semester
 		WHERE expired_date IS NULL
 		ORDER BY id_smt DESC`
@@ -475,18 +474,16 @@ func (r *repository) BulkUpsertSemester(ctx context.Context, list []Semester) er
 
 	query := `
 		MERGE ref.semester AS target
-		USING (SELECT @p1 AS id_smt, @p2 AS nm_smt, @p3 AS a_periode_aktif, @p4 AS synced_by) AS source
+		USING (SELECT @p1 AS id_smt, @p2 AS nm_smt) AS source
 		ON target.id_smt = source.id_smt
 		WHEN MATCHED THEN
 			UPDATE SET
 				nm_smt = source.nm_smt,
-				a_periode_aktif = source.a_periode_aktif,
 				last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-				last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-				synced_by = source.synced_by
+				last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 		WHEN NOT MATCHED THEN
-			INSERT (id_smt, a_ref_pddikti, a_ref_unila, nm_smt, a_periode_aktif, create_date, last_update, expired_date, last_sync, synced_by)
-			VALUES (source.id_smt, 0, 0, source.nm_smt, source.a_periode_aktif, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), source.synced_by);`
+			INSERT (id_smt, a_ref_pddikti, a_ref_unila, nm_smt, a_periode_aktif, create_date, last_update, expired_date, last_sync)
+			VALUES (source.id_smt, 0, 0, source.nm_smt, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));`
 
 	stmt, err := tx.PreparexContext(ctx, query)
 	if err != nil {
@@ -496,18 +493,7 @@ func (r *repository) BulkUpsertSemester(ctx context.Context, list []Semester) er
 	defer stmt.Close()
 
 	for _, item := range list {
-		syncedBy := ""
-		if item.SyncedBy != nil {
-			syncedBy = *item.SyncedBy
-		}
-
-		// Convert tahun_ajaran to int (default 0 if empty)
-		tahunAjaran := 0
-		if item.TahunAjaran != "" {
-			// Parse as int if needed, or leave as 0 for default
-		}
-
-		_, err = stmt.ExecContext(ctx, item.IDSemester, item.NamaSemester, tahunAjaran, syncedBy)
+		_, err = stmt.ExecContext(ctx, item.IDSemester, item.NamaSemester)
 		if err != nil {
 			log.Printf("❌ Error executing statement for ID %s: %v", item.IDSemester, err)
 			return fmt.Errorf("failed to execute statement: %w", err)

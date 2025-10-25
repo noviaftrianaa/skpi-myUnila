@@ -9,6 +9,8 @@ use App\Http\Controllers\OpenApi\UnilaStatisticsController;
 use App\Http\Controllers\OpenApi\UnilaProfileController;
 use App\Http\Controllers\OpenApi\MahasiswaSebaranController;
 use App\Http\Controllers\OpenApi\DosenController;
+use App\Http\Controllers\OpenApi\DosenProfileController;
+use App\Http\Controllers\OpenApi\DosenSebaranController;
 use App\Http\Controllers\OpenApi\PublikasiController;
 use App\Http\Controllers\OpenApi\PenelitianController;
 use App\Http\Controllers\OpenApi\KelulusanController;
@@ -81,6 +83,8 @@ Route::prefix('v1')->group(function () {
     Route::prefix('mahasiswa-sebaran')->group(function () {
         Route::get('/kabupaten', [MahasiswaSebaranController::class, 'getSebaranByKabupaten']);
         Route::get('/provinsi', [MahasiswaSebaranController::class, 'getSebaranByProvinsi']);
+        Route::get('/fakultas', [MahasiswaSebaranController::class, 'getSebaranByFakultas']);
+        Route::get('/fakultas/{id_fakultas}/prodi', [MahasiswaSebaranController::class, 'getSebaranByProdiInFakultas']);
         Route::get('/statistics', [MahasiswaSebaranController::class, 'getSebaranStatistics']);
     });
 
@@ -89,6 +93,14 @@ Route::prefix('v1')->group(function () {
         Route::get('/pendidikan', [DosenController::class, 'getDosenByJenjangPendidikan']);
         Route::get('/jabatan', [DosenController::class, 'getDosenByJabatanFungsional']);
         Route::get('/statistics', [DosenController::class, 'getStatistics']);
+        // Dosen Profile
+        Route::get('/{id}', [DosenProfileController::class, 'show']);
+    });
+
+    // Dosen Sebaran
+    Route::prefix('dosen-sebaran')->group(function () {
+        Route::get('/fakultas', [DosenSebaranController::class, 'getSebaranByFakultas']);
+        Route::get('/fakultas/{id_fakultas}/prodi', [DosenSebaranController::class, 'getSebaranByProdiInFakultas']);
     });
 
     // Publikasi

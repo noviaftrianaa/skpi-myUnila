@@ -3,13 +3,14 @@ package referensi
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/jmoiron/sqlx"
+	"sister-service/apps/logger"
 	"sister-service/external/sister_api"
 )
 
 // Init initializes referensi routes
-func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client) {
+func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client, loggerSvc logger.Service) {
 	repo := NewRepository(db)
-	svc := NewService(repo, sisterAPI)
+	svc := NewService(repo, sisterAPI, loggerSvc)
 	ctrl := NewController(svc)
 
 	// TEMPORARY: All auth middleware disabled for testing

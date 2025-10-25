@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Repositories\ProgramStudiRepository;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Crypt;
 
 class ProgramStudiService
 {
@@ -244,7 +245,9 @@ class ProgramStudiService
             return $dosenList->map(function ($dosen) {
                 return [
                     'id' => $dosen->id_sdm,
-                    'nama' => $dosen->nama,
+                    'encrypted_id' => Crypt::encryptString($dosen->id_sdm),
+                    'nama' => $dosen->nama_lengkap ?? $dosen->nama, // Prioritize full name with titles
+                    'nama_tanpa_gelar' => $dosen->nama,
                     'nidn' => $dosen->nidn ?? '-',
                     'nip' => $dosen->nip ?? '-',
                     'jenis_kelamin' => $dosen->jenis_kelamin ?? 'Tidak Diketahui',

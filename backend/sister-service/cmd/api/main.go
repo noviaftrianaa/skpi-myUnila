@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"sister-service/apps/dosen"
+	appLogger "sister-service/apps/logger"
 	"sister-service/apps/referensi"
 	_ "sister-service/docs"
 	"sister-service/external/database"
@@ -95,8 +97,18 @@ func main() {
 	// API routes
 	apiV1 := app.Group("/api/v1")
 
+	// Initialize logger service (needs to be initialized first for referensi)
+	loggerRepo := appLogger.NewRepository(db.DB)
+	loggerService := appLogger.NewService(loggerRepo)
+	loggerHandler := appLogger.NewHandler(loggerService)
+	loggerHandler.RegisterRoutes(app)
+
 	// Initialize domain routers
-	referensi.Init(apiV1, db, sisterAPI) // Referensi routes (protected with JWT)
+	referensi.Init(apiV1, db, sisterAPI, loggerService) // Referensi routes (protected with JWT)
+
+	// Public routes (no authentication required)
+	publicRoutes := app.Group("/public")
+	dosen.Init(publicRoutes, sisterAPI) // Dosen photo endpoint
 
 	// Welcome message
 	app.Get("/", func(c *fiber.Ctx) error {

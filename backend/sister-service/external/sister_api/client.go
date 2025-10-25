@@ -245,3 +245,202 @@ func (c *Client) GetReferensiGelarAkademik() ([]byte, error) {
 func (c *Client) GetReferensiSemester() ([]byte, error) {
 	return c.Get("/1.0/referensi/semester")
 }
+
+// GetDosenPhoto fetches dosen photo binary from Sister API
+// Returns photo bytes, content type, and error
+func (c *Client) GetDosenPhoto(idSdm string) ([]byte, string, error) {
+	// Ensure we have valid authentication token
+	if err := c.EnsureAuthenticated(); err != nil {
+		return nil, "", err
+	}
+
+	url := fmt.Sprintf("%s/1.0/data_pribadi/foto/%s", c.BaseURL, idSdm)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to create request: %w", err)
+	}
+
+	// Set headers - Sister API uses Bearer token
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.Token))
+	// Don't set Accept header to allow binary response
+
+	log.Printf("🖼️  Fetching dosen photo from Sister API: %s", url)
+
+	// Execute request
+	resp, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to execute request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Read response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to read response: %w", err)
+	}
+
+	// Check HTTP status
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, "", fmt.Errorf("photo not found")
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		// Check if token expired
+		var errResp ErrorResponse
+		if err := json.Unmarshal(body, &errResp); err == nil {
+			if errResp.Message == "Token expired" || errResp.Detail == "Token expired" {
+				log.Printf("⚠️  Sister API token expired, re-authenticating...")
+				c.Token = "" // Clear expired token
+
+				// Retry with new token
+				if err := c.EnsureAuthenticated(); err != nil {
+					return nil, "", fmt.Errorf("failed to re-authenticate: %w", err)
+				}
+
+				// Retry the request with new token
+				req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.Token))
+				resp2, err := c.HTTPClient.Do(req)
+				if err != nil {
+					return nil, "", fmt.Errorf("failed to retry request: %w", err)
+				}
+				defer resp2.Body.Close()
+
+				body2, err := io.ReadAll(resp2.Body)
+				if err != nil {
+					return nil, "", fmt.Errorf("failed to read retry response: %w", err)
+				}
+
+				if resp2.StatusCode == http.StatusNotFound {
+					return nil, "", fmt.Errorf("photo not found")
+				}
+
+				if resp2.StatusCode != http.StatusOK {
+					return nil, "", fmt.Errorf("retry failed with status %d", resp2.StatusCode)
+				}
+
+				contentType := resp2.Header.Get("Content-Type")
+				if contentType == "" {
+					contentType = "image/jpeg" // Default to JPEG
+				}
+
+				log.Printf("✅ Successfully fetched dosen photo (after retry): %d bytes, type: %s", len(body2), contentType)
+				return body2, contentType, nil
+			}
+
+			return nil, "", fmt.Errorf("Sister API error: %s - %s", errResp.Message, errResp.Detail)
+		}
+		return nil, "", fmt.Errorf("API returned status %d", resp.StatusCode)
+	}
+
+	// Get content type from response headers
+	contentType := resp.Header.Get("Content-Type")
+	if contentType == "" {
+		contentType = "image/jpeg" // Default to JPEG if not specified
+	}
+
+	log.Printf("✅ Successfully fetched dosen photo: %d bytes, type: %s", len(body), contentType)
+	return body, contentType, nil
+}
+
+// GetDosenBidangIlmu fetches bidang keahlian for a dosen from Sister API
+func (c *Client) GetDosenBidangIlmu(idSdm string) ([]map[string]interface{}, error) {
+	// Ensure we have valid token
+	if err := c.EnsureAuthenticated(); err != nil {
+		return nil, fmt.Errorf("authentication failed: %w", err)
+	}
+
+	// Build the endpoint URL
+	endpoint := fmt.Sprintf("%s/1.0/data_pribadi/bidang_ilmu/%s", c.BaseURL, idSdm)
+	log.Printf("🌐 Fetching bidang ilmu from: %s", endpoint)
+
+	// Create the request
+	req, err := http.NewRequest("GET", endpoint, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	// Set headers
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.Token))
+	req.Header.Set("Content-Type", "application/json")
+
+	// Execute the request
+	resp, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Read response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response: %w", err)
+	}
+
+	// DEBUG: Log raw response
+	log.Printf("🔍 Raw SISTER API response for bidang_ilmu: %s", string(body))
+
+	// Handle different status codes
+	if resp.StatusCode == http.StatusNotFound {
+		return []map[string]interface{}{}, nil // Return empty array for 404
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		// Try to parse error response
+		var errResp ErrorResponse
+		if err := json.Unmarshal(body, &errResp); err == nil {
+			// If 401, token might be expired, try to re-authenticate once
+			if resp.StatusCode == http.StatusUnauthorized {
+				log.Printf("⚠️ Token expired, re-authenticating...")
+				c.Token = "" // Clear token to force re-auth
+
+				// Retry with new token
+				if err := c.EnsureAuthenticated(); err != nil {
+					return nil, fmt.Errorf("failed to re-authenticate: %w", err)
+				}
+
+				// Retry the request with new token
+				req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.Token))
+				resp2, err := c.HTTPClient.Do(req)
+				if err != nil {
+					return nil, fmt.Errorf("failed to retry request: %w", err)
+				}
+				defer resp2.Body.Close()
+
+				body2, err := io.ReadAll(resp2.Body)
+				if err != nil {
+					return nil, fmt.Errorf("failed to read retry response: %w", err)
+				}
+
+				if resp2.StatusCode == http.StatusNotFound {
+					return []map[string]interface{}{}, nil
+				}
+
+				if resp2.StatusCode != http.StatusOK {
+					return nil, fmt.Errorf("retry failed with status %d", resp2.StatusCode)
+				}
+
+				// Parse successful retry response
+				var result []map[string]interface{}
+				if err := json.Unmarshal(body2, &result); err != nil {
+					return nil, fmt.Errorf("failed to parse retry response: %w", err)
+				}
+
+				log.Printf("✅ Successfully fetched bidang ilmu (after retry): %d items", len(result))
+				return result, nil
+			}
+
+			return nil, fmt.Errorf("Sister API error: %s - %s", errResp.Message, errResp.Detail)
+		}
+		return nil, fmt.Errorf("API returned status %d", resp.StatusCode)
+	}
+
+	// Parse successful response
+	var result []map[string]interface{}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	log.Printf("✅ Successfully fetched bidang ilmu: %d items", len(result))
+	return result, nil
+}

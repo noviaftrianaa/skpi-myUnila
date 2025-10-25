@@ -64,6 +64,55 @@ class MahasiswaSebaranController extends Controller
     }
 
     /**
+     * Get sebaran mahasiswa by fakultas
+     *
+     * @return JsonResponse
+     */
+    public function getSebaranByFakultas(): JsonResponse
+    {
+        try {
+            $data = $this->service->getSebaranByFakultas();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data sebaran mahasiswa per fakultas berhasil diambil',
+                'data' => $data,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data sebaran mahasiswa',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get sebaran mahasiswa by prodi dalam fakultas
+     *
+     * @param string $idFakultas
+     * @return JsonResponse
+     */
+    public function getSebaranByProdiInFakultas(string $idFakultas): JsonResponse
+    {
+        try {
+            $data = $this->service->getSebaranByProdiInFakultas($idFakultas);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data sebaran mahasiswa per prodi berhasil diambil',
+                'data' => $data,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data sebaran mahasiswa per prodi',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Get combined sebaran statistics
      *
      * @return JsonResponse

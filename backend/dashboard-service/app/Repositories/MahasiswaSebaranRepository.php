@@ -147,6 +147,126 @@ class MahasiswaSebaranRepository
     }
 
     /**
+     * Get sebaran mahasiswa by fakultas
+     * Ambil jumlah mahasiswa aktif per fakultas
+     *
+     * @return array
+     */
+    public function getSebaranMahasiswaByFakultas(): array
+    {
+        // Get active period
+        $activePeriod = $this->getActivePeriod();
+
+        // Query sebaran mahasiswa per fakultas
+        // Menggunakan self-join dari pdrd.sms untuk mendapatkan fakultas seperti di PenelitianRepository
+        $sql = "
+            SELECT
+                fak.id_sms AS id_fakultas,
+                fak.nm_lemb AS nama_fakultas,
+                COUNT(DISTINCT pd.id_pd) AS jumlah_mahasiswa
+            FROM pdrd.kuliah_mhs AS kmh
+            -- Join ke reg_pd
+            JOIN pdrd.reg_pd AS reg
+                ON reg.id_reg_pd = kmh.id_reg_pd
+                AND reg.soft_delete = 0
+            -- Join ke peserta_didik
+            JOIN pdrd.peserta_didik AS pd
+                ON pd.id_pd = reg.id_pd
+                AND pd.soft_delete = 0
+                AND pd.id_stat_mhs = 'A'
+            -- Join ke sms (program studi)
+            INNER JOIN pdrd.sms AS sms
+                ON sms.id_sms = reg.id_sms
+                AND sms.soft_delete = 0
+                AND sms.stat_prodi = 'A'
+            -- Join ke jenjang pendidikan untuk filter hanya D% dan S%
+            INNER JOIN ref.jenjang_pendidikan AS didik
+                ON didik.id_jenj_didik = sms.id_jenj_didik
+                AND didik.expired_date IS NULL
+                AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
+            -- Join to fakultas (self-join sms menggunakan id_fak_unila)
+            INNER JOIN pdrd.sms AS fak
+                ON fak.id_sms = sms.id_fak_unila
+                AND fak.soft_delete = 0
+            WHERE kmh.soft_delete = 0
+                AND kmh.id_stat_mhs = 'A'  -- Status aktif di semester berjalan
+                AND kmh.id_smt = ?         -- Semester aktif
+            GROUP BY fak.id_sms, fak.nm_lemb
+            ORDER BY jumlah_mahasiswa DESC
+        ";
+
+        $result = DB::connection('sqlsrv')->select($sql, [$activePeriod]);
+
+        return array_map(function($item) {
+            return [
+                'id_fakultas' => $item->id_fakultas,
+                'nama_fakultas' => $item->nama_fakultas,
+                'jumlah_mahasiswa' => (int) $item->jumlah_mahasiswa,
+            ];
+        }, $result);
+    }
+
+    /**
+     * Get sebaran mahasiswa by prodi dalam fakultas
+     * Ambil jumlah mahasiswa aktif per prodi dalam fakultas tertentu
+     *
+     * @param string $idFakultas
+     * @return array
+     */
+    public function getSebaranMahasiswaByProdiInFakultas(string $idFakultas): array
+    {
+        // Get active period
+        $activePeriod = $this->getActivePeriod();
+
+        // Query sebaran mahasiswa per prodi dalam fakultas
+        $sql = "
+            SELECT
+                sms.id_sms AS id_prodi,
+                sms.nm_lemb AS nama_prodi,
+                jenj.nm_jenj_didik AS jenjang,
+                COUNT(DISTINCT pd.id_pd) AS jumlah_mahasiswa
+            FROM pdrd.kuliah_mhs AS kmh
+            -- Join ke reg_pd
+            JOIN pdrd.reg_pd AS reg
+                ON reg.id_reg_pd = kmh.id_reg_pd
+                AND reg.soft_delete = 0
+            -- Join ke peserta_didik
+            JOIN pdrd.peserta_didik AS pd
+                ON pd.id_pd = reg.id_pd
+                AND pd.soft_delete = 0
+                AND pd.id_stat_mhs = 'A'
+            -- Join ke sms (program studi)
+            INNER JOIN pdrd.sms AS sms
+                ON sms.id_sms = reg.id_sms
+                AND sms.soft_delete = 0
+                AND sms.stat_prodi = 'A'
+            -- Join ke jenjang pendidikan untuk filter hanya D% dan S%
+            INNER JOIN ref.jenjang_pendidikan AS jenj
+                ON jenj.id_jenj_didik = sms.id_jenj_didik
+                AND jenj.expired_date IS NULL
+                AND (jenj.nm_jenj_didik LIKE 'D%' OR jenj.nm_jenj_didik LIKE 'S%')
+            -- Filter by fakultas
+            WHERE kmh.soft_delete = 0
+                AND kmh.id_stat_mhs = 'A'  -- Status aktif di semester berjalan
+                AND kmh.id_smt = ?         -- Semester aktif
+                AND sms.id_fak_unila = ?   -- Filter fakultas
+            GROUP BY sms.id_sms, sms.nm_lemb, jenj.nm_jenj_didik
+            ORDER BY jumlah_mahasiswa DESC
+        ";
+
+        $result = DB::connection('sqlsrv')->select($sql, [$activePeriod, $idFakultas]);
+
+        return array_map(function($item) {
+            return [
+                'id_prodi' => $item->id_prodi,
+                'nama_prodi' => $item->nama_prodi,
+                'jenjang' => $item->jenjang,
+                'jumlah_mahasiswa' => (int) $item->jumlah_mahasiswa,
+            ];
+        }, $result);
+    }
+
+    /**
      * Get active period
      *
      * @return string
