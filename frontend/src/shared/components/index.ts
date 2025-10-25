@@ -19,7 +19,6 @@ export { default as AkreditasiProdi } from './AkreditasiProdi';
 // Statistik Page Components
 export { default as SebaranMahasiswa } from './SebaranMahasiswa';
 export { default as DataDosen } from './DataDosen';
-export { default as DosenSebaran } from './DosenSebaran';
 export { default as PenelitianPublikasi } from './PenelitianPublikasi';
 export { default as CapaianLulusan } from './CapaianLulusan';
 export { default as WorldClassRanking } from './statistik/WorldClassRanking';
