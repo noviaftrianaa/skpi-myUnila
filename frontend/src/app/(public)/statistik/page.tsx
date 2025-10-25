@@ -30,7 +30,7 @@ export default function StatistikPage() {
       {/* Sebaran Mahasiswa Section - Data mahasiswa per jenjang dan fakultas */}
       <SebaranMahasiswa />
 
-      {/* Data Dosen Section - Data dosen per fakultas dan jabatan */}
+      {/* Data Dosen Section - Data dosen per fakultas dan jabatan (includes sebaran with drilldown) */}
       <DataDosen />
 
       {/* Penelitian & Publikasi Section - Data publikasi, HAKI, penelitian */}

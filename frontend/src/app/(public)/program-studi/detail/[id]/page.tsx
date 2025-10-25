@@ -61,14 +61,7 @@ export default function ProgramStudiDetailPage() {
           setError(null);
         }
 
-        console.log('[DetailPage] Fetching program studi detail with ID:', id);
         const response = await dashboardService.getProgramStudiDetail(id);
-
-        console.log('[DetailPage] Response received:', {
-          success: response.success,
-          hasData: !!response.data,
-          message: response.message
-        });
 
         if (!isMounted) return;
 
@@ -79,7 +72,6 @@ export default function ProgramStudiDetailPage() {
           // Retry if no data and we haven't exceeded max retries
           if (!response.data && retryCount < maxRetries) {
             retryCount++;
-            console.log(`[DetailPage] Retrying fetch (${retryCount}/${maxRetries})...`);
             setTimeout(() => fetchDetail(), 500);
             return;
           }
@@ -95,7 +87,6 @@ export default function ProgramStudiDetailPage() {
         // Retry on network error if we haven't exceeded max retries
         if (retryCount < maxRetries) {
           retryCount++;
-          console.log(`[DetailPage] Retrying after error (${retryCount}/${maxRetries})...`);
           setTimeout(() => fetchDetail(), 500);
           return;
         }

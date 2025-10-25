@@ -262,7 +262,7 @@ export default function DataTable<T extends Record<string, any>>({
           aria-label="Data Table"
           removeWrapper
           classNames={{
-            base: "min-w-full",
+            base: "min-w-full border-t border-gray-200",
             table: "min-w-full",
             thead: "[&>tr]:bg-gradient-to-b [&>tr]:from-gray-50 [&>tr]:to-gray-100/80",
             th: "bg-transparent text-gray-700 font-bold text-xs uppercase tracking-wider border-b-2 border-gray-300 px-5 py-4 first:pl-0 last:pr-0 shadow-sm",

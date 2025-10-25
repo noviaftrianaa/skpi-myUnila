@@ -10,8 +10,13 @@ const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });
 
 export default function SebaranMahasiswa() {
   const [sebaranData, setSebaranData] = useState<any[]>([]);
+  const [fakultasData, setFakultasData] = useState<any[]>([]);
+  const [prodiData, setProdiData] = useState<any[]>([]);
   const [statistics, setStatistics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [activeView, setActiveView] = useState<'kabupaten' | 'fakultas'>('fakultas');
+  const [drillLevel, setDrillLevel] = useState<'fakultas' | 'prodi'>('fakultas');
+  const [selectedFakultas, setSelectedFakultas] = useState<{id: string, nama: string} | null>(null);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -23,12 +28,54 @@ export default function SebaranMahasiswa() {
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
 
+  // Function to drill down into fakultas -> prodi
+  const handleDrillDown = async (fakultasId: string, fakultasNama: string) => {
+    try {
+      setLoading(true);
+      console.log('Drilling down to prodi for fakultas:', fakultasNama);
+
+      const response = await fetch(`http://localhost:9800/dashboard-service/public/api/v1/mahasiswa-sebaran/fakultas/${fakultasId}/prodi`);
+      const data = await response.json();
+
+      if (data.success) {
+        const prodiDataFormatted = data.data.data.map(item => ({
+          id: item.id_prodi,
+          nama: item.nama_prodi,
+          jenjang: item.jenjang,
+          jumlah: item.jumlah_mahasiswa,
+          persentase: parseFloat(item.persentase.toFixed(1)),
+        }));
+
+        setProdiData(prodiDataFormatted);
+        setSelectedFakultas({ id: fakultasId, nama: fakultasNama });
+        setDrillLevel('prodi');
+      }
+    } catch (err) {
+      console.error('Error drilling down:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Function to drill up back to fakultas
+  const handleDrillUp = () => {
+    setDrillLevel('fakultas');
+    setSelectedFakultas(null);
+    setProdiData([]);
+  };
+
   // Fetch data from API
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
+
+        // Fetch statistics and kabupaten data
         const response = await getSebaranStatistics();
+
+        // Fetch fakultas data
+        const fakultasResponse = await fetch('http://localhost:9800/dashboard-service/public/api/v1/mahasiswa-sebaran/fakultas');
+        const fakultasJson = await fakultasResponse.json();
 
         if (response.success) {
           // Use kabupaten data for visualization (top 10)
@@ -40,6 +87,18 @@ export default function SebaranMahasiswa() {
 
           setSebaranData(kabupatenData);
           setStatistics(response.data.statistics);
+        }
+
+        if (fakultasJson.success) {
+          // Use fakultas data
+          const fakData = fakultasJson.data.data.map(item => ({
+            nama: item.nama_fakultas,
+            jumlah: item.jumlah_mahasiswa,
+            persentase: parseFloat(item.persentase.toFixed(1)),
+            id: item.id_fakultas,
+          }));
+
+          setFakultasData(fakData);
         }
       } catch (err) {
         console.error('Error fetching sebaran data:', err);
@@ -59,6 +118,234 @@ export default function SebaranMahasiswa() {
 
     fetchData();
   }, []);
+
+  // Chart option for prodi
+  const prodiChartOption = useMemo(() => {
+    if (!prodiData || prodiData.length === 0) {
+      return {
+        xAxis: { type: "value" },
+        yAxis: { type: "category", data: [] },
+        series: [{ type: "bar", data: [] }]
+      };
+    }
+
+    return {
+      tooltip: {
+        trigger: "axis",
+        axisPointer: {
+          type: "shadow",
+        },
+        formatter: (params: any) => {
+          const item = params[0];
+          const dataPoint = prodiData.find(d => d.nama === item.name);
+          return `<div style="padding: 8px;">
+            <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">${item.name}</div>
+            <div style="color: #6b7280; font-size: 11px; margin-bottom: 4px;">${dataPoint?.jenjang || ''}</div>
+            <div style="color: #3b82f6; font-size: 18px; font-weight: 700;">${item.value.toLocaleString()}</div>
+            <div style="color: #6b7280; font-size: 12px;">mahasiswa (${item.data.persentase}%)</div>
+          </div>`;
+        },
+        backgroundColor: "rgba(255, 255, 255, 0.95)",
+        borderColor: "#10b981",
+        borderWidth: 1,
+        extraCssText: "box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px;",
+      },
+      grid: {
+        left: "3%",
+        right: "4%",
+        bottom: "3%",
+        top: "3%",
+        containLabel: true,
+      },
+      xAxis: {
+        type: "value",
+        axisLabel: {
+          formatter: "{value}",
+          color: "#6b7280",
+          fontSize: 11,
+        },
+        splitLine: {
+          lineStyle: {
+            color: "#e5e7eb",
+            type: "dashed",
+          },
+        },
+      },
+      yAxis: {
+        type: "category",
+        data: prodiData.map(item => item.nama),
+        axisLabel: {
+          color: "#1f2937",
+          fontSize: 11,
+          fontWeight: 500,
+        },
+        axisTick: {
+          show: false,
+        },
+        axisLine: {
+          show: false,
+        },
+      },
+      series: [
+        {
+          type: "bar",
+          data: prodiData.map((item, index) => ({
+            value: item.jumlah,
+            persentase: item.persentase,
+            itemStyle: {
+              color: {
+                type: "linear",
+                x: 0,
+                y: 0,
+                x2: 1,
+                y2: 0,
+                colorStops: [
+                  { offset: 0, color: "#10b981" },
+                  { offset: 1, color: "#34d399" },
+                ],
+              },
+              borderRadius: [0, 6, 6, 0],
+            },
+          })),
+          barWidth: "60%",
+          label: {
+            show: true,
+            position: "right",
+            formatter: (params: any) => {
+              const persentase = params.data.persentase || 0;
+              return `${persentase}%`;
+            },
+            color: "#1f2937",
+            fontSize: 11,
+            fontWeight: 600,
+          },
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowColor: "rgba(0,0,0,0.3)",
+            },
+          },
+        },
+      ],
+    };
+  }, [prodiData]);
+
+  // Chart option for fakultas
+  const fakultasChartOption = useMemo(() => {
+    if (!fakultasData || fakultasData.length === 0) {
+      return {
+        xAxis: { type: "value" },
+        yAxis: { type: "category", data: [] },
+        series: [{ type: "bar", data: [] }]
+      };
+    }
+
+    return {
+      tooltip: {
+        trigger: "axis",
+        axisPointer: {
+          type: "shadow",
+        },
+        formatter: (params: any) => {
+          const item = params[0];
+          return `<div style="padding: 8px;">
+            <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">${item.name}</div>
+            <div style="color: #3b82f6; font-size: 18px; font-weight: 700;">${item.value.toLocaleString()}</div>
+            <div style="color: #6b7280; font-size: 12px;">mahasiswa (${item.data.persentase}%)</div>
+            <div style="color: #3b82f6; font-size: 11px; margin-top: 4px; font-weight: 600;">Klik untuk lihat prodi →</div>
+          </div>`;
+        },
+        backgroundColor: "rgba(255, 255, 255, 0.95)",
+        borderColor: "#3b82f6",
+        borderWidth: 1,
+        extraCssText: "box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px;",
+      },
+      grid: {
+        left: "3%",
+        right: "4%",
+        bottom: "3%",
+        top: "3%",
+        containLabel: true,
+      },
+      xAxis: {
+        type: "value",
+        axisLabel: {
+          formatter: "{value}",
+          color: "#6b7280",
+          fontSize: 11,
+        },
+        splitLine: {
+          lineStyle: {
+            color: "#e5e7eb",
+            type: "dashed",
+          },
+        },
+      },
+      yAxis: {
+        type: "category",
+        data: fakultasData.map(item => item.nama),
+        axisLabel: {
+          color: "#1f2937",
+          fontSize: 12,
+          fontWeight: 600,
+        },
+        axisTick: {
+          show: false,
+        },
+        axisLine: {
+          show: false,
+        },
+      },
+      series: [
+        {
+          type: "bar",
+          data: fakultasData.map((item, index) => ({
+            value: item.jumlah,
+            persentase: item.persentase,
+            itemStyle: {
+              color: {
+                type: "linear",
+                x: 0,
+                y: 0,
+                x2: 1,
+                y2: 0,
+                colorStops: [
+                  { offset: 0, color: [
+                    "#3b82f6", "#6366f1", "#8b5cf6", "#a855f7", "#ec4899",
+                    "#f97316", "#10b981", "#14b8a6", "#06b6d4"
+                  ][index % 9] },
+                  { offset: 1, color: [
+                    "#60a5fa", "#818cf8", "#a78bfa", "#c084fc", "#f472b6",
+                    "#fb923c", "#34d399", "#2dd4bf", "#22d3ee"
+                  ][index % 9] },
+                ],
+              },
+              borderRadius: [0, 6, 6, 0],
+            },
+          })),
+          barWidth: "70%",
+          label: {
+            show: true,
+            position: "right",
+            formatter: (params: any) => {
+              const persentase = params.data.persentase || 0;
+              return `${persentase}%`;
+            },
+            color: "#1f2937",
+            fontSize: 12,
+            fontWeight: 600,
+          },
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowColor: "rgba(0,0,0,0.3)",
+              cursor: "pointer",
+            },
+          },
+        },
+      ],
+    };
+  }, [fakultasData]);
 
   // Map chart configuration (simple bar representation of Indonesia regions)
   // MUST be called before any conditional returns to follow Rules of Hooks
@@ -214,104 +501,224 @@ export default function SebaranMahasiswa() {
               Sebaran Mahasiswa
             </h2>
             <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              Distribusi mahasiswa aktif Universitas Lampung berdasarkan asal kabupaten/kota
+              Distribusi mahasiswa aktif Universitas Lampung
             </p>
+
+            {/* Tab Switcher */}
+            <div className="flex flex-col sm:flex-row justify-center gap-3 mt-8">
+              <button
+                onClick={() => {
+                  setActiveView('fakultas');
+                  // Reset drill level when switching to fakultas view
+                  if (drillLevel === 'prodi') {
+                    handleDrillUp();
+                  }
+                }}
+                className={`px-6 py-3 rounded-lg font-semibold transition-all text-sm sm:text-base ${
+                  activeView === 'fakultas'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Per Fakultas
+              </button>
+              <button
+                onClick={() => {
+                  setActiveView('kabupaten');
+                  // Reset drill level when switching to kabupaten view
+                  if (drillLevel === 'prodi') {
+                    handleDrillUp();
+                  }
+                }}
+                className={`px-6 py-3 rounded-lg font-semibold transition-all text-sm sm:text-base ${
+                  activeView === 'kabupaten'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Per Kabupaten/Kota
+              </button>
+            </div>
           </motion.div>
 
           {/* Main Content */}
           <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
             <div className="grid lg:grid-cols-2 gap-0">
               {/* Chart Section */}
-              <div className="p-8 bg-gradient-to-br from-blue-50/30 to-indigo-50/30">
-                <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                  <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                  </svg>
-                  Top 10 Kabupaten/Kota
-                </h3>
-                <div className="h-[350px]">
+              <div className="p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-blue-50/30 to-indigo-50/30">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-6">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2">
+                    {activeView === 'fakultas' ? (
+                      drillLevel === 'prodi' && selectedFakultas ? (
+                        <>
+                          <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
+                          </svg>
+                          Program Studi - {selectedFakultas.nama}
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
+                          </svg>
+                          Sebaran Per Fakultas
+                        </>
+                      )
+                    ) : (
+                      <>
+                        <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                        </svg>
+                        Top 10 Kabupaten/Kota
+                      </>
+                    )}
+                  </h3>
+                  {/* Back Button */}
+                  {activeView === 'fakultas' && drillLevel === 'prodi' && (
+                    <button
+                      onClick={handleDrillUp}
+                      className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-all font-semibold text-xs sm:text-sm shadow-sm w-full sm:w-auto justify-center sm:justify-start"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                      </svg>
+                      Kembali
+                    </button>
+                  )}
+                </div>
+                <div className="h-[300px] sm:h-[350px] lg:h-[400px]">
                   <ReactECharts
-                    option={chartOption}
+                    option={
+                      activeView === 'fakultas'
+                        ? (drillLevel === 'prodi' ? prodiChartOption : fakultasChartOption)
+                        : chartOption
+                    }
                     style={{ height: "100%", width: "100%" }}
                     opts={{ renderer: "svg" }}
+                    onEvents={
+                      activeView === 'fakultas' && drillLevel === 'fakultas'
+                        ? {
+                            click: (params: any) => {
+                              const clickedFakultas = fakultasData[params.dataIndex];
+                              if (clickedFakultas) {
+                                handleDrillDown(clickedFakultas.id, clickedFakultas.nama);
+                              }
+                            },
+                          }
+                        : {}
+                    }
                   />
                 </div>
               </div>
 
               {/* Stats Section */}
-              <div className="p-8 bg-white">
-                <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                  <svg className="w-6 h-6 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+              <div className="p-4 sm:p-6 lg:p-8 bg-white">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                   </svg>
                   Detail Sebaran
                 </h3>
-                <div className="space-y-4">
-                  {sebaranData.map((item, index) => (
-                    <div key={index} className="group">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-semibold text-gray-700">{item.provinsi}</span>
-                        <span className="text-sm font-bold text-blue-600">{item.jumlah.toLocaleString()}</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-                        <motion.div
-                          className={`h-2.5 rounded-full ${
-                            index === 0 ? "bg-blue-500" :
-                            index === 1 ? "bg-indigo-500" :
-                            index === 2 ? "bg-violet-500" :
-                            index === 3 ? "bg-purple-500" :
-                            index === 4 ? "bg-pink-500" :
-                            "bg-slate-400"
-                          }`}
-                          initial={{ width: 0 }}
-                          whileInView={{ width: `${item.persentase}%` }}
-                          viewport={{ once: true }}
-                          transition={{ duration: 1, delay: index * 0.1 }}
-                        />
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">{item.persentase}% dari total mahasiswa</div>
-                    </div>
-                  ))}
+                <div className="space-y-4 max-h-[300px] sm:max-h-[350px] lg:max-h-[400px] overflow-y-auto pr-2">
+                  {/* Show prodi data when drilled down, otherwise show fakultas or kabupaten data */}
+                  {activeView === 'fakultas' && drillLevel === 'prodi'
+                    ? prodiData.map((item, index) => (
+                        <div key={index} className="group">
+                          <div className="flex items-center justify-between mb-2">
+                            <div>
+                              <span className="text-sm font-semibold text-gray-700">{item.nama}</span>
+                              <span className="text-xs text-gray-500 ml-2">({item.jenjang})</span>
+                            </div>
+                            <span className="text-sm font-bold text-green-600">{item.jumlah.toLocaleString()}</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                            <motion.div
+                              className="h-2.5 rounded-full bg-green-500"
+                              initial={{ width: 0 }}
+                              whileInView={{ width: `${item.persentase}%` }}
+                              viewport={{ once: true }}
+                              transition={{ duration: 1, delay: index * 0.1 }}
+                            />
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">{item.persentase}% dari fakultas</div>
+                        </div>
+                      ))
+                    : (activeView === 'fakultas' ? fakultasData : sebaranData).map((item, index) => (
+                        <div key={index} className="group">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-semibold text-gray-700">{activeView === 'fakultas' ? item.nama : item.provinsi}</span>
+                            <span className="text-sm font-bold text-blue-600">{item.jumlah.toLocaleString()}</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                            <motion.div
+                              className={`h-2.5 rounded-full ${
+                                index === 0 ? "bg-blue-500" :
+                                index === 1 ? "bg-indigo-500" :
+                                index === 2 ? "bg-violet-500" :
+                                index === 3 ? "bg-purple-500" :
+                                index === 4 ? "bg-pink-500" :
+                                "bg-slate-400"
+                              }`}
+                              initial={{ width: 0 }}
+                              whileInView={{ width: `${item.persentase}%` }}
+                              viewport={{ once: true }}
+                              transition={{ duration: 1, delay: index * 0.1 }}
+                            />
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">{item.persentase}% dari total mahasiswa</div>
+                        </div>
+                      ))
+                  }
                 </div>
               </div>
             </div>
           </motion.div>
 
-          {/* Quick Stats */}
-          <motion.div variants={itemVariants} className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              {
-                label: "Mahasiswa Lokal",
-                value: statistics ? `${statistics.mahasiswa_lokal_persen}%` : "74%",
-                icon: "🏠",
-                color: "blue"
-              },
-              {
-                label: "Mahasiswa Luar Daerah",
-                value: statistics ? `${statistics.mahasiswa_luar_daerah_persen}%` : "26%",
-                icon: "✈️",
-                color: "indigo"
-              },
-              {
-                label: "Provinsi Asal",
-                value: statistics ? `${statistics.total_provinsi}+` : "15+",
-                icon: "🗺️",
-                color: "purple"
-              },
-              {
-                label: "Kabupaten Asal",
-                value: statistics ? `${statistics.total_kabupaten}+` : "50+",
-                icon: "🌟",
-                color: "pink"
-              },
-            ].map((stat, index) => (
-              <div key={index} className={`bg-gradient-to-br from-${stat.color}-50 to-${stat.color}-100/50 rounded-xl p-5 border border-${stat.color}-200`}>
-                <div className="text-2xl mb-2">{stat.icon}</div>
-                <div className="text-2xl font-bold text-gray-800 mb-1">{stat.value}</div>
-                <div className="text-xs font-semibold text-gray-600">{stat.label}</div>
-              </div>
-            ))}
-          </motion.div>
+          {/* Quick Stats - Only show for Kabupaten/Kota view */}
+          {activeView === 'kabupaten' && (
+            <motion.div variants={itemVariants} className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                {
+                  label: "Mahasiswa Lokal",
+                  value: statistics ? `${statistics.mahasiswa_lokal_persen}%` : "74%",
+                  icon: "🏠",
+                  color: "blue",
+                  description: "Dari Provinsi Lampung"
+                },
+                {
+                  label: "Mahasiswa Luar Daerah",
+                  value: statistics ? `${statistics.mahasiswa_luar_daerah_persen}%` : "26%",
+                  icon: "✈️",
+                  color: "indigo",
+                  description: "Dari Luar Provinsi Lampung"
+                },
+                {
+                  label: "Provinsi Asal",
+                  value: statistics ? `${statistics.total_provinsi}+` : "15+",
+                  icon: "🗺️",
+                  color: "purple",
+                  description: "Total provinsi asal mahasiswa"
+                },
+                {
+                  label: "Kabupaten Asal",
+                  value: statistics ? `${statistics.total_kabupaten}+` : "50+",
+                  icon: "🌟",
+                  color: "pink",
+                  description: "Total kabupaten/kota asal"
+                },
+              ].map((stat, index) => (
+                <div
+                  key={index}
+                  className={`bg-gradient-to-br from-${stat.color}-50 to-${stat.color}-100/50 rounded-xl p-5 border border-${stat.color}-200`}
+                  title={stat.description}
+                >
+                  <div className="text-2xl mb-2">{stat.icon}</div>
+                  <div className="text-2xl font-bold text-gray-800 mb-1">{stat.value}</div>
+                  <div className="text-xs font-semibold text-gray-600">{stat.label}</div>
+                </div>
+              ))}
+            </motion.div>
+          )}
         </motion.div>
       </div>
     </section>

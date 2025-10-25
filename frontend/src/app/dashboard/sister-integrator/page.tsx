@@ -11,55 +11,80 @@ import {
   Chip,
   Button,
   Badge,
+  Spinner,
 } from "@heroui/react";
 import {
   FiDatabase,
   FiActivity,
   FiCheckCircle,
-  FiAlertCircle,
   FiClock,
   FiTrendingUp,
   FiArrowRight,
   FiRefreshCw,
   FiServer,
-  FiZap,
   FiAlertTriangle,
-  FiXCircle,
   FiBookOpen,
 } from "react-icons/fi";
-import { MdSync, MdCloudDone } from "react-icons/md";
 import { BsCloudUpload } from "react-icons/bs";
 import { RiGovernmentFill } from "react-icons/ri";
 import { sisterIntegratorMenuConfig } from "./config/menuConfig";
 import Link from "next/link";
+import { referensiService, type ReferensiMetadata } from "@/lib/services/referensiService";
+import { toast } from "react-hot-toast";
 
 export default function SisterIntegratorDashboardPage() {
   useRequireAuth();
   const { user } = useAuth();
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [isHealthy, setIsHealthy] = useState(true);
 
-  // Sync statistics
+  const [metadata, setMetadata] = useState<ReferensiMetadata[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  // Fetch metadata on mount
+  useEffect(() => {
+    fetchMetadata();
+  }, []);
+
+  const fetchMetadata = async () => {
+    try {
+      setIsLoading(true);
+      const data = await referensiService.getMetadata();
+      setMetadata(data);
+    } catch (error) {
+      console.error("Error fetching metadata:", error);
+      toast.error("Gagal memuat metadata referensi");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Calculate real statistics from metadata
+  const totalRecords = metadata.reduce((sum, m) => sum + m.total_records, 0);
+  const syncedCount = metadata.filter((m) => m.total_records > 0).length;
+  const successRate = metadata.length > 0 ? ((syncedCount / metadata.length) * 100).toFixed(1) : 0;
+  const pendingCount = metadata.length - syncedCount;
+
+  // Sync statistics - using real data
   const syncStats = [
     {
       title: "Total Records Synced",
-      value: "8,547",
+      value: totalRecords.toLocaleString(),
       icon: <FiDatabase className="w-6 h-6" />,
       color: "from-purple-500 to-purple-600",
-      change: "+127",
+      change: `${metadata.length} endpoints`,
       trend: "up",
-      subtitle: "records hari ini",
+      subtitle: "total data referensi",
       progress: 85,
     },
     {
       title: "Success Rate",
-      value: "99.2%",
+      value: `${successRate}%`,
       icon: <FiCheckCircle className="w-6 h-6" />,
       color: "from-green-500 to-green-600",
-      change: "+0.8%",
+      change: `${syncedCount}/${metadata.length}`,
       trend: "up",
-      subtitle: "dari total sync",
-      progress: 99.2,
+      subtitle: "endpoints synced",
+      progress: parseFloat(successRate.toString()),
     },
     {
       title: "API Connection",
@@ -73,83 +98,47 @@ export default function SisterIntegratorDashboardPage() {
     },
     {
       title: "Pending Tasks",
-      value: "3",
+      value: pendingCount.toString(),
       icon: <FiClock className="w-6 h-6" />,
       color: "from-orange-500 to-orange-600",
-      change: "-2",
+      change: `${pendingCount} belum sync`,
       trend: "up",
       subtitle: "in queue",
-      progress: 15,
+      progress: pendingCount > 0 ? 50 : 0,
     },
   ];
 
-  // Recent sync activities
-  const recentSyncs = [
-    {
-      entity: "Agama",
-      status: "success",
-      records: "7",
-      time: "5 menit yang lalu",
-      duration: "0.8s",
+  // Recent sync activities - from real data (top 3 latest)
+  const recentSyncs = metadata
+    .filter(m => m.last_sync)
+    .sort((a, b) => {
+      const dateA = a.last_sync ? new Date(a.last_sync).getTime() : 0;
+      const dateB = b.last_sync ? new Date(b.last_sync).getTime() : 0;
+      return dateB - dateA;
+    })
+    .slice(0, 3)
+    .map(m => ({
+      entity: m.name,
+      status: m.total_records > 0 ? "success" : "pending",
+      records: m.total_records > 0 ? m.total_records.toString() : "0",
+      time: formatTimeAgo(m.last_sync),
+      duration: "-",
       icon: <BsCloudUpload className="w-4 h-4" />,
-      color: "bg-green-100 text-green-600",
-      href: "/dashboard/sister-integrator/referensi/agama",
-    },
-    {
-      entity: "Negara",
-      status: "pending",
-      records: "0/250",
-      time: "Belum tersinkronisasi",
-      duration: "-",
-      icon: <FiClock className="w-4 h-4" />,
-      color: "bg-gray-100 text-gray-600",
-      href: "/dashboard/sister-integrator/referensi/negara",
-    },
-    {
-      entity: "Wilayah",
-      status: "pending",
-      records: "0/540",
-      time: "Belum tersinkronisasi",
-      duration: "-",
-      icon: <FiClock className="w-4 h-4" />,
-      color: "bg-gray-100 text-gray-600",
-      href: "/dashboard/sister-integrator/referensi/wilayah",
-    },
-  ];
+      color: m.total_records > 0 ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-600",
+      href: `/dashboard/sister-integrator/referensi`,
+    }));
 
-  // Referensi data modules
-  const referensiModules = [
-    {
-      name: "Agama",
-      description: "Data referensi agama dari SISTER",
-      icon: <FiBookOpen className="w-6 h-6" />,
-      color: "from-blue-500 to-blue-600",
-      status: "active",
-      recordCount: 7,
-      lastSync: "5 menit yang lalu",
-      href: "/dashboard/sister-integrator/referensi/agama",
-    },
-    {
-      name: "Negara",
-      description: "Data referensi negara dari SISTER",
-      icon: <FiDatabase className="w-6 h-6" />,
-      color: "from-purple-500 to-purple-600",
-      status: "inactive",
-      recordCount: 0,
-      lastSync: "Belum pernah sync",
-      href: "/dashboard/sister-integrator/referensi/negara",
-    },
-    {
-      name: "Wilayah",
-      description: "Data referensi wilayah dari SISTER",
-      icon: <FiDatabase className="w-6 h-6" />,
-      color: "from-indigo-500 to-indigo-600",
-      status: "inactive",
-      recordCount: 0,
-      lastSync: "Belum pernah sync",
-      href: "/dashboard/sister-integrator/referensi/wilayah",
-    },
-  ];
+  // Referensi data modules - from real data (top 3)
+  const referensiModules = metadata.slice(0, 3).map(m => ({
+    name: m.name,
+    description: m.description,
+    icon: <FiBookOpen className="w-6 h-6" />,
+    color: "from-blue-500 to-blue-600",
+    status: m.total_records > 0 ? "active" : "inactive",
+    recordCount: m.total_records,
+    lastSync: formatTimeAgo(m.last_sync),
+    href: `/dashboard/sister-integrator/referensi`,
+  }));
 
   // System health metrics
   const systemHealth = [
@@ -162,6 +151,43 @@ export default function SisterIntegratorDashboardPage() {
     setIsSyncing(true);
     setTimeout(() => setIsSyncing(false), 3000);
   };
+
+  function formatTimeAgo(dateString?: string | null): string {
+    if (!dateString) return "Belum pernah sync";
+
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return "Baru saja";
+    if (diffMins < 60) return `${diffMins} menit yang lalu`;
+    if (diffHours < 24) return `${diffHours} jam yang lalu`;
+    if (diffDays < 30) return `${diffDays} hari yang lalu`;
+
+    return date.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric"
+    });
+  }
+
+  if (isLoading) {
+    return (
+      <DashboardLayout
+        appName="SISTER Integrator"
+        appIcon={<RiGovernmentFill className="w-6 h-6 text-white" />}
+        menuConfig={sisterIntegratorMenuConfig}
+        pageTitle="Dashboard"
+      >
+        <div className="flex justify-center items-center h-96">
+          <Spinner size="lg" color="primary" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout
@@ -200,37 +226,6 @@ export default function SisterIntegratorDashboardPage() {
               </div>
             </div>
 
-            {/* Quick Actions */}
-            <div className="flex flex-wrap gap-2 mt-4">
-              <Button
-                color="default"
-                variant="flat"
-                className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/30"
-                startContent={<FiRefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />}
-                onClick={handleQuickSync}
-                isLoading={isSyncing}
-              >
-                Quick Sync All
-              </Button>
-              <Button
-                color="default"
-                variant="flat"
-                className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/30"
-                startContent={<FiActivity className="w-4 h-4" />}
-                as={Link}
-                href="/dashboard/sister-integrator/monitoring"
-              >
-                View Monitoring
-              </Button>
-              <Button
-                color="default"
-                variant="flat"
-                className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/30"
-                startContent={<FiServer className="w-4 h-4" />}
-              >
-                Check Health
-              </Button>
-            </div>
           </div>
         </div>
 
@@ -300,7 +295,7 @@ export default function SisterIntegratorDashboardPage() {
                       size="sm"
                     />
                     <span className="text-xs font-bold text-gray-600 dark:text-gray-400">
-                      {stat.progress}%
+                      {stat.progress.toFixed(0)}%
                     </span>
                   </div>
                   <p className="text-xs text-gray-400 dark:text-gray-500 font-medium">
@@ -324,6 +319,16 @@ export default function SisterIntegratorDashboardPage() {
                     <FiBookOpen className="w-5 h-5 text-purple-600" />
                     Data Referensi
                   </h3>
+                  <Button
+                    size="sm"
+                    variant="light"
+                    color="primary"
+                    endContent={<FiArrowRight className="w-4 h-4" />}
+                    as={Link}
+                    href="/dashboard/sister-integrator/referensi"
+                  >
+                    View All
+                  </Button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {referensiModules.map((module, index) => (
@@ -343,7 +348,7 @@ export default function SisterIntegratorDashboardPage() {
                               <h4 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">
                                 {module.name}
                               </h4>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">
                                 {module.description}
                               </p>
                               <div className="flex items-center justify-between text-xs">
@@ -382,7 +387,7 @@ export default function SisterIntegratorDashboardPage() {
                     color="primary"
                     endContent={<FiArrowRight className="w-4 h-4" />}
                     as={Link}
-                    href="/dashboard/sister-integrator/logs"
+                    href="/dashboard/sister-integrator/referensi"
                   >
                     View All
                   </Button>
@@ -426,10 +431,6 @@ export default function SisterIntegratorDashboardPage() {
                             <span className="flex items-center gap-1">
                               <FiClock className="w-3 h-3" />
                               {sync.time}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <FiZap className="w-3 h-3" />
-                              {sync.duration}
                             </span>
                           </div>
                         </div>
@@ -508,12 +509,12 @@ export default function SisterIntegratorDashboardPage() {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-600 dark:text-gray-400">Total Referensi</span>
-                    <span className="font-bold text-gray-900 dark:text-white">3</span>
+                    <span className="font-bold text-gray-900 dark:text-white">{metadata.length}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-600 dark:text-gray-400">Active Syncs</span>
-                    <Badge content="1" color="success" size="sm">
-                      <span className="font-bold text-gray-900 dark:text-white">1</span>
+                    <Badge content={syncedCount.toString()} color="success" size="sm">
+                      <span className="font-bold text-gray-900 dark:text-white">{syncedCount}</span>
                     </Badge>
                   </div>
                   <div className="flex justify-between items-center text-sm">
@@ -548,9 +549,9 @@ export default function SisterIntegratorDashboardPage() {
                       variant="flat"
                       className="text-xs"
                       as={Link}
-                      href="/dashboard/sister-integrator/settings"
+                      href="/dashboard/sister-integrator/referensi"
                     >
-                      View Configuration
+                      View Referensi
                     </Button>
                   </div>
                 </div>

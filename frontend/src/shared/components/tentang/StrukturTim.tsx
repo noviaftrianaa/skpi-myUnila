@@ -347,12 +347,20 @@ export default function StrukturTim() {
             <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 shadow-lg border border-blue-100">
               <CardBody className="p-8 text-center">
                 <h3 className="text-2xl font-bold text-gray-800 mb-3">Ingin Bergabung Magang dengan Tim?</h3>
-                <p className="text-gray-700 mb-6 max-w-2xl mx-auto">
+                <p className="text-gray-700 mb-4 max-w-2xl mx-auto">
                   Kami selalu mencari talenta terbaik untuk bergabung dalam pengembangan myUnila.
-                  Jika Anda tertarik, silakan hubungi kami!
+                  Jika Anda tertarik, silakan hubungi kami di:
                 </p>
+                <div className="mb-6">
+                  <a
+                    href="mailto:dev@unila.ac.id"
+                    className="text-blue-600 hover:text-blue-700 font-semibold text-lg hover:underline"
+                  >
+                    dev@unila.ac.id
+                  </a>
+                </div>
                 <a
-                  href="mailto:myunila@unila.ac.id"
+                  href="mailto:dev@unila.ac.id"
                   className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:shadow-lg hover:scale-105 transition-all"
                 >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">

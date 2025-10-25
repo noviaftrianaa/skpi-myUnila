@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { FaMale, FaFemale } from 'react-icons/fa';
 import { dashboardService } from '@/lib/services/dashboardService';
 import type { Dosen } from '@/lib/types/dashboardTypes';
@@ -11,6 +12,7 @@ interface DosenTableProps {
 }
 
 export default function DosenTable({ programStudiId }: DosenTableProps) {
+  const router = useRouter();
   const [dosenList, setDosenList] = useState<Dosen[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -79,7 +81,12 @@ export default function DosenTable({ programStudiId }: DosenTableProps) {
       minWidth: '200px',
       sortable: true,
       render: (item) => (
-        <div className="font-semibold text-gray-900">{item.nama}</div>
+        <button
+          onClick={() => router.push(`/dosen/${item.encrypted_id}`)}
+          className="font-semibold text-blue-600 hover:text-blue-800 hover:underline text-left transition-colors"
+        >
+          {item.nama}
+        </button>
       ),
     },
     {

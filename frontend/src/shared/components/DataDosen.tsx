@@ -12,11 +12,33 @@ export default function DataDosen() {
   const [statistics, setStatistics] = useState<DosenStatistics | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // State for sebaran dosen drilldown
+  const [fakultasSebaranData, setFakultasSebaranData] = useState<any[]>([]);
+  const [prodiSebaranData, setProdiSebaranData] = useState<any[]>([]);
+  const [drillLevel, setDrillLevel] = useState<'fakultas' | 'prodi'>('fakultas');
+  const [selectedFakultas, setSelectedFakultas] = useState<{id: string, nama: string} | null>(null);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await dosenService.getStatistics();
         setStatistics(data);
+
+        // Fetch sebaran fakultas data
+        const sebaranResponse = await fetch('http://localhost:9800/dashboard-service/public/api/v1/dosen-sebaran/fakultas');
+        const sebaranJson = await sebaranResponse.json();
+
+        if (sebaranJson.success) {
+          const fakData = sebaranJson.data.data.map((item: any) => ({
+            nama: item.nama_fakultas,
+            jumlah: item.jumlah_dosen,
+            mahasiswa: item.jumlah_mahasiswa,
+            rasio: item.rasio,
+            persentase: parseFloat(item.persentase.toFixed(1)),
+            id: item.id_fakultas,
+          }));
+          setFakultasSebaranData(fakData);
+        }
       } catch (error) {
         console.error("Error fetching dosen statistics:", error);
       } finally {
@@ -35,6 +57,63 @@ export default function DataDosen() {
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  };
+
+  // Drilldown functions for sebaran dosen
+  const handleDrillDown = async (fakultasId: string, fakultasNama: string) => {
+    try {
+      setLoading(true);
+      // Add cache buster to prevent stale data
+      const cacheBuster = `?t=${Date.now()}`;
+      const response = await fetch(`http://localhost:9800/dashboard-service/public/api/v1/dosen-sebaran/fakultas/${fakultasId}/prodi${cacheBuster}`);
+      const data = await response.json();
+
+      if (data.success) {
+        console.log('Drilldown API response:', data.data.data[0]); // Debug log
+
+        const prodiDataFormatted = data.data.data.map((item: any) => ({
+          id: item.id_prodi,
+          nama: item.nama_prodi,
+          jenjang: item.jenjang,
+          jumlah: item.jumlah_dosen,
+          mahasiswa: item.jumlah_mahasiswa,
+          rasio: item.rasio,
+          persentase: parseFloat(item.persentase.toFixed(1)),
+        }));
+
+        console.log('Formatted prodi data:', prodiDataFormatted[0]); // Debug log
+
+        setProdiSebaranData(prodiDataFormatted);
+        setSelectedFakultas({ id: fakultasId, nama: fakultasNama });
+        setDrillLevel('prodi');
+
+        // Prevent scroll jump - smooth scroll to chart
+        setTimeout(() => {
+          const chartElement = document.getElementById('sebaran-dosen-chart');
+          if (chartElement) {
+            chartElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        }, 100);
+      }
+    } catch (err) {
+      console.error('Error drilling down:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDrillUp = () => {
+    setDrillLevel('fakultas');
+    setSelectedFakultas(null);
+    setProdiSebaranData([]);
+
+    // Prevent scroll jump - smooth scroll to chart
+    setTimeout(() => {
+      const chartElement = document.getElementById('sebaran-dosen-chart');
+      if (chartElement) {
+        chartElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 100);
   };
 
   // Data dosen berdasarkan jenjang pendidikan
@@ -232,6 +311,226 @@ export default function DataDosen() {
   };
   }, [jabatanData]);
 
+  // Chart configuration untuk sebaran dosen per fakultas
+  const fakultasSebaranChartOption = useMemo(() => {
+    if (!fakultasSebaranData || fakultasSebaranData.length === 0) {
+      return {
+        xAxis: { type: "category", data: [] },
+        yAxis: { type: "value" },
+        series: [{ type: "bar", data: [] }]
+      };
+    }
+
+    return {
+      tooltip: {
+        trigger: "axis",
+        axisPointer: {
+          type: "shadow",
+        },
+        formatter: (params: any) => {
+          const item = params[0];
+          const dataItem = fakultasSebaranData.find(d => d.nama === item.name);
+          return `<div style="padding: 10px;">
+            <div style="font-weight: 600; color: #1f2937; margin-bottom: 6px;">${item.name}</div>
+            <div style="color: #f97316; font-size: 20px; font-weight: 700; margin-bottom: 4px;">${item.value} dosen</div>
+            <div style="color: #6b7280; font-size: 13px; margin-bottom: 2px;">Mahasiswa: ${dataItem?.mahasiswa?.toLocaleString() || 0}</div>
+            <div style="color: #059669; font-size: 14px; font-weight: 600;">Rasio: ${dataItem?.rasio || '1:0'}</div>
+            <div style="color: #9ca3af; font-size: 11px; margin-top: 6px; font-style: italic;">💡 Klik untuk lihat per prodi →</div>
+          </div>`;
+        },
+        backgroundColor: "rgba(255, 255, 255, 0.95)",
+        borderColor: "#f97316",
+        borderWidth: 1,
+        extraCssText: "box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 8px;",
+      },
+      grid: {
+        left: "3%",
+        right: "4%",
+        bottom: "3%",
+        top: "3%",
+        containLabel: true,
+      },
+      xAxis: {
+        type: "category",
+        data: fakultasSebaranData.map(item => item.nama),
+        axisLabel: {
+          color: "#1f2937",
+          fontSize: 10,
+          fontWeight: 600,
+          interval: 0,
+          rotate: 20,
+        },
+        axisTick: {
+          show: false,
+        },
+        axisLine: {
+          show: false,
+        },
+      },
+      yAxis: {
+        type: "value",
+        axisLabel: {
+          formatter: "{value}",
+          color: "#6b7280",
+          fontSize: 11,
+        },
+        splitLine: {
+          lineStyle: {
+            color: "#e5e7eb",
+            type: "dashed",
+          },
+        },
+      },
+      series: [
+        {
+          type: "bar",
+          data: fakultasSebaranData.map((item) => ({
+            value: item.jumlah,
+            itemStyle: {
+              color: {
+                type: "linear",
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [
+                  { offset: 0, color: "#f97316" },
+                  { offset: 1, color: "#fb923c" },
+                ],
+              },
+              borderRadius: [6, 6, 0, 0],
+            },
+          })),
+          barWidth: "55%",
+          label: {
+            show: true,
+            position: "top",
+            formatter: "{c}",
+            color: "#1f2937",
+            fontSize: 11,
+            fontWeight: 700,
+          },
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowColor: "rgba(249, 115, 22, 0.4)",
+            },
+          },
+        },
+      ],
+    };
+  }, [fakultasSebaranData]);
+
+  // Chart configuration untuk sebaran dosen per prodi (drilldown)
+  const prodiSebaranChartOption = useMemo(() => {
+    if (!prodiSebaranData || prodiSebaranData.length === 0) {
+      return {
+        xAxis: { type: "category", data: [] },
+        yAxis: { type: "value" },
+        series: [{ type: "bar", data: [] }]
+      };
+    }
+
+    return {
+      tooltip: {
+        trigger: "axis",
+        axisPointer: {
+          type: "shadow",
+        },
+        formatter: (params: any) => {
+          const item = params[0];
+          const dataItem = prodiSebaranData[item.dataIndex];
+          return `<div style="padding: 10px;">
+            <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">${dataItem?.nama || item.name}</div>
+            <div style="color: #d97706; font-size: 12px; margin-bottom: 6px; font-weight: 500;">${dataItem?.jenjang || ''}</div>
+            <div style="color: #f59e0b; font-size: 20px; font-weight: 700; margin-bottom: 4px;">${item.value} dosen</div>
+            <div style="color: #6b7280; font-size: 13px; margin-bottom: 2px;">Mahasiswa: ${dataItem?.mahasiswa?.toLocaleString() || 0}</div>
+            <div style="color: #059669; font-size: 14px; font-weight: 600;">Rasio: ${dataItem?.rasio || '1:0'}</div>
+          </div>`;
+        },
+        backgroundColor: "rgba(255, 255, 255, 0.95)",
+        borderColor: "#f59e0b",
+        borderWidth: 1,
+        extraCssText: "box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 8px;",
+      },
+      grid: {
+        left: "3%",
+        right: "4%",
+        bottom: "3%",
+        top: "3%",
+        containLabel: true,
+      },
+      xAxis: {
+        type: "category",
+        data: prodiSebaranData.map(item => `${item.nama}\n(${item.jenjang})`),
+        axisLabel: {
+          color: "#1f2937",
+          fontSize: 9,
+          fontWeight: 600,
+          interval: 0,
+          rotate: 25,
+        },
+        axisTick: {
+          show: false,
+        },
+        axisLine: {
+          show: false,
+        },
+      },
+      yAxis: {
+        type: "value",
+        axisLabel: {
+          formatter: "{value}",
+          color: "#6b7280",
+          fontSize: 11,
+        },
+        splitLine: {
+          lineStyle: {
+            color: "#e5e7eb",
+            type: "dashed",
+          },
+        },
+      },
+      series: [
+        {
+          type: "bar",
+          data: prodiSebaranData.map((item) => ({
+            value: item.jumlah,
+            itemStyle: {
+              color: {
+                type: "linear",
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [
+                  { offset: 0, color: "#f59e0b" },
+                  { offset: 1, color: "#fbbf24" },
+                ],
+              },
+              borderRadius: [6, 6, 0, 0],
+            },
+          })),
+          barWidth: "50%",
+          label: {
+            show: true,
+            position: "top",
+            formatter: "{c}",
+            color: "#1f2937",
+            fontSize: 10,
+            fontWeight: 700,
+          },
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowColor: "rgba(245, 158, 11, 0.4)",
+            },
+          },
+        },
+      ],
+    };
+  }, [prodiSebaranData]);
+
   if (loading) {
     return (
       <section className="py-20 bg-gradient-to-b from-gray-50 to-white relative">
@@ -357,6 +656,67 @@ export default function DataDosen() {
               </div>
             </motion.div>
           </div>
+
+          {/* Sebaran Dosen Per Fakultas/Prodi with Drilldown */}
+          <motion.div variants={itemVariants} className="mt-8" id="sebaran-dosen-chart">
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="px-6 py-5 bg-gradient-to-r from-orange-500 to-orange-600">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                    </svg>
+                    {drillLevel === 'fakultas'
+                      ? 'Sebaran Dosen Per Fakultas'
+                      : `Sebaran Dosen Per Prodi - ${selectedFakultas?.nama}`
+                    }
+                  </h3>
+                  {drillLevel === 'prodi' && (
+                    <button
+                      onClick={handleDrillUp}
+                      className="flex items-center gap-2 px-4 py-2 bg-white text-orange-600 rounded-lg hover:bg-orange-50 transition-colors font-semibold text-sm shadow-md"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                      </svg>
+                      Kembali ke Fakultas
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="p-6 sm:p-8">
+                <div className="h-[400px] sm:h-[450px] lg:h-[500px]">
+                  <ReactECharts
+                    option={drillLevel === 'fakultas' ? fakultasSebaranChartOption : prodiSebaranChartOption}
+                    style={{ height: "100%", width: "100%" }}
+                    opts={{ renderer: "svg" }}
+                    onEvents={{
+                      click: (params: any) => {
+                        if (drillLevel === 'fakultas') {
+                          const fakultas = fakultasSebaranData.find(f => f.nama === params.name);
+                          if (fakultas) {
+                            handleDrillDown(fakultas.id, fakultas.nama);
+                          }
+                        }
+                      }
+                    }}
+                  />
+                </div>
+                {drillLevel === 'fakultas' && (
+                  <div className="mt-6 p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg border border-orange-100">
+                    <div className="flex items-start gap-3">
+                      <div className="text-2xl">💡</div>
+                      <div>
+                        <p className="text-sm text-gray-700 font-medium">
+                          <span className="font-bold text-orange-600">Klik pada bar chart</span> untuk melihat detail sebaran dosen per program studi di fakultas tersebut, termasuk rasio dosen:mahasiswa setiap prodi.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
 
           {/* Additional Info */}
           <motion.div variants={itemVariants} className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
