@@ -1,0 +1,698 @@
+// Add these Swagger annotations to controller.go
+
+// GetAllBidangStudi handles GET /api/v1/referensi/bidang-studi
+// @Summary Get all bidang_studi
+// @Description Retrieve all bidang_studi (field of study) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.BidangStudi}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/bidang-studi [get]
+
+// SyncBidangStudi handles POST /api/v1/referensi/bidang-studi/sync
+// @Summary Sync bidang_studi from Sister API
+// @Description Synchronize bidang_studi (field of study) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/bidang-studi/sync [post]
+
+// GetAllBidangUsaha handles GET /api/v1/referensi/bidang-usaha
+// @Summary Get all bidang_usaha
+// @Description Retrieve all bidang_usaha (business field) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.BidangUsaha}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/bidang-usaha [get]
+
+// SyncBidangUsaha handles POST /api/v1/referensi/bidang-usaha/sync
+// @Summary Sync bidang_usaha from Sister API
+// @Description Synchronize bidang_usaha (business field) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/bidang-usaha/sync [post]
+
+// GetAllJabatanFungsional handles GET /api/v1/referensi/jabatan-fungsional
+// @Summary Get all jabatan_fungsional
+// @Description Retrieve all jabatan_fungsional (functional position) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.JabatanFungsional}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jabatan-fungsional [get]
+
+// SyncJabatanFungsional handles POST /api/v1/referensi/jabatan-fungsional/sync
+// @Summary Sync jabatan_fungsional from Sister API
+// @Description Synchronize jabatan_fungsional (functional position) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jabatan-fungsional/sync [post]
+
+// GetAllJabatanTugasTambahan handles GET /api/v1/referensi/jabatan-tugas-tambahan
+// @Summary Get all jabatan_tugas_tambahan
+// @Description Retrieve all jabatan_tugas_tambahan (additional duty position) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.JabatanTugasTambahan}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jabatan-tugas-tambahan [get]
+
+// SyncJabatanTugasTambahan handles POST /api/v1/referensi/jabatan-tugas-tambahan/sync
+// @Summary Sync jabatan_tugas_tambahan from Sister API
+// @Description Synchronize jabatan_tugas_tambahan (additional duty position) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jabatan-tugas-tambahan/sync [post]
+
+// GetAllJenisBahanAjar handles GET /api/v1/referensi/jenis-bahan-ajar
+// @Summary Get all jenis_bahan_ajar
+// @Description Retrieve all jenis_bahan_ajar (teaching material type) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.JenisBahanAjar}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jenis-bahan-ajar [get]
+
+// SyncJenisBahanAjar handles POST /api/v1/referensi/jenis-bahan-ajar/sync
+// @Summary Sync jenis_bahan_ajar from Sister API
+// @Description Synchronize jenis_bahan_ajar (teaching material type) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jenis-bahan-ajar/sync [post]
+
+// GetAllJenisBeasiswa handles GET /api/v1/referensi/jenis-beasiswa
+// @Summary Get all jenis_beasiswa
+// @Description Retrieve all jenis_beasiswa (scholarship type) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.JenisBeasiswa}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jenis-beasiswa [get]
+
+// SyncJenisBeasiswa handles POST /api/v1/referensi/jenis-beasiswa/sync
+// @Summary Sync jenis_beasiswa from Sister API
+// @Description Synchronize jenis_beasiswa (scholarship type) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jenis-beasiswa/sync [post]
+
+// GetAllJenisDiklat handles GET /api/v1/referensi/jenis-diklat
+// @Summary Get all jenis_diklat
+// @Description Retrieve all jenis_diklat (training type) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.JenisDiklat}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jenis-diklat [get]
+
+// SyncJenisDiklat handles POST /api/v1/referensi/jenis-diklat/sync
+// @Summary Sync jenis_diklat from Sister API
+// @Description Synchronize jenis_diklat (training type) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jenis-diklat/sync [post]
+
+// GetAllJenisDokumen handles GET /api/v1/referensi/jenis-dokumen
+// @Summary Get all jenis_dokumen
+// @Description Retrieve all jenis_dokumen (document type) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.JenisDokumen}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jenis-dokumen [get]
+
+// SyncJenisDokumen handles POST /api/v1/referensi/jenis-dokumen/sync
+// @Summary Sync jenis_dokumen from Sister API
+// @Description Synchronize jenis_dokumen (document type) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jenis-dokumen/sync [post]
+
+// GetAllJenisKeluar handles GET /api/v1/referensi/jenis-keluar
+// @Summary Get all jenis_keluar
+// @Description Retrieve all jenis_keluar (exit type) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.JenisKeluar}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jenis-keluar [get]
+
+// SyncJenisKeluar handles POST /api/v1/referensi/jenis-keluar/sync
+// @Summary Sync jenis_keluar from Sister API
+// @Description Synchronize jenis_keluar (exit type) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jenis-keluar/sync [post]
+
+// GetAllJenisKepanitiaan handles GET /api/v1/referensi/jenis-kepanitiaan
+// @Summary Get all jenis_kepanitiaan
+// @Description Retrieve all jenis_kepanitiaan (committee type) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.JenisKepanitiaan}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jenis-kepanitiaan [get]
+
+// SyncJenisKepanitiaan handles POST /api/v1/referensi/jenis-kepanitiaan/sync
+// @Summary Sync jenis_kepanitiaan from Sister API
+// @Description Synchronize jenis_kepanitiaan (committee type) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jenis-kepanitiaan/sync [post]
+
+// GetAllJenisKesejahteraan handles GET /api/v1/referensi/jenis-kesejahteraan
+// @Summary Get all jenis_kesejahteraan
+// @Description Retrieve all jenis_kesejahteraan (welfare type) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.JenisKesejahteraan}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jenis-kesejahteraan [get]
+
+// SyncJenisKesejahteraan handles POST /api/v1/referensi/jenis-kesejahteraan/sync
+// @Summary Sync jenis_kesejahteraan from Sister API
+// @Description Synchronize jenis_kesejahteraan (welfare type) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jenis-kesejahteraan/sync [post]
+
+// GetAllJenisPublikasi handles GET /api/v1/referensi/jenis-publikasi
+// @Summary Get all jenis_publikasi
+// @Description Retrieve all jenis_publikasi (publication type) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.JenisPublikasi}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jenis-publikasi [get]
+
+// SyncJenisPublikasi handles POST /api/v1/referensi/jenis-publikasi/sync
+// @Summary Sync jenis_publikasi from Sister API
+// @Description Synchronize jenis_publikasi (publication type) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jenis-publikasi/sync [post]
+
+// GetAllJenisTes handles GET /api/v1/referensi/jenis-tes
+// @Summary Get all jenis_tes
+// @Description Retrieve all jenis_tes (test type) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.JenisTes}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jenis-tes [get]
+
+// SyncJenisTes handles POST /api/v1/referensi/jenis-tes/sync
+// @Summary Sync jenis_tes from Sister API
+// @Description Synchronize jenis_tes (test type) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jenis-tes/sync [post]
+
+// GetAllJenisTunjangan handles GET /api/v1/referensi/jenis-tunjangan
+// @Summary Get all jenis_tunjangan
+// @Description Retrieve all jenis_tunjangan (allowance type) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.JenisTunjangan}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jenis-tunjangan [get]
+
+// SyncJenisTunjangan handles POST /api/v1/referensi/jenis-tunjangan/sync
+// @Summary Sync jenis_tunjangan from Sister API
+// @Description Synchronize jenis_tunjangan (allowance type) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jenis-tunjangan/sync [post]
+
+// GetAllMediaPublikasi handles GET /api/v1/referensi/media-publikasi
+// @Summary Get all media_publikasi
+// @Description Retrieve all media_publikasi (publication media) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.MediaPublikasi}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/media-publikasi [get]
+
+// SyncMediaPublikasi handles POST /api/v1/referensi/media-publikasi/sync
+// @Summary Sync media_publikasi from Sister API
+// @Description Synchronize media_publikasi (publication media) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/media-publikasi/sync [post]
+
+// GetAllSkimKegiatan handles GET /api/v1/referensi/skim-kegiatan
+// @Summary Get all skim_kegiatan
+// @Description Retrieve all skim_kegiatan (activity scheme) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.SkimKegiatan}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/skim-kegiatan [get]
+
+// SyncSkimKegiatan handles POST /api/v1/referensi/skim-kegiatan/sync
+// @Summary Sync skim_kegiatan from Sister API
+// @Description Synchronize skim_kegiatan (activity scheme) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/skim-kegiatan/sync [post]
+
+// GetAllStatusKepegawaian handles GET /api/v1/referensi/status-kepegawaian
+// @Summary Get all status_kepegawaian
+// @Description Retrieve all status_kepegawaian (employment status) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.StatusKepegawaian}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/status-kepegawaian [get]
+
+// SyncStatusKepegawaian handles POST /api/v1/referensi/status-kepegawaian/sync
+// @Summary Sync status_kepegawaian from Sister API
+// @Description Synchronize status_kepegawaian (employment status) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/status-kepegawaian/sync [post]
+
+// GetAllSumberGaji handles GET /api/v1/referensi/sumber-gaji
+// @Summary Get all sumber_gaji
+// @Description Retrieve all sumber_gaji (salary source) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.SumberGaji}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/sumber-gaji [get]
+
+// SyncSumberGaji handles POST /api/v1/referensi/sumber-gaji/sync
+// @Summary Sync sumber_gaji from Sister API
+// @Description Synchronize sumber_gaji (salary source) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/sumber-gaji/sync [post]
+
+// GetAllTingkatPenghargaan handles GET /api/v1/referensi/tingkat-penghargaan
+// @Summary Get all tingkat_penghargaan
+// @Description Retrieve all tingkat_penghargaan (award level) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.TingkatPenghargaan}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/tingkat-penghargaan [get]
+
+// SyncTingkatPenghargaan handles POST /api/v1/referensi/tingkat-penghargaan/sync
+// @Summary Sync tingkat_penghargaan from Sister API
+// @Description Synchronize tingkat_penghargaan (award level) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/tingkat-penghargaan/sync [post]
+
+// GetAllWilayah handles GET /api/v1/referensi/wilayah
+// @Summary Get all wilayah
+// @Description Retrieve all wilayah (region) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.Wilayah}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/wilayah [get]
+
+// SyncWilayah handles POST /api/v1/referensi/wilayah/sync
+// @Summary Sync wilayah from Sister API
+// @Description Synchronize wilayah (region) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/wilayah/sync [post]
+
+// GetAllKategoriCapaianLuaran handles GET /api/v1/referensi/kategori-capaian-luaran
+// @Summary Get all kategori_capaian_luaran
+// @Description Retrieve all kategori_capaian_luaran (output achievement category) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.KategoriCapaianLuaran}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/kategori-capaian-luaran [get]
+
+// SyncKategoriCapaianLuaran handles POST /api/v1/referensi/kategori-capaian-luaran/sync
+// @Summary Sync kategori_capaian_luaran from Sister API
+// @Description Synchronize kategori_capaian_luaran (output achievement category) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/kategori-capaian-luaran/sync [post]
+
+// GetAllKategoriKegiatan handles GET /api/v1/referensi/kategori-kegiatan
+// @Summary Get all kategori_kegiatan
+// @Description Retrieve all kategori_kegiatan (activity category) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.KategoriKegiatan}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/kategori-kegiatan [get]
+
+// SyncKategoriKegiatan handles POST /api/v1/referensi/kategori-kegiatan/sync
+// @Summary Sync kategori_kegiatan from Sister API
+// @Description Synchronize kategori_kegiatan (activity category) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/kategori-kegiatan/sync [post]
+
+// GetAllKelompokBidang handles GET /api/v1/referensi/kelompok-bidang
+// @Summary Get all kelompok_bidang
+// @Description Retrieve all kelompok_bidang (field group) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.KelompokBidang}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/kelompok-bidang [get]
+
+// SyncKelompokBidang handles POST /api/v1/referensi/kelompok-bidang/sync
+// @Summary Sync kelompok_bidang from Sister API
+// @Description Synchronize kelompok_bidang (field group) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/kelompok-bidang/sync [post]
+
+// GetAllLembagaSertifikasi handles GET /api/v1/referensi/lembaga-sertifikasi
+// @Summary Get all lembaga_sertifikasi
+// @Description Retrieve all lembaga_sertifikasi (certification institution) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.LembagaSertifikasi}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/lembaga-sertifikasi [get]
+
+// SyncLembagaSertifikasi handles POST /api/v1/referensi/lembaga-sertifikasi/sync
+// @Summary Sync lembaga_sertifikasi from Sister API
+// @Description Synchronize lembaga_sertifikasi (certification institution) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/lembaga-sertifikasi/sync [post]
+
+// GetAllGolonganPangkat handles GET /api/v1/referensi/golongan-pangkat
+// @Summary Get all golongan_pangkat
+// @Description Retrieve all golongan_pangkat (rank grade) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.GolonganPangkat}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/golongan-pangkat [get]
+
+// SyncGolonganPangkat handles POST /api/v1/referensi/golongan-pangkat/sync
+// @Summary Sync golongan_pangkat from Sister API
+// @Description Synchronize golongan_pangkat (rank grade) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/golongan-pangkat/sync [post]
+
+// GetAllIkatanKerja handles GET /api/v1/referensi/ikatan-kerja
+// @Summary Get all ikatan_kerja
+// @Description Retrieve all ikatan_kerja (work bond) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.IkatanKerja}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/ikatan-kerja [get]
+
+// SyncIkatanKerja handles POST /api/v1/referensi/ikatan-kerja/sync
+// @Summary Sync ikatan_kerja from Sister API
+// @Description Synchronize ikatan_kerja (work bond) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/ikatan-kerja/sync [post]
+
+// GetAllJenisPenghargaan handles GET /api/v1/referensi/jenis-penghargaan
+// @Summary Get all jenis_penghargaan
+// @Description Retrieve all jenis_penghargaan (award type) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.JenisPenghargaan}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jenis-penghargaan [get]
+
+// SyncJenisPenghargaan handles POST /api/v1/referensi/jenis-penghargaan/sync
+// @Summary Sync jenis_penghargaan from Sister API
+// @Description Synchronize jenis_penghargaan (award type) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jenis-penghargaan/sync [post]
+
+// GetAllJenisPekerjaan handles GET /api/v1/referensi/jenis-pekerjaan
+// @Summary Get all jenis_pekerjaan
+// @Description Retrieve all jenis_pekerjaan (job type) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.JenisPekerjaan}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jenis-pekerjaan [get]
+
+// SyncJenisPekerjaan handles POST /api/v1/referensi/jenis-pekerjaan/sync
+// @Summary Sync jenis_pekerjaan from Sister API
+// @Description Synchronize jenis_pekerjaan (job type) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/jenis-pekerjaan/sync [post]
+
+// GetAllBidangPekerjaan handles GET /api/v1/referensi/bidang-pekerjaan
+// @Summary Get all bidang_pekerjaan
+// @Description Retrieve all bidang_pekerjaan (job field) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=[]referensi.BidangPekerjaan}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/bidang-pekerjaan [get]
+
+// SyncBidangPekerjaan handles POST /api/v1/referensi/bidang-pekerjaan/sync
+// @Summary Sync bidang_pekerjaan from Sister API
+// @Description Synchronize bidang_pekerjaan (job field) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse{data=referensi.SyncResponse}
+// @Failure 401 {object} response.APIResponse "Unauthorized - Missing or invalid JWT token"
+// @Failure 403 {object} response.APIResponse "Forbidden - Requires Developer role"
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/bidang-pekerjaan/sync [post]
+

@@ -1,0 +1,429 @@
+basePath: /
+definitions:
+  referensi.Agama:
+    properties:
+      expired_date:
+        type: string
+      id_agama:
+        type: integer
+      last_sync:
+        type: string
+      nama_agama:
+        type: string
+      synced_by:
+        type: string
+    type: object
+
+  # ===== 29 NEW ENTITY DEFINITIONS =====
+  # All new referensi entities follow the same pattern with:
+  # - id_{entity_name}: integer/string (primary key)
+  # - nama_{entity_name}: string (name)
+  # - expired_date: string (nullable)
+  # - last_sync: string (nullable)
+  # - synced_by: string (nullable)
+
+  referensi.BidangStudi:
+    type: object
+    properties:
+      id_bidang_studi: { type: integer }
+      nama_bidang_studi: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.BidangUsaha:
+    type: object
+    properties:
+      id_bidang_usaha: { type: integer }
+      nama_bidang_usaha: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.JabatanFungsional:
+    type: object
+    properties:
+      id_jabatan_fungsional: { type: integer }
+      nama_jabatan_fungsional: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.JabatanTugasTambahan:
+    type: object
+    properties:
+      id_jabatan_tugas_tambahan: { type: integer }
+      nama_jabatan_tugas_tambahan: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.JenisBahanAjar:
+    type: object
+    properties:
+      id_jenis_bahan_ajar: { type: integer }
+      nama_jenis_bahan_ajar: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.JenisBeasiswa:
+    type: object
+    properties:
+      id_jenis_beasiswa: { type: integer }
+      nama_jenis_beasiswa: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.JenisDiklat:
+    type: object
+    properties:
+      id_jenis_diklat: { type: integer }
+      nama_jenis_diklat: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.JenisDokumen:
+    type: object
+    properties:
+      id_jenis_dokumen: { type: integer }
+      nama_jenis_dokumen: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.JenisKeluar:
+    type: object
+    properties:
+      id_jenis_keluar: { type: integer }
+      nama_jenis_keluar: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.JenisKepanitiaan:
+    type: object
+    properties:
+      id_jenis_kepanitiaan: { type: integer }
+      nama_jenis_kepanitiaan: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.JenisKesejahteraan:
+    type: object
+    properties:
+      id_jenis_kesejahteraan: { type: integer }
+      nama_jenis_kesejahteraan: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.JenisPublikasi:
+    type: object
+    properties:
+      id_jenis_publikasi: { type: integer }
+      nama_jenis_publikasi: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.JenisTes:
+    type: object
+    properties:
+      id_jenis_tes: { type: integer }
+      nama_jenis_tes: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.JenisTunjangan:
+    type: object
+    properties:
+      id_jenis_tunjangan: { type: integer }
+      nama_jenis_tunjangan: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.MediaPublikasi:
+    type: object
+    properties:
+      id_media_publikasi: { type: integer }
+      nama_media_publikasi: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.SkimKegiatan:
+    type: object
+    properties:
+      id_skim_kegiatan: { type: integer }
+      nama_skim_kegiatan: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.StatusKepegawaian:
+    type: object
+    properties:
+      id_status_kepegawaian: { type: integer }
+      nama_status_kepegawaian: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.SumberGaji:
+    type: object
+    properties:
+      id_sumber_gaji: { type: integer }
+      nama_sumber_gaji: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.TingkatPenghargaan:
+    type: object
+    properties:
+      id_tingkat_penghargaan: { type: integer }
+      nama_tingkat_penghargaan: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.Wilayah:
+    type: object
+    properties:
+      id_wilayah: { type: string }
+      nama_wilayah: { type: string }
+      id_negara: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.KategoriCapaianLuaran:
+    type: object
+    properties:
+      id_kategori_capaian_luaran: { type: integer }
+      nama_kategori_capaian_luaran: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.KategoriKegiatan:
+    type: object
+    properties:
+      id_kategori_kegiatan: { type: integer }
+      nama_kategori_kegiatan: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.KelompokBidang:
+    type: object
+    properties:
+      id_kelompok_bidang: { type: integer }
+      nama_kelompok_bidang: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.LembagaSertifikasi:
+    type: object
+    properties:
+      id_lembaga_sertifikasi: { type: integer }
+      nama_lembaga_sertifikasi: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.GolonganPangkat:
+    type: object
+    properties:
+      id_golongan_pangkat: { type: integer }
+      nama_golongan_pangkat: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.IkatanKerja:
+    type: object
+    properties:
+      id_ikatan_kerja: { type: integer }
+      nama_ikatan_kerja: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.JenisPenghargaan:
+    type: object
+    properties:
+      id_jenis_penghargaan: { type: integer }
+      nama_jenis_penghargaan: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.JenisPekerjaan:
+    type: object
+    properties:
+      id_jenis_pekerjaan: { type: integer }
+      nama_jenis_pekerjaan: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.BidangPekerjaan:
+    type: object
+    properties:
+      id_bidang_pekerjaan: { type: integer }
+      nama_bidang_pekerjaan: { type: string }
+      expired_date: { type: string }
+      last_sync: { type: string }
+      synced_by: { type: string }
+
+  referensi.SyncResponse:
+    properties:
+      message:
+        type: string
+      synced_by:
+        type: string
+      total_records:
+        type: integer
+    type: object
+
+  response.APIResponse:
+    properties:
+      data: {}
+      error: {}
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+
+host: localhost:8083
+info:
+  contact:
+    email: support@unila.ac.id
+    name: API Support
+  description: |-
+    API for synchronizing data from Sister Kemdikbud to MyUnila/OneData PDDIKTI.
+
+    This API provides 34 referensi (reference data) endpoints:
+    - 5 Original: agama, negara, jenjang_pendidikan, gelar_akademik, semester
+    - 29 New: bidang_studi, bidang_usaha, jabatan_fungsional, jabatan_tugas_tambahan,
+             jenis_bahan_ajar, jenis_beasiswa, jenis_diklat, jenis_dokumen, jenis_keluar,
+             jenis_kepanitiaan, jenis_kesejahteraan, jenis_publikasi, jenis_tes, jenis_tunjangan,
+             media_publikasi, skim_kegiatan, status_kepegawaian, sumber_gaji, tingkat_penghargaan,
+             wilayah, kategori_capaian_luaran, kategori_kegiatan, kelompok_bidang,
+             lembaga_sertifikasi, golongan_pangkat, ikatan_kerja, jenis_penghargaan,
+             jenis_pekerjaan, bidang_pekerjaan
+
+    Each endpoint provides:
+    - GET /api/v1/referensi/{endpoint} - Retrieve all records
+    - POST /api/v1/referensi/{endpoint}/sync - Sync from Sister API
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Sister Service API
+  version: "1.0"
+
+paths:
+  # Original 5 endpoints (keeping original format)
+  /api/v1/referensi/agama:
+    get:
+      consumes: [application/json]
+      description: Retrieve all agama (religion) reference data
+      produces: [application/json]
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items: { $ref: '#/definitions/referensi.Agama' }
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema: { $ref: '#/definitions/response.APIResponse' }
+      security: [{ BearerAuth: [] }]
+      summary: Get all agama
+      tags: [Referensi]
+
+  /api/v1/referensi/agama/{id}:
+    get:
+      consumes: [application/json]
+      description: Retrieve agama (religion) reference data by ID
+      parameters:
+      - description: Agama ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces: [application/json]
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data: { $ref: '#/definitions/referensi.Agama' }
+              type: object
+        "400": { description: Bad Request, schema: { $ref: '#/definitions/response.APIResponse' } }
+        "404": { description: Not Found, schema: { $ref: '#/definitions/response.APIResponse' } }
+        "500": { description: Internal Server Error, schema: { $ref: '#/definitions/response.APIResponse' } }
+      security: [{ BearerAuth: [] }]
+      summary: Get agama by ID
+      tags: [Referensi]
+
+  /api/v1/referensi/agama/sync:
+    post:
+      consumes: [application/json]
+      description: Synchronize agama (religion) data from Sister Kemdikbud API. User identity is automatically extracted from JWT token.
+      produces: [application/json]
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data: { $ref: '#/definitions/referensi.SyncResponse' }
+              type: object
+        "401": { description: Unauthorized - Missing or invalid JWT token, schema: { $ref: '#/definitions/response.APIResponse' } }
+        "403": { description: Forbidden - Requires Developer role, schema: { $ref: '#/definitions/response.APIResponse' } }
+        "500": { description: Internal Server Error, schema: { $ref: '#/definitions/response.APIResponse' } }
+      security: [{ BearerAuth: [] }]
+      summary: Sync agama from Sister API
+      tags: [Referensi]
+
+  # NOTE: For complete documentation of all 29 new endpoints, each follows this pattern:
+  # GET /api/v1/referensi/{endpoint} - Returns array of entity objects
+  # POST /api/v1/referensi/{endpoint}/sync - Syncs from SISTER API
+  #
+  # New endpoints: bidang-studi, bidang-usaha, jabatan-fungsional, jabatan-tugas-tambahan,
+  # jenis-bahan-ajar, jenis-beasiswa, jenis-diklat, jenis-dokumen, jenis-keluar,
+  # jenis-kepanitiaan, jenis-kesejahteraan, jenis-publikasi, jenis-tes, jenis-tunjangan,
+  # media-publikasi, skim-kegiatan, status-kepegawaian, sumber-gaji, tingkat-penghargaan,
+  # wilayah, kategori-capaian-luaran, kategori-kegiatan, kelompok-bidang,
+  # lembaga-sertifikasi, golongan-pangkat, ikatan-kerja, jenis-penghargaan,
+  # jenis-pekerjaan, bidang-pekerjaan
+  #
+  # All endpoints are LIVE and accessible. See tools/swagger_yaml_additions.txt for full documentation.
+
+schemes: [http, https]
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

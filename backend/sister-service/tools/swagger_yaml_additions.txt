@@ -1,0 +1,2218 @@
+# ===== DEFINITIONS TO ADD =====
+
+# Add these under 'definitions:' section after referensi.Agama
+
+  referensi.BidangStudi:
+    properties:
+      id_bidang_studi:
+        type: integer
+      nama_bidang_studi:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.BidangUsaha:
+    properties:
+      id_bidang_usaha:
+        type: integer
+      nama_bidang_usaha:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.JabatanFungsional:
+    properties:
+      id_jabatan_fungsional:
+        type: integer
+      nama_jabatan_fungsional:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.JabatanTugasTambahan:
+    properties:
+      id_jabatan_tugas_tambahan:
+        type: integer
+      nama_jabatan_tugas_tambahan:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.JenisBahanAjar:
+    properties:
+      id_jenis_bahan_ajar:
+        type: integer
+      nama_jenis_bahan_ajar:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.JenisBeasiswa:
+    properties:
+      id_jenis_beasiswa:
+        type: integer
+      nama_jenis_beasiswa:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.JenisDiklat:
+    properties:
+      id_jenis_diklat:
+        type: integer
+      nama_jenis_diklat:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.JenisDokumen:
+    properties:
+      id_jenis_dokumen:
+        type: integer
+      nama_jenis_dokumen:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.JenisKeluar:
+    properties:
+      id_jenis_keluar:
+        type: integer
+      nama_jenis_keluar:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.JenisKepanitiaan:
+    properties:
+      id_jenis_kepanitiaan:
+        type: integer
+      nama_jenis_kepanitiaan:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.JenisKesejahteraan:
+    properties:
+      id_jenis_kesejahteraan:
+        type: integer
+      nama_jenis_kesejahteraan:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.JenisPublikasi:
+    properties:
+      id_jenis_publikasi:
+        type: integer
+      nama_jenis_publikasi:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.JenisTes:
+    properties:
+      id_jenis_tes:
+        type: integer
+      nama_jenis_tes:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.JenisTunjangan:
+    properties:
+      id_jenis_tunjangan:
+        type: integer
+      nama_jenis_tunjangan:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.MediaPublikasi:
+    properties:
+      id_media_publikasi:
+        type: integer
+      nama_media_publikasi:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.SkimKegiatan:
+    properties:
+      id_skim_kegiatan:
+        type: integer
+      nama_skim_kegiatan:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.StatusKepegawaian:
+    properties:
+      id_status_kepegawaian:
+        type: integer
+      nama_status_kepegawaian:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.SumberGaji:
+    properties:
+      id_sumber_gaji:
+        type: integer
+      nama_sumber_gaji:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.TingkatPenghargaan:
+    properties:
+      id_tingkat_penghargaan:
+        type: integer
+      nama_tingkat_penghargaan:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.Wilayah:
+    properties:
+      id_wilayah:
+        type: string
+      nama_wilayah:
+        type: string
+      id_negara:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.KategoriCapaianLuaran:
+    properties:
+      id_kategori_capaian_luaran:
+        type: integer
+      nama_kategori_capaian_luaran:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.KategoriKegiatan:
+    properties:
+      id_kategori_kegiatan:
+        type: integer
+      nama_kategori_kegiatan:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.KelompokBidang:
+    properties:
+      id_kelompok_bidang:
+        type: integer
+      nama_kelompok_bidang:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.LembagaSertifikasi:
+    properties:
+      id_lembaga_sertifikasi:
+        type: integer
+      nama_lembaga_sertifikasi:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.GolonganPangkat:
+    properties:
+      id_golongan_pangkat:
+        type: integer
+      nama_golongan_pangkat:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.IkatanKerja:
+    properties:
+      id_ikatan_kerja:
+        type: integer
+      nama_ikatan_kerja:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.JenisPenghargaan:
+    properties:
+      id_jenis_penghargaan:
+        type: integer
+      nama_jenis_penghargaan:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.JenisPekerjaan:
+    properties:
+      id_jenis_pekerjaan:
+        type: integer
+      nama_jenis_pekerjaan:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+  referensi.BidangPekerjaan:
+    properties:
+      id_bidang_pekerjaan:
+        type: integer
+      nama_bidang_pekerjaan:
+        type: string
+      expired_date:
+        type: string
+      last_sync:
+        type: string
+      synced_by:
+        type: string
+    type: object
+
+
+# ===== PATHS TO ADD =====
+
+# Add these under 'paths:' section
+
+  /api/v1/referensi/bidang-studi:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all bidang_studi (field of study) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.BidangStudi'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all bidang_studi
+      tags:
+      - Referensi
+  /api/v1/referensi/bidang-studi/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize bidang_studi (field of study) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync bidang_studi from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/bidang-usaha:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all bidang_usaha (business field) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.BidangUsaha'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all bidang_usaha
+      tags:
+      - Referensi
+  /api/v1/referensi/bidang-usaha/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize bidang_usaha (business field) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync bidang_usaha from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/jabatan-fungsional:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all jabatan_fungsional (functional position) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.JabatanFungsional'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all jabatan_fungsional
+      tags:
+      - Referensi
+  /api/v1/referensi/jabatan-fungsional/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize jabatan_fungsional (functional position) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync jabatan_fungsional from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/jabatan-tugas-tambahan:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all jabatan_tugas_tambahan (additional duty position) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.JabatanTugasTambahan'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all jabatan_tugas_tambahan
+      tags:
+      - Referensi
+  /api/v1/referensi/jabatan-tugas-tambahan/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize jabatan_tugas_tambahan (additional duty position) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync jabatan_tugas_tambahan from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/jenis-bahan-ajar:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all jenis_bahan_ajar (teaching material type) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.JenisBahanAjar'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all jenis_bahan_ajar
+      tags:
+      - Referensi
+  /api/v1/referensi/jenis-bahan-ajar/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize jenis_bahan_ajar (teaching material type) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync jenis_bahan_ajar from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/jenis-beasiswa:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all jenis_beasiswa (scholarship type) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.JenisBeasiswa'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all jenis_beasiswa
+      tags:
+      - Referensi
+  /api/v1/referensi/jenis-beasiswa/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize jenis_beasiswa (scholarship type) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync jenis_beasiswa from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/jenis-diklat:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all jenis_diklat (training type) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.JenisDiklat'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all jenis_diklat
+      tags:
+      - Referensi
+  /api/v1/referensi/jenis-diklat/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize jenis_diklat (training type) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync jenis_diklat from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/jenis-dokumen:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all jenis_dokumen (document type) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.JenisDokumen'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all jenis_dokumen
+      tags:
+      - Referensi
+  /api/v1/referensi/jenis-dokumen/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize jenis_dokumen (document type) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync jenis_dokumen from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/jenis-keluar:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all jenis_keluar (exit type) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.JenisKeluar'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all jenis_keluar
+      tags:
+      - Referensi
+  /api/v1/referensi/jenis-keluar/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize jenis_keluar (exit type) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync jenis_keluar from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/jenis-kepanitiaan:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all jenis_kepanitiaan (committee type) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.JenisKepanitiaan'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all jenis_kepanitiaan
+      tags:
+      - Referensi
+  /api/v1/referensi/jenis-kepanitiaan/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize jenis_kepanitiaan (committee type) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync jenis_kepanitiaan from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/jenis-kesejahteraan:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all jenis_kesejahteraan (welfare type) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.JenisKesejahteraan'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all jenis_kesejahteraan
+      tags:
+      - Referensi
+  /api/v1/referensi/jenis-kesejahteraan/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize jenis_kesejahteraan (welfare type) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync jenis_kesejahteraan from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/jenis-publikasi:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all jenis_publikasi (publication type) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.JenisPublikasi'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all jenis_publikasi
+      tags:
+      - Referensi
+  /api/v1/referensi/jenis-publikasi/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize jenis_publikasi (publication type) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync jenis_publikasi from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/jenis-tes:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all jenis_tes (test type) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.JenisTes'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all jenis_tes
+      tags:
+      - Referensi
+  /api/v1/referensi/jenis-tes/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize jenis_tes (test type) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync jenis_tes from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/jenis-tunjangan:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all jenis_tunjangan (allowance type) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.JenisTunjangan'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all jenis_tunjangan
+      tags:
+      - Referensi
+  /api/v1/referensi/jenis-tunjangan/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize jenis_tunjangan (allowance type) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync jenis_tunjangan from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/media-publikasi:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all media_publikasi (publication media) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.MediaPublikasi'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all media_publikasi
+      tags:
+      - Referensi
+  /api/v1/referensi/media-publikasi/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize media_publikasi (publication media) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync media_publikasi from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/skim-kegiatan:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all skim_kegiatan (activity scheme) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.SkimKegiatan'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all skim_kegiatan
+      tags:
+      - Referensi
+  /api/v1/referensi/skim-kegiatan/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize skim_kegiatan (activity scheme) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync skim_kegiatan from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/status-kepegawaian:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all status_kepegawaian (employment status) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.StatusKepegawaian'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all status_kepegawaian
+      tags:
+      - Referensi
+  /api/v1/referensi/status-kepegawaian/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize status_kepegawaian (employment status) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync status_kepegawaian from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/sumber-gaji:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all sumber_gaji (salary source) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.SumberGaji'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all sumber_gaji
+      tags:
+      - Referensi
+  /api/v1/referensi/sumber-gaji/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize sumber_gaji (salary source) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync sumber_gaji from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/tingkat-penghargaan:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all tingkat_penghargaan (award level) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.TingkatPenghargaan'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all tingkat_penghargaan
+      tags:
+      - Referensi
+  /api/v1/referensi/tingkat-penghargaan/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize tingkat_penghargaan (award level) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync tingkat_penghargaan from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/wilayah:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all wilayah (region) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.Wilayah'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all wilayah
+      tags:
+      - Referensi
+  /api/v1/referensi/wilayah/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize wilayah (region) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync wilayah from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/kategori-capaian-luaran:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all kategori_capaian_luaran (output achievement category) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.KategoriCapaianLuaran'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all kategori_capaian_luaran
+      tags:
+      - Referensi
+  /api/v1/referensi/kategori-capaian-luaran/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize kategori_capaian_luaran (output achievement category) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync kategori_capaian_luaran from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/kategori-kegiatan:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all kategori_kegiatan (activity category) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.KategoriKegiatan'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all kategori_kegiatan
+      tags:
+      - Referensi
+  /api/v1/referensi/kategori-kegiatan/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize kategori_kegiatan (activity category) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync kategori_kegiatan from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/kelompok-bidang:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all kelompok_bidang (field group) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.KelompokBidang'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all kelompok_bidang
+      tags:
+      - Referensi
+  /api/v1/referensi/kelompok-bidang/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize kelompok_bidang (field group) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync kelompok_bidang from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/lembaga-sertifikasi:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all lembaga_sertifikasi (certification institution) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.LembagaSertifikasi'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all lembaga_sertifikasi
+      tags:
+      - Referensi
+  /api/v1/referensi/lembaga-sertifikasi/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize lembaga_sertifikasi (certification institution) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync lembaga_sertifikasi from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/golongan-pangkat:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all golongan_pangkat (rank grade) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.GolonganPangkat'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all golongan_pangkat
+      tags:
+      - Referensi
+  /api/v1/referensi/golongan-pangkat/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize golongan_pangkat (rank grade) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync golongan_pangkat from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/ikatan-kerja:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all ikatan_kerja (work bond) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.IkatanKerja'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all ikatan_kerja
+      tags:
+      - Referensi
+  /api/v1/referensi/ikatan-kerja/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize ikatan_kerja (work bond) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync ikatan_kerja from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/jenis-penghargaan:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all jenis_penghargaan (award type) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.JenisPenghargaan'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all jenis_penghargaan
+      tags:
+      - Referensi
+  /api/v1/referensi/jenis-penghargaan/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize jenis_penghargaan (award type) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync jenis_penghargaan from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/jenis-pekerjaan:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all jenis_pekerjaan (job type) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.JenisPekerjaan'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all jenis_pekerjaan
+      tags:
+      - Referensi
+  /api/v1/referensi/jenis-pekerjaan/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize jenis_pekerjaan (job type) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync jenis_pekerjaan from Sister API
+      tags:
+      - Referensi
+  /api/v1/referensi/bidang-pekerjaan:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all bidang_pekerjaan (job field) reference data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/referensi.BidangPekerjaan'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all bidang_pekerjaan
+      tags:
+      - Referensi
+  /api/v1/referensi/bidang-pekerjaan/sync:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize bidang_pekerjaan (job field) data from Sister Kemdikbud
+        API. User identity is automatically extracted from JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/referensi.SyncResponse'
+              type: object
+        "401":
+          description: Unauthorized - Missing or invalid JWT token
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden - Requires Developer role
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Sync bidang_pekerjaan from Sister API
+      tags:
+      - Referensi
+
+# ===== END OF ADDITIONS =====

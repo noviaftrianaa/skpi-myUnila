@@ -1,6 +1,33 @@
 package referensi
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
+
+// SisterResponse is a generic wrapper for SISTER API responses
+// Some endpoints return direct arrays, others return wrapped objects
+type SisterResponse[T any] struct {
+	Data []T `json:"data"` // For wrapped responses
+}
+
+// UnmarshalSisterResponse handles both direct array and wrapped object responses
+func UnmarshalSisterResponse[T any](rawData []byte) ([]T, error) {
+	// Try direct array first
+	var directArray []T
+	if err := json.Unmarshal(rawData, &directArray); err == nil {
+		return directArray, nil
+	}
+
+	// Try wrapped object with "data" field
+	var wrappedResponse SisterResponse[T]
+	if err := json.Unmarshal(rawData, &wrappedResponse); err == nil {
+		return wrappedResponse.Data, nil
+	}
+
+	// If both fail, return error
+	return nil, json.Unmarshal(rawData, &directArray) // Return original error
+}
 
 // Agama represents religion reference data from ref.agama table
 type Agama struct {
@@ -119,4 +146,412 @@ type BatchSyncResponse struct {
 	TotalFailed    int               `json:"total_failed"`    // Failed syncs
 	Results        []BatchSyncResult `json:"results"`         // Individual results
 	Duration       string            `json:"duration"`        // Total duration
+}
+
+// ==================== NEW REFERENSI ENTITIES (29 NEW) ====================
+
+// BidangStudi represents field of study reference data
+type BidangStudi struct {
+	IDBidangStudi int        `json:"id_bidang_studi" db:"id_bid_studi"`
+	NamaBidangStudi string   `json:"nama_bidang_studi" db:"nm_bid_studi"`
+	ExpiredDate   *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync      *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy      *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterBidangStudi struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// BidangUsaha represents business sector reference data
+type BidangUsaha struct {
+	IDBidangUsaha string     `json:"id_bidang_usaha" db:"id_bu"`
+	NamaBidangUsaha string   `json:"nama_bidang_usaha" db:"nm_bu"`
+	ExpiredDate   *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync      *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy      *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterBidangUsaha struct {
+	ID   string `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// JabatanFungsional represents functional position reference data
+type JabatanFungsional struct {
+	IDJabatanFungsional int        `json:"id_jabatan_fungsional" db:"id_jabfung"`
+	NamaJabatanFungsional string   `json:"nama_jabatan_fungsional" db:"nm_jabfung"`
+	ExpiredDate         *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync            *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy            *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterJabatanFungsional struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// JabatanTugasTambahan represents additional task position reference data
+type JabatanTugasTambahan struct {
+	IDJabatanTugasTambahan int        `json:"id_jabatan_tugas_tambahan" db:"id_jab_tgs"`
+	NamaJabatanTugasTambahan string   `json:"nama_jabatan_tugas_tambahan" db:"nm_jab_tgs"`
+	ExpiredDate            *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync               *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy               *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterJabatanTugasTambahan struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// JenisBahanAjar represents teaching material type reference data
+type JenisBahanAjar struct {
+	IDJenisBahanAjar int        `json:"id_jenis_bahan_ajar" db:"id_jns_bhn_ajar"`
+	NamaJenisBahanAjar string   `json:"nama_jenis_bahan_ajar" db:"nm_jns_bhn_ajar"`
+	ExpiredDate      *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync         *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy         *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterJenisBahanAjar struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// JenisBeasiswa represents scholarship type reference data
+type JenisBeasiswa struct {
+	IDJenisBeasiswa int        `json:"id_jenis_beasiswa" db:"id_jns_beasiswa"`
+	NamaJenisBeasiswa string   `json:"nama_jenis_beasiswa" db:"nm_jns_beasiswa"`
+	ExpiredDate     *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync        *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy        *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterJenisBeasiswa struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// JenisDiklat represents training type reference data
+type JenisDiklat struct {
+	IDJenisDiklat int        `json:"id_jenis_diklat" db:"id_jns_diklat"`
+	NamaJenisDiklat string   `json:"nama_jenis_diklat" db:"nm_jns_diklat"`
+	ExpiredDate   *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync      *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy      *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterJenisDiklat struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// JenisDokumen represents document type reference data
+type JenisDokumen struct {
+	IDJenisDokumen int        `json:"id_jenis_dokumen" db:"id_jns_dok"`
+	NamaJenisDokumen string   `json:"nama_jenis_dokumen" db:"nm_jns_dok"`
+	ExpiredDate    *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync       *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy       *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterJenisDokumen struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// JenisKeluar represents exit type reference data
+type JenisKeluar struct {
+	IDJenisKeluar string     `json:"id_jenis_keluar" db:"id_jns_keluar"`
+	KeteranganKeluar string  `json:"keterangan_keluar" db:"ket_keluar"`
+	ExpiredDate   *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync      *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy      *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterJenisKeluar struct {
+	ID   string `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// JenisKepanitiaan represents committee type reference data
+type JenisKepanitiaan struct {
+	IDJenisKepanitiaan int        `json:"id_jenis_kepanitiaan" db:"id_jns_panitia"`
+	NamaJenisKepanitiaan string   `json:"nama_jenis_kepanitiaan" db:"nm_jns_panitia"`
+	ExpiredDate        *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync           *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy           *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterJenisKepanitiaan struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// JenisKesejahteraan represents welfare type reference data
+type JenisKesejahteraan struct {
+	IDJenisKesejahteraan int        `json:"id_jenis_kesejahteraan" db:"id_jns_sejahtera"`
+	NamaJenisKesejahteraan string   `json:"nama_jenis_kesejahteraan" db:"nm_jns_sejahtera"`
+	ExpiredDate          *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync             *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy             *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterJenisKesejahteraan struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// JenisPublikasi represents publication type reference data
+type JenisPublikasi struct {
+	IDJenisPublikasi int        `json:"id_jenis_publikasi" db:"id_jns_pub"`
+	NamaJenisPublikasi string   `json:"nama_jenis_publikasi" db:"nm_jns_pub"`
+	ExpiredDate      *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync         *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy         *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterJenisPublikasi struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// JenisTes represents test type reference data
+type JenisTes struct {
+	IDJenisTes int        `json:"id_jenis_tes" db:"id_jns_tes"`
+	NamaJenisTes string   `json:"nama_jenis_tes" db:"nm_jns_tes"`
+	ExpiredDate *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync    *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy    *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterJenisTes struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// JenisTunjangan represents allowance type reference data
+type JenisTunjangan struct {
+	IDJenisTunjangan int        `json:"id_jenis_tunjangan" db:"id_jns_tunj"`
+	NamaJenisTunjangan string   `json:"nama_jenis_tunjangan" db:"nm_jns_tunj"`
+	ExpiredDate      *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync         *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy         *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterJenisTunjangan struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// MediaPublikasi represents publication media reference data
+type MediaPublikasi struct {
+	IDMediaPublikasi string     `json:"id_media_publikasi" db:"id_media_pub"`
+	NamaMediaPublikasi string   `json:"nama_media_publikasi" db:"nm_media_pub"`
+	ExpiredDate      *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync         *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy         *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterMediaPublikasi struct {
+	ID   string `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// SkimKegiatan represents activity scheme reference data
+type SkimKegiatan struct {
+	IDSkimKegiatan string     `json:"id_skim_kegiatan" db:"id_skim"`
+	NamaSkimKegiatan string   `json:"nama_skim_kegiatan" db:"nm_skim"`
+	ExpiredDate    *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync       *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy       *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterSkimKegiatan struct {
+	ID   string `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// StatusKepegawaian represents employment status reference data
+type StatusKepegawaian struct {
+	IDStatusKepegawaian int        `json:"id_status_kepegawaian" db:"id_stat_pegawai"`
+	NamaStatusKepegawaian string   `json:"nama_status_kepegawaian" db:"nm_stat_pegawai"`
+	ExpiredDate         *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync            *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy            *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterStatusKepegawaian struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// SumberGaji represents salary source reference data
+type SumberGaji struct {
+	IDSumberGaji int        `json:"id_sumber_gaji" db:"id_sumber_gaji"`
+	NamaSumberGaji string   `json:"nama_sumber_gaji" db:"nm_sumber_gaji"`
+	ExpiredDate  *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync     *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy     *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterSumberGaji struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// TingkatPenghargaan represents award level reference data
+type TingkatPenghargaan struct {
+	IDTingkatPenghargaan int        `json:"id_tingkat_penghargaan" db:"id_tkt_penghargaan"`
+	NamaTingkatPenghargaan string   `json:"nama_tingkat_penghargaan" db:"nm_tkt_penghargaan"`
+	ExpiredDate          *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync             *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy             *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterTingkatPenghargaan struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// Wilayah represents region reference data
+type Wilayah struct {
+	IDWilayah string     `json:"id_wilayah" db:"id_wil"`
+	NamaWilayah string   `json:"nama_wilayah" db:"nm_wil"`
+	ExpiredDate *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync    *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy    *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterWilayah struct {
+	ID   string `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// KategoriCapaianLuaran represents output achievement category reference data
+type KategoriCapaianLuaran struct {
+	IDKategoriCapaianLuaran int        `json:"id_kategori_capaian_luaran" db:"id_kat_capaian"`
+	NamaKategoriCapaianLuaran string   `json:"nama_kategori_capaian_luaran" db:"nm_kat_capaian"`
+	ExpiredDate             *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync                *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy                *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterKategoriCapaianLuaran struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// KategoriKegiatan represents activity category reference data
+type KategoriKegiatan struct {
+	IDKategoriKegiatan int        `json:"id_kategori_kegiatan" db:"id_katgiat"`
+	NamaKategoriKegiatan string   `json:"nama_kategori_kegiatan" db:"nm_kat"`
+	ExpiredDate        *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync           *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy           *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterKategoriKegiatan struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// KelompokBidang represents field group reference data
+type KelompokBidang struct {
+	IDKelompokBidang string     `json:"id_kelompok_bidang" db:"id_kel_bidang"`
+	NamaKelompokBidang string   `json:"nama_kelompok_bidang" db:"nm_kel_bidang"`
+	ExpiredDate      *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync         *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy         *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterKelompokBidang struct {
+	ID   string `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// LembagaSertifikasi represents certification institution reference data
+type LembagaSertifikasi struct {
+	IDLembagaSertifikasi int        `json:"id_lembaga_sertifikasi" db:"id_lemb_sert"`
+	NamaLembagaSertifikasi string   `json:"nama_lembaga_sertifikasi" db:"nm_lemb_sert"`
+	ExpiredDate          *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync             *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy             *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterLembagaSertifikasi struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// GolonganPangkat represents rank/grade reference data
+type GolonganPangkat struct {
+	IDGolonganPangkat int        `json:"id_golongan_pangkat" db:"id_pangkat_gol"`
+	NamaPangkat       string     `json:"nama_pangkat" db:"nm_pangkat"`
+	ExpiredDate       *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync          *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy          *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterGolonganPangkat struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// IkatanKerja represents work bond reference data
+type IkatanKerja struct {
+	IDIkatanKerja string     `json:"id_ikatan_kerja" db:"id_ikatan_kerja"`
+	NamaIkatanKerja string   `json:"nama_ikatan_kerja" db:"nm_ikatan_kerja"`
+	ExpiredDate   *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync      *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy      *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterIkatanKerja struct {
+	ID   string `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// JenisPenghargaan represents award type reference data
+type JenisPenghargaan struct {
+	IDJenisPenghargaan int        `json:"id_jenis_penghargaan" db:"id_jns_penghargaan"`
+	NamaJenisPenghargaan string   `json:"nama_jenis_penghargaan" db:"nm_jns_penghargaan"`
+	ExpiredDate        *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync           *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy           *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterJenisPenghargaan struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// JenisPekerjaan represents occupation type reference data
+type JenisPekerjaan struct {
+	IDJenisPekerjaan int        `json:"id_jenis_pekerjaan" db:"id_pekerjaan"`
+	NamaJenisPekerjaan string   `json:"nama_jenis_pekerjaan" db:"nm_pekerjaan"`
+	ExpiredDate      *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync         *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy         *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterJenisPekerjaan struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+// BidangPekerjaan represents work field reference data
+type BidangPekerjaan struct {
+	IDBidangPekerjaan int        `json:"id_bidang_pekerjaan" db:"id_bid_kerja"`
+	NamaBidangPekerjaan string   `json:"nama_bidang_pekerjaan" db:"nm_bid_kerja"`
+	ExpiredDate       *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync          *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy          *string    `json:"synced_by,omitempty" db:"synced_by"`
+}
+
+type SisterBidangPekerjaan struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
 }

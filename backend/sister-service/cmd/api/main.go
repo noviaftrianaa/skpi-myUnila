@@ -58,6 +58,14 @@ func main() {
 	sisterAPI := sister_api.NewClient(config.Cfg.SisterAPI)
 	log.Println("✅ Sister API client initialized")
 
+	// Initialize Redis client for caching
+	redisClient := database.ConnectRedis()
+	if redisClient != nil {
+		log.Println("✅ Redis client connected successfully")
+	} else {
+		log.Println("⚠️  Redis client not available - caching disabled")
+	}
+
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
 		AppName:      config.Cfg.App.Name,
@@ -108,7 +116,7 @@ func main() {
 
 	// Public routes (no authentication required)
 	publicRoutes := app.Group("/public")
-	dosen.Init(publicRoutes, sisterAPI) // Dosen photo endpoint
+	dosen.Init(publicRoutes, sisterAPI, redisClient) // Dosen photo endpoint with Redis cache
 
 	// Welcome message
 	app.Get("/", func(c *fiber.Ctx) error {

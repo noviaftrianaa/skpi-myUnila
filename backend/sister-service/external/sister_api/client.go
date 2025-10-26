@@ -246,6 +246,124 @@ func (c *Client) GetReferensiSemester() ([]byte, error) {
 	return c.Get("/1.0/referensi/semester")
 }
 
+// ==================== NEW REFERENSI ENDPOINTS (29 METHODS) ====================
+
+func (c *Client) GetReferensiBidangStudi() ([]byte, error) {
+	return c.Get("/1.0/referensi/bidang_studi")
+}
+
+func (c *Client) GetReferensiBidangUsaha() ([]byte, error) {
+	return c.Get("/1.0/referensi/bidang_usaha")
+}
+
+func (c *Client) GetReferensiJabatanFungsional() ([]byte, error) {
+	return c.Get("/1.0/referensi/jabatan_fungsional")
+}
+
+func (c *Client) GetReferensiJabatanTugasTambahan() ([]byte, error) {
+	return c.Get("/1.0/referensi/jabatan_tugas_tambahan")
+}
+
+func (c *Client) GetReferensiJenisBahanAjar() ([]byte, error) {
+	return c.Get("/1.0/referensi/jenis_bahan_ajar")
+}
+
+func (c *Client) GetReferensiJenisBeasiswa() ([]byte, error) {
+	return c.Get("/1.0/referensi/jenis_beasiswa")
+}
+
+func (c *Client) GetReferensiJenisDiklat() ([]byte, error) {
+	return c.Get("/1.0/referensi/jenis_diklat")
+}
+
+func (c *Client) GetReferensiJenisDokumen() ([]byte, error) {
+	return c.Get("/1.0/referensi/jenis_dokumen")
+}
+
+func (c *Client) GetReferensiJenisKeluar() ([]byte, error) {
+	return c.Get("/1.0/referensi/jenis_keluar")
+}
+
+func (c *Client) GetReferensiJenisKepanitiaan() ([]byte, error) {
+	return c.Get("/1.0/referensi/jenis_kepanitiaan")
+}
+
+func (c *Client) GetReferensiJenisKesejahteraan() ([]byte, error) {
+	return c.Get("/1.0/referensi/jenis_kesejahteraan")
+}
+
+func (c *Client) GetReferensiJenisPublikasi() ([]byte, error) {
+	return c.Get("/1.0/referensi/jenis_publikasi")
+}
+
+func (c *Client) GetReferensiJenisTes() ([]byte, error) {
+	return c.Get("/1.0/referensi/jenis_tes")
+}
+
+func (c *Client) GetReferensiJenisTunjangan() ([]byte, error) {
+	return c.Get("/1.0/referensi/jenis_tunjangan")
+}
+
+func (c *Client) GetReferensiMediaPublikasi() ([]byte, error) {
+	return c.Get("/1.0/referensi/media_publikasi")
+}
+
+func (c *Client) GetReferensiSkimKegiatan() ([]byte, error) {
+	return c.Get("/1.0/referensi/skim_kegiatan")
+}
+
+func (c *Client) GetReferensiStatusKepegawaian() ([]byte, error) {
+	return c.Get("/1.0/referensi/status_kepegawaian")
+}
+
+func (c *Client) GetReferensiSumberGaji() ([]byte, error) {
+	return c.Get("/1.0/referensi/sumber_gaji")
+}
+
+func (c *Client) GetReferensiTingkatPenghargaan() ([]byte, error) {
+	return c.Get("/1.0/referensi/tingkat_penghargaan")
+}
+
+func (c *Client) GetReferensiWilayah() ([]byte, error) {
+	return c.Get("/1.0/referensi/wilayah")
+}
+
+func (c *Client) GetReferensiKategoriCapaianLuaran() ([]byte, error) {
+	return c.Get("/1.0/referensi/kategori_capaian_luaran")
+}
+
+func (c *Client) GetReferensiKategoriKegiatan() ([]byte, error) {
+	return c.Get("/1.0/referensi/kategori_kegiatan")
+}
+
+func (c *Client) GetReferensiKelompokBidang() ([]byte, error) {
+	return c.Get("/1.0/referensi/kelompok_bidang")
+}
+
+func (c *Client) GetReferensiLembagaSertifikasi() ([]byte, error) {
+	return c.Get("/1.0/referensi/lembaga_sertifikasi")
+}
+
+func (c *Client) GetReferensiGolonganPangkat() ([]byte, error) {
+	return c.Get("/1.0/referensi/golongan_pangkat")
+}
+
+func (c *Client) GetReferensiIkatanKerja() ([]byte, error) {
+	return c.Get("/1.0/referensi/ikatan_kerja")
+}
+
+func (c *Client) GetReferensiJenisPenghargaan() ([]byte, error) {
+	return c.Get("/1.0/referensi/jenis_penghargaan")
+}
+
+func (c *Client) GetReferensiJenisPekerjaan() ([]byte, error) {
+	return c.Get("/1.0/referensi/jenis_pekerjaan")
+}
+
+func (c *Client) GetReferensiBidangPekerjaan() ([]byte, error) {
+	return c.Get("/1.0/referensi/bidang_pekerjaan")
+}
+
 // GetDosenPhoto fetches dosen photo binary from Sister API
 // Returns photo bytes, content type, and error
 func (c *Client) GetDosenPhoto(idSdm string) ([]byte, string, error) {

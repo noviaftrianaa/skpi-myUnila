@@ -1,0 +1,2970 @@
+Generating all code...
+// Add to Repository interface in repository.go
+
+	GetAllBidangStudi() ([]BidangStudi, error)
+	BulkUpsertBidangStudi(data []SisterBidangStudi, syncedBy string) error
+	GetAllBidangUsaha() ([]BidangUsaha, error)
+	BulkUpsertBidangUsaha(data []SisterBidangUsaha, syncedBy string) error
+	GetAllJabatanFungsional() ([]JabatanFungsional, error)
+	BulkUpsertJabatanFungsional(data []SisterJabatanFungsional, syncedBy string) error
+	GetAllJabatanTugasTambahan() ([]JabatanTugasTambahan, error)
+	BulkUpsertJabatanTugasTambahan(data []SisterJabatanTugasTambahan, syncedBy string) error
+	GetAllJenisBahanAjar() ([]JenisBahanAjar, error)
+	BulkUpsertJenisBahanAjar(data []SisterJenisBahanAjar, syncedBy string) error
+	GetAllJenisBeasiswa() ([]JenisBeasiswa, error)
+	BulkUpsertJenisBeasiswa(data []SisterJenisBeasiswa, syncedBy string) error
+	GetAllJenisDiklat() ([]JenisDiklat, error)
+	BulkUpsertJenisDiklat(data []SisterJenisDiklat, syncedBy string) error
+	GetAllJenisDokumen() ([]JenisDokumen, error)
+	BulkUpsertJenisDokumen(data []SisterJenisDokumen, syncedBy string) error
+	GetAllJenisKeluar() ([]JenisKeluar, error)
+	BulkUpsertJenisKeluar(data []SisterJenisKeluar, syncedBy string) error
+	GetAllJenisKepanitiaan() ([]JenisKepanitiaan, error)
+	BulkUpsertJenisKepanitiaan(data []SisterJenisKepanitiaan, syncedBy string) error
+	GetAllJenisKesejahteraan() ([]JenisKesejahteraan, error)
+	BulkUpsertJenisKesejahteraan(data []SisterJenisKesejahteraan, syncedBy string) error
+	GetAllJenisPublikasi() ([]JenisPublikasi, error)
+	BulkUpsertJenisPublikasi(data []SisterJenisPublikasi, syncedBy string) error
+	GetAllJenisTes() ([]JenisTes, error)
+	BulkUpsertJenisTes(data []SisterJenisTes, syncedBy string) error
+	GetAllJenisTunjangan() ([]JenisTunjangan, error)
+	BulkUpsertJenisTunjangan(data []SisterJenisTunjangan, syncedBy string) error
+	GetAllMediaPublikasi() ([]MediaPublikasi, error)
+	BulkUpsertMediaPublikasi(data []SisterMediaPublikasi, syncedBy string) error
+	GetAllSkimKegiatan() ([]SkimKegiatan, error)
+	BulkUpsertSkimKegiatan(data []SisterSkimKegiatan, syncedBy string) error
+	GetAllStatusKepegawaian() ([]StatusKepegawaian, error)
+	BulkUpsertStatusKepegawaian(data []SisterStatusKepegawaian, syncedBy string) error
+	GetAllSumberGaji() ([]SumberGaji, error)
+	BulkUpsertSumberGaji(data []SisterSumberGaji, syncedBy string) error
+	GetAllTingkatPenghargaan() ([]TingkatPenghargaan, error)
+	BulkUpsertTingkatPenghargaan(data []SisterTingkatPenghargaan, syncedBy string) error
+	GetAllWilayah() ([]Wilayah, error)
+	BulkUpsertWilayah(data []SisterWilayah, syncedBy string) error
+	GetAllKategoriCapaianLuaran() ([]KategoriCapaianLuaran, error)
+	BulkUpsertKategoriCapaianLuaran(data []SisterKategoriCapaianLuaran, syncedBy string) error
+	GetAllKategoriKegiatan() ([]KategoriKegiatan, error)
+	BulkUpsertKategoriKegiatan(data []SisterKategoriKegiatan, syncedBy string) error
+	GetAllKelompokBidang() ([]KelompokBidang, error)
+	BulkUpsertKelompokBidang(data []SisterKelompokBidang, syncedBy string) error
+	GetAllLembagaSertifikasi() ([]LembagaSertifikasi, error)
+	BulkUpsertLembagaSertifikasi(data []SisterLembagaSertifikasi, syncedBy string) error
+	GetAllGolonganPangkat() ([]GolonganPangkat, error)
+	BulkUpsertGolonganPangkat(data []SisterGolonganPangkat, syncedBy string) error
+	GetAllIkatanKerja() ([]IkatanKerja, error)
+	BulkUpsertIkatanKerja(data []SisterIkatanKerja, syncedBy string) error
+	GetAllJenisPenghargaan() ([]JenisPenghargaan, error)
+	BulkUpsertJenisPenghargaan(data []SisterJenisPenghargaan, syncedBy string) error
+	GetAllJenisPekerjaan() ([]JenisPekerjaan, error)
+	BulkUpsertJenisPekerjaan(data []SisterJenisPekerjaan, syncedBy string) error
+	GetAllBidangPekerjaan() ([]BidangPekerjaan, error)
+	BulkUpsertBidangPekerjaan(data []SisterBidangPekerjaan, syncedBy string) error
+
+
+// GetAllBidangStudi retrieves all active bidangStudi records
+func (r *repository) GetAllBidangStudi() ([]BidangStudi, error) {
+	var result []BidangStudi
+	query := `SELECT id_bid_studi, nm_bid_studi, expired_date, last_sync FROM ref.bidang_studi WHERE expired_date IS NULL ORDER BY nm_bid_studi`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertBidangStudi performs bulk upsert for bidangStudi
+func (r *repository) BulkUpsertBidangStudi(data []SisterBidangStudi, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.bidang_studi AS target
+			USING (SELECT @p1 AS id_bid_studi, @p2 AS nm_bid_studi) AS source
+			ON target.id_bid_studi = source.id_bid_studi
+			WHEN MATCHED THEN
+				UPDATE SET nm_bid_studi = source.nm_bid_studi,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_bid_studi, nm_bid_studi, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_bid_studi, source.nm_bid_studi, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert bidang_studi %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllBidangUsaha retrieves all active bidangUsaha records
+func (r *repository) GetAllBidangUsaha() ([]BidangUsaha, error) {
+	var result []BidangUsaha
+	query := `SELECT id_bu, nm_bu, expired_date, last_sync FROM ref.bidang_usaha WHERE expired_date IS NULL ORDER BY nm_bu`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertBidangUsaha performs bulk upsert for bidangUsaha
+func (r *repository) BulkUpsertBidangUsaha(data []SisterBidangUsaha, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.bidang_usaha AS target
+			USING (SELECT @p1 AS id_bu, @p2 AS nm_bu) AS source
+			ON target.id_bu = source.id_bu
+			WHEN MATCHED THEN
+				UPDATE SET nm_bu = source.nm_bu,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_bu, nm_bu, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_bu, source.nm_bu, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert bidang_usaha %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJabatanFungsional retrieves all active jabatanFungsional records
+func (r *repository) GetAllJabatanFungsional() ([]JabatanFungsional, error) {
+	var result []JabatanFungsional
+	query := `SELECT id_jabfung, nm_jabfung, expired_date, last_sync FROM ref.jabfung WHERE expired_date IS NULL ORDER BY nm_jabfung`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJabatanFungsional performs bulk upsert for jabatanFungsional
+func (r *repository) BulkUpsertJabatanFungsional(data []SisterJabatanFungsional, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jabfung AS target
+			USING (SELECT @p1 AS id_jabfung, @p2 AS nm_jabfung) AS source
+			ON target.id_jabfung = source.id_jabfung
+			WHEN MATCHED THEN
+				UPDATE SET nm_jabfung = source.nm_jabfung,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jabfung, nm_jabfung, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jabfung, source.nm_jabfung, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jabfung %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJabatanTugasTambahan retrieves all active jabatanTugasTambahan records
+func (r *repository) GetAllJabatanTugasTambahan() ([]JabatanTugasTambahan, error) {
+	var result []JabatanTugasTambahan
+	query := `SELECT id_jab_tgs, nm_jab_tgs, expired_date, last_sync FROM ref.jab_tgs WHERE expired_date IS NULL ORDER BY nm_jab_tgs`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJabatanTugasTambahan performs bulk upsert for jabatanTugasTambahan
+func (r *repository) BulkUpsertJabatanTugasTambahan(data []SisterJabatanTugasTambahan, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jab_tgs AS target
+			USING (SELECT @p1 AS id_jab_tgs, @p2 AS nm_jab_tgs) AS source
+			ON target.id_jab_tgs = source.id_jab_tgs
+			WHEN MATCHED THEN
+				UPDATE SET nm_jab_tgs = source.nm_jab_tgs,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jab_tgs, nm_jab_tgs, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jab_tgs, source.nm_jab_tgs, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jab_tgs %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJenisBahanAjar retrieves all active jenisBahanAjar records
+func (r *repository) GetAllJenisBahanAjar() ([]JenisBahanAjar, error) {
+	var result []JenisBahanAjar
+	query := `SELECT id_jns_bhn_ajar, nm_jns_bhn_ajar, expired_date, last_sync FROM ref.jenis_bahan_ajar WHERE expired_date IS NULL ORDER BY nm_jns_bhn_ajar`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJenisBahanAjar performs bulk upsert for jenisBahanAjar
+func (r *repository) BulkUpsertJenisBahanAjar(data []SisterJenisBahanAjar, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jenis_bahan_ajar AS target
+			USING (SELECT @p1 AS id_jns_bhn_ajar, @p2 AS nm_jns_bhn_ajar) AS source
+			ON target.id_jns_bhn_ajar = source.id_jns_bhn_ajar
+			WHEN MATCHED THEN
+				UPDATE SET nm_jns_bhn_ajar = source.nm_jns_bhn_ajar,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jns_bhn_ajar, nm_jns_bhn_ajar, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jns_bhn_ajar, source.nm_jns_bhn_ajar, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jenis_bahan_ajar %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJenisBeasiswa retrieves all active jenisBeasiswa records
+func (r *repository) GetAllJenisBeasiswa() ([]JenisBeasiswa, error) {
+	var result []JenisBeasiswa
+	query := `SELECT id_jns_beasiswa, nm_jns_beasiswa, expired_date, last_sync FROM ref.jenis_beasiswa WHERE expired_date IS NULL ORDER BY nm_jns_beasiswa`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJenisBeasiswa performs bulk upsert for jenisBeasiswa
+func (r *repository) BulkUpsertJenisBeasiswa(data []SisterJenisBeasiswa, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jenis_beasiswa AS target
+			USING (SELECT @p1 AS id_jns_beasiswa, @p2 AS nm_jns_beasiswa) AS source
+			ON target.id_jns_beasiswa = source.id_jns_beasiswa
+			WHEN MATCHED THEN
+				UPDATE SET nm_jns_beasiswa = source.nm_jns_beasiswa,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jns_beasiswa, nm_jns_beasiswa, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jns_beasiswa, source.nm_jns_beasiswa, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jenis_beasiswa %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJenisDiklat retrieves all active jenisDiklat records
+func (r *repository) GetAllJenisDiklat() ([]JenisDiklat, error) {
+	var result []JenisDiklat
+	query := `SELECT id_jns_diklat, nm_jns_diklat, expired_date, last_sync FROM ref.jenis_diklat WHERE expired_date IS NULL ORDER BY nm_jns_diklat`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJenisDiklat performs bulk upsert for jenisDiklat
+func (r *repository) BulkUpsertJenisDiklat(data []SisterJenisDiklat, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jenis_diklat AS target
+			USING (SELECT @p1 AS id_jns_diklat, @p2 AS nm_jns_diklat) AS source
+			ON target.id_jns_diklat = source.id_jns_diklat
+			WHEN MATCHED THEN
+				UPDATE SET nm_jns_diklat = source.nm_jns_diklat,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jns_diklat, nm_jns_diklat, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jns_diklat, source.nm_jns_diklat, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jenis_diklat %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJenisDokumen retrieves all active jenisDokumen records
+func (r *repository) GetAllJenisDokumen() ([]JenisDokumen, error) {
+	var result []JenisDokumen
+	query := `SELECT id_jns_dok, nm_jns_dok, expired_date, last_sync FROM ref.jenis_dokumen WHERE expired_date IS NULL ORDER BY nm_jns_dok`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJenisDokumen performs bulk upsert for jenisDokumen
+func (r *repository) BulkUpsertJenisDokumen(data []SisterJenisDokumen, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jenis_dokumen AS target
+			USING (SELECT @p1 AS id_jns_dok, @p2 AS nm_jns_dok) AS source
+			ON target.id_jns_dok = source.id_jns_dok
+			WHEN MATCHED THEN
+				UPDATE SET nm_jns_dok = source.nm_jns_dok,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jns_dok, nm_jns_dok, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jns_dok, source.nm_jns_dok, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jenis_dokumen %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJenisKeluar retrieves all active jenisKeluar records
+func (r *repository) GetAllJenisKeluar() ([]JenisKeluar, error) {
+	var result []JenisKeluar
+	query := `SELECT id_jns_keluar, ket_keluar, expired_date, last_sync FROM ref.jenis_keluar WHERE expired_date IS NULL ORDER BY ket_keluar`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJenisKeluar performs bulk upsert for jenisKeluar
+func (r *repository) BulkUpsertJenisKeluar(data []SisterJenisKeluar, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jenis_keluar AS target
+			USING (SELECT @p1 AS id_jns_keluar, @p2 AS ket_keluar) AS source
+			ON target.id_jns_keluar = source.id_jns_keluar
+			WHEN MATCHED THEN
+				UPDATE SET ket_keluar = source.ket_keluar,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jns_keluar, ket_keluar, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jns_keluar, source.ket_keluar, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jenis_keluar %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJenisKepanitiaan retrieves all active jenisKepanitiaan records
+func (r *repository) GetAllJenisKepanitiaan() ([]JenisKepanitiaan, error) {
+	var result []JenisKepanitiaan
+	query := `SELECT id_jns_panitia, nm_jns_panitia, expired_date, last_sync FROM ref.jenis_kepanitiaan WHERE expired_date IS NULL ORDER BY nm_jns_panitia`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJenisKepanitiaan performs bulk upsert for jenisKepanitiaan
+func (r *repository) BulkUpsertJenisKepanitiaan(data []SisterJenisKepanitiaan, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jenis_kepanitiaan AS target
+			USING (SELECT @p1 AS id_jns_panitia, @p2 AS nm_jns_panitia) AS source
+			ON target.id_jns_panitia = source.id_jns_panitia
+			WHEN MATCHED THEN
+				UPDATE SET nm_jns_panitia = source.nm_jns_panitia,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jns_panitia, nm_jns_panitia, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jns_panitia, source.nm_jns_panitia, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jenis_kepanitiaan %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJenisKesejahteraan retrieves all active jenisKesejahteraan records
+func (r *repository) GetAllJenisKesejahteraan() ([]JenisKesejahteraan, error) {
+	var result []JenisKesejahteraan
+	query := `SELECT id_jns_sejahtera, nm_jns_sejahtera, expired_date, last_sync FROM ref.jenis_kesejahteraan WHERE expired_date IS NULL ORDER BY nm_jns_sejahtera`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJenisKesejahteraan performs bulk upsert for jenisKesejahteraan
+func (r *repository) BulkUpsertJenisKesejahteraan(data []SisterJenisKesejahteraan, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jenis_kesejahteraan AS target
+			USING (SELECT @p1 AS id_jns_sejahtera, @p2 AS nm_jns_sejahtera) AS source
+			ON target.id_jns_sejahtera = source.id_jns_sejahtera
+			WHEN MATCHED THEN
+				UPDATE SET nm_jns_sejahtera = source.nm_jns_sejahtera,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jns_sejahtera, nm_jns_sejahtera, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jns_sejahtera, source.nm_jns_sejahtera, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jenis_kesejahteraan %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJenisPublikasi retrieves all active jenisPublikasi records
+func (r *repository) GetAllJenisPublikasi() ([]JenisPublikasi, error) {
+	var result []JenisPublikasi
+	query := `SELECT id_jns_pub, nm_jns_pub, expired_date, last_sync FROM ref.jenis_publikasi WHERE expired_date IS NULL ORDER BY nm_jns_pub`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJenisPublikasi performs bulk upsert for jenisPublikasi
+func (r *repository) BulkUpsertJenisPublikasi(data []SisterJenisPublikasi, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jenis_publikasi AS target
+			USING (SELECT @p1 AS id_jns_pub, @p2 AS nm_jns_pub) AS source
+			ON target.id_jns_pub = source.id_jns_pub
+			WHEN MATCHED THEN
+				UPDATE SET nm_jns_pub = source.nm_jns_pub,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jns_pub, nm_jns_pub, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jns_pub, source.nm_jns_pub, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jenis_publikasi %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJenisTes retrieves all active jenisTes records
+func (r *repository) GetAllJenisTes() ([]JenisTes, error) {
+	var result []JenisTes
+	query := `SELECT id_jns_tes, nm_jns_tes, expired_date, last_sync FROM ref.jenis_tes WHERE expired_date IS NULL ORDER BY nm_jns_tes`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJenisTes performs bulk upsert for jenisTes
+func (r *repository) BulkUpsertJenisTes(data []SisterJenisTes, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jenis_tes AS target
+			USING (SELECT @p1 AS id_jns_tes, @p2 AS nm_jns_tes) AS source
+			ON target.id_jns_tes = source.id_jns_tes
+			WHEN MATCHED THEN
+				UPDATE SET nm_jns_tes = source.nm_jns_tes,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jns_tes, nm_jns_tes, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jns_tes, source.nm_jns_tes, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jenis_tes %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJenisTunjangan retrieves all active jenisTunjangan records
+func (r *repository) GetAllJenisTunjangan() ([]JenisTunjangan, error) {
+	var result []JenisTunjangan
+	query := `SELECT id_jns_tunj, nm_jns_tunj, expired_date, last_sync FROM ref.jenis_tunjangan WHERE expired_date IS NULL ORDER BY nm_jns_tunj`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJenisTunjangan performs bulk upsert for jenisTunjangan
+func (r *repository) BulkUpsertJenisTunjangan(data []SisterJenisTunjangan, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jenis_tunjangan AS target
+			USING (SELECT @p1 AS id_jns_tunj, @p2 AS nm_jns_tunj) AS source
+			ON target.id_jns_tunj = source.id_jns_tunj
+			WHEN MATCHED THEN
+				UPDATE SET nm_jns_tunj = source.nm_jns_tunj,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jns_tunj, nm_jns_tunj, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jns_tunj, source.nm_jns_tunj, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jenis_tunjangan %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllMediaPublikasi retrieves all active mediaPublikasi records
+func (r *repository) GetAllMediaPublikasi() ([]MediaPublikasi, error) {
+	var result []MediaPublikasi
+	query := `SELECT id_media_pub, nm_media_pub, expired_date, last_sync FROM ref.media_publikasi WHERE expired_date IS NULL ORDER BY nm_media_pub`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertMediaPublikasi performs bulk upsert for mediaPublikasi
+func (r *repository) BulkUpsertMediaPublikasi(data []SisterMediaPublikasi, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.media_publikasi AS target
+			USING (SELECT @p1 AS id_media_pub, @p2 AS nm_media_pub) AS source
+			ON target.id_media_pub = source.id_media_pub
+			WHEN MATCHED THEN
+				UPDATE SET nm_media_pub = source.nm_media_pub,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_media_pub, nm_media_pub, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_media_pub, source.nm_media_pub, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert media_publikasi %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllSkimKegiatan retrieves all active skimKegiatan records
+func (r *repository) GetAllSkimKegiatan() ([]SkimKegiatan, error) {
+	var result []SkimKegiatan
+	query := `SELECT id_skim, nm_skim, expired_date, last_sync FROM ref.skim_kegiatan WHERE expired_date IS NULL ORDER BY nm_skim`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertSkimKegiatan performs bulk upsert for skimKegiatan
+func (r *repository) BulkUpsertSkimKegiatan(data []SisterSkimKegiatan, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.skim_kegiatan AS target
+			USING (SELECT @p1 AS id_skim, @p2 AS nm_skim) AS source
+			ON target.id_skim = source.id_skim
+			WHEN MATCHED THEN
+				UPDATE SET nm_skim = source.nm_skim,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_skim, nm_skim, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_skim, source.nm_skim, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert skim_kegiatan %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllStatusKepegawaian retrieves all active statusKepegawaian records
+func (r *repository) GetAllStatusKepegawaian() ([]StatusKepegawaian, error) {
+	var result []StatusKepegawaian
+	query := `SELECT id_stat_pegawai, nm_stat_pegawai, expired_date, last_sync FROM ref.status_kepegawaian WHERE expired_date IS NULL ORDER BY nm_stat_pegawai`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertStatusKepegawaian performs bulk upsert for statusKepegawaian
+func (r *repository) BulkUpsertStatusKepegawaian(data []SisterStatusKepegawaian, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.status_kepegawaian AS target
+			USING (SELECT @p1 AS id_stat_pegawai, @p2 AS nm_stat_pegawai) AS source
+			ON target.id_stat_pegawai = source.id_stat_pegawai
+			WHEN MATCHED THEN
+				UPDATE SET nm_stat_pegawai = source.nm_stat_pegawai,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_stat_pegawai, nm_stat_pegawai, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_stat_pegawai, source.nm_stat_pegawai, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert status_kepegawaian %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllSumberGaji retrieves all active sumberGaji records
+func (r *repository) GetAllSumberGaji() ([]SumberGaji, error) {
+	var result []SumberGaji
+	query := `SELECT id_sumber_gaji, nm_sumber_gaji, expired_date, last_sync FROM ref.sumber_gaji WHERE expired_date IS NULL ORDER BY nm_sumber_gaji`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertSumberGaji performs bulk upsert for sumberGaji
+func (r *repository) BulkUpsertSumberGaji(data []SisterSumberGaji, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.sumber_gaji AS target
+			USING (SELECT @p1 AS id_sumber_gaji, @p2 AS nm_sumber_gaji) AS source
+			ON target.id_sumber_gaji = source.id_sumber_gaji
+			WHEN MATCHED THEN
+				UPDATE SET nm_sumber_gaji = source.nm_sumber_gaji,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_sumber_gaji, nm_sumber_gaji, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_sumber_gaji, source.nm_sumber_gaji, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert sumber_gaji %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllTingkatPenghargaan retrieves all active tingkatPenghargaan records
+func (r *repository) GetAllTingkatPenghargaan() ([]TingkatPenghargaan, error) {
+	var result []TingkatPenghargaan
+	query := `SELECT id_tkt_penghargaan, nm_tkt_penghargaan, expired_date, last_sync FROM ref.tingkat_penghargaan WHERE expired_date IS NULL ORDER BY nm_tkt_penghargaan`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertTingkatPenghargaan performs bulk upsert for tingkatPenghargaan
+func (r *repository) BulkUpsertTingkatPenghargaan(data []SisterTingkatPenghargaan, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.tingkat_penghargaan AS target
+			USING (SELECT @p1 AS id_tkt_penghargaan, @p2 AS nm_tkt_penghargaan) AS source
+			ON target.id_tkt_penghargaan = source.id_tkt_penghargaan
+			WHEN MATCHED THEN
+				UPDATE SET nm_tkt_penghargaan = source.nm_tkt_penghargaan,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_tkt_penghargaan, nm_tkt_penghargaan, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_tkt_penghargaan, source.nm_tkt_penghargaan, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert tingkat_penghargaan %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllWilayah retrieves all active wilayah records
+func (r *repository) GetAllWilayah() ([]Wilayah, error) {
+	var result []Wilayah
+	query := `SELECT id_wil, nm_wil, expired_date, last_sync FROM ref.wilayah WHERE expired_date IS NULL ORDER BY nm_wil`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertWilayah performs bulk upsert for wilayah
+func (r *repository) BulkUpsertWilayah(data []SisterWilayah, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.wilayah AS target
+			USING (SELECT @p1 AS id_wil, @p2 AS nm_wil) AS source
+			ON target.id_wil = source.id_wil
+			WHEN MATCHED THEN
+				UPDATE SET nm_wil = source.nm_wil,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_wil, nm_wil, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_wil, source.nm_wil, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert wilayah %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllKategoriCapaianLuaran retrieves all active kategoriCapaianLuaran records
+func (r *repository) GetAllKategoriCapaianLuaran() ([]KategoriCapaianLuaran, error) {
+	var result []KategoriCapaianLuaran
+	query := `SELECT id_kat_capaian, nm_kat_capaian, expired_date, last_sync FROM ref.kategori_capaian_luaran WHERE expired_date IS NULL ORDER BY nm_kat_capaian`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertKategoriCapaianLuaran performs bulk upsert for kategoriCapaianLuaran
+func (r *repository) BulkUpsertKategoriCapaianLuaran(data []SisterKategoriCapaianLuaran, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.kategori_capaian_luaran AS target
+			USING (SELECT @p1 AS id_kat_capaian, @p2 AS nm_kat_capaian) AS source
+			ON target.id_kat_capaian = source.id_kat_capaian
+			WHEN MATCHED THEN
+				UPDATE SET nm_kat_capaian = source.nm_kat_capaian,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_kat_capaian, nm_kat_capaian, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_kat_capaian, source.nm_kat_capaian, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert kategori_capaian_luaran %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllKategoriKegiatan retrieves all active kategoriKegiatan records
+func (r *repository) GetAllKategoriKegiatan() ([]KategoriKegiatan, error) {
+	var result []KategoriKegiatan
+	query := `SELECT id_katgiat, nm_kat, expired_date, last_sync FROM ref.kategori_kegiatan WHERE expired_date IS NULL ORDER BY nm_kat`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertKategoriKegiatan performs bulk upsert for kategoriKegiatan
+func (r *repository) BulkUpsertKategoriKegiatan(data []SisterKategoriKegiatan, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.kategori_kegiatan AS target
+			USING (SELECT @p1 AS id_katgiat, @p2 AS nm_kat) AS source
+			ON target.id_katgiat = source.id_katgiat
+			WHEN MATCHED THEN
+				UPDATE SET nm_kat = source.nm_kat,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_katgiat, nm_kat, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_katgiat, source.nm_kat, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert kategori_kegiatan %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllKelompokBidang retrieves all active kelompokBidang records
+func (r *repository) GetAllKelompokBidang() ([]KelompokBidang, error) {
+	var result []KelompokBidang
+	query := `SELECT id_kel_bidang, nm_kel_bidang, expired_date, last_sync FROM ref.kelompok_bidang WHERE expired_date IS NULL ORDER BY nm_kel_bidang`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertKelompokBidang performs bulk upsert for kelompokBidang
+func (r *repository) BulkUpsertKelompokBidang(data []SisterKelompokBidang, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.kelompok_bidang AS target
+			USING (SELECT @p1 AS id_kel_bidang, @p2 AS nm_kel_bidang) AS source
+			ON target.id_kel_bidang = source.id_kel_bidang
+			WHEN MATCHED THEN
+				UPDATE SET nm_kel_bidang = source.nm_kel_bidang,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_kel_bidang, nm_kel_bidang, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_kel_bidang, source.nm_kel_bidang, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert kelompok_bidang %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllLembagaSertifikasi retrieves all active lembagaSertifikasi records
+func (r *repository) GetAllLembagaSertifikasi() ([]LembagaSertifikasi, error) {
+	var result []LembagaSertifikasi
+	query := `SELECT id_lemb_sert, nm_lemb_sert, expired_date, last_sync FROM ref.lembaga_sertifikasi WHERE expired_date IS NULL ORDER BY nm_lemb_sert`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertLembagaSertifikasi performs bulk upsert for lembagaSertifikasi
+func (r *repository) BulkUpsertLembagaSertifikasi(data []SisterLembagaSertifikasi, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.lembaga_sertifikasi AS target
+			USING (SELECT @p1 AS id_lemb_sert, @p2 AS nm_lemb_sert) AS source
+			ON target.id_lemb_sert = source.id_lemb_sert
+			WHEN MATCHED THEN
+				UPDATE SET nm_lemb_sert = source.nm_lemb_sert,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_lemb_sert, nm_lemb_sert, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_lemb_sert, source.nm_lemb_sert, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert lembaga_sertifikasi %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllGolonganPangkat retrieves all active golonganPangkat records
+func (r *repository) GetAllGolonganPangkat() ([]GolonganPangkat, error) {
+	var result []GolonganPangkat
+	query := `SELECT id_pangkat_gol, nm_pangkat, expired_date, last_sync FROM ref.pangkat_golongan WHERE expired_date IS NULL ORDER BY nm_pangkat`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertGolonganPangkat performs bulk upsert for golonganPangkat
+func (r *repository) BulkUpsertGolonganPangkat(data []SisterGolonganPangkat, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.pangkat_golongan AS target
+			USING (SELECT @p1 AS id_pangkat_gol, @p2 AS nm_pangkat) AS source
+			ON target.id_pangkat_gol = source.id_pangkat_gol
+			WHEN MATCHED THEN
+				UPDATE SET nm_pangkat = source.nm_pangkat,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_pangkat_gol, nm_pangkat, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_pangkat_gol, source.nm_pangkat, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert pangkat_golongan %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllIkatanKerja retrieves all active ikatanKerja records
+func (r *repository) GetAllIkatanKerja() ([]IkatanKerja, error) {
+	var result []IkatanKerja
+	query := `SELECT id_ikatan_kerja, nm_ikatan_kerja, expired_date, last_sync FROM ref.ikatan_kerja_sdm WHERE expired_date IS NULL ORDER BY nm_ikatan_kerja`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertIkatanKerja performs bulk upsert for ikatanKerja
+func (r *repository) BulkUpsertIkatanKerja(data []SisterIkatanKerja, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.ikatan_kerja_sdm AS target
+			USING (SELECT @p1 AS id_ikatan_kerja, @p2 AS nm_ikatan_kerja) AS source
+			ON target.id_ikatan_kerja = source.id_ikatan_kerja
+			WHEN MATCHED THEN
+				UPDATE SET nm_ikatan_kerja = source.nm_ikatan_kerja,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_ikatan_kerja, nm_ikatan_kerja, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_ikatan_kerja, source.nm_ikatan_kerja, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert ikatan_kerja_sdm %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJenisPenghargaan retrieves all active jenisPenghargaan records
+func (r *repository) GetAllJenisPenghargaan() ([]JenisPenghargaan, error) {
+	var result []JenisPenghargaan
+	query := `SELECT id_jns_penghargaan, nm_jns_penghargaan, expired_date, last_sync FROM ref.jenis_penghargaan WHERE expired_date IS NULL ORDER BY nm_jns_penghargaan`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJenisPenghargaan performs bulk upsert for jenisPenghargaan
+func (r *repository) BulkUpsertJenisPenghargaan(data []SisterJenisPenghargaan, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jenis_penghargaan AS target
+			USING (SELECT @p1 AS id_jns_penghargaan, @p2 AS nm_jns_penghargaan) AS source
+			ON target.id_jns_penghargaan = source.id_jns_penghargaan
+			WHEN MATCHED THEN
+				UPDATE SET nm_jns_penghargaan = source.nm_jns_penghargaan,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jns_penghargaan, nm_jns_penghargaan, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jns_penghargaan, source.nm_jns_penghargaan, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jenis_penghargaan %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJenisPekerjaan retrieves all active jenisPekerjaan records
+func (r *repository) GetAllJenisPekerjaan() ([]JenisPekerjaan, error) {
+	var result []JenisPekerjaan
+	query := `SELECT id_pekerjaan, nm_pekerjaan, expired_date, last_sync FROM ref.pekerjaan WHERE expired_date IS NULL ORDER BY nm_pekerjaan`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJenisPekerjaan performs bulk upsert for jenisPekerjaan
+func (r *repository) BulkUpsertJenisPekerjaan(data []SisterJenisPekerjaan, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.pekerjaan AS target
+			USING (SELECT @p1 AS id_pekerjaan, @p2 AS nm_pekerjaan) AS source
+			ON target.id_pekerjaan = source.id_pekerjaan
+			WHEN MATCHED THEN
+				UPDATE SET nm_pekerjaan = source.nm_pekerjaan,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_pekerjaan, nm_pekerjaan, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_pekerjaan, source.nm_pekerjaan, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert pekerjaan %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllBidangPekerjaan retrieves all active bidangPekerjaan records
+func (r *repository) GetAllBidangPekerjaan() ([]BidangPekerjaan, error) {
+	var result []BidangPekerjaan
+	query := `SELECT id_bid_kerja, nm_bid_kerja, expired_date, last_sync FROM ref.bidang_pekerjaan WHERE expired_date IS NULL ORDER BY nm_bid_kerja`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertBidangPekerjaan performs bulk upsert for bidangPekerjaan
+func (r *repository) BulkUpsertBidangPekerjaan(data []SisterBidangPekerjaan, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.bidang_pekerjaan AS target
+			USING (SELECT @p1 AS id_bid_kerja, @p2 AS nm_bid_kerja) AS source
+			ON target.id_bid_kerja = source.id_bid_kerja
+			WHEN MATCHED THEN
+				UPDATE SET nm_bid_kerja = source.nm_bid_kerja,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_bid_kerja, nm_bid_kerja, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_bid_kerja, source.nm_bid_kerja, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert bidang_pekerjaan %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+// Add to Service interface in service.go
+	SyncBidangStudiFromSister(syncedBy string) (int, error)
+	SyncBidangUsahaFromSister(syncedBy string) (int, error)
+	SyncJabatanFungsionalFromSister(syncedBy string) (int, error)
+	SyncJabatanTugasTambahanFromSister(syncedBy string) (int, error)
+	SyncJenisBahanAjarFromSister(syncedBy string) (int, error)
+	SyncJenisBeasiswaFromSister(syncedBy string) (int, error)
+	SyncJenisDiklatFromSister(syncedBy string) (int, error)
+	SyncJenisDokumenFromSister(syncedBy string) (int, error)
+	SyncJenisKeluarFromSister(syncedBy string) (int, error)
+	SyncJenisKepanitiaanFromSister(syncedBy string) (int, error)
+	SyncJenisKesejahteraanFromSister(syncedBy string) (int, error)
+	SyncJenisPublikasiFromSister(syncedBy string) (int, error)
+	SyncJenisTesFromSister(syncedBy string) (int, error)
+	SyncJenisTunjanganFromSister(syncedBy string) (int, error)
+	SyncMediaPublikasiFromSister(syncedBy string) (int, error)
+	SyncSkimKegiatanFromSister(syncedBy string) (int, error)
+	SyncStatusKepegawaianFromSister(syncedBy string) (int, error)
+	SyncSumberGajiFromSister(syncedBy string) (int, error)
+	SyncTingkatPenghargaanFromSister(syncedBy string) (int, error)
+	SyncWilayahFromSister(syncedBy string) (int, error)
+	SyncKategoriCapaianLuaranFromSister(syncedBy string) (int, error)
+	SyncKategoriKegiatanFromSister(syncedBy string) (int, error)
+	SyncKelompokBidangFromSister(syncedBy string) (int, error)
+	SyncLembagaSertifikasiFromSister(syncedBy string) (int, error)
+	SyncGolonganPangkatFromSister(syncedBy string) (int, error)
+	SyncIkatanKerjaFromSister(syncedBy string) (int, error)
+	SyncJenisPenghargaanFromSister(syncedBy string) (int, error)
+	SyncJenisPekerjaanFromSister(syncedBy string) (int, error)
+	SyncBidangPekerjaanFromSister(syncedBy string) (int, error)
+
+// SyncBidangStudiFromSister syncs bidangStudi data from Sister API to database
+func (s *service) SyncBidangStudiFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiBidangStudi()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertBidangStudi(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncBidangUsahaFromSister syncs bidangUsaha data from Sister API to database
+func (s *service) SyncBidangUsahaFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiBidangUsaha()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertBidangUsaha(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncJabatanFungsionalFromSister syncs jabatanFungsional data from Sister API to database
+func (s *service) SyncJabatanFungsionalFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiJabatanFungsional()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJabatanFungsional(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncJabatanTugasTambahanFromSister syncs jabatanTugasTambahan data from Sister API to database
+func (s *service) SyncJabatanTugasTambahanFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiJabatanTugasTambahan()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJabatanTugasTambahan(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncJenisBahanAjarFromSister syncs jenisBahanAjar data from Sister API to database
+func (s *service) SyncJenisBahanAjarFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiJenisBahanAjar()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJenisBahanAjar(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncJenisBeasiswaFromSister syncs jenisBeasiswa data from Sister API to database
+func (s *service) SyncJenisBeasiswaFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiJenisBeasiswa()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJenisBeasiswa(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncJenisDiklatFromSister syncs jenisDiklat data from Sister API to database
+func (s *service) SyncJenisDiklatFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiJenisDiklat()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJenisDiklat(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncJenisDokumenFromSister syncs jenisDokumen data from Sister API to database
+func (s *service) SyncJenisDokumenFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiJenisDokumen()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJenisDokumen(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncJenisKeluarFromSister syncs jenisKeluar data from Sister API to database
+func (s *service) SyncJenisKeluarFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiJenisKeluar()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJenisKeluar(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncJenisKepanitiaanFromSister syncs jenisKepanitiaan data from Sister API to database
+func (s *service) SyncJenisKepanitiaanFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiJenisKepanitiaan()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJenisKepanitiaan(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncJenisKesejahteraanFromSister syncs jenisKesejahteraan data from Sister API to database
+func (s *service) SyncJenisKesejahteraanFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiJenisKesejahteraan()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJenisKesejahteraan(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncJenisPublikasiFromSister syncs jenisPublikasi data from Sister API to database
+func (s *service) SyncJenisPublikasiFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiJenisPublikasi()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJenisPublikasi(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncJenisTesFromSister syncs jenisTes data from Sister API to database
+func (s *service) SyncJenisTesFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiJenisTes()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJenisTes(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncJenisTunjanganFromSister syncs jenisTunjangan data from Sister API to database
+func (s *service) SyncJenisTunjanganFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiJenisTunjangan()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJenisTunjangan(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncMediaPublikasiFromSister syncs mediaPublikasi data from Sister API to database
+func (s *service) SyncMediaPublikasiFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiMediaPublikasi()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertMediaPublikasi(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncSkimKegiatanFromSister syncs skimKegiatan data from Sister API to database
+func (s *service) SyncSkimKegiatanFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiSkimKegiatan()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertSkimKegiatan(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncStatusKepegawaianFromSister syncs statusKepegawaian data from Sister API to database
+func (s *service) SyncStatusKepegawaianFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiStatusKepegawaian()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertStatusKepegawaian(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncSumberGajiFromSister syncs sumberGaji data from Sister API to database
+func (s *service) SyncSumberGajiFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiSumberGaji()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertSumberGaji(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncTingkatPenghargaanFromSister syncs tingkatPenghargaan data from Sister API to database
+func (s *service) SyncTingkatPenghargaanFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiTingkatPenghargaan()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertTingkatPenghargaan(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncWilayahFromSister syncs wilayah data from Sister API to database
+func (s *service) SyncWilayahFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiWilayah()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertWilayah(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncKategoriCapaianLuaranFromSister syncs kategoriCapaianLuaran data from Sister API to database
+func (s *service) SyncKategoriCapaianLuaranFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiKategoriCapaianLuaran()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertKategoriCapaianLuaran(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncKategoriKegiatanFromSister syncs kategoriKegiatan data from Sister API to database
+func (s *service) SyncKategoriKegiatanFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiKategoriKegiatan()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertKategoriKegiatan(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncKelompokBidangFromSister syncs kelompokBidang data from Sister API to database
+func (s *service) SyncKelompokBidangFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiKelompokBidang()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertKelompokBidang(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncLembagaSertifikasiFromSister syncs lembagaSertifikasi data from Sister API to database
+func (s *service) SyncLembagaSertifikasiFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiLembagaSertifikasi()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertLembagaSertifikasi(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncGolonganPangkatFromSister syncs golonganPangkat data from Sister API to database
+func (s *service) SyncGolonganPangkatFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiGolonganPangkat()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertGolonganPangkat(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncIkatanKerjaFromSister syncs ikatanKerja data from Sister API to database
+func (s *service) SyncIkatanKerjaFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiIkatanKerja()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertIkatanKerja(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncJenisPenghargaanFromSister syncs jenisPenghargaan data from Sister API to database
+func (s *service) SyncJenisPenghargaanFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiJenisPenghargaan()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJenisPenghargaan(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncJenisPekerjaanFromSister syncs jenisPekerjaan data from Sister API to database
+func (s *service) SyncJenisPekerjaanFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiJenisPekerjaan()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJenisPekerjaan(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// SyncBidangPekerjaanFromSister syncs bidangPekerjaan data from Sister API to database
+func (s *service) SyncBidangPekerjaanFromSister(syncedBy string) (int, error) {
+	data, err := s.sisterAPI.GetReferensiBidangPekerjaan()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	err = s.repo.BulkUpsertBidangPekerjaan(data, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(data), nil
+}
+
+// GetAllBidangStudi returns all bidangStudi
+func (c *controller) GetAllBidangStudi(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllBidangStudi()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncBidangStudi syncs bidangStudi from Sister API
+func (c *controller) SyncBidangStudi(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncBidangStudiFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllBidangUsaha returns all bidangUsaha
+func (c *controller) GetAllBidangUsaha(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllBidangUsaha()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncBidangUsaha syncs bidangUsaha from Sister API
+func (c *controller) SyncBidangUsaha(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncBidangUsahaFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllJabatanFungsional returns all jabatanFungsional
+func (c *controller) GetAllJabatanFungsional(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllJabatanFungsional()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncJabatanFungsional syncs jabatanFungsional from Sister API
+func (c *controller) SyncJabatanFungsional(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncJabatanFungsionalFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllJabatanTugasTambahan returns all jabatanTugasTambahan
+func (c *controller) GetAllJabatanTugasTambahan(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllJabatanTugasTambahan()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncJabatanTugasTambahan syncs jabatanTugasTambahan from Sister API
+func (c *controller) SyncJabatanTugasTambahan(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncJabatanTugasTambahanFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllJenisBahanAjar returns all jenisBahanAjar
+func (c *controller) GetAllJenisBahanAjar(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllJenisBahanAjar()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncJenisBahanAjar syncs jenisBahanAjar from Sister API
+func (c *controller) SyncJenisBahanAjar(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncJenisBahanAjarFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllJenisBeasiswa returns all jenisBeasiswa
+func (c *controller) GetAllJenisBeasiswa(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllJenisBeasiswa()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncJenisBeasiswa syncs jenisBeasiswa from Sister API
+func (c *controller) SyncJenisBeasiswa(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncJenisBeasiswaFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllJenisDiklat returns all jenisDiklat
+func (c *controller) GetAllJenisDiklat(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllJenisDiklat()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncJenisDiklat syncs jenisDiklat from Sister API
+func (c *controller) SyncJenisDiklat(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncJenisDiklatFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllJenisDokumen returns all jenisDokumen
+func (c *controller) GetAllJenisDokumen(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllJenisDokumen()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncJenisDokumen syncs jenisDokumen from Sister API
+func (c *controller) SyncJenisDokumen(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncJenisDokumenFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllJenisKeluar returns all jenisKeluar
+func (c *controller) GetAllJenisKeluar(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllJenisKeluar()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncJenisKeluar syncs jenisKeluar from Sister API
+func (c *controller) SyncJenisKeluar(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncJenisKeluarFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllJenisKepanitiaan returns all jenisKepanitiaan
+func (c *controller) GetAllJenisKepanitiaan(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllJenisKepanitiaan()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncJenisKepanitiaan syncs jenisKepanitiaan from Sister API
+func (c *controller) SyncJenisKepanitiaan(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncJenisKepanitiaanFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllJenisKesejahteraan returns all jenisKesejahteraan
+func (c *controller) GetAllJenisKesejahteraan(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllJenisKesejahteraan()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncJenisKesejahteraan syncs jenisKesejahteraan from Sister API
+func (c *controller) SyncJenisKesejahteraan(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncJenisKesejahteraanFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllJenisPublikasi returns all jenisPublikasi
+func (c *controller) GetAllJenisPublikasi(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllJenisPublikasi()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncJenisPublikasi syncs jenisPublikasi from Sister API
+func (c *controller) SyncJenisPublikasi(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncJenisPublikasiFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllJenisTes returns all jenisTes
+func (c *controller) GetAllJenisTes(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllJenisTes()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncJenisTes syncs jenisTes from Sister API
+func (c *controller) SyncJenisTes(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncJenisTesFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllJenisTunjangan returns all jenisTunjangan
+func (c *controller) GetAllJenisTunjangan(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllJenisTunjangan()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncJenisTunjangan syncs jenisTunjangan from Sister API
+func (c *controller) SyncJenisTunjangan(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncJenisTunjanganFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllMediaPublikasi returns all mediaPublikasi
+func (c *controller) GetAllMediaPublikasi(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllMediaPublikasi()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncMediaPublikasi syncs mediaPublikasi from Sister API
+func (c *controller) SyncMediaPublikasi(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncMediaPublikasiFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllSkimKegiatan returns all skimKegiatan
+func (c *controller) GetAllSkimKegiatan(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllSkimKegiatan()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncSkimKegiatan syncs skimKegiatan from Sister API
+func (c *controller) SyncSkimKegiatan(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncSkimKegiatanFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllStatusKepegawaian returns all statusKepegawaian
+func (c *controller) GetAllStatusKepegawaian(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllStatusKepegawaian()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncStatusKepegawaian syncs statusKepegawaian from Sister API
+func (c *controller) SyncStatusKepegawaian(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncStatusKepegawaianFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllSumberGaji returns all sumberGaji
+func (c *controller) GetAllSumberGaji(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllSumberGaji()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncSumberGaji syncs sumberGaji from Sister API
+func (c *controller) SyncSumberGaji(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncSumberGajiFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllTingkatPenghargaan returns all tingkatPenghargaan
+func (c *controller) GetAllTingkatPenghargaan(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllTingkatPenghargaan()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncTingkatPenghargaan syncs tingkatPenghargaan from Sister API
+func (c *controller) SyncTingkatPenghargaan(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncTingkatPenghargaanFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllWilayah returns all wilayah
+func (c *controller) GetAllWilayah(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllWilayah()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncWilayah syncs wilayah from Sister API
+func (c *controller) SyncWilayah(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncWilayahFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllKategoriCapaianLuaran returns all kategoriCapaianLuaran
+func (c *controller) GetAllKategoriCapaianLuaran(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllKategoriCapaianLuaran()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncKategoriCapaianLuaran syncs kategoriCapaianLuaran from Sister API
+func (c *controller) SyncKategoriCapaianLuaran(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncKategoriCapaianLuaranFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllKategoriKegiatan returns all kategoriKegiatan
+func (c *controller) GetAllKategoriKegiatan(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllKategoriKegiatan()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncKategoriKegiatan syncs kategoriKegiatan from Sister API
+func (c *controller) SyncKategoriKegiatan(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncKategoriKegiatanFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllKelompokBidang returns all kelompokBidang
+func (c *controller) GetAllKelompokBidang(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllKelompokBidang()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncKelompokBidang syncs kelompokBidang from Sister API
+func (c *controller) SyncKelompokBidang(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncKelompokBidangFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllLembagaSertifikasi returns all lembagaSertifikasi
+func (c *controller) GetAllLembagaSertifikasi(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllLembagaSertifikasi()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncLembagaSertifikasi syncs lembagaSertifikasi from Sister API
+func (c *controller) SyncLembagaSertifikasi(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncLembagaSertifikasiFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllGolonganPangkat returns all golonganPangkat
+func (c *controller) GetAllGolonganPangkat(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllGolonganPangkat()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncGolonganPangkat syncs golonganPangkat from Sister API
+func (c *controller) SyncGolonganPangkat(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncGolonganPangkatFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllIkatanKerja returns all ikatanKerja
+func (c *controller) GetAllIkatanKerja(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllIkatanKerja()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncIkatanKerja syncs ikatanKerja from Sister API
+func (c *controller) SyncIkatanKerja(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncIkatanKerjaFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllJenisPenghargaan returns all jenisPenghargaan
+func (c *controller) GetAllJenisPenghargaan(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllJenisPenghargaan()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncJenisPenghargaan syncs jenisPenghargaan from Sister API
+func (c *controller) SyncJenisPenghargaan(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncJenisPenghargaanFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllJenisPekerjaan returns all jenisPekerjaan
+func (c *controller) GetAllJenisPekerjaan(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllJenisPekerjaan()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncJenisPekerjaan syncs jenisPekerjaan from Sister API
+func (c *controller) SyncJenisPekerjaan(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncJenisPekerjaanFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+
+// GetAllBidangPekerjaan returns all bidangPekerjaan
+func (c *controller) GetAllBidangPekerjaan(ctx *fiber.Ctx) error {
+	data, err := c.svc.repo.GetAllBidangPekerjaan()
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Failed to fetch data", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, "Success", data, "")
+}
+
+// SyncBidangPekerjaan syncs bidangPekerjaan from Sister API
+func (c *controller) SyncBidangPekerjaan(ctx *fiber.Ctx) error {
+	syncedBy := getSyncedBy(ctx)
+	count, err := c.svc.SyncBidangPekerjaanFromSister(syncedBy)
+	if err != nil {
+		return APIResponse(ctx, fiber.StatusInternalServerError, "Sync failed", nil, err.Error())
+	}
+	return APIResponse(ctx, fiber.StatusOK, fmt.Sprintf("Successfully synced %d records", count), fiber.Map{"count": count}, "")
+}
+// Add to router.Init() in router.go
+
+	// BidangStudi routes
+	bidangStudiRouter := router.Group("/referensi/bidang-studi")
+	{
+		bidangStudiRouter.Get("/", ctrl.GetAllBidangStudi)
+		bidangStudiRouter.Post("/sync", ctrl.SyncBidangStudi)
+	}
+
+	// BidangUsaha routes
+	bidangUsahaRouter := router.Group("/referensi/bidang-usaha")
+	{
+		bidangUsahaRouter.Get("/", ctrl.GetAllBidangUsaha)
+		bidangUsahaRouter.Post("/sync", ctrl.SyncBidangUsaha)
+	}
+
+	// JabatanFungsional routes
+	jabatanFungsionalRouter := router.Group("/referensi/jabatan-fungsional")
+	{
+		jabatanFungsionalRouter.Get("/", ctrl.GetAllJabatanFungsional)
+		jabatanFungsionalRouter.Post("/sync", ctrl.SyncJabatanFungsional)
+	}
+
+	// JabatanTugasTambahan routes
+	jabatanTugasTambahanRouter := router.Group("/referensi/jabatan-tugas-tambahan")
+	{
+		jabatanTugasTambahanRouter.Get("/", ctrl.GetAllJabatanTugasTambahan)
+		jabatanTugasTambahanRouter.Post("/sync", ctrl.SyncJabatanTugasTambahan)
+	}
+
+	// JenisBahanAjar routes
+	jenisBahanAjarRouter := router.Group("/referensi/jenis-bahan-ajar")
+	{
+		jenisBahanAjarRouter.Get("/", ctrl.GetAllJenisBahanAjar)
+		jenisBahanAjarRouter.Post("/sync", ctrl.SyncJenisBahanAjar)
+	}
+
+	// JenisBeasiswa routes
+	jenisBeasiswaRouter := router.Group("/referensi/jenis-beasiswa")
+	{
+		jenisBeasiswaRouter.Get("/", ctrl.GetAllJenisBeasiswa)
+		jenisBeasiswaRouter.Post("/sync", ctrl.SyncJenisBeasiswa)
+	}
+
+	// JenisDiklat routes
+	jenisDiklatRouter := router.Group("/referensi/jenis-diklat")
+	{
+		jenisDiklatRouter.Get("/", ctrl.GetAllJenisDiklat)
+		jenisDiklatRouter.Post("/sync", ctrl.SyncJenisDiklat)
+	}
+
+	// JenisDokumen routes
+	jenisDokumenRouter := router.Group("/referensi/jenis-dokumen")
+	{
+		jenisDokumenRouter.Get("/", ctrl.GetAllJenisDokumen)
+		jenisDokumenRouter.Post("/sync", ctrl.SyncJenisDokumen)
+	}
+
+	// JenisKeluar routes
+	jenisKeluarRouter := router.Group("/referensi/jenis-keluar")
+	{
+		jenisKeluarRouter.Get("/", ctrl.GetAllJenisKeluar)
+		jenisKeluarRouter.Post("/sync", ctrl.SyncJenisKeluar)
+	}
+
+	// JenisKepanitiaan routes
+	jenisKepanitiaanRouter := router.Group("/referensi/jenis-kepanitiaan")
+	{
+		jenisKepanitiaanRouter.Get("/", ctrl.GetAllJenisKepanitiaan)
+		jenisKepanitiaanRouter.Post("/sync", ctrl.SyncJenisKepanitiaan)
+	}
+
+	// JenisKesejahteraan routes
+	jenisKesejahteraanRouter := router.Group("/referensi/jenis-kesejahteraan")
+	{
+		jenisKesejahteraanRouter.Get("/", ctrl.GetAllJenisKesejahteraan)
+		jenisKesejahteraanRouter.Post("/sync", ctrl.SyncJenisKesejahteraan)
+	}
+
+	// JenisPublikasi routes
+	jenisPublikasiRouter := router.Group("/referensi/jenis-publikasi")
+	{
+		jenisPublikasiRouter.Get("/", ctrl.GetAllJenisPublikasi)
+		jenisPublikasiRouter.Post("/sync", ctrl.SyncJenisPublikasi)
+	}
+
+	// JenisTes routes
+	jenisTesRouter := router.Group("/referensi/jenis-tes")
+	{
+		jenisTesRouter.Get("/", ctrl.GetAllJenisTes)
+		jenisTesRouter.Post("/sync", ctrl.SyncJenisTes)
+	}
+
+	// JenisTunjangan routes
+	jenisTunjanganRouter := router.Group("/referensi/jenis-tunjangan")
+	{
+		jenisTunjanganRouter.Get("/", ctrl.GetAllJenisTunjangan)
+		jenisTunjanganRouter.Post("/sync", ctrl.SyncJenisTunjangan)
+	}
+
+	// MediaPublikasi routes
+	mediaPublikasiRouter := router.Group("/referensi/media-publikasi")
+	{
+		mediaPublikasiRouter.Get("/", ctrl.GetAllMediaPublikasi)
+		mediaPublikasiRouter.Post("/sync", ctrl.SyncMediaPublikasi)
+	}
+
+	// SkimKegiatan routes
+	skimKegiatanRouter := router.Group("/referensi/skim-kegiatan")
+	{
+		skimKegiatanRouter.Get("/", ctrl.GetAllSkimKegiatan)
+		skimKegiatanRouter.Post("/sync", ctrl.SyncSkimKegiatan)
+	}
+
+	// StatusKepegawaian routes
+	statusKepegawaianRouter := router.Group("/referensi/status-kepegawaian")
+	{
+		statusKepegawaianRouter.Get("/", ctrl.GetAllStatusKepegawaian)
+		statusKepegawaianRouter.Post("/sync", ctrl.SyncStatusKepegawaian)
+	}
+
+	// SumberGaji routes
+	sumberGajiRouter := router.Group("/referensi/sumber-gaji")
+	{
+		sumberGajiRouter.Get("/", ctrl.GetAllSumberGaji)
+		sumberGajiRouter.Post("/sync", ctrl.SyncSumberGaji)
+	}
+
+	// TingkatPenghargaan routes
+	tingkatPenghargaanRouter := router.Group("/referensi/tingkat-penghargaan")
+	{
+		tingkatPenghargaanRouter.Get("/", ctrl.GetAllTingkatPenghargaan)
+		tingkatPenghargaanRouter.Post("/sync", ctrl.SyncTingkatPenghargaan)
+	}
+
+	// Wilayah routes
+	wilayahRouter := router.Group("/referensi/wilayah")
+	{
+		wilayahRouter.Get("/", ctrl.GetAllWilayah)
+		wilayahRouter.Post("/sync", ctrl.SyncWilayah)
+	}
+
+	// KategoriCapaianLuaran routes
+	kategoriCapaianLuaranRouter := router.Group("/referensi/kategori-capaian-luaran")
+	{
+		kategoriCapaianLuaranRouter.Get("/", ctrl.GetAllKategoriCapaianLuaran)
+		kategoriCapaianLuaranRouter.Post("/sync", ctrl.SyncKategoriCapaianLuaran)
+	}
+
+	// KategoriKegiatan routes
+	kategoriKegiatanRouter := router.Group("/referensi/kategori-kegiatan")
+	{
+		kategoriKegiatanRouter.Get("/", ctrl.GetAllKategoriKegiatan)
+		kategoriKegiatanRouter.Post("/sync", ctrl.SyncKategoriKegiatan)
+	}
+
+	// KelompokBidang routes
+	kelompokBidangRouter := router.Group("/referensi/kelompok-bidang")
+	{
+		kelompokBidangRouter.Get("/", ctrl.GetAllKelompokBidang)
+		kelompokBidangRouter.Post("/sync", ctrl.SyncKelompokBidang)
+	}
+
+	// LembagaSertifikasi routes
+	lembagaSertifikasiRouter := router.Group("/referensi/lembaga-sertifikasi")
+	{
+		lembagaSertifikasiRouter.Get("/", ctrl.GetAllLembagaSertifikasi)
+		lembagaSertifikasiRouter.Post("/sync", ctrl.SyncLembagaSertifikasi)
+	}
+
+	// GolonganPangkat routes
+	golonganPangkatRouter := router.Group("/referensi/golongan-pangkat")
+	{
+		golonganPangkatRouter.Get("/", ctrl.GetAllGolonganPangkat)
+		golonganPangkatRouter.Post("/sync", ctrl.SyncGolonganPangkat)
+	}
+
+	// IkatanKerja routes
+	ikatanKerjaRouter := router.Group("/referensi/ikatan-kerja")
+	{
+		ikatanKerjaRouter.Get("/", ctrl.GetAllIkatanKerja)
+		ikatanKerjaRouter.Post("/sync", ctrl.SyncIkatanKerja)
+	}
+
+	// JenisPenghargaan routes
+	jenisPenghargaanRouter := router.Group("/referensi/jenis-penghargaan")
+	{
+		jenisPenghargaanRouter.Get("/", ctrl.GetAllJenisPenghargaan)
+		jenisPenghargaanRouter.Post("/sync", ctrl.SyncJenisPenghargaan)
+	}
+
+	// JenisPekerjaan routes
+	jenisPekerjaanRouter := router.Group("/referensi/jenis-pekerjaan")
+	{
+		jenisPekerjaanRouter.Get("/", ctrl.GetAllJenisPekerjaan)
+		jenisPekerjaanRouter.Post("/sync", ctrl.SyncJenisPekerjaan)
+	}
+
+	// BidangPekerjaan routes
+	bidangPekerjaanRouter := router.Group("/referensi/bidang-pekerjaan")
+	{
+		bidangPekerjaanRouter.Get("/", ctrl.GetAllBidangPekerjaan)
+		bidangPekerjaanRouter.Post("/sync", ctrl.SyncBidangPekerjaan)
+	}
+// Add to Sister API client
+
+// GetReferensiBidangStudi fetches bidangStudi from Sister API
+func (c *Client) GetReferensiBidangStudi() ([]SisterBidangStudi, error) {
+	var result []SisterBidangStudi
+	err := c.get("/referensi/bidang_studi", &result)
+	return result, err
+}
+
+// GetReferensiBidangUsaha fetches bidangUsaha from Sister API
+func (c *Client) GetReferensiBidangUsaha() ([]SisterBidangUsaha, error) {
+	var result []SisterBidangUsaha
+	err := c.get("/referensi/bidang_usaha", &result)
+	return result, err
+}
+
+// GetReferensiJabatanFungsional fetches jabatanFungsional from Sister API
+func (c *Client) GetReferensiJabatanFungsional() ([]SisterJabatanFungsional, error) {
+	var result []SisterJabatanFungsional
+	err := c.get("/referensi/jabatan_fungsional", &result)
+	return result, err
+}
+
+// GetReferensiJabatanTugasTambahan fetches jabatanTugasTambahan from Sister API
+func (c *Client) GetReferensiJabatanTugasTambahan() ([]SisterJabatanTugasTambahan, error) {
+	var result []SisterJabatanTugasTambahan
+	err := c.get("/referensi/jabatan_tugas_tambahan", &result)
+	return result, err
+}
+
+// GetReferensiJenisBahanAjar fetches jenisBahanAjar from Sister API
+func (c *Client) GetReferensiJenisBahanAjar() ([]SisterJenisBahanAjar, error) {
+	var result []SisterJenisBahanAjar
+	err := c.get("/referensi/jenis_bahan_ajar", &result)
+	return result, err
+}
+
+// GetReferensiJenisBeasiswa fetches jenisBeasiswa from Sister API
+func (c *Client) GetReferensiJenisBeasiswa() ([]SisterJenisBeasiswa, error) {
+	var result []SisterJenisBeasiswa
+	err := c.get("/referensi/jenis_beasiswa", &result)
+	return result, err
+}
+
+// GetReferensiJenisDiklat fetches jenisDiklat from Sister API
+func (c *Client) GetReferensiJenisDiklat() ([]SisterJenisDiklat, error) {
+	var result []SisterJenisDiklat
+	err := c.get("/referensi/jenis_diklat", &result)
+	return result, err
+}
+
+// GetReferensiJenisDokumen fetches jenisDokumen from Sister API
+func (c *Client) GetReferensiJenisDokumen() ([]SisterJenisDokumen, error) {
+	var result []SisterJenisDokumen
+	err := c.get("/referensi/jenis_dokumen", &result)
+	return result, err
+}
+
+// GetReferensiJenisKeluar fetches jenisKeluar from Sister API
+func (c *Client) GetReferensiJenisKeluar() ([]SisterJenisKeluar, error) {
+	var result []SisterJenisKeluar
+	err := c.get("/referensi/jenis_keluar", &result)
+	return result, err
+}
+
+// GetReferensiJenisKepanitiaan fetches jenisKepanitiaan from Sister API
+func (c *Client) GetReferensiJenisKepanitiaan() ([]SisterJenisKepanitiaan, error) {
+	var result []SisterJenisKepanitiaan
+	err := c.get("/referensi/jenis_kepanitiaan", &result)
+	return result, err
+}
+
+// GetReferensiJenisKesejahteraan fetches jenisKesejahteraan from Sister API
+func (c *Client) GetReferensiJenisKesejahteraan() ([]SisterJenisKesejahteraan, error) {
+	var result []SisterJenisKesejahteraan
+	err := c.get("/referensi/jenis_kesejahteraan", &result)
+	return result, err
+}
+
+// GetReferensiJenisPublikasi fetches jenisPublikasi from Sister API
+func (c *Client) GetReferensiJenisPublikasi() ([]SisterJenisPublikasi, error) {
+	var result []SisterJenisPublikasi
+	err := c.get("/referensi/jenis_publikasi", &result)
+	return result, err
+}
+
+// GetReferensiJenisTes fetches jenisTes from Sister API
+func (c *Client) GetReferensiJenisTes() ([]SisterJenisTes, error) {
+	var result []SisterJenisTes
+	err := c.get("/referensi/jenis_tes", &result)
+	return result, err
+}
+
+// GetReferensiJenisTunjangan fetches jenisTunjangan from Sister API
+func (c *Client) GetReferensiJenisTunjangan() ([]SisterJenisTunjangan, error) {
+	var result []SisterJenisTunjangan
+	err := c.get("/referensi/jenis_tunjangan", &result)
+	return result, err
+}
+
+// GetReferensiMediaPublikasi fetches mediaPublikasi from Sister API
+func (c *Client) GetReferensiMediaPublikasi() ([]SisterMediaPublikasi, error) {
+	var result []SisterMediaPublikasi
+	err := c.get("/referensi/media_publikasi", &result)
+	return result, err
+}
+
+// GetReferensiSkimKegiatan fetches skimKegiatan from Sister API
+func (c *Client) GetReferensiSkimKegiatan() ([]SisterSkimKegiatan, error) {
+	var result []SisterSkimKegiatan
+	err := c.get("/referensi/skim_kegiatan", &result)
+	return result, err
+}
+
+// GetReferensiStatusKepegawaian fetches statusKepegawaian from Sister API
+func (c *Client) GetReferensiStatusKepegawaian() ([]SisterStatusKepegawaian, error) {
+	var result []SisterStatusKepegawaian
+	err := c.get("/referensi/status_kepegawaian", &result)
+	return result, err
+}
+
+// GetReferensiSumberGaji fetches sumberGaji from Sister API
+func (c *Client) GetReferensiSumberGaji() ([]SisterSumberGaji, error) {
+	var result []SisterSumberGaji
+	err := c.get("/referensi/sumber_gaji", &result)
+	return result, err
+}
+
+// GetReferensiTingkatPenghargaan fetches tingkatPenghargaan from Sister API
+func (c *Client) GetReferensiTingkatPenghargaan() ([]SisterTingkatPenghargaan, error) {
+	var result []SisterTingkatPenghargaan
+	err := c.get("/referensi/tingkat_penghargaan", &result)
+	return result, err
+}
+
+// GetReferensiWilayah fetches wilayah from Sister API
+func (c *Client) GetReferensiWilayah() ([]SisterWilayah, error) {
+	var result []SisterWilayah
+	err := c.get("/referensi/wilayah", &result)
+	return result, err
+}
+
+// GetReferensiKategoriCapaianLuaran fetches kategoriCapaianLuaran from Sister API
+func (c *Client) GetReferensiKategoriCapaianLuaran() ([]SisterKategoriCapaianLuaran, error) {
+	var result []SisterKategoriCapaianLuaran
+	err := c.get("/referensi/kategori_capaian_luaran", &result)
+	return result, err
+}
+
+// GetReferensiKategoriKegiatan fetches kategoriKegiatan from Sister API
+func (c *Client) GetReferensiKategoriKegiatan() ([]SisterKategoriKegiatan, error) {
+	var result []SisterKategoriKegiatan
+	err := c.get("/referensi/kategori_kegiatan", &result)
+	return result, err
+}
+
+// GetReferensiKelompokBidang fetches kelompokBidang from Sister API
+func (c *Client) GetReferensiKelompokBidang() ([]SisterKelompokBidang, error) {
+	var result []SisterKelompokBidang
+	err := c.get("/referensi/kelompok_bidang", &result)
+	return result, err
+}
+
+// GetReferensiLembagaSertifikasi fetches lembagaSertifikasi from Sister API
+func (c *Client) GetReferensiLembagaSertifikasi() ([]SisterLembagaSertifikasi, error) {
+	var result []SisterLembagaSertifikasi
+	err := c.get("/referensi/lembaga_sertifikasi", &result)
+	return result, err
+}
+
+// GetReferensiGolonganPangkat fetches golonganPangkat from Sister API
+func (c *Client) GetReferensiGolonganPangkat() ([]SisterGolonganPangkat, error) {
+	var result []SisterGolonganPangkat
+	err := c.get("/referensi/golongan_pangkat", &result)
+	return result, err
+}
+
+// GetReferensiIkatanKerja fetches ikatanKerja from Sister API
+func (c *Client) GetReferensiIkatanKerja() ([]SisterIkatanKerja, error) {
+	var result []SisterIkatanKerja
+	err := c.get("/referensi/ikatan_kerja", &result)
+	return result, err
+}
+
+// GetReferensiJenisPenghargaan fetches jenisPenghargaan from Sister API
+func (c *Client) GetReferensiJenisPenghargaan() ([]SisterJenisPenghargaan, error) {
+	var result []SisterJenisPenghargaan
+	err := c.get("/referensi/jenis_penghargaan", &result)
+	return result, err
+}
+
+// GetReferensiJenisPekerjaan fetches jenisPekerjaan from Sister API
+func (c *Client) GetReferensiJenisPekerjaan() ([]SisterJenisPekerjaan, error) {
+	var result []SisterJenisPekerjaan
+	err := c.get("/referensi/jenis_pekerjaan", &result)
+	return result, err
+}
+
+// GetReferensiBidangPekerjaan fetches bidangPekerjaan from Sister API
+func (c *Client) GetReferensiBidangPekerjaan() ([]SisterBidangPekerjaan, error) {
+	var result []SisterBidangPekerjaan
+	err := c.get("/referensi/bidang_pekerjaan", &result)
+	return result, err
+}
+// Update batch sync case statement
+Add these cases to the switch in BatchSyncFromSister():
+
+		case "bidang_studi":
+			count, err := svc.SyncBidangStudiFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "bidang_usaha":
+			count, err := svc.SyncBidangUsahaFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "jabatan_fungsional":
+			count, err := svc.SyncJabatanFungsionalFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "jabatan_tugas_tambahan":
+			count, err := svc.SyncJabatanTugasTambahanFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "jenis_bahan_ajar":
+			count, err := svc.SyncJenisBahanAjarFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "jenis_beasiswa":
+			count, err := svc.SyncJenisBeasiswaFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "jenis_diklat":
+			count, err := svc.SyncJenisDiklatFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "jenis_dokumen":
+			count, err := svc.SyncJenisDokumenFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "jenis_keluar":
+			count, err := svc.SyncJenisKeluarFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "jenis_kepanitiaan":
+			count, err := svc.SyncJenisKepanitiaanFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "jenis_kesejahteraan":
+			count, err := svc.SyncJenisKesejahteraanFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "jenis_publikasi":
+			count, err := svc.SyncJenisPublikasiFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "jenis_tes":
+			count, err := svc.SyncJenisTesFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "jenis_tunjangan":
+			count, err := svc.SyncJenisTunjanganFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "media_publikasi":
+			count, err := svc.SyncMediaPublikasiFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "skim_kegiatan":
+			count, err := svc.SyncSkimKegiatanFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "status_kepegawaian":
+			count, err := svc.SyncStatusKepegawaianFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "sumber_gaji":
+			count, err := svc.SyncSumberGajiFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "tingkat_penghargaan":
+			count, err := svc.SyncTingkatPenghargaanFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "wilayah":
+			count, err := svc.SyncWilayahFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "kategori_capaian_luaran":
+			count, err := svc.SyncKategoriCapaianLuaranFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "kategori_kegiatan":
+			count, err := svc.SyncKategoriKegiatanFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "kelompok_bidang":
+			count, err := svc.SyncKelompokBidangFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "lembaga_sertifikasi":
+			count, err := svc.SyncLembagaSertifikasiFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "golongan_pangkat":
+			count, err := svc.SyncGolonganPangkatFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "ikatan_kerja":
+			count, err := svc.SyncIkatanKerjaFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "jenis_penghargaan":
+			count, err := svc.SyncJenisPenghargaanFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "jenis_pekerjaan":
+			count, err := svc.SyncJenisPekerjaanFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+		case "bidang_pekerjaan":
+			count, err := svc.SyncBidangPekerjaanFromSister(syncedBy)
+			result.TotalRecords = count
+			result.Endpoint = endpoint
+			if err != nil {
+				result.Success = false
+				result.Message = "Sync failed"
+				result.Error = err.Error()
+			} else {
+				result.Success = true
+				result.Message = fmt.Sprintf("Synced %d records", count)
+			}
+
+// Also update GetAllReferensiMetadata() to include these endpoints

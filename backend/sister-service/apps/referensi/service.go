@@ -36,6 +36,68 @@ type Service interface {
 	GetAllSemester(ctx context.Context) ([]Semester, error)
 	SyncSemesterFromSister(ctx context.Context, syncedBy string) (int, error)
 
+	// New Referensi GetAll methods (29 endpoints)
+	GetAllBidangStudi() ([]BidangStudi, error)
+	GetAllBidangUsaha() ([]BidangUsaha, error)
+	GetAllJabatanFungsional() ([]JabatanFungsional, error)
+	GetAllJabatanTugasTambahan() ([]JabatanTugasTambahan, error)
+	GetAllJenisBahanAjar() ([]JenisBahanAjar, error)
+	GetAllJenisBeasiswa() ([]JenisBeasiswa, error)
+	GetAllJenisDiklat() ([]JenisDiklat, error)
+	GetAllJenisDokumen() ([]JenisDokumen, error)
+	GetAllJenisKeluar() ([]JenisKeluar, error)
+	GetAllJenisKepanitiaan() ([]JenisKepanitiaan, error)
+	GetAllJenisKesejahteraan() ([]JenisKesejahteraan, error)
+	GetAllJenisPublikasi() ([]JenisPublikasi, error)
+	GetAllJenisTes() ([]JenisTes, error)
+	GetAllJenisTunjangan() ([]JenisTunjangan, error)
+	GetAllMediaPublikasi() ([]MediaPublikasi, error)
+	GetAllSkimKegiatan() ([]SkimKegiatan, error)
+	GetAllStatusKepegawaian() ([]StatusKepegawaian, error)
+	GetAllSumberGaji() ([]SumberGaji, error)
+	GetAllTingkatPenghargaan() ([]TingkatPenghargaan, error)
+	GetAllWilayah() ([]Wilayah, error)
+	GetAllKategoriCapaianLuaran() ([]KategoriCapaianLuaran, error)
+	GetAllKategoriKegiatan() ([]KategoriKegiatan, error)
+	GetAllKelompokBidang() ([]KelompokBidang, error)
+	GetAllLembagaSertifikasi() ([]LembagaSertifikasi, error)
+	GetAllGolonganPangkat() ([]GolonganPangkat, error)
+	GetAllIkatanKerja() ([]IkatanKerja, error)
+	GetAllJenisPenghargaan() ([]JenisPenghargaan, error)
+	GetAllJenisPekerjaan() ([]JenisPekerjaan, error)
+	GetAllBidangPekerjaan() ([]BidangPekerjaan, error)
+
+	// New Referensi Sync methods (29 endpoints)
+	SyncBidangStudiFromSister(syncedBy string) (int, error)
+	SyncBidangUsahaFromSister(syncedBy string) (int, error)
+	SyncJabatanFungsionalFromSister(syncedBy string) (int, error)
+	SyncJabatanTugasTambahanFromSister(syncedBy string) (int, error)
+	SyncJenisBahanAjarFromSister(syncedBy string) (int, error)
+	SyncJenisBeasiswaFromSister(syncedBy string) (int, error)
+	SyncJenisDiklatFromSister(syncedBy string) (int, error)
+	SyncJenisDokumenFromSister(syncedBy string) (int, error)
+	SyncJenisKeluarFromSister(syncedBy string) (int, error)
+	SyncJenisKepanitiaanFromSister(syncedBy string) (int, error)
+	SyncJenisKesejahteraanFromSister(syncedBy string) (int, error)
+	SyncJenisPublikasiFromSister(syncedBy string) (int, error)
+	SyncJenisTesFromSister(syncedBy string) (int, error)
+	SyncJenisTunjanganFromSister(syncedBy string) (int, error)
+	SyncMediaPublikasiFromSister(syncedBy string) (int, error)
+	SyncSkimKegiatanFromSister(syncedBy string) (int, error)
+	SyncStatusKepegawaianFromSister(syncedBy string) (int, error)
+	SyncSumberGajiFromSister(syncedBy string) (int, error)
+	SyncTingkatPenghargaanFromSister(syncedBy string) (int, error)
+	SyncWilayahFromSister(syncedBy string) (int, error)
+	SyncKategoriCapaianLuaranFromSister(syncedBy string) (int, error)
+	SyncKategoriKegiatanFromSister(syncedBy string) (int, error)
+	SyncKelompokBidangFromSister(syncedBy string) (int, error)
+	SyncLembagaSertifikasiFromSister(syncedBy string) (int, error)
+	SyncGolonganPangkatFromSister(syncedBy string) (int, error)
+	SyncIkatanKerjaFromSister(syncedBy string) (int, error)
+	SyncJenisPenghargaanFromSister(syncedBy string) (int, error)
+	SyncJenisPekerjaanFromSister(syncedBy string) (int, error)
+	SyncBidangPekerjaanFromSister(syncedBy string) (int, error)
+
 	// Metadata & Batch Sync methods
 	GetAllReferensiMetadata(ctx context.Context) ([]ReferensiMetadata, error)
 	BatchSyncFromSister(ctx context.Context, endpoints []string, syncedBy string) (*BatchSyncResponse, error)
@@ -310,36 +372,41 @@ func (s *service) GetAllReferensiMetadata(ctx context.Context) ([]ReferensiMetad
 	log.Println("📊 Fetching metadata for all referensi endpoints...")
 
 	metadata := []ReferensiMetadata{
-		{
-			Key:         "agama",
-			Name:        "Agama",
-			Description: "Data referensi agama/kepercayaan",
-			Available:   true,
-		},
-		{
-			Key:         "negara",
-			Name:        "Negara",
-			Description: "Data referensi negara",
-			Available:   true,
-		},
-		{
-			Key:         "jenjang_pendidikan",
-			Name:        "Jenjang Pendidikan",
-			Description: "Data referensi jenjang pendidikan",
-			Available:   true,
-		},
-		{
-			Key:         "gelar_akademik",
-			Name:        "Gelar Akademik",
-			Description: "Data referensi gelar/titel akademik",
-			Available:   true,
-		},
-		{
-			Key:         "semester",
-			Name:        "Semester",
-			Description: "Data referensi semester",
-			Available:   true,
-		},
+		{Key: "agama", Name: "Agama", Description: "Data referensi agama/kepercayaan", Available: true},
+		{Key: "negara", Name: "Negara", Description: "Data referensi negara", Available: true},
+		{Key: "jenjang_pendidikan", Name: "Jenjang Pendidikan", Description: "Data referensi jenjang pendidikan", Available: true},
+		{Key: "gelar_akademik", Name: "Gelar Akademik", Description: "Data referensi gelar/titel akademik", Available: true},
+		{Key: "semester", Name: "Semester", Description: "Data referensi semester", Available: true},
+		// New 29 endpoints
+		{Key: "bidang_studi", Name: "Bidang Studi", Description: "Data referensi bidang studi/keilmuan", Available: true},
+		{Key: "bidang_usaha", Name: "Bidang Usaha", Description: "Data referensi bidang usaha", Available: true},
+		{Key: "jabatan_fungsional", Name: "Jabatan Fungsional", Description: "Data referensi jabatan fungsional", Available: true},
+		{Key: "jabatan_tugas_tambahan", Name: "Jabatan Tugas Tambahan", Description: "Data referensi jabatan tugas tambahan", Available: true},
+		{Key: "jenis_bahan_ajar", Name: "Jenis Bahan Ajar", Description: "Data referensi jenis bahan ajar", Available: true},
+		{Key: "jenis_beasiswa", Name: "Jenis Beasiswa", Description: "Data referensi jenis beasiswa", Available: true},
+		{Key: "jenis_diklat", Name: "Jenis Diklat", Description: "Data referensi jenis diklat/pelatihan", Available: true},
+		{Key: "jenis_dokumen", Name: "Jenis Dokumen", Description: "Data referensi jenis dokumen", Available: true},
+		{Key: "jenis_keluar", Name: "Jenis Keluar", Description: "Data referensi jenis keluar mahasiswa/dosen", Available: true},
+		{Key: "jenis_kepanitiaan", Name: "Jenis Kepanitiaan", Description: "Data referensi jenis kepanitiaan", Available: true},
+		{Key: "jenis_kesejahteraan", Name: "Jenis Kesejahteraan", Description: "Data referensi jenis kesejahteraan", Available: true},
+		{Key: "jenis_publikasi", Name: "Jenis Publikasi", Description: "Data referensi jenis publikasi ilmiah", Available: true},
+		{Key: "jenis_tes", Name: "Jenis Tes", Description: "Data referensi jenis tes", Available: true},
+		{Key: "jenis_tunjangan", Name: "Jenis Tunjangan", Description: "Data referensi jenis tunjangan", Available: true},
+		{Key: "media_publikasi", Name: "Media Publikasi", Description: "Data referensi media publikasi", Available: true},
+		{Key: "skim_kegiatan", Name: "Skim Kegiatan", Description: "Data referensi skim kegiatan penelitian/pengabdian", Available: true},
+		{Key: "status_kepegawaian", Name: "Status Kepegawaian", Description: "Data referensi status kepegawaian", Available: true},
+		{Key: "sumber_gaji", Name: "Sumber Gaji", Description: "Data referensi sumber gaji", Available: true},
+		{Key: "tingkat_penghargaan", Name: "Tingkat Penghargaan", Description: "Data referensi tingkat penghargaan", Available: true},
+		{Key: "wilayah", Name: "Wilayah", Description: "Data referensi wilayah Indonesia", Available: true},
+		{Key: "kategori_capaian_luaran", Name: "Kategori Capaian Luaran", Description: "Data referensi kategori capaian luaran penelitian", Available: true},
+		{Key: "kategori_kegiatan", Name: "Kategori Kegiatan", Description: "Data referensi kategori kegiatan", Available: true},
+		{Key: "kelompok_bidang", Name: "Kelompok Bidang", Description: "Data referensi kelompok bidang ilmu", Available: true},
+		{Key: "lembaga_sertifikasi", Name: "Lembaga Sertifikasi", Description: "Data referensi lembaga sertifikasi", Available: true},
+		{Key: "golongan_pangkat", Name: "Golongan Pangkat", Description: "Data referensi golongan/pangkat pegawai", Available: true},
+		{Key: "ikatan_kerja", Name: "Ikatan Kerja", Description: "Data referensi ikatan kerja SDM", Available: true},
+		{Key: "jenis_penghargaan", Name: "Jenis Penghargaan", Description: "Data referensi jenis penghargaan", Available: true},
+		{Key: "jenis_pekerjaan", Name: "Jenis Pekerjaan", Description: "Data referensi jenis pekerjaan", Available: true},
+		{Key: "bidang_pekerjaan", Name: "Bidang Pekerjaan", Description: "Data referensi bidang pekerjaan", Available: true},
 	}
 
 	// Get counts and last sync info for each endpoint
@@ -380,6 +447,267 @@ func (s *service) GetAllReferensiMetadata(ctx context.Context) ([]ReferensiMetad
 			}
 		case "semester":
 			list, _ := s.repo.GetAllSemester(ctx)
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "bidang_studi":
+			list, _ := s.repo.GetAllBidangStudi()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "bidang_usaha":
+			list, _ := s.repo.GetAllBidangUsaha()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "jabatan_fungsional":
+			list, _ := s.repo.GetAllJabatanFungsional()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "jabatan_tugas_tambahan":
+			list, _ := s.repo.GetAllJabatanTugasTambahan()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "jenis_bahan_ajar":
+			list, _ := s.repo.GetAllJenisBahanAjar()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "jenis_beasiswa":
+			list, _ := s.repo.GetAllJenisBeasiswa()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "jenis_diklat":
+			list, _ := s.repo.GetAllJenisDiklat()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "jenis_dokumen":
+			list, _ := s.repo.GetAllJenisDokumen()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "jenis_keluar":
+			list, _ := s.repo.GetAllJenisKeluar()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "jenis_kepanitiaan":
+			list, _ := s.repo.GetAllJenisKepanitiaan()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "jenis_kesejahteraan":
+			list, _ := s.repo.GetAllJenisKesejahteraan()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "jenis_publikasi":
+			list, _ := s.repo.GetAllJenisPublikasi()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "jenis_tes":
+			list, _ := s.repo.GetAllJenisTes()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "jenis_tunjangan":
+			list, _ := s.repo.GetAllJenisTunjangan()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "media_publikasi":
+			list, _ := s.repo.GetAllMediaPublikasi()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "skim_kegiatan":
+			list, _ := s.repo.GetAllSkimKegiatan()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "status_kepegawaian":
+			list, _ := s.repo.GetAllStatusKepegawaian()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "sumber_gaji":
+			list, _ := s.repo.GetAllSumberGaji()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "tingkat_penghargaan":
+			list, _ := s.repo.GetAllTingkatPenghargaan()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "wilayah":
+			list, _ := s.repo.GetAllWilayah()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "kategori_capaian_luaran":
+			list, _ := s.repo.GetAllKategoriCapaianLuaran()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "kategori_kegiatan":
+			list, _ := s.repo.GetAllKategoriKegiatan()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "kelompok_bidang":
+			list, _ := s.repo.GetAllKelompokBidang()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "lembaga_sertifikasi":
+			list, _ := s.repo.GetAllLembagaSertifikasi()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "golongan_pangkat":
+			list, _ := s.repo.GetAllGolonganPangkat()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "ikatan_kerja":
+			list, _ := s.repo.GetAllIkatanKerja()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "jenis_penghargaan":
+			list, _ := s.repo.GetAllJenisPenghargaan()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "jenis_pekerjaan":
+			list, _ := s.repo.GetAllJenisPekerjaan()
+			metadata[i].TotalRecords = len(list)
+			if len(list) > 0 && list[0].LastSync != nil {
+				metadata[i].LastSync = list[0].LastSync
+				if list[0].SyncedBy != nil {
+					metadata[i].SyncedBy = *list[0].SyncedBy
+				}
+			}
+		case "bidang_pekerjaan":
+			list, _ := s.repo.GetAllBidangPekerjaan()
 			metadata[i].TotalRecords = len(list)
 			if len(list) > 0 && list[0].LastSync != nil {
 				metadata[i].LastSync = list[0].LastSync
@@ -428,6 +756,65 @@ func (s *service) BatchSyncFromSister(ctx context.Context, endpoints []string, s
 				totalRecords, err = s.SyncGelarAkademikFromSister(ctx, syncedBy)
 			case "semester":
 				totalRecords, err = s.SyncSemesterFromSister(ctx, syncedBy)
+			// New 29 endpoints
+			case "bidang_studi":
+				totalRecords, err = s.SyncBidangStudiFromSister(syncedBy)
+			case "bidang_usaha":
+				totalRecords, err = s.SyncBidangUsahaFromSister(syncedBy)
+			case "jabatan_fungsional":
+				totalRecords, err = s.SyncJabatanFungsionalFromSister(syncedBy)
+			case "jabatan_tugas_tambahan":
+				totalRecords, err = s.SyncJabatanTugasTambahanFromSister(syncedBy)
+			case "jenis_bahan_ajar":
+				totalRecords, err = s.SyncJenisBahanAjarFromSister(syncedBy)
+			case "jenis_beasiswa":
+				totalRecords, err = s.SyncJenisBeasiswaFromSister(syncedBy)
+			case "jenis_diklat":
+				totalRecords, err = s.SyncJenisDiklatFromSister(syncedBy)
+			case "jenis_dokumen":
+				totalRecords, err = s.SyncJenisDokumenFromSister(syncedBy)
+			case "jenis_keluar":
+				totalRecords, err = s.SyncJenisKeluarFromSister(syncedBy)
+			case "jenis_kepanitiaan":
+				totalRecords, err = s.SyncJenisKepanitiaanFromSister(syncedBy)
+			case "jenis_kesejahteraan":
+				totalRecords, err = s.SyncJenisKesejahteraanFromSister(syncedBy)
+			case "jenis_publikasi":
+				totalRecords, err = s.SyncJenisPublikasiFromSister(syncedBy)
+			case "jenis_tes":
+				totalRecords, err = s.SyncJenisTesFromSister(syncedBy)
+			case "jenis_tunjangan":
+				totalRecords, err = s.SyncJenisTunjanganFromSister(syncedBy)
+			case "media_publikasi":
+				totalRecords, err = s.SyncMediaPublikasiFromSister(syncedBy)
+			case "skim_kegiatan":
+				totalRecords, err = s.SyncSkimKegiatanFromSister(syncedBy)
+			case "status_kepegawaian":
+				totalRecords, err = s.SyncStatusKepegawaianFromSister(syncedBy)
+			case "sumber_gaji":
+				totalRecords, err = s.SyncSumberGajiFromSister(syncedBy)
+			case "tingkat_penghargaan":
+				totalRecords, err = s.SyncTingkatPenghargaanFromSister(syncedBy)
+			case "wilayah":
+				totalRecords, err = s.SyncWilayahFromSister(syncedBy)
+			case "kategori_capaian_luaran":
+				totalRecords, err = s.SyncKategoriCapaianLuaranFromSister(syncedBy)
+			case "kategori_kegiatan":
+				totalRecords, err = s.SyncKategoriKegiatanFromSister(syncedBy)
+			case "kelompok_bidang":
+				totalRecords, err = s.SyncKelompokBidangFromSister(syncedBy)
+			case "lembaga_sertifikasi":
+				totalRecords, err = s.SyncLembagaSertifikasiFromSister(syncedBy)
+			case "golongan_pangkat":
+				totalRecords, err = s.SyncGolonganPangkatFromSister(syncedBy)
+			case "ikatan_kerja":
+				totalRecords, err = s.SyncIkatanKerjaFromSister(syncedBy)
+			case "jenis_penghargaan":
+				totalRecords, err = s.SyncJenisPenghargaanFromSister(syncedBy)
+			case "jenis_pekerjaan":
+				totalRecords, err = s.SyncJenisPekerjaanFromSister(syncedBy)
+			case "bidang_pekerjaan":
+				totalRecords, err = s.SyncBidangPekerjaanFromSister(syncedBy)
 			default:
 				err = fmt.Errorf("unknown endpoint: %s", ep)
 			}

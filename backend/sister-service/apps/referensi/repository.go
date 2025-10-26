@@ -33,6 +33,66 @@ type Repository interface {
 	// Semester methods
 	GetAllSemester(ctx context.Context) ([]Semester, error)
 	BulkUpsertSemester(ctx context.Context, list []Semester) error
+
+	// New Referensi methods (29 endpoints)
+	GetAllBidangStudi() ([]BidangStudi, error)
+	BulkUpsertBidangStudi(data []SisterBidangStudi, syncedBy string) error
+	GetAllBidangUsaha() ([]BidangUsaha, error)
+	BulkUpsertBidangUsaha(data []SisterBidangUsaha, syncedBy string) error
+	GetAllJabatanFungsional() ([]JabatanFungsional, error)
+	BulkUpsertJabatanFungsional(data []SisterJabatanFungsional, syncedBy string) error
+	GetAllJabatanTugasTambahan() ([]JabatanTugasTambahan, error)
+	BulkUpsertJabatanTugasTambahan(data []SisterJabatanTugasTambahan, syncedBy string) error
+	GetAllJenisBahanAjar() ([]JenisBahanAjar, error)
+	BulkUpsertJenisBahanAjar(data []SisterJenisBahanAjar, syncedBy string) error
+	GetAllJenisBeasiswa() ([]JenisBeasiswa, error)
+	BulkUpsertJenisBeasiswa(data []SisterJenisBeasiswa, syncedBy string) error
+	GetAllJenisDiklat() ([]JenisDiklat, error)
+	BulkUpsertJenisDiklat(data []SisterJenisDiklat, syncedBy string) error
+	GetAllJenisDokumen() ([]JenisDokumen, error)
+	BulkUpsertJenisDokumen(data []SisterJenisDokumen, syncedBy string) error
+	GetAllJenisKeluar() ([]JenisKeluar, error)
+	BulkUpsertJenisKeluar(data []SisterJenisKeluar, syncedBy string) error
+	GetAllJenisKepanitiaan() ([]JenisKepanitiaan, error)
+	BulkUpsertJenisKepanitiaan(data []SisterJenisKepanitiaan, syncedBy string) error
+	GetAllJenisKesejahteraan() ([]JenisKesejahteraan, error)
+	BulkUpsertJenisKesejahteraan(data []SisterJenisKesejahteraan, syncedBy string) error
+	GetAllJenisPublikasi() ([]JenisPublikasi, error)
+	BulkUpsertJenisPublikasi(data []SisterJenisPublikasi, syncedBy string) error
+	GetAllJenisTes() ([]JenisTes, error)
+	BulkUpsertJenisTes(data []SisterJenisTes, syncedBy string) error
+	GetAllJenisTunjangan() ([]JenisTunjangan, error)
+	BulkUpsertJenisTunjangan(data []SisterJenisTunjangan, syncedBy string) error
+	GetAllMediaPublikasi() ([]MediaPublikasi, error)
+	BulkUpsertMediaPublikasi(data []SisterMediaPublikasi, syncedBy string) error
+	GetAllSkimKegiatan() ([]SkimKegiatan, error)
+	BulkUpsertSkimKegiatan(data []SisterSkimKegiatan, syncedBy string) error
+	GetAllStatusKepegawaian() ([]StatusKepegawaian, error)
+	BulkUpsertStatusKepegawaian(data []SisterStatusKepegawaian, syncedBy string) error
+	GetAllSumberGaji() ([]SumberGaji, error)
+	BulkUpsertSumberGaji(data []SisterSumberGaji, syncedBy string) error
+	GetAllTingkatPenghargaan() ([]TingkatPenghargaan, error)
+	BulkUpsertTingkatPenghargaan(data []SisterTingkatPenghargaan, syncedBy string) error
+	GetAllWilayah() ([]Wilayah, error)
+	BulkUpsertWilayah(data []SisterWilayah, syncedBy string) error
+	GetAllKategoriCapaianLuaran() ([]KategoriCapaianLuaran, error)
+	BulkUpsertKategoriCapaianLuaran(data []SisterKategoriCapaianLuaran, syncedBy string) error
+	GetAllKategoriKegiatan() ([]KategoriKegiatan, error)
+	BulkUpsertKategoriKegiatan(data []SisterKategoriKegiatan, syncedBy string) error
+	GetAllKelompokBidang() ([]KelompokBidang, error)
+	BulkUpsertKelompokBidang(data []SisterKelompokBidang, syncedBy string) error
+	GetAllLembagaSertifikasi() ([]LembagaSertifikasi, error)
+	BulkUpsertLembagaSertifikasi(data []SisterLembagaSertifikasi, syncedBy string) error
+	GetAllGolonganPangkat() ([]GolonganPangkat, error)
+	BulkUpsertGolonganPangkat(data []SisterGolonganPangkat, syncedBy string) error
+	GetAllIkatanKerja() ([]IkatanKerja, error)
+	BulkUpsertIkatanKerja(data []SisterIkatanKerja, syncedBy string) error
+	GetAllJenisPenghargaan() ([]JenisPenghargaan, error)
+	BulkUpsertJenisPenghargaan(data []SisterJenisPenghargaan, syncedBy string) error
+	GetAllJenisPekerjaan() ([]JenisPekerjaan, error)
+	BulkUpsertJenisPekerjaan(data []SisterJenisPekerjaan, syncedBy string) error
+	GetAllBidangPekerjaan() ([]BidangPekerjaan, error)
+	BulkUpsertBidangPekerjaan(data []SisterBidangPekerjaan, syncedBy string) error
 }
 
 type repository struct {
