@@ -84,8 +84,8 @@ export default function Sidebar({
             className={`w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg mb-0.5
               ${
                 level === 0
-                  ? "text-slate-300 hover:bg-slate-700/50 hover:text-white"
-                  : "text-slate-400 hover:bg-slate-700/30 hover:text-slate-200 ml-3"
+                  ? "text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white"
+                  : "text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700/30 hover:text-gray-800 dark:hover:text-slate-200 ml-3"
               }`}
           >
             <div className="flex items-center gap-3">
@@ -122,11 +122,11 @@ export default function Sidebar({
             ${
               level === 0
                 ? active
-                  ? "bg-blue-600/20 text-blue-400 border-l-4 border-blue-500"
-                  : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
+                  ? "bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 border-l-4 border-blue-600 dark:border-blue-500"
+                  : "text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white"
                 : active
-                ? "bg-blue-600/10 text-blue-400 ml-3 border-l-2 border-blue-500"
-                : "text-slate-400 hover:bg-slate-700/30 hover:text-slate-200 ml-3"
+                ? "bg-blue-50/50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400 ml-3 border-l-2 border-blue-600 dark:border-blue-500"
+                : "text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700/30 hover:text-gray-800 dark:hover:text-slate-200 ml-3"
             }`}
         >
           {item.icon}
@@ -139,12 +139,12 @@ export default function Sidebar({
   return (
     <>
       {/* Sidebar for Desktop - Always visible on lg+ */}
-      <div className="hidden lg:flex h-screen w-64 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 flex-col sticky top-0 shadow-2xl">
+      <div className="hidden lg:flex h-screen w-64 bg-white dark:bg-gradient-to-b dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 border-r border-gray-200 dark:border-slate-700/50 flex-col sticky top-0 shadow-xl dark:shadow-2xl">
         {/* Logo/App Name */}
-        <div className="p-4 pb-6 border-b border-slate-700/50">
+        <div className="p-4 pb-6 border-b border-gray-200 dark:border-slate-700/50">
           <Link href="/portal">
             <div className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-              <div className="relative w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-lg">
+              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 dark:bg-white flex items-center justify-center shadow-lg">
                 <Image
                   src="/assets/images/logo-unila.png"
                   alt="Logo Unila"
@@ -154,10 +154,10 @@ export default function Sidebar({
                 />
               </div>
               <div className="flex-1">
-                <h1 className="text-sm font-bold text-white leading-tight">
+                <h1 className="text-sm font-bold text-gray-900 dark:text-white leading-tight">
                   {appName}
                 </h1>
-                <p className="text-xs text-slate-400 capitalize">
+                <p className="text-xs text-gray-600 dark:text-slate-400 capitalize">
                   {user?.role || "User"}
                 </p>
               </div>
@@ -166,16 +166,16 @@ export default function Sidebar({
         </div>
 
         {/* Menu Items */}
-        <nav className="flex-1 overflow-y-auto px-3 py-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800/50">
+        <nav className="flex-1 overflow-y-auto px-3 py-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent">
           {menuItems.map((item) => renderMenuItem(item))}
         </nav>
 
         {/* Back to Portal */}
-        <div className="p-3 mt-auto border-t border-slate-700/50">
+        <div className="p-3 mt-auto border-t border-gray-200 dark:border-slate-700/50">
           <Link href="/portal">
-            <div className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-700/50 hover:text-white rounded-lg transition-all duration-200 group">
-              <FiHome className="w-5 h-5 group-hover:text-blue-400 transition-colors" />
-              <span className="group-hover:text-blue-400 transition-colors">Kembali ke Portal</span>
+            <div className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-lg transition-all duration-200 group">
+              <FiHome className="w-5 h-5 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors" />
+              <span className="group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors">Kembali ke Portal</span>
             </div>
           </Link>
         </div>
@@ -183,16 +183,16 @@ export default function Sidebar({
 
       {/* Sidebar for Mobile - Slide in from left */}
       <div
-        className={`lg:hidden fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 flex flex-col transform transition-transform duration-300 ease-in-out shadow-2xl ${
+        className={`lg:hidden fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gradient-to-b dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 border-r border-gray-200 dark:border-slate-700/50 flex flex-col transform transition-transform duration-300 ease-in-out shadow-2xl ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {/* Logo/App Name with Close Button */}
-        <div className="p-4 pb-6 border-b border-slate-700/50">
+        <div className="p-4 pb-6 border-b border-gray-200 dark:border-slate-700/50">
           <div className="flex items-center justify-between">
             <Link href="/portal" onClick={handleLinkClick}>
               <div className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                <div className="relative w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-lg">
+                <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 dark:bg-white flex items-center justify-center shadow-lg">
                   <Image
                     src="/assets/images/logo-unila.png"
                     alt="Logo Unila"
@@ -202,10 +202,10 @@ export default function Sidebar({
                   />
                 </div>
                 <div>
-                  <h1 className="text-sm font-bold text-white leading-tight">
+                  <h1 className="text-sm font-bold text-gray-900 dark:text-white leading-tight">
                     {appName}
                   </h1>
-                  <p className="text-xs text-slate-400 capitalize">
+                  <p className="text-xs text-gray-600 dark:text-slate-400 capitalize">
                     {user?.role || "User"}
                   </p>
                 </div>
@@ -213,7 +213,7 @@ export default function Sidebar({
             </Link>
             <button
               onClick={onClose}
-              className="p-2 text-slate-400 hover:bg-red-500/20 hover:text-red-400 rounded-xl transition-colors"
+              className="p-2 text-gray-600 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-500/20 hover:text-red-600 dark:hover:text-red-400 rounded-xl transition-colors"
             >
               <FiX className="w-5 h-5" />
             </button>
@@ -226,11 +226,11 @@ export default function Sidebar({
         </nav>
 
         {/* Back to Portal */}
-        <div className="p-3 mt-auto border-t border-slate-700/50">
+        <div className="p-3 mt-auto border-t border-gray-200 dark:border-slate-700/50">
           <Link href="/portal" onClick={handleLinkClick}>
-            <div className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-700/50 hover:text-white rounded-lg transition-all duration-200 group">
-              <FiHome className="w-5 h-5 group-hover:text-blue-400 transition-colors" />
-              <span className="group-hover:text-blue-400 transition-colors">Kembali ke Portal</span>
+            <div className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white rounded-lg transition-all duration-200 group">
+              <FiHome className="w-5 h-5 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors" />
+              <span className="group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors">Kembali ke Portal</span>
             </div>
           </Link>
         </div>

@@ -31,6 +31,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import ThemeSwitcher from "./ThemeSwitcher";
 
 interface DashboardNavbarProps {
   title?: string;
@@ -200,6 +201,9 @@ export default function DashboardNavbar({
 
       {/* Right Section */}
       <div className="flex items-center gap-2 sm:gap-4">
+        {/* Theme Switcher */}
+        <ThemeSwitcher />
+
         {/* Notifications Dropdown */}
         <Dropdown placement="bottom-end">
           <DropdownTrigger>
