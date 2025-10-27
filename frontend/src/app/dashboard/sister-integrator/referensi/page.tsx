@@ -241,18 +241,6 @@ export default function ReferensiDashboardPage() {
             </p>
           </div>
 
-          {/* Search and Action Bar */}
-          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-            <Input
-              isClearable
-              placeholder="Cari endpoint (nama, key, atau deskripsi)..."
-              startContent={<FiSearch className="text-gray-400" />}
-              value={searchQuery}
-              onValueChange={setSearchQuery}
-              onClear={() => setSearchQuery("")}
-              className="w-full sm:w-96"
-            />
-
           <div className="flex gap-2">
             <Button
               variant="bordered"
@@ -273,7 +261,6 @@ export default function ReferensiDashboardPage() {
             >
               Sync Selected ({selectedEndpoints.length})
             </Button>
-          </div>
           </div>
         </div>
 
@@ -338,32 +325,115 @@ export default function ReferensiDashboardPage() {
           </Card>
         </div>
 
+        {/* Search & Filter Section */}
+        <Card className="border-2 border-purple-200 dark:border-purple-800/50 shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white via-purple-50/30 to-indigo-50/30 dark:from-gray-900 dark:via-purple-950/20 dark:to-indigo-950/20">
+          <CardBody className="p-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 lg:gap-6">
+              {/* Icon & Title */}
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl blur-md opacity-50 animate-pulse"></div>
+                  <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-lg">
+                    <FiSearch className="w-7 h-7 text-white" />
+                  </div>
+                </div>
+                <div className="hidden sm:block">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Cari Endpoint</h3>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    Filter berdasarkan nama, key, atau deskripsi
+                  </p>
+                </div>
+              </div>
+
+              {/* Search Input */}
+              <div className="flex-1 w-full lg:w-auto">
+                <Input
+                  isClearable
+                  placeholder="Ketik untuk mencari endpoint..."
+                  startContent={
+                    <FiSearch className="text-gray-400 dark:text-gray-500 w-5 h-5" />
+                  }
+                  value={searchQuery}
+                  onValueChange={setSearchQuery}
+                  onClear={() => setSearchQuery("")}
+                  classNames={{
+                    base: "w-full",
+                    mainWrapper: "h-full",
+                    input: "text-base",
+                    inputWrapper: "h-12 border-2 border-purple-200 dark:border-purple-800 bg-white dark:bg-gray-800 hover:border-purple-400 dark:hover:border-purple-600 focus-within:!border-purple-600 dark:focus-within:!border-purple-500 shadow-sm hover:shadow-md transition-all duration-200",
+                  }}
+                  size="lg"
+                />
+              </div>
+
+              {/* Search Stats */}
+              {searchQuery && (
+                <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 rounded-xl border-2 border-purple-300 dark:border-purple-700 animate-in slide-in-from-right duration-300">
+                  <FiCheckCircle className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  <div className="text-sm">
+                    <span className="font-bold text-purple-900 dark:text-purple-100">
+                      {filteredMetadata.length}
+                    </span>
+                    <span className="text-purple-700 dark:text-purple-300 mx-1">/</span>
+                    <span className="text-purple-600 dark:text-purple-400">
+                      {metadata.length}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Search Active Info */}
+            {searchQuery && (
+              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 dark:border-blue-400 rounded-r-lg animate-in slide-in-from-left duration-300">
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  Menampilkan hasil untuk: <span className="font-bold">"{searchQuery}"</span>
+                </p>
+              </div>
+            )}
+          </CardBody>
+        </Card>
+
         {/* Endpoint Cards Grid */}
         {isLoading ? (
           <div className="flex justify-center items-center py-20">
             <Spinner size="lg" color="primary" />
           </div>
         ) : (
-          <>
-            {/* Search Results Info */}
-            {searchQuery && (
-              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                <p className="text-sm text-blue-700 dark:text-blue-400">
-                  Menampilkan <strong>{filteredMetadata.length}</strong> dari <strong>{metadata.length}</strong> endpoint untuk pencarian "<strong>{searchQuery}</strong>"
-                </p>
-              </div>
-            )}
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {filteredMetadata.length === 0 ? (
-              <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
-                <FiSearch className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" />
-                <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Tidak ada endpoint ditemukan
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Tidak ada endpoint yang cocok dengan pencarian "<strong>{searchQuery}</strong>"
-                </p>
+              <div className="col-span-full">
+                <Card className="border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+                  <CardBody className="flex flex-col items-center justify-center py-16 text-center">
+                    <div className="relative mb-6">
+                      <div className="absolute inset-0 bg-gray-400 dark:bg-gray-600 rounded-full blur-2xl opacity-20 animate-pulse"></div>
+                      <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
+                        <FiSearch className="w-12 h-12 text-gray-400 dark:text-gray-500" />
+                      </div>
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-3">
+                      Tidak ada endpoint ditemukan
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 max-w-md">
+                      Tidak ada endpoint yang cocok dengan pencarian Anda
+                    </p>
+                    <div className="mt-3 px-4 py-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <p className="text-sm">
+                        <span className="text-gray-500 dark:text-gray-400">Pencarian:</span>{" "}
+                        <span className="font-bold text-purple-600 dark:text-purple-400">"{searchQuery}"</span>
+                      </p>
+                    </div>
+                    <Button
+                      variant="light"
+                      color="secondary"
+                      startContent={<FiRefreshCw className="w-4 h-4" />}
+                      onClick={() => setSearchQuery("")}
+                      className="mt-6"
+                    >
+                      Reset Pencarian
+                    </Button>
+                  </CardBody>
+                </Card>
               </div>
             ) : (
               filteredMetadata.map((item) => (
@@ -446,7 +516,6 @@ export default function ReferensiDashboardPage() {
               ))
             )}
           </div>
-          </>
         )}
       </div>
 
