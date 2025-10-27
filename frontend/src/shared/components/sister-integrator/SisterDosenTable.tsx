@@ -166,8 +166,9 @@ export default function SisterDosenTable() {
           }}
           classNames={{
             base: "w-full",
-            trigger: "h-10 bg-white dark:bg-gray-800 border-gray-200 hover:border-purple-400 focus:border-purple-500 transition-colors shadow-sm",
+            trigger: "h-10 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-purple-400 focus:border-purple-500 transition-colors shadow-sm",
             value: "text-sm font-medium text-gray-700 dark:text-gray-300 pr-8",
+            innerWrapper: "!bg-white dark:!bg-gray-800",
             popoverContent: "rounded-lg",
           }}
           size="sm"
@@ -209,8 +210,9 @@ export default function SisterDosenTable() {
           }}
           classNames={{
             base: "w-full",
-            trigger: "h-10 bg-white dark:bg-gray-800 border-gray-200 hover:border-purple-400 focus:border-purple-500 transition-colors shadow-sm",
+            trigger: "h-10 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-purple-400 focus:border-purple-500 transition-colors shadow-sm",
             value: "text-sm font-medium text-gray-700 dark:text-gray-300 pr-8",
+            innerWrapper: "!bg-white dark:!bg-gray-800",
             popoverContent: "rounded-lg",
           }}
           size="sm"
