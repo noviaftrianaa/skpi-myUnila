@@ -254,12 +254,13 @@ func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client, logger
 			jenisPekerjaanRouter.Post("/sync", ctrl.SyncJenisPekerjaan)
 		}
 
-		// Bidang Pekerjaan routes
-		bidangPekerjaanRouter := referensiRouter.Group("/bidang-pekerjaan")
-		{
-			bidangPekerjaanRouter.Get("/", ctrl.GetAllBidangPekerjaan)
-			bidangPekerjaanRouter.Post("/sync", ctrl.SyncBidangPekerjaan)
-		}
+	// Bidang Pekerjaan routes - REMOVED as per user request
+// 		// Bidang Pekerjaan routes
+// 		bidangPekerjaanRouter := referensiRouter.Group("/bidang-pekerjaan")
+// 		{
+// 			bidangPekerjaanRouter.Get("/", ctrl.GetAllBidangPekerjaan)
+// 			bidangPekerjaanRouter.Post("/sync", ctrl.SyncBidangPekerjaan)
+// 		}
 
 		// Metadata & Batch Sync routes
 		referensiRouter.Get("/metadata", ctrl.GetAllReferensiMetadata)

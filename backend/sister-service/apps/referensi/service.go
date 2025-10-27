@@ -406,7 +406,7 @@ func (s *service) GetAllReferensiMetadata(ctx context.Context) ([]ReferensiMetad
 		{Key: "ikatan_kerja", Name: "Ikatan Kerja", Description: "Data referensi ikatan kerja SDM", Available: true},
 		{Key: "jenis_penghargaan", Name: "Jenis Penghargaan", Description: "Data referensi jenis penghargaan", Available: true},
 		{Key: "jenis_pekerjaan", Name: "Jenis Pekerjaan", Description: "Data referensi jenis pekerjaan", Available: true},
-		{Key: "bidang_pekerjaan", Name: "Bidang Pekerjaan", Description: "Data referensi bidang pekerjaan", Available: true},
+		// Bidang pekerjaan endpoint removed as per user request
 	}
 
 	// Get counts and last sync info for each endpoint
@@ -706,15 +706,7 @@ func (s *service) GetAllReferensiMetadata(ctx context.Context) ([]ReferensiMetad
 					metadata[i].SyncedBy = *list[0].SyncedBy
 				}
 			}
-		case "bidang_pekerjaan":
-			list, _ := s.repo.GetAllBidangPekerjaan()
-			metadata[i].TotalRecords = len(list)
-			if len(list) > 0 && list[0].LastSync != nil {
-				metadata[i].LastSync = list[0].LastSync
-				if list[0].SyncedBy != nil {
-					metadata[i].SyncedBy = *list[0].SyncedBy
-				}
-			}
+		// case "bidang_pekerjaan": removed
 		}
 	}
 
@@ -813,8 +805,7 @@ func (s *service) BatchSyncFromSister(ctx context.Context, endpoints []string, s
 				totalRecords, err = s.SyncJenisPenghargaanFromSister(syncedBy)
 			case "jenis_pekerjaan":
 				totalRecords, err = s.SyncJenisPekerjaanFromSister(syncedBy)
-			case "bidang_pekerjaan":
-				totalRecords, err = s.SyncBidangPekerjaanFromSister(syncedBy)
+			// case "bidang_pekerjaan": removed
 			default:
 				err = fmt.Errorf("unknown endpoint: %s", ep)
 			}

@@ -126,7 +126,7 @@ export const referensiService = {
         ikatan_kerja: "ikatan-kerja",
         jenis_penghargaan: "jenis-penghargaan",
         jenis_pekerjaan: "jenis-pekerjaan",
-        bidang_pekerjaan: "bidang-pekerjaan",
+        // bidang_pekerjaan: "bidang-pekerjaan", // Removed as per user request
       };
 
       const endpoint = endpointMap[key];
@@ -193,7 +193,7 @@ export const referensiService = {
         ikatan_kerja: "ikatan-kerja",
         jenis_penghargaan: "jenis-penghargaan",
         jenis_pekerjaan: "jenis-pekerjaan",
-        bidang_pekerjaan: "bidang-pekerjaan",
+        // bidang_pekerjaan: "bidang-pekerjaan", // Removed as per user request
       };
 
       const endpoint = endpointMap[key];
