@@ -112,3 +112,44 @@ func (ctrl *Controller) GetDosenBidangIlmu(c *fiber.Ctx) error {
 		"data":    bidangIlmu,
 	})
 }
+
+// SyncDosenFromSister handles POST /dosen/sync
+// @Summary Sync all dosen data from SISTER API to database
+// @Description Performs batch sync of all Unila dosen from SISTER API using goroutine workers
+// @Tags Dosen
+// @Accept json
+// @Produce json
+// @Param synced_by query string true "Username of person who triggered the sync"
+// @Success 200 {object} BatchDosenSyncResult "Sync result"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /dosen/sync [post]
+func (ctrl *Controller) SyncDosenFromSister(c *fiber.Ctx) error {
+	syncedBy := c.Query("synced_by", "system")
+
+	if syncedBy == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"message": "synced_by parameter is required",
+		})
+	}
+
+	// Unila ID SP (Satuan Perguruan Tinggi)
+	const UNILA_ID_SP = "e2b705a7-173e-464a-9fac-509128709515"
+
+	// Perform batch sync
+	result, err := ctrl.service.SyncDosenFromSister(UNILA_ID_SP, syncedBy)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to sync dosen from SISTER",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Dosen sync completed",
+		"data":    result,
+	})
+}

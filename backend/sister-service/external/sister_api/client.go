@@ -575,3 +575,47 @@ func (c *Client) GetDosenBidangIlmu(idSdm string) ([]map[string]interface{}, err
 	log.Printf("✅ Successfully fetched bidang ilmu: %d items", len(result))
 	return result, nil
 }
+
+// ==================== DOSEN ENDPOINTS ====================
+
+// GetReferensiSDM fetches list of SDM from Sister API with id_sp filter
+func (c *Client) GetReferensiSDM(idSP string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/2.0/referensi/sdm?id_sp=%s", idSP)
+	return c.Get(endpoint)
+}
+
+// GetDosenProfil fetches dosen profil data from Sister API
+func (c *Client) GetDosenProfil(idSDM string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/2.0/data_pribadi/profil/%s", idSDM)
+	return c.Get(endpoint)
+}
+
+// GetDosenKependudukan fetches dosen kependudukan data from Sister API
+func (c *Client) GetDosenKependudukan(idSDM string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/2.0/data_pribadi/kependudukan/%s", idSDM)
+	return c.Get(endpoint)
+}
+
+// GetDosenKeluarga fetches dosen keluarga data from Sister API
+func (c *Client) GetDosenKeluarga(idSDM string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/2.0/data_pribadi/keluarga/%s", idSDM)
+	return c.Get(endpoint)
+}
+
+// GetDosenAlamat fetches dosen alamat data from Sister API
+func (c *Client) GetDosenAlamat(idSDM string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/2.0/data_pribadi/alamat/%s", idSDM)
+	return c.Get(endpoint)
+}
+
+// GetDosenKepegawaian fetches dosen kepegawaian data from Sister API
+func (c *Client) GetDosenKepegawaian(idSDM string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/2.0/data_pribadi/kepegawaian/%s", idSDM)
+	return c.Get(endpoint)
+}
+
+// GetDosenLain fetches dosen data lain from Sister API
+func (c *Client) GetDosenLain(idSDM string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/2.0/data_pribadi/lain/%s", idSDM)
+	return c.Get(endpoint)
+}

@@ -17,18 +17,21 @@ var ctx = context.Background()
 type Service interface {
 	GetDosenPhoto(idSdm string) ([]byte, string, error)
 	GetDosenBidangIlmu(idSdm string) ([]map[string]interface{}, error)
+	SyncDosenFromSister(idSP string, syncedBy string) (*BatchDosenSyncResult, error)
 }
 
 type service struct {
 	sisterAPI   *sister_api.Client
 	redisClient *redis.Client
+	repo        Repository
 }
 
 // NewService creates a new dosen service with Redis caching
-func NewService(sisterAPI *sister_api.Client, redisClient *redis.Client) Service {
+func NewService(sisterAPI *sister_api.Client, redisClient *redis.Client, repo Repository) Service {
 	return &service{
 		sisterAPI:   sisterAPI,
 		redisClient: redisClient,
+		repo:        repo,
 	}
 }
 

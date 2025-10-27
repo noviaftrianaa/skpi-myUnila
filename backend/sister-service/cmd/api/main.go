@@ -116,7 +116,7 @@ func main() {
 
 	// Public routes (no authentication required)
 	publicRoutes := app.Group("/public")
-	dosen.Init(publicRoutes, sisterAPI, redisClient) // Dosen photo endpoint with Redis cache
+	dosen.Init(publicRoutes, db, sisterAPI, redisClient) // Dosen endpoints with Redis cache and DB
 
 	// Welcome message
 	app.Get("/", func(c *fiber.Ctx) error {
