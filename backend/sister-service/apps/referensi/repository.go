@@ -595,13 +595,12 @@ func (r *repository) BulkUpsertBidangStudi(data []SisterBidangStudi, syncedBy st
 			WHEN MATCHED THEN
 				UPDATE SET nm_bid_studi = source.nm_bid_studi,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_bid_studi, nm_bid_studi, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_bid_studi, source.nm_bid_studi, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_bid_studi, nm_bid_studi, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_bid_studi, source.nm_bid_studi, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert bidang_studi %v: %w", item.ID, err)
 		}
@@ -634,13 +633,12 @@ func (r *repository) BulkUpsertBidangUsaha(data []SisterBidangUsaha, syncedBy st
 			WHEN MATCHED THEN
 				UPDATE SET nm_bu = source.nm_bu,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_bu, nm_bu, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_bu, source.nm_bu, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_bu, nm_bu, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_bu, source.nm_bu, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert bidang_usaha %v: %w", item.ID, err)
 		}
@@ -673,13 +671,12 @@ func (r *repository) BulkUpsertJabatanFungsional(data []SisterJabatanFungsional,
 			WHEN MATCHED THEN
 				UPDATE SET nm_jabfung = source.nm_jabfung,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_jabfung, nm_jabfung, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_jabfung, source.nm_jabfung, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_jabfung, nm_jabfung, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_jabfung, source.nm_jabfung, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert jabfung %v: %w", item.ID, err)
 		}
@@ -712,13 +709,12 @@ func (r *repository) BulkUpsertJabatanTugasTambahan(data []SisterJabatanTugasTam
 			WHEN MATCHED THEN
 				UPDATE SET nm_jab_tgs = source.nm_jab_tgs,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_jab_tgs, nm_jab_tgs, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_jab_tgs, source.nm_jab_tgs, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_jab_tgs, nm_jab_tgs, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_jab_tgs, source.nm_jab_tgs, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert jab_tgs %v: %w", item.ID, err)
 		}
@@ -751,13 +747,12 @@ func (r *repository) BulkUpsertJenisBahanAjar(data []SisterJenisBahanAjar, synce
 			WHEN MATCHED THEN
 				UPDATE SET nm_jns_bhn_ajar = source.nm_jns_bhn_ajar,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_jns_bhn_ajar, nm_jns_bhn_ajar, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_jns_bhn_ajar, source.nm_jns_bhn_ajar, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_jns_bhn_ajar, nm_jns_bhn_ajar, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_jns_bhn_ajar, source.nm_jns_bhn_ajar, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert jenis_bahan_ajar %v: %w", item.ID, err)
 		}
@@ -790,13 +785,12 @@ func (r *repository) BulkUpsertJenisBeasiswa(data []SisterJenisBeasiswa, syncedB
 			WHEN MATCHED THEN
 				UPDATE SET nm_jns_beasiswa = source.nm_jns_beasiswa,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_jns_beasiswa, nm_jns_beasiswa, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_jns_beasiswa, source.nm_jns_beasiswa, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_jns_beasiswa, nm_jns_beasiswa, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_jns_beasiswa, source.nm_jns_beasiswa, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert jenis_beasiswa %v: %w", item.ID, err)
 		}
@@ -829,13 +823,12 @@ func (r *repository) BulkUpsertJenisDiklat(data []SisterJenisDiklat, syncedBy st
 			WHEN MATCHED THEN
 				UPDATE SET nm_jns_diklat = source.nm_jns_diklat,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_jns_diklat, nm_jns_diklat, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_jns_diklat, source.nm_jns_diklat, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_jns_diklat, nm_jns_diklat, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_jns_diklat, source.nm_jns_diklat, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert jenis_diklat %v: %w", item.ID, err)
 		}
@@ -868,13 +861,12 @@ func (r *repository) BulkUpsertJenisDokumen(data []SisterJenisDokumen, syncedBy 
 			WHEN MATCHED THEN
 				UPDATE SET nm_jns_dok = source.nm_jns_dok,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_jns_dok, nm_jns_dok, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_jns_dok, source.nm_jns_dok, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_jns_dok, nm_jns_dok, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_jns_dok, source.nm_jns_dok, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert jenis_dokumen %v: %w", item.ID, err)
 		}
@@ -907,13 +899,12 @@ func (r *repository) BulkUpsertJenisKeluar(data []SisterJenisKeluar, syncedBy st
 			WHEN MATCHED THEN
 				UPDATE SET ket_keluar = source.ket_keluar,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_jns_keluar, ket_keluar, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_jns_keluar, source.ket_keluar, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_jns_keluar, ket_keluar, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_jns_keluar, source.ket_keluar, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert jenis_keluar %v: %w", item.ID, err)
 		}
@@ -946,13 +937,12 @@ func (r *repository) BulkUpsertJenisKepanitiaan(data []SisterJenisKepanitiaan, s
 			WHEN MATCHED THEN
 				UPDATE SET nm_jns_panitia = source.nm_jns_panitia,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_jns_panitia, nm_jns_panitia, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_jns_panitia, source.nm_jns_panitia, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_jns_panitia, nm_jns_panitia, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_jns_panitia, source.nm_jns_panitia, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert jenis_kepanitiaan %v: %w", item.ID, err)
 		}
@@ -985,13 +975,12 @@ func (r *repository) BulkUpsertJenisKesejahteraan(data []SisterJenisKesejahteraa
 			WHEN MATCHED THEN
 				UPDATE SET nm_jns_sejahtera = source.nm_jns_sejahtera,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_jns_sejahtera, nm_jns_sejahtera, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_jns_sejahtera, source.nm_jns_sejahtera, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_jns_sejahtera, nm_jns_sejahtera, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_jns_sejahtera, source.nm_jns_sejahtera, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert jenis_kesejahteraan %v: %w", item.ID, err)
 		}
@@ -1024,13 +1013,12 @@ func (r *repository) BulkUpsertJenisPublikasi(data []SisterJenisPublikasi, synce
 			WHEN MATCHED THEN
 				UPDATE SET nm_jns_pub = source.nm_jns_pub,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_jns_pub, nm_jns_pub, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_jns_pub, source.nm_jns_pub, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_jns_pub, nm_jns_pub, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_jns_pub, source.nm_jns_pub, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert jenis_publikasi %v: %w", item.ID, err)
 		}
@@ -1063,13 +1051,12 @@ func (r *repository) BulkUpsertJenisTes(data []SisterJenisTes, syncedBy string) 
 			WHEN MATCHED THEN
 				UPDATE SET nm_jns_tes = source.nm_jns_tes,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_jns_tes, nm_jns_tes, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_jns_tes, source.nm_jns_tes, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_jns_tes, nm_jns_tes, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_jns_tes, source.nm_jns_tes, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert jenis_tes %v: %w", item.ID, err)
 		}
@@ -1102,13 +1089,12 @@ func (r *repository) BulkUpsertJenisTunjangan(data []SisterJenisTunjangan, synce
 			WHEN MATCHED THEN
 				UPDATE SET nm_jns_tunj = source.nm_jns_tunj,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_jns_tunj, nm_jns_tunj, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_jns_tunj, source.nm_jns_tunj, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_jns_tunj, nm_jns_tunj, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_jns_tunj, source.nm_jns_tunj, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert jenis_tunjangan %v: %w", item.ID, err)
 		}
@@ -1141,13 +1127,12 @@ func (r *repository) BulkUpsertMediaPublikasi(data []SisterMediaPublikasi, synce
 			WHEN MATCHED THEN
 				UPDATE SET nm_media_pub = source.nm_media_pub,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_media_pub, nm_media_pub, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_media_pub, source.nm_media_pub, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_media_pub, nm_media_pub, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_media_pub, source.nm_media_pub, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert media_publikasi %v: %w", item.ID, err)
 		}
@@ -1180,13 +1165,12 @@ func (r *repository) BulkUpsertSkimKegiatan(data []SisterSkimKegiatan, syncedBy 
 			WHEN MATCHED THEN
 				UPDATE SET nm_skim = source.nm_skim,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_skim, nm_skim, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_skim, source.nm_skim, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_skim, nm_skim, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_skim, source.nm_skim, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert skim_kegiatan %v: %w", item.ID, err)
 		}
@@ -1219,13 +1203,12 @@ func (r *repository) BulkUpsertStatusKepegawaian(data []SisterStatusKepegawaian,
 			WHEN MATCHED THEN
 				UPDATE SET nm_stat_pegawai = source.nm_stat_pegawai,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_stat_pegawai, nm_stat_pegawai, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_stat_pegawai, source.nm_stat_pegawai, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_stat_pegawai, nm_stat_pegawai, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_stat_pegawai, source.nm_stat_pegawai, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert status_kepegawaian %v: %w", item.ID, err)
 		}
@@ -1258,13 +1241,12 @@ func (r *repository) BulkUpsertSumberGaji(data []SisterSumberGaji, syncedBy stri
 			WHEN MATCHED THEN
 				UPDATE SET nm_sumber_gaji = source.nm_sumber_gaji,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_sumber_gaji, nm_sumber_gaji, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_sumber_gaji, source.nm_sumber_gaji, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_sumber_gaji, nm_sumber_gaji, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_sumber_gaji, source.nm_sumber_gaji, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert sumber_gaji %v: %w", item.ID, err)
 		}
@@ -1297,13 +1279,12 @@ func (r *repository) BulkUpsertTingkatPenghargaan(data []SisterTingkatPenghargaa
 			WHEN MATCHED THEN
 				UPDATE SET nm_tkt_penghargaan = source.nm_tkt_penghargaan,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_tkt_penghargaan, nm_tkt_penghargaan, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_tkt_penghargaan, source.nm_tkt_penghargaan, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_tkt_penghargaan, nm_tkt_penghargaan, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_tkt_penghargaan, source.nm_tkt_penghargaan, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert tingkat_penghargaan %v: %w", item.ID, err)
 		}
@@ -1336,13 +1317,12 @@ func (r *repository) BulkUpsertWilayah(data []SisterWilayah, syncedBy string) er
 			WHEN MATCHED THEN
 				UPDATE SET nm_wil = source.nm_wil,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_wil, nm_wil, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_wil, source.nm_wil, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_wil, nm_wil, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_wil, source.nm_wil, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert wilayah %v: %w", item.ID, err)
 		}
@@ -1375,13 +1355,12 @@ func (r *repository) BulkUpsertKategoriCapaianLuaran(data []SisterKategoriCapaia
 			WHEN MATCHED THEN
 				UPDATE SET nm_kat_capaian = source.nm_kat_capaian,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_kat_capaian, nm_kat_capaian, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_kat_capaian, source.nm_kat_capaian, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_kat_capaian, nm_kat_capaian, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_kat_capaian, source.nm_kat_capaian, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert kategori_capaian_luaran %v: %w", item.ID, err)
 		}
@@ -1414,13 +1393,12 @@ func (r *repository) BulkUpsertKategoriKegiatan(data []SisterKategoriKegiatan, s
 			WHEN MATCHED THEN
 				UPDATE SET nm_kat = source.nm_kat,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_katgiat, nm_kat, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_katgiat, source.nm_kat, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_katgiat, nm_kat, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_katgiat, source.nm_kat, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert kategori_kegiatan %v: %w", item.ID, err)
 		}
@@ -1453,13 +1431,12 @@ func (r *repository) BulkUpsertKelompokBidang(data []SisterKelompokBidang, synce
 			WHEN MATCHED THEN
 				UPDATE SET nm_kel_bidang = source.nm_kel_bidang,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_kel_bidang, nm_kel_bidang, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_kel_bidang, source.nm_kel_bidang, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_kel_bidang, nm_kel_bidang, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_kel_bidang, source.nm_kel_bidang, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert kelompok_bidang %v: %w", item.ID, err)
 		}
@@ -1492,13 +1469,12 @@ func (r *repository) BulkUpsertLembagaSertifikasi(data []SisterLembagaSertifikas
 			WHEN MATCHED THEN
 				UPDATE SET nm_lemb_sert = source.nm_lemb_sert,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_lemb_sert, nm_lemb_sert, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_lemb_sert, source.nm_lemb_sert, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_lemb_sert, nm_lemb_sert, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_lemb_sert, source.nm_lemb_sert, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert lembaga_sertifikasi %v: %w", item.ID, err)
 		}
@@ -1531,13 +1507,12 @@ func (r *repository) BulkUpsertGolonganPangkat(data []SisterGolonganPangkat, syn
 			WHEN MATCHED THEN
 				UPDATE SET nm_pangkat = source.nm_pangkat,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_pangkat_gol, nm_pangkat, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_pangkat_gol, source.nm_pangkat, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_pangkat_gol, nm_pangkat, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_pangkat_gol, source.nm_pangkat, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert pangkat_golongan %v: %w", item.ID, err)
 		}
@@ -1570,13 +1545,12 @@ func (r *repository) BulkUpsertIkatanKerja(data []SisterIkatanKerja, syncedBy st
 			WHEN MATCHED THEN
 				UPDATE SET nm_ikatan_kerja = source.nm_ikatan_kerja,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_ikatan_kerja, nm_ikatan_kerja, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_ikatan_kerja, source.nm_ikatan_kerja, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_ikatan_kerja, nm_ikatan_kerja, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_ikatan_kerja, source.nm_ikatan_kerja, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert ikatan_kerja_sdm %v: %w", item.ID, err)
 		}
@@ -1609,13 +1583,12 @@ func (r *repository) BulkUpsertJenisPenghargaan(data []SisterJenisPenghargaan, s
 			WHEN MATCHED THEN
 				UPDATE SET nm_jns_penghargaan = source.nm_jns_penghargaan,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_jns_penghargaan, nm_jns_penghargaan, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_jns_penghargaan, source.nm_jns_penghargaan, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_jns_penghargaan, nm_jns_penghargaan, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_jns_penghargaan, source.nm_jns_penghargaan, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert jenis_penghargaan %v: %w", item.ID, err)
 		}
@@ -1648,13 +1621,12 @@ func (r *repository) BulkUpsertJenisPekerjaan(data []SisterJenisPekerjaan, synce
 			WHEN MATCHED THEN
 				UPDATE SET nm_pekerjaan = source.nm_pekerjaan,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_pekerjaan, nm_pekerjaan, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_pekerjaan, source.nm_pekerjaan, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_pekerjaan, nm_pekerjaan, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_pekerjaan, source.nm_pekerjaan, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert pekerjaan %v: %w", item.ID, err)
 		}
@@ -1687,13 +1659,12 @@ func (r *repository) BulkUpsertBidangPekerjaan(data []SisterBidangPekerjaan, syn
 			WHEN MATCHED THEN
 				UPDATE SET nm_bid_kerja = source.nm_bid_kerja,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
-						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
-						   synced_by = @p3
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_bid_kerja, nm_bid_kerja, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
-				VALUES (source.id_bid_kerja, source.nm_bid_kerja, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+				INSERT (id_bid_kerja, nm_bid_kerja, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_bid_kerja, source.nm_bid_kerja, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		_, err = tx.Exec(query, item.ID, item.Nama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert bidang_pekerjaan %v: %w", item.ID, err)
 		}
