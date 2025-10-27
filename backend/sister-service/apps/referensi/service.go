@@ -1759,31 +1759,26 @@ func (s *service) SyncKelompokBidangFromSister(syncedBy string) (int, error) {
 		s.logSyncResult(ctx, "Kelompok Bidang", "kelompok_bidang", "manual", syncedBy, totalRecords, startTime, syncErr)
 	}()
 
-	// Sync kelompok bidang for both iptek=true and iptek=false
-	var allKelompok []SisterKelompokBidang
-	for _, iptek := range []bool{true, false} {
-		rawData, err := s.sisterAPI.GetReferensiKelompokBidang(iptek)
-		if err != nil {
-			syncErr = fmt.Errorf("failed to fetch from Sister API (iptek=%v): %w", iptek, err)
-			return 0, syncErr
-		}
-
-		sisterData, err := UnmarshalSisterResponse[SisterKelompokBidang](rawData)
-		if err != nil {
-			syncErr = fmt.Errorf("failed to parse response (iptek=%v): %w", iptek, err)
-			return 0, syncErr
-		}
-
-		allKelompok = append(allKelompok, sisterData...)
+	// Sync kelompok bidang with iptek=true only (API doesn't support iptek=false)
+	rawData, err := s.sisterAPI.GetReferensiKelompokBidang(true)
+	if err != nil {
+		syncErr = fmt.Errorf("failed to fetch from Sister API: %w", err)
+		return 0, syncErr
 	}
 
-	err := s.repo.BulkUpsertKelompokBidang(allKelompok, syncedBy)
+	sisterData, err := UnmarshalSisterResponse[SisterKelompokBidang](rawData)
+	if err != nil {
+		syncErr = fmt.Errorf("failed to parse response: %w", err)
+		return 0, syncErr
+	}
+
+	err = s.repo.BulkUpsertKelompokBidang(sisterData, syncedBy)
 	if err != nil {
 		syncErr = fmt.Errorf("failed to save to database: %w", err)
 		return 0, syncErr
 	}
 
-	totalRecords = len(allKelompok)
+	totalRecords = len(sisterData)
 	return totalRecords, nil
 }
 
