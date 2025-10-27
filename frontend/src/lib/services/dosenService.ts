@@ -6,6 +6,7 @@
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/public/api/v1';
+const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:8083/public';
 
 // Types
 export interface PendidikanDosen {
@@ -164,5 +165,144 @@ export const dosenService = {
   async getProfile(encryptedId: string): Promise<ApiResponse<DosenProfile>> {
     const response = await axios.get<ApiResponse<DosenProfile>>(`${API_URL}/dosen/${encryptedId}`);
     return response.data;
+  },
+};
+
+// ========== SISTER API Types & Service ==========
+
+// SISTER Dosen Data (from pdrd.sdm table)
+export interface SisterDosen {
+  id_sdm: string;
+  nama_sdm: string;
+  jenis_kelamin: 'L' | 'P';
+  tempat_lahir: string;
+  tanggal_lahir: string;
+  nik: string;
+  nidn: string;
+  nip: string;
+  email: string;
+  no_hp: string;
+  id_jenis_sdm: number;
+  id_status_aktif: number;
+  last_sync: string;
+}
+
+// Paginated list response
+export interface SisterDosenListResult {
+  data: SisterDosen[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+}
+
+// Statistics response
+export interface SisterDosenStats {
+  total_dosen: number;
+  total_aktif: number;
+  total_tidak_aktif: number;
+  by_jenis_sdm: Array<{
+    id_jns_sdm: number;
+    nm_jns_sdm: string;
+    total: number;
+  }>;
+  by_status_aktif: Array<{
+    id_stat_aktif: number;
+    nm_stat_aktif: string;
+    total: number;
+  }>;
+  last_sync: string | null;
+}
+
+// Batch sync result
+export interface SisterDosenSyncResult {
+  total_fetched: number;
+  total_success: number;
+  total_failed: number;
+  duration_seconds: number;
+  synced_by: string;
+  synced_at: string;
+}
+
+// SISTER API Response wrapper
+interface SisterApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+}
+
+/**
+ * SISTER API Service for Dosen Management
+ * Manages dosen data from SISTER Kemdikbud API
+ */
+export const sisterDosenService = {
+  /**
+   * Get paginated list of dosen with optional search and filters
+   */
+  async getList(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    id_jns_sdm?: number;
+    id_stat_aktif?: number;
+  }): Promise<SisterDosenListResult> {
+    const response = await axios.get<SisterApiResponse<SisterDosenListResult>>(
+      `${SISTER_API_URL}/dosen`,
+      { params }
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Get dosen statistics (total, by jenis, by status, etc)
+   */
+  async getStats(): Promise<SisterDosenStats> {
+    const response = await axios.get<SisterApiResponse<SisterDosenStats>>(
+      `${SISTER_API_URL}/dosen/stats`
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Get dosen detail by ID (GUID format)
+   */
+  async getDetail(idSDM: string): Promise<SisterDosen> {
+    const response = await axios.get<SisterApiResponse<SisterDosen>>(
+      `${SISTER_API_URL}/dosen/${idSDM}`
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Trigger batch sync from SISTER API to database
+   * @param syncedBy - Username of person who triggered the sync
+   */
+  async syncFromSister(syncedBy: string): Promise<SisterDosenSyncResult> {
+    const response = await axios.post<SisterApiResponse<SisterDosenSyncResult>>(
+      `${SISTER_API_URL}/dosen/sync`,
+      null,
+      { params: { synced_by: syncedBy } }
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Get dosen photo from SISTER API
+   */
+  async getPhoto(idSDM: string): Promise<Blob> {
+    const response = await axios.get(`${SISTER_API_URL}/dosen/photo/${idSDM}`, {
+      responseType: 'blob'
+    });
+    return response.data;
+  },
+
+  /**
+   * Get dosen bidang ilmu/keahlian from SISTER API
+   */
+  async getBidangIlmu(idSDM: string): Promise<any[]> {
+    const response = await axios.get<SisterApiResponse<any[]>>(
+      `${SISTER_API_URL}/dosen/bidang_ilmu/${idSDM}`
+    );
+    return response.data.data;
   },
 };
