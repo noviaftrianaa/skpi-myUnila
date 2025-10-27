@@ -18,11 +18,13 @@ import {
   ModalFooter,
   Spinner,
   Checkbox,
+  Input,
 } from "@heroui/react";
 import {
   FiRefreshCw,
   FiCheckCircle,
   FiAlertCircle,
+  FiSearch,
   FiClock,
   FiDatabase,
   FiArrowLeft,
@@ -57,6 +59,7 @@ export default function ReferensiDashboardPage() {
   const [syncProgress, setSyncProgress] = useState(0);
   const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
   const [syncResult, setSyncResult] = useState<BatchSyncResponse | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   // Fetch metadata on mount
   useEffect(() => {
@@ -82,11 +85,22 @@ export default function ReferensiDashboardPage() {
     );
   };
 
+  // Filter metadata based on search query
+  const filteredMetadata = metadata.filter((item) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      item.name.toLowerCase().includes(query) ||
+      item.key.toLowerCase().includes(query) ||
+      item.description.toLowerCase().includes(query)
+    );
+  });
+
   const handleSelectAll = () => {
-    if (selectedEndpoints.length === metadata.length) {
+    if (selectedEndpoints.length === filteredMetadata.length) {
       setSelectedEndpoints([]);
     } else {
-      setSelectedEndpoints(metadata.map((m) => m.key));
+      setSelectedEndpoints(filteredMetadata.map((m) => m.key));
     }
   };
 
@@ -226,6 +240,19 @@ export default function ReferensiDashboardPage() {
               Kelola dan sinkronisasi semua data referensi dari SISTER API
             </p>
           </div>
+
+          {/* Search and Action Bar */}
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+            <Input
+              isClearable
+              placeholder="Cari endpoint (nama, key, atau deskripsi)..."
+              startContent={<FiSearch className="text-gray-400" />}
+              value={searchQuery}
+              onValueChange={setSearchQuery}
+              onClear={() => setSearchQuery("")}
+              className="w-full sm:w-96"
+            />
+
           <div className="flex gap-2">
             <Button
               variant="bordered"
@@ -233,7 +260,7 @@ export default function ReferensiDashboardPage() {
               onClick={handleSelectAll}
               className="border-purple-600 text-purple-600 font-semibold"
             >
-              {selectedEndpoints.length === metadata.length ? "Deselect All" : "Select All"}
+              {selectedEndpoints.length === filteredMetadata.length ? "Deselect All" : "Select All"}
             </Button>
             <Button
               color="primary"
@@ -246,6 +273,7 @@ export default function ReferensiDashboardPage() {
             >
               Sync Selected ({selectedEndpoints.length})
             </Button>
+          </div>
           </div>
         </div>
 
@@ -316,8 +344,29 @@ export default function ReferensiDashboardPage() {
             <Spinner size="lg" color="primary" />
           </div>
         ) : (
+          <>
+            {/* Search Results Info */}
+            {searchQuery && (
+              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <p className="text-sm text-blue-700 dark:text-blue-400">
+                  Menampilkan <strong>{filteredMetadata.length}</strong> dari <strong>{metadata.length}</strong> endpoint untuk pencarian "<strong>{searchQuery}</strong>"
+                </p>
+              </div>
+            )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {metadata.map((item) => (
+            {filteredMetadata.length === 0 ? (
+              <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
+                <FiSearch className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" />
+                <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Tidak ada endpoint ditemukan
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Tidak ada endpoint yang cocok dengan pencarian "<strong>{searchQuery}</strong>"
+                </p>
+              </div>
+            ) : (
+              filteredMetadata.map((item) => (
               <Card
                 key={item.key}
                 className={`group relative overflow-hidden transition-all duration-300 cursor-pointer ${
@@ -394,8 +443,10 @@ export default function ReferensiDashboardPage() {
                   </div>
                 </CardBody>
               </Card>
-            ))}
+              ))
+            )}
           </div>
+          </>
         )}
       </div>
 
