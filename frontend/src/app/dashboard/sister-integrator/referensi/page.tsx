@@ -351,7 +351,7 @@ export default function ReferensiDashboardPage() {
                   isClearable
                   placeholder="Ketik untuk mencari endpoint..."
                   startContent={
-                    <FiSearch className="text-gray-400 dark:text-gray-500 w-5 h-5" />
+                    <FiSearch className="text-gray-400 dark:text-gray-500 w-5 h-5 mr-2" />
                   }
                   value={searchQuery}
                   onValueChange={setSearchQuery}
