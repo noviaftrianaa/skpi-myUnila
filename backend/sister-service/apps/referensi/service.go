@@ -868,3 +868,728 @@ func (s *service) BatchSyncFromSister(ctx context.Context, endpoints []string, s
 
 	return response, nil
 }
+
+// GetAllBidangStudi returns all bidang_studi records
+func (s *service) GetAllBidangStudi() ([]BidangStudi, error) {
+	return s.repo.GetAllBidangStudi()
+}
+
+// GetAllBidangUsaha returns all bidang_usaha records
+func (s *service) GetAllBidangUsaha() ([]BidangUsaha, error) {
+	return s.repo.GetAllBidangUsaha()
+}
+
+// GetAllJabatanFungsional returns all jabatan_fungsional records
+func (s *service) GetAllJabatanFungsional() ([]JabatanFungsional, error) {
+	return s.repo.GetAllJabatanFungsional()
+}
+
+// GetAllJabatanTugasTambahan returns all jabatan_tugas_tambahan records
+func (s *service) GetAllJabatanTugasTambahan() ([]JabatanTugasTambahan, error) {
+	return s.repo.GetAllJabatanTugasTambahan()
+}
+
+// GetAllJenisBahanAjar returns all jenis_bahan_ajar records
+func (s *service) GetAllJenisBahanAjar() ([]JenisBahanAjar, error) {
+	return s.repo.GetAllJenisBahanAjar()
+}
+
+// GetAllJenisBeasiswa returns all jenis_beasiswa records
+func (s *service) GetAllJenisBeasiswa() ([]JenisBeasiswa, error) {
+	return s.repo.GetAllJenisBeasiswa()
+}
+
+// GetAllJenisDiklat returns all jenis_diklat records
+func (s *service) GetAllJenisDiklat() ([]JenisDiklat, error) {
+	return s.repo.GetAllJenisDiklat()
+}
+
+// GetAllJenisDokumen returns all jenis_dokumen records
+func (s *service) GetAllJenisDokumen() ([]JenisDokumen, error) {
+	return s.repo.GetAllJenisDokumen()
+}
+
+// GetAllJenisKeluar returns all jenis_keluar records
+func (s *service) GetAllJenisKeluar() ([]JenisKeluar, error) {
+	return s.repo.GetAllJenisKeluar()
+}
+
+// GetAllJenisKepanitiaan returns all jenis_kepanitiaan records
+func (s *service) GetAllJenisKepanitiaan() ([]JenisKepanitiaan, error) {
+	return s.repo.GetAllJenisKepanitiaan()
+}
+
+// GetAllJenisKesejahteraan returns all jenis_kesejahteraan records
+func (s *service) GetAllJenisKesejahteraan() ([]JenisKesejahteraan, error) {
+	return s.repo.GetAllJenisKesejahteraan()
+}
+
+// GetAllJenisPublikasi returns all jenis_publikasi records
+func (s *service) GetAllJenisPublikasi() ([]JenisPublikasi, error) {
+	return s.repo.GetAllJenisPublikasi()
+}
+
+// GetAllJenisTes returns all jenis_tes records
+func (s *service) GetAllJenisTes() ([]JenisTes, error) {
+	return s.repo.GetAllJenisTes()
+}
+
+// GetAllJenisTunjangan returns all jenis_tunjangan records
+func (s *service) GetAllJenisTunjangan() ([]JenisTunjangan, error) {
+	return s.repo.GetAllJenisTunjangan()
+}
+
+// GetAllMediaPublikasi returns all media_publikasi records
+func (s *service) GetAllMediaPublikasi() ([]MediaPublikasi, error) {
+	return s.repo.GetAllMediaPublikasi()
+}
+
+// GetAllSkimKegiatan returns all skim_kegiatan records
+func (s *service) GetAllSkimKegiatan() ([]SkimKegiatan, error) {
+	return s.repo.GetAllSkimKegiatan()
+}
+
+// GetAllStatusKepegawaian returns all status_kepegawaian records
+func (s *service) GetAllStatusKepegawaian() ([]StatusKepegawaian, error) {
+	return s.repo.GetAllStatusKepegawaian()
+}
+
+// GetAllSumberGaji returns all sumber_gaji records
+func (s *service) GetAllSumberGaji() ([]SumberGaji, error) {
+	return s.repo.GetAllSumberGaji()
+}
+
+// GetAllTingkatPenghargaan returns all tingkat_penghargaan records
+func (s *service) GetAllTingkatPenghargaan() ([]TingkatPenghargaan, error) {
+	return s.repo.GetAllTingkatPenghargaan()
+}
+
+// GetAllWilayah returns all wilayah records
+func (s *service) GetAllWilayah() ([]Wilayah, error) {
+	return s.repo.GetAllWilayah()
+}
+
+// GetAllKategoriCapaianLuaran returns all kategori_capaian_luaran records
+func (s *service) GetAllKategoriCapaianLuaran() ([]KategoriCapaianLuaran, error) {
+	return s.repo.GetAllKategoriCapaianLuaran()
+}
+
+// GetAllKategoriKegiatan returns all kategori_kegiatan records
+func (s *service) GetAllKategoriKegiatan() ([]KategoriKegiatan, error) {
+	return s.repo.GetAllKategoriKegiatan()
+}
+
+// GetAllKelompokBidang returns all kelompok_bidang records
+func (s *service) GetAllKelompokBidang() ([]KelompokBidang, error) {
+	return s.repo.GetAllKelompokBidang()
+}
+
+// GetAllLembagaSertifikasi returns all lembaga_sertifikasi records
+func (s *service) GetAllLembagaSertifikasi() ([]LembagaSertifikasi, error) {
+	return s.repo.GetAllLembagaSertifikasi()
+}
+
+// GetAllGolonganPangkat returns all golongan_pangkat records
+func (s *service) GetAllGolonganPangkat() ([]GolonganPangkat, error) {
+	return s.repo.GetAllGolonganPangkat()
+}
+
+// GetAllIkatanKerja returns all ikatan_kerja records
+func (s *service) GetAllIkatanKerja() ([]IkatanKerja, error) {
+	return s.repo.GetAllIkatanKerja()
+}
+
+// GetAllJenisPenghargaan returns all jenis_penghargaan records
+func (s *service) GetAllJenisPenghargaan() ([]JenisPenghargaan, error) {
+	return s.repo.GetAllJenisPenghargaan()
+}
+
+// GetAllJenisPekerjaan returns all jenis_pekerjaan records
+func (s *service) GetAllJenisPekerjaan() ([]JenisPekerjaan, error) {
+	return s.repo.GetAllJenisPekerjaan()
+}
+
+// GetAllBidangPekerjaan returns all bidang_pekerjaan records
+func (s *service) GetAllBidangPekerjaan() ([]BidangPekerjaan, error) {
+	return s.repo.GetAllBidangPekerjaan()
+}
+
+// SyncBidangStudiFromSister syncs bidang_studi data from Sister API to database
+func (s *service) SyncBidangStudiFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiBidangStudi()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterBidangStudi](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertBidangStudi(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncBidangUsahaFromSister syncs bidang_usaha data from Sister API to database
+func (s *service) SyncBidangUsahaFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiBidangUsaha()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterBidangUsaha](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertBidangUsaha(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncJabatanFungsionalFromSister syncs jabatan_fungsional data from Sister API to database
+func (s *service) SyncJabatanFungsionalFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiJabatanFungsional()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterJabatanFungsional](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJabatanFungsional(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncJabatanTugasTambahanFromSister syncs jabatan_tugas_tambahan data from Sister API to database
+func (s *service) SyncJabatanTugasTambahanFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiJabatanTugasTambahan()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterJabatanTugasTambahan](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJabatanTugasTambahan(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncJenisBahanAjarFromSister syncs jenis_bahan_ajar data from Sister API to database
+func (s *service) SyncJenisBahanAjarFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiJenisBahanAjar()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterJenisBahanAjar](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJenisBahanAjar(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncJenisBeasiswaFromSister syncs jenis_beasiswa data from Sister API to database
+func (s *service) SyncJenisBeasiswaFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiJenisBeasiswa()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterJenisBeasiswa](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJenisBeasiswa(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncJenisDiklatFromSister syncs jenis_diklat data from Sister API to database
+func (s *service) SyncJenisDiklatFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiJenisDiklat()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterJenisDiklat](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJenisDiklat(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncJenisDokumenFromSister syncs jenis_dokumen data from Sister API to database
+func (s *service) SyncJenisDokumenFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiJenisDokumen()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterJenisDokumen](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJenisDokumen(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncJenisKeluarFromSister syncs jenis_keluar data from Sister API to database
+func (s *service) SyncJenisKeluarFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiJenisKeluar()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterJenisKeluar](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJenisKeluar(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncJenisKepanitiaanFromSister syncs jenis_kepanitiaan data from Sister API to database
+func (s *service) SyncJenisKepanitiaanFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiJenisKepanitiaan()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterJenisKepanitiaan](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJenisKepanitiaan(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncJenisKesejahteraanFromSister syncs jenis_kesejahteraan data from Sister API to database
+func (s *service) SyncJenisKesejahteraanFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiJenisKesejahteraan()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterJenisKesejahteraan](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJenisKesejahteraan(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncJenisPublikasiFromSister syncs jenis_publikasi data from Sister API to database
+func (s *service) SyncJenisPublikasiFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiJenisPublikasi()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterJenisPublikasi](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJenisPublikasi(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncJenisTesFromSister syncs jenis_tes data from Sister API to database
+func (s *service) SyncJenisTesFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiJenisTes()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterJenisTes](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJenisTes(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncJenisTunjanganFromSister syncs jenis_tunjangan data from Sister API to database
+func (s *service) SyncJenisTunjanganFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiJenisTunjangan()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterJenisTunjangan](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJenisTunjangan(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncMediaPublikasiFromSister syncs media_publikasi data from Sister API to database
+func (s *service) SyncMediaPublikasiFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiMediaPublikasi()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterMediaPublikasi](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertMediaPublikasi(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncSkimKegiatanFromSister syncs skim_kegiatan data from Sister API to database
+func (s *service) SyncSkimKegiatanFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiSkimKegiatan()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterSkimKegiatan](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertSkimKegiatan(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncStatusKepegawaianFromSister syncs status_kepegawaian data from Sister API to database
+func (s *service) SyncStatusKepegawaianFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiStatusKepegawaian()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterStatusKepegawaian](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertStatusKepegawaian(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncSumberGajiFromSister syncs sumber_gaji data from Sister API to database
+func (s *service) SyncSumberGajiFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiSumberGaji()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterSumberGaji](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertSumberGaji(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncTingkatPenghargaanFromSister syncs tingkat_penghargaan data from Sister API to database
+func (s *service) SyncTingkatPenghargaanFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiTingkatPenghargaan()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterTingkatPenghargaan](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertTingkatPenghargaan(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncWilayahFromSister syncs wilayah data from Sister API to database
+func (s *service) SyncWilayahFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiWilayah()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterWilayah](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertWilayah(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncKategoriCapaianLuaranFromSister syncs kategori_capaian_luaran data from Sister API to database
+func (s *service) SyncKategoriCapaianLuaranFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiKategoriCapaianLuaran()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterKategoriCapaianLuaran](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertKategoriCapaianLuaran(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncKategoriKegiatanFromSister syncs kategori_kegiatan data from Sister API to database
+func (s *service) SyncKategoriKegiatanFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiKategoriKegiatan()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterKategoriKegiatan](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertKategoriKegiatan(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncKelompokBidangFromSister syncs kelompok_bidang data from Sister API to database
+func (s *service) SyncKelompokBidangFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiKelompokBidang()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterKelompokBidang](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertKelompokBidang(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncLembagaSertifikasiFromSister syncs lembaga_sertifikasi data from Sister API to database
+func (s *service) SyncLembagaSertifikasiFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiLembagaSertifikasi()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterLembagaSertifikasi](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertLembagaSertifikasi(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncGolonganPangkatFromSister syncs golongan_pangkat data from Sister API to database
+func (s *service) SyncGolonganPangkatFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiGolonganPangkat()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterGolonganPangkat](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertGolonganPangkat(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncIkatanKerjaFromSister syncs ikatan_kerja data from Sister API to database
+func (s *service) SyncIkatanKerjaFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiIkatanKerja()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterIkatanKerja](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertIkatanKerja(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncJenisPenghargaanFromSister syncs jenis_penghargaan data from Sister API to database
+func (s *service) SyncJenisPenghargaanFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiJenisPenghargaan()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterJenisPenghargaan](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJenisPenghargaan(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncJenisPekerjaanFromSister syncs jenis_pekerjaan data from Sister API to database
+func (s *service) SyncJenisPekerjaanFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiJenisPekerjaan()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterJenisPekerjaan](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertJenisPekerjaan(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}
+
+// SyncBidangPekerjaanFromSister syncs bidang_pekerjaan data from Sister API to database
+func (s *service) SyncBidangPekerjaanFromSister(syncedBy string) (int, error) {
+	rawData, err := s.sisterAPI.GetReferensiBidangPekerjaan()
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch from Sister API: %w", err)
+	}
+
+	sisterData, err := UnmarshalSisterResponse[SisterBidangPekerjaan](rawData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	err = s.repo.BulkUpsertBidangPekerjaan(sisterData, syncedBy)
+	if err != nil {
+		return 0, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	return len(sisterData), nil
+}

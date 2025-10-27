@@ -570,3 +570,1134 @@ func (r *repository) BulkUpsertSemester(ctx context.Context, list []Semester) er
 	log.Printf("✅ Bulk upsert semester completed: %d records processed", len(list))
 	return nil
 }
+
+// GetAllBidangStudi retrieves all active bidangStudi records
+func (r *repository) GetAllBidangStudi() ([]BidangStudi, error) {
+	var result []BidangStudi
+	query := `SELECT id_bid_studi, nm_bid_studi, expired_date, last_sync FROM ref.bidang_studi WHERE expired_date IS NULL ORDER BY nm_bid_studi`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertBidangStudi performs bulk upsert for bidangStudi
+func (r *repository) BulkUpsertBidangStudi(data []SisterBidangStudi, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.bidang_studi AS target
+			USING (SELECT @p1 AS id_bid_studi, @p2 AS nm_bid_studi) AS source
+			ON target.id_bid_studi = source.id_bid_studi
+			WHEN MATCHED THEN
+				UPDATE SET nm_bid_studi = source.nm_bid_studi,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_bid_studi, nm_bid_studi, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_bid_studi, source.nm_bid_studi, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert bidang_studi %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllBidangUsaha retrieves all active bidangUsaha records
+func (r *repository) GetAllBidangUsaha() ([]BidangUsaha, error) {
+	var result []BidangUsaha
+	query := `SELECT id_bu, nm_bu, expired_date, last_sync FROM ref.bidang_usaha WHERE expired_date IS NULL ORDER BY nm_bu`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertBidangUsaha performs bulk upsert for bidangUsaha
+func (r *repository) BulkUpsertBidangUsaha(data []SisterBidangUsaha, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.bidang_usaha AS target
+			USING (SELECT @p1 AS id_bu, @p2 AS nm_bu) AS source
+			ON target.id_bu = source.id_bu
+			WHEN MATCHED THEN
+				UPDATE SET nm_bu = source.nm_bu,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_bu, nm_bu, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_bu, source.nm_bu, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert bidang_usaha %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJabatanFungsional retrieves all active jabatanFungsional records
+func (r *repository) GetAllJabatanFungsional() ([]JabatanFungsional, error) {
+	var result []JabatanFungsional
+	query := `SELECT id_jabfung, nm_jabfung, expired_date, last_sync FROM ref.jabfung WHERE expired_date IS NULL ORDER BY nm_jabfung`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJabatanFungsional performs bulk upsert for jabatanFungsional
+func (r *repository) BulkUpsertJabatanFungsional(data []SisterJabatanFungsional, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jabfung AS target
+			USING (SELECT @p1 AS id_jabfung, @p2 AS nm_jabfung) AS source
+			ON target.id_jabfung = source.id_jabfung
+			WHEN MATCHED THEN
+				UPDATE SET nm_jabfung = source.nm_jabfung,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jabfung, nm_jabfung, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jabfung, source.nm_jabfung, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jabfung %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJabatanTugasTambahan retrieves all active jabatanTugasTambahan records
+func (r *repository) GetAllJabatanTugasTambahan() ([]JabatanTugasTambahan, error) {
+	var result []JabatanTugasTambahan
+	query := `SELECT id_jab_tgs, nm_jab_tgs, expired_date, last_sync FROM ref.jab_tgs WHERE expired_date IS NULL ORDER BY nm_jab_tgs`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJabatanTugasTambahan performs bulk upsert for jabatanTugasTambahan
+func (r *repository) BulkUpsertJabatanTugasTambahan(data []SisterJabatanTugasTambahan, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jab_tgs AS target
+			USING (SELECT @p1 AS id_jab_tgs, @p2 AS nm_jab_tgs) AS source
+			ON target.id_jab_tgs = source.id_jab_tgs
+			WHEN MATCHED THEN
+				UPDATE SET nm_jab_tgs = source.nm_jab_tgs,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jab_tgs, nm_jab_tgs, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jab_tgs, source.nm_jab_tgs, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jab_tgs %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJenisBahanAjar retrieves all active jenisBahanAjar records
+func (r *repository) GetAllJenisBahanAjar() ([]JenisBahanAjar, error) {
+	var result []JenisBahanAjar
+	query := `SELECT id_jns_bhn_ajar, nm_jns_bhn_ajar, expired_date, last_sync FROM ref.jenis_bahan_ajar WHERE expired_date IS NULL ORDER BY nm_jns_bhn_ajar`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJenisBahanAjar performs bulk upsert for jenisBahanAjar
+func (r *repository) BulkUpsertJenisBahanAjar(data []SisterJenisBahanAjar, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jenis_bahan_ajar AS target
+			USING (SELECT @p1 AS id_jns_bhn_ajar, @p2 AS nm_jns_bhn_ajar) AS source
+			ON target.id_jns_bhn_ajar = source.id_jns_bhn_ajar
+			WHEN MATCHED THEN
+				UPDATE SET nm_jns_bhn_ajar = source.nm_jns_bhn_ajar,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jns_bhn_ajar, nm_jns_bhn_ajar, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jns_bhn_ajar, source.nm_jns_bhn_ajar, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jenis_bahan_ajar %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJenisBeasiswa retrieves all active jenisBeasiswa records
+func (r *repository) GetAllJenisBeasiswa() ([]JenisBeasiswa, error) {
+	var result []JenisBeasiswa
+	query := `SELECT id_jns_beasiswa, nm_jns_beasiswa, expired_date, last_sync FROM ref.jenis_beasiswa WHERE expired_date IS NULL ORDER BY nm_jns_beasiswa`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJenisBeasiswa performs bulk upsert for jenisBeasiswa
+func (r *repository) BulkUpsertJenisBeasiswa(data []SisterJenisBeasiswa, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jenis_beasiswa AS target
+			USING (SELECT @p1 AS id_jns_beasiswa, @p2 AS nm_jns_beasiswa) AS source
+			ON target.id_jns_beasiswa = source.id_jns_beasiswa
+			WHEN MATCHED THEN
+				UPDATE SET nm_jns_beasiswa = source.nm_jns_beasiswa,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jns_beasiswa, nm_jns_beasiswa, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jns_beasiswa, source.nm_jns_beasiswa, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jenis_beasiswa %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJenisDiklat retrieves all active jenisDiklat records
+func (r *repository) GetAllJenisDiklat() ([]JenisDiklat, error) {
+	var result []JenisDiklat
+	query := `SELECT id_jns_diklat, nm_jns_diklat, expired_date, last_sync FROM ref.jenis_diklat WHERE expired_date IS NULL ORDER BY nm_jns_diklat`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJenisDiklat performs bulk upsert for jenisDiklat
+func (r *repository) BulkUpsertJenisDiklat(data []SisterJenisDiklat, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jenis_diklat AS target
+			USING (SELECT @p1 AS id_jns_diklat, @p2 AS nm_jns_diklat) AS source
+			ON target.id_jns_diklat = source.id_jns_diklat
+			WHEN MATCHED THEN
+				UPDATE SET nm_jns_diklat = source.nm_jns_diklat,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jns_diklat, nm_jns_diklat, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jns_diklat, source.nm_jns_diklat, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jenis_diklat %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJenisDokumen retrieves all active jenisDokumen records
+func (r *repository) GetAllJenisDokumen() ([]JenisDokumen, error) {
+	var result []JenisDokumen
+	query := `SELECT id_jns_dok, nm_jns_dok, expired_date, last_sync FROM ref.jenis_dokumen WHERE expired_date IS NULL ORDER BY nm_jns_dok`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJenisDokumen performs bulk upsert for jenisDokumen
+func (r *repository) BulkUpsertJenisDokumen(data []SisterJenisDokumen, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jenis_dokumen AS target
+			USING (SELECT @p1 AS id_jns_dok, @p2 AS nm_jns_dok) AS source
+			ON target.id_jns_dok = source.id_jns_dok
+			WHEN MATCHED THEN
+				UPDATE SET nm_jns_dok = source.nm_jns_dok,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jns_dok, nm_jns_dok, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jns_dok, source.nm_jns_dok, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jenis_dokumen %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJenisKeluar retrieves all active jenisKeluar records
+func (r *repository) GetAllJenisKeluar() ([]JenisKeluar, error) {
+	var result []JenisKeluar
+	query := `SELECT id_jns_keluar, ket_keluar, expired_date, last_sync FROM ref.jenis_keluar WHERE expired_date IS NULL ORDER BY ket_keluar`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJenisKeluar performs bulk upsert for jenisKeluar
+func (r *repository) BulkUpsertJenisKeluar(data []SisterJenisKeluar, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jenis_keluar AS target
+			USING (SELECT @p1 AS id_jns_keluar, @p2 AS ket_keluar) AS source
+			ON target.id_jns_keluar = source.id_jns_keluar
+			WHEN MATCHED THEN
+				UPDATE SET ket_keluar = source.ket_keluar,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jns_keluar, ket_keluar, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jns_keluar, source.ket_keluar, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jenis_keluar %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJenisKepanitiaan retrieves all active jenisKepanitiaan records
+func (r *repository) GetAllJenisKepanitiaan() ([]JenisKepanitiaan, error) {
+	var result []JenisKepanitiaan
+	query := `SELECT id_jns_panitia, nm_jns_panitia, expired_date, last_sync FROM ref.jenis_kepanitiaan WHERE expired_date IS NULL ORDER BY nm_jns_panitia`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJenisKepanitiaan performs bulk upsert for jenisKepanitiaan
+func (r *repository) BulkUpsertJenisKepanitiaan(data []SisterJenisKepanitiaan, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jenis_kepanitiaan AS target
+			USING (SELECT @p1 AS id_jns_panitia, @p2 AS nm_jns_panitia) AS source
+			ON target.id_jns_panitia = source.id_jns_panitia
+			WHEN MATCHED THEN
+				UPDATE SET nm_jns_panitia = source.nm_jns_panitia,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jns_panitia, nm_jns_panitia, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jns_panitia, source.nm_jns_panitia, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jenis_kepanitiaan %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJenisKesejahteraan retrieves all active jenisKesejahteraan records
+func (r *repository) GetAllJenisKesejahteraan() ([]JenisKesejahteraan, error) {
+	var result []JenisKesejahteraan
+	query := `SELECT id_jns_sejahtera, nm_jns_sejahtera, expired_date, last_sync FROM ref.jenis_kesejahteraan WHERE expired_date IS NULL ORDER BY nm_jns_sejahtera`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJenisKesejahteraan performs bulk upsert for jenisKesejahteraan
+func (r *repository) BulkUpsertJenisKesejahteraan(data []SisterJenisKesejahteraan, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jenis_kesejahteraan AS target
+			USING (SELECT @p1 AS id_jns_sejahtera, @p2 AS nm_jns_sejahtera) AS source
+			ON target.id_jns_sejahtera = source.id_jns_sejahtera
+			WHEN MATCHED THEN
+				UPDATE SET nm_jns_sejahtera = source.nm_jns_sejahtera,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jns_sejahtera, nm_jns_sejahtera, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jns_sejahtera, source.nm_jns_sejahtera, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jenis_kesejahteraan %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJenisPublikasi retrieves all active jenisPublikasi records
+func (r *repository) GetAllJenisPublikasi() ([]JenisPublikasi, error) {
+	var result []JenisPublikasi
+	query := `SELECT id_jns_pub, nm_jns_pub, expired_date, last_sync FROM ref.jenis_publikasi WHERE expired_date IS NULL ORDER BY nm_jns_pub`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJenisPublikasi performs bulk upsert for jenisPublikasi
+func (r *repository) BulkUpsertJenisPublikasi(data []SisterJenisPublikasi, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jenis_publikasi AS target
+			USING (SELECT @p1 AS id_jns_pub, @p2 AS nm_jns_pub) AS source
+			ON target.id_jns_pub = source.id_jns_pub
+			WHEN MATCHED THEN
+				UPDATE SET nm_jns_pub = source.nm_jns_pub,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jns_pub, nm_jns_pub, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jns_pub, source.nm_jns_pub, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jenis_publikasi %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJenisTes retrieves all active jenisTes records
+func (r *repository) GetAllJenisTes() ([]JenisTes, error) {
+	var result []JenisTes
+	query := `SELECT id_jns_tes, nm_jns_tes, expired_date, last_sync FROM ref.jenis_tes WHERE expired_date IS NULL ORDER BY nm_jns_tes`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJenisTes performs bulk upsert for jenisTes
+func (r *repository) BulkUpsertJenisTes(data []SisterJenisTes, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jenis_tes AS target
+			USING (SELECT @p1 AS id_jns_tes, @p2 AS nm_jns_tes) AS source
+			ON target.id_jns_tes = source.id_jns_tes
+			WHEN MATCHED THEN
+				UPDATE SET nm_jns_tes = source.nm_jns_tes,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jns_tes, nm_jns_tes, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jns_tes, source.nm_jns_tes, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jenis_tes %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJenisTunjangan retrieves all active jenisTunjangan records
+func (r *repository) GetAllJenisTunjangan() ([]JenisTunjangan, error) {
+	var result []JenisTunjangan
+	query := `SELECT id_jns_tunj, nm_jns_tunj, expired_date, last_sync FROM ref.jenis_tunjangan WHERE expired_date IS NULL ORDER BY nm_jns_tunj`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJenisTunjangan performs bulk upsert for jenisTunjangan
+func (r *repository) BulkUpsertJenisTunjangan(data []SisterJenisTunjangan, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jenis_tunjangan AS target
+			USING (SELECT @p1 AS id_jns_tunj, @p2 AS nm_jns_tunj) AS source
+			ON target.id_jns_tunj = source.id_jns_tunj
+			WHEN MATCHED THEN
+				UPDATE SET nm_jns_tunj = source.nm_jns_tunj,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jns_tunj, nm_jns_tunj, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jns_tunj, source.nm_jns_tunj, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jenis_tunjangan %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllMediaPublikasi retrieves all active mediaPublikasi records
+func (r *repository) GetAllMediaPublikasi() ([]MediaPublikasi, error) {
+	var result []MediaPublikasi
+	query := `SELECT id_media_pub, nm_media_pub, expired_date, last_sync FROM ref.media_publikasi WHERE expired_date IS NULL ORDER BY nm_media_pub`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertMediaPublikasi performs bulk upsert for mediaPublikasi
+func (r *repository) BulkUpsertMediaPublikasi(data []SisterMediaPublikasi, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.media_publikasi AS target
+			USING (SELECT @p1 AS id_media_pub, @p2 AS nm_media_pub) AS source
+			ON target.id_media_pub = source.id_media_pub
+			WHEN MATCHED THEN
+				UPDATE SET nm_media_pub = source.nm_media_pub,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_media_pub, nm_media_pub, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_media_pub, source.nm_media_pub, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert media_publikasi %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllSkimKegiatan retrieves all active skimKegiatan records
+func (r *repository) GetAllSkimKegiatan() ([]SkimKegiatan, error) {
+	var result []SkimKegiatan
+	query := `SELECT id_skim, nm_skim, expired_date, last_sync FROM ref.skim_kegiatan WHERE expired_date IS NULL ORDER BY nm_skim`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertSkimKegiatan performs bulk upsert for skimKegiatan
+func (r *repository) BulkUpsertSkimKegiatan(data []SisterSkimKegiatan, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.skim_kegiatan AS target
+			USING (SELECT @p1 AS id_skim, @p2 AS nm_skim) AS source
+			ON target.id_skim = source.id_skim
+			WHEN MATCHED THEN
+				UPDATE SET nm_skim = source.nm_skim,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_skim, nm_skim, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_skim, source.nm_skim, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert skim_kegiatan %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllStatusKepegawaian retrieves all active statusKepegawaian records
+func (r *repository) GetAllStatusKepegawaian() ([]StatusKepegawaian, error) {
+	var result []StatusKepegawaian
+	query := `SELECT id_stat_pegawai, nm_stat_pegawai, expired_date, last_sync FROM ref.status_kepegawaian WHERE expired_date IS NULL ORDER BY nm_stat_pegawai`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertStatusKepegawaian performs bulk upsert for statusKepegawaian
+func (r *repository) BulkUpsertStatusKepegawaian(data []SisterStatusKepegawaian, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.status_kepegawaian AS target
+			USING (SELECT @p1 AS id_stat_pegawai, @p2 AS nm_stat_pegawai) AS source
+			ON target.id_stat_pegawai = source.id_stat_pegawai
+			WHEN MATCHED THEN
+				UPDATE SET nm_stat_pegawai = source.nm_stat_pegawai,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_stat_pegawai, nm_stat_pegawai, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_stat_pegawai, source.nm_stat_pegawai, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert status_kepegawaian %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllSumberGaji retrieves all active sumberGaji records
+func (r *repository) GetAllSumberGaji() ([]SumberGaji, error) {
+	var result []SumberGaji
+	query := `SELECT id_sumber_gaji, nm_sumber_gaji, expired_date, last_sync FROM ref.sumber_gaji WHERE expired_date IS NULL ORDER BY nm_sumber_gaji`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertSumberGaji performs bulk upsert for sumberGaji
+func (r *repository) BulkUpsertSumberGaji(data []SisterSumberGaji, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.sumber_gaji AS target
+			USING (SELECT @p1 AS id_sumber_gaji, @p2 AS nm_sumber_gaji) AS source
+			ON target.id_sumber_gaji = source.id_sumber_gaji
+			WHEN MATCHED THEN
+				UPDATE SET nm_sumber_gaji = source.nm_sumber_gaji,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_sumber_gaji, nm_sumber_gaji, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_sumber_gaji, source.nm_sumber_gaji, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert sumber_gaji %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllTingkatPenghargaan retrieves all active tingkatPenghargaan records
+func (r *repository) GetAllTingkatPenghargaan() ([]TingkatPenghargaan, error) {
+	var result []TingkatPenghargaan
+	query := `SELECT id_tkt_penghargaan, nm_tkt_penghargaan, expired_date, last_sync FROM ref.tingkat_penghargaan WHERE expired_date IS NULL ORDER BY nm_tkt_penghargaan`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertTingkatPenghargaan performs bulk upsert for tingkatPenghargaan
+func (r *repository) BulkUpsertTingkatPenghargaan(data []SisterTingkatPenghargaan, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.tingkat_penghargaan AS target
+			USING (SELECT @p1 AS id_tkt_penghargaan, @p2 AS nm_tkt_penghargaan) AS source
+			ON target.id_tkt_penghargaan = source.id_tkt_penghargaan
+			WHEN MATCHED THEN
+				UPDATE SET nm_tkt_penghargaan = source.nm_tkt_penghargaan,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_tkt_penghargaan, nm_tkt_penghargaan, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_tkt_penghargaan, source.nm_tkt_penghargaan, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert tingkat_penghargaan %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllWilayah retrieves all active wilayah records
+func (r *repository) GetAllWilayah() ([]Wilayah, error) {
+	var result []Wilayah
+	query := `SELECT id_wil, nm_wil, expired_date, last_sync FROM ref.wilayah WHERE expired_date IS NULL ORDER BY nm_wil`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertWilayah performs bulk upsert for wilayah
+func (r *repository) BulkUpsertWilayah(data []SisterWilayah, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.wilayah AS target
+			USING (SELECT @p1 AS id_wil, @p2 AS nm_wil) AS source
+			ON target.id_wil = source.id_wil
+			WHEN MATCHED THEN
+				UPDATE SET nm_wil = source.nm_wil,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_wil, nm_wil, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_wil, source.nm_wil, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert wilayah %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllKategoriCapaianLuaran retrieves all active kategoriCapaianLuaran records
+func (r *repository) GetAllKategoriCapaianLuaran() ([]KategoriCapaianLuaran, error) {
+	var result []KategoriCapaianLuaran
+	query := `SELECT id_kat_capaian, nm_kat_capaian, expired_date, last_sync FROM ref.kategori_capaian_luaran WHERE expired_date IS NULL ORDER BY nm_kat_capaian`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertKategoriCapaianLuaran performs bulk upsert for kategoriCapaianLuaran
+func (r *repository) BulkUpsertKategoriCapaianLuaran(data []SisterKategoriCapaianLuaran, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.kategori_capaian_luaran AS target
+			USING (SELECT @p1 AS id_kat_capaian, @p2 AS nm_kat_capaian) AS source
+			ON target.id_kat_capaian = source.id_kat_capaian
+			WHEN MATCHED THEN
+				UPDATE SET nm_kat_capaian = source.nm_kat_capaian,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_kat_capaian, nm_kat_capaian, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_kat_capaian, source.nm_kat_capaian, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert kategori_capaian_luaran %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllKategoriKegiatan retrieves all active kategoriKegiatan records
+func (r *repository) GetAllKategoriKegiatan() ([]KategoriKegiatan, error) {
+	var result []KategoriKegiatan
+	query := `SELECT id_katgiat, nm_kat, expired_date, last_sync FROM ref.kategori_kegiatan WHERE expired_date IS NULL ORDER BY nm_kat`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertKategoriKegiatan performs bulk upsert for kategoriKegiatan
+func (r *repository) BulkUpsertKategoriKegiatan(data []SisterKategoriKegiatan, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.kategori_kegiatan AS target
+			USING (SELECT @p1 AS id_katgiat, @p2 AS nm_kat) AS source
+			ON target.id_katgiat = source.id_katgiat
+			WHEN MATCHED THEN
+				UPDATE SET nm_kat = source.nm_kat,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_katgiat, nm_kat, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_katgiat, source.nm_kat, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert kategori_kegiatan %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllKelompokBidang retrieves all active kelompokBidang records
+func (r *repository) GetAllKelompokBidang() ([]KelompokBidang, error) {
+	var result []KelompokBidang
+	query := `SELECT id_kel_bidang, nm_kel_bidang, expired_date, last_sync FROM ref.kelompok_bidang WHERE expired_date IS NULL ORDER BY nm_kel_bidang`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertKelompokBidang performs bulk upsert for kelompokBidang
+func (r *repository) BulkUpsertKelompokBidang(data []SisterKelompokBidang, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.kelompok_bidang AS target
+			USING (SELECT @p1 AS id_kel_bidang, @p2 AS nm_kel_bidang) AS source
+			ON target.id_kel_bidang = source.id_kel_bidang
+			WHEN MATCHED THEN
+				UPDATE SET nm_kel_bidang = source.nm_kel_bidang,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_kel_bidang, nm_kel_bidang, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_kel_bidang, source.nm_kel_bidang, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert kelompok_bidang %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllLembagaSertifikasi retrieves all active lembagaSertifikasi records
+func (r *repository) GetAllLembagaSertifikasi() ([]LembagaSertifikasi, error) {
+	var result []LembagaSertifikasi
+	query := `SELECT id_lemb_sert, nm_lemb_sert, expired_date, last_sync FROM ref.lembaga_sertifikasi WHERE expired_date IS NULL ORDER BY nm_lemb_sert`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertLembagaSertifikasi performs bulk upsert for lembagaSertifikasi
+func (r *repository) BulkUpsertLembagaSertifikasi(data []SisterLembagaSertifikasi, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.lembaga_sertifikasi AS target
+			USING (SELECT @p1 AS id_lemb_sert, @p2 AS nm_lemb_sert) AS source
+			ON target.id_lemb_sert = source.id_lemb_sert
+			WHEN MATCHED THEN
+				UPDATE SET nm_lemb_sert = source.nm_lemb_sert,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_lemb_sert, nm_lemb_sert, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_lemb_sert, source.nm_lemb_sert, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert lembaga_sertifikasi %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllGolonganPangkat retrieves all active golonganPangkat records
+func (r *repository) GetAllGolonganPangkat() ([]GolonganPangkat, error) {
+	var result []GolonganPangkat
+	query := `SELECT id_pangkat_gol, nm_pangkat, expired_date, last_sync FROM ref.pangkat_golongan WHERE expired_date IS NULL ORDER BY nm_pangkat`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertGolonganPangkat performs bulk upsert for golonganPangkat
+func (r *repository) BulkUpsertGolonganPangkat(data []SisterGolonganPangkat, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.pangkat_golongan AS target
+			USING (SELECT @p1 AS id_pangkat_gol, @p2 AS nm_pangkat) AS source
+			ON target.id_pangkat_gol = source.id_pangkat_gol
+			WHEN MATCHED THEN
+				UPDATE SET nm_pangkat = source.nm_pangkat,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_pangkat_gol, nm_pangkat, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_pangkat_gol, source.nm_pangkat, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert pangkat_golongan %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllIkatanKerja retrieves all active ikatanKerja records
+func (r *repository) GetAllIkatanKerja() ([]IkatanKerja, error) {
+	var result []IkatanKerja
+	query := `SELECT id_ikatan_kerja, nm_ikatan_kerja, expired_date, last_sync FROM ref.ikatan_kerja_sdm WHERE expired_date IS NULL ORDER BY nm_ikatan_kerja`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertIkatanKerja performs bulk upsert for ikatanKerja
+func (r *repository) BulkUpsertIkatanKerja(data []SisterIkatanKerja, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.ikatan_kerja_sdm AS target
+			USING (SELECT @p1 AS id_ikatan_kerja, @p2 AS nm_ikatan_kerja) AS source
+			ON target.id_ikatan_kerja = source.id_ikatan_kerja
+			WHEN MATCHED THEN
+				UPDATE SET nm_ikatan_kerja = source.nm_ikatan_kerja,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_ikatan_kerja, nm_ikatan_kerja, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_ikatan_kerja, source.nm_ikatan_kerja, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert ikatan_kerja_sdm %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJenisPenghargaan retrieves all active jenisPenghargaan records
+func (r *repository) GetAllJenisPenghargaan() ([]JenisPenghargaan, error) {
+	var result []JenisPenghargaan
+	query := `SELECT id_jns_penghargaan, nm_jns_penghargaan, expired_date, last_sync FROM ref.jenis_penghargaan WHERE expired_date IS NULL ORDER BY nm_jns_penghargaan`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJenisPenghargaan performs bulk upsert for jenisPenghargaan
+func (r *repository) BulkUpsertJenisPenghargaan(data []SisterJenisPenghargaan, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.jenis_penghargaan AS target
+			USING (SELECT @p1 AS id_jns_penghargaan, @p2 AS nm_jns_penghargaan) AS source
+			ON target.id_jns_penghargaan = source.id_jns_penghargaan
+			WHEN MATCHED THEN
+				UPDATE SET nm_jns_penghargaan = source.nm_jns_penghargaan,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_jns_penghargaan, nm_jns_penghargaan, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_jns_penghargaan, source.nm_jns_penghargaan, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert jenis_penghargaan %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllJenisPekerjaan retrieves all active jenisPekerjaan records
+func (r *repository) GetAllJenisPekerjaan() ([]JenisPekerjaan, error) {
+	var result []JenisPekerjaan
+	query := `SELECT id_pekerjaan, nm_pekerjaan, expired_date, last_sync FROM ref.pekerjaan WHERE expired_date IS NULL ORDER BY nm_pekerjaan`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertJenisPekerjaan performs bulk upsert for jenisPekerjaan
+func (r *repository) BulkUpsertJenisPekerjaan(data []SisterJenisPekerjaan, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.pekerjaan AS target
+			USING (SELECT @p1 AS id_pekerjaan, @p2 AS nm_pekerjaan) AS source
+			ON target.id_pekerjaan = source.id_pekerjaan
+			WHEN MATCHED THEN
+				UPDATE SET nm_pekerjaan = source.nm_pekerjaan,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_pekerjaan, nm_pekerjaan, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_pekerjaan, source.nm_pekerjaan, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert pekerjaan %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetAllBidangPekerjaan retrieves all active bidangPekerjaan records
+func (r *repository) GetAllBidangPekerjaan() ([]BidangPekerjaan, error) {
+	var result []BidangPekerjaan
+	query := `SELECT id_bid_kerja, nm_bid_kerja, expired_date, last_sync FROM ref.bidang_pekerjaan WHERE expired_date IS NULL ORDER BY nm_bid_kerja`
+	err := r.db.Select(&result, query)
+	return result, err
+}
+
+// BulkUpsertBidangPekerjaan performs bulk upsert for bidangPekerjaan
+func (r *repository) BulkUpsertBidangPekerjaan(data []SisterBidangPekerjaan, syncedBy string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, item := range data {
+		query := `
+			MERGE ref.bidang_pekerjaan AS target
+			USING (SELECT @p1 AS id_bid_kerja, @p2 AS nm_bid_kerja) AS source
+			ON target.id_bid_kerja = source.id_bid_kerja
+			WHEN MATCHED THEN
+				UPDATE SET nm_bid_kerja = source.nm_bid_kerja,
+						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
+						   last_sync = DATEADD(HOUR, 7, GETUTCDATE()),
+						   synced_by = @p3
+			WHEN NOT MATCHED THEN
+				INSERT (id_bid_kerja, nm_bid_kerja, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync, synced_by)
+				VALUES (source.id_bid_kerja, source.nm_bid_kerja, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()), @p3);
+		`
+		_, err = tx.Exec(query, item.ID, item.Nama, syncedBy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert bidang_pekerjaan %v: %w", item.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
