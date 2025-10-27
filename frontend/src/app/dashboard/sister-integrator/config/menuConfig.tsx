@@ -16,6 +16,7 @@ import {
   FiServer,
   FiAlertCircle,
   FiBookOpen,
+  FiUsers,
 } from "react-icons/fi";
 import { MdDashboard, MdSync } from "react-icons/md";
 import { RiGovernmentFill } from "react-icons/ri";
@@ -32,6 +33,12 @@ export const sisterIntegratorMenuConfig: MenuItem[] = [
     title: "Referensi",
     icon: <FiBookOpen className="w-5 h-5" />,
     href: "/dashboard/sister-integrator/referensi",
+    roles: ["developer"],
+  },
+  {
+    title: "Dosen",
+    icon: <FiUsers className="w-5 h-5" />,
+    href: "/dashboard/sister-integrator/dosen",
     roles: ["developer"],
   },
   {
