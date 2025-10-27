@@ -324,20 +324,33 @@ func (c *Client) GetReferensiTingkatPenghargaan() ([]byte, error) {
 	return c.Get("/1.0/referensi/tingkat_penghargaan")
 }
 
-func (c *Client) GetReferensiWilayah() ([]byte, error) {
-	return c.Get("/1.0/referensi/wilayah")
+// GetReferensiWilayah fetches wilayah data with required id_level_wilayah parameter
+// id_level_wilayah: 0=Negara, 1=Provinsi, 2=Kota/Kabupaten, 3=Kecamatan
+func (c *Client) GetReferensiWilayah(idLevelWilayah int) ([]byte, error) {
+	return c.Get(fmt.Sprintf("/1.0/referensi/wilayah?id_level_wilayah=%d", idLevelWilayah))
 }
 
 func (c *Client) GetReferensiKategoriCapaianLuaran() ([]byte, error) {
 	return c.Get("/1.0/referensi/kategori_capaian_luaran")
 }
 
-func (c *Client) GetReferensiKategoriKegiatan() ([]byte, error) {
-	return c.Get("/1.0/referensi/kategori_kegiatan")
+// GetReferensiKategoriKegiatan fetches kategori_kegiatan with required parameters
+// tipe: "list" or "tree"
+// menu: anggota_profesi, bahan_ajar, detasering, diklat, kekayaan_intelektual, jabatan_struktural,
+//       orasi_ilmiah, penelitian, pembicara, pengabdian, pengelola_jurnal, penghargaan,
+//       penunjang_lain, publikasi, tugas_tambahan, visiting_scientist
+func (c *Client) GetReferensiKategoriKegiatan(tipe, menu string) ([]byte, error) {
+	return c.Get(fmt.Sprintf("/1.0/referensi/kategori_kegiatan?tipe=%s&menu=%s", tipe, menu))
 }
 
-func (c *Client) GetReferensiKelompokBidang() ([]byte, error) {
-	return c.Get("/1.0/referensi/kelompok_bidang")
+// GetReferensiKelompokBidang fetches kelompok_bidang with required iptek parameter
+// iptek: true for iptek fields, false for non-iptek
+func (c *Client) GetReferensiKelompokBidang(iptek bool) ([]byte, error) {
+	iptekStr := "false"
+	if iptek {
+		iptekStr = "true"
+	}
+	return c.Get(fmt.Sprintf("/1.0/referensi/kelompok_bidang?iptek=%s", iptekStr))
 }
 
 func (c *Client) GetReferensiLembagaSertifikasi() ([]byte, error) {

@@ -1653,25 +1653,31 @@ func (s *service) SyncWilayahFromSister(syncedBy string) (int, error) {
 		s.logSyncResult(ctx, "Wilayah", "wilayah", "manual", syncedBy, totalRecords, startTime, syncErr)
 	}()
 
-	rawData, err := s.sisterAPI.GetReferensiWilayah()
-	if err != nil {
-		syncErr = fmt.Errorf("failed to fetch from Sister API: %w", err)
-		return 0, syncErr
+	// Sync all wilayah levels: 0=Negara, 1=Provinsi, 2=Kota/Kabupaten, 3=Kecamatan
+	var allWilayah []SisterWilayah
+	for level := 0; level <= 3; level++ {
+		rawData, err := s.sisterAPI.GetReferensiWilayah(level)
+		if err != nil {
+			syncErr = fmt.Errorf("failed to fetch from Sister API (level %d): %w", level, err)
+			return 0, syncErr
+		}
+
+		sisterData, err := UnmarshalSisterResponse[SisterWilayah](rawData)
+		if err != nil {
+			syncErr = fmt.Errorf("failed to parse response (level %d): %w", level, err)
+			return 0, syncErr
+		}
+
+		allWilayah = append(allWilayah, sisterData...)
 	}
 
-	sisterData, err := UnmarshalSisterResponse[SisterWilayah](rawData)
-	if err != nil {
-		syncErr = fmt.Errorf("failed to parse response: %w", err)
-		return 0, syncErr
-	}
-
-	err = s.repo.BulkUpsertWilayah(sisterData, syncedBy)
+	err := s.repo.BulkUpsertWilayah(allWilayah, syncedBy)
 	if err != nil {
 		syncErr = fmt.Errorf("failed to save to database: %w", err)
 		return 0, syncErr
 	}
 
-	totalRecords = len(sisterData)
+	totalRecords = len(allWilayah)
 	return totalRecords, nil
 }
 
@@ -1719,25 +1725,35 @@ func (s *service) SyncKategoriKegiatanFromSister(syncedBy string) (int, error) {
 		s.logSyncResult(ctx, "Kategori Kegiatan", "kategori_kegiatan", "manual", syncedBy, totalRecords, startTime, syncErr)
 	}()
 
-	rawData, err := s.sisterAPI.GetReferensiKategoriKegiatan()
-	if err != nil {
-		syncErr = fmt.Errorf("failed to fetch from Sister API: %w", err)
-		return 0, syncErr
+	// Sync kategori_kegiatan with tree structure for all menus
+	menus := []string{"anggota_profesi", "bahan_ajar", "detasering", "diklat", "kekayaan_intelektual",
+		"jabatan_struktural", "orasi_ilmiah", "penelitian", "pembicara", "pengabdian",
+		"pengelola_jurnal", "penghargaan", "penunjang_lain", "publikasi", "tugas_tambahan", "visiting_scientist"}
+
+	var allKategori []SisterKategoriKegiatan
+	for _, menu := range menus {
+		rawData, err := s.sisterAPI.GetReferensiKategoriKegiatan("tree", menu)
+		if err != nil {
+			syncErr = fmt.Errorf("failed to fetch from Sister API (menu=%s): %w", menu, err)
+			return 0, syncErr
+		}
+
+		sisterData, err := UnmarshalSisterResponse[SisterKategoriKegiatan](rawData)
+		if err != nil {
+			syncErr = fmt.Errorf("failed to parse response (menu=%s): %w", menu, err)
+			return 0, syncErr
+		}
+
+		allKategori = append(allKategori, sisterData...)
 	}
 
-	sisterData, err := UnmarshalSisterResponse[SisterKategoriKegiatan](rawData)
-	if err != nil {
-		syncErr = fmt.Errorf("failed to parse response: %w", err)
-		return 0, syncErr
-	}
-
-	err = s.repo.BulkUpsertKategoriKegiatan(sisterData, syncedBy)
+	err := s.repo.BulkUpsertKategoriKegiatan(allKategori, syncedBy)
 	if err != nil {
 		syncErr = fmt.Errorf("failed to save to database: %w", err)
 		return 0, syncErr
 	}
 
-	totalRecords = len(sisterData)
+	totalRecords = len(allKategori)
 	return totalRecords, nil
 }
 
@@ -1752,25 +1768,31 @@ func (s *service) SyncKelompokBidangFromSister(syncedBy string) (int, error) {
 		s.logSyncResult(ctx, "Kelompok Bidang", "kelompok_bidang", "manual", syncedBy, totalRecords, startTime, syncErr)
 	}()
 
-	rawData, err := s.sisterAPI.GetReferensiKelompokBidang()
-	if err != nil {
-		syncErr = fmt.Errorf("failed to fetch from Sister API: %w", err)
-		return 0, syncErr
+	// Sync kelompok bidang for both iptek=true and iptek=false
+	var allKelompok []SisterKelompokBidang
+	for _, iptek := range []bool{true, false} {
+		rawData, err := s.sisterAPI.GetReferensiKelompokBidang(iptek)
+		if err != nil {
+			syncErr = fmt.Errorf("failed to fetch from Sister API (iptek=%v): %w", iptek, err)
+			return 0, syncErr
+		}
+
+		sisterData, err := UnmarshalSisterResponse[SisterKelompokBidang](rawData)
+		if err != nil {
+			syncErr = fmt.Errorf("failed to parse response (iptek=%v): %w", iptek, err)
+			return 0, syncErr
+		}
+
+		allKelompok = append(allKelompok, sisterData...)
 	}
 
-	sisterData, err := UnmarshalSisterResponse[SisterKelompokBidang](rawData)
-	if err != nil {
-		syncErr = fmt.Errorf("failed to parse response: %w", err)
-		return 0, syncErr
-	}
-
-	err = s.repo.BulkUpsertKelompokBidang(sisterData, syncedBy)
+	err := s.repo.BulkUpsertKelompokBidang(allKelompok, syncedBy)
 	if err != nil {
 		syncErr = fmt.Errorf("failed to save to database: %w", err)
 		return 0, syncErr
 	}
 
-	totalRecords = len(sisterData)
+	totalRecords = len(allKelompok)
 	return totalRecords, nil
 }
 
