@@ -260,6 +260,7 @@ func (s *service) transformSisterDataToDosen(data *SisterDosenData, cache *Refer
 
 		// Required fields with default values
 		Kewarganegaraan: "ID", // Default: Indonesia
+		NIK:             "0000000000000000", // Default NIK (20 chars) - will be overridden if available
 	}
 
 	// From Profil (required)
@@ -291,7 +292,7 @@ func (s *service) transformSisterDataToDosen(data *SisterDosenData, cache *Refer
 	// From Kependudukan
 	if data.Kependudukan != nil {
 		if data.Kependudukan.NIK != "" {
-			dosen.NIK = &data.Kependudukan.NIK
+			dosen.NIK = data.Kependudukan.NIK // Override default
 		}
 
 		// Parse ID Agama (Sister API returns as string number)

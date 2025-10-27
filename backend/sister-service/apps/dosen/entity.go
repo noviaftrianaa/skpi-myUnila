@@ -14,7 +14,7 @@ type Dosen struct {
 	TanggalLahir *time.Time `json:"tanggal_lahir" db:"tgl_lahir"`
 
 	// Identitas
-	NIK             *string `json:"nik" db:"nik"`
+	NIK             string  `json:"nik" db:"nik"` // char(20), NOT NULL
 	NIYIGK          *string `json:"niy_nigk" db:"niy_nigk"`
 	NUPTK           *string `json:"nuptk" db:"nuptk"`
 	NIDN            *string `json:"nidn" db:"nidn"`

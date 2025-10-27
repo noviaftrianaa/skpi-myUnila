@@ -228,7 +228,7 @@ func (r *repository) BulkUpsertDosen(data []*Dosen) error {
 			dosen.JK,               // @p3
 			dosen.TempatLahir,      // @p4
 			dosen.TanggalLahir,     // @p5
-			dosen.NIK,              // @p6
+			dosen.NIK,              // @p6 (NOT NULL, has default)
 			dosen.NIYIGK,           // @p7
 			dosen.NUPTK,            // @p8
 			dosen.NIDN,             // @p9
