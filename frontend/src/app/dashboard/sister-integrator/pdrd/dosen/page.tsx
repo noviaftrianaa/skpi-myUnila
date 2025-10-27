@@ -39,9 +39,11 @@ import {
   FiTrendingUp,
   FiFilter,
   FiDownload,
+  FiArrowLeft,
 } from "react-icons/fi";
 import { RiGovernmentFill } from "react-icons/ri";
-import { sisterIntegratorMenuConfig } from "../config/menuConfig";
+import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
+import Link from "next/link";
 import { sisterDosenService, type SisterDosen, type SisterDosenStats } from "@/lib/services/dosenService";
 import { toast } from "react-hot-toast";
 import { format } from "date-fns";
@@ -219,35 +221,34 @@ export default function DosenManagementPage() {
       pageTitle="Dosen Management"
     >
       <div className="space-y-6">
-        {/* Header Section */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-700 p-6 sm:p-8 text-white shadow-xl">
-          <div className="absolute inset-0 bg-black/10"></div>
-          <div className="absolute -right-20 -top-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-          <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-
-          <div className="relative z-10">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <FiUsers className="w-5 h-5" />
-                  <span className="text-sm font-medium opacity-90">
-                    Manajemen Data Dosen - SISTER Integration
-                  </span>
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-bold mb-2">
-                  Data Dosen Universitas Lampung
-                </h1>
-                <p className="text-purple-100 text-sm sm:text-base">
-                  Monitor dan kelola data dosen yang tersinkronisasi dengan SISTER API Kemdikbud
-                </p>
-              </div>
-              <div className="hidden lg:block">
-                <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <FiUsers className="w-12 h-12" />
-                </div>
-              </div>
-            </div>
+        {/* Breadcrumb & Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <Link
+              href="/dashboard/sister-integrator/pdrd"
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-purple-600 mb-2 transition-colors"
+            >
+              <FiArrowLeft className="w-4 h-4" />
+              Kembali ke Data PDRD
+            </Link>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+              Data Dosen & Tendik
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Sinkronisasi dan kelola data SDM dosen dan tenaga kependidikan dari SISTER API
+            </p>
           </div>
+          <Button
+            color="primary"
+            size="lg"
+            startContent={<FiRefreshCw className={`w-5 h-5 ${isSyncing ? "animate-spin" : ""}`} />}
+            onClick={handleSync}
+            isLoading={isSyncing}
+            isDisabled={isSyncing}
+            className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all rounded-xl"
+          >
+            Sinkronisasi Data
+          </Button>
         </div>
 
         {/* Stats Grid */}
