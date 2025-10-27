@@ -113,6 +113,117 @@ func (ctrl *Controller) GetDosenBidangIlmu(c *fiber.Ctx) error {
 	})
 }
 
+// GetDosenList handles GET /public/dosen
+// @Summary Get list of dosen from database
+// @Description Retrieves paginated list of dosen with search and filter capabilities
+// @Tags Dosen
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Items per page" default(10)
+// @Param search query string false "Search by name, NIDN, or NIP"
+// @Param id_jns_sdm query int false "Filter by jenis SDM"
+// @Param id_stat_aktif query int false "Filter by status aktif"
+// @Success 200 {object} map[string]interface{} "List of dosen"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /public/dosen [get]
+func (ctrl *Controller) GetDosenList(c *fiber.Ctx) error {
+	page := c.QueryInt("page", 1)
+	limit := c.QueryInt("limit", 10)
+	search := c.Query("search", "")
+	idJnsSDM := c.QueryInt("id_jns_sdm", 0)
+	idStatAktif := c.QueryInt("id_stat_aktif", 0)
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 100 {
+		limit = 10
+	}
+
+	result, err := ctrl.service.GetDosenList(page, limit, search, idJnsSDM, idStatAktif)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to retrieve dosen list",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Dosen list retrieved successfully",
+		"data":    result,
+	})
+}
+
+// GetDosenDetail handles GET /public/dosen/:id_sdm
+// @Summary Get dosen detail by ID
+// @Description Retrieves complete dosen information from database
+// @Tags Dosen
+// @Produce json
+// @Param id_sdm path string true "ID SDM (Dosen ID)"
+// @Success 200 {object} map[string]interface{} "Dosen detail"
+// @Failure 404 {object} map[string]interface{} "Dosen not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /public/dosen/{id_sdm} [get]
+func (ctrl *Controller) GetDosenDetail(c *fiber.Ctx) error {
+	idSDM := c.Params("id_sdm")
+
+	if idSDM == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"message": "id_sdm parameter is required",
+		})
+	}
+
+	dosen, err := ctrl.service.GetDosenByID(idSDM)
+	if err != nil {
+		if err.Error() == "dosen not found" {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"success": false,
+				"message": "Dosen not found",
+			})
+		}
+
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to retrieve dosen detail",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Dosen detail retrieved successfully",
+		"data":    dosen,
+	})
+}
+
+// GetDosenStats handles GET /public/dosen/stats
+// @Summary Get dosen statistics
+// @Description Retrieves overall dosen statistics (total, by jenis, by status, etc)
+// @Tags Dosen
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Dosen statistics"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /public/dosen/stats [get]
+func (ctrl *Controller) GetDosenStats(c *fiber.Ctx) error {
+	stats, err := ctrl.service.GetDosenStats()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to retrieve dosen statistics",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Dosen statistics retrieved successfully",
+		"data":    stats,
+	})
+}
+
 // SyncDosenFromSister handles POST /dosen/sync
 // @Summary Sync all dosen data from SISTER API to database
 // @Description Performs batch sync of all Unila dosen from SISTER API using goroutine workers

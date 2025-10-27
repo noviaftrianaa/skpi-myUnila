@@ -164,3 +164,22 @@ type BatchDosenSyncResult struct {
 	Results        []DosenSyncResult  `json:"results,omitempty"`
 	SyncedBy       string             `json:"synced_by"`
 }
+
+// DosenListResult represents paginated dosen list response
+type DosenListResult struct {
+	Data       []*Dosen `json:"data"`
+	Total      int      `json:"total"`
+	Page       int      `json:"page"`
+	Limit      int      `json:"limit"`
+	TotalPages int      `json:"total_pages"`
+}
+
+// DosenStats represents dosen statistics
+type DosenStats struct {
+	TotalDosen      int                    `json:"total_dosen"`
+	TotalAktif      int                    `json:"total_aktif"`
+	TotalTidakAktif int                    `json:"total_tidak_aktif"`
+	ByJenisSDM      []map[string]interface{} `json:"by_jenis_sdm"`
+	ByStatusAktif   []map[string]interface{} `json:"by_status_aktif"`
+	LastSync        *time.Time             `json:"last_sync"`
+}
