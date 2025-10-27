@@ -326,7 +326,7 @@ export default function ReferensiDashboardPage() {
         </div>
 
         {/* Search & Filter Section */}
-        <Card className="border-2 border-purple-200 dark:border-purple-800/50 shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white via-purple-50/30 to-indigo-50/30 dark:from-gray-900 dark:via-purple-950/20 dark:to-indigo-950/20">
+        <Card className={`border-2 border-purple-200 dark:border-purple-800/50 shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white via-purple-50/30 to-indigo-50/30 dark:from-gray-900 dark:via-purple-950/20 dark:to-indigo-950/20 rounded-2xl ${searchQuery ? 'mb-2' : ''}`}>
           <CardBody className="p-6">
             <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 lg:gap-6">
               {/* Icon & Title */}
@@ -360,7 +360,7 @@ export default function ReferensiDashboardPage() {
                     base: "w-full",
                     mainWrapper: "h-full",
                     input: "text-base",
-                    inputWrapper: "h-12 border-2 border-purple-200 dark:border-purple-800 bg-white dark:bg-gray-800 hover:border-purple-400 dark:hover:border-purple-600 focus-within:!border-purple-600 dark:focus-within:!border-purple-500 shadow-sm hover:shadow-md transition-all duration-200",
+                    inputWrapper: "h-12 border-2 border-purple-200 dark:border-purple-800 bg-white dark:bg-gray-800 hover:border-purple-400 dark:hover:border-purple-600 focus-within:!border-purple-600 dark:focus-within:!border-purple-500 shadow-sm hover:shadow-md transition-all duration-200 rounded-xl",
                   }}
                   size="lg"
                 />
@@ -403,7 +403,7 @@ export default function ReferensiDashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {filteredMetadata.length === 0 ? (
               <div className="col-span-full">
-                <Card className="border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+                <Card className="border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 rounded-2xl">
                   <CardBody className="flex flex-col items-center justify-center py-16 text-center">
                     <div className="relative mb-6">
                       <div className="absolute inset-0 bg-gray-400 dark:bg-gray-600 rounded-full blur-2xl opacity-20 animate-pulse"></div>
@@ -417,7 +417,7 @@ export default function ReferensiDashboardPage() {
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 max-w-md">
                       Tidak ada endpoint yang cocok dengan pencarian Anda
                     </p>
-                    <div className="mt-3 px-4 py-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div className="mt-3 px-4 py-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
                       <p className="text-sm">
                         <span className="text-gray-500 dark:text-gray-400">Pencarian:</span>{" "}
                         <span className="font-bold text-purple-600 dark:text-purple-400">"{searchQuery}"</span>
