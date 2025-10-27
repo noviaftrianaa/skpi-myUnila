@@ -62,7 +62,7 @@ func (r *repository) GetReferenceCache() (*ReferenceCache, error) {
 	}
 
 	// Load status_keaktifan_pegawai
-	queryStatusAktif := `SELECT id_stat_aktif, nama_status_aktif FROM ref.status_keaktifan_pegawai WHERE expired_date IS NULL`
+	queryStatusAktif := `SELECT id_stat_aktif, nm_stat_aktif FROM ref.status_keaktifan_pegawai WHERE expired_date IS NULL`
 	rows, err = r.db.Query(queryStatusAktif)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load status_keaktifan_pegawai: %w", err)
