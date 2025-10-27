@@ -174,7 +174,7 @@ type BidangUsaha struct {
 }
 
 type SisterBidangUsaha struct {
-	ID   string `json:"id"`
+	ID   int    `json:"id"`
 	Nama string `json:"nama"`
 }
 
