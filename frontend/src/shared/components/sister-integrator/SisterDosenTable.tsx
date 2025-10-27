@@ -153,19 +153,22 @@ export default function SisterDosenTable() {
   const filterSlot = (
     <div className="flex gap-3">
       <Select
-        placeholder="Jenis SDM"
-        selectedKeys={filterJenisSDM ? [filterJenisSDM.toString()] : []}
+        label="Jenis SDM"
+        placeholder="Pilih jenis SDM"
+        selectedKeys={filterJenisSDM > 0 ? [filterJenisSDM.toString()] : ["0"]}
         onChange={(e) => {
           setFilterJenisSDM(parseInt(e.target.value) || 0);
           setCurrentPage(1);
         }}
         classNames={{
-          trigger: "h-10 min-w-[200px]",
+          trigger: "h-10 min-w-[200px] bg-white dark:bg-gray-800",
+          label: "text-xs",
         }}
         size="sm"
+        variant="bordered"
       >
         <SelectItem key="0" value="0">
-          Semua Jenis
+          Semua Jenis SDM
         </SelectItem>
         {stats?.by_jenis_sdm
           .filter((j) => j.total > 0)
@@ -176,16 +179,19 @@ export default function SisterDosenTable() {
           ))}
       </Select>
       <Select
-        placeholder="Status Aktif"
-        selectedKeys={filterStatusAktif ? [filterStatusAktif.toString()] : []}
+        label="Status Aktif"
+        placeholder="Pilih status"
+        selectedKeys={filterStatusAktif > 0 ? [filterStatusAktif.toString()] : ["0"]}
         onChange={(e) => {
           setFilterStatusAktif(parseInt(e.target.value) || 0);
           setCurrentPage(1);
         }}
         classNames={{
-          trigger: "h-10 min-w-[200px]",
+          trigger: "h-10 min-w-[200px] bg-white dark:bg-gray-800",
+          label: "text-xs",
         }}
         size="sm"
+        variant="bordered"
       >
         <SelectItem key="0" value="0">
           Semua Status

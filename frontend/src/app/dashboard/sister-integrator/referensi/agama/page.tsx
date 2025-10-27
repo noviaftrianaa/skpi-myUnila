@@ -220,16 +220,9 @@ export default function AgamaPage() {
       pageTitle="Referensi - Agama"
     >
       <div className="space-y-6">
-        {/* Breadcrumb & Header */}
+        {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <Link
-              href="/dashboard/sister-integrator"
-              className="flex items-center gap-2 text-sm text-gray-600 hover:text-purple-600 mb-2 transition-colors"
-            >
-              <FiArrowLeft className="w-4 h-4" />
-              Kembali ke Dashboard
-            </Link>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
               Data Referensi Agama
             </h1>

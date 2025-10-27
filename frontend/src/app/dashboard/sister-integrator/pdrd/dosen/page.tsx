@@ -163,16 +163,9 @@ export default function DosenManagementPage() {
       pageTitle="Dosen Management"
     >
       <div className="space-y-6">
-        {/* Breadcrumb & Header */}
+        {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <Link
-              href="/dashboard/sister-integrator"
-              className="flex items-center gap-2 text-sm text-gray-600 hover:text-purple-600 mb-2 transition-colors"
-            >
-              <FiArrowLeft className="w-4 h-4" />
-              Kembali ke Dashboard
-            </Link>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
               Data Dosen & Tendik
             </h1>
@@ -205,7 +198,7 @@ export default function DosenManagementPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs font-medium text-purple-100">Total Dosen</p>
+                    <p className="text-xs font-medium text-purple-100">Total Dosen & Tendik</p>
                     <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
                       <span className="text-[10px] font-semibold text-white">Live</span>
                     </div>
@@ -215,7 +208,7 @@ export default function DosenManagementPage() {
                   </h3>
                   <p className="text-[10px] text-purple-100/80 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                    Total data dosen
+                    Total data SDM
                   </p>
                 </div>
               </div>
