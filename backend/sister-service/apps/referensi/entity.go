@@ -460,11 +460,12 @@ type SisterKategoriKegiatan struct {
 
 // KelompokBidang represents field group reference data
 type KelompokBidang struct {
-	IDKelompokBidang string     `json:"id_kelompok_bidang" db:"id_kel_bidang"`
-	NamaKelompokBidang string   `json:"nama_kelompok_bidang" db:"nm_kel_bidang"`
-	ExpiredDate      *time.Time `json:"expired_date,omitempty" db:"expired_date"`
-	LastSync         *time.Time `json:"last_sync,omitempty" db:"last_sync"`
-	SyncedBy         *string    `json:"synced_by,omitempty" db:"synced_by"`
+	IDKelompokBidang   string     `json:"id_kelompok_bidang" db:"id_kel_bidang"`
+	KodeKelompokBidang string     `json:"kode_kelompok_bidang" db:"kode_kel_bidang"`
+	NamaKelompokBidang string     `json:"nama_kelompok_bidang" db:"nm_kel_bidang"`
+	ExpiredDate        *time.Time `json:"expired_date,omitempty" db:"expired_date"`
+	LastSync           *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	SyncedBy           *string    `json:"synced_by,omitempty" db:"synced_by"`
 }
 
 type SisterKelompokBidang struct {

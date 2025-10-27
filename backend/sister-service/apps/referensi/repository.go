@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"regexp"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -1410,9 +1412,25 @@ func (r *repository) BulkUpsertKategoriKegiatan(data []SisterKategoriKegiatan, s
 // GetAllKelompokBidang retrieves all active kelompokBidang records
 func (r *repository) GetAllKelompokBidang() ([]KelompokBidang, error) {
 	var result []KelompokBidang
-	query := `SELECT id_kel_bidang, nm_kel_bidang, expired_date, last_sync FROM ref.kelompok_bidang WHERE expired_date IS NULL ORDER BY nm_kel_bidang`
+	query := `SELECT id_kel_bidang, kode_kel_bidang, nm_kel_bidang, expired_date, last_sync FROM ref.kelompok_bidang WHERE expired_date IS NULL ORDER BY nm_kel_bidang`
 	err := r.db.Select(&result, query)
 	return result, err
+}
+
+// extractKodeAndCleanNama extracts kode from nama like "[381209] Hukum..." and returns (kode, cleanedNama)
+func extractKodeAndCleanNama(nama string) (string, string) {
+	// Regex to match [kode] at the beginning
+	re := regexp.MustCompile(`^\[(\d+)\]\s*(.+)$`)
+	matches := re.FindStringSubmatch(nama)
+
+	if len(matches) == 3 {
+		kode := matches[1]
+		cleanNama := strings.TrimSpace(matches[2])
+		return kode, cleanNama
+	}
+
+	// If no kode found, return empty kode and original nama
+	return "", nama
 }
 
 // BulkUpsertKelompokBidang performs bulk upsert for kelompokBidang
@@ -1424,19 +1442,23 @@ func (r *repository) BulkUpsertKelompokBidang(data []SisterKelompokBidang, synce
 	defer tx.Rollback()
 
 	for _, item := range data {
+		// Extract kode and clean nama
+		kode, cleanNama := extractKodeAndCleanNama(item.Nama)
+
 		query := `
 			MERGE ref.kelompok_bidang AS target
-			USING (SELECT @p1 AS id_kel_bidang, @p2 AS nm_kel_bidang) AS source
+			USING (SELECT @p1 AS id_kel_bidang, @p2 AS kode_kel_bidang, @p3 AS nm_kel_bidang) AS source
 			ON target.id_kel_bidang = source.id_kel_bidang
 			WHEN MATCHED THEN
-				UPDATE SET nm_kel_bidang = source.nm_kel_bidang,
+				UPDATE SET kode_kel_bidang = source.kode_kel_bidang,
+						   nm_kel_bidang = source.nm_kel_bidang,
 						   last_update = DATEADD(HOUR, 7, GETUTCDATE()),
 						   last_sync = DATEADD(HOUR, 7, GETUTCDATE())
 			WHEN NOT MATCHED THEN
-				INSERT (id_kel_bidang, nm_kel_bidang, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
-				VALUES (source.id_kel_bidang, source.nm_kel_bidang, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
+				INSERT (id_kel_bidang, kode_kel_bidang, nm_kel_bidang, a_ref_pddikti, a_ref_unila, create_date, last_update, expired_date, last_sync)
+				VALUES (source.id_kel_bidang, source.kode_kel_bidang, source.nm_kel_bidang, 1, 0, DATEADD(HOUR, 7, GETUTCDATE()), DATEADD(HOUR, 7, GETUTCDATE()), NULL, DATEADD(HOUR, 7, GETUTCDATE()));
 		`
-		_, err = tx.Exec(query, item.ID, item.Nama)
+		_, err = tx.Exec(query, item.ID, kode, cleanNama)
 		if err != nil {
 			return fmt.Errorf("failed to upsert kelompok_bidang %v: %w", item.ID, err)
 		}
