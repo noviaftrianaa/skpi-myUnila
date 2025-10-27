@@ -326,27 +326,11 @@ export default function ReferensiDashboardPage() {
         </div>
 
         {/* Search & Filter Section */}
-        <Card className={`border-2 border-purple-200 dark:border-purple-800/50 shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white via-purple-50/30 to-indigo-50/30 dark:from-gray-900 dark:via-purple-950/20 dark:to-indigo-950/20 rounded-2xl ${searchQuery ? 'mb-2' : ''}`}>
-          <CardBody className="p-6">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 lg:gap-6">
-              {/* Icon & Title */}
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl blur-md opacity-50 animate-pulse"></div>
-                  <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-lg">
-                    <FiSearch className="w-7 h-7 text-white" />
-                  </div>
-                </div>
-                <div className="hidden sm:block">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Cari Endpoint</h3>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    Filter berdasarkan nama, key, atau deskripsi
-                  </p>
-                </div>
-              </div>
-
+        <Card className={`shadow-md hover:shadow-lg transition-shadow duration-200 bg-white dark:bg-gray-900 ${searchQuery ? 'mb-2' : ''}`}>
+          <CardBody className="p-5">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
               {/* Search Input */}
-              <div className="flex-1 w-full lg:w-auto">
+              <div className="flex-1">
                 <Input
                   isClearable
                   placeholder="Ketik untuk mencari endpoint..."
@@ -360,37 +344,21 @@ export default function ReferensiDashboardPage() {
                     base: "w-full",
                     mainWrapper: "h-full",
                     input: "text-base",
-                    inputWrapper: "h-12 border-2 border-purple-200 dark:border-purple-800 bg-white dark:bg-gray-800 hover:border-purple-400 dark:hover:border-purple-600 focus-within:!border-purple-600 dark:focus-within:!border-purple-500 shadow-sm hover:shadow-md transition-all duration-200 rounded-xl",
+                    inputWrapper: "h-11 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-purple-400 dark:hover:border-purple-600 focus-within:!border-purple-500 dark:focus-within:!border-purple-500 transition-colors rounded-lg",
                   }}
                   size="lg"
                 />
               </div>
 
-              {/* Search Stats */}
+              {/* Search Stats Badge */}
               {searchQuery && (
-                <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 rounded-xl border-2 border-purple-300 dark:border-purple-700 animate-in slide-in-from-right duration-300">
-                  <FiCheckCircle className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                  <div className="text-sm">
-                    <span className="font-bold text-purple-900 dark:text-purple-100">
-                      {filteredMetadata.length}
-                    </span>
-                    <span className="text-purple-700 dark:text-purple-300 mx-1">/</span>
-                    <span className="text-purple-600 dark:text-purple-400">
-                      {metadata.length}
-                    </span>
-                  </div>
+                <div className="flex items-center gap-2 px-3 py-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                  <span className="text-sm font-semibold text-purple-700 dark:text-purple-300">
+                    {filteredMetadata.length} / {metadata.length}
+                  </span>
                 </div>
               )}
             </div>
-
-            {/* Search Active Info */}
-            {searchQuery && (
-              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 dark:border-blue-400 rounded-r-lg animate-in slide-in-from-left duration-300">
-                <p className="text-sm text-blue-700 dark:text-blue-300">
-                  Menampilkan hasil untuk: <span className="font-bold">"{searchQuery}"</span>
-                </p>
-              </div>
-            )}
           </CardBody>
         </Card>
 
@@ -403,32 +371,23 @@ export default function ReferensiDashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {filteredMetadata.length === 0 ? (
               <div className="col-span-full">
-                <Card className="border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 rounded-2xl">
-                  <CardBody className="flex flex-col items-center justify-center py-16 text-center">
-                    <div className="relative mb-6">
-                      <div className="absolute inset-0 bg-gray-400 dark:bg-gray-600 rounded-full blur-2xl opacity-20 animate-pulse"></div>
-                      <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
-                        <FiSearch className="w-12 h-12 text-gray-400 dark:text-gray-500" />
-                      </div>
+                <Card className="border border-dashed border-gray-300 dark:border-gray-700">
+                  <CardBody className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4">
+                      <FiSearch className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-3">
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">
                       Tidak ada endpoint ditemukan
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 max-w-md">
-                      Tidak ada endpoint yang cocok dengan pencarian Anda
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                      Pencarian "<span className="font-medium text-purple-600 dark:text-purple-400">{searchQuery}</span>" tidak cocok dengan endpoint manapun
                     </p>
-                    <div className="mt-3 px-4 py-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-                      <p className="text-sm">
-                        <span className="text-gray-500 dark:text-gray-400">Pencarian:</span>{" "}
-                        <span className="font-bold text-purple-600 dark:text-purple-400">"{searchQuery}"</span>
-                      </p>
-                    </div>
                     <Button
-                      variant="light"
+                      size="sm"
+                      variant="flat"
                       color="secondary"
                       startContent={<FiRefreshCw className="w-4 h-4" />}
                       onClick={() => setSearchQuery("")}
-                      className="mt-6"
                     >
                       Reset Pencarian
                     </Button>
