@@ -2,50 +2,78 @@ package dosen
 
 import "time"
 
-// Dosen represents the dosen entity in sdm.dosen table
+// Dosen represents the dosen entity in pdrd.sdm table
 type Dosen struct {
-	IDSDM           string     `json:"id_sdm" db:"id_sdm"`
-	NamaSDM         string     `json:"nama_sdm" db:"nm_sdm"`
-	JenisKelamin    string     `json:"jenis_kelamin" db:"jns_kelamin"`
-	TempatLahir     string     `json:"tempat_lahir" db:"tmpt_lahir"`
-	TanggalLahir    *time.Time `json:"tanggal_lahir" db:"tgl_lahir"`
-	IDJenisSDM      *int       `json:"id_jenis_sdm" db:"id_jns_sdm"`
-	NIK             *string    `json:"nik" db:"nik"`
-	NIDN            *string    `json:"nidn" db:"nidn"`
-	NIP             *string    `json:"nip" db:"nip"`
-	NUPTK           *string    `json:"nuptk" db:"nuptk"`
-	IDAgama         *string    `json:"id_agama" db:"id_agama"`
-	IDStatusAktif   *string    `json:"id_status_aktif" db:"id_stat_aktif"`
-	Kewarganegaraan *string    `json:"kewarganegaraan" db:"kewarganegaraan"`
-	StatusKawin     *string    `json:"status_kawin" db:"stat_kawin"`
-	NamaPasangan    *string    `json:"nama_pasangan" db:"nm_pasangan"`
-	NIPPasangan     *string    `json:"nip_pasangan" db:"nip_pasangan"`
-	TanggalNikah    *time.Time `json:"tanggal_nikah" db:"tgl_nikah"`
-	PekerjaanPsgn   *string    `json:"pekerjaan_pasangan" db:"pekerjaan_psgn"`
-	Alamat          *string    `json:"alamat" db:"jalan"`
-	RT              *string    `json:"rt" db:"rt"`
-	RW              *string    `json:"rw" db:"rw"`
-	Dusun           *string    `json:"dusun" db:"dusun"`
-	DesaKelurahan   *string    `json:"desa_kelurahan" db:"ds_kel"`
-	KodePos         *string    `json:"kode_pos" db:"kode_pos"`
-	IDWilayah       *string    `json:"id_wilayah" db:"id_wil"`
-	Telepon         *string    `json:"telepon" db:"telepon"`
-	Handphone       *string    `json:"handphone" db:"handphone"`
-	Email           *string    `json:"email" db:"email"`
-	IDLembagaPengangkat *int   `json:"id_lembaga_pengangkat" db:"id_lemb_angkat"`
-	NIPY            *string    `json:"nipy" db:"nipy"`
-	TanggalMasuk    *time.Time `json:"tanggal_masuk" db:"tgl_msk_pegawai"`
-	TanggalKeluar   *time.Time `json:"tanggal_keluar" db:"tgl_klr_pegawai"`
-	TanggalCPNS     *time.Time `json:"tanggal_cpns" db:"tgl_cpns"`
-	NomorSKCPNS     *string    `json:"nomor_sk_cpns" db:"no_sk_cpns"`
-	TanggalSKCPNS   *time.Time `json:"tanggal_sk_cpns" db:"tgl_sk_cpns"`
-	TanggalPengangkatan *time.Time `json:"tanggal_pengangkatan" db:"tgl_diangkat"`
-	TMTPNS          *time.Time `json:"tmt_pns" db:"tmt_pns"`
-	NomorSKPengangkatan *string `json:"nomor_sk_pengangkatan" db:"no_sk_pengangkatan"`
-	NPWP            *string    `json:"npwp" db:"npwp"`
-	CreateDate      *time.Time `json:"create_date,omitempty" db:"create_date"`
-	LastUpdate      *time.Time `json:"last_update,omitempty" db:"last_update"`
-	LastSync        *time.Time `json:"last_sync,omitempty" db:"last_sync"`
+	// Primary Key
+	IDSDM string `json:"id_sdm" db:"id_sdm"`
+
+	// Data Pribadi
+	NamaSDM      string     `json:"nama_sdm" db:"nm_sdm"`
+	JK           string     `json:"jenis_kelamin" db:"jk"` // L/P/*
+	TempatLahir  string     `json:"tempat_lahir" db:"tmpt_lahir"`
+	TanggalLahir *time.Time `json:"tanggal_lahir" db:"tgl_lahir"`
+
+	// Identitas
+	NIK             *string `json:"nik" db:"nik"`
+	NIYIGK          *string `json:"niy_nigk" db:"niy_nigk"`
+	NUPTK           *string `json:"nuptk" db:"nuptk"`
+	NIDN            *string `json:"nidn" db:"nidn"`
+	NSDMI           *string `json:"nsdmi" db:"nsdmi"`
+	NIP             *string `json:"nip" db:"nip"`
+
+	// Status Pernikahan
+	StatKawin      *int    `json:"status_kawin" db:"stat_kawin"` // numeric(1)
+	NamaSuamiIstri *string `json:"nama_suami_istri" db:"nm_suami_istri"`
+	NIPSuamiIstri  *string `json:"nip_suami_istri" db:"nip_suami_istri"`
+
+	// Alamat
+	Jalan     *string `json:"jalan" db:"jln"`
+	RT        *int    `json:"rt" db:"rt"`        // numeric(3)
+	RW        *int    `json:"rw" db:"rw"`        // numeric(3)
+	NamaDusun *string `json:"nama_dusun" db:"nm_dsn"`
+	DesaKel   *string `json:"desa_kelurahan" db:"ds_kel"`
+	KodePos   *string `json:"kode_pos" db:"kode_pos"`
+
+	// Kontak
+	NoTelRumah *string `json:"no_tel_rmh" db:"no_tel_rmh"`
+	NoHP       *string `json:"no_hp" db:"no_hp"`
+	Email      *string `json:"email" db:"email"`
+
+	// Kepegawaian
+	TMTPNS     *time.Time `json:"tmt_pns" db:"tmt_pns"`
+	SKCPNS     *string    `json:"sk_cpns" db:"sk_cpns"`
+	TglSKCPNS  *time.Time `json:"tgl_sk_cpns" db:"tgl_sk_cpns"`
+	SKAngkat   *string    `json:"sk_angkat" db:"sk_angkat"`
+	TMTSKAngkat *time.Time `json:"tmt_sk_angkat" db:"tmt_sk_angkat"`
+
+	// Pajak
+	NPWP *string `json:"npwp" db:"npwp"`
+	NmWP *string `json:"nm_wp" db:"nm_wp"`
+
+	// Lainnya
+	StatData      *int    `json:"stat_data" db:"stat_data"`
+	AktaIjinAjar  *string `json:"akta_ijin_ajar" db:"akta_ijin_ajar"` // char(1)
+	NIRA          *string `json:"nira" db:"nira"`
+	JnsReg        *string `json:"jns_reg" db:"jns_reg"`
+	Kewarganegaraan string  `json:"kewarganegaraan" db:"kewarganegaraan"` // char(2), NOT NULL
+
+	// Foreign Keys (REQUIRED - NOT NULL)
+	IDJenisSDM         int    `json:"id_jenis_sdm" db:"id_jns_sdm"`             // numeric(2), NOT NULL
+	IDWilayah          string `json:"id_wilayah" db:"id_wil"`                   // char(8), NOT NULL
+	IDStatusAktif      int    `json:"id_status_aktif" db:"id_stat_aktif"`       // numeric(2), NOT NULL
+	IDAgama            int    `json:"id_agama" db:"id_agama"`                   // smallint, NOT NULL
+	IDKeahlianLab      *int   `json:"id_keahlian_lab" db:"id_keahlian_lab"`     // smallint, nullable
+	IDPekerjaanSuamiIstri int `json:"id_pekerjaan_suami_istri" db:"id_pekerjaan_suami_istri"` // int, NOT NULL
+	IDLembagaAngkat    int    `json:"id_lembaga_angkat" db:"id_lemb_angkat"`    // numeric(2), NOT NULL
+	IDSumberGaji       *int   `json:"id_sumber_gaji" db:"id_sumber_gaji"`       // numeric(2), nullable
+
+	// Audit Fields (REQUIRED - NOT NULL)
+	CreateDate time.Time  `json:"create_date" db:"create_date"` // datetime, NOT NULL
+	IDCreator  string     `json:"id_creator" db:"id_creator"`   // uniqueidentifier, NOT NULL
+	LastUpdate time.Time  `json:"last_update" db:"last_update"` // datetime, NOT NULL
+	IDUpdater  *string    `json:"id_updater" db:"id_updater"`   // uniqueidentifier, nullable
+	SoftDelete int        `json:"soft_delete" db:"soft_delete"` // numeric(1), NOT NULL, default 0
+	LastSync   time.Time  `json:"last_sync" db:"last_sync"`     // datetime, NOT NULL
 }
 
 // SisterDosenData represents combined data from Sister API

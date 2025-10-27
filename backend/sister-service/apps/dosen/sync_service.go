@@ -233,30 +233,55 @@ func (s *service) fetchDosenData(idSDM string) (*SisterDosenData, error) {
 	return combined, nil
 }
 
-// transformSisterDataToDosen transforms combined Sister API data to Dosen entity
+// transformSisterDataToDosen transforms combined Sister API data to Dosen entity for pdrd.sdm
 func (s *service) transformSisterDataToDosen(data *SisterDosenData, cache *ReferenceCache) (*Dosen, error) {
+	now := time.Now()
+
+	// System UUID for created_by/updated_by (can be configured)
+	systemUUID := "00000000-0000-0000-0000-000000000001" // Default system user
+
 	dosen := &Dosen{
 		IDSDM: data.IDSDM,
+
+		// Required Audit Fields
+		CreateDate: now,
+		IDCreator:  systemUUID,
+		LastUpdate: now,
+		SoftDelete: 0, // Active record
+		LastSync:   now,
+
+		// Required Foreign Keys with defaults
+		IDJenisSDM:            1,  // Default: Dosen Tetap (akan di-override dari Sister API jika ada)
+		IDWilayah:             "000000", // Default wilayah (akan di-override dari Sister API jika ada)
+		IDStatusAktif:         1,  // Default: Aktif (akan di-override dari Sister API jika ada)
+		IDAgama:               1,  // Default: Islam (akan di-override dari Sister API jika ada)
+		IDPekerjaanSuamiIstri: 99, // Default: Tidak Bekerja/Tidak Ada
+		IDLembagaAngkat:       1,  // Default: Universitas Lampung
+
+		// Required fields with default values
+		Kewarganegaraan: "ID", // Default: Indonesia
 	}
 
 	// From Profil (required)
 	if data.Profil != nil {
 		dosen.NamaSDM = data.Profil.NamaSDM
-		dosen.JenisKelamin = data.Profil.JenisKelamin
+		dosen.JK = data.Profil.JenisKelamin // L/P/*
 		dosen.TempatLahir = data.Profil.TempatLahir
+
 		if data.Profil.TanggalLahir != "" {
 			if t, err := parseDate(data.Profil.TanggalLahir); err == nil {
 				dosen.TanggalLahir = &t
 			}
 		}
+
 		if data.Profil.NIDN != "" {
 			dosen.NIDN = &data.Profil.NIDN
 		}
 		if data.Profil.Telepon != "" {
-			dosen.Telepon = &data.Profil.Telepon
+			dosen.NoTelRumah = &data.Profil.Telepon
 		}
 		if data.Profil.Handphone != "" {
-			dosen.Handphone = &data.Profil.Handphone
+			dosen.NoHP = &data.Profil.Handphone
 		}
 		if data.Profil.Email != "" {
 			dosen.Email = &data.Profil.Email
@@ -268,115 +293,126 @@ func (s *service) transformSisterDataToDosen(data *SisterDosenData, cache *Refer
 		if data.Kependudukan.NIK != "" {
 			dosen.NIK = &data.Kependudukan.NIK
 		}
+
+		// Parse ID Agama (Sister API returns as string number)
 		if data.Kependudukan.IDAgama != "" {
-			dosen.IDAgama = &data.Kependudukan.IDAgama
+			if idAgama, err := parseInt(data.Kependudukan.IDAgama); err == nil {
+				dosen.IDAgama = idAgama
+			}
 		}
+
+		// Map kewarganegaraan (Sister API: WNI/WNA -> DB: ID/XX)
 		if data.Kependudukan.Kewarganegaraan != "" {
-			dosen.Kewarganegaraan = &data.Kependudukan.Kewarganegaraan
+			if data.Kependudukan.Kewarganegaraan == "WNI" {
+				dosen.Kewarganegaraan = "ID"
+			} else {
+				dosen.Kewarganegaraan = "XX" // Foreign national
+			}
 		}
 	}
 
 	// From Keluarga
 	if data.Keluarga != nil {
+		// Parse status kawin (Sister API returns as string "1"/"0" -> DB: numeric(1))
 		if data.Keluarga.StatusKawin != "" {
-			dosen.StatusKawin = &data.Keluarga.StatusKawin
-		}
-		if data.Keluarga.NamaPasangan != "" {
-			dosen.NamaPasangan = &data.Keluarga.NamaPasangan
-		}
-		if data.Keluarga.NIPPasangan != "" {
-			dosen.NIPPasangan = &data.Keluarga.NIPPasangan
-		}
-		if data.Keluarga.TanggalNikah != "" {
-			if t, err := parseDate(data.Keluarga.TanggalNikah); err == nil {
-				dosen.TanggalNikah = &t
+			if statKawin, err := parseInt(data.Keluarga.StatusKawin); err == nil {
+				dosen.StatKawin = &statKawin
 			}
 		}
-		if data.Keluarga.PekerjaanPsgn != "" {
-			dosen.PekerjaanPsgn = &data.Keluarga.PekerjaanPsgn
+
+		if data.Keluarga.NamaPasangan != "" {
+			dosen.NamaSuamiIstri = &data.Keluarga.NamaPasangan
 		}
+		if data.Keluarga.NIPPasangan != "" {
+			dosen.NIPSuamiIstri = &data.Keluarga.NIPPasangan
+		}
+
+		// Note: tgl_nikah tidak ada di pdrd.sdm schema
 	}
 
 	// From Alamat
 	if data.Alamat != nil {
 		if data.Alamat.Jalan != "" {
-			dosen.Alamat = &data.Alamat.Jalan
+			dosen.Jalan = &data.Alamat.Jalan
 		}
+
+		// Parse RT/RW (Sister API returns as string -> DB: numeric(3))
 		if data.Alamat.RT != "" {
-			dosen.RT = &data.Alamat.RT
+			if rt, err := parseInt(data.Alamat.RT); err == nil {
+				dosen.RT = &rt
+			}
 		}
 		if data.Alamat.RW != "" {
-			dosen.RW = &data.Alamat.RW
+			if rw, err := parseInt(data.Alamat.RW); err == nil {
+				dosen.RW = &rw
+			}
 		}
+
 		if data.Alamat.Dusun != "" {
-			dosen.Dusun = &data.Alamat.Dusun
+			dosen.NamaDusun = &data.Alamat.Dusun
 		}
 		if data.Alamat.DesaKelurahan != "" {
-			dosen.DesaKelurahan = &data.Alamat.DesaKelurahan
+			dosen.DesaKel = &data.Alamat.DesaKelurahan
 		}
 		if data.Alamat.KodePos != "" {
 			dosen.KodePos = &data.Alamat.KodePos
 		}
 		if data.Alamat.IDWilayah != "" {
-			dosen.IDWilayah = &data.Alamat.IDWilayah
+			dosen.IDWilayah = data.Alamat.IDWilayah // Required field, override default
 		}
 	}
 
 	// From Kepegawaian
 	if data.Kepegawaian != nil {
-		// Sister API returns id_jns_sdm and id_stat_aktif directly as IDs
-		// We store them as-is (the cache is available if we need nama lookup in future)
+		// Parse ID Jenis SDM (Sister API returns as string number -> DB: numeric(2))
 		if data.Kepegawaian.IDJenisSDM != "" {
-			// Parse as int since database expects int
-			// For now, Sister API should return numeric ID as string
-			// We'll handle conversion in repository if needed
-			// Store as string for now since entity uses *int
-			// TODO: Add proper conversion if Sister API returns string IDs
+			if idJenisSDM, err := parseInt(data.Kepegawaian.IDJenisSDM); err == nil {
+				dosen.IDJenisSDM = idJenisSDM // Override default
+			}
 		}
 
+		// Parse ID Status Aktif (Sister API returns as string number -> DB: numeric(2))
 		if data.Kepegawaian.IDStatusAktif != "" {
-			dosen.IDStatusAktif = &data.Kepegawaian.IDStatusAktif
+			if idStatusAktif, err := parseInt(data.Kepegawaian.IDStatusAktif); err == nil {
+				dosen.IDStatusAktif = idStatusAktif // Override default
+			}
 		}
 
 		if data.Kepegawaian.NIP != "" {
 			dosen.NIP = &data.Kepegawaian.NIP
 		}
-		if data.Kepegawaian.NIPY != "" {
-			dosen.NIPY = &data.Kepegawaian.NIPY
-		}
 		if data.Kepegawaian.NUPTK != "" {
 			dosen.NUPTK = &data.Kepegawaian.NUPTK
 		}
+		if data.Kepegawaian.NIPY != "" {
+			dosen.NIYIGK = &data.Kepegawaian.NIPY // Sister uses NIPY, DB uses niy_nigk
+		}
+
+		// TMT PNS
 		if data.Kepegawaian.TanggalMasuk != "" {
 			if t, err := parseDate(data.Kepegawaian.TanggalMasuk); err == nil {
-				dosen.TanggalMasuk = &t
+				dosen.TMTPNS = &t
 			}
 		}
-		if data.Kepegawaian.TanggalKeluar != "" {
-			if t, err := parseDate(data.Kepegawaian.TanggalKeluar); err == nil {
-				dosen.TanggalKeluar = &t
-			}
-		}
-		if data.Kepegawaian.TanggalCPNS != "" {
-			if t, err := parseDate(data.Kepegawaian.TanggalCPNS); err == nil {
-				dosen.TanggalCPNS = &t
-			}
-		}
+
+		// SK CPNS
 		if data.Kepegawaian.NomorSKCPNS != "" {
-			dosen.NomorSKCPNS = &data.Kepegawaian.NomorSKCPNS
+			dosen.SKCPNS = &data.Kepegawaian.NomorSKCPNS
 		}
 		if data.Kepegawaian.TanggalSKCPNS != "" {
 			if t, err := parseDate(data.Kepegawaian.TanggalSKCPNS); err == nil {
-				dosen.TanggalSKCPNS = &t
+				dosen.TglSKCPNS = &t
 			}
+		}
+
+		// SK Angkat
+		if data.Kepegawaian.NomorSKPengangkatan != "" {
+			dosen.SKAngkat = &data.Kepegawaian.NomorSKPengangkatan
 		}
 		if data.Kepegawaian.TanggalPengangkatan != "" {
 			if t, err := parseDate(data.Kepegawaian.TanggalPengangkatan); err == nil {
-				dosen.TanggalPengangkatan = &t
+				dosen.TMTSKAngkat = &t
 			}
-		}
-		if data.Kepegawaian.NomorSKPengangkatan != "" {
-			dosen.NomorSKPengangkatan = &data.Kepegawaian.NomorSKPengangkatan
 		}
 	}
 
@@ -384,14 +420,24 @@ func (s *service) transformSisterDataToDosen(data *SisterDosenData, cache *Refer
 	if data.Lain != nil {
 		if data.Lain.NPWP != "" {
 			dosen.NPWP = &data.Lain.NPWP
+			// Set nm_wp sama dengan nama dosen jika tidak ada
+			dosen.NmWP = &dosen.NamaSDM
 		}
 	}
 
-	// Set default id_lemb_angkat to 0 for new records (as per your instruction)
-	defaultLembagaAngkat := 0
-	dosen.IDLembagaPengangkat = &defaultLembagaAngkat
-
 	return dosen, nil
+}
+
+// parseInt safely converts string to int
+func parseInt(s string) (int, error) {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return 0, fmt.Errorf("empty string")
+	}
+
+	var result int
+	_, err := fmt.Sscanf(s, "%d", &result)
+	return result, err
 }
 
 // parseDate parses date string from Sister API (format: YYYY-MM-DD or DD-MM-YYYY)
