@@ -95,7 +95,7 @@ func (r *repository) BulkUpsertDosen(data []*Dosen) error {
 	defer tx.Rollback()
 
 	query := `
-		MERGE sdm.dosen AS target
+		MERGE pdrd.sdm AS target
 		USING (SELECT
 			@p1 AS id_sdm,
 			@p2 AS nm_sdm,

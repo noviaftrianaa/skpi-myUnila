@@ -16,7 +16,9 @@
       "Bash(git push:*)",
       "Bash(docker compose:*)",
       "Bash(go build:*)",
-      "Bash(docker-compose up:*)"
+      "Bash(docker-compose up:*)",
+      "Bash(docker-compose stop:*)",
+      "Bash(docker-compose build:*)"
     ],
     "deny": [],
     "ask": []
