@@ -694,13 +694,15 @@ export default function ReferensiDashboardPage() {
                 {detailData.length > 0 ? (
                   <DataTable
                     data={detailData}
-                    columns={Object.keys(detailData[0]).map((key) => ({
-                      key,
-                      label: key.toUpperCase().replace(/_/g, " "),
-                      sortable: true,
-                    }))}
+                    columns={Object.keys(detailData[0])
+                      .filter((key) => !key.startsWith('id_')) // Filter out UUID columns that start with 'id_'
+                      .map((key) => ({
+                        key,
+                        label: key.toUpperCase().replace(/_/g, " "),
+                        sortable: true,
+                      }))}
                     searchable={true}
-                    searchKeys={Object.keys(detailData[0])}
+                    searchKeys={Object.keys(detailData[0]).filter((key) => !key.startsWith('id_'))}
                     defaultRowsPerPage={5}
                     rowsPerPageOptions={[5, 10, 25, 50]}
                   />
