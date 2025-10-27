@@ -12,6 +12,9 @@ import (
 type Repository interface {
 	BulkUpsertDosen(data []*Dosen) error
 	GetReferenceCache() (*ReferenceCache, error)
+	GetDosenList(page, limit int, search string, idJnsSDM, idStatAktif int) (*DosenListResult, error)
+	GetDosenByID(idSDM string) (*Dosen, error)
+	GetDosenStats() (*DosenStats, error)
 }
 
 type repository struct {
@@ -284,4 +287,199 @@ func (r *repository) BulkUpsertDosen(data []*Dosen) error {
 
 	log.Printf("✅ Successfully upserted %d dosen records", len(data))
 	return nil
+}
+
+// GetDosenList retrieves paginated list of dosen with search and filters
+func (r *repository) GetDosenList(page, limit int, search string, idJnsSDM, idStatAktif int) (*DosenListResult, error) {
+	offset := (page - 1) * limit
+	
+	// Build WHERE clause
+	whereConditions := "WHERE soft_delete = 0"
+	args := []interface{}{}
+	argIndex := 1
+	
+	if search != "" {
+		whereConditions += fmt.Sprintf(" AND (nm_sdm LIKE @p%d OR nidn LIKE @p%d OR nip LIKE @p%d)", argIndex, argIndex, argIndex)
+		searchPattern := "%" + search + "%"
+		args = append(args, searchPattern)
+		argIndex++
+	}
+	
+	if idJnsSDM > 0 {
+		whereConditions += fmt.Sprintf(" AND id_jns_sdm = @p%d", argIndex)
+		args = append(args, idJnsSDM)
+		argIndex++
+	}
+	
+	if idStatAktif > 0 {
+		whereConditions += fmt.Sprintf(" AND id_stat_aktif = @p%d", argIndex)
+		args = append(args, idStatAktif)
+		argIndex++
+	}
+	
+	// Count total records
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM pdrd.sdm %s", whereConditions)
+	var total int
+	err := r.db.Get(&total, countQuery, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to count dosen: %w", err)
+	}
+	
+	// Get paginated data
+	dataQuery := fmt.Sprintf(`
+		SELECT 
+			id_sdm, nm_sdm, jk, tmpt_lahir, tgl_lahir, nik, niy_nigk, nuptk, nidn, nsdmi,
+			stat_kawin, no_tel_rmh, no_hp, email, nip, tmt_pns, nm_suami_istri, nip_suami_istri,
+			sk_cpns, tgl_sk_cpns, sk_angkat, tmt_sk_angkat, npwp, nm_wp, stat_data,
+			akta_ijin_ajar, nira, jns_reg, kewarganegaraan, id_jns_sdm, id_wil, id_stat_aktif,
+			id_agama, id_keahlian_lab, id_pekerjaan_suami_istri, id_lemb_angkat, id_sumber_gaji,
+			jln, rt, rw, nm_dsn, ds_kel, kode_pos, create_date, id_creator, last_update,
+			id_updater, soft_delete, last_sync
+		FROM pdrd.sdm
+		%s
+		ORDER BY nm_sdm ASC
+		OFFSET @p%d ROWS
+		FETCH NEXT @p%d ROWS ONLY
+	`, whereConditions, argIndex, argIndex+1)
+	
+	args = append(args, offset, limit)
+	
+	var dosenList []*Dosen
+	err = r.db.Select(&dosenList, dataQuery, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get dosen list: %w", err)
+	}
+	
+	totalPages := (total + limit - 1) / limit
+	
+	return &DosenListResult{
+		Data:       dosenList,
+		Total:      total,
+		Page:       page,
+		Limit:      limit,
+		TotalPages: totalPages,
+	}, nil
+}
+
+// GetDosenByID retrieves single dosen by ID
+func (r *repository) GetDosenByID(idSDM string) (*Dosen, error) {
+	query := `
+		SELECT 
+			id_sdm, nm_sdm, jk, tmpt_lahir, tgl_lahir, nik, niy_nigk, nuptk, nidn, nsdmi,
+			stat_kawin, no_tel_rmh, no_hp, email, nip, tmt_pns, nm_suami_istri, nip_suami_istri,
+			sk_cpns, tgl_sk_cpns, sk_angkat, tmt_sk_angkat, npwp, nm_wp, stat_data,
+			akta_ijin_ajar, nira, jns_reg, kewarganegaraan, id_jns_sdm, id_wil, id_stat_aktif,
+			id_agama, id_keahlian_lab, id_pekerjaan_suami_istri, id_lemb_angkat, id_sumber_gaji,
+			jln, rt, rw, nm_dsn, ds_kel, kode_pos, create_date, id_creator, last_update,
+			id_updater, soft_delete, last_sync
+		FROM pdrd.sdm
+		WHERE id_sdm = @p1 AND soft_delete = 0
+	`
+	
+	var dosen Dosen
+	err := r.db.Get(&dosen, query, idSDM)
+	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			return nil, fmt.Errorf("dosen not found")
+		}
+		return nil, fmt.Errorf("failed to get dosen: %w", err)
+	}
+	
+	return &dosen, nil
+}
+
+// GetDosenStats retrieves dosen statistics
+func (r *repository) GetDosenStats() (*DosenStats, error) {
+	stats := &DosenStats{}
+	
+	// Get total dosen
+	err := r.db.Get(&stats.TotalDosen, "SELECT COUNT(*) FROM pdrd.sdm WHERE soft_delete = 0")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get total dosen: %w", err)
+	}
+	
+	// Get total by status aktif
+	err = r.db.Get(&stats.TotalAktif, "SELECT COUNT(*) FROM pdrd.sdm WHERE soft_delete = 0 AND id_stat_aktif = 1")
+	if err != nil {
+		stats.TotalAktif = 0
+	}
+	
+	stats.TotalTidakAktif = stats.TotalDosen - stats.TotalAktif
+	
+	// Get breakdown by jenis SDM
+	byJenisQuery := `
+		SELECT 
+			js.id_jns_sdm,
+			js.nm_jns_sdm,
+			COUNT(s.id_sdm) as total
+		FROM ref.jenis_sdm js
+		LEFT JOIN pdrd.sdm s ON js.id_jns_sdm = s.id_jns_sdm AND s.soft_delete = 0
+		WHERE js.expired_date IS NULL
+		GROUP BY js.id_jns_sdm, js.nm_jns_sdm
+		ORDER BY total DESC
+	`
+	
+	rows, err := r.db.Query(byJenisQuery)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get breakdown by jenis: %w", err)
+	}
+	defer rows.Close()
+	
+	stats.ByJenisSDM = []map[string]interface{}{}
+	for rows.Next() {
+		var idJns int
+		var nmJns string
+		var total int
+		if err := rows.Scan(&idJns, &nmJns, &total); err == nil {
+			stats.ByJenisSDM = append(stats.ByJenisSDM, map[string]interface{}{
+				"id_jns_sdm":   idJns,
+				"nm_jns_sdm":   nmJns,
+				"total":        total,
+			})
+		}
+	}
+	
+	// Get breakdown by status aktif
+	byStatusQuery := `
+		SELECT 
+			sa.id_stat_aktif,
+			sa.nm_stat_aktif,
+			COUNT(s.id_sdm) as total
+		FROM ref.status_keaktifan_pegawai sa
+		LEFT JOIN pdrd.sdm s ON sa.id_stat_aktif = s.id_stat_aktif AND s.soft_delete = 0
+		WHERE sa.expired_date IS NULL
+		GROUP BY sa.id_stat_aktif, sa.nm_stat_aktif
+		ORDER BY total DESC
+	`
+	
+	rows2, err := r.db.Query(byStatusQuery)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get breakdown by status: %w", err)
+	}
+	defer rows2.Close()
+	
+	stats.ByStatusAktif = []map[string]interface{}{}
+	for rows2.Next() {
+		var idStat int
+		var nmStat string
+		var total int
+		if err := rows2.Scan(&idStat, &nmStat, &total); err == nil {
+			stats.ByStatusAktif = append(stats.ByStatusAktif, map[string]interface{}{
+				"id_stat_aktif":   idStat,
+				"nm_stat_aktif":   nmStat,
+				"total":           total,
+			})
+		}
+	}
+	
+	// Get last sync timestamp
+	var lastSync *string
+	err = r.db.Get(&lastSync, "SELECT TOP 1 last_sync FROM pdrd.sdm WHERE soft_delete = 0 ORDER BY last_sync DESC")
+	if err == nil && lastSync != nil {
+		// Parse string to time
+		// lastSyncTime, _ := time.Parse("2006-01-02 15:04:05", *lastSync)
+		// stats.LastSync = &lastSyncTime
+	}
+	
+	return stats, nil
 }

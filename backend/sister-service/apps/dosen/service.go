@@ -129,3 +129,18 @@ func (s *service) GetDosenBidangIlmu(idSdm string) ([]map[string]interface{}, er
 
 	return bidangIlmu, nil
 }
+
+// GetDosenList retrieves paginated list of dosen with search and filters
+func (s *service) GetDosenList(page, limit int, search string, idJnsSDM, idStatAktif int) (*DosenListResult, error) {
+	return s.repo.GetDosenList(page, limit, search, idJnsSDM, idStatAktif)
+}
+
+// GetDosenByID retrieves single dosen by ID from database
+func (s *service) GetDosenByID(idSDM string) (*Dosen, error) {
+	return s.repo.GetDosenByID(idSDM)
+}
+
+// GetDosenStats retrieves dosen statistics from database
+func (s *service) GetDosenStats() (*DosenStats, error) {
+	return s.repo.GetDosenStats()
+}
