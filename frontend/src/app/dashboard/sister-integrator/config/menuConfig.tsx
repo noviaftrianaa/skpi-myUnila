@@ -36,36 +36,10 @@ export const sisterIntegratorMenuConfig: MenuItem[] = [
     roles: ["developer"],
   },
   {
-    title: "Data PDRD",
-    icon: <FiDatabase className="w-5 h-5" />,
-    href: "/dashboard/sister-integrator/pdrd",
+    title: "Dosen & Tendik",
+    icon: <FiUsers className="w-5 h-5" />,
+    href: "/dashboard/sister-integrator/pdrd/dosen",
     roles: ["developer"],
-    children: [
-      {
-        title: "Dosen & Tendik",
-        icon: <FiUsers className="w-5 h-5" />,
-        href: "/dashboard/sister-integrator/pdrd/dosen",
-        roles: ["developer"],
-      },
-      {
-        title: "Penelitian",
-        icon: <FiActivity className="w-5 h-5" />,
-        href: "/dashboard/sister-integrator/pdrd/penelitian",
-        roles: ["developer"],
-      },
-      {
-        title: "Pengabdian",
-        icon: <FiActivity className="w-5 h-5" />,
-        href: "/dashboard/sister-integrator/pdrd/pengabdian",
-        roles: ["developer"],
-      },
-      {
-        title: "Publikasi",
-        icon: <FiActivity className="w-5 h-5" />,
-        href: "/dashboard/sister-integrator/pdrd/publikasi",
-        roles: ["developer"],
-      },
-    ],
   },
   {
     title: "Monitoring",

@@ -1,8 +1,5 @@
-import {
-  PageHero,
-  StatistikMahasiswa,
-  StatistikAkademik
-} from "@/shared/components";
+import { PageHero } from "@/shared/components";
+import { StatistikMahasiswa, StatistikAkademik } from "./_components";
 
 export default function AkademikPage() {
   return (

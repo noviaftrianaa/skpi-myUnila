@@ -1,87 +1,61 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import SisterDosenTable from "@/shared/components/sister-integrator/SisterDosenTable";
 import {
   Card,
   CardBody,
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
-  Chip,
   Button,
-  Input,
-  Pagination,
   Spinner,
-  Select,
-  SelectItem,
   Modal,
   ModalContent,
   ModalHeader,
   ModalBody,
   ModalFooter,
-  useDisclosure,
   Progress,
 } from "@heroui/react";
 import {
   FiUsers,
-  FiSearch,
   FiRefreshCw,
   FiCheckCircle,
   FiXCircle,
   FiClock,
   FiDatabase,
-  FiTrendingUp,
-  FiFilter,
-  FiDownload,
   FiArrowLeft,
+  FiAlertCircle,
+  FiUser,
 } from "react-icons/fi";
+import { MdSync } from "react-icons/md";
 import { RiGovernmentFill } from "react-icons/ri";
 import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
 import Link from "next/link";
-import { sisterDosenService, type SisterDosen, type SisterDosenStats } from "@/lib/services/dosenService";
+import { sisterDosenService, type SisterDosenStats } from "@/lib/services/dosenService";
 import { toast } from "react-hot-toast";
-import { format } from "date-fns";
-import { id as idLocale } from "date-fns/locale";
 
 export default function DosenManagementPage() {
   useRequireAuth();
   const { user } = useAuth();
 
   // State
-  const [dosenList, setDosenList] = useState<SisterDosen[]>([]);
   const [stats, setStats] = useState<SisterDosenStats | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [selectedDosen, setSelectedDosen] = useState<SisterDosen | null>(null);
-
-  // Pagination & Search
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [limit, setLimit] = useState(10);
-  const [search, setSearch] = useState("");
-  const [filterJenisSDM, setFilterJenisSDM] = useState<number>(0);
-  const [filterStatusAktif, setFilterStatusAktif] = useState<number>(0);
-
-  // Modal
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [showSyncModal, setShowSyncModal] = useState(false);
+  const [showProgressModal, setShowProgressModal] = useState(false);
+  const [syncProgress, setSyncProgress] = useState(0);
+  const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
+  const [syncResult, setSyncResult] = useState<{
+    totalRecords: number;
+    message: string;
+  } | null>(null);
 
   // Fetch stats on mount
   useEffect(() => {
     fetchStats();
   }, []);
-
-  // Fetch dosen list when filters/page change
-  useEffect(() => {
-    fetchDosenList();
-  }, [page, limit, search, filterJenisSDM, filterStatusAktif]);
 
   const fetchStats = async () => {
     try {
@@ -96,107 +70,75 @@ export default function DosenManagementPage() {
     }
   };
 
-  const fetchDosenList = async () => {
-    try {
-      setIsLoading(true);
-      const data = await sisterDosenService.getList({
-        page,
-        limit,
-        search: search || undefined,
-        id_jns_sdm: filterJenisSDM || undefined,
-        id_stat_aktif: filterStatusAktif || undefined,
-      });
-
-      setDosenList(data.data);
-      setTotal(data.total);
-      setTotalPages(data.total_pages);
-    } catch (error) {
-      console.error("Error fetching dosen list:", error);
-      toast.error("Gagal memuat daftar dosen");
-    } finally {
-      setIsLoading(false);
-    }
+  const handleSyncClick = () => {
+    setShowSyncModal(true);
   };
 
-  const handleSync = async () => {
-    if (!user?.name) {
-      toast.error("User tidak teridentifikasi");
-      return;
-    }
+  const handleConfirmSync = async () => {
+    setShowSyncModal(false);
+    setShowProgressModal(true);
+    setIsSyncing(true);
+    setSyncStatus("syncing");
+    setSyncProgress(0);
 
     try {
-      setIsSyncing(true);
-      toast.loading("Memulai sinkronisasi data dosen dari SISTER API...", { id: "sync-toast" });
+      // Simulate progress
+      const progressInterval = setInterval(() => {
+        setSyncProgress((prev) => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 300);
 
-      const result = await sisterDosenService.syncFromSister(user.name);
+      // Call sync API
+      const response = await sisterDosenService.syncFromSister(user?.name || "system");
 
-      toast.success(
-        `Sinkronisasi selesai! ${result.total_success} dosen berhasil di-sync dalam ${result.duration_seconds.toFixed(2)} detik`,
-        { id: "sync-toast", duration: 5000 }
-      );
+      clearInterval(progressInterval);
+      setSyncProgress(100);
 
-      // Refresh data
-      await Promise.all([fetchStats(), fetchDosenList()]);
-    } catch (error: any) {
+      // Set sync result
+      setSyncResult({
+        totalRecords: response.total_success,
+        message: `Berhasil sinkronisasi ${response.total_success} data dosen`,
+      });
+
+      setSyncStatus("success");
+      toast.success(`Berhasil sinkronisasi ${response.total_success} data dosen`);
+
+      // Refresh data after 2 seconds
+      setTimeout(async () => {
+        await fetchStats();
+        setShowProgressModal(false);
+        setSyncProgress(0);
+        setSyncStatus("idle");
+      }, 2000);
+    } catch (error) {
       console.error("Error syncing dosen:", error);
-      toast.error(
-        error?.response?.data?.error || "Gagal melakukan sinkronisasi data dosen",
-        { id: "sync-toast" }
-      );
+      setSyncStatus("error");
+      toast.error("Gagal melakukan sinkronisasi");
+      setTimeout(() => {
+        setShowProgressModal(false);
+        setSyncProgress(0);
+        setSyncStatus("idle");
+      }, 2000);
     } finally {
       setIsSyncing(false);
     }
   };
 
-  const handleRowClick = (dosen: SisterDosen) => {
-    setSelectedDosen(dosen);
-    onOpen();
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "Belum pernah";
+    return new Date(dateString).toLocaleString("id-ID", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
-
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "-";
-    try {
-      return format(new Date(dateString), "dd MMM yyyy", { locale: idLocale });
-    } catch {
-      return dateString;
-    }
-  };
-
-  // Stats cards data
-  const statsCards = [
-    {
-      title: "Total Dosen",
-      value: stats?.total_dosen.toLocaleString() || "0",
-      icon: <FiUsers className="w-6 h-6" />,
-      color: "from-purple-500 to-purple-600",
-      subtitle: "total data dosen",
-      progress: 100,
-    },
-    {
-      title: "Dosen Aktif",
-      value: stats?.total_aktif.toLocaleString() || "0",
-      icon: <FiCheckCircle className="w-6 h-6" />,
-      color: "from-green-500 to-green-600",
-      subtitle: `${stats ? ((stats.total_aktif / stats.total_dosen) * 100).toFixed(1) : 0}% dari total`,
-      progress: stats ? (stats.total_aktif / stats.total_dosen) * 100 : 0,
-    },
-    {
-      title: "Tidak Aktif",
-      value: stats?.total_tidak_aktif.toLocaleString() || "0",
-      icon: <FiXCircle className="w-6 h-6" />,
-      color: "from-orange-500 to-orange-600",
-      subtitle: `${stats ? ((stats.total_tidak_aktif / stats.total_dosen) * 100).toFixed(1) : 0}% dari total`,
-      progress: stats ? (stats.total_tidak_aktif / stats.total_dosen) * 100 : 0,
-    },
-    {
-      title: "Last Sync",
-      value: stats?.last_sync ? formatDate(stats.last_sync) : "Belum sync",
-      icon: <FiClock className="w-6 h-6" />,
-      color: "from-blue-500 to-blue-600",
-      subtitle: "terakhir sinkronisasi",
-      progress: stats?.last_sync ? 100 : 0,
-    },
-  ];
 
   if (isLoadingStats) {
     return (
@@ -225,11 +167,11 @@ export default function DosenManagementPage() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <Link
-              href="/dashboard/sister-integrator/pdrd"
+              href="/dashboard/sister-integrator"
               className="flex items-center gap-2 text-sm text-gray-600 hover:text-purple-600 mb-2 transition-colors"
             >
               <FiArrowLeft className="w-4 h-4" />
-              Kembali ke Data PDRD
+              Kembali ke Dashboard
             </Link>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
               Data Dosen & Tendik
@@ -241,357 +183,320 @@ export default function DosenManagementPage() {
           <Button
             color="primary"
             size="lg"
-            startContent={<FiRefreshCw className={`w-5 h-5 ${isSyncing ? "animate-spin" : ""}`} />}
-            onClick={handleSync}
+            startContent={<MdSync className="w-5 h-5" />}
+            onClick={handleSyncClick}
             isLoading={isSyncing}
-            isDisabled={isSyncing}
             className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all rounded-xl"
           >
             Sinkronisasi Data
           </Button>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {statsCards.map((stat, index) => (
-            <Card
-              key={index}
-              className="border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 overflow-hidden group relative"
-            >
-              <div className="absolute inset-0 opacity-5">
-                <div className={`absolute -right-10 -top-10 w-40 h-40 rounded-full bg-gradient-to-br ${stat.color}`}></div>
-              </div>
-
-              <CardBody className="p-6 relative z-10">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="relative">
-                    <div
-                      className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-white shadow-xl group-hover:scale-110 transition-transform duration-300`}
-                    >
-                      {stat.icon}
+        {/* Statistics Cards - Compact Horizontal Layout (Match Referensi Style) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Total Dosen Card */}
+          <Card className="bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
+            <CardBody className="p-4 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
+                  <FiDatabase className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-purple-100">Total Dosen</p>
+                    <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
+                      <span className="text-[10px] font-semibold text-white">Live</span>
                     </div>
-                    <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${stat.color} opacity-20 blur-lg group-hover:opacity-30 transition-opacity`}></div>
                   </div>
+                  <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
+                    {stats?.total_dosen.toLocaleString() || "0"}
+                  </h3>
+                  <p className="text-[10px] text-purple-100/80 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                    Total data dosen
+                  </p>
                 </div>
+              </div>
+            </CardBody>
+          </Card>
 
-                <div className="space-y-2">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wide">
-                    {stat.title}
-                  </p>
-                  <div className="flex items-baseline gap-2">
-                    <h3 className="text-4xl font-black bg-gradient-to-br from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-                      {stat.value}
-                    </h3>
+          {/* Dosen Aktif Card */}
+          <Card className="bg-gradient-to-br from-emerald-500 via-green-600 to-teal-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
+            <CardBody className="p-4 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
+                  <FiCheckCircle className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-emerald-100">Dosen Aktif</p>
+                    <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
+                      <span className="text-[10px] font-semibold text-white">✓ Active</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Progress
-                      value={stat.progress}
-                      className="flex-1"
-                      classNames={{
-                        indicator: `bg-gradient-to-r ${stat.color}`,
-                        track: "bg-gray-100 dark:bg-gray-800",
-                      }}
-                      size="sm"
-                    />
-                    <span className="text-xs font-bold text-gray-600 dark:text-gray-400">
-                      {stat.progress.toFixed(0)}%
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 font-medium">
-                    {stat.subtitle}
+                  <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
+                    {stats?.total_aktif.toLocaleString() || "0"}
+                  </h3>
+                  <p className="text-[10px] text-emerald-100/80">
+                    {stats ? ((stats.total_aktif / stats.total_dosen) * 100).toFixed(1) : 0}% dari total dosen
                   </p>
                 </div>
-              </CardBody>
-            </Card>
-          ))}
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* Tidak Aktif Card */}
+          <Card className="bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
+            <CardBody className="p-4 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
+                  <FiXCircle className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-orange-100">Tidak Aktif</p>
+                    <div className="px-2 py-0.5 rounded-full bg-white/30 backdrop-blur-sm">
+                      <span className="text-[10px] font-semibold text-white">⚠ Inactive</span>
+                    </div>
+                  </div>
+                  <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
+                    {stats?.total_tidak_aktif.toLocaleString() || "0"}
+                  </h3>
+                  <p className="text-[10px] text-orange-100/80">
+                    {stats ? ((stats.total_tidak_aktif / stats.total_dosen) * 100).toFixed(1) : 0}% dari total dosen
+                  </p>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* Last Sync Card */}
+          <Card className="bg-gradient-to-br from-blue-500 via-cyan-600 to-sky-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
+            <CardBody className="p-4 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
+                  <FiClock className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-blue-100">Last Sync</p>
+                    <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
+                      <span className="text-[10px] font-semibold text-white">Recent</span>
+                    </div>
+                  </div>
+                  <h3 className="text-base font-bold text-white leading-tight mb-1 truncate">
+                    {formatDate(stats?.last_sync)}
+                  </h3>
+                  <p className="text-[10px] text-blue-100/80">
+                    Terakhir sinkronisasi data
+                  </p>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
         </div>
 
-        {/* Data Table Card */}
-        <Card className="border-none shadow-lg">
-          <CardBody className="p-6">
-            {/* Table Controls */}
-            <div className="flex flex-col gap-4 mb-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                  <FiDatabase className="w-5 h-5 text-purple-600" />
-                  Daftar Dosen ({total.toLocaleString()})
-                </h3>
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="flat"
-                    color="primary"
-                    startContent={<FiRefreshCw className={`w-4 h-4 ${isSyncing ? "animate-spin" : ""}`} />}
-                    onClick={handleSync}
-                    isLoading={isSyncing}
-                    isDisabled={isSyncing}
-                  >
-                    Sync dari SISTER
-                  </Button>
-                </div>
-              </div>
+        {/* Data Table using SisterDosenTable Component */}
+        <SisterDosenTable />
+      </div>
 
-              {/* Search and Filters */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                <Input
-                  placeholder="Cari nama, NIDN, atau NIP..."
-                  value={search}
-                  onValueChange={setSearch}
-                  startContent={<FiSearch className="w-4 h-4 text-gray-400" />}
+      {/* Confirmation Modal */}
+      <Modal
+        isOpen={showSyncModal}
+        onOpenChange={setShowSyncModal}
+        size="md"
+        backdrop="blur"
+        classNames={{
+          backdrop: "bg-black/50 backdrop-blur-sm",
+          base: "bg-white dark:bg-gray-800",
+        }}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white shadow-lg">
+                    <MdSync className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-800 dark:text-white">
+                      Konfirmasi Sinkronisasi
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                      Data Dosen & Tendik
+                    </p>
+                  </div>
+                </div>
+              </ModalHeader>
+              <ModalBody className="py-6">
+                <div className="space-y-4">
+                  <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                    <div className="flex items-start gap-3">
+                      <FiAlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                          Proses ini akan mengambil data dosen terbaru dari SISTER API dan menyimpannya ke database.
+                        </p>
+                        <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1 list-disc list-inside">
+                          <li>Data yang sudah ada akan diperbarui</li>
+                          <li>Data baru akan ditambahkan</li>
+                          <li>Proses memerlukan waktu beberapa menit</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">User</span>
+                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {user?.name || "System"}
+                    </span>
+                  </div>
+                </div>
+              </ModalBody>
+              <ModalFooter className="border-t border-gray-200 dark:border-gray-700">
+                <Button
+                  variant="light"
+                  onPress={onClose}
+                  className="text-gray-600 hover:bg-gray-100"
+                >
+                  Batal
+                </Button>
+                <Button
+                  color="primary"
+                  onPress={handleConfirmSync}
+                  startContent={<FiRefreshCw className="w-4 h-4" />}
+                  className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white"
+                >
+                  Mulai Sinkronisasi
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      {/* Progress Modal */}
+      <Modal
+        isOpen={showProgressModal}
+        isDismissable={false}
+        hideCloseButton
+        size="md"
+        backdrop="blur"
+        classNames={{
+          backdrop: "bg-black/50 backdrop-blur-sm",
+          base: "bg-white dark:bg-gray-800",
+        }}
+      >
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg ${
+                  syncStatus === "success"
+                    ? "bg-gradient-to-br from-green-500 to-green-600"
+                    : syncStatus === "error"
+                    ? "bg-gradient-to-br from-red-500 to-red-600"
+                    : "bg-gradient-to-br from-purple-500 to-indigo-600"
+                }`}
+              >
+                {syncStatus === "success" ? (
+                  <FiCheckCircle className="w-6 h-6" />
+                ) : syncStatus === "error" ? (
+                  <FiAlertCircle className="w-6 h-6" />
+                ) : (
+                  <FiRefreshCw className="w-6 h-6 animate-spin" />
+                )}
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-800 dark:text-white">
+                  {syncStatus === "success"
+                    ? "Sinkronisasi Berhasil!"
+                    : syncStatus === "error"
+                    ? "Sinkronisasi Gagal"
+                    : "Sedang Melakukan Sinkronisasi..."}
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                  {syncStatus === "syncing" && "Mohon tunggu sebentar"}
+                  {syncStatus === "success" && syncResult && `${syncResult.totalRecords} data berhasil disinkronkan`}
+                  {syncStatus === "error" && "Terjadi kesalahan saat sinkronisasi"}
+                </p>
+              </div>
+            </div>
+          </ModalHeader>
+          <ModalBody className="py-6">
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    Progress
+                  </span>
+                  <span className="text-sm font-bold text-purple-600 dark:text-purple-400">
+                    {syncProgress}%
+                  </span>
+                </div>
+                <Progress
+                  value={syncProgress}
+                  color={
+                    syncStatus === "success"
+                      ? "success"
+                      : syncStatus === "error"
+                      ? "danger"
+                      : "primary"
+                  }
+                  className="h-2"
                   classNames={{
-                    input: "text-sm",
-                    inputWrapper: "h-10",
+                    indicator: syncStatus === "syncing" ? "animate-pulse" : "",
                   }}
                 />
-                <Select
-                  placeholder="Jenis SDM"
-                  selectedKeys={filterJenisSDM ? [filterJenisSDM.toString()] : []}
-                  onChange={(e) => setFilterJenisSDM(parseInt(e.target.value) || 0)}
-                  classNames={{
-                    trigger: "h-10",
-                  }}
-                  startContent={<FiFilter className="w-4 h-4 text-gray-400" />}
-                >
-                  <SelectItem key="0" value="0">Semua Jenis</SelectItem>
-                  {stats?.by_jenis_sdm.filter(j => j.total > 0).map((jenis) => (
-                    <SelectItem key={jenis.id_jns_sdm.toString()} value={jenis.id_jns_sdm.toString()}>
-                      {jenis.nm_jns_sdm} ({jenis.total})
-                    </SelectItem>
-                  ))}
-                </Select>
-                <Select
-                  placeholder="Status Aktif"
-                  selectedKeys={filterStatusAktif ? [filterStatusAktif.toString()] : []}
-                  onChange={(e) => setFilterStatusAktif(parseInt(e.target.value) || 0)}
-                  classNames={{
-                    trigger: "h-10",
-                  }}
-                  startContent={<FiFilter className="w-4 h-4 text-gray-400" />}
-                >
-                  <SelectItem key="0" value="0">Semua Status</SelectItem>
-                  {stats?.by_status_aktif.filter(s => s.total > 0).map((status) => (
-                    <SelectItem key={status.id_stat_aktif.toString()} value={status.id_stat_aktif.toString()}>
-                      {status.nm_stat_aktif.trim()} ({status.total})
-                    </SelectItem>
-                  ))}
-                </Select>
-                <Select
-                  placeholder="Items per page"
-                  selectedKeys={[limit.toString()]}
-                  onChange={(e) => {
-                    setLimit(parseInt(e.target.value));
-                    setPage(1);
-                  }}
-                  classNames={{
-                    trigger: "h-10",
-                  }}
-                >
-                  <SelectItem key="10" value="10">10 items</SelectItem>
-                  <SelectItem key="25" value="25">25 items</SelectItem>
-                  <SelectItem key="50" value="50">50 items</SelectItem>
-                  <SelectItem key="100" value="100">100 items</SelectItem>
-                </Select>
               </div>
-            </div>
 
-            {/* Table */}
-            <Table
-              aria-label="Daftar Dosen"
-              classNames={{
-                wrapper: "min-h-[400px]",
-              }}
-            >
-              <TableHeader>
-                <TableColumn>NAMA</TableColumn>
-                <TableColumn>NIDN / NIP</TableColumn>
-                <TableColumn>EMAIL</TableColumn>
-                <TableColumn>JENIS KELAMIN</TableColumn>
-                <TableColumn>NO HP</TableColumn>
-                <TableColumn>LAST SYNC</TableColumn>
-              </TableHeader>
-              <TableBody
-                isLoading={isLoading}
-                loadingContent={<Spinner />}
-                emptyContent="Tidak ada data dosen"
-              >
-                {dosenList.map((dosen) => (
-                  <TableRow
-                    key={dosen.id_sdm}
-                    className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                    onClick={() => handleRowClick(dosen)}
-                  >
-                    <TableCell>
-                      <div className="font-medium text-gray-900 dark:text-white">
-                        {dosen.nama_sdm}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        <div className="font-mono text-gray-700 dark:text-gray-300">
-                          {dosen.nidn || "-"}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {dosen.nip || "-"}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        {dosen.email || "-"}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        size="sm"
-                        variant="flat"
-                        color={dosen.jenis_kelamin === "L" ? "primary" : "secondary"}
-                      >
-                        {dosen.jenis_kelamin === "L" ? "Laki-laki" : "Perempuan"}
-                      </Chip>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm font-mono text-gray-600 dark:text-gray-400">
-                        {dosen.no_hp || "-"}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        {formatDate(dosen.last_sync)}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-
-            {/* Pagination */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                Menampilkan {((page - 1) * limit) + 1} - {Math.min(page * limit, total)} dari {total.toLocaleString()} data
-              </div>
-              <Pagination
-                total={totalPages}
-                page={page}
-                onChange={setPage}
-                showControls
-                classNames={{
-                  cursor: "bg-purple-600 text-white",
-                }}
-              />
-            </div>
-          </CardBody>
-        </Card>
-
-        {/* Detail Modal */}
-        <Modal
-          isOpen={isOpen}
-          onClose={onClose}
-          size="3xl"
-          scrollBehavior="inside"
-        >
-          <ModalContent>
-            {(onClose) => (
-              <>
-                <ModalHeader className="flex flex-col gap-1">
-                  <h3 className="text-xl font-bold">Detail Dosen</h3>
-                  <p className="text-sm text-gray-500 font-normal">
-                    Data lengkap dari database
+              {syncStatus === "syncing" && (
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20">
+                  <Spinner size="sm" color="primary" />
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    Mengambil data dari SISTER API...
                   </p>
-                </ModalHeader>
-                <ModalBody>
-                  {selectedDosen && (
-                    <div className="space-y-4">
-                      {/* Personal Info */}
-                      <Card className="border-none shadow-sm">
-                        <CardBody className="p-4">
-                          <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
-                            Informasi Personal
-                          </h4>
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <p className="text-xs text-gray-500 mb-1">Nama Lengkap</p>
-                              <p className="font-medium">{selectedDosen.nama_sdm}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-500 mb-1">Jenis Kelamin</p>
-                              <p className="font-medium">
-                                {selectedDosen.jenis_kelamin === "L" ? "Laki-laki" : "Perempuan"}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-500 mb-1">Tempat Lahir</p>
-                              <p className="font-medium">{selectedDosen.tempat_lahir || "-"}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-500 mb-1">Tanggal Lahir</p>
-                              <p className="font-medium">{formatDate(selectedDosen.tanggal_lahir)}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-500 mb-1">NIK</p>
-                              <p className="font-mono text-sm">{selectedDosen.nik}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-500 mb-1">NIDN</p>
-                              <p className="font-mono text-sm">{selectedDosen.nidn || "-"}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-500 mb-1">NIP</p>
-                              <p className="font-mono text-sm">{selectedDosen.nip || "-"}</p>
-                            </div>
-                          </div>
-                        </CardBody>
-                      </Card>
+                </div>
+              )}
 
-                      {/* Contact Info */}
-                      <Card className="border-none shadow-sm">
-                        <CardBody className="p-4">
-                          <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
-                            Informasi Kontak
-                          </h4>
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <p className="text-xs text-gray-500 mb-1">Email</p>
-                              <p className="font-medium text-sm break-all">{selectedDosen.email || "-"}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-500 mb-1">No HP</p>
-                              <p className="font-mono text-sm">{selectedDosen.no_hp || "-"}</p>
-                            </div>
-                          </div>
-                        </CardBody>
-                      </Card>
+              {syncStatus === "success" && syncResult && (
+                <div className="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                  <div className="flex items-center gap-3 mb-3">
+                    <FiCheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                    <p className="text-sm font-semibold text-green-800 dark:text-green-200">
+                      {syncResult.message}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600 dark:text-gray-400">Total Records</span>
+                    <span className="font-bold text-green-700 dark:text-green-300">
+                      {syncResult.totalRecords}
+                    </span>
+                  </div>
+                </div>
+              )}
 
-                      {/* Sync Info */}
-                      <Card className="border-none shadow-sm bg-purple-50 dark:bg-purple-900/20">
-                        <CardBody className="p-4">
-                          <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
-                            Informasi Sinkronisasi
-                          </h4>
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <p className="text-xs text-gray-500 mb-1">Last Sync</p>
-                              <p className="font-medium">{formatDate(selectedDosen.last_sync)}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-500 mb-1">ID SDM</p>
-                              <p className="font-mono text-xs break-all">{selectedDosen.id_sdm}</p>
-                            </div>
-                          </div>
-                        </CardBody>
-                      </Card>
-                    </div>
-                  )}
-                </ModalBody>
-                <ModalFooter>
-                  <Button color="default" variant="light" onPress={onClose}>
-                    Tutup
-                  </Button>
-                </ModalFooter>
-              </>
-            )}
-          </ModalContent>
-        </Modal>
-      </div>
+              {syncStatus === "error" && (
+                <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                  <p className="text-sm text-red-700 dark:text-red-300">
+                    Gagal melakukan sinkronisasi. Silakan coba lagi atau hubungi administrator.
+                  </p>
+                </div>
+              )}
+            </div>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </DashboardLayout>
   );
 }

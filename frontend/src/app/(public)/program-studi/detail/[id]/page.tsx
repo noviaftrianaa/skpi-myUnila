@@ -21,10 +21,12 @@ import {
 } from 'react-icons/fa';
 import { dashboardService } from '@/lib/services/dashboardService';
 import type { ProgramStudiDetail } from '@/lib/types/dashboardTypes';
-import DosenTable from '@/shared/components/DosenTable';
-import MahasiswaTrendChart from '@/shared/components/MahasiswaTrendChart';
-import KurikulumList from '@/shared/components/KurikulumList';
-import TracerStudySection from '@/shared/components/TracerStudySection';
+import {
+  DosenTable,
+  MahasiswaTrendChart,
+  KurikulumList,
+  TracerStudySection,
+} from '../_components';
 
 type TabType = 'profile' | 'dosen' | 'mahasiswa' | 'kurikulum' | 'alumni';
 

@@ -24,9 +24,9 @@ export { default as CapaianLulusan } from './CapaianLulusan';
 export { default as WorldClassRanking } from './statistik/WorldClassRanking';
 export { default as KelulusanTepatWaktu } from './statistik/KelulusanTepatWaktu';
 
-// Akademik Page Components
-export { default as StatistikMahasiswa } from './akademik/StatistikMahasiswa';
-export { default as StatistikAkademik } from './akademik/StatistikAkademik';
+// Akademik Page Components - MOVED to app/(public)/akademik/_components
+// export { default as StatistikMahasiswa } from './akademik/StatistikMahasiswa';
+// export { default as StatistikAkademik } from './akademik/StatistikAkademik';
 
 // Layanan Page Components
 export { default as AplikasiTerintegrasi } from './layanan/AplikasiTerintegrasi';
