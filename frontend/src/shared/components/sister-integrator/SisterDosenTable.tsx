@@ -149,97 +149,89 @@ export default function SisterDosenTable() {
     },
   ];
 
-  // Filter slot with modern design
+  // Filter slot - aligned with search (no labels)
   const filterSlot = (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
-      <div className="w-full">
-        <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-          Jenis SDM
-        </label>
-        <Select
-          aria-label="Filter Jenis SDM"
-          placeholder="Pilih jenis SDM"
-          selectedKeys={filterJenisSDM > 0 ? [filterJenisSDM.toString()] : ["0"]}
-          onChange={(e) => {
-            setFilterJenisSDM(parseInt(e.target.value) || 0);
-            setCurrentPage(1);
-          }}
-          classNames={{
-            base: "w-full",
-            trigger: "h-10 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-purple-400 focus:border-purple-500 transition-colors shadow-sm",
-            value: "text-sm font-medium text-gray-700 dark:text-gray-300 pr-8",
-            innerWrapper: "!bg-white dark:!bg-gray-800",
-            popoverContent: "rounded-lg",
-          }}
-          size="sm"
-          variant="bordered"
-          renderValue={(items) => {
-            if (!items || items.length === 0) return "Semua Jenis SDM";
-            const item = items[0];
-            if (item.key === "0") return "Semua Jenis SDM";
-            return item.textValue || "Semua Jenis SDM";
-          }}
-        >
-          <SelectItem key="0" value="0" textValue="Semua Jenis SDM">
-            Semua Jenis SDM
-          </SelectItem>
-          {stats?.by_jenis_sdm
-            .filter((j) => j.total > 0)
-            .map((jenis) => (
-              <SelectItem
-                key={jenis.id_jns_sdm.toString()}
-                value={jenis.id_jns_sdm.toString()}
-                textValue={`${jenis.nm_jns_sdm} (${jenis.total})`}
-              >
-                {jenis.nm_jns_sdm} ({jenis.total})
-              </SelectItem>
-            ))}
-        </Select>
-      </div>
-      <div className="w-full">
-        <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-          Status Aktif
-        </label>
-        <Select
-          aria-label="Filter Status Aktif"
-          placeholder="Pilih status"
-          selectedKeys={filterStatusAktif > 0 ? [filterStatusAktif.toString()] : ["0"]}
-          onChange={(e) => {
-            setFilterStatusAktif(parseInt(e.target.value) || 0);
-            setCurrentPage(1);
-          }}
-          classNames={{
-            base: "w-full",
-            trigger: "h-10 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-purple-400 focus:border-purple-500 transition-colors shadow-sm",
-            value: "text-sm font-medium text-gray-700 dark:text-gray-300 pr-8",
-            innerWrapper: "!bg-white dark:!bg-gray-800",
-            popoverContent: "rounded-lg",
-          }}
-          size="sm"
-          variant="bordered"
-          renderValue={(items) => {
-            if (!items || items.length === 0) return "Semua Status";
-            const item = items[0];
-            if (item.key === "0") return "Semua Status";
-            return item.textValue || "Semua Status";
-          }}
-        >
-          <SelectItem key="0" value="0" textValue="Semua Status">
-            Semua Status
-          </SelectItem>
-          {stats?.by_status_aktif
-            .filter((s) => s.total > 0)
-            .map((status) => (
-              <SelectItem
-                key={status.id_stat_aktif.toString()}
-                value={status.id_stat_aktif.toString()}
-                textValue={`${status.nm_stat_aktif.trim()} (${status.total})`}
-              >
-                {status.nm_stat_aktif.trim()} ({status.total})
-              </SelectItem>
-            ))}
-        </Select>
-      </div>
+      <Select
+        aria-label="Filter Jenis SDM"
+        placeholder="Semua Jenis SDM"
+        selectedKeys={filterJenisSDM > 0 ? [filterJenisSDM.toString()] : ["0"]}
+        onChange={(e) => {
+          setFilterJenisSDM(parseInt(e.target.value) || 0);
+          setCurrentPage(1);
+        }}
+        classNames={{
+          base: "w-full",
+          trigger: "h-10 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-purple-400 focus:border-purple-500 transition-colors shadow-sm",
+          value: "text-sm font-medium text-gray-700 dark:text-gray-300 pr-8",
+          innerWrapper: "!bg-white dark:!bg-gray-800",
+          popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200",
+          listbox: "!bg-white dark:!bg-gray-800",
+        }}
+        size="sm"
+        variant="bordered"
+        renderValue={(items) => {
+          if (!items || items.length === 0) return "Semua Jenis SDM";
+          const item = items[0];
+          if (item.key === "0") return "Semua Jenis SDM";
+          return item.textValue || "Semua Jenis SDM";
+        }}
+      >
+        <SelectItem key="0" value="0" textValue="Semua Jenis SDM">
+          Semua Jenis SDM
+        </SelectItem>
+        {stats?.by_jenis_sdm
+          .filter((j) => j.total > 0)
+          .map((jenis) => (
+            <SelectItem
+              key={jenis.id_jns_sdm.toString()}
+              value={jenis.id_jns_sdm.toString()}
+              textValue={`${jenis.nm_jns_sdm} (${jenis.total})`}
+            >
+              {jenis.nm_jns_sdm} ({jenis.total})
+            </SelectItem>
+          ))}
+      </Select>
+      <Select
+        aria-label="Filter Status Aktif"
+        placeholder="Semua Status"
+        selectedKeys={filterStatusAktif > 0 ? [filterStatusAktif.toString()] : ["0"]}
+        onChange={(e) => {
+          setFilterStatusAktif(parseInt(e.target.value) || 0);
+          setCurrentPage(1);
+        }}
+        classNames={{
+          base: "w-full",
+          trigger: "h-10 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-purple-400 focus:border-purple-500 transition-colors shadow-sm",
+          value: "text-sm font-medium text-gray-700 dark:text-gray-300 pr-8",
+          innerWrapper: "!bg-white dark:!bg-gray-800",
+          popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200",
+          listbox: "!bg-white dark:!bg-gray-800",
+        }}
+        size="sm"
+        variant="bordered"
+        renderValue={(items) => {
+          if (!items || items.length === 0) return "Semua Status";
+          const item = items[0];
+          if (item.key === "0") return "Semua Status";
+          return item.textValue || "Semua Status";
+        }}
+      >
+        <SelectItem key="0" value="0" textValue="Semua Status">
+          Semua Status
+        </SelectItem>
+        {stats?.by_status_aktif
+          .filter((s) => s.total > 0)
+          .map((status) => (
+            <SelectItem
+              key={status.id_stat_aktif.toString()}
+              value={status.id_stat_aktif.toString()}
+              textValue={`${status.nm_stat_aktif.trim()} (${status.total})`}
+            >
+              {status.nm_stat_aktif.trim()} ({status.total})
+            </SelectItem>
+          ))}
+      </Select>
     </div>
   );
 
