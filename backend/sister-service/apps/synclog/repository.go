@@ -340,7 +340,7 @@ func (r *repository) Create(ctx context.Context, log *SyncLog) error {
 	`
 
 	if log.SyncedAt.IsZero() {
-		log.SyncedAt = time.Now()
+		log.SyncedAt = time.Now().UTC()
 	}
 
 	_, err := r.db.ExecContext(
