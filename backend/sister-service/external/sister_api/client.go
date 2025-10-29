@@ -151,6 +151,15 @@ func (c *Client) GetWithRetry(endpoint string, maxRetries int) ([]byte, error) {
 				continue
 			}
 
+			// Handle 502 (Bad Gateway) with retry
+			if resp.StatusCode == http.StatusBadGateway && attempt < maxRetries {
+				waitTime := time.Duration(attempt+1) * 2 * time.Second
+				log.Printf("⚠️  Sister API bad gateway (502) (attempt %d/%d), retrying in %v...", attempt+1, maxRetries+1, waitTime)
+				time.Sleep(waitTime)
+				lastErr = fmt.Errorf("API returned status 502 (bad gateway): %s", string(body))
+				continue
+			}
+
 			// Handle 503 (Service Unavailable) with retry
 			if resp.StatusCode == http.StatusServiceUnavailable && attempt < maxRetries {
 				waitTime := time.Duration(attempt+1) * 2 * time.Second
