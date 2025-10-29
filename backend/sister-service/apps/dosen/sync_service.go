@@ -275,7 +275,7 @@ func (s *service) fetchDosenData(idSDM string) (*SisterDosenData, error) {
 	}
 
 	// Enable detailed logging for specific dosen (for debugging)
-	debugMode := idSDM == "f99f738d-a6d4-41b3-b546-2a5acb2c040b"
+	debugMode := idSDM == "f99f738d-a6d4-41b3-b546-2a5acb2c040b" || idSDM == "84181bcb-41d7-4a5c-958c-0b080e59df7a" || idSDM == "fa1db1cf-785f-45d6-8ac3-faef42deda73"
 
 	if debugMode {
 		log.Printf("🔍 [%s] DEBUG MODE: Fetching data from 6 Sister endpoints...", idSDM)

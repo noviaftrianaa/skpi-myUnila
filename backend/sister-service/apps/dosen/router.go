@@ -35,7 +35,7 @@ func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client, redisC
 		// POST /public/dosen/sync - Sync all Unila dosen from SISTER API to database
 		dosenRouter.Post("/sync", ctrl.SyncDosenFromSister)
 
-		// POST /public/dosen/sync-one/:id_sdm - Sync single dosen by ID (for testing/debugging)
-		dosenRouter.Post("/sync-one/:id_sdm", ctrl.SyncSingleDosenTest)
+		// POST /public/dosen/test/:id_sdm - Test sync single dosen (for debugging)
+		dosenRouter.Post("/test/:id_sdm", ctrl.SyncSingleDosenTest)
 	}
 }
