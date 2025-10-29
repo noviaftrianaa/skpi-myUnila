@@ -102,7 +102,7 @@ func (s *service) SyncDosenFromSister(idSP string, syncedBy string) (*BatchDosen
 	}
 
 	// Step 3: Setup goroutine worker pool
-	numWorkers := 10 // 10 concurrent workers
+	numWorkers := 5 // 5 concurrent workers (balanced between speed and Sister API rate limiting)
 	jobs := make(chan map[string]interface{}, totalDosen)
 	results := make(chan DosenSyncResult, totalDosen)
 
@@ -221,6 +221,9 @@ func (s *service) dosenWorker(id int, jobs <-chan map[string]interface{}, result
 		// Fetch and process single dosen
 		result := s.syncSingleDosen(idSDM, nama, cache)
 		results <- result
+
+		// Add small delay to avoid rate limiting (200ms per dosen = ~5 dosen/second per worker)
+		time.Sleep(200 * time.Millisecond)
 	}
 }
 
@@ -271,51 +274,133 @@ func (s *service) fetchDosenData(idSDM string) (*SisterDosenData, error) {
 		IDSDM: idSDM,
 	}
 
+	// Enable detailed logging for specific dosen (for debugging)
+	debugMode := idSDM == "f99f738d-a6d4-41b3-b546-2a5acb2c040b"
+
+	if debugMode {
+		log.Printf("🔍 [%s] DEBUG MODE: Fetching data from 6 Sister endpoints...", idSDM)
+	}
+
 	// Fetch profil
 	if rawData, err := s.sisterAPI.GetDosenProfil(idSDM); err == nil {
+		if debugMode {
+			log.Printf("📋 [%s] Profil response: %s", idSDM, string(rawData))
+		}
 		var profil SisterProfil
 		if err := json.Unmarshal(rawData, &profil); err == nil {
 			combined.Profil = &profil
+			if debugMode {
+				log.Printf("✅ [%s] Profil parsed: nama=%s, jk=%s, tmpt_lahir=%s, tgl_lahir=%s",
+					idSDM, profil.Nama, profil.JenisKelamin, profil.TempatLahir, profil.TanggalLahir)
+			}
+		} else {
+			log.Printf("⚠️ [%s] Failed to parse profil: %v", idSDM, err)
 		}
+	} else {
+		log.Printf("❌ [%s] Failed to fetch profil: %v", idSDM, err)
 	}
 
 	// Fetch kependudukan
 	if rawData, err := s.sisterAPI.GetDosenKependudukan(idSDM); err == nil {
+		if debugMode {
+			log.Printf("📋 [%s] Kependudukan response: %s", idSDM, string(rawData))
+		}
 		var kependudukan SisterKependudukan
 		if err := json.Unmarshal(rawData, &kependudukan); err == nil {
 			combined.Kependudukan = &kependudukan
+			if debugMode {
+				log.Printf("✅ [%s] Kependudukan parsed: nik=%s, id_agama=%s, kewarganegaraan=%s",
+					idSDM, kependudukan.NIK, kependudukan.IDAgama, kependudukan.Kewarganegaraan)
+			}
+		} else {
+			log.Printf("⚠️ [%s] Failed to parse kependudukan: %v", idSDM, err)
+		}
+	} else {
+		if debugMode {
+			log.Printf("❌ [%s] Failed to fetch kependudukan: %v", idSDM, err)
 		}
 	}
 
 	// Fetch keluarga
 	if rawData, err := s.sisterAPI.GetDosenKeluarga(idSDM); err == nil {
+		if debugMode {
+			log.Printf("📋 [%s] Keluarga response: %s", idSDM, string(rawData))
+		}
 		var keluarga SisterKeluarga
 		if err := json.Unmarshal(rawData, &keluarga); err == nil {
 			combined.Keluarga = &keluarga
+			if debugMode {
+				log.Printf("✅ [%s] Keluarga parsed: status_kawin=%s, id_status_kawin=%s, nama_pasangan=%s, nip_pasangan=%s",
+					idSDM, keluarga.StatusKawin, keluarga.IDStatusKawin, keluarga.NamaPasangan, keluarga.NIPPasangan)
+			}
+		} else {
+			log.Printf("⚠️ [%s] Failed to parse keluarga: %v", idSDM, err)
+		}
+	} else {
+		if debugMode {
+			log.Printf("❌ [%s] Failed to fetch keluarga: %v", idSDM, err)
 		}
 	}
 
 	// Fetch alamat
 	if rawData, err := s.sisterAPI.GetDosenAlamat(idSDM); err == nil {
+		if debugMode {
+			log.Printf("📋 [%s] Alamat response: %s", idSDM, string(rawData))
+		}
 		var alamat SisterAlamat
 		if err := json.Unmarshal(rawData, &alamat); err == nil {
 			combined.Alamat = &alamat
+			if debugMode {
+				log.Printf("✅ [%s] Alamat parsed: alamat=%s, rt=%d, rw=%d, dusun=%s, kelurahan=%s, kode_pos=%s, telepon_hp=%s, email=%s",
+					idSDM, alamat.Alamat, alamat.RT, alamat.RW, alamat.Dusun, alamat.Kelurahan, alamat.KodePos, alamat.TeleponHP, alamat.Email)
+			}
+		} else {
+			log.Printf("⚠️ [%s] Failed to parse alamat: %v", idSDM, err)
+		}
+	} else {
+		if debugMode {
+			log.Printf("❌ [%s] Failed to fetch alamat: %v", idSDM, err)
 		}
 	}
 
 	// Fetch kepegawaian
 	if rawData, err := s.sisterAPI.GetDosenKepegawaian(idSDM); err == nil {
+		if debugMode {
+			log.Printf("📋 [%s] Kepegawaian response: %s", idSDM, string(rawData))
+		}
 		var kepegawaian SisterKepegawaian
 		if err := json.Unmarshal(rawData, &kepegawaian); err == nil {
 			combined.Kepegawaian = &kepegawaian
+			if debugMode {
+				log.Printf("✅ [%s] Kepegawaian parsed: nidn=%s, nip=%s, nuptk=%s, tmmd=%s, sk_cpns=%s, tanggal_sk_cpns=%s",
+					idSDM, kepegawaian.NIDN, kepegawaian.NIP, kepegawaian.NUPTK, kepegawaian.TMMD, kepegawaian.SKCPNS, kepegawaian.TanggalSKCPNS)
+			}
+		} else {
+			log.Printf("⚠️ [%s] Failed to parse kepegawaian: %v", idSDM, err)
+		}
+	} else {
+		if debugMode {
+			log.Printf("❌ [%s] Failed to fetch kepegawaian: %v", idSDM, err)
 		}
 	}
 
 	// Fetch lain
 	if rawData, err := s.sisterAPI.GetDosenLain(idSDM); err == nil {
+		if debugMode {
+			log.Printf("📋 [%s] Lain response: %s", idSDM, string(rawData))
+		}
 		var lain SisterLain
 		if err := json.Unmarshal(rawData, &lain); err == nil {
 			combined.Lain = &lain
+			if debugMode {
+				log.Printf("✅ [%s] Lain parsed: npwp=%s", idSDM, lain.NPWP)
+			}
+		} else {
+			log.Printf("⚠️ [%s] Failed to parse lain: %v", idSDM, err)
+		}
+	} else {
+		if debugMode {
+			log.Printf("❌ [%s] Failed to fetch lain: %v", idSDM, err)
 		}
 	}
 
@@ -323,7 +408,67 @@ func (s *service) fetchDosenData(idSDM string) (*SisterDosenData, error) {
 	// Ini memungkinkan sync tetap berjalan meskipun Sister API return error
 	// untuk endpoint tertentu
 
+	if debugMode {
+		log.Printf("✅ [%s] Completed fetching all endpoints", idSDM)
+	}
 	return combined, nil
+}
+
+// SyncSingleDosenTest syncs a single dosen by ID for testing/debugging
+func (s *service) SyncSingleDosenTest(idSDM string) (*DosenSyncResult, error) {
+	log.Printf("🧪 [TEST] Starting single dosen sync for ID: %s", idSDM)
+
+	// Load reference cache
+	cache, err := s.repo.GetReferenceCache()
+	if err != nil {
+		return nil, fmt.Errorf("failed to load reference cache: %w", err)
+	}
+
+	// Unila ID SP (Satuan Perguruan Tinggi)
+	const UNILA_ID_SP = "e2b705a7-173e-464a-9fac-509128709515"
+
+	// Get dosen name from /referensi/sdm endpoint first
+	rawData, err := s.sisterAPI.GetReferensiSDM(UNILA_ID_SP)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch SDM list: %w", err)
+	}
+
+	// Parse JSON response
+	var dosenList []interface{}
+	if err := json.Unmarshal(rawData, &dosenList); err != nil {
+		return nil, fmt.Errorf("failed to parse SDM list: %w", err)
+	}
+
+	var nama string
+	for _, dosen := range dosenList {
+		dosenMap, ok := dosen.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		id, _ := dosenMap["id_sdm"].(string)
+		if id == idSDM {
+			// Try both field names
+			nama, ok = dosenMap["nama_sdm"].(string)
+			if !ok || nama == "" {
+				nama, _ = dosenMap["nm_sdm"].(string)
+			}
+			log.Printf("📝 [TEST] Found dosen in SDM list: %s (nama: %s)", idSDM, nama)
+			break
+		}
+	}
+
+	if nama == "" {
+		log.Printf("⚠️ [TEST] Dosen not found in SDM list, will use name from profil")
+		nama = "Unknown"
+	}
+
+	// Perform single dosen sync
+	result := s.syncSingleDosen(idSDM, nama, cache)
+
+	log.Printf("🏁 [TEST] Sync completed for %s: success=%v, error=%s", idSDM, result.Success, result.Error)
+
+	return &result, nil
 }
 
 // transformSisterDataToDosen transforms combined Sister API data to Dosen entity for pdrd.sdm
@@ -367,11 +512,11 @@ func (s *service) transformSisterDataToDosen(data *SisterDosenData, namaFromSDML
 		TanggalLahir:    &defaultTglLahir,                // Default birthdate - will be overridden
 	}
 
-	// From Profil (required)
+	// From Profil
 	if data.Profil != nil {
-		// Override nama only if profil has non-empty value
-		if data.Profil.NamaSDM != "" {
-			dosen.NamaSDM = data.Profil.NamaSDM
+		// Override nama only if profil has non-empty value (trim spaces)
+		if strings.TrimSpace(data.Profil.Nama) != "" {
+			dosen.NamaSDM = strings.TrimSpace(data.Profil.Nama)
 		}
 
 		// Validate JK - CHECK constraint only allows L or P
@@ -390,19 +535,6 @@ func (s *service) transformSisterDataToDosen(data *SisterDosenData, namaFromSDML
 				dosen.TanggalLahir = &t
 			}
 		}
-
-		if data.Profil.NIDN != "" {
-			dosen.NIDN = &data.Profil.NIDN
-		}
-		if data.Profil.Telepon != "" {
-			dosen.NoTelRumah = &data.Profil.Telepon
-		}
-		if data.Profil.Handphone != "" {
-			dosen.NoHP = &data.Profil.Handphone
-		}
-		if data.Profil.Email != "" {
-			dosen.Email = &data.Profil.Email
-		}
 	}
 
 	// From Kependudukan
@@ -411,16 +543,14 @@ func (s *service) transformSisterDataToDosen(data *SisterDosenData, namaFromSDML
 			dosen.NIK = data.Kependudukan.NIK // Override default
 		}
 
-		// Parse ID Agama (Sister API returns as string number)
-		if data.Kependudukan.IDAgama != "" {
-			if idAgama, err := parseInt(data.Kependudukan.IDAgama); err == nil {
-				dosen.IDAgama = idAgama
-			}
+		// ID Agama from Sister API (int)
+		if data.Kependudukan.IDAgama > 0 {
+			dosen.IDAgama = data.Kependudukan.IDAgama
 		}
 
-		// Map kewarganegaraan (Sister API: WNI/WNA -> DB: ID/XX)
+		// Map kewarganegaraan (Sister API: "Indonesia"/"other" -> DB: ID/XX)
 		if data.Kependudukan.Kewarganegaraan != "" {
-			if data.Kependudukan.Kewarganegaraan == "WNI" {
+			if data.Kependudukan.Kewarganegaraan == "Indonesia" {
 				dosen.Kewarganegaraan = "ID"
 			} else {
 				dosen.Kewarganegaraan = "XX" // Foreign national
@@ -430,12 +560,10 @@ func (s *service) transformSisterDataToDosen(data *SisterDosenData, namaFromSDML
 
 	// From Keluarga
 	if data.Keluarga != nil {
-		// Parse id_status_kawin from Sister API response
-		// Sister API response contains "id_status_kawin": 1 (for married)
-		if data.Keluarga.IDStatusKawin != "" {
-			if statKawin, err := parseInt(data.Keluarga.IDStatusKawin); err == nil {
-				dosen.StatKawin = &statKawin
-			}
+		// ID Status Kawin from Sister API (int)
+		if data.Keluarga.IDStatusKawin > 0 {
+			statKawin := data.Keluarga.IDStatusKawin
+			dosen.StatKawin = &statKawin
 		}
 
 		if data.Keluarga.NamaPasangan != "" {
@@ -450,80 +578,74 @@ func (s *service) transformSisterDataToDosen(data *SisterDosenData, namaFromSDML
 
 	// From Alamat
 	if data.Alamat != nil {
-		if data.Alamat.Jalan != "" {
-			dosen.Jalan = &data.Alamat.Jalan
+		// Sister API field: "alamat" (jalan lengkap), DB: jln
+		if data.Alamat.Alamat != "" {
+			dosen.Jalan = &data.Alamat.Alamat
 		}
 
-		// Parse RT/RW (Sister API returns as string -> DB: numeric(3))
-		if data.Alamat.RT != "" {
-			if rt, err := parseInt(data.Alamat.RT); err == nil {
-				dosen.RT = &rt
-			}
+		// RT/RW from Sister API (int) -> DB: numeric(3)
+		if data.Alamat.RT > 0 {
+			rt := data.Alamat.RT
+			dosen.RT = &rt
 		}
-		if data.Alamat.RW != "" {
-			if rw, err := parseInt(data.Alamat.RW); err == nil {
-				dosen.RW = &rw
-			}
+		if data.Alamat.RW > 0 {
+			rw := data.Alamat.RW
+			dosen.RW = &rw
 		}
 
 		if data.Alamat.Dusun != "" {
 			dosen.NamaDusun = &data.Alamat.Dusun
 		}
-		if data.Alamat.DesaKelurahan != "" {
-			dosen.DesaKel = &data.Alamat.DesaKelurahan
+
+		// Sister API field: "kelurahan", DB: ds_kel
+		if data.Alamat.Kelurahan != "" {
+			dosen.DesaKel = &data.Alamat.Kelurahan
 		}
+
 		if data.Alamat.KodePos != "" {
 			dosen.KodePos = &data.Alamat.KodePos
 		}
-		if data.Alamat.IDWilayah != "" {
-			dosen.IDWilayah = data.Alamat.IDWilayah // Required field, override default
+
+		// Contact info from Alamat endpoint
+		if data.Alamat.TeleponRumah != "" {
+			dosen.NoTelRumah = &data.Alamat.TeleponRumah
 		}
+		if data.Alamat.TeleponHP != "" {
+			dosen.NoHP = &data.Alamat.TeleponHP
+		}
+		if data.Alamat.Email != "" {
+			dosen.Email = &data.Alamat.Email
+		}
+
+		// Note: IDKotaKabupaten tidak di-map karena tidak ada field terkait di pdrd.sdm
 	}
 
 	// From Kepegawaian
 	if data.Kepegawaian != nil {
-		// Map Jenis SDM name to ID (Sister API returns name like "Dosen", not ID)
-		if data.Kepegawaian.JenisSDM != "" {
-			mappedID := getJenisSDMID(data.Kepegawaian.JenisSDM)
-			dosen.IDJenisSDM = mappedID
-			log.Printf("   📝 Mapped jenis_sdm '%s' to ID %d for dosen %s", data.Kepegawaian.JenisSDM, mappedID, data.IDSDM)
-		} else if data.Kepegawaian.IDJenisSDM != "" {
-			// Fallback: if ID is provided as string number, parse it
-			if idJenisSDM, err := parseInt(data.Kepegawaian.IDJenisSDM); err == nil {
-				dosen.IDJenisSDM = idJenisSDM
-				log.Printf("   📝 Parsed id_jns_sdm '%s' to ID %d for dosen %s", data.Kepegawaian.IDJenisSDM, idJenisSDM, data.IDSDM)
-			}
-		} else {
-			log.Printf("   ⚠️  No jenis_sdm data from Sister API for dosen %s, using default ID %d", data.IDSDM, dosen.IDJenisSDM)
-		}
+		// Sister API doesn't return jenis_sdm in kepegawaian endpoint
+		// Use default (12 = Dosen) yang sudah di-set di awal
+		log.Printf("   ⚠️  No jenis_sdm data from Sister API for dosen %s, using default ID %d", data.IDSDM, dosen.IDJenisSDM)
 
-		// Parse ID Status Aktif (Sister API returns as string number -> DB: numeric(2))
-		if data.Kepegawaian.IDStatusAktif != "" {
-			if idStatusAktif, err := parseInt(data.Kepegawaian.IDStatusAktif); err == nil {
-				dosen.IDStatusAktif = idStatusAktif // Override default
-			}
+		if data.Kepegawaian.NIDN != "" {
+			dosen.NIDN = &data.Kepegawaian.NIDN
 		}
-
 		if data.Kepegawaian.NIP != "" {
 			dosen.NIP = &data.Kepegawaian.NIP
 		}
 		if data.Kepegawaian.NUPTK != "" {
 			dosen.NUPTK = &data.Kepegawaian.NUPTK
 		}
-		if data.Kepegawaian.NIPY != "" {
-			dosen.NIYIGK = &data.Kepegawaian.NIPY // Sister uses NIPY, DB uses niy_nigk
-		}
 
-		// TMT PNS
-		if data.Kepegawaian.TanggalMasuk != "" {
-			if t, err := parseDate(data.Kepegawaian.TanggalMasuk); err == nil {
+		// TMT (Terhitung Mulai Tanggal) from "tmmd" field
+		if data.Kepegawaian.TMMD != "" {
+			if t, err := parseDate(data.Kepegawaian.TMMD); err == nil {
 				dosen.TMTPNS = &t
 			}
 		}
 
-		// SK CPNS
-		if data.Kepegawaian.NomorSKCPNS != "" {
-			dosen.SKCPNS = &data.Kepegawaian.NomorSKCPNS
+		// SK CPNS - Sister API field: "sk_cpns" (not no_sk_cpns)
+		if data.Kepegawaian.SKCPNS != "" {
+			dosen.SKCPNS = &data.Kepegawaian.SKCPNS
 		}
 		if data.Kepegawaian.TanggalSKCPNS != "" {
 			if t, err := parseDate(data.Kepegawaian.TanggalSKCPNS); err == nil {
@@ -531,15 +653,7 @@ func (s *service) transformSisterDataToDosen(data *SisterDosenData, namaFromSDML
 			}
 		}
 
-		// SK Angkat
-		if data.Kepegawaian.NomorSKPengangkatan != "" {
-			dosen.SKAngkat = &data.Kepegawaian.NomorSKPengangkatan
-		}
-		if data.Kepegawaian.TanggalPengangkatan != "" {
-			if t, err := parseDate(data.Kepegawaian.TanggalPengangkatan); err == nil {
-				dosen.TMTSKAngkat = &t
-			}
-		}
+		// Note: Sister API doesn't return SK Angkat fields (no_sk_pengangkatan, tgl_diangkat)
 	}
 
 	// From Lain

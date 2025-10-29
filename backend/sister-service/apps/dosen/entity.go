@@ -88,60 +88,63 @@ type SisterDosenData struct {
 }
 
 // SisterProfil from /data_pribadi/profil/{id_sdm}
+// Response actual: {"nama":" HARTONO ","jenis_kelamin":"L","tempat_lahir":"PRINGKUMPUL","tanggal_lahir":"1971-10-10"}
 type SisterProfil struct {
-	NamaSDM      string `json:"nm_sdm"`
-	JenisKelamin string `json:"jk"`
-	TempatLahir  string `json:"tmpt_lahir"`
-	TanggalLahir string `json:"tgl_lahir"`
-	NIDN         string `json:"nidn"`
-	Telepon      string `json:"telepon"`
-	Handphone    string `json:"handphone"`
-	Email        string `json:"email"`
+	Nama         string `json:"nama"`          // Note: lowercase, not nm_sdm
+	JenisKelamin string `json:"jenis_kelamin"` // Note: jenis_kelamin, not jk
+	TempatLahir  string `json:"tempat_lahir"`  // Note: tempat_lahir, not tmpt_lahir
+	TanggalLahir string `json:"tanggal_lahir"` // Note: tanggal_lahir, not tgl_lahir
 }
 
 // SisterKependudukan from /data_pribadi/kependudukan/{id_sdm}
+// Response actual: {"nik":"1871101010710005","id_agama":1,"agama":"Islam","kode_negara":"ID","kewarganegaraan":"Indonesia"}
 type SisterKependudukan struct {
 	NIK             string `json:"nik"`
-	IDAgama         string `json:"id_agama"`
-	Kewarganegaraan string `json:"a_kewarga"`
+	IDAgama         int    `json:"id_agama"`         // Note: int, not string
+	Agama           string `json:"agama"`            // Nama agama
+	KodeNegara      string `json:"kode_negara"`      // Note: kode_negara, not a_kewarga
+	Kewarganegaraan string `json:"kewarganegaraan"`  // Nama kewarganegaraan
 }
 
 // SisterKeluarga from /data_pribadi/keluarga/{id_sdm}
+// Response actual: {"id_status_kawin":1,"nama_pasangan":"LUSIATI","nip_pasangan":"198108222009022006","id_pekerjaan_pasangan":5,"pekerjaan_pasangan":"PNS/TNI/Polri","status_kawin":"Kawin"}
 type SisterKeluarga struct {
-	StatusKawin    string `json:"status_kawin"`
-	IDStatusKawin  string `json:"id_status_kawin"`
-	NamaPasangan   string `json:"nama_pasangan"`
-	NIPPasangan    string `json:"nip_pasangan"`
-	PekerjaanPsgn  string `json:"pekerjaan_pasangan"`
-	IDPekerjaanPsgn string `json:"id_pekerjaan_pasangan"`
+	IDStatusKawin       int    `json:"id_status_kawin"`        // Note: int, not string
+	StatusKawin         string `json:"status_kawin"`           // Nama status kawin
+	NamaPasangan        string `json:"nama_pasangan"`
+	NIPPasangan         string `json:"nip_pasangan"`
+	IDPekerjaanPasangan int    `json:"id_pekerjaan_pasangan"`  // Note: int, not string
+	PekerjaanPasangan   string `json:"pekerjaan_pasangan"`     // Nama pekerjaan
 }
 
 // SisterAlamat from /data_pribadi/alamat/{id_sdm}
+// Response actual: {"alamat":"Mess Unila...","rt":3,"rw":1,"dusun":null,"kelurahan":"GEDONG MENENG","id_kota_kabupaten":"999999  ","kota_kabupaten":"tidak ada","kode_pos":"35145","telepon_rumah":"081540828489","telepon_hp":"085360010963","email":"mrtono1010@yahoo.com"}
 type SisterAlamat struct {
-	Jalan         string `json:"jalan"`
-	RT            string `json:"rt"`
-	RW            string `json:"rw"`
-	Dusun         string `json:"dusun"`
-	DesaKelurahan string `json:"ds_kel"`
-	KodePos       string `json:"kode_pos"`
-	IDWilayah     string `json:"id_wil"`
+	Alamat           string `json:"alamat"`             // Note: "alamat", not "jalan"
+	RT               int    `json:"rt"`                 // Note: int, not string
+	RW               int    `json:"rw"`                 // Note: int, not string
+	Dusun            string `json:"dusun"`
+	Kelurahan        string `json:"kelurahan"`          // Note: "kelurahan", not "ds_kel"
+	IDKotaKabupaten  string `json:"id_kota_kabupaten"`
+	KotaKabupaten    string `json:"kota_kabupaten"`
+	KodePos          string `json:"kode_pos"`
+	TeleponRumah     string `json:"telepon_rumah"`      // New field
+	TeleponHP        string `json:"telepon_hp"`         // New field
+	Email            string `json:"email"`              // New field
 }
 
 // SisterKepegawaian from /data_pribadi/kepegawaian/{id_sdm}
+// Response actual: {"nidn":"0010107106","nip":"197110102002121001","nuptk":"7342749650130233","sk_cpns":"1469/J26/KP/2003","tanggal_sk_cpns":"2003-04-28","sk_tmmd":null,"tmmd":"2002-12-01","id_sumber_gaji":1,"sumber_gaji":"APBN"}
 type SisterKepegawaian struct {
-	IDJenisSDM          string `json:"id_jns_sdm"`
-	JenisSDM            string `json:"jenis_sdm"` // Nama jenis SDM (e.g., "Dosen")
-	IDStatusAktif       string `json:"id_stat_aktif"`
-	NIP                 string `json:"nip"`
-	NIPY                string `json:"nipy"`
-	NUPTK               string `json:"nuptk"`
-	TanggalMasuk        string `json:"tgl_msk_pegawai"`
-	TanggalKeluar       string `json:"tgl_klr_pegawai"`
-	TanggalCPNS         string `json:"tgl_cpns"`
-	NomorSKCPNS         string `json:"no_sk_cpns"`
-	TanggalSKCPNS       string `json:"tgl_sk_cpns"`
-	TanggalPengangkatan string `json:"tgl_diangkat"`
-	NomorSKPengangkatan string `json:"no_sk_pengangkatan"`
+	NIDN            string `json:"nidn"`
+	NIP             string `json:"nip"`
+	NUPTK           string `json:"nuptk"`
+	SKCPNS          string `json:"sk_cpns"`            // Note: sk_cpns, not no_sk_cpns
+	TanggalSKCPNS   string `json:"tanggal_sk_cpns"`
+	SKTMMD          string `json:"sk_tmmd"`
+	TMMD            string `json:"tmmd"`               // TMT (Terhitung Mulai Tanggal)
+	IDSumberGaji    int    `json:"id_sumber_gaji"`     // Note: int
+	SumberGaji      string `json:"sumber_gaji"`        // Nama sumber gaji
 }
 
 // SisterLain from /data_pribadi/lain/{id_sdm}

@@ -264,3 +264,38 @@ func (ctrl *Controller) SyncDosenFromSister(c *fiber.Ctx) error {
 		"data":    result,
 	})
 }
+
+// SyncSingleDosenTest handles POST /dosen/sync-one/:id_sdm
+// @Summary Sync single dosen by ID (for testing/debugging)
+// @Description Syncs a single dosen from SISTER API by ID with detailed logging
+// @Tags Dosen
+// @Produce json
+// @Param id_sdm path string true "Dosen ID (UUID)"
+// @Success 200 {object} map[string]interface{} "Sync result"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /dosen/sync-one/{id_sdm} [post]
+func (ctrl *Controller) SyncSingleDosenTest(c *fiber.Ctx) error {
+	idSDM := c.Params("id_sdm")
+	if idSDM == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"message": "id_sdm parameter is required",
+		})
+	}
+
+	result, err := ctrl.service.SyncSingleDosenTest(idSDM)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to sync dosen",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Dosen synced successfully",
+		"data":    result,
+	})
+}

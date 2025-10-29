@@ -19,6 +19,7 @@ type Service interface {
 	GetDosenPhoto(idSdm string) ([]byte, string, error)
 	GetDosenBidangIlmu(idSdm string) ([]map[string]interface{}, error)
 	SyncDosenFromSister(idSP string, syncedBy string) (*BatchDosenSyncResult, error)
+	SyncSingleDosenTest(idSDM string) (*DosenSyncResult, error)
 	GetDosenList(page, limit int, search string, idJnsSDM, idStatAktif int) (*DosenListResult, error)
 	GetDosenByID(idSDM string) (*Dosen, error)
 	GetDosenStats() (*DosenStats, error)
