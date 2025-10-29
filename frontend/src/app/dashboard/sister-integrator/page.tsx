@@ -7,10 +7,8 @@ import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
 import {
   Card,
   CardBody,
-  Progress,
   Chip,
   Button,
-  Badge,
   Spinner,
 } from "@heroui/react";
 import {
@@ -18,62 +16,94 @@ import {
   FiActivity,
   FiCheckCircle,
   FiClock,
-  FiTrendingUp,
   FiArrowRight,
-  FiRefreshCw,
   FiServer,
-  FiAlertTriangle,
   FiBookOpen,
+  FiUsers,
 } from "react-icons/fi";
 import { BsCloudUpload } from "react-icons/bs";
 import { RiGovernmentFill } from "react-icons/ri";
 import { sisterIntegratorMenuConfig } from "./config/menuConfig";
 import Link from "next/link";
 import { referensiService, type ReferensiMetadata } from "@/lib/services/referensiService";
+import { syncLogsService, type SyncLog } from "@/lib/services/syncLogsService";
 import { toast } from "react-hot-toast";
+
+interface DosenStats {
+  total_dosen: number;
+  total_aktif: number;
+  total_tidak_aktif: number;
+}
 
 export default function SisterIntegratorDashboardPage() {
   useRequireAuth();
   const { user } = useAuth();
 
   const [metadata, setMetadata] = useState<ReferensiMetadata[]>([]);
+  const [recentLogs, setRecentLogs] = useState<SyncLog[]>([]);
+  const [dosenStats, setDosenStats] = useState<DosenStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // Fetch metadata on mount
+  // Fetch metadata, sync logs, and dosen stats on mount
   useEffect(() => {
-    fetchMetadata();
+    fetchData();
   }, []);
 
-  const fetchMetadata = async () => {
+  const fetchData = async () => {
     try {
       setIsLoading(true);
-      const data = await referensiService.getMetadata();
-      setMetadata(data);
+      const [metadataData, logsData, dosenStatsData] = await Promise.all([
+        referensiService.getMetadata(),
+        syncLogsService.getRecentSyncLogs(5),
+        fetchDosenStats()
+      ]);
+      setMetadata(metadataData);
+      setRecentLogs(logsData);
+      setDosenStats(dosenStatsData);
     } catch (error) {
-      console.error("Error fetching metadata:", error);
-      toast.error("Gagal memuat metadata referensi");
+      console.error("Error fetching data:", error);
+      toast.error("Gagal memuat data dashboard");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Calculate real statistics from metadata
-  const totalRecords = metadata.reduce((sum, m) => sum + m.total_records, 0);
-  const syncedCount = metadata.filter((m) => m.total_records > 0).length;
-  const successRate = metadata.length > 0 ? ((syncedCount / metadata.length) * 100).toFixed(1) : 0;
-  const pendingCount = metadata.length - syncedCount;
+  const fetchDosenStats = async (): Promise<DosenStats | null> => {
+    try {
+      const response = await fetch("http://localhost:8083/public/dosen/stats");
+      if (!response.ok) return null;
+      const result = await response.json();
+      return result.data;
+    } catch (error) {
+      console.error("Error fetching dosen stats:", error);
+      return null;
+    }
+  };
 
-  // Sync statistics - using real data
+  // Calculate real statistics from metadata and dosen
+  const totalReferensiRecords = metadata.reduce((sum, m) => sum + m.total_records, 0);
+  const totalDosenRecords = dosenStats ? dosenStats.total_dosen : 0;
+  const totalRecords = totalReferensiRecords + totalDosenRecords;
+
+  const syncedReferensiCount = metadata.filter((m) => m.total_records > 0).length;
+  const dosenSynced = dosenStats && dosenStats.total_dosen > 0 ? 1 : 0;
+  const totalEndpoints = metadata.length + 1; // +1 for dosen endpoint
+  const syncedCount = syncedReferensiCount + dosenSynced;
+
+  const successRate = totalEndpoints > 0 ? ((syncedCount / totalEndpoints) * 100).toFixed(1) : 0;
+  const pendingCount = totalEndpoints - syncedCount;
+
+  // Sync statistics - using real data (referensi + dosen)
   const syncStats = [
     {
       title: "Total Records Synced",
       value: totalRecords.toLocaleString(),
       icon: <FiDatabase className="w-6 h-6" />,
       color: "from-purple-500 to-purple-600",
-      change: `${metadata.length} endpoints`,
+      change: `${totalEndpoints} endpoints`,
       trend: "up",
-      subtitle: "total data referensi",
+      subtitle: "referensi + dosen",
       progress: 85,
     },
     {
@@ -81,7 +111,7 @@ export default function SisterIntegratorDashboardPage() {
       value: `${successRate}%`,
       icon: <FiCheckCircle className="w-6 h-6" />,
       color: "from-green-500 to-green-600",
-      change: `${syncedCount}/${metadata.length}`,
+      change: `${syncedCount}/${totalEndpoints}`,
       trend: "up",
       subtitle: "endpoints synced",
       progress: parseFloat(successRate.toString()),
@@ -108,37 +138,51 @@ export default function SisterIntegratorDashboardPage() {
     },
   ];
 
-  // Recent sync activities - from real data (top 3 latest)
-  const recentSyncs = metadata
-    .filter(m => m.last_sync)
-    .sort((a, b) => {
-      const dateA = a.last_sync ? new Date(a.last_sync).getTime() : 0;
-      const dateB = b.last_sync ? new Date(b.last_sync).getTime() : 0;
-      return dateB - dateA;
-    })
-    .slice(0, 3)
-    .map(m => ({
-      entity: m.name,
-      status: m.total_records > 0 ? "success" : "pending",
-      records: m.total_records > 0 ? m.total_records.toString() : "0",
-      time: formatTimeAgo(m.last_sync),
-      duration: "-",
-      icon: <BsCloudUpload className="w-4 h-4" />,
-      color: m.total_records > 0 ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-600",
-      href: `/dashboard/sister-integrator/referensi`,
-    }));
-
-  // Referensi data modules - from real data (top 3)
-  const referensiModules = metadata.slice(0, 3).map(m => ({
-    name: m.name,
-    description: m.description,
-    icon: <FiBookOpen className="w-6 h-6" />,
-    color: "from-blue-500 to-blue-600",
-    status: m.total_records > 0 ? "active" : "inactive",
-    recordCount: m.total_records,
-    lastSync: formatTimeAgo(m.last_sync),
-    href: `/dashboard/sister-integrator/referensi`,
+  // Recent sync activities - from sync logs (includes both referensi and dosen)
+  const recentSyncs = recentLogs.slice(0, 5).map(log => ({
+    entity: log.endpoint_name,
+    status: log.status,
+    records: log.total_records.toString(),
+    time: formatTimeAgo(log.synced_at),
+    duration: log.duration_ms ? `${(log.duration_ms / 1000).toFixed(1)}s` : "-",
+    icon: <BsCloudUpload className="w-4 h-4" />,
+    color: log.status === "success"
+      ? "bg-green-100 text-green-600"
+      : log.status === "failed"
+      ? "bg-red-100 text-red-600"
+      : "bg-yellow-100 text-yellow-600",
+    href: log.endpoint_key.startsWith("dosen")
+      ? `/dashboard/sister-integrator/dosen`
+      : `/dashboard/sister-integrator/referensi`,
   }));
+
+  // Data modules - include dosen + top 2 referensi
+  const dataModules = [
+    // Dosen module
+    {
+      name: "Data Dosen & Tendik",
+      description: "Sinkronisasi data SDM dosen dan tenaga kependidikan dari SISTER API",
+      icon: <FiUsers className="w-6 h-6" />,
+      color: "from-purple-500 to-indigo-600",
+      status: dosenStats && dosenStats.total_dosen > 0 ? "active" : "inactive",
+      recordCount: dosenStats ? dosenStats.total_dosen : 0,
+      lastSync: recentLogs.find(log => log.endpoint_key === "dosen")?.synced_at
+        ? formatTimeAgo(recentLogs.find(log => log.endpoint_key === "dosen")?.synced_at)
+        : "Belum pernah sync",
+      href: `/dashboard/sister-integrator/pdrd/dosen`,
+    },
+    // Top 2 referensi
+    ...metadata.slice(0, 2).map(m => ({
+      name: m.name,
+      description: m.description,
+      icon: <FiBookOpen className="w-6 h-6" />,
+      color: "from-blue-500 to-blue-600",
+      status: m.total_records > 0 ? "active" : "inactive",
+      recordCount: m.total_records,
+      lastSync: formatTimeAgo(m.last_sync),
+      href: `/dashboard/sister-integrator/referensi`,
+    }))
+  ];
 
   // System health metrics
   const systemHealth = [
@@ -229,78 +273,37 @@ export default function SisterIntegratorDashboardPage() {
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        {/* Stats Grid - Match Dosen/Referensi Style */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {syncStats.map((stat, index) => (
             <Card
               key={index}
-              className="border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 overflow-hidden group relative"
+              className={`bg-gradient-to-br ${stat.color} border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative`}
             >
-              {/* Decorative background pattern */}
-              <div className="absolute inset-0 opacity-5">
-                <div className={`absolute -right-10 -top-10 w-40 h-40 rounded-full bg-gradient-to-br ${stat.color}`}></div>
-                <div className={`absolute -left-10 -bottom-10 w-32 h-32 rounded-full bg-gradient-to-br ${stat.color}`}></div>
-              </div>
-
-              <CardBody className="p-6 relative z-10">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="relative">
-                    <div
-                      className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-white shadow-xl group-hover:scale-110 transition-transform duration-300`}
-                    >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+              <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
+              <CardBody className="p-4 relative z-10">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
+                    <div className="text-white">
                       {stat.icon}
                     </div>
-                    {/* Decorative ring */}
-                    <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${stat.color} opacity-20 blur-lg group-hover:opacity-30 transition-opacity`}></div>
                   </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <Chip
-                      size="sm"
-                      variant="flat"
-                      color={stat.trend === "up" ? "success" : "warning"}
-                      startContent={
-                        stat.trend === "up" ? (
-                          <FiTrendingUp className="w-3 h-3" />
-                        ) : (
-                          <FiAlertTriangle className="w-3 h-3" />
-                        )
-                      }
-                      classNames={{
-                        base: "px-2 py-1",
-                        content: "font-bold text-xs",
-                      }}
-                    >
-                      {stat.change}
-                    </Chip>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wide">
-                    {stat.title}
-                  </p>
-                  <div className="flex items-baseline gap-2">
-                    <h3 className="text-4xl font-black bg-gradient-to-br from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-xs font-medium text-white/90">{stat.title}</p>
+                      <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
+                        <span className="text-[10px] font-semibold text-white">{stat.change}</span>
+                      </div>
+                    </div>
+                    <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
                       {stat.value}
                     </h3>
+                    <p className="text-[10px] text-white/80 flex items-center gap-1">
+                      {stat.trend === "up" && <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />}
+                      {stat.subtitle}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Progress
-                      value={stat.progress}
-                      className="flex-1"
-                      classNames={{
-                        indicator: `bg-gradient-to-r ${stat.color}`,
-                        track: "bg-gray-100 dark:bg-gray-800",
-                      }}
-                      size="sm"
-                    />
-                    <span className="text-xs font-bold text-gray-600 dark:text-gray-400">
-                      {stat.progress.toFixed(0)}%
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 font-medium">
-                    {stat.subtitle}
-                  </p>
                 </div>
               </CardBody>
             </Card>
@@ -311,27 +314,17 @@ export default function SisterIntegratorDashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - 2/3 width */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Referensi Modules */}
+            {/* Data Modules - Dosen & Referensi */}
             <Card className="border-none shadow-md">
               <CardBody className="p-6">
-                <div className="flex items-center justify-between mb-4">
+                <div className="mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                    <FiBookOpen className="w-5 h-5 text-purple-600" />
-                    Data Referensi
+                    <FiDatabase className="w-5 h-5 text-purple-600" />
+                    Data Overview
                   </h3>
-                  <Button
-                    size="sm"
-                    variant="light"
-                    color="primary"
-                    endContent={<FiArrowRight className="w-4 h-4" />}
-                    as={Link}
-                    href="/dashboard/sister-integrator/referensi"
-                  >
-                    View All
-                  </Button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {referensiModules.map((module, index) => (
+                  {dataModules.map((module, index) => (
                     <Link key={index} href={module.href}>
                       <Card
                         isPressable
@@ -387,7 +380,7 @@ export default function SisterIntegratorDashboardPage() {
                     color="primary"
                     endContent={<FiArrowRight className="w-4 h-4" />}
                     as={Link}
-                    href="/dashboard/sister-integrator/referensi"
+                    href="/dashboard/sister-integrator/logs"
                   >
                     View All
                   </Button>
@@ -410,17 +403,17 @@ export default function SisterIntegratorDashboardPage() {
                               color={
                                 sync.status === "success"
                                   ? "success"
-                                  : sync.status === "running"
-                                  ? "primary"
-                                  : "default"
+                                  : sync.status === "failed"
+                                  ? "danger"
+                                  : "warning"
                               }
                               className="flex-shrink-0"
                             >
                               {sync.status === "success"
                                 ? "Success"
-                                : sync.status === "running"
-                                ? "Running"
-                                : "Pending"}
+                                : sync.status === "failed"
+                                ? "Failed"
+                                : "Partial"}
                             </Chip>
                           </div>
                           <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
@@ -512,47 +505,26 @@ export default function SisterIntegratorDashboardPage() {
                     <span className="font-bold text-gray-900 dark:text-white">{metadata.length}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-600 dark:text-gray-400">Active Syncs</span>
-                    <Badge content={syncedCount.toString()} color="success" size="sm">
-                      <span className="font-bold text-gray-900 dark:text-white">{syncedCount}</span>
-                    </Badge>
+                    <span className="text-gray-600 dark:text-gray-400">Total Dosen</span>
+                    <span className="font-bold text-gray-900 dark:text-white">
+                      {dosenStats ? dosenStats.total_dosen.toLocaleString() : "-"}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-600 dark:text-gray-400">Failed Today</span>
-                    <span className="font-bold text-green-600">0</span>
+                    <span className="text-gray-600 dark:text-gray-400">Dosen Aktif</span>
+                    <span className="font-bold text-green-600">
+                      {dosenStats ? dosenStats.total_aktif.toLocaleString() : "-"}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-600 dark:text-gray-400">Avg Sync Time</span>
-                    <span className="font-bold text-gray-900 dark:text-white">0.8s</span>
+                    <span className="text-gray-600 dark:text-gray-400">Dosen Tidak Aktif</span>
+                    <span className="font-bold text-orange-600">
+                      {dosenStats ? dosenStats.total_tidak_aktif.toLocaleString() : "-"}
+                    </span>
                   </div>
-                </div>
-              </CardBody>
-            </Card>
-
-            {/* Info Card */}
-            <Card className="border-none shadow-md border-l-4 border-l-purple-500">
-              <CardBody className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white flex-shrink-0 shadow-lg">
-                    <RiGovernmentFill className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">
-                      SISTER Integration
-                    </h4>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                      Sistem terintegrasi dengan SISTER API Kemenristekdikti untuk sinkronisasi data referensi secara otomatis.
-                    </p>
-                    <Button
-                      size="sm"
-                      color="secondary"
-                      variant="flat"
-                      className="text-xs"
-                      as={Link}
-                      href="/dashboard/sister-integrator/referensi"
-                    >
-                      View Referensi
-                    </Button>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600 dark:text-gray-400">Sync Success Rate</span>
+                    <span className="font-bold text-gray-900 dark:text-white">{successRate}%</span>
                   </div>
                 </div>
               </CardBody>

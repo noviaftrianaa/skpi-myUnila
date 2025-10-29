@@ -122,7 +122,7 @@ export const syncLogsService = {
     try {
       console.log(`🔍 Fetching ${limit} recent sync logs`);
 
-      const response = await fetch(`${SISTER_API_BASE}/logs/sync/recent?limit=${limit}`, {
+      const response = await fetch(`${SISTER_API_BASE}/sync-logs?limit=${limit}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -134,7 +134,8 @@ export const syncLogsService = {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data: SyncLog[] = await response.json();
+      const result = await response.json();
+      const data: SyncLog[] = result.data || [];
       console.log("✅ Recent sync logs fetched successfully:", data.length, "logs");
       return data;
     } catch (error) {
