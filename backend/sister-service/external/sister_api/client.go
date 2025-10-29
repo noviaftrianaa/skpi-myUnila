@@ -93,81 +93,117 @@ func (c *Client) EnsureAuthenticated() error {
 	return nil
 }
 
-// Get performs GET request to Sister API
+// Get performs GET request to Sister API with automatic retry for transient errors
 func (c *Client) Get(endpoint string) ([]byte, error) {
-	// Ensure we have valid authentication token
-	if err := c.EnsureAuthenticated(); err != nil {
-		return nil, err
-	}
+	return c.GetWithRetry(endpoint, 3) // Default 3 retries
+}
 
-	url := fmt.Sprintf("%s%s", c.BaseURL, endpoint)
+// GetWithRetry performs GET request with configurable retry for 429, 503 errors
+func (c *Client) GetWithRetry(endpoint string, maxRetries int) ([]byte, error) {
+	var lastErr error
 
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		// Ensure we have valid authentication token
+		if err := c.EnsureAuthenticated(); err != nil {
+			return nil, err
+		}
 
-	// Set headers - Sister API uses Bearer token
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.Token))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
+		url := fmt.Sprintf("%s%s", c.BaseURL, endpoint)
 
-	// Execute request
-	resp, err := c.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to execute request: %w", err)
-	}
-	defer resp.Body.Close()
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create request: %w", err)
+		}
 
-	// Read response body
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response: %w", err)
-	}
+		// Set headers - Sister API uses Bearer token
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.Token))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Accept", "application/json")
 
-	// Check HTTP status
-	if resp.StatusCode != http.StatusOK {
-		// Try to parse error response
-		var errResp ErrorResponse
-		if err := json.Unmarshal(body, &errResp); err == nil {
-			// If token expired, try to re-authenticate once
-			if errResp.Message == "Token expired" || errResp.Detail == "Token expired" {
-				log.Printf("⚠️  Sister API token expired, re-authenticating...")
-				c.Token = "" // Clear expired token
+		// Execute request
+		resp, err := c.HTTPClient.Do(req)
+		if err != nil {
+			lastErr = fmt.Errorf("failed to execute request: %w", err)
+			if attempt < maxRetries {
+				waitTime := time.Duration(attempt+1) * 2 * time.Second
+				log.Printf("⚠️  Request failed (attempt %d/%d), retrying in %v...", attempt+1, maxRetries+1, waitTime)
+				time.Sleep(waitTime)
+				continue
+			}
+			return nil, lastErr
+		}
+		defer resp.Body.Close()
 
-				// Retry with new token
-				if err := c.EnsureAuthenticated(); err != nil {
-					return nil, fmt.Errorf("failed to re-authenticate: %w", err)
-				}
+		// Read response body
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read response: %w", err)
+		}
 
-				// Retry the request with new token
-				req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.Token))
-				resp2, err := c.HTTPClient.Do(req)
-				if err != nil {
-					return nil, fmt.Errorf("failed to retry request: %w", err)
-				}
-				defer resp2.Body.Close()
-
-				body2, err := io.ReadAll(resp2.Body)
-				if err != nil {
-					return nil, fmt.Errorf("failed to read retry response: %w", err)
-				}
-
-				if resp2.StatusCode != http.StatusOK {
-					return nil, fmt.Errorf("retry failed with status %d: %s", resp2.StatusCode, string(body2))
-				}
-
-				log.Printf("✅ Successfully re-authenticated and retried request")
-				return body2, nil
+		// Check HTTP status
+		if resp.StatusCode != http.StatusOK {
+			// Handle 429 (Rate Limit) with retry
+			if resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {
+				waitTime := time.Duration(attempt+1) * 3 * time.Second // Longer wait for rate limit
+				log.Printf("⚠️  Sister API rate limit (429) hit (attempt %d/%d), retrying in %v...", attempt+1, maxRetries+1, waitTime)
+				time.Sleep(waitTime)
+				lastErr = fmt.Errorf("API returned status 429 (rate limit): %s", string(body))
+				continue
 			}
 
-			return nil, fmt.Errorf("Sister API error: %s - %s", errResp.Message, errResp.Detail)
+			// Handle 503 (Service Unavailable) with retry
+			if resp.StatusCode == http.StatusServiceUnavailable && attempt < maxRetries {
+				waitTime := time.Duration(attempt+1) * 2 * time.Second
+				log.Printf("⚠️  Sister API unavailable (503) (attempt %d/%d), retrying in %v...", attempt+1, maxRetries+1, waitTime)
+				time.Sleep(waitTime)
+				lastErr = fmt.Errorf("API returned status 503: %s", string(body))
+				continue
+			}
+
+			// Try to parse error response
+			var errResp ErrorResponse
+			if err := json.Unmarshal(body, &errResp); err == nil {
+				// If token expired, try to re-authenticate once
+				if errResp.Message == "Token expired" || errResp.Detail == "Token expired" {
+					log.Printf("⚠️  Sister API token expired, re-authenticating...")
+					c.Token = "" // Clear expired token
+
+					// Retry with new token
+					if err := c.EnsureAuthenticated(); err != nil {
+						return nil, fmt.Errorf("failed to re-authenticate: %w", err)
+					}
+
+					// Retry the request with new token
+					req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.Token))
+					resp2, err := c.HTTPClient.Do(req)
+					if err != nil {
+						return nil, fmt.Errorf("failed to retry request: %w", err)
+					}
+					defer resp2.Body.Close()
+
+					body2, err := io.ReadAll(resp2.Body)
+					if err != nil {
+						return nil, fmt.Errorf("failed to read retry response: %w", err)
+					}
+
+					if resp2.StatusCode != http.StatusOK {
+						return nil, fmt.Errorf("retry failed with status %d: %s", resp2.StatusCode, string(body2))
+					}
+
+					log.Printf("✅ Successfully re-authenticated and retried request")
+					return body2, nil
+				}
+
+				return nil, fmt.Errorf("Sister API error: %s - %s", errResp.Message, errResp.Detail)
+			}
+			return nil, fmt.Errorf("API returned status %d: %s", resp.StatusCode, string(body))
 		}
-		return nil, fmt.Errorf("API returned status %d: %s", resp.StatusCode, string(body))
+
+		// Sister API returns direct array/object, not wrapped
+		return body, nil
 	}
 
-	// Sister API returns direct array/object, not wrapped
-	return body, nil
+	return nil, fmt.Errorf("max retries exceeded: %w", lastErr)
 }
 
 // Post performs POST request to Sister API
