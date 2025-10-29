@@ -54,12 +54,6 @@ export const sisterIntegratorMenuConfig: MenuItem[] = [
     roles: ["developer"],
   },
   {
-    title: "Statistics",
-    icon: <FiBarChart2 className="w-5 h-5" />,
-    href: "/dashboard/sister-integrator/statistics",
-    roles: ["developer"],
-  },
-  {
     title: "API Configuration",
     icon: <FiSettings className="w-5 h-5" />,
     href: "/dashboard/sister-integrator/settings",

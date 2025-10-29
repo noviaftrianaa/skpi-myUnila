@@ -7,29 +7,84 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"sister-service/apps/monitoring"
 )
+
+// jenisSDMMapping maps jenis_sdm name to ID based on ref.jenis_sdm table
+var jenisSDMMapping = map[string]int{
+	"Guru Kelas":                  3,
+	"Guru Mapel":                  4,
+	"Guru BK":                     5,
+	"Guru Inklusi":                6,
+	"Pengawas Satuan Pendidikan":  7,
+	"Pengawas PLB":                8,
+	"Pengawas Metpel":             9,
+	"Pengawas Bidang":             10,
+	"Tenaga Administrasi Sekolah": 11,
+	"Dosen":                       12,
+	"Tenaga Kependidikan":         13,
+	"Lainnya":                     99,
+}
+
+// getJenisSDMID converts jenis_sdm name to ID, returns default 12 (Dosen) if not found
+func getJenisSDMID(jenisSDMName string) int {
+	if id, ok := jenisSDMMapping[jenisSDMName]; ok {
+		return id
+	}
+	// Default to 12 (Dosen) if not found
+	return 12
+}
 
 // SyncDosenFromSister performs batch sync of dosen from Sister API using goroutine workers
 func (s *service) SyncDosenFromSister(idSP string, syncedBy string) (*BatchDosenSyncResult, error) {
 	startTime := time.Now()
+	var totalRecords int
+	var syncErr error
+
 	log.Printf("🚀 Starting batch dosen sync for id_sp: %s (synced_by: %s)", idSP, syncedBy)
+
+	// Initialize monitoring
+	monitorSvc := monitoring.GetInstance()
+	syncID := monitorSvc.StartSync(
+		"Sync Dosen",
+		"dosen",
+		"full",
+		syncedBy,
+		0, // Will be updated after we know total count
+	)
 
 	// Step 1: Get list of all dosen from Sister API
 	log.Printf("📋 Fetching list of dosen from Sister API...")
 	rawData, err := s.sisterAPI.GetReferensiSDM(idSP)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch dosen list: %w", err)
+		syncErr = fmt.Errorf("failed to fetch dosen list: %w", err)
+		monitorSvc.FailSync(syncID, syncErr.Error())
+		// Log to database
+		s.logSyncResult("Dosen", "dosen", "batch", syncedBy, 0, startTime, syncErr)
+		return nil, syncErr
 	}
 
 	var dosenList []map[string]interface{}
 	if err := json.Unmarshal(rawData, &dosenList); err != nil {
-		return nil, fmt.Errorf("failed to parse dosen list: %w", err)
+		syncErr = fmt.Errorf("failed to parse dosen list: %w", err)
+		monitorSvc.FailSync(syncID, syncErr.Error())
+		// Log to database
+		s.logSyncResult("Dosen", "dosen", "batch", syncedBy, 0, startTime, syncErr)
+		return nil, syncErr
 	}
 
 	totalDosen := len(dosenList)
 	log.Printf("✅ Found %d dosen to sync", totalDosen)
 
+	// Update monitoring with actual total records
+	monitorSvc.UpdateTotalRecords(syncID, totalDosen)
+	monitorSvc.UpdateProgress(syncID, 0, fmt.Sprintf("Found %d dosen to sync", totalDosen))
+
 	if totalDosen == 0 {
+		monitorSvc.CompleteSync(syncID, "No dosen to sync")
+		// Log to database
+		s.logSyncResult("Dosen", "dosen", "batch", syncedBy, 0, startTime, nil)
 		return &BatchDosenSyncResult{
 			TotalProcessed: 0,
 			TotalSuccess:   0,
@@ -86,8 +141,16 @@ func (s *service) SyncDosenFromSister(idSP string, syncedBy string) (*BatchDosen
 			log.Printf("❌ Failed to sync dosen %s (%s): %s", result.IDSDM, result.Nama, result.Error)
 		}
 
-		// Log progress every 50 dosen
+		// Update monitoring progress
 		processed := successCount + failedCount
+		monitorSvc.UpdateProgress(
+			syncID,
+			processed,
+			fmt.Sprintf("Processing dosen %d/%d (Success: %d, Failed: %d)",
+				processed, totalDosen, successCount, failedCount),
+		)
+
+		// Log progress every 50 dosen
 		if processed%50 == 0 {
 			log.Printf("📊 Progress: %d/%d dosen processed (%d success, %d failed)",
 				processed, totalDosen, successCount, failedCount)
@@ -97,6 +160,32 @@ func (s *service) SyncDosenFromSister(idSP string, syncedBy string) (*BatchDosen
 	duration := time.Since(startTime)
 	log.Printf("✅ Batch sync completed: %d success, %d failed in %s",
 		successCount, failedCount, duration)
+
+	totalRecords = successCount
+
+	// Complete monitoring with appropriate status
+	if failedCount == 0 {
+		monitorSvc.CompleteSync(
+			syncID,
+			fmt.Sprintf("Dosen sync completed successfully: %d/%d dosen synced", successCount, totalDosen),
+		)
+		syncErr = nil
+	} else if successCount == 0 {
+		syncErr = fmt.Errorf("all %d dosen failed to sync", failedCount)
+		monitorSvc.FailSync(
+			syncID,
+			syncErr.Error(),
+		)
+	} else {
+		monitorSvc.CompleteSync(
+			syncID,
+			fmt.Sprintf("Dosen sync completed with errors: %d success, %d failed", successCount, failedCount),
+		)
+		syncErr = nil // Partial success is still success
+	}
+
+	// Log sync result to database
+	s.logSyncResult("Dosen", "dosen", "batch", syncedBy, totalRecords, startTime, syncErr)
 
 	return &BatchDosenSyncResult{
 		TotalProcessed: len(allResults),
@@ -122,7 +211,12 @@ func (s *service) dosenWorker(id int, jobs <-chan map[string]interface{}, result
 			continue
 		}
 
-		nama, _ := dosenInfo["nm_sdm"].(string)
+		// Try both field names from Sister API
+		nama, ok := dosenInfo["nama_sdm"].(string)
+		if !ok || nama == "" {
+			// Fallback to nm_sdm
+			nama, _ = dosenInfo["nm_sdm"].(string)
+		}
 
 		// Fetch and process single dosen
 		result := s.syncSingleDosen(idSDM, nama, cache)
@@ -144,7 +238,7 @@ func (s *service) syncSingleDosen(idSDM string, nama string, cache *ReferenceCac
 	}
 
 	// Transform Sister data to Dosen entity
-	dosen, err := s.transformSisterDataToDosen(combined, cache)
+	dosen, err := s.transformSisterDataToDosen(combined, nama, cache)
 	if err != nil {
 		return DosenSyncResult{
 			IDSDM:   idSDM,
@@ -225,20 +319,25 @@ func (s *service) fetchDosenData(idSDM string) (*SisterDosenData, error) {
 		}
 	}
 
-	// Validate we have at least profil data
-	if combined.Profil == nil {
-		return nil, fmt.Errorf("failed to fetch profil data (required)")
-	}
+	// Note: Profil tidak lagi required - akan gunakan default values
+	// Ini memungkinkan sync tetap berjalan meskipun Sister API return error
+	// untuk endpoint tertentu
 
 	return combined, nil
 }
 
 // transformSisterDataToDosen transforms combined Sister API data to Dosen entity for pdrd.sdm
-func (s *service) transformSisterDataToDosen(data *SisterDosenData, cache *ReferenceCache) (*Dosen, error) {
+func (s *service) transformSisterDataToDosen(data *SisterDosenData, namaFromSDMList string, cache *ReferenceCache) (*Dosen, error) {
 	now := time.Now()
 
 	// System UUID for created_by/updated_by (can be configured)
 	systemUUID := "00000000-0000-0000-0000-000000000001" // Default system user
+
+	// Default status kawin (0 = Belum Kawin/Tidak Diketahui)
+	defaultStatKawin := 0
+
+	// Default tanggal lahir (1970-01-01 jika tidak ada data)
+	defaultTglLahir := time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
 
 	dosen := &Dosen{
 		IDSDM: data.IDSDM,
@@ -251,23 +350,40 @@ func (s *service) transformSisterDataToDosen(data *SisterDosenData, cache *Refer
 		LastSync:   now,
 
 		// Required Foreign Keys with defaults
-		IDJenisSDM:            1,  // Default: Dosen Tetap (akan di-override dari Sister API jika ada)
+		IDJenisSDM:            12, // Default: Dosen (ID 12 in ref.jenis_sdm)
 		IDWilayah:             "000000", // Default wilayah (akan di-override dari Sister API jika ada)
 		IDStatusAktif:         1,  // Default: Aktif (akan di-override dari Sister API jika ada)
 		IDAgama:               1,  // Default: Islam (akan di-override dari Sister API jika ada)
 		IDPekerjaanSuamiIstri: 99, // Default: Tidak Bekerja/Tidak Ada
 		IDLembagaAngkat:       1,  // Default: Universitas Lampung
+		StatKawin:             &defaultStatKawin, // Default: Belum Kawin (0
 
 		// Required fields with default values
-		Kewarganegaraan: "ID", // Default: Indonesia
-		NIK:             "0000000000000000", // Default NIK (20 chars) - will be overridden if available
+		Kewarganegaraan: "ID",                            // Default: Indonesia
+		NIK:             "0000000000000000",              // Default NIK (20 chars) - will be overridden if available
+		NamaSDM:         namaFromSDMList,                 // Use nama from /referensi/sdm as baseline
+		JK:              "L",                             // Default: L (Laki-laki) - CHECK constraint only allows L/P
+		TempatLahir:     "",                              // Will be set from profil, empty if not available
+		TanggalLahir:    &defaultTglLahir,                // Default birthdate - will be overridden
 	}
 
 	// From Profil (required)
 	if data.Profil != nil {
-		dosen.NamaSDM = data.Profil.NamaSDM
-		dosen.JK = data.Profil.JenisKelamin // L/P/*
-		dosen.TempatLahir = data.Profil.TempatLahir
+		// Override nama only if profil has non-empty value
+		if data.Profil.NamaSDM != "" {
+			dosen.NamaSDM = data.Profil.NamaSDM
+		}
+
+		// Validate JK - CHECK constraint only allows L or P
+		if data.Profil.JenisKelamin == "L" || data.Profil.JenisKelamin == "P" {
+			dosen.JK = data.Profil.JenisKelamin
+		}
+		// else keep default "L"
+
+		// Only set TempatLahir if not empty
+		if data.Profil.TempatLahir != "" {
+			dosen.TempatLahir = data.Profil.TempatLahir
+		}
 
 		if data.Profil.TanggalLahir != "" {
 			if t, err := parseDate(data.Profil.TanggalLahir); err == nil {
@@ -314,9 +430,10 @@ func (s *service) transformSisterDataToDosen(data *SisterDosenData, cache *Refer
 
 	// From Keluarga
 	if data.Keluarga != nil {
-		// Parse status kawin (Sister API returns as string "1"/"0" -> DB: numeric(1))
-		if data.Keluarga.StatusKawin != "" {
-			if statKawin, err := parseInt(data.Keluarga.StatusKawin); err == nil {
+		// Parse id_status_kawin from Sister API response
+		// Sister API response contains "id_status_kawin": 1 (for married)
+		if data.Keluarga.IDStatusKawin != "" {
+			if statKawin, err := parseInt(data.Keluarga.IDStatusKawin); err == nil {
 				dosen.StatKawin = &statKawin
 			}
 		}
@@ -365,11 +482,19 @@ func (s *service) transformSisterDataToDosen(data *SisterDosenData, cache *Refer
 
 	// From Kepegawaian
 	if data.Kepegawaian != nil {
-		// Parse ID Jenis SDM (Sister API returns as string number -> DB: numeric(2))
-		if data.Kepegawaian.IDJenisSDM != "" {
+		// Map Jenis SDM name to ID (Sister API returns name like "Dosen", not ID)
+		if data.Kepegawaian.JenisSDM != "" {
+			mappedID := getJenisSDMID(data.Kepegawaian.JenisSDM)
+			dosen.IDJenisSDM = mappedID
+			log.Printf("   📝 Mapped jenis_sdm '%s' to ID %d for dosen %s", data.Kepegawaian.JenisSDM, mappedID, data.IDSDM)
+		} else if data.Kepegawaian.IDJenisSDM != "" {
+			// Fallback: if ID is provided as string number, parse it
 			if idJenisSDM, err := parseInt(data.Kepegawaian.IDJenisSDM); err == nil {
-				dosen.IDJenisSDM = idJenisSDM // Override default
+				dosen.IDJenisSDM = idJenisSDM
+				log.Printf("   📝 Parsed id_jns_sdm '%s' to ID %d for dosen %s", data.Kepegawaian.IDJenisSDM, idJenisSDM, data.IDSDM)
 			}
+		} else {
+			log.Printf("   ⚠️  No jenis_sdm data from Sister API for dosen %s, using default ID %d", data.IDSDM, dosen.IDJenisSDM)
 		}
 
 		// Parse ID Status Aktif (Sister API returns as string number -> DB: numeric(2))

@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 	appLogger "sister-service/apps/logger"
+	"sister-service/apps/monitoring"
 	"sister-service/external/sister_api"
 )
 
@@ -719,9 +720,20 @@ func (s *service) BatchSyncFromSister(ctx context.Context, endpoints []string, s
 	startTime := time.Now()
 	log.Printf("🔄 Starting batch sync for %d endpoints: %v", len(endpoints), endpoints)
 
+	// Initialize monitoring for batch sync
+	monitorSvc := monitoring.GetInstance()
+	syncID := monitorSvc.StartSync(
+		"Batch Sync Referensi",
+		"batch_referensi",
+		"batch",
+		syncedBy,
+		len(endpoints),
+	)
+
 	// Create channels for results and WaitGroup for synchronization
 	var wg sync.WaitGroup
 	resultChan := make(chan BatchSyncResult, len(endpoints))
+	processedCount := 0
 
 	// Launch goroutine for each endpoint
 	for _, endpoint := range endpoints {
@@ -837,6 +849,16 @@ func (s *service) BatchSyncFromSister(ctx context.Context, endpoints []string, s
 
 	for result := range resultChan {
 		results = append(results, result)
+		processedCount++
+
+		// Update monitoring progress
+		monitorSvc.UpdateProgress(
+			syncID,
+			processedCount,
+			fmt.Sprintf("Syncing %d/%d endpoints... (Success: %d, Failed: %d)",
+				processedCount, len(endpoints), totalSuccess, totalFailed),
+		)
+
 		if result.Success {
 			totalSuccess++
 		} else {
@@ -852,6 +874,24 @@ func (s *service) BatchSyncFromSister(ctx context.Context, endpoints []string, s
 		TotalFailed:    totalFailed,
 		Results:        results,
 		Duration:       duration.String(),
+	}
+
+	// Complete monitoring with appropriate status
+	if totalFailed == 0 {
+		monitorSvc.CompleteSync(
+			syncID,
+			fmt.Sprintf("Batch sync completed successfully: %d/%d endpoints synced", totalSuccess, len(endpoints)),
+		)
+	} else if totalSuccess == 0 {
+		monitorSvc.FailSync(
+			syncID,
+			fmt.Sprintf("Batch sync failed: all %d endpoints failed", totalFailed),
+		)
+	} else {
+		monitorSvc.CompleteSync(
+			syncID,
+			fmt.Sprintf("Batch sync completed with errors: %d success, %d failed", totalSuccess, totalFailed),
+		)
 	}
 
 	log.Printf("✅ Batch sync completed: %d succeeded, %d failed in %s",

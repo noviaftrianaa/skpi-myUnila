@@ -8,10 +8,11 @@ import (
 )
 
 type Config struct {
-	App       AppConfig
-	JWT       JWTConfig
-	Database  DatabaseConfig
-	SisterAPI SisterAPIConfig
+	App           AppConfig
+	JWT           JWTConfig
+	Database      DatabaseConfig
+	SisterAPI     SisterAPIConfig
+	EncryptionKey string
 }
 
 type AppConfig struct {
@@ -66,9 +67,9 @@ func LoadConfig() error {
 			Driver:          getEnv("DB_DRIVER", "sqlserver"),
 			Host:            getEnv("DB_HOST", "localhost"),
 			Port:            getEnv("DB_PORT", "1433"),
-			User:            getEnv("DB_USER", "sa"),
+			User:            getEnv("DB_USERNAME", "sa"),
 			Password:        getEnv("DB_PASSWORD", ""),
-			Name:            getEnv("DB_NAME", "pddikti"),
+			Name:            getEnv("DB_DATABASE", "pddikti"),
 			MaxOpenConns:    25,
 			MaxIdleConns:    5,
 			ConnMaxLifetime: getEnv("DB_CONN_MAX_LIFETIME", "5m"),
@@ -79,6 +80,7 @@ func LoadConfig() error {
 			Username:   getEnv("SISTER_API_USERNAME", ""),
 			Password:   getEnv("SISTER_API_PASSWORD", ""),
 		},
+		EncryptionKey: getEnv("API_CONFIG_ENCRYPTION_KEY", ""),
 	}
 
 	return nil

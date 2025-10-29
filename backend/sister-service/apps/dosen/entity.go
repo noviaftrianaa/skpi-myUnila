@@ -108,11 +108,12 @@ type SisterKependudukan struct {
 
 // SisterKeluarga from /data_pribadi/keluarga/{id_sdm}
 type SisterKeluarga struct {
-	StatusKawin   string `json:"stat_kawin"`
-	NamaPasangan  string `json:"nm_pasangan"`
-	NIPPasangan   string `json:"nip_pasangan"`
-	TanggalNikah  string `json:"tgl_nikah"`
-	PekerjaanPsgn string `json:"pekerjaan_psgn"`
+	StatusKawin    string `json:"status_kawin"`
+	IDStatusKawin  string `json:"id_status_kawin"`
+	NamaPasangan   string `json:"nama_pasangan"`
+	NIPPasangan    string `json:"nip_pasangan"`
+	PekerjaanPsgn  string `json:"pekerjaan_pasangan"`
+	IDPekerjaanPsgn string `json:"id_pekerjaan_pasangan"`
 }
 
 // SisterAlamat from /data_pribadi/alamat/{id_sdm}
@@ -129,6 +130,7 @@ type SisterAlamat struct {
 // SisterKepegawaian from /data_pribadi/kepegawaian/{id_sdm}
 type SisterKepegawaian struct {
 	IDJenisSDM          string `json:"id_jns_sdm"`
+	JenisSDM            string `json:"jenis_sdm"` // Nama jenis SDM (e.g., "Dosen")
 	IDStatusAktif       string `json:"id_stat_aktif"`
 	NIP                 string `json:"nip"`
 	NIPY                string `json:"nipy"`

@@ -165,9 +165,9 @@ services:
       - DB_DRIVER=sqlserver
       - DB_HOST=192.168.123.119
       - DB_PORT=1433
-      - DB_USER=mizarzulmi
+      - DB_USERNAME=mizarzulmi
       - DB_PASSWORD=Fogging204
-      - DB_NAME=pdut_dev
+      - DB_DATABASE=pdut_dev
       - DB_MAX_OPEN_CONNS=25
       - DB_MAX_IDLE_CONNS=5
       - DB_CONN_MAX_LIFETIME=5m
@@ -175,10 +175,15 @@ services:
       - SISTER_API_IDPENGGUNA=125e6431-7727-402e-adb5-24d410af493c
       - SISTER_API_USERNAME=gTZydwjeJo5DV9qZk0scK+IBTvQGVEMgX/nR9y8coKEBuBUAdCN1hOiQQvfr62+GiAPzlliyGOZOLCUEukikmA==
       - SISTER_API_PASSWORD=/3vA94j8pnDSX7QBKGpZBNNPnEto+ObiHzp3Sn9jhYH+Y/4CK1SEmeePCOXpU12bPZEXZZ0+AmyF5kgRq+5/1cFS0Lax6+KdwZF76b9EiRHjE4sZOlIKKecVY+s3SdVy
+      - API_CONFIG_ENCRYPTION_KEY=12345678901234567890123456789012
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     networks:
       - myunila-network
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    depends_on:
+      - redis
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8083/health"]

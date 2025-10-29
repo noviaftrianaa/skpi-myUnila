@@ -265,8 +265,8 @@ export default function DataTable<T extends Record<string, any>>({
             base: "min-w-full border-t border-gray-200",
             table: "min-w-full",
             thead: "[&>tr]:bg-gradient-to-b [&>tr]:from-gray-50 [&>tr]:to-gray-100/80",
-            th: "bg-transparent text-gray-700 font-bold text-xs uppercase tracking-wider border-b-2 border-gray-300 px-5 py-4 first:pl-0 last:pr-0 shadow-sm",
-            td: "text-sm text-gray-700 px-5 py-4 first:pl-0 last:pr-0",
+            th: "bg-transparent text-gray-700 font-bold text-xs uppercase tracking-wider border-b-2 border-gray-300 px-5 py-4 first:pl-6 last:pr-6 shadow-sm",
+            td: "text-sm text-gray-700 px-5 py-4 first:pl-6 last:pr-6",
             tr: "border-b border-gray-100 hover:bg-gradient-to-r hover:from-blue-50/50 hover:via-blue-50/30 hover:to-transparent hover:shadow-sm transition-all duration-200 [&:nth-child(odd)]:bg-gray-50/30",
           }}
         >

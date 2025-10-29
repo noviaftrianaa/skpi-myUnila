@@ -2,13 +2,17 @@ package main
 
 import (
 	"log"
+	"sister-service/apps/apiconfig"
 	"sister-service/apps/dosen"
 	appLogger "sister-service/apps/logger"
+	"sister-service/apps/monitoring"
 	"sister-service/apps/referensi"
+	"sister-service/apps/synclog"
 	_ "sister-service/docs"
 	"sister-service/external/database"
 	"sister-service/external/sister_api"
 	"sister-service/internal/config"
+	"sister-service/pkg/crypto"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -79,8 +83,8 @@ func main() {
 		Format: "[${time}] ${status} - ${latency} ${method} ${path}\n",
 	}))
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:3000, http://localhost:3001, http://localhost:9800",
-		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS",
+		AllowOrigins:     "http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:9800,http://127.0.0.1:3000,http://127.0.0.1:3001",
+		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS,PATCH",
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
 		AllowCredentials: true,
 	}))
@@ -105,18 +109,39 @@ func main() {
 	// API routes
 	apiV1 := app.Group("/api/v1")
 
+	// Initialize encryption service for API config
+	var encryptor *crypto.EncryptionService
+	if config.Cfg.EncryptionKey != "" && len(config.Cfg.EncryptionKey) == 32 {
+		encryptor, _ = crypto.NewEncryptionService(config.Cfg.EncryptionKey)
+		log.Println("✅ Encryption service initialized for API config")
+	} else {
+		log.Println("⚠️  No encryption key configured - API config encryption disabled")
+	}
+
 	// Initialize logger service (needs to be initialized first for referensi)
 	loggerRepo := appLogger.NewRepository(db.DB)
 	loggerService := appLogger.NewService(loggerRepo)
 	loggerHandler := appLogger.NewHandler(loggerService)
 	loggerHandler.RegisterRoutes(app)
 
+	// Public routes (no authentication required)
+	publicRoutes := app.Group("/public")
+
+	// Initialize API Config routes
+	if encryptor != nil {
+		apiConfigRepo := apiconfig.NewRepository(db)
+		apiConfigService := apiconfig.NewService(apiConfigRepo, encryptor)
+		apiConfigHandler := apiconfig.NewHandler(apiConfigService)
+		apiconfig.RegisterRoutes(publicRoutes, apiConfigHandler)
+		log.Println("✅ API Configuration management enabled")
+	}
+
 	// Initialize domain routers
 	referensi.Init(apiV1, db, sisterAPI, loggerService) // Referensi routes (protected with JWT)
 
-	// Public routes (no authentication required)
-	publicRoutes := app.Group("/public")
-	dosen.Init(publicRoutes, db, sisterAPI, redisClient) // Dosen endpoints with Redis cache and DB
+	dosen.Init(publicRoutes, db, sisterAPI, redisClient, loggerService) // Dosen endpoints with Redis cache and DB
+	synclog.RegisterRoutes(publicRoutes, db)                            // Sync logs endpoints
+	monitoring.RegisterRoutes(publicRoutes)                             // Monitoring endpoints
 
 	// Welcome message
 	app.Get("/", func(c *fiber.Ctx) error {

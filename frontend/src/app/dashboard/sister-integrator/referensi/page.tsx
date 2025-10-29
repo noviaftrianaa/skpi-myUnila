@@ -259,59 +259,67 @@ export default function ReferensiDashboardPage() {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-gradient-to-br from-purple-500 to-indigo-600 border-none shadow-lg">
-            <CardBody className="p-4">
+          <Card className="bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <CardBody className="p-4 relative z-10">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <FiPackage className="w-6 h-6 text-white" />
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                  <FiPackage className="w-7 h-7 text-white" />
                 </div>
-                <div>
+                <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-purple-100">Total Endpoints</p>
                   <h3 className="text-3xl font-bold text-white">{metadata.length}</h3>
+                  <p className="text-[10px] text-purple-100/80">Endpoint referensi</p>
                 </div>
               </div>
             </CardBody>
           </Card>
 
-          <Card className="bg-gradient-to-br from-emerald-500 to-teal-600 border-none shadow-lg">
-            <CardBody className="p-4">
+          <Card className="bg-gradient-to-br from-green-500 via-green-600 to-teal-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <CardBody className="p-4 relative z-10">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <FiCheckCircle className="w-6 h-6 text-white" />
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                  <FiCheckCircle className="w-7 h-7 text-white" />
                 </div>
-                <div>
-                  <p className="text-xs font-medium text-emerald-100">Synced</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-green-100">Synced</p>
                   <h3 className="text-3xl font-bold text-white">
                     {syncedCount}/{metadata.length}
                   </h3>
+                  <p className="text-[10px] text-green-100/80">Tersinkronisasi</p>
                 </div>
               </div>
             </CardBody>
           </Card>
 
-          <Card className="bg-gradient-to-br from-blue-500 to-cyan-600 border-none shadow-lg">
-            <CardBody className="p-4">
+          <Card className="bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <CardBody className="p-4 relative z-10">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <FiDatabase className="w-6 h-6 text-white" />
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                  <FiDatabase className="w-7 h-7 text-white" />
                 </div>
-                <div>
+                <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-blue-100">Total Records</p>
                   <h3 className="text-3xl font-bold text-white">{totalRecords.toLocaleString()}</h3>
+                  <p className="text-[10px] text-blue-100/80">Total data tersimpan</p>
                 </div>
               </div>
             </CardBody>
           </Card>
 
-          <Card className="bg-gradient-to-br from-orange-500 to-amber-600 border-none shadow-lg">
-            <CardBody className="p-4">
+          <Card className="bg-gradient-to-br from-orange-500 via-orange-600 to-amber-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <CardBody className="p-4 relative z-10">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <FiActivity className="w-6 h-6 text-white" />
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                  <FiActivity className="w-7 h-7 text-white" />
                 </div>
-                <div>
+                <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-orange-100">Selected</p>
                   <h3 className="text-3xl font-bold text-white">{selectedEndpoints.length}</h3>
+                  <p className="text-[10px] text-orange-100/80">Endpoint dipilih</p>
                 </div>
               </div>
             </CardBody>

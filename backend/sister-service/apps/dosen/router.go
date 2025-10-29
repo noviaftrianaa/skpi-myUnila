@@ -4,13 +4,14 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jmoiron/sqlx"
+	"sister-service/apps/logger"
 	"sister-service/external/sister_api"
 )
 
 // Init initializes dosen routes (public endpoints) with Redis caching
-func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client, redisClient *redis.Client) {
+func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client, redisClient *redis.Client, loggerSvc logger.Service) {
 	repo := NewRepository(db)
-	svc := NewService(sisterAPI, redisClient, repo)
+	svc := NewService(sisterAPI, redisClient, repo, loggerSvc)
 	ctrl := NewController(svc)
 
 	// Public dosen routes (no authentication required)

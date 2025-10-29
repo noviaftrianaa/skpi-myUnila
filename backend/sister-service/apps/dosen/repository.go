@@ -154,6 +154,7 @@ func (r *repository) BulkUpsertDosen(data []*Dosen) error {
 		ON target.id_sdm = source.id_sdm
 		WHEN MATCHED THEN
 			UPDATE SET
+				-- Always update with latest data from Sister API
 				nm_sdm = source.nm_sdm,
 				jk = source.jk,
 				tmpt_lahir = source.tmpt_lahir,

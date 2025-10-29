@@ -4,7 +4,7 @@
  */
 
 // Direct connection to sister-service
-const SISTER_API_BASE = "http://localhost:8083/api/v1";
+const SISTER_API_BASE = process.env.NEXT_PUBLIC_SISTER_API_URL || "http://localhost:8083/public";
 
 export interface SyncLog {
   id: number;
@@ -25,7 +25,7 @@ export interface SyncLog {
 }
 
 export interface SyncLogFilter {
-  endpoint_name?: string;
+  search?: string;
   endpoint_key?: string;
   status?: "success" | "failed" | "partial";
   sync_type?: "manual" | "batch" | "scheduled";
@@ -51,7 +51,7 @@ export const syncLogsService = {
     try {
       const params = new URLSearchParams();
 
-      if (filter?.endpoint_name) params.append("endpoint_name", filter.endpoint_name);
+      if (filter?.search) params.append("search", filter.search);
       if (filter?.endpoint_key) params.append("endpoint_key", filter.endpoint_key);
       if (filter?.status) params.append("status", filter.status);
       if (filter?.sync_type) params.append("sync_type", filter.sync_type);
@@ -60,7 +60,7 @@ export const syncLogsService = {
       if (filter?.page) params.append("page", filter.page.toString());
       if (filter?.limit) params.append("limit", filter.limit.toString());
 
-      const url = `${SISTER_API_BASE}/logs/sync${params.toString() ? `?${params.toString()}` : ""}`;
+      const url = `${SISTER_API_BASE}/sync-logs${params.toString() ? `?${params.toString()}` : ""}`;
       console.log("🔍 Fetching sync logs from:", url);
 
       const response = await fetch(url, {
@@ -91,7 +91,7 @@ export const syncLogsService = {
     try {
       console.log(`🔍 Fetching sync log #${id}`);
 
-      const response = await fetch(`${SISTER_API_BASE}/logs/sync/${id}`, {
+      const response = await fetch(`${SISTER_API_BASE}/sync-logs/${id}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

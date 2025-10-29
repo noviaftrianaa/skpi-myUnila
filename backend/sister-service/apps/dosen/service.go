@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	appLogger "sister-service/apps/logger"
 	"sister-service/external/sister_api"
 	"time"
 
@@ -24,17 +25,19 @@ type Service interface {
 }
 
 type service struct {
-	sisterAPI   *sister_api.Client
-	redisClient *redis.Client
-	repo        Repository
+	sisterAPI     *sister_api.Client
+	redisClient   *redis.Client
+	repo          Repository
+	loggerService appLogger.Service
 }
 
 // NewService creates a new dosen service with Redis caching
-func NewService(sisterAPI *sister_api.Client, redisClient *redis.Client, repo Repository) Service {
+func NewService(sisterAPI *sister_api.Client, redisClient *redis.Client, repo Repository, loggerSvc appLogger.Service) Service {
 	return &service{
-		sisterAPI:   sisterAPI,
-		redisClient: redisClient,
-		repo:        repo,
+		sisterAPI:     sisterAPI,
+		redisClient:   redisClient,
+		repo:          repo,
+		loggerService: loggerSvc,
 	}
 }
 
@@ -143,4 +146,44 @@ func (s *service) GetDosenByID(idSDM string) (*Dosen, error) {
 // GetDosenStats retrieves dosen statistics from database
 func (s *service) GetDosenStats() (*DosenStats, error) {
 	return s.repo.GetDosenStats()
+}
+
+// logSyncResult is a helper function to log sync results to database
+func (s *service) logSyncResult(endpointName, endpointKey, syncType, syncedBy string, totalRecords int, startTime time.Time, err error) {
+	duration := time.Since(startTime)
+
+	var errorMessage, errorDetails *string
+	status := "success"
+
+	if err != nil {
+		status = "failed"
+		errMsg := err.Error()
+		errorMessage = &errMsg
+	}
+
+	durationMs := int(duration.Milliseconds())
+	req := &appLogger.CreateSyncLogRequest{
+		EndpointName:  endpointName,
+		EndpointKey:   endpointKey,
+		SyncType:      syncType,
+		Status:        status,
+		TotalRecords:  totalRecords,
+		InsertedCount: totalRecords, // For dosen, all successful records are inserts/updates
+		UpdatedCount:  0,
+		FailedCount:   0,
+		DurationMs:    &durationMs,
+		SyncedBy:      syncedBy,
+		ErrorMessage:  errorMessage,
+		ErrorDetails:  errorDetails,
+	}
+
+	if status == "failed" {
+		req.FailedCount = 1
+		req.InsertedCount = 0
+	}
+
+	_, logErr := s.loggerService.LogSync(context.Background(), req)
+	if logErr != nil {
+		log.Printf("⚠️  Failed to log sync result: %v", logErr)
+	}
 }
