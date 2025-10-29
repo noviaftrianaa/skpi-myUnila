@@ -102,7 +102,7 @@ func (s *service) SyncDosenFromSister(idSP string, syncedBy string) (*BatchDosen
 	}
 
 	// Step 3: Setup goroutine worker pool
-	numWorkers := 5 // 5 concurrent workers (balanced between speed and Sister API rate limiting)
+	numWorkers := 3 // 3 concurrent workers (to avoid Sister API rate limiting)
 	jobs := make(chan map[string]interface{}, totalDosen)
 	results := make(chan DosenSyncResult, totalDosen)
 
@@ -371,6 +371,12 @@ func (s *service) fetchDosenData(idSDM string) (*SisterDosenData, error) {
 		var kepegawaian SisterKepegawaian
 		if err := json.Unmarshal(rawData, &kepegawaian); err == nil {
 			combined.Kepegawaian = &kepegawaian
+
+			// Log jika NIP kosong dari Sister API
+			if kepegawaian.NIP == "" {
+				log.Printf("⚠️  [%s] NIP kosong dari Sister API kepegawaian. Response: %s", idSDM, string(rawData))
+			}
+
 			if debugMode {
 				log.Printf("✅ [%s] Kepegawaian parsed: nidn=%s, nip=%s, nuptk=%s, tmmd=%s, sk_cpns=%s, tanggal_sk_cpns=%s",
 					idSDM, kepegawaian.NIDN, kepegawaian.NIP, kepegawaian.NUPTK, kepegawaian.TMMD, kepegawaian.SKCPNS, kepegawaian.TanggalSKCPNS)
@@ -379,9 +385,7 @@ func (s *service) fetchDosenData(idSDM string) (*SisterDosenData, error) {
 			log.Printf("⚠️ [%s] Failed to parse kepegawaian: %v", idSDM, err)
 		}
 	} else {
-		if debugMode {
-			log.Printf("❌ [%s] Failed to fetch kepegawaian: %v", idSDM, err)
-		}
+		log.Printf("❌ [%s] Failed to fetch kepegawaian: %v", idSDM, err)
 	}
 
 	// Fetch lain
