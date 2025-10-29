@@ -274,147 +274,70 @@ func (s *service) fetchDosenData(idSDM string) (*SisterDosenData, error) {
 		IDSDM: idSDM,
 	}
 
-	// Enable detailed logging for specific dosen (for debugging)
-	debugMode := idSDM == "f99f738d-a6d4-41b3-b546-2a5acb2c040b" || idSDM == "84181bcb-41d7-4a5c-958c-0b080e59df7a" || idSDM == "fa1db1cf-785f-45d6-8ac3-faef42deda73"
-
-	if debugMode {
-		log.Printf("🔍 [%s] DEBUG MODE: Fetching data from 6 Sister endpoints...", idSDM)
-	}
-
 	// Fetch profil
 	if rawData, err := s.sisterAPI.GetDosenProfil(idSDM); err == nil {
-		if debugMode {
-			log.Printf("📋 [%s] Profil response: %s", idSDM, string(rawData))
-		}
 		var profil SisterProfil
-		if err := json.Unmarshal(rawData, &profil); err == nil {
-			combined.Profil = &profil
-			if debugMode {
-				log.Printf("✅ [%s] Profil parsed: nama=%s, jk=%s, tmpt_lahir=%s, tgl_lahir=%s",
-					idSDM, profil.Nama, profil.JenisKelamin, profil.TempatLahir, profil.TanggalLahir)
-			}
+		if err := json.Unmarshal(rawData, &profil); err != nil {
+			log.Printf("⚠️ Failed to parse profil for %s: %v", idSDM, err)
 		} else {
-			log.Printf("⚠️ [%s] Failed to parse profil: %v", idSDM, err)
+			combined.Profil = &profil
 		}
 	} else {
-		log.Printf("❌ [%s] Failed to fetch profil: %v", idSDM, err)
+		log.Printf("❌ Failed to fetch profil for %s: %v", idSDM, err)
 	}
 
 	// Fetch kependudukan
 	if rawData, err := s.sisterAPI.GetDosenKependudukan(idSDM); err == nil {
-		if debugMode {
-			log.Printf("📋 [%s] Kependudukan response: %s", idSDM, string(rawData))
-		}
 		var kependudukan SisterKependudukan
-		if err := json.Unmarshal(rawData, &kependudukan); err == nil {
-			combined.Kependudukan = &kependudukan
-			if debugMode {
-				log.Printf("✅ [%s] Kependudukan parsed: nik=%s, id_agama=%s, kewarganegaraan=%s",
-					idSDM, kependudukan.NIK, kependudukan.IDAgama, kependudukan.Kewarganegaraan)
-			}
+		if err := json.Unmarshal(rawData, &kependudukan); err != nil {
+			log.Printf("⚠️ Failed to parse kependudukan for %s: %v", idSDM, err)
 		} else {
-			log.Printf("⚠️ [%s] Failed to parse kependudukan: %v", idSDM, err)
-		}
-	} else {
-		if debugMode {
-			log.Printf("❌ [%s] Failed to fetch kependudukan: %v", idSDM, err)
+			combined.Kependudukan = &kependudukan
 		}
 	}
 
 	// Fetch keluarga
 	if rawData, err := s.sisterAPI.GetDosenKeluarga(idSDM); err == nil {
-		if debugMode {
-			log.Printf("📋 [%s] Keluarga response: %s", idSDM, string(rawData))
-		}
 		var keluarga SisterKeluarga
-		if err := json.Unmarshal(rawData, &keluarga); err == nil {
-			combined.Keluarga = &keluarga
-			if debugMode {
-				log.Printf("✅ [%s] Keluarga parsed: status_kawin=%s, id_status_kawin=%s, nama_pasangan=%s, nip_pasangan=%s",
-					idSDM, keluarga.StatusKawin, keluarga.IDStatusKawin, keluarga.NamaPasangan, keluarga.NIPPasangan)
-			}
+		if err := json.Unmarshal(rawData, &keluarga); err != nil {
+			log.Printf("⚠️ Failed to parse keluarga for %s: %v", idSDM, err)
 		} else {
-			log.Printf("⚠️ [%s] Failed to parse keluarga: %v", idSDM, err)
-		}
-	} else {
-		if debugMode {
-			log.Printf("❌ [%s] Failed to fetch keluarga: %v", idSDM, err)
+			combined.Keluarga = &keluarga
 		}
 	}
 
 	// Fetch alamat
 	if rawData, err := s.sisterAPI.GetDosenAlamat(idSDM); err == nil {
-		if debugMode {
-			log.Printf("📋 [%s] Alamat response: %s", idSDM, string(rawData))
-		}
 		var alamat SisterAlamat
-		if err := json.Unmarshal(rawData, &alamat); err == nil {
-			combined.Alamat = &alamat
-			if debugMode {
-				log.Printf("✅ [%s] Alamat parsed: alamat=%s, rt=%d, rw=%d, dusun=%s, kelurahan=%s, kode_pos=%s, telepon_hp=%s, email=%s",
-					idSDM, alamat.Alamat, alamat.RT, alamat.RW, alamat.Dusun, alamat.Kelurahan, alamat.KodePos, alamat.TeleponHP, alamat.Email)
-			}
+		if err := json.Unmarshal(rawData, &alamat); err != nil {
+			log.Printf("⚠️ Failed to parse alamat for %s: %v", idSDM, err)
 		} else {
-			log.Printf("⚠️ [%s] Failed to parse alamat: %v", idSDM, err)
-		}
-	} else {
-		if debugMode {
-			log.Printf("❌ [%s] Failed to fetch alamat: %v", idSDM, err)
+			combined.Alamat = &alamat
 		}
 	}
 
 	// Fetch kepegawaian
 	if rawData, err := s.sisterAPI.GetDosenKepegawaian(idSDM); err == nil {
-		if debugMode {
-			log.Printf("📋 [%s] Kepegawaian response: %s", idSDM, string(rawData))
-		}
 		var kepegawaian SisterKepegawaian
-		if err := json.Unmarshal(rawData, &kepegawaian); err == nil {
-			combined.Kepegawaian = &kepegawaian
-
-			// Log jika NIP kosong dari Sister API
-			if kepegawaian.NIP == "" {
-				log.Printf("⚠️  [%s] NIP kosong dari Sister API kepegawaian. Response: %s", idSDM, string(rawData))
-			}
-
-			if debugMode {
-				log.Printf("✅ [%s] Kepegawaian parsed: nidn=%s, nip=%s, nuptk=%s, tmmd=%s, sk_cpns=%s, tanggal_sk_cpns=%s",
-					idSDM, kepegawaian.NIDN, kepegawaian.NIP, kepegawaian.NUPTK, kepegawaian.TMMD, kepegawaian.SKCPNS, kepegawaian.TanggalSKCPNS)
-			}
+		if err := json.Unmarshal(rawData, &kepegawaian); err != nil {
+			log.Printf("⚠️ Failed to parse kepegawaian for %s: %v", idSDM, err)
 		} else {
-			log.Printf("⚠️ [%s] Failed to parse kepegawaian: %v", idSDM, err)
+			combined.Kepegawaian = &kepegawaian
 		}
 	} else {
-		log.Printf("❌ [%s] Failed to fetch kepegawaian: %v", idSDM, err)
+		log.Printf("❌ Failed to fetch kepegawaian for %s: %v", idSDM, err)
 	}
 
 	// Fetch lain
 	if rawData, err := s.sisterAPI.GetDosenLain(idSDM); err == nil {
-		if debugMode {
-			log.Printf("📋 [%s] Lain response: %s", idSDM, string(rawData))
-		}
 		var lain SisterLain
-		if err := json.Unmarshal(rawData, &lain); err == nil {
-			combined.Lain = &lain
-			if debugMode {
-				log.Printf("✅ [%s] Lain parsed: npwp=%s", idSDM, lain.NPWP)
-			}
+		if err := json.Unmarshal(rawData, &lain); err != nil {
+			log.Printf("⚠️ Failed to parse lain for %s: %v", idSDM, err)
 		} else {
-			log.Printf("⚠️ [%s] Failed to parse lain: %v", idSDM, err)
-		}
-	} else {
-		if debugMode {
-			log.Printf("❌ [%s] Failed to fetch lain: %v", idSDM, err)
+			combined.Lain = &lain
 		}
 	}
 
-	// Note: Profil tidak lagi required - akan gunakan default values
-	// Ini memungkinkan sync tetap berjalan meskipun Sister API return error
-	// untuk endpoint tertentu
-
-	if debugMode {
-		log.Printf("✅ [%s] Completed fetching all endpoints", idSDM)
-	}
 	return combined, nil
 }
 
