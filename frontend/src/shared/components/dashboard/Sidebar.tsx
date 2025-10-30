@@ -52,6 +52,15 @@ export default function Sidebar({
     return item.roles.includes(userRole);
   });
 
+  // Check if any child of a menu item is active
+  const hasActiveChild = (item: MenuItem): boolean => {
+    if (!item.children) return false;
+    return item.children.some((child) => {
+      if (child.href === pathname) return true;
+      return hasActiveChild(child);
+    });
+  };
+
   const toggleMenu = (title: string) => {
     setOpenMenus((prev) => ({
       ...prev,
@@ -73,7 +82,8 @@ export default function Sidebar({
 
   const renderMenuItem = (item: MenuItem, level: number = 0) => {
     const hasChildren = item.children && item.children.length > 0;
-    const isOpen = openMenus[item.title];
+    const childIsActive = hasActiveChild(item);
+    const isOpen = openMenus[item.title] !== undefined ? openMenus[item.title] : childIsActive;
     const active = isActive(item.href);
 
     if (hasChildren) {
@@ -84,7 +94,9 @@ export default function Sidebar({
             className={`w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg mb-0.5
               ${
                 level === 0
-                  ? "text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white"
+                  ? childIsActive
+                    ? "bg-blue-50/30 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400"
+                    : "text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white"
                   : "text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700/30 hover:text-gray-800 dark:hover:text-slate-200 ml-3"
               }`}
           >
@@ -118,17 +130,20 @@ export default function Sidebar({
     return (
       <Link key={item.title} href={item.href || "#"} onClick={handleLinkClick}>
         <div
-          className={`flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg mb-0.5
+          className={`flex items-center gap-3 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg mb-0.5
             ${
               level === 0
                 ? active
-                  ? "bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 border-l-4 border-blue-600 dark:border-blue-500"
-                  : "text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white"
+                  ? "bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 border-l-4 border-blue-600 dark:border-blue-500 px-3"
+                  : "text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white px-3"
                 : active
-                ? "bg-blue-50/50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400 ml-3 border-l-2 border-blue-600 dark:border-blue-500"
-                : "text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700/30 hover:text-gray-800 dark:hover:text-slate-200 ml-3"
+                ? "bg-blue-50/50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400 ml-6 border-l-2 border-blue-600 dark:border-blue-500 pl-4 pr-3"
+                : "text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700/30 hover:text-gray-800 dark:hover:text-slate-200 ml-6 pl-4 pr-3"
             }`}
         >
+          {level > 0 && (
+            <div className="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-slate-500 flex-shrink-0" />
+          )}
           {item.icon}
           <span>{item.title}</span>
         </div>

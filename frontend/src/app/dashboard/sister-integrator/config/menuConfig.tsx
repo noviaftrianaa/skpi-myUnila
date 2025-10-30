@@ -36,10 +36,61 @@ export const sisterIntegratorMenuConfig: MenuItem[] = [
     roles: ["developer"],
   },
   {
-    title: "Dosen & Tendik",
+    title: "Data PDRD",
     icon: <FiUsers className="w-5 h-5" />,
-    href: "/dashboard/sister-integrator/pdrd/dosen",
     roles: ["developer"],
+    children: [
+      {
+        title: "Dosen",
+        href: "/dashboard/sister-integrator/pdrd/dosen",
+        roles: ["developer"],
+      },
+      {
+        title: "Penugasan/Penempatan",
+        href: "/dashboard/sister-integrator/pdrd/penugasan",
+        roles: ["developer"],
+      },
+      {
+        title: "Penelitian",
+        href: "/dashboard/sister-integrator/pdrd/penelitian",
+        roles: ["developer"],
+      },
+      {
+        title: "Pengabdian",
+        href: "/dashboard/sister-integrator/pdrd/pengabdian",
+        roles: ["developer"],
+      },
+      {
+        title: "Publikasi",
+        href: "/dashboard/sister-integrator/pdrd/publikasi",
+        roles: ["developer"],
+      },
+      {
+        title: "Jabatan Struktural",
+        href: "/dashboard/sister-integrator/pdrd/jabatan-struktural",
+        roles: ["developer"],
+      },
+      {
+        title: "Pendidikan Formal",
+        href: "/dashboard/sister-integrator/pdrd/pendidikan-formal",
+        roles: ["developer"],
+      },
+      {
+        title: "Riwayat Pekerjaan",
+        href: "/dashboard/sister-integrator/pdrd/riwayat-pekerjaan",
+        roles: ["developer"],
+      },
+      {
+        title: "Sertifikasi Dosen",
+        href: "/dashboard/sister-integrator/pdrd/sertifikasi-dosen",
+        roles: ["developer"],
+      },
+      {
+        title: "Bidang Ilmu",
+        href: "/dashboard/sister-integrator/pdrd/bidang-ilmu",
+        roles: ["developer"],
+      },
+    ],
   },
   {
     title: "Monitoring",
