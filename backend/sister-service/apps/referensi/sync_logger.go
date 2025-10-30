@@ -20,6 +20,11 @@ func (s *service) logSyncResult(ctx context.Context, endpointName, endpointKey, 
 		return
 	}
 
+	// Auto-detect sync type based on syncedBy value
+	if syncedBy == "scheduler" {
+		syncType = "scheduled"
+	}
+
 	// Calculate duration
 	duration := int(time.Since(startTime).Milliseconds())
 

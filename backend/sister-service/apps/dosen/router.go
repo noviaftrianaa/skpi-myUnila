@@ -9,7 +9,7 @@ import (
 )
 
 // Init initializes dosen routes (public endpoints) with Redis caching and returns the service
-func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client, redisClient *redis.Client, loggerSvc logger.Service) *Service {
+func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client, redisClient *redis.Client, loggerSvc logger.Service) Service {
 	repo := NewRepository(db)
 	svc := NewService(sisterAPI, redisClient, repo, loggerSvc)
 	ctrl := NewController(svc)

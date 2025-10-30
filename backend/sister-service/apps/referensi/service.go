@@ -102,6 +102,7 @@ type Service interface {
 	// Metadata & Batch Sync methods
 	GetAllReferensiMetadata(ctx context.Context) ([]ReferensiMetadata, error)
 	BatchSyncFromSister(ctx context.Context, endpoints []string, syncedBy string) (*BatchSyncResponse, error)
+	ForceRefreshToken() error
 }
 
 type service struct {
@@ -2020,3 +2021,9 @@ func (s *service) SyncBidangPekerjaanFromSister(syncedBy string) (int, error) {
 	return totalRecords, nil
 }
 
+
+// ForceRefreshToken forces a refresh of the Sister API authentication token
+// This is useful for scheduled syncs to ensure they always use a fresh token
+func (s *service) ForceRefreshToken() error {
+	return s.sisterAPI.ForceRefreshToken()
+}

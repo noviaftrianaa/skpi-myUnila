@@ -93,6 +93,14 @@ func (c *Client) EnsureAuthenticated() error {
 	return nil
 }
 
+// ForceRefreshToken forces a token refresh by clearing the cached token and re-authenticating
+// This is useful for scheduled jobs to ensure they always use a fresh token
+func (c *Client) ForceRefreshToken() error {
+	log.Println("🔄 Forcing token refresh for scheduled sync...")
+	c.Token = "" // Clear cached token
+	return c.EnsureAuthenticated()
+}
+
 // Get performs GET request to Sister API with automatic retry for transient errors
 func (c *Client) Get(endpoint string) ([]byte, error) {
 	return c.GetWithRetry(endpoint, 3) // Default 3 retries

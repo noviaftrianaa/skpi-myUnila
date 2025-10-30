@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"sister-service/apps/dosen"
@@ -10,15 +11,18 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
+// UNILA_ID_SP is the Satuan Perguruan Tinggi ID for Universitas Lampung
+const UNILA_ID_SP = "e2b705a7-173e-464a-9fac-509128709515"
+
 type Service struct {
 	repo           *Repository
 	cron           *cron.Cron
 	jobs           map[int]cron.EntryID // map schedule ID to cron entry ID
-	dosenService   *dosen.Service
-	referensiService *referensi.Service
+	dosenService   dosen.Service
+	referensiService referensi.Service
 }
 
-func NewService(repo *Repository, dosenService *dosen.Service, referensiService *referensi.Service) *Service {
+func NewService(repo *Repository, dosenService dosen.Service, referensiService referensi.Service) *Service {
 	// Create cron with second precision
 	c := cron.New(cron.WithSeconds())
 
@@ -66,30 +70,105 @@ func (s *Service) Stop() {
 	log.Println("✅ Scheduler stopped")
 }
 
+// executeWithRetry executes sync function with retry logic for transient errors
+func (s *Service) executeWithRetry(schedule ScheduledSync) error {
+	maxRetries := 3
+	var lastErr error
+
+	// Force refresh token before first attempt to ensure fresh authentication
+	if schedule.SyncType == "dosen" {
+		if err := s.dosenService.ForceRefreshToken(); err != nil {
+			log.Printf("⚠️  Failed to refresh token for dosen sync, continuing anyway: %v", err)
+		}
+	} else if schedule.SyncType == "referensi" {
+		if err := s.referensiService.ForceRefreshToken(); err != nil {
+			log.Printf("⚠️  Failed to refresh token for referensi sync, continuing anyway: %v", err)
+		}
+	}
+
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		var err error
+
+		if schedule.SyncType == "dosen" {
+			// Execute dosen sync - using UNILA_ID_SP to sync all Unila dosen
+			_, err = s.dosenService.SyncDosenFromSister(UNILA_ID_SP, "scheduler")
+		} else if schedule.SyncType == "referensi" && schedule.EndpointKey != nil {
+			// Execute referensi sync - BatchSync with single endpoint
+			_, err = s.referensiService.BatchSyncFromSister(context.Background(), []string{*schedule.EndpointKey}, "scheduler")
+		} else {
+			return fmt.Errorf("invalid sync configuration")
+		}
+
+		// If successful, return immediately
+		if err == nil {
+			if attempt > 0 {
+				log.Printf("✅ Sync succeeded after %d retries", attempt)
+			}
+			return nil
+		}
+
+		// Store last error
+		lastErr = err
+
+		// Check if error is retryable (contains keywords for transient errors)
+		errStr := err.Error()
+		isRetryable := contains(errStr, "429") || // Rate limit
+			contains(errStr, "500") || // Internal server error
+			contains(errStr, "502") || // Bad gateway
+			contains(errStr, "503") || // Service unavailable
+			contains(errStr, "timeout") ||
+			contains(errStr, "Terjadi kesalahan dalam sistem")
+
+		// If not retryable or max retries reached, return error
+		if !isRetryable || attempt >= maxRetries {
+			if !isRetryable {
+				log.Printf("❌ Non-retryable error: %v", err)
+			}
+			return lastErr
+		}
+
+		// Calculate exponential backoff: 5s, 10s, 20s
+		waitTime := time.Duration(1<<uint(attempt)) * 5 * time.Second
+		log.Printf("⚠️  Sync failed (attempt %d/%d): %v", attempt+1, maxRetries+1, err)
+		log.Printf("⏳ Retrying in %v...", waitTime)
+		time.Sleep(waitTime)
+	}
+
+	return lastErr
+}
+
+// Helper function to check if string contains substring
+func contains(str, substr string) bool {
+	return len(str) > 0 && len(substr) > 0 &&
+		(str == substr || len(str) >= len(substr) &&
+		 (str[:len(substr)] == substr || str[len(str)-len(substr):] == substr ||
+		  findSubstring(str, substr)))
+}
+
+func findSubstring(str, substr string) bool {
+	for i := 0; i <= len(str)-len(substr); i++ {
+		if str[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
+}
+
 // registerSchedule registers a single schedule with cron
 func (s *Service) registerSchedule(schedule ScheduledSync) error {
 	// Create job function
 	job := func() {
 		log.Printf("🔔 Executing scheduled sync: %s (ID: %d)", schedule.Name, schedule.ID)
 
-		var err error
-		if schedule.SyncType == "dosen" {
-			// Execute dosen sync
-			_, err = s.dosenService.SyncFromSister("scheduler")
-		} else if schedule.SyncType == "referensi" && schedule.EndpointKey != nil {
-			// Execute referensi sync
-			_, err = s.referensiService.SyncEndpoint(*schedule.EndpointKey, "scheduler")
-		} else {
-			log.Printf("❌ Invalid sync configuration for schedule %d", schedule.ID)
-			return
-		}
+		// Execute sync with retry mechanism
+		err := s.executeWithRetry(schedule)
 
 		// Update last run time
 		now := time.Now().UTC()
 		nextRun := s.cron.Entry(s.jobs[schedule.ID]).Next
 
 		if err != nil {
-			log.Printf("❌ Scheduled sync failed for %s: %v", schedule.Name, err)
+			log.Printf("❌ Scheduled sync failed for %s after all retries: %v", schedule.Name, err)
 		} else {
 			log.Printf("✅ Scheduled sync completed for %s", schedule.Name)
 		}

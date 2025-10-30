@@ -8,7 +8,7 @@ import (
 )
 
 // Init initializes referensi routes and returns the service
-func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client, loggerSvc logger.Service) *Service {
+func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client, loggerSvc logger.Service) Service {
 	repo := NewRepository(db)
 	svc := NewService(repo, sisterAPI, loggerSvc)
 	ctrl := NewController(svc)

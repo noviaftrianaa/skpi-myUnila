@@ -23,6 +23,7 @@ type Service interface {
 	GetDosenList(page, limit int, search string, idJnsSDM, idStatAktif int) (*DosenListResult, error)
 	GetDosenByID(idSDM string) (*Dosen, error)
 	GetDosenStats() (*DosenStats, error)
+	ForceRefreshToken() error
 }
 
 type service struct {
@@ -153,6 +154,11 @@ func (s *service) GetDosenStats() (*DosenStats, error) {
 func (s *service) logSyncResult(endpointName, endpointKey, syncType, syncedBy string, totalRecords int, startTime time.Time, err error) {
 	duration := time.Since(startTime)
 
+	// Auto-detect sync type based on syncedBy value
+	if syncedBy == "scheduler" {
+		syncType = "scheduled"
+	}
+
 	var errorMessage, errorDetails *string
 	status := "success"
 
@@ -187,4 +193,10 @@ func (s *service) logSyncResult(endpointName, endpointKey, syncType, syncedBy st
 	if logErr != nil {
 		log.Printf("⚠️  Failed to log sync result: %v", logErr)
 	}
+}
+
+// ForceRefreshToken forces a refresh of the Sister API authentication token
+// This is useful for scheduled syncs to ensure they always use a fresh token
+func (s *service) ForceRefreshToken() error {
+	return s.sisterAPI.ForceRefreshToken()
 }
