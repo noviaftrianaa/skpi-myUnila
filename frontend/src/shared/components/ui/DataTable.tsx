@@ -125,7 +125,7 @@ export default function DataTable<T extends Record<string, any>>({
 
   // Paginate data (only for client-side)
   const paginatedData = useMemo(() => {
-    if (serverSide) return data; // Server already paginated
+    if (serverSide) return data || []; // Server already paginated, ensure array
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
     return sortedData.slice(start, end);
