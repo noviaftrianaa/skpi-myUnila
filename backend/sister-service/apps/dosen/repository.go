@@ -473,14 +473,17 @@ func (r *repository) GetDosenStats() (*DosenStats, error) {
 		}
 	}
 	
-	// Get last sync timestamp
-	var lastSync *string
-	err = r.db.Get(&lastSync, "SELECT TOP 1 last_sync FROM pdrd.sdm WHERE soft_delete = 0 ORDER BY last_sync DESC")
+	// Get last sync timestamp from sync_logs table
+	var lastSync *time.Time
+	err = r.db.Get(&lastSync, `
+		SELECT TOP 1 synced_at
+		FROM logger.sync_logs
+		WHERE endpoint_name = 'Dosen' AND status = 'success'
+		ORDER BY synced_at DESC
+	`)
 	if err == nil && lastSync != nil {
-		// Parse string to time
-		// lastSyncTime, _ := time.Parse("2006-01-02 15:04:05", *lastSync)
-		// stats.LastSync = &lastSyncTime
+		stats.LastSync = lastSync
 	}
-	
+
 	return stats, nil
 }
