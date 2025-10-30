@@ -1,0 +1,250 @@
+version: '3.8'
+
+services:
+  # ============================================================================
+  # Redis (Sync Queue, Cache for API responses)
+  # ============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: redis-sync
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    volumes:
+      - redis_sync_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - sync-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  # ============================================================================
+  # Sister Service (SISTER API Integration)
+  # ============================================================================
+  sister-service:
+    build:
+      context: ../../backend/sister-service
+      dockerfile: Dockerfile
+    container_name: sister-service
+    environment:
+      - APP_ENV=production
+      - APP_PORT=8083
+
+      # Database
+      - DB_DRIVER=sqlserver
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT:-1433}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+
+      # Redis
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+
+      # SISTER API Configuration
+      - SISTER_API_BASE_URL=${SISTER_API_BASE_URL}
+      - SISTER_API_IDPENGGUNA=${SISTER_API_IDPENGGUNA}
+      - SISTER_API_USERNAME=${SISTER_API_USERNAME}
+      - SISTER_API_PASSWORD=${SISTER_API_PASSWORD}
+
+      # Encryption
+      - API_CONFIG_ENCRYPTION_KEY=${API_CONFIG_ENCRYPTION_KEY}
+
+      # Sync Configuration
+      - SYNC_ENABLED=true
+      - SYNC_SCHEDULE_DOSEN=${SYNC_SCHEDULE_DOSEN:-0 2 * * *}  # Daily at 2 AM
+      - SYNC_SCHEDULE_MAHASISWA=${SYNC_SCHEDULE_MAHASISWA:-0 3 * * *}  # Daily at 3 AM
+      - SYNC_BATCH_SIZE=${SYNC_BATCH_SIZE:-100}
+      - SYNC_MAX_RETRIES=${SYNC_MAX_RETRIES:-3}
+    ports:
+      - "8083:8083"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - sync-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:8083/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  # ============================================================================
+  # PDDIKTI Feeder Service (Neo Feeder Integration)
+  # ============================================================================
+  feeder-service:
+    build:
+      context: ../../backend/feeder-service
+      dockerfile: Dockerfile
+    container_name: feeder-service
+    environment:
+      - APP_ENV=production
+      - APP_PORT=8084
+
+      # Database
+      - DB_DRIVER=sqlserver
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT:-1433}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+
+      # Redis
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+
+      # PDDIKTI Feeder Configuration
+      - FEEDER_API_BASE_URL=${FEEDER_API_BASE_URL}
+      - FEEDER_API_USERNAME=${FEEDER_API_USERNAME}
+      - FEEDER_API_PASSWORD=${FEEDER_API_PASSWORD}
+      - FEEDER_KODE_PT=${FEEDER_KODE_PT}
+
+      # Upload Configuration
+      - UPLOAD_ENABLED=true
+      - UPLOAD_SCHEDULE=${UPLOAD_SCHEDULE:-0 4 * * 0}  # Weekly on Sunday at 4 AM
+      - UPLOAD_BATCH_SIZE=${UPLOAD_BATCH_SIZE:-50}
+      - UPLOAD_MAX_RETRIES=${UPLOAD_MAX_RETRIES:-3}
+      - UPLOAD_VALIDATION=true
+    ports:
+      - "8084:8084"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - sync-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:8084/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  # ============================================================================
+  # Nginx (Reverse Proxy - Optional)
+  # ============================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-sync
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    ports:
+      - "8080:80"
+    depends_on:
+      - sister-service
+      - feeder-service
+    networks:
+      - sync-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 64M
+
+  # ============================================================================
+  # Redis Exporter (Prometheus)
+  # ============================================================================
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: redis-exporter-vm3
+    environment:
+      - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+    ports:
+      - "9121:9121"
+    depends_on:
+      - redis
+    networks:
+      - sync-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 32M
+
+  # ============================================================================
+  # Node Exporter (Prometheus)
+  # ============================================================================
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter-vm3
+    command:
+      - '--path.rootfs=/host'
+    volumes:
+      - /:/host:ro,rslave
+    ports:
+      - "9100:9100"
+    networks:
+      - sync-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 64M
+
+  # ============================================================================
+  # Nginx Prometheus Exporter
+  # ============================================================================
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    container_name: nginx-exporter-vm3
+    command:
+      - '-nginx.scrape-uri=http://nginx:80/nginx_status'
+    ports:
+      - "9113:9113"
+    depends_on:
+      - nginx
+    networks:
+      - sync-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 32M
+
+volumes:
+  redis_sync_data:
+    driver: local
+
+networks:
+  sync-network:
+    driver: bridge
