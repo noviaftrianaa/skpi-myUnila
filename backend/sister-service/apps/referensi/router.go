@@ -7,8 +7,8 @@ import (
 	"sister-service/external/sister_api"
 )
 
-// Init initializes referensi routes
-func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client, loggerSvc logger.Service) {
+// Init initializes referensi routes and returns the service
+func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client, loggerSvc logger.Service) *Service {
 	repo := NewRepository(db)
 	svc := NewService(repo, sisterAPI, loggerSvc)
 	ctrl := NewController(svc)
@@ -266,4 +266,6 @@ func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client, logger
 		referensiRouter.Get("/metadata", ctrl.GetAllReferensiMetadata)
 		referensiRouter.Post("/batch-sync", ctrl.BatchSyncFromSister)
 	}
+
+	return svc
 }

@@ -137,12 +137,25 @@ func main() {
 		log.Println("✅ API Configuration management enabled")
 	}
 
-	// Initialize domain routers
-	referensi.Init(apiV1, db, sisterAPI, loggerService) // Referensi routes (protected with JWT)
+	// Initialize domain routers and get services for scheduler
+	referensiService := referensi.Init(apiV1, db, sisterAPI, loggerService) // Referensi routes (protected with JWT)
+	dosenService := dosen.Init(publicRoutes, db, sisterAPI, redisClient, loggerService) // Dosen endpoints with Redis cache and DB
 
-	dosen.Init(publicRoutes, db, sisterAPI, redisClient, loggerService) // Dosen endpoints with Redis cache and DB
 	synclog.RegisterRoutes(publicRoutes, db)                            // Sync logs endpoints
 	monitoring.RegisterRoutes(publicRoutes)                             // Monitoring endpoints
+
+	// Initialize Scheduler Service
+	schedulerRepo := scheduler.NewRepository(db)
+	schedulerService := scheduler.NewService(schedulerRepo, dosenService, referensiService)
+	schedulerRouter := scheduler.NewRouter(schedulerService)
+	schedulerRouter.RegisterRoutes(app)
+
+	// Start cron scheduler
+	if err := schedulerService.Start(); err != nil {
+		log.Printf("⚠️  Failed to start scheduler: %v", err)
+	} else {
+		log.Println("✅ Scheduler service started successfully")
+	}
 
 	// Welcome message
 	app.Get("/", func(c *fiber.Ctx) error {
