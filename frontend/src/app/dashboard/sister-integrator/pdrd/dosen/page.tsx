@@ -34,6 +34,7 @@ import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
 import Link from "next/link";
 import { sisterDosenService, type SisterDosenStats } from "@/lib/services/dosenService";
 import { toast } from "react-hot-toast";
+import ScheduleList from "@/components/sister-integrator/ScheduleList";
 
 export default function DosenManagementPage() {
   useRequireAuth();
@@ -296,6 +297,9 @@ export default function DosenManagementPage() {
             </CardBody>
           </Card>
         </div>
+
+        {/* Scheduled Syncs Section */}
+        <ScheduleList syncType="dosen" />
 
         {/* Data Table using SisterDosenTable Component */}
         <SisterDosenTable />

@@ -41,6 +41,7 @@ import {
 } from "@/lib/services/referensiService";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
+import ScheduleList from "@/components/sister-integrator/ScheduleList";
 
 export default function ReferensiDashboardPage() {
   useRequireAuth();
@@ -325,6 +326,9 @@ export default function ReferensiDashboardPage() {
             </CardBody>
           </Card>
         </div>
+
+        {/* Scheduled Syncs Section */}
+        <ScheduleList syncType="referensi" />
 
         {/* Search & Filter Section */}
         <Card className={`shadow-md hover:shadow-lg transition-shadow duration-200 bg-white dark:bg-gray-900 ${searchQuery ? 'mb-2' : ''}`}>
