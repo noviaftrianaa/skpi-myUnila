@@ -7,6 +7,7 @@ import (
 	appLogger "sister-service/apps/logger"
 	"sister-service/apps/monitoring"
 	"sister-service/apps/referensi"
+	"sister-service/apps/scheduler"
 	"sister-service/apps/synclog"
 	_ "sister-service/docs"
 	"sister-service/external/database"

@@ -7,6 +7,7 @@ require (
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/microsoft/go-mssqldb v1.7.2
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/swaggo/fiber-swagger v1.3.0
 )
 
