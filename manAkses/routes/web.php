@@ -55,15 +55,15 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::group(['middleware' => ['one_data_man_akses']], function() {
 
-        // Route::prefix('manajemen')->name('manajemen.')->group(function() {
-        //     Route::namespace('aplikasi')->prefix('aplikasi')->name('aplikasi.')->group(function () {
-        //         Route::get('/', [AplikasiController::class, 'index'])->name('index');
-        //         Route::get('/detail/{id}', [AplikasiController::class, 'detail'])->name('detail');
-        //         Route::get('/table/{id}', [TableAplikasiController::class, 'index'])->name('table');
-        //     });
-        // });
+        Route::prefix('manajemen')->name('manajemen.')->group(function() {
+            Route::namespace('aplikasi')->prefix('aplikasi')->name('aplikasi.')->group(function () {
+                Route::get('/', [AplikasiController::class, 'index'])->name('index');
+                Route::get('/detail/{id}', [AplikasiController::class, 'detail'])->name('detail');
+                Route::get('/table/{id}', [TableAplikasiController::class, 'index'])->name('table');
+            });
+        });
 
-        // Route::prefix('master')->group(function() {
+        Route::prefix('master')->group(function() {
 
             Route::namespace('user')->prefix('user')->name('user.')->group(function () {
                 Route::get('/', [UserController::class, 'index'])->name('index');
@@ -124,8 +124,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                         Route::get('/edit/{id}', [AksesWSController::class, 'edit'])->name('edit');
                         Route::put('/store/{id}', [AksesWSController::class, 'store'])->name('store');
                         Route::delete('/delete/{id}', [AksesWSController::class, 'delete'])->name('delete');
-                        // Route::get('/body/{id}', [AksesWSController::class, 'body'])->name('body');
-                        // Route::get('/{id}/terms', [AksesWSController::class, 'terms'])->name('terms');
+                        Route::get('/body/{id}', [AksesWSController::class, 'body'])->name('body');
+                        Route::get('/{id}/terms', [AksesWSController::class, 'terms'])->name('terms');
                     });
                 });
 
@@ -159,7 +159,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 Route::delete('/{id}/destroy', [MenuController::class, 'destroy'])->name('destroy');
             });
 
-        // });
+        });
     });
 });
 
