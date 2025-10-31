@@ -217,11 +217,11 @@ func (r *repository) GetAllActiveDosen() ([]DosenInfo, error) {
 	query := `
 		SELECT
 			id_sdm,
-			nama_sdm,
+			nm_sdm,
 			nidn
 		FROM pdrd.sdm
 		WHERE soft_delete = 0 AND id_sdm IS NOT NULL
-		ORDER BY nama_sdm
+		ORDER BY nm_sdm
 	`
 
 	rows, err := r.db.Queryx(query)
@@ -256,7 +256,7 @@ func (r *repository) GetPenugasanList(page, limit int, search string) (*Penugasa
 	argIndex := 1
 
 	if search != "" {
-		whereConditions += fmt.Sprintf(" AND (s.nama_sdm LIKE @p%d OR s.nidn LIKE @p%d OR s.nip LIKE @p%d OR p.no_srt_tgs LIKE @p%d)", argIndex, argIndex, argIndex, argIndex)
+		whereConditions += fmt.Sprintf(" AND (s.nm_sdm LIKE @p%d OR s.nidn LIKE @p%d OR s.nip LIKE @p%d OR p.no_srt_tgs LIKE @p%d)", argIndex, argIndex, argIndex, argIndex)
 		searchPattern := "%" + search + "%"
 		args = append(args, searchPattern)
 		argIndex++
