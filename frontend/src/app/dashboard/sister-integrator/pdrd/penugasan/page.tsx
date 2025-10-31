@@ -2,48 +2,128 @@
 
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
 import SisterPenugasanTable from "@/shared/components/sister-integrator/SisterPenugasanTable";
 import {
   Card,
   CardBody,
+  Button,
   Spinner,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Progress,
 } from "@heroui/react";
 import {
   FiDatabase,
   FiCheckCircle,
   FiClock,
   FiRefreshCw,
+  FiAlertCircle,
 } from "react-icons/fi";
+import { MdSync } from "react-icons/md";
 import { RiGovernmentFill } from "react-icons/ri";
 import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
 import { sisterPenugasanService, type PenugasanStats } from "@/lib/services/penugasanService";
+import { toast } from "react-hot-toast";
+import ScheduleList from "@/components/sister-integrator/ScheduleList";
 
 export default function PenugasanManagementPage() {
   useRequireAuth();
+  const { user } = useAuth();
 
   // State
   const [stats, setStats] = useState<PenugasanStats | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [showSyncModal, setShowSyncModal] = useState(false);
+  const [showProgressModal, setShowProgressModal] = useState(false);
+  const [syncProgress, setSyncProgress] = useState(0);
+  const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
+  const [syncResult, setSyncResult] = useState<{
+    totalRecords: number;
+    message: string;
+  } | null>(null);
 
-  // Fetch stats on mount and every 30 seconds
+  // Fetch stats on mount
   useEffect(() => {
-    const loadStats = async () => {
-      try {
-        const statsData = await sisterPenugasanService.getStats();
-        setStats(statsData);
-      } catch (error) {
-        console.error("Error loading stats:", error);
-      } finally {
-        setIsLoadingStats(false);
-      }
-    };
-
-    loadStats();
-    const interval = setInterval(loadStats, 30000); // Refresh every 30s
-
-    return () => clearInterval(interval);
+    fetchStats();
   }, []);
+
+  const fetchStats = async () => {
+    try {
+      setIsLoadingStats(true);
+      const data = await sisterPenugasanService.getStats();
+      setStats(data);
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+      toast.error("Gagal memuat statistik penugasan");
+    } finally {
+      setIsLoadingStats(false);
+    }
+  };
+
+  const handleSyncClick = () => {
+    setShowSyncModal(true);
+  };
+
+  const handleConfirmSync = async () => {
+    setShowSyncModal(false);
+    setShowProgressModal(true);
+    setIsSyncing(true);
+    setSyncStatus("syncing");
+    setSyncProgress(0);
+
+    try {
+      // Simulate progress
+      const progressInterval = setInterval(() => {
+        setSyncProgress((prev) => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 300);
+
+      // Call sync API
+      const response = await sisterPenugasanService.syncFromSister(user?.name || "system");
+
+      clearInterval(progressInterval);
+      setSyncProgress(100);
+
+      // Set sync result
+      setSyncResult({
+        totalRecords: response.total_success,
+        message: `Berhasil sinkronisasi ${response.total_success} data penugasan`,
+      });
+
+      setSyncStatus("success");
+      toast.success(`Berhasil sinkronisasi ${response.total_success} data penugasan`);
+
+      // Refresh data after 2 seconds
+      setTimeout(async () => {
+        await fetchStats();
+        setShowProgressModal(false);
+        setSyncProgress(0);
+        setSyncStatus("idle");
+      }, 2000);
+    } catch (error) {
+      console.error("Error syncing penugasan:", error);
+      setSyncStatus("error");
+      toast.error("Gagal melakukan sinkronisasi");
+      setTimeout(() => {
+        setShowProgressModal(false);
+        setSyncProgress(0);
+        setSyncStatus("idle");
+      }, 2000);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Belum pernah";
@@ -89,6 +169,16 @@ export default function PenugasanManagementPage() {
               Kelola dan sinkronisasi data penugasan/penempatan dosen dari SISTER API
             </p>
           </div>
+          <Button
+            color="primary"
+            size="lg"
+            startContent={<MdSync className="w-5 h-5" />}
+            onClick={handleSyncClick}
+            isLoading={isSyncing}
+            className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all rounded-xl"
+          >
+            Sinkronisasi Data
+          </Button>
         </div>
 
         {/* Statistics Cards - Compact Horizontal Layout (Match Dosen Style) */}
@@ -203,9 +293,202 @@ export default function PenugasanManagementPage() {
           </Card>
         </div>
 
+        {/* Scheduled Syncs Section */}
+        <ScheduleList syncType="penugasan" />
+
         {/* Data Table using SisterPenugasanTable Component */}
         <SisterPenugasanTable />
       </div>
+
+      {/* Confirmation Modal */}
+      <Modal
+        isOpen={showSyncModal}
+        onOpenChange={setShowSyncModal}
+        size="md"
+        backdrop="blur"
+        classNames={{
+          backdrop: "bg-black/50 backdrop-blur-sm",
+          base: "bg-white dark:bg-gray-800",
+        }}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white shadow-lg">
+                    <MdSync className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-800 dark:text-white">
+                      Konfirmasi Sinkronisasi
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                      Data Penugasan/Penempatan Dosen
+                    </p>
+                  </div>
+                </div>
+              </ModalHeader>
+              <ModalBody className="py-6">
+                <div className="space-y-4">
+                  <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                    <div className="flex items-start gap-3">
+                      <FiAlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                          Proses ini akan mengambil data penugasan terbaru dari SISTER API dan menyimpannya ke database.
+                        </p>
+                        <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1 list-disc list-inside">
+                          <li>Data yang sudah ada akan diperbarui</li>
+                          <li>Data baru akan ditambahkan</li>
+                          <li>Proses memerlukan waktu beberapa menit</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">User</span>
+                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {user?.name || "System"}
+                    </span>
+                  </div>
+                </div>
+              </ModalBody>
+              <ModalFooter className="border-t border-gray-200 dark:border-gray-700">
+                <Button
+                  variant="light"
+                  onPress={onClose}
+                  className="text-gray-600 hover:bg-gray-100"
+                >
+                  Batal
+                </Button>
+                <Button
+                  color="primary"
+                  onPress={handleConfirmSync}
+                  startContent={<FiRefreshCw className="w-4 h-4" />}
+                  className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white"
+                >
+                  Mulai Sinkronisasi
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      {/* Progress Modal */}
+      <Modal
+        isOpen={showProgressModal}
+        isDismissable={false}
+        hideCloseButton
+        size="md"
+        backdrop="blur"
+        classNames={{
+          backdrop: "bg-black/50 backdrop-blur-sm",
+          base: "bg-white dark:bg-gray-800",
+        }}
+      >
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg ${
+                  syncStatus === "success"
+                    ? "bg-gradient-to-br from-green-500 to-green-600"
+                    : syncStatus === "error"
+                    ? "bg-gradient-to-br from-red-500 to-red-600"
+                    : "bg-gradient-to-br from-purple-500 to-indigo-600"
+                }`}
+              >
+                {syncStatus === "success" ? (
+                  <FiCheckCircle className="w-6 h-6" />
+                ) : syncStatus === "error" ? (
+                  <FiAlertCircle className="w-6 h-6" />
+                ) : (
+                  <FiRefreshCw className="w-6 h-6 animate-spin" />
+                )}
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-800 dark:text-white">
+                  {syncStatus === "success"
+                    ? "Sinkronisasi Berhasil!"
+                    : syncStatus === "error"
+                    ? "Sinkronisasi Gagal"
+                    : "Sedang Melakukan Sinkronisasi..."}
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                  {syncStatus === "syncing" && "Mohon tunggu sebentar"}
+                  {syncStatus === "success" && syncResult && `${syncResult.totalRecords} data berhasil disinkronkan`}
+                  {syncStatus === "error" && "Terjadi kesalahan saat sinkronisasi"}
+                </p>
+              </div>
+            </div>
+          </ModalHeader>
+          <ModalBody className="py-6">
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    Progress
+                  </span>
+                  <span className="text-sm font-bold text-purple-600 dark:text-purple-400">
+                    {syncProgress}%
+                  </span>
+                </div>
+                <Progress
+                  value={syncProgress}
+                  color={
+                    syncStatus === "success"
+                      ? "success"
+                      : syncStatus === "error"
+                      ? "danger"
+                      : "primary"
+                  }
+                  className="h-2"
+                  classNames={{
+                    indicator: syncStatus === "syncing" ? "animate-pulse" : "",
+                  }}
+                />
+              </div>
+
+              {syncStatus === "syncing" && (
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20">
+                  <Spinner size="sm" color="primary" />
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    Mengambil data dari SISTER API...
+                  </p>
+                </div>
+              )}
+
+              {syncStatus === "success" && syncResult && (
+                <div className="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                  <div className="flex items-center gap-3 mb-3">
+                    <FiCheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                    <p className="text-sm font-semibold text-green-800 dark:text-green-200">
+                      {syncResult.message}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600 dark:text-gray-400">Total Records</span>
+                    <span className="font-bold text-green-700 dark:text-green-300">
+                      {syncResult.totalRecords}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {syncStatus === "error" && (
+                <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                  <p className="text-sm text-red-700 dark:text-red-300">
+                    Gagal melakukan sinkronisasi. Silakan coba lagi atau hubungi administrator.
+                  </p>
+                </div>
+              )}
+            </div>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </DashboardLayout>
   );
 }

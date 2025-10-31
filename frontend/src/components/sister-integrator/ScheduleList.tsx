@@ -32,7 +32,7 @@ import {
 import ScheduleModal from "./ScheduleModal";
 
 interface ScheduleListProps {
-  syncType?: "referensi" | "dosen";
+  syncType?: "referensi" | "dosen" | "penugasan";
   endpointKey?: string;
   showCreateButton?: boolean;
 }

@@ -108,3 +108,19 @@ func (ctrl *Controller) GetPenugasanStats(c *fiber.Ctx) error {
 
 	return response.Success(c, "Penugasan stats retrieved successfully", stats)
 }
+
+// BatchSyncPenugasan handles POST /public/penugasan/sync-all
+// Query params: synced_by (optional)
+func (ctrl *Controller) BatchSyncPenugasan(c *fiber.Ctx) error {
+	syncedBy := c.Query("synced_by", "system")
+
+	log.Printf("🔄 Batch sync all penugasan request, synced_by: %s", syncedBy)
+
+	result, err := ctrl.service.BatchSyncPenugasan(syncedBy)
+	if err != nil {
+		log.Printf("Error in BatchSyncPenugasan controller: %v", err)
+		return response.InternalServerError(c, "Failed to batch sync penugasan", err.Error())
+	}
+
+	return response.Success(c, "Batch sync penugasan completed successfully", result)
+}

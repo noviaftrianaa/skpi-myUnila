@@ -59,6 +59,16 @@ export interface BatchPenugasanSyncResult {
   synced_by: string;
 }
 
+export interface BatchPenugasanSyncAllResult {
+  total_dosen: number;
+  total_processed: number;
+  total_success: number;
+  total_failed: number;
+  duration: string;
+  results: PenugasanSyncResult[];
+  synced_by: string;
+}
+
 export interface PenugasanListResult {
   data: Penugasan[];
   total: number;
@@ -140,6 +150,19 @@ export const sisterPenugasanService = {
   async getStats(): Promise<PenugasanStats> {
     const response = await axios.get<SisterApiResponse<PenugasanStats>>(
       `${SISTER_API_URL}/penugasan/stats`
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Trigger batch sync all penugasan from SISTER API
+   * @param syncedBy - Username of person who triggered the sync
+   */
+  async syncFromSister(syncedBy: string): Promise<BatchPenugasanSyncAllResult> {
+    const response = await axios.post<SisterApiResponse<BatchPenugasanSyncAllResult>>(
+      `${SISTER_API_URL}/penugasan/sync-all`,
+      null,
+      { params: { synced_by: syncedBy } }
     );
     return response.data.data;
   },

@@ -9,6 +9,10 @@ func SetupRoutes(app *fiber.App, controller *Controller) {
 	// GET /public/penugasan/stats - Get statistics (MUST be before "/" route)
 	publicAPI.Get("/stats", controller.GetPenugasanStats)
 
+	// POST /public/penugasan/sync-all - Batch sync all penugasan
+	// Query params: synced_by (optional)
+	publicAPI.Post("/sync-all", controller.BatchSyncPenugasan)
+
 	// GET /public/penugasan - Get paginated list with search
 	// Query params: page (default 1), limit (default 10), search (optional)
 	publicAPI.Get("/", controller.GetPenugasanList)
