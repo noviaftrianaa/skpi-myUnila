@@ -128,7 +128,7 @@ export const sisterPenugasanService = {
    */
   async getList(page: number = 1, limit: number = 10, search: string = ''): Promise<PenugasanListResult> {
     const response = await axios.get<SisterApiResponse<PenugasanListResult>>(
-      `${SISTER_API_URL}/public/penugasan`,
+      `${SISTER_API_URL}/penugasan`,
       { params: { page, limit, search } }
     );
     return response.data.data;
@@ -139,7 +139,7 @@ export const sisterPenugasanService = {
    */
   async getStats(): Promise<PenugasanStats> {
     const response = await axios.get<SisterApiResponse<PenugasanStats>>(
-      `${SISTER_API_URL}/public/penugasan/stats`
+      `${SISTER_API_URL}/penugasan/stats`
     );
     return response.data.data;
   },
