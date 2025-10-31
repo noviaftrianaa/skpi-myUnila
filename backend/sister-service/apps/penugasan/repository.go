@@ -276,15 +276,35 @@ func (r *repository) GetPenugasanList(page, limit int, search string) (*Penugasa
 		return nil, fmt.Errorf("failed to count penugasan: %w", err)
 	}
 
-	// Get paginated data
+	// Get paginated data with all JOINs
 	dataQuery := fmt.Sprintf(`
 		SELECT
 			p.id_reg_ptk, p.id_sdm, p.id_sp, p.id_stat_pegawai, p.id_ikatan_kerja, p.id_sms,
 			p.id_jns_keluar, p.no_srt_tgs, p.tgl_srt_tgs, p.tmt_srt_tgs, p.tgl_ptk_keluar,
 			p.nidn, p.jns_reg, p.create_date, p.id_creator, p.last_update, p.id_updater,
-			p.soft_delete, p.last_sync
+			p.soft_delete, p.last_sync,
+			s.nm_sdm AS nama_dosen,
+			s.nip,
+			sk.nm_stat_pegawai AS status_kepegawaian,
+			ik.nm_ikatan_kerja AS ikatan_kerja,
+			kp_latest.a_sp_homebase AS homebase,
+			CAST(kp_latest.id_thn_ajaran AS varchar(10)) AS homebase_tahun_ajaran,
+			sms.nm_lemb AS nama_prodi,
+			sms.kode_prodi
 		FROM pdrd.reg_ptk p
 		LEFT JOIN pdrd.sdm s ON p.id_sdm = s.id_sdm
+		LEFT JOIN ref.status_kepegawaian sk ON p.id_stat_pegawai = sk.id_stat_pegawai
+		LEFT JOIN ref.ikatan_kerja_sdm ik ON p.id_ikatan_kerja = ik.id_ikatan_kerja
+		LEFT JOIN (
+			SELECT
+				id_reg_ptk,
+				id_thn_ajaran,
+				a_sp_homebase,
+				ROW_NUMBER() OVER (PARTITION BY id_reg_ptk ORDER BY id_thn_ajaran DESC) as rn
+			FROM pdrd.keaktifan_ptk
+			WHERE soft_delete = 0
+		) kp_latest ON p.id_reg_ptk = kp_latest.id_reg_ptk AND kp_latest.rn = 1
+		LEFT JOIN pdrd.sms sms ON p.id_sms = sms.id_sms
 		%s
 		ORDER BY p.tmt_srt_tgs DESC, p.create_date DESC
 		OFFSET @p%d ROWS

@@ -30,6 +30,16 @@ type Penugasan struct {
 	IDUpdater  *string    `json:"id_updater" db:"id_updater"`   // uniqueidentifier, nullable
 	SoftDelete int        `json:"soft_delete" db:"soft_delete"` // numeric(1), default 0
 	LastSync   *time.Time `json:"last_sync" db:"last_sync"`     // datetime, nullable
+
+	// Joined Fields (from related tables via JOIN)
+	NamaDosen            *string `json:"nama_dosen" db:"nama_dosen"`                         // from pdrd.sdm.nm_sdm
+	NIP                  *string `json:"nip" db:"nip"`                                       // from pdrd.sdm.nip
+	StatusKepegawaian    *string `json:"status_kepegawaian" db:"status_kepegawaian"`         // from ref.status_kepegawaian.nm_stat_pegawai
+	IkatanKerja          *string `json:"ikatan_kerja" db:"ikatan_kerja"`                     // from ref.ikatan_kerja_sdm.nm_ikatan_kerja
+	Homebase             *int    `json:"homebase" db:"homebase"`                             // from pdrd.keaktifan_ptk.a_sp_homebase (latest year)
+	HomebaseTahunAjaran  *string `json:"homebase_tahun_ajaran" db:"homebase_tahun_ajaran"`   // from pdrd.keaktifan_ptk.id_thn_ajaran
+	NamaProdi            *string `json:"nama_prodi" db:"nama_prodi"`                         // from pdrd.sms.nm_lemb
+	KodeProdi            *string `json:"kode_prodi" db:"kode_prodi"`                         // from pdrd.sms.kode_prodi
 }
 
 // KeaktifanPTK represents the keaktifan per tahun ajaran in pdrd.keaktifan_ptk table

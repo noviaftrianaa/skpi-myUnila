@@ -76,7 +76,24 @@ export default function SisterPenugasanTable() {
       ),
     },
     {
-      key: "id_stat_pegawai",
+      key: "nama_dosen",
+      label: "NAMA DOSEN",
+      sortable: true,
+      render: (item) => (
+        <div>
+          <div className="font-semibold text-gray-900 dark:text-white">
+            {item.nama_dosen || "-"}
+          </div>
+          {item.nip && (
+            <div className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+              NIP: {item.nip}
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "status_kepegawaian",
       label: "STATUS KEPEGAWAIAN",
       sortable: true,
       render: (item) => (
@@ -84,25 +101,61 @@ export default function SisterPenugasanTable() {
           size="sm"
           variant="flat"
           color={
-            item.id_stat_pegawai === 1
+            item.status_kepegawaian === "PNS"
               ? "success"
-              : item.id_stat_pegawai === 2
+              : item.status_kepegawaian === "CPNS"
               ? "primary"
               : "default"
           }
         >
-          {penugasanHelpers.getStatusKepegawaianLabel(item.id_stat_pegawai)}
+          {item.status_kepegawaian || "-"}
         </Chip>
       ),
     },
     {
-      key: "id_ikatan_kerja",
+      key: "ikatan_kerja",
       label: "IKATAN KERJA",
       sortable: true,
       render: (item) => (
         <span className="text-sm">
-          {penugasanHelpers.getIkatanKerjaLabel(item.id_ikatan_kerja)}
+          {item.ikatan_kerja || "-"}
         </span>
+      ),
+    },
+    {
+      key: "nama_prodi",
+      label: "PROGRAM STUDI",
+      sortable: true,
+      render: (item) => (
+        <div>
+          <div className="text-sm font-medium">{item.nama_prodi || "-"}</div>
+          {item.kode_prodi && (
+            <div className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+              {item.kode_prodi}
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "homebase",
+      label: "HOMEBASE",
+      sortable: true,
+      render: (item) => (
+        <div className="flex flex-col gap-1">
+          <Chip
+            size="sm"
+            variant="flat"
+            color={item.homebase === 1 ? "success" : "default"}
+          >
+            {item.homebase === 1 ? "Ya" : "Tidak"}
+          </Chip>
+          {item.homebase === 1 && item.homebase_tahun_ajaran && (
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {item.homebase_tahun_ajaran}
+            </span>
+          )}
+        </div>
       ),
     },
     {
@@ -111,14 +164,6 @@ export default function SisterPenugasanTable() {
       sortable: true,
       render: (item) => (
         <span className="text-sm font-mono">{item.no_srt_tgs || "-"}</span>
-      ),
-    },
-    {
-      key: "tgl_srt_tgs",
-      label: "TGL SURAT TUGAS",
-      sortable: true,
-      render: (item) => (
-        <span className="text-sm">{formatDate(item.tgl_srt_tgs)}</span>
       ),
     },
     {

@@ -40,6 +40,15 @@ export interface Penugasan {
   id_updater?: string;
   soft_delete: number;
   last_sync?: string;
+  // Joined fields from related tables
+  nama_dosen?: string;
+  nip?: string;
+  status_kepegawaian?: string;
+  ikatan_kerja?: string;
+  homebase?: number;
+  homebase_tahun_ajaran?: string;
+  nama_prodi?: string;
+  kode_prodi?: string;
 }
 
 export interface PenugasanSyncResult {
