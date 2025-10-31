@@ -684,3 +684,19 @@ func (c *Client) GetDosenLain(idSDM string) ([]byte, error) {
 	endpoint := fmt.Sprintf("/1.0/data_pribadi/lain/%s", idSDM)
 	return c.Get(endpoint)
 }
+
+// ==================== PENUGASAN ENDPOINTS ====================
+
+// GetPenugasanByIDSDM fetches list of penugasan for a dosen from Sister API
+// Endpoint: GET /1.0/penugasan?id_sdm={id_sdm}
+func (c *Client) GetPenugasanByIDSDM(idSDM string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/1.0/penugasan?id_sdm=%s", idSDM)
+	return c.Get(endpoint)
+}
+
+// GetPenugasanDetail fetches detail of a single penugasan from Sister API
+// Endpoint: GET /1.0/penugasan/{id}
+func (c *Client) GetPenugasanDetail(idPenugasan string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/1.0/penugasan/%s", idPenugasan)
+	return c.Get(endpoint)
+}

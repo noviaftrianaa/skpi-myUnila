@@ -6,6 +6,7 @@ import (
 	"sister-service/apps/dosen"
 	appLogger "sister-service/apps/logger"
 	"sister-service/apps/monitoring"
+	"sister-service/apps/penugasan"
 	"sister-service/apps/referensi"
 	"sister-service/apps/scheduler"
 	"sister-service/apps/synclog"
@@ -140,6 +141,13 @@ func main() {
 	// Initialize domain routers and get services for scheduler
 	referensiService := referensi.Init(apiV1, db, sisterAPI, loggerService) // Referensi routes (protected with JWT)
 	dosenService := dosen.Init(publicRoutes, db, sisterAPI, redisClient, loggerService) // Dosen endpoints with Redis cache and DB
+
+	// Initialize Penugasan module
+	penugasanRepo := penugasan.NewRepository(db)
+	penugasanService := penugasan.NewService(penugasanRepo, sisterAPI)
+	penugasanController := penugasan.NewController(penugasanService)
+	penugasan.SetupRoutes(app, penugasanController)
+	log.Println("✅ Penugasan routes registered")
 
 	synclog.RegisterRoutes(publicRoutes, db)                            // Sync logs endpoints
 	monitoring.RegisterRoutes(publicRoutes)                             // Monitoring endpoints
