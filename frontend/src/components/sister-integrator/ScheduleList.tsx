@@ -173,7 +173,7 @@ export default function ScheduleList({
                   Scheduled Syncs
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-slate-400">
-                  {schedules.length} schedule(s) terdaftar
+                  {schedules?.length || 0} schedule(s) terdaftar
                 </p>
               </div>
             </div>
@@ -204,7 +204,7 @@ export default function ScheduleList({
           {isExpanded && (
             <div className="px-6 pb-6 pt-2 border-t border-gray-200 dark:border-slate-700">
 
-          {schedules.length === 0 ? (
+          {!schedules || schedules.length === 0 ? (
             <div className="text-center py-8">
               <FiClock className="mx-auto text-4xl text-gray-300 dark:text-slate-600 mb-3" />
               <p className="text-gray-500 dark:text-slate-400">
