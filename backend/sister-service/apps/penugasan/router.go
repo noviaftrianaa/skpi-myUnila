@@ -3,6 +3,17 @@ package penugasan
 import "github.com/gofiber/fiber/v2"
 
 func SetupRoutes(app *fiber.App, controller *Controller) {
+	// Public routes
+	publicAPI := app.Group("/public/penugasan")
+
+	// GET /public/penugasan - Get paginated list with search
+	// Query params: page (default 1), limit (default 10), search (optional)
+	publicAPI.Get("/", controller.GetPenugasanList)
+
+	// GET /public/penugasan/stats - Get statistics
+	publicAPI.Get("/stats", controller.GetPenugasanStats)
+
+	// Protected routes (kept for backward compatibility)
 	api := app.Group("/api/v1/penugasan")
 
 	// GET /api/v1/penugasan - Get all penugasan for a dosen

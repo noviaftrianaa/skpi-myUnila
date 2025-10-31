@@ -74,3 +74,37 @@ func (ctrl *Controller) SyncPenugasanByIDSDM(c *fiber.Ctx) error {
 
 	return response.Success(c, "Penugasan synced successfully", result)
 }
+
+// GetPenugasanList handles GET /public/penugasan
+// Query params: page (default 1), limit (default 10), search (optional)
+func (ctrl *Controller) GetPenugasanList(c *fiber.Ctx) error {
+	page := c.QueryInt("page", 1)
+	limit := c.QueryInt("limit", 10)
+	search := c.Query("search", "")
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 100 {
+		limit = 10
+	}
+
+	result, err := ctrl.service.GetPenugasanList(page, limit, search)
+	if err != nil {
+		log.Printf("Error in GetPenugasanList controller: %v", err)
+		return response.InternalServerError(c, "Failed to fetch penugasan list", err.Error())
+	}
+
+	return response.Success(c, "Penugasan list retrieved successfully", result)
+}
+
+// GetPenugasanStats handles GET /public/penugasan/stats
+func (ctrl *Controller) GetPenugasanStats(c *fiber.Ctx) error {
+	stats, err := ctrl.service.GetPenugasanStats()
+	if err != nil {
+		log.Printf("Error in GetPenugasanStats controller: %v", err)
+		return response.InternalServerError(c, "Failed to fetch penugasan stats", err.Error())
+	}
+
+	return response.Success(c, "Penugasan stats retrieved successfully", stats)
+}

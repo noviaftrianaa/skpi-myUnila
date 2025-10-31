@@ -134,3 +134,19 @@ type DosenInfo struct {
 	Nama  string
 	NIDN  *string
 }
+
+// PenugasanListResult represents paginated list of penugasan
+type PenugasanListResult struct {
+	Data       []*Penugasan `json:"data"`
+	Total      int          `json:"total"`
+	Page       int          `json:"page"`
+	Limit      int          `json:"limit"`
+	TotalPages int          `json:"total_pages"`
+}
+
+// PenugasanStats represents statistics for penugasan
+type PenugasanStats struct {
+	TotalPenugasan int        `json:"total_penugasan"`
+	TotalActive    int        `json:"total_active"`
+	LastSync       *time.Time `json:"last_sync"`
+}

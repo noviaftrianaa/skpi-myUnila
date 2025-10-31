@@ -9,7 +9,11 @@ type Repository interface {
 	// Penugasan operations
 	GetPenugasanByIDRegPTK(idRegPTK string) (*Penugasan, error)
 	GetAllPenugasanByIDSDM(idSDM string) ([]Penugasan, error)
+	GetPenugasanList(page, limit int, search string) (*PenugasanListResult, error)
 	UpsertPenugasan(p *Penugasan) error
+
+	// Statistics
+	GetPenugasanStats() (*PenugasanStats, error)
 
 	// Keaktifan PTK operations
 	DeleteKeaktifanByIDRegPTK(idRegPTK string) error
@@ -239,4 +243,96 @@ func (r *repository) GetAllActiveDosen() ([]DosenInfo, error) {
 	}
 
 	return dosenList, nil
+}
+
+// GetPenugasanList retrieves paginated list of penugasan with search
+func (r *repository) GetPenugasanList(page, limit int, search string) (*PenugasanListResult, error) {
+	offset := (page - 1) * limit
+
+	// Build WHERE clause
+	whereConditions := "WHERE p.soft_delete = 0"
+	args := []interface{}{}
+	argIndex := 1
+
+	if search != "" {
+		whereConditions += fmt.Sprintf(" AND (s.nama_sdm LIKE @p%d OR s.nidn LIKE @p%d OR s.nip LIKE @p%d OR p.no_srt_tgs LIKE @p%d)", argIndex, argIndex, argIndex, argIndex)
+		searchPattern := "%" + search + "%"
+		args = append(args, searchPattern)
+		argIndex++
+	}
+
+	// Count total records
+	countQuery := fmt.Sprintf(`
+		SELECT COUNT(*)
+		FROM pdrd.reg_ptk p
+		LEFT JOIN pdrd.sdm s ON p.id_sdm = s.id_sdm
+		%s
+	`, whereConditions)
+
+	var total int
+	err := r.db.Get(&total, countQuery, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to count penugasan: %w", err)
+	}
+
+	// Get paginated data
+	dataQuery := fmt.Sprintf(`
+		SELECT
+			p.id_reg_ptk, p.id_sdm, p.id_sp, p.id_stat_pegawai, p.id_ikatan_kerja, p.id_sms,
+			p.id_jns_keluar, p.no_srt_tgs, p.tgl_srt_tgs, p.tmt_srt_tgs, p.tgl_ptk_keluar,
+			p.nidn, p.jns_reg, p.create_date, p.id_creator, p.last_update, p.id_updater,
+			p.soft_delete, p.last_sync
+		FROM pdrd.reg_ptk p
+		LEFT JOIN pdrd.sdm s ON p.id_sdm = s.id_sdm
+		%s
+		ORDER BY p.tmt_srt_tgs DESC, p.create_date DESC
+		OFFSET @p%d ROWS
+		FETCH NEXT @p%d ROWS ONLY
+	`, whereConditions, argIndex, argIndex+1)
+
+	args = append(args, offset, limit)
+
+	var penugasanList []*Penugasan
+	err = r.db.Select(&penugasanList, dataQuery, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get penugasan list: %w", err)
+	}
+
+	totalPages := (total + limit - 1) / limit
+
+	return &PenugasanListResult{
+		Data:       penugasanList,
+		Total:      total,
+		Page:       page,
+		Limit:      limit,
+		TotalPages: totalPages,
+	}, nil
+}
+
+// GetPenugasanStats retrieves penugasan statistics
+func (r *repository) GetPenugasanStats() (*PenugasanStats, error) {
+	stats := &PenugasanStats{}
+
+	// Get total penugasan
+	err := r.db.Get(&stats.TotalPenugasan, "SELECT COUNT(*) FROM pdrd.reg_ptk WHERE soft_delete = 0")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get total penugasan: %w", err)
+	}
+
+	// Get total active penugasan (not yet keluar)
+	err = r.db.Get(&stats.TotalActive, "SELECT COUNT(*) FROM pdrd.reg_ptk WHERE soft_delete = 0 AND (tgl_ptk_keluar IS NULL OR tgl_ptk_keluar > GETDATE())")
+	if err != nil {
+		stats.TotalActive = 0
+	}
+
+	// Get last sync time
+	var lastSync *time.Time
+	err = r.db.Get(&lastSync, "SELECT TOP 1 last_sync FROM pdrd.reg_ptk WHERE last_sync IS NOT NULL ORDER BY last_sync DESC")
+	if err != nil {
+		// If no sync yet, lastSync remains nil
+		lastSync = nil
+	}
+	stats.LastSync = lastSync
+
+	return stats, nil
 }

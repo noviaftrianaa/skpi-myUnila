@@ -20,6 +20,8 @@ type Service interface {
 	// Query operations
 	GetAllPenugasanByIDSDM(idSDM string) ([]Penugasan, error)
 	GetPenugasanByIDRegPTK(idRegPTK string) (*Penugasan, error)
+	GetPenugasanList(page, limit int, search string) (*PenugasanListResult, error)
+	GetPenugasanStats() (*PenugasanStats, error)
 
 	// Utility
 	ForceRefreshToken() error
@@ -260,6 +262,16 @@ func (s *service) GetPenugasanByIDRegPTK(idRegPTK string) (*Penugasan, error) {
 // ForceRefreshToken forces a token refresh for Sister API
 func (s *service) ForceRefreshToken() error {
 	return s.sisterAPI.ForceRefreshToken()
+}
+
+// GetPenugasanList retrieves paginated list of penugasan with search
+func (s *service) GetPenugasanList(page, limit int, search string) (*PenugasanListResult, error) {
+	return s.repo.GetPenugasanList(page, limit, search)
+}
+
+// GetPenugasanStats retrieves penugasan statistics
+func (s *service) GetPenugasanStats() (*PenugasanStats, error) {
+	return s.repo.GetPenugasanStats()
 }
 
 // logSyncResult logs the sync operation to the database

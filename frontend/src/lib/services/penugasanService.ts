@@ -59,6 +59,20 @@ export interface BatchPenugasanSyncResult {
   synced_by: string;
 }
 
+export interface PenugasanListResult {
+  data: Penugasan[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+}
+
+export interface PenugasanStats {
+  total_penugasan: number;
+  total_active: number;
+  last_sync?: string;
+}
+
 // SISTER API Response wrapper
 interface SisterApiResponse<T> {
   success: boolean;
@@ -102,6 +116,30 @@ export const sisterPenugasanService = {
       `${SISTER_API_URL}/api/v1/penugasan/sync`,
       null,
       { params: { id_sdm: idSDM, synced_by: syncedBy } }
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Get paginated list of penugasan with search
+   * @param page - Page number (default 1)
+   * @param limit - Items per page (default 10)
+   * @param search - Search query (NIDN, NIP, Nama, No Surat)
+   */
+  async getList(page: number = 1, limit: number = 10, search: string = ''): Promise<PenugasanListResult> {
+    const response = await axios.get<SisterApiResponse<PenugasanListResult>>(
+      `${SISTER_API_URL}/public/penugasan`,
+      { params: { page, limit, search } }
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Get penugasan statistics
+   */
+  async getStats(): Promise<PenugasanStats> {
+    const response = await axios.get<SisterApiResponse<PenugasanStats>>(
+      `${SISTER_API_URL}/public/penugasan/stats`
     );
     return response.data.data;
   },

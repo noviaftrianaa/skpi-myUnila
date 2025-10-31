@@ -13,17 +13,11 @@ import {
   FiDatabase,
   FiCheckCircle,
   FiClock,
-  FiMapPin,
+  FiRefreshCw,
 } from "react-icons/fi";
 import { RiGovernmentFill } from "react-icons/ri";
 import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
-
-// Mock stats - in real app, fetch from API
-interface PenugasanStats {
-  total_penugasan: number;
-  total_active: number;
-  last_sync?: string;
-}
+import { sisterPenugasanService, type PenugasanStats } from "@/lib/services/penugasanService";
 
 export default function PenugasanManagementPage() {
   useRequireAuth();
@@ -32,17 +26,23 @@ export default function PenugasanManagementPage() {
   const [stats, setStats] = useState<PenugasanStats | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
 
-  // Fetch stats on mount
+  // Fetch stats on mount and every 30 seconds
   useEffect(() => {
-    // Simulate loading stats
-    setTimeout(() => {
-      setStats({
-        total_penugasan: 0,
-        total_active: 0,
-        last_sync: undefined,
-      });
-      setIsLoadingStats(false);
-    }, 500);
+    const loadStats = async () => {
+      try {
+        const statsData = await sisterPenugasanService.getStats();
+        setStats(statsData);
+      } catch (error) {
+        console.error("Error loading stats:", error);
+      } finally {
+        setIsLoadingStats(false);
+      }
+    };
+
+    loadStats();
+    const interval = setInterval(loadStats, 30000); // Refresh every 30s
+
+    return () => clearInterval(interval);
   }, []);
 
   const formatDate = (dateString?: string) => {
@@ -148,27 +148,27 @@ export default function PenugasanManagementPage() {
             </CardBody>
           </Card>
 
-          {/* Search Helper Card */}
+          {/* Sync Info Card */}
           <Card className="bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
             <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
             <CardBody className="p-4 relative z-10">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
-                  <FiMapPin className="w-7 h-7 text-white" />
+                  <FiRefreshCw className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs font-medium text-orange-100">Cari Dosen</p>
+                    <p className="text-xs font-medium text-orange-100">Sinkronisasi</p>
                     <div className="px-2 py-0.5 rounded-full bg-white/30 backdrop-blur-sm">
                       <span className="text-[10px] font-semibold text-white">ℹ Info</span>
                     </div>
                   </div>
                   <h3 className="text-base font-bold text-white leading-tight mb-1">
-                    Gunakan NIDN
+                    Server-Side
                   </h3>
                   <p className="text-[10px] text-orange-100/80">
-                    Cari berdasarkan NIDN dosen
+                    Gunakan search & pagination
                   </p>
                 </div>
               </div>
