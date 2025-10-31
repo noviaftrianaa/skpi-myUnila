@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"sister-service/apps/dosen"
+	"sister-service/apps/penugasan"
 	"sister-service/apps/referensi"
 	"time"
 
@@ -15,23 +16,25 @@ import (
 const UNILA_ID_SP = "e2b705a7-173e-464a-9fac-509128709515"
 
 type Service struct {
-	repo           *Repository
-	cron           *cron.Cron
-	jobs           map[int]cron.EntryID // map schedule ID to cron entry ID
-	dosenService   dosen.Service
+	repo             *Repository
+	cron             *cron.Cron
+	jobs             map[int]cron.EntryID // map schedule ID to cron entry ID
+	dosenService     dosen.Service
 	referensiService referensi.Service
+	penugasanService penugasan.Service
 }
 
-func NewService(repo *Repository, dosenService dosen.Service, referensiService referensi.Service) *Service {
+func NewService(repo *Repository, dosenService dosen.Service, referensiService referensi.Service, penugasanService penugasan.Service) *Service {
 	// Create cron with second precision
 	c := cron.New(cron.WithSeconds())
 
 	service := &Service{
-		repo:           repo,
-		cron:           c,
-		jobs:           make(map[int]cron.EntryID),
-		dosenService:   dosenService,
+		repo:             repo,
+		cron:             c,
+		jobs:             make(map[int]cron.EntryID),
+		dosenService:     dosenService,
 		referensiService: referensiService,
+		penugasanService: penugasanService,
 	}
 
 	return service
@@ -84,6 +87,10 @@ func (s *Service) executeWithRetry(schedule ScheduledSync) error {
 		if err := s.referensiService.ForceRefreshToken(); err != nil {
 			log.Printf("⚠️  Failed to refresh token for referensi sync, continuing anyway: %v", err)
 		}
+	} else if schedule.SyncType == "penugasan" {
+		if err := s.penugasanService.ForceRefreshToken(); err != nil {
+			log.Printf("⚠️  Failed to refresh token for penugasan sync, continuing anyway: %v", err)
+		}
 	}
 
 	for attempt := 0; attempt <= maxRetries; attempt++ {
@@ -95,6 +102,9 @@ func (s *Service) executeWithRetry(schedule ScheduledSync) error {
 		} else if schedule.SyncType == "referensi" && schedule.EndpointKey != nil {
 			// Execute referensi sync - BatchSync with single endpoint
 			_, err = s.referensiService.BatchSyncFromSister(context.Background(), []string{*schedule.EndpointKey}, "scheduler")
+		} else if schedule.SyncType == "penugasan" {
+			// Execute penugasan sync - BatchSync for all active dosen
+			_, err = s.penugasanService.BatchSyncPenugasan("scheduler")
 		} else {
 			return fmt.Errorf("invalid sync configuration")
 		}

@@ -107,7 +107,7 @@ type PenugasanSyncResult struct {
 	Error    string `json:"error,omitempty"`
 }
 
-// BatchPenugasanSyncResult represents batch sync result for penugasan
+// BatchPenugasanSyncResult represents batch sync result for penugasan by id_sdm
 type BatchPenugasanSyncResult struct {
 	TotalProcessed int                   `json:"total_processed"`
 	TotalSuccess   int                   `json:"total_success"`
@@ -115,4 +115,22 @@ type BatchPenugasanSyncResult struct {
 	Duration       string                `json:"duration"`
 	Results        []PenugasanSyncResult `json:"results"`
 	SyncedBy       string                `json:"synced_by"`
+}
+
+// BatchPenugasanSyncAllResult represents batch sync result for all penugasan (scheduler)
+type BatchPenugasanSyncAllResult struct {
+	TotalDosen     int                   `json:"total_dosen"`
+	TotalProcessed int                   `json:"total_processed"`
+	TotalSuccess   int                   `json:"total_success"`
+	TotalFailed    int                   `json:"total_failed"`
+	Duration       string                `json:"duration"`
+	Results        []PenugasanSyncResult `json:"results"`
+	SyncedBy       string                `json:"synced_by"`
+}
+
+// DosenInfo contains basic dosen info for worker processing
+type DosenInfo struct {
+	IDSDM string
+	Nama  string
+	NIDN  *string
 }

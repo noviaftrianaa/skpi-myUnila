@@ -16,8 +16,9 @@ type Repository interface {
 	InsertKeaktifan(k *KeaktifanPTK) error
 	GetKeaktifanByIDRegPTK(idRegPTK string) ([]KeaktifanPTK, error)
 
-	// Lookup helper
+	// Lookup helpers
 	GetNIDNByIDSDM(idSDM string) (*string, error)
+	GetAllActiveDosen() ([]DosenInfo, error)
 }
 
 type repository struct {
@@ -204,4 +205,38 @@ func (r *repository) GetNIDNByIDSDM(idSDM string) (*string, error) {
 	}
 
 	return nidn, nil
+}
+
+// GetAllActiveDosen retrieves all active dosen for batch sync
+func (r *repository) GetAllActiveDosen() ([]DosenInfo, error) {
+	query := `
+		SELECT
+			id_sdm,
+			nama_sdm,
+			nidn
+		FROM pdrd.sdm
+		WHERE soft_delete = 0 AND id_sdm IS NOT NULL
+		ORDER BY nama_sdm
+	`
+
+	rows, err := r.db.Queryx(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query active dosen: %w", err)
+	}
+	defer rows.Close()
+
+	var dosenList []DosenInfo
+	for rows.Next() {
+		var d DosenInfo
+		if err := rows.Scan(&d.IDSDM, &d.Nama, &d.NIDN); err != nil {
+			return nil, fmt.Errorf("failed to scan dosen: %w", err)
+		}
+		dosenList = append(dosenList, d)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating dosen rows: %w", err)
+	}
+
+	return dosenList, nil
 }

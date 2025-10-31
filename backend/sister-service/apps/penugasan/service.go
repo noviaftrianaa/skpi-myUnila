@@ -1,9 +1,11 @@
 package penugasan
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
+	appLogger "sister-service/apps/logger"
 	"sister-service/external/sister_api"
 	"time"
 
@@ -13,21 +15,27 @@ import (
 type Service interface {
 	// Sync operations
 	SyncPenugasanByIDSDM(idSDM string, syncedBy string) (*BatchPenugasanSyncResult, error)
+	BatchSyncPenugasan(syncedBy string) (*BatchPenugasanSyncAllResult, error)
 
 	// Query operations
 	GetAllPenugasanByIDSDM(idSDM string) ([]Penugasan, error)
 	GetPenugasanByIDRegPTK(idRegPTK string) (*Penugasan, error)
+
+	// Utility
+	ForceRefreshToken() error
 }
 
 type service struct {
-	repo      Repository
-	sisterAPI *sister_api.Client
+	repo          Repository
+	sisterAPI     *sister_api.Client
+	loggerService appLogger.Service
 }
 
-func NewService(repo Repository, sisterAPI *sister_api.Client) Service {
+func NewService(repo Repository, sisterAPI *sister_api.Client, loggerSvc appLogger.Service) Service {
 	return &service{
-		repo:      repo,
-		sisterAPI: sisterAPI,
+		repo:          repo,
+		sisterAPI:     sisterAPI,
+		loggerService: loggerSvc,
 	}
 }
 
@@ -41,12 +49,14 @@ func (s *service) SyncPenugasanByIDSDM(idSDM string, syncedBy string) (*BatchPen
 	log.Printf("📋 Fetching list of penugasan from Sister API...")
 	rawList, err := s.sisterAPI.GetPenugasanByIDSDM(idSDM)
 	if err != nil {
+		s.logSyncResult("Penugasan (by ID SDM)", idSDM, "manual", syncedBy, 0, startTime, err)
 		return nil, fmt.Errorf("failed to fetch penugasan list: %w", err)
 	}
 
 	// Parse list response
 	var penugasanList []SisterPenugasanListItem
 	if err := json.Unmarshal(rawList, &penugasanList); err != nil {
+		s.logSyncResult("Penugasan (by ID SDM)", idSDM, "manual", syncedBy, 0, startTime, err)
 		return nil, fmt.Errorf("failed to parse penugasan list: %w", err)
 	}
 
@@ -71,6 +81,13 @@ func (s *service) SyncPenugasanByIDSDM(idSDM string, syncedBy string) (*BatchPen
 
 	duration := time.Since(startTime)
 	log.Printf("📊 Sync completed: %d success, %d failed, duration: %s", successCount, failedCount, duration)
+
+	// Log the sync result
+	var syncErr error
+	if failedCount > 0 {
+		syncErr = fmt.Errorf("%d of %d penugasan failed to sync", failedCount, len(penugasanList))
+	}
+	s.logSyncResult("Penugasan (by ID SDM)", idSDM, "manual", syncedBy, successCount, startTime, syncErr)
 
 	return &BatchPenugasanSyncResult{
 		TotalProcessed: len(results),
@@ -238,4 +255,55 @@ func (s *service) GetAllPenugasanByIDSDM(idSDM string) ([]Penugasan, error) {
 // GetPenugasanByIDRegPTK retrieves a single penugasan by id_reg_ptk
 func (s *service) GetPenugasanByIDRegPTK(idRegPTK string) (*Penugasan, error) {
 	return s.repo.GetPenugasanByIDRegPTK(idRegPTK)
+}
+
+// ForceRefreshToken forces a token refresh for Sister API
+func (s *service) ForceRefreshToken() error {
+	return s.sisterAPI.ForceRefreshToken()
+}
+
+// logSyncResult logs the sync operation to the database
+func (s *service) logSyncResult(endpointName, endpointKey, syncType, syncedBy string, totalRecords int, startTime time.Time, err error) {
+	duration := time.Since(startTime)
+	durationMs := int(duration.Milliseconds())
+
+	// If synced by scheduler, mark as scheduled sync
+	if syncedBy == "scheduler" {
+		syncType = "scheduled"
+	}
+
+	var errorMessage, errorDetails *string
+	status := "success"
+	if err != nil {
+		status = "failed"
+		errMsg := err.Error()
+		errorMessage = &errMsg
+	}
+
+	// Create sync log request
+	req := &appLogger.CreateSyncLogRequest{
+		EndpointName:  endpointName,
+		EndpointKey:   endpointKey,
+		SyncType:      syncType,
+		Status:        status,
+		TotalRecords:  totalRecords,
+		InsertedCount: totalRecords,
+		UpdatedCount:  0,
+		FailedCount:   0,
+		DurationMs:    &durationMs,
+		SyncedBy:      syncedBy,
+		ErrorMessage:  errorMessage,
+		ErrorDetails:  errorDetails,
+	}
+
+	if status == "failed" {
+		req.FailedCount = 1
+		req.InsertedCount = 0
+	}
+
+	// Log to database (ignore errors to not break sync flow)
+	_, logErr := s.loggerService.LogSync(context.Background(), req)
+	if logErr != nil {
+		log.Printf("⚠️  Failed to log sync result: %v", logErr)
+	}
 }

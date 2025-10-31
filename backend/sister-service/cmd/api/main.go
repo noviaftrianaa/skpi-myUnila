@@ -144,7 +144,7 @@ func main() {
 
 	// Initialize Penugasan module
 	penugasanRepo := penugasan.NewRepository(db)
-	penugasanService := penugasan.NewService(penugasanRepo, sisterAPI)
+	penugasanService := penugasan.NewService(penugasanRepo, sisterAPI, loggerService)
 	penugasanController := penugasan.NewController(penugasanService)
 	penugasan.SetupRoutes(app, penugasanController)
 	log.Println("✅ Penugasan routes registered")
@@ -154,7 +154,7 @@ func main() {
 
 	// Initialize Scheduler Service
 	schedulerRepo := scheduler.NewRepository(db)
-	schedulerService := scheduler.NewService(schedulerRepo, dosenService, referensiService)
+	schedulerService := scheduler.NewService(schedulerRepo, dosenService, referensiService, penugasanService)
 	schedulerRouter := scheduler.NewRouter(schedulerService)
 	schedulerRouter.RegisterRoutes(app)
 
