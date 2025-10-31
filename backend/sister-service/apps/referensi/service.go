@@ -103,6 +103,11 @@ type Service interface {
 	GetAllReferensiMetadata(ctx context.Context) ([]ReferensiMetadata, error)
 	BatchSyncFromSister(ctx context.Context, endpoints []string, syncedBy string) (*BatchSyncResponse, error)
 	ForceRefreshToken() error
+
+	// Unit Kerja methods
+	GetAllUnitKerja() ([]UnitKerja, error)
+	GetUnitKerjaByID(id string) (*UnitKerja, error)
+	SyncUnitKerjaFromSister(idPerguruanTinggi string, syncedBy string) (*BatchUnitKerjaSyncResult, error)
 }
 
 type service struct {
@@ -409,6 +414,7 @@ func (s *service) GetAllReferensiMetadata(ctx context.Context) ([]ReferensiMetad
 		{Key: "jenis_penghargaan", Name: "Jenis Penghargaan", Description: "Data referensi jenis penghargaan", Available: true},
 		{Key: "jenis_pekerjaan", Name: "Jenis Pekerjaan", Description: "Data referensi jenis pekerjaan", Available: true},
 		// Bidang pekerjaan endpoint removed as per user request
+		{Key: "unit_kerja", Name: "Unit Kerja", Description: "Data referensi unit kerja/satuan pendidikan (Fakultas, Jurusan, Prodi)", Available: true},
 	}
 
 	// Get counts and last sync info for each endpoint
@@ -709,6 +715,18 @@ func (s *service) GetAllReferensiMetadata(ctx context.Context) ([]ReferensiMetad
 				}
 			}
 		// case "bidang_pekerjaan": removed
+		case "unit_kerja":
+			// Count all unit kerja without filter for metadata
+			count, _ := s.repo.CountAllUnitKerja()
+			metadata[i].TotalRecords = count
+			// Get one record to fetch last sync info
+			unitKerjaList, _ := s.repo.GetAllUnitKerja()
+			if len(unitKerjaList) > 0 && unitKerjaList[0].LastSync != nil {
+				metadata[i].LastSync = unitKerjaList[0].LastSync
+				if unitKerjaList[0].IDUpdater != nil {
+					metadata[i].SyncedBy = *unitKerjaList[0].IDUpdater
+				}
+			}
 		}
 	}
 
@@ -818,6 +836,14 @@ func (s *service) BatchSyncFromSister(ctx context.Context, endpoints []string, s
 				totalRecords, err = s.SyncJenisPenghargaanFromSister(syncedBy)
 			case "jenis_pekerjaan":
 				totalRecords, err = s.SyncJenisPekerjaanFromSister(syncedBy)
+			case "unit_kerja":
+				// Unit kerja requires id_perguruan_tinggi parameter (UNILA ID)
+				result, syncErr := s.SyncUnitKerjaFromSister("e2b705a7-173e-464a-9fac-509128709515", syncedBy)
+				if syncErr != nil {
+					err = syncErr
+				} else {
+					totalRecords = result.TotalSuccess
+				}
 			// case "bidang_pekerjaan": removed
 			default:
 				err = fmt.Errorf("unknown endpoint: %s", ep)
@@ -2026,4 +2052,270 @@ func (s *service) SyncBidangPekerjaanFromSister(syncedBy string) (int, error) {
 // This is useful for scheduled syncs to ensure they always use a fresh token
 func (s *service) ForceRefreshToken() error {
 	return s.sisterAPI.ForceRefreshToken()
+}
+
+// ==================== UNIT KERJA SERVICE METHODS ====================
+
+// GetAllUnitKerja retrieves all unit kerja from database
+func (s *service) GetAllUnitKerja() ([]UnitKerja, error) {
+	return s.repo.GetAllUnitKerja()
+}
+
+// GetUnitKerjaByID retrieves unit kerja by ID
+func (s *service) GetUnitKerjaByID(id string) (*UnitKerja, error) {
+	return s.repo.GetUnitKerjaByID(id)
+}
+
+// SyncUnitKerjaFromSister synchronizes unit kerja data from Sister API
+// idPerguruanTinggi: ID perguruan tinggi (e.g., UNILA_ID)
+// syncedBy: username who triggered the sync
+func (s *service) SyncUnitKerjaFromSister(idPerguruanTinggi string, syncedBy string) (*BatchUnitKerjaSyncResult, error) {
+	startTime := time.Now()
+	var totalRecords int
+	var syncErr error
+
+	defer func() {
+		s.logSyncResult(context.Background(), "Unit Kerja", "unit_kerja", "manual", syncedBy, totalRecords, startTime, syncErr)
+	}()
+
+	log.Printf("🔄 Starting sync unit kerja from Sister API for id_perguruan_tinggi: %s (synced_by: %s)", idPerguruanTinggi, syncedBy)
+
+	// Step 1: Get list of all unit kerja from Sister API
+	log.Printf("📋 Fetching list of unit kerja from Sister API...")
+	rawData, err := s.sisterAPI.GetReferensiUnitKerja(idPerguruanTinggi)
+	if err != nil {
+		syncErr = fmt.Errorf("failed to fetch unit kerja list: %w", err)
+		log.Printf("❌ %v", syncErr)
+		return nil, syncErr
+	}
+
+	var unitKerjaList []SisterUnitKerja
+	if err := json.Unmarshal(rawData, &unitKerjaList); err != nil {
+		syncErr = fmt.Errorf("failed to parse unit kerja list: %w", err)
+		log.Printf("❌ %v", syncErr)
+		return nil, syncErr
+	}
+
+	totalUnitKerja := len(unitKerjaList)
+	log.Printf("✅ Found %d unit kerja to sync", totalUnitKerja)
+
+	if totalUnitKerja == 0 {
+		return &BatchUnitKerjaSyncResult{
+			TotalProcessed: 0,
+			TotalSuccess:   0,
+			TotalFailed:    0,
+			Duration:       time.Since(startTime).String(),
+			SyncedBy:       syncedBy,
+		}, nil
+	}
+
+	// Step 2: Sort by id_jenis_unit to sync in order: Fakultas(1) -> Jurusan(2) -> Prodi(3) -> Lainnya
+	// This ensures parent units are synced before children
+	sortedList := make(map[int][]SisterUnitKerja)
+	for _, uk := range unitKerjaList {
+		sortedList[uk.IDJenisUnit] = append(sortedList[uk.IDJenisUnit], uk)
+	}
+
+	// Step 3: Process in order
+	var allResults []UnitKerjaSyncResult
+	successCount := 0
+	failedCount := 0
+
+	// Process in hierarchical order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
+	for jenisUnit := 1; jenisUnit <= 8; jenisUnit++ {
+		units := sortedList[jenisUnit]
+		if len(units) == 0 {
+			continue
+		}
+
+		log.Printf("📚 Processing %d units of type %d", len(units), jenisUnit)
+
+		for _, uk := range units {
+			result := s.processUnitKerja(uk, idPerguruanTinggi, syncedBy)
+			allResults = append(allResults, result)
+
+			if result.Success {
+				successCount++
+			} else {
+				failedCount++
+				log.Printf("❌ Failed to sync unit kerja %s (%s): %s", result.IDSMS, result.Nama, result.Error)
+			}
+		}
+	}
+
+	duration := time.Since(startTime)
+	log.Printf("✅ Batch sync completed: %d success, %d failed in %s", successCount, failedCount, duration)
+
+	totalRecords = successCount
+
+	return &BatchUnitKerjaSyncResult{
+		TotalProcessed: len(allResults),
+		TotalSuccess:   successCount,
+		TotalFailed:    failedCount,
+		Duration:       duration.String(),
+		Results:        allResults,
+		SyncedBy:       syncedBy,
+	}, nil
+}
+
+// processUnitKerja processes a single unit kerja sync
+func (s *service) processUnitKerja(uk SisterUnitKerja, idPerguruanTinggi string, syncedBy string) UnitKerjaSyncResult {
+	// Fetch detail from Sister API
+	rawDetail, err := s.sisterAPI.GetReferensiDetailUnitKerja(uk.ID)
+	if err != nil {
+		return UnitKerjaSyncResult{
+			IDSMS:   uk.ID,
+			Nama:    uk.Nama,
+			Success: false,
+			Error:   fmt.Sprintf("failed to fetch detail: %v", err),
+		}
+	}
+
+	// Sister API returns an array, we need to handle both array and single object
+	var detail SisterUnitKerjaDetail
+	var detailArray []SisterUnitKerjaDetail
+
+	// Try to unmarshal as array first
+	arrayErr := json.Unmarshal(rawDetail, &detailArray)
+	if arrayErr == nil && len(detailArray) > 0 {
+		// Successfully parsed as array, use first element
+		detail = detailArray[0]
+	} else {
+		// Try to unmarshal as single object
+		objectErr := json.Unmarshal(rawDetail, &detail)
+		if objectErr != nil {
+			// Both attempts failed
+			return UnitKerjaSyncResult{
+				IDSMS:   uk.ID,
+				Nama:    uk.Nama,
+				Success: false,
+				Error:   fmt.Sprintf("failed to parse detail: %v", objectErr),
+			}
+		}
+	}
+
+	// Transform to domain entity
+	unitKerja := s.transformToUnitKerja(detail, idPerguruanTinggi, syncedBy)
+
+	// Upsert to database
+	if err := s.repo.UpsertUnitKerja(&unitKerja); err != nil {
+		return UnitKerjaSyncResult{
+			IDSMS:   uk.ID,
+			Nama:    uk.Nama,
+			Success: false,
+			Error:   fmt.Sprintf("failed to upsert: %v", err),
+		}
+	}
+
+	return UnitKerjaSyncResult{
+		IDSMS:   uk.ID,
+		Nama:    uk.Nama,
+		Success: true,
+	}
+}
+
+// transformToUnitKerja transforms Sister API response to domain entity
+func (s *service) transformToUnitKerja(detail SisterUnitKerjaDetail, idPerguruanTinggi string, syncedBy string) UnitKerja {
+	now := time.Now()
+
+	// Parse dates
+	var tglBerdiri, tglSK, tmtSK, tstSK *time.Time
+	if detail.TanggalBerdiri != "" {
+		if t, err := time.Parse("2006-01-02", detail.TanggalBerdiri); err == nil {
+			tglBerdiri = &t
+		}
+	}
+	if detail.TanggalSKPenyelenggara != "" {
+		if t, err := time.Parse("2006-01-02", detail.TanggalSKPenyelenggara); err == nil {
+			tglSK = &t
+		}
+	}
+	if detail.TMTSK != "" {
+		if t, err := time.Parse("2006-01-02", detail.TMTSK); err == nil {
+			tmtSK = &t
+		}
+	}
+	if detail.TSTSK != nil && *detail.TSTSK != "" {
+		if t, err := time.Parse("2006-01-02", *detail.TSTSK); err == nil {
+			tstSK = &t
+		}
+	}
+
+	// Get wilayah (disabled - not used, wilayah is array of objects)
+	var idWilayah *string
+	// Wilayah is now []interface{} to accept array of objects from Sister API
+	// We don't use this field, so leave it nil
+	idWilayah = nil
+
+	// Try to lookup jenjang pendidikan
+	var idJenjang *int
+	if detail.GelarLulusan != nil {
+		idJenjang, _ = s.repo.LookupJenjangPendidikan(detail.Nama, *detail.GelarLulusan)
+	}
+
+	// Build hierarki berdasarkan id_induk_unit dan id_jenis_unit
+	var idFakultasUnila, idJurusanUnila, idJurusan *string
+
+	if detail.IDIndukUnit != nil {
+		// Ada induk, cek jenis induknya
+		jenisInduk, err := s.repo.GetUnitKerjaJenisUnit(*detail.IDIndukUnit)
+		if err == nil && jenisInduk != nil {
+			switch *jenisInduk {
+			case 1: // Induk adalah Fakultas
+				idFakultasUnila = detail.IDIndukUnit
+			case 2: // Induk adalah Jurusan
+				idJurusanUnila = detail.IDIndukUnit
+				idJurusan = detail.IDIndukUnit // Copy
+
+				// Cari fakultas dari jurusan
+				jurusan, err := s.repo.GetUnitKerjaByID(*detail.IDIndukUnit)
+				if err == nil && jurusan != nil && jurusan.IDFakultasUnila != nil {
+					idFakultasUnila = jurusan.IDFakultasUnila
+				}
+			}
+		}
+	}
+
+	// Validate kode_prodi and status_prodi - handle NULL/empty/undefined
+	var kodeProdi, statusProdi *string
+	if detail.KodeUnit != "" && detail.KodeUnit != "null" && detail.KodeUnit != "undefined" {
+		kodeProdi = &detail.KodeUnit
+	}
+	if detail.StatusUnit != "" && detail.StatusUnit != "null" && detail.StatusUnit != "undefined" {
+		statusProdi = &detail.StatusUnit
+	}
+
+	// Validate SKPenyelenggara  - handle NULL/empty/undefined
+	var skPenyelenggara *string
+	if detail.SKPenyelenggara != "" && detail.SKPenyelenggara != "null" && detail.SKPenyelenggara != "undefined" {
+		skPenyelenggara = &detail.SKPenyelenggara
+	}
+
+	return UnitKerja{
+		IDSMS:              detail.ID,
+		IDSatuanPendidikan: idPerguruanTinggi,
+		IDJenisSMS:         detail.IDJenisUnit,
+		NamaLembaga:        detail.Nama,
+		KodeProdi:          kodeProdi,
+		StatusProdi:        statusProdi,
+		TanggalBerdiri:     tglBerdiri,
+		SKPenyelenggara:    skPenyelenggara,
+		TanggalSK:          tglSK,
+		TMT:                tmtSK,
+		TST:                tstSK,
+		SKSLulus:           detail.SKSLulus,
+		GelarLulusan:       detail.GelarLulusan,
+		IDJenjangDidik:     idJenjang,
+		IDWilayah:          idWilayah,
+		IDFakultasUnila:    idFakultasUnila,
+		IDJurusanUnila:     idJurusanUnila,
+		IDJurusan:          idJurusan,
+		IDIndukSMS:         detail.IDIndukUnit,
+		CreateDate:         now,
+		IDCreator:          "00000000-0000-0000-0000-000000000000", // System UUID for sync
+		LastUpdate:         now,
+		IDUpdater:          nil, // Don't set updater for sync
+		SoftDelete:         0,
+		LastSync:           &now,
+	}
 }

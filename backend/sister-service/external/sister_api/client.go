@@ -430,6 +430,18 @@ func (c *Client) GetReferensiBidangPekerjaan() ([]byte, error) {
 	return c.Get("/1.0/referensi/bidang_pekerjaan")
 }
 
+// GetReferensiUnitKerja fetches unit kerja list from Sister API
+// id_perguruan_tinggi is required parameter
+func (c *Client) GetReferensiUnitKerja(idPerguruanTinggi string) ([]byte, error) {
+	return c.Get(fmt.Sprintf("/1.0/referensi/unit_kerja?id_perguruan_tinggi=%s", idPerguruanTinggi))
+}
+
+// GetReferensiDetailUnitKerja fetches unit kerja detail from Sister API
+// id_unit_kerja is required parameter
+func (c *Client) GetReferensiDetailUnitKerja(idUnitKerja string) ([]byte, error) {
+	return c.Get(fmt.Sprintf("/1.0/referensi/detail_unit_kerja?id_unit_kerja=%s", idUnitKerja))
+}
+
 // GetDosenPhoto fetches dosen photo binary from Sister API
 // Returns photo bytes, content type, and error
 func (c *Client) GetDosenPhoto(idSdm string) ([]byte, string, error) {

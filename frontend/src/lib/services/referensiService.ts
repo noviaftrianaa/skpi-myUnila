@@ -127,6 +127,7 @@ export const referensiService = {
         jenis_penghargaan: "jenis-penghargaan",
         jenis_pekerjaan: "jenis-pekerjaan",
         // bidang_pekerjaan: "bidang-pekerjaan", // Removed as per user request
+        unit_kerja: "unit-kerja",
       };
 
       const endpoint = endpointMap[key];
@@ -194,6 +195,7 @@ export const referensiService = {
         jenis_penghargaan: "jenis-penghargaan",
         jenis_pekerjaan: "jenis-pekerjaan",
         // bidang_pekerjaan: "bidang-pekerjaan", // Removed as per user request
+        unit_kerja: "unit-kerja",
       };
 
       const endpoint = endpointMap[key];

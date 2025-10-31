@@ -11,6 +11,7 @@ services:
     ports:
       - "3000:3000"
     environment:
+      - TZ=Asia/Jakarta
       - NODE_ENV=production
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:9800/auth-service/api/v1}
       - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-My Unila Portal}
@@ -38,6 +39,7 @@ services:
       - /app/node_modules
       - /app/.next
     environment:
+      - TZ=Asia/Jakarta
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://host.docker.internal:9800/auth-service/api/v1}
       - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-My Unila Portal}

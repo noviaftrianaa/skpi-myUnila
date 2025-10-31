@@ -95,6 +95,14 @@ type Repository interface {
 	BulkUpsertJenisPekerjaan(data []SisterJenisPekerjaan, syncedBy string) error
 	GetAllBidangPekerjaan() ([]BidangPekerjaan, error)
 	BulkUpsertBidangPekerjaan(data []SisterBidangPekerjaan, syncedBy string) error
+
+	// Unit Kerja methods
+	GetAllUnitKerja() ([]UnitKerja, error)
+	CountAllUnitKerja() (int, error)
+	GetUnitKerjaByID(id string) (*UnitKerja, error)
+	UpsertUnitKerja(unitKerja *UnitKerja) error
+	GetUnitKerjaJenisUnit(idSMS string) (*int, error)
+	LookupJenjangPendidikan(namaUnit, gelarLulusan string) (*int, error)
 }
 
 type repository struct {
@@ -1693,4 +1701,228 @@ func (r *repository) BulkUpsertBidangPekerjaan(data []SisterBidangPekerjaan, syn
 	}
 
 	return tx.Commit()
+}
+
+// ==================== UNIT KERJA REPOSITORY METHODS ====================
+
+// GetAllUnitKerja retrieves all unit kerja from database
+func (r *repository) GetAllUnitKerja() ([]UnitKerja, error) {
+	query := `
+		SELECT
+			s.id_sms,
+			s.id_sp,
+			s.id_jns_sms,
+			COALESCE(j.nm_jns_sms, '') AS nama_jenis_sms,
+			s.nm_lemb,
+			s.kode_prodi,
+			s.stat_prodi,
+			s.tgl_berdiri,
+			s.sk_selenggara,
+			s.tgl_sk_selenggara,
+			s.tmt_sk_selenggara,
+			s.tst_sk_selenggara,
+			s.sks_lulus,
+			s.gelar_lulusan,
+			s.id_jenj_didik,
+			s.id_wil,
+			s.id_fak_unila,
+			s.id_jur_unila,
+			s.id_jur,
+			s.id_induk_sms,
+			s.create_date,
+			s.id_creator,
+			s.last_update,
+			s.id_updater,
+			s.soft_delete,
+			s.last_sync
+		FROM pdrd.sms s
+		LEFT JOIN ref.jenis_sms j ON s.id_jns_sms = j.id_jns_sms
+		WHERE s.soft_delete = 0
+		ORDER BY s.id_jns_sms ASC, s.nm_lemb ASC
+	`
+
+	var unitKerjaList []UnitKerja
+	err := r.db.Select(&unitKerjaList, query)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return []UnitKerja{}, nil
+		}
+		return nil, fmt.Errorf("failed to fetch unit kerja: %w", err)
+	}
+
+	return unitKerjaList, nil
+}
+
+// CountAllUnitKerja counts all unit kerja without filter (for metadata)
+func (r *repository) CountAllUnitKerja() (int, error) {
+	query := `SELECT COUNT(*) FROM pdrd.sms WHERE soft_delete = 0`
+
+	var count int
+	err := r.db.Get(&count, query)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count unit kerja: %w", err)
+	}
+
+	return count, nil
+}
+
+// GetUnitKerjaByID retrieves unit kerja by ID
+func (r *repository) GetUnitKerjaByID(id string) (*UnitKerja, error) {
+	query := `
+		SELECT
+			id_sms,
+			id_sp,
+			id_jns_sms,
+			nm_lemb,
+			kode_prodi,
+			stat_prodi,
+			tgl_berdiri,
+			sk_selenggara,
+			tgl_sk_selenggara,
+			tmt_sk_selenggara,
+			tst_sk_selenggara,
+			sks_lulus,
+			gelar_lulusan,
+			id_jenj_didik,
+			id_wil,
+			id_fak_unila,
+			id_jur_unila,
+			id_jur,
+			id_induk_sms,
+			create_date,
+			id_creator,
+			last_update,
+			id_updater,
+			soft_delete,
+			last_sync
+		FROM pdrd.sms
+		WHERE id_sms = @p1 AND soft_delete = 0
+	`
+
+	var unitKerja UnitKerja
+	err := r.db.Get(&unitKerja, query, id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to get unit kerja: %w", err)
+	}
+
+	return &unitKerja, nil
+}
+
+// UpsertUnitKerja inserts or updates unit kerja
+func (r *repository) UpsertUnitKerja(uk *UnitKerja) error {
+	// Check if exists
+	existing, err := r.GetUnitKerjaByID(uk.IDSMS)
+	if err != nil {
+		return fmt.Errorf("failed to check existing unit kerja: %w", err)
+	}
+
+	if existing == nil {
+		// INSERT
+		query := `
+			INSERT INTO pdrd.sms (
+				id_sms, id_sp, id_jns_sms, nm_lemb, kode_prodi, stat_prodi,
+				tgl_berdiri, sk_selenggara, tgl_sk_selenggara, tmt_sk_selenggara, tst_sk_selenggara,
+				sks_lulus, gelar_lulusan, id_jenj_didik, id_wil,
+				id_fak_unila, id_jur_unila, id_jur, id_induk_sms,
+				create_date, id_creator, last_update, id_updater, soft_delete, last_sync
+			) VALUES (
+				@p1, @p2, @p3, @p4, @p5, @p6,
+				@p7, @p8, @p9, @p10, @p11,
+				@p12, @p13, @p14, @p15,
+				@p16, @p17, @p18, @p19,
+				@p20, @p21, @p22, @p23, @p24, @p25
+			)
+		`
+		// For INSERT, id_updater should be NULL (not the same as id_creator for sync)
+		_, err = r.db.Exec(query,
+			uk.IDSMS, uk.IDSatuanPendidikan, uk.IDJenisSMS, uk.NamaLembaga, uk.KodeProdi, uk.StatusProdi,
+			uk.TanggalBerdiri, uk.SKPenyelenggara, uk.TanggalSK, uk.TMT, uk.TST,
+			uk.SKSLulus, uk.GelarLulusan, uk.IDJenjangDidik, uk.IDWilayah,
+			uk.IDFakultasUnila, uk.IDJurusanUnila, uk.IDJurusan, uk.IDIndukSMS,
+			uk.CreateDate, uk.IDCreator, uk.LastUpdate, nil, uk.SoftDelete, uk.LastSync,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to insert unit kerja: %w", err)
+		}
+	} else {
+		// UPDATE - hanya update field dari API, jangan overwrite field yang sudah ada
+		query := `
+			UPDATE pdrd.sms SET
+				nm_lemb = @p1,
+				kode_prodi = COALESCE(@p2, kode_prodi),
+				stat_prodi = COALESCE(@p3, stat_prodi),
+				tgl_berdiri = COALESCE(@p4, tgl_berdiri),
+				sk_selenggara = COALESCE(@p5, sk_selenggara),
+				tgl_sk_selenggara = COALESCE(@p6, tgl_sk_selenggara),
+				tmt_sk_selenggara = COALESCE(@p7, tmt_sk_selenggara),
+				tst_sk_selenggara = COALESCE(@p8, tst_sk_selenggara),
+				sks_lulus = COALESCE(@p9, sks_lulus),
+				gelar_lulusan = COALESCE(@p10, gelar_lulusan),
+				id_jenj_didik = COALESCE(@p11, id_jenj_didik),
+				id_wil = COALESCE(@p12, id_wil),
+				id_fak_unila = COALESCE(@p13, id_fak_unila),
+				id_jur_unila = COALESCE(@p14, id_jur_unila),
+				id_jur = COALESCE(@p15, id_jur),
+				id_induk_sms = COALESCE(@p16, id_induk_sms),
+				last_update = @p17,
+				id_updater = @p18,
+				last_sync = @p19
+			WHERE id_sms = @p20
+		`
+		_, err = r.db.Exec(query,
+			uk.NamaLembaga, uk.KodeProdi, uk.StatusProdi,
+			uk.TanggalBerdiri, uk.SKPenyelenggara, uk.TanggalSK, uk.TMT, uk.TST,
+			uk.SKSLulus, uk.GelarLulusan, uk.IDJenjangDidik, uk.IDWilayah,
+			uk.IDFakultasUnila, uk.IDJurusanUnila, uk.IDJurusan, uk.IDIndukSMS,
+			uk.LastUpdate, uk.IDUpdater, uk.LastSync,
+			uk.IDSMS,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to update unit kerja: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// GetUnitKerjaJenisUnit retrieves jenis unit of a unit kerja by its ID
+func (r *repository) GetUnitKerjaJenisUnit(idSMS string) (*int, error) {
+	query := `SELECT id_jns_sms FROM pdrd.sms WHERE id_sms = @p1 AND soft_delete = 0`
+
+	var jenisUnit int
+	err := r.db.Get(&jenisUnit, query, idSMS)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to get jenis unit: %w", err)
+	}
+
+	return &jenisUnit, nil
+}
+
+// LookupJenjangPendidikan tries to lookup jenjang pendidikan ID from nama unit or gelar lulusan
+func (r *repository) LookupJenjangPendidikan(namaUnit, gelarLulusan string) (*int, error) {
+	// Try to match by name patterns (S1, S2, S3, D3, D4, etc)
+	query := `
+		SELECT TOP 1 id_jenj_didik
+		FROM ref.jenjang_pendidikan
+		WHERE @p1 LIKE '%' + nama_jenjang + '%'
+		   OR @p2 LIKE kode_jenjang + '%'
+		ORDER BY id_jenj_didik ASC
+	`
+
+	var idJenjang int
+	err := r.db.Get(&idJenjang, query, namaUnit, gelarLulusan)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // Not found, return nil (no error)
+		}
+		return nil, fmt.Errorf("failed to lookup jenjang pendidikan: %w", err)
+	}
+
+	return &idJenjang, nil
 }

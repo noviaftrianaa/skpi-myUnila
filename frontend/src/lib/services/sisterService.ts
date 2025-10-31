@@ -55,6 +55,21 @@ export interface AgamaData {
   synced_by?: string;
 }
 
+export interface UnitKerjaData {
+  id_sms: string;
+  id_sp: string;
+  id_jenis_sms: number;
+  nama_jenis_sms: string;
+  nm_lemb: string;
+  kode_prodi?: string | null;
+  status_prodi?: string | null;
+  id_fak_unila?: string | null;
+  id_jur_unila?: string | null;
+  id_induk_sms?: string | null;
+  last_sync?: string;
+  synced_by?: string;
+}
+
 export interface SyncResponse {
   success: boolean;
   message: string;
@@ -109,6 +124,44 @@ export const agamaService = {
   },
 };
 
+// Referensi - Unit Kerja Services
+export const unitKerjaService = {
+  // Get all unit kerja
+  getAll: async (): Promise<UnitKerjaData[]> => {
+    try {
+      const response = await sisterApiClient.get<ApiResponse<UnitKerjaData[]>>('/referensi/unit-kerja');
+      return response.data.data;
+    } catch (error) {
+      console.error('Error fetching unit kerja:', error);
+      throw error;
+    }
+  },
+
+  // Get unit kerja by ID
+  getById: async (id: string): Promise<UnitKerjaData> => {
+    try {
+      const response = await sisterApiClient.get<ApiResponse<UnitKerjaData>>(`/referensi/unit-kerja/${id}`);
+      return response.data.data;
+    } catch (error) {
+      console.error(`Error fetching unit kerja with id ${id}:`, error);
+      throw error;
+    }
+  },
+
+  // Sync unit kerja from Sister API
+  sync: async (idPerguruanTinggi: string, syncedBy: string): Promise<SyncResponse> => {
+    try {
+      const response = await sisterApiClient.post<SyncResponse>(
+        `/referensi/unit-kerja/sync?id_perguruan_tinggi=${idPerguruanTinggi}&synced_by=${syncedBy}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error syncing unit kerja:', error);
+      throw error;
+    }
+  },
+};
+
 // Health check
 export const healthCheck = async (): Promise<{ status: string; message: string }> => {
   try {
@@ -122,5 +175,6 @@ export const healthCheck = async (): Promise<{ status: string; message: string }
 
 export default {
   agama: agamaService,
+  unitKerja: unitKerjaService,
   healthCheck,
 };

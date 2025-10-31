@@ -1001,3 +1001,92 @@ func (ctrl *Controller) BatchSyncFromSister(c *fiber.Ctx) error {
 
 	return response.Success(c, "Batch sync completed", result)
 }
+
+// ==================== UNIT KERJA HANDLERS ====================
+
+// GetAllUnitKerja handles GET request to fetch all unit kerja
+// @Summary Get all unit kerja
+// @Description Retrieve all unit kerja (SMS) reference data
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Success 200 {object} response.APIResponse{data=[]referensi.UnitKerja}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/unit-kerja [get]
+func (ctrl *Controller) GetAllUnitKerja(c *fiber.Ctx) error {
+	unitKerjaList, err := ctrl.service.GetAllUnitKerja()
+	if err != nil {
+		log.Printf("Error in GetAllUnitKerja controller: %v", err)
+		return response.InternalServerError(c, "Failed to fetch unit kerja", err.Error())
+	}
+
+	return response.Success(c, "Unit Kerja retrieved successfully", unitKerjaList)
+}
+
+// GetUnitKerjaByID handles GET request to fetch unit kerja by ID
+// @Summary Get unit kerja by ID
+// @Description Retrieve unit kerja (SMS) reference data by ID
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Param id path string true "Unit Kerja ID (UUID)"
+// @Success 200 {object} response.APIResponse{data=referensi.UnitKerja}
+// @Failure 404 {object} response.APIResponse
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/unit-kerja/{id} [get]
+func (ctrl *Controller) GetUnitKerjaByID(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	unitKerja, err := ctrl.service.GetUnitKerjaByID(id)
+	if err != nil {
+		log.Printf("Error in GetUnitKerjaByID controller: %v", err)
+		return response.InternalServerError(c, "Failed to fetch unit kerja", err.Error())
+	}
+
+	if unitKerja == nil {
+		return response.NotFound(c, "Unit Kerja not found")
+	}
+
+	return response.Success(c, "Unit Kerja retrieved successfully", unitKerja)
+}
+
+// SyncUnitKerjaFromSister handles POST request to sync unit kerja from Sister API
+// @Summary Sync unit kerja from Sister API
+// @Description Synchronize unit kerja (SMS) data from Sister Kemdikbud API. Requires id_perguruan_tinggi query parameter.
+// @Tags Referensi
+// @Accept json
+// @Produce json
+// @Param id_perguruan_tinggi query string true "ID Perguruan Tinggi (UUID)"
+// @Param synced_by query string true "Username who triggered the sync"
+// @Success 200 {object} response.APIResponse{data=referensi.BatchUnitKerjaSyncResult}
+// @Failure 400 {object} response.APIResponse
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/referensi/unit-kerja/sync [post]
+func (ctrl *Controller) SyncUnitKerjaFromSister(c *fiber.Ctx) error {
+	// Get id_perguruan_tinggi from query params
+	idPerguruanTinggi := c.Query("id_perguruan_tinggi")
+	if idPerguruanTinggi == "" {
+		return response.BadRequest(c, "id_perguruan_tinggi query parameter is required", nil)
+	}
+
+	// Get synced_by from query params
+	syncedBy := c.Query("synced_by")
+	if syncedBy == "" {
+		return response.BadRequest(c, "synced_by query parameter is required", nil)
+	}
+
+	log.Printf("🔄 Starting sync unit kerja from Sister API (id_pt: %s, synced_by: %s)",
+		idPerguruanTinggi, syncedBy)
+
+	// Execute sync
+	result, err := ctrl.service.SyncUnitKerjaFromSister(idPerguruanTinggi, syncedBy)
+	if err != nil {
+		log.Printf("❌ Error in SyncUnitKerjaFromSister controller: %v", err)
+		return response.InternalServerError(c, "Failed to sync unit kerja", err.Error())
+	}
+
+	log.Printf("✅ Unit Kerja sync completed: %d/%d succeeded in %s",
+		result.TotalSuccess, result.TotalProcessed, result.Duration)
+
+	return response.Success(c, "Unit Kerja sync completed", result)
+}

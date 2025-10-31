@@ -556,3 +556,84 @@ type SisterBidangPekerjaan struct {
 	ID   int    `json:"id"`
 	Nama string `json:"nama"`
 }
+
+// ==================== UNIT KERJA ====================
+
+// UnitKerja represents unit kerja (SMS) reference data from pdrd.sms table
+type UnitKerja struct {
+	IDSMS             string     `json:"id_sms" db:"id_sms"`                        // Primary key (UUID)
+	IDSatuanPendidikan string    `json:"id_sp" db:"id_sp"`                         // FK ke pdrd.satuan_pendidikan (UUID)
+	IDJenisSMS        int        `json:"id_jenis_sms" db:"id_jns_sms"`             // FK ke ref.jenis_sms (1-8)
+	NamaJenisSMS      string     `json:"nama_jenis_sms" db:"nama_jenis_sms"`       // Nama jenis SMS (from JOIN)
+	NamaLembaga       string     `json:"nama_lembaga" db:"nm_lemb"`                // Nama unit kerja
+	KodeProdi         *string    `json:"kode_prodi,omitempty" db:"kode_prodi"`     // Kode unit
+	StatusProdi       *string    `json:"status_prodi,omitempty" db:"stat_prodi"`   // A=Aktif, B=Alih Bentuk, K=Alih Kelola, N=Non Aktif, H=Dihapus
+	TanggalBerdiri    *time.Time `json:"tanggal_berdiri,omitempty" db:"tgl_berdiri"` // Tanggal berdiri
+	SKPenyelenggara   *string    `json:"sk_penyelenggara,omitempty" db:"sk_selenggara"` // SK penyelenggara
+	TanggalSK         *time.Time `json:"tanggal_sk,omitempty" db:"tgl_sk_selenggara"` // Tanggal SK
+	TMT               *time.Time `json:"tmt,omitempty" db:"tmt_sk_selenggara"`     // TMT SK
+	TST               *time.Time `json:"tst,omitempty" db:"tst_sk_selenggara"`     // TST SK
+	SKSLulus          *int       `json:"sks_lulus,omitempty" db:"sks_lulus"`       // SKS lulus
+	GelarLulusan      *string    `json:"gelar_lulusan,omitempty" db:"gelar_lulusan"` // Gelar lulusan
+	IDJenjangDidik    *int       `json:"id_jenjang_didik,omitempty" db:"id_jenj_didik"` // FK ke ref.jenjang_pendidikan
+	IDWilayah         *string    `json:"id_wilayah,omitempty" db:"id_wil"`         // FK ke ref.wilayah
+	IDFakultasUnila   *string    `json:"id_fakultas_unila,omitempty" db:"id_fak_unila"` // FK ke pdrd.sms (fakultas)
+	IDJurusanUnila    *string    `json:"id_jurusan_unila,omitempty" db:"id_jur_unila"` // FK ke pdrd.sms (jurusan)
+	IDJurusan         *string    `json:"id_jurusan,omitempty" db:"id_jur"`         // Copy dari id_jur_unila
+	IDIndukSMS        *string    `json:"id_induk_sms,omitempty" db:"id_induk_sms"` // Parent unit
+
+	// Audit fields
+	CreateDate time.Time  `json:"-" db:"create_date"`  // Timestamp insert (internal)
+	IDCreator  string     `json:"-" db:"id_creator"`    // UUID creator (internal)
+	LastUpdate time.Time  `json:"-" db:"last_update"`  // Timestamp update (internal)
+	IDUpdater  *string    `json:"-" db:"id_updater"` // UUID updater (internal)
+	SoftDelete int        `json:"-" db:"soft_delete"`  // Default 0 (internal)
+	LastSync   *time.Time `json:"last_sync,omitempty" db:"last_sync"` // Timestamp sync
+}
+
+// SisterUnitKerja represents unit kerja list response from Sister API
+// GET /referensi/unit_kerja?id_perguruan_tinggi={id}
+type SisterUnitKerja struct {
+	ID          string `json:"id"`            // UUID
+	Nama        string `json:"nama"`          // Nama unit kerja
+	IDJenisUnit int    `json:"id_jenis_unit"` // 1-8 (Fakultas, Jurusan, Prodi, dll)
+}
+
+// SisterUnitKerjaDetail represents unit kerja detail response from Sister API
+// GET /referensi/detail_unit_kerja?id_unit_kerja={id}
+type SisterUnitKerjaDetail struct {
+	ID                   string    `json:"id"`                          // UUID
+	KodeUnit             string    `json:"kode_unit"`                   // Kode unit
+	Nama                 string    `json:"nama"`                        // Nama unit
+	IDJenisUnit          int       `json:"id_jenis_unit"`               // 1-8
+	IDIndukUnit          *string   `json:"id_induk_unit"`               // Parent unit ID (nullable)
+	StatusUnit           string    `json:"status_unit"`                 // A/B/K/N/H
+	TanggalBerdiri       string    `json:"tanggal_berdiri"`             // Date string
+	SKPenyelenggara      string    `json:"sk_penyelenggara"`            // Nomor SK
+	TanggalSKPenyelenggara string  `json:"tanggal_sk_penyelenggara"`   // Date string
+	TMTSK                string    `json:"terhitung_mulai_tanggal_penyelenggara"` // Date string
+	TSTSK                *string   `json:"terhitung_sampai_tanggal_penyelenggara"` // Date string (nullable)
+	SKSLulus             *int      `json:"sks_lulus"`                   // SKS lulus (nullable)
+	GelarLulusan         *string   `json:"gelar_lulusan"`               // Gelar (nullable)
+	WaktuDataUpdate      string          `json:"waktu_data_update"`    // Timestamp
+	Wilayah              []interface{}   `json:"wilayah"`              // Array wilayah (ignored, can be objects)
+	Jurusan              []interface{}   `json:"jurusan"`              // Array jurusan (ignored, can be objects)
+}
+
+// UnitKerjaSyncResult represents result of syncing unit kerja
+type UnitKerjaSyncResult struct {
+	IDSMS   string `json:"id_sms"`
+	Nama    string `json:"nama"`
+	Success bool   `json:"success"`
+	Error   string `json:"error,omitempty"`
+}
+
+// BatchUnitKerjaSyncResult represents batch sync result for unit kerja
+type BatchUnitKerjaSyncResult struct {
+	TotalProcessed int                   `json:"total_processed"`
+	TotalSuccess   int                   `json:"total_success"`
+	TotalFailed    int                   `json:"total_failed"`
+	Duration       string                `json:"duration"`
+	Results        []UnitKerjaSyncResult `json:"results,omitempty"`
+	SyncedBy       string                `json:"synced_by"`
+}

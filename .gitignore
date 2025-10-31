@@ -8,3 +8,15 @@ apps_pdpt/storage/api-docs/api-docs.json
 .idea/jsLinters/jshint.xml
 dashboard/.env-mp
 dashboard/.env
+
+# Claude Code settings (local only)
+.claude/settings.local.json
+
+# Docker compose development files with credentials
+docker-compose.dev.yml
+docker-compose.*.local.yml
+
+# Temporary files
+*.tmp
+*.log
+.DS_Store

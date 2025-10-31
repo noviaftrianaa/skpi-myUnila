@@ -159,6 +159,7 @@ services:
     ports:
       - "8083:8083"
     environment:
+      - TZ=Asia/Jakarta
       - APP_NAME=Sister Service
       - APP_PORT=:8083
       - APP_ENV=production
