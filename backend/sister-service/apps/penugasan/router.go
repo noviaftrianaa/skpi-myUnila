@@ -6,12 +6,12 @@ func SetupRoutes(app *fiber.App, controller *Controller) {
 	// Public routes
 	publicAPI := app.Group("/public/penugasan")
 
+	// GET /public/penugasan/stats - Get statistics (MUST be before "/" route)
+	publicAPI.Get("/stats", controller.GetPenugasanStats)
+
 	// GET /public/penugasan - Get paginated list with search
 	// Query params: page (default 1), limit (default 10), search (optional)
 	publicAPI.Get("/", controller.GetPenugasanList)
-
-	// GET /public/penugasan/stats - Get statistics
-	publicAPI.Get("/stats", controller.GetPenugasanStats)
 
 	// Protected routes (kept for backward compatibility)
 	api := app.Group("/api/v1/penugasan")
