@@ -41,7 +41,7 @@ type Penugasan struct {
 	TahunAktif           *string `json:"tahun_aktif" db:"tahun_aktif"`                       // from pdrd.keaktifan_ptk.id_thn_ajaran (latest active year)
 	NamaProdi            *string `json:"nama_prodi" db:"nama_prodi"`                         // from pdrd.sms.nm_lemb
 	KodeProdi            *string `json:"kode_prodi" db:"kode_prodi"`                         // from pdrd.sms.kode_prodi
-	IDJenjangDidik       *int    `json:"id_jenj_didik" db:"id_jenj_didik"`                   // from pdrd.sms.id_jenj_didik
+	NamaJenjangPendidikan *string `json:"nama_jenjang_pendidikan" db:"nama_jenjang_pendidikan"` // from ref.jenjang_pendidikan.nm_jenj_didik
 }
 
 // KeaktifanPTK represents the keaktifan per tahun ajaran in pdrd.keaktifan_ptk table

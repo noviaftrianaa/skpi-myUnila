@@ -50,7 +50,7 @@ export interface Penugasan {
   tahun_aktif?: string;
   nama_prodi?: string;
   kode_prodi?: string;
-  id_jenj_didik?: number;
+  nama_jenjang_pendidikan?: string;
 }
 
 export interface PenugasanSyncResult {

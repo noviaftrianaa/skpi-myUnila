@@ -135,9 +135,9 @@ export default function SisterPenugasanTable() {
                 {item.kode_prodi}
               </span>
             )}
-            {item.id_jenj_didik && (
+            {item.nama_jenjang_pendidikan && (
               <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded">
-                Jenjang: {item.id_jenj_didik}
+                {item.nama_jenjang_pendidikan}
               </span>
             )}
           </div>

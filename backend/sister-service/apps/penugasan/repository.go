@@ -292,7 +292,7 @@ func (r *repository) GetPenugasanList(page, limit int, search string) (*Penugasa
 			CAST(kp_latest.id_thn_ajaran AS varchar(10)) AS tahun_aktif,
 			sms.nm_lemb AS nama_prodi,
 			sms.kode_prodi,
-			sms.id_jenj_didik
+			jp.nm_jenj_didik AS nama_jenjang_pendidikan
 		FROM pdrd.reg_ptk p
 		LEFT JOIN pdrd.sdm s ON p.id_sdm = s.id_sdm
 		LEFT JOIN ref.status_kepegawaian sk ON p.id_stat_pegawai = sk.id_stat_pegawai
@@ -307,6 +307,7 @@ func (r *repository) GetPenugasanList(page, limit int, search string) (*Penugasa
 			WHERE soft_delete = 0
 		) kp_latest ON p.id_reg_ptk = kp_latest.id_reg_ptk AND kp_latest.rn = 1
 		LEFT JOIN pdrd.sms sms ON p.id_sms = sms.id_sms
+		LEFT JOIN ref.jenjang_pendidikan jp ON sms.id_jenj_didik = jp.id_jenj_didik
 		%s
 		ORDER BY p.tmt_srt_tgs DESC, p.create_date DESC
 		OFFSET @p%d ROWS
