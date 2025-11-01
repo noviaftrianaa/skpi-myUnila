@@ -289,8 +289,10 @@ func (r *repository) GetPenugasanList(page, limit int, search string) (*Penugasa
 			ik.nm_ikatan_kerja AS ikatan_kerja,
 			kp_latest.a_sp_homebase AS homebase,
 			CAST(kp_latest.id_thn_ajaran AS varchar(10)) AS homebase_tahun_ajaran,
+			CAST(kp_latest.id_thn_ajaran AS varchar(10)) AS tahun_aktif,
 			sms.nm_lemb AS nama_prodi,
-			sms.kode_prodi
+			sms.kode_prodi,
+			sms.id_jenj_didik
 		FROM pdrd.reg_ptk p
 		LEFT JOIN pdrd.sdm s ON p.id_sdm = s.id_sdm
 		LEFT JOIN ref.status_kepegawaian sk ON p.id_stat_pegawai = sk.id_stat_pegawai

@@ -129,17 +129,24 @@ export default function SisterPenugasanTable() {
       render: (item) => (
         <div>
           <div className="text-sm font-medium">{item.nama_prodi || "-"}</div>
-          {item.kode_prodi && (
-            <div className="text-xs text-gray-500 dark:text-gray-400 font-mono">
-              {item.kode_prodi}
-            </div>
-          )}
+          <div className="flex items-center gap-2 mt-1">
+            {item.kode_prodi && (
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                {item.kode_prodi}
+              </span>
+            )}
+            {item.id_jenj_didik && (
+              <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded">
+                Jenjang: {item.id_jenj_didik}
+              </span>
+            )}
+          </div>
         </div>
       ),
     },
     {
       key: "homebase",
-      label: "HOMEBASE",
+      label: "HOMEBASE & TAHUN AKTIF",
       sortable: true,
       render: (item) => (
         <div className="flex flex-col gap-1">
@@ -150,10 +157,10 @@ export default function SisterPenugasanTable() {
           >
             {item.homebase === 1 ? "Ya" : "Tidak"}
           </Chip>
-          {item.homebase === 1 && item.homebase_tahun_ajaran && (
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              {item.homebase_tahun_ajaran}
-            </span>
+          {item.tahun_aktif && (
+            <div className="text-xs text-gray-600 dark:text-gray-300">
+              Tahun Aktif: <span className="font-semibold">{item.tahun_aktif}</span>
+            </div>
           )}
         </div>
       ),

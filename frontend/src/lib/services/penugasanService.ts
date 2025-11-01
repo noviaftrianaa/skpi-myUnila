@@ -47,8 +47,10 @@ export interface Penugasan {
   ikatan_kerja?: string;
   homebase?: number;
   homebase_tahun_ajaran?: string;
+  tahun_aktif?: string;
   nama_prodi?: string;
   kode_prodi?: string;
+  id_jenj_didik?: number;
 }
 
 export interface PenugasanSyncResult {
