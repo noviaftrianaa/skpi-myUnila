@@ -35,7 +35,13 @@ class DosenSebaranRepository
             INNER JOIN pdrd.sms AS fak
                 ON fak.id_sms = sms.id_fak_unila
                 AND fak.soft_delete = 0
+            INNER JOIN pdrd.keaktifan_ptk AS keaktifan
+                ON keaktifan.id_reg_ptk = reg.id_reg_ptk
+                AND keaktifan.soft_delete = 0
+                AND keaktifan.a_sp_homebase = 1
+                AND keaktifan.id_thn_ajaran = '2025'
             WHERE reg.soft_delete = 0
+                AND reg.id_jns_keluar IS NULL
             GROUP BY fak.id_sms, fak.nm_lemb
         ";
 
@@ -156,7 +162,13 @@ class DosenSebaranRepository
             LEFT JOIN ref.jenjang_pendidikan AS jenj
                 ON jenj.id_jenj_didik = sms.id_jenj_didik
                 AND jenj.expired_date IS NULL
+            INNER JOIN pdrd.keaktifan_ptk AS keaktifan
+                ON keaktifan.id_reg_ptk = reg.id_reg_ptk
+                AND keaktifan.soft_delete = 0
+                AND keaktifan.a_sp_homebase = 1
+                AND keaktifan.id_thn_ajaran = '2025'
             WHERE reg.soft_delete = 0
+                AND reg.id_jns_keluar IS NULL
                 AND sms.id_fak_unila = ?
             GROUP BY sms.id_sms, sms.nm_lemb, jenj.nm_jenj_didik
         ";

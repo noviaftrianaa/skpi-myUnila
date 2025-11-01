@@ -154,6 +154,11 @@ class DosenRepository
                 ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
                 AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
+            INNER JOIN pdrd.keaktifan_ptk AS keaktifan
+                ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
+                AND keaktifan.soft_delete = 0
+                AND keaktifan.a_sp_homebase = 1
+                AND keaktifan.id_thn_ajaran = '2025'
             WHERE ptk.soft_delete = 0
                 AND ptk.id_jns_keluar IS NULL
                 AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
