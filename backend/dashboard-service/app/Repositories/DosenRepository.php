@@ -31,6 +31,11 @@ class DosenRepository
                 AND ptk.soft_delete = 0
                 AND ptk.id_jns_keluar IS NULL
                 AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+            INNER JOIN pdrd.keaktifan_ptk AS keaktifan
+                ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
+                AND keaktifan.soft_delete = 0
+                AND keaktifan.a_sp_homebase = 1
+                AND keaktifan.id_thn_ajaran = '2025'
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = ptk.id_sms
                 AND sms.soft_delete = 0
@@ -91,6 +96,12 @@ class DosenRepository
                 AND ptk.soft_delete = 0
                 AND ptk.id_jns_keluar IS NULL
                 AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+            -- Join ke keaktifan_ptk untuk filter homebase dan tahun ajaran
+            INNER JOIN pdrd.keaktifan_ptk AS keaktifan
+                ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
+                AND keaktifan.soft_delete = 0
+                AND keaktifan.a_sp_homebase = 1
+                AND keaktifan.id_thn_ajaran = '2025'
             -- Join ke sms untuk filter prodi aktif
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = ptk.id_sms
@@ -187,6 +198,11 @@ class DosenRepository
                 AND ptk.soft_delete = 0
                 AND ptk.id_jns_keluar IS NULL
                 AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+            INNER JOIN pdrd.keaktifan_ptk AS keaktifan
+                ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
+                AND keaktifan.soft_delete = 0
+                AND keaktifan.a_sp_homebase = 1
+                AND keaktifan.id_thn_ajaran = '2025'
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = ptk.id_sms
                 AND sms.soft_delete = 0
@@ -235,6 +251,11 @@ class DosenRepository
                 AND ptk.soft_delete = 0
                 AND ptk.id_jns_keluar IS NULL
                 AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+            INNER JOIN pdrd.keaktifan_ptk AS keaktifan
+                ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
+                AND keaktifan.soft_delete = 0
+                AND keaktifan.a_sp_homebase = 1
+                AND keaktifan.id_thn_ajaran = '2025'
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = ptk.id_sms
                 AND sms.soft_delete = 0

@@ -464,20 +464,61 @@ export default function SebaranMahasiswa() {
     };
   }, [sebaranData]);
 
-  // Show loading state
+  // Show loading state with smooth skeleton
   if (loading) {
     return (
       <section className="py-20 bg-white relative">
         <div className="container mx-auto px-6">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-3">
-                Sebaran Mahasiswa
-              </h2>
-              <p className="text-gray-600 text-lg">Memuat data...</p>
+            {/* Header Skeleton */}
+            <div className="text-center mb-16 space-y-4">
+              <div className="h-10 bg-gray-100 dark:bg-gray-600 rounded-lg w-80 mx-auto animate-shimmer"></div>
+              <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent dark:via-gray-500 w-20 mx-auto"></div>
+              <div className="h-6 bg-gray-100 dark:bg-gray-600 rounded w-96 mx-auto animate-shimmer"></div>
             </div>
-            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-16 text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+
+            {/* Tab Switcher Skeleton */}
+            <div className="flex justify-center gap-3 mb-8">
+              <div className="h-12 w-40 bg-gray-100 dark:bg-gray-600 rounded-lg animate-shimmer"></div>
+              <div className="h-12 w-40 bg-gray-100 dark:bg-gray-600 rounded-lg animate-shimmer"></div>
+            </div>
+
+            {/* Main Content Skeleton */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+              <div className="grid lg:grid-cols-2 gap-0">
+                {/* Chart Section Skeleton */}
+                <div className="p-8 bg-gray-50/50 dark:bg-gray-800">
+                  <div className="mb-6">
+                    <div className="h-7 bg-gray-100 dark:bg-gray-600 rounded w-64 animate-shimmer"></div>
+                  </div>
+                  <div className="h-[400px] bg-gray-100 dark:bg-gray-600 rounded-xl animate-soft-pulse flex items-center justify-center">
+                    <svg className="w-16 h-16 text-gray-200 dark:text-gray-400 animate-soft-pulse" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Stats Section Skeleton */}
+                <div className="p-8 bg-white dark:bg-gray-800">
+                  <div className="mb-6">
+                    <div className="h-7 bg-gray-100 dark:bg-gray-600 rounded w-48 animate-shimmer"></div>
+                  </div>
+                  <div className="space-y-4 max-h-[400px] overflow-hidden">
+                    {[45, 66, 32, 47, 61, 72, 69, 77].map((width, i) => (
+                      <div key={i} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="h-5 bg-gray-100 dark:bg-gray-600 rounded w-32 animate-shimmer"></div>
+                          <div className="h-5 bg-gray-100 dark:bg-gray-600 rounded w-16 animate-shimmer"></div>
+                        </div>
+                        <div className="h-2.5 bg-gray-100 dark:bg-gray-600 rounded-full overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 dark:from-gray-500 dark:via-gray-400 dark:to-gray-500 rounded-full animate-soft-pulse" style={{ width: `${width}%` }}></div>
+                        </div>
+                        <div className="h-3 bg-gray-100 dark:bg-gray-600 rounded w-24 animate-shimmer"></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

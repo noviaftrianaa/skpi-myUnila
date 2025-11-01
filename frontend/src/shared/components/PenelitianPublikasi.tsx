@@ -14,6 +14,18 @@ export default function PenelitianPublikasi() {
   const [penelitianData, setPenelitianData] = useState<PenelitianStatistics | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // State for publikasi drilldown
+  const [publikasiFakultasSebaranData, setPublikasiFakultasSebaranData] = useState<any[]>([]);
+  const [publikasiProdiSebaranData, setPublikasiProdiSebaranData] = useState<any[]>([]);
+  const [publikasiDrillLevel, setPublikasiDrillLevel] = useState<'fakultas' | 'prodi'>('fakultas');
+  const [publikasiSelectedFakultas, setPublikasiSelectedFakultas] = useState<{id: string, nama: string} | null>(null);
+
+  // State for penelitian drilldown
+  const [penelitianFakultasSebaranData, setPenelitianFakultasSebaranData] = useState<any[]>([]);
+  const [penelitianProdiSebaranData, setPenelitianProdiSebaranData] = useState<any[]>([]);
+  const [penelitianDrillLevel, setPenelitianDrillLevel] = useState<'fakultas' | 'prodi'>('fakultas');
+  const [penelitianSelectedFakultas, setPenelitianSelectedFakultas] = useState<{id: string, nama: string} | null>(null);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -23,6 +35,32 @@ export default function PenelitianPublikasi() {
         ]);
         setPublikasiData(pubData);
         setPenelitianData(penData);
+
+        // Fetch publikasi sebaran fakultas data
+        const publikasiSebaranResponse = await fetch('http://localhost:9800/dashboard-service/public/api/v1/publikasi-sebaran/fakultas');
+        const publikasiSebaranJson = await publikasiSebaranResponse.json();
+
+        if (publikasiSebaranJson.success) {
+          const fakData = publikasiSebaranJson.data.data.map((item: any) => ({
+            id: item.id_fakultas,
+            nama: item.nama_fakultas,
+            jumlah: item.jumlah,
+          }));
+          setPublikasiFakultasSebaranData(fakData);
+        }
+
+        // Fetch penelitian sebaran fakultas data
+        const penelitianSebaranResponse = await fetch('http://localhost:9800/dashboard-service/public/api/v1/penelitian-sebaran/fakultas');
+        const penelitianSebaranJson = await penelitianSebaranResponse.json();
+
+        if (penelitianSebaranJson.success) {
+          const fakData = penelitianSebaranJson.data.data.map((item: any) => ({
+            id: item.id_fakultas,
+            nama: item.nama_fakultas,
+            jumlah: item.jumlah,
+          }));
+          setPenelitianFakultasSebaranData(fakData);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -41,6 +79,86 @@ export default function PenelitianPublikasi() {
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  };
+
+  // Drilldown functions for publikasi sebaran
+  const handlePublikasiDrillDown = async (fakultasId: string, fakultasNama: string) => {
+    try {
+      setLoading(true);
+      const cacheBuster = `?t=${Date.now()}`;
+      const response = await fetch(`http://localhost:9800/dashboard-service/public/api/v1/publikasi-sebaran/fakultas/${fakultasId}/prodi${cacheBuster}`);
+      const data = await response.json();
+
+      if (data.success) {
+        setPublikasiProdiSebaranData(data.data.data || []);
+        setPublikasiSelectedFakultas({ id: fakultasId, nama: fakultasNama });
+
+        setTimeout(() => {
+          setPublikasiDrillLevel('prodi');
+          const chartElement = document.getElementById('publikasi-sebaran-chart');
+          if (chartElement) {
+            chartElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        }, 100);
+      }
+    } catch (err) {
+      console.error('Error drilling down publikasi:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePublikasiDrillUp = () => {
+    setPublikasiDrillLevel('fakultas');
+    setPublikasiSelectedFakultas(null);
+    setPublikasiProdiSebaranData([]);
+
+    setTimeout(() => {
+      const chartElement = document.getElementById('publikasi-sebaran-chart');
+      if (chartElement) {
+        chartElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 100);
+  };
+
+  // Drilldown functions for penelitian sebaran
+  const handlePenelitianDrillDown = async (fakultasId: string, fakultasNama: string) => {
+    try {
+      setLoading(true);
+      const cacheBuster = `?t=${Date.now()}`;
+      const response = await fetch(`http://localhost:9800/dashboard-service/public/api/v1/penelitian-sebaran/fakultas/${fakultasId}/prodi${cacheBuster}`);
+      const data = await response.json();
+
+      if (data.success) {
+        setPenelitianProdiSebaranData(data.data.data || []);
+        setPenelitianSelectedFakultas({ id: fakultasId, nama: fakultasNama });
+
+        setTimeout(() => {
+          setPenelitianDrillLevel('prodi');
+          const chartElement = document.getElementById('penelitian-sebaran-chart');
+          if (chartElement) {
+            chartElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        }, 100);
+      }
+    } catch (err) {
+      console.error('Error drilling down penelitian:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePenelitianDrillUp = () => {
+    setPenelitianDrillLevel('fakultas');
+    setPenelitianSelectedFakultas(null);
+    setPenelitianProdiSebaranData([]);
+
+    setTimeout(() => {
+      const chartElement = document.getElementById('penelitian-sebaran-chart');
+      if (chartElement) {
+        chartElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 100);
   };
 
   // Chart configuration untuk publikasi (per jenis)
@@ -311,14 +429,15 @@ export default function PenelitianPublikasi() {
     };
   }, [publikasiData]);
 
-  // Chart configuration untuk publikasi per fakultas
-  const publikasiFakultasChartOption = useMemo(() => {
-    if (!publikasiData || !publikasiData.by_fakultas) return {};
-
-    // Sort dan ambil top 10
-    const topFakultas = [...publikasiData.by_fakultas]
-      .sort((a, b) => b.jumlah - a.jumlah)
-      .slice(0, 10);
+  // Chart configuration untuk publikasi per fakultas (drilldown level: fakultas)
+  const publikasiFakultasSebaranChartOption = useMemo(() => {
+    if (!publikasiFakultasSebaranData || publikasiFakultasSebaranData.length === 0) {
+      return {
+        xAxis: { type: "category", data: [] },
+        yAxis: { type: "value" },
+        series: [{ type: "bar", data: [] }]
+      };
+    }
 
     return {
       tooltip: {
@@ -326,17 +445,18 @@ export default function PenelitianPublikasi() {
         axisPointer: {
           type: "shadow",
         },
-        backgroundColor: "rgba(255, 255, 255, 0.95)",
-        borderColor: "#3b82f6",
-        borderWidth: 1,
-        extraCssText: "box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px;",
         formatter: (params: any) => {
           const value = params[0].value.toLocaleString('id-ID');
-          return `<div style="padding: 8px;">
-            <div style="font-weight: 600; margin-bottom: 4px;">${params[0].axisValue}</div>
-            <div style="color: #3b82f6; font-weight: 700;">${value} Publikasi</div>
+          return `<div style="padding: 10px;">
+            <div style="font-weight: 600; color: #1f2937; margin-bottom: 6px;">${params[0].axisValue}</div>
+            <div style="color: #10b981; font-size: 20px; font-weight: 700; margin-bottom: 4px;">${value} publikasi</div>
+            <div style="color: #6b7280; font-size: 12px; font-style: italic;">Klik untuk melihat detail per prodi</div>
           </div>`;
         },
+        backgroundColor: "rgba(255, 255, 255, 0.95)",
+        borderColor: "#10b981",
+        borderWidth: 1,
+        extraCssText: "box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px;",
       },
       grid: {
         left: "3%",
@@ -347,10 +467,10 @@ export default function PenelitianPublikasi() {
       },
       xAxis: {
         type: "category",
-        data: topFakultas.map(item => item.fakultas),
+        data: publikasiFakultasSebaranData.map(item => item.nama),
         axisLabel: {
           color: "#1f2937",
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: 600,
           rotate: 20,
           interval: 0,
@@ -372,23 +492,24 @@ export default function PenelitianPublikasi() {
       },
       series: [
         {
-          name: "Jumlah Publikasi",
           type: "bar",
-          data: topFakultas.map(item => item.jumlah),
-          itemStyle: {
-            color: {
-              type: "linear",
-              x: 0,
-              y: 0,
-              x2: 0,
-              y2: 1,
-              colorStops: [
-                { offset: 0, color: "#10b981" },
-                { offset: 1, color: "#047857" },
-              ],
+          data: publikasiFakultasSebaranData.map((item) => ({
+            value: item.jumlah,
+            itemStyle: {
+              color: {
+                type: "linear",
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [
+                  { offset: 0, color: "#10b981" },
+                  { offset: 1, color: "#047857" },
+                ],
+              },
+              borderRadius: [6, 6, 0, 0],
             },
-            borderRadius: [6, 6, 0, 0],
-          },
+          })),
           label: {
             show: true,
             position: "top",
@@ -398,10 +519,107 @@ export default function PenelitianPublikasi() {
             fontWeight: 700,
           },
           barMaxWidth: 80,
+          cursor: 'pointer',
         },
       ],
     };
-  }, [publikasiData]);
+  }, [publikasiFakultasSebaranData]);
+
+  // Chart configuration untuk publikasi per prodi (drilldown level: prodi)
+  const publikasiProdiSebaranChartOption = useMemo(() => {
+    if (!publikasiProdiSebaranData || publikasiProdiSebaranData.length === 0) {
+      return {
+        xAxis: { type: "category", data: [] },
+        yAxis: { type: "value" },
+        series: [{ type: "bar", data: [] }]
+      };
+    }
+
+    return {
+      tooltip: {
+        trigger: "axis",
+        axisPointer: {
+          type: "shadow",
+        },
+        formatter: (params: any) => {
+          const item = publikasiProdiSebaranData.find(d => d.nama_prodi === params[0].name);
+          const value = params[0].value.toLocaleString('id-ID');
+          return `<div style="padding: 10px;">
+            <div style="font-weight: 600; color: #1f2937; margin-bottom: 6px;">${params[0].axisValue}</div>
+            <div style="color: #6b7280; font-size: 11px; margin-bottom: 4px;">${item?.jenjang || 'Umum'}</div>
+            <div style="color: #10b981; font-size: 20px; font-weight: 700;">${value} publikasi</div>
+          </div>`;
+        },
+        backgroundColor: "rgba(255, 255, 255, 0.95)",
+        borderColor: "#10b981",
+        borderWidth: 1,
+        extraCssText: "box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px;",
+      },
+      grid: {
+        left: "3%",
+        right: "4%",
+        bottom: "3%",
+        top: "3%",
+        containLabel: true,
+      },
+      xAxis: {
+        type: "category",
+        data: publikasiProdiSebaranData.map(item => item.nama_prodi),
+        axisLabel: {
+          color: "#1f2937",
+          fontSize: 9,
+          fontWeight: 600,
+          rotate: 25,
+          interval: 0,
+        },
+      },
+      yAxis: {
+        type: "value",
+        axisLabel: {
+          formatter: "{value}",
+          color: "#6b7280",
+          fontSize: 11,
+        },
+        splitLine: {
+          lineStyle: {
+            color: "#e5e7eb",
+            type: "dashed",
+          },
+        },
+      },
+      series: [
+        {
+          type: "bar",
+          data: publikasiProdiSebaranData.map((item) => ({
+            value: item.jumlah,
+            itemStyle: {
+              color: {
+                type: "linear",
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [
+                  { offset: 0, color: "#10b981" },
+                  { offset: 1, color: "#047857" },
+                ],
+              },
+              borderRadius: [6, 6, 0, 0],
+            },
+          })),
+          label: {
+            show: true,
+            position: "top",
+            formatter: "{c}",
+            color: "#1f2937",
+            fontSize: 10,
+            fontWeight: 700,
+          },
+          barMaxWidth: 60,
+        },
+      ],
+    };
+  }, [publikasiProdiSebaranData]);
 
   // Chart configuration untuk penelitian (per kategori)
   const penelitianKategoriChartOption = useMemo(() => {
@@ -732,14 +950,15 @@ export default function PenelitianPublikasi() {
     };
   }, [penelitianData]);
 
-  // Chart configuration untuk penelitian per fakultas
-  const penelitianFakultasChartOption = useMemo(() => {
-    if (!penelitianData || !penelitianData.by_fakultas) return {};
-
-    // Sort dan ambil top 10
-    const topFakultas = [...penelitianData.by_fakultas]
-      .sort((a, b) => b.jumlah - a.jumlah)
-      .slice(0, 10);
+  // Chart configuration untuk penelitian per fakultas (drilldown level: fakultas)
+  const penelitianFakultasSebaranChartOption = useMemo(() => {
+    if (!penelitianFakultasSebaranData || penelitianFakultasSebaranData.length === 0) {
+      return {
+        xAxis: { type: "category", data: [] },
+        yAxis: { type: "value" },
+        series: [{ type: "bar", data: [] }]
+      };
+    }
 
     return {
       tooltip: {
@@ -747,17 +966,18 @@ export default function PenelitianPublikasi() {
         axisPointer: {
           type: "shadow",
         },
+        formatter: (params: any) => {
+          const value = params[0].value.toLocaleString('id-ID');
+          return `<div style="padding: 10px;">
+            <div style="font-weight: 600; color: #1f2937; margin-bottom: 6px;">${params[0].axisValue}</div>
+            <div style="color: #8b5cf6; font-size: 20px; font-weight: 700; margin-bottom: 4px;">${value} penelitian</div>
+            <div style="color: #6b7280; font-size: 12px; font-style: italic;">Klik untuk melihat detail per prodi</div>
+          </div>`;
+        },
         backgroundColor: "rgba(255, 255, 255, 0.95)",
         borderColor: "#8b5cf6",
         borderWidth: 1,
         extraCssText: "box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px;",
-        formatter: (params: any) => {
-          const value = params[0].value.toLocaleString('id-ID');
-          return `<div style="padding: 8px;">
-            <div style="font-weight: 600; margin-bottom: 4px;">${params[0].axisValue}</div>
-            <div style="color: #8b5cf6; font-weight: 700;">${value} Penelitian</div>
-          </div>`;
-        },
       },
       grid: {
         left: "3%",
@@ -768,10 +988,10 @@ export default function PenelitianPublikasi() {
       },
       xAxis: {
         type: "category",
-        data: topFakultas.map(item => item.fakultas),
+        data: penelitianFakultasSebaranData.map(item => item.nama),
         axisLabel: {
           color: "#1f2937",
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: 600,
           rotate: 20,
           interval: 0,
@@ -793,23 +1013,24 @@ export default function PenelitianPublikasi() {
       },
       series: [
         {
-          name: "Jumlah Penelitian",
           type: "bar",
-          data: topFakultas.map(item => item.jumlah),
-          itemStyle: {
-            color: {
-              type: "linear",
-              x: 0,
-              y: 0,
-              x2: 0,
-              y2: 1,
-              colorStops: [
-                { offset: 0, color: "#8b5cf6" },
-                { offset: 1, color: "#6366f1" },
-              ],
+          data: penelitianFakultasSebaranData.map((item) => ({
+            value: item.jumlah,
+            itemStyle: {
+              color: {
+                type: "linear",
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [
+                  { offset: 0, color: "#8b5cf6" },
+                  { offset: 1, color: "#6366f1" },
+                ],
+              },
+              borderRadius: [6, 6, 0, 0],
             },
-            borderRadius: [6, 6, 0, 0],
-          },
+          })),
           label: {
             show: true,
             position: "top",
@@ -819,23 +1040,217 @@ export default function PenelitianPublikasi() {
             fontWeight: 700,
           },
           barMaxWidth: 80,
+          cursor: 'pointer',
         },
       ],
     };
-  }, [penelitianData]);
+  }, [penelitianFakultasSebaranData]);
+
+  // Chart configuration untuk penelitian per prodi (drilldown level: prodi)
+  const penelitianProdiSebaranChartOption = useMemo(() => {
+    if (!penelitianProdiSebaranData || penelitianProdiSebaranData.length === 0) {
+      return {
+        xAxis: { type: "category", data: [] },
+        yAxis: { type: "value" },
+        series: [{ type: "bar", data: [] }]
+      };
+    }
+
+    return {
+      tooltip: {
+        trigger: "axis",
+        axisPointer: {
+          type: "shadow",
+        },
+        formatter: (params: any) => {
+          const item = penelitianProdiSebaranData.find(d => d.nama_prodi === params[0].name);
+          const value = params[0].value.toLocaleString('id-ID');
+          return `<div style="padding: 10px;">
+            <div style="font-weight: 600; color: #1f2937; margin-bottom: 6px;">${params[0].axisValue}</div>
+            <div style="color: #6b7280; font-size: 11px; margin-bottom: 4px;">${item?.jenjang || 'Umum'}</div>
+            <div style="color: #8b5cf6; font-size: 20px; font-weight: 700;">${value} penelitian</div>
+          </div>`;
+        },
+        backgroundColor: "rgba(255, 255, 255, 0.95)",
+        borderColor: "#8b5cf6",
+        borderWidth: 1,
+        extraCssText: "box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px;",
+      },
+      grid: {
+        left: "3%",
+        right: "4%",
+        bottom: "3%",
+        top: "3%",
+        containLabel: true,
+      },
+      xAxis: {
+        type: "category",
+        data: penelitianProdiSebaranData.map(item => item.nama_prodi),
+        axisLabel: {
+          color: "#1f2937",
+          fontSize: 9,
+          fontWeight: 600,
+          rotate: 25,
+          interval: 0,
+        },
+      },
+      yAxis: {
+        type: "value",
+        axisLabel: {
+          formatter: "{value}",
+          color: "#6b7280",
+          fontSize: 11,
+        },
+        splitLine: {
+          lineStyle: {
+            color: "#e5e7eb",
+            type: "dashed",
+          },
+        },
+      },
+      series: [
+        {
+          type: "bar",
+          data: penelitianProdiSebaranData.map((item) => ({
+            value: item.jumlah,
+            itemStyle: {
+              color: {
+                type: "linear",
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [
+                  { offset: 0, color: "#8b5cf6" },
+                  { offset: 1, color: "#6366f1" },
+                ],
+              },
+              borderRadius: [6, 6, 0, 0],
+            },
+          })),
+          label: {
+            show: true,
+            position: "top",
+            formatter: "{c}",
+            color: "#1f2937",
+            fontSize: 10,
+            fontWeight: 700,
+          },
+          barMaxWidth: 60,
+        },
+      ],
+    };
+  }, [penelitianProdiSebaranData]);
 
   if (loading) {
     return (
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-6">
-          <div className="max-w-7xl mx-auto text-center">
-            <div className="animate-pulse">
-              <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
+      <>
+        {/* Publikasi Section Skeleton */}
+        <section className="py-20 bg-white relative">
+          <div className="container mx-auto px-6">
+            <div className="max-w-7xl mx-auto">
+              {/* Header Skeleton */}
+              <div className="text-center mb-16">
+                <div className="animate-pulse">
+                  <div className="h-10 bg-gray-50 dark:bg-gray-600 rounded-lg w-64 mx-auto mb-4"></div>
+                  <div className="h-1 w-20 bg-gray-50 dark:bg-gray-600 rounded-full mx-auto mb-3"></div>
+                  <div className="h-6 bg-gray-50 dark:bg-gray-600 rounded w-96 mx-auto"></div>
+                </div>
+              </div>
+
+              {/* Highlights Skeleton */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+                {[1, 2, 3].map((item) => (
+                  <div key={item} className="bg-gray-50 dark:bg-gray-600 rounded-xl p-6 animate-pulse">
+                    <div className="h-8 w-8 bg-gray-100 dark:bg-gray-500 rounded-full mb-3"></div>
+                    <div className="h-9 bg-gray-100 dark:bg-gray-500 rounded w-24 mb-2"></div>
+                    <div className="h-4 bg-gray-100 dark:bg-gray-500 rounded w-32"></div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Charts Grid Skeleton (2x2) */}
+              <div className="grid lg:grid-cols-2 gap-8">
+                {[1, 2, 3, 4].map((item) => (
+                  <div key={item} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                    <div className="px-6 py-5 bg-gray-50 dark:bg-gray-600 animate-pulse">
+                      <div className="h-6 bg-gray-100 dark:bg-gray-500 rounded w-48"></div>
+                    </div>
+                    <div className="p-6">
+                      <div className="h-[400px] bg-gray-50 dark:bg-gray-600 rounded-lg animate-pulse"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Full Width Chart Skeleton */}
+              <div className="mt-8">
+                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                  <div className="px-6 py-5 bg-gray-50 dark:bg-gray-600 animate-pulse">
+                    <div className="h-6 bg-gray-100 dark:bg-gray-500 rounded w-56"></div>
+                  </div>
+                  <div className="p-6">
+                    <div className="h-[450px] bg-gray-50 dark:bg-gray-600 rounded-lg animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        {/* Penelitian Section Skeleton */}
+        <section className="py-20 bg-white relative">
+          <div className="container mx-auto px-6">
+            <div className="max-w-7xl mx-auto">
+              {/* Header Skeleton */}
+              <div className="text-center mb-16">
+                <div className="animate-pulse">
+                  <div className="h-10 bg-gray-50 dark:bg-gray-600 rounded-lg w-48 mx-auto mb-4"></div>
+                  <div className="h-1 w-20 bg-gray-50 dark:bg-gray-600 rounded-full mx-auto mb-3"></div>
+                  <div className="h-6 bg-gray-50 dark:bg-gray-600 rounded w-80 mx-auto"></div>
+                </div>
+              </div>
+
+              {/* Highlights Skeleton */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+                {[1, 2, 3].map((item) => (
+                  <div key={item} className="bg-gray-50 dark:bg-gray-600 rounded-xl p-6 animate-pulse">
+                    <div className="h-8 w-8 bg-gray-100 dark:bg-gray-500 rounded-full mb-3"></div>
+                    <div className="h-9 bg-gray-100 dark:bg-gray-500 rounded w-24 mb-2"></div>
+                    <div className="h-4 bg-gray-100 dark:bg-gray-500 rounded w-32"></div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Charts Grid Skeleton */}
+              <div className="grid lg:grid-cols-2 gap-8">
+                {[1, 2, 3, 4].map((item) => (
+                  <div key={item} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                    <div className="px-6 py-5 bg-gray-50 dark:bg-gray-600 animate-pulse">
+                      <div className="h-6 bg-gray-100 dark:bg-gray-500 rounded w-48"></div>
+                    </div>
+                    <div className="p-6">
+                      <div className="h-[400px] bg-gray-50 dark:bg-gray-600 rounded-lg animate-pulse"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Full Width Chart Skeleton */}
+              <div className="mt-8">
+                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                  <div className="px-6 py-5 bg-gray-50 dark:bg-gray-600 animate-pulse">
+                    <div className="h-6 bg-gray-100 dark:bg-gray-500 rounded w-56"></div>
+                  </div>
+                  <div className="p-6">
+                    <div className="h-[450px] bg-gray-50 dark:bg-gray-600 rounded-lg animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </>
     );
   }
 
@@ -985,24 +1400,63 @@ export default function PenelitianPublikasi() {
               </motion.div>
             </div>
 
-            {/* Publikasi per Fakultas Chart - Full Width */}
-            <motion.div variants={itemVariants} className="mt-8 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-              <div className="px-6 py-5 bg-emerald-600">
+            {/* Publikasi per Fakultas Chart - Full Width with Drilldown */}
+            <motion.div variants={itemVariants} className="mt-8 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden" id="publikasi-sebaran-chart">
+              <div className="px-6 py-5 bg-emerald-600 flex items-center justify-between">
                 <h3 className="text-xl font-bold text-white flex items-center gap-2">
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
                   </svg>
-                  Sebaran Publikasi per Fakultas
+                  {publikasiDrillLevel === 'fakultas'
+                    ? 'Sebaran Publikasi Per Fakultas'
+                    : `Sebaran Publikasi Per Prodi - ${publikasiSelectedFakultas?.nama}`
+                  }
                 </h3>
+                {publikasiDrillLevel === 'prodi' && (
+                  <button
+                    onClick={handlePublikasiDrillUp}
+                    className="flex items-center gap-2 px-4 py-2 bg-white text-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors font-semibold text-sm shadow-md"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Kembali ke Fakultas
+                  </button>
+                )}
               </div>
               <div className="p-6">
                 <div className="h-[450px]">
                   <ReactECharts
-                    option={publikasiFakultasChartOption}
+                    option={publikasiDrillLevel === 'fakultas' ? publikasiFakultasSebaranChartOption : publikasiProdiSebaranChartOption}
                     style={{ height: "100%", width: "100%" }}
                     opts={{ renderer: "svg" }}
+                    onEvents={{
+                      click: (params: any) => {
+                        if (publikasiDrillLevel === 'fakultas') {
+                          const fakultas = publikasiFakultasSebaranData.find(f => f.nama === params.name);
+                          if (fakultas) {
+                            handlePublikasiDrillDown(fakultas.id, fakultas.nama);
+                          }
+                        }
+                      }
+                    }}
                   />
                 </div>
+                {publikasiDrillLevel === 'fakultas' && (
+                  <div className="mt-6 p-4 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-100">
+                    <div className="flex items-start gap-3">
+                      <div className="text-2xl">💡</div>
+                      <div>
+                        <div className="text-sm font-semibold text-emerald-900 mb-1">
+                          Tips Navigasi
+                        </div>
+                        <div className="text-xs text-emerald-700">
+                          Klik pada bar chart untuk melihat detail publikasi per program studi di fakultas tersebut
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
           </motion.div>
@@ -1022,13 +1476,13 @@ export default function PenelitianPublikasi() {
             {/* Header */}
             <motion.div variants={itemVariants} className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-3 pb-1 leading-relaxed">
-                Penelitian
+                Penelitian dan Pengabdian
               </h2>
               <div className="flex items-center justify-center mb-3">
                 <div className="h-1 w-20 bg-gradient-to-r from-transparent via-purple-400 to-transparent rounded-full"></div>
               </div>
               <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-                Kegiatan penelitian dosen Universitas Lampung
+                Kegiatan penelitian dan pengabdian dosen Universitas Lampung
               </p>
             </motion.div>
 
@@ -1050,7 +1504,7 @@ export default function PenelitianPublikasi() {
                 >
                   <div className="text-3xl mb-3">📅</div>
                   <div className="text-3xl font-bold mb-1">{penelitianData.by_year[0].jumlah.toLocaleString()}</div>
-                  <div className="text-sm font-semibold opacity-90">Penelitian {penelitianData.by_year[0].tahun}</div>
+                  <div className="text-sm font-semibold opacity-90">Penelitian & Pengabdian {penelitianData.by_year[0].tahun}</div>
                 </motion.div>
               )}
 
@@ -1174,24 +1628,63 @@ export default function PenelitianPublikasi() {
               </motion.div>
             </div>
 
-            {/* Penelitian per Fakultas Chart - Full Width */}
-            <motion.div variants={itemVariants} className="mt-8 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-              <div className="px-6 py-5 bg-purple-600">
+            {/* Penelitian per Fakultas Chart - Full Width with Drilldown */}
+            <motion.div variants={itemVariants} className="mt-8 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden" id="penelitian-sebaran-chart">
+              <div className="px-6 py-5 bg-purple-600 flex items-center justify-between">
                 <h3 className="text-xl font-bold text-white flex items-center gap-2">
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
                   </svg>
-                  Sebaran Penelitian per Fakultas
+                  {penelitianDrillLevel === 'fakultas'
+                    ? 'Sebaran Penelitian dan Pengabdian Per Fakultas'
+                    : `Sebaran Penelitian dan Pengabdian Per Prodi - ${penelitianSelectedFakultas?.nama}`
+                  }
                 </h3>
+                {penelitianDrillLevel === 'prodi' && (
+                  <button
+                    onClick={handlePenelitianDrillUp}
+                    className="flex items-center gap-2 px-4 py-2 bg-white text-purple-600 rounded-lg hover:bg-purple-50 transition-colors font-semibold text-sm shadow-md"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Kembali ke Fakultas
+                  </button>
+                )}
               </div>
               <div className="p-6">
                 <div className="h-[450px]">
                   <ReactECharts
-                    option={penelitianFakultasChartOption}
+                    option={penelitianDrillLevel === 'fakultas' ? penelitianFakultasSebaranChartOption : penelitianProdiSebaranChartOption}
                     style={{ height: "100%", width: "100%" }}
                     opts={{ renderer: "svg" }}
+                    onEvents={{
+                      click: (params: any) => {
+                        if (penelitianDrillLevel === 'fakultas') {
+                          const fakultas = penelitianFakultasSebaranData.find(f => f.nama === params.name);
+                          if (fakultas) {
+                            handlePenelitianDrillDown(fakultas.id, fakultas.nama);
+                          }
+                        }
+                      }
+                    }}
                   />
                 </div>
+                {penelitianDrillLevel === 'fakultas' && (
+                  <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-100">
+                    <div className="flex items-start gap-3">
+                      <div className="text-2xl">💡</div>
+                      <div>
+                        <div className="text-sm font-semibold text-purple-900 mb-1">
+                          Tips Navigasi
+                        </div>
+                        <div className="text-xs text-purple-700">
+                          Klik pada bar chart untuk melihat detail penelitian dan pengabdian per program studi di fakultas tersebut
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
           </motion.div>

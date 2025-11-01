@@ -140,25 +140,34 @@ class ProgramStudiRepository
             ) AS mhs ON mhs.id_sms = sms.id_sms
             LEFT JOIN (
                 SELECT
-                    ptk.id_sms,
-                    SUM(CASE WHEN ptk.id_ikatan_kerja IN ('A','B','E','F','H','I','N') THEN 1 ELSE 0 END) AS dosen_tetap,
-                    SUM(CASE WHEN ptk.id_ikatan_kerja = 'G' THEN 1 ELSE 0 END) AS dosen_tidak_tetap,
-                    SUM(CASE WHEN ptk.id_stat_pegawai IN ('1','13','14') THEN 1 ELSE 0 END) AS dosen_pns,
-                    SUM(CASE WHEN ptk.id_stat_pegawai NOT IN ('1','13','14') THEN 1 ELSE 0 END) AS dosen_non_pns
-                FROM pdrd.reg_ptk AS ptk
-                JOIN pdrd.sdm AS sdm
-                    ON sdm.id_sdm = ptk.id_sdm
-                    AND sdm.soft_delete = 0
-                    AND sdm.id_jns_sdm = '12'
-                JOIN pdrd.keaktifan_ptk AS keaktifan
-                    ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
-                    AND keaktifan.soft_delete = 0
-                    AND keaktifan.a_sp_homebase = 1
-                    AND keaktifan.id_thn_ajaran = '2025'
-                WHERE ptk.soft_delete = 0
-                    AND ptk.id_jns_keluar IS NULL
-                    AND CAST(ptk.id_sp AS VARCHAR(50)) = '" . strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')) . "'
-                GROUP BY ptk.id_sms
+                    ptk_filtered.id_sms,
+                    SUM(CASE WHEN ptk_filtered.id_ikatan_kerja IN ('A','B','E','F','H','I','N') THEN 1 ELSE 0 END) AS dosen_tetap,
+                    SUM(CASE WHEN ptk_filtered.id_ikatan_kerja = 'G' THEN 1 ELSE 0 END) AS dosen_tidak_tetap,
+                    SUM(CASE WHEN ptk_filtered.id_stat_pegawai IN ('1','13','14') THEN 1 ELSE 0 END) AS dosen_pns,
+                    SUM(CASE WHEN ptk_filtered.id_stat_pegawai NOT IN ('1','13','14') THEN 1 ELSE 0 END) AS dosen_non_pns
+                FROM (
+                    SELECT
+                        ptk.id_sms,
+                        ptk.id_sdm,
+                        ptk.id_ikatan_kerja,
+                        ptk.id_stat_pegawai,
+                        ROW_NUMBER() OVER (PARTITION BY ptk.id_sdm, ptk.id_sms ORDER BY ptk.create_date DESC, ptk.id_reg_ptk DESC) AS rn
+                    FROM pdrd.reg_ptk AS ptk
+                    JOIN pdrd.sdm AS sdm
+                        ON sdm.id_sdm = ptk.id_sdm
+                        AND sdm.soft_delete = 0
+                        AND sdm.id_jns_sdm = '12'
+                    JOIN pdrd.keaktifan_ptk AS keaktifan
+                        ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
+                        AND keaktifan.soft_delete = 0
+                        AND keaktifan.a_sp_homebase = 1
+                        AND keaktifan.id_thn_ajaran = '2025'
+                    WHERE ptk.soft_delete = 0
+                        AND ptk.id_jns_keluar IS NULL
+                        AND CAST(ptk.id_sp AS VARCHAR(50)) = '" . strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')) . "'
+                ) AS ptk_filtered
+                WHERE ptk_filtered.rn = 1
+                GROUP BY ptk_filtered.id_sms
             ) AS dosen ON dosen.id_sms = sms.id_sms
             LEFT JOIN (
                 SELECT
@@ -360,6 +369,11 @@ class ProgramStudiRepository
                 ON sdm.id_sdm = ptk.id_sdm
                 AND sdm.soft_delete = 0
                 AND sdm.id_jns_sdm = '12'
+            INNER JOIN pdrd.keaktifan_ptk AS keaktifan
+                ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
+                AND keaktifan.soft_delete = 0
+                AND keaktifan.a_sp_homebase = 1
+                AND keaktifan.id_thn_ajaran = '2025'
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = ptk.id_sms
                 AND sms.soft_delete = 0
@@ -634,20 +648,35 @@ class ProgramStudiRepository
             ) AS mhs ON mhs.id_sms = sms.id_sms
             LEFT JOIN (
                 SELECT
-                    ptk.id_sms,
-                    SUM(CASE WHEN ptk.id_ikatan_kerja IN ('A','B','E','F','H','I','N') THEN 1 ELSE 0 END) AS dosen_tetap,
-                    SUM(CASE WHEN ptk.id_ikatan_kerja = 'G' THEN 1 ELSE 0 END) AS dosen_tidak_tetap,
-                    SUM(CASE WHEN ptk.id_stat_pegawai IN ('1','13','14') THEN 1 ELSE 0 END) AS dosen_pns,
-                    SUM(CASE WHEN ptk.id_stat_pegawai NOT IN ('1','13','14') THEN 1 ELSE 0 END) AS dosen_non_pns
-                FROM pdrd.reg_ptk AS ptk
-                JOIN pdrd.sdm AS sdm
-                    ON sdm.id_sdm = ptk.id_sdm
-                    AND sdm.soft_delete = 0
-                    AND sdm.id_jns_sdm = '12'
-                WHERE ptk.soft_delete = 0
-                    AND ptk.id_jns_keluar IS NULL
-                    AND CAST(ptk.id_sp AS VARCHAR(50)) = '" . strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')) . "'
-                GROUP BY ptk.id_sms
+                    ptk_filtered.id_sms,
+                    SUM(CASE WHEN ptk_filtered.id_ikatan_kerja IN ('A','B','E','F','H','I','N') THEN 1 ELSE 0 END) AS dosen_tetap,
+                    SUM(CASE WHEN ptk_filtered.id_ikatan_kerja = 'G' THEN 1 ELSE 0 END) AS dosen_tidak_tetap,
+                    SUM(CASE WHEN ptk_filtered.id_stat_pegawai IN ('1','13','14') THEN 1 ELSE 0 END) AS dosen_pns,
+                    SUM(CASE WHEN ptk_filtered.id_stat_pegawai NOT IN ('1','13','14') THEN 1 ELSE 0 END) AS dosen_non_pns
+                FROM (
+                    SELECT
+                        ptk.id_sms,
+                        ptk.id_sdm,
+                        ptk.id_ikatan_kerja,
+                        ptk.id_stat_pegawai,
+                        ROW_NUMBER() OVER (PARTITION BY ptk.id_sdm, ptk.id_sms ORDER BY ptk.create_date DESC, ptk.id_reg_ptk DESC) AS rn
+                    FROM pdrd.reg_ptk AS ptk
+                    JOIN pdrd.sdm AS sdm
+                        ON sdm.id_sdm = ptk.id_sdm
+                        AND sdm.soft_delete = 0
+                        AND sdm.id_jns_sdm = '12'
+                    JOIN pdrd.keaktifan_ptk AS keaktifan
+                        ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
+                        AND keaktifan.soft_delete = 0
+                        AND keaktifan.a_sp_homebase = 1
+                        AND keaktifan.id_thn_ajaran = '2025'
+                    WHERE ptk.soft_delete = 0
+                        AND ptk.id_jns_keluar IS NULL
+                        AND ptk.id_sms = ?
+                        AND CAST(ptk.id_sp AS VARCHAR(50)) = '" . strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')) . "'
+                ) AS ptk_filtered
+                WHERE ptk_filtered.rn = 1
+                GROUP BY ptk_filtered.id_sms
             ) AS dosen ON dosen.id_sms = sms.id_sms
             LEFT JOIN (
                 SELECT
@@ -668,7 +697,7 @@ class ProgramStudiRepository
                 AND CAST(sms.id_sp AS VARCHAR(50)) = '" . strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')) . "'
         ";
 
-        $params = [$periode, $periode, $idSms];
+        $params = [$periode, $periode, $idSms, $idSms];
         $results = DB::connection('sqlsrv')->select($sql, $params);
 
         return $results[0] ?? null;
@@ -764,16 +793,25 @@ class ProgramStudiRepository
                 ISNULL(pend_terakhir.nm_jenj_didik, '-') AS pendidikan_terakhir,
                 ISNULL(sdm.id_stat_aktif, 1) AS id_stat_aktif,
                 ISNULL(stat_aktif.nm_stat_aktif, 'Aktif') AS status_keaktifan
-            FROM pdrd.reg_ptk AS ptk
+            FROM (
+                SELECT
+                    ptk.*,
+                    ROW_NUMBER() OVER (PARTITION BY ptk.id_sdm ORDER BY ptk.create_date DESC, ptk.id_reg_ptk DESC) AS rn
+                FROM pdrd.reg_ptk AS ptk
+                INNER JOIN pdrd.keaktifan_ptk AS keaktifan
+                    ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
+                    AND keaktifan.soft_delete = 0
+                    AND keaktifan.a_sp_homebase = 1
+                    AND keaktifan.id_thn_ajaran = '2025'
+                WHERE ptk.soft_delete = 0
+                    AND ptk.id_jns_keluar IS NULL
+                    AND ptk.id_sms = ?
+                    AND CAST(ptk.id_sp AS VARCHAR(50)) = '" . strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')) . "'
+            ) AS ptk
             INNER JOIN pdrd.sdm AS sdm
                 ON sdm.id_sdm = ptk.id_sdm
                 AND sdm.soft_delete = 0
                 AND sdm.id_jns_sdm = '12'
-            INNER JOIN pdrd.keaktifan_ptk AS keaktifan
-                ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
-                AND keaktifan.soft_delete = 0
-                AND keaktifan.a_sp_homebase = 1
-                AND keaktifan.id_thn_ajaran = '2025'
             LEFT JOIN ref.status_keaktifan_pegawai AS stat_aktif
                 ON stat_aktif.id_stat_aktif = sdm.id_stat_aktif
                 AND stat_aktif.expired_date IS NULL
@@ -803,10 +841,7 @@ class ProgramStudiRepository
             ) AS pend_terakhir
                 ON pend_terakhir.id_sdm = sdm.id_sdm
                 AND pend_terakhir.rn = 1
-            WHERE ptk.soft_delete = 0
-                AND ptk.id_jns_keluar IS NULL
-                AND ptk.id_sms = ?
-                AND CAST(ptk.id_sp AS VARCHAR(50)) = '" . strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')) . "'
+            WHERE ptk.rn = 1
             ORDER BY sdm.nm_sdm ASC
         ";
 

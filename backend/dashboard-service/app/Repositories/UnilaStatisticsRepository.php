@@ -147,6 +147,11 @@ class UnilaStatisticsRepository
                 ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
                 AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
+            INNER JOIN pdrd.keaktifan_ptk AS keaktifan
+                ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
+                AND keaktifan.soft_delete = 0
+                AND keaktifan.a_sp_homebase = 1
+                AND keaktifan.id_thn_ajaran = '2025'
             WHERE ptk.soft_delete = 0
                 AND ptk.id_jns_keluar IS NULL
                 AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
@@ -277,15 +282,29 @@ class UnilaStatisticsRepository
     private function getTotalGuruBesar(string $idSp): int
     {
         // Get guru besar from rwy_fungsional table (latest jabatan fungsional per dosen)
-        // Try multiple possible names for Profesor jabatan
+        // Use exact match 'Profesor' for consistency with DosenRepository
         try {
             $sql = "
-                SELECT COUNT(DISTINCT ptk.id_sdm) AS total
-                FROM pdrd.reg_ptk AS ptk
-                INNER JOIN pdrd.sdm AS sdm
-                    ON sdm.id_sdm = ptk.id_sdm
-                    AND sdm.soft_delete = 0
-                    AND sdm.id_jns_sdm = '12'
+                SELECT COUNT(DISTINCT sdm.id_sdm) AS total
+                FROM pdrd.sdm AS sdm
+                INNER JOIN pdrd.reg_ptk AS ptk
+                    ON ptk.id_sdm = sdm.id_sdm
+                    AND ptk.soft_delete = 0
+                    AND ptk.id_jns_keluar IS NULL
+                    AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+                INNER JOIN pdrd.keaktifan_ptk AS keaktifan
+                    ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
+                    AND keaktifan.soft_delete = 0
+                    AND keaktifan.a_sp_homebase = 1
+                    AND keaktifan.id_thn_ajaran = '2025'
+                INNER JOIN pdrd.sms AS sms
+                    ON sms.id_sms = ptk.id_sms
+                    AND sms.soft_delete = 0
+                    AND sms.stat_prodi = 'A'
+                INNER JOIN ref.jenjang_pendidikan AS didik
+                    ON didik.id_jenj_didik = sms.id_jenj_didik
+                    AND didik.expired_date IS NULL
+                    AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
                 LEFT JOIN (
                     SELECT
                         rwy.id_sdm,
@@ -298,15 +317,9 @@ class UnilaStatisticsRepository
                         AND jab.expired_date IS NULL
                     WHERE rwy.soft_delete = 0
                 ) AS jabfung ON jabfung.id_sdm = sdm.id_sdm AND jabfung.rn = 1
-                WHERE ptk.soft_delete = 0
-                    AND ptk.id_jns_keluar IS NULL
-                    AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
-                    AND (
-                        jabfung.nm_jabfung LIKE '%Profesor%'
-                        OR jabfung.nm_jabfung LIKE '%Guru Besar%'
-                        OR jabfung.nm_jabfung LIKE 'IV/%'
-                        OR jabfung.nm_jabfung LIKE 'Pembina%'
-                    )
+                WHERE sdm.soft_delete = 0
+                    AND sdm.id_jns_sdm = '12'
+                    AND jabfung.nm_jabfung = 'Profesor'
             ";
 
             $result = DB::connection('sqlsrv')->select($sql, [$idSp]);

@@ -86,7 +86,7 @@ export default function ProfileUnila() {
   };
 
   return (
-    <section className="py-20 bg-gradient-to-b from-white via-blue-50/30 to-white relative">
+    <section className="py-20 bg-white relative">
       <div className="container mx-auto px-6">
         <motion.div
           initial="hidden"
@@ -125,7 +125,7 @@ export default function ProfileUnila() {
                     priority
                   />
                   {/* Blue Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/50 via-blue-700/45 to-indigo-800/50 group-hover:from-blue-600/55 group-hover:via-blue-700/50 group-hover:to-indigo-800/55 transition-all duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/[0.5] via-blue-700/[0.45] to-indigo-800/[0.5] group-hover:from-blue-600/[0.55] group-hover:via-blue-700/[0.5] group-hover:to-indigo-800/[0.55] transition-all duration-300" />
 
                   {/* Content */}
                   <div className="absolute inset-0 flex items-center justify-center">
@@ -147,7 +147,7 @@ export default function ProfileUnila() {
                       <h3 className="text-2xl md:text-3xl font-bold mb-2 drop-shadow-lg">
                         {profile?.nama_lengkap || "Universitas Lampung"}
                       </h3>
-                      <p className="text-sm md:text-base opacity-95 drop-shadow">
+                      <p className="text-sm md:text-base opacity-[0.95] drop-shadow">
                         {profile?.kota || "Kota Bandar Lampung, Prov. Lampung"}
                       </p>
                     </div>
@@ -291,7 +291,7 @@ export default function ProfileUnila() {
           <motion.div variants={itemVariants} className="mt-12 relative">
             {/* Loading Overlay */}
             {loading && (
-              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center rounded-2xl">
+              <div className="absolute inset-0 bg-white/[0.8] backdrop-blur-sm z-50 flex items-center justify-center rounded-2xl">
                 <div className="flex flex-col items-center gap-3">
                   <div className="relative">
                     <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
@@ -361,7 +361,7 @@ export default function ProfileUnila() {
                   transition={{ delay: index * 0.08 }}
                   whileHover={{ y: -6, scale: 1.02 }}
                 >
-                  <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
+                  <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-[0.1] transition-opacity duration-300`} />
                   <div className={`relative inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br ${stat.gradient} text-white mb-3 shadow-md group-hover:scale-110 transition-transform duration-300`}>
                     {stat.icon}
                   </div>
@@ -376,7 +376,7 @@ export default function ProfileUnila() {
       {/* Decorative Wave Divider - Bottom */}
       <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none rotate-180">
         <svg className="relative block w-full h-12" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-          <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" className="fill-blue-50/50"></path>
+          <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" className="fill-blue-50/[0.5]"></path>
         </svg>
       </div>
     </section>

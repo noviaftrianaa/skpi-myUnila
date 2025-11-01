@@ -134,7 +134,7 @@ export default function ProgramStudiTable() {
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-b from-blue-50/30 via-white to-indigo-50/20 relative">
+    <section className="py-20 bg-white relative">
       <div className="container mx-auto px-6">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={containerVariants} className="max-w-7xl mx-auto">
           <motion.div variants={itemVariants} className="text-center mb-16">

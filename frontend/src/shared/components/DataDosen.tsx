@@ -535,10 +535,73 @@ export default function DataDosen() {
     return (
       <section className="py-20 bg-gradient-to-b from-gray-50 to-white relative">
         <div className="container mx-auto px-6">
-          <div className="max-w-7xl mx-auto text-center">
-            <div className="animate-pulse">
-              <div className="h-8 bg-gray-200 rounded w-64 mx-auto mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded w-96 mx-auto"></div>
+          <div className="max-w-7xl mx-auto">
+            {/* Header Skeleton */}
+            <div className="text-center mb-16">
+              <div className="animate-pulse">
+                <div className="h-10 bg-gray-50 dark:bg-gray-600 rounded-lg w-64 mx-auto mb-4"></div>
+                <div className="h-1 w-20 bg-gray-50 dark:bg-gray-600 rounded-full mx-auto mb-3"></div>
+                <div className="h-6 bg-gray-50 dark:bg-gray-600 rounded w-96 mx-auto"></div>
+              </div>
+            </div>
+
+            {/* Quick Stats Skeleton */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+              {[1, 2, 3, 4].map((item) => (
+                <div key={item} className="bg-gray-50 dark:bg-gray-600 rounded-xl p-6 animate-pulse">
+                  <div className="h-8 w-8 bg-gray-100 dark:bg-gray-500 rounded-full mb-3"></div>
+                  <div className="h-9 bg-gray-100 dark:bg-gray-500 rounded w-20 mb-2"></div>
+                  <div className="h-4 bg-gray-100 dark:bg-gray-500 rounded w-24"></div>
+                </div>
+              ))}
+            </div>
+
+            {/* Charts Grid Skeleton */}
+            <div className="grid lg:grid-cols-2 gap-8">
+              {[1, 2].map((item) => (
+                <div key={item} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                  <div className="px-6 py-5 bg-gray-50 dark:bg-gray-600 animate-pulse">
+                    <div className="h-6 bg-gray-100 dark:bg-gray-500 rounded w-48"></div>
+                  </div>
+                  <div className="p-6">
+                    <div className="h-[320px] bg-gray-50 dark:bg-gray-600 rounded-lg animate-pulse"></div>
+                    <div className="mt-6 space-y-3">
+                      {[1, 2, 3, 4].map((row) => (
+                        <div key={row} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg animate-pulse">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="h-4 bg-gray-100 dark:bg-gray-600 rounded w-32"></div>
+                            <div className="h-4 bg-gray-100 dark:bg-gray-600 rounded w-12"></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Sebaran Chart Skeleton */}
+            <div className="mt-8">
+              <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                <div className="px-6 py-5 bg-gray-50 dark:bg-gray-600 animate-pulse">
+                  <div className="h-6 bg-gray-100 dark:bg-gray-500 rounded w-56"></div>
+                </div>
+                <div className="p-6 sm:p-8">
+                  <div className="h-[450px] bg-gray-50 dark:bg-gray-600 rounded-lg animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Info Box Skeleton */}
+            <div className="mt-8 bg-gray-50 dark:bg-gray-700 rounded-xl p-6 border border-gray-100 dark:border-gray-600 animate-pulse">
+              <div className="flex items-start gap-4">
+                <div className="h-8 w-8 bg-gray-100 dark:bg-gray-600 rounded-full"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-5 bg-gray-100 dark:bg-gray-600 rounded w-64"></div>
+                  <div className="h-4 bg-gray-100 dark:bg-gray-600 rounded w-full"></div>
+                  <div className="h-4 bg-gray-100 dark:bg-gray-600 rounded w-5/6"></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

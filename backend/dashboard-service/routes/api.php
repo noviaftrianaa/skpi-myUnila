@@ -12,7 +12,9 @@ use App\Http\Controllers\OpenApi\DosenController;
 use App\Http\Controllers\OpenApi\DosenProfileController;
 use App\Http\Controllers\OpenApi\DosenSebaranController;
 use App\Http\Controllers\OpenApi\PublikasiController;
+use App\Http\Controllers\OpenApi\PublikasiSebaranController;
 use App\Http\Controllers\OpenApi\PenelitianController;
+use App\Http\Controllers\OpenApi\PenelitianSebaranController;
 use App\Http\Controllers\OpenApi\KelulusanController;
 use App\Http\Controllers\OpenApi\CapaianLulusanController;
 use App\Http\Controllers\SurveyController;
@@ -108,9 +110,21 @@ Route::prefix('v1')->group(function () {
         Route::get('/statistics', [PublikasiController::class, 'getStatistics']);
     });
 
+    // Publikasi Sebaran
+    Route::prefix('publikasi-sebaran')->group(function () {
+        Route::get('/fakultas', [PublikasiSebaranController::class, 'getSebaranByFakultas']);
+        Route::get('/fakultas/{id_fakultas}/prodi', [PublikasiSebaranController::class, 'getSebaranByProdiInFakultas']);
+    });
+
     // Penelitian
     Route::prefix('penelitian')->group(function () {
         Route::get('/statistics', [PenelitianController::class, 'getStatistics']);
+    });
+
+    // Penelitian Sebaran
+    Route::prefix('penelitian-sebaran')->group(function () {
+        Route::get('/fakultas', [PenelitianSebaranController::class, 'getSebaranByFakultas']);
+        Route::get('/fakultas/{id_fakultas}/prodi', [PenelitianSebaranController::class, 'getSebaranByProdiInFakultas']);
     });
 
     // Kelulusan
