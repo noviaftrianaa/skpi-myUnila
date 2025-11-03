@@ -1,13 +1,13 @@
 /**
- * Penelitian Service
- * Service untuk mengambil data penelitian dosen dari SISTER API
+ * Pengabdian Service
+ * Service untuk mengambil data pengabdian dosen dari SISTER API
  */
 
 import axios from 'axios';
 
 const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:8083';
 
-// Types
+// Types - Reuse Litabmas type from penelitian since they share the same entity
 export interface AnggotaLitabmasInfo {
   nama: string;
   jenis_peran: string; // "Dosen (Ketua)", "Mahasiswa (Anggota)", etc
@@ -46,7 +46,7 @@ export interface Litabmas {
   anggota?: AnggotaLitabmasInfo[]; // For list view
 }
 
-export interface PenelitianSyncResult {
+export interface PengabdianSyncResult {
   id_litabmas: string;
   id_sdm: string;
   nama?: string;
@@ -55,16 +55,16 @@ export interface PenelitianSyncResult {
   error?: string;
 }
 
-export interface BatchPenelitianSyncResult {
+export interface BatchPengabdianSyncResult {
   total_processed: number;
   total_success: number;
   total_failed: number;
   duration: string;
-  results: PenelitianSyncResult[];
+  results: PengabdianSyncResult[];
   synced_by: string;
 }
 
-export interface PenelitianListResult {
+export interface PengabdianListResult {
   data: Litabmas[];
   total: number;
   page: number;
@@ -72,59 +72,31 @@ export interface PenelitianListResult {
   total_pages: number;
 }
 
-export interface PenelitianStats {
-  total_penelitian: number;
+export interface PengabdianStats {
+  total_penelitian: number; // Note: Backend uses same field name (it's actually total pengabdian)
   total_active: number;
   total_dana?: number;
   last_sync?: string;
 }
 
-// Alias untuk backward compatibility dengan dashboard
-export interface PenelitianStatistics {
-  total: number;
-  by_kategori: Array<{
-    kategori: string;
-    jumlah: number;
-  }>;
-  by_year: Array<{
-    tahun: number;
-    jumlah: number;
-  }>;
-  by_funding: Array<{
-    tahun: number;
-    dana_dikti: number;
-    dana_pt: number;
-    dana_institusi_lain: number;
-    total_dana: number;
-  }>;
-  by_kelompok_bidang: Array<{
-    kelompok_bidang: string;
-    jumlah: number;
-  }>;
-  by_fakultas: Array<{
-    fakultas: string;
-    jumlah: number;
-  }>;
-}
-
 /**
- * SISTER API Service for Penelitian Management
- * Manages penelitian data from SISTER Kemdikbud API
+ * SISTER API Service for Pengabdian Management
+ * Manages pengabdian data from SISTER Kemdikbud API
  */
-export const sisterPenelitianService = {
+export const sisterPengabdianService = {
   /**
-   * Get list of penelitian by id_sdm
+   * Get list of pengabdian by id_sdm
    */
   async getListByIDSDM(idSDM: string): Promise<Litabmas[]> {
     const response = await axios.get<Litabmas[]>(
-      `${SISTER_API_URL}/penelitian`,
+      `${SISTER_API_URL}/pengabdian`,
       { params: { id_sdm: idSDM } }
     );
     return response.data || [];
   },
 
   /**
-   * Get penelitian detail by id_litabmas
+   * Get pengabdian detail by id_litabmas
    */
   async getDetail(idLitabmas: string): Promise<Litabmas> {
     const response = await axios.get<Litabmas>(
@@ -134,13 +106,13 @@ export const sisterPenelitianService = {
   },
 
   /**
-   * Trigger sync penelitian from SISTER API by id_sdm
+   * Trigger sync pengabdian from SISTER API by id_sdm
    * @param idSDM - ID SDM dosen
    * @param syncedBy - Username of person who triggered the sync
    */
-  async syncByIDSDM(idSDM: string, syncedBy: string): Promise<BatchPenelitianSyncResult> {
-    const response = await axios.post<BatchPenelitianSyncResult>(
-      `${SISTER_API_URL}/../api/v1/penelitian/sync`,
+  async syncByIDSDM(idSDM: string, syncedBy: string): Promise<BatchPengabdianSyncResult> {
+    const response = await axios.post<BatchPengabdianSyncResult>(
+      `${SISTER_API_URL}/../api/v1/pengabdian/sync`,
       null,
       { params: { id_sdm: idSDM, synced_by: syncedBy } }
     );
@@ -148,36 +120,17 @@ export const sisterPenelitianService = {
   },
 
   /**
-   * Get penelitian statistics
+   * Get pengabdian statistics
    */
-  async getStats(): Promise<PenelitianStats> {
-    const response = await axios.get<PenelitianStats>(
-      `${SISTER_API_URL}/penelitian/stats`
+  async getStats(): Promise<PengabdianStats> {
+    const response = await axios.get<PengabdianStats>(
+      `${SISTER_API_URL}/pengabdian/stats`
     );
     return response.data;
   },
 
   /**
-   * Get penelitian statistics for dashboard (with sebaran fakultas/prodi)
-   * This uses dashboard-service API endpoint
-   */
-  async getStatistics(): Promise<PenelitianStatistics> {
-    // Use native fetch to avoid axios interceptor issues
-    const DASHBOARD_API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/public/api/v1';
-    const response = await fetch(
-      `${DASHBOARD_API_URL}/penelitian/statistics`
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const result = await response.json();
-    return result.data; // Extract data from wrapper
-  },
-
-  /**
-   * Get paginated list of penelitian with search and sorting
+   * Get paginated list of pengabdian with search and sorting
    */
   async getList(params: {
     page: number;
@@ -185,30 +138,30 @@ export const sisterPenelitianService = {
     search?: string;
     sort_by?: string;
     sort_order?: string;
-  }): Promise<PenelitianListResult> {
-    const response = await axios.get<{ success: boolean; data: PenelitianListResult }>(
-      `${SISTER_API_URL}/penelitian/list`,
+  }): Promise<PengabdianListResult> {
+    const response = await axios.get<{ success: boolean; data: PengabdianListResult }>(
+      `${SISTER_API_URL}/pengabdian/list`,
       { params }
     );
     return response.data.data;
   },
 
   /**
-   * Trigger batch sync all penelitian from SISTER API
+   * Trigger batch sync all pengabdian from SISTER API
    * This is not implemented in backend yet, but keeping for consistency
    * @param syncedBy - Username of person who triggered the sync
    */
-  async syncFromSister(syncedBy: string): Promise<BatchPenelitianSyncResult> {
+  async syncFromSister(syncedBy: string): Promise<BatchPengabdianSyncResult> {
     // Note: Backend doesn't have sync-all endpoint yet
     // This would need to be implemented if batch sync all is needed
-    throw new Error('Sync all penelitian is not implemented yet. Please sync per dosen.');
+    throw new Error('Sync all pengabdian is not implemented yet. Please sync per dosen.');
   },
 };
 
 /**
  * Helper functions
  */
-export const penelitianHelpers = {
+export const pengabdianHelpers = {
   /**
    * Format date untuk display
    */
@@ -234,10 +187,10 @@ export const penelitianHelpers = {
   },
 
   /**
-   * Get total dana penelitian
+   * Get total dana pengabdian
    */
-  getTotalDana(penelitian: Litabmas): number {
-    return penelitian.dana_dikti + penelitian.dana_pt + penelitian.dana_institusi_lain;
+  getTotalDana(pengabdian: Litabmas): number {
+    return pengabdian.dana_dikti + pengabdian.dana_pt + pengabdian.dana_institusi_lain;
   },
 
   /**
@@ -256,6 +209,6 @@ export const penelitianHelpers = {
 };
 
 // Alias untuk backward compatibility
-export const penelitianService = sisterPenelitianService;
+export const pengabdianService = sisterPengabdianService;
 
-export default sisterPenelitianService;
+export default sisterPengabdianService;
