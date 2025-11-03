@@ -6,6 +6,7 @@ import (
 	"sister-service/apps/dosen"
 	appLogger "sister-service/apps/logger"
 	"sister-service/apps/monitoring"
+	"sister-service/apps/penelitian"
 	"sister-service/apps/penugasan"
 	"sister-service/apps/referensi"
 	"sister-service/apps/scheduler"
@@ -85,10 +86,12 @@ func main() {
 		Format: "[${time}] ${status} - ${latency} ${method} ${path}\n",
 	}))
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3006,http://localhost:9800,http://127.0.0.1:3000,http://127.0.0.1:3001,http://127.0.0.1:3006",
+		AllowOrigins:     "http://localhost:3000, http://localhost:3001, http://localhost:9800",
 		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS,PATCH",
-		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-Requested-With",
 		AllowCredentials: true,
+		ExposeHeaders:    "Content-Length",
+		MaxAge:           12 * 3600,
 	}))
 
 	// Health check
@@ -149,12 +152,16 @@ func main() {
 	penugasan.SetupRoutes(app, penugasanController)
 	log.Println("✅ Penugasan routes registered")
 
+	// Initialize Penelitian module
+	penelitianService := penelitian.SetupRoutes(app, db, sisterAPI, loggerService)
+	log.Println("✅ Penelitian & Pengabdian routes registered")
+
 	synclog.RegisterRoutes(publicRoutes, db)                            // Sync logs endpoints
 	monitoring.RegisterRoutes(publicRoutes)                             // Monitoring endpoints
 
 	// Initialize Scheduler Service
 	schedulerRepo := scheduler.NewRepository(db)
-	schedulerService := scheduler.NewService(schedulerRepo, dosenService, referensiService, penugasanService)
+	schedulerService := scheduler.NewService(schedulerRepo, dosenService, referensiService, penugasanService, penelitianService)
 	schedulerRouter := scheduler.NewRouter(schedulerService)
 	schedulerRouter.RegisterRoutes(app)
 

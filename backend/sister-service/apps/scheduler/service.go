@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"sister-service/apps/dosen"
+	"sister-service/apps/penelitian"
 	"sister-service/apps/penugasan"
 	"sister-service/apps/referensi"
 	"time"
@@ -16,25 +17,27 @@ import (
 const UNILA_ID_SP = "e2b705a7-173e-464a-9fac-509128709515"
 
 type Service struct {
-	repo             *Repository
-	cron             *cron.Cron
-	jobs             map[int]cron.EntryID // map schedule ID to cron entry ID
-	dosenService     dosen.Service
-	referensiService referensi.Service
-	penugasanService penugasan.Service
+	repo              *Repository
+	cron              *cron.Cron
+	jobs              map[int]cron.EntryID // map schedule ID to cron entry ID
+	dosenService      dosen.Service
+	referensiService  referensi.Service
+	penugasanService  penugasan.Service
+	penelitianService penelitian.Service
 }
 
-func NewService(repo *Repository, dosenService dosen.Service, referensiService referensi.Service, penugasanService penugasan.Service) *Service {
+func NewService(repo *Repository, dosenService dosen.Service, referensiService referensi.Service, penugasanService penugasan.Service, penelitianService penelitian.Service) *Service {
 	// Create cron with second precision
 	c := cron.New(cron.WithSeconds())
 
 	service := &Service{
-		repo:             repo,
-		cron:             c,
-		jobs:             make(map[int]cron.EntryID),
-		dosenService:     dosenService,
-		referensiService: referensiService,
-		penugasanService: penugasanService,
+		repo:              repo,
+		cron:              c,
+		jobs:              make(map[int]cron.EntryID),
+		dosenService:      dosenService,
+		referensiService:  referensiService,
+		penugasanService:  penugasanService,
+		penelitianService: penelitianService,
 	}
 
 	return service
@@ -91,6 +94,11 @@ func (s *Service) executeWithRetry(schedule ScheduledSync) error {
 		if err := s.penugasanService.ForceRefreshToken(); err != nil {
 			log.Printf("⚠️  Failed to refresh token for penugasan sync, continuing anyway: %v", err)
 		}
+	} else if schedule.SyncType == "penelitian" || schedule.SyncType == "pengabdian" {
+		// Penelitian and pengabdian use the same Sister API token as dosen
+		if err := s.dosenService.ForceRefreshToken(); err != nil {
+			log.Printf("⚠️  Failed to refresh token for %s sync, continuing anyway: %v", schedule.SyncType, err)
+		}
 	}
 
 	for attempt := 0; attempt <= maxRetries; attempt++ {
@@ -105,6 +113,12 @@ func (s *Service) executeWithRetry(schedule ScheduledSync) error {
 		} else if schedule.SyncType == "penugasan" {
 			// Execute penugasan sync - BatchSync for all active dosen
 			_, err = s.penugasanService.BatchSyncPenugasan("scheduler")
+		} else if schedule.SyncType == "penelitian" && schedule.EndpointKey != nil {
+			// Execute penelitian sync by id_sdm - endpoint_key contains id_sdm
+			_, err = s.penelitianService.SyncPenelitianByIDSDM(*schedule.EndpointKey, "scheduler")
+		} else if schedule.SyncType == "pengabdian" && schedule.EndpointKey != nil {
+			// Execute pengabdian sync by id_sdm - endpoint_key contains id_sdm
+			_, err = s.penelitianService.SyncPengabdianByIDSDM(*schedule.EndpointKey, "scheduler")
 		} else {
 			return fmt.Errorf("invalid sync configuration")
 		}
@@ -218,9 +232,15 @@ func (s *Service) CreateSchedule(req CreateScheduledSyncRequest) (*ScheduledSync
 		return nil, fmt.Errorf("invalid schedule time: %w", err)
 	}
 
-	// Validate endpoint_key for referensi type
+	// Validate endpoint_key for referensi, penelitian, and pengabdian types
 	if req.SyncType == "referensi" && req.EndpointKey == nil {
 		return nil, fmt.Errorf("endpoint_key is required for referensi sync")
+	}
+	if req.SyncType == "penelitian" && req.EndpointKey == nil {
+		return nil, fmt.Errorf("endpoint_key (id_sdm) is required for penelitian sync")
+	}
+	if req.SyncType == "pengabdian" && req.EndpointKey == nil {
+		return nil, fmt.Errorf("endpoint_key (id_sdm) is required for pengabdian sync")
 	}
 
 	// Create schedule object
@@ -376,9 +396,16 @@ func (s *Service) calculateNextRun(scheduleTime time.Time) time.Time {
 		time.Local,
 	)
 
-	// If time has passed today, schedule for tomorrow
-	if nextRun.Before(now) {
+	// Add 1-minute buffer to prevent race condition where schedule time is very close to current time
+	// If the scheduled time is less than 1 minute away, schedule for tomorrow instead
+	bufferTime := now.Add(1 * time.Minute)
+	if nextRun.Before(bufferTime) {
 		nextRun = nextRun.Add(24 * time.Hour)
+		log.Printf("⚠️  Schedule time is less than 1 minute away (current: %s, scheduled: %s), scheduling for tomorrow at %s WIB",
+			now.Format("15:04:05"), scheduleTime.Format("15:04"), nextRun.Format("2006-01-02 15:04:05"))
+	} else {
+		log.Printf("✅ Schedule will run today at %s WIB (next run: %s WIB)",
+			scheduleTime.Format("15:04"), nextRun.Format("2006-01-02 15:04:05"))
 	}
 
 	return nextRun.UTC()

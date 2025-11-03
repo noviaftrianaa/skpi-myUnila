@@ -700,3 +700,35 @@ func (c *Client) GetPenugasanDetail(idPenugasan string) ([]byte, error) {
 	endpoint := fmt.Sprintf("/1.0/penugasan/%s", idPenugasan)
 	return c.Get(endpoint)
 }
+
+// ==================== PENELITIAN ENDPOINTS ====================
+
+// GetPenelitianByIDSDM fetches list of penelitian for a dosen from Sister API
+// Endpoint: GET /1.0/penelitian?id_sdm={id_sdm}
+func (c *Client) GetPenelitianByIDSDM(idSDM string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/1.0/penelitian?id_sdm=%s", idSDM)
+	return c.Get(endpoint)
+}
+
+// GetPenelitianDetail fetches detail of a single penelitian from Sister API
+// Endpoint: GET /1.0/penelitian/{id}
+func (c *Client) GetPenelitianDetail(idPenelitian string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/1.0/penelitian/%s", idPenelitian)
+	return c.Get(endpoint)
+}
+
+// ==================== PENGABDIAN ENDPOINTS ====================
+
+// GetPengabdianByIDSDM fetches list of pengabdian for a dosen from Sister API
+// Endpoint: GET /1.0/pengabdian?id_sdm={id_sdm}
+func (c *Client) GetPengabdianByIDSDM(idSDM string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/1.0/pengabdian?id_sdm=%s", idSDM)
+	return c.Get(endpoint)
+}
+
+// GetPengabdianDetail fetches detail of a single pengabdian from Sister API
+// Endpoint: GET /1.0/pengabdian/{id}
+func (c *Client) GetPengabdianDetail(idPengabdian string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/1.0/pengabdian/%s", idPengabdian)
+	return c.Get(endpoint)
+}
