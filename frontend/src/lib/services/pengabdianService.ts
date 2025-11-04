@@ -43,6 +43,7 @@ export interface Litabmas {
   id_updater?: string;
   soft_delete: number;
   last_sync?: string;
+  id_sdm_ketua?: string; // ID SDM ketua pengabdian (for sync)
   anggota?: AnggotaLitabmasInfo[]; // For list view
 }
 
@@ -77,6 +78,16 @@ export interface PengabdianStats {
   total_active: number;
   total_dana?: number;
   last_sync?: string;
+}
+
+export interface BatchAllSyncResult {
+  total_dosen: number;
+  total_success: number;
+  total_failed: number;
+  total_litabmas: number;
+  duration: string;
+  synced_by: string;
+  failed_dosen?: string[];
 }
 
 /**
@@ -148,13 +159,15 @@ export const sisterPengabdianService = {
 
   /**
    * Trigger batch sync all pengabdian from SISTER API
-   * This is not implemented in backend yet, but keeping for consistency
    * @param syncedBy - Username of person who triggered the sync
    */
-  async syncFromSister(syncedBy: string): Promise<BatchPengabdianSyncResult> {
-    // Note: Backend doesn't have sync-all endpoint yet
-    // This would need to be implemented if batch sync all is needed
-    throw new Error('Sync all pengabdian is not implemented yet. Please sync per dosen.');
+  async syncFromSister(syncedBy: string): Promise<BatchAllSyncResult> {
+    const response = await axios.post<BatchAllSyncResult>(
+      `${SISTER_API_URL}/../api/v1/pengabdian/sync-all`,
+      null,
+      { params: { synced_by: syncedBy } }
+    );
+    return response.data;
   },
 };
 

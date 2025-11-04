@@ -16,6 +16,8 @@ type Service interface {
 	// Sync operations
 	SyncPenelitianByIDSDM(idSDM string, syncedBy string) (*BatchPenelitianSyncResult, error)
 	SyncPengabdianByIDSDM(idSDM string, syncedBy string) (*BatchPenelitianSyncResult, error)
+	BatchSyncAllPenelitian(syncedBy string) (*BatchAllSyncResult, error)
+	BatchSyncAllPengabdian(syncedBy string) (*BatchAllSyncResult, error)
 
 	// Query operations
 	GetPenelitianByIDSDM(idSDM string) ([]*Litabmas, error)
@@ -47,23 +49,8 @@ func NewService(db *sqlx.DB, sisterAPI *sister_api.Client, loggerSvc appLogger.S
 }
 
 // SyncPengabdianByIDSDM syncs all pengabdian for a dosen from Sister API
-func (s *service) SyncPengabdianByIDSDM(idSDM string, syncedBy string) (*BatchPenelitianSyncResult, error) {
-	// Similar to SyncPenelitianByIDSDM but uses jns_litabmas = 'M' (Pengabdian)
-	// Implementation will be similar, just calling different Sister API endpoint
-	return s.syncLitabmasByIDSDM(idSDM, syncedBy, "M")
-}
-
-// syncLitabmasByIDSDM is a generic method to sync litabmas (penelitian or pengabdian)
-func (s *service) syncLitabmasByIDSDM(idSDM string, syncedBy string, jnsLitabmas string) (*BatchPenelitianSyncResult, error) {
-	// This method is implemented in sync_service.go as SyncPenelitianByIDSDM
-	// We'll reuse that logic for both penelitian and pengabdian
-	if jnsLitabmas == "L" {
-		return s.SyncPenelitianByIDSDM(idSDM, syncedBy)
-	}
-	// For pengabdian, we need similar logic but calling GetPengabdianByIDSDM
-	// For now, just redirect to penelitian sync (will be refined)
-	return s.SyncPenelitianByIDSDM(idSDM, syncedBy)
-}
+// Implemented in sync_service.go
+// This is just the interface definition - actual implementation is in sync_service.go
 
 // GetPenelitianByIDSDM retrieves all penelitian for a dosen
 func (s *service) GetPenelitianByIDSDM(idSDM string) ([]*Litabmas, error) {

@@ -229,6 +229,17 @@ type BatchPenelitianSyncResult struct {
 	SyncedBy       string                 `json:"synced_by"`
 }
 
+// BatchAllSyncResult represents batch sync all dosen result
+type BatchAllSyncResult struct {
+	TotalDosen    int      `json:"total_dosen"`              // Total dosen yang diproses
+	TotalSuccess  int      `json:"total_success"`            // Total dosen yang berhasil
+	TotalFailed   int      `json:"total_failed"`             // Total dosen yang gagal
+	TotalLitabmas int      `json:"total_litabmas"`           // Total litabmas yang berhasil di-sync
+	Duration      string   `json:"duration"`                 // Durasi total
+	SyncedBy      string   `json:"synced_by"`                // User yang melakukan sync
+	FailedDosen   []string `json:"failed_dosen,omitempty"`   // List id_sdm yang gagal (optional)
+}
+
 // PenelitianListResult represents paginated list of penelitian
 type PenelitianListResult struct {
 	Data       []*Litabmas `json:"data"`
@@ -263,7 +274,8 @@ type LitabmasListItem struct {
 	JnsLitabmas     string                 `json:"jns_litabmas" db:"jns_litabmas"`
 	StatAktif       int                    `json:"stat_aktif" db:"stat_aktif"`
 	LastSync        *time.Time             `json:"last_sync" db:"last_sync"`
-	Anggota         []*AnggotaLitabmasInfo `json:"anggota"` // Populated separately
+	IDSDMKetua      *string                `json:"id_sdm_ketua" db:"id_sdm_ketua"` // ID SDM ketua penelitian (for sync)
+	Anggota         []*AnggotaLitabmasInfo `json:"anggota"`                        // Populated separately
 }
 
 // LitabmasListResult represents paginated list result

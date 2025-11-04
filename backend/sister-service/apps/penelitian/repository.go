@@ -5,11 +5,20 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
 )
+
+// UUID validation regex
+var uuidRegex = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
+
+// isValidUUID checks if a string is a valid UUID
+func isValidUUID(uuid string) bool {
+	return uuidRegex.MatchString(uuid)
+}
 
 type Repository interface {
 	// Litabmas operations
@@ -22,6 +31,7 @@ type Repository interface {
 	GetPengabdianList(page, limit int, search string) (*LitabmasListResult, error)
 	GetPenelitianListWithSort(page, limit int, search, sortBy, sortOrder string) (*LitabmasListResult, error)
 	GetPengabdianListWithSort(page, limit int, search, sortBy, sortOrder string) (*LitabmasListResult, error)
+	GetAllIDSDMWithLitabmas(jnsLitabmas string) ([]string, error)
 
 	// Anggota operations
 	GetAnggotaSDMByLitabmas(idLitabmas string) ([]*AnggotaSDMLitabmas, error)
@@ -33,6 +43,7 @@ type Repository interface {
 	UpsertDokumen(dok *Dokumen) error
 	GetDokumenByLitabmas(idLitabmas string) ([]*Dokumen, error)
 	MergeDokumenLitabmas(idLitabmas string, dokList []*DokLitabmas) error
+	GetJenisDokumenMap() (map[string]int, error)
 }
 
 type repository struct {
@@ -246,7 +257,9 @@ func (r *repository) GetAnggotaSDMByLitabmas(idLitabmas string) ([]*AnggotaSDMLi
 
 	query := `
 		SELECT
-			id_litabmas, id_sdm, id_katgiat, peran_litabmas, stat_aktif,
+			CONVERT(VARCHAR(36), id_litabmas) as id_litabmas,
+			CONVERT(VARCHAR(36), id_sdm) as id_sdm,
+			id_katgiat, peran_litabmas, stat_aktif,
 			create_date, id_creator, last_update, id_updater, soft_delete, last_sync
 		FROM pdrd.sdm_anggota_litabmas
 		WHERE id_litabmas = @p1 AND soft_delete = 0
@@ -259,7 +272,17 @@ func (r *repository) GetAnggotaSDMByLitabmas(idLitabmas string) ([]*AnggotaSDMLi
 		return nil, fmt.Errorf("failed to get anggota sdm: %w", err)
 	}
 
-	return result, nil
+	// Filter out records with invalid UUIDs
+	validResult := make([]*AnggotaSDMLitabmas, 0, len(result))
+	for _, ang := range result {
+		if isValidUUID(ang.IDLitabmas) && isValidUUID(ang.IDSDM) {
+			validResult = append(validResult, ang)
+		} else {
+			log.Printf("⚠️ Skipping anggota with invalid UUID - id_litabmas: %s, id_sdm: %s", ang.IDLitabmas, ang.IDSDM)
+		}
+	}
+
+	return validResult, nil
 }
 
 // GetAnggotaPDByLitabmas retrieves all mahasiswa anggota for a litabmas
@@ -312,6 +335,16 @@ func (r *repository) MergeAnggotaSDM(idLitabmas string, anggotaList []*AnggotaSD
 	// Delete removed anggota (soft delete)
 	for key, ang := range existingMap {
 		if _, exists := newMap[key]; !exists {
+			// Validate UUIDs before delete operation
+			if !isValidUUID(ang.IDLitabmas) {
+				log.Printf("⚠️ Skipping delete - invalid id_litabmas UUID: %s", ang.IDLitabmas)
+				continue
+			}
+			if !isValidUUID(ang.IDSDM) {
+				log.Printf("⚠️ Skipping delete - invalid id_sdm UUID: %s", ang.IDSDM)
+				continue
+			}
+
 			deleteSQL := `
 				UPDATE pdrd.sdm_anggota_litabmas
 				SET soft_delete = 1, last_update = @p1
@@ -326,58 +359,57 @@ func (r *repository) MergeAnggotaSDM(idLitabmas string, anggotaList []*AnggotaSD
 		}
 	}
 
-	// Insert new or update existing
-	for key, ang := range newMap {
-		if _, exists := existingMap[key]; exists {
-			// UPDATE
-			updateSQL := `
-				UPDATE pdrd.sdm_anggota_litabmas SET
-					id_katgiat = @p1,
-					peran_litabmas = @p2,
-					stat_aktif = @p3,
-					last_update = @p4,
-					id_updater = @p5,
-					last_sync = @p6,
+	// Insert new or update existing using MERGE
+	for _, ang := range newMap {
+		// Check if id_sdm exists in pdrd.sdm table
+		var sdmExists bool
+		checkSDMSQL := `SELECT CASE WHEN EXISTS (
+			SELECT 1 FROM pdrd.sdm WHERE id_sdm = @p1 AND soft_delete = 0
+		) THEN 1 ELSE 0 END`
+
+		err := r.db.QueryRowContext(ctx, checkSDMSQL, ang.IDSDM).Scan(&sdmExists)
+		if err != nil {
+			log.Printf("⚠️ Failed to check id_sdm existence for %s: %v", ang.IDSDM, err)
+			continue
+		}
+
+		if !sdmExists {
+			log.Printf("⚠️ Skipping anggota sdm %s: id_sdm does not exist in pdrd.sdm table", ang.IDSDM)
+			continue
+		}
+
+		mergeSQL := `
+			MERGE INTO pdrd.sdm_anggota_litabmas AS target
+			USING (SELECT @p1 AS id_litabmas, @p2 AS id_sdm) AS source
+			ON target.id_litabmas = source.id_litabmas AND target.id_sdm = source.id_sdm
+			WHEN MATCHED THEN
+				UPDATE SET
+					id_katgiat = @p3,
+					peran_litabmas = @p4,
+					stat_aktif = @p5,
+					last_update = @p6,
+					id_updater = @p7,
+					last_sync = @p8,
 					soft_delete = 0
-				WHERE id_litabmas = @p7 AND id_sdm = @p8
-			`
-			_, err := r.db.ExecContext(ctx, updateSQL,
-				ang.IDKatgiat,
-				ang.PeranLitabmas,
-				ang.StatAktif,
-				ang.LastUpdate,
-				ang.IDUpdater,
-				ang.LastSync,
-				ang.IDLitabmas,
-				ang.IDSDM,
-			)
-			if err != nil {
-				log.Printf("⚠️ Failed to update anggota sdm %s: %v", ang.IDSDM, err)
-			}
-		} else {
-			// INSERT
-			insertSQL := `
-				INSERT INTO pdrd.sdm_anggota_litabmas (
-					id_litabmas, id_sdm, id_katgiat, peran_litabmas, stat_aktif,
-					create_date, id_creator, last_update, id_updater, soft_delete, last_sync
-				) VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11)
-			`
-			_, err := r.db.ExecContext(ctx, insertSQL,
-				ang.IDLitabmas,
-				ang.IDSDM,
-				ang.IDKatgiat,
-				ang.PeranLitabmas,
-				ang.StatAktif,
-				ang.CreateDate,
-				ang.IDCreator,
-				ang.LastUpdate,
-				ang.IDUpdater,
-				ang.SoftDelete,
-				ang.LastSync,
-			)
-			if err != nil {
-				log.Printf("⚠️ Failed to insert anggota sdm %s: %v", ang.IDSDM, err)
-			}
+			WHEN NOT MATCHED THEN
+				INSERT (id_litabmas, id_sdm, id_katgiat, peran_litabmas, stat_aktif,
+						create_date, id_creator, last_update, id_updater, soft_delete, last_sync)
+				VALUES (@p1, @p2, @p3, @p4, @p5, @p9, @p10, @p6, @p7, 0, @p8);
+		`
+		_, err = r.db.ExecContext(ctx, mergeSQL,
+			ang.IDLitabmas,
+			ang.IDSDM,
+			ang.IDKatgiat,
+			ang.PeranLitabmas,
+			ang.StatAktif,
+			ang.LastUpdate,
+			ang.IDUpdater,
+			ang.LastSync,
+			ang.CreateDate,
+			ang.IDCreator,
+		)
+		if err != nil {
+			log.Printf("⚠️ Failed to merge anggota sdm %s: %v", ang.IDSDM, err)
 		}
 	}
 
@@ -410,6 +442,12 @@ func (r *repository) MergeAnggotaPD(idLitabmas string, anggotaList []*AnggotaPDL
 	// Delete removed anggota (soft delete)
 	for key, ang := range existingMap {
 		if _, exists := newMap[key]; !exists {
+			// Validate UUID before delete operation
+			if !isValidUUID(ang.IDPDAngLitabmas) {
+				log.Printf("⚠️ Skipping delete - invalid id_pd_ang_litabmas UUID: %s", ang.IDPDAngLitabmas)
+				continue
+			}
+
 			deleteSQL := `
 				UPDATE pdrd.pd_anggota_litabmas
 				SET soft_delete = 1, last_update = @p1
@@ -627,6 +665,16 @@ func (r *repository) MergeDokumenLitabmas(idLitabmas string, dokList []*DokLitab
 	// Delete removed relations (soft delete)
 	for key, dk := range existingMap {
 		if _, exists := newMap[key]; !exists {
+			// Validate UUIDs before delete operation
+			if !isValidUUID(dk.IDLitabmas) {
+				log.Printf("⚠️ Skipping delete - invalid id_litabmas UUID: %s", dk.IDLitabmas)
+				continue
+			}
+			if !isValidUUID(dk.IDDok) {
+				log.Printf("⚠️ Skipping delete - invalid id_dok UUID: %s", dk.IDDok)
+				continue
+			}
+
 			deleteSQL := `
 				UPDATE dok.dok_litabmas
 				SET soft_delete = 1, last_update = @p1
@@ -639,27 +687,33 @@ func (r *repository) MergeDokumenLitabmas(idLitabmas string, dokList []*DokLitab
 		}
 	}
 
-	// Insert new relations (update not needed for relation table)
-	for key, dk := range newMap {
-		if _, exists := existingMap[key]; !exists {
-			insertSQL := `
-				INSERT INTO dok.dok_litabmas (
-					id_litabmas, id_dok, create_date, id_creator, last_update, id_updater, soft_delete, last_sync
-				) VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8)
-			`
-			_, err := r.db.ExecContext(ctx, insertSQL,
-				dk.IDLitabmas,
-				dk.IDDok,
-				dk.CreateDate,
-				dk.IDCreator,
-				dk.LastUpdate,
-				dk.IDUpdater,
-				dk.SoftDelete,
-				dk.LastSync,
-			)
-			if err != nil {
-				log.Printf("⚠️ Failed to insert dok_litabmas %s: %v", dk.IDDok, err)
-			}
+	// Insert new relations using MERGE (handles soft_delete = 1 records)
+	for _, dk := range newMap {
+		mergeSQL := `
+			MERGE INTO dok.dok_litabmas AS target
+			USING (SELECT @p1 AS id_litabmas, @p2 AS id_dok) AS source
+			ON target.id_litabmas = source.id_litabmas AND target.id_dok = source.id_dok
+			WHEN MATCHED THEN
+				UPDATE SET
+					last_update = @p3,
+					id_updater = @p4,
+					last_sync = @p5,
+					soft_delete = 0
+			WHEN NOT MATCHED THEN
+				INSERT (id_litabmas, id_dok, create_date, id_creator, last_update, id_updater, soft_delete, last_sync)
+				VALUES (@p1, @p2, @p6, @p7, @p3, @p4, 0, @p5);
+		`
+		_, err := r.db.ExecContext(ctx, mergeSQL,
+			dk.IDLitabmas,
+			dk.IDDok,
+			dk.LastUpdate,
+			dk.IDUpdater,
+			dk.LastSync,
+			dk.CreateDate,
+			dk.IDCreator,
+		)
+		if err != nil {
+			log.Printf("⚠️ Failed to merge dok_litabmas %s: %v", dk.IDDok, err)
 		}
 	}
 
@@ -825,7 +879,14 @@ func (r *repository) getLitabmasList(page, limit int, search string, jnsLitabmas
 			CONVERT(VARCHAR(36), l.id_litabmas) as id_litabmas,
 			l.judul_litabmas, l.id_thn_kegiatan,
 			l.dana_dikti, l.dana_pt, l.dana_institusi_lain,
-			l.jns_litabmas, l.stat_aktif, l.last_sync
+			l.jns_litabmas, l.stat_aktif, l.last_sync,
+			(
+				SELECT TOP 1 CONVERT(VARCHAR(36), sal.id_sdm)
+				FROM pdrd.sdm_anggota_litabmas sal WITH (NOLOCK)
+				WHERE sal.id_litabmas = l.id_litabmas
+				AND sal.peran_litabmas = 'K'
+				AND sal.soft_delete = 0
+			) as id_sdm_ketua
 		FROM pdrd.litabmas l
 		%s
 		%s
@@ -939,4 +1000,66 @@ func (r *repository) getAnggotaInfoByLitabmas(idLitabmas string) ([]*AnggotaLita
 
 	log.Printf("✅ Total anggota for %s: %d", idLitabmas, len(result))
 	return result, nil
+}
+
+// GetAllIDSDMWithLitabmas retrieves all unique id_sdm that have litabmas (penelitian or pengabdian)
+func (r *repository) GetAllIDSDMWithLitabmas(jnsLitabmas string) ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	log.Printf("🔍 Getting all id_sdm with jns_litabmas: %s", jnsLitabmas)
+
+	query := `
+		SELECT DISTINCT CONVERT(VARCHAR(36), sal.id_sdm) as id_sdm
+		FROM pdrd.sdm_anggota_litabmas sal WITH (NOLOCK)
+		INNER JOIN pdrd.litabmas l WITH (NOLOCK) ON l.id_litabmas = sal.id_litabmas
+		WHERE l.jns_litabmas = @p1
+		AND l.soft_delete = 0
+		AND sal.soft_delete = 0
+		ORDER BY id_sdm
+	`
+
+	var idSDMList []string
+	err := r.db.SelectContext(ctx, &idSDMList, query, jnsLitabmas)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get id_sdm list: %w", err)
+	}
+
+	log.Printf("✅ Found %d unique id_sdm with jns_litabmas=%s", len(idSDMList), jnsLitabmas)
+	return idSDMList, nil
+}
+
+// GetJenisDokumenMap retrieves mapping of jenis dokumen name to id_jns_dok
+func (r *repository) GetJenisDokumenMap() (map[string]int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	query := `
+		SELECT id_jns_dok, nm_jns_dok
+		FROM ref.jns_dokumen WITH (NOLOCK)
+		WHERE soft_delete = 0
+		ORDER BY id_jns_dok
+	`
+
+	type JenisDok struct {
+		IDJnsDok  int    `db:"id_jns_dok"`
+		NmJnsDok  string `db:"nm_jns_dok"`
+	}
+
+	var jenisDokList []JenisDok
+	err := r.db.SelectContext(ctx, &jenisDokList, query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get jenis dokumen: %w", err)
+	}
+
+	// Create map from name to ID (case-insensitive)
+	jenisDokMap := make(map[string]int)
+	for _, jd := range jenisDokList {
+		// Store both original case and lowercase for flexibility
+		jenisDokMap[jd.NmJnsDok] = jd.IDJnsDok
+		jenisDokMap[strings.ToLower(jd.NmJnsDok)] = jd.IDJnsDok
+	}
+
+	log.Printf("✅ Loaded %d jenis dokumen types", len(jenisDokList))
+	return jenisDokMap, nil
 }

@@ -65,6 +65,13 @@ RUN chown -R www-data:www-data /var/www \
     && chmod -R 755 /var/www/storage \
     && chmod -R 755 /var/www/bootstrap/cache
 
+# Configure PHP-FPM pool to increase max_children
+RUN echo "pm = dynamic" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.max_children = 20" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.start_servers = 5" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.min_spare_servers = 3" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.max_spare_servers = 10" >> /usr/local/etc/php-fpm.d/www.conf
+
 # Expose port 9000 for PHP-FPM
 EXPOSE 9000
 

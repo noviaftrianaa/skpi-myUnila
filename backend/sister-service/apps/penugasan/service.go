@@ -51,26 +51,27 @@ func (s *service) SyncPenugasanByIDSDM(idSDM string, syncedBy string) (*BatchPen
 	log.Printf("📋 Fetching list of penugasan from Sister API...")
 	rawList, err := s.sisterAPI.GetPenugasanByIDSDM(idSDM)
 	if err != nil {
-		s.logSyncResult("Penugasan (by ID SDM)", idSDM, "manual", syncedBy, 0, startTime, err)
+		s.logSyncResult("Penugasan", "penugasan", "by_dosen", syncedBy, 0, 0, 0, startTime, err)
 		return nil, fmt.Errorf("failed to fetch penugasan list: %w", err)
 	}
 
 	// Parse list response
 	var penugasanList []SisterPenugasanListItem
 	if err := json.Unmarshal(rawList, &penugasanList); err != nil {
-		s.logSyncResult("Penugasan (by ID SDM)", idSDM, "manual", syncedBy, 0, startTime, err)
+		s.logSyncResult("Penugasan", "penugasan", "by_dosen", syncedBy, 0, 0, 0, startTime, err)
 		return nil, fmt.Errorf("failed to parse penugasan list: %w", err)
 	}
 
-	log.Printf("✅ Found %d penugasan to sync", len(penugasanList))
+	totalPenugasan := len(penugasanList)
+	log.Printf("✅ Found %d penugasan to sync", totalPenugasan)
 
 	// Process each penugasan
-	results := make([]PenugasanSyncResult, 0, len(penugasanList))
+	results := make([]PenugasanSyncResult, 0, totalPenugasan)
 	successCount := 0
 	failedCount := 0
 
 	for _, item := range penugasanList {
-		result := s.processPenugasan(item.ID, idSDM, syncedBy)
+		result := s.processPenugasan(item.ID, idSDM)
 		results = append(results, result)
 
 		if result.Success {
@@ -87,9 +88,9 @@ func (s *service) SyncPenugasanByIDSDM(idSDM string, syncedBy string) (*BatchPen
 	// Log the sync result
 	var syncErr error
 	if failedCount > 0 {
-		syncErr = fmt.Errorf("%d of %d penugasan failed to sync", failedCount, len(penugasanList))
+		syncErr = fmt.Errorf("%d of %d penugasan failed to sync", failedCount, totalPenugasan)
 	}
-	s.logSyncResult("Penugasan (by ID SDM)", idSDM, "manual", syncedBy, successCount, startTime, syncErr)
+	s.logSyncResult("Penugasan", "penugasan", "by_dosen", syncedBy, totalPenugasan, successCount, failedCount, startTime, syncErr)
 
 	return &BatchPenugasanSyncResult{
 		TotalProcessed: len(results),
@@ -101,8 +102,8 @@ func (s *service) SyncPenugasanByIDSDM(idSDM string, syncedBy string) (*BatchPen
 	}, nil
 }
 
-// processPenugasan processes a single penugasan sync
-func (s *service) processPenugasan(idRegPTK string, idSDM string, syncedBy string) PenugasanSyncResult {
+// processPenugasan processes a single penugasan sync (without individual logging)
+func (s *service) processPenugasan(idRegPTK string, idSDM string) PenugasanSyncResult {
 	// Fetch detail from Sister API
 	rawDetail, err := s.sisterAPI.GetPenugasanDetail(idRegPTK)
 	if err != nil {
@@ -126,7 +127,7 @@ func (s *service) processPenugasan(idRegPTK string, idSDM string, syncedBy strin
 	}
 
 	// Transform to domain entity
-	penugasan := s.transformToPenugasan(detail, syncedBy)
+	penugasan := s.transformToPenugasan(detail)
 
 	// Upsert to database
 	if err := s.repo.UpsertPenugasan(&penugasan); err != nil {
@@ -139,7 +140,7 @@ func (s *service) processPenugasan(idRegPTK string, idSDM string, syncedBy strin
 	}
 
 	// Process keaktifan data
-	if err := s.processKeaktifan(idRegPTK, detail.Keaktifan, syncedBy); err != nil {
+	if err := s.processKeaktifan(idRegPTK, detail.Keaktifan); err != nil {
 		return PenugasanSyncResult{
 			IDRegPTK: idRegPTK,
 			IDSDM:    idSDM,
@@ -156,7 +157,7 @@ func (s *service) processPenugasan(idRegPTK string, idSDM string, syncedBy strin
 }
 
 // transformToPenugasan transforms Sister API response to domain entity
-func (s *service) transformToPenugasan(detail SisterPenugasanDetail, syncedBy string) Penugasan {
+func (s *service) transformToPenugasan(detail SisterPenugasanDetail) Penugasan {
 	now := time.Now()
 
 	// Parse dates
@@ -189,13 +190,19 @@ func (s *service) transformToPenugasan(detail SisterPenugasanDetail, syncedBy st
 		noSrtTgs = detail.SuratTugas
 	}
 
+	// Validate id_sms (unit kerja) - handle empty string
+	var idSMS *string
+	if detail.IDUnitKerja != "" {
+		idSMS = &detail.IDUnitKerja
+	}
+
 	return Penugasan{
 		IDRegPTK:      detail.ID,
 		IDSDM:         detail.IDSDM,
 		IDSP:          detail.IDPerguruanTinggi,
 		IDStatPegawai: detail.IDStatusKepegawaian,
 		IDIkatanKerja: detail.IDIkatanKerja,
-		IDSMS:         detail.IDUnitKerja,
+		IDSMS:         idSMS,
 		IDJnsKeluar:   detail.IDJenisKeluar,
 		NoSrtTgs:      noSrtTgs,
 		TglSrtTgs:     tglSrtTgs,
@@ -213,7 +220,7 @@ func (s *service) transformToPenugasan(detail SisterPenugasanDetail, syncedBy st
 }
 
 // processKeaktifan processes keaktifan data (DELETE old + INSERT new)
-func (s *service) processKeaktifan(idRegPTK string, keaktifanList []SisterPenugasanKeaktifan, syncedBy string) error {
+func (s *service) processKeaktifan(idRegPTK string, keaktifanList []SisterPenugasanKeaktifan) error {
 	// DELETE existing keaktifan records for this penugasan
 	if err := s.repo.DeleteKeaktifanByIDRegPTK(idRegPTK); err != nil {
 		return fmt.Errorf("failed to delete existing keaktifan: %w", err)
@@ -238,6 +245,7 @@ func (s *service) processKeaktifan(idRegPTK string, keaktifanList []SisterPenuga
 			LastUpdate:     now,
 			IDUpdater:      nil,
 			SoftDelete:     0,
+			LastSync:       &now,
 		}
 
 		if err := s.repo.InsertKeaktifan(&keaktifan); err != nil {
@@ -275,45 +283,44 @@ func (s *service) GetPenugasanStats() (*PenugasanStats, error) {
 }
 
 // logSyncResult logs the sync operation to the database
-func (s *service) logSyncResult(endpointName, endpointKey, syncType, syncedBy string, totalRecords int, startTime time.Time, err error) {
+func (s *service) logSyncResult(endpointName, endpointKey, syncType, syncedBy string, totalRecords, successCount, failedCount int, startTime time.Time, err error) {
 	duration := time.Since(startTime)
-	durationMs := int(duration.Milliseconds())
 
-	// If synced by scheduler, mark as scheduled sync
+	// Auto-detect sync type based on syncedBy value
 	if syncedBy == "scheduler" {
 		syncType = "scheduled"
 	}
 
 	var errorMessage, errorDetails *string
 	status := "success"
+
 	if err != nil {
 		status = "failed"
 		errMsg := err.Error()
 		errorMessage = &errMsg
 	}
 
-	// Create sync log request
+	durationMs := int(duration.Milliseconds())
 	req := &appLogger.CreateSyncLogRequest{
 		EndpointName:  endpointName,
 		EndpointKey:   endpointKey,
 		SyncType:      syncType,
 		Status:        status,
 		TotalRecords:  totalRecords,
-		InsertedCount: totalRecords,
+		InsertedCount: successCount,
 		UpdatedCount:  0,
-		FailedCount:   0,
+		FailedCount:   failedCount,
 		DurationMs:    &durationMs,
 		SyncedBy:      syncedBy,
 		ErrorMessage:  errorMessage,
 		ErrorDetails:  errorDetails,
 	}
 
-	if status == "failed" {
+	if status == "failed" && totalRecords == 0 {
 		req.FailedCount = 1
 		req.InsertedCount = 0
 	}
 
-	// Log to database (ignore errors to not break sync flow)
 	_, logErr := s.loggerService.LogSync(context.Background(), req)
 	if logErr != nil {
 		log.Printf("⚠️  Failed to log sync result: %v", logErr)

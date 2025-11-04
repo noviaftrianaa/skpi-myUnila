@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use Illuminate\Support\Facades\DB;
+use App\Helpers\TahunAjaranHelper;
 
 class DosenSebaranRepository
 {
@@ -15,6 +16,7 @@ class DosenSebaranRepository
     {
         // Get active period
         $activePeriod = $this->getActivePeriod();
+        $tahunAjaran = TahunAjaranHelper::getActiveTahunAjaran();
 
         // Use two separate queries then combine (same pattern as prodi)
         // Query 1: Get dosen per fakultas
@@ -39,7 +41,7 @@ class DosenSebaranRepository
                 ON keaktifan.id_reg_ptk = reg.id_reg_ptk
                 AND keaktifan.soft_delete = 0
                 AND keaktifan.a_sp_homebase = 1
-                AND keaktifan.id_thn_ajaran = '2025'
+                AND keaktifan.id_thn_ajaran = ?
             WHERE reg.soft_delete = 0
                 AND reg.id_jns_keluar IS NULL
             GROUP BY fak.id_sms, fak.nm_lemb
@@ -75,7 +77,7 @@ class DosenSebaranRepository
             GROUP BY fak.id_sms
         ";
 
-        $dosenData = DB::connection('sqlsrv')->select($sqlDosen);
+        $dosenData = DB::connection('sqlsrv')->select($sqlDosen, [$tahunAjaran]);
         $mahasiswaData = DB::connection('sqlsrv')->select($sqlMahasiswa, [$activePeriod]);
 
         // Create map of mahasiswa counts
@@ -141,6 +143,7 @@ class DosenSebaranRepository
     {
         // Get active period
         $activePeriod = $this->getActivePeriod();
+        $tahunAjaran = TahunAjaranHelper::getActiveTahunAjaran();
 
         // Use two separate queries then combine results
         // Query 1: Get dosen per prodi
@@ -166,7 +169,7 @@ class DosenSebaranRepository
                 ON keaktifan.id_reg_ptk = reg.id_reg_ptk
                 AND keaktifan.soft_delete = 0
                 AND keaktifan.a_sp_homebase = 1
-                AND keaktifan.id_thn_ajaran = '2025'
+                AND keaktifan.id_thn_ajaran = ?
             WHERE reg.soft_delete = 0
                 AND reg.id_jns_keluar IS NULL
                 AND sms.id_fak_unila = ?
@@ -201,7 +204,7 @@ class DosenSebaranRepository
             GROUP BY sms.id_sms
         ";
 
-        $dosenData = DB::connection('sqlsrv')->select($sqlDosen, [$idFakultas]);
+        $dosenData = DB::connection('sqlsrv')->select($sqlDosen, [$tahunAjaran, $idFakultas]);
         $mahasiswaData = DB::connection('sqlsrv')->select($sqlMahasiswa, [$activePeriod, $idFakultas]);
 
         // Create map of mahasiswa counts

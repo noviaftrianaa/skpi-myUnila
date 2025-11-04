@@ -78,19 +78,44 @@ export default function PengabdianManagementPage() {
     setSyncProgress(0);
 
     try {
-      // Show info message that sync all is not available
-      toast.error("Sync all pengabdian belum tersedia. Silakan gunakan sync per dosen.");
-      setSyncStatus("error");
+      // Simulate progress
+      const progressInterval = setInterval(() => {
+        setSyncProgress((prev) => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 300);
 
-      setTimeout(() => {
+      // Call the batch sync API
+      const username = user?.username || user?.name || "system";
+      const result = await sisterPengabdianService.syncFromSister(username);
+
+      clearInterval(progressInterval);
+      setSyncProgress(100);
+
+      // Success!
+      setSyncStatus("success");
+      setSyncResult({
+        totalRecords: result.total_litabmas,
+        message: `${result.total_success} dosen berhasil, ${result.total_failed} gagal`,
+      });
+      toast.success(`Sinkronisasi berhasil! ${result.total_litabmas} pengabdian dari ${result.total_success} dosen`);
+
+      // Refresh stats and close modal after 2 seconds
+      setTimeout(async () => {
+        await fetchStats();
         setShowProgressModal(false);
         setSyncProgress(0);
         setSyncStatus("idle");
+        setSyncResult(null);
       }, 2000);
     } catch (error) {
       console.error("Error syncing pengabdian:", error);
       setSyncStatus("error");
-      toast.error("Gagal melakukan sinkronisasi");
+      toast.error("Gagal melakukan sinkronisasi pengabdian");
       setTimeout(() => {
         setShowProgressModal(false);
         setSyncProgress(0);
@@ -329,15 +354,15 @@ export default function PengabdianManagementPage() {
               </ModalHeader>
               <ModalBody className="py-6">
                 <div className="space-y-4">
-                  <div className="p-4 rounded-xl bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800">
+                  <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
                     <div className="flex items-start gap-3">
-                      <FiAlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" />
+                      <FiAlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                       <div>
                         <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
-                          Sinkronisasi batch untuk semua pengabdian belum tersedia.
+                          Sistem akan melakukan sinkronisasi semua data pengabdian dosen dari SISTER API.
                         </p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Silakan gunakan menu <strong>Dosen</strong> untuk melakukan sync data pengabdian per dosen.
+                          Proses ini akan berjalan di background menggunakan 3 worker concurrent untuk performa optimal.
                         </p>
                       </div>
                     </div>
@@ -357,7 +382,15 @@ export default function PengabdianManagementPage() {
                   onPress={onClose}
                   className="text-gray-600 hover:bg-gray-100"
                 >
-                  Tutup
+                  Batal
+                </Button>
+                <Button
+                  color="primary"
+                  onPress={handleConfirmSync}
+                  startContent={<MdSync className="w-5 h-5" />}
+                  className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold"
+                >
+                  Mulai Sinkronisasi
                 </Button>
               </ModalFooter>
             </>
@@ -402,23 +435,51 @@ export default function PengabdianManagementPage() {
                   {syncStatus === "success"
                     ? "Sinkronisasi Berhasil!"
                     : syncStatus === "error"
-                    ? "Fitur Belum Tersedia"
+                    ? "Sinkronisasi Gagal"
                     : "Sedang Melakukan Sinkronisasi..."}
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                  {syncStatus === "syncing" && "Mohon tunggu sebentar"}
-                  {syncStatus === "success" && syncResult && `${syncResult.totalRecords} data berhasil disinkronkan`}
-                  {syncStatus === "error" && "Gunakan menu Dosen untuk sync"}
+                  {syncStatus === "syncing" && "Mohon tunggu, proses sedang berjalan..."}
+                  {syncStatus === "success" && syncResult && `${syncResult.totalRecords} pengabdian berhasil disinkronkan`}
+                  {syncStatus === "error" && "Terjadi kesalahan saat sinkronisasi"}
                 </p>
               </div>
             </div>
           </ModalHeader>
           <ModalBody className="py-6">
             <div className="space-y-4">
+              {syncStatus === "syncing" && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      Progress
+                    </span>
+                    <span className="text-sm font-bold text-purple-600 dark:text-purple-400">
+                      {syncProgress}%
+                    </span>
+                  </div>
+                  <Progress
+                    size="md"
+                    value={syncProgress}
+                    color="primary"
+                    className="max-w-full"
+                  />
+                  <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
+                    Sedang memproses data pengabdian dosen...
+                  </p>
+                </div>
+              )}
+              {syncStatus === "success" && syncResult && (
+                <div className="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                  <p className="text-sm text-green-700 dark:text-green-300 text-center font-medium">
+                    {syncResult.message}
+                  </p>
+                </div>
+              )}
               {syncStatus === "error" && (
-                <div className="p-4 rounded-xl bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800">
-                  <p className="text-sm text-orange-700 dark:text-orange-300">
-                    Sync batch untuk semua pengabdian belum tersedia. Silakan gunakan menu Dosen untuk melakukan sync pengabdian per dosen.
+                <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                  <p className="text-sm text-red-700 dark:text-red-300 text-center">
+                    Gagal melakukan sinkronisasi. Silakan coba lagi atau hubungi administrator.
                   </p>
                 </div>
               )}

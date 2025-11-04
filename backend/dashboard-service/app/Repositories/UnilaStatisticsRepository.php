@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use Illuminate\Support\Facades\DB;
+use App\Helpers\TahunAjaranHelper;
 
 class UnilaStatisticsRepository
 {
@@ -132,6 +133,8 @@ class UnilaStatisticsRepository
     private function getTotalDosen(string $idSp): int
     {
         // Count dosen yang terdaftar di prodi aktif (D% atau S%), hindari double count
+        $tahunAjaran = TahunAjaranHelper::getActiveTahunAjaran();
+
         $sql = "
             SELECT COUNT(DISTINCT ptk.id_sdm) AS total
             FROM pdrd.reg_ptk AS ptk
@@ -151,13 +154,13 @@ class UnilaStatisticsRepository
                 ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
                 AND keaktifan.soft_delete = 0
                 AND keaktifan.a_sp_homebase = 1
-                AND keaktifan.id_thn_ajaran = '2025'
+                AND keaktifan.id_thn_ajaran = ?
             WHERE ptk.soft_delete = 0
                 AND ptk.id_jns_keluar IS NULL
                 AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
         ";
 
-        $result = DB::connection('sqlsrv')->select($sql, [$idSp]);
+        $result = DB::connection('sqlsrv')->select($sql, [$tahunAjaran, $idSp]);
 
         return (int) ($result[0]->total ?? 0);
     }
@@ -284,6 +287,8 @@ class UnilaStatisticsRepository
         // Get guru besar from rwy_fungsional table (latest jabatan fungsional per dosen)
         // Use exact match 'Profesor' for consistency with DosenRepository
         try {
+            $tahunAjaran = TahunAjaranHelper::getActiveTahunAjaran();
+
             $sql = "
                 SELECT COUNT(DISTINCT sdm.id_sdm) AS total
                 FROM pdrd.sdm AS sdm
@@ -296,7 +301,7 @@ class UnilaStatisticsRepository
                     ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
                     AND keaktifan.soft_delete = 0
                     AND keaktifan.a_sp_homebase = 1
-                    AND keaktifan.id_thn_ajaran = '2025'
+                    AND keaktifan.id_thn_ajaran = ?
                 INNER JOIN pdrd.sms AS sms
                     ON sms.id_sms = ptk.id_sms
                     AND sms.soft_delete = 0
@@ -322,7 +327,7 @@ class UnilaStatisticsRepository
                     AND jabfung.nm_jabfung = 'Profesor'
             ";
 
-            $result = DB::connection('sqlsrv')->select($sql, [$idSp]);
+            $result = DB::connection('sqlsrv')->select($sql, [$idSp, $tahunAjaran]);
 
             return (int) ($result[0]->total ?? 0);
         } catch (\Exception $e) {

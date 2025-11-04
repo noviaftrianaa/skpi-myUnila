@@ -46,7 +46,7 @@ export const sisterIntegratorMenuConfig: MenuItem[] = [
         roles: ["developer"],
       },
       {
-        title: "Penugasan/Penempatan",
+        title: "Penugasan PTK",
         href: "/dashboard/sister-integrator/pdrd/penugasan",
         roles: ["developer"],
       },

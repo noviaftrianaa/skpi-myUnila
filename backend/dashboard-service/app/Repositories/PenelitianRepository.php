@@ -66,7 +66,7 @@ class PenelitianRepository
     }
 
     /**
-     * Get total penelitian count (excluding pengabdian)
+     * Get total penelitian count (including pengabdian for 5 years)
      *
      * @return int
      */
@@ -98,7 +98,10 @@ class PenelitianRepository
                 AND didik.expired_date IS NULL
                 AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
             WHERE l.soft_delete = 0
-                AND l.jns_litabmas = 'L'
+                AND l.jns_litabmas IN ('L', 'M') -- Include both penelitian and pengabdian
+                AND l.id_thn_kegiatan IS NOT NULL
+                AND l.id_thn_kegiatan >= YEAR(GETDATE()) - 5
+                AND l.id_thn_kegiatan <= YEAR(GETDATE())
         ";
 
         $result = DB::connection('sqlsrv')->select($sql, [$unilaIdSp]);
@@ -141,7 +144,7 @@ class PenelitianRepository
                 AND didik.expired_date IS NULL
                 AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
             WHERE l.soft_delete = 0
-                AND l.jns_litabmas = 'L'
+                AND l.jns_litabmas IN ('L', 'M') -- Include both penelitian and pengabdian
                 AND l.id_thn_kegiatan IS NOT NULL
                 AND l.id_thn_kegiatan >= YEAR(GETDATE()) - 5
                 AND l.id_thn_kegiatan <= YEAR(GETDATE())
@@ -175,6 +178,37 @@ class PenelitianRepository
         $unilaIdSp = strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515'));
 
         $sql = "
+            -- First get distinct penelitian/pengabdian IDs that involve Unila dosen
+            WITH UnilaPenelitian AS (
+                SELECT DISTINCT l.id_litabmas
+                FROM pdrd.litabmas AS l
+                INNER JOIN pdrd.sdm_anggota_litabmas AS sal
+                    ON sal.id_litabmas = l.id_litabmas
+                    AND sal.soft_delete = 0
+                INNER JOIN pdrd.sdm AS sdm
+                    ON sdm.id_sdm = sal.id_sdm
+                    AND sdm.soft_delete = 0
+                    AND sdm.id_jns_sdm = '12'
+                INNER JOIN pdrd.reg_ptk AS ptk
+                    ON ptk.id_sdm = sdm.id_sdm
+                    AND ptk.soft_delete = 0
+                    AND ptk.id_jns_keluar IS NULL
+                    AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+                INNER JOIN pdrd.sms AS sms
+                    ON sms.id_sms = ptk.id_sms
+                    AND sms.soft_delete = 0
+                    AND sms.stat_prodi = 'A'
+                INNER JOIN ref.jenjang_pendidikan AS didik
+                    ON didik.id_jenj_didik = sms.id_jenj_didik
+                    AND didik.expired_date IS NULL
+                    AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
+                WHERE l.soft_delete = 0
+                    AND l.jns_litabmas IN ('L', 'M')
+                    AND l.id_thn_kegiatan IS NOT NULL
+                    AND l.id_thn_kegiatan >= ?
+                    AND l.id_thn_kegiatan <= ?
+            )
+            -- Then sum the funding without duplication
             SELECT
                 l.id_thn_kegiatan AS tahun,
                 SUM(ISNULL(l.dana_dikti, 0)) AS dana_dikti,
@@ -182,31 +216,8 @@ class PenelitianRepository
                 SUM(ISNULL(l.dana_institusi_lain, 0)) AS dana_institusi_lain,
                 SUM(ISNULL(l.dana_dikti, 0) + ISNULL(l.dana_pt, 0) + ISNULL(l.dana_institusi_lain, 0)) AS total_dana
             FROM pdrd.litabmas AS l
-            INNER JOIN pdrd.sdm_anggota_litabmas AS sal
-                ON sal.id_litabmas = l.id_litabmas
-                AND sal.soft_delete = 0
-            INNER JOIN pdrd.sdm AS sdm
-                ON sdm.id_sdm = sal.id_sdm
-                AND sdm.soft_delete = 0
-                AND sdm.id_jns_sdm = '12'
-            INNER JOIN pdrd.reg_ptk AS ptk
-                ON ptk.id_sdm = sdm.id_sdm
-                AND ptk.soft_delete = 0
-                AND ptk.id_jns_keluar IS NULL
-                AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
-            INNER JOIN pdrd.sms AS sms
-                ON sms.id_sms = ptk.id_sms
-                AND sms.soft_delete = 0
-                AND sms.stat_prodi = 'A'
-            INNER JOIN ref.jenjang_pendidikan AS didik
-                ON didik.id_jenj_didik = sms.id_jenj_didik
-                AND didik.expired_date IS NULL
-                AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
-            WHERE l.soft_delete = 0
-                AND l.jns_litabmas = 'L'
-                AND l.id_thn_kegiatan IS NOT NULL
-                AND l.id_thn_kegiatan >= ?
-                AND l.id_thn_kegiatan <= ?
+            INNER JOIN UnilaPenelitian AS up
+                ON up.id_litabmas = l.id_litabmas
             GROUP BY l.id_thn_kegiatan
             ORDER BY tahun DESC
         ";
@@ -267,7 +278,7 @@ class PenelitianRepository
             LEFT JOIN ref.kelompok_bidang AS kb
                 ON kb.id_kel_bidang = l.id_kel_bidang
             WHERE l.soft_delete = 0
-                AND l.jns_litabmas = 'L'
+                AND l.jns_litabmas IN ('L', 'M') -- Include both penelitian and pengabdian
                 AND l.id_thn_kegiatan IS NOT NULL
                 AND l.id_thn_kegiatan >= ?
                 AND l.id_thn_kegiatan <= ?
@@ -340,7 +351,7 @@ class PenelitianRepository
                 ON fak.id_sms = sms_prodi.id_fak_unila
                 AND fak.soft_delete = 0
             WHERE l.soft_delete = 0
-                AND l.jns_litabmas = 'L' -- L = Penelitian
+                AND l.jns_litabmas IN ('L', 'M') -- Include both penelitian and pengabdian
                 AND l.id_thn_kegiatan IS NOT NULL
                 AND l.id_thn_kegiatan >= ?
                 AND l.id_thn_kegiatan <= ?

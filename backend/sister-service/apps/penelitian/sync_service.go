@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"sync"
 	"time"
 
 	"sister-service/apps/monitoring"
@@ -17,10 +18,18 @@ const SYSTEM_UUID = "00000000-0000-0000-0000-000000000001"
 
 // Retry configuration
 const (
-	MaxRetries     = 3              // Maximum number of retry attempts
+	MaxRetries     = 3               // Maximum number of retry attempts
 	InitialBackoff = 1 * time.Second // Initial backoff duration
 	MaxBackoff     = 10 * time.Second // Maximum backoff duration
 )
+
+// workerResult represents the result of syncing one dosen
+type workerResult struct {
+	idSDM   string
+	success int
+	failed  int
+	err     error
+}
 
 // SyncPenelitianByIDSDM syncs all penelitian for a dosen from Sister API
 func (s *service) SyncPenelitianByIDSDM(idSDM string, syncedBy string) (*BatchPenelitianSyncResult, error) {
@@ -149,8 +158,125 @@ func (s *service) SyncPenelitianByIDSDM(idSDM string, syncedBy string) (*BatchPe
 	}, nil
 }
 
+// SyncPengabdianByIDSDM syncs all pengabdian for a dosen from Sister API
+func (s *service) SyncPengabdianByIDSDM(idSDM string, syncedBy string) (*BatchPenelitianSyncResult, error) {
+	startTime := time.Now()
+
+	log.Printf("🚀 Starting pengabdian sync for id_sdm: %s (synced_by: %s)", idSDM, syncedBy)
+
+	// Initialize monitoring
+	monitorSvc := monitoring.GetInstance()
+	syncID := monitorSvc.StartSync(
+		"Sync Pengabdian",
+		"pengabdian",
+		"by_dosen",
+		syncedBy,
+		0, // Will be updated after we know total count
+	)
+
+	// Step 1: Get list of pengabdian from Sister API
+	log.Printf("📋 Fetching list of pengabdian from Sister API...")
+	rawData, err := s.sisterAPI.GetPengabdianByIDSDM(idSDM)
+	if err != nil {
+		syncErr := fmt.Errorf("failed to fetch pengabdian list: %w", err)
+		monitorSvc.FailSync(syncID, syncErr.Error())
+		s.logSyncResult("Pengabdian", "pengabdian", "by_dosen", syncedBy, 0, 0, 0, startTime, syncErr)
+		return nil, syncErr
+	}
+
+	var pengabdianList []SisterPenelitianListItem
+	if err := json.Unmarshal(rawData, &pengabdianList); err != nil {
+		parseErr := fmt.Errorf("failed to parse pengabdian list: %w", err)
+		monitorSvc.FailSync(syncID, parseErr.Error())
+		s.logSyncResult("Pengabdian", "pengabdian", "by_dosen", syncedBy, 0, 0, 0, startTime, parseErr)
+		return nil, parseErr
+	}
+
+	totalPengabdian := len(pengabdianList)
+	log.Printf("✅ Found %d pengabdian to sync", totalPengabdian)
+
+	// Update monitoring with actual total records
+	monitorSvc.UpdateTotalRecords(syncID, totalPengabdian)
+	monitorSvc.UpdateProgress(syncID, 0, fmt.Sprintf("Found %d pengabdian to sync", totalPengabdian))
+
+	if totalPengabdian == 0 {
+		log.Printf("✅ No pengabdian found for id_sdm: %s", idSDM)
+		monitorSvc.CompleteSync(syncID, "No pengabdian to sync")
+		s.logSyncResult("Pengabdian", "pengabdian", "by_dosen", syncedBy, 0, 0, 0, startTime, nil)
+		return &BatchPenelitianSyncResult{
+			TotalProcessed: 0,
+			TotalSuccess:   0,
+			TotalFailed:    0,
+			Duration:       time.Since(startTime).String(),
+			Results:        []PenelitianSyncResult{},
+			SyncedBy:       syncedBy,
+		}, nil
+	}
+
+	// Step 2: Process each pengabdian
+	var allResults []PenelitianSyncResult
+	successCount := 0
+	failedCount := 0
+
+	for idx, pengabdian := range pengabdianList {
+		result := s.syncSinglePenelitian(pengabdian.ID, idSDM, "M") // M = Pengabdian
+		allResults = append(allResults, result)
+
+		if result.Success {
+			successCount++
+		} else {
+			failedCount++
+			log.Printf("❌ Failed to sync pengabdian %s: %s", pengabdian.ID, result.Error)
+		}
+
+		// Update progress every 10 items or on last item
+		if (idx+1)%10 == 0 || idx == totalPengabdian-1 {
+			monitorSvc.UpdateProgress(syncID, idx+1, fmt.Sprintf("Synced %d/%d pengabdian", idx+1, totalPengabdian))
+			log.Printf("📊 Progress: %d/%d pengabdian synced (Success: %d, Failed: %d)",
+				idx+1, totalPengabdian, successCount, failedCount)
+		}
+	}
+
+	duration := time.Since(startTime)
+
+	// Step 3: Log final result
+	log.Printf("🏁 Pengabdian sync completed in %s", duration)
+	log.Printf("📊 Total: %d | Success: %d | Failed: %d",
+		totalPengabdian, successCount, failedCount)
+
+	// Log to database
+	var syncErr error
+	if failedCount > 0 {
+		syncErr = fmt.Errorf("%d out of %d pengabdian failed to sync", failedCount, totalPengabdian)
+	}
+	s.logSyncResult("Pengabdian", "pengabdian", "by_dosen", syncedBy, totalPengabdian, successCount, failedCount, startTime, syncErr)
+
+	// Complete monitoring
+	if failedCount > 0 {
+		monitorSvc.FailSync(syncID, fmt.Sprintf("%d/%d pengabdian failed", failedCount, totalPengabdian))
+	} else {
+		monitorSvc.CompleteSync(syncID, fmt.Sprintf("Successfully synced %d pengabdian", successCount))
+	}
+
+	return &BatchPenelitianSyncResult{
+		TotalProcessed: len(allResults),
+		TotalSuccess:   successCount,
+		TotalFailed:    failedCount,
+		Duration:       duration.String(),
+		Results:        allResults,
+		SyncedBy:       syncedBy,
+	}, nil
+}
+
 // syncSinglePenelitian fetches detail and syncs a single penelitian
 func (s *service) syncSinglePenelitian(idLitabmas string, idSDM string, jnsLitabmas string) PenelitianSyncResult {
+	// Load jenis dokumen mapping
+	jenisDokumenMap, mapErr := s.repo.GetJenisDokumenMap()
+	if mapErr != nil {
+		log.Printf("⚠️ Failed to load jenis dokumen mapping: %v (will continue without mapping)", mapErr)
+		jenisDokumenMap = make(map[string]int) // Empty map as fallback
+	}
+
 	// Fetch detail from Sister API with retry mechanism
 	var rawData []byte
 
@@ -227,13 +353,35 @@ func (s *service) syncSinglePenelitian(idLitabmas string, idSDM string, jnsLitab
 	}
 
 	// Transform and sync dokumen
-	dokumenList, dokLitabmasList := s.transformDokumen(&detail)
+	dokumenList, dokLitabmasList := s.transformDokumen(&detail, jenisDokumenMap)
+
+	// Track successfully inserted dokumen IDs
+	successfulDokIDs := make(map[string]bool)
+
 	for _, dok := range dokumenList {
+		// Skip if id_jns_dok is NULL
+		if dok.IDJnsDok == nil {
+			log.Printf("⚠️ Skipping dokumen %s: id_jns_dok is NULL", dok.IDDok)
+			continue
+		}
+
 		if err := s.repo.UpsertDokumen(dok); err != nil {
 			log.Printf("⚠️ Failed to upsert dokumen %s: %v", dok.IDDok, err)
+		} else {
+			// Mark this dokumen as successfully inserted
+			successfulDokIDs[dok.IDDok] = true
 		}
 	}
-	if err := s.repo.MergeDokumenLitabmas(idLitabmas, dokLitabmasList); err != nil {
+
+	// Only sync relations for successfully inserted dokumen
+	validDokLitabmas := make([]*DokLitabmas, 0)
+	for _, dokLit := range dokLitabmasList {
+		if successfulDokIDs[dokLit.IDDok] {
+			validDokLitabmas = append(validDokLitabmas, dokLit)
+		}
+	}
+
+	if err := s.repo.MergeDokumenLitabmas(idLitabmas, validDokLitabmas); err != nil {
 		log.Printf("⚠️ Failed to merge dok_litabmas for %s: %v", idLitabmas, err)
 	}
 
@@ -417,15 +565,30 @@ func (s *service) transformAnggotaPD(detail *SisterPenelitianDetail) []*AnggotaP
 }
 
 // transformDokumen transforms Sister API dokumen to Dokumen and DokLitabmas entities
-func (s *service) transformDokumen(detail *SisterPenelitianDetail) ([]*Dokumen, []*DokLitabmas) {
+func (s *service) transformDokumen(detail *SisterPenelitianDetail, jenisDokumenMap map[string]int) ([]*Dokumen, []*DokLitabmas) {
 	var dokumenList []*Dokumen
 	var dokLitabmasList []*DokLitabmas
 	now := time.Now()
 
 	for _, dok := range detail.Dokumen {
+		// Map jenis_dokumen string to id_jns_dok
+		var idJnsDok *int
+		if dok.JenisDokumen != "" {
+			// Try exact match first
+			if id, ok := jenisDokumenMap[dok.JenisDokumen]; ok {
+				idJnsDok = &id
+			} else if id, ok := jenisDokumenMap[strings.ToLower(dok.JenisDokumen)]; ok {
+				// Try lowercase match
+				idJnsDok = &id
+			} else {
+				log.Printf("⚠️ Unknown jenis_dokumen: %s for dokumen %s", dok.JenisDokumen, dok.ID)
+			}
+		}
+
 		// Transform to Dokumen entity
 		dokumen := &Dokumen{
 			IDDok:      dok.ID,
+			IDJnsDok:   idJnsDok,
 			NmDok:      &dok.Nama,
 			MediaType:  &dok.JenisFile,
 			FileName:   &dok.NamaFile,
@@ -580,5 +743,337 @@ func retryWithBackoff(operation func() error, entityName string) error {
 
 	log.Printf("❌ All retry attempts exhausted for %s: %v", entityName, lastErr)
 	return fmt.Errorf("failed after %d retries: %w", MaxRetries, lastErr)
+}
+
+// BatchSyncAllPenelitian syncs penelitian for all dosen from Sister API with 3-worker pool
+func (s *service) BatchSyncAllPenelitian(syncedBy string) (*BatchAllSyncResult, error) {
+	startTime := time.Now()
+
+	log.Printf("🚀 Starting batch sync all penelitian with 3-worker pool (synced_by: %s)", syncedBy)
+
+	// Initialize monitoring
+	monitorSvc := monitoring.GetInstance()
+	syncID := monitorSvc.StartSync(
+		"Batch Sync All Penelitian",
+		"penelitian",
+		"batch",
+		syncedBy,
+		0, // Will be updated after we know total count
+	)
+
+	// Step 1: Get all unique id_sdm that have penelitian
+	log.Printf("📋 Getting all id_sdm with penelitian...")
+	idSDMList, err := s.repo.GetAllIDSDMWithLitabmas("L") // L = Penelitian
+	if err != nil {
+		syncErr := fmt.Errorf("failed to get id_sdm list: %w", err)
+		monitorSvc.FailSync(syncID, syncErr.Error())
+		s.logSyncResult("Penelitian", "penelitian", "batch", syncedBy, 0, 0, 0, startTime, syncErr)
+		return nil, syncErr
+	}
+
+	totalDosen := len(idSDMList)
+	log.Printf("✅ Found %d dosen with penelitian to sync", totalDosen)
+
+	// Update monitoring with actual total records
+	monitorSvc.UpdateTotalRecords(syncID, totalDosen)
+	monitorSvc.UpdateProgress(syncID, 0, fmt.Sprintf("Found %d dosen to sync", totalDosen))
+
+	if totalDosen == 0 {
+		monitorSvc.CompleteSync(syncID, "No dosen with penelitian to sync")
+		s.logSyncResult("Penelitian", "penelitian", "batch", syncedBy, 0, 0, 0, startTime, nil)
+		return &BatchAllSyncResult{
+			TotalDosen:    0,
+			TotalSuccess:  0,
+			TotalFailed:   0,
+			TotalLitabmas: 0,
+			Duration:      time.Since(startTime).String(),
+			SyncedBy:      syncedBy,
+		}, nil
+	}
+
+	// Step 2: Setup worker pool with 3 goroutines
+	numWorkers := 3
+	jobs := make(chan string, numWorkers*2)
+	results := make(chan workerResult, numWorkers*2)
+
+	var wg sync.WaitGroup
+
+	// Start workers
+	for w := 1; w <= numWorkers; w++ {
+		wg.Add(1)
+		go s.penelitianWorker(w, jobs, results, syncedBy, &wg)
+	}
+
+	// Step 3: Feed id_sdm to workers
+	go func() {
+		for _, idSDM := range idSDMList {
+			jobs <- idSDM
+		}
+		close(jobs)
+		log.Printf("✅ All id_sdm sent to workers")
+	}()
+
+	// Wait for all workers to finish
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	// Collect all results
+	successCount := 0
+	failedCount := 0
+	totalLitabmasSynced := 0
+	var failedDosen []string
+	dosenProcessed := 0
+
+	for result := range results {
+		dosenProcessed++
+		if result.err != nil {
+			failedCount++
+			failedDosen = append(failedDosen, result.idSDM)
+		} else {
+			successCount++
+			totalLitabmasSynced += result.success
+		}
+
+		// Progress logging every 10 dosen
+		if dosenProcessed%10 == 0 {
+			log.Printf("📊 Progress: %d/%d dosen processed (%d success, %d failed, %d total penelitian)",
+				dosenProcessed, totalDosen, successCount, failedCount, totalLitabmasSynced)
+		}
+
+		// Update monitoring progress
+		monitorSvc.UpdateProgress(
+			syncID,
+			dosenProcessed,
+			fmt.Sprintf("Processing dosen %d/%d (Success: %d, Failed: %d, Total Litabmas: %d)",
+				dosenProcessed, totalDosen, successCount, failedCount, totalLitabmasSynced),
+		)
+	}
+
+	duration := time.Since(startTime)
+	log.Printf("✅ Batch sync all penelitian completed: %d/%d dosen success, %d total penelitian in %s",
+		successCount, totalDosen, totalLitabmasSynced, duration)
+
+	// Complete monitoring
+	if failedCount == 0 {
+		monitorSvc.CompleteSync(
+			syncID,
+			fmt.Sprintf("Batch sync completed successfully: %d dosen, %d penelitian synced", successCount, totalLitabmasSynced),
+		)
+	} else if successCount == 0 {
+		monitorSvc.FailSync(
+			syncID,
+			fmt.Sprintf("all %d dosen failed to sync", failedCount),
+		)
+	} else {
+		monitorSvc.CompleteSync(
+			syncID,
+			fmt.Sprintf("Batch sync completed with errors: %d success, %d failed, %d penelitian synced", successCount, failedCount, totalLitabmasSynced),
+		)
+	}
+
+	// Log sync result to database
+	var syncErr error
+	if successCount == 0 && failedCount > 0 {
+		syncErr = fmt.Errorf("all %d dosen failed to sync", failedCount)
+	}
+	s.logSyncResult("Penelitian", "penelitian", "batch", syncedBy, totalDosen, successCount, failedCount, startTime, syncErr)
+
+	return &BatchAllSyncResult{
+		TotalDosen:    totalDosen,
+		TotalSuccess:  successCount,
+		TotalFailed:   failedCount,
+		TotalLitabmas: totalLitabmasSynced,
+		Duration:      duration.String(),
+		SyncedBy:      syncedBy,
+		FailedDosen:   failedDosen,
+	}, nil
+}
+
+// penelitianWorker is the worker goroutine that processes penelitian sync for each dosen
+func (s *service) penelitianWorker(id int, jobs <-chan string, results chan<- workerResult, syncedBy string, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	for idSDM := range jobs {
+		log.Printf("🔧 Worker %d: Syncing penelitian for id_sdm: %s", id, idSDM)
+
+		result, err := s.SyncPenelitianByIDSDM(idSDM, syncedBy)
+		if err != nil {
+			log.Printf("❌ Worker %d: Failed to sync penelitian for id_sdm %s: %v", id, idSDM, err)
+			results <- workerResult{idSDM: idSDM, err: err}
+		} else {
+			log.Printf("✅ Worker %d: Synced %d penelitian for id_sdm %s", id, result.TotalSuccess, idSDM)
+			results <- workerResult{idSDM: idSDM, success: result.TotalSuccess, failed: result.TotalFailed}
+		}
+	}
+
+	log.Printf("✅ Worker %d: Finished", id)
+}
+
+// BatchSyncAllPengabdian syncs pengabdian for all dosen from Sister API with 3-worker pool
+func (s *service) BatchSyncAllPengabdian(syncedBy string) (*BatchAllSyncResult, error) {
+	startTime := time.Now()
+
+	log.Printf("🚀 Starting batch sync all pengabdian with 3-worker pool (synced_by: %s)", syncedBy)
+
+	// Initialize monitoring
+	monitorSvc := monitoring.GetInstance()
+	syncID := monitorSvc.StartSync(
+		"Batch Sync All Pengabdian",
+		"pengabdian",
+		"batch",
+		syncedBy,
+		0, // Will be updated after we know total count
+	)
+
+	// Step 1: Get all unique id_sdm that have pengabdian
+	log.Printf("📋 Getting all id_sdm with pengabdian...")
+	idSDMList, err := s.repo.GetAllIDSDMWithLitabmas("M") // M = Pengabdian
+	if err != nil {
+		syncErr := fmt.Errorf("failed to get id_sdm list: %w", err)
+		monitorSvc.FailSync(syncID, syncErr.Error())
+		s.logSyncResult("Pengabdian", "pengabdian", "batch", syncedBy, 0, 0, 0, startTime, syncErr)
+		return nil, syncErr
+	}
+
+	totalDosen := len(idSDMList)
+	log.Printf("✅ Found %d dosen with pengabdian to sync", totalDosen)
+
+	// Update monitoring with actual total records
+	monitorSvc.UpdateTotalRecords(syncID, totalDosen)
+	monitorSvc.UpdateProgress(syncID, 0, fmt.Sprintf("Found %d dosen to sync", totalDosen))
+
+	if totalDosen == 0 {
+		monitorSvc.CompleteSync(syncID, "No dosen with pengabdian to sync")
+		s.logSyncResult("Pengabdian", "pengabdian", "batch", syncedBy, 0, 0, 0, startTime, nil)
+		return &BatchAllSyncResult{
+			TotalDosen:    0,
+			TotalSuccess:  0,
+			TotalFailed:   0,
+			TotalLitabmas: 0,
+			Duration:      time.Since(startTime).String(),
+			SyncedBy:      syncedBy,
+		}, nil
+	}
+
+	// Step 2: Setup worker pool with 3 goroutines
+	numWorkers := 3
+	jobs := make(chan string, numWorkers*2)
+	results := make(chan workerResult, numWorkers*2)
+
+	var wg sync.WaitGroup
+
+	// Start workers
+	for w := 1; w <= numWorkers; w++ {
+		wg.Add(1)
+		go s.pengabdianWorker(w, jobs, results, syncedBy, &wg)
+	}
+
+	// Step 3: Feed id_sdm to workers
+	go func() {
+		for _, idSDM := range idSDMList {
+			jobs <- idSDM
+		}
+		close(jobs)
+		log.Printf("✅ All id_sdm sent to workers")
+	}()
+
+	// Wait for all workers to finish
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	// Collect all results
+	successCount := 0
+	failedCount := 0
+	totalLitabmasSynced := 0
+	var failedDosen []string
+	dosenProcessed := 0
+
+	for result := range results {
+		dosenProcessed++
+		if result.err != nil {
+			failedCount++
+			failedDosen = append(failedDosen, result.idSDM)
+		} else {
+			successCount++
+			totalLitabmasSynced += result.success
+		}
+
+		// Progress logging every 10 dosen
+		if dosenProcessed%10 == 0 {
+			log.Printf("📊 Progress: %d/%d dosen processed (%d success, %d failed, %d total pengabdian)",
+				dosenProcessed, totalDosen, successCount, failedCount, totalLitabmasSynced)
+		}
+
+		// Update monitoring progress
+		monitorSvc.UpdateProgress(
+			syncID,
+			dosenProcessed,
+			fmt.Sprintf("Processing dosen %d/%d (Success: %d, Failed: %d, Total Litabmas: %d)",
+				dosenProcessed, totalDosen, successCount, failedCount, totalLitabmasSynced),
+		)
+	}
+
+	duration := time.Since(startTime)
+	log.Printf("✅ Batch sync all pengabdian completed: %d/%d dosen success, %d total pengabdian in %s",
+		successCount, totalDosen, totalLitabmasSynced, duration)
+
+	// Complete monitoring
+	if failedCount == 0 {
+		monitorSvc.CompleteSync(
+			syncID,
+			fmt.Sprintf("Batch sync completed successfully: %d dosen, %d pengabdian synced", successCount, totalLitabmasSynced),
+		)
+	} else if successCount == 0 {
+		monitorSvc.FailSync(
+			syncID,
+			fmt.Sprintf("all %d dosen failed to sync", failedCount),
+		)
+	} else {
+		monitorSvc.CompleteSync(
+			syncID,
+			fmt.Sprintf("Batch sync completed with errors: %d success, %d failed, %d pengabdian synced", successCount, failedCount, totalLitabmasSynced),
+		)
+	}
+
+	// Log sync result to database
+	var syncErr error
+	if successCount == 0 && failedCount > 0 {
+		syncErr = fmt.Errorf("all %d dosen failed to sync", failedCount)
+	}
+	s.logSyncResult("Pengabdian", "pengabdian", "batch", syncedBy, totalDosen, successCount, failedCount, startTime, syncErr)
+
+	return &BatchAllSyncResult{
+		TotalDosen:    totalDosen,
+		TotalSuccess:  successCount,
+		TotalFailed:   failedCount,
+		TotalLitabmas: totalLitabmasSynced,
+		Duration:      duration.String(),
+		SyncedBy:      syncedBy,
+		FailedDosen:   failedDosen,
+	}, nil
+}
+
+// pengabdianWorker is the worker goroutine that processes pengabdian sync for each dosen
+func (s *service) pengabdianWorker(id int, jobs <-chan string, results chan<- workerResult, syncedBy string, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	for idSDM := range jobs {
+		log.Printf("🔧 Worker %d: Syncing pengabdian for id_sdm: %s", id, idSDM)
+
+		result, err := s.SyncPengabdianByIDSDM(idSDM, syncedBy)
+		if err != nil {
+			log.Printf("❌ Worker %d: Failed to sync pengabdian for id_sdm %s: %v", id, idSDM, err)
+			results <- workerResult{idSDM: idSDM, err: err}
+		} else {
+			log.Printf("✅ Worker %d: Synced %d pengabdian for id_sdm %s", id, result.TotalSuccess, idSDM)
+			results <- workerResult{idSDM: idSDM, success: result.TotalSuccess, failed: result.TotalFailed}
+		}
+	}
+
+	log.Printf("✅ Worker %d: Finished", id)
 }
 

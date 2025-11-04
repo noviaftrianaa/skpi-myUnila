@@ -89,6 +89,25 @@ func (r *repository) GetReferenceCache() (*ReferenceCache, error) {
 	return cache, nil
 }
 
+// getActiveTahunAjaran retrieves the active academic year (tahun ajaran) from ref.tahun_ajaran
+// Returns the id_thn_ajaran where a_periode_aktif = 1
+func (r *repository) getActiveTahunAjaran() (string, error) {
+	var tahunAjaran string
+	query := `
+		SELECT TOP 1 id_thn_ajaran
+		FROM ref.tahun_ajaran
+		WHERE a_periode_aktif = 1
+			AND expired_date IS NULL
+		ORDER BY id_thn_ajaran DESC
+	`
+	err := r.db.Get(&tahunAjaran, query)
+	if err != nil {
+		// Fallback to current year if no active period found
+		return fmt.Sprintf("%d", time.Now().Year()), fmt.Errorf("no active tahun_ajaran found, using current year: %w", err)
+	}
+	return tahunAjaran, nil
+}
+
 // BulkUpsertDosen performs bulk upsert of dosen data to pdrd.sdm table
 func (r *repository) BulkUpsertDosen(data []*Dosen) error {
 	ctx := context.Background()
@@ -393,20 +412,93 @@ func (r *repository) GetDosenByID(idSDM string) (*Dosen, error) {
 // GetDosenStats retrieves dosen statistics
 func (r *repository) GetDosenStats() (*DosenStats, error) {
 	stats := &DosenStats{}
-	
-	// Get total dosen
-	err := r.db.Get(&stats.TotalDosen, "SELECT COUNT(*) FROM pdrd.sdm WHERE soft_delete = 0")
+
+	// Unila ID from Sister API
+	const UNILA_ID_SP = "e2b705a7-173e-464a-9fac-509128709515"
+
+	// Get active tahun ajaran
+	tahunAjaran, err := r.getActiveTahunAjaran()
+	if err != nil {
+		log.Printf("⚠️ %v", err)
+	}
+
+	// Get total dosen & tendik (ALL records in pdrd.sdm, no filters for homebase or keaktifan)
+	// This is the total count of all SDM records that have been synced
+	totalQuery := `
+		SELECT COUNT(*)
+		FROM pdrd.sdm
+		WHERE soft_delete = 0
+			AND id_jns_sdm IN ('12', '13')  -- 12=Dosen, 13=Tendik
+	`
+	err = r.db.Get(&stats.TotalDosen, totalQuery)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get total dosen: %w", err)
 	}
-	
-	// Get total by status aktif
-	err = r.db.Get(&stats.TotalAktif, "SELECT COUNT(*) FROM pdrd.sdm WHERE soft_delete = 0 AND id_stat_aktif = 1")
+
+	// Get total aktif (with filters: reg_ptk, keaktifan_ptk, homebase Unila, active tahun ajaran)
+	// This matches the logic in dashboard-service DosenRepository.getTotalDosen()
+	activeQuery := `
+		SELECT COUNT(DISTINCT ptk.id_sdm) AS total
+		FROM pdrd.reg_ptk AS ptk
+		INNER JOIN pdrd.sdm AS sdm
+			ON sdm.id_sdm = ptk.id_sdm
+			AND sdm.soft_delete = 0
+			AND sdm.id_jns_sdm IN ('12', '13')  -- 12=Dosen, 13=Tendik
+		INNER JOIN pdrd.sms AS sms
+			ON sms.id_sms = ptk.id_sms
+			AND sms.soft_delete = 0
+			AND sms.stat_prodi = 'A'
+		INNER JOIN ref.jenjang_pendidikan AS didik
+			ON didik.id_jenj_didik = sms.id_jenj_didik
+			AND didik.expired_date IS NULL
+			AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
+		INNER JOIN pdrd.keaktifan_ptk AS keaktifan
+			ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
+			AND keaktifan.soft_delete = 0
+			AND keaktifan.a_sp_homebase = 1
+			AND keaktifan.id_thn_ajaran = @p2
+		WHERE ptk.soft_delete = 0
+			AND ptk.id_jns_keluar IS NULL
+			AND CAST(ptk.id_sp AS VARCHAR(50)) = @p1
+	`
+	err = r.db.Get(&stats.TotalAktif, activeQuery, UNILA_ID_SP, tahunAjaran)
 	if err != nil {
-		stats.TotalAktif = 0
+		return nil, fmt.Errorf("failed to get total aktif: %w", err)
 	}
-	
-	stats.TotalTidakAktif = stats.TotalDosen - stats.TotalAktif
+
+	// Get total tidak aktif (SDM yang tidak memenuhi kriteria aktif)
+	// Tidak aktif jika: tidak punya reg_ptk, atau reg_ptk.id_jns_keluar NOT NULL, atau tidak punya keaktifan_ptk yang valid
+	tidakAktifQuery := `
+		SELECT COUNT(DISTINCT sdm.id_sdm) AS total
+		FROM pdrd.sdm AS sdm
+		WHERE sdm.soft_delete = 0
+			AND sdm.id_jns_sdm IN ('12', '13')  -- 12=Dosen, 13=Tendik
+			AND sdm.id_sdm NOT IN (
+				-- Exclude SDM yang aktif (sudah dihitung di TotalAktif)
+				SELECT DISTINCT ptk.id_sdm
+				FROM pdrd.reg_ptk AS ptk
+				INNER JOIN pdrd.sms AS sms
+					ON sms.id_sms = ptk.id_sms
+					AND sms.soft_delete = 0
+					AND sms.stat_prodi = 'A'
+				INNER JOIN ref.jenjang_pendidikan AS didik
+					ON didik.id_jenj_didik = sms.id_jenj_didik
+					AND didik.expired_date IS NULL
+					AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
+				INNER JOIN pdrd.keaktifan_ptk AS keaktifan
+					ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
+					AND keaktifan.soft_delete = 0
+					AND keaktifan.a_sp_homebase = 1
+					AND keaktifan.id_thn_ajaran = @p2
+				WHERE ptk.soft_delete = 0
+					AND ptk.id_jns_keluar IS NULL
+					AND CAST(ptk.id_sp AS VARCHAR(50)) = @p1
+			)
+	`
+	err = r.db.Get(&stats.TotalTidakAktif, tidakAktifQuery, UNILA_ID_SP, tahunAjaran)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get total tidak aktif: %w", err)
+	}
 	
 	// Get breakdown by jenis SDM
 	byJenisQuery := `

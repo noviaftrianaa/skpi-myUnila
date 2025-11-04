@@ -218,8 +218,11 @@ func (s *service) dosenWorker(id int, jobs <-chan map[string]interface{}, result
 			nama, _ = dosenInfo["nm_sdm"].(string)
 		}
 
-		// Fetch and process single dosen
-		result := s.syncSingleDosen(idSDM, nama, cache)
+		// Get jenis_sdm from referensi/sdm response
+		jenisSDM, _ := dosenInfo["jenis_sdm"].(string)
+
+		// Fetch and process single dosen with jenis_sdm info
+		result := s.syncSingleDosenWithJenisSDM(idSDM, nama, jenisSDM, cache)
 		results <- result
 
 		// Add small delay to avoid rate limiting (200ms per dosen = ~5 dosen/second per worker)
@@ -229,6 +232,11 @@ func (s *service) dosenWorker(id int, jobs <-chan map[string]interface{}, result
 
 // syncSingleDosen fetches all data for a single dosen and upserts to database
 func (s *service) syncSingleDosen(idSDM string, nama string, cache *ReferenceCache) DosenSyncResult {
+	return s.syncSingleDosenWithJenisSDM(idSDM, nama, "", cache)
+}
+
+// syncSingleDosenWithJenisSDM fetches all data for a single dosen with jenis_sdm and upserts to database
+func (s *service) syncSingleDosenWithJenisSDM(idSDM string, nama string, jenisSDM string, cache *ReferenceCache) DosenSyncResult {
 	// Fetch data from 6 Sister API endpoints
 	combined, err := s.fetchDosenData(idSDM)
 	if err != nil {
@@ -240,8 +248,8 @@ func (s *service) syncSingleDosen(idSDM string, nama string, cache *ReferenceCac
 		}
 	}
 
-	// Transform Sister data to Dosen entity
-	dosen, err := s.transformSisterDataToDosen(combined, nama, cache)
+	// Transform Sister data to Dosen entity with jenis_sdm
+	dosen, err := s.transformSisterDataToDosenWithJenisSDM(combined, nama, jenisSDM, cache)
 	if err != nil {
 		return DosenSyncResult{
 			IDSDM:   idSDM,
@@ -400,6 +408,11 @@ func (s *service) SyncSingleDosenTest(idSDM string) (*DosenSyncResult, error) {
 
 // transformSisterDataToDosen transforms combined Sister API data to Dosen entity for pdrd.sdm
 func (s *service) transformSisterDataToDosen(data *SisterDosenData, namaFromSDMList string, cache *ReferenceCache) (*Dosen, error) {
+	return s.transformSisterDataToDosenWithJenisSDM(data, namaFromSDMList, "", cache)
+}
+
+// transformSisterDataToDosenWithJenisSDM transforms combined Sister API data to Dosen entity with jenis_sdm
+func (s *service) transformSisterDataToDosenWithJenisSDM(data *SisterDosenData, namaFromSDMList string, jenisSDMName string, cache *ReferenceCache) (*Dosen, error) {
 	now := time.Now()
 
 	// System UUID for created_by/updated_by (can be configured)
@@ -410,6 +423,15 @@ func (s *service) transformSisterDataToDosen(data *SisterDosenData, namaFromSDML
 
 	// Default tanggal lahir (1970-01-01 jika tidak ada data)
 	defaultTglLahir := time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
+
+	// Map jenis_sdm name to ID (from /referensi/sdm response)
+	idJenisSDM := 12 // Default: Dosen
+	if jenisSDMName != "" {
+		idJenisSDM = getJenisSDMID(jenisSDMName)
+		log.Printf("   ✓ Mapped jenis_sdm '%s' to ID %d for dosen %s", jenisSDMName, idJenisSDM, data.IDSDM)
+	} else {
+		log.Printf("   ⚠️  No jenis_sdm from Sister API for dosen %s, using default ID %d", data.IDSDM, idJenisSDM)
+	}
 
 	dosen := &Dosen{
 		IDSDM: data.IDSDM,
@@ -422,7 +444,7 @@ func (s *service) transformSisterDataToDosen(data *SisterDosenData, namaFromSDML
 		LastSync:   now,
 
 		// Required Foreign Keys with defaults
-		IDJenisSDM:            12, // Default: Dosen (ID 12 in ref.jenis_sdm)
+		IDJenisSDM:            idJenisSDM, // From /referensi/sdm or default 12 (Dosen)
 		IDWilayah:             "000000", // Default wilayah (akan di-override dari Sister API jika ada)
 		IDStatusAktif:         1,  // Default: Aktif (akan di-override dari Sister API jika ada)
 		IDAgama:               1,  // Default: Islam (akan di-override dari Sister API jika ada)
@@ -549,10 +571,6 @@ func (s *service) transformSisterDataToDosen(data *SisterDosenData, namaFromSDML
 
 	// From Kepegawaian
 	if data.Kepegawaian != nil {
-		// Sister API doesn't return jenis_sdm in kepegawaian endpoint
-		// Use default (12 = Dosen) yang sudah di-set di awal
-		log.Printf("   ⚠️  No jenis_sdm data from Sister API for dosen %s, using default ID %d", data.IDSDM, dosen.IDJenisSDM)
-
 		if data.Kepegawaian.NIDN != "" {
 			dosen.NIDN = &data.Kepegawaian.NIDN
 		}

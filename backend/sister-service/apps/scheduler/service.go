@@ -7,6 +7,7 @@ import (
 	"sister-service/apps/dosen"
 	"sister-service/apps/penelitian"
 	"sister-service/apps/penugasan"
+	"sister-service/apps/publikasi"
 	"sister-service/apps/referensi"
 	"time"
 
@@ -24,9 +25,10 @@ type Service struct {
 	referensiService  referensi.Service
 	penugasanService  penugasan.Service
 	penelitianService penelitian.Service
+	publikasiService  publikasi.Service
 }
 
-func NewService(repo *Repository, dosenService dosen.Service, referensiService referensi.Service, penugasanService penugasan.Service, penelitianService penelitian.Service) *Service {
+func NewService(repo *Repository, dosenService dosen.Service, referensiService referensi.Service, penugasanService penugasan.Service, penelitianService penelitian.Service, publikasiService publikasi.Service) *Service {
 	// Create cron with second precision
 	c := cron.New(cron.WithSeconds())
 
@@ -38,6 +40,7 @@ func NewService(repo *Repository, dosenService dosen.Service, referensiService r
 		referensiService:  referensiService,
 		penugasanService:  penugasanService,
 		penelitianService: penelitianService,
+		publikasiService:  publikasiService,
 	}
 
 	return service

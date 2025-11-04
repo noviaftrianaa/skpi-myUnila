@@ -17,11 +17,13 @@ func SetupRoutes(app *fiber.App, db *sqlx.DB, sisterAPI *sister_api.Client, logg
 	// API routes (authenticated)
 	apiV1 := app.Group("/api/v1")
 
-	// Penelitian sync endpoint
+	// Penelitian sync endpoints
 	apiV1.Post("/penelitian/sync", controller.SyncPenelitianByIDSDM)
+	apiV1.Post("/penelitian/sync-all", controller.BatchSyncAllPenelitian)
 
-	// Pengabdian sync endpoint
+	// Pengabdian sync endpoints
 	apiV1.Post("/pengabdian/sync", controller.SyncPengabdianByIDSDM)
+	apiV1.Post("/pengabdian/sync-all", controller.BatchSyncAllPengabdian)
 
 	// Public routes
 	public := app.Group("/public")

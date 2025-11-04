@@ -732,3 +732,19 @@ func (c *Client) GetPengabdianDetail(idPengabdian string) ([]byte, error) {
 	endpoint := fmt.Sprintf("/1.0/pengabdian/%s", idPengabdian)
 	return c.Get(endpoint)
 }
+
+// ==================== PUBLIKASI ENDPOINTS ====================
+
+// GetPublikasiByIDSDM fetches list of publikasi for a dosen from Sister API
+// Endpoint: GET /1.0/publikasi?id_sdm={id_sdm}
+func (c *Client) GetPublikasiByIDSDM(idSDM string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/1.0/publikasi?id_sdm=%s", idSDM)
+	return c.Get(endpoint)
+}
+
+// GetPublikasiDetail fetches detail of a single publikasi from Sister API
+// Endpoint: GET /1.0/publikasi/{id}
+func (c *Client) GetPublikasiDetail(idPublikasi string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/1.0/publikasi/%s", idPublikasi)
+	return c.Get(endpoint)
+}

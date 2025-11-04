@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use Illuminate\Support\Facades\DB;
+use App\Helpers\TahunAjaranHelper;
 
 class DosenRepository
 {
@@ -15,6 +16,7 @@ class DosenRepository
     public function getDosenByJenjangPendidikan(): array
     {
         $unilaIdSp = strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515'));
+        $tahunAjaran = TahunAjaranHelper::getActiveTahunAjaran();
 
         $sql = "
             SELECT
@@ -35,7 +37,7 @@ class DosenRepository
                 ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
                 AND keaktifan.soft_delete = 0
                 AND keaktifan.a_sp_homebase = 1
-                AND keaktifan.id_thn_ajaran = '2025'
+                AND keaktifan.id_thn_ajaran = ?
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = ptk.id_sms
                 AND sms.soft_delete = 0
@@ -66,7 +68,7 @@ class DosenRepository
             ORDER BY jumlah DESC
         ";
 
-        $result = DB::connection('sqlsrv')->select($sql, [$unilaIdSp]);
+        $result = DB::connection('sqlsrv')->select($sql, [$unilaIdSp, $tahunAjaran]);
 
         return array_map(function($item) {
             return [
@@ -84,6 +86,7 @@ class DosenRepository
     public function getDosenByJabatanFungsional(): array
     {
         $unilaIdSp = strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515'));
+        $tahunAjaran = TahunAjaranHelper::getActiveTahunAjaran();
 
         $sql = "
             SELECT
@@ -101,7 +104,7 @@ class DosenRepository
                 ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
                 AND keaktifan.soft_delete = 0
                 AND keaktifan.a_sp_homebase = 1
-                AND keaktifan.id_thn_ajaran = '2025'
+                AND keaktifan.id_thn_ajaran = ?
             -- Join ke sms untuk filter prodi aktif
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = ptk.id_sms
@@ -131,7 +134,7 @@ class DosenRepository
             ORDER BY jumlah DESC
         ";
 
-        $result = DB::connection('sqlsrv')->select($sql, [$unilaIdSp]);
+        $result = DB::connection('sqlsrv')->select($sql, [$unilaIdSp, $tahunAjaran]);
 
         return array_map(function($item) {
             return [
@@ -149,6 +152,7 @@ class DosenRepository
     public function getTotalDosen(): int
     {
         $unilaIdSp = strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515'));
+        $tahunAjaran = TahunAjaranHelper::getActiveTahunAjaran();
 
         $sql = "
             SELECT COUNT(DISTINCT ptk.id_sdm) AS total
@@ -169,13 +173,13 @@ class DosenRepository
                 ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
                 AND keaktifan.soft_delete = 0
                 AND keaktifan.a_sp_homebase = 1
-                AND keaktifan.id_thn_ajaran = '2025'
+                AND keaktifan.id_thn_ajaran = ?
             WHERE ptk.soft_delete = 0
                 AND ptk.id_jns_keluar IS NULL
                 AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
         ";
 
-        $result = DB::connection('sqlsrv')->select($sql, [$unilaIdSp]);
+        $result = DB::connection('sqlsrv')->select($sql, [$tahunAjaran, $unilaIdSp]);
 
         return (int) ($result[0]->total ?? 0);
     }
@@ -189,6 +193,7 @@ class DosenRepository
     public function getTotalGuruBesar(): int
     {
         $unilaIdSp = strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515'));
+        $tahunAjaran = TahunAjaranHelper::getActiveTahunAjaran();
 
         $sql = "
             SELECT COUNT(DISTINCT sdm.id_sdm) AS total
@@ -202,7 +207,7 @@ class DosenRepository
                 ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
                 AND keaktifan.soft_delete = 0
                 AND keaktifan.a_sp_homebase = 1
-                AND keaktifan.id_thn_ajaran = '2025'
+                AND keaktifan.id_thn_ajaran = ?
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = ptk.id_sms
                 AND sms.soft_delete = 0
@@ -228,7 +233,7 @@ class DosenRepository
                 AND jabfung.nm_jabfung = 'Profesor'
         ";
 
-        $result = DB::connection('sqlsrv')->select($sql, [$unilaIdSp]);
+        $result = DB::connection('sqlsrv')->select($sql, [$unilaIdSp, $tahunAjaran]);
 
         return (int) ($result[0]->total ?? 0);
     }
@@ -242,6 +247,7 @@ class DosenRepository
     public function getTotalDosenDoktor(): int
     {
         $unilaIdSp = strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515'));
+        $tahunAjaran = TahunAjaranHelper::getActiveTahunAjaran();
 
         $sql = "
             SELECT COUNT(DISTINCT sdm.id_sdm) AS total
@@ -255,7 +261,7 @@ class DosenRepository
                 ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
                 AND keaktifan.soft_delete = 0
                 AND keaktifan.a_sp_homebase = 1
-                AND keaktifan.id_thn_ajaran = '2025'
+                AND keaktifan.id_thn_ajaran = ?
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = ptk.id_sms
                 AND sms.soft_delete = 0
@@ -279,7 +285,7 @@ class DosenRepository
                 AND pend.nm_jenj_didik IN ('S3', 'S3 Terapan', 'Sp-2')
         ";
 
-        $result = DB::connection('sqlsrv')->select($sql, [$unilaIdSp]);
+        $result = DB::connection('sqlsrv')->select($sql, [$unilaIdSp, $tahunAjaran]);
 
         return (int) ($result[0]->total ?? 0);
     }

@@ -24,7 +24,9 @@ class PenelitianSebaranRepository
             SELECT
                 fak.id_sms AS id_fakultas,
                 fak.nm_lemb AS nama_fakultas,
-                COUNT(DISTINCT l.id_litabmas) AS jumlah
+                COUNT(DISTINCT CASE WHEN l.jns_litabmas = 'L' THEN l.id_litabmas END) AS jumlah_penelitian,
+                COUNT(DISTINCT CASE WHEN l.jns_litabmas = 'M' THEN l.id_litabmas END) AS jumlah_pengabdian,
+                COUNT(DISTINCT l.id_litabmas) AS jumlah_total
             FROM pdrd.litabmas AS l
             INNER JOIN pdrd.sdm_anggota_litabmas AS sal
                 ON sal.id_litabmas = l.id_litabmas
@@ -65,7 +67,7 @@ class PenelitianSebaranRepository
                 AND l.id_thn_kegiatan >= ?
                 AND l.id_thn_kegiatan <= ?
             GROUP BY fak.id_sms, fak.nm_lemb
-            ORDER BY jumlah DESC
+            ORDER BY jumlah_total DESC
         ";
 
         $result = DB::connection('sqlsrv')->select($sql, [$startYear, $endYear]);
@@ -74,7 +76,9 @@ class PenelitianSebaranRepository
             return [
                 'id_fakultas' => $item->id_fakultas,
                 'nama_fakultas' => $item->nama_fakultas,
-                'jumlah' => (int) $item->jumlah,
+                'jumlah_penelitian' => (int) $item->jumlah_penelitian,
+                'jumlah_pengabdian' => (int) $item->jumlah_pengabdian,
+                'jumlah_total' => (int) $item->jumlah_total,
             ];
         }, $result);
     }
@@ -99,7 +103,9 @@ class PenelitianSebaranRepository
                 sms_prodi.id_sms AS id_prodi,
                 sms_prodi.nm_lemb AS nama_prodi,
                 jp.nm_jenj_didik AS jenjang,
-                COUNT(DISTINCT l.id_litabmas) AS jumlah
+                COUNT(DISTINCT CASE WHEN l.jns_litabmas = 'L' THEN l.id_litabmas END) AS jumlah_penelitian,
+                COUNT(DISTINCT CASE WHEN l.jns_litabmas = 'M' THEN l.id_litabmas END) AS jumlah_pengabdian,
+                COUNT(DISTINCT l.id_litabmas) AS jumlah_total
             FROM pdrd.litabmas AS l
             INNER JOIN pdrd.sdm_anggota_litabmas AS sal
                 ON sal.id_litabmas = l.id_litabmas
@@ -138,7 +144,7 @@ class PenelitianSebaranRepository
                 AND l.id_thn_kegiatan >= ?
                 AND l.id_thn_kegiatan <= ?
             GROUP BY sms_prodi.id_sms, sms_prodi.nm_lemb, jp.nm_jenj_didik
-            ORDER BY jumlah DESC
+            ORDER BY jumlah_total DESC
         ";
 
         $result = DB::connection('sqlsrv')->select($sql, [$idFakultas, $startYear, $endYear]);
@@ -148,7 +154,9 @@ class PenelitianSebaranRepository
                 'id_prodi' => $item->id_prodi,
                 'nama_prodi' => $item->nama_prodi,
                 'jenjang' => $item->jenjang ?? 'Umum',
-                'jumlah' => (int) $item->jumlah,
+                'jumlah_penelitian' => (int) $item->jumlah_penelitian,
+                'jumlah_pengabdian' => (int) $item->jumlah_pengabdian,
+                'jumlah_total' => (int) $item->jumlah_total,
             ];
         }, $result);
     }

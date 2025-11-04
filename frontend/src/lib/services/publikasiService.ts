@@ -6,6 +6,7 @@
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/public/api/v1';
+const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:8083';
 
 // Types
 export interface PublikasiByJenis {
@@ -53,5 +54,174 @@ export const publikasiService = {
   async getStatistics(): Promise<PublikasiStatistics> {
     const response = await axios.get<ApiResponse<PublikasiStatistics>>(`${API_URL}/publikasi/statistics`);
     return response.data.data;
+  },
+};
+
+// SISTER API Types
+export interface PenulisInfo {
+  nama: string;
+  jenis_peran: string; // e.g., "Penulis (Dosen)", "Editor (Mahasiswa)"
+}
+
+export interface TulisPub {
+  id_tulis_pub: string;
+  id_publikasi: string;
+  id_sdm?: string;
+  id_katgiat?: number;
+  id_pd?: string;
+  id_orang?: string;
+  urutan: number;
+  afiliasi?: string;
+  peran_tulis: string; // A/B/C/D
+  jns_penulis: string; // 1/2/3
+  a_corr_author: number;
+  nm_pd?: string;
+  nipd?: string;
+}
+
+export interface Publikasi {
+  id_publikasi: string;
+  id_jns_pub?: number;
+  judul: string;
+  tgl_terbit?: string;
+  penerbit?: string;
+  stat_impor_sinta?: number;
+  last_sync?: string;
+  jenis_publikasi_nama?: string;
+  penulis?: PenulisInfo[];
+}
+
+export interface PublikasiStats {
+  total_publikasi: number;
+  total_jurnal_nasional: number;
+  total_jurnal_intl: number;
+  total_proseeding: number;
+  total_buku: number;
+}
+
+export interface PublikasiListResult {
+  data: Publikasi[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+}
+
+export interface BatchAllSyncResult {
+  total_dosen: number;
+  total_success: number;
+  total_failed: number;
+  total_publikasi: number;
+  duration: string;
+  synced_by: string;
+  failed_dosen?: string[];
+}
+
+/**
+ * SISTER API Service for Publikasi Management
+ */
+export const sisterPublikasiService = {
+  /**
+   * Get publikasi statistics from SISTER API
+   */
+  async getStats(): Promise<PublikasiStats> {
+    const response = await axios.get<PublikasiStats>(
+      `${SISTER_API_URL}/publikasi/stats`
+    );
+    return response.data;
+  },
+
+  /**
+   * Get paginated list of publikasi with search
+   */
+  async getList(params: {
+    page: number;
+    limit: number;
+    search?: string;
+  }): Promise<PublikasiListResult> {
+    const response = await axios.get<PublikasiListResult>(
+      `${SISTER_API_URL}/publikasi/list`,
+      { params }
+    );
+    return response.data;
+  },
+
+  /**
+   * Trigger batch sync all publikasi from SISTER API
+   * @param syncedBy - Username of person who triggered the sync
+   */
+  async syncFromSister(syncedBy: string): Promise<BatchAllSyncResult> {
+    const response = await axios.post<BatchAllSyncResult>(
+      `${SISTER_API_URL}/../api/v1/publikasi/sync-all`,
+      null,
+      { params: { synced_by: syncedBy } }
+    );
+    return response.data;
+  },
+
+  /**
+   * Get publikasi detail by id
+   */
+  async getDetail(idPublikasi: string): Promise<Publikasi> {
+    const response = await axios.get<Publikasi>(
+      `${SISTER_API_URL}/publikasi/${idPublikasi}`
+    );
+    return response.data;
+  },
+
+  /**
+   * Get penulis by publikasi
+   */
+  async getPenulisByPublikasi(idPublikasi: string): Promise<TulisPub[]> {
+    const response = await axios.get<TulisPub[]>(
+      `${SISTER_API_URL}/publikasi/${idPublikasi}/penulis`
+    );
+    return response.data;
+  },
+};
+
+/**
+ * Helper functions
+ */
+export const publikasiHelpers = {
+  formatDate(dateString?: string): string {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('id-ID', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  },
+
+  getPeranTulisLabel(peranTulis: string): string {
+    switch (peranTulis) {
+      case 'A':
+        return 'Penulis';
+      case 'B':
+        return 'Editor';
+      case 'C':
+        return 'Penerjemah';
+      case 'D':
+        return 'Penemu/Inventor';
+      default:
+        return 'Unknown';
+    }
+  },
+
+  getJenisPenulisLabel(jnsPenulis: string): string {
+    switch (jnsPenulis) {
+      case '1':
+        return 'Dosen';
+      case '2':
+        return 'Mahasiswa';
+      case '3':
+        return 'Profesional Mitra';
+      default:
+        return 'Unknown';
+    }
+  },
+
+  getStatImporSintaLabel(statImporSinta: number): string {
+    return statImporSinta === 1 ? 'SINTA' : 'Non-SINTA';
   },
 };

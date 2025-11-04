@@ -12,7 +12,7 @@ type Penugasan struct {
 	IDSP           string  `json:"id_sp" db:"id_sp"`                       // uniqueidentifier, FK to pdrd.satuan_pendidikan
 	IDStatPegawai  int     `json:"id_stat_pegawai" db:"id_stat_pegawai"`   // smallint, FK to ref.status_kepegawaian
 	IDIkatanKerja  string  `json:"id_ikatan_kerja" db:"id_ikatan_kerja"`   // char(1), FK to ref.ikatan_kerja_sdm
-	IDSMS          string  `json:"id_sms" db:"id_sms"`                     // uniqueidentifier, FK to pdrd.sms
+	IDSMS          *string `json:"id_sms" db:"id_sms"`                     // uniqueidentifier, FK to pdrd.sms, nullable
 	IDJnsKeluar    *string `json:"id_jns_keluar" db:"id_jns_keluar"`       // char(1), FK to ref.jenis_keluar, nullable
 
 	// Data Fields
@@ -62,6 +62,7 @@ type KeaktifanPTK struct {
 	LastUpdate time.Time  `json:"last_update" db:"last_update"` // datetime, NOT NULL
 	IDUpdater  *string    `json:"id_updater" db:"id_updater"`   // uniqueidentifier, nullable
 	SoftDelete int        `json:"soft_delete" db:"soft_delete"` // numeric(1), default 0
+	LastSync   *time.Time `json:"last_sync" db:"last_sync"`     // datetime, nullable
 }
 
 // SisterPenugasanListItem represents the list item from Sister API GET /penugasan
@@ -142,9 +143,9 @@ type BatchPenugasanSyncAllResult struct {
 
 // DosenInfo contains basic dosen info for worker processing
 type DosenInfo struct {
-	IDSDM string
-	Nama  string
-	NIDN  *string
+	IDSDM string  `db:"id_sdm"`
+	Nama  string  `db:"nm_sdm"`
+	NIDN  *string `db:"nidn"`
 }
 
 // PenugasanListResult represents paginated list of penugasan

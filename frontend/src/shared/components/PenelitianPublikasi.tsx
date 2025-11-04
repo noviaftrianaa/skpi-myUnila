@@ -55,9 +55,11 @@ export default function PenelitianPublikasi() {
 
         if (penelitianSebaranJson.success) {
           const fakData = penelitianSebaranJson.data.data.map((item: any) => ({
-            id: item.id_fakultas,
-            nama: item.nama_fakultas,
-            jumlah: item.jumlah,
+            id_fakultas: item.id_fakultas,
+            nama_fakultas: item.nama_fakultas,
+            jumlah_penelitian: item.jumlah_penelitian,
+            jumlah_pengabdian: item.jumlah_pengabdian,
+            jumlah_total: item.jumlah_total,
           }));
           setPenelitianFakultasSebaranData(fakData);
         }
@@ -623,7 +625,7 @@ export default function PenelitianPublikasi() {
 
   // Chart configuration untuk penelitian (per kategori)
   const penelitianKategoriChartOption = useMemo(() => {
-    if (!penelitianData) return {};
+    if (!penelitianData || !penelitianData.by_kategori) return {};
 
     // Ambil top 10 kategori penelitian
     const topKategori = penelitianData.by_kategori.slice(0, 10);
@@ -685,7 +687,7 @@ export default function PenelitianPublikasi() {
 
   // Chart configuration untuk penelitian per tahun
   const penelitianTahunChartOption = useMemo(() => {
-    if (!penelitianData) return {};
+    if (!penelitianData || !penelitianData.by_year) return {};
 
     return {
       tooltip: {
@@ -967,11 +969,27 @@ export default function PenelitianPublikasi() {
           type: "shadow",
         },
         formatter: (params: any) => {
-          const value = params[0].value.toLocaleString('id-ID');
+          const fakultas = params[0].axisValue;
+          const penelitian = params[0].value;
+          const pengabdian = params[1]?.value || 0;
+          const total = penelitian + pengabdian;
           return `<div style="padding: 10px;">
-            <div style="font-weight: 600; color: #1f2937; margin-bottom: 6px;">${params[0].axisValue}</div>
-            <div style="color: #8b5cf6; font-size: 20px; font-weight: 700; margin-bottom: 4px;">${value} penelitian</div>
-            <div style="color: #6b7280; font-size: 12px; font-style: italic;">Klik untuk melihat detail per prodi</div>
+            <div style="font-weight: 600; color: #1f2937; margin-bottom: 8px;">${fakultas}</div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <div style="width: 12px; height: 12px; background: linear-gradient(180deg, #8b5cf6 0%, #6366f1 100%); border-radius: 2px;"></div>
+              <span style="color: #6b7280; font-size: 13px;">Penelitian:</span>
+              <span style="color: #8b5cf6; font-size: 15px; font-weight: 700;">${penelitian.toLocaleString('id-ID')}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+              <div style="width: 12px; height: 12px; background: linear-gradient(180deg, #10b981 0%, #059669 100%); border-radius: 2px;"></div>
+              <span style="color: #6b7280; font-size: 13px;">Pengabdian:</span>
+              <span style="color: #10b981; font-size: 15px; font-weight: 700;">${pengabdian.toLocaleString('id-ID')}</span>
+            </div>
+            <div style="border-top: 1px solid #e5e7eb; padding-top: 6px; margin-top: 6px;">
+              <span style="color: #6b7280; font-size: 12px;">Total: </span>
+              <span style="color: #1f2937; font-size: 16px; font-weight: 700;">${total.toLocaleString('id-ID')}</span>
+            </div>
+            <div style="color: #6b7280; font-size: 11px; font-style: italic; margin-top: 6px;">Klik untuk melihat detail per prodi</div>
           </div>`;
         },
         backgroundColor: "rgba(255, 255, 255, 0.95)",
@@ -979,16 +997,24 @@ export default function PenelitianPublikasi() {
         borderWidth: 1,
         extraCssText: "box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px;",
       },
+      legend: {
+        data: ['Penelitian', 'Pengabdian'],
+        top: 10,
+        textStyle: {
+          fontSize: 12,
+          fontWeight: 600,
+        },
+      },
       grid: {
         left: "3%",
         right: "4%",
         bottom: "3%",
-        top: "3%",
+        top: "15%",
         containLabel: true,
       },
       xAxis: {
         type: "category",
-        data: penelitianFakultasSebaranData.map(item => item.nama),
+        data: penelitianFakultasSebaranData.map(item => item.nama_fakultas),
         axisLabel: {
           color: "#1f2937",
           fontSize: 10,
@@ -1013,9 +1039,10 @@ export default function PenelitianPublikasi() {
       },
       series: [
         {
+          name: 'Penelitian',
           type: "bar",
           data: penelitianFakultasSebaranData.map((item) => ({
-            value: item.jumlah,
+            value: item.jumlah_penelitian,
             itemStyle: {
               color: {
                 type: "linear",
@@ -1036,10 +1063,41 @@ export default function PenelitianPublikasi() {
             position: "top",
             formatter: "{c}",
             color: "#1f2937",
-            fontSize: 11,
-            fontWeight: 700,
+            fontSize: 10,
+            fontWeight: 600,
           },
-          barMaxWidth: 80,
+          barMaxWidth: 40,
+          cursor: 'pointer',
+        },
+        {
+          name: 'Pengabdian',
+          type: "bar",
+          data: penelitianFakultasSebaranData.map((item) => ({
+            value: item.jumlah_pengabdian,
+            itemStyle: {
+              color: {
+                type: "linear",
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [
+                  { offset: 0, color: "#10b981" },
+                  { offset: 1, color: "#059669" },
+                ],
+              },
+              borderRadius: [6, 6, 0, 0],
+            },
+          })),
+          label: {
+            show: true,
+            position: "top",
+            formatter: "{c}",
+            color: "#1f2937",
+            fontSize: 10,
+            fontWeight: 600,
+          },
+          barMaxWidth: 40,
           cursor: 'pointer',
         },
       ],
@@ -1064,11 +1122,26 @@ export default function PenelitianPublikasi() {
         },
         formatter: (params: any) => {
           const item = penelitianProdiSebaranData.find(d => d.nama_prodi === params[0].name);
-          const value = params[0].value.toLocaleString('id-ID');
+          const penelitian = params[0].value;
+          const pengabdian = params[1]?.value || 0;
+          const total = penelitian + pengabdian;
           return `<div style="padding: 10px;">
             <div style="font-weight: 600; color: #1f2937; margin-bottom: 6px;">${params[0].axisValue}</div>
-            <div style="color: #6b7280; font-size: 11px; margin-bottom: 4px;">${item?.jenjang || 'Umum'}</div>
-            <div style="color: #8b5cf6; font-size: 20px; font-weight: 700;">${value} penelitian</div>
+            <div style="color: #6b7280; font-size: 11px; margin-bottom: 6px;">${item?.jenjang || 'Umum'}</div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <div style="width: 12px; height: 12px; background: linear-gradient(180deg, #8b5cf6 0%, #6366f1 100%); border-radius: 2px;"></div>
+              <span style="color: #6b7280; font-size: 12px;">Penelitian:</span>
+              <span style="color: #8b5cf6; font-size: 14px; font-weight: 700;">${penelitian.toLocaleString('id-ID')}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+              <div style="width: 12px; height: 12px; background: linear-gradient(180deg, #10b981 0%, #059669 100%); border-radius: 2px;"></div>
+              <span style="color: #6b7280; font-size: 12px;">Pengabdian:</span>
+              <span style="color: #10b981; font-size: 14px; font-weight: 700;">${pengabdian.toLocaleString('id-ID')}</span>
+            </div>
+            <div style="border-top: 1px solid #e5e7eb; padding-top: 6px; margin-top: 6px;">
+              <span style="color: #6b7280; font-size: 11px;">Total: </span>
+              <span style="color: #1f2937; font-size: 15px; font-weight: 700;">${total.toLocaleString('id-ID')}</span>
+            </div>
           </div>`;
         },
         backgroundColor: "rgba(255, 255, 255, 0.95)",
@@ -1076,11 +1149,19 @@ export default function PenelitianPublikasi() {
         borderWidth: 1,
         extraCssText: "box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px;",
       },
+      legend: {
+        data: ['Penelitian', 'Pengabdian'],
+        top: 10,
+        textStyle: {
+          fontSize: 11,
+          fontWeight: 600,
+        },
+      },
       grid: {
         left: "3%",
         right: "4%",
         bottom: "3%",
-        top: "3%",
+        top: "15%",
         containLabel: true,
       },
       xAxis: {
@@ -1110,9 +1191,10 @@ export default function PenelitianPublikasi() {
       },
       series: [
         {
+          name: 'Penelitian',
           type: "bar",
           data: penelitianProdiSebaranData.map((item) => ({
-            value: item.jumlah,
+            value: item.jumlah_penelitian,
             itemStyle: {
               color: {
                 type: "linear",
@@ -1133,10 +1215,40 @@ export default function PenelitianPublikasi() {
             position: "top",
             formatter: "{c}",
             color: "#1f2937",
-            fontSize: 10,
-            fontWeight: 700,
+            fontSize: 9,
+            fontWeight: 600,
           },
-          barMaxWidth: 60,
+          barMaxWidth: 30,
+        },
+        {
+          name: 'Pengabdian',
+          type: "bar",
+          data: penelitianProdiSebaranData.map((item) => ({
+            value: item.jumlah_pengabdian,
+            itemStyle: {
+              color: {
+                type: "linear",
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [
+                  { offset: 0, color: "#10b981" },
+                  { offset: 1, color: "#059669" },
+                ],
+              },
+              borderRadius: [6, 6, 0, 0],
+            },
+          })),
+          label: {
+            show: true,
+            position: "top",
+            formatter: "{c}",
+            color: "#1f2937",
+            fontSize: 9,
+            fontWeight: 600,
+          },
+          barMaxWidth: 30,
         },
       ],
     };
@@ -1494,7 +1606,7 @@ export default function PenelitianPublikasi() {
               >
                 <div className="text-3xl mb-3">🔬</div>
                 <div className="text-3xl font-bold mb-1">{penelitianData?.total.toLocaleString() || 0}</div>
-                <div className="text-sm font-semibold opacity-90">Total Penelitian</div>
+                <div className="text-sm font-semibold opacity-90">Total Penelitian & Pengabdian (5 Tahun)</div>
               </motion.div>
 
               {penelitianData?.by_year && penelitianData.by_year.length > 0 && (
@@ -1661,9 +1773,9 @@ export default function PenelitianPublikasi() {
                     onEvents={{
                       click: (params: any) => {
                         if (penelitianDrillLevel === 'fakultas') {
-                          const fakultas = penelitianFakultasSebaranData.find(f => f.nama === params.name);
+                          const fakultas = penelitianFakultasSebaranData.find(f => f.nama_fakultas === params.name);
                           if (fakultas) {
-                            handlePenelitianDrillDown(fakultas.id, fakultas.nama);
+                            handlePenelitianDrillDown(fakultas.id_fakultas, fakultas.nama_fakultas);
                           }
                         }
                       }

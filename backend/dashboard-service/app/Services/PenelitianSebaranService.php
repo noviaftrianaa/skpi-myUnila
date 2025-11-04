@@ -32,18 +32,24 @@ class PenelitianSebaranService
 
         return Cache::remember($cacheKey, $cacheDuration, function () use ($startYear, $endYear) {
             $data = $this->repository->getSebaranPenelitianByFakultas($startYear, $endYear);
-            $total = array_sum(array_column($data, 'jumlah'));
+            $totalPenelitian = array_sum(array_column($data, 'jumlah_penelitian'));
+            $totalPengabdian = array_sum(array_column($data, 'jumlah_pengabdian'));
+            $total = array_sum(array_column($data, 'jumlah_total'));
 
             return [
                 'data' => array_map(function($item) use ($total) {
                     return [
                         'id_fakultas' => $item['id_fakultas'],
                         'nama_fakultas' => $item['nama_fakultas'],
-                        'jumlah' => $item['jumlah'],
-                        'persentase' => $total > 0 ? round(($item['jumlah'] / $total) * 100, 2) : 0,
+                        'jumlah_penelitian' => $item['jumlah_penelitian'],
+                        'jumlah_pengabdian' => $item['jumlah_pengabdian'],
+                        'jumlah_total' => $item['jumlah_total'],
+                        'persentase' => $total > 0 ? round(($item['jumlah_total'] / $total) * 100, 2) : 0,
                     ];
                 }, $data),
                 'total' => $total,
+                'total_penelitian' => $totalPenelitian,
+                'total_pengabdian' => $totalPengabdian,
                 'jumlah_fakultas' => count($data),
             ];
         });
@@ -68,7 +74,9 @@ class PenelitianSebaranService
 
         return Cache::remember($cacheKey, $cacheDuration, function () use ($idFakultas, $startYear, $endYear) {
             $data = $this->repository->getSebaranPenelitianByProdiInFakultas($idFakultas, $startYear, $endYear);
-            $total = array_sum(array_column($data, 'jumlah'));
+            $totalPenelitian = array_sum(array_column($data, 'jumlah_penelitian'));
+            $totalPengabdian = array_sum(array_column($data, 'jumlah_pengabdian'));
+            $total = array_sum(array_column($data, 'jumlah_total'));
 
             return [
                 'data' => array_map(function($item) use ($total) {
@@ -76,11 +84,15 @@ class PenelitianSebaranService
                         'id_prodi' => $item['id_prodi'],
                         'nama_prodi' => $item['nama_prodi'],
                         'jenjang' => $item['jenjang'],
-                        'jumlah' => $item['jumlah'],
-                        'persentase' => $total > 0 ? round(($item['jumlah'] / $total) * 100, 2) : 0,
+                        'jumlah_penelitian' => $item['jumlah_penelitian'],
+                        'jumlah_pengabdian' => $item['jumlah_pengabdian'],
+                        'jumlah_total' => $item['jumlah_total'],
+                        'persentase' => $total > 0 ? round(($item['jumlah_total'] / $total) * 100, 2) : 0,
                     ];
                 }, $data),
                 'total' => $total,
+                'total_penelitian' => $totalPenelitian,
+                'total_pengabdian' => $totalPengabdian,
                 'jumlah_prodi' => count($data),
             ];
         });

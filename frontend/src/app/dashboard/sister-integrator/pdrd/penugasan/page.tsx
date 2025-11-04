@@ -166,7 +166,7 @@ export default function PenugasanManagementPage() {
               Penugasan/Penempatan Dosen
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Kelola dan sinkronisasi data penugasan/penempatan dosen dari SISTER API
+              Data penugasan aktif di homebase Unila pada periode tahun ajaran aktif
             </p>
           </div>
           <Button
@@ -204,7 +204,7 @@ export default function PenugasanManagementPage() {
                   </h3>
                   <p className="text-[10px] text-purple-100/80 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                    Total data penugasan
+                    Aktif di homebase Unila
                   </p>
                 </div>
               </div>
@@ -231,7 +231,7 @@ export default function PenugasanManagementPage() {
                     {stats?.total_active.toLocaleString() || "0"}
                   </h3>
                   <p className="text-[10px] text-emerald-100/80">
-                    Penugasan yang masih aktif
+                    Dengan keaktifan tahun ajaran
                   </p>
                 </div>
               </div>

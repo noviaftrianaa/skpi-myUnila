@@ -24,6 +24,8 @@ type Repository interface {
 	// Lookup helpers
 	GetNIDNByIDSDM(idSDM string) (*string, error)
 	GetAllActiveDosen() ([]DosenInfo, error)
+	GetActiveDosenCount() (int, error)
+	GetActiveDosenBatch(offset, limit int) ([]DosenInfo, error)
 }
 
 type repository struct {
@@ -159,16 +161,16 @@ func (r *repository) DeleteKeaktifanByIDRegPTK(idRegPTK string) error {
 func (r *repository) InsertKeaktifan(k *KeaktifanPTK) error {
 	query := `
 		INSERT INTO pdrd.keaktifan_ptk (
-			id_keaktifan_ptk, id_reg_ptk, id_thn_ajaran, a_sp_homebase,
-			create_date, id_creator, last_update, id_updater, soft_delete
+			id_reg_ptk, id_thn_ajaran, a_sp_homebase,
+			create_date, id_creator, last_update, id_updater, soft_delete, last_sync
 		) VALUES (
-			@p1, @p2, @p3, @p4,
-			@p5, @p6, @p7, @p8, @p9
+			@p1, @p2, @p3,
+			@p4, @p5, @p6, @p7, @p8, @p9
 		)
 	`
 	_, err := r.db.Exec(query,
-		k.IDKeaktifanPTK, k.IDRegPTK, k.IDThnAjaran, k.ASPHomebase,
-		k.CreateDate, k.IDCreator, k.LastUpdate, k.IDUpdater, k.SoftDelete,
+		k.IDRegPTK, k.IDThnAjaran, k.ASPHomebase,
+		k.CreateDate, k.IDCreator, k.LastUpdate, k.IDUpdater, k.SoftDelete, k.LastSync,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to insert keaktifan: %w", err)
@@ -212,35 +214,62 @@ func (r *repository) GetNIDNByIDSDM(idSDM string) (*string, error) {
 	return nidn, nil
 }
 
-// GetAllActiveDosen retrieves all active dosen for batch sync
+// GetAllActiveDosen retrieves all active dosen for batch sync (kept for backward compatibility)
 func (r *repository) GetAllActiveDosen() ([]DosenInfo, error) {
 	query := `
 		SELECT
-			id_sdm,
+			CONVERT(VARCHAR(36), id_sdm) as id_sdm,
 			nm_sdm,
 			nidn
-		FROM pdrd.sdm
+		FROM pdrd.sdm WITH (NOLOCK)
 		WHERE soft_delete = 0 AND id_sdm IS NOT NULL
 		ORDER BY nm_sdm
 	`
 
-	rows, err := r.db.Queryx(query)
+	var dosenList []DosenInfo
+	err := r.db.Select(&dosenList, query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query active dosen: %w", err)
 	}
-	defer rows.Close()
 
-	var dosenList []DosenInfo
-	for rows.Next() {
-		var d DosenInfo
-		if err := rows.Scan(&d.IDSDM, &d.Nama, &d.NIDN); err != nil {
-			return nil, fmt.Errorf("failed to scan dosen: %w", err)
-		}
-		dosenList = append(dosenList, d)
+	return dosenList, nil
+}
+
+// GetActiveDosenCount returns the count of active dosen
+func (r *repository) GetActiveDosenCount() (int, error) {
+	query := `
+		SELECT COUNT(*)
+		FROM pdrd.sdm WITH (NOLOCK)
+		WHERE soft_delete = 0 AND id_sdm IS NOT NULL
+	`
+
+	var count int
+	err := r.db.Get(&count, query)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count active dosen: %w", err)
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating dosen rows: %w", err)
+	return count, nil
+}
+
+// GetActiveDosenBatch retrieves a batch of active dosen with pagination
+func (r *repository) GetActiveDosenBatch(offset, limit int) ([]DosenInfo, error) {
+	query := `
+		SELECT
+			CONVERT(VARCHAR(36), id_sdm) as id_sdm,
+			nm_sdm,
+			nidn
+		FROM pdrd.sdm WITH (NOLOCK)
+		WHERE soft_delete = 0 AND id_sdm IS NOT NULL
+		ORDER BY nm_sdm
+		OFFSET @p1 ROWS
+		FETCH NEXT @p2 ROWS ONLY
+	`
+
+	var dosenList []DosenInfo
+	err := r.db.Select(&dosenList, query, offset, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query active dosen batch: %w", err)
 	}
 
 	return dosenList, nil
@@ -279,9 +308,17 @@ func (r *repository) GetPenugasanList(page, limit int, search string) (*Penugasa
 	// Get paginated data with all JOINs
 	dataQuery := fmt.Sprintf(`
 		SELECT
-			p.id_reg_ptk, p.id_sdm, p.id_sp, p.id_stat_pegawai, p.id_ikatan_kerja, p.id_sms,
+			CONVERT(VARCHAR(36), p.id_reg_ptk) as id_reg_ptk,
+			CONVERT(VARCHAR(36), p.id_sdm) as id_sdm,
+			CONVERT(VARCHAR(36), p.id_sp) as id_sp,
+			p.id_stat_pegawai,
+			p.id_ikatan_kerja,
+			CONVERT(VARCHAR(36), p.id_sms) as id_sms,
 			p.id_jns_keluar, p.no_srt_tgs, p.tgl_srt_tgs, p.tmt_srt_tgs, p.tgl_ptk_keluar,
-			p.nidn, p.jns_reg, p.create_date, p.id_creator, p.last_update, p.id_updater,
+			p.nidn, p.jns_reg, p.create_date,
+			CONVERT(VARCHAR(36), p.id_creator) as id_creator,
+			p.last_update,
+			CONVERT(VARCHAR(36), p.id_updater) as id_updater,
 			p.soft_delete, p.last_sync,
 			s.nm_sdm AS nama_dosen,
 			s.nip,
@@ -334,24 +371,53 @@ func (r *repository) GetPenugasanList(page, limit int, search string) (*Penugasa
 }
 
 // GetPenugasanStats retrieves penugasan statistics
+// Filters: active penugasan only (id_jns_keluar IS NULL) at homebase Unila (id_sp) in active period
 func (r *repository) GetPenugasanStats() (*PenugasanStats, error) {
 	stats := &PenugasanStats{}
 
-	// Get total penugasan
-	err := r.db.Get(&stats.TotalPenugasan, "SELECT COUNT(*) FROM pdrd.reg_ptk WHERE soft_delete = 0")
+	// Unila ID from Sister API
+	const UNILA_ID_SP = "e2b705a7-173e-464a-9fac-509128709515"
+
+	// Get total penugasan (active only at Unila homebase)
+	query := `
+		SELECT COUNT(*)
+		FROM pdrd.reg_ptk
+		WHERE soft_delete = 0
+			AND id_jns_keluar IS NULL
+			AND CAST(id_sp AS VARCHAR(50)) = @p1
+	`
+	err := r.db.Get(&stats.TotalPenugasan, query, UNILA_ID_SP)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get total penugasan: %w", err)
 	}
 
-	// Get total active penugasan (not yet keluar)
-	err = r.db.Get(&stats.TotalActive, "SELECT COUNT(*) FROM pdrd.reg_ptk WHERE soft_delete = 0 AND (tgl_ptk_keluar IS NULL OR tgl_ptk_keluar > GETDATE())")
+	// Get total active penugasan (with active keaktifan_ptk in current/recent year)
+	activeQuery := `
+		SELECT COUNT(DISTINCT p.id_reg_ptk)
+		FROM pdrd.reg_ptk p
+		INNER JOIN pdrd.keaktifan_ptk kp
+			ON kp.id_reg_ptk = p.id_reg_ptk
+			AND kp.soft_delete = 0
+		WHERE p.soft_delete = 0
+			AND p.id_jns_keluar IS NULL
+			AND CAST(p.id_sp AS VARCHAR(50)) = @p1
+			AND kp.id_thn_ajaran >= (YEAR(GETDATE()) - 1)
+	`
+	err = r.db.Get(&stats.TotalActive, activeQuery, UNILA_ID_SP)
 	if err != nil {
 		stats.TotalActive = 0
 	}
 
-	// Get last sync time
+	// Get last sync time (filtered to Unila homebase only)
 	var lastSync *time.Time
-	err = r.db.Get(&lastSync, "SELECT TOP 1 last_sync FROM pdrd.reg_ptk WHERE last_sync IS NOT NULL ORDER BY last_sync DESC")
+	lastSyncQuery := `
+		SELECT TOP 1 last_sync
+		FROM pdrd.reg_ptk
+		WHERE last_sync IS NOT NULL
+			AND CAST(id_sp AS VARCHAR(50)) = @p1
+		ORDER BY last_sync DESC
+	`
+	err = r.db.Get(&lastSync, lastSyncQuery, UNILA_ID_SP)
 	if err != nil {
 		// If no sync yet, lastSync remains nil
 		lastSync = nil

@@ -171,7 +171,7 @@ export default function DosenManagementPage() {
               Data Dosen & Tendik
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Sinkronisasi dan kelola data SDM dosen dan tenaga kependidikan dari SISTER API
+              Data SDM aktif di homebase Unila pada periode tahun ajaran 2025
             </p>
           </div>
           <Button
@@ -208,8 +208,8 @@ export default function DosenManagementPage() {
                     {stats?.total_dosen.toLocaleString() || "0"}
                   </h3>
                   <p className="text-[10px] text-purple-100/80 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                    Total data SDM
+                    <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
+                    Total seluruh SDM
                   </p>
                 </div>
               </div>
@@ -236,7 +236,7 @@ export default function DosenManagementPage() {
                     {stats?.total_aktif.toLocaleString() || "0"}
                   </h3>
                   <p className="text-[10px] text-emerald-100/80">
-                    {stats ? ((stats.total_aktif / stats.total_dosen) * 100).toFixed(1) : 0}% dari total dosen
+                    Dengan keaktifan tahun 2025
                   </p>
                 </div>
               </div>

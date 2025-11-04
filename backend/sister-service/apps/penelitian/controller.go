@@ -88,6 +88,62 @@ func (c *Controller) SyncPengabdianByIDSDM(ctx *fiber.Ctx) error {
 	return ctx.JSON(result)
 }
 
+// BatchSyncAllPenelitian godoc
+// @Summary Batch sync all penelitian
+// @Description Sync penelitian for all dosen from Sister API
+// @Tags Penelitian
+// @Accept json
+// @Produce json
+// @Param synced_by query string false "Synced by (default: system)"
+// @Success 200 {object} BatchAllSyncResult
+// @Router /api/v1/penelitian/sync-all [post]
+func (c *Controller) BatchSyncAllPenelitian(ctx *fiber.Ctx) error {
+	syncedBy := ctx.Query("synced_by")
+	if syncedBy == "" {
+		syncedBy = "system"
+	}
+
+	log.Printf("📥 Batch sync all penelitian request (synced_by: %s)", syncedBy)
+
+	result, err := c.service.BatchSyncAllPenelitian(syncedBy)
+	if err != nil {
+		log.Printf("❌ Batch sync all penelitian failed: %v", err)
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return ctx.JSON(result)
+}
+
+// BatchSyncAllPengabdian godoc
+// @Summary Batch sync all pengabdian
+// @Description Sync pengabdian for all dosen from Sister API
+// @Tags Pengabdian
+// @Accept json
+// @Produce json
+// @Param synced_by query string false "Synced by (default: system)"
+// @Success 200 {object} BatchAllSyncResult
+// @Router /api/v1/pengabdian/sync-all [post]
+func (c *Controller) BatchSyncAllPengabdian(ctx *fiber.Ctx) error {
+	syncedBy := ctx.Query("synced_by")
+	if syncedBy == "" {
+		syncedBy = "system"
+	}
+
+	log.Printf("📥 Batch sync all pengabdian request (synced_by: %s)", syncedBy)
+
+	result, err := c.service.BatchSyncAllPengabdian(syncedBy)
+	if err != nil {
+		log.Printf("❌ Batch sync all pengabdian failed: %v", err)
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return ctx.JSON(result)
+}
+
 // GetPenelitianByIDSDM godoc
 // @Summary Get penelitian by id_sdm
 // @Description Get all penelitian for a dosen

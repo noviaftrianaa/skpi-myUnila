@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
+use App\Helpers\TahunAjaranHelper;
 
 class ProgramStudiRepository
 {
@@ -81,6 +82,7 @@ class ProgramStudiRepository
     public function getProgramStudiList(array $filters, ?string $search, int $offset, int $limit, string $sortBy = 'nama', string $sortOrder = 'asc'): Collection
     {
         $periode = $filters['periode'] ?? $this->getActivePeriod();
+        $tahunAjaran = TahunAjaranHelper::getActiveTahunAjaran();
 
         $sql = "
             SELECT
@@ -161,7 +163,7 @@ class ProgramStudiRepository
                         ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
                         AND keaktifan.soft_delete = 0
                         AND keaktifan.a_sp_homebase = 1
-                        AND keaktifan.id_thn_ajaran = '2025'
+                        AND keaktifan.id_thn_ajaran = ?
                     WHERE ptk.soft_delete = 0
                         AND ptk.id_jns_keluar IS NULL
                         AND CAST(ptk.id_sp AS VARCHAR(50)) = '" . strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')) . "'
@@ -189,7 +191,7 @@ class ProgramStudiRepository
                 AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
         ";
 
-        $params = [$periode, $periode];
+        $params = [$periode, $periode, $tahunAjaran];
 
         // Add search filter
         if ($search) {
@@ -320,6 +322,7 @@ class ProgramStudiRepository
     {
         $periode = $filters['periode'] ?? $this->getActivePeriod();
         $unilaIdSp = strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515'));
+        $tahunAjaran = TahunAjaranHelper::getActiveTahunAjaran();
 
         // Build filter WHERE clause
         $filterWhere = "";
@@ -373,7 +376,7 @@ class ProgramStudiRepository
                 ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
                 AND keaktifan.soft_delete = 0
                 AND keaktifan.a_sp_homebase = 1
-                AND keaktifan.id_thn_ajaran = '2025'
+                AND keaktifan.id_thn_ajaran = ?
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = ptk.id_sms
                 AND sms.soft_delete = 0
@@ -478,7 +481,7 @@ class ProgramStudiRepository
 
         // Execute queries
         $totalProdi = DB::connection('sqlsrv')->select($sqlProdi, $filterParams);
-        $totalDosen = DB::connection('sqlsrv')->select($sqlDosen, $filterParams);
+        $totalDosen = DB::connection('sqlsrv')->select($sqlDosen, array_merge([$tahunAjaran], $filterParams));
         $totalMahasiswa = DB::connection('sqlsrv')->select($sqlMahasiswa, array_merge([$periode], $filterParams));
         $breakdown = DB::connection('sqlsrv')->select($sqlBreakdown, $filterParams);
 
@@ -560,6 +563,7 @@ class ProgramStudiRepository
     public function getProgramStudiDetail(string $idSms, ?string $periode = null): ?object
     {
         $periode = $periode ?? $this->getActivePeriod();
+        $tahunAjaran = TahunAjaranHelper::getActiveTahunAjaran();
 
         $sql = "
             SELECT
@@ -669,7 +673,7 @@ class ProgramStudiRepository
                         ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
                         AND keaktifan.soft_delete = 0
                         AND keaktifan.a_sp_homebase = 1
-                        AND keaktifan.id_thn_ajaran = '2025'
+                        AND keaktifan.id_thn_ajaran = ?
                     WHERE ptk.soft_delete = 0
                         AND ptk.id_jns_keluar IS NULL
                         AND ptk.id_sms = ?
@@ -697,7 +701,7 @@ class ProgramStudiRepository
                 AND CAST(sms.id_sp AS VARCHAR(50)) = '" . strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')) . "'
         ";
 
-        $params = [$periode, $periode, $idSms, $idSms];
+        $params = [$periode, $periode, $tahunAjaran, $idSms, $idSms];
         $results = DB::connection('sqlsrv')->select($sql, $params);
 
         return $results[0] ?? null;
@@ -711,6 +715,8 @@ class ProgramStudiRepository
      */
     public function getDosenByProgramStudi(string $idSms): Collection
     {
+        $tahunAjaran = TahunAjaranHelper::getActiveTahunAjaran();
+
         $sql = "
             SELECT
                 sdm.id_sdm,
@@ -802,7 +808,7 @@ class ProgramStudiRepository
                     ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
                     AND keaktifan.soft_delete = 0
                     AND keaktifan.a_sp_homebase = 1
-                    AND keaktifan.id_thn_ajaran = '2025'
+                    AND keaktifan.id_thn_ajaran = ?
                 WHERE ptk.soft_delete = 0
                     AND ptk.id_jns_keluar IS NULL
                     AND ptk.id_sms = ?
@@ -845,7 +851,7 @@ class ProgramStudiRepository
             ORDER BY sdm.nm_sdm ASC
         ";
 
-        $results = DB::connection('sqlsrv')->select($sql, [$idSms]);
+        $results = DB::connection('sqlsrv')->select($sql, [$tahunAjaran, $idSms]);
 
         return collect($results);
     }
