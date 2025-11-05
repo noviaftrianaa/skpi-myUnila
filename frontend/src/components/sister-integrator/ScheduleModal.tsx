@@ -26,7 +26,7 @@ interface ScheduleModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  syncType: "referensi" | "dosen" | "penugasan";
+  syncType: "referensi" | "dosen" | "penugasan" | "penelitian" | "pengabdian" | "pendidikan" | "publikasi";
   endpointKey?: string;
   endpointName?: string;
   schedule?: ScheduledSync; // For edit mode
@@ -100,13 +100,49 @@ export default function ScheduleModal({
       tomorrow.setDate(tomorrow.getDate() + 1);
       const dateStr = tomorrow.toISOString().split("T")[0];
 
+      // Generate unique name with timestamp
+      const timestamp = new Date().getTime();
+      const getDefaultName = () => {
+        switch (syncType) {
+          case "dosen":
+            return `Dosen Sync ${timestamp}`;
+          case "penelitian":
+            return `Penelitian Sync ${timestamp}`;
+          case "pengabdian":
+            return `Pengabdian Sync ${timestamp}`;
+          case "pendidikan":
+            return `Pendidikan Formal Sync ${timestamp}`;
+          case "publikasi":
+            return `Publikasi Sync ${timestamp}`;
+          case "penugasan":
+            return `Penugasan Sync ${timestamp}`;
+          default:
+            return `${endpointName || "Referensi"} Sync ${timestamp}`;
+        }
+      };
+
+      const getDefaultDescription = () => {
+        switch (syncType) {
+          case "dosen":
+            return "Sync all Unila dosen data every day";
+          case "penelitian":
+            return "Batch sync penelitian data for all dosen every day";
+          case "pengabdian":
+            return "Batch sync pengabdian data for all dosen every day";
+          case "pendidikan":
+            return "Batch sync pendidikan formal data for all dosen every day";
+          case "publikasi":
+            return "Batch sync publikasi data for all dosen every day";
+          case "penugasan":
+            return "Batch sync penugasan data for all active dosen every day";
+          default:
+            return `Sync ${endpointName || "referensi"} data every day`;
+        }
+      };
+
       setFormData({
-        name: syncType === "dosen"
-          ? "Daily Dosen Sync"
-          : `Daily ${endpointName || "Referensi"} Sync`,
-        description: syncType === "dosen"
-          ? "Sync all Unila dosen data every day"
-          : `Sync ${endpointName || "referensi"} data every day`,
+        name: getDefaultName(),
+        description: getDefaultDescription(),
         endpoint_key: endpointKey || "",
         schedule_date: dateStr,
         schedule_time: "02:00",
@@ -143,6 +179,9 @@ export default function ScheduleModal({
       alert("Endpoint harus dipilih");
       return;
     }
+
+    // No endpoint_key validation needed for penelitian, pengabdian, pendidikan, publikasi
+    // These types will batch sync all dosen
 
     setLoading(true);
 
@@ -191,8 +230,8 @@ export default function ScheduleModal({
           created_by: user.username,
         };
 
-        // Add endpoint_key only for referensi
-        if (syncType === "referensi" && formData.endpoint_key) {
+        // Add endpoint_key for referensi, penelitian, pengabdian, pendidikan, publikasi
+        if (formData.endpoint_key) {
           request.endpoint_key = formData.endpoint_key;
         }
 
@@ -234,7 +273,17 @@ export default function ScheduleModal({
             <p className="text-sm font-normal text-gray-600 dark:text-slate-400">
               {syncType === "dosen"
                 ? "Schedule sync untuk data dosen"
-                : "Schedule sync untuk data referensi"}
+                : syncType === "referensi"
+                ? "Schedule sync untuk data referensi"
+                : syncType === "penelitian"
+                ? "Schedule sync untuk data penelitian dosen"
+                : syncType === "pengabdian"
+                ? "Schedule sync untuk data pengabdian dosen"
+                : syncType === "pendidikan"
+                ? "Schedule sync untuk data pendidikan formal dosen"
+                : syncType === "publikasi"
+                ? "Schedule sync untuk data publikasi dosen"
+                : "Schedule sync untuk data penugasan"}
             </p>
           </ModalHeader>
 
@@ -316,6 +365,7 @@ export default function ScheduleModal({
                 </Select>
               </div>
             )}
+
 
             {/* Date and Time */}
             <div className="grid grid-cols-2 gap-4">
