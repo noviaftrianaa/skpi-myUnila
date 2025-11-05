@@ -144,7 +144,7 @@ type DosenInfo struct {
 func (s *service) getAllDosen() ([]DosenInfo, error) {
 	query := `
 		SELECT
-			id_sdm,
+			CONVERT(VARCHAR(36), id_sdm) as id_sdm,
 			nm_sdm
 		FROM pdrd.sdm WITH (NOLOCK)
 		WHERE soft_delete = 0

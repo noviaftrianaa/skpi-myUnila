@@ -100,8 +100,8 @@ func (s *Service) executeWithRetry(schedule ScheduledSync) error {
 		if err := s.penugasanService.ForceRefreshToken(); err != nil {
 			log.Printf("⚠️  Failed to refresh token for penugasan sync, continuing anyway: %v", err)
 		}
-	} else if schedule.SyncType == "penelitian" || schedule.SyncType == "pengabdian" || schedule.SyncType == "pendidikan" {
-		// Penelitian, pengabdian, and pendidikan use the same Sister API token as dosen
+	} else if schedule.SyncType == "penelitian" || schedule.SyncType == "pengabdian" || schedule.SyncType == "pendidikan" || schedule.SyncType == "publikasi" {
+		// Penelitian, pengabdian, pendidikan, and publikasi use the same Sister API token as dosen
 		if err := s.dosenService.ForceRefreshToken(); err != nil {
 			log.Printf("⚠️  Failed to refresh token for %s sync, continuing anyway: %v", schedule.SyncType, err)
 		}
@@ -119,15 +119,18 @@ func (s *Service) executeWithRetry(schedule ScheduledSync) error {
 		} else if schedule.SyncType == "penugasan" {
 			// Execute penugasan sync - BatchSync for all active dosen
 			_, err = s.penugasanService.BatchSyncPenugasan("scheduler")
-		} else if schedule.SyncType == "penelitian" && schedule.EndpointKey != nil {
-			// Execute penelitian sync by id_sdm - endpoint_key contains id_sdm
-			_, err = s.penelitianService.SyncPenelitianByIDSDM(*schedule.EndpointKey, "scheduler")
-		} else if schedule.SyncType == "pengabdian" && schedule.EndpointKey != nil {
-			// Execute pengabdian sync by id_sdm - endpoint_key contains id_sdm
-			_, err = s.penelitianService.SyncPengabdianByIDSDM(*schedule.EndpointKey, "scheduler")
-		} else if schedule.SyncType == "pendidikan" && schedule.EndpointKey != nil {
-			// Execute pendidikan formal sync by id_sdm - endpoint_key contains id_sdm
-			_, err = s.pendidikanService.SyncPendidikanFormalByIDSDM(*schedule.EndpointKey, "scheduler")
+		} else if schedule.SyncType == "penelitian" {
+			// Execute penelitian batch sync for all dosen
+			_, err = s.penelitianService.BatchSyncAllPenelitian("scheduler")
+		} else if schedule.SyncType == "pengabdian" {
+			// Execute pengabdian batch sync for all dosen
+			_, err = s.penelitianService.BatchSyncAllPengabdian("scheduler")
+		} else if schedule.SyncType == "pendidikan" {
+			// Execute pendidikan formal batch sync for all dosen
+			_, err = s.pendidikanService.BatchSyncAllPendidikanFormal("scheduler")
+		} else if schedule.SyncType == "publikasi" {
+			// Execute publikasi batch sync for all dosen
+			_, err = s.publikasiService.BatchSyncAllPublikasi("scheduler")
 		} else {
 			return fmt.Errorf("invalid sync configuration")
 		}
@@ -241,18 +244,10 @@ func (s *Service) CreateSchedule(req CreateScheduledSyncRequest) (*ScheduledSync
 		return nil, fmt.Errorf("invalid schedule time: %w", err)
 	}
 
-	// Validate endpoint_key for referensi, penelitian, pengabdian, and pendidikan types
+	// Validate endpoint_key only for referensi type
+	// penelitian, pengabdian, pendidikan, publikasi will batch sync all dosen
 	if req.SyncType == "referensi" && req.EndpointKey == nil {
 		return nil, fmt.Errorf("endpoint_key is required for referensi sync")
-	}
-	if req.SyncType == "penelitian" && req.EndpointKey == nil {
-		return nil, fmt.Errorf("endpoint_key (id_sdm) is required for penelitian sync")
-	}
-	if req.SyncType == "pengabdian" && req.EndpointKey == nil {
-		return nil, fmt.Errorf("endpoint_key (id_sdm) is required for pengabdian sync")
-	}
-	if req.SyncType == "pendidikan" && req.EndpointKey == nil {
-		return nil, fmt.Errorf("endpoint_key (id_sdm) is required for pendidikan sync")
 	}
 
 	// Create schedule object
