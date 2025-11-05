@@ -6,6 +6,7 @@ import (
 	"sister-service/apps/dosen"
 	appLogger "sister-service/apps/logger"
 	"sister-service/apps/monitoring"
+	"sister-service/apps/pendidikan"
 	"sister-service/apps/penelitian"
 	"sister-service/apps/penugasan"
 	"sister-service/apps/publikasi"
@@ -161,12 +162,16 @@ func main() {
 	publikasiService := publikasi.SetupRoutes(app, db, sisterAPI, loggerService)
 	log.Println("✅ Publikasi routes registered")
 
+	// Initialize Pendidikan Formal module
+	pendidikanService := pendidikan.SetupRoutes(app, db, sisterAPI, loggerService)
+	log.Println("✅ Pendidikan Formal routes registered")
+
 	synclog.RegisterRoutes(publicRoutes, db)                            // Sync logs endpoints
 	monitoring.RegisterRoutes(publicRoutes)                             // Monitoring endpoints
 
 	// Initialize Scheduler Service
 	schedulerRepo := scheduler.NewRepository(db)
-	schedulerService := scheduler.NewService(schedulerRepo, dosenService, referensiService, penugasanService, penelitianService, publikasiService)
+	schedulerService := scheduler.NewService(schedulerRepo, dosenService, referensiService, penugasanService, penelitianService, publikasiService, pendidikanService)
 	schedulerRouter := scheduler.NewRouter(schedulerService)
 	schedulerRouter.RegisterRoutes(app)
 

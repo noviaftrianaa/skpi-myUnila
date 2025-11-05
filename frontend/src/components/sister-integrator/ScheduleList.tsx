@@ -32,7 +32,7 @@ import {
 import ScheduleModal from "./ScheduleModal";
 
 interface ScheduleListProps {
-  syncType?: "referensi" | "dosen" | "penugasan";
+  syncType?: "referensi" | "dosen" | "penugasan" | "penelitian" | "pengabdian" | "pendidikan" | "publikasi";
   endpointKey?: string;
   showCreateButton?: boolean;
 }

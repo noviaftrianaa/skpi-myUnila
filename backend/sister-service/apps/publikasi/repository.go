@@ -551,7 +551,8 @@ func (r *repository) GetPublikasiStats() (*PublikasiStats, error) {
 			SUM(CASE
 				WHEN jp.nm_jns_pub LIKE '%buku%' OR jp.nm_jns_pub LIKE '%book%'
 				THEN 1 ELSE 0
-			END) as total_buku
+			END) as total_buku,
+			MAX(p.last_sync) as last_sync
 		FROM pdrd.publikasi p WITH (NOLOCK)
 		LEFT JOIN ref.jenis_publikasi jp WITH (NOLOCK) ON jp.id_jns_pub = p.id_jns_pub
 		WHERE p.soft_delete = 0

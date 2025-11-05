@@ -53,11 +53,13 @@ export default function DashboardLayout({
         />
 
         {/* Page Content with smooth transition */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-8 relative">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 relative">
           {/* Decorative gradient overlay for smooth transition */}
           <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent dark:via-gray-700"></div>
 
-          {children}
+          <div className="max-w-full mx-auto">
+            {children}
+          </div>
         </main>
       </div>
     </div>

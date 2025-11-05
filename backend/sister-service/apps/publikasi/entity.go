@@ -176,11 +176,12 @@ type BatchAllSyncResult struct {
 
 // PublikasiStats represents publikasi statistics
 type PublikasiStats struct {
-	TotalPublikasi      int `json:"total_publikasi" db:"total_publikasi"`
-	TotalJurnalNasional int `json:"total_jurnal_nasional" db:"total_jurnal_nasional"`
-	TotalJurnalIntl     int `json:"total_jurnal_intl" db:"total_jurnal_intl"`
-	TotalProseeding     int `json:"total_proseeding" db:"total_proseeding"`
-	TotalBuku           int `json:"total_buku" db:"total_buku"`
+	TotalPublikasi      int        `json:"total_publikasi" db:"total_publikasi"`
+	TotalJurnalNasional int        `json:"total_jurnal_nasional" db:"total_jurnal_nasional"`
+	TotalJurnalIntl     int        `json:"total_jurnal_intl" db:"total_jurnal_intl"`
+	TotalProseeding     int        `json:"total_proseeding" db:"total_proseeding"`
+	TotalBuku           int        `json:"total_buku" db:"total_buku"`
+	LastSync            *time.Time `json:"last_sync" db:"last_sync"`
 }
 
 // PenulisInfo represents simplified author info for list view

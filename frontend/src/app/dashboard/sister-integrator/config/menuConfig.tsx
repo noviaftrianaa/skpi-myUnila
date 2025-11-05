@@ -66,11 +66,6 @@ export const sisterIntegratorMenuConfig: MenuItem[] = [
         roles: ["developer"],
       },
       {
-        title: "Jabatan Struktural",
-        href: "/dashboard/sister-integrator/pdrd/jabatan-struktural",
-        roles: ["developer"],
-      },
-      {
         title: "Pendidikan Formal",
         href: "/dashboard/sister-integrator/pdrd/pendidikan-formal",
         roles: ["developer"],
@@ -78,6 +73,11 @@ export const sisterIntegratorMenuConfig: MenuItem[] = [
       {
         title: "Riwayat Pekerjaan",
         href: "/dashboard/sister-integrator/pdrd/riwayat-pekerjaan",
+        roles: ["developer"],
+      },
+      {
+        title: "Jabatan Struktural",
+        href: "/dashboard/sister-integrator/pdrd/jabatan-struktural",
         roles: ["developer"],
       },
       {

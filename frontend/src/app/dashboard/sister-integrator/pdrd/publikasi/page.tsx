@@ -212,7 +212,7 @@ export default function PublikasiManagementPage() {
             </CardBody>
           </Card>
 
-          {/* Jurnal Nasional Card */}
+          {/* Jurnal Internasional Card */}
           <Card className="bg-gradient-to-br from-emerald-500 via-green-600 to-teal-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
             <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
@@ -223,42 +223,15 @@ export default function PublikasiManagementPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs font-medium text-emerald-100">Jurnal Nasional</p>
+                    <p className="text-xs font-medium text-emerald-100">Jurnal Internasional</p>
                     <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
-                      <span className="text-[10px] font-semibold text-white">📖 Jurnal</span>
-                    </div>
-                  </div>
-                  <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
-                    {stats?.total_jurnal_nasional.toLocaleString() || "0"}
-                  </h3>
-                  <p className="text-[10px] text-emerald-100/80">
-                    Jurnal Nasional
-                  </p>
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-
-          {/* Jurnal Internasional Card */}
-          <Card className="bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
-            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
-            <CardBody className="p-4 relative z-10">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
-                  <FiRefreshCw className="w-7 h-7 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs font-medium text-orange-100">Jurnal Internasional</p>
-                    <div className="px-2 py-0.5 rounded-full bg-white/30 backdrop-blur-sm">
                       <span className="text-[10px] font-semibold text-white">🌍 Intl</span>
                     </div>
                   </div>
                   <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
                     {stats?.total_jurnal_intl.toLocaleString() || "0"}
                   </h3>
-                  <p className="text-[10px] text-orange-100/80">
+                  <p className="text-[10px] text-emerald-100/80">
                     Jurnal Internasional
                   </p>
                 </div>
@@ -267,6 +240,33 @@ export default function PublikasiManagementPage() {
           </Card>
 
           {/* Prosiding & Buku Card */}
+          <Card className="bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
+            <CardBody className="p-4 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
+                  <FiCheckCircle className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-orange-100">Prosiding & Buku</p>
+                    <div className="px-2 py-0.5 rounded-full bg-white/30 backdrop-blur-sm">
+                      <span className="text-[10px] font-semibold text-white">📚 Other</span>
+                    </div>
+                  </div>
+                  <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
+                    {((stats?.total_proseeding || 0) + (stats?.total_buku || 0)).toLocaleString() || "0"}
+                  </h3>
+                  <p className="text-[10px] text-orange-100/80">
+                    Prosiding & Buku
+                  </p>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* Last Sync Card */}
           <Card className="bg-gradient-to-br from-purple-500 via-violet-600 to-indigo-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
             <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
@@ -277,16 +277,16 @@ export default function PublikasiManagementPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs font-medium text-purple-100">Prosiding & Buku</p>
+                    <p className="text-xs font-medium text-purple-100">Last Sync</p>
                     <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
-                      <span className="text-[10px] font-semibold text-white">📚 Other</span>
+                      <span className="text-[10px] font-semibold text-white">Sync</span>
                     </div>
                   </div>
-                  <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
-                    {((stats?.total_proseeding || 0) + (stats?.total_buku || 0)).toLocaleString() || "0"}
-                  </h3>
-                  <p className="text-[10px] text-purple-100/80">
-                    Prosiding & Buku
+                  <p className="text-sm font-semibold text-white leading-tight">
+                    {formatDate(stats?.last_sync)}
+                  </p>
+                  <p className="text-[10px] text-purple-100/80 mt-1">
+                    Terakhir sinkronisasi
                   </p>
                 </div>
               </div>

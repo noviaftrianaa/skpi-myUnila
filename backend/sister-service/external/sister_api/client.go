@@ -717,6 +717,20 @@ func (c *Client) GetPenelitianDetail(idPenelitian string) ([]byte, error) {
 	return c.Get(endpoint)
 }
 
+// GetPendidikanFormalByIDSDM fetches list of pendidikan formal by id_sdm from Sister API
+// Endpoint: GET /1.0/pendidikan_formal?id_sdm={id_sdm}
+func (c *Client) GetPendidikanFormalByIDSDM(idSDM string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/1.0/pendidikan_formal?id_sdm=%s", idSDM)
+	return c.Get(endpoint)
+}
+
+// GetPendidikanFormalDetail fetches detail of a single pendidikan formal from Sister API
+// Endpoint: GET /1.0/pendidikan_formal/{id}
+func (c *Client) GetPendidikanFormalDetail(idPendidikan string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/1.0/pendidikan_formal/%s", idPendidikan)
+	return c.Get(endpoint)
+}
+
 // ==================== PENGABDIAN ENDPOINTS ====================
 
 // GetPengabdianByIDSDM fetches list of pengabdian for a dosen from Sister API
