@@ -1,71 +1,33 @@
 /**
- * API Client with Axios
+ * Sister API Client with Axios
  *
  * Features:
  * - JWT token management (access + refresh)
  * - Auto token refresh on 401
  * - Request/Response interceptors
  * - Error handling
+ *
+ * This client is used for Sister Service API calls
  */
 
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
+import { getToken, setToken, clearTokens } from './client';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-const API_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '30000');
-
-/**
- * Token Storage Keys
- */
-export const TOKEN_KEYS = {
-  ACCESS: 'auth_access_token',
-  REFRESH: 'auth_refresh_token',
-  USER: 'auth_user',
-} as const;
+// Sister API URL via Kong Gateway
+const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:9800/sister-service/public';
+const API_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '120000'); // 2 minutes for long operations
 
 /**
- * Get token from storage (client-side only)
+ * Create Sister API Client Instance
  */
-export const getToken = (key: keyof typeof TOKEN_KEYS): string | null => {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem(TOKEN_KEYS[key]);
-};
-
-/**
- * Set token to storage (client-side only)
- */
-export const setToken = (key: keyof typeof TOKEN_KEYS, value: string): void => {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(TOKEN_KEYS[key], value);
-};
-
-/**
- * Remove token from storage (client-side only)
- */
-export const removeToken = (key: keyof typeof TOKEN_KEYS): void => {
-  if (typeof window === 'undefined') return;
-  localStorage.removeItem(TOKEN_KEYS[key]);
-};
-
-/**
- * Clear all auth tokens
- */
-export const clearTokens = (): void => {
-  if (typeof window === 'undefined') return;
-  Object.values(TOKEN_KEYS).forEach(key => localStorage.removeItem(key));
-};
-
-/**
- * Create Axios Instance
- */
-const createApiClient = (): AxiosInstance => {
+const createSisterClient = (): AxiosInstance => {
   const instance = axios.create({
-    baseURL: API_URL,
+    baseURL: SISTER_API_URL,
     timeout: API_TIMEOUT,
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     },
-    withCredentials: true, // Important: Send cookies with requests
   });
 
   /**
@@ -82,7 +44,7 @@ const createApiClient = (): AxiosInstance => {
 
       // Log request in development
       if (process.env.NODE_ENV === 'development') {
-        console.log('🚀 API Request:', {
+        console.log('🚀 Sister API Request:', {
           method: config.method?.toUpperCase(),
           url: config.url,
           hasToken: !!token,
@@ -106,7 +68,7 @@ const createApiClient = (): AxiosInstance => {
     (response) => {
       // Log response in development
       if (process.env.NODE_ENV === 'development') {
-        console.log('✅ API Response:', {
+        console.log('✅ Sister API Response:', {
           status: response.status,
           url: response.config.url,
         });
@@ -119,7 +81,7 @@ const createApiClient = (): AxiosInstance => {
 
       // Log error in development
       if (process.env.NODE_ENV === 'development') {
-        console.error('❌ API Error:', {
+        console.error('❌ Sister API Error:', {
           status: error.response?.status,
           url: error.config?.url,
           message: error.message,
@@ -127,12 +89,7 @@ const createApiClient = (): AxiosInstance => {
       }
 
       // Handle 401 Unauthorized - Token Expired
-      // Don't try to refresh token for login/refresh endpoints
-      const isAuthEndpoint = originalRequest.url?.includes('/auth/login') ||
-                            originalRequest.url?.includes('/auth/refresh') ||
-                            originalRequest.url?.includes('/auth/login-mfa');
-
-      if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
+      if (error.response?.status === 401 && !originalRequest._retry) {
         originalRequest._retry = true;
 
         try {
@@ -144,9 +101,13 @@ const createApiClient = (): AxiosInstance => {
           }
 
 
-          // Call refresh token endpoint with refresh_token in body
+          // Call refresh token endpoint via Kong Gateway with refresh_token in body
+          const AUTH_REFRESH_URL = process.env.NEXT_PUBLIC_AUTH_API_URL
+            ? `${process.env.NEXT_PUBLIC_AUTH_API_URL}/auth/refresh`
+            : 'http://localhost:9800/auth-service/api/v1/auth/refresh';
+
           const response = await axios.post(
-            `${API_URL}/auth/refresh`,
+            AUTH_REFRESH_URL,
             {
               refresh_token: refreshToken,
             },
@@ -167,7 +128,7 @@ const createApiClient = (): AxiosInstance => {
             if (new_refresh_token) {
               setToken('REFRESH', new_refresh_token);
             } else {
-              console.log('✅ Access token refreshed successfully');
+              console.log('✅ Sister API: Access token refreshed successfully');
             }
 
             // Retry original request with new access token
@@ -181,7 +142,7 @@ const createApiClient = (): AxiosInstance => {
           }
         } catch (refreshError) {
           // Refresh failed - logout user
-          console.error('❌ Token refresh failed:', refreshError);
+          console.error('❌ Sister API: Token refresh failed:', refreshError);
           clearTokens();
 
           // Redirect to login
@@ -202,48 +163,8 @@ const createApiClient = (): AxiosInstance => {
 };
 
 /**
- * API Client Instance
+ * Sister API Client Instance
  */
-export const apiClient = createApiClient();
+export const sisterClient = createSisterClient();
 
-/**
- * API Error Handler
- */
-export interface ApiError {
-  message: string;
-  code?: string;
-  status?: number;
-  errors?: Record<string, string[]>;
-}
-
-export const handleApiError = (error: unknown): ApiError => {
-  if (axios.isAxiosError(error)) {
-    const axiosError = error as AxiosError<any>;
-
-    return {
-      message: axiosError.response?.data?.message || axiosError.message || 'An error occurred',
-      code: axiosError.response?.data?.code || axiosError.code,
-      status: axiosError.response?.status,
-      errors: axiosError.response?.data?.errors,
-    };
-  }
-
-  if (error instanceof Error) {
-    return {
-      message: error.message,
-    };
-  }
-
-  return {
-    message: 'An unknown error occurred',
-  };
-};
-
-/**
- * Check if user is authenticated
- */
-export const isAuthenticated = (): boolean => {
-  return !!getToken('ACCESS');
-};
-
-export default apiClient;
+export default sisterClient;

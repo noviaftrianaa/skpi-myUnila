@@ -54,11 +54,6 @@ class AuthService {
         setToken('ACCESS', access_token);
         setToken('REFRESH', refresh_token);
         setToken('USER', JSON.stringify(user));
-
-        console.log('✅ Login successful - tokens stored', {
-          access_token: access_token.substring(0, 20) + '...',
-          refresh_token: refresh_token.substring(0, 20) + '...',
-        });
       } else {
         // Backend returned success: false (invalid credentials, etc)
         throw new Error(response.data.message || 'Login failed');
@@ -94,8 +89,6 @@ class AuthService {
         setToken('ACCESS', access_token);
         setToken('REFRESH', refresh_token);
         setToken('USER', JSON.stringify(user));
-
-        console.log('✅ MFA login successful - tokens stored');
       }
 
       return response.data;
@@ -147,9 +140,6 @@ class AuthService {
         // Update refresh token if backend sent new one (token rotation)
         if (new_refresh_token) {
           setToken('REFRESH', new_refresh_token);
-          console.log('✅ Tokens refreshed and rotated successfully');
-        } else {
-          console.log('✅ Access token refreshed successfully');
         }
       }
 

@@ -4,6 +4,7 @@
  */
 
 import axios from 'axios';
+import { sisterClient } from '@/lib/api/sisterClient';
 
 const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:8083';
 
@@ -106,14 +107,14 @@ export const schedulerService = {
    * Delete scheduled sync
    */
   async deleteSchedule(id: number): Promise<void> {
-    await axios.delete(`${SISTER_API_URL}/api/v1/schedules/${id}`);
+    await axios.delete(`/api/v1/schedules/${id}`);
   },
 
   /**
    * Toggle schedule active status
    */
   async toggleSchedule(id: number, isActive: boolean): Promise<void> {
-    await axios.patch(`${SISTER_API_URL}/api/v1/schedules/${id}/toggle`, {
+    await axios.patch(`/api/v1/schedules/${id}/toggle`, {
       is_active: isActive,
     });
   },

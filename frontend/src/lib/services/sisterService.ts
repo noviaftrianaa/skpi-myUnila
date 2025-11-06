@@ -4,6 +4,7 @@
  */
 
 import axios from 'axios';
+import { sisterClient } from '@/lib/api/sisterClient';
 
 // Base URL untuk Sister Service
 const SISTER_API_BASE_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:9800/sister-service/api/v1';

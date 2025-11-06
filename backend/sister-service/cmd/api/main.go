@@ -18,6 +18,7 @@ import (
 	"sister-service/external/database"
 	"sister-service/external/sister_api"
 	"sister-service/internal/config"
+	"sister-service/internal/middleware"
 	"sister-service/pkg/crypto"
 
 	"github.com/gofiber/fiber/v2"
@@ -132,8 +133,9 @@ func main() {
 	loggerHandler := appLogger.NewHandler(loggerService)
 	loggerHandler.RegisterRoutes(app)
 
-	// Public routes (no authentication required)
-	publicRoutes := app.Group("/public")
+	// Public routes (authenticated via Kong JWT Trust)
+	// Kong Gateway validates JWT, we trust Kong and extract user info
+	publicRoutes := app.Group("/public", middleware.KongAuth())
 
 	// Initialize API Config routes
 	if encryptor != nil {

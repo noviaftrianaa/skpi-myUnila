@@ -4,6 +4,7 @@
  */
 
 import axios from 'axios';
+import { sisterClient } from '@/lib/api/sisterClient';
 
 const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/public/api/v1';
 const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:8083/public';
@@ -279,7 +280,7 @@ export const sisterDosenService = {
    */
   async syncFromSister(syncedBy: string): Promise<SisterDosenSyncResult> {
     const response = await axios.post<SisterApiResponse<SisterDosenSyncResult>>(
-      `${SISTER_API_URL}/dosen/sync`,
+      `/dosen/sync`,
       null,
       { params: { synced_by: syncedBy } }
     );
@@ -290,7 +291,7 @@ export const sisterDosenService = {
    * Get dosen photo from SISTER API
    */
   async getPhoto(idSDM: string): Promise<Blob> {
-    const response = await axios.get(`${SISTER_API_URL}/dosen/photo/${idSDM}`, {
+    const response = await axios.get(`/dosen/photo/${idSDM}`, {
       responseType: 'blob'
     });
     return response.data;
@@ -301,7 +302,7 @@ export const sisterDosenService = {
    */
   async getBidangIlmu(idSDM: string): Promise<any[]> {
     const response = await axios.get<SisterApiResponse<any[]>>(
-      `${SISTER_API_URL}/dosen/bidang_ilmu/${idSDM}`
+      `/dosen/bidang_ilmu/${idSDM}`
     );
     return response.data.data;
   },

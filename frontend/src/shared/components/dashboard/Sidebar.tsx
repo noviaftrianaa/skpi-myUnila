@@ -159,7 +159,8 @@ export default function Sidebar({
         <div className="p-4 pb-6 border-b border-gray-200 dark:border-slate-700/50">
           <Link href="/portal">
             <div className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 dark:bg-white flex items-center justify-center shadow-lg">
+              {/* Logo Unila */}
+              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 dark:bg-white flex items-center justify-center shadow-lg flex-shrink-0">
                 <Image
                   src="/assets/images/logo-unila.png"
                   alt="Logo Unila"
@@ -168,13 +169,15 @@ export default function Sidebar({
                   className="object-contain"
                 />
               </div>
-              <div className="flex-1">
+
+              {/* myUnila + App Name Vertical Stack */}
+              <div className="flex flex-col gap-0.5">
+                <h2 className="text-lg font-bold bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-700 dark:from-blue-400 dark:via-cyan-400 dark:to-blue-500 bg-clip-text text-transparent tracking-tight leading-snug">
+                  myUnila
+                </h2>
                 <h1 className="text-sm font-bold text-gray-900 dark:text-white leading-tight">
                   {appName}
                 </h1>
-                <p className="text-xs text-gray-600 dark:text-slate-400 capitalize">
-                  {user?.role || "User"}
-                </p>
               </div>
             </div>
           </Link>
@@ -204,10 +207,11 @@ export default function Sidebar({
       >
         {/* Logo/App Name with Close Button */}
         <div className="p-4 pb-6 border-b border-gray-200 dark:border-slate-700/50">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-3">
             <Link href="/portal" onClick={handleLinkClick}>
               <div className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 dark:bg-white flex items-center justify-center shadow-lg">
+                {/* Logo Unila */}
+                <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 dark:bg-white flex items-center justify-center shadow-lg flex-shrink-0">
                   <Image
                     src="/assets/images/logo-unila.png"
                     alt="Logo Unila"
@@ -216,13 +220,15 @@ export default function Sidebar({
                     className="object-contain"
                   />
                 </div>
-                <div>
-                  <h1 className="text-sm font-bold text-gray-900 dark:text-white leading-tight">
+
+                {/* myUnila + App Name Vertical Stack */}
+                <div className="flex flex-col gap-0.5">
+                  <h2 className="text-base font-bold bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-700 dark:from-blue-400 dark:via-cyan-400 dark:to-blue-500 bg-clip-text text-transparent tracking-tight leading-snug">
+                    myUnila
+                  </h2>
+                  <h1 className="text-xs font-bold text-gray-900 dark:text-white leading-tight">
                     {appName}
                   </h1>
-                  <p className="text-xs text-gray-600 dark:text-slate-400 capitalize">
-                    {user?.role || "User"}
-                  </p>
                 </div>
               </div>
             </Link>

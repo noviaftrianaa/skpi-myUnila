@@ -4,6 +4,7 @@
  */
 
 import axios from 'axios';
+import { sisterClient } from '@/lib/api/sisterClient';
 
 const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/public/api/v1';
 const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:8083';

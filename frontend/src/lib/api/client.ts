@@ -117,7 +117,6 @@ const createApiClient = (): AxiosInstance => {
             throw new Error('No refresh token available');
           }
 
-          console.log('🔄 Access token expired, refreshing with refresh_token...');
 
           // Call refresh token endpoint with refresh_token in body
           const response = await axios.post(
@@ -141,7 +140,6 @@ const createApiClient = (): AxiosInstance => {
             // Update refresh token if backend sent new one (token rotation)
             if (new_refresh_token) {
               setToken('REFRESH', new_refresh_token);
-              console.log('✅ Tokens refreshed and rotated successfully');
             } else {
               console.log('✅ Access token refreshed successfully');
             }
