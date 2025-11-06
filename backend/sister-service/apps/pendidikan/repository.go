@@ -26,38 +26,91 @@ func NewRepository(db *sqlx.DB) Repository {
 	return &repository{db: db}
 }
 
+// truncateString truncates a string pointer to maxLen if it exceeds the limit
+func truncateString(s *string, maxLen int) *string {
+	if s == nil {
+		return nil
+	}
+	if len(*s) > maxLen {
+		truncated := (*s)[:maxLen]
+		return &truncated
+	}
+	return s
+}
+
+// truncateStringValue truncates a regular string to maxLen if it exceeds the limit
+func truncateStringValue(s string, maxLen int) string {
+	if len(s) > maxLen {
+		return s[:maxLen]
+	}
+	return s
+}
+
 // MergePendidikanFormal performs MERGE (upsert) operation for pendidikan formal
 func (r *repository) MergePendidikanFormal(pendidikan *RwyPendFormal) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
+	// Truncate ALL string fields in Go before passing to SQL Server
+	// This prevents SQL Server parameter type inference issues
+
+	// UUID fields - no truncation needed, UUID is always 36 characters
+	idRwyDidikFormal := pendidikan.IDRwyDidikFormal
+	idSDM := pendidikan.IDSDM
+	idSMS := pendidikan.IDSMS // Can be nil, Go SQL driver handles NULL properly
+
+	// Regular string pointer fields - truncate to match database column sizes
+	nmSpFormal := truncateString(pendidikan.NmSpFormal, 255)
+	fak := truncateString(pendidikan.Fak, 255)
+	skSetara := truncateString(pendidikan.SkSetara, 255)
+	noIjazah := truncateString(pendidikan.NoIjazah, 100)
+	judulTesis := truncateString(pendidikan.JudulTesis, 1000)
+
+	// Handle nipd: default to "-" if nil, truncate to 50
+	var nipd string
+	if pendidikan.NIPD != nil {
+		if len(*pendidikan.NIPD) > 50 {
+			nipd = (*pendidikan.NIPD)[:50]
+		} else {
+			nipd = *pendidikan.NIPD
+		}
+	} else {
+		nipd = "-"
+	}
+
+	// Handle stat_kul: truncate to 1 character
+	statKul := pendidikan.StatKul
+	if len(statKul) > 1 {
+		statKul = statKul[:1]
+	}
+
 	query := `
 		MERGE INTO pdrd.rwy_pend_formal WITH (HOLDLOCK) AS target
 		USING (
 			SELECT
-				@id_rwy_didik_formal AS id_rwy_didik_formal,
-				@id_sms AS id_sms,
-				@id_katgiat AS id_katgiat,
-				@id_sdm AS id_sdm,
-				@id_jenj_didik AS id_jenj_didik,
-				@id_bid_studi AS id_bid_studi,
-				@id_gelar_akad AS id_gelar_akad,
-				@nm_sp_formal AS nm_sp_formal,
-				@fak AS fak,
-				@a_kependidikan AS a_kependidikan,
-				@thn_masuk AS thn_masuk,
-				@thn_lulus AS thn_lulus,
-				@nipd AS nipd,
-				@stat_kul AS stat_kul,
-				@smt AS smt,
-				@sks_lulus AS sks_lulus,
-				@ipk AS ipk,
-				@sk_setara AS sk_setara,
-				@tgl_sk_setara AS tgl_sk_setara,
-				@no_ijazah AS no_ijazah,
-				@judul_tesis AS judul_tesis,
-				@tgl_lulus AS tgl_lulus,
-				@last_sync AS last_sync
+				CAST(@p1 AS uniqueidentifier) AS id_rwy_didik_formal,
+				CAST(@p2 AS uniqueidentifier) AS id_sms,
+				CAST(@p3 AS int) AS id_katgiat,
+				CAST(@p4 AS uniqueidentifier) AS id_sdm,
+				CAST(@p5 AS int) AS id_jenj_didik,
+				CAST(@p6 AS int) AS id_bid_studi,
+				CAST(@p7 AS int) AS id_gelar_akad,
+				CAST(@p8 AS varchar(255)) AS nm_sp_formal,
+				CAST(@p9 AS varchar(255)) AS fak,
+				CAST(@p10 AS int) AS a_kependidikan,
+				CAST(@p11 AS int) AS thn_masuk,
+				CAST(@p12 AS int) AS thn_lulus,
+				CAST(@p13 AS varchar(50)) AS nipd,
+				CAST(@p14 AS varchar(1)) AS stat_kul,
+				CAST(@p15 AS int) AS smt,
+				CAST(@p16 AS int) AS sks_lulus,
+				CAST(@p17 AS decimal(3,2)) AS ipk,
+				CAST(@p18 AS varchar(255)) AS sk_setara,
+				CAST(@p19 AS datetime) AS tgl_sk_setara,
+				CAST(@p20 AS varchar(100)) AS no_ijazah,
+				CAST(@p21 AS varchar(1000)) AS judul_tesis,
+				CAST(@p22 AS datetime) AS tgl_lulus,
+				CAST(@p23 AS datetime) AS last_sync
 		) AS source
 		ON target.id_rwy_didik_formal = source.id_rwy_didik_formal
 		WHEN MATCHED THEN
@@ -71,13 +124,13 @@ func (r *repository) MergePendidikanFormal(pendidikan *RwyPendFormal) error {
 				nm_sp_formal = source.nm_sp_formal,
 				fak = source.fak,
 				a_kependidikan = source.a_kependidikan,
-				thn_masuk = source.thn_masuk,
+				thn_masuk = ISNULL(source.thn_masuk, target.thn_masuk),
 				thn_lulus = source.thn_lulus,
 				nipd = source.nipd,
 				stat_kul = source.stat_kul,
 				smt = source.smt,
-				sks_lulus = source.sks_lulus,
-				ipk = source.ipk,
+				sks_lulus = ISNULL(source.sks_lulus, target.sks_lulus),
+				ipk = ISNULL(source.ipk, target.ipk),
 				sk_setara = source.sk_setara,
 				tgl_sk_setara = source.tgl_sk_setara,
 				no_ijazah = source.no_ijazah,
@@ -150,29 +203,29 @@ func (r *repository) MergePendidikanFormal(pendidikan *RwyPendFormal) error {
 	`
 
 	_, err := r.db.ExecContext(ctx, query,
-		sql.Named("id_rwy_didik_formal", pendidikan.IDRwyDidikFormal),
-		sql.Named("id_sms", pendidikan.IDSMS),
-		sql.Named("id_katgiat", pendidikan.IDKatgiat),
-		sql.Named("id_sdm", pendidikan.IDSDM),
-		sql.Named("id_jenj_didik", pendidikan.IDJenjDidik),
-		sql.Named("id_bid_studi", pendidikan.IDBidStudi),
-		sql.Named("id_gelar_akad", pendidikan.IDGelarAkad),
-		sql.Named("nm_sp_formal", pendidikan.NmSpFormal),
-		sql.Named("fak", pendidikan.Fak),
-		sql.Named("a_kependidikan", pendidikan.AKependidikan),
-		sql.Named("thn_masuk", pendidikan.ThnMasuk),
-		sql.Named("thn_lulus", pendidikan.ThnLulus),
-		sql.Named("nipd", pendidikan.NIPD),
-		sql.Named("stat_kul", pendidikan.StatKul),
-		sql.Named("smt", pendidikan.Smt),
-		sql.Named("sks_lulus", pendidikan.SksLulus),
-		sql.Named("ipk", pendidikan.IPK),
-		sql.Named("sk_setara", pendidikan.SkSetara),
-		sql.Named("tgl_sk_setara", pendidikan.TglSkSetara),
-		sql.Named("no_ijazah", pendidikan.NoIjazah),
-		sql.Named("judul_tesis", pendidikan.JudulTesis),
-		sql.Named("tgl_lulus", pendidikan.TglLulus),
-		sql.Named("last_sync", time.Now()),
+		idRwyDidikFormal,
+		idSMS,
+		pendidikan.IDKatgiat,
+		idSDM,
+		pendidikan.IDJenjDidik,
+		pendidikan.IDBidStudi,
+		pendidikan.IDGelarAkad,
+		nmSpFormal,
+		fak,
+		pendidikan.AKependidikan,
+		pendidikan.ThnMasuk,
+		pendidikan.ThnLulus,
+		nipd,
+		statKul,
+		pendidikan.Smt,
+		pendidikan.SksLulus,
+		pendidikan.IPK,
+		skSetara,
+		pendidikan.TglSkSetara,
+		noIjazah,
+		judulTesis,
+		pendidikan.TglLulus,
+		time.Now(),
 	)
 
 	if err != nil {
