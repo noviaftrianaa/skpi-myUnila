@@ -762,3 +762,17 @@ func (c *Client) GetPublikasiDetail(idPublikasi string) ([]byte, error) {
 	endpoint := fmt.Sprintf("/1.0/publikasi/%s", idPublikasi)
 	return c.Get(endpoint)
 }
+
+// GetRiwayatPekerjaanByIDSDM fetches list of riwayat pekerjaan for a dosen from Sister API
+// Endpoint: GET /1.0/riwayat_pekerjaan?id_sdm={uuid}
+func (c *Client) GetRiwayatPekerjaanByIDSDM(idSDM string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/1.0/riwayat_pekerjaan?id_sdm=%s", idSDM)
+	return c.Get(endpoint)
+}
+
+// GetRiwayatPekerjaanDetail fetches detail of a single riwayat pekerjaan from Sister API
+// Endpoint: GET /1.0/riwayat_pekerjaan/{id}
+func (c *Client) GetRiwayatPekerjaanDetail(idRwyKerja string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/1.0/riwayat_pekerjaan/%s", idRwyKerja)
+	return c.Get(endpoint)
+}

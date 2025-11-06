@@ -10,6 +10,7 @@ import (
 	"sister-service/apps/penugasan"
 	"sister-service/apps/publikasi"
 	"sister-service/apps/referensi"
+	"sister-service/apps/riwayat_pekerjaan"
 	"time"
 
 	"github.com/robfig/cron/v3"
@@ -19,31 +20,33 @@ import (
 const UNILA_ID_SP = "e2b705a7-173e-464a-9fac-509128709515"
 
 type Service struct {
-	repo               *Repository
-	cron               *cron.Cron
-	jobs               map[int]cron.EntryID // map schedule ID to cron entry ID
-	dosenService       dosen.Service
-	referensiService   referensi.Service
-	penugasanService   penugasan.Service
-	penelitianService  penelitian.Service
-	publikasiService   publikasi.Service
-	pendidikanService  pendidikan.Service
+	repo                    *Repository
+	cron                    *cron.Cron
+	jobs                    map[int]cron.EntryID // map schedule ID to cron entry ID
+	dosenService            dosen.Service
+	referensiService        referensi.Service
+	penugasanService        penugasan.Service
+	penelitianService       penelitian.Service
+	publikasiService        publikasi.Service
+	pendidikanService       pendidikan.Service
+	riwayatPekerjaanService *riwayat_pekerjaan.Service
 }
 
-func NewService(repo *Repository, dosenService dosen.Service, referensiService referensi.Service, penugasanService penugasan.Service, penelitianService penelitian.Service, publikasiService publikasi.Service, pendidikanService pendidikan.Service) *Service {
+func NewService(repo *Repository, dosenService dosen.Service, referensiService referensi.Service, penugasanService penugasan.Service, penelitianService penelitian.Service, publikasiService publikasi.Service, pendidikanService pendidikan.Service, riwayatPekerjaanService *riwayat_pekerjaan.Service) *Service {
 	// Create cron with second precision
 	c := cron.New(cron.WithSeconds())
 
 	service := &Service{
-		repo:               repo,
-		cron:               c,
-		jobs:               make(map[int]cron.EntryID),
-		dosenService:       dosenService,
-		referensiService:   referensiService,
-		penugasanService:   penugasanService,
-		penelitianService:  penelitianService,
-		publikasiService:   publikasiService,
-		pendidikanService:  pendidikanService,
+		repo:                    repo,
+		cron:                    c,
+		jobs:                    make(map[int]cron.EntryID),
+		dosenService:            dosenService,
+		referensiService:        referensiService,
+		penugasanService:        penugasanService,
+		penelitianService:       penelitianService,
+		publikasiService:        publikasiService,
+		pendidikanService:       pendidikanService,
+		riwayatPekerjaanService: riwayatPekerjaanService,
 	}
 
 	return service
@@ -100,8 +103,8 @@ func (s *Service) executeWithRetry(schedule ScheduledSync) error {
 		if err := s.penugasanService.ForceRefreshToken(); err != nil {
 			log.Printf("⚠️  Failed to refresh token for penugasan sync, continuing anyway: %v", err)
 		}
-	} else if schedule.SyncType == "penelitian" || schedule.SyncType == "pengabdian" || schedule.SyncType == "pendidikan" || schedule.SyncType == "publikasi" {
-		// Penelitian, pengabdian, pendidikan, and publikasi use the same Sister API token as dosen
+	} else if schedule.SyncType == "penelitian" || schedule.SyncType == "pengabdian" || schedule.SyncType == "pendidikan" || schedule.SyncType == "publikasi" || schedule.SyncType == "riwayat_pekerjaan" {
+		// Penelitian, pengabdian, pendidikan, publikasi, and riwayat_pekerjaan use the same Sister API token as dosen
 		if err := s.dosenService.ForceRefreshToken(); err != nil {
 			log.Printf("⚠️  Failed to refresh token for %s sync, continuing anyway: %v", schedule.SyncType, err)
 		}
@@ -131,6 +134,9 @@ func (s *Service) executeWithRetry(schedule ScheduledSync) error {
 		} else if schedule.SyncType == "publikasi" {
 			// Execute publikasi batch sync for all dosen
 			_, err = s.publikasiService.BatchSyncAllPublikasi("scheduler")
+		} else if schedule.SyncType == "riwayat_pekerjaan" {
+			// Execute riwayat pekerjaan batch sync for all dosen
+			_, err = s.riwayatPekerjaanService.BatchSyncAllRwyPekerjaan("scheduler")
 		} else {
 			return fmt.Errorf("invalid sync configuration")
 		}
@@ -245,7 +251,7 @@ func (s *Service) CreateSchedule(req CreateScheduledSyncRequest) (*ScheduledSync
 	}
 
 	// Validate endpoint_key only for referensi type
-	// penelitian, pengabdian, pendidikan, publikasi will batch sync all dosen
+	// penelitian, pengabdian, pendidikan, publikasi, riwayat_pekerjaan will batch sync all dosen
 	if req.SyncType == "referensi" && req.EndpointKey == nil {
 		return nil, fmt.Errorf("endpoint_key is required for referensi sync")
 	}

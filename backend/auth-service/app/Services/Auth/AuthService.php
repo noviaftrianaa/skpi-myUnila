@@ -83,8 +83,8 @@ class AuthService
         // Get user detail
         $userDetail = $this->userRepo->getUserDetail($user->id_pengguna);
 
-        // Generate JWT token
-        $token = $this->tokenService->generateAccessTokenFromArray(
+        // Generate tokens (access + refresh)
+        $tokens = $this->tokenService->generateTokensFromArray(
             [
                 'id' => $user->id_pengguna,
                 'username' => $user->username,
@@ -96,6 +96,7 @@ class AuthService
             [
                 'ip_address' => $ipAddress,
                 'user_agent' => $userAgent,
+                'device_name' => self::getDeviceName($userAgent),
             ]
         );
 
@@ -123,9 +124,10 @@ class AuthService
                 'a_aktif' => 1,
             ],
             'tokens' => [
-                'access_token' => $token,
-                'token_type' => 'bearer',
-                'expires_in' => config('jwt.ttl', 15) * 60,
+                'access_token' => $tokens['access_token'],
+                'refresh_token' => $tokens['refresh_token'],
+                'token_type' => $tokens['token_type'],
+                'expires_in' => $tokens['expires_in'],
             ],
         ];
     }
@@ -175,8 +177,8 @@ class AuthService
         // Get user detail
         $userDetail = $this->userRepo->getUserDetail($user->id_pengguna);
 
-        // Generate JWT token
-        $token = $this->tokenService->generateAccessTokenFromArray(
+        // Generate tokens (access + refresh)
+        $tokens = $this->tokenService->generateTokensFromArray(
             [
                 'id' => $user->id_pengguna,
                 'username' => $user->username,
@@ -188,6 +190,7 @@ class AuthService
             [
                 'ip_address' => $ipAddress,
                 'user_agent' => $userAgent,
+                'device_name' => self::getDeviceName($userAgent),
             ]
         );
 
@@ -215,9 +218,10 @@ class AuthService
                 'a_aktif' => 1,
             ],
             'tokens' => [
-                'access_token' => $token,
-                'token_type' => 'bearer',
-                'expires_in' => config('jwt.ttl', 15) * 60,
+                'access_token' => $tokens['access_token'],
+                'refresh_token' => $tokens['refresh_token'],
+                'token_type' => $tokens['token_type'],
+                'expires_in' => $tokens['expires_in'],
             ],
         ];
     }
@@ -400,20 +404,49 @@ class AuthService
     }
 
     /**
-     * Refresh access token
+     * Refresh access token using refresh token
      *
-     * @return array ['tokens' => array]
+     * @param string $refreshToken Refresh token JWT
+     * @return array ['access_token', 'refresh_token', 'token_type', 'expires_in', 'refresh_expires_in']
      * @throws \Exception
      */
-    public function refresh(string $token): array
+    public function refresh(string $refreshToken): array
     {
-        $decoded = $this->tokenService->validateToken($token);
+        // Validate refresh token
+        $decoded = $this->tokenService->validateToken($refreshToken);
 
         if (!$decoded) {
-            throw new \Exception('Invalid or expired token', 401);
+            throw new \Exception('Invalid or expired refresh token', 401);
         }
 
+        // Verify this is a refresh token (not access token)
+        if (!isset($decoded->type) || $decoded->type !== 'refresh') {
+            throw new \Exception('Invalid token type. Expected refresh token', 401);
+        }
+
+        $tokenId = $decoded->jti;
         $userId = $decoded->sub;
+
+        // Check if refresh token exists in database and not revoked
+        $tokenInDb = $this->tokenRepo->getRefreshTokenById($tokenId);
+
+        if (!$tokenInDb) {
+            throw new \Exception('Refresh token not found', 401);
+        }
+
+        if ($tokenInDb->a_revoked) {
+            Log::warning('Attempted to use revoked refresh token', [
+                'token_id' => $tokenId,
+                'user_id' => $userId,
+                'ip_address' => request()->ip(),
+            ]);
+            throw new \Exception('Refresh token has been revoked', 401);
+        }
+
+        // Check if token is expired in database
+        if (strtotime($tokenInDb->waktu_expired) < time()) {
+            throw new \Exception('Refresh token has expired', 401);
+        }
 
         // Get user
         $user = $this->userRepo->findById($userId);
@@ -426,8 +459,8 @@ class AuthService
         $roles = $this->userRepo->getUserRoles($user->id_pengguna);
         $activeRole = $this->userRepo->getActiveRole($user->id_pengguna);
 
-        // Generate new access token
-        $newToken = $this->tokenService->generateAccessTokenFromArray(
+        // Generate NEW access token
+        $newAccessToken = $this->tokenService->generateAccessTokenFromArray(
             [
                 'id' => $user->id_pengguna,
                 'username' => $user->username,
@@ -439,16 +472,55 @@ class AuthService
             [
                 'ip_address' => request()->ip(),
                 'user_agent' => request()->userAgent(),
+                'url' => '/api/v1/auth/refresh',
             ]
         );
 
-        return [
-            'tokens' => [
-                'access_token' => $newToken,
-                'token_type' => 'bearer',
-                'expires_in' => config('jwt.ttl', 15) * 60,
+        // Generate NEW refresh token (token rotation for security)
+        $newRefreshTokenData = $this->tokenService->generateRefreshTokenFromArray(
+            [
+                'id' => $user->id_pengguna,
+                'username' => $user->username,
+                'email' => $user->email,
             ],
+            [
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'device_name' => DeviceDetector::detect(request()->userAgent()),
+            ]
+        );
+
+        // Revoke old refresh token (security best practice - token rotation)
+        $this->tokenRepo->revokeRefreshToken($tokenId, 'refreshed');
+
+        // Log refresh token usage
+        Log::info('Token refreshed successfully', [
+            'user_id' => $userId,
+            'old_token_id' => $tokenId,
+            'new_token_id' => $newRefreshTokenData['token_id'],
+            'ip_address' => request()->ip(),
+        ]);
+
+        return [
+            'access_token' => $newAccessToken,
+            'refresh_token' => $newRefreshTokenData['token'],
+            'token_type' => 'bearer',
+            'expires_in' => config('jwt.ttl', 15) * 60,
+            'refresh_expires_in' => config('jwt.refresh_ttl', 10080) * 60,
         ];
+    }
+
+    /**
+     * Get device name from user agent
+     */
+    private static function getDeviceName(?string $userAgent): string
+    {
+        if (empty($userAgent)) {
+            return 'Unknown Device';
+        }
+
+        $deviceInfo = DeviceDetector::parse($userAgent);
+        return sprintf('%s - %s', ucfirst($deviceInfo['device_type']), $deviceInfo['browser']);
     }
 
     /**

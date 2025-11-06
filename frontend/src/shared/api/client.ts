@@ -129,31 +129,50 @@ const createApiClient = (): AxiosInstance => {
       // Handle 401 Unauthorized - Token Expired
       // Don't try to refresh token for login/refresh endpoints
       const isAuthEndpoint = originalRequest.url?.includes('/auth/login') ||
-                            originalRequest.url?.includes('/auth/refresh');
+                            originalRequest.url?.includes('/auth/refresh') ||
+                            originalRequest.url?.includes('/auth/login-mfa');
 
       if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
         originalRequest._retry = true;
 
         try {
-          // Call refresh token endpoint
-          // Note: refresh_token is sent automatically via HTTP-only cookie
+          // Get refresh token from localStorage
+          const refreshToken = getToken('REFRESH');
+
+          if (!refreshToken) {
+            throw new Error('No refresh token available');
+          }
+
+          console.log('🔄 Access token expired, refreshing with refresh_token...');
+
+          // Call refresh token endpoint with refresh_token in body
           const response = await axios.post(
             `${API_URL}/auth/refresh`,
-            {},
             {
-              withCredentials: true, // Send cookies
+              refresh_token: refreshToken,
+            },
+            {
+              headers: {
+                'Content-Type': 'application/json',
+              },
             }
           );
 
           if (response.data.success) {
-            const { access_token } = response.data.data;
+            const { access_token, refresh_token: new_refresh_token } = response.data.data;
 
-            // Update access token only (refresh token stays in cookie)
+            // Update access token
             setToken('ACCESS', access_token);
 
-            console.log('✅ Token refreshed successfully');
+            // Update refresh token if backend sent new one (token rotation)
+            if (new_refresh_token) {
+              setToken('REFRESH', new_refresh_token);
+              console.log('✅ Tokens refreshed and rotated successfully');
+            } else {
+              console.log('✅ Access token refreshed successfully');
+            }
 
-            // Retry original request with new token
+            // Retry original request with new access token
             if (originalRequest.headers) {
               originalRequest.headers.Authorization = `Bearer ${access_token}`;
             }

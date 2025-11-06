@@ -73,24 +73,38 @@ class AuthController extends Controller
     }
 
     /**
-     * Refresh access token
+     * Refresh access token using refresh token
+     *
+     * Accepts refresh_token from:
+     * 1. Request body: { "refresh_token": "..." }
+     * 2. Authorization header: Bearer <refresh_token>
      */
     public function refresh(RefreshTokenRequest $request): JsonResponse
     {
         try {
-            $token = $request->input('refresh_token') ?? $request->bearerToken();
+            // Get refresh token from request body or Authorization header
+            $refreshToken = $request->input('refresh_token') ?? $request->bearerToken();
 
-            if (!$token) {
-                return $this->unauthorizedResponse('Token not provided');
+            if (!$refreshToken) {
+                return $this->unauthorizedResponse('Refresh token not provided');
             }
 
-            $result = $this->authService->refresh($token);
+            // Call auth service to refresh tokens (returns new access_token + new refresh_token)
+            $result = $this->authService->refresh($refreshToken);
 
             return $this->successResponse($result, 'Token refreshed successfully');
         } catch (\Exception $e) {
+            // Log refresh error for security monitoring
+            \Log::warning('Token refresh failed', [
+                'error' => $e->getMessage(),
+                'code' => $e->getCode(),
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+
             return $this->errorResponse(
                 $e->getMessage(),
-                $e->getCode() ?: 500
+                $e->getCode() ?: 401
             );
         }
     }

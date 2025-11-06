@@ -197,4 +197,96 @@ class TokenRepository
 
         return DB::selectOne($sql, [$userId, $appId]);
     }
+
+    /**
+     * Create refresh token
+     */
+    public function createRefreshToken(array $data): bool
+    {
+        $sql = "
+            INSERT INTO man_akses.refresh_token (
+                id_refresh_token, token_value, waktu_expired, a_revoked
+            ) VALUES (
+                ?, ?, ?, 0
+            )
+        ";
+
+        try {
+            DB::insert($sql, [
+                $data['id_refresh_token'],
+                $data['token_value'],
+                $data['waktu_expired'],
+            ]);
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Failed to create refresh token', ['error' => $e->getMessage()]);
+            return false;
+        }
+    }
+
+    /**
+     * Get refresh token by ID
+     */
+    public function getRefreshTokenById(string $tokenId): ?object
+    {
+        $sql = "
+            SELECT
+                CONVERT(VARCHAR(36), id_refresh_token) as id_refresh_token,
+                token_value,
+                waktu_expired,
+                a_revoked
+            FROM man_akses.refresh_token
+            WHERE id_refresh_token = ?
+        ";
+
+        return DB::selectOne($sql, [$tokenId]);
+    }
+
+    /**
+     * Revoke refresh token
+     */
+    public function revokeRefreshToken(string $tokenId, string $reason = 'manual'): bool
+    {
+        $sql = "
+            UPDATE man_akses.refresh_token
+            SET a_revoked = 1
+            WHERE id_refresh_token = ?
+        ";
+
+        try {
+            DB::update($sql, [$tokenId]);
+
+            Log::info('Refresh token revoked', [
+                'token_id' => $tokenId,
+                'reason' => $reason,
+            ]);
+
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Failed to revoke refresh token', [
+                'error' => $e->getMessage(),
+                'token_id' => $tokenId,
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Delete expired refresh tokens (cleanup)
+     */
+    public function deleteExpiredRefreshTokens(): int
+    {
+        $sql = "
+            DELETE FROM man_akses.refresh_token
+            WHERE waktu_expired < GETDATE()
+               OR a_revoked = 1
+        ";
+
+        try {
+            return DB::delete($sql);
+        } catch (\Exception $e) {
+            Log::error('Failed to delete expired refresh tokens', ['error' => $e->getMessage()]);
+            return 0;
+        }
+    }
 }

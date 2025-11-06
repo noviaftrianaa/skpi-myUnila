@@ -37,18 +37,28 @@ class AuthService {
         }
 
         const { user, tokens } = response.data.data;
-        const { access_token } = tokens;
+        const { access_token, refresh_token } = tokens;
 
-        // Validate token exists
+        // Validate tokens exist
         if (!access_token) {
           console.error('❌ Access token missing in response:', response.data);
           throw new Error('Token tidak ditemukan dalam response. Silakan hubungi administrator.');
         }
 
-        // Store access token and user
-        // Note: refresh_token is stored in HTTP-only cookie by backend
+        if (!refresh_token) {
+          console.error('❌ Refresh token missing in response:', response.data);
+          throw new Error('Refresh token tidak ditemukan dalam response. Silakan hubungi administrator.');
+        }
+
+        // Store access token, refresh token, and user
         setToken('ACCESS', access_token);
+        setToken('REFRESH', refresh_token);
         setToken('USER', JSON.stringify(user));
+
+        console.log('✅ Login successful - tokens stored', {
+          access_token: access_token.substring(0, 20) + '...',
+          refresh_token: refresh_token.substring(0, 20) + '...',
+        });
       } else {
         // Backend returned success: false (invalid credentials, etc)
         throw new Error(response.data.message || 'Login failed');
@@ -78,11 +88,14 @@ class AuthService {
 
       if (response.data.success) {
         const { user, tokens } = response.data.data;
-        const { access_token } = tokens;
+        const { access_token, refresh_token } = tokens;
 
-        // Store access token and user
+        // Store access token, refresh token, and user
         setToken('ACCESS', access_token);
+        setToken('REFRESH', refresh_token);
         setToken('USER', JSON.stringify(user));
+
+        console.log('✅ MFA login successful - tokens stored');
       }
 
       return response.data;
@@ -110,23 +123,40 @@ class AuthService {
   }
 
   /**
-   * Refresh access token
-   * Note: refresh_token is sent automatically via HTTP-only cookie
+   * Refresh access token using refresh_token from localStorage
    */
   async refreshToken(): Promise<RefreshTokenResponse> {
     try {
-      // Call refresh endpoint (refresh_token sent via cookie)
-      const response = await apiClient.post<RefreshTokenResponse>('/auth/refresh', {});
+      const refreshToken = getToken('REFRESH');
 
-      // Update access token
+      if (!refreshToken) {
+        throw new Error('No refresh token available');
+      }
+
+      // Call refresh endpoint with refresh_token in body
+      const response = await apiClient.post<RefreshTokenResponse>('/auth/refresh', {
+        refresh_token: refreshToken,
+      });
+
+      // Update both access token and refresh token (token rotation)
       if (response.data.success) {
-        const { access_token } = response.data.data;
+        const { access_token, refresh_token: new_refresh_token } = response.data.data;
+
         setToken('ACCESS', access_token);
+
+        // Update refresh token if backend sent new one (token rotation)
+        if (new_refresh_token) {
+          setToken('REFRESH', new_refresh_token);
+          console.log('✅ Tokens refreshed and rotated successfully');
+        } else {
+          console.log('✅ Access token refreshed successfully');
+        }
       }
 
       return response.data;
     } catch (error) {
       // Clear tokens and redirect to login
+      console.error('❌ Token refresh failed:', error);
       clearTokens();
       if (typeof window !== 'undefined') {
         window.location.href = '/login?session_expired=true';
