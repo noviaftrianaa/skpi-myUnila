@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  sister-service:
+    build:
+      context: ../../../../backend/sister-service
+      dockerfile: Dockerfile
+    image: myunila/sister-service:latest
+    container_name: myunila-sister-service
+    ports:
+      - "8083:8083"
+    environment:
+      # App Configuration
+      APP_NAME: ${SISTER_APP_NAME:-Sister Service}
+      APP_PORT: ${SISTER_APP_PORT:-:8083}
+      APP_ENV: ${SISTER_APP_ENV:-production}
+
+      # Database Configuration
+      DB_DRIVER: ${SISTER_DB_DRIVER:-sqlserver}
+      DB_HOST: ${SISTER_DB_HOST}
+      DB_PORT: ${SISTER_DB_PORT:-1433}
+      DB_USERNAME: ${SISTER_DB_USERNAME}
+      DB_PASSWORD: ${SISTER_DB_PASSWORD}
+      DB_DATABASE: ${SISTER_DB_DATABASE}
+      DB_MAX_OPEN_CONNS: ${SISTER_DB_MAX_OPEN_CONNS:-25}
+      DB_MAX_IDLE_CONNS: ${SISTER_DB_MAX_IDLE_CONNS:-5}
+      DB_CONN_MAX_LIFETIME: ${SISTER_DB_CONN_MAX_LIFETIME:-5m}
+
+      # SISTER API Configuration
+      SISTER_API_BASE_URL: ${SISTER_API_BASE_URL}
+      SISTER_API_IDPENGGUNA: ${SISTER_API_IDPENGGUNA}
+      SISTER_API_USERNAME: ${SISTER_API_USERNAME}
+      SISTER_API_PASSWORD: ${SISTER_API_PASSWORD}
+
+      # Encryption Key
+      API_CONFIG_ENCRYPTION_KEY: ${API_CONFIG_ENCRYPTION_KEY}
+
+      # Redis Configuration
+      REDIS_HOST: ${SISTER_REDIS_HOST:-redis}
+      REDIS_PORT: ${SISTER_REDIS_PORT:-6379}
+
+      # Timezone
+      TZ: ${TZ:-Asia/Jakarta}
+    networks:
+      - myunila-network
+    depends_on:
+      - redis-check
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8083/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "service=sister"
+
+  # Redis health check
+  redis-check:
+    image: redis:7-alpine
+    container_name: myunila-redis-check-sister
+    command: >
+      sh -c "
+      until redis-cli -h redis ping; do
+        echo 'Waiting for Redis...';
+        sleep 2;
+      done;
+      echo 'Redis is ready!';
+      "
+    networks:
+      - myunila-network
+    restart: "no"
+
+networks:
+  myunila-network:
+    external: true
+    name: myunila-network

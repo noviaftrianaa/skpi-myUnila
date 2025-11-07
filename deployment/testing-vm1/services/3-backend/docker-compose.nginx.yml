@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: myunila-nginx
+    ports:
+      - "8081:80"   # Auth Service
+      - "8082:81"   # Dashboard Service
+    volumes:
+      - ../../configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../../configs/nginx/conf.d:/etc/nginx/conf.d:ro
+      - auth_public:/var/www/auth-service/public:ro
+      - dashboard_public:/var/www/dashboard-service/public:ro
+    networks:
+      - myunila-network
+    depends_on:
+      - auth-service
+      - dashboard-service
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+networks:
+  myunila-network:
+    external: true
+    name: myunila-network
+
+volumes:
+  auth_public:
+    external: true
+    name: myunila-auth-storage
+  dashboard_public:
+    external: true
+    name: myunila-dashboard-storage

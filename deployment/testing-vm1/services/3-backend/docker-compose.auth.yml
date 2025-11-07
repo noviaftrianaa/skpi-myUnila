@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  auth-service:
+    build:
+      context: ../../../../backend/auth-service
+      dockerfile: Dockerfile
+    image: myunila/auth-service:latest
+    container_name: myunila-auth-service
+    working_dir: /var/www
+    environment:
+      # App Configuration
+      APP_NAME: "${AUTH_APP_NAME:-MyUnila Auth Service}"
+      APP_ENV: ${AUTH_APP_ENV:-production}
+      APP_KEY: ${AUTH_APP_KEY}
+      APP_DEBUG: ${AUTH_APP_DEBUG:-false}
+      APP_URL: ${AUTH_APP_URL}
+
+      # Database Configuration
+      DB_CONNECTION: ${AUTH_DB_CONNECTION:-sqlsrv}
+      DB_HOST: ${AUTH_DB_HOST}
+      DB_PORT: ${AUTH_DB_PORT:-1433}
+      DB_DATABASE: ${AUTH_DB_DATABASE}
+      DB_USERNAME: ${AUTH_DB_USERNAME}
+      DB_PASSWORD: ${AUTH_DB_PASSWORD}
+
+      # Redis Configuration
+      REDIS_HOST: ${AUTH_REDIS_HOST:-redis}
+      REDIS_PORT: ${AUTH_REDIS_PORT:-6379}
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+
+      # JWT Configuration
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_TOKEN_TTL: ${JWT_ACCESS_TOKEN_TTL:-900}
+      JWT_REFRESH_TOKEN_TTL: ${JWT_REFRESH_TOKEN_TTL:-604800}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+
+      # Timezone
+      TZ: ${TZ:-Asia/Jakarta}
+    volumes:
+      - auth_storage:/var/www/storage
+      - auth_logs:/var/www/storage/logs
+    networks:
+      - myunila-network
+    depends_on:
+      - redis-check
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "service=auth"
+
+  # Redis health check
+  redis-check:
+    image: redis:7-alpine
+    container_name: myunila-redis-check-auth
+    command: >
+      sh -c "
+      until redis-cli -h redis ping; do
+        echo 'Waiting for Redis...';
+        sleep 2;
+      done;
+      echo 'Redis is ready!';
+      "
+    networks:
+      - myunila-network
+    restart: "no"
+
+networks:
+  myunila-network:
+    external: true
+    name: myunila-network
+
+volumes:
+  auth_storage:
+    driver: local
+    name: myunila-auth-storage
+  auth_logs:
+    driver: local
+    name: myunila-auth-logs

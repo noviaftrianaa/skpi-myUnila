@@ -1,0 +1,40 @@
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Backups
+backups/
+*.backup
+*.bak
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# SSL Certificates
+configs/ssl/*.key
+configs/ssl/*.pem
+configs/ssl/*.crt
+
+# Kong specific
+configs/kong/.kong_env
+
+# Grafana
+configs/monitoring/grafana/grafana.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
