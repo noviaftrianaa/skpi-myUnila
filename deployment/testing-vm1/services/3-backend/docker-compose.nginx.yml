@@ -14,9 +14,6 @@ services:
       - dashboard_public:/var/www/dashboard-service/public:ro
     networks:
       - myunila-network
-    depends_on:
-      - auth-service
-      - dashboard-service
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
