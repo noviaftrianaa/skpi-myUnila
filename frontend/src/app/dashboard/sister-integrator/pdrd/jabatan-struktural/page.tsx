@@ -237,7 +237,7 @@ export default function JabatanStrukturalPage() {
           </Card>
 
           {/* Jabatan Selesai Card */}
-          <Card className="bg-gradient-to-br from-gray-500 via-gray-600 to-slate-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+          <Card className="bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
             <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
             <CardBody className="p-4 relative z-10">
@@ -247,7 +247,7 @@ export default function JabatanStrukturalPage() {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs font-medium text-gray-100">Jabatan Selesai</p>
+                    <p className="text-xs font-medium text-orange-100">Jabatan Selesai</p>
                     <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
                       <span className="text-[10px] font-semibold text-white">INTL</span>
                     </div>
@@ -255,7 +255,7 @@ export default function JabatanStrukturalPage() {
                   <h3 className="text-3xl font-bold text-white tracking-tight leading-none">
                     {isLoadingStats ? "..." : stats?.total_selesai || 0}
                   </h3>
-                  <p className="text-[10px] text-gray-100/80 mt-1">
+                  <p className="text-[10px] text-orange-100/80 mt-1">
                     Jabatan sudah berakhir
                   </p>
                 </div>

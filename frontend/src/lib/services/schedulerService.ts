@@ -111,7 +111,7 @@ export const schedulerService = {
    * Toggle schedule active status
    */
   async toggleSchedule(id: number, isActive: boolean): Promise<void> {
-    await sisterClient.patch(`/schedules/${id}/toggle`, {
+    await sisterClient.post(`/schedules/${id}/toggle`, {
       is_active: isActive,
     });
   },

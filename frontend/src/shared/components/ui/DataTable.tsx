@@ -86,10 +86,11 @@ export default function DataTable<T extends Record<string, any>>({
 
   // For server-side mode, use data as-is. For client-side, filter and paginate
   const filteredData = useMemo(() => {
-    if (serverSide) return data;
-    if (!searchValue || searchKeys.length === 0) return data;
+    const safeData = data || [];
+    if (serverSide) return safeData;
+    if (!searchValue || searchKeys.length === 0) return safeData;
 
-    return data.filter((item) =>
+    return safeData.filter((item) =>
       searchKeys.some((key) =>
         String(item[key])
           .toLowerCase()
@@ -128,14 +129,15 @@ export default function DataTable<T extends Record<string, any>>({
     if (serverSide) return data || []; // Server already paginated, ensure array
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
-    return sortedData.slice(start, end);
+    const safeSortedData = sortedData || [];
+    return safeSortedData.slice(start, end);
   }, [sortedData, page, rowsPerPage, data, serverSide]);
 
   const totalPages = serverSide
     ? Math.ceil((totalRecords || 0) / rowsPerPage)
-    : Math.ceil(sortedData.length / rowsPerPage);
+    : Math.ceil((sortedData || []).length / rowsPerPage);
 
-  const totalDataCount = serverSide ? (totalRecords || 0) : sortedData.length;
+  const totalDataCount = serverSide ? (totalRecords || 0) : (sortedData || []).length;
 
   // Handle sort column click
   const handleSort = (key: string) => {

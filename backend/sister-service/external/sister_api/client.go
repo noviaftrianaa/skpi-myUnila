@@ -804,3 +804,28 @@ func (c *Client) GetTugasTambahanDetail(idTgsTambah string) ([]byte, error) {
 	endpoint := fmt.Sprintf("/1.0/tugas_tambahan/%s", idTgsTambah)
 	return c.Get(endpoint)
 }
+
+// ===== Sertifikasi Dosen =====
+
+// GetSertifikasiDosenByIDSDM fetches sertifikasi dosen by id_sdm from Sister API
+// Endpoint: GET /1.0/sertifikasi_dosen?id_sdm={id_sdm}
+func (c *Client) GetSertifikasiDosenByIDSDM(idSDM string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/1.0/sertifikasi_dosen?id_sdm=%s", idSDM)
+	return c.Get(endpoint)
+}
+
+// GetSertifikasiDosenDetail fetches detail of a single sertifikasi dosen from Sister API
+// Endpoint: GET /1.0/sertifikasi_dosen/{id}
+func (c *Client) GetSertifikasiDosenDetail(idRwySert string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/1.0/sertifikasi_dosen/%s", idRwySert)
+	return c.Get(endpoint)
+}
+
+// ===== Bidang Ilmu =====
+
+// GetBidangIlmuByIDSDM fetches bidang ilmu by id_sdm from Sister API
+// Endpoint: GET /1.0/data_pribadi/bidang_ilmu/{id_sdm}
+func (c *Client) GetBidangIlmuByIDSDM(idSDM string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/1.0/data_pribadi/bidang_ilmu/%s", idSDM)
+	return c.Get(endpoint)
+}

@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"sister-service/apps/apiconfig"
+	"sister-service/apps/bidang_ilmu"
 	"sister-service/apps/dosen"
 	"sister-service/apps/jabatan_struktural"
 	appLogger "sister-service/apps/logger"
@@ -14,6 +15,7 @@ import (
 	"sister-service/apps/referensi"
 	"sister-service/apps/riwayat_pekerjaan"
 	"sister-service/apps/scheduler"
+	"sister-service/apps/sertifikasi_dosen"
 	"sister-service/apps/synclog"
 	"sister-service/apps/tugas_tambahan"
 	_ "sister-service/docs"
@@ -183,12 +185,20 @@ func main() {
 	tugasTambahanService := tugas_tambahan.SetupRoutes(app, db, sisterAPI, loggerService)
 	log.Println("✅ Tugas Tambahan routes registered")
 
+	// Initialize Sertifikasi Dosen module
+	sertifikasiDosenService := sertifikasi_dosen.SetupRoutes(app, db, sisterAPI, loggerService)
+	log.Println("✅ Sertifikasi Dosen routes registered")
+
+	// Initialize Bidang Ilmu module
+	bidangIlmuService := bidang_ilmu.SetupRoutes(app, db, sisterAPI, loggerService)
+	log.Println("✅ Bidang Ilmu routes registered")
+
 	synclog.RegisterRoutes(publicRoutes, db)                            // Sync logs endpoints
 	monitoring.RegisterRoutes(publicRoutes)                             // Monitoring endpoints
 
 	// Initialize Scheduler Service
 	schedulerRepo := scheduler.NewRepository(db)
-	schedulerService := scheduler.NewService(schedulerRepo, dosenService, referensiService, penugasanService, penelitianService, publikasiService, pendidikanService, riwayatPekerjaanService, jabatanStrukturalService, tugasTambahanService)
+	schedulerService := scheduler.NewService(schedulerRepo, dosenService, referensiService, penugasanService, penelitianService, publikasiService, pendidikanService, riwayatPekerjaanService, jabatanStrukturalService, tugasTambahanService, sertifikasiDosenService, bidangIlmuService)
 	schedulerRouter := scheduler.NewRouter(schedulerService)
 	schedulerRouter.RegisterRoutes(app)
 

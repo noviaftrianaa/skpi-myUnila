@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Avatar,
   Dropdown,
@@ -89,8 +89,19 @@ export default function DashboardNavbar({
   const { user, logout } = useAuth();
   const router = useRouter();
   const [notifications, setNotifications] = useState(dummyNotifications);
+  const [currentDate, setCurrentDate] = useState<string>("");
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  // Format date only on client-side to avoid hydration mismatch
+  useEffect(() => {
+    setCurrentDate(new Date().toLocaleDateString("id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    }));
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -186,12 +197,7 @@ export default function DashboardNavbar({
         {/* Date Only */}
         <div>
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-            {new Date().toLocaleDateString("id-ID", {
-              weekday: "long",
-              day: "numeric",
-              month: "long",
-              year: "numeric"
-            })}
+            {currentDate || "Loading..."}
           </p>
         </div>
       </div>

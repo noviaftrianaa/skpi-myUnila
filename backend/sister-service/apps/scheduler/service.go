@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sister-service/apps/bidang_ilmu"
 	"sister-service/apps/dosen"
 	"sister-service/apps/jabatan_struktural"
 	"sister-service/apps/pendidikan"
@@ -12,6 +13,7 @@ import (
 	"sister-service/apps/publikasi"
 	"sister-service/apps/referensi"
 	"sister-service/apps/riwayat_pekerjaan"
+	"sister-service/apps/sertifikasi_dosen"
 	"sister-service/apps/tugas_tambahan"
 	"time"
 
@@ -34,9 +36,11 @@ type Service struct {
 	riwayatPekerjaanService  *riwayat_pekerjaan.Service
 	jabatanStrukturalService *jabatan_struktural.Service
 	tugasTambahanService     *tugas_tambahan.Service
+	sertifikasiDosenService  *sertifikasi_dosen.Service
+	bidangIlmuService        bidang_ilmu.Service
 }
 
-func NewService(repo *Repository, dosenService dosen.Service, referensiService referensi.Service, penugasanService penugasan.Service, penelitianService penelitian.Service, publikasiService publikasi.Service, pendidikanService pendidikan.Service, riwayatPekerjaanService *riwayat_pekerjaan.Service, jabatanStrukturalService *jabatan_struktural.Service, tugasTambahanService *tugas_tambahan.Service) *Service {
+func NewService(repo *Repository, dosenService dosen.Service, referensiService referensi.Service, penugasanService penugasan.Service, penelitianService penelitian.Service, publikasiService publikasi.Service, pendidikanService pendidikan.Service, riwayatPekerjaanService *riwayat_pekerjaan.Service, jabatanStrukturalService *jabatan_struktural.Service, tugasTambahanService *tugas_tambahan.Service, sertifikasiDosenService *sertifikasi_dosen.Service, bidangIlmuService bidang_ilmu.Service) *Service {
 	// Create cron with second precision
 	c := cron.New(cron.WithSeconds())
 
@@ -53,6 +57,8 @@ func NewService(repo *Repository, dosenService dosen.Service, referensiService r
 		riwayatPekerjaanService:  riwayatPekerjaanService,
 		jabatanStrukturalService: jabatanStrukturalService,
 		tugasTambahanService:     tugasTambahanService,
+		sertifikasiDosenService:  sertifikasiDosenService,
+		bidangIlmuService:        bidangIlmuService,
 	}
 
 	return service

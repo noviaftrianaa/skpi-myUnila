@@ -5,13 +5,13 @@ import { motion } from "framer-motion";
 import { Chip } from "@heroui/react";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
 import {
-  sisterJabatanStrukturalService,
-  JabatanStruktural,
-  jabatanStrukturalHelpers,
-} from "@/lib/services/jabatanStrukturalService";
+  sisterSertifikasiDosenService,
+  SertifikasiDosen,
+  sertifikasiDosenHelpers,
+} from "@/lib/services/sertifikasiDosenService";
 
-export default function SisterJabatanStrukturalTable() {
-  const [data, setData] = useState<JabatanStruktural[]>([]);
+export default function SisterSertifikasiDosenTable() {
+  const [data, setData] = useState<SertifikasiDosen[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -24,7 +24,7 @@ export default function SisterJabatanStrukturalTable() {
     const loadData = async () => {
       setIsLoading(true);
       try {
-        const response = await sisterJabatanStrukturalService.getList({
+        const response = await sisterSertifikasiDosenService.getList({
           page: currentPage,
           limit: rowsPerPage,
           search: searchQuery || undefined,
@@ -37,7 +37,7 @@ export default function SisterJabatanStrukturalTable() {
           setTotalRecords(response.data.total);
         }
       } catch (error) {
-        console.error("Error loading jabatan struktural data:", error);
+        console.error("Error loading sertifikasi dosen data:", error);
       } finally {
         setIsLoading(false);
       }
@@ -46,7 +46,7 @@ export default function SisterJabatanStrukturalTable() {
     loadData();
   }, [currentPage, rowsPerPage, searchQuery, sortBy, sortOrder]);
 
-  const columns: Column<JabatanStruktural>[] = [
+  const columns: Column<SertifikasiDosen>[] = [
     {
       key: "nama_dosen",
       label: "NAMA DOSEN",
@@ -55,53 +55,97 @@ export default function SisterJabatanStrukturalTable() {
       render: (item) => (
         <div className="flex flex-col">
           <div className="font-medium text-sm">
-            {jabatanStrukturalHelpers.getDosenName(item.nama_dosen)}
+            {sertifikasiDosenHelpers.getDosenName(item.nama_dosen)}
           </div>
           <div className="text-xs text-gray-500">
-            NIDN: {jabatanStrukturalHelpers.getNIDN(item.nidn)}
+            NIDN: {sertifikasiDosenHelpers.getNIDN(item.nidn)}
           </div>
         </div>
       ),
     },
     {
-      key: "nama_jabatan",
-      label: "JABATAN",
+      key: "jenis_sertifikasi",
+      label: "JENIS SERTIFIKASI",
+      sortable: true,
+      minWidth: "220px",
+      render: (item) => (
+        <Chip size="sm" color="primary" variant="flat" className="whitespace-normal h-auto py-1">
+          {sertifikasiDosenHelpers.getJenisSertifikasi(item.jenis_sertifikasi)}
+        </Chip>
+      ),
+    },
+    {
+      key: "bidang_studi",
+      label: "BIDANG STUDI",
       sortable: true,
       minWidth: "200px",
       render: (item) => (
-        <div className="font-medium text-sm">
-          {jabatanStrukturalHelpers.getNamaJabatan(item.nama_jabatan)}
+        <div className="text-sm">
+          {sertifikasiDosenHelpers.getBidangStudi(item.bidang_studi)}
         </div>
       ),
     },
     {
-      key: "sk_jabstruk",
-      label: "SK JABATAN",
+      key: "lembaga_sertifikasi",
+      label: "LEMBAGA",
+      sortable: true,
+      minWidth: "200px",
+      render: (item) => (
+        <div className="text-sm">
+          {sertifikasiDosenHelpers.getLembagaSertifikasi(item.lembaga_sertifikasi)}
+        </div>
+      ),
+    },
+    {
+      key: "thn_sert",
+      label: "TAHUN",
+      sortable: true,
+      minWidth: "100px",
+      render: (item) => (
+        <div className="text-sm font-medium">
+          {sertifikasiDosenHelpers.formatYear(item.thn_sert)}
+        </div>
+      ),
+    },
+    {
+      key: "nrg",
+      label: "NO. REGISTRASI",
+      minWidth: "180px",
+      render: (item) => (
+        <div className="text-sm font-mono">
+          {sertifikasiDosenHelpers.getNomorRegistrasi(item.nrg)}
+        </div>
+      ),
+    },
+    {
+      key: "no_peserta",
+      label: "NO. PESERTA",
+      minWidth: "150px",
+      render: (item) => (
+        <div className="text-sm font-mono">
+          {sertifikasiDosenHelpers.getNomorPeserta(item.no_peserta)}
+        </div>
+      ),
+    },
+    {
+      key: "sk_sert",
+      label: "SK SERTIFIKASI",
       minWidth: "180px",
       render: (item) => (
         <div className="text-sm">
-          {jabatanStrukturalHelpers.getSKJabatan(item.sk_jabstruk)}
+          {sertifikasiDosenHelpers.getSKSertifikasi(item.sk_sert)}
         </div>
       ),
     },
     {
-      key: "tmt_sk_jabstruk",
-      label: "PERIODE",
+      key: "masa_berlaku",
+      label: "MASA BERLAKU",
       sortable: true,
       minWidth: "200px",
       render: (item) => (
         <div className="flex flex-col">
-          <div className="text-xs text-gray-600">
-            {jabatanStrukturalHelpers.formatMonth(item.tmt_sk_jabstruk)} -{" "}
-            {item.tst_sk_jabstruk && item.tst_sk_jabstruk.Valid
-              ? jabatanStrukturalHelpers.formatMonth(item.tst_sk_jabstruk)
-              : "Sekarang"}
-          </div>
-          <div className="text-xs font-medium text-blue-600">
-            {jabatanStrukturalHelpers.getDuration(
-              item.tmt_sk_jabstruk,
-              item.tst_sk_jabstruk
-            )}
+          <div className="text-sm">
+            {sertifikasiDosenHelpers.getMasaBerlaku(item.tmt_sert, item.tst_sert)}
           </div>
         </div>
       ),
@@ -109,16 +153,15 @@ export default function SisterJabatanStrukturalTable() {
     {
       key: "status",
       label: "STATUS",
+      sortable: true,
       minWidth: "120px",
       render: (item) => {
-        const status = jabatanStrukturalHelpers.getStatusLabel(
-          item.tmt_sk_jabstruk,
-          item.tst_sk_jabstruk
-        );
+        const status = sertifikasiDosenHelpers.getStatusLabel(item.tst_sert);
+        const color = sertifikasiDosenHelpers.getStatusColor(item.tst_sert);
         return (
           <Chip
             size="sm"
-            color={status === "Aktif" ? "success" : "default"}
+            color={color}
             variant="flat"
           >
             {status}
@@ -127,23 +170,13 @@ export default function SisterJabatanStrukturalTable() {
       },
     },
     {
-      key: "lokasi_tugas",
-      label: "LOKASI TUGAS",
-      minWidth: "180px",
-      render: (item) => (
-        <div className="text-sm">
-          {jabatanStrukturalHelpers.getLokasiTugas(item.lokasi_tugas)}
-        </div>
-      ),
-    },
-    {
       key: "last_sync",
       label: "LAST SYNC",
       sortable: true,
-      minWidth: "160px",
+      minWidth: "150px",
       render: (item) => (
         <div className="text-xs text-gray-500">
-          {jabatanStrukturalHelpers.formatDate(item.last_sync)}
+          {sertifikasiDosenHelpers.formatDate(item.last_sync)}
         </div>
       ),
     },
@@ -155,13 +188,13 @@ export default function SisterJabatanStrukturalTable() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <DataTable<JabatanStruktural>
+      <DataTable<SertifikasiDosen>
         data={data}
         columns={columns}
         loading={isLoading}
         searchable={true}
-        searchKeys={["nama_dosen", "nama_jabatan", "sk_jabstruk", "lokasi_tugas"]}
-        searchPlaceholder="Cari nama dosen, jabatan, SK, atau lokasi tugas..."
+        searchKeys={["nama_dosen", "jenis_sertifikasi", "bidang_studi", "lembaga_sertifikasi"]}
+        searchPlaceholder="Cari nama dosen, jenis sertifikasi, bidang studi, atau lembaga..."
         defaultRowsPerPage={10}
         rowsPerPageOptions={[5, 10, 25, 50, 100]}
         serverSide={true}

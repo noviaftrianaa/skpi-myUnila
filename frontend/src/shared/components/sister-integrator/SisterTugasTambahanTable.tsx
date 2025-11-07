@@ -91,7 +91,7 @@ export default function SisterTugasTambahanTable() {
       sortable: true,
       minWidth: "180px",
       render: (item) => (
-        <Chip size="sm" color="primary" variant="flat">
+        <Chip size="sm" color="primary" variant="flat" className="whitespace-normal h-auto py-1">
           {tugasTambahanHelpers.getKategoriKegiatan(item.kategori_kegiatan_name)}
         </Chip>
       ),
@@ -167,27 +167,34 @@ export default function SisterTugasTambahanTable() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="w-full"
+      transition={{ duration: 0.5 }}
     >
-      <DataTable
-        columns={columns}
+      <DataTable<TugasTambahan>
         data={data}
-        isLoading={isLoading}
-        currentPage={currentPage}
-        rowsPerPage={rowsPerPage}
+        columns={columns}
+        loading={isLoading}
+        searchable={true}
+        searchKeys={["nama_dosen", "jenis_tugas_name", "unit_kerja_name", "kategori_kegiatan_name"]}
+        searchPlaceholder="Cari nama dosen, jenis tugas, unit kerja, atau kategori kegiatan..."
+        defaultRowsPerPage={10}
+        rowsPerPageOptions={[5, 10, 25, 50, 100]}
+        serverSide={true}
         totalRecords={totalRecords}
-        searchQuery={searchQuery}
-        sortBy={sortBy}
-        sortOrder={sortOrder}
         onPageChange={setCurrentPage}
-        onRowsPerPageChange={setRowsPerPage}
-        onSearchChange={setSearchQuery}
+        onRowsPerPageChange={(rows) => {
+          setRowsPerPage(rows);
+          setCurrentPage(1);
+        }}
+        onSearchChange={(query) => {
+          setSearchQuery(query);
+          setCurrentPage(1);
+        }}
         onSortChange={(key, order) => {
           setSortBy(key);
           setSortOrder(order);
+          setCurrentPage(1);
         }}
-        searchPlaceholder="Cari berdasarkan nama dosen, jenis tugas, unit kerja..."
+        className="shadow-lg"
       />
     </motion.div>
   );

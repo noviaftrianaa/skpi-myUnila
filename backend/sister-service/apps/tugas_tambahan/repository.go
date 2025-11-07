@@ -266,7 +266,7 @@ func (r *repository) GetTugasTambahanByID(idTgsTambah string) (*TugasTambahanWit
 			jt.nm_jab_tgs AS jenis_tugas_name,
 			sms.nm_lemb AS unit_kerja_name,
 			sp.nm_lemb AS perguruan_tinggi_name,
-			kk.nm_katgiat AS kategori_kegiatan_name
+			kk.nm_kat AS kategori_kegiatan_name
 		FROM pdrd.tugas_tambahan tt
 		LEFT JOIN pdrd.sdm s ON tt.id_sdm = s.id_sdm
 		LEFT JOIN ref.jab_tgs jt ON tt.id_jab_tgs = jt.id_jab_tgs
@@ -371,7 +371,7 @@ func (r *repository) GetTugasTambahanList(page, limit int, search, sortBy, sortO
 			jt.nm_jab_tgs AS jenis_tugas_name,
 			sms.nm_lemb AS unit_kerja_name,
 			sp.nm_lemb AS perguruan_tinggi_name,
-			kk.nm_katgiat AS kategori_kegiatan_name
+			kk.nm_kat AS kategori_kegiatan_name
 		FROM pdrd.tugas_tambahan tt
 		LEFT JOIN pdrd.sdm s ON tt.id_sdm = s.id_sdm
 		LEFT JOIN ref.jab_tgs jt ON tt.id_jab_tgs = jt.id_jab_tgs
