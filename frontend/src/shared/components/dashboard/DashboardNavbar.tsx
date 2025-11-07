@@ -183,12 +183,9 @@ export default function DashboardNavbar({
           <FiMenu className="w-6 h-6" />
         </button>
 
-        {/* Page Title */}
+        {/* Date Only */}
         <div>
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white">
-            {title || "Dashboard"}
-          </h2>
-          <p className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
             {new Date().toLocaleDateString("id-ID", {
               weekday: "long",
               day: "numeric",
