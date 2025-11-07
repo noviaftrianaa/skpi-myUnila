@@ -7,7 +7,6 @@ import axios from 'axios';
 import { sisterClient } from '@/lib/api/sisterClient';
 
 const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/public/api/v1';
-const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:8083/public';
 
 // Types
 export interface PendidikanDosen {
@@ -247,8 +246,8 @@ export const sisterDosenService = {
     id_jns_sdm?: number;
     id_stat_aktif?: number;
   }): Promise<SisterDosenListResult> {
-    const response = await axios.get<SisterApiResponse<SisterDosenListResult>>(
-      `${SISTER_API_URL}/dosen`,
+    const response = await sisterClient.get<SisterApiResponse<SisterDosenListResult>>(
+      '/dosen',
       { params }
     );
     return response.data.data;
@@ -258,8 +257,8 @@ export const sisterDosenService = {
    * Get dosen statistics (total, by jenis, by status, etc)
    */
   async getStats(): Promise<SisterDosenStats> {
-    const response = await axios.get<SisterApiResponse<SisterDosenStats>>(
-      `${SISTER_API_URL}/dosen/stats`
+    const response = await sisterClient.get<SisterApiResponse<SisterDosenStats>>(
+      '/dosen/stats'
     );
     return response.data.data;
   },
@@ -268,8 +267,8 @@ export const sisterDosenService = {
    * Get dosen detail by ID (GUID format)
    */
   async getDetail(idSDM: string): Promise<SisterDosen> {
-    const response = await axios.get<SisterApiResponse<SisterDosen>>(
-      `${SISTER_API_URL}/dosen/${idSDM}`
+    const response = await sisterClient.get<SisterApiResponse<SisterDosen>>(
+      `/dosen/${idSDM}`
     );
     return response.data.data;
   },
@@ -279,8 +278,8 @@ export const sisterDosenService = {
    * @param syncedBy - Username of person who triggered the sync
    */
   async syncFromSister(syncedBy: string): Promise<SisterDosenSyncResult> {
-    const response = await axios.post<SisterApiResponse<SisterDosenSyncResult>>(
-      `/dosen/sync`,
+    const response = await sisterClient.post<SisterApiResponse<SisterDosenSyncResult>>(
+      '/dosen/sync',
       null,
       { params: { synced_by: syncedBy } }
     );

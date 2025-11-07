@@ -3,10 +3,7 @@
  * Service untuk mengelola scheduled sync jobs
  */
 
-import axios from 'axios';
 import { sisterClient } from '@/lib/api/sisterClient';
-
-const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:8083';
 
 // Types
 export interface ScheduledSync {
@@ -64,8 +61,8 @@ export const schedulerService = {
     sync_type?: string;
     is_active?: boolean;
   }): Promise<ScheduledSyncListResponse> {
-    const response = await axios.get<ScheduledSyncListResponse>(
-      `${SISTER_API_URL}/api/v1/schedules`,
+    const response = await sisterClient.get<ScheduledSyncListResponse>(
+      '/schedules',
       { params }
     );
     return response.data;
@@ -75,8 +72,8 @@ export const schedulerService = {
    * Get schedule by ID
    */
   async getScheduleById(id: number): Promise<ScheduledSync> {
-    const response = await axios.get<ScheduledSync>(
-      `${SISTER_API_URL}/api/v1/schedules/${id}`
+    const response = await sisterClient.get<ScheduledSync>(
+      `/schedules/${id}`
     );
     return response.data;
   },
@@ -85,8 +82,8 @@ export const schedulerService = {
    * Create new scheduled sync
    */
   async createSchedule(data: CreateScheduleRequest): Promise<ScheduledSync> {
-    const response = await axios.post<ScheduledSync>(
-      `${SISTER_API_URL}/api/v1/schedules`,
+    const response = await sisterClient.post<ScheduledSync>(
+      '/schedules',
       data
     );
     return response.data;
@@ -96,8 +93,8 @@ export const schedulerService = {
    * Update scheduled sync
    */
   async updateSchedule(id: number, data: UpdateScheduleRequest): Promise<ScheduledSync> {
-    const response = await axios.put<ScheduledSync>(
-      `${SISTER_API_URL}/api/v1/schedules/${id}`,
+    const response = await sisterClient.put<ScheduledSync>(
+      `/schedules/${id}`,
       data
     );
     return response.data;
@@ -107,14 +104,14 @@ export const schedulerService = {
    * Delete scheduled sync
    */
   async deleteSchedule(id: number): Promise<void> {
-    await axios.delete(`/api/v1/schedules/${id}`);
+    await sisterClient.delete(`/schedules/${id}`);
   },
 
   /**
    * Toggle schedule active status
    */
   async toggleSchedule(id: number, isActive: boolean): Promise<void> {
-    await axios.patch(`/api/v1/schedules/${id}/toggle`, {
+    await sisterClient.patch(`/schedules/${id}/toggle`, {
       is_active: isActive,
     });
   },

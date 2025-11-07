@@ -3,8 +3,7 @@
  * Handles API calls for viewing synchronization logs from Sister Integrator
  */
 
-// Direct connection to sister-service
-const SISTER_API_BASE = process.env.NEXT_PUBLIC_SISTER_API_URL || "http://localhost:8083/public";
+import { sisterClient } from '../api/sisterClient';
 
 export interface SyncLog {
   id: number;
@@ -49,37 +48,21 @@ export const syncLogsService = {
    */
   async getSyncLogs(filter?: SyncLogFilter): Promise<SyncLogResponse> {
     try {
-      const params = new URLSearchParams();
+      const params: Record<string, string> = {};
 
-      if (filter?.search) params.append("search", filter.search);
-      if (filter?.endpoint_key) params.append("endpoint_key", filter.endpoint_key);
-      if (filter?.status) params.append("status", filter.status);
-      if (filter?.sync_type) params.append("sync_type", filter.sync_type);
-      if (filter?.date_from) params.append("date_from", filter.date_from);
-      if (filter?.date_to) params.append("date_to", filter.date_to);
-      if (filter?.page) params.append("page", filter.page.toString());
-      if (filter?.limit) params.append("limit", filter.limit.toString());
+      if (filter?.search) params.search = filter.search;
+      if (filter?.endpoint_key) params.endpoint_key = filter.endpoint_key;
+      if (filter?.status) params.status = filter.status;
+      if (filter?.sync_type) params.sync_type = filter.sync_type;
+      if (filter?.date_from) params.date_from = filter.date_from;
+      if (filter?.date_to) params.date_to = filter.date_to;
+      if (filter?.page) params.page = filter.page.toString();
+      if (filter?.limit) params.limit = filter.limit.toString();
 
-      const url = `${SISTER_API_BASE}/sync-logs${params.toString() ? `?${params.toString()}` : ""}`;
-      console.log("🔍 Fetching sync logs from:", url);
-
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data: SyncLogResponse = await response.json();
-      console.log("✅ Sync logs fetched successfully:", data);
-      return data;
+      const response = await sisterClient.get<SyncLogResponse>('/sync-logs', { params });
+      return response.data;
     } catch (error) {
-      console.error("❌ Error fetching sync logs:", error);
+      console.error("Error fetching sync logs:", error);
       throw error;
     }
   },
@@ -89,28 +72,10 @@ export const syncLogsService = {
    */
   async getSyncLogById(id: number): Promise<SyncLog> {
     try {
-      console.log(`🔍 Fetching sync log #${id}`);
-
-      const response = await fetch(`${SISTER_API_BASE}/sync-logs/${id}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error("Sync log not found");
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data: SyncLog = await response.json();
-      console.log("✅ Sync log fetched successfully:", data);
-      return data;
+      const response = await sisterClient.get<SyncLog>(`/sync-logs/${id}`);
+      return response.data;
     } catch (error) {
-      console.error(`❌ Error fetching sync log #${id}:`, error);
+      console.error(`Error fetching sync log #${id}:`, error);
       throw error;
     }
   },
@@ -120,26 +85,13 @@ export const syncLogsService = {
    */
   async getRecentSyncLogs(limit: number = 10): Promise<SyncLog[]> {
     try {
-      console.log(`🔍 Fetching ${limit} recent sync logs`);
-
-      const response = await fetch(`${SISTER_API_BASE}/sync-logs?limit=${limit}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
+      const response = await sisterClient.get<SyncLogResponse>('/sync-logs', {
+        params: { limit: limit.toString() }
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      const data: SyncLog[] = result.data || [];
-      console.log("✅ Recent sync logs fetched successfully:", data.length, "logs");
-      return data;
+      return response.data.data || [];
     } catch (error) {
-      console.error("❌ Error fetching recent sync logs:", error);
+      console.error("Error fetching recent sync logs:", error);
       throw error;
     }
   },
@@ -172,7 +124,7 @@ export const syncLogsService = {
         averageDuration,
       };
     } catch (error) {
-      console.error("❌ Error fetching sync stats:", error);
+      console.error("Error fetching sync stats:", error);
       throw error;
     }
   },

@@ -3,10 +3,7 @@
  * Service untuk mengambil data penelitian dosen dari SISTER API
  */
 
-import axios from 'axios';
 import { sisterClient } from '@/lib/api/sisterClient';
-
-const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:8083';
 
 // Types
 export interface AnggotaLitabmasInfo {
@@ -128,8 +125,8 @@ export const sisterPenelitianService = {
    * Get list of penelitian by id_sdm
    */
   async getListByIDSDM(idSDM: string): Promise<Litabmas[]> {
-    const response = await axios.get<Litabmas[]>(
-      `${SISTER_API_URL}/penelitian`,
+    const response = await sisterClient.get<Litabmas[]>(
+      '/penelitian',
       { params: { id_sdm: idSDM } }
     );
     return response.data || [];
@@ -139,8 +136,8 @@ export const sisterPenelitianService = {
    * Get penelitian detail by id_litabmas
    */
   async getDetail(idLitabmas: string): Promise<Litabmas> {
-    const response = await axios.get<Litabmas>(
-      `${SISTER_API_URL}/litabmas/${idLitabmas}`
+    const response = await sisterClient.get<Litabmas>(
+      `/litabmas/${idLitabmas}`
     );
     return response.data;
   },
@@ -151,8 +148,8 @@ export const sisterPenelitianService = {
    * @param syncedBy - Username of person who triggered the sync
    */
   async syncByIDSDM(idSDM: string, syncedBy: string): Promise<BatchPenelitianSyncResult> {
-    const response = await axios.post<BatchPenelitianSyncResult>(
-      `${SISTER_API_URL}/../api/v1/penelitian/sync`,
+    const response = await sisterClient.post<BatchPenelitianSyncResult>(
+      '/api/v1/penelitian/sync',
       null,
       { params: { id_sdm: idSDM, synced_by: syncedBy } }
     );
@@ -163,8 +160,8 @@ export const sisterPenelitianService = {
    * Get penelitian statistics
    */
   async getStats(): Promise<PenelitianStats> {
-    const response = await axios.get<PenelitianStats>(
-      `${SISTER_API_URL}/penelitian/stats`
+    const response = await sisterClient.get<PenelitianStats>(
+      '/penelitian/stats'
     );
     return response.data;
   },
@@ -198,8 +195,8 @@ export const sisterPenelitianService = {
     sort_by?: string;
     sort_order?: string;
   }): Promise<PenelitianListResult> {
-    const response = await axios.get<{ success: boolean; data: PenelitianListResult }>(
-      `${SISTER_API_URL}/penelitian/list`,
+    const response = await sisterClient.get<{ success: boolean; data: PenelitianListResult }>(
+      '/penelitian/list',
       { params }
     );
     return response.data.data;
@@ -210,8 +207,8 @@ export const sisterPenelitianService = {
    * @param syncedBy - Username of person who triggered the sync
    */
   async syncFromSister(syncedBy: string): Promise<BatchAllSyncResult> {
-    const response = await axios.post<BatchAllSyncResult>(
-      `${SISTER_API_URL}/../api/v1/penelitian/sync-all`,
+    const response = await sisterClient.post<BatchAllSyncResult>(
+      '/api/v1/penelitian/sync-all',
       null,
       { params: { synced_by: syncedBy } }
     );

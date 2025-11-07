@@ -3,7 +3,7 @@
  * Handles API calls for monitoring active sync operations
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || "http://localhost:8083/public";
+import { sisterClient } from '@/lib/api/sisterClient';
 
 export interface SyncProgress {
   id: string;
@@ -40,22 +40,16 @@ class MonitoringService {
    * Get all active sync operations
    */
   async getActiveSyncs(): Promise<MonitoringResponse> {
-    const response = await fetch(`${API_BASE_URL}/monitoring/active`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch active syncs");
-    }
-    return response.json();
+    const response = await sisterClient.get<MonitoringResponse>('/monitoring/active');
+    return response.data;
   }
 
   /**
    * Get specific sync operation by ID
    */
   async getSyncById(id: string): Promise<SyncProgress> {
-    const response = await fetch(`${API_BASE_URL}/monitoring/${id}`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch sync details");
-    }
-    return response.json();
+    const response = await sisterClient.get<SyncProgress>(`/monitoring/${id}`);
+    return response.data;
   }
 }
 

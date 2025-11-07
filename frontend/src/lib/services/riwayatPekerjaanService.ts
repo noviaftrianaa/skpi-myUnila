@@ -3,10 +3,7 @@
  * Service untuk mengambil data riwayat pekerjaan dosen
  */
 
-import axios from 'axios';
 import { sisterClient } from '@/lib/api/sisterClient';
-
-const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:8083';
 
 // Types
 export interface RiwayatPekerjaan {
@@ -66,8 +63,8 @@ export const sisterRiwayatPekerjaanService = {
    * Get riwayat pekerjaan statistics from SISTER API
    */
   async getStats(): Promise<RiwayatPekerjaanStats> {
-    const response = await axios.get<{ success: boolean; data: RiwayatPekerjaanStats }>(
-      `${SISTER_API_URL}/riwayat-pekerjaan/stats`
+    const response = await sisterClient.get<{ success: boolean; data: RiwayatPekerjaanStats }>(
+      '/riwayat-pekerjaan/stats'
     );
     return response.data.data;
   },
@@ -82,8 +79,8 @@ export const sisterRiwayatPekerjaanService = {
     sort_by?: string;
     sort_order?: string;
   }): Promise<{ success: boolean; message?: string; data: RiwayatPekerjaanListResult }> {
-    const response = await axios.get(
-      `${SISTER_API_URL}/riwayat-pekerjaan/list`,
+    const response = await sisterClient.get(
+      '/riwayat-pekerjaan/list',
       { params }
     );
     return response.data;
@@ -94,8 +91,8 @@ export const sisterRiwayatPekerjaanService = {
    * @param syncedBy - Username of person who triggered the sync
    */
   async syncFromSister(syncedBy: string): Promise<BatchAllSyncResult> {
-    const response = await axios.post<{ success: boolean; data: BatchAllSyncResult }>(
-      `${SISTER_API_URL}/../api/v1/riwayat-pekerjaan/sync-all`,
+    const response = await sisterClient.post<{ success: boolean; data: BatchAllSyncResult }>(
+      '/api/v1/riwayat-pekerjaan/sync-all',
       null,
       { params: { synced_by: syncedBy } }
     );
@@ -106,8 +103,8 @@ export const sisterRiwayatPekerjaanService = {
    * Get riwayat pekerjaan detail by id
    */
   async getDetail(idRwyKerja: string): Promise<RiwayatPekerjaan> {
-    const response = await axios.get<{ success: boolean; data: RiwayatPekerjaan }>(
-      `${SISTER_API_URL}/riwayat-pekerjaan/${idRwyKerja}`
+    const response = await sisterClient.get<{ success: boolean; data: RiwayatPekerjaan }>(
+      `/riwayat-pekerjaan/${idRwyKerja}`
     );
     return response.data.data;
   },

@@ -3,10 +3,7 @@
  * Service untuk mengambil data pendidikan formal dosen
  */
 
-import axios from 'axios';
 import { sisterClient } from '@/lib/api/sisterClient';
-
-const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:8083';
 
 // Types
 export interface PendidikanFormal {
@@ -79,8 +76,8 @@ export const sisterPendidikanService = {
    * Get pendidikan formal statistics from SISTER API
    */
   async getStats(): Promise<PendidikanFormalStats> {
-    const response = await axios.get<PendidikanFormalStats>(
-      `${SISTER_API_URL}/pendidikan-formal/stats`
+    const response = await sisterClient.get<PendidikanFormalStats>(
+      '/pendidikan-formal/stats'
     );
     return response.data;
   },
@@ -95,8 +92,8 @@ export const sisterPendidikanService = {
     sort_by?: string;
     sort_order?: string;
   }): Promise<{ success: boolean; message: string; data: PendidikanFormalListResult }> {
-    const response = await axios.get(
-      `${SISTER_API_URL}/pendidikan-formal/list`,
+    const response = await sisterClient.get(
+      '/pendidikan-formal/list',
       { params }
     );
     return response.data;
@@ -107,8 +104,8 @@ export const sisterPendidikanService = {
    * @param syncedBy - Username of person who triggered the sync
    */
   async syncFromSister(syncedBy: string): Promise<BatchAllSyncResult> {
-    const response = await axios.post<BatchAllSyncResult>(
-      `${SISTER_API_URL}/../api/v1/pendidikan-formal/sync-all`,
+    const response = await sisterClient.post<BatchAllSyncResult>(
+      '/api/v1/pendidikan-formal/sync-all',
       null,
       { params: { synced_by: syncedBy } }
     );
@@ -119,8 +116,8 @@ export const sisterPendidikanService = {
    * Get pendidikan formal detail by id
    */
   async getDetail(idRwyDidikFormal: string): Promise<PendidikanFormal> {
-    const response = await axios.get<PendidikanFormal>(
-      `${SISTER_API_URL}/pendidikan-formal/${idRwyDidikFormal}`
+    const response = await sisterClient.get<PendidikanFormal>(
+      `/pendidikan-formal/${idRwyDidikFormal}`
     );
     return response.data;
   },

@@ -8,6 +8,11 @@
 
 /* Remove default focus outline from all inputs */
 @layer base {
+  /* Apply Poppins font globally */
+  body {
+    font-family: var(--font-poppins), 'Poppins', sans-serif;
+  }
+
   input:focus,
   input:focus-visible,
   textarea:focus,

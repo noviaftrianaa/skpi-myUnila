@@ -3,8 +3,12 @@
  * Handles API calls for referensi metadata and batch sync operations
  */
 
-// Direct connection to sister-service (bypass Kong for now)
-const SISTER_API_BASE = "http://localhost:8083/api/v1";
+import axios from 'axios';
+
+// Sister API through Kong Gateway
+const SISTER_API_BASE = process.env.NEXT_PUBLIC_SISTER_API_URL
+  ? `${process.env.NEXT_PUBLIC_SISTER_API_URL}/../api/v1`
+  : "http://localhost:9800/sister-service/api/v1";
 
 export interface ReferensiMetadata {
   key: string;
@@ -38,20 +42,8 @@ export const referensiService = {
    */
   async getMetadata(): Promise<ReferensiMetadata[]> {
     try {
-      const response = await fetch(`${SISTER_API_BASE}/referensi/metadata`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      return result.data || [];
+      const response = await axios.get(`${SISTER_API_BASE}/referensi/metadata`);
+      return response.data.data || [];
     } catch (error) {
       console.error("Error fetching referensi metadata:", error);
       throw error;
@@ -63,24 +55,10 @@ export const referensiService = {
    */
   async batchSync(endpoints: string[]): Promise<BatchSyncResponse> {
     try {
-      const response = await fetch(`${SISTER_API_BASE}/referensi/batch-sync`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          endpoints: endpoints,
-        }),
+      const response = await axios.post(`${SISTER_API_BASE}/referensi/batch-sync`, {
+        endpoints: endpoints,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      return result.data;
+      return response.data.data;
     } catch (error) {
       console.error("Error batch syncing referensi:", error);
       throw error;
@@ -135,20 +113,8 @@ export const referensiService = {
         throw new Error(`Unknown endpoint key: ${key}`);
       }
 
-      const response = await fetch(`${SISTER_API_BASE}/referensi/${endpoint}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      return result.data || [];
+      const response = await axios.get(`${SISTER_API_BASE}/referensi/${endpoint}`);
+      return response.data.data || [];
     } catch (error) {
       console.error(`Error fetching ${key} data:`, error);
       throw error;
@@ -203,23 +169,8 @@ export const referensiService = {
         throw new Error(`Unknown endpoint key: ${key}`);
       }
 
-      const response = await fetch(
-        `${SISTER_API_BASE}/referensi/${endpoint}/sync`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
+      const response = await axios.post(`${SISTER_API_BASE}/referensi/${endpoint}/sync`);
+      return response.data;
     } catch (error) {
       console.error(`Error syncing ${key}:`, error);
       throw error;

@@ -3,10 +3,7 @@
  * Service untuk mengambil data pengabdian dosen dari SISTER API
  */
 
-import axios from 'axios';
 import { sisterClient } from '@/lib/api/sisterClient';
-
-const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:8083';
 
 // Types - Reuse Litabmas type from penelitian since they share the same entity
 export interface AnggotaLitabmasInfo {
@@ -100,8 +97,8 @@ export const sisterPengabdianService = {
    * Get list of pengabdian by id_sdm
    */
   async getListByIDSDM(idSDM: string): Promise<Litabmas[]> {
-    const response = await axios.get<Litabmas[]>(
-      `${SISTER_API_URL}/pengabdian`,
+    const response = await sisterClient.get<Litabmas[]>(
+      '/pengabdian',
       { params: { id_sdm: idSDM } }
     );
     return response.data || [];
@@ -111,8 +108,8 @@ export const sisterPengabdianService = {
    * Get pengabdian detail by id_litabmas
    */
   async getDetail(idLitabmas: string): Promise<Litabmas> {
-    const response = await axios.get<Litabmas>(
-      `${SISTER_API_URL}/litabmas/${idLitabmas}`
+    const response = await sisterClient.get<Litabmas>(
+      `/litabmas/${idLitabmas}`
     );
     return response.data;
   },
@@ -123,8 +120,8 @@ export const sisterPengabdianService = {
    * @param syncedBy - Username of person who triggered the sync
    */
   async syncByIDSDM(idSDM: string, syncedBy: string): Promise<BatchPengabdianSyncResult> {
-    const response = await axios.post<BatchPengabdianSyncResult>(
-      `${SISTER_API_URL}/../api/v1/pengabdian/sync`,
+    const response = await sisterClient.post<BatchPengabdianSyncResult>(
+      '/api/v1/pengabdian/sync',
       null,
       { params: { id_sdm: idSDM, synced_by: syncedBy } }
     );
@@ -135,8 +132,8 @@ export const sisterPengabdianService = {
    * Get pengabdian statistics
    */
   async getStats(): Promise<PengabdianStats> {
-    const response = await axios.get<PengabdianStats>(
-      `${SISTER_API_URL}/pengabdian/stats`
+    const response = await sisterClient.get<PengabdianStats>(
+      '/pengabdian/stats'
     );
     return response.data;
   },
@@ -151,8 +148,8 @@ export const sisterPengabdianService = {
     sort_by?: string;
     sort_order?: string;
   }): Promise<PengabdianListResult> {
-    const response = await axios.get<{ success: boolean; data: PengabdianListResult }>(
-      `${SISTER_API_URL}/pengabdian/list`,
+    const response = await sisterClient.get<{ success: boolean; data: PengabdianListResult }>(
+      '/pengabdian/list',
       { params }
     );
     return response.data.data;
@@ -163,8 +160,8 @@ export const sisterPengabdianService = {
    * @param syncedBy - Username of person who triggered the sync
    */
   async syncFromSister(syncedBy: string): Promise<BatchAllSyncResult> {
-    const response = await axios.post<BatchAllSyncResult>(
-      `${SISTER_API_URL}/../api/v1/pengabdian/sync-all`,
+    const response = await sisterClient.post<BatchAllSyncResult>(
+      '/api/v1/pengabdian/sync-all',
       null,
       { params: { synced_by: syncedBy } }
     );

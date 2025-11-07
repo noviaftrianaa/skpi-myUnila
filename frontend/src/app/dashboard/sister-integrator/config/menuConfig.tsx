@@ -81,6 +81,11 @@ export const sisterIntegratorMenuConfig: MenuItem[] = [
         roles: ["developer"],
       },
       {
+        title: "Tugas Tambahan",
+        href: "/dashboard/sister-integrator/pdrd/tugas-tambahan",
+        roles: ["developer"],
+      },
+      {
         title: "Sertifikasi Dosen",
         href: "/dashboard/sister-integrator/pdrd/sertifikasi-dosen",
         roles: ["developer"],

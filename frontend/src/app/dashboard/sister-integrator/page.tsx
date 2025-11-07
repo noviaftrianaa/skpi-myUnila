@@ -27,6 +27,7 @@ import { sisterIntegratorMenuConfig } from "./config/menuConfig";
 import Link from "next/link";
 import { referensiService, type ReferensiMetadata } from "@/lib/services/referensiService";
 import { syncLogsService, type SyncLog } from "@/lib/services/syncLogsService";
+import { sisterDosenService } from "@/lib/services/dosenService";
 import { toast } from "react-hot-toast";
 
 interface DosenStats {
@@ -71,10 +72,12 @@ export default function SisterIntegratorDashboardPage() {
 
   const fetchDosenStats = async (): Promise<DosenStats | null> => {
     try {
-      const response = await fetch("http://localhost:8083/public/dosen/stats");
-      if (!response.ok) return null;
-      const result = await response.json();
-      return result.data;
+      const stats = await sisterDosenService.getStats();
+      return {
+        total_dosen: stats.total_dosen,
+        total_aktif: stats.total_aktif,
+        total_tidak_aktif: stats.total_tidak_aktif,
+      };
     } catch (error) {
       console.error("Error fetching dosen stats:", error);
       return null;

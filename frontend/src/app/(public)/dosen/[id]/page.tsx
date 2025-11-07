@@ -89,7 +89,7 @@ export default function DosenProfilePage() {
           // Fetch bidang keahlian from sister-service
           try {
             console.log('🔍 Fetching bidang keahlian for id_sdm:', response.data.id_sdm);
-            const bidangResponse = await fetch(`http://localhost:8083/public/dosen/bidang_ilmu/${response.data.id_sdm}`);
+            const bidangResponse = await fetch(`http://localhost:9800/sister-service/public/dosen/bidang_ilmu/${response.data.id_sdm}`);
             console.log('📡 Bidang keahlian response status:', bidangResponse.status);
 
             if (bidangResponse.ok) {
@@ -225,7 +225,7 @@ export default function DosenProfilePage() {
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20 inline-block">
                   <div className="w-40 h-52 rounded-xl overflow-hidden shadow-2xl">
                   <img
-                    src={`http://localhost:8083/public/dosen/photo/${dosen.id_sdm}`}
+                    src={`http://localhost:9800/sister-service/public/dosen/photo/${dosen.id_sdm}`}
                     alt={dosen.nama}
                     className="w-full h-full object-cover"
                     onError={(e) => {

@@ -7,7 +7,6 @@ import axios from 'axios';
 import { sisterClient } from '@/lib/api/sisterClient';
 
 const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/public/api/v1';
-const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:8083';
 
 // Types
 export interface PublikasiByJenis {
@@ -126,8 +125,8 @@ export const sisterPublikasiService = {
    * Get publikasi statistics from SISTER API
    */
   async getStats(): Promise<PublikasiStats> {
-    const response = await axios.get<PublikasiStats>(
-      `${SISTER_API_URL}/publikasi/stats`
+    const response = await sisterClient.get<PublikasiStats>(
+      '/publikasi/stats'
     );
     return response.data;
   },
@@ -140,8 +139,8 @@ export const sisterPublikasiService = {
     limit: number;
     search?: string;
   }): Promise<PublikasiListResult> {
-    const response = await axios.get<PublikasiListResult>(
-      `${SISTER_API_URL}/publikasi/list`,
+    const response = await sisterClient.get<PublikasiListResult>(
+      '/publikasi/list',
       { params }
     );
     return response.data;
@@ -152,8 +151,8 @@ export const sisterPublikasiService = {
    * @param syncedBy - Username of person who triggered the sync
    */
   async syncFromSister(syncedBy: string): Promise<BatchAllSyncResult> {
-    const response = await axios.post<BatchAllSyncResult>(
-      `${SISTER_API_URL}/../api/v1/publikasi/sync-all`,
+    const response = await sisterClient.post<BatchAllSyncResult>(
+      '/api/v1/publikasi/sync-all',
       null,
       { params: { synced_by: syncedBy } }
     );
@@ -164,8 +163,8 @@ export const sisterPublikasiService = {
    * Get publikasi detail by id
    */
   async getDetail(idPublikasi: string): Promise<Publikasi> {
-    const response = await axios.get<Publikasi>(
-      `${SISTER_API_URL}/publikasi/${idPublikasi}`
+    const response = await sisterClient.get<Publikasi>(
+      `/publikasi/${idPublikasi}`
     );
     return response.data;
   },
@@ -174,8 +173,8 @@ export const sisterPublikasiService = {
    * Get penulis by publikasi
    */
   async getPenulisByPublikasi(idPublikasi: string): Promise<TulisPub[]> {
-    const response = await axios.get<TulisPub[]>(
-      `${SISTER_API_URL}/publikasi/${idPublikasi}/penulis`
+    const response = await sisterClient.get<TulisPub[]>(
+      `/publikasi/${idPublikasi}/penulis`
     );
     return response.data;
   },

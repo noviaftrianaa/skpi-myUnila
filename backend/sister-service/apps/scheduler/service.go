@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"log"
 	"sister-service/apps/dosen"
+	"sister-service/apps/jabatan_struktural"
 	"sister-service/apps/pendidikan"
 	"sister-service/apps/penelitian"
 	"sister-service/apps/penugasan"
 	"sister-service/apps/publikasi"
 	"sister-service/apps/referensi"
 	"sister-service/apps/riwayat_pekerjaan"
+	"sister-service/apps/tugas_tambahan"
 	"time"
 
 	"github.com/robfig/cron/v3"
@@ -20,33 +22,37 @@ import (
 const UNILA_ID_SP = "e2b705a7-173e-464a-9fac-509128709515"
 
 type Service struct {
-	repo                    *Repository
-	cron                    *cron.Cron
-	jobs                    map[int]cron.EntryID // map schedule ID to cron entry ID
-	dosenService            dosen.Service
-	referensiService        referensi.Service
-	penugasanService        penugasan.Service
-	penelitianService       penelitian.Service
-	publikasiService        publikasi.Service
-	pendidikanService       pendidikan.Service
-	riwayatPekerjaanService *riwayat_pekerjaan.Service
+	repo                     *Repository
+	cron                     *cron.Cron
+	jobs                     map[int]cron.EntryID // map schedule ID to cron entry ID
+	dosenService             dosen.Service
+	referensiService         referensi.Service
+	penugasanService         penugasan.Service
+	penelitianService        penelitian.Service
+	publikasiService         publikasi.Service
+	pendidikanService        pendidikan.Service
+	riwayatPekerjaanService  *riwayat_pekerjaan.Service
+	jabatanStrukturalService *jabatan_struktural.Service
+	tugasTambahanService     *tugas_tambahan.Service
 }
 
-func NewService(repo *Repository, dosenService dosen.Service, referensiService referensi.Service, penugasanService penugasan.Service, penelitianService penelitian.Service, publikasiService publikasi.Service, pendidikanService pendidikan.Service, riwayatPekerjaanService *riwayat_pekerjaan.Service) *Service {
+func NewService(repo *Repository, dosenService dosen.Service, referensiService referensi.Service, penugasanService penugasan.Service, penelitianService penelitian.Service, publikasiService publikasi.Service, pendidikanService pendidikan.Service, riwayatPekerjaanService *riwayat_pekerjaan.Service, jabatanStrukturalService *jabatan_struktural.Service, tugasTambahanService *tugas_tambahan.Service) *Service {
 	// Create cron with second precision
 	c := cron.New(cron.WithSeconds())
 
 	service := &Service{
-		repo:                    repo,
-		cron:                    c,
-		jobs:                    make(map[int]cron.EntryID),
-		dosenService:            dosenService,
-		referensiService:        referensiService,
-		penugasanService:        penugasanService,
-		penelitianService:       penelitianService,
-		publikasiService:        publikasiService,
-		pendidikanService:       pendidikanService,
-		riwayatPekerjaanService: riwayatPekerjaanService,
+		repo:                     repo,
+		cron:                     c,
+		jobs:                     make(map[int]cron.EntryID),
+		dosenService:             dosenService,
+		referensiService:         referensiService,
+		penugasanService:         penugasanService,
+		penelitianService:        penelitianService,
+		publikasiService:         publikasiService,
+		pendidikanService:        pendidikanService,
+		riwayatPekerjaanService:  riwayatPekerjaanService,
+		jabatanStrukturalService: jabatanStrukturalService,
+		tugasTambahanService:     tugasTambahanService,
 	}
 
 	return service

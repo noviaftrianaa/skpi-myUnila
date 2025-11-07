@@ -776,3 +776,31 @@ func (c *Client) GetRiwayatPekerjaanDetail(idRwyKerja string) ([]byte, error) {
 	endpoint := fmt.Sprintf("/1.0/riwayat_pekerjaan/%s", idRwyKerja)
 	return c.Get(endpoint)
 }
+
+// GetJabatanStrukturalByIDSDM fetches jabatan struktural list for a dosen from Sister API
+// Endpoint: GET /1.0/jabatan_struktural?id_sdm={id_sdm}
+func (c *Client) GetJabatanStrukturalByIDSDM(idSDM string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/1.0/jabatan_struktural?id_sdm=%s", idSDM)
+	return c.Get(endpoint)
+}
+
+// GetJabatanStrukturalDetail fetches detail of a single jabatan struktural from Sister API
+// Endpoint: GET /1.0/jabatan_struktural/{id}
+func (c *Client) GetJabatanStrukturalDetail(idRwyJabStruk string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/1.0/jabatan_struktural/%s", idRwyJabStruk)
+	return c.Get(endpoint)
+}
+
+// GetTugasTambahanByIDSDM fetches tugas tambahan list for a dosen from Sister API
+// Endpoint: GET /1.0/tugas_tambahan?id_sdm={id_sdm}
+func (c *Client) GetTugasTambahanByIDSDM(idSDM string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/1.0/tugas_tambahan?id_sdm=%s", idSDM)
+	return c.Get(endpoint)
+}
+
+// GetTugasTambahanDetail fetches detail of a single tugas tambahan from Sister API
+// Endpoint: GET /1.0/tugas_tambahan/{id}
+func (c *Client) GetTugasTambahanDetail(idTgsTambah string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/1.0/tugas_tambahan/%s", idTgsTambah)
+	return c.Get(endpoint)
+}

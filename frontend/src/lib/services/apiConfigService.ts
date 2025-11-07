@@ -1,4 +1,4 @@
-const SISTER_SERVICE_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:8083/public';
+import { sisterClient } from '@/lib/api/sisterClient';
 
 export interface APIConfig {
   id: number;
@@ -87,127 +87,41 @@ export interface AuditLog {
 }
 
 class APIConfigService {
-  private baseURL = `${SISTER_SERVICE_URL}/api-configs`;
-
   async getAll(): Promise<APIConfig[]> {
-    const response = await fetch(this.baseURL, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch API configurations");
-    }
-
-    const data = await response.json();
-    return data.data || [];
+    const response = await sisterClient.get<{ data: APIConfig[] }>('/api-configs');
+    return response.data.data || [];
   }
 
   async getByCode(apiCode: string): Promise<APIConfig> {
-    const response = await fetch(`${this.baseURL}/${apiCode}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch API configuration: ${apiCode}`);
-    }
-
-    const data = await response.json();
-    return data.data;
+    const response = await sisterClient.get<{ data: APIConfig }>(`/api-configs/${apiCode}`);
+    return response.data.data;
   }
 
   async create(request: CreateAPIConfigRequest): Promise<APIConfig> {
-    const response = await fetch(this.baseURL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(request),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Failed to create API configuration");
-    }
-
-    const data = await response.json();
-    return data.data;
+    const response = await sisterClient.post<{ data: APIConfig }>('/api-configs', request);
+    return response.data.data;
   }
 
-  async update(
-    id: number,
-    request: UpdateAPIConfigRequest
-  ): Promise<APIConfig> {
-    const response = await fetch(`${this.baseURL}/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(request),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Failed to update API configuration");
-    }
-
-    const data = await response.json();
-    return data.data;
+  async update(id: number, request: UpdateAPIConfigRequest): Promise<APIConfig> {
+    const response = await sisterClient.put<{ data: APIConfig }>(`/api-configs/${id}`, request);
+    return response.data.data;
   }
 
   async delete(id: number): Promise<void> {
-    const response = await fetch(`${this.baseURL}/${id}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Failed to delete API configuration");
-    }
+    await sisterClient.delete(`/api-configs/${id}`);
   }
 
-  async testConnection(
-    request: TestConnectionRequest
-  ): Promise<TestConnectionResponse> {
-    const response = await fetch(`${this.baseURL}/test-connection`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(request),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Connection test failed");
-    }
-
-    const data = await response.json();
-    return data.data;
+  async testConnection(request: TestConnectionRequest): Promise<TestConnectionResponse> {
+    const response = await sisterClient.post<{ data: TestConnectionResponse }>(
+      '/api-configs/test-connection',
+      request
+    );
+    return response.data.data;
   }
 
   async getAuditLogs(configId: number): Promise<AuditLog[]> {
-    const response = await fetch(`${this.baseURL}/${configId}/audit-logs`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch audit logs");
-    }
-
-    const data = await response.json();
-    return data.data || [];
+    const response = await sisterClient.get<{ data: AuditLog[] }>(`/api-configs/${configId}/audit-logs`);
+    return response.data.data || [];
   }
 }
 

@@ -3,10 +3,7 @@
  * Service untuk mengambil data penugasan/penempatan dosen
  */
 
-import axios from 'axios';
 import { sisterClient } from '@/lib/api/sisterClient';
-
-const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:8083';
 
 // Types
 export interface KeaktifanPTK {
@@ -111,8 +108,8 @@ export const sisterPenugasanService = {
    * Get list of penugasan by id_sdm
    */
   async getListByIDSDM(idSDM: string): Promise<Penugasan[]> {
-    const response = await axios.get<SisterApiResponse<Penugasan[]>>(
-      `${SISTER_API_URL}/api/v1/penugasan`,
+    const response = await sisterClient.get<SisterApiResponse<Penugasan[]>>(
+      '/api/v1/penugasan',
       { params: { id_sdm: idSDM } }
     );
     return response.data.data || [];
@@ -122,8 +119,8 @@ export const sisterPenugasanService = {
    * Get penugasan detail by id_reg_ptk
    */
   async getDetail(idRegPTK: string): Promise<Penugasan> {
-    const response = await axios.get<SisterApiResponse<Penugasan>>(
-      `${SISTER_API_URL}/api/v1/penugasan/${idRegPTK}`
+    const response = await sisterClient.get<SisterApiResponse<Penugasan>>(
+      `/api/v1/penugasan/${idRegPTK}`
     );
     return response.data.data;
   },
@@ -134,8 +131,8 @@ export const sisterPenugasanService = {
    * @param syncedBy - Username of person who triggered the sync
    */
   async syncByIDSDM(idSDM: string, syncedBy: string): Promise<BatchPenugasanSyncResult> {
-    const response = await axios.post<SisterApiResponse<BatchPenugasanSyncResult>>(
-      `${SISTER_API_URL}/api/v1/penugasan/sync`,
+    const response = await sisterClient.post<SisterApiResponse<BatchPenugasanSyncResult>>(
+      '/api/v1/penugasan/sync',
       null,
       { params: { id_sdm: idSDM, synced_by: syncedBy } }
     );
@@ -149,8 +146,8 @@ export const sisterPenugasanService = {
    * @param search - Search query (NIDN, NIP, Nama, No Surat)
    */
   async getList(page: number = 1, limit: number = 10, search: string = ''): Promise<PenugasanListResult> {
-    const response = await axios.get<SisterApiResponse<PenugasanListResult>>(
-      `${SISTER_API_URL}/penugasan`,
+    const response = await sisterClient.get<SisterApiResponse<PenugasanListResult>>(
+      '/penugasan',
       { params: { page, limit, search } }
     );
     return response.data.data;
@@ -160,8 +157,8 @@ export const sisterPenugasanService = {
    * Get penugasan statistics
    */
   async getStats(): Promise<PenugasanStats> {
-    const response = await axios.get<SisterApiResponse<PenugasanStats>>(
-      `${SISTER_API_URL}/penugasan/stats`
+    const response = await sisterClient.get<SisterApiResponse<PenugasanStats>>(
+      '/penugasan/stats'
     );
     return response.data.data;
   },
@@ -171,8 +168,8 @@ export const sisterPenugasanService = {
    * @param syncedBy - Username of person who triggered the sync
    */
   async syncFromSister(syncedBy: string): Promise<BatchPenugasanSyncAllResult> {
-    const response = await axios.post<SisterApiResponse<BatchPenugasanSyncAllResult>>(
-      `${SISTER_API_URL}/penugasan/sync-all`,
+    const response = await sisterClient.post<SisterApiResponse<BatchPenugasanSyncAllResult>>(
+      '/penugasan/sync-all',
       null,
       { params: { synced_by: syncedBy } }
     );

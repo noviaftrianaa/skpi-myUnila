@@ -42,19 +42,9 @@ const createSisterClient = (): AxiosInstance => {
         config.headers.Authorization = `Bearer ${token}`;
       }
 
-      // Log request in development
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🚀 Sister API Request:', {
-          method: config.method?.toUpperCase(),
-          url: config.url,
-          hasToken: !!token,
-        });
-      }
-
       return config;
     },
     (error) => {
-      console.error('❌ Request Error:', error);
       return Promise.reject(error);
     }
   );
@@ -65,28 +55,9 @@ const createSisterClient = (): AxiosInstance => {
    * - Handle errors
    */
   instance.interceptors.response.use(
-    (response) => {
-      // Log response in development
-      if (process.env.NODE_ENV === 'development') {
-        console.log('✅ Sister API Response:', {
-          status: response.status,
-          url: response.config.url,
-        });
-      }
-
-      return response;
-    },
+    (response) => response,
     async (error: AxiosError) => {
       const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
-
-      // Log error in development
-      if (process.env.NODE_ENV === 'development') {
-        console.error('❌ Sister API Error:', {
-          status: error.response?.status,
-          url: error.config?.url,
-          message: error.message,
-        });
-      }
 
       // Handle 401 Unauthorized - Token Expired
       if (error.response?.status === 401 && !originalRequest._retry) {
@@ -127,8 +98,6 @@ const createSisterClient = (): AxiosInstance => {
             // Update refresh token if backend sent new one (token rotation)
             if (new_refresh_token) {
               setToken('REFRESH', new_refresh_token);
-            } else {
-              console.log('✅ Sister API: Access token refreshed successfully');
             }
 
             // Retry original request with new access token
@@ -142,7 +111,6 @@ const createSisterClient = (): AxiosInstance => {
           }
         } catch (refreshError) {
           // Refresh failed - logout user
-          console.error('❌ Sister API: Token refresh failed:', refreshError);
           clearTokens();
 
           // Redirect to login
