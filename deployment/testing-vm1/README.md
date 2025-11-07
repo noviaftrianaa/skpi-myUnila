@@ -64,8 +64,9 @@ Dokumentasi deployment untuk testing di 1 VM Ubuntu 22.04 dengan Docker Compose 
 │  │  │  - Cache & Queue                             │  │    │
 │  │  └──────────────────────────────────────────────┘  │    │
 │  │  ┌──────────────────────────────────────────────┐  │    │
-│  │  │  PostgreSQL (Port 5432)                      │  │    │
+│  │  │  PostgreSQL (System Service)                 │  │    │
 │  │  │  - Kong Database                             │  │    │
+│  │  │  - Configured for Docker connections         │  │    │
 │  │  └──────────────────────────────────────────────┘  │    │
 │  └────────────────────────────────────────────────────┘    │
 │                           ↓                                 │
@@ -232,14 +233,17 @@ cd deployment/testing-vm1
 # 2. Setup server (first time only)
 ./scripts/setup-server.sh
 
-# 3. Configure environment
+# 3. Configure PostgreSQL for Kong (if using existing PostgreSQL)
+sudo ./scripts/configure-postgres-for-kong.sh
+
+# 4. Configure environment
 cp .env.example .env
 nano .env
 
-# 4. Deploy all services
+# 5. Deploy all services
 ./scripts/deploy-all.sh
 
-# 5. Check health
+# 6. Check health
 ./scripts/health-check.sh
 ```
 
@@ -254,10 +258,9 @@ See [docs/DEPLOYMENT_STEPS.md](docs/DEPLOYMENT_STEPS.md) for complete guide.
 ### Start Services (In Order)
 
 ```bash
-# 1. Infrastructure (Redis, PostgreSQL)
+# 1. Infrastructure (Redis only - PostgreSQL uses system service)
 cd services/1-infrastructure
 docker compose -f docker-compose.redis.yml up -d
-docker compose -f docker-compose.postgres.yml up -d
 
 # 2. API Gateway (Kong)
 cd ../2-gateway
@@ -293,8 +296,8 @@ cd ../3-backend && docker compose -f docker-compose.sister.yml down
 cd ../3-backend && docker compose -f docker-compose.dashboard.yml down
 cd ../3-backend && docker compose -f docker-compose.auth.yml down
 cd ../2-gateway && docker compose -f docker-compose.kong.yml down
-cd ../1-infrastructure && docker compose -f docker-compose.postgres.yml down
 cd ../1-infrastructure && docker compose -f docker-compose.redis.yml down
+# Note: PostgreSQL runs as system service, not Docker container
 ```
 
 ### Update Service
@@ -393,6 +396,21 @@ curl http://localhost:3000/api/health    # Frontend
    curl http://localhost:8081/api/health    # Auth Service
    curl http://localhost:8082/api/health    # Dashboard Service
    curl http://localhost:8083/health        # Sister Service
+   ```
+
+5. **Kong cannot connect to PostgreSQL**
+   ```bash
+   # Test PostgreSQL connection from Docker
+   docker run --rm postgres:15-alpine psql -h 192.168.123.172 -U kong -d kong -c "SELECT 1;"
+
+   # Check PostgreSQL is listening on all interfaces
+   sudo netstat -plnt | grep 5432
+
+   # Check pg_hba.conf allows Docker network
+   sudo cat /etc/postgresql/*/main/pg_hba.conf | grep 172.17.0.0
+
+   # If needed, reconfigure PostgreSQL
+   sudo ./scripts/configure-postgres-for-kong.sh
    ```
 
 See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for more details.

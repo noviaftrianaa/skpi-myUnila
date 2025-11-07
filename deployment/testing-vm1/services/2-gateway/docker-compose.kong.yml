@@ -8,7 +8,7 @@ services:
     command: kong migrations bootstrap
     environment:
       KONG_DATABASE: postgres
-      KONG_PG_HOST: postgres-kong
+      KONG_PG_HOST: 192.168.123.172
       KONG_PG_PORT: 5432
       KONG_PG_DATABASE: ${KONG_PG_DATABASE:-kong}
       KONG_PG_USER: ${KONG_PG_USER:-kong}
@@ -16,31 +16,11 @@ services:
     networks:
       - myunila-network
     restart: on-failure
-    depends_on:
-      - postgres-kong-check
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-
-  # Health check for PostgreSQL (wait for it to be ready)
-  postgres-kong-check:
-    image: postgres:15-alpine
-    container_name: myunila-postgres-check
-    command: >
-      sh -c "
-      until pg_isready -h postgres-kong -U ${KONG_PG_USER:-kong}; do
-        echo 'Waiting for PostgreSQL...';
-        sleep 2;
-      done;
-      echo 'PostgreSQL is ready!';
-      "
-    networks:
-      - myunila-network
-    environment:
-      PGPASSWORD: ${KONG_PG_PASSWORD:-kong_secure_password_2024}
-    restart: "no"
 
   # Kong Gateway
   kong:
@@ -48,7 +28,7 @@ services:
     container_name: myunila-kong
     environment:
       KONG_DATABASE: postgres
-      KONG_PG_HOST: postgres-kong
+      KONG_PG_HOST: 192.168.123.172
       KONG_PG_PORT: 5432
       KONG_PG_DATABASE: ${KONG_PG_DATABASE:-kong}
       KONG_PG_USER: ${KONG_PG_USER:-kong}
