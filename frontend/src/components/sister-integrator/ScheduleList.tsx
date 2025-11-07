@@ -51,12 +51,12 @@ export default function ScheduleList({
   const loadSchedules = async () => {
     try {
       setLoading(true);
-      const response = await schedulerService.getSchedules(
-        1,
-        100,
-        syncType,
-        undefined // Get both active and inactive
-      );
+      const response = await schedulerService.getSchedules({
+        page: 1,
+        limit: 100,
+        sync_type: syncType,
+        // is_active: undefined means get all (both active and inactive)
+      });
 
       // Filter by endpoint if specified
       let filteredSchedules = response.data;
