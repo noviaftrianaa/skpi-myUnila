@@ -38,3 +38,4 @@ configs/monitoring/grafana/grafana.db
 # OS
 .DS_Store
 Thumbs.db
+.env.example
