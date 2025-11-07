@@ -27,8 +27,8 @@ import {
 } from "react-icons/fi";
 import {
   schedulerService,
-  ScheduledSync,
-} from "@/services/schedulerService";
+  type ScheduledSync,
+} from "@/lib/services/schedulerService";
 import ScheduleModal from "./ScheduleModal";
 
 interface ScheduleListProps {

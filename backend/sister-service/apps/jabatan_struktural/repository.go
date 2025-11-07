@@ -131,11 +131,11 @@ func (r *repository) GetRwyStrukturalByID(idRwyJabStruk string) (*RwyStrukturalW
 			rs.lokasi_tugas, rs.last_sync,
 			s.nm_sdm AS nama_dosen,
 			s.nidn,
-			jn.nm_jab_negara AS nama_jabatan,
+			jt.nm_jab_tugas AS nama_jabatan,
 			kg.nm_kat_giat AS kategori_kegiatan
 		FROM pdrd.rwy_struktural rs
 		LEFT JOIN pdrd.sdm s ON rs.id_sdm = s.id_sdm
-		LEFT JOIN ref.jabatan_negara jn ON rs.id_jab_tgs = jn.id_jab_negara
+		LEFT JOIN ref.jab_tgs jt ON rs.id_jab_tgs = jt.id_jab_tgs
 		LEFT JOIN ref.kategori_kegiatan kg ON rs.id_katgiat = kg.id_kat_giat
 		WHERE rs.id_rwy_jabstruk = @p1 AND rs.soft_delete = 0
 	`
@@ -168,7 +168,7 @@ func (r *repository) GetRwyStrukturalList(page, limit int, search, sortBy, sortO
 			s.nidn LIKE @p1 OR
 			rs.sk_jabstruk LIKE @p1 OR
 			rs.lokasi_tugas LIKE @p1 OR
-			jn.nm_jab_negara LIKE @p1 OR
+			jt.nm_jab_tugas LIKE @p1 OR
 			kg.nm_kat_giat LIKE @p1
 		)`
 		args = append(args, "%"+search+"%")
@@ -183,7 +183,7 @@ func (r *repository) GetRwyStrukturalList(page, limit int, search, sortBy, sortO
 			"nama_dosen":        "s.nm_sdm",
 			"sk_jabstruk":       "rs.sk_jabstruk",
 			"tmt_sk_jabstruk":   "rs.tmt_sk_jabstruk",
-			"nama_jabatan":      "jn.nm_jab_negara",
+			"nama_jabatan":      "jt.nm_jab_tugas",
 			"kategori_kegiatan": "kg.nm_kat_giat",
 		}
 
@@ -201,7 +201,7 @@ func (r *repository) GetRwyStrukturalList(page, limit int, search, sortBy, sortO
 		SELECT COUNT(*)
 		FROM pdrd.rwy_struktural rs
 		LEFT JOIN pdrd.sdm s ON rs.id_sdm = s.id_sdm
-		LEFT JOIN ref.jabatan_negara jn ON rs.id_jab_tgs = jn.id_jab_negara
+		LEFT JOIN ref.jab_tgs jt ON rs.id_jab_tgs = jt.id_jab_tgs
 		LEFT JOIN ref.kategori_kegiatan kg ON rs.id_katgiat = kg.id_kat_giat
 		%s
 	`, whereClause)
@@ -220,11 +220,11 @@ func (r *repository) GetRwyStrukturalList(page, limit int, search, sortBy, sortO
 			rs.lokasi_tugas, rs.last_sync,
 			s.nm_sdm AS nama_dosen,
 			s.nidn,
-			jn.nm_jab_negara AS nama_jabatan,
+			jt.nm_jab_tugas AS nama_jabatan,
 			kg.nm_kat_giat AS kategori_kegiatan
 		FROM pdrd.rwy_struktural rs
 		LEFT JOIN pdrd.sdm s ON rs.id_sdm = s.id_sdm
-		LEFT JOIN ref.jabatan_negara jn ON rs.id_jab_tgs = jn.id_jab_negara
+		LEFT JOIN ref.jab_tgs jt ON rs.id_jab_tgs = jt.id_jab_tgs
 		LEFT JOIN ref.kategori_kegiatan kg ON rs.id_katgiat = kg.id_kat_giat
 		%s
 		%s

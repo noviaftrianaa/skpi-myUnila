@@ -17,9 +17,9 @@ import {
 import { FiClock, FiCalendar } from "react-icons/fi";
 import {
   schedulerService,
-  CreateScheduledSyncRequest,
-  ScheduledSync,
-} from "@/services/schedulerService";
+  type CreateScheduleRequest as CreateScheduledSyncRequest,
+  type ScheduledSync,
+} from "@/lib/services/schedulerService";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface ScheduleModalProps {
