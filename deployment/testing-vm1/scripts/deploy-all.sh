@@ -74,10 +74,8 @@ deploy_infrastructure() {
     docker compose -f docker-compose.redis.yml up -d
     sleep 5
 
-    # Deploy PostgreSQL for Kong
-    log_info "Starting PostgreSQL for Kong..."
-    docker compose -f docker-compose.postgres.yml up -d
-    sleep 10
+    # Skip PostgreSQL - using existing system PostgreSQL service
+    log_info "Skipping PostgreSQL deployment (using existing system PostgreSQL)"
 
     log_success "Infrastructure services deployed"
 }
