@@ -1,80 +1,88 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Button, Card, CardBody, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Progress, useDisclosure } from "@heroui/react";
-import { Briefcase, Users, CheckCircle2, XCircle, RefreshCw, Calendar } from "lucide-react";
-import { toast } from "react-hot-toast";
+import { useState, useEffect } from "react";
+import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import SisterTugasTambahanTable from "@/shared/components/sister-integrator/SisterTugasTambahanTable";
-import ScheduleList from "@/components/sister-integrator/ScheduleList";
+import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import {
+  Card,
+  CardBody,
+  Button,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Progress,
+} from "@heroui/react";
+import {
+  FiBriefcase,
+  FiFileText,
+  FiRefreshCw,
+  FiClock,
+  FiCheckCircle,
+  FiAlertCircle,
+  FiXCircle,
+} from "react-icons/fi";
+import { MdSync } from "react-icons/md";
+import { RiGovernmentFill } from "react-icons/ri";
+import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
 import {
   sisterTugasTambahanService,
-  TugasTambahanStats,
-  BatchAllSyncResult,
+  type TugasTambahanStats,
 } from "@/lib/services/tugasTambahanService";
+import { toast } from "react-hot-toast";
+import SisterTugasTambahanTable from "@/shared/components/sister-integrator/SisterTugasTambahanTable";
+import ScheduleList from "@/components/sister-integrator/ScheduleList";
 
 export default function TugasTambahanPage() {
+  useRequireAuth();
   const { user } = useAuth();
+
+  // State
   const [stats, setStats] = useState<TugasTambahanStats | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [showSyncModal, setShowSyncModal] = useState(false);
+  const [showProgressModal, setShowProgressModal] = useState(false);
   const [syncProgress, setSyncProgress] = useState(0);
-  const [syncResult, setSyncResult] = useState<BatchAllSyncResult | null>(null);
+  const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
+  const [syncResult, setSyncResult] = useState<{
+    totalRecords: number;
+    message: string;
+  } | null>(null);
 
-  const {
-    isOpen: isConfirmOpen,
-    onOpen: onConfirmOpen,
-    onClose: onConfirmClose,
-  } = useDisclosure();
-
-  const {
-    isOpen: isProgressOpen,
-    onOpen: onProgressOpen,
-    onClose: onProgressClose,
-  } = useDisclosure();
-
-  const {
-    isOpen: isResultOpen,
-    onOpen: onResultOpen,
-    onClose: onResultClose,
-  } = useDisclosure();
-
-  // Load stats
+  // Fetch stats on mount
   useEffect(() => {
-    loadStats();
+    fetchStats();
   }, []);
 
-  const loadStats = async () => {
+  const fetchStats = async () => {
     setIsLoadingStats(true);
     try {
       const data = await sisterTugasTambahanService.getStats();
       setStats(data);
     } catch (error) {
       console.error("Error loading stats:", error);
-      toast.error("Gagal memuat statistik");
+      toast.error("Gagal memuat statistik tugas tambahan");
     } finally {
       setIsLoadingStats(false);
     }
   };
 
-  const handleSyncConfirm = () => {
-    onConfirmClose();
-    startSync();
+  const handleOpenSyncModal = () => {
+    setShowSyncModal(true);
   };
 
-  const startSync = async () => {
-    if (!user?.name) {
-      toast.error("User information not available");
-      return;
-    }
-
+  const handleConfirmSync = async () => {
+    setShowSyncModal(false);
+    setShowProgressModal(true);
     setIsSyncing(true);
+    setSyncStatus("syncing");
     setSyncProgress(0);
-    onProgressOpen();
 
     try {
-      // Simulate progress
+      // Simulate progress updates
       const progressInterval = setInterval(() => {
         setSyncProgress((prev) => {
           if (prev >= 90) {
@@ -83,299 +91,384 @@ export default function TugasTambahanPage() {
           }
           return prev + 10;
         });
-      }, 1000);
+      }, 2000);
 
-      const result = await sisterTugasTambahanService.syncFromSister(user.name);
+      // Call the batch sync API
+      const username = user?.username || user?.name || "system";
+      const result = await sisterTugasTambahanService.syncFromSister(username);
 
       clearInterval(progressInterval);
       setSyncProgress(100);
 
-      // Wait a moment to show 100% before closing
-      setTimeout(() => {
-        onProgressClose();
-        setSyncResult(result);
-        onResultOpen();
-        loadStats(); // Reload stats after sync
-      }, 500);
+      // Success!
+      setSyncStatus("success");
+      setSyncResult({
+        totalRecords: result.total_success,
+        message: `Berhasil sync ${result.total_success} dosen dengan tugas tambahan`,
+      });
 
+      // Refresh stats
+      await fetchStats();
+
+      toast.success(`Sinkronisasi berhasil! ${result.total_success} dosen berhasil disinkronkan.`);
     } catch (error: any) {
       console.error("Sync error:", error);
-      onProgressClose();
-      toast.error(error.response?.data?.message || "Gagal melakukan sinkronisasi");
+      setSyncStatus("error");
+      setSyncResult({
+        totalRecords: 0,
+        message: error.response?.data?.message || "Gagal melakukan sinkronisasi",
+      });
+      toast.error("Gagal melakukan sinkronisasi");
     } finally {
       setIsSyncing(false);
     }
   };
 
-  const formatDuration = (duration?: string) => {
-    if (!duration) return "-";
-    // Parse duration like "1m30s" or "30s"
-    const match = duration.match(/(\d+m)?(\d+\.?\d*s)?/);
-    if (!match) return duration;
+  const handleCloseProgressModal = () => {
+    setShowProgressModal(false);
+    setSyncStatus("idle");
+    setSyncProgress(0);
+    setSyncResult(null);
+  };
 
-    const minutes = match[1] ? parseInt(match[1]) : 0;
-    const seconds = match[2] ? parseFloat(match[2]) : 0;
-
-    if (minutes > 0) {
-      return `${minutes} menit ${Math.round(seconds)} detik`;
+  const formatLastSync = (dateString?: string | null) => {
+    if (!dateString) return "Belum pernah sync";
+    try {
+      const date = new Date(dateString);
+      const dateStr = date.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+      const timeStr = date.toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      return `${dateStr}, ${timeStr}`;
+    } catch {
+      return "Belum pernah sync";
     }
-    return `${Math.round(seconds)} detik`;
   };
 
   return (
-    <div className="space-y-6 p-6">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="flex justify-between items-center"
-      >
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
-            Tugas Tambahan
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Sinkronisasi data tugas tambahan dosen dari Sister Kemdikbud
-          </p>
+    <DashboardLayout
+      appName="SISTER Integrator"
+      appIcon={<RiGovernmentFill className="w-6 h-6 text-white" />}
+      menuConfig={sisterIntegratorMenuConfig}
+      pageTitle="Tugas Tambahan Dosen"
+    >
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+              Tugas Tambahan Dosen
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Kelola dan sinkronisasi data tugas tambahan dosen dari SISTER API
+            </p>
+          </div>
+          <Button
+            color="primary"
+            size="lg"
+            startContent={<MdSync className="w-5 h-5" />}
+            onPress={handleOpenSyncModal}
+            isDisabled={isSyncing}
+            className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all rounded-xl"
+          >
+            Sinkronisasi SISTER
+          </Button>
         </div>
-        <Button
-          color="primary"
-          startContent={<RefreshCw size={18} />}
-          onPress={onConfirmOpen}
-          isLoading={isSyncing}
-          size="lg"
-        >
-          Sync Data
-        </Button>
-      </motion.div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Tugas */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-        >
-          <Card className="bg-gradient-to-br from-blue-500 to-blue-600">
-            <CardBody className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white/80 text-sm font-medium">Total Tugas</p>
-                  <p className="text-3xl font-bold text-white mt-2">
-                    {isLoadingStats ? "..." : stats?.total_tugas.toLocaleString() || "0"}
-                  </p>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Total Tugas Card */}
+          <Card className="bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
+            <CardBody className="p-4 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300">
+                  <FiBriefcase className="w-7 h-7 text-white" />
                 </div>
-                <div className="bg-white/20 p-3 rounded-lg">
-                  <Briefcase className="text-white" size={32} />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-blue-100">Total Tugas</p>
+                    <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
+                      <span className="text-[10px] font-semibold text-white">Data</span>
+                    </div>
+                  </div>
+                  <h3 className="text-3xl font-bold text-white tracking-tight leading-none">
+                    {isLoadingStats ? "..." : stats?.total_tugas || 0}
+                  </h3>
+                  <p className="text-[10px] text-blue-100/80 mt-1">
+                    Records tugas tambahan
+                  </p>
                 </div>
               </div>
             </CardBody>
           </Card>
-        </motion.div>
 
-        {/* Tugas Aktif */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
-        >
-          <Card className="bg-gradient-to-br from-green-500 to-green-600">
-            <CardBody className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white/80 text-sm font-medium">Tugas Aktif</p>
-                  <p className="text-3xl font-bold text-white mt-2">
-                    {isLoadingStats ? "..." : stats?.total_aktif.toLocaleString() || "0"}
-                  </p>
+          {/* Tugas Aktif Card */}
+          <Card className="bg-gradient-to-br from-green-500 via-green-600 to-emerald-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
+            <CardBody className="p-4 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300">
+                  <FiCheckCircle className="w-7 h-7 text-white" />
                 </div>
-                <div className="bg-white/20 p-3 rounded-lg">
-                  <CheckCircle2 className="text-white" size={32} />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-green-100">Tugas Aktif</p>
+                    <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
+                      <span className="text-[10px] font-semibold text-white">ID</span>
+                    </div>
+                  </div>
+                  <h3 className="text-3xl font-bold text-white tracking-tight leading-none">
+                    {isLoadingStats ? "..." : stats?.total_aktif || 0}
+                  </h3>
+                  <p className="text-[10px] text-green-100/80 mt-1">
+                    Tugas masih berjalan
+                  </p>
                 </div>
               </div>
             </CardBody>
           </Card>
-        </motion.div>
 
-        {/* Tugas Selesai */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.3 }}
-        >
-          <Card className="bg-gradient-to-br from-gray-500 to-gray-600">
-            <CardBody className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white/80 text-sm font-medium">Tugas Selesai</p>
-                  <p className="text-3xl font-bold text-white mt-2">
-                    {isLoadingStats ? "..." : stats?.total_selesai.toLocaleString() || "0"}
-                  </p>
+          {/* Tugas Selesai Card */}
+          <Card className="bg-gradient-to-br from-gray-500 via-gray-600 to-slate-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
+            <CardBody className="p-4 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300">
+                  <FiXCircle className="w-7 h-7 text-white" />
                 </div>
-                <div className="bg-white/20 p-3 rounded-lg">
-                  <XCircle className="text-white" size={32} />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-gray-100">Tugas Selesai</p>
+                    <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
+                      <span className="text-[10px] font-semibold text-white">INTL</span>
+                    </div>
+                  </div>
+                  <h3 className="text-3xl font-bold text-white tracking-tight leading-none">
+                    {isLoadingStats ? "..." : stats?.total_selesai || 0}
+                  </h3>
+                  <p className="text-[10px] text-gray-100/80 mt-1">
+                    Tugas sudah berakhir
+                  </p>
                 </div>
               </div>
             </CardBody>
           </Card>
-        </motion.div>
 
-        {/* Last Sync */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.4 }}
-        >
-          <Card className="bg-gradient-to-br from-purple-500 to-purple-600">
-            <CardBody className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white/80 text-sm font-medium">Last Sync</p>
-                  <p className="text-sm font-bold text-white mt-2">
-                    {isLoadingStats
-                      ? "..."
-                      : stats?.last_sync_date
-                      ? new Date(stats.last_sync_date).toLocaleString("id-ID")
-                      : "Belum ada sync"}
-                  </p>
+          {/* Last Sync Card */}
+          <Card className="bg-gradient-to-br from-purple-500 via-violet-600 to-indigo-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
+            <CardBody className="p-4 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
+                  <FiClock className="w-7 h-7 text-white" />
                 </div>
-                <div className="bg-white/20 p-3 rounded-lg">
-                  <Calendar className="text-white" size={32} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-purple-100">Last Sync</p>
+                    <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
+                      <span className="text-[10px] font-semibold text-white">Sync</span>
+                    </div>
+                  </div>
+                  <p className="text-sm font-semibold text-white leading-tight">
+                    {formatLastSync(stats?.last_sync_date)}
+                  </p>
+                  <p className="text-[10px] text-purple-100/80 mt-1">
+                    Terakhir sinkronisasi
+                  </p>
                 </div>
               </div>
             </CardBody>
           </Card>
-        </motion.div>
+        </div>
+
+        {/* Scheduled Syncs Section */}
+        <ScheduleList syncType="tugas_tambahan" />
+
+        {/* Data Table */}
+        <SisterTugasTambahanTable />
       </div>
 
-      {/* Data Table */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.5 }}
+      {/* Sync Confirmation Modal */}
+      <Modal
+        isOpen={showSyncModal}
+        onClose={() => setShowSyncModal(false)}
+        size="md"
+        backdrop="blur"
+        classNames={{
+          backdrop: "bg-black/50 backdrop-blur-sm",
+          base: "bg-white dark:bg-gray-800",
+        }}
       >
-        <Card>
-          <CardBody className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Data Tugas Tambahan</h2>
-            <SisterTugasTambahanTable />
-          </CardBody>
-        </Card>
-      </motion.div>
-
-      {/* Schedule List */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.6 }}
-      >
-        <Card>
-          <CardBody className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Jadwal Sinkronisasi Otomatis</h2>
-            <ScheduleList syncType="tugas_tambahan" />
-          </CardBody>
-        </Card>
-      </motion.div>
-
-      {/* Confirmation Modal */}
-      <Modal isOpen={isConfirmOpen} onClose={onConfirmClose}>
         <ModalContent>
-          <ModalHeader>Konfirmasi Sinkronisasi</ModalHeader>
-          <ModalBody>
-            <p>
-              Apakah Anda yakin ingin melakukan sinkronisasi data tugas tambahan dari Sister Kemdikbud?
-            </p>
-            <p className="text-sm text-gray-500 mt-2">
-              Proses ini akan mengambil data terbaru dari semua dosen aktif.
-            </p>
+          <ModalHeader className="flex flex-col gap-1 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white shadow-lg">
+                <MdSync className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-800 dark:text-white">
+                  Konfirmasi Sinkronisasi
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                  Data Tugas Tambahan Dosen
+                </p>
+              </div>
+            </div>
+          </ModalHeader>
+          <ModalBody className="py-6">
+            <div className="space-y-4">
+              <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                <div className="flex items-start gap-3">
+                  <FiAlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                      Sistem akan melakukan sinkronisasi semua data tugas tambahan dosen dari SISTER API.
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Proses ini akan berjalan di background menggunakan 3 worker concurrent untuk performa optimal.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                <span className="text-sm text-gray-600 dark:text-gray-400">User</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {user?.name || "System"}
+                </span>
+              </div>
+            </div>
           </ModalBody>
-          <ModalFooter>
-            <Button color="default" variant="light" onPress={onConfirmClose}>
+          <ModalFooter className="border-t border-gray-200 dark:border-gray-700">
+            <Button
+              variant="light"
+              onPress={() => setShowSyncModal(false)}
+              className="text-gray-600 hover:bg-gray-100"
+            >
               Batal
             </Button>
-            <Button color="primary" onPress={handleSyncConfirm}>
-              Ya, Lanjutkan
+            <Button
+              color="primary"
+              onPress={handleConfirmSync}
+              startContent={<MdSync className="w-5 h-5" />}
+              className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold"
+            >
+              Mulai Sinkronisasi
             </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
 
       {/* Progress Modal */}
-      <Modal isOpen={isProgressOpen} isDismissable={false} hideCloseButton>
+      <Modal
+        isOpen={showProgressModal}
+        isDismissable={false}
+        hideCloseButton
+        size="md"
+        backdrop="blur"
+        classNames={{
+          backdrop: "bg-black/50 backdrop-blur-sm",
+          base: "bg-white dark:bg-gray-800",
+        }}
+      >
         <ModalContent>
-          <ModalHeader>Sinkronisasi Data</ModalHeader>
-          <ModalBody>
-            <div className="space-y-4">
-              <p>Mohon tunggu, sedang melakukan sinkronisasi data tugas tambahan...</p>
-              <Progress
-                value={syncProgress}
-                color="primary"
-                showValueLabel
-                className="max-w-full"
-              />
-            </div>
-          </ModalBody>
-        </ModalContent>
-      </Modal>
-
-      {/* Result Modal */}
-      <Modal isOpen={isResultOpen} onClose={onResultClose} size="2xl">
-        <ModalContent>
-          <ModalHeader>Hasil Sinkronisasi</ModalHeader>
-          <ModalBody>
-            {syncResult && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Dosen</p>
-                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                      {syncResult.total_dosen}
-                    </p>
-                  </div>
-                  <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Berhasil</p>
-                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                      {syncResult.total_success}
-                    </p>
-                  </div>
-                  <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Gagal</p>
-                    <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-                      {syncResult.total_failed}
-                    </p>
-                  </div>
-                  <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Durasi</p>
-                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                      {formatDuration(syncResult.duration)}
-                    </p>
-                  </div>
-                </div>
-
-                {syncResult.failed_dosen && syncResult.failed_dosen.length > 0 && (
-                  <div className="mt-4">
-                    <p className="text-sm font-semibold mb-2">Dosen yang Gagal:</p>
-                    <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded max-h-40 overflow-y-auto">
-                      <ul className="text-sm space-y-1">
-                        {syncResult.failed_dosen.map((id, index) => (
-                          <li key={index} className="text-red-600 dark:text-red-400">
-                            {id}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
+          <ModalHeader className="flex flex-col gap-1 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg ${
+                  syncStatus === "success"
+                    ? "bg-gradient-to-br from-green-500 to-green-600"
+                    : syncStatus === "error"
+                    ? "bg-gradient-to-br from-red-500 to-red-600"
+                    : "bg-gradient-to-br from-blue-500 to-cyan-600"
+                }`}
+              >
+                {syncStatus === "success" ? (
+                  <FiCheckCircle className="w-6 h-6" />
+                ) : syncStatus === "error" ? (
+                  <FiAlertCircle className="w-6 h-6" />
+                ) : (
+                  <FiRefreshCw className="w-6 h-6 animate-spin" />
                 )}
               </div>
-            )}
+              <div>
+                <h3 className="text-xl font-bold text-gray-800 dark:text-white">
+                  {syncStatus === "success"
+                    ? "Sinkronisasi Berhasil!"
+                    : syncStatus === "error"
+                    ? "Sinkronisasi Gagal"
+                    : "Sedang Melakukan Sinkronisasi..."}
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                  {syncStatus === "syncing" && "Mohon tunggu, proses sedang berjalan..."}
+                  {syncStatus === "success" && syncResult && `${syncResult.totalRecords} dosen berhasil disinkronkan`}
+                  {syncStatus === "error" && "Terjadi kesalahan saat sinkronisasi"}
+                </p>
+              </div>
+            </div>
+          </ModalHeader>
+          <ModalBody className="py-6">
+            <div className="space-y-4">
+              {syncStatus === "syncing" && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      Progress
+                    </span>
+                    <span className="text-sm font-bold text-purple-600 dark:text-purple-400">
+                      {syncProgress}%
+                    </span>
+                  </div>
+                  <Progress
+                    size="md"
+                    value={syncProgress}
+                    color="primary"
+                    className="max-w-full"
+                  />
+                  <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
+                    Sedang memproses data tugas tambahan dosen...
+                  </p>
+                </div>
+              )}
+              {syncStatus === "success" && syncResult && (
+                <div className="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                  <p className="text-sm text-green-700 dark:text-green-300 text-center font-medium">
+                    {syncResult.message}
+                  </p>
+                </div>
+              )}
+              {syncStatus === "error" && (
+                <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                  <p className="text-sm text-red-700 dark:text-red-300 text-center">
+                    {syncResult?.message || "Gagal melakukan sinkronisasi. Silakan coba lagi atau hubungi administrator."}
+                  </p>
+                </div>
+              )}
+            </div>
           </ModalBody>
-          <ModalFooter>
-            <Button color="primary" onPress={onResultClose}>
-              Tutup
-            </Button>
-          </ModalFooter>
+          {syncStatus !== "syncing" && (
+            <ModalFooter className="border-t border-gray-200 dark:border-gray-700">
+              <Button
+                color="primary"
+                onPress={handleCloseProgressModal}
+                className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold"
+              >
+                Tutup
+              </Button>
+            </ModalFooter>
+          )}
         </ModalContent>
       </Modal>
-    </div>
+    </DashboardLayout>
   );
 }

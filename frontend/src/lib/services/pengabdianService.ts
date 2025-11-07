@@ -3,7 +3,13 @@
  * Service untuk mengambil data pengabdian dosen dari SISTER API
  */
 
+import axios from 'axios';
 import { sisterClient } from '@/lib/api/sisterClient';
+
+// API v1 base URL for sync endpoints (no auth required)
+const API_V1_BASE = process.env.NEXT_PUBLIC_SISTER_API_URL
+  ? `${process.env.NEXT_PUBLIC_SISTER_API_URL}/../api/v1`
+  : 'http://localhost:9800/sister-service/api/v1';
 
 // Types - Reuse Litabmas type from penelitian since they share the same entity
 export interface AnggotaLitabmasInfo {
@@ -160,8 +166,8 @@ export const sisterPengabdianService = {
    * @param syncedBy - Username of person who triggered the sync
    */
   async syncFromSister(syncedBy: string): Promise<BatchAllSyncResult> {
-    const response = await sisterClient.post<BatchAllSyncResult>(
-      '/api/v1/pengabdian/sync-all',
+    const response = await axios.post<BatchAllSyncResult>(
+      `${API_V1_BASE}/pengabdian/sync-all`,
       null,
       { params: { synced_by: syncedBy } }
     );

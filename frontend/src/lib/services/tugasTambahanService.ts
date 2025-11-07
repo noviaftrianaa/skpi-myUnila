@@ -3,9 +3,7 @@
  * Service untuk mengambil data tugas tambahan dosen
  */
 
-import axios from 'axios';
-
-const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:9800/sister-service/public';
+import { sisterClient } from '@/lib/api/sisterClient';
 
 // Types
 export interface TugasTambahan {
@@ -54,8 +52,8 @@ export interface BatchAllSyncResult {
 
 export const sisterTugasTambahanService = {
   async getStats(): Promise<TugasTambahanStats> {
-    const response = await axios.get<{ success: boolean; data: TugasTambahanStats }>(
-      `${SISTER_API_URL}/tugas-tambahan/stats`
+    const response = await sisterClient.get<{ success: boolean; data: TugasTambahanStats }>(
+      '/tugas-tambahan/stats'
     );
     return response.data.data;
   },
@@ -67,16 +65,16 @@ export const sisterTugasTambahanService = {
     sort_by?: string;
     sort_order?: string;
   }): Promise<{ success: boolean; message?: string; data: TugasTambahanListResult }> {
-    const response = await axios.get(
-      `${SISTER_API_URL}/tugas-tambahan/list`,
+    const response = await sisterClient.get(
+      '/tugas-tambahan/list',
       { params }
     );
     return response.data;
   },
 
   async syncFromSister(syncedBy: string): Promise<BatchAllSyncResult> {
-    const response = await axios.post<{ success: boolean; data: BatchAllSyncResult }>(
-      `${SISTER_API_URL}/../api/v1/tugas-tambahan/sync-all`,
+    const response = await sisterClient.post<{ success: boolean; data: BatchAllSyncResult }>(
+      '/../api/v1/tugas-tambahan/sync-all',
       null,
       { params: { synced_by: syncedBy } }
     );
@@ -84,8 +82,8 @@ export const sisterTugasTambahanService = {
   },
 
   async getDetail(idTgsTambah: string): Promise<TugasTambahan> {
-    const response = await axios.get<{ success: boolean; data: TugasTambahan }>(
-      `${SISTER_API_URL}/tugas-tambahan/${idTgsTambah}`
+    const response = await sisterClient.get<{ success: boolean; data: TugasTambahan }>(
+      `/tugas-tambahan/${idTgsTambah}`
     );
     return response.data.data;
   },

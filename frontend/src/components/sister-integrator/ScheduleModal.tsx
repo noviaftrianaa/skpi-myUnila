@@ -26,7 +26,7 @@ interface ScheduleModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  syncType: "referensi" | "dosen" | "penugasan" | "penelitian" | "pengabdian" | "pendidikan" | "publikasi";
+  syncType: "referensi" | "dosen" | "penugasan" | "penelitian" | "pengabdian" | "pendidikan" | "publikasi" | "riwayat_pekerjaan" | "jabatan_struktural" | "tugas_tambahan";
   endpointKey?: string;
   endpointName?: string;
   schedule?: ScheduledSync; // For edit mode

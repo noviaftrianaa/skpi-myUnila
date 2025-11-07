@@ -1,0 +1,381 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Button, Card, CardBody, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Progress, useDisclosure } from "@heroui/react";
+import { Briefcase, Users, CheckCircle2, XCircle, RefreshCw, Calendar } from "lucide-react";
+import { toast } from "react-hot-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import SisterTugasTambahanTable from "@/shared/components/sister-integrator/SisterTugasTambahanTable";
+import ScheduleList from "@/components/sister-integrator/ScheduleList";
+import {
+  sisterTugasTambahanService,
+  TugasTambahanStats,
+  BatchAllSyncResult,
+} from "@/lib/services/tugasTambahanService";
+
+export default function TugasTambahanPage() {
+  const { user } = useAuth();
+  const [stats, setStats] = useState<TugasTambahanStats | null>(null);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncProgress, setSyncProgress] = useState(0);
+  const [syncResult, setSyncResult] = useState<BatchAllSyncResult | null>(null);
+
+  const {
+    isOpen: isConfirmOpen,
+    onOpen: onConfirmOpen,
+    onClose: onConfirmClose,
+  } = useDisclosure();
+
+  const {
+    isOpen: isProgressOpen,
+    onOpen: onProgressOpen,
+    onClose: onProgressClose,
+  } = useDisclosure();
+
+  const {
+    isOpen: isResultOpen,
+    onOpen: onResultOpen,
+    onClose: onResultClose,
+  } = useDisclosure();
+
+  // Load stats
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    setIsLoadingStats(true);
+    try {
+      const data = await sisterTugasTambahanService.getStats();
+      setStats(data);
+    } catch (error) {
+      console.error("Error loading stats:", error);
+      toast.error("Gagal memuat statistik");
+    } finally {
+      setIsLoadingStats(false);
+    }
+  };
+
+  const handleSyncConfirm = () => {
+    onConfirmClose();
+    startSync();
+  };
+
+  const startSync = async () => {
+    if (!user?.name) {
+      toast.error("User information not available");
+      return;
+    }
+
+    setIsSyncing(true);
+    setSyncProgress(0);
+    onProgressOpen();
+
+    try {
+      // Simulate progress
+      const progressInterval = setInterval(() => {
+        setSyncProgress((prev) => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 1000);
+
+      const result = await sisterTugasTambahanService.syncFromSister(user.name);
+
+      clearInterval(progressInterval);
+      setSyncProgress(100);
+
+      // Wait a moment to show 100% before closing
+      setTimeout(() => {
+        onProgressClose();
+        setSyncResult(result);
+        onResultOpen();
+        loadStats(); // Reload stats after sync
+      }, 500);
+
+    } catch (error: any) {
+      console.error("Sync error:", error);
+      onProgressClose();
+      toast.error(error.response?.data?.message || "Gagal melakukan sinkronisasi");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const formatDuration = (duration?: string) => {
+    if (!duration) return "-";
+    // Parse duration like "1m30s" or "30s"
+    const match = duration.match(/(\d+m)?(\d+\.?\d*s)?/);
+    if (!match) return duration;
+
+    const minutes = match[1] ? parseInt(match[1]) : 0;
+    const seconds = match[2] ? parseFloat(match[2]) : 0;
+
+    if (minutes > 0) {
+      return `${minutes} menit ${Math.round(seconds)} detik`;
+    }
+    return `${Math.round(seconds)} detik`;
+  };
+
+  return (
+    <div className="space-y-6 p-6">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex justify-between items-center"
+      >
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
+            Tugas Tambahan
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Sinkronisasi data tugas tambahan dosen dari Sister Kemdikbud
+          </p>
+        </div>
+        <Button
+          color="primary"
+          startContent={<RefreshCw size={18} />}
+          onPress={onConfirmOpen}
+          isLoading={isSyncing}
+          size="lg"
+        >
+          Sync Data
+        </Button>
+      </motion.div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total Tugas */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+        >
+          <Card className="bg-gradient-to-br from-blue-500 to-blue-600">
+            <CardBody className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-white/80 text-sm font-medium">Total Tugas</p>
+                  <p className="text-3xl font-bold text-white mt-2">
+                    {isLoadingStats ? "..." : stats?.total_tugas.toLocaleString() || "0"}
+                  </p>
+                </div>
+                <div className="bg-white/20 p-3 rounded-lg">
+                  <Briefcase className="text-white" size={32} />
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </motion.div>
+
+        {/* Tugas Aktif */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+        >
+          <Card className="bg-gradient-to-br from-green-500 to-green-600">
+            <CardBody className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-white/80 text-sm font-medium">Tugas Aktif</p>
+                  <p className="text-3xl font-bold text-white mt-2">
+                    {isLoadingStats ? "..." : stats?.total_aktif.toLocaleString() || "0"}
+                  </p>
+                </div>
+                <div className="bg-white/20 p-3 rounded-lg">
+                  <CheckCircle2 className="text-white" size={32} />
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </motion.div>
+
+        {/* Tugas Selesai */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+        >
+          <Card className="bg-gradient-to-br from-gray-500 to-gray-600">
+            <CardBody className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-white/80 text-sm font-medium">Tugas Selesai</p>
+                  <p className="text-3xl font-bold text-white mt-2">
+                    {isLoadingStats ? "..." : stats?.total_selesai.toLocaleString() || "0"}
+                  </p>
+                </div>
+                <div className="bg-white/20 p-3 rounded-lg">
+                  <XCircle className="text-white" size={32} />
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </motion.div>
+
+        {/* Last Sync */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.4 }}
+        >
+          <Card className="bg-gradient-to-br from-purple-500 to-purple-600">
+            <CardBody className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-white/80 text-sm font-medium">Last Sync</p>
+                  <p className="text-sm font-bold text-white mt-2">
+                    {isLoadingStats
+                      ? "..."
+                      : stats?.last_sync_date
+                      ? new Date(stats.last_sync_date).toLocaleString("id-ID")
+                      : "Belum ada sync"}
+                  </p>
+                </div>
+                <div className="bg-white/20 p-3 rounded-lg">
+                  <Calendar className="text-white" size={32} />
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </motion.div>
+      </div>
+
+      {/* Data Table */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.5 }}
+      >
+        <Card>
+          <CardBody className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Data Tugas Tambahan</h2>
+            <SisterTugasTambahanTable />
+          </CardBody>
+        </Card>
+      </motion.div>
+
+      {/* Schedule List */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.6 }}
+      >
+        <Card>
+          <CardBody className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Jadwal Sinkronisasi Otomatis</h2>
+            <ScheduleList syncType="tugas_tambahan" />
+          </CardBody>
+        </Card>
+      </motion.div>
+
+      {/* Confirmation Modal */}
+      <Modal isOpen={isConfirmOpen} onClose={onConfirmClose}>
+        <ModalContent>
+          <ModalHeader>Konfirmasi Sinkronisasi</ModalHeader>
+          <ModalBody>
+            <p>
+              Apakah Anda yakin ingin melakukan sinkronisasi data tugas tambahan dari Sister Kemdikbud?
+            </p>
+            <p className="text-sm text-gray-500 mt-2">
+              Proses ini akan mengambil data terbaru dari semua dosen aktif.
+            </p>
+          </ModalBody>
+          <ModalFooter>
+            <Button color="default" variant="light" onPress={onConfirmClose}>
+              Batal
+            </Button>
+            <Button color="primary" onPress={handleSyncConfirm}>
+              Ya, Lanjutkan
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Progress Modal */}
+      <Modal isOpen={isProgressOpen} isDismissable={false} hideCloseButton>
+        <ModalContent>
+          <ModalHeader>Sinkronisasi Data</ModalHeader>
+          <ModalBody>
+            <div className="space-y-4">
+              <p>Mohon tunggu, sedang melakukan sinkronisasi data tugas tambahan...</p>
+              <Progress
+                value={syncProgress}
+                color="primary"
+                showValueLabel
+                className="max-w-full"
+              />
+            </div>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      {/* Result Modal */}
+      <Modal isOpen={isResultOpen} onClose={onResultClose} size="2xl">
+        <ModalContent>
+          <ModalHeader>Hasil Sinkronisasi</ModalHeader>
+          <ModalBody>
+            {syncResult && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Dosen</p>
+                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                      {syncResult.total_dosen}
+                    </p>
+                  </div>
+                  <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Berhasil</p>
+                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                      {syncResult.total_success}
+                    </p>
+                  </div>
+                  <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Gagal</p>
+                    <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                      {syncResult.total_failed}
+                    </p>
+                  </div>
+                  <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Durasi</p>
+                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                      {formatDuration(syncResult.duration)}
+                    </p>
+                  </div>
+                </div>
+
+                {syncResult.failed_dosen && syncResult.failed_dosen.length > 0 && (
+                  <div className="mt-4">
+                    <p className="text-sm font-semibold mb-2">Dosen yang Gagal:</p>
+                    <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded max-h-40 overflow-y-auto">
+                      <ul className="text-sm space-y-1">
+                        {syncResult.failed_dosen.map((id, index) => (
+                          <li key={index} className="text-red-600 dark:text-red-400">
+                            {id}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button color="primary" onPress={onResultClose}>
+              Tutup
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </div>
+  );
+}

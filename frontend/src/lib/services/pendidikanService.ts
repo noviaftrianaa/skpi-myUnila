@@ -3,7 +3,13 @@
  * Service untuk mengambil data pendidikan formal dosen
  */
 
+import axios from 'axios';
 import { sisterClient } from '@/lib/api/sisterClient';
+
+// API v1 base URL for sync endpoints (no auth required)
+const API_V1_BASE = process.env.NEXT_PUBLIC_SISTER_API_URL
+  ? `${process.env.NEXT_PUBLIC_SISTER_API_URL}/../api/v1`
+  : 'http://localhost:9800/sister-service/api/v1';
 
 // Types
 export interface PendidikanFormal {
@@ -104,8 +110,8 @@ export const sisterPendidikanService = {
    * @param syncedBy - Username of person who triggered the sync
    */
   async syncFromSister(syncedBy: string): Promise<BatchAllSyncResult> {
-    const response = await sisterClient.post<BatchAllSyncResult>(
-      '/api/v1/pendidikan-formal/sync-all',
+    const response = await axios.post<BatchAllSyncResult>(
+      `${API_V1_BASE}/pendidikan-formal/sync-all`,
       null,
       { params: { synced_by: syncedBy } }
     );

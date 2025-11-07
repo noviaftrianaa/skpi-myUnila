@@ -3,10 +3,7 @@
  * Service untuk mengambil data jabatan struktural dosen
  */
 
-import axios from 'axios';
 import { sisterClient } from '@/lib/api/sisterClient';
-
-const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:9800/sister-service/public';
 
 // Types
 export interface JabatanStruktural {
@@ -55,8 +52,8 @@ export const sisterJabatanStrukturalService = {
    * Get jabatan struktural statistics from SISTER API
    */
   async getStats(): Promise<JabatanStrukturalStats> {
-    const response = await axios.get<{ success: boolean; data: JabatanStrukturalStats }>(
-      `${SISTER_API_URL}/jabatan-struktural/stats`
+    const response = await sisterClient.get<{ success: boolean; data: JabatanStrukturalStats }>(
+      '/jabatan-struktural/stats'
     );
     return response.data.data;
   },
@@ -71,8 +68,8 @@ export const sisterJabatanStrukturalService = {
     sort_by?: string;
     sort_order?: string;
   }): Promise<{ success: boolean; message?: string; data: JabatanStrukturalListResult }> {
-    const response = await axios.get(
-      `${SISTER_API_URL}/jabatan-struktural/list`,
+    const response = await sisterClient.get(
+      '/jabatan-struktural/list',
       { params }
     );
     return response.data;
@@ -83,8 +80,8 @@ export const sisterJabatanStrukturalService = {
    * @param syncedBy - Username of person who triggered the sync
    */
   async syncFromSister(syncedBy: string): Promise<BatchAllSyncResult> {
-    const response = await axios.post<{ success: boolean; data: BatchAllSyncResult }>(
-      `${SISTER_API_URL}/../api/v1/jabatan-struktural/sync-all`,
+    const response = await sisterClient.post<{ success: boolean; data: BatchAllSyncResult }>(
+      '/../api/v1/jabatan-struktural/sync-all',
       null,
       { params: { synced_by: syncedBy } }
     );
@@ -95,8 +92,8 @@ export const sisterJabatanStrukturalService = {
    * Get jabatan struktural detail by id
    */
   async getDetail(idRwyJabStruk: string): Promise<JabatanStruktural> {
-    const response = await axios.get<{ success: boolean; data: JabatanStruktural }>(
-      `${SISTER_API_URL}/jabatan-struktural/${idRwyJabStruk}`
+    const response = await sisterClient.get<{ success: boolean; data: JabatanStruktural }>(
+      `/jabatan-struktural/${idRwyJabStruk}`
     );
     return response.data.data;
   },

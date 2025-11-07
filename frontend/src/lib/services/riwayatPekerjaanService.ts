@@ -3,7 +3,13 @@
  * Service untuk mengambil data riwayat pekerjaan dosen
  */
 
+import axios from 'axios';
 import { sisterClient } from '@/lib/api/sisterClient';
+
+// API v1 base URL for sync endpoints (no auth required)
+const API_V1_BASE = process.env.NEXT_PUBLIC_SISTER_API_URL
+  ? `${process.env.NEXT_PUBLIC_SISTER_API_URL}/../api/v1`
+  : 'http://localhost:9800/sister-service/api/v1';
 
 // Types
 export interface RiwayatPekerjaan {
@@ -91,8 +97,8 @@ export const sisterRiwayatPekerjaanService = {
    * @param syncedBy - Username of person who triggered the sync
    */
   async syncFromSister(syncedBy: string): Promise<BatchAllSyncResult> {
-    const response = await sisterClient.post<{ success: boolean; data: BatchAllSyncResult }>(
-      '/api/v1/riwayat-pekerjaan/sync-all',
+    const response = await axios.post<{ success: boolean; data: BatchAllSyncResult }>(
+      `${API_V1_BASE}/riwayat-pekerjaan/sync-all`,
       null,
       { params: { synced_by: syncedBy } }
     );
