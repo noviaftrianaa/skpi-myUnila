@@ -53,9 +53,15 @@ RUN cd /tmp \
     && curl -L https://github.com/microsoft/msphpsql/archive/refs/tags/v5.12.0.tar.gz -o msphpsql.tar.gz \
     && tar -xzf msphpsql.tar.gz \
     && cd msphpsql-5.12.0/source/sqlsrv \
-    && phpize && ./configure && make && make install \
+    && phpize \
+    && ./configure --with-php-config=/usr/local/bin/php-config \
+    && make \
+    && make install \
     && cd ../pdo_sqlsrv \
-    && phpize && ./configure && make && make install \
+    && phpize \
+    && ./configure --with-php-config=/usr/local/bin/php-config \
+    && make \
+    && make install \
     && docker-php-ext-enable sqlsrv pdo_sqlsrv \
     && cd /tmp && rm -rf msphpsql-5.12.0 msphpsql.tar.gz
 
