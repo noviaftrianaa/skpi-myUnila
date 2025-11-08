@@ -49,28 +49,21 @@ RUN cd /tmp \
     && cd /tmp && rm -rf phpredis-5.3.7 redis.tar.gz
 
 # Install SQL Server PHP drivers from source (PECL download unreliable from this server)
-# Compile sqlsrv first (base driver)
+# Configure script needs specific flags for Alpine
 RUN cd /tmp \
     && curl -L https://github.com/microsoft/msphpsql/archive/refs/tags/v5.12.0.tar.gz -o msphpsql.tar.gz \
     && tar -xzf msphpsql.tar.gz \
     && cd msphpsql-5.12.0/source/sqlsrv \
     && phpize \
-    && ./configure CXXFLAGS="-std=c++11" \
+    && ./configure --enable-sqlsrv=shared \
     && make \
     && make install \
-    && docker-php-ext-enable sqlsrv \
-    && cd /tmp && rm -rf msphpsql-5.12.0 msphpsql.tar.gz
-
-# Compile pdo_sqlsrv separately (depends on sqlsrv being installed)
-RUN cd /tmp \
-    && curl -L https://github.com/microsoft/msphpsql/archive/refs/tags/v5.12.0.tar.gz -o msphpsql.tar.gz \
-    && tar -xzf msphpsql.tar.gz \
-    && cd msphpsql-5.12.0/source/pdo_sqlsrv \
+    && cd ../pdo_sqlsrv \
     && phpize \
-    && ./configure CXXFLAGS="-std=c++11" \
+    && ./configure --with-php-config=/usr/local/bin/php-config \
     && make \
     && make install \
-    && docker-php-ext-enable pdo_sqlsrv \
+    && docker-php-ext-enable sqlsrv pdo_sqlsrv \
     && cd /tmp && rm -rf msphpsql-5.12.0 msphpsql.tar.gz
 
 # Clean up build dependencies
