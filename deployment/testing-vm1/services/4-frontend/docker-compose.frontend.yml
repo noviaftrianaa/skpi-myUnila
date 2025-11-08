@@ -23,8 +23,6 @@ services:
       TZ: ${TZ:-Asia/Jakarta}
     networks:
       - myunila-network
-    depends_on:
-      - kong
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
