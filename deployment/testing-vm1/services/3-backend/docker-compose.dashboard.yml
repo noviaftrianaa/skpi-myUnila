@@ -1,9 +1,5 @@
 version: '3.8'
 
-# Load environment variables from parent directory
-env_file:
-  - ../../.env
-
 services:
   dashboard-service:
     build:
@@ -12,6 +8,8 @@ services:
     image: myunila/dashboard-service:latest
     container_name: myunila-dashboard-service
     working_dir: /var/www
+    env_file:
+      - ../../.env
     environment:
       # App Configuration
       APP_NAME: "${DASHBOARD_APP_NAME:-MyUnila Dashboard Service}"
