@@ -15,26 +15,26 @@ class Cors
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $allowedOrigins = config('cors.allowed_origins', []);
+        $allowedOrigins = config('cors.allowed_origins', ['*']);
         $origin = $request->header('Origin');
 
         // Handle preflight OPTIONS request
         if ($request->isMethod('OPTIONS')) {
             return response('', 200)
-                ->header('Access-Control-Allow-Origin', $origin && in_array($origin, $allowedOrigins) ? $origin : '')
+                ->header('Access-Control-Allow-Origin', '*')
                 ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH')
-                ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin')
+                ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-Auth-Token')
                 ->header('Access-Control-Allow-Credentials', 'true')
                 ->header('Access-Control-Max-Age', '86400');
         }
 
         $response = $next($request);
 
-        // Add CORS headers to actual response
-        if ($origin && in_array($origin, $allowedOrigins)) {
-            $response->headers->set('Access-Control-Allow-Origin', $origin);
+        // Add CORS headers to actual response - Allow all origins or specific origin
+        if (in_array('*', $allowedOrigins) || ($origin && in_array($origin, $allowedOrigins))) {
+            $response->headers->set('Access-Control-Allow-Origin', in_array('*', $allowedOrigins) ? '*' : $origin);
             $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-            $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+            $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-Auth-Token');
             $response->headers->set('Access-Control-Allow-Credentials', 'true');
         }
 
