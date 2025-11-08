@@ -26,11 +26,6 @@ RUN apk add --no-cache \
 # Install PHP extensions
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
-# Install Redis extension
-RUN pecl channel-update pecl.php.net \
-    && pecl install redis-5.3.7 \
-    && docker-php-ext-enable redis
-
 # Install SQL Server ODBC Driver and tools (Alpine)
 RUN curl -O https://download.microsoft.com/download/3/5/5/355d7943-a338-41a7-858d-53b259ea33f5/msodbcsql18_18.3.2.1-1_amd64.apk \
     && curl -O https://download.microsoft.com/download/3/5/5/355d7943-a338-41a7-858d-53b259ea33f5/mssql-tools18_18.3.1.1-1_amd64.apk \
@@ -41,17 +36,32 @@ RUN curl -O https://download.microsoft.com/download/3/5/5/355d7943-a338-41a7-858
 # Install unixODBC development files
 RUN apk add --no-cache unixodbc-dev
 
-# Install SQL Server PHP drivers with retry mechanism
-RUN pecl channel-update pecl.php.net \
-    && rm -rf /tmp/pear/cache/* /tmp/pear/download/* \
-    && (pecl install sqlsrv-5.12.0 pdo_sqlsrv-5.12.0 || \
-        (sleep 5 && pecl install sqlsrv-5.12.0 pdo_sqlsrv-5.12.0) || \
-        (sleep 10 && pecl install sqlsrv pdo_sqlsrv)) \
-    && docker-php-ext-enable sqlsrv pdo_sqlsrv
+# Install Redis extension from source (avoid PECL download issues)
+RUN cd /tmp \
+    && curl -L https://github.com/phpredis/phpredis/archive/5.3.7.tar.gz -o redis.tar.gz \
+    && tar -xzf redis.tar.gz \
+    && cd phpredis-5.3.7 \
+    && phpize \
+    && ./configure \
+    && make \
+    && make install \
+    && docker-php-ext-enable redis \
+    && cd /tmp && rm -rf phpredis-5.3.7 redis.tar.gz
+
+# Install SQL Server PHP drivers from source (avoid PECL download issues)
+RUN cd /tmp \
+    && curl -L https://github.com/microsoft/msphpsql/archive/refs/tags/v5.12.0.tar.gz -o msphpsql.tar.gz \
+    && tar -xzf msphpsql.tar.gz \
+    && cd msphpsql-5.12.0/source/sqlsrv \
+    && phpize && ./configure && make && make install \
+    && cd ../pdo_sqlsrv \
+    && phpize && ./configure && make && make install \
+    && docker-php-ext-enable sqlsrv pdo_sqlsrv \
+    && cd /tmp && rm -rf msphpsql-5.12.0 msphpsql.tar.gz
 
 # Clean up build dependencies
 RUN apk del .build-deps \
-    && rm -rf /tmp/pear
+    && rm -rf /tmp/pear /tmp/*
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
