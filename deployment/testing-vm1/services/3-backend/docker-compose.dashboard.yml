@@ -1,5 +1,9 @@
 version: '3.8'
 
+# Load environment variables from parent directory
+env_file:
+  - ../../.env
+
 services:
   dashboard-service:
     build:
