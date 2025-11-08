@@ -11,8 +11,35 @@ services:
     env_file:
       - ../../.env
     environment:
-      # Override specific values if needed (env_file loads all DASHBOARD_* vars)
-      TZ: ${TZ:-Asia/Jakarta}
+      # Map DASHBOARD_* variables to Laravel expected names
+      APP_NAME: "${DASHBOARD_APP_NAME:-MyUnila Dashboard Service}"
+      APP_ENV: "${DASHBOARD_APP_ENV:-production}"
+      APP_KEY: "${DASHBOARD_APP_KEY}"
+      APP_DEBUG: "${DASHBOARD_APP_DEBUG:-false}"
+      APP_URL: "${DASHBOARD_APP_URL}"
+
+      DB_CONNECTION: "${DASHBOARD_DB_CONNECTION:-sqlsrv}"
+      DB_HOST: "${DASHBOARD_DB_HOST}"
+      DB_PORT: "${DASHBOARD_DB_PORT:-1433}"
+      DB_DATABASE: "${DASHBOARD_DB_DATABASE}"
+      DB_USERNAME: "${DASHBOARD_DB_USERNAME}"
+      DB_PASSWORD: "${DASHBOARD_DB_PASSWORD}"
+
+      # Sister DB connection
+      SISTER_DB_HOST: "${SISTER_DB_HOST}"
+      SISTER_DB_PORT: "${SISTER_DB_PORT:-1433}"
+      SISTER_DB_DATABASE: "${SISTER_DB_DATABASE}"
+      SISTER_DB_USERNAME: "${SISTER_DB_USERNAME}"
+      SISTER_DB_PASSWORD: "${SISTER_DB_PASSWORD}"
+
+      # Redis
+      REDIS_HOST: "${DASHBOARD_REDIS_HOST:-redis}"
+      REDIS_PORT: "${DASHBOARD_REDIS_PORT:-6379}"
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+
+      TZ: "${TZ:-Asia/Jakarta}"
     volumes:
       - dashboard_storage:/var/www/storage
       - dashboard_logs:/var/www/storage/logs
