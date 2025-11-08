@@ -39,6 +39,10 @@ services:
       KONG_ADMIN_ERROR_LOG: /dev/stderr
       KONG_ADMIN_LISTEN: 0.0.0.0:8001
       KONG_PROXY_LISTEN: 0.0.0.0:8000, 0.0.0.0:8443 ssl
+      # Increase timeouts for slow queries
+      KONG_UPSTREAM_CONNECT_TIMEOUT: 180000   # 3 minutes
+      KONG_UPSTREAM_SEND_TIMEOUT: 180000      # 3 minutes
+      KONG_UPSTREAM_READ_TIMEOUT: 180000      # 3 minutes
     ports:
       - "${KONG_PROXY_PORT:-9800}:8000"   # HTTP Proxy
       - "9843:8443"                        # HTTPS Proxy
