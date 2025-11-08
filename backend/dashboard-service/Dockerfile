@@ -68,12 +68,32 @@ RUN chown -R www-data:www-data /var/www \
     && chmod -R 755 /var/www/storage \
     && chmod -R 755 /var/www/bootstrap/cache
 
-# Configure PHP-FPM pool to increase max_children
+# Configure PHP settings for production
+RUN { \
+    echo 'memory_limit = 512M'; \
+    echo 'max_execution_time = 180'; \
+    echo 'max_input_time = 180'; \
+    echo 'post_max_size = 100M'; \
+    echo 'upload_max_filesize = 100M'; \
+    echo 'default_socket_timeout = 180'; \
+    echo 'opcache.enable = 1'; \
+    echo 'opcache.memory_consumption = 256'; \
+    echo 'opcache.interned_strings_buffer = 16'; \
+    echo 'opcache.max_accelerated_files = 10000'; \
+    echo 'opcache.revalidate_freq = 2'; \
+    echo 'opcache.fast_shutdown = 1'; \
+    echo 'realpath_cache_size = 4096K'; \
+    echo 'realpath_cache_ttl = 600'; \
+} > /usr/local/etc/php/conf.d/custom.ini
+
+# Configure PHP-FPM pool to handle slow SQL queries
 RUN echo "pm = dynamic" >> /usr/local/etc/php-fpm.d/www.conf \
-    && echo "pm.max_children = 20" >> /usr/local/etc/php-fpm.d/www.conf \
-    && echo "pm.start_servers = 5" >> /usr/local/etc/php-fpm.d/www.conf \
-    && echo "pm.min_spare_servers = 3" >> /usr/local/etc/php-fpm.d/www.conf \
-    && echo "pm.max_spare_servers = 10" >> /usr/local/etc/php-fpm.d/www.conf
+    && echo "pm.max_children = 50" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.start_servers = 10" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.min_spare_servers = 5" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.max_spare_servers = 20" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.max_requests = 500" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "request_terminate_timeout = 180" >> /usr/local/etc/php-fpm.d/www.conf
 
 # Expose port 9000 for PHP-FPM
 EXPOSE 9000
