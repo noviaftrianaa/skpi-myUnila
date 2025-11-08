@@ -84,30 +84,18 @@ class DosenProfileRepository
     {
         try {
             $gelar = DB::connection('sqlsrv')->select("
-                SELECT
+                SELECT DISTINCT
                     ga.singkat_gelar,
                     ga.posisi_gelar,
-                    jenj.nm_jenj_didik,
-                    rpf.thn_lulus,
-                    -- Create ordering by jenjang level (D3 < S1 < S2 < S3)
-                    CASE
-                        WHEN jenj.nm_jenj_didik LIKE 'D%' THEN 1
-                        WHEN jenj.nm_jenj_didik LIKE 'S1%' THEN 2
-                        WHEN jenj.nm_jenj_didik LIKE 'S2%' THEN 3
-                        WHEN jenj.nm_jenj_didik LIKE 'S3%' THEN 4
-                        ELSE 5
-                    END AS jenjang_order
+                    rpf.thn_lulus
                 FROM pdrd.rwy_pend_formal AS rpf
-                LEFT JOIN ref.gelar_akademik AS ga
+                JOIN ref.gelar_akademik AS ga
                     ON ga.id_gelar_akad = rpf.id_gelar_akad
-                LEFT JOIN ref.jenjang_pendidikan AS jenj
-                    ON jenj.id_jenj_didik = rpf.id_jenj_didik
-                    AND jenj.expired_date IS NULL
+                    AND ga.expired_date IS NULL
                 WHERE rpf.id_sdm = ?
                     AND rpf.soft_delete = 0
                     AND rpf.thn_lulus IS NOT NULL
-                    AND ga.singkat_gelar IS NOT NULL
-                ORDER BY jenjang_order ASC, rpf.thn_lulus ASC
+                ORDER BY rpf.thn_lulus ASC, ga.posisi_gelar ASC
             ", [$idSdm]);
 
             return $gelar;
@@ -128,11 +116,20 @@ class DosenProfileRepository
                     jenj.nm_jenj_didik AS jenjang,
                     rpf.nm_sp_formal AS program_studi,
                     rpf.nm_sp_formal AS universitas,
-                    rpf.thn_lulus AS tahun_lulus
+                    rpf.thn_lulus AS tahun_lulus,
+                    ga.singkat_gelar AS gelar,
+                    bs.nm_bid_studi AS bidang_studi,
+                    rpf.judul_tesis AS judul_tesis
                 FROM pdrd.rwy_pend_formal AS rpf
                 LEFT JOIN ref.jenjang_pendidikan AS jenj
                     ON jenj.id_jenj_didik = rpf.id_jenj_didik
                     AND jenj.expired_date IS NULL
+                LEFT JOIN ref.gelar_akademik AS ga
+                    ON ga.id_gelar_akad = rpf.id_gelar_akad
+                    AND ga.expired_date IS NULL
+                LEFT JOIN ref.bidang_studi AS bs
+                    ON bs.id_bid_studi = rpf.id_bid_studi
+                    AND bs.expired_date IS NULL
                 WHERE rpf.id_sdm = ?
                     AND rpf.soft_delete = 0
                     AND rpf.thn_lulus IS NOT NULL
@@ -388,12 +385,15 @@ class DosenProfileRepository
             return DB::connection('sqlsrv')->select("
                 SELECT
                     jt.nm_jab_tgs AS jabatan,
+                    kk.nm_kat AS deskripsi,
                     rs.tmt_sk_jabstruk AS tmt,
                     rs.sk_jabstruk AS no_sk,
                     rs.tmt_sk_jabstruk AS tgl_sk
                 FROM pdrd.rwy_struktural AS rs
                 LEFT JOIN ref.jab_tgs AS jt
                     ON jt.id_jab_tgs = rs.id_jab_tgs
+                LEFT JOIN ref.kategori_kegiatan AS kk
+                    ON kk.id_katgiat = rs.id_katgiat
                 WHERE rs.id_sdm = ?
                     AND rs.soft_delete = 0
                     AND rs.tmt_sk_jabstruk IS NOT NULL
@@ -427,6 +427,35 @@ class DosenProfileRepository
             ", [$idSdm]);
         } catch (\Exception $e) {
             Log::error('Error fetching riwayat kepangkatan: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Get tugas tambahan dosen (non-struktural)
+     */
+    public function getTugasTambahan(string $idSdm)
+    {
+        try {
+            return DB::connection('sqlsrv')->select("
+                SELECT
+                    jt.nm_jab_tgs AS jabatan,
+                    kk.nm_kat AS deskripsi,
+                    tt.tmt_sk_tambah AS tmt,
+                    tt.sk_tugas_tambah AS no_sk,
+                    tt.tst_sk_tambah AS tgl_sk
+                FROM pdrd.tugas_tambahan AS tt
+                LEFT JOIN ref.jab_tgs AS jt
+                    ON jt.id_jab_tgs = tt.id_jab_tgs
+                LEFT JOIN ref.kategori_kegiatan AS kk
+                    ON kk.id_katgiat = tt.id_katgiat
+                WHERE tt.id_sdm = ?
+                    AND tt.soft_delete = 0
+                    AND tt.tmt_sk_tambah IS NOT NULL
+                ORDER BY tt.tmt_sk_tambah DESC
+            ", [$idSdm]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching tugas tambahan: ' . $e->getMessage());
             return [];
         }
     }

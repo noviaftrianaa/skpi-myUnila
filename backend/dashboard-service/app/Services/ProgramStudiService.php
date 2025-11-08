@@ -9,10 +9,14 @@ use Illuminate\Support\Facades\Crypt;
 class ProgramStudiService
 {
     protected $repository;
+    protected $dosenProfileService;
 
-    public function __construct(ProgramStudiRepository $repository)
-    {
+    public function __construct(
+        ProgramStudiRepository $repository,
+        DosenProfileService $dosenProfileService
+    ) {
         $this->repository = $repository;
+        $this->dosenProfileService = $dosenProfileService;
     }
 
     /**
@@ -243,10 +247,16 @@ class ProgramStudiService
             $dosenList = $this->repository->getDosenByProgramStudi($idSms);
 
             return $dosenList->map(function ($dosen) {
+                // Build proper nama lengkap with Prof. prefix and correct gelar ordering
+                $namaLengkap = $this->dosenProfileService->buildNamaLengkap(
+                    $dosen->id_sdm,
+                    $dosen->nama
+                );
+
                 return [
                     'id' => $dosen->id_sdm,
                     'encrypted_id' => Crypt::encryptString($dosen->id_sdm),
-                    'nama' => $dosen->nama_lengkap ?? $dosen->nama, // Prioritize full name with titles
+                    'nama' => $namaLengkap, // Use properly formatted nama
                     'nama_tanpa_gelar' => $dosen->nama,
                     'nidn' => $dosen->nidn ?? '-',
                     'nip' => $dosen->nip ?? '-',

@@ -39,12 +39,13 @@ class AppServiceProvider extends ServiceProvider
             \App\Repositories\ProgramStudiRepository::class
         );
 
-        // Register Program Studi Service (with Repository Dependency Injection)
+        // Register Program Studi Service (with Repository and DosenProfileService Dependency Injection)
         $this->app->singleton(
             \App\Services\ProgramStudiService::class,
             function ($app) {
                 return new \App\Services\ProgramStudiService(
-                    $app->make(\App\Repositories\ProgramStudiRepository::class)
+                    $app->make(\App\Repositories\ProgramStudiRepository::class),
+                    $app->make(\App\Services\DosenProfileService::class)
                 );
             }
         );

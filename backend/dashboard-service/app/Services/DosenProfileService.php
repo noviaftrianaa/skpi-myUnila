@@ -15,6 +15,79 @@ class DosenProfileService
     }
 
     /**
+     * Build nama lengkap with proper gelar ordering and Prof. prefix
+     *
+     * @param string $idSdm
+     * @param string $nmSdm Base nama without gelar
+     * @return string
+     */
+    public function buildNamaLengkap(string $idSdm, string $nmSdm): string
+    {
+        // Get gelar akademik
+        $gelarList = $this->repository->getGelarAkademik($idSdm);
+        $gelarDepan = [];
+        $gelarBelakang = [];
+
+        foreach ($gelarList as $gelar) {
+            if ($gelar->posisi_gelar == 1) {
+                $gelarDepan[] = $gelar->singkat_gelar;
+            } elseif ($gelar->posisi_gelar == 2) {
+                $gelarBelakang[] = $gelar->singkat_gelar;
+            }
+        }
+
+        // Get riwayat jabatan fungsional to check for Profesor
+        $riwayatFungsional = $this->repository->getRiwayatFungsional($idSdm);
+
+        // Check if dosen has Profesor jabatan fungsional
+        $isProfesor = false;
+        if (!empty($riwayatFungsional)) {
+            foreach ($riwayatFungsional as $jabatan) {
+                if (stripos($jabatan->jabatan, 'Profesor') !== false) {
+                    $isProfesor = true;
+                    break;
+                }
+            }
+        }
+
+        // Sort gelar depan properly: Prof. > Dr. > Ir. > other
+        $sortedGelarDepan = [];
+
+        // Add Prof. prefix if dosen is Profesor
+        if ($isProfesor) {
+            $sortedGelarDepan[] = 'Prof';
+        }
+
+        // Then add Dr.
+        foreach ($gelarDepan as $gelar) {
+            if (stripos($gelar, 'Dr') !== false) {
+                $sortedGelarDepan[] = $gelar;
+            }
+        }
+
+        // Then add Ir.
+        foreach ($gelarDepan as $gelar) {
+            if (stripos($gelar, 'Ir') !== false) {
+                $sortedGelarDepan[] = $gelar;
+            }
+        }
+
+        // Then add other gelar depan (not Dr or Ir)
+        foreach ($gelarDepan as $gelar) {
+            if (stripos($gelar, 'Dr') === false && stripos($gelar, 'Ir') === false) {
+                $sortedGelarDepan[] = $gelar;
+            }
+        }
+
+        // Build full name with titles
+        return trim(
+            (count($sortedGelarDepan) > 0 ? implode('. ', $sortedGelarDepan) . '. ' : '') .
+            ucwords(strtolower($nmSdm)) .
+            (count($gelarBelakang) > 0 ? ', ' . implode(', ', $gelarBelakang) : '')
+        );
+    }
+
+    /**
      * Get complete dosen profile with all related data
      */
     public function getCompleteProfile(string $encryptedId)
@@ -41,33 +114,15 @@ class DosenProfileService
             ];
         }
 
-        // Get gelar akademik and build full name
-        $gelarList = $this->repository->getGelarAkademik($idSdm);
-        $gelarDepan = [];
-        $gelarBelakang = [];
-
-        foreach ($gelarList as $gelar) {
-            if ($gelar->posisi_gelar == 1) {
-                $gelarDepan[] = $gelar->singkat_gelar;
-            } elseif ($gelar->posisi_gelar == 2) {
-                $gelarBelakang[] = $gelar->singkat_gelar;
-            }
-        }
-
-        // Build full name with titles
-        $namaLengkap = trim(
-            (count($gelarDepan) > 0 ? implode('. ', $gelarDepan) . '. ' : '') .
-            $profile->nm_sdm .
-            (count($gelarBelakang) > 0 ? ', ' . implode(', ', $gelarBelakang) : '')
-        );
+        // Build full name with proper gelar ordering and Prof. prefix
+        $namaLengkap = $this->buildNamaLengkap($idSdm, $profile->nm_sdm);
 
         // Get all related data
         $riwayatPendidikan = $this->repository->getRiwayatPendidikan($idSdm);
         $riwayatPengajaran = $this->repository->getRiwayatPengajaran($idSdm);
         $penelitianPengabdian = $this->repository->getPenelitianPengabdian($idSdm);
-
-        // Get riwayat jabatan dan kepangkatan
         $riwayatFungsional = $this->repository->getRiwayatFungsional($idSdm);
+        $tugasTambahan = $this->repository->getTugasTambahan($idSdm);
         $riwayatStruktural = $this->repository->getRiwayatStruktural($idSdm);
         $riwayatKepangkatan = $this->repository->getRiwayatKepangkatan($idSdm);
         $riwayatSertifikasi = $this->repository->getRiwayatSertifikasi($idSdm);
@@ -97,8 +152,11 @@ class DosenProfileService
             'riwayat_pendidikan' => array_map(function ($item) {
                 return [
                     'jenjang' => $item->jenjang,
+                    'gelar' => $item->gelar ?? null,
                     'program_studi' => $item->program_studi,
+                    'bidang_studi' => $item->bidang_studi ?? null,
                     'universitas' => $item->universitas,
+                    'judul_tesis' => $item->judul_tesis ?? null,
                     'tahun_lulus' => $item->tahun_lulus,
                 ];
             }, $riwayatPendidikan),
@@ -110,9 +168,19 @@ class DosenProfileService
                     'tgl_sk' => $item->tgl_sk ? date('Y-m-d', strtotime($item->tgl_sk)) : null,
                 ];
             }, $riwayatFungsional),
+            'tugas_tambahan' => array_map(function ($item) {
+                return [
+                    'jabatan' => $item->jabatan,
+                    'deskripsi' => $item->deskripsi,
+                    'tmt' => $item->tmt ? date('Y-m-d', strtotime($item->tmt)) : null,
+                    'no_sk' => $item->no_sk,
+                    'tgl_sk' => $item->tgl_sk ? date('Y-m-d', strtotime($item->tgl_sk)) : null,
+                ];
+            }, $tugasTambahan),
             'riwayat_struktural' => array_map(function ($item) {
                 return [
                     'jabatan' => $item->jabatan,
+                    'deskripsi' => $item->deskripsi,
                     'tmt' => $item->tmt ? date('Y-m-d', strtotime($item->tmt)) : null,
                     'no_sk' => $item->no_sk,
                     'tgl_sk' => $item->tgl_sk ? date('Y-m-d', strtotime($item->tgl_sk)) : null,

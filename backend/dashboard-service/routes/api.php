@@ -17,6 +17,7 @@ use App\Http\Controllers\OpenApi\PenelitianController;
 use App\Http\Controllers\OpenApi\PenelitianSebaranController;
 use App\Http\Controllers\OpenApi\KelulusanController;
 use App\Http\Controllers\OpenApi\CapaianLulusanController;
+use App\Http\Controllers\OpenApi\BidangIlmuController;
 use App\Http\Controllers\SurveyController;
 
 /*
@@ -95,6 +96,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/pendidikan', [DosenController::class, 'getDosenByJenjangPendidikan']);
         Route::get('/jabatan', [DosenController::class, 'getDosenByJabatanFungsional']);
         Route::get('/statistics', [DosenController::class, 'getStatistics']);
+        // Bidang Ilmu - must be before /{id} to avoid conflict
+        Route::get('/bidang-ilmu/{id_sdm}', [BidangIlmuController::class, 'getByIdSdm']);
         // Dosen Profile
         Route::get('/{id}', [DosenProfileController::class, 'show']);
     });

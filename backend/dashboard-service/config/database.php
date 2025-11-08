@@ -112,6 +112,20 @@ return [
             'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'true'),
         ],
 
+        'sister' => [
+            'driver' => 'sqlsrv',
+            'host' => env('SISTER_DB_HOST', env('DB_HOST', 'localhost')),
+            'port' => env('SISTER_DB_PORT', env('DB_PORT', '1433')),
+            'database' => env('SISTER_DB_DATABASE', 'sister'),
+            'username' => env('SISTER_DB_USERNAME', env('DB_USERNAME', 'root')),
+            'password' => env('SISTER_DB_PASSWORD', env('DB_PASSWORD', '')),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'encrypt' => env('DB_ENCRYPT', 'yes'),
+            'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'true'),
+        ],
+
     ],
 
     /*
