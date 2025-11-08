@@ -41,8 +41,12 @@ RUN curl -O https://download.microsoft.com/download/3/5/5/355d7943-a338-41a7-858
 # Install unixODBC development files
 RUN apk add --no-cache unixodbc-dev
 
-# Install SQL Server PHP drivers
-RUN pecl install sqlsrv-5.12.0 pdo_sqlsrv-5.12.0 \
+# Install SQL Server PHP drivers with retry mechanism
+RUN pecl channel-update pecl.php.net \
+    && rm -rf /tmp/pear/cache/* /tmp/pear/download/* \
+    && (pecl install sqlsrv-5.12.0 pdo_sqlsrv-5.12.0 || \
+        (sleep 5 && pecl install sqlsrv-5.12.0 pdo_sqlsrv-5.12.0) || \
+        (sleep 10 && pecl install sqlsrv pdo_sqlsrv)) \
     && docker-php-ext-enable sqlsrv pdo_sqlsrv
 
 # Clean up build dependencies
