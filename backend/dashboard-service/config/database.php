@@ -110,6 +110,11 @@ return [
             'prefix_indexes' => true,
             'encrypt' => env('DB_ENCRYPT', 'yes'),
             'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'true'),
+            // Timeout settings for slow queries
+            'options' => [
+                \PDO::ATTR_TIMEOUT => 180, // 3 minutes connection timeout
+                \PDO::SQLSRV_ATTR_QUERY_TIMEOUT => 180, // 3 minutes query timeout
+            ],
         ],
 
         'sister' => [
@@ -124,6 +129,11 @@ return [
             'prefix_indexes' => true,
             'encrypt' => env('DB_ENCRYPT', 'yes'),
             'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'true'),
+            // Timeout settings for slow queries
+            'options' => [
+                \PDO::ATTR_TIMEOUT => 180, // 3 minutes connection timeout
+                \PDO::SQLSRV_ATTR_QUERY_TIMEOUT => 180, // 3 minutes query timeout
+            ],
         ],
 
     ],
