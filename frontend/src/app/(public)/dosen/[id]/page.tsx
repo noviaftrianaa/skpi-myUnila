@@ -71,7 +71,16 @@ export default function DosenProfilePage() {
   const [pengajaranPage, setPengajaranPage] = useState(1);
   const [penelitianPage, setPenelitianPage] = useState(1);
   const [dosen, setDosen] = useState<DosenProfile | null>(null);
-  const [bidangKeahlian, setBidangKeahlian] = useState<Array<{urutan: string; id_kelompok_bidang: string; kelompok_bidang: string}>>([]);
+  const [bidangKeahlian, setBidangKeahlian] = useState<Array<{
+    id_sdm: string;
+    nama_dosen: string;
+    nidn: string;
+    id_kel_bidang: string;
+    kode_bidang: string;
+    nama_bidang: string;
+    urutan: string;
+    last_sync: string;
+  }>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 5;
@@ -86,24 +95,19 @@ export default function DosenProfilePage() {
         if (response.success && response.data) {
           setDosen(response.data);
 
-          // Fetch bidang keahlian from sister-service
+          // Fetch bidang keahlian from dashboard-service
           try {
-            console.log('🔍 Fetching bidang keahlian for id_sdm:', response.data.id_sdm);
-            const bidangResponse = await fetch(`http://localhost:9800/sister-service/public/dosen/bidang_ilmu/${response.data.id_sdm}`);
-            console.log('📡 Bidang keahlian response status:', bidangResponse.status);
+            const bidangResponse = await fetch(`http://localhost:9800/dashboard-service/public/api/v1/dosen/bidang-ilmu/${response.data.id_sdm}`);
 
             if (bidangResponse.ok) {
               const bidangData = await bidangResponse.json();
-              console.log('📚 Bidang keahlian data:', bidangData);
 
               if (bidangData.success && bidangData.data) {
                 setBidangKeahlian(bidangData.data);
-                console.log('✅ Bidang keahlian set:', bidangData.data.length, 'items');
               }
             }
           } catch (bidangErr) {
-            console.error('❌ Error fetching bidang keahlian:', bidangErr);
-            // Don't set error, just log it (bidang keahlian is optional)
+            // Don't set error (bidang keahlian is optional)
           }
         } else {
           setError(response.message || 'Data dosen tidak ditemukan');
@@ -225,7 +229,7 @@ export default function DosenProfilePage() {
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20 inline-block">
                   <div className="w-40 h-52 rounded-xl overflow-hidden shadow-2xl">
                   <img
-                    src={`http://localhost:9800/sister-service/public/dosen/photo/${dosen.id_sdm}`}
+                    src={`http://localhost:9800/sister-service/dosen/photo/${dosen.id_sdm}`}
                     alt={dosen.nama}
                     className="w-full h-full object-cover"
                     onError={(e) => {
@@ -421,17 +425,45 @@ export default function DosenProfilePage() {
                         </div>
                         <h2 className="text-2xl font-bold text-gray-800">Bidang Keahlian</h2>
                       </div>
-                      <div className="grid gap-3">
-                        {bidangKeahlian.map((bidang, index) => (
-                          <div key={index} className="flex items-start gap-3 p-4 bg-teal-50/50 rounded-lg border border-teal-100 hover:border-teal-200 transition-colors">
-                            <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-teal-500 to-teal-600 text-white rounded-lg flex items-center justify-center font-bold text-sm shadow-md">
-                              {bidang.urutan}
+                      <div className="grid gap-4">
+                        {bidangKeahlian.map((bidang, index) => {
+                          // Parse nama_bidang untuk memisahkan kode dan hierarki
+                          const namaBidang = bidang.nama_bidang || '';
+                          // Hilangkan kode di awal (format: [kode] text)
+                          const cleanName = namaBidang.replace(/^\[\d+\]\s*/, '');
+                          // Pisahkan hierarki berdasarkan ' -- ' atau ' - '
+                          const hierarchy = cleanName.split(/\s+--\s+|\s+-\s+/).filter(Boolean);
+
+                          return (
+                            <div key={index} className="group p-5 bg-gradient-to-br from-teal-50 to-cyan-50/30 rounded-xl border border-teal-200/50 hover:border-teal-300 hover:shadow-md transition-all duration-200">
+                              <div className="flex items-start gap-4">
+                                <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 text-white rounded-xl flex items-center justify-center font-bold shadow-lg group-hover:shadow-xl transition-shadow">
+                                  {bidang.urutan}
+                                </div>
+                                <div className="flex-1 space-y-3">
+                                  {/* Main expertise */}
+                                  <div className="text-lg font-bold text-gray-800">
+                                    {hierarchy[hierarchy.length - 1] || cleanName}
+                                  </div>
+
+                                  {/* Breadcrumb tags */}
+                                  {hierarchy.length > 1 && (
+                                    <div className="flex flex-wrap gap-2">
+                                      {hierarchy.slice(0, -1).map((level, idx) => (
+                                        <span
+                                          key={idx}
+                                          className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-white/80 text-teal-700 border border-teal-200/50 shadow-sm"
+                                        >
+                                          {level.trim()}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                            <div className="flex-1">
-                              <p className="text-gray-800 font-medium leading-relaxed">{bidang.kelompok_bidang.includes('--') ? bidang.kelompok_bidang.split('--')[1].trim() : bidang.kelompok_bidang.replace(/[d+]s*/, '').trim()}</p>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -446,13 +478,26 @@ export default function DosenProfilePage() {
                     </div>
                     <div className="space-y-4">
                       {dosen.riwayat_pendidikan.map((edu, index) => (
-                        <div key={index} className="flex gap-4 items-start">
-                          <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl flex items-center justify-center font-bold shadow-md">
+                        <div key={index} className="flex gap-4 items-start p-4 bg-blue-50/50 rounded-lg border border-blue-100">
+                          <div className="flex-shrink-0 w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl flex items-center justify-center font-bold text-xs shadow-md">
                             {edu.tahun_lulus}
                           </div>
-                          <div className="flex-1 pt-1">
-                            <div className="font-bold text-lg text-gray-900">{edu.jenjang}</div>
-                            <div className="text-gray-700 font-medium">{edu.program_studi}</div>
+                          <div className="flex-1">
+                            <div className="font-bold text-lg text-gray-900 mb-1">
+                              {edu.jenjang}
+                              {edu.gelar && <span className="ml-2 text-blue-600">({edu.gelar})</span>}
+                            </div>
+                            <div className="text-gray-700 font-medium mb-1">{edu.program_studi}</div>
+                            {edu.bidang_studi && (
+                              <div className="text-sm text-gray-600 mb-1">
+                                <span className="font-medium">Bidang Studi:</span> {edu.bidang_studi}
+                              </div>
+                            )}
+                            {edu.judul_tesis && (
+                              <div className="text-sm text-gray-600 italic mb-2 pl-3 border-l-2 border-blue-300">
+                                "{edu.judul_tesis}"
+                              </div>
+                            )}
                             <div className="text-sm text-gray-500">{edu.universitas}</div>
                           </div>
                         </div>
@@ -473,40 +518,6 @@ export default function DosenProfilePage() {
                         {dosen.riwayat_fungsional.map((item, index) => (
                           <div key={index} className="flex gap-4 items-start p-4 bg-purple-50/50 rounded-lg border border-purple-100">
                             <div className="flex-shrink-0 w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl flex items-center justify-center font-bold text-xs shadow-md">
-                              {new Date(item.tmt).getFullYear()}
-                            </div>
-                            <div className="flex-1">
-                              <div className="font-bold text-lg text-gray-900 mb-2">{item.jabatan}</div>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                                <div>
-                                  <span className="text-gray-500">TMT:</span>
-                                  <span className="ml-2 font-medium text-gray-700">{new Date(item.tmt).toLocaleDateString('id-ID')}</span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500">No. SK:</span>
-                                  <span className="ml-2 font-medium text-gray-700">{item.no_sk || '-'}</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Riwayat Jabatan Struktural */}
-                  {dosen.riwayat_struktural.length > 0 && (
-                    <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-                      <div className="flex items-center gap-3 mb-6">
-                        <div className="bg-emerald-100 p-3 rounded-lg">
-                          <MdWork className="w-6 h-6 text-emerald-600" />
-                        </div>
-                        <h2 className="text-2xl font-bold text-gray-800">Riwayat Jabatan Struktural</h2>
-                      </div>
-                      <div className="space-y-4">
-                        {dosen.riwayat_struktural.map((item, index) => (
-                          <div key={index} className="flex gap-4 items-start p-4 bg-emerald-50/50 rounded-lg border border-emerald-100">
-                            <div className="flex-shrink-0 w-20 h-20 bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-xl flex items-center justify-center font-bold text-xs shadow-md">
                               {new Date(item.tmt).getFullYear()}
                             </div>
                             <div className="flex-1">
@@ -553,6 +564,105 @@ export default function DosenProfilePage() {
                                 <div>
                                   <span className="text-gray-500">No. SK:</span>
                                   <span className="ml-2 font-medium text-gray-700">{item.no_sk || '-'}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Riwayat Jabatan Struktural */}
+                  {dosen.riwayat_struktural.length > 0 && (
+                    <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="bg-emerald-100 p-3 rounded-lg">
+                          <MdWork className="w-6 h-6 text-emerald-600" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-gray-800">Riwayat Jabatan Struktural</h2>
+                      </div>
+                      <div className="space-y-4">
+                        {dosen.riwayat_struktural.map((item, index) => (
+                          <div key={index} className="flex gap-4 items-start p-4 bg-emerald-50/50 rounded-lg border border-emerald-100">
+                            <div className="flex-shrink-0 w-20 h-20 bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-xl flex items-center justify-center font-bold text-xs shadow-md">
+                              {new Date(item.tmt).getFullYear()}
+                            </div>
+                            <div className="flex-1">
+                              <div className="font-bold text-lg text-gray-900 mb-2">{item.jabatan}</div>
+                              {item.deskripsi && (
+                                <p className="text-sm text-gray-600 mb-2">
+                                  {item.deskripsi}
+                                </p>
+                              )}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                <div>
+                                  <span className="text-gray-500">TMT:</span>
+                                  <span className="ml-2 font-medium text-gray-700">{new Date(item.tmt).toLocaleDateString('id-ID')}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-500">No. SK:</span>
+                                  <span className="ml-2 font-medium text-gray-700">{item.no_sk || '-'}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tugas Tambahan */}
+                  {dosen.tugas_tambahan && dosen.tugas_tambahan.length > 0 && (
+                    <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="bg-violet-100 p-3 rounded-lg">
+                          <MdWork className="w-6 h-6 text-violet-600" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-gray-800">Tugas Tambahan</h2>
+                      </div>
+                      <div className="space-y-3">
+                        {dosen.tugas_tambahan.slice(0, 3).map((item, index) => (
+                          <div key={index} className="group relative overflow-hidden rounded-lg border border-violet-200 bg-gradient-to-r from-violet-50 to-purple-50 p-5 hover:border-violet-300 hover:shadow-lg transition-all duration-200">
+                            <div className="flex items-center gap-4">
+                              {/* Icon Badge */}
+                              <div className="flex-shrink-0">
+                                <div className="w-14 h-14 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
+                                  <MdWork className="w-7 h-7 text-white" />
+                                </div>
+                              </div>
+
+                              {/* Content */}
+                              <div className="flex-1 min-w-0">
+                                <h3 className="text-lg font-bold text-gray-900 mb-1 truncate">
+                                  {item.jabatan}
+                                </h3>
+                                {item.deskripsi && (
+                                  <p className="text-sm text-gray-600 mb-2">
+                                    {item.deskripsi}
+                                  </p>
+                                )}
+                                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                                  <div className="flex items-center gap-1.5 text-violet-700">
+                                    <span className="inline-block w-1.5 h-1.5 bg-violet-500 rounded-full"></span>
+                                    <span className="font-medium">TMT: {new Date(item.tmt).toLocaleDateString('id-ID')}</span>
+                                  </div>
+                                  {item.no_sk && (
+                                    <div className="flex items-center gap-1.5 text-gray-600">
+                                      <span className="inline-block w-1.5 h-1.5 bg-gray-400 rounded-full"></span>
+                                      <span>SK: {item.no_sk}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Year Badge */}
+                              <div className="hidden sm:block">
+                                <div className="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-lg border border-violet-200 shadow-sm">
+                                  <div className="text-xs text-gray-500 font-medium">Tahun</div>
+                                  <div className="text-lg font-bold text-violet-700">
+                                    {new Date(item.tmt).getFullYear()}
+                                  </div>
                                 </div>
                               </div>
                             </div>

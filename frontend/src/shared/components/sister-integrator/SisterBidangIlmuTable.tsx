@@ -120,13 +120,9 @@ export default function SisterBidangIlmuTable() {
       <DataTable
         columns={columns}
         data={data}
-        isLoading={isLoading}
-        currentPage={currentPage}
-        rowsPerPage={rowsPerPage}
+        loading={isLoading}
+        serverSide={true}
         totalRecords={totalRecords}
-        searchQuery={searchQuery}
-        sortBy={sortBy}
-        sortOrder={sortOrder}
         onPageChange={setCurrentPage}
         onRowsPerPageChange={setRowsPerPage}
         onSearchChange={setSearchQuery}

@@ -57,8 +57,11 @@ export interface DosenProfile {
   };
   riwayat_pendidikan: Array<{
     jenjang: string;
+    gelar?: string;
     program_studi: string;
+    bidang_studi?: string;
     universitas: string;
+    judul_tesis?: string;
     tahun_lulus: number;
   }>;
   riwayat_fungsional: Array<{
@@ -67,8 +70,16 @@ export interface DosenProfile {
     no_sk: string;
     tgl_sk: string;
   }>;
+  tugas_tambahan: Array<{
+    jabatan: string;
+    deskripsi: string;
+    tmt: string;
+    no_sk: string;
+    tgl_sk: string;
+  }>;
   riwayat_struktural: Array<{
     jabatan: string;
+    deskripsi: string;
     tmt: string;
     no_sk: string;
     tgl_sk: string;
@@ -287,21 +298,25 @@ export const sisterDosenService = {
   },
 
   /**
-   * Get dosen photo from SISTER API
+   * Get dosen photo from SISTER API (public endpoint, no auth required)
+   * Note: This endpoint is registered WITHOUT /public prefix and WITHOUT auth middleware
    */
   async getPhoto(idSDM: string): Promise<Blob> {
-    const response = await axios.get(`/dosen/photo/${idSDM}`, {
+    // Strip /public suffix from SISTER_API_URL if present
+    const SISTER_BASE_URL = (process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:9800/sister-service/public')
+      .replace(/\/public$/, '');
+    const response = await axios.get(`${SISTER_BASE_URL}/dosen/photo/${idSDM}`, {
       responseType: 'blob'
     });
     return response.data;
   },
 
   /**
-   * Get dosen bidang ilmu/keahlian from SISTER API
+   * Get dosen bidang ilmu/keahlian from database (via dashboard-service)
    */
   async getBidangIlmu(idSDM: string): Promise<any[]> {
-    const response = await axios.get<SisterApiResponse<any[]>>(
-      `/dosen/bidang_ilmu/${idSDM}`
+    const response = await axios.get<ApiResponse<any[]>>(
+      `${API_URL}/dosen/bidang-ilmu/${idSDM}`
     );
     return response.data.data;
   },
