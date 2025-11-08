@@ -12,6 +12,9 @@ import { HiAcademicCap } from "react-icons/hi";
 import { MdSchool, MdWork, MdScience } from "react-icons/md";
 import { dosenService, type DosenProfile } from "@/lib/services/dosenService";
 
+const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/api/v1';
+const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:9800/sister-service';
+
 type TabType = 'overview' | 'pengajaran' | 'penelitian' | 'publikasi';
 
 // Helper function to generate smart pagination
@@ -97,7 +100,7 @@ export default function DosenProfilePage() {
 
           // Fetch bidang keahlian from dashboard-service
           try {
-            const bidangResponse = await fetch(`http://localhost:9800/dashboard-service/public/api/v1/dosen/bidang-ilmu/${response.data.id_sdm}`);
+            const bidangResponse = await fetch(`${API_URL}/dosen/bidang-ilmu/${response.data.id_sdm}`);
 
             if (bidangResponse.ok) {
               const bidangData = await bidangResponse.json();
@@ -229,7 +232,7 @@ export default function DosenProfilePage() {
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20 inline-block">
                   <div className="w-40 h-52 rounded-xl overflow-hidden shadow-2xl">
                   <img
-                    src={`http://localhost:9800/sister-service/dosen/photo/${dosen.id_sdm}`}
+                    src={`${SISTER_API_URL}/dosen/photo/${dosen.id_sdm}`}
                     alt={dosen.nama}
                     className="w-full h-full object-cover"
                     onError={(e) => {

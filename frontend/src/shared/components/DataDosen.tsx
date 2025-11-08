@@ -8,6 +8,8 @@ import { dosenService, type DosenStatistics } from "@/lib/services/dosenService"
 // Import ECharts dynamically to avoid SSR issues
 const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });
 
+const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/api/v1';
+
 export default function DataDosen() {
   const [statistics, setStatistics] = useState<DosenStatistics | null>(null);
   const [loading, setLoading] = useState(true);
@@ -25,7 +27,7 @@ export default function DataDosen() {
         setStatistics(data);
 
         // Fetch sebaran fakultas data
-        const sebaranResponse = await fetch('http://localhost:9800/dashboard-service/public/api/v1/dosen-sebaran/fakultas');
+        const sebaranResponse = await fetch(`${API_URL}/dosen-sebaran/fakultas`);
         const sebaranJson = await sebaranResponse.json();
 
         if (sebaranJson.success) {
@@ -65,7 +67,7 @@ export default function DataDosen() {
       setLoading(true);
       // Add cache buster to prevent stale data
       const cacheBuster = `?t=${Date.now()}`;
-      const response = await fetch(`http://localhost:9800/dashboard-service/public/api/v1/dosen-sebaran/fakultas/${fakultasId}/prodi${cacheBuster}`);
+      const response = await fetch(`${API_URL}/dosen-sebaran/fakultas/${fakultasId}/prodi${cacheBuster}`);
       const data = await response.json();
 
       if (data.success) {

@@ -3,7 +3,7 @@
  * Handles all survey-related API calls
  */
 
-const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/public/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/api/v1';
 
 export interface SurveyQuestion {
   id: number;

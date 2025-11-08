@@ -8,6 +8,8 @@ import { getSebaranStatistics } from "@/lib/services/mahasiswaSebaranService";
 // Import ECharts dynamically to avoid SSR issues
 const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });
 
+const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/api/v1';
+
 export default function SebaranMahasiswa() {
   const [sebaranData, setSebaranData] = useState<any[]>([]);
   const [fakultasData, setFakultasData] = useState<any[]>([]);
@@ -34,7 +36,7 @@ export default function SebaranMahasiswa() {
       setLoading(true);
       console.log('Drilling down to prodi for fakultas:', fakultasNama);
 
-      const response = await fetch(`http://localhost:9800/dashboard-service/public/api/v1/mahasiswa-sebaran/fakultas/${fakultasId}/prodi`);
+      const response = await fetch(`${API_URL}/mahasiswa-sebaran/fakultas/${fakultasId}/prodi`);
       const data = await response.json();
 
       if (data.success) {
@@ -74,7 +76,7 @@ export default function SebaranMahasiswa() {
         const response = await getSebaranStatistics();
 
         // Fetch fakultas data
-        const fakultasResponse = await fetch('http://localhost:9800/dashboard-service/public/api/v1/mahasiswa-sebaran/fakultas');
+        const fakultasResponse = await fetch(`${API_URL}/mahasiswa-sebaran/fakultas`);
         const fakultasJson = await fakultasResponse.json();
 
         if (response.success) {

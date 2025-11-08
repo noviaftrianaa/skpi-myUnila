@@ -212,7 +212,7 @@ export default function DashboardPage() {
           icon: <HiClipboardList className="w-6 h-6" />,
           color: "bg-blue-600",
           isFavorite: true,
-          href: "/dashboard/siakadu",
+          href: "#",
         },
         {
           id: "myunila-e-kkn",

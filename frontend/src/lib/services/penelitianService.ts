@@ -178,7 +178,7 @@ export const sisterPenelitianService = {
    */
   async getStatistics(): Promise<PenelitianStatistics> {
     // Use native fetch to avoid axios interceptor issues
-    const DASHBOARD_API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/public/api/v1';
+    const DASHBOARD_API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/api/v1';
     const response = await fetch(
       `${DASHBOARD_API_URL}/penelitian/statistics`
     );

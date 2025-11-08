@@ -9,6 +9,8 @@ import { penelitianService, PenelitianStatistics } from "@/lib/services/peneliti
 // Import ECharts dynamically to avoid SSR issues
 const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });
 
+const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/api/v1';
+
 export default function PenelitianPublikasi() {
   const [publikasiData, setPublikasiData] = useState<PublikasiStatistics | null>(null);
   const [penelitianData, setPenelitianData] = useState<PenelitianStatistics | null>(null);
@@ -37,7 +39,7 @@ export default function PenelitianPublikasi() {
         setPenelitianData(penData);
 
         // Fetch publikasi sebaran fakultas data
-        const publikasiSebaranResponse = await fetch('http://localhost:9800/dashboard-service/public/api/v1/publikasi-sebaran/fakultas');
+        const publikasiSebaranResponse = await fetch(`${API_URL}/publikasi-sebaran/fakultas`);
         const publikasiSebaranJson = await publikasiSebaranResponse.json();
 
         if (publikasiSebaranJson.success) {
@@ -50,7 +52,7 @@ export default function PenelitianPublikasi() {
         }
 
         // Fetch penelitian sebaran fakultas data
-        const penelitianSebaranResponse = await fetch('http://localhost:9800/dashboard-service/public/api/v1/penelitian-sebaran/fakultas');
+        const penelitianSebaranResponse = await fetch(`${API_URL}/penelitian-sebaran/fakultas`);
         const penelitianSebaranJson = await penelitianSebaranResponse.json();
 
         if (penelitianSebaranJson.success) {
@@ -88,7 +90,7 @@ export default function PenelitianPublikasi() {
     try {
       setLoading(true);
       const cacheBuster = `?t=${Date.now()}`;
-      const response = await fetch(`http://localhost:9800/dashboard-service/public/api/v1/publikasi-sebaran/fakultas/${fakultasId}/prodi${cacheBuster}`);
+      const response = await fetch(`${API_URL}/publikasi-sebaran/fakultas/${fakultasId}/prodi${cacheBuster}`);
       const data = await response.json();
 
       if (data.success) {
@@ -128,7 +130,7 @@ export default function PenelitianPublikasi() {
     try {
       setLoading(true);
       const cacheBuster = `?t=${Date.now()}`;
-      const response = await fetch(`http://localhost:9800/dashboard-service/public/api/v1/penelitian-sebaran/fakultas/${fakultasId}/prodi${cacheBuster}`);
+      const response = await fetch(`${API_URL}/penelitian-sebaran/fakultas/${fakultasId}/prodi${cacheBuster}`);
       const data = await response.json();
 
       if (data.success) {
