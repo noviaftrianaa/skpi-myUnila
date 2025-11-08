@@ -53,6 +53,11 @@ nano .env
 # - KONG_PG_PASSWORD (change from default)
 # - GRAFANA_ADMIN_PASSWORD (change from default)
 
+# IMPORTANT: Frontend API URLs MUST include /api/v1 suffix:
+# - NEXT_PUBLIC_AUTH_API_URL=http://192.168.123.172:9800/auth-service/api/v1
+# - NEXT_PUBLIC_DASHBOARD_API_URL=http://192.168.123.172:9800/dashboard-service/api/v1
+# - NEXT_PUBLIC_SISTER_API_URL=http://192.168.123.172:9800/sister-service
+
 # Save and exit (Ctrl+X, then Y, then Enter)
 ```
 
