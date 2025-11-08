@@ -137,7 +137,7 @@ func main() {
 	loggerHandler := appLogger.NewHandler(loggerService)
 	loggerHandler.RegisterRoutes(app)
 
-	// Public routes (authenticated via Kong JWT Trust)
+	// Public routes WITH authentication (authenticated via Kong JWT Trust)
 	// Kong Gateway validates JWT, we trust Kong and extract user info
 	publicRoutes := app.Group("/public", middleware.KongAuth())
 
@@ -153,6 +153,10 @@ func main() {
 	// Initialize domain routers and get services for scheduler
 	referensiService := referensi.Init(apiV1, db, sisterAPI, loggerService) // Referensi routes (protected with JWT)
 	dosenService := dosen.Init(publicRoutes, db, sisterAPI, redisClient, loggerService) // Dosen endpoints with Redis cache and DB
+
+	// Initialize photo endpoint DIRECTLY on app (no /public prefix, no auth)
+	// This must be registered AFTER the /public group to avoid middleware conflicts
+	dosen.InitPhotoRoute(app, dosenService)
 
 	// Initialize Penugasan module
 	penugasanRepo := penugasan.NewRepository(db)

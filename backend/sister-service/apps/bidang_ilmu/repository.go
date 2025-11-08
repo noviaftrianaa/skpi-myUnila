@@ -124,6 +124,9 @@ func (r *repository) GetList(page, limit int, search, sortBy, sortOrder string) 
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
+	log.Printf("🔍 Repository GetList - page: %d, limit: %d, search: '%s', sort_by: %s, sort_order: %s",
+		page, limit, search, sortBy, sortOrder)
+
 	offset := (page - 1) * limit
 
 	// Validate sort parameters
@@ -245,6 +248,8 @@ func (r *repository) GetList(page, limit int, search, sortBy, sortOrder string) 
 	}
 
 	totalPages := (total + limit - 1) / limit
+
+	log.Printf("✅ Repository GetList - returned %d items, total: %d, pages: %d", len(items), total, totalPages)
 
 	return &BidangIlmuListResult{
 		Data:       items,

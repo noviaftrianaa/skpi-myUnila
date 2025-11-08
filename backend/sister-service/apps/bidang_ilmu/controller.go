@@ -1,6 +1,8 @@
 package bidang_ilmu
 
 import (
+	"log"
+
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -48,6 +50,9 @@ func (ctrl *Controller) GetList(c *fiber.Ctx) error {
 	if limit < 1 || limit > 100 {
 		limit = 10
 	}
+
+	log.Printf("📋 GET /bidang-ilmu/list - page: %d, limit: %d, search: '%s', sort_by: %s, sort_order: %s",
+		page, limit, search, sortBy, sortOrder)
 
 	result, err := ctrl.service.GetList(page, limit, search, sortBy, sortOrder)
 	if err != nil {

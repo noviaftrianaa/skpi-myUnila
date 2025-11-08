@@ -14,7 +14,8 @@ func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client, redisC
 	svc := NewService(sisterAPI, redisClient, repo, loggerSvc)
 	ctrl := NewController(svc)
 
-	// Public dosen routes (no authentication required)
+	// Public dosen routes (with authentication)
+	// NOTE: Photo endpoint is registered separately without auth in InitPhotoRoute()
 	dosenRouter := router.Group("/dosen")
 	{
 		// GET /public/dosen - Get paginated list of dosen with search and filters
@@ -22,9 +23,6 @@ func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client, redisC
 
 		// GET /public/dosen/stats - Get dosen statistics (must be before /:id_sdm to avoid conflict)
 		dosenRouter.Get("/stats", ctrl.GetDosenStats)
-
-		// GET /public/dosen/photo/:id_sdm - Get dosen photo from SISTER API (with Redis cache)
-		dosenRouter.Get("/photo/:id_sdm", ctrl.GetDosenPhoto)
 
 		// GET /public/dosen/bidang_ilmu/:id_sdm - Get dosen bidang keahlian from SISTER API
 		dosenRouter.Get("/bidang_ilmu/:id_sdm", ctrl.GetDosenBidangIlmu)
@@ -40,4 +38,14 @@ func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client, redisC
 	}
 
 	return svc
+}
+
+// InitPhotoRoute initializes the photo endpoint without authentication
+// This route is registered directly on the app (not under /public group)
+func InitPhotoRoute(app fiber.Router, svc Service) {
+	ctrl := NewController(svc)
+
+	// Truly public photo route (no authentication required)
+	// GET /dosen/photo/:id_sdm - Get dosen photo from SISTER API (with Redis cache)
+	app.Get("/dosen/photo/:id_sdm", ctrl.GetDosenPhoto)
 }
