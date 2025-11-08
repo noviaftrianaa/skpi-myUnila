@@ -4,7 +4,7 @@ services:
   dashboard-service:
     build:
       context: ../../../../backend/dashboard-service
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.debian  # Using Debian for better PECL compatibility
     image: myunila/dashboard-service:latest
     container_name: myunila-dashboard-service
     working_dir: /var/www
