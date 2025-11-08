@@ -52,6 +52,12 @@ RUN apk del .build-deps \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Copy composer files first
+COPY composer.json composer.lock /var/www/
+
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
 # Copy application files
 COPY . /var/www
 
