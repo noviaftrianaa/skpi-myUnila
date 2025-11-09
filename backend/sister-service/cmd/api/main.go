@@ -158,6 +158,11 @@ func main() {
 	// This must be registered AFTER the /public group to avoid middleware conflicts
 	dosen.InitPhotoRoute(app, dosenService)
 
+	// Initialize public photo endpoint under /public prefix WITHOUT authentication
+	// This allows both /dosen/photo/:id and /public/dosen/photo/:id to work without auth
+	trulyPublicRoutes := app.Group("/public")
+	dosen.InitPhotoRoute(trulyPublicRoutes, dosenService)
+
 	// Initialize Penugasan module
 	penugasanRepo := penugasan.NewRepository(db)
 	penugasanService := penugasan.NewService(penugasanRepo, sisterAPI, loggerService)

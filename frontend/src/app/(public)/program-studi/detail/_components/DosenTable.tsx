@@ -190,7 +190,6 @@ export default function DosenTable({ programStudiId }: DosenTableProps) {
       defaultRowsPerPage={5}
       rowsPerPageOptions={[5, 10, 25, 50]}
       loading={loading}
-      noWrapper={true}
       onPageChange={(page) => setCurrentPage(page)}
       onRowsPerPageChange={(rows) => {
         setRowsPerPage(rows);

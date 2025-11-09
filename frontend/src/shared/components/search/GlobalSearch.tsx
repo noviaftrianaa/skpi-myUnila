@@ -15,6 +15,7 @@ import {
   ModalContent,
   ModalBody,
 } from "@heroui/react";
+import { getSearchSuggestions } from "@/lib/services/searchService";
 
 // Search category type
 export type SearchCategory =
@@ -131,40 +132,68 @@ export default function GlobalSearch({ variant = "button", className = "" }: Glo
     setIsLoading(true);
 
     try {
-      // TODO: Replace with actual MeiliSearch API call
-      // For now, mock data for demonstration
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      const response = await getSearchSuggestions(searchQuery, 5);
 
-      const mockSuggestions: SearchSuggestion[] = [
-        {
-          id: "1",
-          title: "Dr. Budi Santoso, S.T., M.T.",
-          subtitle: "Teknik Informatika - Fakultas Teknik",
-          category: "dosen",
-          url: "/dosen/1",
-          metadata: {
-            imageUrl: "/api/placeholder/40/40",
-            badge: "Lektor Kepala",
-            faculty: "Fakultas Teknik",
-          },
-        },
-        {
-          id: "2",
-          title: "Analisis Kualitas Air Sungai Way Kuripan",
-          subtitle: "Dr. Ahmad Hidayat • 2024",
-          category: "penelitian",
-          url: "/penelitian/2",
-          metadata: {
-            year: 2024,
-            badge: "Penelitian Unggulan",
-          },
-        },
-      ];
+      if (!response.success) {
+        setSuggestions([]);
+        return;
+      }
 
-      // Filter by category
+      // Transform API results to SearchSuggestion format
+      const allSuggestions: SearchSuggestion[] = [];
+
+      // Mahasiswa suggestions
+      if (response.data.suggestions.mahasiswa) {
+        response.data.suggestions.mahasiswa.forEach((item) => {
+          allSuggestions.push({
+            id: item.id,
+            title: item.nama || '',
+            subtitle: `${item.nim} - ${item.prodi}`,
+            category: 'mahasiswa',
+            url: `/mahasiswa/${item.id}`,
+            metadata: {
+              badge: item.status,
+            },
+          });
+        });
+      }
+
+      // Dosen suggestions
+      if (response.data.suggestions.dosen) {
+        response.data.suggestions.dosen.forEach((item) => {
+          allSuggestions.push({
+            id: item.id,
+            title: item.nama || '',
+            subtitle: `${item.jabatan_fungsional} - ${item.prodi_homebase}`,
+            category: 'dosen',
+            url: `/dosen/${item.encrypted_id || item.id}`,
+            metadata: {
+              badge: item.jabatan_fungsional,
+            },
+          });
+        });
+      }
+
+      // Prodi suggestions
+      if (response.data.suggestions.prodi) {
+        response.data.suggestions.prodi.forEach((item) => {
+          allSuggestions.push({
+            id: item.id,
+            title: item.nama_prodi || '',
+            subtitle: `${item.jenjang} - ${item.kode_prodi}`,
+            category: 'prodi',
+            url: `/prodi/${item.id}`,
+            metadata: {
+              badge: `${item.jumlah_mahasiswa} Mahasiswa`,
+            },
+          });
+        });
+      }
+
+      // Filter by category if not "all"
       const filtered = searchCategory === "all"
-        ? mockSuggestions
-        : mockSuggestions.filter((s) => s.category === searchCategory);
+        ? allSuggestions
+        : allSuggestions.filter((s) => s.category === searchCategory);
 
       setSuggestions(filtered);
     } catch (error) {
@@ -345,7 +374,7 @@ export default function GlobalSearch({ variant = "button", className = "" }: Glo
                   placeholder="Ketik untuk mencari..."
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  className="flex-1 text-sm sm:text-base lg:text-lg outline-none text-gray-900 placeholder-gray-400 font-medium"
+                  className="flex-1 text-sm sm:text-base lg:text-lg outline-none text-gray-900 placeholder-gray-400 font-medium bg-transparent border-0 focus:outline-none focus:ring-0"
                   autoComplete="off"
                 />
                 <button
@@ -373,10 +402,10 @@ export default function GlobalSearch({ variant = "button", className = "" }: Glo
                     <button
                       key={cat.key}
                       onClick={() => setCategory(cat.key as SearchCategory)}
-                      className={`flex items-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all duration-200 flex-shrink-0 ${
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all duration-200 flex-shrink-0 border ${
                         category === cat.key
-                          ? "bg-myunila text-white shadow-md shadow-myunila/30"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
+                          ? "bg-myunila text-white shadow-md shadow-myunila/30 border-myunila"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300 border-gray-200"
                       }`}
                     >
                       <span className="text-sm">{cat.icon}</span>
@@ -391,10 +420,10 @@ export default function GlobalSearch({ variant = "button", className = "" }: Glo
                     <button
                       key={cat.key}
                       onClick={() => setCategory(cat.key as SearchCategory)}
-                      className={`flex items-center gap-1.5 px-4 py-2 rounded-full whitespace-nowrap transition-all duration-200 ${
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-full whitespace-nowrap transition-all duration-200 border ${
                         category === cat.key
-                          ? "bg-myunila text-white shadow-md shadow-myunila/30"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
+                          ? "bg-myunila text-white shadow-md shadow-myunila/30 border-myunila"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300 border-gray-200"
                       }`}
                     >
                       <span className="text-sm">{cat.icon}</span>
@@ -419,46 +448,46 @@ export default function GlobalSearch({ variant = "button", className = "" }: Glo
                   <span className="mt-4 sm:mt-5 text-sm font-semibold text-gray-600">Mencari...</span>
                 </div>
               ) : suggestions.length > 0 ? (
-                <div className="p-2 sm:p-3 space-y-1.5 sm:space-y-2">
+                <div className="p-3 sm:p-4 space-y-2">
                   {/* Results */}
                   {suggestions.map((suggestion, index) => (
                     <motion.button
                       key={suggestion.id}
                       onClick={() => handleSelectSuggestion(suggestion)}
                       onMouseEnter={() => setSelectedIndex(index)}
-                      className={`w-full text-left px-3 sm:px-4 py-3 sm:py-4 rounded-lg sm:rounded-xl transition-all duration-200 ${
+                      className={`w-full text-left px-3 sm:px-4 py-3 rounded-lg transition-all duration-200 border ${
                         index === selectedIndex
-                          ? "bg-myunila/5 ring-2 ring-myunila/20"
-                          : "hover:bg-gray-50 active:bg-gray-100"
+                          ? "bg-myunila/5 border-myunila/30 shadow-sm"
+                          : "bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:bg-gray-100"
                       }`}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.03, duration: 0.2 }}
                     >
-                      <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="flex items-center gap-3">
                         {/* Avatar/Icon */}
                         {suggestion.metadata?.imageUrl ? (
                           <Avatar
                             src={suggestion.metadata.imageUrl}
                             size="md"
-                            className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12"
+                            className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10"
                           />
                         ) : (
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-myunila to-blue-600 rounded-xl flex items-center justify-center text-white text-lg sm:text-xl flex-shrink-0">
+                          <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-myunila to-blue-600 rounded-lg flex items-center justify-center text-white text-base sm:text-lg flex-shrink-0">
                             {getCategoryIcon(suggestion.category)}
                           </div>
                         )}
 
                         {/* Content */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center gap-2 mb-0.5">
                             <p className="text-sm sm:text-base font-bold text-gray-900 truncate">
                               {suggestion.title}
                             </p>
                             {suggestion.metadata?.badge && (
-                              <Chip size="sm" color="primary" variant="flat" className="hidden sm:inline-flex text-xs font-semibold">
+                              <span className="hidden sm:inline-flex px-2 py-0.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded border border-blue-200">
                                 {suggestion.metadata.badge}
-                              </Chip>
+                              </span>
                             )}
                           </div>
                           {suggestion.subtitle && (
@@ -469,14 +498,10 @@ export default function GlobalSearch({ variant = "button", className = "" }: Glo
                         </div>
 
                         {/* Category Badge - Hidden on small screens */}
-                        <Chip
-                          size="sm"
-                          variant="flat"
-                          className="hidden lg:flex flex-shrink-0 text-xs font-semibold bg-gray-100 text-gray-700"
-                        >
-                          {getCategoryIcon(suggestion.category)}
-                          <span className="ml-1">{getCategoryLabel(suggestion.category)}</span>
-                        </Chip>
+                        <span className="hidden lg:inline-flex items-center gap-1 px-2.5 py-1 bg-gray-50 text-gray-700 text-xs font-medium rounded-md border border-gray-200 flex-shrink-0">
+                          <span>{getCategoryIcon(suggestion.category)}</span>
+                          <span>{getCategoryLabel(suggestion.category)}</span>
+                        </span>
                       </div>
                     </motion.button>
                   ))}

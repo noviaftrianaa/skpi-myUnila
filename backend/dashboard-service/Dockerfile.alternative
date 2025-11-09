@@ -1,5 +1,6 @@
 # ========================================
-# Auth Service Dockerfile - Alpine Version
+# Dashboard Service Dockerfile - Alternative (Compile from source)
+# Use this if PECL keeps failing
 # ========================================
 FROM php:8.2-fpm-alpine
 
@@ -41,9 +42,16 @@ RUN curl -O https://download.microsoft.com/download/3/5/5/355d7943-a338-41a7-858
 # Install unixODBC development files
 RUN apk add --no-cache unixodbc-dev
 
-# Install SQL Server PHP drivers
-RUN pecl install sqlsrv-5.12.0 pdo_sqlsrv-5.12.0 \
-    && docker-php-ext-enable sqlsrv pdo_sqlsrv
+# Install SQL Server PHP drivers - Compile from GitHub (more reliable)
+RUN cd /tmp \
+    && curl -L https://github.com/microsoft/msphpsql/archive/refs/tags/v5.12.0.tar.gz -o msphpsql.tar.gz \
+    && tar -xzf msphpsql.tar.gz \
+    && cd msphpsql-5.12.0/source/sqlsrv \
+    && phpize && ./configure && make && make install \
+    && cd ../pdo_sqlsrv \
+    && phpize && ./configure && make && make install \
+    && docker-php-ext-enable sqlsrv pdo_sqlsrv \
+    && cd /tmp && rm -rf msphpsql-5.12.0 msphpsql.tar.gz
 
 # Clean up build dependencies
 RUN apk del .build-deps \

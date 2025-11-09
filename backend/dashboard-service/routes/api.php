@@ -19,6 +19,7 @@ use App\Http\Controllers\OpenApi\KelulusanController;
 use App\Http\Controllers\OpenApi\CapaianLulusanController;
 use App\Http\Controllers\OpenApi\BidangIlmuController;
 use App\Http\Controllers\SurveyController;
+use App\Http\Controllers\SearchController;
 
 /*
 |--------------------------------------------------------------------------
@@ -146,6 +147,24 @@ Route::prefix('v1')->group(function () {
         Route::post('/{slug}/submit', [SurveyController::class, 'submitSurvey']);
         Route::get('/{slug}/statistics', [SurveyController::class, 'getStatistics']);
         Route::get('/{slug}/analytics/{questionCode}', [SurveyController::class, 'getQuestionAnalytics']);
+    });
+
+    // Global Search
+    Route::prefix('search')->group(function () {
+        // Global search across all categories
+        Route::get('/', [SearchController::class, 'search']);
+
+        // Search suggestions for autocomplete
+        Route::get('/suggestions', [SearchController::class, 'suggestions']);
+
+        // Category-specific search endpoints
+        Route::get('/mahasiswa', [SearchController::class, 'searchMahasiswa']);
+        Route::get('/dosen', [SearchController::class, 'searchDosen']);
+        Route::get('/prodi', [SearchController::class, 'searchProdi']);
+        Route::get('/penelitian', [SearchController::class, 'searchPenelitian']);
+        Route::get('/publikasi', [SearchController::class, 'searchPublikasi']);
+        Route::get('/pengabdian', [SearchController::class, 'searchPengabdian']);
+        Route::get('/bidang-ilmu', [SearchController::class, 'searchBidangIlmu']);
     });
 
     // TODO: Add more public endpoints

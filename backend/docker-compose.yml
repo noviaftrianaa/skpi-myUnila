@@ -23,6 +23,27 @@ services:
       retries: 5
     restart: unless-stopped
 
+  # MeiliSearch for Full-Text Search
+  meilisearch:
+    image: getmeili/meilisearch:v1.5
+    container_name: myunila-meilisearch
+    ports:
+      - "7700:7700"
+    environment:
+      MEILI_ENV: development
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-masterKey123456}
+      MEILI_NO_ANALYTICS: true
+    volumes:
+      - meilisearch_data:/meili_data
+    networks:
+      - myunila-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   # ========================================
   # Kong API Gateway (DISABLED - Uncomment when needed)
   # ========================================
@@ -139,6 +160,8 @@ services:
       # Override for Docker networking only
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      MEILISEARCH_HOST: meilisearch
+      MEILISEARCH_PORT: 7700
     volumes:
       - ./dashboard-service:/var/www
       - dashboard_vendor:/var/www/vendor
@@ -148,6 +171,7 @@ services:
       - "host.docker.internal:host-gateway"
     depends_on:
       - redis
+      - meilisearch
     restart: unless-stopped
 
   # Sister Service (Go + Fiber)
@@ -228,6 +252,8 @@ networks:
 # ========================================
 volumes:
   redis_data:
+    driver: local
+  meilisearch_data:
     driver: local
   auth_vendor:
     driver: local
