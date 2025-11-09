@@ -22,17 +22,17 @@ func SetupRoutes(app *fiber.App, db *sqlx.DB, sisterAPI *sister_api.Client, logg
 	api.Post("/sertifikasi-dosen/sync", controller.SyncSertifikasiByIDSDM)
 	api.Post("/sertifikasi-dosen/sync-all", controller.BatchSyncAllSertifikasi)
 
-	// Public routes
-	public := app.Group("/public")
+	// Public routes (no auth required)
+	sertifikasiGroup := app.Group("/sertifikasi-dosen")
 
 	// Stats route (must be before /:id to avoid conflict)
-	public.Get("/sertifikasi-dosen/stats", controller.GetSertifikasiStats)
+	sertifikasiGroup.Get("/stats", controller.GetSertifikasiStats)
 
 	// List route (must be before /:id to avoid conflict)
-	public.Get("/sertifikasi-dosen/list", controller.GetSertifikasiList)
+	sertifikasiGroup.Get("/list", controller.GetSertifikasiList)
 
 	// Detail route
-	public.Get("/sertifikasi-dosen/:id", controller.GetSertifikasiDetail)
+	sertifikasiGroup.Get("/:id", controller.GetSertifikasiDetail)
 
 	return service
 }

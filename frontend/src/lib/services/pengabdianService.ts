@@ -8,7 +8,7 @@ import { sisterClient } from '@/lib/api/sisterClient';
 
 // API v1 base URL for sync endpoints (no auth required)
 const API_V1_BASE = process.env.NEXT_PUBLIC_SISTER_API_URL
-  ? `${process.env.NEXT_PUBLIC_SISTER_API_URL}/../api/v1`
+  ? `${process.env.NEXT_PUBLIC_SISTER_API_URL}/api/v1`
   : 'http://localhost:9800/sister-service/api/v1';
 
 // Types - Reuse Litabmas type from penelitian since they share the same entity

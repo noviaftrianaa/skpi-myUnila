@@ -179,9 +179,9 @@ export default function DataTable<T extends Record<string, any>>({
                 isClearable
                 classNames={{
                   base: "w-full",
-                  inputWrapper: "bg-white shadow-sm h-9 rounded-xl border border-gray-200 hover:border-blue-400 focus-within:border-blue-500 focus-within:shadow-lg focus-within:ring-2 focus-within:ring-blue-100 transition-all duration-200",
-                  input: "text-sm text-gray-700 placeholder:text-gray-400",
-                  clearButton: "text-gray-400 hover:text-gray-600",
+                  inputWrapper: "!bg-white !h-9 !rounded-xl !border-0 !shadow-none hover:!bg-gray-50 !transition-all !duration-200 [&>div]:!border-0",
+                  input: "!text-sm !text-gray-700 placeholder:!text-gray-400 !border-0",
+                  clearButton: "!text-gray-400 hover:!text-gray-600",
                 }}
                 placeholder={searchPlaceholder}
                 size="md"

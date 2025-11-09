@@ -71,7 +71,7 @@ export const sisterSertifikasiDosenService = {
 
   async syncFromSister(syncedBy: string): Promise<BatchAllSyncResult> {
     const response = await sisterClient.post<{ success: boolean; data: BatchAllSyncResult }>(
-      '/../api/v1/sertifikasi-dosen/sync-all',
+      '/api/v1/sertifikasi-dosen/sync-all',
       null,
       { params: { synced_by: syncedBy } }
     );

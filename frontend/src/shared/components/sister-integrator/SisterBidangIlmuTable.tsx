@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { Chip } from "@heroui/react";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
 import {
@@ -50,7 +51,7 @@ export default function SisterBidangIlmuTable() {
       key: "nama_dosen",
       label: "NAMA DOSEN",
       sortable: true,
-      minWidth: "220px",
+      minWidth: "200px",
       render: (item) => (
         <div className="flex flex-col">
           <div className="font-medium text-sm">
@@ -66,12 +67,10 @@ export default function SisterBidangIlmuTable() {
       key: "urutan",
       label: "URUTAN",
       sortable: true,
-      minWidth: "80px",
+      minWidth: "100px",
       render: (item) => (
-        <div className="flex justify-center">
-          <Chip size="sm" color="secondary" variant="flat">
-            {item.urutan}
-          </Chip>
+        <div className="text-sm font-medium">
+          {item.urutan}
         </div>
       ),
     },
@@ -79,7 +78,7 @@ export default function SisterBidangIlmuTable() {
       key: "nama_bidang",
       label: "BIDANG ILMU",
       sortable: true,
-      minWidth: "350px",
+      minWidth: "300px",
       render: (item) => (
         <div className="flex flex-col gap-1">
           <div className="text-sm font-medium">
@@ -95,43 +94,48 @@ export default function SisterBidangIlmuTable() {
       key: "last_sync",
       label: "LAST SYNC",
       sortable: true,
-      minWidth: "180px",
+      minWidth: "150px",
       render: (item) => (
-        <div className="flex flex-col">
-          <div className="text-xs text-gray-600">
-            {bidangIlmuHelpers.formatDateTime(item.last_sync)}
-          </div>
+        <div className="text-xs text-gray-500">
+          {bidangIlmuHelpers.formatDateTime(item.last_sync)}
         </div>
       ),
     },
   ];
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-      <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-          Data Bidang Ilmu Dosen
-        </h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-          Mapping bidang ilmu/keahlian dosen dari SISTER
-        </p>
-      </div>
-
-      <DataTable
-        columns={columns}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <DataTable<BidangIlmuItem>
         data={data}
+        columns={columns}
         loading={isLoading}
+        searchable={true}
+        searchKeys={["nama_dosen", "nidn", "nama_bidang", "kode_bidang"]}
+        searchPlaceholder="Cari nama dosen, NIDN, atau bidang ilmu..."
+        defaultRowsPerPage={10}
+        rowsPerPageOptions={[5, 10, 25, 50, 100]}
         serverSide={true}
         totalRecords={totalRecords}
         onPageChange={setCurrentPage}
-        onRowsPerPageChange={setRowsPerPage}
-        onSearchChange={setSearchQuery}
+        onRowsPerPageChange={(rows) => {
+          setRowsPerPage(rows);
+          setCurrentPage(1);
+        }}
+        onSearchChange={(query) => {
+          setSearchQuery(query);
+          setCurrentPage(1);
+        }}
         onSortChange={(key, order) => {
           setSortBy(key);
           setSortOrder(order);
+          setCurrentPage(1);
         }}
-        searchPlaceholder="Cari dosen, NIDN, atau bidang ilmu..."
+        className="shadow-lg"
       />
-    </div>
+    </motion.div>
   );
 }

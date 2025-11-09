@@ -17,15 +17,15 @@ func NewRouter(service *Service) *Router {
 // RegisterRoutes registers all scheduler routes
 func (r *Router) RegisterRoutes(app *fiber.App) {
 	api := app.Group("/api/v1/schedules")
-	public := app.Group("/public/schedules")
+	schedules := app.Group("/schedules")
 
-	// Public routes
-	public.Get("/", r.getAll)
-	public.Get("/:id", r.getByID)
-	public.Post("/", r.create)
-	public.Put("/:id", r.update)
-	public.Delete("/:id", r.delete)
-	public.Post("/:id/toggle", r.toggle)
+	// Public routes (no auth required)
+	schedules.Get("/", r.getAll)
+	schedules.Get("/:id", r.getByID)
+	schedules.Post("/", r.create)
+	schedules.Put("/:id", r.update)
+	schedules.Delete("/:id", r.delete)
+	schedules.Post("/:id/toggle", r.toggle)
 
 	// API routes (same as public for now)
 	api.Get("/", r.getAll)

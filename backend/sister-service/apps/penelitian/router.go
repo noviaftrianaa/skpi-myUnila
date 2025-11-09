@@ -25,22 +25,21 @@ func SetupRoutes(app *fiber.App, db *sqlx.DB, sisterAPI *sister_api.Client, logg
 	apiV1.Post("/pengabdian/sync", controller.SyncPengabdianByIDSDM)
 	apiV1.Post("/pengabdian/sync-all", controller.BatchSyncAllPengabdian)
 
-	// Public routes
-	public := app.Group("/public")
+	// Public routes (no auth required)
+	penelitianGroup := app.Group("/penelitian")
+	penelitianGroup.Get("", controller.GetPenelitianByIDSDM)
+	penelitianGroup.Get("/stats", controller.GetPenelitianStats)
+	penelitianGroup.Get("/list", controller.GetPenelitianList)
 
-	// Penelitian endpoints
-	public.Get("/penelitian", controller.GetPenelitianByIDSDM)
-	public.Get("/penelitian/stats", controller.GetPenelitianStats)
-	public.Get("/penelitian/list", controller.GetPenelitianList)
-
-	// Pengabdian endpoints
-	public.Get("/pengabdian", controller.GetPengabdianByIDSDM)
-	public.Get("/pengabdian/stats", controller.GetPengabdianStats)
-	public.Get("/pengabdian/list", controller.GetPengabdianList)
+	pengabdianGroup := app.Group("/pengabdian")
+	pengabdianGroup.Get("", controller.GetPengabdianByIDSDM)
+	pengabdianGroup.Get("/stats", controller.GetPengabdianStats)
+	pengabdianGroup.Get("/list", controller.GetPengabdianList)
 
 	// General litabmas endpoint (works for both penelitian and pengabdian)
-	public.Get("/litabmas/:id", controller.GetLitabmasDetail)
-	public.Get("/litabmas/:id/dokumen", controller.GetDokumenByLitabmas)
+	litabmasGroup := app.Group("/litabmas")
+	litabmasGroup.Get("/:id", controller.GetLitabmasDetail)
+	litabmasGroup.Get("/:id/dokumen", controller.GetDokumenByLitabmas)
 
 	return service
 }

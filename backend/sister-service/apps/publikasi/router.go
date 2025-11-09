@@ -21,14 +21,14 @@ func SetupRoutes(app *fiber.App, db *sqlx.DB, sisterAPI *sister_api.Client, logg
 	apiV1.Post("/publikasi/sync", controller.SyncPublikasiByIDSDM)
 	apiV1.Post("/publikasi/sync-all", controller.BatchSyncAllPublikasi)
 
-	// Public routes
-	public := app.Group("/public")
+	// Public routes (no auth required)
+	publikasiGroup := app.Group("/publikasi")
 
 	// Publikasi endpoints (specific routes MUST come before :id route)
-	public.Get("/publikasi/list", controller.GetPublikasiList)
-	public.Get("/publikasi/stats", controller.GetPublikasiStats)
-	public.Get("/publikasi/:id", controller.GetPublikasiByID)
-	public.Get("/publikasi/:id/penulis", controller.GetTulisPubByPublikasi)
+	publikasiGroup.Get("/list", controller.GetPublikasiList)
+	publikasiGroup.Get("/stats", controller.GetPublikasiStats)
+	publikasiGroup.Get("/:id", controller.GetPublikasiByID)
+	publikasiGroup.Get("/:id/penulis", controller.GetTulisPubByPublikasi)
 
 	return service
 }

@@ -81,7 +81,7 @@ export const sisterJabatanStrukturalService = {
    */
   async syncFromSister(syncedBy: string): Promise<BatchAllSyncResult> {
     const response = await sisterClient.post<{ success: boolean; data: BatchAllSyncResult }>(
-      '/../api/v1/jabatan-struktural/sync-all',
+      '/api/v1/jabatan-struktural/sync-all',
       null,
       { params: { synced_by: syncedBy } }
     );

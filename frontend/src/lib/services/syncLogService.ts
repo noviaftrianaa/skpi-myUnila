@@ -50,7 +50,7 @@ export interface SyncLogListResponse {
   total_pages: number;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || "http://localhost:8083/public";
+const API_BASE_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || "http://localhost:9800/sister-service";
 
 class SyncLogService {
   /**

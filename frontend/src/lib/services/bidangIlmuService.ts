@@ -71,7 +71,7 @@ export const sisterBidangIlmuService = {
 
   async syncFromSister(syncedBy: string): Promise<BatchAllSyncResult> {
     const response = await sisterClient.post<{ success: boolean; data: BatchAllSyncResult }>(
-      '/../api/v1/bidang-ilmu/sync-all',
+      '/api/v1/bidang-ilmu/sync-all',
       null,
       { params: { synced_by: syncedBy } }
     );
@@ -80,7 +80,7 @@ export const sisterBidangIlmuService = {
 
   async syncSingleDosen(idSDM: string, syncedBy: string): Promise<any> {
     const response = await sisterClient.post<{ success: boolean; data: any }>(
-      `/../api/v1/bidang-ilmu/sync/${idSDM}`,
+      `/api/v1/bidang-ilmu/sync/${idSDM}`,
       null,
       { params: { synced_by: syncedBy } }
     );

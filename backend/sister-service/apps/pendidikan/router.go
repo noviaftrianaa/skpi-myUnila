@@ -22,18 +22,18 @@ func SetupRoutes(app *fiber.App, db *sqlx.DB, sisterAPI *sister_api.Client, logg
 	api.Post("/pendidikan-formal/sync", controller.SyncPendidikanFormalByIDSDM)
 	api.Post("/pendidikan-formal/sync-all", controller.BatchSyncAllPendidikanFormal)
 
-	// Public routes
-	public := app.Group("/public")
+	// Public routes (no auth required)
+	pendidikanGroup := app.Group("/pendidikan-formal")
 
 	// Stats route (must be before /:id to avoid conflict)
-	public.Get("/pendidikan-formal/stats", controller.GetPendidikanFormalStats)
+	pendidikanGroup.Get("/stats", controller.GetPendidikanFormalStats)
 
 	// List route (must be before /:id to avoid conflict)
-	public.Get("/pendidikan-formal/list", controller.GetPendidikanFormalList)
+	pendidikanGroup.Get("/list", controller.GetPendidikanFormalList)
 
 	// Query and detail routes
-	public.Get("/pendidikan-formal", controller.GetPendidikanFormalByIDSDM)
-	public.Get("/pendidikan-formal/:id", controller.GetPendidikanFormalDetail)
+	pendidikanGroup.Get("", controller.GetPendidikanFormalByIDSDM)
+	pendidikanGroup.Get("/:id", controller.GetPendidikanFormalDetail)
 
 	return service
 }

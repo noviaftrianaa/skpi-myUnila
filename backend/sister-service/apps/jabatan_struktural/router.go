@@ -22,17 +22,17 @@ func SetupRoutes(app *fiber.App, db *sqlx.DB, sisterAPI *sister_api.Client, logg
 	api.Post("/jabatan-struktural/sync", controller.SyncJabatanStrukturalByIDSDM)
 	api.Post("/jabatan-struktural/sync-all", controller.BatchSyncAllJabatanStruktural)
 
-	// Public routes
-	public := app.Group("/public")
+	// Public routes (no auth required)
+	jabatanStrukturalGroup := app.Group("/jabatan-struktural")
 
 	// Stats route (must be before /:id to avoid conflict)
-	public.Get("/jabatan-struktural/stats", controller.GetJabatanStrukturalStats)
+	jabatanStrukturalGroup.Get("/stats", controller.GetJabatanStrukturalStats)
 
 	// List route (must be before /:id to avoid conflict)
-	public.Get("/jabatan-struktural/list", controller.GetJabatanStrukturalList)
+	jabatanStrukturalGroup.Get("/list", controller.GetJabatanStrukturalList)
 
 	// Detail route
-	public.Get("/jabatan-struktural/:id", controller.GetJabatanStrukturalDetail)
+	jabatanStrukturalGroup.Get("/:id", controller.GetJabatanStrukturalDetail)
 
 	return service
 }

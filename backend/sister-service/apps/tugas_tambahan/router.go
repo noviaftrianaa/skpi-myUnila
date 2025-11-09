@@ -22,17 +22,17 @@ func SetupRoutes(app *fiber.App, db *sqlx.DB, sisterAPI *sister_api.Client, logg
 	api.Post("/tugas-tambahan/sync", controller.SyncTugasTambahanByIDSDM)
 	api.Post("/tugas-tambahan/sync-all", controller.BatchSyncAllTugasTambahan)
 
-	// Public routes
-	public := app.Group("/public")
+	// Public routes (no auth required)
+	tugasTambahanGroup := app.Group("/tugas-tambahan")
 
 	// Stats route (must be before /:id to avoid conflict)
-	public.Get("/tugas-tambahan/stats", controller.GetTugasTambahanStats)
+	tugasTambahanGroup.Get("/stats", controller.GetTugasTambahanStats)
 
 	// List route (must be before /:id to avoid conflict)
-	public.Get("/tugas-tambahan/list", controller.GetTugasTambahanList)
+	tugasTambahanGroup.Get("/list", controller.GetTugasTambahanList)
 
 	// Detail route
-	public.Get("/tugas-tambahan/:id", controller.GetTugasTambahanDetail)
+	tugasTambahanGroup.Get("/:id", controller.GetTugasTambahanDetail)
 
 	return service
 }

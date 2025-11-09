@@ -22,7 +22,6 @@ import (
 	"sister-service/external/database"
 	"sister-service/external/sister_api"
 	"sister-service/internal/config"
-	"sister-service/internal/middleware"
 	"sister-service/pkg/crypto"
 
 	"github.com/gofiber/fiber/v2"
@@ -137,31 +136,21 @@ func main() {
 	loggerHandler := appLogger.NewHandler(loggerService)
 	loggerHandler.RegisterRoutes(app)
 
-	// Public routes WITH authentication (authenticated via Kong JWT Trust)
-	// Kong Gateway validates JWT, we trust Kong and extract user info
-	publicRoutes := app.Group("/public", middleware.KongAuth())
-
-	// Initialize API Config routes
+	// Initialize API Config routes (accessible without /public prefix)
 	if encryptor != nil {
 		apiConfigRepo := apiconfig.NewRepository(db)
 		apiConfigService := apiconfig.NewService(apiConfigRepo, encryptor)
 		apiConfigHandler := apiconfig.NewHandler(apiConfigService)
-		apiconfig.RegisterRoutes(publicRoutes, apiConfigHandler)
+		apiconfig.RegisterRoutes(app, apiConfigHandler)
 		log.Println("✅ API Configuration management enabled")
 	}
 
 	// Initialize domain routers and get services for scheduler
 	referensiService := referensi.Init(apiV1, db, sisterAPI, loggerService) // Referensi routes (protected with JWT)
-	dosenService := dosen.Init(publicRoutes, db, sisterAPI, redisClient, loggerService) // Dosen endpoints with Redis cache and DB
 
-	// Initialize photo endpoint DIRECTLY on app (no /public prefix, no auth)
-	// This must be registered AFTER the /public group to avoid middleware conflicts
-	dosen.InitPhotoRoute(app, dosenService)
-
-	// Initialize public photo endpoint under /public prefix WITHOUT authentication
-	// This allows both /dosen/photo/:id and /public/dosen/photo/:id to work without auth
-	trulyPublicRoutes := app.Group("/public")
-	dosen.InitPhotoRoute(trulyPublicRoutes, dosenService)
+	// Initialize Dosen Service with public routes (no auth required)
+	// Register on app directly so it's accessible at /dosen/* without /public prefix
+	dosenService := dosen.Init(app, db, sisterAPI, redisClient, loggerService) // Dosen endpoints with Redis cache and DB
 
 	// Initialize Penugasan module
 	penugasanRepo := penugasan.NewRepository(db)
@@ -202,8 +191,8 @@ func main() {
 	bidangIlmuService := bidang_ilmu.SetupRoutes(app, db, sisterAPI, loggerService)
 	log.Println("✅ Bidang Ilmu routes registered")
 
-	synclog.RegisterRoutes(publicRoutes, db)                            // Sync logs endpoints
-	monitoring.RegisterRoutes(publicRoutes)                             // Monitoring endpoints
+	synclog.RegisterRoutes(app, db)                                      // Sync logs endpoints (public, no auth)
+	monitoring.RegisterRoutes(app)                                       // Monitoring endpoints (public, no auth)
 
 	// Initialize Scheduler Service
 	schedulerRepo := scheduler.NewRepository(db)

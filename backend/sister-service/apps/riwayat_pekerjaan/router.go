@@ -22,17 +22,17 @@ func SetupRoutes(app *fiber.App, db *sqlx.DB, sisterAPI *sister_api.Client, logg
 	api.Post("/riwayat-pekerjaan/sync", controller.SyncRwyPekerjaanByIDSDM)
 	api.Post("/riwayat-pekerjaan/sync-all", controller.BatchSyncAllRwyPekerjaan)
 
-	// Public routes
-	public := app.Group("/public")
+	// Public routes (no auth required)
+	rwyPekerjaanGroup := app.Group("/riwayat-pekerjaan")
 
 	// Stats route (must be before /:id to avoid conflict)
-	public.Get("/riwayat-pekerjaan/stats", controller.GetRwyPekerjaanStats)
+	rwyPekerjaanGroup.Get("/stats", controller.GetRwyPekerjaanStats)
 
 	// List route (must be before /:id to avoid conflict)
-	public.Get("/riwayat-pekerjaan/list", controller.GetRwyPekerjaanList)
+	rwyPekerjaanGroup.Get("/list", controller.GetRwyPekerjaanList)
 
 	// Detail route
-	public.Get("/riwayat-pekerjaan/:id", controller.GetRwyPekerjaanDetail)
+	rwyPekerjaanGroup.Get("/:id", controller.GetRwyPekerjaanDetail)
 
 	return service
 }
