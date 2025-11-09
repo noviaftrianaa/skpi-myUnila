@@ -80,8 +80,16 @@ class AuthService
         // Get active role
         $activeRole = $this->userRepo->getActiveRole($user->id_pengguna);
 
-        // Get user detail
-        $userDetail = $this->userRepo->getUserDetail($user->id_pengguna);
+        // Get user detail (optional - skip if query is too slow to avoid timeout)
+        try {
+            $userDetail = $this->userRepo->getUserDetail($user->id_pengguna);
+        } catch (\Exception $e) {
+            Log::warning('getUserDetail query timeout, using basic user info', [
+                'user_id' => $user->id_pengguna,
+                'error' => $e->getMessage()
+            ]);
+            $userDetail = null;
+        }
 
         // Generate tokens (access + refresh)
         $tokens = $this->tokenService->generateTokensFromArray(
@@ -174,8 +182,16 @@ class AuthService
         // Get active role
         $activeRole = $this->userRepo->getActiveRole($user->id_pengguna);
 
-        // Get user detail
-        $userDetail = $this->userRepo->getUserDetail($user->id_pengguna);
+        // Get user detail (optional - skip if query is too slow to avoid timeout)
+        try {
+            $userDetail = $this->userRepo->getUserDetail($user->id_pengguna);
+        } catch (\Exception $e) {
+            Log::warning('getUserDetail query timeout, using basic user info', [
+                'user_id' => $user->id_pengguna,
+                'error' => $e->getMessage()
+            ]);
+            $userDetail = null;
+        }
 
         // Generate tokens (access + refresh)
         $tokens = $this->tokenService->generateTokensFromArray(
