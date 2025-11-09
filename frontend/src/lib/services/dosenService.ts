@@ -302,9 +302,8 @@ export const sisterDosenService = {
    * Note: This endpoint is registered WITHOUT /public prefix and WITHOUT auth middleware
    */
   async getPhoto(idSDM: string): Promise<Blob> {
-    // Strip /public suffix from SISTER_API_URL if present
-    const SISTER_BASE_URL = (process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:9800/sister-service/public')
-      .replace(/\/public$/, '');
+    // Use SISTER_API_URL directly - endpoint is /dosen/photo/:id (no /public prefix)
+    const SISTER_BASE_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:9800/sister-service';
     const response = await axios.get(`${SISTER_BASE_URL}/dosen/photo/${idSDM}`, {
       responseType: 'blob'
     });
