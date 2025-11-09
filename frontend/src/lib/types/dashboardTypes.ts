@@ -174,6 +174,7 @@ export interface StatisticsResponse {
  */
 export interface ProgramStudi {
   id: string;
+  encrypted_id?: string; // Encrypted ID for secure links
   kode: string;
   nama: string;
   status: string;

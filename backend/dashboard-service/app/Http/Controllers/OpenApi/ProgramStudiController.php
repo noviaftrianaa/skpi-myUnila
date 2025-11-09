@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\ProgramStudiService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Crypt;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(
@@ -551,19 +552,11 @@ class ProgramStudiController extends Controller
     public function show(string $id, Request $request): JsonResponse
     {
         try {
-            // Decode base64 ID
-            $decodedId = base64_decode($id);
-
-            // Validate if it's a valid GUID format
-            if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $decodedId)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid program studi ID format',
-                ], 400);
-            }
+            // Decrypt ID
+            $decryptedId = Crypt::decryptString($id);
 
             $periode = $request->get('periode');
-            $detail = $this->programStudiService->getProgramStudiDetail($decodedId, $periode);
+            $detail = $this->programStudiService->getProgramStudiDetail($decryptedId, $periode);
 
             if (!$detail) {
                 return response()->json([
@@ -580,9 +573,8 @@ class ProgramStudiController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to retrieve program studi detail',
-                'error' => $e->getMessage(),
-            ], 500);
+                'message' => 'Invalid ID',
+            ], 400);
         }
     }
 
@@ -668,18 +660,10 @@ class ProgramStudiController extends Controller
     public function dosen(string $id): JsonResponse
     {
         try {
-            // Decode base64 ID
-            $decodedId = base64_decode($id);
+            // Decrypt ID
+            $decryptedId = Crypt::decryptString($id);
 
-            // Validate if it's a valid GUID format
-            if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $decodedId)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid program studi ID format',
-                ], 400);
-            }
-
-            $dosenList = $this->programStudiService->getDosenByProgramStudi($decodedId);
+            $dosenList = $this->programStudiService->getDosenByProgramStudi($decryptedId);
 
             return response()->json([
                 'success' => true,
@@ -689,9 +673,8 @@ class ProgramStudiController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to retrieve dosen list',
-                'error' => $e->getMessage(),
-            ], 500);
+                'message' => 'Invalid ID',
+            ], 400);
         }
     }
 
@@ -749,18 +732,10 @@ class ProgramStudiController extends Controller
     public function mahasiswaTrend(string $id): JsonResponse
     {
         try {
-            // Decode base64 ID
-            $decodedId = base64_decode($id);
+            // Decrypt ID
+            $decryptedId = Crypt::decryptString($id);
 
-            // Validate if it's a valid GUID format
-            if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $decodedId)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid program studi ID format',
-                ], 400);
-            }
-
-            $trendData = $this->programStudiService->getMahasiswaTrendByProgramStudi($decodedId);
+            $trendData = $this->programStudiService->getMahasiswaTrendByProgramStudi($decryptedId);
 
             return response()->json([
                 'success' => true,
@@ -770,9 +745,8 @@ class ProgramStudiController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to retrieve mahasiswa trend',
-                'error' => $e->getMessage(),
-            ], 500);
+                'message' => 'Invalid ID',
+            ], 400);
         }
     }
 
@@ -859,18 +833,10 @@ class ProgramStudiController extends Controller
     public function kurikulum(string $id): JsonResponse
     {
         try {
-            // Decode base64 ID
-            $decodedId = base64_decode($id);
+            // Decrypt ID
+            $decryptedId = Crypt::decryptString($id);
 
-            // Validate if it's a valid GUID format
-            if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $decodedId)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid program studi ID format',
-                ], 400);
-            }
-
-            $kurikulumList = $this->programStudiService->getKurikulumByProgramStudi($decodedId);
+            $kurikulumList = $this->programStudiService->getKurikulumByProgramStudi($decryptedId);
 
             return response()->json([
                 'success' => true,
@@ -880,9 +846,8 @@ class ProgramStudiController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to retrieve kurikulum list',
-                'error' => $e->getMessage(),
-            ], 500);
+                'message' => 'Invalid ID',
+            ], 400);
         }
     }
 
@@ -1070,18 +1035,10 @@ class ProgramStudiController extends Controller
     public function tracerStudy(string $id): JsonResponse
     {
         try {
-            // Decode base64 ID
-            $decodedId = base64_decode($id);
+            // Decrypt ID
+            $decryptedId = Crypt::decryptString($id);
 
-            // Validate if it's a valid GUID format
-            if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $decodedId)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid program studi ID format',
-                ], 400);
-            }
-
-            $tracerData = $this->programStudiService->getTracerStudyData($decodedId);
+            $tracerData = $this->programStudiService->getTracerStudyData($decryptedId);
 
             return response()->json([
                 'success' => true,
@@ -1091,9 +1048,8 @@ class ProgramStudiController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to retrieve tracer study data',
-                'error' => $e->getMessage(),
-            ], 500);
+                'message' => 'Invalid ID',
+            ], 400);
         }
     }
 }

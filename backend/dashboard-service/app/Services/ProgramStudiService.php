@@ -44,7 +44,8 @@ class ProgramStudiService
             // Process data
             $processedData = $data->map(function ($item) {
                 return [
-                    'id' => base64_encode($item->id_sms), // Encrypted ID
+                    'id' => $item->id_sms, // Keep original ID for compatibility
+                    'encrypted_id' => Crypt::encryptString($item->id_sms), // Encrypted ID for links
                     'kode' => $item->kode_prodi,
                     'nama' => $item->nm_lemb,
                     'status' => $item->stat_prodi === 'A' ? 'Aktif' : 'Tidak Aktif',
@@ -177,7 +178,7 @@ class ProgramStudiService
             $totalMahasiswa = (int) $detail->total_mahasiswa;
 
             // Encrypt ID untuk keamanan
-            $encryptedId = base64_encode($detail->id_sms);
+            $encryptedId = Crypt::encryptString($detail->id_sms);
 
             return [
                 'id' => $encryptedId,
@@ -191,11 +192,11 @@ class ProgramStudiService
                 'akreditasi' => $detail->akreditasi ?? 'Belum Akreditasi',
                 'organisasi' => [
                     'fakultas' => [
-                        'id' => $detail->id_fakultas ? base64_encode($detail->id_fakultas) : null,
+                        'id' => $detail->id_fakultas ? Crypt::encryptString($detail->id_fakultas) : null,
                         'nama' => $detail->fakultas,
                     ],
                     'jurusan' => [
-                        'id' => $detail->id_jurusan ? base64_encode($detail->id_jurusan) : null,
+                        'id' => $detail->id_jurusan ? Crypt::encryptString($detail->id_jurusan) : null,
                         'nama' => $detail->jurusan,
                     ],
                 ],

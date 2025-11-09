@@ -103,7 +103,7 @@ export default function ProgramStudiTable() {
       sortable: true,
       render: (item) => (
         <Link
-          href={`/program-studi/detail/${item.id}`}
+          href={`/program-studi/detail/${item.encrypted_id || item.id}`}
           className="font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
         >
           {item.nama}

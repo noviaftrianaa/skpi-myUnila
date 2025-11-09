@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\SearchService;
+use App\Services\MeilisearchService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -11,7 +11,7 @@ class SearchController extends Controller
 {
     protected $searchService;
 
-    public function __construct(SearchService $searchService)
+    public function __construct(MeilisearchService $searchService)
     {
         $this->searchService = $searchService;
     }

@@ -20,7 +20,8 @@
       "Bash(docker-compose stop:*)",
       "Bash(docker-compose build:*)",
       "Bash(docker-compose logs:*)",
-      "Bash(docker-compose restart:*)"
+      "Bash(docker-compose restart:*)",
+      "Bash(git log:*)"
     ],
     "deny": [],
     "ask": []

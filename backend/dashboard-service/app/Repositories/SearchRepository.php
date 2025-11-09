@@ -25,14 +25,18 @@ class SearchRepository
      */
     public function searchMahasiswa(string $query, int $limit = 10): array
     {
+        // Escape single quotes for SQL Server
+        $escapedQuery = str_replace("'", "''", $query);
+
         $sql = "
-            SELECT TOP (?)
+            SELECT TOP ({$limit})
                 pd.id_pd,
                 pd.nm_pd AS nama,
                 reg.nipd AS nim,
                 sms.nm_lemb AS prodi,
                 jenj.nm_jenj_didik AS jenjang,
                 CASE
+                    WHEN CAST(reg.id_jns_keluar AS VARCHAR(10)) = '1' THEN 'Lulus'
                     WHEN pd.id_stat_mhs = 'A' AND kmh.id_stat_mhs = 'A' THEN 'Aktif'
                     ELSE 'Tidak Aktif'
                 END AS status,
@@ -44,7 +48,7 @@ class SearchRepository
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = reg.id_sms
                 AND sms.soft_delete = 0
-                AND CAST(sms.id_sp AS VARCHAR(50)) = ?
+                AND sms.id_sp = '{$this->unilaIdSp}'
             INNER JOIN ref.jenjang_pendidikan AS jenj
                 ON jenj.id_jenj_didik = sms.id_jenj_didik
                 AND jenj.expired_date IS NULL
@@ -52,7 +56,7 @@ class SearchRepository
                 ON kmh.id_reg_pd = reg.id_reg_pd
                 AND kmh.soft_delete = 0
                 AND kmh.id_smt = (
-                    SELECT TOP 1 id_smt
+                    SELECT TOP 1 CAST(id_smt AS VARCHAR(10))
                     FROM ref.semester
                     WHERE expired_date IS NULL
                     AND a_periode_aktif = 1
@@ -60,21 +64,14 @@ class SearchRepository
                 )
             WHERE pd.soft_delete = 0
                 AND (
-                    pd.nm_pd LIKE ?
-                    OR reg.nipd LIKE ?
-                    OR sms.nm_lemb LIKE ?
+                    pd.nm_pd LIKE '%{$escapedQuery}%'
+                    OR reg.nipd LIKE '%{$escapedQuery}%'
+                    OR sms.nm_lemb LIKE '%{$escapedQuery}%'
                 )
             ORDER BY pd.nm_pd
         ";
 
-        $searchPattern = '%' . $query . '%';
-        return DB::connection('sqlsrv')->select($sql, [
-            $limit,
-            $this->unilaIdSp,
-            $searchPattern,
-            $searchPattern,
-            $searchPattern
-        ]);
+        return DB::connection('sqlsrv')->select($sql);
     }
 
     /**
@@ -86,8 +83,11 @@ class SearchRepository
      */
     public function searchDosen(string $query, int $limit = 10): array
     {
+        // Escape single quotes for SQL Server
+        $escapedQuery = str_replace("'", "''", $query);
+
         $sql = "
-            SELECT TOP (?)
+            SELECT TOP ({$limit})
                 sdm.id_sdm,
                 sdm.nm_sdm AS nama,
                 sdm.nidn,
@@ -101,12 +101,12 @@ class SearchRepository
                 ON ptk.id_sdm = sdm.id_sdm
                 AND ptk.soft_delete = 0
                 AND ptk.id_jns_keluar IS NULL
-                AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+                AND ptk.id_sp = '{$this->unilaIdSp}'
             INNER JOIN pdrd.keaktifan_ptk AS keaktifan
                 ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
                 AND keaktifan.soft_delete = 0
                 AND keaktifan.a_sp_homebase = 1
-                AND keaktifan.id_thn_ajaran = ?
+                AND keaktifan.id_thn_ajaran = '{$this->tahunAjaran}'
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = ptk.id_sms
                 AND sms.soft_delete = 0
@@ -127,24 +127,15 @@ class SearchRepository
             WHERE sdm.soft_delete = 0
                 AND sdm.id_jns_sdm = '12'
                 AND (
-                    sdm.nm_sdm LIKE ?
-                    OR sdm.nidn LIKE ?
-                    OR sdm.nip LIKE ?
-                    OR sms.nm_lemb LIKE ?
+                    sdm.nm_sdm LIKE '%{$escapedQuery}%'
+                    OR sdm.nidn LIKE '%{$escapedQuery}%'
+                    OR sdm.nip LIKE '%{$escapedQuery}%'
+                    OR sms.nm_lemb LIKE '%{$escapedQuery}%'
                 )
             ORDER BY sdm.nm_sdm
         ";
 
-        $searchPattern = '%' . $query . '%';
-        return DB::connection('sqlsrv')->select($sql, [
-            $limit,
-            $this->unilaIdSp,
-            $this->tahunAjaran,
-            $searchPattern,
-            $searchPattern,
-            $searchPattern,
-            $searchPattern
-        ]);
+        return DB::connection('sqlsrv')->select($sql);
     }
 
     /**
@@ -156,8 +147,11 @@ class SearchRepository
      */
     public function searchProdi(string $query, int $limit = 10): array
     {
+        // Escape single quotes for SQL Server
+        $escapedQuery = str_replace("'", "''", $query);
+
         $sql = "
-            SELECT TOP (?)
+            SELECT TOP ({$limit})
                 sms.id_sms,
                 sms.nm_lemb AS nama_prodi,
                 jenj.nm_jenj_didik AS jenjang,
@@ -176,11 +170,13 @@ class SearchRepository
                 AND pd.soft_delete = 0
                 AND pd.id_stat_mhs = 'A'
             WHERE sms.soft_delete = 0
-                AND CAST(sms.id_sp AS VARCHAR(50)) = ?
+                AND sms.id_sp = '{$this->unilaIdSp}'
+                AND sms.id_jns_sms = '3'
+                AND sms.stat_prodi = 'A'
                 AND (
-                    sms.nm_lemb LIKE ?
-                    OR sms.kode_prodi LIKE ?
-                    OR jenj.nm_jenj_didik LIKE ?
+                    sms.nm_lemb LIKE '%{$escapedQuery}%'
+                    OR sms.kode_prodi LIKE '%{$escapedQuery}%'
+                    OR jenj.nm_jenj_didik LIKE '%{$escapedQuery}%'
                 )
             GROUP BY
                 sms.id_sms,
@@ -191,14 +187,7 @@ class SearchRepository
             ORDER BY sms.nm_lemb
         ";
 
-        $searchPattern = '%' . $query . '%';
-        return DB::connection('sqlsrv')->select($sql, [
-            $limit,
-            $this->unilaIdSp,
-            $searchPattern,
-            $searchPattern,
-            $searchPattern
-        ]);
+        return DB::connection('sqlsrv')->select($sql);
     }
 
     /**
@@ -210,32 +199,31 @@ class SearchRepository
      */
     public function searchPenelitian(string $query, int $limit = 10): array
     {
+        // Escape single quotes for SQL Server
+        $escapedQuery = str_replace("'", "''", $query);
+
         $sql = "
-            SELECT TOP (?)
-                penelitian.id_penelitian,
-                penelitian.judul,
-                penelitian.tahun_usulan AS tahun,
-                penelitian.skim,
-                sdm.nm_sdm AS ketua_peneliti,
-                COALESCE(bidang.nm_bidang_ilmu, 'Tidak Ada') AS bidang_ilmu
-            FROM penelitian
-            LEFT JOIN sdm ON sdm.id_sdm = penelitian.id_sdm
-            LEFT JOIN bidang_ilmu AS bidang ON bidang.id_bidang_ilmu = penelitian.id_bidang_ilmu
-            WHERE (
-                penelitian.judul LIKE ?
-                OR sdm.nm_sdm LIKE ?
-                OR penelitian.skim LIKE ?
-            )
-            ORDER BY penelitian.tahun_usulan DESC
+            SELECT TOP ({$limit})
+                l.id_litabmas AS id_penelitian,
+                l.judul_litabmas AS judul,
+                l.id_thn_kegiatan AS tahun,
+                COALESCE(sk.nm_skim, 'Lainnya') AS skim,
+                '' AS ketua_peneliti,
+                'Tidak Ada' AS bidang_ilmu
+            FROM pdrd.litabmas AS l
+            LEFT JOIN ref.skim_kegiatan AS sk
+                ON sk.id_skim = l.id_skim
+                AND sk.expired_date IS NULL
+            WHERE l.soft_delete = 0
+                AND l.jns_litabmas = 'L'
+                AND (
+                    l.judul_litabmas LIKE '%{$escapedQuery}%'
+                    OR sk.nm_skim LIKE '%{$escapedQuery}%'
+                )
+            ORDER BY l.id_thn_kegiatan DESC
         ";
 
-        $searchPattern = '%' . $query . '%';
-        return DB::connection('sister')->select($sql, [
-            $limit,
-            $searchPattern,
-            $searchPattern,
-            $searchPattern
-        ]);
+        return DB::connection('sqlsrv')->select($sql);
     }
 
     /**
@@ -247,31 +235,30 @@ class SearchRepository
      */
     public function searchPublikasi(string $query, int $limit = 10): array
     {
+        // Escape single quotes for SQL Server
+        $escapedQuery = str_replace("'", "''", $query);
+
         $sql = "
-            SELECT TOP (?)
-                publikasi.id_publikasi,
-                publikasi.judul,
-                publikasi.tahun,
-                publikasi.jenis_publikasi,
-                publikasi.penerbit,
-                sdm.nm_sdm AS penulis_utama
-            FROM publikasi
-            LEFT JOIN sdm ON sdm.id_sdm = publikasi.id_sdm
-            WHERE (
-                publikasi.judul LIKE ?
-                OR sdm.nm_sdm LIKE ?
-                OR publikasi.penerbit LIKE ?
-            )
-            ORDER BY publikasi.tahun DESC
+            SELECT TOP ({$limit})
+                p.id_publikasi,
+                p.judul,
+                YEAR(p.tgl_terbit) AS tahun,
+                COALESCE(jp.nm_jns_pub, 'Lainnya') AS jenis_publikasi,
+                p.penerbit,
+                '' AS penulis_utama
+            FROM pdrd.publikasi AS p
+            LEFT JOIN ref.jenis_publikasi AS jp
+                ON jp.id_jns_pub = p.id_jns_pub
+                AND jp.expired_date IS NULL
+            WHERE p.soft_delete = 0
+                AND (
+                    p.judul LIKE '%{$escapedQuery}%'
+                    OR p.penerbit LIKE '%{$escapedQuery}%'
+                )
+            ORDER BY p.tgl_terbit DESC
         ";
 
-        $searchPattern = '%' . $query . '%';
-        return DB::connection('sister')->select($sql, [
-            $limit,
-            $searchPattern,
-            $searchPattern,
-            $searchPattern
-        ]);
+        return DB::connection('sqlsrv')->select($sql);
     }
 
     /**
@@ -283,32 +270,31 @@ class SearchRepository
      */
     public function searchPengabdian(string $query, int $limit = 10): array
     {
+        // Escape single quotes for SQL Server
+        $escapedQuery = str_replace("'", "''", $query);
+
         $sql = "
-            SELECT TOP (?)
-                pengabdian.id_pengabdian,
-                pengabdian.judul,
-                pengabdian.tahun_usulan AS tahun,
-                pengabdian.skim,
-                sdm.nm_sdm AS ketua_pengabdi,
-                COALESCE(bidang.nm_bidang_ilmu, 'Tidak Ada') AS bidang_ilmu
-            FROM pengabdian
-            LEFT JOIN sdm ON sdm.id_sdm = pengabdian.id_sdm
-            LEFT JOIN bidang_ilmu AS bidang ON bidang.id_bidang_ilmu = pengabdian.id_bidang_ilmu
-            WHERE (
-                pengabdian.judul LIKE ?
-                OR sdm.nm_sdm LIKE ?
-                OR pengabdian.skim LIKE ?
-            )
-            ORDER BY pengabdian.tahun_usulan DESC
+            SELECT TOP ({$limit})
+                l.id_litabmas AS id_pengabdian,
+                l.judul_litabmas AS judul,
+                l.id_thn_kegiatan AS tahun,
+                COALESCE(sk.nm_skim, 'Lainnya') AS skim,
+                '' AS ketua_pengabdi,
+                'Tidak Ada' AS bidang_ilmu
+            FROM pdrd.litabmas AS l
+            LEFT JOIN ref.skim_kegiatan AS sk
+                ON sk.id_skim = l.id_skim
+                AND sk.expired_date IS NULL
+            WHERE l.soft_delete = 0
+                AND l.jns_litabmas = 'M'
+                AND (
+                    l.judul_litabmas LIKE '%{$escapedQuery}%'
+                    OR sk.nm_skim LIKE '%{$escapedQuery}%'
+                )
+            ORDER BY l.id_thn_kegiatan DESC
         ";
 
-        $searchPattern = '%' . $query . '%';
-        return DB::connection('sister')->select($sql, [
-            $limit,
-            $searchPattern,
-            $searchPattern,
-            $searchPattern
-        ]);
+        return DB::connection('sqlsrv')->select($sql);
     }
 
     /**
@@ -321,10 +307,13 @@ class SearchRepository
      */
     public function searchBidangIlmu(string $query, int $limit = 10): array
     {
+        // Escape single quotes for SQL Server
+        $escapedQuery = str_replace("'", "''", $query);
+
         // For now, just search dosen by name as fallback
         // TODO: Integrate with sister database when bidang ilmu sync is ready
         $sql = "
-            SELECT TOP (?)
+            SELECT TOP ({$limit})
                 sdm.id_sdm,
                 sdm.nm_sdm AS nama,
                 sdm.nidn,
@@ -339,12 +328,12 @@ class SearchRepository
                 ON ptk.id_sdm = sdm.id_sdm
                 AND ptk.soft_delete = 0
                 AND ptk.id_jns_keluar IS NULL
-                AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+                AND ptk.id_sp = '{$this->unilaIdSp}'
             INNER JOIN pdrd.keaktifan_ptk AS keaktifan
                 ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
                 AND keaktifan.soft_delete = 0
                 AND keaktifan.a_sp_homebase = 1
-                AND keaktifan.id_thn_ajaran = ?
+                AND keaktifan.id_thn_ajaran = '{$this->tahunAjaran}'
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = ptk.id_sms
                 AND sms.soft_delete = 0
@@ -365,19 +354,12 @@ class SearchRepository
             WHERE sdm.soft_delete = 0
                 AND sdm.id_jns_sdm = '12'
                 AND (
-                    sdm.nm_sdm LIKE ?
-                    OR sms.nm_lemb LIKE ?
+                    sdm.nm_sdm LIKE '%{$escapedQuery}%'
+                    OR sms.nm_lemb LIKE '%{$escapedQuery}%'
                 )
             ORDER BY sdm.nm_sdm
         ";
 
-        $searchPattern = '%' . $query . '%';
-        return DB::connection('sqlsrv')->select($sql, [
-            $limit,
-            $this->unilaIdSp,
-            $this->tahunAjaran,
-            $searchPattern,
-            $searchPattern
-        ]);
+        return DB::connection('sqlsrv')->select($sql);
     }
 }

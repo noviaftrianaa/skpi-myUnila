@@ -11,6 +11,7 @@ use App\Http\Controllers\OpenApi\MahasiswaSebaranController;
 use App\Http\Controllers\OpenApi\DosenController;
 use App\Http\Controllers\OpenApi\DosenProfileController;
 use App\Http\Controllers\OpenApi\DosenSebaranController;
+use App\Http\Controllers\OpenApi\MahasiswaProfileController;
 use App\Http\Controllers\OpenApi\PublikasiController;
 use App\Http\Controllers\OpenApi\PublikasiSebaranController;
 use App\Http\Controllers\OpenApi\PenelitianController;
@@ -90,6 +91,11 @@ Route::prefix('v1')->group(function () {
         Route::get('/fakultas', [MahasiswaSebaranController::class, 'getSebaranByFakultas']);
         Route::get('/fakultas/{id_fakultas}/prodi', [MahasiswaSebaranController::class, 'getSebaranByProdiInFakultas']);
         Route::get('/statistics', [MahasiswaSebaranController::class, 'getSebaranStatistics']);
+    });
+
+    // Mahasiswa Profile
+    Route::prefix('mahasiswa')->group(function () {
+        Route::get('/{id}', [MahasiswaProfileController::class, 'show']);
     });
 
     // Dosen

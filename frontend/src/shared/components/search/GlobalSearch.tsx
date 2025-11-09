@@ -15,7 +15,7 @@ import {
   ModalContent,
   ModalBody,
 } from "@heroui/react";
-import { getSearchSuggestions } from "@/lib/services/searchService";
+import { getSearchSuggestions, globalSearch } from "@/lib/services/searchService";
 
 // Search category type
 export type SearchCategory =
@@ -132,70 +132,203 @@ export default function GlobalSearch({ variant = "button", className = "" }: Glo
     setIsLoading(true);
 
     try {
-      const response = await getSearchSuggestions(searchQuery, 5);
-
-      if (!response.success) {
-        setSuggestions([]);
-        return;
-      }
-
-      // Transform API results to SearchSuggestion format
-      const allSuggestions: SearchSuggestion[] = [];
-
-      // Mahasiswa suggestions
-      if (response.data.suggestions.mahasiswa) {
-        response.data.suggestions.mahasiswa.forEach((item) => {
-          allSuggestions.push({
-            id: item.id,
-            title: item.nama || '',
-            subtitle: `${item.nim} - ${item.prodi}`,
-            category: 'mahasiswa',
-            url: `/mahasiswa/${item.id}`,
-            metadata: {
-              badge: item.status,
-            },
-          });
+      // For penelitian, publikasi, pengabdian - use globalSearch API
+      if (searchCategory === 'penelitian' || searchCategory === 'publikasi' || searchCategory === 'pengabdian' || searchCategory === 'all' || searchCategory === 'bidang-ilmu') {
+        const response = await globalSearch(searchQuery, {
+          category: searchCategory === 'all' ? undefined : searchCategory,
+          limit: 5
         });
-      }
 
-      // Dosen suggestions
-      if (response.data.suggestions.dosen) {
-        response.data.suggestions.dosen.forEach((item) => {
-          allSuggestions.push({
-            id: item.id,
-            title: item.nama || '',
-            subtitle: `${item.jabatan_fungsional} - ${item.prodi_homebase}`,
-            category: 'dosen',
-            url: `/dosen/${item.encrypted_id || item.id}`,
-            metadata: {
-              badge: item.jabatan_fungsional,
-            },
+        if (!response.success) {
+          setSuggestions([]);
+          return;
+        }
+
+        // Transform API results to SearchSuggestion format
+        const allSuggestions: SearchSuggestion[] = [];
+
+        // Mahasiswa
+        if (response.data.results.mahasiswa) {
+          response.data.results.mahasiswa.forEach((item) => {
+            allSuggestions.push({
+              id: item.id,
+              title: item.nama || '',
+              subtitle: `${item.nim} - ${item.prodi}`,
+              category: 'mahasiswa',
+              url: `/mahasiswa/${item.encrypted_id || item.id}`,
+              metadata: {
+                badge: item.status,
+              },
+            });
           });
-        });
-      }
+        }
 
-      // Prodi suggestions
-      if (response.data.suggestions.prodi) {
-        response.data.suggestions.prodi.forEach((item) => {
-          allSuggestions.push({
-            id: item.id,
-            title: item.nama_prodi || '',
-            subtitle: `${item.jenjang} - ${item.kode_prodi}`,
-            category: 'prodi',
-            url: `/prodi/${item.id}`,
-            metadata: {
-              badge: `${item.jumlah_mahasiswa} Mahasiswa`,
-            },
+        // Dosen
+        if (response.data.results.dosen) {
+          response.data.results.dosen.forEach((item) => {
+            allSuggestions.push({
+              id: item.id,
+              title: item.nama || '',
+              subtitle: `${item.jabatan_fungsional} - ${item.prodi_homebase}`,
+              category: 'dosen',
+              url: `/dosen/${item.encrypted_id || item.id}`,
+              metadata: {
+                badge: item.jabatan_fungsional,
+              },
+            });
           });
-        });
+        }
+
+        // Prodi
+        if (response.data.results.prodi) {
+          response.data.results.prodi.forEach((item) => {
+            allSuggestions.push({
+              id: item.id,
+              title: item.nama_prodi || '',
+              subtitle: `${item.jenjang} - ${item.kode_prodi}`,
+              category: 'prodi',
+              url: `/program-studi/detail/${item.encrypted_id || item.id}`,
+              metadata: {
+                badge: `${item.jumlah_mahasiswa} Mahasiswa`,
+              },
+            });
+          });
+        }
+
+        // Penelitian
+        if (response.data.results.penelitian) {
+          response.data.results.penelitian.forEach((item) => {
+            allSuggestions.push({
+              id: item.id,
+              title: item.judul || '',
+              subtitle: `${item.skim} - ${item.tahun}`,
+              category: 'penelitian',
+              url: `/penelitian/${item.id}`,
+              metadata: {
+                badge: item.skim,
+                year: parseInt(item.tahun || '0'),
+              },
+            });
+          });
+        }
+
+        // Publikasi
+        if (response.data.results.publikasi) {
+          response.data.results.publikasi.forEach((item) => {
+            allSuggestions.push({
+              id: item.id,
+              title: item.judul || '',
+              subtitle: `${item.jenis_publikasi} - ${item.tahun}`,
+              category: 'publikasi',
+              url: `/publikasi/${item.id}`,
+              metadata: {
+                badge: item.jenis_publikasi,
+                year: parseInt(item.tahun || '0'),
+              },
+            });
+          });
+        }
+
+        // Pengabdian
+        if (response.data.results.pengabdian) {
+          response.data.results.pengabdian.forEach((item) => {
+            allSuggestions.push({
+              id: item.id,
+              title: item.judul || '',
+              subtitle: `${item.skim} - ${item.tahun}`,
+              category: 'pengabdian',
+              url: `/pengabdian/${item.id}`,
+              metadata: {
+                badge: item.skim,
+                year: parseInt(item.tahun || '0'),
+              },
+            });
+          });
+        }
+
+        // Bidang Ilmu
+        if (response.data.results['bidang-ilmu']) {
+          response.data.results['bidang-ilmu'].forEach((item) => {
+            allSuggestions.push({
+              id: item.id,
+              title: item.nama || '',
+              subtitle: `${item.jabatan_fungsional} - ${item.prodi_homebase}`,
+              category: 'bidang-ilmu',
+              url: `/dosen/${item.encrypted_id || item.id}`,
+              metadata: {
+                badge: item.bidang_ilmu,
+              },
+            });
+          });
+        }
+
+        setSuggestions(allSuggestions);
+      } else {
+        // For mahasiswa, dosen, prodi only - use suggestions API (faster)
+        const response = await getSearchSuggestions(searchQuery, 5);
+
+        if (!response.success) {
+          setSuggestions([]);
+          return;
+        }
+
+        const allSuggestions: SearchSuggestion[] = [];
+
+        // Mahasiswa suggestions
+        if (response.data.suggestions.mahasiswa) {
+          response.data.suggestions.mahasiswa.forEach((item) => {
+            allSuggestions.push({
+              id: item.id,
+              title: item.nama || '',
+              subtitle: `${item.nim} - ${item.prodi}`,
+              category: 'mahasiswa',
+              url: `/mahasiswa/${item.encrypted_id || item.id}`,
+              metadata: {
+                badge: item.status,
+              },
+            });
+          });
+        }
+
+        // Dosen suggestions
+        if (response.data.suggestions.dosen) {
+          response.data.suggestions.dosen.forEach((item) => {
+            allSuggestions.push({
+              id: item.id,
+              title: item.nama || '',
+              subtitle: `${item.jabatan_fungsional} - ${item.prodi_homebase}`,
+              category: 'dosen',
+              url: `/dosen/${item.encrypted_id || item.id}`,
+              metadata: {
+                badge: item.jabatan_fungsional,
+              },
+            });
+          });
+        }
+
+        // Prodi suggestions
+        if (response.data.suggestions.prodi) {
+          response.data.suggestions.prodi.forEach((item) => {
+            allSuggestions.push({
+              id: item.id,
+              title: item.nama_prodi || '',
+              subtitle: `${item.jenjang} - ${item.kode_prodi}`,
+              category: 'prodi',
+              url: `/program-studi/detail/${item.encrypted_id || item.id}`,
+              metadata: {
+                badge: `${item.jumlah_mahasiswa} Mahasiswa`,
+              },
+            });
+          });
+        }
+
+        // Filter by category if not "all"
+        const filtered = searchCategory === "all"
+          ? allSuggestions
+          : allSuggestions.filter((s) => s.category === searchCategory);
+
+        setSuggestions(filtered);
       }
-
-      // Filter by category if not "all"
-      const filtered = searchCategory === "all"
-        ? allSuggestions
-        : allSuggestions.filter((s) => s.category === searchCategory);
-
-      setSuggestions(filtered);
     } catch (error) {
       console.error("Failed to fetch suggestions:", error);
       setSuggestions([]);
@@ -484,11 +617,6 @@ export default function GlobalSearch({ variant = "button", className = "" }: Glo
                             <p className="text-sm sm:text-base font-bold text-gray-900 truncate">
                               {suggestion.title}
                             </p>
-                            {suggestion.metadata?.badge && (
-                              <span className="hidden sm:inline-flex px-2 py-0.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded border border-blue-200">
-                                {suggestion.metadata.badge}
-                              </span>
-                            )}
                           </div>
                           {suggestion.subtitle && (
                             <p className="text-xs sm:text-sm text-gray-500 truncate">
