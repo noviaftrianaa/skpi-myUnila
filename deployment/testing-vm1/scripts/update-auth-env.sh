@@ -179,6 +179,15 @@ else
     echo "AUTH_APP_DEBUG=false" >> "$ENV_FILE"
 fi
 
+# Update AUTH_APLIKASI_ID (for login logging)
+if grep -q "^AUTH_APLIKASI_ID=" "$ENV_FILE"; then
+    sed -i "s|^AUTH_APLIKASI_ID=.*|AUTH_APLIKASI_ID=1|" "$ENV_FILE"
+    log_info "✓ Updated AUTH_APLIKASI_ID=1"
+else
+    echo "AUTH_APLIKASI_ID=1" >> "$ENV_FILE"
+    log_info "✓ Added AUTH_APLIKASI_ID=1"
+fi
+
 # Update JWT_SECRET
 if grep -q "^JWT_SECRET=" "$ENV_FILE"; then
     sed -i "s|^JWT_SECRET=.*|JWT_SECRET=$JWT_SECRET|" "$ENV_FILE"
