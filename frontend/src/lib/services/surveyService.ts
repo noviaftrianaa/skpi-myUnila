@@ -78,7 +78,7 @@ export interface QuestionAnalytics {
  * Get survey by slug with all questions
  */
 export async function getSurvey(slug: string): Promise<Survey> {
-  const response = await fetch(`${API_BASE_URL}/survey/${slug}`, {
+  const response = await fetch(`${API_URL}/survey/${slug}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -115,7 +115,7 @@ export async function submitSurvey(
       _completion_time: metadata?.completion_time,
     };
 
-    const response = await fetch(`${API_BASE_URL}/survey/${slug}/submit`, {
+    const response = await fetch(`${API_URL}/survey/${slug}/submit`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -144,7 +144,7 @@ export async function submitSurvey(
  * Get survey statistics
  */
 export async function getSurveyStatistics(slug: string): Promise<SurveyStatistics> {
-  const response = await fetch(`${API_BASE_URL}/survey/${slug}/statistics`, {
+  const response = await fetch(`${API_URL}/survey/${slug}/statistics`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -167,7 +167,7 @@ export async function getQuestionAnalytics(
   questionCode: string
 ): Promise<QuestionAnalytics> {
   const response = await fetch(
-    `${API_BASE_URL}/survey/${slug}/analytics/${questionCode}`,
+    `${API_URL}/survey/${slug}/analytics/${questionCode}`,
     {
       method: 'GET',
       headers: {
