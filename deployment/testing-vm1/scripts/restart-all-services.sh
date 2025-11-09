@@ -42,8 +42,11 @@ docker compose -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.dashboard.y
 echo "  → Stopping Kong Gateway..."
 docker compose -f "$DEPLOYMENT_DIR/services/2-gateway/docker-compose.kong.yml" down 2>/dev/null || true
 
+echo "  → Stopping Meilisearch..."
+docker compose -f "$DEPLOYMENT_DIR/services/1-infrastructure/docker-compose.meilisearch.yml" down 2>/dev/null || true
+
 echo "  → Stopping Redis..."
-docker compose -f "$DEPLOYMENT_DIR/services/1-redis/docker-compose.redis.yml" down 2>/dev/null || true
+docker compose -f "$DEPLOYMENT_DIR/services/1-infrastructure/docker-compose.redis.yml" down 2>/dev/null || true
 
 echo ""
 echo -e "${GREEN}✓ All services stopped${NC}"
@@ -54,8 +57,13 @@ echo -e "${YELLOW}[2/2] Starting all services...${NC}"
 echo ""
 
 echo "  → Starting Redis..."
-docker compose -f "$DEPLOYMENT_DIR/services/1-redis/docker-compose.redis.yml" up -d
-echo "     Waiting 5 seconds for Redis to be ready..."
+docker compose -f "$DEPLOYMENT_DIR/services/1-infrastructure/docker-compose.redis.yml" up -d
+echo "     Waiting 3 seconds for Redis to be ready..."
+sleep 3
+
+echo "  → Starting Meilisearch..."
+docker compose -f "$DEPLOYMENT_DIR/services/1-infrastructure/docker-compose.meilisearch.yml" up -d
+echo "     Waiting 5 seconds for Meilisearch to be ready..."
 sleep 5
 
 echo "  → Starting Kong Gateway..."
