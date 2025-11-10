@@ -14,7 +14,7 @@ export interface SearchResult {
   nama?: string;
   nim?: string;
   nidn?: string;
-  nip?: string;
+  nuptk?: string;
   nama_prodi?: string;
   judul?: string;
   prodi?: string;
@@ -119,7 +119,7 @@ export async function searchMahasiswa(query: string, limit: number = 20): Promis
 }
 
 /**
- * Search dosen by name, NIDN, NIP, or prodi
+ * Search dosen by name, NIDN, NUPTK, or prodi
  */
 export async function searchDosen(query: string, limit: number = 20): Promise<CategorySearchResponse> {
   const params = new URLSearchParams({

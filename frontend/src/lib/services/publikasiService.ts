@@ -138,7 +138,7 @@ export interface PenulisPublikasi {
   id_sdm: string;
   nama: string;
   nidn: string;
-  nip: string;
+  nuptk: string;
   jenis_kelamin: string;
   jabatan_fungsional: string;
   prodi: string;

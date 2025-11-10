@@ -40,7 +40,7 @@ export interface Penugasan {
   last_sync?: string;
   // Joined fields from related tables
   nama_dosen?: string;
-  nip?: string;
+  nuptk?: string;
   status_kepegawaian?: string;
   ikatan_kerja?: string;
   homebase?: number;
@@ -143,7 +143,7 @@ export const sisterPenugasanService = {
    * Get paginated list of penugasan with search
    * @param page - Page number (default 1)
    * @param limit - Items per page (default 10)
-   * @param search - Search query (NIDN, NIP, Nama, No Surat)
+   * @param search - Search query (NIDN, NUPTK, Nama, No Surat)
    */
   async getList(page: number = 1, limit: number = 10, search: string = ''): Promise<PenugasanListResult> {
     const response = await sisterClient.get<SisterApiResponse<PenugasanListResult>>(

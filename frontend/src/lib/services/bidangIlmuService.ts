@@ -182,7 +182,7 @@ export interface DosenItem {
   encrypted_id: string;
   nama: string;
   nidn: string;
-  nip: string;
+  nuptk: string;
   jenis_kelamin: string;
   jabatan_fungsional: string;
   prodi: string;
