@@ -39,8 +39,8 @@ use App\Http\Controllers\Main\iku\Iku8Controller as Iku8Controller;
 use App\Http\Controllers\Main\mahasiswa\ProfileMahasiswaController;
 use App\Http\Controllers\Main\mahasiswa\AktivitasMahasiswaController;
 use App\Http\Controllers\Main\ProfilController as MainProfilController;
-use App\Http\Controllers\Main\sdm\DosenController as DosenSMSController;
-use App\Http\Controllers\Main\sdm\TendikController as TendikSMSController;
+use App\Http\Controllers\Main\SDM\DosenController as DosenSMSController;
+use App\Http\Controllers\Main\SDM\TendikController as TendikSMSController;
 use App\Http\Controllers\Main\ProfilPTController as MainProfilPTController;
 use App\Http\Controllers\Main\DashboardController as MainDashboardController;
 use App\Http\Controllers\Main\dosen\JabFungControlller;
@@ -137,7 +137,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/pang_gol/load', action: [PangGolController::class, 'load'])->name('dashboard_dosen.panggol_chart_load');
             Route::post('/pang_gol/reload', action: [PangGolController::class, 'reload'])->name('dashboard_dosen.panggol_chart_reload');
 
-            
+
         });
 
 

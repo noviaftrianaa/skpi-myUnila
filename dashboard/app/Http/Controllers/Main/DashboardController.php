@@ -364,7 +364,53 @@ class DashboardController extends Controller
             }));
             return view('content.main.dashboard_mahasiswa', compact('smt_pilih', 'semester_list', 'judul', 'dashboard_mhs', 'dashboard_mhs_asing', 'dashboard_ipk_mhs', 'dashboard_masa_mukim_mhs', 'semester'));
         } else {
-            //
+            // $sms = Sms::find($unit->id_organisasi);
+            $semester_list = Semester::select('id_smt', 'nm_smt')
+                ->where('tgl_mulai', '<', date('Y-m-d'))
+                ->whereNull('expired_date')
+                ->where('smt', '!=', 3)
+                ->orderBy('id_smt', 'DESC')
+                ->pluck('nm_smt', 'id_smt')
+                ->toArray();
+            $judul = "Universitas Lampung";
+            $level = 'Fakultas';
+            $dashboard_mhs = json_encode(collect(PesertaDidik::dashboard_mahasiswa('rekap_mhs_semester', $smt_pilih, $level, 'pt'))->pipe(function ($collection) {
+                return collect([
+                    'Lulus' => $collection->sum('Lulus'),
+                    'Aktif' => $collection->sum('Aktif'),
+                    'Keluar' => $collection->sum('Keluar'),
+                    'MBKM' => $collection->sum('MBKM'),
+                    'DO' => $collection->sum('DO'),
+                    'NonAktif' => $collection->sum('NonAktif'),
+                    'Cuti' => $collection->sum('Cuti'),
+                ]);
+            }));
+            $dashboard_mhs_asing = json_encode(collect(PesertaDidik::dashboard_mahasiswa('rekap_kewarganegaraan_mhs_semester', $smt_pilih, $level, 'pt'))->pipe(function ($collection) {
+                return collect([
+                    'Indonesia' => $collection->sum('Indonesia'),
+                    'Asing' => $collection->sum('Asing'),
+                ]);
+            }));
+            $dashboard_ipk_mhs = json_encode(collect(PesertaDidik::dashboard_mahasiswa('rekap_ipk_mhs_semester', $smt_pilih, $level, 'pt'))->pipe(function ($collection) {
+                return collect([
+                    'ipk >= 3' => $collection->sum('ipk >= 3'),
+                    '2,5 < ipk < 3' => $collection->sum('2,5 < ipk < 3'),
+                    '2 < ipk < 2,5' => $collection->sum('2 < ipk < 2,5'),
+                    'ipk < 2' => $collection->sum('ipk < 2'),
+                ]);
+            }));
+            $dashboard_masa_mukim_mhs = json_encode(collect(PesertaDidik::dashboard_mahasiswa('rekap_masa_mukim_mhs_semester', $smt_pilih, $level, 'pt'))->pipe(function ($collection) {
+                return collect([
+                    '< 4 Tahun' => $collection->sum('< 4 Tahun'),
+                    '4 < x < 4.25 Tahun' => $collection->sum('4 < x < 4.25 Tahun'),
+                    '4.25 < x < 4.5 Tahun' => $collection->sum('4.25 < x < 4.5 Tahun'),
+                    '4.5 < x < 4.75 Tahun' => $collection->sum('4.5 < x < 4.75 Tahun'),
+                    '4.75 < x < 5 Tahun' => $collection->sum('4.75 < x < 5 Tahun'),
+                    '5 < x < 6 Tahun' => $collection->sum('5 < x < 6 Tahun'),
+                    '> 6 Tahun' => $collection->sum('> 6 Tahun'),
+                ]);
+            }));
+            return view('content.main.dashboard_mahasiswa', compact('smt_pilih', 'semester_list', 'judul', 'dashboard_mhs', 'dashboard_mhs_asing', 'dashboard_ipk_mhs', 'dashboard_masa_mukim_mhs', 'semester'));
         }
     }
 }
