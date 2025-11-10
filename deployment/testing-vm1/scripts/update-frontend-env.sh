@@ -74,12 +74,13 @@ else
 fi
 
 # Update NEXT_PUBLIC_DASHBOARD_API_URL
+# Use /public route in Kong for public endpoints (no JWT required)
 if grep -q "^NEXT_PUBLIC_DASHBOARD_API_URL=" "$ENV_FILE"; then
-    sed -i "s|^NEXT_PUBLIC_DASHBOARD_API_URL=.*|NEXT_PUBLIC_DASHBOARD_API_URL=http://$VM_IP:9800/dashboard-service/api/v1|" "$ENV_FILE"
-    log_info "✓ Updated NEXT_PUBLIC_DASHBOARD_API_URL=http://$VM_IP:9800/dashboard-service/api/v1"
+    sed -i "s|^NEXT_PUBLIC_DASHBOARD_API_URL=.*|NEXT_PUBLIC_DASHBOARD_API_URL=http://$VM_IP:9800/dashboard-service/public/api/v1|" "$ENV_FILE"
+    log_info "✓ Updated NEXT_PUBLIC_DASHBOARD_API_URL=http://$VM_IP:9800/dashboard-service/public/api/v1"
 else
-    echo "NEXT_PUBLIC_DASHBOARD_API_URL=http://$VM_IP:9800/dashboard-service/api/v1" >> "$ENV_FILE"
-    log_info "✓ Added NEXT_PUBLIC_DASHBOARD_API_URL=http://$VM_IP:9800/dashboard-service/api/v1"
+    echo "NEXT_PUBLIC_DASHBOARD_API_URL=http://$VM_IP:9800/dashboard-service/public/api/v1" >> "$ENV_FILE"
+    log_info "✓ Added NEXT_PUBLIC_DASHBOARD_API_URL=http://$VM_IP:9800/dashboard-service/public/api/v1"
 fi
 
 # Update NEXT_PUBLIC_SISTER_API_URL
