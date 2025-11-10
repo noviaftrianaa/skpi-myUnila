@@ -71,7 +71,7 @@ class PenelitianDetailService
                         'id_sdm' => $anggota->id_sdm,
                         'nama' => ucwords(strtolower($anggota->nama)),
                         'nidn' => $anggota->nidn,
-                        'nip' => $anggota->nip,
+                        'nuptk' => $anggota->nuptk,
                         'jenis_kelamin' => $anggota->jenis_kelamin,
                         'jabatan_fungsional' => $anggota->jabatan_fungsional,
                         'prodi' => $anggota->prodi,

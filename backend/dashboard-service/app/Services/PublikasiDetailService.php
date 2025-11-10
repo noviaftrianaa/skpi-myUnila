@@ -65,7 +65,7 @@ class PublikasiDetailService
                         'id_sdm' => $penulis->id_sdm,
                         'nama' => ucwords(strtolower($penulis->nama)),
                         'nidn' => $penulis->nidn,
-                        'nip' => $penulis->nip,
+                        'nuptk' => $penulis->nuptk,
                         'jenis_kelamin' => $penulis->jenis_kelamin,
                         'jabatan_fungsional' => $penulis->jabatan_fungsional,
                         'prodi' => $penulis->prodi,
