@@ -53,28 +53,44 @@ class DosenProfileService
         // Sort gelar depan properly: Prof. > Dr. > Ir. > other
         $sortedGelarDepan = [];
 
-        // Add Prof. prefix if dosen is Profesor
-        if ($isProfesor) {
+        // Check if Prof already exists in gelarDepan
+        $hasProf = false;
+        foreach ($gelarDepan as $gelar) {
+            if (stripos($gelar, 'Prof') !== false) {
+                $hasProf = true;
+                break;
+            }
+        }
+
+        // Add Prof. prefix if dosen is Profesor and doesn't already have Prof in gelar
+        if ($isProfesor && !$hasProf) {
             $sortedGelarDepan[] = 'Prof';
         }
 
         // Then add Dr.
         foreach ($gelarDepan as $gelar) {
-            if (stripos($gelar, 'Dr') !== false) {
+            if (stripos($gelar, 'Dr') !== false && stripos($gelar, 'Prof') === false) {
+                $sortedGelarDepan[] = $gelar;
+            }
+        }
+
+        // Then add Prof if it exists in gelarDepan
+        foreach ($gelarDepan as $gelar) {
+            if (stripos($gelar, 'Prof') !== false) {
                 $sortedGelarDepan[] = $gelar;
             }
         }
 
         // Then add Ir.
         foreach ($gelarDepan as $gelar) {
-            if (stripos($gelar, 'Ir') !== false) {
+            if (stripos($gelar, 'Ir') !== false && stripos($gelar, 'Dr') === false && stripos($gelar, 'Prof') === false) {
                 $sortedGelarDepan[] = $gelar;
             }
         }
 
-        // Then add other gelar depan (not Dr or Ir)
+        // Then add other gelar depan (not Dr, Prof, or Ir)
         foreach ($gelarDepan as $gelar) {
-            if (stripos($gelar, 'Dr') === false && stripos($gelar, 'Ir') === false) {
+            if (stripos($gelar, 'Dr') === false && stripos($gelar, 'Ir') === false && stripos($gelar, 'Prof') === false) {
                 $sortedGelarDepan[] = $gelar;
             }
         }
