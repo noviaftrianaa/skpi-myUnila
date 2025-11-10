@@ -12,8 +12,8 @@
                     <div class="card">
                         <div class="card-body">
                             Update Data Terakhir : <span id="last-update">{{ @$temp->last_update }}</span>
-                            {{-- <div class="pull-right">
-                                {!! Form::open(['url'=>Request::url().'/reload','id'=>'reload_temp']) !!}
+                            <div class="pull-right">
+                                {{-- {!! Form::open(['url'=>Request::url().'/reload','id'=>'reload_temp']) !!}
                                 {!! Form::button(
                                     "<i class='fa fa-refresh'></i> Hitung Ulang",
                                     [
@@ -21,8 +21,12 @@
                                         'class' => 'btn btn-default btn-xs'
                                     ]
                                 ) !!}
-                                {!! Form::close() !!}
-                            </div> --}}
+                                {!! Form::close() !!} --}}
+                                <form action="{{ Request::url().'/reload' }}" id="reload_temp" method="POST">
+                                    @csrf
+                                    <button class="btn btn-default btn-xs"><i class='fa fa-refresh'></i> Hitung Ulang</button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -64,7 +68,7 @@
                                         <div class="align-middle">
                                             <nav aria-label="breadcrumb">
                                                 <p class="pull-left fw-bold">Level :</p>
-                                                <ol class="breadcrumb" id="chartBreadcrumb"></ol>
+                                                <ol class="breadcrumb" role="button" id="chartBreadcrumb"></ol>
                                             </nav>
                                         </div>
                                         <hr />

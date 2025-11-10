@@ -401,6 +401,7 @@ class JabFungControlller extends Controller
 
             /** Result Chart */
             return json_encode([
+                'last_update'     => tglWaktuIndonesia(currDateTime()),
                 'chartLevel'      => $currentLevel,
                 'chartNextLevel'  => $nextLevel,
                 'chartTitle'      => $this->title . $this->reportName,

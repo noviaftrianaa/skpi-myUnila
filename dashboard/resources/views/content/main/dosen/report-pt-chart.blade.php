@@ -37,8 +37,8 @@
                 reload(false);
             }
             else{
-                // loadTemp();
-                reload(false)
+                loadTemp();
+                // reload(false)
             }
 
             $("#reload").click(function() {
