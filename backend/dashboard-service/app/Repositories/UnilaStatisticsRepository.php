@@ -324,7 +324,7 @@ class UnilaStatisticsRepository
                 ) AS jabfung ON jabfung.id_sdm = sdm.id_sdm AND jabfung.rn = 1
                 WHERE sdm.soft_delete = 0
                     AND sdm.id_jns_sdm = '12'
-                    AND jabfung.nm_jabfung = 'Profesor'
+                    AND jabfung.nm_jabfung LIKE 'Profesor%'
             ";
 
             $result = DB::connection('sqlsrv')->select($sql, [$idSp, $tahunAjaran]);
