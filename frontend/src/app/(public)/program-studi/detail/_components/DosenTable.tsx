@@ -101,13 +101,13 @@ export default function DosenTable({ programStudiId }: DosenTableProps) {
       ),
     },
     {
-      key: 'nip',
-      label: 'NIP',
+      key: 'nuptk',
+      label: 'NUPTK',
       width: '150px',
       sortable: true,
       render: (item) => (
         <code className="bg-blue-50 text-blue-800 px-2 py-1 rounded text-xs font-mono">
-          {item.nip}
+          {item.nuptk}
         </code>
       ),
     },
@@ -185,8 +185,8 @@ export default function DosenTable({ programStudiId }: DosenTableProps) {
       data={dosenList}
       columns={columns}
       searchable={true}
-      searchKeys={['nama', 'nidn', 'nip']}
-      searchPlaceholder="Cari nama dosen, NIDN, atau NIP..."
+      searchKeys={['nama', 'nidn', 'nuptk']}
+      searchPlaceholder="Cari nama dosen, NIDN, atau NUPTK..."
       defaultRowsPerPage={5}
       rowsPerPageOptions={[5, 10, 25, 50]}
       loading={loading}

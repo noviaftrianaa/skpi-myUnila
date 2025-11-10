@@ -141,7 +141,7 @@ export default function DashboardNavbar({
         fakultas: user.fakultas,
         prodi: user.prodi,
         npm: user.id_pd_pengguna,
-        nip: user.id_sdm_pengguna,
+        nuptk: user.id_sdm_pengguna,
       };
     }
 
@@ -151,7 +151,7 @@ export default function DashboardNavbar({
         fakultas: user.fakultas,
         prodi: user.role || "Role tidak tersedia",
         npm: user.id_pd_pengguna,
-        nip: user.id_sdm_pengguna,
+        nuptk: user.id_sdm_pengguna,
       };
     }
 
@@ -161,7 +161,7 @@ export default function DashboardNavbar({
         fakultas: user.satuan_pendidikan || "Universitas Lampung",
         prodi: user.prodi,
         npm: user.id_pd_pengguna,
-        nip: user.id_sdm_pengguna,
+        nuptk: user.id_sdm_pengguna,
       };
     }
 
@@ -170,7 +170,7 @@ export default function DashboardNavbar({
       fakultas: user?.satuan_pendidikan || "Universitas Lampung",
       prodi: user?.role || "User",
       npm: user?.id_pd_pengguna,
-      nip: user?.id_sdm_pengguna,
+      nuptk: user?.id_sdm_pengguna,
     };
   };
 

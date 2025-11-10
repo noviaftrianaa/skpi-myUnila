@@ -60,7 +60,7 @@ class PengabdianDetailRepository
                     sal.id_sdm,
                     sdm.nm_sdm AS nama,
                     sdm.nidn,
-                    sdm.nip,
+                    sdm.nuptk,
                     sdm.jk,
                     sal.peran_litabmas,
                     jabfung.nm_jabfung,

@@ -103,7 +103,7 @@ class BidangIlmuService
                         'encrypted_id' => Crypt::encryptString($d->id_sdm),
                         'nama' => ucwords(strtolower($d->nama)),
                         'nidn' => $d->nidn,
-                        'nip' => $d->nip,
+                        'nuptk' => $d->nuptk,
                         'jenis_kelamin' => $d->jenis_kelamin,
                         'jabatan_fungsional' => $d->jabatan_fungsional,
                         'prodi' => $d->prodi,

@@ -778,7 +778,7 @@ class ProgramStudiRepository
                     ), '')
                 )) AS nama_lengkap,
                 sdm.nidn,
-                ISNULL(sdm.nip, '-') AS nip,
+                ISNULL(sdm.nuptk, '-') AS nuptk,
                 CASE
                     WHEN sdm.jk = 'L' THEN 'Laki-laki'
                     WHEN sdm.jk = 'P' THEN 'Perempuan'

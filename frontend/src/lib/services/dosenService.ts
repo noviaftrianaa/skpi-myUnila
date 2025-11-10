@@ -46,7 +46,7 @@ export interface DosenProfile {
   id_sdm: string;
   nama: string;
   nidn?: string;
-  nip: string;
+  nuptk: string;
   email: string;
   jenis_kelamin: 'L' | 'P';
   homebase: {
@@ -192,7 +192,7 @@ export interface SisterDosen {
   tanggal_lahir: string;
   nik: string;
   nidn: string;
-  nip: string;
+  nuptk: string;
   email: string;
   no_hp: string;
   id_jenis_sdm: number;

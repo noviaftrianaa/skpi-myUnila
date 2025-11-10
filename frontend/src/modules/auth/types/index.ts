@@ -6,7 +6,7 @@ export interface User {
   role: 'mahasiswa' | 'dosen' | 'admin' | 'staff';
   foto_profil?: string;
   nim?: string; // For mahasiswa
-  nip?: string; // For dosen/staff
+  nuptk?: string; // For dosen/staff
 }
 
 export interface LoginCredentials {
@@ -31,7 +31,7 @@ export interface RegisterData {
   nama_lengkap: string;
   role: User['role'];
   nim?: string;
-  nip?: string;
+  nuptk?: string;
 }
 
 export interface AuthError {

@@ -168,7 +168,7 @@ class BidangIlmuRepository
                     msb.id_sdm,
                     sdm.nm_sdm AS nama,
                     sdm.nidn,
-                    sdm.nip,
+                    sdm.nuptk,
                     sdm.jk,
                     msb.urutan,
                     jabfung.nm_jabfung,

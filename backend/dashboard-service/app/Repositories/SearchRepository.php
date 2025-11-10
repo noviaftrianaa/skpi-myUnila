@@ -91,7 +91,7 @@ class SearchRepository
                 sdm.id_sdm,
                 sdm.nm_sdm AS nama,
                 sdm.nidn,
-                sdm.nip,
+                sdm.nuptk,
                 COALESCE(jabfung.nm_jabfung, 'Belum Ada Jabatan') AS jabatan_fungsional,
                 sms.nm_lemb AS prodi_homebase,
                 jenj.nm_jenj_didik AS jenjang_prodi,
@@ -129,7 +129,7 @@ class SearchRepository
                 AND (
                     sdm.nm_sdm LIKE '%{$escapedQuery}%'
                     OR sdm.nidn LIKE '%{$escapedQuery}%'
-                    OR sdm.nip LIKE '%{$escapedQuery}%'
+                    OR sdm.nuptk LIKE '%{$escapedQuery}%'
                     OR sms.nm_lemb LIKE '%{$escapedQuery}%'
                 )
             ORDER BY sdm.nm_sdm

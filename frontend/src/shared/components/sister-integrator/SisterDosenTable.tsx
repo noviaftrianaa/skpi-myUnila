@@ -91,14 +91,14 @@ export default function SisterDosenTable() {
     },
     {
       key: "nidn",
-      label: "NIDN / NIP",
+      label: "NIDN / NUPTK",
       render: (item) => (
         <div className="text-sm">
           <div className="font-mono text-gray-700 dark:text-gray-300">
             {item.nidn || "-"}
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            {item.nip || "-"}
+            {item.nuptk || "-"}
           </div>
         </div>
       ),
@@ -247,8 +247,8 @@ export default function SisterDosenTable() {
           data={data}
           columns={columns}
           searchable={true}
-          searchKeys={["nama_sdm", "nidn", "nip", "email"]}
-          searchPlaceholder="Cari nama, NIDN, NIP, atau email..."
+          searchKeys={["nama_sdm", "nidn", "nuptk", "email"]}
+          searchPlaceholder="Cari nama, NIDN, NUPTK, atau email..."
           defaultRowsPerPage={10}
           rowsPerPageOptions={[5, 10, 25, 50, 100]}
           loading={loading}

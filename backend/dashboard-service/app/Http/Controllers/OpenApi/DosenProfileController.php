@@ -41,7 +41,7 @@ class DosenProfileController extends Controller
      *                 @OA\Property(property="id_sdm", type="string", example="ABC123"),
      *                 @OA\Property(property="nama", type="string", example="Dr. Ir. Budi Santoso, M.T."),
      *                 @OA\Property(property="nidn", type="string", example="0012345678"),
-     *                 @OA\Property(property="nip", type="string", example="198501012010121001"),
+     *                 @OA\Property(property="nuptk", type="string", example="198501012010121001"),
      *                 @OA\Property(property="email", type="string", example="budi.santoso@eng.unila.ac.id"),
      *                 @OA\Property(property="jenis_kelamin", type="string", example="L"),
      *                 @OA\Property(

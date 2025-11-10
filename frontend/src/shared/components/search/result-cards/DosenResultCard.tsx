@@ -9,7 +9,7 @@ export interface DosenResult {
   id_sdm: string;
   nama: string;
   nidn?: string;
-  nip: string;
+  nuptk: string;
   jabatan_fungsional: string;
   prodi: string;
   fakultas: string;
@@ -79,7 +79,7 @@ export default function DosenResultCard({ result }: DosenResultCardProps) {
                         />
                       )}
                       <span>•</span>
-                      <span>NIP: {result.nip}</span>
+                      <span>NUPTK: {result.nuptk}</span>
                     </div>
                   </div>
                   <span className="text-xs text-gray-400 flex-shrink-0 ml-2">

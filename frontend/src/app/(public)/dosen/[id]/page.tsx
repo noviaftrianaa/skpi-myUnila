@@ -252,7 +252,7 @@ export default function DosenProfilePage() {
                 </div>
               </div>
 
-              {/* Kolom 2: Info Dasar (NIDN, NIP, Email) - 5 cols (~42%) */}
+              {/* Kolom 2: Info Dasar (NIDN, NUPTK, Email) - 5 cols (~42%) */}
               <div className="md:col-span-5 space-y-3">
                 {dosen.nidn && (
                   <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
@@ -273,8 +273,8 @@ export default function DosenProfilePage() {
                       <FiUser className="text-lg text-white" />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-xs text-white/70 mb-0.5">NIP</div>
-                      <div className="font-bold text-white text-base">{dosen.nip}</div>
+                      <div className="text-xs text-white/70 mb-0.5">NUPTK</div>
+                      <div className="font-bold text-white text-base">{dosen.nuptk}</div>
                     </div>
                   </div>
                 </div>

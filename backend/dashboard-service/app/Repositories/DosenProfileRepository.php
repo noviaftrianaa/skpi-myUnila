@@ -19,7 +19,7 @@ class DosenProfileRepository
                     sdm.id_sdm,
                     sdm.nm_sdm,
                     sdm.nidn,
-                    sdm.nip,
+                    sdm.nuptk,
                     sdm.email,
                     sdm.jk AS jenis_kelamin,
                     -- Get first homebase from reg_ptk with fakultas, jurusan, prodi

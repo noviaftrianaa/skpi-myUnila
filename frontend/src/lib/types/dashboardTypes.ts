@@ -349,7 +349,7 @@ export interface Dosen {
   id: string;
   nama: string;
   nidn: string;
-  nip: string;
+  nuptk: string;
   jenis_kelamin: string;
   ikatan_kerja: {
     id: string;

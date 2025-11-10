@@ -69,7 +69,7 @@ class PublikasiDetailRepository
                     tp.id_sdm,
                     sdm.nm_sdm AS nama,
                     sdm.nidn,
-                    sdm.nip,
+                    sdm.nuptk,
                     sdm.jk,
                     tp.peran_tulis,
                     jabfung.nm_jabfung,
