@@ -29,7 +29,11 @@ echo -e "${GREEN}[3/4] Updating Sister environment...${NC}"
 ./update-sister-env.sh
 echo ""
 
-echo -e "${GREEN}[4/4] Restarting all services...${NC}"
+echo -e "${GREEN}[4/5] Updating Frontend environment...${NC}"
+./update-frontend-env.sh
+echo ""
+
+echo -e "${GREEN}[5/5] Restarting all services...${NC}"
 ./restart-all-services.sh
 
 echo ""

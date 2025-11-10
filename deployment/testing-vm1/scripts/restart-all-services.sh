@@ -25,7 +25,7 @@ echo -e "${YELLOW}[1/2] Stopping all services...${NC}"
 echo ""
 
 echo "  → Stopping Frontend..."
-docker compose -f "$DEPLOYMENT_DIR/services/4-frontend/docker-compose.frontend.yml" down 2>/dev/null || true
+docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/4-frontend/docker-compose.frontend.yml" down 2>/dev/null || true
 
 echo "  → Stopping Nginx..."
 docker compose -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.nginx.yml" down 2>/dev/null || true
@@ -87,7 +87,7 @@ echo "     Waiting 5 seconds for backend services to be ready..."
 sleep 5
 
 echo "  → Starting Frontend..."
-docker compose -f "$DEPLOYMENT_DIR/services/4-frontend/docker-compose.frontend.yml" up -d
+docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/4-frontend/docker-compose.frontend.yml" up -d
 
 echo ""
 echo -e "${GREEN}✓ All services started${NC}"

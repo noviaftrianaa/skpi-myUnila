@@ -42,6 +42,9 @@ echo "  → Updating Auth environment..."
 echo "  → Updating Sister environment..."
 ./update-sister-env.sh 2>&1 | grep -E "✓|Updated|Added" || true
 
+echo "  → Updating Frontend environment..."
+./update-frontend-env.sh 2>&1 | grep -E "✓|Updated|Added" || true
+
 echo ""
 
 # Step 3: Stop all services
@@ -78,8 +81,8 @@ docker compose -f docker-compose.sister.yml build --no-cache sister-service
 echo ""
 
 echo "  → Rebuilding Frontend Service..."
-cd "$DEPLOYMENT_DIR/services/4-frontend"
-docker compose -f docker-compose.frontend.yml build --no-cache frontend-service
+cd "$DEPLOYMENT_DIR"
+docker compose --env-file .env -f services/4-frontend/docker-compose.frontend.yml build --no-cache frontend
 echo ""
 
 echo -e "${GREEN}✓ All images rebuilt${NC}"
@@ -116,7 +119,7 @@ docker compose -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.nginx.yml" 
 sleep 5
 
 echo "  → Starting Frontend..."
-docker compose -f "$DEPLOYMENT_DIR/services/4-frontend/docker-compose.frontend.yml" up -d
+docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/4-frontend/docker-compose.frontend.yml" up -d
 
 echo ""
 echo -e "${GREEN}✓ All services started${NC}"

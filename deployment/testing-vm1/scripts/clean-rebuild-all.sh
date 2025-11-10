@@ -42,6 +42,7 @@ cd "$DEPLOYMENT_DIR/scripts"
 ./update-dashboard-env.sh 2>&1 | grep -E "✓|Updated|Added" || true
 ./update-auth-env.sh 2>&1 | grep -E "✓|Updated|Added" || true
 ./update-sister-env.sh 2>&1 | grep -E "✓|Updated|Added" || true
+./update-frontend-env.sh 2>&1 | grep -E "✓|Updated|Added" || true
 
 # Fix Sister DB variables (remove ${} references)
 cd "$DEPLOYMENT_DIR"
@@ -110,7 +111,7 @@ docker compose --env-file .env -f services/3-backend/docker-compose.sister.yml b
 echo ""
 
 echo "  → Building Frontend Service..."
-docker compose -f services/4-frontend/docker-compose.frontend.yml build --no-cache --pull 2>/dev/null || echo "Frontend build skipped (image-based)"
+docker compose --env-file .env -f services/4-frontend/docker-compose.frontend.yml build --no-cache --pull frontend
 echo ""
 
 echo -e "${GREEN}✓ All images rebuilt${NC}"
@@ -147,7 +148,7 @@ docker compose -f services/3-backend/docker-compose.nginx.yml up -d
 sleep 5
 
 echo "  → Starting Frontend..."
-docker compose -f services/4-frontend/docker-compose.frontend.yml up -d
+docker compose --env-file .env -f services/4-frontend/docker-compose.frontend.yml up -d
 
 echo ""
 echo -e "${GREEN}✓ All services started${NC}"
