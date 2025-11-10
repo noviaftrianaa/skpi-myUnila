@@ -140,7 +140,7 @@ class DosenProfileService
             'nama' => $namaLengkap, // Nama lengkap dengan gelar
             'nama_tanpa_gelar' => $profile->nm_sdm,
             'nidn' => $profile->nidn,
-            'nip' => $profile->nip,
+            'nuptk' => $profile->nuptk,
             'email' => $profile->email,
             'jenis_kelamin' => $profile->jenis_kelamin,
             'homebase' => [
