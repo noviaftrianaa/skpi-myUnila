@@ -23,10 +23,19 @@ echo ""
 
 # Step 1: Get dashboard service ID
 echo -e "${GREEN}[1/3] Getting dashboard service ID...${NC}"
-DASHBOARD_SERVICE_ID=$(curl -s "$KONG_ADMIN_URL/services/dashboard-service" | python -m json.tool 2>/dev/null | grep '"id"' | head -1 | cut -d'"' -f4)
+
+# Try with python first, fallback to grep
+DASHBOARD_SERVICE_JSON=$(curl -s "$KONG_ADMIN_URL/services/dashboard-service")
+DASHBOARD_SERVICE_ID=$(echo "$DASHBOARD_SERVICE_JSON" | python -m json.tool 2>/dev/null | grep '"id"' | head -1 | cut -d'"' -f4)
+
+# Fallback if python is not available
+if [ -z "$DASHBOARD_SERVICE_ID" ]; then
+    DASHBOARD_SERVICE_ID=$(echo "$DASHBOARD_SERVICE_JSON" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+fi
 
 if [ -z "$DASHBOARD_SERVICE_ID" ]; then
     echo -e "${RED}✗ Dashboard service not found in Kong${NC}"
+    echo "Response: $DASHBOARD_SERVICE_JSON"
     exit 1
 fi
 
@@ -37,7 +46,8 @@ echo ""
 echo -e "${GREEN}[2/3] Creating public route for dashboard service...${NC}"
 
 # Check if route already exists
-EXISTING_ROUTE=$(curl -s "$KONG_ADMIN_URL/routes" | python -m json.tool 2>/dev/null | grep -A 5 '"dashboard-public-route"' | grep '"id"' | cut -d'"' -f4)
+ROUTES_JSON=$(curl -s "$KONG_ADMIN_URL/routes")
+EXISTING_ROUTE=$(echo "$ROUTES_JSON" | grep -o '"name":"dashboard-public-route"[^}]*"id":"[^"]*"' | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
 
 if [ -n "$EXISTING_ROUTE" ]; then
     echo -e "${YELLOW}   Public route already exists, deleting old route...${NC}"
@@ -55,11 +65,16 @@ ROUTE_RESPONSE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$DASHBOARD_SERVICE_ID
     "protocols": ["http", "https"]
   }')
 
+# Parse route ID (try python first, fallback to grep)
 PUBLIC_ROUTE_ID=$(echo "$ROUTE_RESPONSE" | python -m json.tool 2>/dev/null | grep '"id"' | head -1 | cut -d'"' -f4)
 
 if [ -z "$PUBLIC_ROUTE_ID" ]; then
+    PUBLIC_ROUTE_ID=$(echo "$ROUTE_RESPONSE" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+fi
+
+if [ -z "$PUBLIC_ROUTE_ID" ]; then
     echo -e "${RED}✗ Failed to create public route${NC}"
-    echo "$ROUTE_RESPONSE"
+    echo "Response: $ROUTE_RESPONSE"
     exit 1
 fi
 
@@ -83,10 +98,16 @@ CORS_RESPONSE=$(curl -s -X POST "$KONG_ADMIN_URL/routes/$PUBLIC_ROUTE_ID/plugins
     }
   }')
 
+# Parse CORS plugin ID
 CORS_PLUGIN_ID=$(echo "$CORS_RESPONSE" | python -m json.tool 2>/dev/null | grep '"id"' | head -1 | cut -d'"' -f4)
 
 if [ -z "$CORS_PLUGIN_ID" ]; then
+    CORS_PLUGIN_ID=$(echo "$CORS_RESPONSE" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+fi
+
+if [ -z "$CORS_PLUGIN_ID" ]; then
     echo -e "${YELLOW}   ⚠ CORS plugin might already exist or failed to create${NC}"
+    echo "   Response: $CORS_RESPONSE" | head -100
 else
     echo -e "${GREEN}   ✓ CORS plugin added: $CORS_PLUGIN_ID${NC}"
 fi
