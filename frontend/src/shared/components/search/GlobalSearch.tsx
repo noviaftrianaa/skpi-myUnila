@@ -16,6 +16,7 @@ import {
   ModalBody,
 } from "@heroui/react";
 import { getSearchSuggestions, globalSearch } from "@/lib/services/searchService";
+import { searchBidangIlmu } from "@/lib/services/bidangIlmuService";
 
 // Search category type
 export type SearchCategory =
@@ -132,8 +133,33 @@ export default function GlobalSearch({ variant = "button", className = "" }: Glo
     setIsLoading(true);
 
     try {
+      // For bidang-ilmu - use dedicated bidang ilmu search API
+      if (searchCategory === 'bidang-ilmu') {
+        const response = await searchBidangIlmu(searchQuery, 1, 5);
+
+        if (!response.success) {
+          setSuggestions([]);
+          return;
+        }
+
+        const bidangIlmuSuggestions: SearchSuggestion[] = response.data.map((item) => ({
+          id: item.id_kel_bidang,
+          title: item.nm_kel_bidang,
+          subtitle: `${item.total_dosen} Dosen`,
+          category: 'bidang-ilmu',
+          url: `/bidang-ilmu/${item.id_kel_bidang}`,
+          metadata: {
+            badge: `${item.total_dosen} Dosen`,
+          },
+        }));
+
+        setSuggestions(bidangIlmuSuggestions);
+        setIsLoading(false);
+        return;
+      }
+
       // For penelitian, publikasi, pengabdian - use globalSearch API
-      if (searchCategory === 'penelitian' || searchCategory === 'publikasi' || searchCategory === 'pengabdian' || searchCategory === 'all' || searchCategory === 'bidang-ilmu') {
+      if (searchCategory === 'penelitian' || searchCategory === 'publikasi' || searchCategory === 'pengabdian' || searchCategory === 'all') {
         const response = await globalSearch(searchQuery, {
           category: searchCategory === 'all' ? undefined : searchCategory,
           limit: 5
@@ -246,20 +272,28 @@ export default function GlobalSearch({ variant = "button", className = "" }: Glo
           });
         }
 
-        // Bidang Ilmu
-        if (response.data.results['bidang-ilmu']) {
-          response.data.results['bidang-ilmu'].forEach((item) => {
-            allSuggestions.push({
-              id: item.id,
-              title: item.nama || '',
-              subtitle: `${item.jabatan_fungsional} - ${item.prodi_homebase}`,
-              category: 'bidang-ilmu',
-              url: `/dosen/${item.encrypted_id || item.id}`,
-              metadata: {
-                badge: item.bidang_ilmu,
-              },
-            });
-          });
+        // Bidang Ilmu - fetch from dedicated API if category is 'all'
+        if (searchCategory === 'all') {
+          try {
+            const bidangResponse = await searchBidangIlmu(searchQuery, 1, 5);
+            if (bidangResponse.success && bidangResponse.data) {
+              bidangResponse.data.forEach((item) => {
+                allSuggestions.push({
+                  id: item.id_kel_bidang,
+                  title: item.nm_kel_bidang,
+                  subtitle: `${item.total_dosen} Dosen`,
+                  category: 'bidang-ilmu',
+                  url: `/bidang-ilmu/${item.id_kel_bidang}`,
+                  metadata: {
+                    badge: `${item.total_dosen} Dosen`,
+                  },
+                });
+              });
+            }
+          } catch (err) {
+            // Ignore bidang-ilmu errors when searching all categories
+            console.warn('Failed to fetch bidang-ilmu results:', err);
+          }
         }
 
         setSuggestions(allSuggestions);

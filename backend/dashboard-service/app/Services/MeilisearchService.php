@@ -283,7 +283,7 @@ class MeilisearchService
     }
 
     /**
-     * Search bidang ilmu - fallback to SQL
+     * Search bidang ilmu - returns list of bidang ilmu categories
      */
     public function searchBidangIlmu(string $query, int $limit = 10): array
     {
@@ -291,16 +291,12 @@ class MeilisearchService
 
         return array_map(function ($item) {
             return [
-                'id' => $item->id_sdm,
-                'encrypted_id' => Crypt::encryptString($item->id_sdm),
-                'nama' => $item->nama,
-                'nidn' => $item->nidn,
-                'nip' => $item->nip,
-                'jabatan_fungsional' => $item->jabatan_fungsional ?? 'Belum Ada Jabatan',
-                'prodi_homebase' => $item->prodi_homebase,
-                'jenjang_prodi' => $item->jenjang_prodi,
-                'jenis_kelamin' => $item->jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan',
-                'bidang_ilmu' => $item->bidang_ilmu,
+                'id' => $item->id_kel_bidang,
+                'id_kel_bidang' => $item->id_kel_bidang,
+                'kode_kel_bidang' => $item->kode_kel_bidang ?? null,
+                'nm_kel_bidang' => $item->nm_kel_bidang,
+                'ket_kel_bidang' => $item->ket_kel_bidang ?? null,
+                'total_dosen' => (int) $item->total_dosen,
                 'category' => 'bidang-ilmu',
             ];
         }, $result);

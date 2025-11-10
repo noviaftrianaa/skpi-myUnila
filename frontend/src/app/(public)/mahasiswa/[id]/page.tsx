@@ -344,7 +344,7 @@ export default function MahasiswaProfilePage() {
                         </div>
                         <div className="flex-1">
                           <div className="text-3xl font-bold">
-                            {mahasiswa.status_semester.reduce((total, sem) => total + sem.sks_diambil, 0)}
+                            {mahasiswa.status_semester.length > 0 ? mahasiswa.status_semester[0].total_sks : 0}
                           </div>
                           <div className="text-sm opacity-90 font-medium">Total SKS Diambil</div>
                         </div>
@@ -367,17 +367,12 @@ export default function MahasiswaProfilePage() {
                     <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg px-6 py-3 shadow-lg">
                       <div className="text-xs font-medium opacity-90">Total SKS Keseluruhan</div>
                       <div className="text-2xl font-bold">
-                        {mahasiswa.status_semester.reduce((total, sem) => total + sem.sks_diambil, 0)} SKS
+                        {mahasiswa.status_semester.length > 0 ? mahasiswa.status_semester[0].total_sks : 0} SKS
                       </div>
                     </div>
                   </div>
                   <div className="grid gap-4">
-                    {mahasiswa.status_semester.map((semester, index) => {
-                      // Calculate cumulative SKS up to this semester
-                      const cumulativeSKS = mahasiswa.status_semester
-                        .slice(0, index + 1)
-                        .reduce((total, sem) => total + sem.sks_diambil, 0);
-
+                    {mahasiswa.status_semester.map((semester) => {
                       return (
                         <div
                           key={semester.id_smt}
@@ -397,7 +392,7 @@ export default function MahasiswaProfilePage() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <span className="text-sm text-gray-600">Total SKS:</span>
-                                  <span className="font-semibold text-green-600">{cumulativeSKS} SKS</span>
+                                  <span className="font-semibold text-green-600">{semester.total_sks} SKS</span>
                                 </div>
                               </div>
                             </div>

@@ -94,6 +94,7 @@ class MahasiswaProfileService
                         'semester' => $status->semester,
                         'status' => $status->status ?? 'Tidak Diketahui',
                         'sks_diambil' => $status->sks_diambil ? (int) $status->sks_diambil : 0,
+                        'total_sks' => $status->total_sks ? (int) $status->total_sks : 0,
                     ];
                 }, $statusSemester),
                 'mata_kuliah' => array_values($mataKuliahBySemester),

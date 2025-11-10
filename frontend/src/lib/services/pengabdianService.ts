@@ -11,6 +11,9 @@ const API_V1_BASE = process.env.NEXT_PUBLIC_SISTER_API_URL
   ? `${process.env.NEXT_PUBLIC_SISTER_API_URL}/api/v1`
   : 'http://localhost:9800/sister-service/api/v1';
 
+// Dashboard API for pengabdian detail
+const DASHBOARD_API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/api/v1';
+
 // Types - Reuse Litabmas type from penelitian since they share the same entity
 export interface AnggotaLitabmasInfo {
   nama: string;
@@ -94,6 +97,91 @@ export interface BatchAllSyncResult {
   failed_dosen?: string[];
 }
 
+// Pengabdian Detail Types (from dashboard-service)
+export interface AnggotaTim {
+  id_sdm_anggota_litabmas: string;
+  id_sdm: string;
+  nama: string;
+  nidn: string;
+  nip: string;
+  jenis_kelamin: string;
+  jabatan_fungsional: string;
+  prodi: string;
+  jenjang: string;
+  peran: string;
+  urutan: number;
+}
+
+export interface PublikasiPengabdian {
+  id_publikasi: string;
+  judul: string;
+  tahun: number;
+  tanggal_terbit: string;
+  jenis_publikasi: string;
+  penerbit: string;
+  issn: string | null;
+  volume: string | null;
+  nomor: string | null;
+  halaman: string | null;
+  url_publikasi: string | null;
+}
+
+export interface LuaranLainnya {
+  id_luaran_lainnya: string;
+  judul: string;
+  tahun: number;
+  jenis_luaran: string;
+  keterangan: string | null;
+  tautan: string | null;
+}
+
+export interface MahasiswaPengabdian {
+  id_mhs_anggota_litabmas: string;
+  id_pd: string;
+  nama: string;
+  nim: string;
+  jenis_kelamin: string;
+  prodi: string;
+  jenjang: string;
+  peran: string;
+}
+
+export interface PengabdianDetail {
+  id_litabmas: string;
+  judul: string;
+  tahun: string;
+  tanggal_mulai: string;
+  tanggal_selesai: string;
+  lama_kegiatan: number;
+  biaya: number;
+  dana_dikti?: number;
+  dana_pt?: number;
+  dana_institusi_lain?: number;
+  skim: string;
+  lokasi_kegiatan: string | null;
+  bidang_ilmu: string;
+  sumber_dana: string;
+  abstrak: string | null;
+  kata_kunci: string | null;
+  url_pengabdian: string | null;
+  anggota_tim: AnggotaTim[];
+  publikasi: PublikasiPengabdian[];
+  luaran_lainnya: LuaranLainnya[];
+  mahasiswa: MahasiswaPengabdian[];
+  statistics: {
+    total_anggota_tim: number;
+    total_publikasi: number;
+    total_luaran_lainnya: number;
+    total_mahasiswa: number;
+  };
+}
+
+export interface PengabdianDetailResponse {
+  success: boolean;
+  message: string;
+  data: PengabdianDetail | null;
+}
+
 /**
  * SISTER API Service for Pengabdian Management
  * Manages pengabdian data from SISTER Kemdikbud API
@@ -159,6 +247,17 @@ export const sisterPengabdianService = {
       { params }
     );
     return response.data.data;
+  },
+
+  /**
+   * Get pengabdian detail by ID
+   * This uses dashboard-service API endpoint
+   */
+  async getPengabdianDetail(idLitabmas: string): Promise<PengabdianDetailResponse> {
+    const response = await axios.get<PengabdianDetailResponse>(
+      `${DASHBOARD_API_URL}/pengabdian/${idLitabmas}`
+    );
+    return response.data;
   },
 
   /**

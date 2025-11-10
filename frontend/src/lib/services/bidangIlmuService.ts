@@ -153,3 +153,94 @@ export const bidangIlmuHelpers = {
     return `${kode} - ${nama}`;
   },
 };
+
+// Public Dashboard API
+const API_BASE_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/public/api';
+
+export interface BidangIlmuSearchItem {
+  id_kel_bidang: string;
+  kode_kel_bidang: string;
+  nm_kel_bidang: string;
+  ket_kel_bidang: string | null;
+  total_dosen: number;
+}
+
+export interface BidangIlmuSearchResponse {
+  success: boolean;
+  message: string;
+  data: BidangIlmuSearchItem[];
+  pagination: {
+    current_page: number;
+    per_page: number;
+    total: number;
+    total_pages: number;
+  };
+}
+
+export interface DosenItem {
+  id_sdm: string;
+  encrypted_id: string;
+  nama: string;
+  nidn: string;
+  nip: string;
+  jenis_kelamin: string;
+  jabatan_fungsional: string;
+  prodi: string;
+  jenjang: string;
+  urutan: number;
+}
+
+export interface BidangIlmuDetail {
+  id_kel_bidang: string;
+  kode_kel_bidang: string;
+  nm_kel_bidang: string;
+  ket_kel_bidang: string | null;
+  kat_kel: string | null;
+  induk_bidang: string | null;
+  dosen: DosenItem[];
+  statistics: {
+    total_dosen: number;
+  };
+}
+
+export interface BidangIlmuDetailResponse {
+  success: boolean;
+  message: string;
+  data: BidangIlmuDetail;
+}
+
+/**
+ * Search bidang ilmu for public dashboard
+ */
+export async function searchBidangIlmu(
+  search: string = '',
+  page: number = 1,
+  limit: number = 20
+): Promise<BidangIlmuSearchResponse> {
+  const params = new URLSearchParams({
+    search,
+    page: page.toString(),
+    limit: limit.toString(),
+  });
+
+  const response = await fetch(`${API_BASE_URL}/bidang-ilmu/search?${params}`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch bidang ilmu');
+  }
+
+  return response.json();
+}
+
+/**
+ * Get bidang ilmu detail by ID for public dashboard
+ */
+export async function getBidangIlmuDetail(id: string): Promise<BidangIlmuDetailResponse> {
+  const response = await fetch(`${API_BASE_URL}/bidang-ilmu/${id}`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch bidang ilmu detail');
+  }
+
+  return response.json();
+}

@@ -27,6 +27,7 @@ export interface MahasiswaProfile {
     semester: string;
     status: string;
     sks_diambil: number;
+    total_sks: number;
   }>;
   mata_kuliah: Array<{
     semester: string;

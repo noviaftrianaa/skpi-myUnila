@@ -11,6 +11,9 @@ const API_V1_BASE = process.env.NEXT_PUBLIC_SISTER_API_URL
   ? `${process.env.NEXT_PUBLIC_SISTER_API_URL}/api/v1`
   : 'http://localhost:9800/sister-service/api/v1';
 
+// Dashboard API for penelitian detail
+const DASHBOARD_API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/api/v1';
+
 // Types
 export interface AnggotaLitabmasInfo {
   nama: string;
@@ -92,6 +95,91 @@ export interface BatchAllSyncResult {
   duration: string;
   synced_by: string;
   failed_dosen?: string[];
+}
+
+// Penelitian Detail Types (from dashboard-service)
+export interface AnggotaTim {
+  id_sdm_anggota_litabmas: string;
+  id_sdm: string;
+  nama: string;
+  nidn: string;
+  nip: string;
+  jenis_kelamin: string;
+  jabatan_fungsional: string;
+  prodi: string;
+  jenjang: string;
+  peran: string;
+  urutan: number;
+}
+
+export interface PublikasiPenelitian {
+  id_publikasi: string;
+  judul: string;
+  tahun: number;
+  tanggal_terbit: string;
+  jenis_publikasi: string;
+  penerbit: string;
+  issn: string | null;
+  volume: string | null;
+  nomor: string | null;
+  halaman: string | null;
+  url_publikasi: string | null;
+}
+
+export interface LuaranLainnya {
+  id_luaran_lainnya: string;
+  judul: string;
+  tahun: number;
+  jenis_luaran: string;
+  keterangan: string | null;
+  tautan: string | null;
+}
+
+export interface MahasiswaPenelitian {
+  id_mhs_anggota_litabmas: string;
+  id_pd: string;
+  nama: string;
+  nim: string;
+  jenis_kelamin: string;
+  prodi: string;
+  jenjang: string;
+  peran: string;
+}
+
+export interface PenelitianDetail {
+  id_litabmas: string;
+  judul: string;
+  tahun: string;
+  tanggal_mulai: string;
+  tanggal_selesai: string;
+  lama_kegiatan: number;
+  biaya: number;
+  dana_dikti?: number;
+  dana_pt?: number;
+  dana_institusi_lain?: number;
+  skim: string;
+  lokasi_kegiatan: string | null;
+  bidang_ilmu: string;
+  sumber_dana: string;
+  abstrak: string | null;
+  kata_kunci: string | null;
+  url_penelitian: string | null;
+  anggota_tim: AnggotaTim[];
+  publikasi: PublikasiPenelitian[];
+  luaran_lainnya: LuaranLainnya[];
+  mahasiswa: MahasiswaPenelitian[];
+  statistics: {
+    total_anggota_tim: number;
+    total_publikasi: number;
+    total_luaran_lainnya: number;
+    total_mahasiswa: number;
+  };
+}
+
+export interface PenelitianDetailResponse {
+  success: boolean;
+  message: string;
+  data: PenelitianDetail | null;
 }
 
 // Alias untuk backward compatibility dengan dashboard
@@ -178,7 +266,6 @@ export const sisterPenelitianService = {
    */
   async getStatistics(): Promise<PenelitianStatistics> {
     // Use native fetch to avoid axios interceptor issues
-    const DASHBOARD_API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/api/v1';
     const response = await fetch(
       `${DASHBOARD_API_URL}/penelitian/statistics`
     );
@@ -189,6 +276,17 @@ export const sisterPenelitianService = {
 
     const result = await response.json();
     return result.data; // Extract data from wrapper
+  },
+
+  /**
+   * Get penelitian detail by ID
+   * This uses dashboard-service API endpoint
+   */
+  async getPenelitianDetail(idLitabmas: string): Promise<PenelitianDetailResponse> {
+    const response = await axios.get<PenelitianDetailResponse>(
+      `${DASHBOARD_API_URL}/penelitian/${idLitabmas}`
+    );
+    return response.data;
   },
 
   /**

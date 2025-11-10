@@ -213,6 +213,7 @@ class DosenProfileService
             }, $riwayatPengajaran),
             'penelitian_pengabdian' => array_map(function ($item) {
                 return [
+                    'id_litabmas' => $item->id_litabmas,
                     'tahun' => $item->tahun,
                     'judul' => $item->judul,
                     'jenis' => $item->jenis,
@@ -223,6 +224,7 @@ class DosenProfileService
             'publikasi' => [
                 'jurnal' => array_map(function ($item) {
                     return [
+                        'id_publikasi' => $item->id_publikasi,
                         'tahun' => $item->tahun,
                         'judul' => $item->judul,
                         'nama_jurnal' => $item->nama_jurnal,

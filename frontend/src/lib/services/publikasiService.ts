@@ -60,6 +60,17 @@ export const publikasiService = {
     const response = await axios.get<ApiResponse<PublikasiStatistics>>(`${API_URL}/publikasi/statistics`);
     return response.data.data;
   },
+
+  /**
+   * Get publikasi detail by ID
+   * This uses dashboard-service API endpoint
+   */
+  async getPublikasiDetail(idPublikasi: string): Promise<PublikasiDetailResponse> {
+    const response = await axios.get<PublikasiDetailResponse>(
+      `${API_URL}/publikasi/${idPublikasi}`
+    );
+    return response.data;
+  },
 };
 
 // SISTER API Types
@@ -120,6 +131,66 @@ export interface BatchAllSyncResult {
   duration: string;
   synced_by: string;
   failed_dosen?: string[];
+}
+
+// Publikasi Detail Types (from dashboard-service)
+export interface PenulisPublikasi {
+  id_sdm: string;
+  nama: string;
+  nidn: string;
+  nip: string;
+  jenis_kelamin: string;
+  jabatan_fungsional: string;
+  prodi: string;
+  jenjang: string;
+  peran: string;
+}
+
+export interface MahasiswaPenulis {
+  id_pd: string;
+  nama: string;
+  nim: string;
+  jenis_kelamin: string;
+  prodi: string;
+  jenjang: string;
+  peran: string;
+}
+
+export interface LitabmasInfo {
+  id_litabmas: string;
+  judul: string;
+  jenis: string; // 'Penelitian' or 'Pengabdian'
+}
+
+export interface PublikasiDetail {
+  id_publikasi: string;
+  judul: string;
+  tahun: string;
+  tanggal_terbit: string;
+  jenis_publikasi: string;
+  penerbit: string;
+  issn: string | null;
+  volume: string | null;
+  nomor: string | null;
+  halaman: string | null;
+  url_publikasi: string | null;
+  nama_jurnal: string | null;
+  laman_jurnal: string | null;
+  doi: string | null;
+  kategori_capaian: string;
+  litabmas: LitabmasInfo | null;
+  penulis: PenulisPublikasi[];
+  mahasiswa: MahasiswaPenulis[];
+  statistics: {
+    total_penulis: number;
+    total_mahasiswa: number;
+  };
+}
+
+export interface PublikasiDetailResponse {
+  success: boolean;
+  message: string;
+  data: PublikasiDetail | null;
 }
 
 /**

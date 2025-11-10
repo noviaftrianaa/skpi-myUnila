@@ -16,9 +16,13 @@ use App\Http\Controllers\OpenApi\PublikasiController;
 use App\Http\Controllers\OpenApi\PublikasiSebaranController;
 use App\Http\Controllers\OpenApi\PenelitianController;
 use App\Http\Controllers\OpenApi\PenelitianSebaranController;
+use App\Http\Controllers\PenelitianDetailController;
+use App\Http\Controllers\PengabdianDetailController;
+use App\Http\Controllers\PublikasiDetailController;
 use App\Http\Controllers\OpenApi\KelulusanController;
 use App\Http\Controllers\OpenApi\CapaianLulusanController;
 use App\Http\Controllers\OpenApi\BidangIlmuController;
+use App\Http\Controllers\BidangIlmuDetailController;
 use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\SearchController;
 
@@ -118,6 +122,7 @@ Route::prefix('v1')->group(function () {
     // Publikasi
     Route::prefix('publikasi')->group(function () {
         Route::get('/statistics', [PublikasiController::class, 'getStatistics']);
+        Route::get('/{id}', [PublikasiDetailController::class, 'show']);
     });
 
     // Publikasi Sebaran
@@ -129,12 +134,24 @@ Route::prefix('v1')->group(function () {
     // Penelitian
     Route::prefix('penelitian')->group(function () {
         Route::get('/statistics', [PenelitianController::class, 'getStatistics']);
+        Route::get('/{id}', [PenelitianDetailController::class, 'show']);
     });
 
     // Penelitian Sebaran
     Route::prefix('penelitian-sebaran')->group(function () {
         Route::get('/fakultas', [PenelitianSebaranController::class, 'getSebaranByFakultas']);
         Route::get('/fakultas/{id_fakultas}/prodi', [PenelitianSebaranController::class, 'getSebaranByProdiInFakultas']);
+    });
+
+    // Pengabdian
+    Route::prefix('pengabdian')->group(function () {
+        Route::get('/{id}', [PengabdianDetailController::class, 'show']);
+    });
+
+    // Bidang Ilmu
+    Route::prefix('bidang-ilmu')->group(function () {
+        Route::get('/search', [BidangIlmuDetailController::class, 'search']);
+        Route::get('/{id}', [BidangIlmuDetailController::class, 'show']);
     });
 
     // Kelulusan

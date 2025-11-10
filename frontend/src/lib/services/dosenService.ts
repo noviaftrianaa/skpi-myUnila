@@ -104,6 +104,7 @@ export interface DosenProfile {
     sks: number;
   }>;
   penelitian_pengabdian: Array<{
+    id_litabmas: string;
     tahun: number;
     judul: string;
     jenis: 'Penelitian' | 'Pengabdian';
@@ -112,6 +113,7 @@ export interface DosenProfile {
   }>;
   publikasi: {
     jurnal: Array<{
+      id_publikasi: string;
       tahun: number;
       judul: string;
       nama_jurnal: string;

@@ -152,7 +152,7 @@ class DosenProfileRepository
                     smt.nm_smt AS tahun_ajaran,
                     COALESCE(mk.nm_mk, kk.nm_kls) AS mata_kuliah,
                     sms.nm_lemb AS program_studi,
-                    kk.sks_mk AS sks
+                    CAST(kk.sks_mk AS INT) AS sks
                 FROM pdrd.akt_ajar_dosen AS ad
                 INNER JOIN pdrd.reg_ptk AS ptk
                     ON ptk.id_reg_ptk = ad.id_reg_ptk
@@ -186,6 +186,7 @@ class DosenProfileRepository
         try {
             return DB::connection('sqlsrv')->select("
                 SELECT
+                    CAST(lit.id_litabmas AS VARCHAR(36)) AS id_litabmas,
                     lit.judul_litabmas AS judul,
                     CASE
                         WHEN lit.jns_litabmas = 'L' THEN 'Penelitian'
@@ -225,6 +226,7 @@ class DosenProfileRepository
         try {
             return DB::connection('sqlsrv')->select("
                 SELECT
+                    CAST(pub.id_publikasi AS VARCHAR(36)) AS id_publikasi,
                     pub.judul,
                     YEAR(pub.tgl_terbit) AS tahun,
                     pub.nama_jurnal,

@@ -298,8 +298,7 @@ class SearchRepository
     }
 
     /**
-     * Search bidang ilmu and return dosen who have that expertise
-     * Simplified version - just search dosen by name since map_sdm_bidang is in sister DB
+     * Search bidang ilmu - returns list of bidang ilmu categories with dosen count
      *
      * @param string $query
      * @param int $limit
@@ -310,56 +309,28 @@ class SearchRepository
         // Escape single quotes for SQL Server
         $escapedQuery = str_replace("'", "''", $query);
 
-        // For now, just search dosen by name as fallback
-        // TODO: Integrate with sister database when bidang ilmu sync is ready
+        // Search bidang ilmu from sister database
         $sql = "
             SELECT TOP ({$limit})
-                sdm.id_sdm,
-                sdm.nm_sdm AS nama,
-                sdm.nidn,
-                sdm.nip,
-                COALESCE(jabfung.nm_jabfung, 'Belum Ada Jabatan') AS jabatan_fungsional,
-                sms.nm_lemb AS prodi_homebase,
-                jenj.nm_jenj_didik AS jenjang_prodi,
-                sdm.jk AS jenis_kelamin,
-                '' AS bidang_ilmu
-            FROM pdrd.sdm AS sdm
-            INNER JOIN pdrd.reg_ptk AS ptk
-                ON ptk.id_sdm = sdm.id_sdm
-                AND ptk.soft_delete = 0
-                AND ptk.id_jns_keluar IS NULL
-                AND ptk.id_sp = '{$this->unilaIdSp}'
-            INNER JOIN pdrd.keaktifan_ptk AS keaktifan
-                ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
-                AND keaktifan.soft_delete = 0
-                AND keaktifan.a_sp_homebase = 1
-                AND keaktifan.id_thn_ajaran = '{$this->tahunAjaran}'
-            INNER JOIN pdrd.sms AS sms
-                ON sms.id_sms = ptk.id_sms
-                AND sms.soft_delete = 0
-            INNER JOIN ref.jenjang_pendidikan AS jenj
-                ON jenj.id_jenj_didik = sms.id_jenj_didik
-                AND jenj.expired_date IS NULL
-            LEFT JOIN (
-                SELECT
-                    rwy.id_sdm,
-                    jab.nm_jabfung,
-                    ROW_NUMBER() OVER (PARTITION BY rwy.id_sdm ORDER BY rwy.tmt_sk_jabfung DESC) AS rn
-                FROM pdrd.rwy_fungsional AS rwy
-                LEFT JOIN ref.jabfung AS jab
-                    ON jab.id_jabfung = rwy.id_jabfung
-                    AND jab.expired_date IS NULL
-                WHERE rwy.soft_delete = 0
-            ) AS jabfung ON jabfung.id_sdm = sdm.id_sdm AND jabfung.rn = 1
-            WHERE sdm.soft_delete = 0
-                AND sdm.id_jns_sdm = '12'
-                AND (
-                    sdm.nm_sdm LIKE '%{$escapedQuery}%'
-                    OR sms.nm_lemb LIKE '%{$escapedQuery}%'
-                )
-            ORDER BY sdm.nm_sdm
+                kb.id_kel_bidang,
+                kb.kode_kel_bidang,
+                kb.nm_kel_bidang,
+                kb.ket_kel_bidang,
+                COUNT(DISTINCT msb.id_sdm) AS total_dosen
+            FROM ref.kelompok_bidang AS kb
+            LEFT JOIN pdrd.map_sdm_bidang AS msb
+                ON msb.id_kel_bidang = kb.id_kel_bidang
+                AND msb.soft_delete = 0
+            WHERE kb.expired_date IS NULL
+                AND kb.nm_kel_bidang LIKE '%{$escapedQuery}%'
+            GROUP BY
+                kb.id_kel_bidang,
+                kb.kode_kel_bidang,
+                kb.nm_kel_bidang,
+                kb.ket_kel_bidang
+            ORDER BY COUNT(DISTINCT msb.id_sdm) DESC, kb.nm_kel_bidang ASC
         ";
 
-        return DB::connection('sqlsrv')->select($sql);
+        return DB::connection('sister')->select($sql);
     }
 }

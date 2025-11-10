@@ -9,8 +9,6 @@ import {
   Skeleton,
   Button,
   Pagination,
-  Checkbox,
-  CheckboxGroup,
 } from "@heroui/react";
 import Link from "next/link";
 import { SearchCategory } from "@/shared/components/search/GlobalSearch";
@@ -103,7 +101,9 @@ const transformAPIResults = (apiResults: any, category: string): SearchResult[] 
   if (!apiResults || apiResults.length === 0) return [];
 
   return apiResults.map((item: APISearchResult) => {
-    const urlId = (category === 'dosen' || category === 'bidang-ilmu') && item.encrypted_id
+    // Use encrypted_id for mahasiswa, dosen, and prodi
+    const useEncryptedId = ['mahasiswa', 'dosen', 'prodi'].includes(category);
+    const urlId = useEncryptedId && item.encrypted_id
       ? item.encrypted_id
       : item.id;
 
@@ -111,7 +111,7 @@ const transformAPIResults = (apiResults: any, category: string): SearchResult[] 
       id: item.id,
       category: category as SearchCategory,
       relevance_score: 0.95,
-      url: `/${category === 'bidang-ilmu' ? 'dosen' : category}/${urlId}`,
+      url: `/${category}/${urlId}`,
     };
 
     if (category === 'mahasiswa') {
@@ -141,6 +141,7 @@ const transformAPIResults = (apiResults: any, category: string): SearchResult[] 
         kode_prodi: item.kode_prodi || '',
         jenjang: item.jenjang || '',
         total_mahasiswa: item.jumlah_mahasiswa || 0,
+        url: `/program-studi/detail/${urlId}`,
       } as ProdiResult;
     } else if (category === 'penelitian') {
       return {
@@ -173,11 +174,12 @@ const transformAPIResults = (apiResults: any, category: string): SearchResult[] 
     } else if (category === 'bidang-ilmu') {
       return {
         ...base,
-        title: item.bidang_ilmu || '',
-        description: `${item.nama} - ${item.jabatan_fungsional}`,
-        kode_bidang: item.bidang_ilmu?.match(/\[([^\]]+)\]/)?.[1] || '',
-        jumlah_dosen: 1,
-        dosen: item.nama ? [item.nama] : [],
+        title: item.nm_kel_bidang || '',
+        description: `${item.total_dosen || 0} Dosen`,
+        kode_bidang: item.kode_kel_bidang || '',
+        jumlah_dosen: item.total_dosen || 0,
+        dosen: [],
+        url: `/bidang-ilmu/${item.id_kel_bidang}`,
       } as BidangIlmuResult;
     }
 
@@ -199,8 +201,8 @@ function SearchPageContent() {
   const [limit, setLimit] = useState(20);
   const [sortBy, setSortBy] = useState("relevance");
 
-  // Filter by category checkboxes
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([categoryParam]);
+  // Filter by single category selection
+  const [selectedCategory, setSelectedCategory] = useState<string>(categoryParam || 'all');
 
   // Fetch search results
   useEffect(() => {
@@ -245,9 +247,9 @@ function SearchPageContent() {
           allResults = [...allResults, ...transformAPIResults(response.data.results['bidang-ilmu'], 'bidang-ilmu')];
         }
 
-        // Filter by selected categories if not "all"
-        if (selectedCategories.length > 0 && !selectedCategories.includes('all')) {
-          allResults = allResults.filter(r => selectedCategories.includes(r.category));
+        // Filter by selected category if not "all"
+        if (selectedCategory !== 'all') {
+          allResults = allResults.filter(r => r.category === selectedCategory);
         }
 
         setResults(allResults);
@@ -263,7 +265,7 @@ function SearchPageContent() {
     };
 
     fetchResults();
-  }, [query, categoryParam, limit, selectedCategories]);
+  }, [query, categoryParam, limit, selectedCategory]);
 
   const getCategoryLabel = (cat: SearchCategory) => {
     return CATEGORIES.find((c) => c.key === cat)?.label || cat;
@@ -284,23 +286,13 @@ function SearchPageContent() {
         <Link href={result.url}>
           <Card className="group hover:shadow-lg hover:border-myunila/40 transition-all duration-300 border border-gray-200 bg-white">
             <CardBody className="p-4 sm:p-5 bg-white">
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-myunila to-blue-700 flex items-center justify-center text-white text-lg flex-shrink-0">
-                    {getCategoryIcon(result.category)}
-                  </div>
-                  <span className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-md border border-blue-200">
-                    {getCategoryLabel(result.category)}
-                  </span>
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-myunila to-blue-700 flex items-center justify-center text-white text-lg flex-shrink-0">
+                  {getCategoryIcon(result.category)}
                 </div>
-                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-50 rounded-md border border-green-200">
-                  <svg className="w-3.5 h-3.5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-xs font-bold text-green-700">
-                    {(result.relevance_score * 100).toFixed(0)}%
-                  </span>
-                </div>
+                <span className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-md border border-blue-200">
+                  {getCategoryLabel(result.category)}
+                </span>
               </div>
 
               <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 group-hover:text-myunila transition-colors line-clamp-2">
@@ -353,6 +345,19 @@ function SearchPageContent() {
                     </span>
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 text-gray-700 text-xs font-medium rounded-md border border-gray-200">
                       {result.tahun}
+                    </span>
+                  </div>
+                )}
+
+                {result.category === "bidang-ilmu" && (
+                  <div className="flex flex-wrap gap-2">
+                    {result.kode_bidang && (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-50 text-purple-700 text-xs font-medium rounded-md border border-purple-200">
+                        {result.kode_bidang}
+                      </span>
+                    )}
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-md border border-blue-200">
+                      {result.jumlah_dosen} Dosen
                     </span>
                   </div>
                 )}
@@ -430,12 +435,17 @@ function SearchPageContent() {
                     </svg>
                     <h2 className="font-bold text-lg text-gray-900">Filter Kategori</h2>
                   </div>
-                  {selectedCategories.length > 0 && (
+                  {selectedCategory !== 'all' && (
                     <Button
                       size="sm"
                       variant="light"
                       color="danger"
-                      onClick={() => setSelectedCategories([])}
+                      onClick={() => {
+                        setSelectedCategory('all');
+                        const params = new URLSearchParams(searchParams.toString());
+                        params.delete('category');
+                        router.push(`/search?${params.toString()}`);
+                      }}
                       className="text-xs h-8 font-semibold"
                     >
                       Reset
@@ -443,30 +453,39 @@ function SearchPageContent() {
                   )}
                 </div>
 
-                <div className="p-5 bg-white">
-                  <CheckboxGroup
-                    value={selectedCategories}
-                    onChange={(values) => setSelectedCategories(values as string[])}
-                    classNames={{
-                      wrapper: "gap-3"
-                    }}
-                  >
-                    {CATEGORIES.map((cat) => (
-                      <Checkbox
-                        key={cat.key}
-                        value={cat.key}
-                        classNames={{
-                          base: "w-full max-w-full hover:bg-gray-50 p-2 rounded-lg transition-colors",
-                          label: "text-sm text-gray-700 font-medium"
-                        }}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="text-base">{cat.icon}</span>
-                          <span>{cat.label}</span>
-                        </div>
-                      </Checkbox>
-                    ))}
-                  </CheckboxGroup>
+                <div className="p-5 bg-white space-y-2">
+                  {CATEGORIES.map((cat) => (
+                    <div
+                      key={cat.key}
+                      onClick={() => {
+                        setSelectedCategory(cat.key);
+                        const params = new URLSearchParams(searchParams.toString());
+                        if (cat.key === 'all') {
+                          params.delete('category');
+                        } else {
+                          params.set('category', cat.key);
+                        }
+                        router.push(`/search?${params.toString()}`);
+                      }}
+                      className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
+                      <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                        selectedCategory === cat.key
+                          ? 'bg-myunila border-myunila'
+                          : 'bg-white border-gray-300'
+                      }`}>
+                        {selectedCategory === cat.key && (
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2.5 flex-1">
+                        <span className="text-lg">{cat.icon}</span>
+                        <span className="text-sm text-gray-700 font-normal">{cat.label}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </CardBody>
             </Card>

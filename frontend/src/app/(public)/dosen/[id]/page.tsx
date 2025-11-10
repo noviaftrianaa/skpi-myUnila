@@ -1,12 +1,13 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiMail, FiUser, FiBookOpen, FiAward,
   FiFileText, FiTrendingUp, FiBook, FiBarChart2,
-  FiChevronDown, FiChevronUp, FiSearch
+  FiChevronDown, FiChevronUp, FiSearch, FiExternalLink
 } from "react-icons/fi";
 import { HiAcademicCap } from "react-icons/hi";
 import { MdSchool, MdWork, MdScience } from "react-icons/md";
@@ -819,28 +820,36 @@ export default function DosenProfilePage() {
                   {/* Cards Grid with Pagination */}
                   <div className="p-6">
                     <div className="grid md:grid-cols-2 gap-4 mb-6">
-                      {paginatedPenelitian.map((item, index) => (
-                        <div key={index} className="border-2 border-gray-200 rounded-xl p-5 hover:border-emerald-400 hover:shadow-md transition-all">
-                          <div className="flex items-start gap-3 mb-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-500 text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-md flex-shrink-0">
-                                {item.tahun}
+                      {paginatedPenelitian.map((item, index) => {
+                        const detailUrl = item.jenis === 'Penelitian' ? `/penelitian/${item.id_litabmas}` : `/pengabdian/${item.id_litabmas}`;
+                        return (
+                          <Link
+                            key={index}
+                            href={detailUrl}
+                            className="group border-2 border-gray-200 rounded-xl p-5 hover:border-emerald-400 hover:shadow-md transition-all"
+                          >
+                            <div className="flex items-start gap-3 mb-3">
+                              <div className="flex items-center gap-3">
+                                <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-500 text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-md flex-shrink-0">
+                                  {item.tahun}
+                                </div>
+                                <div>
+                                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                                    item.jenis === 'Penelitian'
+                                      ? 'bg-blue-100 text-blue-700'
+                                      : 'bg-purple-100 text-purple-700'
+                                  }`}>
+                                    {item.jenis}
+                                  </span>
+                                </div>
                               </div>
-                              <div>
-                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                                  item.jenis === 'Penelitian'
-                                    ? 'bg-blue-100 text-blue-700'
-                                    : 'bg-purple-100 text-purple-700'
-                                }`}>
-                                  {item.jenis}
-                                </span>
-                              </div>
+                              <FiExternalLink className="w-4 h-4 text-gray-400 group-hover:text-emerald-600 transition-colors ml-auto" />
                             </div>
-                          </div>
-                          <h4 className="font-bold text-gray-900 mb-2 line-clamp-2">{item.judul}</h4>
-                          <p className="text-sm text-gray-600">{item.skema}</p>
-                        </div>
-                      ))}
+                            <h4 className="font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-emerald-600 transition-colors">{item.judul}</h4>
+                            <p className="text-sm text-gray-600">{item.skema}</p>
+                          </Link>
+                        );
+                      })}
                     </div>
 
                     {/* Pagination */}
@@ -919,10 +928,17 @@ export default function DosenProfilePage() {
                       <div className="p-6 border-t border-gray-200">
                         <div className="space-y-4">
                           {dosen.publikasi.jurnal.map((pub, index) => (
-                            <div key={index} className="p-4 bg-blue-50/50 rounded-lg border border-blue-100">
+                            <Link
+                              key={index}
+                              href={`/publikasi/${pub.id_publikasi}`}
+                              className="group block p-4 bg-blue-50/50 rounded-lg border border-blue-100 hover:border-blue-300 hover:shadow-md transition-all"
+                            >
                               <div className="flex items-start justify-between mb-2">
                                 <div className="flex-1">
-                                  <h4 className="font-bold text-gray-900 mb-1">{pub.judul}</h4>
+                                  <div className="flex items-start gap-2">
+                                    <h4 className="font-bold text-gray-900 mb-1 flex-1 group-hover:text-blue-600 transition-colors">{pub.judul}</h4>
+                                    <FiExternalLink className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors flex-shrink-0 mt-1" />
+                                  </div>
                                   <p className="text-sm text-gray-700 mb-2">{pub.nama_jurnal}</p>
                                   <div className="flex flex-wrap gap-2">
                                     <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
@@ -937,7 +953,7 @@ export default function DosenProfilePage() {
                                   {pub.tahun}
                                 </div>
                               </div>
-                            </div>
+                            </Link>
                           ))}
                         </div>
                       </div>
