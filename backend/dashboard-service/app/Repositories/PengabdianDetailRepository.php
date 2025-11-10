@@ -103,7 +103,7 @@ class PengabdianDetailRepository
                 id_sdm,
                 nama,
                 nidn,
-                nip,
+                nuptk,
                 CASE WHEN jk = 'L' THEN 'Laki-laki' ELSE 'Perempuan' END AS jenis_kelamin,
                 COALESCE(nm_jabfung, 'Belum Ada Jabatan') AS jabatan_fungsional,
                 COALESCE(prodi, 'Tidak Ada') AS prodi,
