@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  dashboard-service:
+    build:
+      context: ../../../../../backend/dashboard-service
+      dockerfile: docker/Dockerfile
+      args:
+        - APP_ENV=production
+    image: myunila/dashboard-service:production
+    container_name: myunila-dashboard-service
+    env_file:
+      - ../../.env
+    environment:
+      APP_NAME: "${APP_NAME:-MyUnila}"
+      APP_ENV: production
+      APP_KEY: "${DASHBOARD_APP_KEY}"
+      APP_DEBUG: "${APP_DEBUG:-false}"
+      APP_URL: "${APP_URL}"
+
+      # Database
+      DB_CONNECTION: sqlsrv
+      DB_HOST: "${DASHBOARD_DB_HOST}"
+      DB_PORT: "${DASHBOARD_DB_PORT}"
+      DB_DATABASE: "${DASHBOARD_DB_DATABASE}"
+      DB_USERNAME: "${DASHBOARD_DB_USERNAME}"
+      DB_PASSWORD: "${DASHBOARD_DB_PASSWORD}"
+
+      # Meilisearch
+      MEILISEARCH_HOST: "${MEILISEARCH_HOST}"
+      MEILISEARCH_KEY: "${MEILISEARCH_KEY}"
+
+      # Redis
+      REDIS_HOST: "${REDIS_HOST}"
+      REDIS_PORT: "${REDIS_PORT}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+
+      TZ: "${TIMEZONE:-Asia/Jakarta}"
+    networks:
+      - myunila-prod-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f php-fpm || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "service=dashboard,vm=vm2"
+
+networks:
+  myunila-prod-network:
+    external: true
+    name: myunila-prod-network

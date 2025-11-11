@@ -1,0 +1,124 @@
+---
+# Playbook 2: Deploy Frontend & Kong Gateway to VM1
+# Run: ansible-playbook -i inventory/hosts.yml playbooks/02-deploy-vm1-frontend-kong.yml
+
+- name: Deploy Frontend and Kong Gateway to VM1
+  hosts: frontend
+  become: yes
+  gather_facts: yes
+
+  vars:
+    app_dir: "/var/www/my-unila"
+    repo_url: "https://bitbucket.org/mahendraunila/my-unila.git"
+    branch: "master"
+
+  tasks:
+    - name: Install Git if not present
+      apt:
+        name: git
+        state: present
+
+    - name: Clone or update repository
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ app_dir }}"
+        version: "{{ branch }}"
+        force: yes
+      become_user: "{{ ansible_user }}"
+
+    - name: Create .env file from template
+      template:
+        src: ../templates/vm1-env.j2
+        dest: "{{ app_dir }}/deployment/production/vm1-frontend-kong/.env"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0600'
+
+    - name: Create Docker network
+      docker_network:
+        name: myunila-prod-network
+        state: present
+
+    - name: Allow Kong proxy port
+      ufw:
+        rule: allow
+        port: '9800'
+        proto: tcp
+
+    - name: Allow Kong admin port
+      ufw:
+        rule: allow
+        port: '9801'
+        proto: tcp
+
+    - name: Allow Frontend port
+      ufw:
+        rule: allow
+        port: '3000'
+        proto: tcp
+
+    - name: Allow PostgreSQL port (for Kong)
+      ufw:
+        rule: allow
+        port: '5432'
+        proto: tcp
+
+    - name: Setup PostgreSQL for Kong
+      shell: |
+        cd {{ app_dir }}/deployment/production/vm1-frontend-kong/scripts
+        chmod +x setup-postgres.sh
+        ./setup-postgres.sh
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      ignore_errors: yes
+
+    - name: Start Kong Gateway
+      shell: |
+        cd {{ app_dir }}/deployment/production/vm1-frontend-kong
+        docker compose -f services/kong/docker-compose.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Wait for Kong to be healthy
+      wait_for:
+        host: localhost
+        port: 9800
+        delay: 10
+        timeout: 60
+
+    - name: Setup Kong routes
+      shell: |
+        cd {{ app_dir }}/deployment/production/vm1-frontend-kong/scripts
+        chmod +x setup-kong-routes.sh
+        ./setup-kong-routes.sh
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Start Redis
+      shell: |
+        cd {{ app_dir }}/deployment/production/vm1-frontend-kong
+        docker compose -f services/redis/docker-compose.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Build and start Frontend
+      shell: |
+        cd {{ app_dir }}/deployment/production/vm1-frontend-kong
+        docker compose -f services/frontend/docker-compose.yml build --no-cache
+        docker compose -f services/frontend/docker-compose.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Check services status
+      shell: docker ps --filter "name=myunila" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+      register: docker_status
+      become_user: "{{ ansible_user }}"
+
+    - name: Display services status
+      debug:
+        msg: "{{ docker_status.stdout_lines }}"

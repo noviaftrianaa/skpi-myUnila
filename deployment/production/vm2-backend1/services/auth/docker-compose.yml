@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  auth-service:
+    build:
+      context: ../../../../../backend/auth-service
+      dockerfile: docker/Dockerfile
+      args:
+        - APP_ENV=production
+    image: myunila/auth-service:production
+    container_name: myunila-auth-service
+    env_file:
+      - ../../.env
+    environment:
+      APP_NAME: "${APP_NAME:-MyUnila Auth}"
+      APP_ENV: production
+      APP_KEY: "${AUTH_APP_KEY}"
+      APP_DEBUG: "${APP_DEBUG:-false}"
+      APP_URL: "${APP_URL}"
+
+      # Database
+      DB_CONNECTION: sqlsrv
+      DB_HOST: "${AUTH_DB_HOST}"
+      DB_PORT: "${AUTH_DB_PORT}"
+      DB_DATABASE: "${AUTH_DB_DATABASE}"
+      DB_USERNAME: "${AUTH_DB_USERNAME}"
+      DB_PASSWORD: "${AUTH_DB_PASSWORD}"
+
+      # JWT Configuration
+      JWT_SECRET: "${JWT_SECRET}"
+      JWT_EXPIRATION: "${JWT_EXPIRATION:-3600}"
+      JWT_ALGORITHM: "${JWT_ALGORITHM:-HS256}"
+
+      # Aplikasi ID untuk log login
+      APLIKASI_ID: "${AUTH_APLIKASI_ID:-1}"
+
+      # Redis
+      REDIS_HOST: "${REDIS_HOST}"
+      REDIS_PORT: "${REDIS_PORT}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+
+      TZ: "${TIMEZONE:-Asia/Jakarta}"
+    networks:
+      - myunila-prod-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f php-fpm || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "service=auth,vm=vm2"
+
+networks:
+  myunila-prod-network:
+    external: true
+    name: myunila-prod-network

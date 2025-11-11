@@ -1,0 +1,140 @@
+---
+# Playbook 1: Setup Docker & Docker Compose on all VMs
+# Run: ansible-playbook -i inventory/hosts.yml playbooks/01-setup-docker.yml
+
+- name: Setup Docker on all Production VMs
+  hosts: docker_hosts
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install required system packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - software-properties-common
+          - python3
+          - python3-pip
+          - git
+          - vim
+          - htop
+          - net-tools
+        state: present
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+
+    - name: Install Docker
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
+
+    - name: Ensure Docker service is running
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add user to docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    - name: Install Docker Compose standalone (for compatibility)
+      get_url:
+        url: "https://github.com/docker/compose/releases/download/v{{ docker_compose_version }}/docker-compose-linux-x86_64"
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+
+    - name: Verify Docker installation
+      command: docker --version
+      register: docker_version_output
+      changed_when: false
+
+    - name: Verify Docker Compose installation
+      command: docker compose version
+      register: docker_compose_version_output
+      changed_when: false
+
+    - name: Display Docker version
+      debug:
+        msg: "{{ docker_version_output.stdout }}"
+
+    - name: Display Docker Compose version
+      debug:
+        msg: "{{ docker_compose_version_output.stdout }}"
+
+    - name: Set timezone
+      timezone:
+        name: "{{ timezone }}"
+
+    - name: Create myunila directory structure
+      file:
+        path: "/var/www/my-unila"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+
+    - name: Configure Docker daemon
+      copy:
+        content: |
+          {
+            "log-driver": "json-file",
+            "log-opts": {
+              "max-size": "50m",
+              "max-file": "5"
+            },
+            "storage-driver": "overlay2",
+            "default-ulimits": {
+              "nofile": {
+                "Name": "nofile",
+                "Hard": 64000,
+                "Soft": 64000
+              }
+            }
+          }
+        dest: /etc/docker/daemon.json
+        mode: '0644'
+      notify: Restart Docker
+
+    - name: Enable and configure firewall (ufw)
+      ufw:
+        state: enabled
+        policy: deny
+        direction: incoming
+
+    - name: Allow SSH
+      ufw:
+        rule: allow
+        port: '22'
+        proto: tcp
+
+  handlers:
+    - name: Restart Docker
+      systemd:
+        name: docker
+        state: restarted

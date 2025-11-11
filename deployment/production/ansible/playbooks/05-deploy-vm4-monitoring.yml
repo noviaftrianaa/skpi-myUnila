@@ -1,0 +1,105 @@
+---
+# Playbook 5: Deploy Monitoring Stack (Grafana, Prometheus, Loki) to VM4
+# Run: ansible-playbook -i inventory/hosts.yml playbooks/05-deploy-vm4-monitoring.yml
+
+- name: Deploy Monitoring Stack to VM4
+  hosts: monitoring
+  become: yes
+  gather_facts: yes
+
+  vars:
+    app_dir: "/var/www/my-unila"
+    repo_url: "https://bitbucket.org/mahendraunila/my-unila.git"
+    branch: "master"
+
+  tasks:
+    - name: Clone or update repository
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ app_dir }}"
+        version: "{{ branch }}"
+        force: yes
+      become_user: "{{ ansible_user }}"
+
+    - name: Create .env file from template
+      template:
+        src: ../templates/vm4-env.j2
+        dest: "{{ app_dir }}/deployment/production/vm4-loadbalancer/.env"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0600'
+
+    - name: Create Docker network
+      docker_network:
+        name: myunila-prod-network
+        state: present
+
+    - name: Allow Grafana port
+      ufw:
+        rule: allow
+        port: '3001'
+        proto: tcp
+
+    - name: Allow Prometheus port
+      ufw:
+        rule: allow
+        port: '9090'
+        proto: tcp
+
+    - name: Allow Loki port
+      ufw:
+        rule: allow
+        port: '3100'
+        proto: tcp
+
+    - name: Create monitoring directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+      loop:
+        - "{{ app_dir }}/deployment/production/vm4-loadbalancer/data/grafana"
+        - "{{ app_dir }}/deployment/production/vm4-loadbalancer/data/prometheus"
+        - "{{ app_dir }}/deployment/production/vm4-loadbalancer/data/loki"
+
+    - name: Start Prometheus
+      shell: |
+        cd {{ app_dir }}/deployment/production/vm4-loadbalancer
+        docker compose -f services/prometheus/docker-compose.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Start Loki
+      shell: |
+        cd {{ app_dir }}/deployment/production/vm4-loadbalancer
+        docker compose -f services/loki/docker-compose.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Start Grafana
+      shell: |
+        cd {{ app_dir }}/deployment/production/vm4-loadbalancer
+        docker compose -f services/grafana/docker-compose.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Wait for Grafana to be ready
+      wait_for:
+        host: localhost
+        port: 3001
+        delay: 10
+        timeout: 60
+
+    - name: Check services status
+      shell: docker ps --filter "name=myunila" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+      register: docker_status
+      become_user: "{{ ansible_user }}"
+
+    - name: Display services status
+      debug:
+        msg: "{{ docker_status.stdout_lines }}"

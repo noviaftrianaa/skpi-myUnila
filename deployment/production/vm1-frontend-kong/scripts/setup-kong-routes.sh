@@ -1,0 +1,258 @@
+#!/bin/bash
+
+###############################################################################
+# Setup Kong Routes for Production
+# Configures services and routes for all backend services
+###############################################################################
+
+# Colors
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+# Load environment variables
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_FILE="$SCRIPT_DIR/../.env"
+
+if [ ! -f "$ENV_FILE" ]; then
+    echo -e "${RED}Error: .env file not found at $ENV_FILE${NC}"
+    exit 1
+fi
+
+source "$ENV_FILE"
+
+KONG_ADMIN_URL="http://localhost:${KONG_ADMIN_PORT}"
+
+echo ""
+echo -e "${BLUE}=========================================${NC}"
+echo -e "${BLUE}  Kong Routes Setup - Production${NC}"
+echo -e "${BLUE}=========================================${NC}"
+echo ""
+
+# Wait for Kong to be ready
+echo -e "${GREEN}Waiting for Kong to be ready...${NC}"
+MAX_RETRIES=30
+RETRY_COUNT=0
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    if curl -s "$KONG_ADMIN_URL" > /dev/null 2>&1; then
+        echo -e "${GREEN}✓ Kong is ready${NC}"
+        break
+    fi
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+    echo "  Waiting... ($RETRY_COUNT/$MAX_RETRIES)"
+    sleep 2
+done
+
+if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+    echo -e "${RED}✗ Kong failed to start${NC}"
+    exit 1
+fi
+
+echo ""
+
+# Helper function to parse JSON
+parse_json_id() {
+    local json="$1"
+    # Try python first
+    local id=$(echo "$json" | python -m json.tool 2>/dev/null | grep '"id"' | head -1 | cut -d'"' -f4)
+    # Fallback to grep if python not available
+    if [ -z "$id" ]; then
+        id=$(echo "$json" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+    fi
+    echo "$id"
+}
+
+###############################################################################
+# 1. Dashboard Service
+###############################################################################
+echo -e "${GREEN}[1/3] Setting up Dashboard Service...${NC}"
+
+# Create Dashboard Service
+DASHBOARD_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"dashboard-service\",
+    \"url\": \"$DASHBOARD_SERVICE_URL\"
+  }")
+
+DASHBOARD_SERVICE_ID=$(parse_json_id "$DASHBOARD_SERVICE")
+
+if [ -z "$DASHBOARD_SERVICE_ID" ]; then
+    echo -e "${RED}  ✗ Failed to create Dashboard service${NC}"
+else
+    echo -e "${GREEN}  ✓ Dashboard service created: $DASHBOARD_SERVICE_ID${NC}"
+
+    # Create protected route (with JWT)
+    curl -s -X POST "$KONG_ADMIN_URL/services/$DASHBOARD_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "dashboard-protected-route",
+        "paths": ["/dashboard-service/api"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"]
+      }' > /dev/null
+    echo -e "${GREEN}  ✓ Dashboard protected route created${NC}"
+
+    # Create public route (without JWT)
+    curl -s -X POST "$KONG_ADMIN_URL/services/$DASHBOARD_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "dashboard-public-route",
+        "paths": ["/dashboard-service/public"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"]
+      }' > /dev/null
+    echo -e "${GREEN}  ✓ Dashboard public route created${NC}"
+
+    # Add CORS plugin to public route
+    PUBLIC_ROUTE_JSON=$(curl -s "$KONG_ADMIN_URL/routes/dashboard-public-route")
+    PUBLIC_ROUTE_ID=$(parse_json_id "$PUBLIC_ROUTE_JSON")
+
+    if [ -n "$PUBLIC_ROUTE_ID" ]; then
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$PUBLIC_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "exposed_headers": ["X-Auth-Token"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ CORS plugin added to public route${NC}"
+    fi
+fi
+
+echo ""
+
+###############################################################################
+# 2. Auth Service
+###############################################################################
+echo -e "${GREEN}[2/3] Setting up Auth Service...${NC}"
+
+# Create Auth Service
+AUTH_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"auth-service\",
+    \"url\": \"$AUTH_SERVICE_URL\"
+  }")
+
+AUTH_SERVICE_ID=$(parse_json_id "$AUTH_SERVICE")
+
+if [ -z "$AUTH_SERVICE_ID" ]; then
+    echo -e "${RED}  ✗ Failed to create Auth service${NC}"
+else
+    echo -e "${GREEN}  ✓ Auth service created: $AUTH_SERVICE_ID${NC}"
+
+    # Create Auth route (public, no JWT needed for login)
+    AUTH_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$AUTH_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "auth-service-route",
+        "paths": ["/auth-service"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"]
+      }')
+
+    AUTH_ROUTE_ID=$(parse_json_id "$AUTH_ROUTE")
+    echo -e "${GREEN}  ✓ Auth route created${NC}"
+
+    # Add CORS plugin
+    if [ -n "$AUTH_ROUTE_ID" ]; then
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$AUTH_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "exposed_headers": ["X-Auth-Token"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ CORS plugin added${NC}"
+    fi
+fi
+
+echo ""
+
+###############################################################################
+# 3. Sister Service
+###############################################################################
+echo -e "${GREEN}[3/3] Setting up Sister Service...${NC}"
+
+# Create Sister Service
+SISTER_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"sister-service\",
+    \"url\": \"$SISTER_SERVICE_URL\"
+  }")
+
+SISTER_SERVICE_ID=$(parse_json_id "$SISTER_SERVICE")
+
+if [ -z "$SISTER_SERVICE_ID" ]; then
+    echo -e "${RED}  ✗ Failed to create Sister service${NC}"
+else
+    echo -e "${GREEN}  ✓ Sister service created: $SISTER_SERVICE_ID${NC}"
+
+    # Create Sister route
+    SISTER_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$SISTER_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "sister-service-route",
+        "paths": ["/sister-service"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"]
+      }')
+
+    SISTER_ROUTE_ID=$(parse_json_id "$SISTER_ROUTE")
+    echo -e "${GREEN}  ✓ Sister route created${NC}"
+
+    # Add CORS plugin
+    if [ -n "$SISTER_ROUTE_ID" ]; then
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$SISTER_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "exposed_headers": ["X-Auth-Token"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ CORS plugin added${NC}"
+    fi
+fi
+
+echo ""
+echo -e "${GREEN}=========================================${NC}"
+echo -e "${GREEN}  Kong Routes Setup Complete!${NC}"
+echo -e "${GREEN}=========================================${NC}"
+echo ""
+
+echo -e "${YELLOW}Configured Routes:${NC}"
+echo "  Dashboard (protected): http://${VM_IP}:${KONG_PROXY_PORT}/dashboard-service/api/v1"
+echo "  Dashboard (public):    http://${VM_IP}:${KONG_PROXY_PORT}/dashboard-service/public/api/v1"
+echo "  Auth:                  http://${VM_IP}:${KONG_PROXY_PORT}/auth-service/api/v1"
+echo "  Sister:                http://${VM_IP}:${KONG_PROXY_PORT}/sister-service/api/v1"
+echo ""
+
+echo -e "${YELLOW}Check Kong services:${NC}"
+echo "  curl $KONG_ADMIN_URL/services"
+echo ""
