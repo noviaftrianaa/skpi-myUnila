@@ -9,17 +9,14 @@ services:
 
     environment:
       KONG_DATABASE: postgres
-      KONG_PG_HOST: myunila-kong-postgres
-      KONG_PG_PORT: 5432
+      KONG_PG_HOST: "${KONG_PG_HOST:-192.168.120.42}"
+      KONG_PG_PORT: "${KONG_PG_PORT:-5432}"
       KONG_PG_DATABASE: "${KONG_PG_DATABASE}"
       KONG_PG_USER: "${KONG_PG_USER}"
       KONG_PG_PASSWORD: "${KONG_PG_PASSWORD}"
 
     networks:
       - myunila-prod-network
-
-    depends_on:
-      - kong-postgres
 
   kong:
     image: kong:3.4
@@ -28,8 +25,8 @@ services:
 
     environment:
       KONG_DATABASE: postgres
-      KONG_PG_HOST: myunila-kong-postgres
-      KONG_PG_PORT: 5432
+      KONG_PG_HOST: "${KONG_PG_HOST:-192.168.120.42}"
+      KONG_PG_PORT: "${KONG_PG_PORT:-5432}"
       KONG_PG_DATABASE: "${KONG_PG_DATABASE}"
       KONG_PG_USER: "${KONG_PG_USER}"
       KONG_PG_PASSWORD: "${KONG_PG_PASSWORD}"
