@@ -7,8 +7,6 @@ services:
       dockerfile: Dockerfile
     image: myunila/sister-service:production
     container_name: myunila-sister-service
-    env_file:
-      - ../../.env
     ports:
       - "8083:8083"
     environment:
