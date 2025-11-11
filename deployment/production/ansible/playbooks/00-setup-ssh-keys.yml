@@ -1,0 +1,36 @@
+---
+# Playbook 0: Setup SSH Keys for Passwordless Access
+# Run: ansible-playbook -i inventory/hosts.yml playbooks/00-setup-ssh-keys.yml --ask-pass
+
+- name: Setup SSH Keys from VM1 to Target VMs
+  hosts: backend1:backend2
+  gather_facts: no
+  
+  tasks:
+    - name: Ensure .ssh directory exists
+      file:
+        path: ~/.ssh
+        state: directory
+        mode: '0700'
+    
+    - name: Get public key from VM1
+      delegate_to: vm1-frontend
+      slurp:
+        src: ~/.ssh/id_rsa.pub
+      register: vm1_pubkey
+      run_once: true
+    
+    - name: Add VM1 public key to authorized_keys
+      authorized_key:
+        user: "{{ ansible_user }}"
+        state: present
+        key: "{{ vm1_pubkey.content | b64decode }}"
+        
+    - name: Test passwordless SSH
+      delegate_to: vm1-frontend
+      command: ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "echo 'SSH OK'"
+      register: ssh_test
+      
+    - name: Display SSH test result
+      debug:
+        msg: "{{ ssh_test.stdout }}"
