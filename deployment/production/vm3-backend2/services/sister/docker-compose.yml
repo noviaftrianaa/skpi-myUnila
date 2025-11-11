@@ -5,119 +5,58 @@ services:
     build:
       context: ../../../../../backend/sister-service
       dockerfile: Dockerfile
-      args:
-        - APP_ENV=production
     image: myunila/sister-service:production
     container_name: myunila-sister-service
-    restart: unless-stopped
-    working_dir: /app
-
-    env_file:
-      - ../../.env
-
+    ports:
+      - "8083:8083"
     environment:
-      # Application Config
-      APP_NAME: "${APP_NAME}"
-      APP_PORT: "${APP_PORT}"
-      APP_ENV: "${APP_ENV}"
-      APP_DEBUG: "${APP_DEBUG}"
+      # App Configuration
+      APP_NAME: ${SISTER_APP_NAME:-Sister Service}
+      APP_PORT: ${SISTER_APP_PORT:-:8083}
+      APP_ENV: ${SISTER_APP_ENV:-production}
 
-      # API Config Encryption Key
-      API_CONFIG_ENCRYPTION_KEY: "${API_CONFIG_ENCRYPTION_KEY}"
+      # Database Configuration
+      DB_DRIVER: ${SISTER_DB_DRIVER:-sqlserver}
+      DB_HOST: ${SISTER_DB_HOST}
+      DB_PORT: ${SISTER_DB_PORT:-1433}
+      DB_USERNAME: ${SISTER_DB_USERNAME}
+      DB_PASSWORD: ${SISTER_DB_PASSWORD}
+      DB_DATABASE: ${SISTER_DB_DATABASE}
+      DB_MAX_OPEN_CONNS: ${SISTER_DB_MAX_OPEN_CONNS:-25}
+      DB_MAX_IDLE_CONNS: ${SISTER_DB_MAX_IDLE_CONNS:-5}
+      DB_CONN_MAX_LIFETIME: ${SISTER_DB_CONN_MAX_LIFETIME:-5m}
 
-      # Sister API Kemdikbud (fallback)
-      SISTER_API_BASE_URL: "${SISTER_API_BASE_URL}"
-      SISTER_API_IDPENGGUNA: "${SISTER_API_IDPENGGUNA}"
-      SISTER_API_USERNAME: "${SISTER_API_USERNAME}"
-      SISTER_API_PASSWORD: "${SISTER_API_PASSWORD}"
+      # SISTER API Configuration
+      SISTER_API_BASE_URL: ${SISTER_API_BASE_URL}
+      SISTER_API_IDPENGGUNA: ${SISTER_API_IDPENGGUNA}
+      SISTER_API_USERNAME: ${SISTER_API_USERNAME}
+      SISTER_API_PASSWORD: ${SISTER_API_PASSWORD}
 
-      # Feeder PDDIKTI API (fallback)
-      FEEDER_API_USERNAME: "${FEEDER_API_USERNAME}"
-      FEEDER_API_PASSWORD: "${FEEDER_API_PASSWORD}"
+      # Encryption Key
+      API_CONFIG_ENCRYPTION_KEY: ${API_CONFIG_ENCRYPTION_KEY}
 
-      # Database
-      DB_DRIVER: "${SISTER_DB_DRIVER}"
-      DB_HOST: "${SISTER_DB_HOST}"
-      DB_PORT: "${SISTER_DB_PORT}"
-      DB_NAME: "${SISTER_DB_DATABASE}"
-      DB_USER: "${SISTER_DB_USERNAME}"
-      DB_PASSWORD: "${SISTER_DB_PASSWORD}"
-
-      # Database Connection Pool
-      DB_MAX_OPEN_CONNS: "${DB_MAX_OPEN_CONNS}"
-      DB_MAX_IDLE_CONNS: "${DB_MAX_IDLE_CONNS}"
-      DB_CONN_MAX_LIFETIME: "${DB_CONN_MAX_LIFETIME}"
-
-      # JWT (shared with auth-service)
-      JWT_SECRET: "${JWT_SECRET}"
-      JWT_ALGO: HS256
-
-      # Logging
-      LOG_LEVEL: "${LOG_LEVEL:-info}"
+      # JWT
+      JWT_SECRET: ${JWT_SECRET}
 
       # Timezone
-      TZ: "${TIMEZONE:-Asia/Jakarta}"
-
-    ports:
-      - "${SISTER_SERVICE_PORT}:8083"
-
+      TZ: ${TZ:-Asia/Jakarta}
     networks:
       - myunila-prod-network
-
-    volumes:
-      - sister-storage:/var/www/html/storage
-      - sister-logs:/var/www/html/storage/logs
-
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/api/health"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8083/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-
-    depends_on:
-      - sister-nginx
-
     logging:
       driver: "json-file"
       options:
-        max-size: "10m"
-        max-file: "3"
-
-  sister-nginx:
-    image: nginx:alpine
-    container_name: myunila-sister-nginx
-    restart: unless-stopped
-
-    ports:
-      - "8083:80"
-
-    volumes:
-      - ../../configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ../../configs/nginx/conf.d/sister.conf:/etc/nginx/conf.d/default.conf:ro
-      - sister-logs:/var/log/nginx
-
-    networks:
-      - myunila-prod-network
-
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: "50m"
+        max-file: "5"
+        labels: "service=sister,vm=vm3"
 
 networks:
   myunila-prod-network:
     external: true
-
-volumes:
-  sister-storage:
-    driver: local
-  sister-logs:
-    driver: local
+    name: myunila-prod-network
