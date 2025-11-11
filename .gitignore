@@ -16,6 +16,14 @@ dashboard/.env
 docker-compose.dev.yml
 docker-compose.*.local.yml
 
+# Production environment files (contains secrets)
+deployment/production/**/.env
+deployment/production/**/.env.local
+deployment/production/**/.env.production
+
+# Keep .env.example files for reference
+!deployment/production/**/.env.example
+
 # Temporary files
 *.tmp
 *.log

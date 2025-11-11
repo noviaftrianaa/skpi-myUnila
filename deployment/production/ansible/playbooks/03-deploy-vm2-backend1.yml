@@ -21,13 +21,38 @@
         force: yes
       become_user: "{{ ansible_user }}"
 
-    - name: Create .env file from template
-      template:
-        src: ../templates/vm2-env.j2
+    - name: Check if .env file exists
+      stat:
+        path: "{{ app_dir }}/deployment/production/vm2-backend1/.env"
+      register: env_file
+
+    - name: Copy .env.example to .env if not exists
+      copy:
+        src: "{{ app_dir }}/deployment/production/vm2-backend1/.env.example"
         dest: "{{ app_dir }}/deployment/production/vm2-backend1/.env"
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
         mode: '0600'
+        remote_src: yes
+      when: not env_file.stat.exists
+
+    - name: Pause for manual .env configuration
+      pause:
+        prompt: |
+
+          ⚠️  IMPORTANT: Please edit .env file on VM2 before continuing!
+
+          SSH to VM2: ssh {{ ansible_user }}@{{ ansible_host }}
+          Edit file: nano {{ app_dir }}/deployment/production/vm2-backend1/.env
+
+          Update these values:
+          - Database credentials (DB_MSSQL_*)
+          - APP_KEY for Dashboard and Auth
+          - JWT_SECRET
+          - Meilisearch and Redis configuration
+
+          Press ENTER when ready to continue...
+      when: not env_file.stat.exists
 
     - name: Create Docker network
       docker_network:

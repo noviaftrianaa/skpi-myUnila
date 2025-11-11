@@ -21,13 +21,38 @@
         force: yes
       become_user: "{{ ansible_user }}"
 
-    - name: Create .env file from template
-      template:
-        src: ../templates/vm3-env.j2
+    - name: Check if .env file exists
+      stat:
+        path: "{{ app_dir }}/deployment/production/vm3-backend2/.env"
+      register: env_file
+
+    - name: Copy .env.example to .env if not exists
+      copy:
+        src: "{{ app_dir }}/deployment/production/vm3-backend2/.env.example"
         dest: "{{ app_dir }}/deployment/production/vm3-backend2/.env"
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
         mode: '0600'
+        remote_src: yes
+      when: not env_file.stat.exists
+
+    - name: Pause for manual .env configuration
+      pause:
+        prompt: |
+
+          ⚠️  IMPORTANT: Please edit .env file on VM3 before continuing!
+
+          SSH to VM3: ssh {{ ansible_user }}@{{ ansible_host }}
+          Edit file: nano {{ app_dir }}/deployment/production/vm3-backend2/.env
+
+          Update these values:
+          - Sister DB credentials (SISTER_DB_*)
+          - APP_KEY for Laravel
+          - JWT_SECRET
+          - Meilisearch and Redis configuration
+
+          Press ENTER when ready to continue...
+      when: not env_file.stat.exists
 
     - name: Create Docker network
       docker_network:
