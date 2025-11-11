@@ -9,7 +9,7 @@
 
   vars:
     app_dir: "/var/www/my-unila"
-    repo_url: "https://bitbucket.org/mahendraunila/my-unila.git"
+    repo_url: "git@bitbucket.org:mahendraunila/my-unila.git"
     branch: "master"
 
   tasks:
@@ -19,6 +19,7 @@
         dest: "{{ app_dir }}"
         version: "{{ branch }}"
         force: yes
+        accept_hostkey: yes
       become_user: "{{ ansible_user }}"
 
     - name: Check if .env file exists
