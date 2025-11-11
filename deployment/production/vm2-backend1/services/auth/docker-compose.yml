@@ -4,7 +4,7 @@ services:
   auth-service:
     build:
       context: ../../../../../backend/auth-service
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.alpine-fixed
       args:
         - APP_ENV=production
     image: myunila/auth-service:production
