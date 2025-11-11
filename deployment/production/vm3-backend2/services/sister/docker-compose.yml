@@ -4,53 +4,62 @@ services:
   sister-service:
     build:
       context: ../../../../../backend/sister-service
-      dockerfile: docker/Dockerfile
+      dockerfile: Dockerfile
       args:
         - APP_ENV=production
     image: myunila/sister-service:production
     container_name: myunila-sister-service
     restart: unless-stopped
-    working_dir: /var/www/html
+    working_dir: /app
+
+    env_file:
+      - ../../.env
 
     environment:
-      # Laravel
+      # Application Config
       APP_NAME: "${APP_NAME}"
+      APP_PORT: "${APP_PORT}"
       APP_ENV: "${APP_ENV}"
-      APP_KEY: "${APP_KEY}"
       APP_DEBUG: "${APP_DEBUG}"
-      APP_URL: "${APP_URL}"
+
+      # API Config Encryption Key
+      API_CONFIG_ENCRYPTION_KEY: "${API_CONFIG_ENCRYPTION_KEY}"
+
+      # Sister API Kemdikbud (fallback)
+      SISTER_API_BASE_URL: "${SISTER_API_BASE_URL}"
+      SISTER_API_IDPENGGUNA: "${SISTER_API_IDPENGGUNA}"
+      SISTER_API_USERNAME: "${SISTER_API_USERNAME}"
+      SISTER_API_PASSWORD: "${SISTER_API_PASSWORD}"
+
+      # Feeder PDDIKTI API (fallback)
+      FEEDER_API_USERNAME: "${FEEDER_API_USERNAME}"
+      FEEDER_API_PASSWORD: "${FEEDER_API_PASSWORD}"
 
       # Database
-      DB_CONNECTION: "${SISTER_DB_CONNECTION}"
+      DB_DRIVER: "${SISTER_DB_DRIVER}"
       DB_HOST: "${SISTER_DB_HOST}"
       DB_PORT: "${SISTER_DB_PORT}"
-      DB_DATABASE: "${SISTER_DB_DATABASE}"
-      DB_USERNAME: "${SISTER_DB_USERNAME}"
+      DB_NAME: "${SISTER_DB_DATABASE}"
+      DB_USER: "${SISTER_DB_USERNAME}"
       DB_PASSWORD: "${SISTER_DB_PASSWORD}"
 
-      # Meilisearch
-      MEILISEARCH_HOST: "${MEILISEARCH_HOST}"
-      MEILISEARCH_KEY: "${MEILISEARCH_KEY}"
+      # Database Connection Pool
+      DB_MAX_OPEN_CONNS: "${DB_MAX_OPEN_CONNS}"
+      DB_MAX_IDLE_CONNS: "${DB_MAX_IDLE_CONNS}"
+      DB_CONN_MAX_LIFETIME: "${DB_CONN_MAX_LIFETIME}"
 
-      # Redis
-      REDIS_HOST: "${REDIS_HOST}"
-      REDIS_PORT: "${REDIS_PORT}"
-      REDIS_PASSWORD: "${REDIS_PASSWORD}"
-
-      # JWT
+      # JWT (shared with auth-service)
       JWT_SECRET: "${JWT_SECRET}"
-      JWT_TTL: "${JWT_TTL}"
+      JWT_ALGO: HS256
 
       # Logging
-      LOG_CHANNEL: "${LOG_CHANNEL}"
-      LOG_LEVEL: "${LOG_LEVEL}"
+      LOG_LEVEL: "${LOG_LEVEL:-info}"
 
-      # Service URLs
-      KONG_ADMIN_URL: "${KONG_ADMIN_URL}"
-      KONG_PROXY_URL: "${KONG_PROXY_URL}"
+      # Timezone
+      TZ: "${TIMEZONE:-Asia/Jakarta}"
 
     ports:
-      - "${SISTER_SERVICE_PORT}:9000"
+      - "${SISTER_SERVICE_PORT}:8083"
 
     networks:
       - myunila-prod-network
