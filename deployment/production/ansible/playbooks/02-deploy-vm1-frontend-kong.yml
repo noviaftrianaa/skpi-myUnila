@@ -138,7 +138,7 @@
       become_user: "{{ ansible_user }}"
 
     - name: Check services status
-      shell: docker ps --filter "name=myunila" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+      shell: docker ps --filter "name=myunila" --format "table {% raw %}{{.Names}}\t{{.Status}}\t{{.Ports}}{% endraw %}"
       register: docker_status
       become_user: "{{ ansible_user }}"
 
