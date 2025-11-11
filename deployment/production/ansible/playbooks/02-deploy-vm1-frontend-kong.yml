@@ -101,20 +101,25 @@
         port: '5432'
         proto: tcp
 
-    - name: Setup PostgreSQL for Kong
+    - name: Start PostgreSQL for Kong
       shell: |
-        cd {{ app_dir }}/deployment/production/vm1-frontend-kong/scripts
-        chmod +x setup-postgres.sh
-        ./setup-postgres.sh
+        cd {{ app_dir }}/deployment/production/vm1-frontend-kong
+        docker compose --env-file .env -f services/postgres/docker-compose.yml up -d
       args:
         executable: /bin/bash
       become_user: "{{ ansible_user }}"
-      ignore_errors: yes
+
+    - name: Wait for PostgreSQL to be healthy
+      wait_for:
+        host: localhost
+        port: 5432
+        delay: 5
+        timeout: 30
 
     - name: Start Kong Gateway
       shell: |
         cd {{ app_dir }}/deployment/production/vm1-frontend-kong
-        docker compose -f services/kong/docker-compose.yml up -d
+        docker compose --env-file .env -f services/kong/docker-compose.yml up -d
       args:
         executable: /bin/bash
       become_user: "{{ ansible_user }}"

@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  kong-postgres:
+    image: postgres:15-alpine
+    container_name: myunila-kong-postgres-vm2
+    env_file:
+      - ../../.env
+    restart: unless-stopped
+    ports:
+      - "${KONG_PG_PORT:-5432}:5432"
+
+    environment:
+      POSTGRES_DB: "${KONG_PG_DATABASE}"
+      POSTGRES_USER: "${KONG_PG_USER}"
+      POSTGRES_PASSWORD: "${KONG_PG_PASSWORD}"
+      PGDATA: /var/lib/postgresql/data/pgdata
+
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+    networks:
+      - myunila-prod-network
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${KONG_PG_USER} -d ${KONG_PG_DATABASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=postgres,vm=vm2"
+
+networks:
+  myunila-prod-network:
+    external: true
+
+volumes:
+  postgres-data:
+    driver: local
+    name: myunila-kong-postgres-data-vm2
