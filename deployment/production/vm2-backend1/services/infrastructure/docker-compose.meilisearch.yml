@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  meilisearch:
+    image: getmeili/meilisearch:v1.5
+    container_name: myunila-meilisearch-vm2
+    env_file:
+      - ../../.env
+    restart: unless-stopped
+    ports:
+      - "${MEILISEARCH_PORT:-7700}:7700"
+    environment:
+      MEILI_MASTER_KEY: "${MEILISEARCH_KEY:-masterKey123456}"
+      MEILI_ENV: "${MEILISEARCH_ENV:-production}"
+      MEILI_HTTP_ADDR: "0.0.0.0:7700"
+    volumes:
+      - meilisearch_data:/meili_data
+    networks:
+      - myunila-prod-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://127.0.0.1:7700/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=meilisearch,vm=vm2"
+
+networks:
+  myunila-prod-network:
+    external: true
+    name: myunila-prod-network
+
+volumes:
+  meilisearch_data:
+    driver: local
+    name: myunila-meilisearch-data-vm2
