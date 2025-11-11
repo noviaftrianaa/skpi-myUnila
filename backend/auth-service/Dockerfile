@@ -31,15 +31,15 @@ RUN pecl channel-update pecl.php.net \
     && pecl install redis-5.3.7 \
     && docker-php-ext-enable redis
 
+# Install unixODBC and development files (needed BEFORE SQL Server driver)
+RUN apk add --no-cache unixodbc unixodbc-dev
+
 # Install SQL Server ODBC Driver and tools (Alpine)
 RUN curl -O https://download.microsoft.com/download/3/5/5/355d7943-a338-41a7-858d-53b259ea33f5/msodbcsql18_18.3.2.1-1_amd64.apk \
     && curl -O https://download.microsoft.com/download/3/5/5/355d7943-a338-41a7-858d-53b259ea33f5/mssql-tools18_18.3.1.1-1_amd64.apk \
     && apk add --allow-untrusted msodbcsql18_18.3.2.1-1_amd64.apk \
     && apk add --allow-untrusted mssql-tools18_18.3.1.1-1_amd64.apk \
     && rm -f msodbcsql18_18.3.2.1-1_amd64.apk mssql-tools18_18.3.1.1-1_amd64.apk
-
-# Install unixODBC development files
-RUN apk add --no-cache unixodbc-dev
 
 # Install SQL Server PHP drivers
 RUN pecl install sqlsrv-5.12.0 pdo_sqlsrv-5.12.0 \
