@@ -318,7 +318,7 @@ docker exec myunila-dashboard-service ps aux | grep php-fpm | wc -l
 # Check all services
 for vm in 41 42 43; do
   echo "=== VM $vm ==="
-  ssh user@192.168.120.$vm "docker ps --format 'table {{.Names}}\t{{.Status}}' --filter 'name=myunila'"
+  ssh user@192.168.120.$vm "docker ps --format 'table {{.Names}}\\t{{.Status}}' --filter 'name=myunila'"
   echo ""
 done
 
