@@ -1,0 +1,275 @@
+---
+# Playbook: Rebuild All Production Services
+# Description: Rebuild and restart all services across VM1, VM2, VM3 after code/config changes
+# Usage: ansible-playbook -i inventory/hosts.yml playbooks/rebuild-all-services.yml
+#
+# This playbook:
+# 1. Pulls latest code from git
+# 2. Rebuilds Docker images with --no-cache
+# 3. Restarts services with new configurations
+# 4. Verifies services are healthy
+#
+# Services are rebuilt in parallel across VMs for faster deployment.
+
+- name: Rebuild All Production Services
+  hosts: all
+  become: yes
+  gather_facts: yes
+  serial: 100%  # Process all hosts in parallel
+
+  vars:
+    app_dir: "/var/www/my-unila"
+    branch: "master"
+
+  tasks:
+    - name: Display deployment information
+      debug:
+        msg: |
+          ============================================
+          Rebuilding services on {{ inventory_hostname }}
+          VM: {{ inventory_hostname }}
+          User: {{ ansible_user }}
+          ============================================
+      run_once: false
+
+    - name: Pull latest code from git
+      shell: git pull origin {{ branch }}
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: "{{ ansible_user }}"
+      register: git_pull_result
+      changed_when: "'Already up to date' not in git_pull_result.stdout"
+
+    - name: Display git pull result
+      debug:
+        msg: "{{ git_pull_result.stdout_lines }}"
+      when: git_pull_result.stdout_lines is defined
+
+# ============================================
+# VM1 - Frontend & Kong Gateway
+# ============================================
+- name: Rebuild VM1 - Frontend & Kong Gateway
+  hosts: frontend
+  become: yes
+  gather_facts: no
+
+  vars:
+    app_dir: "/var/www/my-unila"
+    deployment_dir: "{{ app_dir }}/deployment/production/vm1-frontend-kong"
+
+  tasks:
+    - name: Restart Kong Gateway (pickup new environment variables)
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/kong/docker-compose.yml restart
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: kong_restart
+
+    - name: Wait for Kong to be healthy
+      wait_for:
+        host: localhost
+        port: 9800
+        delay: 5
+        timeout: 60
+
+    - name: Rebuild Frontend image
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/frontend/docker-compose.yml build --no-cache
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: frontend_build
+
+    - name: Restart Frontend service
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/frontend/docker-compose.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Wait for Frontend to be healthy
+      wait_for:
+        host: localhost
+        port: 3000
+        delay: 5
+        timeout: 60
+
+    - name: Verify VM1 services status
+      shell: docker ps --filter "name=myunila" --format "table {% raw %}{{.Names}}\t{{.Status}}{% endraw %}"
+      register: vm1_status
+      become_user: "{{ ansible_user }}"
+
+    - name: Display VM1 services status
+      debug:
+        msg: "{{ vm1_status.stdout_lines }}"
+
+# ============================================
+# VM2 - Backend PHP Services & Infrastructure
+# ============================================
+- name: Rebuild VM2 - Backend PHP Services
+  hosts: backend1
+  become: yes
+  gather_facts: no
+
+  vars:
+    app_dir: "/var/www/my-unila"
+    deployment_dir: "{{ app_dir }}/deployment/production/vm2-backend1"
+
+  tasks:
+    - name: Rebuild Dashboard Service image
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/dashboard/docker-compose.yml build --no-cache
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: dashboard_build
+      async: 600  # 10 minutes timeout
+      poll: 0
+
+    - name: Rebuild Auth Service image
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/auth/docker-compose.yml build --no-cache
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: auth_build
+      async: 600
+      poll: 0
+
+    - name: Wait for Dashboard build to complete
+      async_status:
+        jid: "{{ dashboard_build.ansible_job_id }}"
+      register: dashboard_build_result
+      until: dashboard_build_result.finished
+      retries: 60
+      delay: 10
+
+    - name: Wait for Auth build to complete
+      async_status:
+        jid: "{{ auth_build.ansible_job_id }}"
+      register: auth_build_result
+      until: auth_build_result.finished
+      retries: 60
+      delay: 10
+
+    - name: Restart Dashboard Service
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/dashboard/docker-compose.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Restart Auth Service
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/auth/docker-compose.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Restart Nginx (pickup new config)
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose -f services/nginx/docker-compose.yml restart
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Wait for services to be healthy
+      pause:
+        seconds: 10
+
+    - name: Verify VM2 services status
+      shell: docker ps --filter "name=myunila" --format "table {% raw %}{{.Names}}\t{{.Status}}{% endraw %}"
+      register: vm2_status
+      become_user: "{{ ansible_user }}"
+
+    - name: Display VM2 services status
+      debug:
+        msg: "{{ vm2_status.stdout_lines }}"
+
+# ============================================
+# VM3 - Sister Service (Go)
+# ============================================
+- name: Rebuild VM3 - Sister Service
+  hosts: backend2
+  become: yes
+  gather_facts: no
+
+  vars:
+    app_dir: "/var/www/my-unila"
+    deployment_dir: "{{ app_dir }}/deployment/production/vm3-backend2"
+
+  tasks:
+    - name: Rebuild Sister Service image
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file ../../.env -f services/sister/docker-compose.yml build --no-cache
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: sister_build
+
+    - name: Restart Sister Service
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file ../../.env -f services/sister/docker-compose.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Wait for Sister Service to be healthy
+      wait_for:
+        host: localhost
+        port: 8083
+        delay: 5
+        timeout: 60
+
+    - name: Verify VM3 services status
+      shell: docker ps --filter "name=myunila" --format "table {% raw %}{{.Names}}\t{{.Status}}{% endraw %}"
+      register: vm3_status
+      become_user: "{{ ansible_user }}"
+
+    - name: Display VM3 services status
+      debug:
+        msg: "{{ vm3_status.stdout_lines }}"
+
+# ============================================
+# Final Summary
+# ============================================
+- name: Display Deployment Summary
+  hosts: localhost
+  gather_facts: no
+  connection: local
+
+  tasks:
+    - name: Show deployment summary
+      debug:
+        msg: |
+          ============================================
+          Deployment Complete!
+          ============================================
+
+          All services have been rebuilt and restarted.
+
+          Next steps:
+          1. Verify services are running: docker ps
+          2. Check logs if needed: docker logs <container-name>
+          3. Test endpoints via Kong Gateway
+
+          Access Points:
+          - Frontend:    http://192.168.120.41:3000
+          - Kong Proxy:  http://192.168.120.41:9800
+          - Kong Admin:  http://192.168.120.41:9801
+
+          Backend services (via Kong):
+          - Dashboard:   http://192.168.120.41:9800/dashboard-service/api/health
+          - Auth:        http://192.168.120.41:9800/auth-service/api/health
+          - Sister:      http://192.168.120.41:9800/sister-service/health

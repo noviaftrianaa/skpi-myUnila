@@ -1,0 +1,121 @@
+---
+# Playbook: Quick Restart Services (No Rebuild)
+# Description: Quickly restart all services without rebuilding images
+# Usage: ansible-playbook -i inventory/hosts.yml playbooks/quick-restart.yml
+#
+# Use this when:
+# - Only environment variables changed (.env files)
+# - Want to pickup config changes quickly
+# - No code changes (no need to rebuild images)
+
+- name: Quick Restart All Services
+  hosts: all
+  become: yes
+  gather_facts: yes
+  serial: 100%
+
+  vars:
+    app_dir: "/var/www/my-unila"
+    branch: "master"
+
+  tasks:
+    - name: Pull latest code
+      shell: git pull origin {{ branch }}
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: "{{ ansible_user }}"
+      register: git_pull_result
+
+# VM1 - Quick Restart
+- name: Quick Restart VM1 Services
+  hosts: frontend
+  become: yes
+  gather_facts: no
+
+  vars:
+    deployment_dir: "/var/www/my-unila/deployment/production/vm1-frontend-kong"
+
+  tasks:
+    - name: Restart Kong Gateway
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/kong/docker-compose.yml restart
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Restart Frontend
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/frontend/docker-compose.yml restart
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+# VM2 - Quick Restart
+- name: Quick Restart VM2 Services
+  hosts: backend1
+  become: yes
+  gather_facts: no
+
+  vars:
+    deployment_dir: "/var/www/my-unila/deployment/production/vm2-backend1"
+
+  tasks:
+    - name: Restart Dashboard Service
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/dashboard/docker-compose.yml restart
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Restart Auth Service
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/auth/docker-compose.yml restart
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Restart Nginx
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose -f services/nginx/docker-compose.yml restart
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+# VM3 - Quick Restart
+- name: Quick Restart VM3 Services
+  hosts: backend2
+  become: yes
+  gather_facts: no
+
+  vars:
+    deployment_dir: "/var/www/my-unila/deployment/production/vm3-backend2"
+
+  tasks:
+    - name: Restart Sister Service
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file ../../.env -f services/sister/docker-compose.yml restart
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+- name: Summary
+  hosts: localhost
+  gather_facts: no
+  connection: local
+
+  tasks:
+    - name: Show completion message
+      debug:
+        msg: |
+          ============================================
+          Quick Restart Complete!
+          ============================================
+
+          All services have been restarted.
+          Total time: ~30 seconds (vs 10+ minutes for full rebuild)
