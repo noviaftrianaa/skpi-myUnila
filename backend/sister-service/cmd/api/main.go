@@ -148,57 +148,57 @@ func main() {
 	// Initialize domain routers and get services for scheduler
 	referensiService := referensi.Init(apiV1, db, sisterAPI, loggerService) // Referensi routes (protected with JWT)
 
-	// Initialize Dosen Service with public routes (no auth required)
-	// Register on app directly so it's accessible at /dosen/* without /public prefix
-	dosenService := dosen.Init(app, db, sisterAPI, redisClient, loggerService) // Dosen endpoints with Redis cache and DB
+	// Initialize Dosen Service (register on apiV1 for consistency)
+	// All endpoints will be accessible at /api/v1/dosen/*
+	dosenService := dosen.Init(apiV1, db, sisterAPI, redisClient, loggerService) // Dosen endpoints with Redis cache and DB
 
-	// Initialize Penugasan module
+	// Initialize Penugasan module (register on apiV1 for consistency)
 	penugasanRepo := penugasan.NewRepository(db)
 	penugasanService := penugasan.NewService(penugasanRepo, sisterAPI, loggerService)
 	penugasanController := penugasan.NewController(penugasanService)
-	penugasan.SetupRoutes(app, penugasanController)
+	penugasan.SetupRoutes(apiV1, penugasanController)
 	log.Println("✅ Penugasan routes registered")
 
-	// Initialize Penelitian module
-	penelitianService := penelitian.SetupRoutes(app, db, sisterAPI, loggerService)
+	// Initialize Penelitian module (register on apiV1 for consistency)
+	penelitianService := penelitian.SetupRoutes(apiV1, db, sisterAPI, loggerService)
 	log.Println("✅ Penelitian & Pengabdian routes registered")
 
-	// Initialize Publikasi module
-	publikasiService := publikasi.SetupRoutes(app, db, sisterAPI, loggerService)
+	// Initialize Publikasi module (register on apiV1 for consistency)
+	publikasiService := publikasi.SetupRoutes(apiV1, db, sisterAPI, loggerService)
 	log.Println("✅ Publikasi routes registered")
 
-	// Initialize Pendidikan Formal module
-	pendidikanService := pendidikan.SetupRoutes(app, db, sisterAPI, loggerService)
+	// Initialize Pendidikan Formal module (register on apiV1 for consistency)
+	pendidikanService := pendidikan.SetupRoutes(apiV1, db, sisterAPI, loggerService)
 	log.Println("✅ Pendidikan Formal routes registered")
 
-	// Initialize Riwayat Pekerjaan module
-	riwayatPekerjaanService := riwayat_pekerjaan.SetupRoutes(app, db, sisterAPI, loggerService)
+	// Initialize Riwayat Pekerjaan module (register on apiV1 for consistency)
+	riwayatPekerjaanService := riwayat_pekerjaan.SetupRoutes(apiV1, db, sisterAPI, loggerService)
 	log.Println("✅ Riwayat Pekerjaan routes registered")
 
-	// Initialize Jabatan Struktural module
-	jabatanStrukturalService := jabatan_struktural.SetupRoutes(app, db, sisterAPI, loggerService)
+	// Initialize Jabatan Struktural module (register on apiV1 for consistency)
+	jabatanStrukturalService := jabatan_struktural.SetupRoutes(apiV1, db, sisterAPI, loggerService)
 	log.Println("✅ Jabatan Struktural routes registered")
 
-	// Initialize Tugas Tambahan module
-	tugasTambahanService := tugas_tambahan.SetupRoutes(app, db, sisterAPI, loggerService)
+	// Initialize Tugas Tambahan module (register on apiV1 for consistency)
+	tugasTambahanService := tugas_tambahan.SetupRoutes(apiV1, db, sisterAPI, loggerService)
 	log.Println("✅ Tugas Tambahan routes registered")
 
-	// Initialize Sertifikasi Dosen module
-	sertifikasiDosenService := sertifikasi_dosen.SetupRoutes(app, db, sisterAPI, loggerService)
+	// Initialize Sertifikasi Dosen module (register on apiV1 for consistency)
+	sertifikasiDosenService := sertifikasi_dosen.SetupRoutes(apiV1, db, sisterAPI, loggerService)
 	log.Println("✅ Sertifikasi Dosen routes registered")
 
-	// Initialize Bidang Ilmu module
-	bidangIlmuService := bidang_ilmu.SetupRoutes(app, db, sisterAPI, loggerService)
+	// Initialize Bidang Ilmu module (register on apiV1 for consistency)
+	bidangIlmuService := bidang_ilmu.SetupRoutes(apiV1, db, sisterAPI, loggerService)
 	log.Println("✅ Bidang Ilmu routes registered")
 
-	synclog.RegisterRoutes(app, db)                                      // Sync logs endpoints (public, no auth)
-	monitoring.RegisterRoutes(app)                                       // Monitoring endpoints (public, no auth)
+	synclog.RegisterRoutes(apiV1, db)                                    // Sync logs endpoints (register on apiV1 for consistency)
+	monitoring.RegisterRoutes(apiV1)                                     // Monitoring endpoints (register on apiV1 for consistency)
 
-	// Initialize Scheduler Service
+	// Initialize Scheduler Service (register on apiV1 for consistency)
 	schedulerRepo := scheduler.NewRepository(db)
 	schedulerService := scheduler.NewService(schedulerRepo, dosenService, referensiService, penugasanService, penelitianService, publikasiService, pendidikanService, riwayatPekerjaanService, jabatanStrukturalService, tugasTambahanService, sertifikasiDosenService, bidangIlmuService)
 	schedulerRouter := scheduler.NewRouter(schedulerService)
-	schedulerRouter.RegisterRoutes(app)
+	schedulerRouter.RegisterRoutes(apiV1)
 
 	// Start cron scheduler
 	if err := schedulerService.Start(); err != nil {
