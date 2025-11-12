@@ -33,6 +33,7 @@ services:
 
       # Aplikasi ID untuk log login
       APLIKASI_ID: "${AUTH_APLIKASI_ID:-1}"
+      APP_APLIKASI_ID: "${AUTH_APLIKASI_ID:-1}"
 
       # Redis
       REDIS_HOST: "${REDIS_HOST}"
