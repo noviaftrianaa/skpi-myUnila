@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Repositories\PenelitianDetailRepository;
+use Illuminate\Support\Facades\Crypt;
 
 class PenelitianDetailService
 {
@@ -69,6 +70,7 @@ class PenelitianDetailService
                 'anggota_tim' => array_map(function ($anggota) {
                     return [
                         'id_sdm' => $anggota->id_sdm,
+                        'encrypted_id' => Crypt::encryptString($anggota->id_sdm),
                         'nama' => ucwords(strtolower($anggota->nama)),
                         'nidn' => $anggota->nidn,
                         'nuptk' => $anggota->nuptk,
@@ -107,6 +109,7 @@ class PenelitianDetailService
                 'mahasiswa' => array_map(function ($mhs) {
                     return [
                         'id_pd' => $mhs->id_pd,
+                        'encrypted_id' => Crypt::encryptString($mhs->id_pd),
                         'nama' => ucwords(strtolower($mhs->nama)),
                         'nim' => $mhs->nim,
                         'jenis_kelamin' => $mhs->jenis_kelamin,

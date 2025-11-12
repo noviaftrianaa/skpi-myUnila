@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Repositories\PublikasiDetailRepository;
+use Illuminate\Support\Facades\Crypt;
 
 class PublikasiDetailService
 {
@@ -63,6 +64,7 @@ class PublikasiDetailService
                 'penulis' => array_map(function ($penulis) {
                     return [
                         'id_sdm' => $penulis->id_sdm,
+                        'encrypted_id' => Crypt::encryptString($penulis->id_sdm),
                         'nama' => ucwords(strtolower($penulis->nama)),
                         'nidn' => $penulis->nidn,
                         'nuptk' => $penulis->nuptk,
@@ -76,6 +78,7 @@ class PublikasiDetailService
                 'mahasiswa' => array_map(function ($mhs) {
                     return [
                         'id_pd' => $mhs->id_pd,
+                        'encrypted_id' => Crypt::encryptString($mhs->id_pd),
                         'nama' => ucwords(strtolower($mhs->nama)),
                         'nim' => $mhs->nim,
                         'jenis_kelamin' => $mhs->jenis_kelamin,

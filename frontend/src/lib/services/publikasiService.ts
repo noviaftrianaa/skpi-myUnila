@@ -136,6 +136,7 @@ export interface BatchAllSyncResult {
 // Publikasi Detail Types (from dashboard-service)
 export interface PenulisPublikasi {
   id_sdm: string;
+  encrypted_id: string;
   nama: string;
   nidn: string;
   nuptk: string;
@@ -148,6 +149,7 @@ export interface PenulisPublikasi {
 
 export interface MahasiswaPenulis {
   id_pd: string;
+  encrypted_id: string;
   nama: string;
   nim: string;
   jenis_kelamin: string;

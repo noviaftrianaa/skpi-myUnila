@@ -376,7 +376,7 @@ export default function PublikasiDetailPage() {
                     {publikasi.penulis.map((penulis, index) => (
                       <Link
                         key={index}
-                        href={`/dosen/${penulis.id_sdm}`}
+                        href={`/dosen/${penulis.encrypted_id}`}
                         className="group p-5 border border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-lg transition-all bg-gradient-to-br from-white to-gray-50"
                       >
                         <div className="flex items-start gap-4">
@@ -449,7 +449,7 @@ export default function PublikasiDetailPage() {
                     {publikasi.mahasiswa.map((mhs) => (
                       <Link
                         key={mhs.id_pd}
-                        href={`/mahasiswa/${mhs.id_pd}`}
+                        href={`/mahasiswa/${mhs.encrypted_id}`}
                         className="block p-4 border border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all group"
                       >
                         <div className="flex items-start gap-4">
