@@ -191,7 +191,7 @@
     - name: Rebuild Sister Service image
       shell: |
         cd {{ deployment_dir }}
-        docker compose --env-file ../../.env -f services/sister/docker-compose.yml build --no-cache
+        docker compose --env-file .env -f services/sister/docker-compose.yml build --no-cache
       args:
         executable: /bin/bash
       become_user: "{{ ansible_user }}"
@@ -200,7 +200,7 @@
     - name: Restart Sister Service
       shell: |
         cd {{ deployment_dir }}
-        docker compose --env-file ../../.env -f services/sister/docker-compose.yml up -d
+        docker compose --env-file .env -f services/sister/docker-compose.yml up -d
       args:
         executable: /bin/bash
       become_user: "{{ ansible_user }}"
