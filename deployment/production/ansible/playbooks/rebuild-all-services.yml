@@ -128,8 +128,6 @@
         executable: /bin/bash
       become_user: "{{ ansible_user }}"
       register: dashboard_build
-      async: 600  # 10 minutes timeout
-      poll: 0
 
     - name: Rebuild Auth Service image
       shell: |
@@ -139,24 +137,6 @@
         executable: /bin/bash
       become_user: "{{ ansible_user }}"
       register: auth_build
-      async: 600
-      poll: 0
-
-    - name: Wait for Dashboard build to complete
-      async_status:
-        jid: "{{ dashboard_build.ansible_job_id }}"
-      register: dashboard_build_result
-      until: dashboard_build_result.finished
-      retries: 60
-      delay: 10
-
-    - name: Wait for Auth build to complete
-      async_status:
-        jid: "{{ auth_build.ansible_job_id }}"
-      register: auth_build_result
-      until: auth_build_result.finished
-      retries: 60
-      delay: 10
 
     - name: Restart Dashboard Service
       shell: |
