@@ -216,8 +216,7 @@ class UnilaStatisticsRepository
             SELECT COUNT(*) AS total
             FROM pdrd.sms AS sms
             WHERE sms.soft_delete = 0
-                AND sms.stat_prodi = 'A'
-                AND sms.id_jenj_didik = '98'
+                AND sms.id_jns_sms = '1'
                 AND CAST(sms.id_sp AS VARCHAR(50)) = ?
         ";
 
@@ -267,8 +266,8 @@ class UnilaStatisticsRepository
                 AND didik.expired_date IS NULL
             WHERE sms.soft_delete = 0
                 AND sms.stat_prodi = 'A'
+                AND sms.id_jns_sms = '3'
                 AND CAST(sms.id_sp AS VARCHAR(50)) = ?
-                AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
         ";
 
         $result = DB::connection('sqlsrv')->select($sql, [$idSp]);

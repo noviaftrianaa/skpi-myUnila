@@ -36,6 +36,16 @@ services:
       REDIS_PASSWORD: "${REDIS_PASSWORD}"
 
       TZ: "${TIMEZONE:-Asia/Jakarta}"
+
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 6G
+        reservations:
+          cpus: '2'
+          memory: 2G
+
     networks:
       - myunila-prod-network
     restart: unless-stopped

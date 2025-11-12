@@ -97,7 +97,7 @@ func (r *repository) InsertBidangIlmu(mapping *MapSDMBidang) error {
 }
 
 // GetStats retrieves bidang ilmu statistics
-func (r *repository) GetStats() (*BidangIlmuStats, error)  {
+func (r *repository) GetStats() (*BidangIlmuStats, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 

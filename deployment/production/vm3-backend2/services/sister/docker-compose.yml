@@ -22,9 +22,13 @@ services:
       DB_USERNAME: ${SISTER_DB_USERNAME}
       DB_PASSWORD: ${SISTER_DB_PASSWORD}
       DB_DATABASE: ${SISTER_DB_DATABASE}
-      DB_MAX_OPEN_CONNS: ${SISTER_DB_MAX_OPEN_CONNS:-25}
-      DB_MAX_IDLE_CONNS: ${SISTER_DB_MAX_IDLE_CONNS:-5}
+      # Database connection pool - Optimized for 8 CPU / 16GB RAM
+      DB_MAX_OPEN_CONNS: ${SISTER_DB_MAX_OPEN_CONNS:-100}
+      DB_MAX_IDLE_CONNS: ${SISTER_DB_MAX_IDLE_CONNS:-20}
       DB_CONN_MAX_LIFETIME: ${SISTER_DB_CONN_MAX_LIFETIME:-5m}
+      # Go runtime settings
+      GOMAXPROCS: 8
+      GOGC: 100
 
       # SISTER API Configuration
       SISTER_API_BASE_URL: ${SISTER_API_BASE_URL}
@@ -40,6 +44,16 @@ services:
 
       # Timezone
       TZ: ${TZ:-Asia/Jakarta}
+
+    deploy:
+      resources:
+        limits:
+          cpus: '8'
+          memory: 12G
+        reservations:
+          cpus: '4'
+          memory: 4G
+
     networks:
       - myunila-prod-network
     restart: unless-stopped

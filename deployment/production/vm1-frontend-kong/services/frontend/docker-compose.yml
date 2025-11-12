@@ -21,6 +21,18 @@ services:
       NEXT_PUBLIC_AUTH_API_URL: "${NEXT_PUBLIC_AUTH_API_URL}"
       NEXT_PUBLIC_DASHBOARD_API_URL: "${NEXT_PUBLIC_DASHBOARD_API_URL}"
       NEXT_PUBLIC_SISTER_API_URL: "${NEXT_PUBLIC_SISTER_API_URL}"
+      # Performance tuning for 8 CPU / 16GB RAM
+      NODE_OPTIONS: "--max-old-space-size=4096"
+      UV_THREADPOOL_SIZE: 16
+
+    deploy:
+      resources:
+        limits:
+          cpus: '6'
+          memory: 8G
+        reservations:
+          cpus: '2'
+          memory: 2G
 
     ports:
       - "${FRONTEND_PORT}:3000"
