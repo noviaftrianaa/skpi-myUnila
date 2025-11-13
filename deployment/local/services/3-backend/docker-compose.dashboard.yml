@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  dashboard-service:
+    build:
+      context: ../../../../backend/dashboard-service
+      dockerfile: Dockerfile.debian  # Using Debian for better PECL compatibility
+    image: myunila/dashboard-service:latest
+    container_name: myunila-dashboard-service
+    working_dir: /var/www
+    env_file:
+      - ../../.env
+    environment:
+      # Map DASHBOARD_* variables to Laravel expected names
+      APP_NAME: "${DASHBOARD_APP_NAME:-MyUnila Dashboard Service}"
+      APP_ENV: "${DASHBOARD_APP_ENV:-local}"
+      APP_KEY: "${DASHBOARD_APP_KEY}"
+      APP_DEBUG: "${DASHBOARD_APP_DEBUG:-true}"
+      APP_URL: "${DASHBOARD_APP_URL}"
+
+      DB_CONNECTION: "${DASHBOARD_DB_CONNECTION:-sqlsrv}"
+      DB_HOST: "${DASHBOARD_DB_HOST:-host.docker.internal}"
+      DB_PORT: "${DASHBOARD_DB_PORT:-1433}"
+      DB_DATABASE: "${DASHBOARD_DB_DATABASE}"
+      DB_USERNAME: "${DASHBOARD_DB_USERNAME}"
+      DB_PASSWORD: "${DASHBOARD_DB_PASSWORD}"
+
+      # Sister DB connection
+      SISTER_DB_HOST: "${SISTER_DB_HOST:-host.docker.internal}"
+      SISTER_DB_PORT: "${SISTER_DB_PORT:-1433}"
+      SISTER_DB_DATABASE: "${SISTER_DB_DATABASE}"
+      SISTER_DB_USERNAME: "${SISTER_DB_USERNAME}"
+      SISTER_DB_PASSWORD: "${SISTER_DB_PASSWORD}"
+
+      # Redis
+      REDIS_HOST: "${DASHBOARD_REDIS_HOST:-redis}"
+      REDIS_PORT: "${DASHBOARD_REDIS_PORT:-6379}"
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+
+      TZ: "${TZ:-Asia/Jakarta}"
+    volumes:
+      - dashboard_storage:/var/www/storage
+      - dashboard_logs:/var/www/storage/logs
+    networks:
+      - myunila-network
+    depends_on:
+      - redis-check
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'php-fpm: master process' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "service=dashboard"
+
+  # Redis health check
+  redis-check:
+    image: redis:7-alpine
+    container_name: myunila-redis-check-dashboard
+    command: >
+      sh -c "
+      until redis-cli -h redis ping; do
+        echo 'Waiting for Redis...';
+        sleep 2;
+      done;
+      echo 'Redis is ready!';
+      "
+    networks:
+      - myunila-network
+    restart: "no"
+
+networks:
+  myunila-network:
+    external: true
+    name: myunila-network
+
+volumes:
+  dashboard_storage:
+    driver: local
+    name: myunila-dashboard-storage
+  dashboard_logs:
+    driver: local
+    name: myunila-dashboard-logs

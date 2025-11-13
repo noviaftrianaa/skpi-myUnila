@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  meilisearch:
+    image: getmeili/meilisearch:v1.5
+    container_name: myunila-meilisearch
+    restart: unless-stopped
+    ports:
+      - "7700:7700"
+    environment:
+      MEILI_MASTER_KEY: "${MEILISEARCH_KEY:-masterKey123456}"
+      MEILI_ENV: "${MEILISEARCH_ENV:-development}"
+      MEILI_HTTP_ADDR: "0.0.0.0:7700"
+    volumes:
+      - meilisearch_data:/meili_data
+    networks:
+      - myunila-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:7700/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  myunila-network:
+    external: true
+    name: myunila-network
+
+volumes:
+  meilisearch_data:
+    driver: local
+    name: myunila-meilisearch-data
