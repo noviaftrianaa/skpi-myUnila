@@ -25,7 +25,6 @@ class UnilaProfileRepository
                     sp.nm_lemb,
                     sp.nm_singkat,
                     sp.npsn,
-                    sp.kode_pt,
                     sp.jln,
                     sp.ds_kel,
                     sp.kode_pos,
