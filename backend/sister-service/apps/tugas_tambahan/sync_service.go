@@ -176,6 +176,12 @@ func (s *SyncService) syncDokumen(idTgsTambah string, dokumenList []SisterDokume
 			}
 		}
 
+		// Skip dokumen if jenis dokumen cannot be mapped (id_jns_dok is NOT NULL in database)
+		if idJnsDok == nil {
+			log.Printf("⚠️ Skipping dokumen %s: jenis dokumen '%s' not found in mapping", dok.ID, dok.JenisDokumen)
+			continue
+		}
+
 		// Parse tanggal upload
 		wktUnggah, _ := time.Parse("2006-01-02 15:04:05", dok.TanggalUpload)
 

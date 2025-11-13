@@ -25,12 +25,8 @@ services:
       DB_USERNAME: "${DASHBOARD_DB_USERNAME}"
       DB_PASSWORD: "${DASHBOARD_DB_PASSWORD}"
 
-      # Sister DB connection
-      SISTER_DB_HOST: "${SISTER_DB_HOST:-host.docker.internal}"
-      SISTER_DB_PORT: "${SISTER_DB_PORT:-1433}"
-      SISTER_DB_DATABASE: "${SISTER_DB_DATABASE}"
-      SISTER_DB_USERNAME: "${SISTER_DB_USERNAME}"
-      SISTER_DB_PASSWORD: "${SISTER_DB_PASSWORD}"
+      # Sister DB connection - loaded from env_file (../../.env)
+      # No need to set these here, env_file will load them directly
 
       # Redis
       REDIS_HOST: "${DASHBOARD_REDIS_HOST:-redis}"

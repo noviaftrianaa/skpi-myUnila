@@ -829,3 +829,19 @@ func (c *Client) GetBidangIlmuByIDSDM(idSDM string) ([]byte, error) {
 	endpoint := fmt.Sprintf("/1.0/data_pribadi/bidang_ilmu/%s", idSDM)
 	return c.Get(endpoint)
 }
+
+// ==================== JABATAN FUNGSIONAL ENDPOINTS ====================
+
+// GetJabatanFungsionalByIDSDM fetches list of jabatan fungsional for a dosen from Sister API
+// Endpoint: GET /1.0/jabatan_fungsional?id_sdm={id_sdm}
+func (c *Client) GetJabatanFungsionalByIDSDM(idSDM string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/1.0/jabatan_fungsional?id_sdm=%s", idSDM)
+	return c.Get(endpoint)
+}
+
+// GetJabatanFungsionalDetail fetches detail of a single jabatan fungsional from Sister API
+// Endpoint: GET /1.0/jabatan_fungsional/{id}
+func (c *Client) GetJabatanFungsionalDetail(idRwyJabfung string) ([]byte, error) {
+	endpoint := fmt.Sprintf("/1.0/jabatan_fungsional/%s", idRwyJabfung)
+	return c.Get(endpoint)
+}

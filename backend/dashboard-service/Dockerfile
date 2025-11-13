@@ -49,8 +49,14 @@ RUN cd /tmp \
     && cd /tmp && rm -rf phpredis-5.3.7 redis.tar.gz
 
 # Install SQL Server PHP drivers from source (PECL download unreliable from this server)
-# Configure script needs specific flags for Alpine
-RUN cd /tmp \
+# Re-add build deps temporarily for this step
+RUN apk add --no-cache --virtual .sqlsrv-build-deps \
+    $PHPIZE_DEPS \
+    autoconf \
+    g++ \
+    make \
+    unixodbc-dev \
+    && cd /tmp \
     && curl -L https://github.com/microsoft/msphpsql/archive/refs/tags/v5.12.0.tar.gz -o msphpsql.tar.gz \
     && tar -xzf msphpsql.tar.gz \
     && cd msphpsql-5.12.0/source/sqlsrv \
@@ -64,7 +70,8 @@ RUN cd /tmp \
     && make \
     && make install \
     && docker-php-ext-enable sqlsrv pdo_sqlsrv \
-    && cd /tmp && rm -rf msphpsql-5.12.0 msphpsql.tar.gz
+    && cd /tmp && rm -rf msphpsql-5.12.0 msphpsql.tar.gz \
+    && apk del .sqlsrv-build-deps
 
 # Clean up build dependencies
 RUN apk del .build-deps \

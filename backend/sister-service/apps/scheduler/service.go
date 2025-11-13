@@ -12,6 +12,7 @@ import (
 	"sister-service/apps/penugasan"
 	"sister-service/apps/publikasi"
 	"sister-service/apps/referensi"
+	"sister-service/apps/riwayat_fungsional"
 	"sister-service/apps/riwayat_pekerjaan"
 	"sister-service/apps/sertifikasi_dosen"
 	"sister-service/apps/tugas_tambahan"
@@ -34,13 +35,14 @@ type Service struct {
 	publikasiService         publikasi.Service
 	pendidikanService        pendidikan.Service
 	riwayatPekerjaanService  *riwayat_pekerjaan.Service
+	riwayatFungsionalService *riwayat_fungsional.Service
 	jabatanStrukturalService *jabatan_struktural.Service
 	tugasTambahanService     *tugas_tambahan.Service
 	sertifikasiDosenService  *sertifikasi_dosen.Service
 	bidangIlmuService        bidang_ilmu.Service
 }
 
-func NewService(repo *Repository, dosenService dosen.Service, referensiService referensi.Service, penugasanService penugasan.Service, penelitianService penelitian.Service, publikasiService publikasi.Service, pendidikanService pendidikan.Service, riwayatPekerjaanService *riwayat_pekerjaan.Service, jabatanStrukturalService *jabatan_struktural.Service, tugasTambahanService *tugas_tambahan.Service, sertifikasiDosenService *sertifikasi_dosen.Service, bidangIlmuService bidang_ilmu.Service) *Service {
+func NewService(repo *Repository, dosenService dosen.Service, referensiService referensi.Service, penugasanService penugasan.Service, penelitianService penelitian.Service, publikasiService publikasi.Service, pendidikanService pendidikan.Service, riwayatPekerjaanService *riwayat_pekerjaan.Service, riwayatFungsionalService *riwayat_fungsional.Service, jabatanStrukturalService *jabatan_struktural.Service, tugasTambahanService *tugas_tambahan.Service, sertifikasiDosenService *sertifikasi_dosen.Service, bidangIlmuService bidang_ilmu.Service) *Service {
 	// Create cron with second precision
 	c := cron.New(cron.WithSeconds())
 
@@ -55,6 +57,7 @@ func NewService(repo *Repository, dosenService dosen.Service, referensiService r
 		publikasiService:         publikasiService,
 		pendidikanService:        pendidikanService,
 		riwayatPekerjaanService:  riwayatPekerjaanService,
+		riwayatFungsionalService: riwayatFungsionalService,
 		jabatanStrukturalService: jabatanStrukturalService,
 		tugasTambahanService:     tugasTambahanService,
 		sertifikasiDosenService:  sertifikasiDosenService,
@@ -115,8 +118,8 @@ func (s *Service) executeWithRetry(schedule ScheduledSync) error {
 		if err := s.penugasanService.ForceRefreshToken(); err != nil {
 			log.Printf("⚠️  Failed to refresh token for penugasan sync, continuing anyway: %v", err)
 		}
-	} else if schedule.SyncType == "penelitian" || schedule.SyncType == "pengabdian" || schedule.SyncType == "pendidikan" || schedule.SyncType == "publikasi" || schedule.SyncType == "riwayat_pekerjaan" {
-		// Penelitian, pengabdian, pendidikan, publikasi, and riwayat_pekerjaan use the same Sister API token as dosen
+	} else if schedule.SyncType == "penelitian" || schedule.SyncType == "pengabdian" || schedule.SyncType == "pendidikan" || schedule.SyncType == "publikasi" || schedule.SyncType == "riwayat_pekerjaan" || schedule.SyncType == "riwayat_fungsional" {
+		// Penelitian, pengabdian, pendidikan, publikasi, riwayat_pekerjaan, and riwayat_fungsional use the same Sister API token as dosen
 		if err := s.dosenService.ForceRefreshToken(); err != nil {
 			log.Printf("⚠️  Failed to refresh token for %s sync, continuing anyway: %v", schedule.SyncType, err)
 		}
@@ -149,6 +152,9 @@ func (s *Service) executeWithRetry(schedule ScheduledSync) error {
 		} else if schedule.SyncType == "riwayat_pekerjaan" {
 			// Execute riwayat pekerjaan batch sync for all dosen
 			_, err = s.riwayatPekerjaanService.BatchSyncAllRwyPekerjaan("scheduler")
+		} else if schedule.SyncType == "riwayat_fungsional" {
+			// Execute riwayat fungsional batch sync for all dosen
+			_, err = s.riwayatFungsionalService.BatchSyncAllRwyFungsional("scheduler")
 		} else {
 			return fmt.Errorf("invalid sync configuration")
 		}

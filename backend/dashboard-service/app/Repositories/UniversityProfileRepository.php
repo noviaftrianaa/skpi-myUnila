@@ -175,7 +175,7 @@ class UniversityProfileRepository
             [
                 'icon' => '⭐',
                 'title' => 'Akreditasi',
-                'value' => 'A',
+                'value' => 'Unggul',
                 'description' => 'Terakreditasi Unggul oleh BAN-PT',
                 'color' => 'yellow'
             ],

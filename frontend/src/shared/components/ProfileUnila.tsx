@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import dashboardService from "@/lib/services/dashboardService";
 import type { UnilaStatistics, UnilaProfile } from "@/lib/types/dashboardTypes";
 
@@ -177,13 +177,39 @@ export default function ProfileUnila() {
                 </div>
                 <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-5 border border-emerald-100">
                   <div className="text-xs text-gray-600 mb-1">Akreditasi</div>
-                  <div className="text-lg font-bold text-gray-800">{profile?.akreditasi || "A"}</div>
+                  <div className="text-lg font-bold text-gray-800">{profile?.akreditasi || "Unggul"}</div>
                 </div>
                 <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-5 border border-orange-100">
                   <div className="text-xs text-gray-600 mb-1">Tanggal Berdiri</div>
                   <div className="text-sm font-bold text-gray-800">{formatDate(profile?.tanggal_berdiri || null)}</div>
                 </div>
               </div>
+
+              {/* Akreditasi Info Card */}
+              {profile?.sk_akreditasi && (
+                <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-2xl p-6 border border-blue-200 shadow-md">
+                  <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Informasi Akreditasi
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="text-xs text-gray-600 font-medium min-w-[120px]">SK Akreditasi:</div>
+                      <div className="text-sm font-semibold text-gray-800">{profile.sk_akreditasi}</div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="text-xs text-gray-600 font-medium min-w-[120px]">Tgl SK Akreditasi:</div>
+                      <div className="text-sm font-semibold text-gray-800">{formatDate(profile.tanggal_sk_akreditasi || null)}</div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="text-xs text-gray-600 font-medium min-w-[120px]">Berlaku Hingga:</div>
+                      <div className="text-sm font-semibold text-gray-800">{formatDate(profile.tanggal_berakhir_akreditasi || null)}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </motion.div>
 
             {/* Right Column - Detailed Info */}

@@ -13,6 +13,7 @@ import (
 	"sister-service/apps/penugasan"
 	"sister-service/apps/publikasi"
 	"sister-service/apps/referensi"
+	"sister-service/apps/riwayat_fungsional"
 	"sister-service/apps/riwayat_pekerjaan"
 	"sister-service/apps/scheduler"
 	"sister-service/apps/sertifikasi_dosen"
@@ -175,6 +176,10 @@ func main() {
 	riwayatPekerjaanService := riwayat_pekerjaan.SetupRoutes(app, db, sisterAPI, loggerService)
 	log.Println("✅ Riwayat Pekerjaan routes registered")
 
+	// Initialize Riwayat Fungsional module
+	riwayatFungsionalService := riwayat_fungsional.SetupRoutes(app, db, sisterAPI, loggerService)
+	log.Println("✅ Riwayat Fungsional routes registered")
+
 	// Initialize Jabatan Struktural module
 	jabatanStrukturalService := jabatan_struktural.SetupRoutes(app, db, sisterAPI, loggerService)
 	log.Println("✅ Jabatan Struktural routes registered")
@@ -196,7 +201,7 @@ func main() {
 
 	// Initialize Scheduler Service
 	schedulerRepo := scheduler.NewRepository(db)
-	schedulerService := scheduler.NewService(schedulerRepo, dosenService, referensiService, penugasanService, penelitianService, publikasiService, pendidikanService, riwayatPekerjaanService, jabatanStrukturalService, tugasTambahanService, sertifikasiDosenService, bidangIlmuService)
+	schedulerService := scheduler.NewService(schedulerRepo, dosenService, referensiService, penugasanService, penelitianService, publikasiService, pendidikanService, riwayatPekerjaanService, riwayatFungsionalService, jabatanStrukturalService, tugasTambahanService, sertifikasiDosenService, bidangIlmuService)
 	schedulerRouter := scheduler.NewRouter(schedulerService)
 	schedulerRouter.RegisterRoutes(app)
 
