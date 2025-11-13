@@ -102,17 +102,33 @@ func (r *repository) MergeTugasTambahan(tugasTambahan *TugasTambahan) error {
 			);
 	`
 
+	// Convert nullable *int and *time.Time to interface{} for MSSQL driver
+	// Use nil for NULL, actual value for non-NULL
+	var jmlJamParam interface{}
+	if tugasTambahan.JmlJam != nil {
+		jmlJamParam = *tugasTambahan.JmlJam
+	} else {
+		jmlJamParam = nil
+	}
+
+	var tstSKTambahParam interface{}
+	if tugasTambahan.TstSKTambah != nil {
+		tstSKTambahParam = *tugasTambahan.TstSKTambah
+	} else {
+		tstSKTambahParam = nil
+	}
+
 	_, err := r.db.ExecContext(ctx, query,
-		tugasTambahan.IDTgsTambah,  // @p1
+		tugasTambahan.IDTgsTambah,   // @p1
 		tugasTambahan.IDSDM,         // @p2
 		tugasTambahan.IDJabTgs,      // @p3
 		tugasTambahan.IDKatGiat,     // @p4
-		tugasTambahan.IDSMS,         // @p5
-		tugasTambahan.IDSP,          // @p6
-		tugasTambahan.JmlJam,        // @p7
+		tugasTambahan.IDSMS,         // @p5 - *string works directly with sqlx
+		tugasTambahan.IDSP,          // @p6 - *string works directly with sqlx
+		jmlJamParam,                 // @p7 - Pass as interface{}: nil or int value
 		skTugasTambah,               // @p8
 		tugasTambahan.TmtSKTambah,   // @p9
-		tugasTambahan.TstSKTambah,   // @p10
+		tstSKTambahParam,            // @p10 - Pass as interface{}: nil or time.Time value
 		time.Now(),                  // @p11
 	)
 
@@ -528,9 +544,10 @@ func (r *repository) GetAllActiveDosenIDSDM() ([]string, error) {
 	defer cancel()
 
 	query := `
-		SELECT id_sdm
-		FROM pdrd.sdm
-		WHERE a_aktif_sdm = 1 AND soft_delete = 0
+		SELECT CONVERT(VARCHAR(36), id_sdm) as id_sdm
+		FROM pdrd.sdm WITH (NOLOCK)
+		WHERE soft_delete = 0 AND id_sdm IS NOT NULL
+		ORDER BY nm_sdm
 	`
 
 	var idSDMs []string
@@ -551,7 +568,6 @@ func (r *repository) GetJenisDokumenMap() (map[string]int, error) {
 	query := `
 		SELECT id_jns_dok, nm_jns_dok
 		FROM ref.jenis_dokumen
-		WHERE soft_delete = 0
 	`
 
 	type JenisDokumen struct {

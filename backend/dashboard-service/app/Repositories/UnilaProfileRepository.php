@@ -25,6 +25,7 @@ class UnilaProfileRepository
                     sp.nm_lemb,
                     sp.nm_singkat,
                     sp.npsn,
+                    sp.kode_pt,
                     sp.jln,
                     sp.ds_kel,
                     sp.kode_pos,
@@ -32,7 +33,10 @@ class UnilaProfileRepository
                     sp.no_fax,
                     sp.email,
                     sp.website,
-                    sp.stat_sp,
+                    CASE
+                        WHEN sp.stat_sp = 'A' THEN 'Unggul'
+                        ELSE sp.stat_sp
+                    END AS stat_sp,
                     sp.sk_pendirian_sp,
                     sp.tgl_sk_pendirian_sp,
                     sp.tgl_berdiri,

@@ -127,7 +127,7 @@ class Dosen extends Model
             $model->id_sdm = $result->id_sdm;
             $model->nama = $result->nama;
             $model->nidn = $result->nidn;
-            $model->nip = $result->nip;
+            $model->nuptk = $result->nuptk;
             $model->jabatan_fungsional = $result->jabatan_fungsional;
             $model->prodi_homebase = $result->prodi_homebase;
             $model->jenjang_prodi = $result->jenjang_prodi;

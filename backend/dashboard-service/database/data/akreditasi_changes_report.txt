@@ -1,0 +1,645 @@
+================================================================================
+LAPORAN PERUBAHAN AKREDITASI
+Comparison: BANPT (New) vs SISTER (Current)
+Generated: 2025-11-13 22:06:02
+================================================================================
+
+STATISTIK:
+--------------------------------------------------------------------------------
+Total prodi di BANPT                   :   122
+Akreditasi berubah (UPDATED)            :    73
+Prodi baru di BANPT (NEW)               :    23
+Akreditasi tidak berubah                :    26
+Prodi di SISTER tapi tidak di BANPT     :    29
+
+================================================================================
+AKREDITASI YANG BERUBAH (73)
+================================================================================
+
+Program Studi: Agroteknologi (S1)
+Kode Prodi   : 54211
+Akreditasi   : A → UNGGUL
+SK Number    : 508/SK/BAN-PT/Ak.Ppj/S/II/2023 → 2873/SK/BAN-PT/Akred-Itnl/S/VII/2023
+Valid Until  : 2027-08-23 → 2028-07-18
+--------------------------------------------------------------------------------
+Program Studi: Teknologi Pendidikan (S2)
+Kode Prodi   : 86103
+Akreditasi   : B → BAIK SEKALI
+SK Number    : 3697/SK/BAN-PT/Ak-PPJ/M/VI/2022 → 3051/SK/BAN-PT/Ak/M/VIII/2023
+Valid Until  : 2027-04-19 → 2028-08-01
+--------------------------------------------------------------------------------
+Program Studi: Pendidikan Guru Sekolah Dasar (S1)
+Kode Prodi   : 86206
+Akreditasi   : A → UNGGUL
+SK Number    : 2073/SK/BAN-PT/Akred/S/VII/2018 → 674/SK/LAMDIK/Ak/S/VIII/2023
+Valid Until  : 2023-07-31 → 2028-07-31
+--------------------------------------------------------------------------------
+Program Studi: Teknik Survey Dan Pemetaan (D-III)
+Kode Prodi   : 35401
+Akreditasi   : B → BAIK SEKALI
+SK Number    : 0183/SK/LAM Teknik/Smtr/XII/2022 → 0179/SK/LAM Teknik/VD3/VIII/2023
+Valid Until  : 2023-08-20 → 2027-12-20
+--------------------------------------------------------------------------------
+Program Studi: Agribisnis (S1)
+Kode Prodi   : 54201
+Akreditasi   : A → UNGGUL
+SK Number    : 1781/SK/BAN-PT/Akred/S/VII/2018 → 3822/SK/BAN-PT/Akred-Itnl/S/IX/2023
+Valid Until  : 2023-07-17 → 2028-09-19
+--------------------------------------------------------------------------------
+Program Studi: Pendidikan Matematika (S2)
+Kode Prodi   : 84102
+Akreditasi   : B → B
+SK Number    : 12127/SK/BAN-PT/Ak-PPJ/M/XI/2021 → 3874/SK/BAN-PT/Ak-PPJ/M/IX/2023
+Valid Until  : 2026-10-21 → 2026-10-21
+--------------------------------------------------------------------------------
+Program Studi: Hubungan Internasional (S1)
+Kode Prodi   : 64201
+Akreditasi   : B → BAIK SEKALI
+SK Number    : 6726/SK/BAN-PT/Ak.Ppj/S/X/2022 → 4307/SK/BAN-PT/Ak.KP/S/X/2023
+Valid Until  : 2027-10-18 → 2027-10-18
+--------------------------------------------------------------------------------
+Program Studi: Budidaya Perairan (S1)
+Kode Prodi   : 54243
+Akreditasi   : A → UNGGUL
+SK Number    : 10368/SK/BAN-PT/Ak.Ppj/S/XII/2022 → 4313/SK/BAN-PT/Ak.KP/S/X/2023
+Valid Until  : 2027-12-28 → 2027-12-28
+--------------------------------------------------------------------------------
+Program Studi: Pendidikan Bahasa Perancis (S1)
+Kode Prodi   : 88206
+Akreditasi   : B → BAIK SEKALI
+SK Number    : 2793/SK/BAN-PT/Akred/S/X/2018 → 1128/SK/LAMDIK/Ak/S/XI/2023
+Valid Until  : 2023-10-09 → 2028-10-09
+--------------------------------------------------------------------------------
+Program Studi: Teknik Geologi (S1)
+Kode Prodi   : 34201
+Akreditasi   : N/A → BAIK
+SK Number    :  → 0075/SK/LAM Teknik/PB.AS/XII/2023
+Valid Until  :  → 2025-12-20
+--------------------------------------------------------------------------------
+Program Studi: Pendidikan Geografi (S1)
+Kode Prodi   : 87202
+Akreditasi   : A → UNGGUL
+SK Number    : 3448/SK/BAN-PT/Akred/S/XII/2018 → 163/SK/LAMDIK/Ak/S/III/2024
+Valid Until  : 2023-12-20 → 2028-12-20
+--------------------------------------------------------------------------------
+Program Studi: Ekonomi Pembangunan (S1)
+Kode Prodi   : 60201
+Akreditasi   : A → UNGGUL
+SK Number    : 2071/SK/BAN-PT/Ak-PPJ/S/IV/2020 → 2169/DE/A.5/AR.10/III/2025
+Valid Until  : 2025-04-01 → 2030-03-27
+--------------------------------------------------------------------------------
+Program Studi: Manajemen (S2)
+Kode Prodi   : 61101
+Akreditasi   : A → UNGGUL
+SK Number    : 2086/SK/BAN-PT/Ak-PPJ/M/IV/2020 → 2159/DE/A.5/AR.10/III/2025
+Valid Until  : 2025-04-01 → 2030-03-25
+--------------------------------------------------------------------------------
+Program Studi: Pendidikan Bahasa Lampung (S1)
+Kode Prodi   : 88202
+Akreditasi   : N/A → BAIK SEKALI
+SK Number    :  → 1959/SK/LAMDIK/Ak/S/XII/2024
+Valid Until  :  → 2029-08-18
+--------------------------------------------------------------------------------
+Program Studi: Pendidikan Ekonomi (S1)
+Kode Prodi   : 87203
+Akreditasi   : B → UNGGUL
+SK Number    : 3426/SK/BAN-PT/Akred/S/IX/2019 → 1914/SK/LAMDIK/Ak/S/XII/2024
+Valid Until  : 2024-09-10 → 2029-09-10
+--------------------------------------------------------------------------------
+Program Studi: Teknik Elektro (S2)
+Kode Prodi   : 20101
+Akreditasi   : B → BAIK SEKALI
+SK Number    : 3070/SK/BAN-PT/Akred/M/VIII/2019 → 0833/SK/LAM Teknik/AM/XII/2024
+Valid Until  : 2024-08-14 → 2029-08-20
+--------------------------------------------------------------------------------
+Program Studi: Teknik Sipil (D-III)
+Kode Prodi   : 22401
+Akreditasi   : B → BAIK SEKALI
+SK Number    : 3691/SK/BAN-PT/Akred/Dipl-III/X/2019 → 0769/SK/LAM Teknik/VD3/XII/2024
+Valid Until  : 2024-10-09 → 2029-12-20
+--------------------------------------------------------------------------------
+Program Studi: Teknik Lingkungan (S1)
+Kode Prodi   : 25201
+Akreditasi   : N/A → BAIK
+SK Number    :  → 0770/SK/LAM Teknik/AS/XII/2024
+Valid Until  :  → 2029-12-20
+--------------------------------------------------------------------------------
+Program Studi: Teknik Geodesi (S1)
+Kode Prodi   : 29201
+Akreditasi   : B → BAIK SEKALI
+SK Number    : 957/SK/BAN-PT/Akred/S/IV/2019 → 0567/SK/LAM Teknik/AS/XII/2024
+Valid Until  : 2024-04-16 → 2029-04-20
+--------------------------------------------------------------------------------
+Program Studi: Biologi (S2)
+Kode Prodi   : 46101
+Akreditasi   : B → UNGGUL
+SK Number    : 666/SK/BAN-PT/Ak-PPJ/M/II/2021 → 129/SK/LAMSAMA/Akred/M/XII/2024
+Valid Until  : 2025-12-30 → 2029-12-15
+--------------------------------------------------------------------------------
+Program Studi: Kimia (S2)
+Kode Prodi   : 47101
+Akreditasi   : B → UNGGUL
+SK Number    : 6898/SK/BAN-PT/Akred/M/XI/2020 → 122/SK/LAMSAMA/Akred/M/XII/2024
+Valid Until  : 2025-11-03 → 2029-12-04
+--------------------------------------------------------------------------------
+Program Studi: Fisika (S1)
+Kode Prodi   : 45201
+Akreditasi   : A → UNGGUL
+SK Number    : 3407/SK/BAN-PT/Akred/S/IX/2019 → 114/SK/LAMSAMA/Akred/S/XI/2024
+Valid Until  : 2024-09-10 → 2029-11-10
+--------------------------------------------------------------------------------
+Program Studi: Penyuluhan Dan Komunikasi Pertanian (S2)
+Kode Prodi   : 54115
+Akreditasi   : B → B
+SK Number    : 3068/SK/BAN-PT/Akred/M/VIII/2019 → 6848/SK/BAN-PT/Ak.Ppj/M/XI/2024
+Valid Until  : 2024-08-14 → 2029-08-15
+--------------------------------------------------------------------------------
+Program Studi: Ilmu Komunikasi (S2)
+Kode Prodi   : 70101
+Akreditasi   : B → BAIK SEKALI
+SK Number    : 1951/SK/BAN-PT/Akred/M/VI/2019 → 6592/SK/BAN-PT/Ak.KP/M/XI/2024
+Valid Until  : 2024-06-12 → 2029-06-13
+--------------------------------------------------------------------------------
+Program Studi: Pendidikan Bahasa Dan Sastra Indonesia (S2)
+Kode Prodi   : 88101
+Akreditasi   : B → UNGGUL
+SK Number    : 3210/SK/BAN-PT/Akred/M/VIII/2019 → 1698/SK/LAMDIK/Ak/M/X/2024
+Valid Until  : 2024-08-27 → 2029-08-27
+--------------------------------------------------------------------------------
+Program Studi: Administrasi Pendidikan (S2)
+Kode Prodi   : 86104
+Akreditasi   : B → UNGGUL
+SK Number    : 3061/SK/BAN-PT/Akred/M/VIII/2019 → 1538/SK/LAMDIK/Ak/M/X/2024
+Valid Until  : 2024-08-14 → 2029-08-14
+--------------------------------------------------------------------------------
+Program Studi: Sistem Informasi (S1)
+Kode Prodi   : 57201
+Akreditasi   : N/A → BAIK
+SK Number    :  → 154/SK/LAM-INFOKOM/Ak.Min/S/X/2024
+Valid Until  :  → 2026-10-30
+--------------------------------------------------------------------------------
+Program Studi: Sosiologi (S1)
+Kode Prodi   : 69201
+Akreditasi   : A → A
+SK Number    : 3089/SK/BAN-PT/Akred/S/VIII/2019 → 6184/SK/BAN-PT/Ak.Ppj/S/X/2024
+Valid Until  : 2024-08-20 → 2029-08-21
+--------------------------------------------------------------------------------
+Program Studi: Peternakan (S1)
+Kode Prodi   : 54231
+Akreditasi   : B → B
+SK Number    : 3618/SK/BAN-PT/Akred/S/IX/2019 → 5958/SK/BAN-PT/Ak.Ppj/S/IX/2024
+Valid Until  : 2024-09-25 → 2029-09-26
+--------------------------------------------------------------------------------
+Program Studi: Penyuluhan Pertanian (S1)
+Kode Prodi   : 54203
+Akreditasi   : B → B
+SK Number    : 2113/SK/BAN-PT/Akred/S/VII/2019 → 4772/SK/BAN-PT/Ak.Ppj/S/VI/2024
+Valid Until  : 2024-07-02 → 2029-07-03
+--------------------------------------------------------------------------------
+Program Studi: Perkebunan (D-III)
+Kode Prodi   : 54457
+Akreditasi   : B → BAIK
+SK Number    : 3295/SK/BAN-PT/Akred/Dipl-III/IX/2019 → 5861/SK/BAN-PT/PEPA-Ppj/D3/IX/2024
+Valid Until  : 2024-09-03 → 2029-09-10
+--------------------------------------------------------------------------------
+Program Studi: Ilmu Komputer (kampus Kabupaten Way Kanan) (S1)
+Kode Prodi   : 56206
+Akreditasi   : N/A → BAIK
+SK Number    :  → 142/SK/LAM-INFOKOM/Ak.Min/S/IX/2024
+Valid Until  :  → 2026-09-02
+--------------------------------------------------------------------------------
+Program Studi: Ilmu Ekonomi (S2)
+Kode Prodi   : 60101
+Akreditasi   : A → UNGGUL
+SK Number    : 3290/SK/BAN-PT/Akred/M/IX/2019 → 1448/DE/A.5/AR.10/VIII/2024
+Valid Until  : 2024-09-03 → 2029-09-03
+--------------------------------------------------------------------------------
+Program Studi: Teknik Sipil (S2)
+Kode Prodi   : 22101
+Akreditasi   : B → BAIK SEKALI
+SK Number    : 3169/SK/BAN-PT/Akred/M/VIII/2019 → 0429/SK/LAM Teknik/AM/VIII/2024
+Valid Until  : 2024-08-21 → 2029-08-20
+--------------------------------------------------------------------------------
+Program Studi: Akuntansi (S1)
+Kode Prodi   : 62201
+Akreditasi   : A → UNGGUL
+SK Number    : 3055/SK/BAN-PT/Akred/S/VIII/2019 → 1354/DE/A.5/AR.10/VII/2024
+Valid Until  : 2024-08-14 → 2029-08-14
+--------------------------------------------------------------------------------
+Program Studi: Teknologi Industri Pertanian (S1)
+Kode Prodi   : 41211
+Akreditasi   : B → B
+SK Number    : 2809/SK/BAN-PT/Akred/S/VII/2019 → 5147/SK/BAN-PT/Ak.Ppj/S/VII/2024
+Valid Until  : 2024-07-31 → 2029-08-01
+--------------------------------------------------------------------------------
+Program Studi: Pendidikan Kimia (S1)
+Kode Prodi   : 84204
+Akreditasi   : B → BAIK SEKALI
+SK Number    : 3261/SK/BAN-PT/Akred/S/XII/2018 → 404/SK/LAMDIK/Ak/S/IV/2024
+Valid Until  : 2023-12-12 → 2028-12-12
+--------------------------------------------------------------------------------
+Program Studi: Teknik Informatika (S1)
+Kode Prodi   : 55202
+Akreditasi   : B → BAIK SEKALI
+SK Number    : 251/SK/LAM-INFOKOM/Ak.S/S/XI/2023 → 063/SK/LAM-INFOKOM/Ak/S/III/2024
+Valid Until  : 2024-04-30 → 2029-03-29
+--------------------------------------------------------------------------------
+Program Studi: Pendidikan Bahasa Dan Sastra Indonesia (S1)
+Kode Prodi   : 88201
+Akreditasi   : A → UNGGUL
+SK Number    : 3255/SK/BAN-PT/Akred/S/XII/2018 → 391/SK/LAMDIK/Ak-BDG/S/III/2024
+Valid Until  : 2023-12-12 → 2028-12-12
+--------------------------------------------------------------------------------
+Program Studi: Kehutanan (S1)
+Kode Prodi   : 54251
+Akreditasi   : A → UNGGUL
+SK Number    : 2242/SK/BAN-PT/Akred/S/VII/2019 → 6251/SK/BAN-PT/Ak.KP/S/IV/2025
+Valid Until  : 2024-07-09 → 2029-07-10
+--------------------------------------------------------------------------------
+Program Studi: Agronomi (S1)
+Kode Prodi   : 54204
+Akreditasi   : B → BAIK SEKALI
+SK Number    : 2850/SK/BAN-PT/Akred/S/VIII/2019 → 6367/SK/BAN-PT/Ak.KP/S/V/2025
+Valid Until  : 2024-08-06 → 2029-08-07
+--------------------------------------------------------------------------------
+Program Studi: Ilmu Administrasi Negara (S1)
+Kode Prodi   : 63201
+Akreditasi   : A → UNGGUL
+SK Number    : 8675/SK/BAN-PT/Ak-PPJ/S/VI/2021 → 6347/SK/BAN-PT/Ak.KP/S/V/2025
+Valid Until  : 2026-06-11 → 2026-06-11
+--------------------------------------------------------------------------------
+Program Studi: Ilmu Pemerintahan (S1)
+Kode Prodi   : 65201
+Akreditasi   : B → BAIK SEKALI
+SK Number    : 1547/SK/BAN-PT/Ak.Ppj/S/IV/2023 → 6519/SK/BAN-PT/Ak.KP/S/V/2025
+Valid Until  : 2028-05-09 → 2028-05-09
+--------------------------------------------------------------------------------
+Program Studi: Teknologi Hasil Pertanian (S1)
+Kode Prodi   : 41231
+Akreditasi   : A → UNGGUL
+SK Number    : 3860/SK/BAN-PT/Akred/S/X/2019 → 6502/SK/BAN-PT/Ak.KP/S/V/2025
+Valid Until  : 2024-10-15 → 2029-10-16
+--------------------------------------------------------------------------------
+Program Studi: Sumberdaya Akuatik (S1)
+Kode Prodi   : 54246
+Akreditasi   : B → BAIK SEKALI
+SK Number    : 2995/SK/BAN-PT/Akred/S/VIII/2019 → 6544/SK/BAN-PT/Ak.KP/S/V/2025
+Valid Until  : 2024-08-13 → 2029-08-14
+--------------------------------------------------------------------------------
+Program Studi: Ilmu Tanah (S1)
+Kode Prodi   : 54294
+Akreditasi   : B → BAIK SEKALI
+SK Number    : 2546/SK/BAN-PT/Akred/S/VII/2019 → 6543/SK/BAN-PT/Ak.KP/S/V/2025
+Valid Until  : 2024-07-23 → 2029-07-24
+--------------------------------------------------------------------------------
+Program Studi: Ilmu Kelautan (S1)
+Kode Prodi   : 54241
+Akreditasi   : B → BAIK SEKALI
+SK Number    : 2549/SK/BAN-PT/Akred/S/VII/2019 → 6542/SK/BAN-PT/Ak.KP/S/V/2025
+Valid Until  : 2024-07-23 → 2029-07-24
+--------------------------------------------------------------------------------
+Program Studi: Agribisnis (S2)
+Kode Prodi   : 54101
+Akreditasi   : A → UNGGUL
+SK Number    : 2187/SK/BAN-PT/Ak-PPJ/M/IV/2021 → 6606/SK/BAN-PT/Ak.KP/M/V/2025
+Valid Until  : 2026-04-16 → 2026-04-16
+--------------------------------------------------------------------------------
+Program Studi: Ilmu Pemerintahan (S2)
+Kode Prodi   : 65101
+Akreditasi   : B → BAIK SEKALI
+SK Number    : 3119/SK/BAN-PT/Akred/M/XI/2018 → 6663/SK/BAN-PT/Ak.KP/M/V/2025
+Valid Until  : 2023-11-21 → 2028-11-22
+--------------------------------------------------------------------------------
+Program Studi: Proteksi Tanaman (S1)
+Kode Prodi   : 54295
+Akreditasi   : B → BAIK SEKALI
+SK Number    : 2806/SK/BAN-PT/Akred/S/VII/2019 → 6672/SK/BAN-PT/Ak.KP/S/V/2025
+Valid Until  : 2024-07-31 → 2029-08-01
+--------------------------------------------------------------------------------
+Program Studi: Matematika (S1)
+Kode Prodi   : 44201
+Akreditasi   : B → UNGGUL
+SK Number    : 3930/SK/BAN-PT/Akred/S/VII/2020 → 119/SK/LAMSAMA/Akred/S/V/2025
+Valid Until  : 2025-07-14 → 2030-05-25
+--------------------------------------------------------------------------------
+Program Studi: Pendidikan Tari (S1)
+Kode Prodi   : 88209
+Akreditasi   : B → UNGGUL
+SK Number    : 2408/SK/BAN-PT/Ak-PPJ/S/IV/2020 → 870/SK/LAMDIK/Ak/S/VII/2025
+Valid Until  : 2024-09-27 → 2030-04-14
+--------------------------------------------------------------------------------
+Program Studi: Bisnis Digital (S1)
+Kode Prodi   : 61209
+Akreditasi   : N/A → BAIK SEKALI
+SK Number    :  → 2550/DE/A.5/AR.10/VII/2025
+Valid Until  :  → 2030-07-11
+--------------------------------------------------------------------------------
+Program Studi: Akuntansi (D-III)
+Kode Prodi   : 62401
+Akreditasi   : A → UNGGUL
+SK Number    : 3900/SK/BAN-PT/Ak-PPJ/Dipl-III/VII/2020 → 2564/DE/A.5/AR.10/VII/2025
+Valid Until  : 2025-07-11 → 2030-07-21
+--------------------------------------------------------------------------------
+Program Studi: Keuangan Dan Perbankan (D-III)
+Kode Prodi   : 61406
+Akreditasi   : A → UNGGUL
+SK Number    : 5237/SK/BAN-PT/Ak-PPJ/Dipl-III/IX/2020 → 2565/DE/A.5/AR.10/VII/2025
+Valid Until  : 2025-09-04 → 2030-07-21
+--------------------------------------------------------------------------------
+Program Studi: Perpajakan (D-III)
+Kode Prodi   : 62402
+Akreditasi   : A → UNGGUL
+SK Number    : 5061/SK/BAN-PT/Ak-PPJ/Dipl-III/IX/2020 → 2563/DE/A.5/AR.10/VII/2025
+Valid Until  : 2025-08-30 → 2030-07-21
+--------------------------------------------------------------------------------
+Program Studi: Teknik Elektro (S1)
+Kode Prodi   : 20201
+Akreditasi   : A → UNGGUL
+SK Number    : 6734/SK/BAN-PT/Akred/S/X/2020 → 0663/SK/LAM Teknik/AS/VIII/2025
+Valid Until  : 2025-10-27 → 2030-08-20
+--------------------------------------------------------------------------------
+Program Studi: Teknik Kimia (S1)
+Kode Prodi   : 24201
+Akreditasi   : B → UNGGUL
+SK Number    : 206/SK/BAN-PT/Ak-PPJ/S/I/2021 → 0662/SK/LAM Teknik/AS/VIII/2025
+Valid Until  : 2025-12-30 → 2030-08-20
+--------------------------------------------------------------------------------
+Program Studi: Teknik Mesin (S1)
+Kode Prodi   : 21201
+Akreditasi   : B → UNGGUL
+SK Number    : 5828/SK/BAN-PT/Ak-PPJ/S/IX/2020 → 0544/SK/LAM Teknik/AS/VIII/2025
+Valid Until  : 2025-09-20 → 2030-08-20
+--------------------------------------------------------------------------------
+Program Studi: Teknologi Rekayasa Otomotif (D-IV)
+Kode Prodi   : 21304
+Akreditasi   : N/A → BAIK
+SK Number    :  → 0543/SK/LAM Teknik/VST/VIII/2025
+Valid Until  :  → 2030-08-20
+--------------------------------------------------------------------------------
+Program Studi: Ilmu Komputer (S2)
+Kode Prodi   : 55101
+Akreditasi   : N/A → BAIK SEKALI
+SK Number    :  → 043/SK/LAM-INFOKOM/Ak.P/M/VIII/2025
+Valid Until  :  → 2030-08-11
+--------------------------------------------------------------------------------
+Program Studi: Pendidikan Matematika (S1)
+Kode Prodi   : 84202
+Akreditasi   : B → UNGGUL
+SK Number    : 6933/SK/BAN-PT/Ak-PPJ/S/XI/2020 → 1084/SK/LAMDIK/Ak/S/VII/2025
+Valid Until  : 2025-11-01 → 2030-07-21
+--------------------------------------------------------------------------------
+Program Studi: Pendidikan Pancasila Dan Kewarganegaraan (S1)
+Kode Prodi   : 87205
+Akreditasi   : B → UNGGUL
+SK Number    : 7358/SK/BAN-PT/Ak-PPJ/S/XI/2020 → 1114/SK/LAMDIK/Ak/S/VII/2025
+Valid Until  : 2025-11-15 → 2030-07-21
+--------------------------------------------------------------------------------
+Program Studi: Manajemen Pemasaran (D-III)
+Kode Prodi   : 61404
+Akreditasi   : A → BAIK SEKALI
+SK Number    : 5060/SK/BAN-PT/Ak-PPJ/Dipl-III/IX/2020 → 2543/DE/A.5/AR.10/VII/2025
+Valid Until  : 2025-08-30 → 2030-08-30
+--------------------------------------------------------------------------------
+Program Studi: Arsitektur (S1)
+Kode Prodi   : 23201
+Akreditasi   : B → BAIK SEKALI
+SK Number    : 1199/SK/BAN-PT/Akred/S/IV/2019 → 7444/SK/BAN-PT/Ak/S/IX/2025
+Valid Until  : 2024-04-23 → 2030-09-02
+--------------------------------------------------------------------------------
+Program Studi: Pendidikan Bahasa Inggris (S1)
+Kode Prodi   : 88203
+Akreditasi   : BAIK SEKALI → UNGGUL
+SK Number    : 2444/SK/BAN-PT/Akred/S/IV/2022 → 1448/SK/LAMDIK/Ak/S/VIII/2025
+Valid Until  : 2027-04-20 → 2030-08-21
+--------------------------------------------------------------------------------
+Program Studi: Bimbingan Dan Konseling (S1)
+Kode Prodi   : 86201
+Akreditasi   : B → UNGGUL
+SK Number    : 3273/SK/BAN-PT/Ak-PPJ/S/V/2020 → 1378/SK/LAMDIK/Ak/S/VIII/2025
+Valid Until  : 2025-05-24 → 2030-05-24
+--------------------------------------------------------------------------------
+Program Studi: Pendidikan Biologi (S1)
+Kode Prodi   : 84205
+Akreditasi   : B → UNGGUL
+SK Number    : 4714/SK/BAN-PT/Ak-PPJ/S/VIII/2020 → 1393/SK/LAMDIK/Ak/S/VIII/2025
+Valid Until  : 2025-08-16 → 2030-08-16
+--------------------------------------------------------------------------------
+Program Studi: Pendidikan Fisika (S1)
+Kode Prodi   : 84203
+Akreditasi   : A → UNGGUL
+SK Number    : 7140/SK/BAN-PT/Akred/S/XI/2020 → 1372/SK/LAMDIK/Ak/S/VIII/2025
+Valid Until  : 2025-11-10 → 2030-08-21
+--------------------------------------------------------------------------------
+Program Studi: Pendidikan Sejarah (S1)
+Kode Prodi   : 87201
+Akreditasi   : B → UNGGUL
+SK Number    : 6894/SK/BAN-PT/Ak-PPJ/S/XI/2020 → 1734/SK/LAMDIK/Ak/S/IX/2025
+Valid Until  : 2025-11-01 → 2030-09-21
+--------------------------------------------------------------------------------
+Program Studi: Agronomi (S2)
+Kode Prodi   : 54104
+Akreditasi   : A → UNGGUL
+SK Number    : 14007/SK/BAN-PT/Ak-PPJ/M/XII/2021 → 7844/SK/BAN-PT/Ak.KP/M/X/2025
+Valid Until  : 2027-01-11 → 2027-01-11
+--------------------------------------------------------------------------------
+Program Studi: Teknologi Industri Pertanian (S2)
+Kode Prodi   : 41111
+Akreditasi   : A → UNGGUL
+SK Number    : 14000/SK/BAN-PT/Ak-PPJ/M/XII/2021 → 7978/SK/BAN-PT/Ak.KP/M/X/2025
+Valid Until  : 2027-01-11 → 2027-01-11
+--------------------------------------------------------------------------------
+Program Studi: Kehutanan (S2)
+Kode Prodi   : 54151
+Akreditasi   : C → B
+SK Number    : 6783/SK/BAN-PT/Akred/M/X/2020 → 8221/SK/BAN-PT/Ak.Ppj/M/XI/2025
+Valid Until  : 2025-10-27 → 2030-10-28
+--------------------------------------------------------------------------------
+
+================================================================================
+PRODI BARU DI BANPT (23)
+================================================================================
+
+Program Studi: Perencanaan Wilayah Dan Kota (S2)
+Akreditasi   : Baik (BARU)
+SK Number    : 1611/SK/BAN-PT/Akred/M/III/2021
+--------------------------------------------------------------------------------
+Program Studi: Ilmu Hukum (S1)
+Akreditasi   : A (BARU)
+SK Number    : 8668/SK/BAN-PT/Ak-PPJ/S/VI/2021
+--------------------------------------------------------------------------------
+Program Studi: Matematika Dan Ilmu Pengetahuan Alam (S3)
+Akreditasi   : Baik Sekali (BARU)
+SK Number    : 9251/SK/BAN-PT/Akred/D/VII/2021
+--------------------------------------------------------------------------------
+Program Studi: Ilmu Ekonomi (S3)
+Akreditasi   : Unggul (BARU)
+SK Number    : 3287/SK/BAN-PT/Akred/D/V/2022
+--------------------------------------------------------------------------------
+Program Studi: Ilmu Hukum (S3)
+Akreditasi   : Baik Sekali (BARU)
+SK Number    : 13098/SK/BAN-PT/Akred/D/XII/2021
+--------------------------------------------------------------------------------
+Program Studi: Pendidikan Profesi Guru (Profesi)
+Akreditasi   : B (BARU)
+SK Number    : 8008/SK/BAN-PT/Ak/PP/X/2022
+--------------------------------------------------------------------------------
+Program Studi: Profesi Insinyur (Profesi)
+Akreditasi   : B (BARU)
+SK Number    : 8010/SK/BAN-PT/SURV-BDG/PP/X/2022
+--------------------------------------------------------------------------------
+Program Studi: Pendidikan (S3)
+Akreditasi   : Baik Sekali (BARU)
+SK Number    : 307/SK/LAMDIK/Ak/D/III/2023
+--------------------------------------------------------------------------------
+Program Studi: Ilmu Administrasi (S2)
+Akreditasi   : Baik Sekali (BARU)
+SK Number    : 1624/SK/BAN-PT/Ak/M/V/2023
+--------------------------------------------------------------------------------
+Program Studi: Studi Pembangunan (S3)
+Akreditasi   : Baik Sekali (BARU)
+SK Number    : 4331/SK/BAN-PT/Ak/D/X/2023
+--------------------------------------------------------------------------------
+Program Studi: Pendidikan Ilmu Pengetahuan Sosial (S2)
+Akreditasi   : Unggul (BARU)
+SK Number    : 304/SK/LAMDIK/Ak/M/III/2025
+--------------------------------------------------------------------------------
+Program Studi: Ilmu Penyuluhan Pembangunan/ Pemberdayaan Masyarakat (S2)
+Akreditasi   : Baik (BARU)
+SK Number    : 6904/SK/BAN-PT/Ak.S/M/XI/2024
+--------------------------------------------------------------------------------
+Program Studi: Manajemen Wilayah Pesisir Dan Laut (S2)
+Akreditasi   : Baik Sekali (BARU)
+SK Number    : 6778/SK/BAN-PT/Ak.KP/M/XI/2024
+--------------------------------------------------------------------------------
+Program Studi: Hubungan Masyarakat (D-III)
+Akreditasi   : B (BARU)
+SK Number    : 5664/SK/BAN-PT/Ak.Ppj/D3/VIII/2024
+--------------------------------------------------------------------------------
+Program Studi: Akuntansi (Kampus Kab. Way Kanan) (D-III)
+Akreditasi   : Baik (BARU)
+SK Number    : 255/DE/A.5/AR.11/II/2024
+--------------------------------------------------------------------------------
+Program Studi: Perbankan Dan Keuangan (Kampus Kota Bandar Lampung) (D-III)
+Akreditasi   : Baik (BARU)
+SK Number    : 254/DE/A.5/AR.11/II/2024
+--------------------------------------------------------------------------------
+Program Studi: Ilmu Akuntansi (S3)
+Akreditasi   : Baik (BARU)
+SK Number    : 256/DE/A.5/AR.11/II/2024
+--------------------------------------------------------------------------------
+Program Studi: Ilmu Lingkungan (S2)
+Akreditasi   : Unggul (BARU)
+SK Number    : 6321/SK/BAN-PT/Ak/M/V/2025
+--------------------------------------------------------------------------------
+Program Studi: Ilmu Hukum (S2)
+Akreditasi   : Unggul (BARU)
+SK Number    : 6345/SK/BAN-PT/Ak.KP/M/V/2025
+--------------------------------------------------------------------------------
+Program Studi: Perpustakaan (D-III)
+Akreditasi   : Unggul (BARU)
+SK Number    : 6494/SK/BAN-PT/Ak.KP/D3/V/2025
+--------------------------------------------------------------------------------
+Program Studi: Administrasi Perkantoran (D-III)
+Akreditasi   : Baik Sekali (BARU)
+SK Number    : 6607/SK/BAN-PT/Ak.KP/D3/V/2025
+--------------------------------------------------------------------------------
+Program Studi: Ilmu Lingkungan (S3)
+Akreditasi   : Baik Sekali (BARU)
+SK Number    : 6625/SK/BAN-PT/Ak/D/V/2025
+--------------------------------------------------------------------------------
+Program Studi: Ilmu Pertanian (S3)
+Akreditasi   : Baik Sekali (BARU)
+SK Number    : 6671/SK/BAN-PT/Ak.KP/D/V/2025
+--------------------------------------------------------------------------------
+
+================================================================================
+PRODI DI SISTER TAPI TIDAK DI BANPT (29)
+================================================================================
+
+Program Studi: Pendidikan IPS (S2)
+Kode Prodi   : 87120
+--------------------------------------------------------------------------------
+Program Studi: Perbankan Dan Keuangan (Kampus Kab Lampung Tengah) (D3)
+Kode Prodi   : 61417
+--------------------------------------------------------------------------------
+Program Studi: Program Studi D3 Administrasi Perkantoran (D3)
+Kode Prodi   : 63411
+--------------------------------------------------------------------------------
+Program Studi: Program Studi D3 Akuntansi (Kampus Kab. Way Kanan) (D3)
+Kode Prodi   : 62403
+--------------------------------------------------------------------------------
+Program Studi: Program Studi D3 Hubungan Masyarakat (D3)
+Kode Prodi   : 70401
+--------------------------------------------------------------------------------
+Program Studi: Program Studi D3 Perpustakaan (D3)
+Kode Prodi   : 71401
+--------------------------------------------------------------------------------
+Program Studi: Program Studi Profesi Pendidikan Profesi Guru (Profesi)
+Kode Prodi   : 86904
+--------------------------------------------------------------------------------
+Program Studi: Program Studi Profesi Profesi Dokter (Profesi)
+Kode Prodi   : 11901
+--------------------------------------------------------------------------------
+Program Studi: Program Studi Profesi Profesi Insinyur (Profesi)
+Kode Prodi   : 23902
+--------------------------------------------------------------------------------
+Program Studi: Program Studi S1 Farmasi (S1)
+Kode Prodi   : 48201
+--------------------------------------------------------------------------------
+Program Studi: Program Studi S1 Gizi (S1)
+Kode Prodi   : 13211
+--------------------------------------------------------------------------------
+Program Studi: Program Studi S1 Ilmu Hukum (S1)
+Kode Prodi   : 74201
+--------------------------------------------------------------------------------
+Program Studi: Program Studi S1 Kedokteran (S1)
+Kode Prodi   : 11201
+--------------------------------------------------------------------------------
+Program Studi: Program Studi S2 Ilmu Administrasi (S2)
+Kode Prodi   : 63101
+--------------------------------------------------------------------------------
+Program Studi: Program Studi S2 Ilmu Hukum (S2)
+Kode Prodi   : 74101
+--------------------------------------------------------------------------------
+Program Studi: Program Studi S2 Ilmu Lingkungan (S2)
+Kode Prodi   : 95129
+--------------------------------------------------------------------------------
+Program Studi: Program Studi S2 Ilmu Penyuluhan Pembangunan/ Pemberdayaan Masyarakat (S2)
+Kode Prodi   : 54103
+--------------------------------------------------------------------------------
+Program Studi: Program Studi S2 Kesehatan Masyarakat (S2)
+Kode Prodi   : 13101
+--------------------------------------------------------------------------------
+Program Studi: Program Studi S2 Manajemen Wilayah Pesisir dan Laut (S2)
+Kode Prodi   : 54145
+--------------------------------------------------------------------------------
+Program Studi: Program Studi S2 Perencanaan Wilayah dan Kota (S2)
+Kode Prodi   : 95103
+--------------------------------------------------------------------------------
+Program Studi: Program Studi S3 Ilmu Akuntansi (S3)
+Kode Prodi   : 62001
+--------------------------------------------------------------------------------
+Program Studi: Program Studi S3 Ilmu Ekonomi (S3)
+Kode Prodi   : 60001
+--------------------------------------------------------------------------------
+Program Studi: Program Studi S3 Ilmu Hukum (S3)
+Kode Prodi   : 74001
+--------------------------------------------------------------------------------
+Program Studi: Program Studi S3 Ilmu Lingkungan (S3)
+Kode Prodi   : 95029
+--------------------------------------------------------------------------------
+Program Studi: Program Studi S3 Ilmu Pertanian (S3)
+Kode Prodi   : 54001
+--------------------------------------------------------------------------------
+Program Studi: Program Studi S3 Matematika dan Ilmu Pengetahuan Alam (S3)
+Kode Prodi   : 44001
+--------------------------------------------------------------------------------
+Program Studi: Program Studi S3 Pendidikan  (S3)
+Kode Prodi   : 86003
+--------------------------------------------------------------------------------
+Program Studi: Program Studi S3 Studi Pembangunan (S3)
+Kode Prodi   : 60003
+--------------------------------------------------------------------------------
+Program Studi: Program Studi Sp-1 Pulmonologi dan Ilmu Kedokteran Respirasi (Sp-1)
+Kode Prodi   : 11743
+--------------------------------------------------------------------------------

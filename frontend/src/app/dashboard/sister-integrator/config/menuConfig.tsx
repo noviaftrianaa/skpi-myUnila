@@ -76,6 +76,11 @@ export const sisterIntegratorMenuConfig: MenuItem[] = [
         roles: ["developer"],
       },
       {
+        title: "Jabatan Fungsional",
+        href: "/dashboard/sister-integrator/pdrd/jabatan-fungsional",
+        roles: ["developer"],
+      },
+      {
         title: "Jabatan Struktural",
         href: "/dashboard/sister-integrator/pdrd/jabatan-struktural",
         roles: ["developer"],

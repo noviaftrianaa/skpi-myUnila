@@ -30,7 +30,7 @@ class UnilaProfileService
                 'id_sp' => $profile->id_sp,
                 'nama_lengkap' => $profile->nm_lemb,
                 'nama_singkat' => $profile->nm_singkat,
-                'kode_pt' => $profile->npsn,
+                'kode_pt' => $profile->npsn,  // NPSN is the correct code for PT
                 'alamat' => $profile->jln,
                 'kota' => $profile->ds_kel,
                 'kode_pos' => $profile->kode_pos,

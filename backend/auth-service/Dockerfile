@@ -26,11 +26,6 @@ RUN apk add --no-cache \
 # Install PHP extensions
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
-# Install Redis extension
-RUN pecl channel-update pecl.php.net \
-    && pecl install redis-5.3.7 \
-    && docker-php-ext-enable redis
-
 # Install unixODBC and development files (needed BEFORE SQL Server driver)
 RUN apk add --no-cache unixodbc unixodbc-dev
 
@@ -41,13 +36,46 @@ RUN curl -O https://download.microsoft.com/download/3/5/5/355d7943-a338-41a7-858
     && apk add --allow-untrusted mssql-tools18_18.3.1.1-1_amd64.apk \
     && rm -f msodbcsql18_18.3.2.1-1_amd64.apk mssql-tools18_18.3.1.1-1_amd64.apk
 
-# Install SQL Server PHP drivers
-RUN pecl install sqlsrv-5.12.0 pdo_sqlsrv-5.12.0 \
-    && docker-php-ext-enable sqlsrv pdo_sqlsrv
+# Install Redis extension from source (PECL download unreliable from this server)
+RUN cd /tmp \
+    && curl -L https://github.com/phpredis/phpredis/archive/5.3.7.tar.gz -o redis.tar.gz \
+    && tar -xzf redis.tar.gz \
+    && cd phpredis-5.3.7 \
+    && phpize \
+    && ./configure \
+    && make \
+    && make install \
+    && docker-php-ext-enable redis \
+    && cd /tmp && rm -rf phpredis-5.3.7 redis.tar.gz
+
+# Install SQL Server PHP drivers from source (PECL download unreliable from this server)
+# Re-add build deps temporarily for this step
+RUN apk add --no-cache --virtual .sqlsrv-build-deps \
+    $PHPIZE_DEPS \
+    autoconf \
+    g++ \
+    make \
+    unixodbc-dev \
+    && cd /tmp \
+    && curl -L https://github.com/microsoft/msphpsql/archive/refs/tags/v5.12.0.tar.gz -o msphpsql.tar.gz \
+    && tar -xzf msphpsql.tar.gz \
+    && cd msphpsql-5.12.0/source/sqlsrv \
+    && phpize \
+    && ./configure --enable-sqlsrv=shared \
+    && make \
+    && make install \
+    && cd ../pdo_sqlsrv \
+    && phpize \
+    && ./configure --with-php-config=/usr/local/bin/php-config \
+    && make \
+    && make install \
+    && docker-php-ext-enable sqlsrv pdo_sqlsrv \
+    && cd /tmp && rm -rf msphpsql-5.12.0 msphpsql.tar.gz \
+    && apk del .sqlsrv-build-deps
 
 # Clean up build dependencies
 RUN apk del .build-deps \
-    && rm -rf /tmp/pear
+    && rm -rf /tmp/pear /tmp/*
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

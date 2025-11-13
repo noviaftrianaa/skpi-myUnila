@@ -1,0 +1,1666 @@
+[
+    {
+        "id_sms": "0C375AAA-13AA-44A2-9188-E55D39A705FC",
+        "nama_prodi": "Administrasi Pendidikan",
+        "kode_prodi": "86104",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "5349A060-4901-4C34-9FF2-AB11168204C9",
+            "id_akred": "2",
+            "no_sk": "3061\/SK\/BAN-PT\/Akred\/M\/VIII\/2019",
+            "tanggal_sk": "2019-08-14",
+            "tanggal_kadaluarsa": "2024-08-14"
+        }
+    },
+    {
+        "id_sms": "3E6CC468-DB99-4135-B09F-5E05F527AE51",
+        "nama_prodi": "Agribisnis",
+        "kode_prodi": "54201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "7F217329-1865-4115-BEDA-2F3F70114C43",
+            "id_akred": "1",
+            "no_sk": "1781\/SK\/BAN-PT\/Akred\/S\/VII\/2018",
+            "tanggal_sk": "2018-07-17",
+            "tanggal_kadaluarsa": "2023-07-17"
+        }
+    },
+    {
+        "id_sms": "D377E605-7F0D-44A7-84E9-6370A0C19A42",
+        "nama_prodi": "Agribisnis",
+        "kode_prodi": "54101",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "F3E65F31-D956-4788-8DE9-1D7E81E912E2",
+            "id_akred": "1",
+            "no_sk": "2187\/SK\/BAN-PT\/Ak-PPJ\/M\/IV\/2021",
+            "tanggal_sk": "2021-04-20",
+            "tanggal_kadaluarsa": "2026-04-16"
+        }
+    },
+    {
+        "id_sms": "99FB2FA7-E23C-4F4A-959C-9F9714AF3B7C",
+        "nama_prodi": "Agronomi",
+        "kode_prodi": "54204",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "69378B6E-37E5-4748-B196-81B09EA19B0A",
+            "id_akred": "2",
+            "no_sk": "2850\/SK\/BAN-PT\/Akred\/S\/VIII\/2019",
+            "tanggal_sk": "2019-08-06",
+            "tanggal_kadaluarsa": "2024-08-06"
+        }
+    },
+    {
+        "id_sms": "EB6BAFE7-3E2C-468D-87B4-CFC272AAC48B",
+        "nama_prodi": "Agronomi",
+        "kode_prodi": "54104",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "37B16C4E-3FDD-4B46-87DB-E6F1EA4BC3DB",
+            "id_akred": "1",
+            "no_sk": "14007\/SK\/BAN-PT\/Ak-PPJ\/M\/XII\/2021",
+            "tanggal_sk": "2021-12-29",
+            "tanggal_kadaluarsa": "2027-01-11"
+        }
+    },
+    {
+        "id_sms": "F306D6BC-3C46-477D-8175-3C6F7D466DD9",
+        "nama_prodi": "Agroteknologi",
+        "kode_prodi": "54211",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "95EC5090-31B1-4C99-A6FE-2D3C201BE836",
+            "id_akred": "1",
+            "no_sk": "508\/SK\/BAN-PT\/Ak.Ppj\/S\/II\/2023",
+            "tanggal_sk": "2023-02-14",
+            "tanggal_kadaluarsa": "2027-08-23"
+        }
+    },
+    {
+        "id_sms": "D5F1AF6D-268A-413C-AFFF-9FF4DC86B696",
+        "nama_prodi": "Akuntansi",
+        "kode_prodi": "62401",
+        "jenjang": "D3",
+        "akreditasi": {
+            "id_akreditasi_prodi": "E0AE10E0-003C-4032-AF55-EBC2CC124A55",
+            "id_akred": "1",
+            "no_sk": "3900\/SK\/BAN-PT\/Ak-PPJ\/Dipl-III\/VII\/2020",
+            "tanggal_sk": "2020-07-14",
+            "tanggal_kadaluarsa": "2025-07-11"
+        }
+    },
+    {
+        "id_sms": "054222A3-57E4-4480-8F54-E29AFAB57CF1",
+        "nama_prodi": "Akuntansi",
+        "kode_prodi": "62201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "58ED2D9C-2130-4330-99FD-CB43A2E8727A",
+            "id_akred": "1",
+            "no_sk": "3055\/SK\/BAN-PT\/Akred\/S\/VIII\/2019",
+            "tanggal_sk": "2019-08-14",
+            "tanggal_kadaluarsa": "2024-08-14"
+        }
+    },
+    {
+        "id_sms": "9F5DBDB5-5079-42DE-A6E4-4F389BA1CC1B",
+        "nama_prodi": "Arsitektur",
+        "kode_prodi": "23201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "2553E35E-8BEC-434A-8877-A4468943F969",
+            "id_akred": "2",
+            "no_sk": "1199\/SK\/BAN-PT\/Akred\/S\/IV\/2019",
+            "tanggal_sk": "2019-04-23",
+            "tanggal_kadaluarsa": "2024-04-23"
+        }
+    },
+    {
+        "id_sms": "41D87BBD-95F4-4F6C-B2EC-8317B9184DB2",
+        "nama_prodi": "Bimbingan Dan Konseling",
+        "kode_prodi": "86201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "CB9166CB-DC13-402E-8BAF-14A87ED9CD25",
+            "id_akred": "2",
+            "no_sk": "3273\/SK\/BAN-PT\/Ak-PPJ\/S\/V\/2020",
+            "tanggal_sk": "2020-05-26",
+            "tanggal_kadaluarsa": "2025-05-24"
+        }
+    },
+    {
+        "id_sms": "05D5723C-409F-4084-9B89-E3D39852E442",
+        "nama_prodi": "Biologi",
+        "kode_prodi": "46201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "4FA93870-6435-4AC8-A0C8-7AFFA8448F63",
+            "id_akred": "1",
+            "no_sk": "5947\/SK\/BAN-PT\/Ak-PPJ\/S\/VI\/2021",
+            "tanggal_sk": "2021-06-02",
+            "tanggal_kadaluarsa": "2026-06-03"
+        }
+    },
+    {
+        "id_sms": "9434E483-162B-402C-84E3-DB0FFA467BBF",
+        "nama_prodi": "Biologi",
+        "kode_prodi": "46101",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "671689AA-4420-4642-A61A-1BF003E18468",
+            "id_akred": "2",
+            "no_sk": "666\/SK\/BAN-PT\/Ak-PPJ\/M\/II\/2021",
+            "tanggal_sk": "2021-02-02",
+            "tanggal_kadaluarsa": "2025-12-30"
+        }
+    },
+    {
+        "id_sms": "379B9417-9392-44BE-B9D9-9204CC715672",
+        "nama_prodi": "Biologi Terapan",
+        "kode_prodi": "46204",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "C71F941B-E5D8-49D0-8E52-52C08921DE13",
+            "id_akred": "6",
+            "no_sk": "12364\/SK\/BAN-PT\/Akred\/S\/XI\/2021",
+            "tanggal_sk": "2021-11-16",
+            "tanggal_kadaluarsa": "2026-11-16"
+        }
+    },
+    {
+        "id_sms": "64A59DBE-9564-4AA0-A3D5-33711428F379",
+        "nama_prodi": "Bisnis Digital",
+        "kode_prodi": "61209",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": null,
+            "id_akred": null,
+            "no_sk": null,
+            "tanggal_sk": null,
+            "tanggal_kadaluarsa": null
+        }
+    },
+    {
+        "id_sms": "461EC736-97F7-481E-885A-C85AED924FCD",
+        "nama_prodi": "Budidaya Perairan",
+        "kode_prodi": "54243",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "36D3A9AA-2D88-4FC4-BD03-4040DEE40B74",
+            "id_akred": "1",
+            "no_sk": "10368\/SK\/BAN-PT\/Ak.Ppj\/S\/XII\/2022",
+            "tanggal_sk": "2022-12-13",
+            "tanggal_kadaluarsa": "2027-12-28"
+        }
+    },
+    {
+        "id_sms": "0CFCD228-53D4-41A4-A4FA-87C91A83DD95",
+        "nama_prodi": "Ekonomi Pembangunan",
+        "kode_prodi": "60201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "DD4C5054-9611-4D96-9468-D38019C61ABF",
+            "id_akred": "1",
+            "no_sk": "2071\/SK\/BAN-PT\/Ak-PPJ\/S\/IV\/2020",
+            "tanggal_sk": "2020-04-01",
+            "tanggal_kadaluarsa": "2025-04-01"
+        }
+    },
+    {
+        "id_sms": "C9CFE065-9D4D-4FDC-AAA1-B6C4C4A55748",
+        "nama_prodi": "Fisika",
+        "kode_prodi": "45201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "FF66C5A9-BBEF-446A-BCDD-3701576EEE33",
+            "id_akred": "1",
+            "no_sk": "3407\/SK\/BAN-PT\/Akred\/S\/IX\/2019",
+            "tanggal_sk": "2019-09-10",
+            "tanggal_kadaluarsa": "2024-09-10"
+        }
+    },
+    {
+        "id_sms": "5C5E44B6-96DB-4754-A67F-E6DDAB041FBC",
+        "nama_prodi": "Fisika",
+        "kode_prodi": "45102",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "F8099D5E-C125-4334-8498-CF21543A4848",
+            "id_akred": "5",
+            "no_sk": "071\/SK\/LAMSAMA\/Akred\/M\/XII\/2022",
+            "tanggal_sk": "2022-12-21",
+            "tanggal_kadaluarsa": "2027-12-21"
+        }
+    },
+    {
+        "id_sms": "5798E93D-92CD-47CE-9626-9B9D0CA492F8",
+        "nama_prodi": "Hubungan Internasional",
+        "kode_prodi": "64201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "79C2BC4E-03F8-4C83-A2A3-171149B07D68",
+            "id_akred": "2",
+            "no_sk": "6726\/SK\/BAN-PT\/Ak.Ppj\/S\/X\/2022",
+            "tanggal_sk": "2022-10-04",
+            "tanggal_kadaluarsa": "2027-10-18"
+        }
+    },
+    {
+        "id_sms": "CA57DCC7-BF3C-453F-BC93-F0239F622B0B",
+        "nama_prodi": "Ilmu Administrasi Bisnis",
+        "kode_prodi": "63211",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "E667EAD9-A14F-4680-9BD8-06993D645147",
+            "id_akred": "4",
+            "no_sk": "1798\/SK\/BAN-PT\/Akred-PMT\/S\/III\/2022",
+            "tanggal_sk": "2022-03-16",
+            "tanggal_kadaluarsa": "2027-03-16"
+        }
+    },
+    {
+        "id_sms": "B2F4C86F-D98A-4906-8A0F-8C7CFB510581",
+        "nama_prodi": "Ilmu Administrasi Negara",
+        "kode_prodi": "63201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "23015270-8682-425F-8701-1CCE54B4E4EA",
+            "id_akred": "1",
+            "no_sk": "8675\/SK\/BAN-PT\/Ak-PPJ\/S\/VI\/2021",
+            "tanggal_sk": "2021-06-15",
+            "tanggal_kadaluarsa": "2026-06-11"
+        }
+    },
+    {
+        "id_sms": "8EFE8B52-96CA-4AB6-AE2C-C75A4B707AF9",
+        "nama_prodi": "Ilmu Akuntansi",
+        "kode_prodi": "62101",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "1B3331E1-92FE-4C8A-9465-D0EB468A1265",
+            "id_akred": "4",
+            "no_sk": "165\/DE\/A.5\/AR.10\/XII\/2022",
+            "tanggal_sk": "2023-01-02",
+            "tanggal_kadaluarsa": "2027-12-31"
+        }
+    },
+    {
+        "id_sms": "D44316D3-ED93-4FA6-97D0-23C20DFDB8FC",
+        "nama_prodi": "Ilmu Ekonomi",
+        "kode_prodi": "60101",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "6592E168-5D82-47C8-BC0C-1CBA081C4C60",
+            "id_akred": "1",
+            "no_sk": "3290\/SK\/BAN-PT\/Akred\/M\/IX\/2019",
+            "tanggal_sk": "2019-09-03",
+            "tanggal_kadaluarsa": "2024-09-03"
+        }
+    },
+    {
+        "id_sms": "8BAA1260-526B-4627-91AC-CC37825DBD1C",
+        "nama_prodi": "Ilmu Kelautan",
+        "kode_prodi": "54241",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "71376A07-03D0-49DD-939A-8E346694CD3E",
+            "id_akred": "2",
+            "no_sk": "2549\/SK\/BAN-PT\/Akred\/S\/VII\/2019",
+            "tanggal_sk": "2019-07-23",
+            "tanggal_kadaluarsa": "2024-07-23"
+        }
+    },
+    {
+        "id_sms": "77F1074C-270F-4EDD-AF4A-75C602864BC2",
+        "nama_prodi": "Ilmu Komputer",
+        "kode_prodi": "55101",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": null,
+            "id_akred": null,
+            "no_sk": null,
+            "tanggal_sk": null,
+            "tanggal_kadaluarsa": null
+        }
+    },
+    {
+        "id_sms": "54BBD27B-2376-4CAE-9951-76EF54BD2CA2",
+        "nama_prodi": "Ilmu Komputer",
+        "kode_prodi": "56201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "87FD32E8-4FB2-49C4-A081-3249648C83E0",
+            "id_akred": "1",
+            "no_sk": "12895\/SK\/BAN-PT\/Ak-PPJ\/S\/XII\/2021",
+            "tanggal_sk": "2021-12-08",
+            "tanggal_kadaluarsa": "2026-11-25"
+        }
+    },
+    {
+        "id_sms": "65FF655A-94C5-4D5D-81E1-11A4432DA434",
+        "nama_prodi": "Ilmu Komputer (Kampus Kabupaten Way Kanan)",
+        "kode_prodi": "56206",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": null,
+            "id_akred": null,
+            "no_sk": null,
+            "tanggal_sk": null,
+            "tanggal_kadaluarsa": null
+        }
+    },
+    {
+        "id_sms": "5887767C-AE82-4822-A162-AF7801DC2713",
+        "nama_prodi": "Ilmu Komunikasi",
+        "kode_prodi": "70201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "B245AEEB-802B-4A45-80A2-CAE583179E7B",
+            "id_akred": "1",
+            "no_sk": "12841\/SK\/BAN-PT\/Ak-PPJ\/S\/XII\/2021",
+            "tanggal_sk": "2021-12-07",
+            "tanggal_kadaluarsa": "2026-12-02"
+        }
+    },
+    {
+        "id_sms": "892504C1-F9F9-4EE8-9E5E-F315CB7063D1",
+        "nama_prodi": "Ilmu Komunikasi",
+        "kode_prodi": "70101",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "60438713-6FE9-4166-917C-2ABFB181A253",
+            "id_akred": "2",
+            "no_sk": "1951\/SK\/BAN-PT\/Akred\/M\/VI\/2019",
+            "tanggal_sk": "2019-06-12",
+            "tanggal_kadaluarsa": "2024-06-12"
+        }
+    },
+    {
+        "id_sms": "C8001A72-F30D-4E40-B127-DD444FB65BBA",
+        "nama_prodi": "Ilmu Pemerintahan",
+        "kode_prodi": "65101",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "FFD15739-39F6-4E34-94E2-1B02E5F9062E",
+            "id_akred": "2",
+            "no_sk": "3119\/SK\/BAN-PT\/Akred\/M\/XI\/2018",
+            "tanggal_sk": "2018-11-21",
+            "tanggal_kadaluarsa": "2023-11-21"
+        }
+    },
+    {
+        "id_sms": "55B56F75-3510-42E9-A88F-08590B697E2A",
+        "nama_prodi": "Ilmu Pemerintahan",
+        "kode_prodi": "65201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "EA8E150C-5179-430B-90DC-D14E85389B29",
+            "id_akred": "2",
+            "no_sk": "1547\/SK\/BAN-PT\/Ak.Ppj\/S\/IV\/2023",
+            "tanggal_sk": "2023-04-26",
+            "tanggal_kadaluarsa": "2028-05-09"
+        }
+    },
+    {
+        "id_sms": "BE8DFA61-D864-47AC-A8DA-8C02042220D9",
+        "nama_prodi": "Ilmu Tanah",
+        "kode_prodi": "54294",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "F8DFD0C0-8A2B-4587-AC61-48B44AFBEEE2",
+            "id_akred": "2",
+            "no_sk": "2546\/SK\/BAN-PT\/Akred\/S\/VII\/2019",
+            "tanggal_sk": "2019-07-23",
+            "tanggal_kadaluarsa": "2024-07-23"
+        }
+    },
+    {
+        "id_sms": "C3CC274A-BA44-4176-89CA-2832D55BA727",
+        "nama_prodi": "Keguruan Guru Sekolah Dasar",
+        "kode_prodi": "86106",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "773EA16E-DDBB-4F2B-BE58-4268C6FA3BE4",
+            "id_akred": "2",
+            "no_sk": "423\/SK\/BAN-PT\/Ak-PPJ\/M\/I\/2022",
+            "tanggal_sk": "2022-01-18",
+            "tanggal_kadaluarsa": "2026-09-30"
+        }
+    },
+    {
+        "id_sms": "6C0F8943-A9E9-4EDF-92A4-11B9A71104DF",
+        "nama_prodi": "Kehutanan",
+        "kode_prodi": "54251",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "FF4019C9-01C2-44C5-9226-4C63BA8DCB6F",
+            "id_akred": "1",
+            "no_sk": "2242\/SK\/BAN-PT\/Akred\/S\/VII\/2019",
+            "tanggal_sk": "2019-07-09",
+            "tanggal_kadaluarsa": "2024-07-09"
+        }
+    },
+    {
+        "id_sms": "9E1300D2-8FF4-444D-BE6D-67985759248F",
+        "nama_prodi": "Kehutanan",
+        "kode_prodi": "54151",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "E584788A-EB16-4B87-B8E6-D6E0823CE367",
+            "id_akred": "3",
+            "no_sk": "6783\/SK\/BAN-PT\/Akred\/M\/X\/2020",
+            "tanggal_sk": "2020-10-27",
+            "tanggal_kadaluarsa": "2025-10-27"
+        }
+    },
+    {
+        "id_sms": "9DEF8D9A-4B33-4726-87D6-4DF95BA4AEDD",
+        "nama_prodi": "Keuangan Dan Perbankan",
+        "kode_prodi": "61406",
+        "jenjang": "D3",
+        "akreditasi": {
+            "id_akreditasi_prodi": "A10FD495-DF5B-493B-93E9-671A9394DC8E",
+            "id_akred": "1",
+            "no_sk": "5237\/SK\/BAN-PT\/Ak-PPJ\/Dipl-III\/IX\/2020",
+            "tanggal_sk": "2020-09-08",
+            "tanggal_kadaluarsa": "2025-09-04"
+        }
+    },
+    {
+        "id_sms": "610EB3DB-B9B8-4B3A-A71E-9124EDE1D7B1",
+        "nama_prodi": "Kimia",
+        "kode_prodi": "47101",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "CBF2F304-3D51-43A2-9BC2-2B42A0888983",
+            "id_akred": "2",
+            "no_sk": "6898\/SK\/BAN-PT\/Akred\/M\/XI\/2020",
+            "tanggal_sk": "2020-11-03",
+            "tanggal_kadaluarsa": "2025-11-03"
+        }
+    },
+    {
+        "id_sms": "C07C0A36-092D-4E26-8C26-A1A8156AB5BD",
+        "nama_prodi": "Kimia",
+        "kode_prodi": "47201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "6DF51C2E-CE87-4454-8B8D-56FA68B44230",
+            "id_akred": "1",
+            "no_sk": "13997\/SK\/BAN-PT\/Ak-PPJ\/S\/XII\/2021",
+            "tanggal_sk": "2021-12-29",
+            "tanggal_kadaluarsa": "2027-01-11"
+        }
+    },
+    {
+        "id_sms": "BFFE8C02-A6B8-4626-B7F2-C0A7326037CC",
+        "nama_prodi": "Manajemen",
+        "kode_prodi": "61201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "2C147B80-6780-4523-98A2-E963FE13C860",
+            "id_akred": "4",
+            "no_sk": "055\/DE\/A.5\/AR.10\/XII\/2022",
+            "tanggal_sk": "2022-12-14",
+            "tanggal_kadaluarsa": "2027-12-12"
+        }
+    },
+    {
+        "id_sms": "33539C4E-49FC-44A9-AC77-E752560A26CC",
+        "nama_prodi": "Manajemen",
+        "kode_prodi": "61101",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "402CD494-1246-4574-AC51-90E35B5CE3EC",
+            "id_akred": "1",
+            "no_sk": "2086\/SK\/BAN-PT\/Ak-PPJ\/M\/IV\/2020",
+            "tanggal_sk": "2020-04-01",
+            "tanggal_kadaluarsa": "2025-04-01"
+        }
+    },
+    {
+        "id_sms": "34BB110B-3D47-4170-BBE0-F4A1527B33CC",
+        "nama_prodi": "Manajemen Informatika",
+        "kode_prodi": "57401",
+        "jenjang": "D3",
+        "akreditasi": {
+            "id_akreditasi_prodi": "4A379E7F-7252-4C12-AE9B-2FFBFA8C578D",
+            "id_akred": "5",
+            "no_sk": "046\/SK\/LAM-INFOKOM\/Ak\/D3\/XII\/2022",
+            "tanggal_sk": "2022-12-12",
+            "tanggal_kadaluarsa": "2027-12-12"
+        }
+    },
+    {
+        "id_sms": "2A21A4A9-AC92-4741-987C-D2B5528CD0E5",
+        "nama_prodi": "Manajemen Pemasaran",
+        "kode_prodi": "61404",
+        "jenjang": "D3",
+        "akreditasi": {
+            "id_akreditasi_prodi": "7569ADED-ADAC-406F-A4B3-E4978A2D6E74",
+            "id_akred": "1",
+            "no_sk": "5060\/SK\/BAN-PT\/Ak-PPJ\/Dipl-III\/IX\/2020",
+            "tanggal_sk": "2020-09-01",
+            "tanggal_kadaluarsa": "2025-08-30"
+        }
+    },
+    {
+        "id_sms": "283675BC-E00E-48FD-B272-C11128C42986",
+        "nama_prodi": "Matematika",
+        "kode_prodi": "44201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "D244AADA-9DF5-4DED-93AC-1DD57FBBD674",
+            "id_akred": "2",
+            "no_sk": "3930\/SK\/BAN-PT\/Akred\/S\/VII\/2020",
+            "tanggal_sk": "2020-07-14",
+            "tanggal_kadaluarsa": "2025-07-14"
+        }
+    },
+    {
+        "id_sms": "8404EC74-08DA-4872-91AC-92494C66F281",
+        "nama_prodi": "Matematika",
+        "kode_prodi": "44101",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "82EBDB93-9916-4B7C-A07F-23DA6E457C1E",
+            "id_akred": "2",
+            "no_sk": "13000\/SK\/BAN-PT\/Ak-PPJ\/M\/XII\/2021",
+            "tanggal_sk": "2021-12-14",
+            "tanggal_kadaluarsa": "2026-12-02"
+        }
+    },
+    {
+        "id_sms": "488345C9-A39F-4B5F-ACAD-84026F229157",
+        "nama_prodi": "Nutrisi dan Teknologi Pakan Ternak",
+        "kode_prodi": "54239",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "9293F93C-1D68-4633-BE69-5187427AE512",
+            "id_akred": "6",
+            "no_sk": "3018\/SK\/BAN-PT\/Akred\/S\/V\/2021",
+            "tanggal_sk": "2021-05-18",
+            "tanggal_kadaluarsa": "2026-05-18"
+        }
+    },
+    {
+        "id_sms": "A8ADE62C-6B48-46C8-AA37-8FE4F7869801",
+        "nama_prodi": "Pendidikan Bahasa dan Kebudayaan Lampung",
+        "kode_prodi": "88102",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "E0C23953-D223-42B6-91F4-6964DC8B6326",
+            "id_akred": "5",
+            "no_sk": "609\/SK\/BAN-PT\/Ak\/M\/II\/2023",
+            "tanggal_sk": "2023-02-27",
+            "tanggal_kadaluarsa": "2028-02-27"
+        }
+    },
+    {
+        "id_sms": "E9B21CC1-47D3-4F4B-B726-E42A1790789D",
+        "nama_prodi": "Pendidikan Bahasa Dan Sastra Indonesia",
+        "kode_prodi": "88101",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "5E1D8692-C0A0-4C72-A48E-4C44ABCEBBB1",
+            "id_akred": "2",
+            "no_sk": "3210\/SK\/BAN-PT\/Akred\/M\/VIII\/2019",
+            "tanggal_sk": "2019-08-27",
+            "tanggal_kadaluarsa": "2024-08-27"
+        }
+    },
+    {
+        "id_sms": "C8F29749-5A97-455E-8434-535D827907DE",
+        "nama_prodi": "Pendidikan Bahasa Dan Sastra Indonesia",
+        "kode_prodi": "88201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "72D80B83-821B-4DDE-92F9-0ED8D76F5CD7",
+            "id_akred": "1",
+            "no_sk": "3255\/SK\/BAN-PT\/Akred\/S\/XII\/2018",
+            "tanggal_sk": "2018-12-12",
+            "tanggal_kadaluarsa": "2023-12-12"
+        }
+    },
+    {
+        "id_sms": "B9DE396C-58CF-4B1E-8D29-838F53412DB7",
+        "nama_prodi": "Pendidikan Bahasa Inggris",
+        "kode_prodi": "88103",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "975198B6-D98A-4F42-ADA1-FAF4C3DC75D6",
+            "id_akred": "5",
+            "no_sk": "113\/SK\/BAN-PT\/Akred\/M\/I\/2022",
+            "tanggal_sk": "2022-01-11",
+            "tanggal_kadaluarsa": "2027-01-11"
+        }
+    },
+    {
+        "id_sms": "9A454279-B3F5-4748-B5DA-5BE30FF15EA7",
+        "nama_prodi": "Pendidikan Bahasa Inggris",
+        "kode_prodi": "88203",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "52B3AE0C-14FF-4703-A82F-7114422F0397",
+            "id_akred": "5",
+            "no_sk": "2444\/SK\/BAN-PT\/Akred\/S\/IV\/2022",
+            "tanggal_sk": "2022-04-20",
+            "tanggal_kadaluarsa": "2027-04-20"
+        }
+    },
+    {
+        "id_sms": "2CF401C5-F81D-4957-9798-4E79676F9E19",
+        "nama_prodi": "Pendidikan Bahasa Lampung",
+        "kode_prodi": "88202",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": null,
+            "id_akred": null,
+            "no_sk": null,
+            "tanggal_sk": null,
+            "tanggal_kadaluarsa": null
+        }
+    },
+    {
+        "id_sms": "F2688B8A-BB40-40B2-BD1F-658CB55DBD9F",
+        "nama_prodi": "Pendidikan Bahasa Perancis",
+        "kode_prodi": "88206",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "34E0A5E5-A184-4885-AFD4-461C349BB225",
+            "id_akred": "2",
+            "no_sk": "2793\/SK\/BAN-PT\/Akred\/S\/X\/2018",
+            "tanggal_sk": "2018-10-09",
+            "tanggal_kadaluarsa": "2023-10-09"
+        }
+    },
+    {
+        "id_sms": "D0426799-5C5A-418F-848D-D948F9AD7D9C",
+        "nama_prodi": "Pendidikan Biologi",
+        "kode_prodi": "84205",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "090EF2D8-3D92-4190-97B2-9FE16A17BD2B",
+            "id_akred": "2",
+            "no_sk": "4714\/SK\/BAN-PT\/Ak-PPJ\/S\/VIII\/2020",
+            "tanggal_sk": "2020-08-18",
+            "tanggal_kadaluarsa": "2025-08-16"
+        }
+    },
+    {
+        "id_sms": "EE639798-FA5A-4E58-8BB1-33D25B921160",
+        "nama_prodi": "Pendidikan Ekonomi",
+        "kode_prodi": "87203",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "1C9893F7-287F-45E7-B962-98B5AA1E6C7E",
+            "id_akred": "2",
+            "no_sk": "3426\/SK\/BAN-PT\/Akred\/S\/IX\/2019",
+            "tanggal_sk": "2019-09-10",
+            "tanggal_kadaluarsa": "2024-09-10"
+        }
+    },
+    {
+        "id_sms": "129C90C8-AE1B-41C5-9245-1E1B99CE2253",
+        "nama_prodi": "Pendidikan Fisika",
+        "kode_prodi": "84103",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "9DF01C55-CFD7-4CF4-A1D9-D31E8959A7CF",
+            "id_akred": "5",
+            "no_sk": "12547\/SK\/BAN-PT\/Akred\/M\/XI\/2021",
+            "tanggal_sk": "2021-11-23",
+            "tanggal_kadaluarsa": "2026-11-23"
+        }
+    },
+    {
+        "id_sms": "E23390FC-99FF-4F10-A0EF-B38A0B9442CC",
+        "nama_prodi": "Pendidikan Fisika",
+        "kode_prodi": "84203",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "AA9CD17F-285B-439D-8EC1-3881C51CDB76",
+            "id_akred": "1",
+            "no_sk": "7140\/SK\/BAN-PT\/Akred\/S\/XI\/2020",
+            "tanggal_sk": "2020-11-10",
+            "tanggal_kadaluarsa": "2025-11-10"
+        }
+    },
+    {
+        "id_sms": "CDB12842-5CD3-41BB-AC48-463F50DD0A48",
+        "nama_prodi": "Pendidikan Geografi",
+        "kode_prodi": "87202",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "FBAD77F1-A4C6-48D4-9964-DB357B635851",
+            "id_akred": "1",
+            "no_sk": "3448\/SK\/BAN-PT\/Akred\/S\/XII\/2018",
+            "tanggal_sk": "2018-12-20",
+            "tanggal_kadaluarsa": "2023-12-20"
+        }
+    },
+    {
+        "id_sms": "1A8C4017-EC1F-4B66-9E2E-158474265357",
+        "nama_prodi": "Pendidikan Guru Pendidikan Anak Usia Dini",
+        "kode_prodi": "86207",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "D543F6C1-8535-45D6-8772-E282124E9317",
+            "id_akred": "5",
+            "no_sk": "393\/SK\/LAMDIK\/Ak\/S\/X\/2022",
+            "tanggal_sk": "2022-10-15",
+            "tanggal_kadaluarsa": "2027-08-22"
+        }
+    },
+    {
+        "id_sms": "95D78C8A-DDC0-4FAA-8982-039360A73056",
+        "nama_prodi": "Pendidikan Guru Sekolah Dasar",
+        "kode_prodi": "86206",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "BB7AC717-0224-4904-BCBA-8F56FC3A1FD7",
+            "id_akred": "1",
+            "no_sk": "2073\/SK\/BAN-PT\/Akred\/S\/VII\/2018",
+            "tanggal_sk": "2018-07-31",
+            "tanggal_kadaluarsa": "2023-07-31"
+        }
+    },
+    {
+        "id_sms": "F11D3AD8-5B52-469E-BBD3-FC708C58FEE3",
+        "nama_prodi": "Pendidikan Ilmu Pengetahuan Alam",
+        "kode_prodi": "84101",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "81C20A5A-3D23-453D-9960-334B62740A49",
+            "id_akred": "5",
+            "no_sk": "4346\/SK\/BAN-PT\/Akred\/M\/VII\/2022",
+            "tanggal_sk": "2022-07-12",
+            "tanggal_kadaluarsa": "2027-07-12"
+        }
+    },
+    {
+        "id_sms": "C098CFE4-8B02-42CC-BE66-734955D8DA90",
+        "nama_prodi": "Pendidikan IPS",
+        "kode_prodi": "87120",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "BF311BC1-2654-4A7D-982F-AB6C460C2846",
+            "id_akred": "2",
+            "no_sk": "3305\/SK\/BAN-PT\/Akred\/M\/IX\/2019",
+            "tanggal_sk": "2019-09-03",
+            "tanggal_kadaluarsa": "2024-09-03"
+        }
+    },
+    {
+        "id_sms": "5528C6E6-0214-4094-9C0A-1E5718F25AAE",
+        "nama_prodi": "Pendidikan Jasmani",
+        "kode_prodi": "85201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "BDD2E3B9-2AAB-4582-BD31-E793A2D1FEA1",
+            "id_akred": "5",
+            "no_sk": "1036\/SK\/BAN-PT\/Akred\/S\/II\/2022",
+            "tanggal_sk": "2022-02-15",
+            "tanggal_kadaluarsa": "2027-02-15"
+        }
+    },
+    {
+        "id_sms": "A040E17A-C17F-4BB3-80C9-1C246FA4375D",
+        "nama_prodi": "Pendidikan Kimia",
+        "kode_prodi": "84204",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "C7916FCD-2F0A-4930-9331-E9EF7E91C2AA",
+            "id_akred": "2",
+            "no_sk": "3261\/SK\/BAN-PT\/Akred\/S\/XII\/2018",
+            "tanggal_sk": "2018-12-12",
+            "tanggal_kadaluarsa": "2023-12-12"
+        }
+    },
+    {
+        "id_sms": "73E9C143-1139-4963-8F95-7F6FD1433787",
+        "nama_prodi": "Pendidikan Matematika",
+        "kode_prodi": "84102",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "DF139536-DBEB-4AAF-BD60-0D3505679AF9",
+            "id_akred": "2",
+            "no_sk": "12127\/SK\/BAN-PT\/Ak-PPJ\/M\/XI\/2021",
+            "tanggal_sk": "2021-11-02",
+            "tanggal_kadaluarsa": "2026-10-21"
+        }
+    },
+    {
+        "id_sms": "277FAA48-2163-40B4-A90B-84266307C2E3",
+        "nama_prodi": "Pendidikan Matematika",
+        "kode_prodi": "84202",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "8E5CF7FE-9F78-483B-8BA4-EA9575A553C6",
+            "id_akred": "2",
+            "no_sk": "6933\/SK\/BAN-PT\/Ak-PPJ\/S\/XI\/2020",
+            "tanggal_sk": "2020-11-03",
+            "tanggal_kadaluarsa": "2025-11-01"
+        }
+    },
+    {
+        "id_sms": "CA2146E8-2ED0-4D0C-8DD4-4ED21315AFFB",
+        "nama_prodi": "Pendidikan Musik",
+        "kode_prodi": "87121",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "84C10FE9-364F-4EBA-9D82-C843554F1C97",
+            "id_akred": "6",
+            "no_sk": "2664\/SK\/BAN-PT\/Akred\/S\/V\/2021",
+            "tanggal_sk": "2021-05-04",
+            "tanggal_kadaluarsa": "2026-05-04"
+        }
+    },
+    {
+        "id_sms": "41BFF740-5FA3-4F18-8A3B-3292F234B356",
+        "nama_prodi": "Pendidikan Pancasila Dan Kewarganegaraan",
+        "kode_prodi": "87205",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "71D9820F-BB4E-4573-9C17-71660FB51C46",
+            "id_akred": "2",
+            "no_sk": "7358\/SK\/BAN-PT\/Ak-PPJ\/S\/XI\/2020",
+            "tanggal_sk": "2020-11-17",
+            "tanggal_kadaluarsa": "2025-11-15"
+        }
+    },
+    {
+        "id_sms": "EF30847E-9552-4265-95A7-A6B286FE1B39",
+        "nama_prodi": "Pendidikan Sejarah",
+        "kode_prodi": "87201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "33B73957-93D6-49EF-932F-ADAC1115FEBF",
+            "id_akred": "2",
+            "no_sk": "6894\/SK\/BAN-PT\/Ak-PPJ\/S\/XI\/2020",
+            "tanggal_sk": "2020-11-03",
+            "tanggal_kadaluarsa": "2025-11-01"
+        }
+    },
+    {
+        "id_sms": "1F89F7DB-7A1A-45EB-BD28-E4F9C223F76F",
+        "nama_prodi": "Pendidikan Tari",
+        "kode_prodi": "88209",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "A4273996-CB7B-4766-858D-406B9BC84DE0",
+            "id_akred": "2",
+            "no_sk": "2408\/SK\/BAN-PT\/Ak-PPJ\/S\/IV\/2020",
+            "tanggal_sk": "2020-04-14",
+            "tanggal_kadaluarsa": "2024-09-27"
+        }
+    },
+    {
+        "id_sms": "8984A0CF-8449-439C-B591-E379A89F925C",
+        "nama_prodi": "Pendidikan Teknologi Informasi",
+        "kode_prodi": "83207",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "77D0E7AC-9589-470E-90A0-75C7702DC5F0",
+            "id_akred": "6",
+            "no_sk": "13555\/SK\/BAN-PT\/Akred\/S\/XII\/2021",
+            "tanggal_sk": "2021-12-22",
+            "tanggal_kadaluarsa": "2026-12-22"
+        }
+    },
+    {
+        "id_sms": "9F76D16C-32D8-4376-8750-870CCB422102",
+        "nama_prodi": "Penyuluhan dan Komunikasi Pertanian",
+        "kode_prodi": "54115",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "A1CD4CF7-8D0C-4E0A-A239-BED001F12A60",
+            "id_akred": "2",
+            "no_sk": "3068\/SK\/BAN-PT\/Akred\/M\/VIII\/2019",
+            "tanggal_sk": "2019-08-14",
+            "tanggal_kadaluarsa": "2024-08-14"
+        }
+    },
+    {
+        "id_sms": "352B1461-CC9B-4AFB-A531-86ED58937C83",
+        "nama_prodi": "Penyuluhan Pertanian",
+        "kode_prodi": "54203",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "A6160543-34DD-495D-9E9E-89BBCB47DCBF",
+            "id_akred": "2",
+            "no_sk": "2113\/SK\/BAN-PT\/Akred\/S\/VII\/2019",
+            "tanggal_sk": "2019-07-02",
+            "tanggal_kadaluarsa": "2024-07-02"
+        }
+    },
+    {
+        "id_sms": "F346196E-3C6F-4DA4-946F-525BCA33A639",
+        "nama_prodi": "Perbankan Dan Keuangan (Kampus Kab Lampung Tengah)",
+        "kode_prodi": "61417",
+        "jenjang": "D3",
+        "akreditasi": {
+            "id_akreditasi_prodi": null,
+            "id_akred": null,
+            "no_sk": null,
+            "tanggal_sk": null,
+            "tanggal_kadaluarsa": null
+        }
+    },
+    {
+        "id_sms": "5BFB6B75-CBAD-4711-A082-CFBEA8E1B5DD",
+        "nama_prodi": "Perkebunan",
+        "kode_prodi": "54457",
+        "jenjang": "D3",
+        "akreditasi": {
+            "id_akreditasi_prodi": "C91D1538-CA1A-4889-AF71-529FA383D7D5",
+            "id_akred": "2",
+            "no_sk": "3295\/SK\/BAN-PT\/Akred\/Dipl-III\/IX\/2019",
+            "tanggal_sk": "2019-09-03",
+            "tanggal_kadaluarsa": "2024-09-03"
+        }
+    },
+    {
+        "id_sms": "CBA5F1F3-B58A-4549-85EF-0ADE97C6A872",
+        "nama_prodi": "Perpajakan",
+        "kode_prodi": "62402",
+        "jenjang": "D3",
+        "akreditasi": {
+            "id_akreditasi_prodi": "26359533-5D53-48E5-A4CD-650C2DAD3988",
+            "id_akred": "1",
+            "no_sk": "5061\/SK\/BAN-PT\/Ak-PPJ\/Dipl-III\/IX\/2020",
+            "tanggal_sk": "2020-09-01",
+            "tanggal_kadaluarsa": "2025-08-30"
+        }
+    },
+    {
+        "id_sms": "3CED4DB8-3E68-468D-B862-7DD4C96449F0",
+        "nama_prodi": "Peternakan",
+        "kode_prodi": "54231",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "E5A5A90C-B9A2-4A80-8665-537732769B4C",
+            "id_akred": "2",
+            "no_sk": "3618\/SK\/BAN-PT\/Akred\/S\/IX\/2019",
+            "tanggal_sk": "2019-09-25",
+            "tanggal_kadaluarsa": "2024-09-25"
+        }
+    },
+    {
+        "id_sms": "04834C0F-81F4-460A-9C85-F5FFFE0E00DC",
+        "nama_prodi": "Program Studi D3 Administrasi Perkantoran",
+        "kode_prodi": "63411",
+        "jenjang": "D3",
+        "akreditasi": {
+            "id_akreditasi_prodi": null,
+            "id_akred": null,
+            "no_sk": null,
+            "tanggal_sk": null,
+            "tanggal_kadaluarsa": null
+        }
+    },
+    {
+        "id_sms": "1F981574-DC0F-4074-B5CC-6A55FDAF5E95",
+        "nama_prodi": "Program Studi D3 Akuntansi (Kampus Kab. Way Kanan)",
+        "kode_prodi": "62403",
+        "jenjang": "D3",
+        "akreditasi": {
+            "id_akreditasi_prodi": null,
+            "id_akred": null,
+            "no_sk": null,
+            "tanggal_sk": null,
+            "tanggal_kadaluarsa": null
+        }
+    },
+    {
+        "id_sms": "10B8A7E3-DBBC-474D-B93A-9CF413ED10A6",
+        "nama_prodi": "Program Studi D3 Hubungan Masyarakat",
+        "kode_prodi": "70401",
+        "jenjang": "D3",
+        "akreditasi": {
+            "id_akreditasi_prodi": "F681F42E-2869-4500-B259-49B762257DE1",
+            "id_akred": "2",
+            "no_sk": "3451\/SK\/BAN-PT\/Akred\/Dipl-III\/IX\/2019",
+            "tanggal_sk": "2019-09-10",
+            "tanggal_kadaluarsa": "2024-09-10"
+        }
+    },
+    {
+        "id_sms": "CCFCE6D4-8EA1-43AE-BD58-DEB2E1E43052",
+        "nama_prodi": "Program Studi D3 Perpustakaan",
+        "kode_prodi": "71401",
+        "jenjang": "D3",
+        "akreditasi": {
+            "id_akreditasi_prodi": "588421D7-E7EF-4745-B72A-3833465EC0D1",
+            "id_akred": "1",
+            "no_sk": "2385\/SK\/BAN-PT\/Akred\/Dipl-III\/VII\/2019",
+            "tanggal_sk": "2019-07-16",
+            "tanggal_kadaluarsa": "2024-07-16"
+        }
+    },
+    {
+        "id_sms": "15300DF3-FAF0-41FE-A79C-1E06F64E5E3D",
+        "nama_prodi": "Program Studi Profesi Pendidikan Profesi Guru",
+        "kode_prodi": "86904",
+        "jenjang": "Profesi",
+        "akreditasi": {
+            "id_akreditasi_prodi": "4E9EFD8C-5646-4333-B39C-C6F35EE93B7E",
+            "id_akred": "2",
+            "no_sk": "8008\/SK\/BAN-PT\/Ak\/PP\/X\/2022",
+            "tanggal_sk": "2022-10-18",
+            "tanggal_kadaluarsa": "2027-10-18"
+        }
+    },
+    {
+        "id_sms": "225A5AE5-225E-482B-B379-521B6676C485",
+        "nama_prodi": "Program Studi Profesi Profesi Dokter",
+        "kode_prodi": "11901",
+        "jenjang": "Profesi",
+        "akreditasi": {
+            "id_akreditasi_prodi": "265AFFAF-1048-475F-AD57-888735E0DBD5",
+            "id_akred": "1",
+            "no_sk": "004\/LAM-PTKes\/Akr.Bd\/Pro\/X\/2020",
+            "tanggal_sk": "2020-02-28",
+            "tanggal_kadaluarsa": "2025-10-01"
+        }
+    },
+    {
+        "id_sms": "D4E89FB8-983B-4C0B-AD16-29E962503ADB",
+        "nama_prodi": "Program Studi Profesi Profesi Insinyur",
+        "kode_prodi": "23902",
+        "jenjang": "Profesi",
+        "akreditasi": {
+            "id_akreditasi_prodi": "EADB187C-5330-4B54-980C-1A0D7DB84D2B",
+            "id_akred": "2",
+            "no_sk": "8010\/SK\/BAN-PT\/SURV-BDG\/PP\/X\/2022",
+            "tanggal_sk": "2022-10-18",
+            "tanggal_kadaluarsa": "2026-07-21"
+        }
+    },
+    {
+        "id_sms": "5149DBA6-349D-4D4E-9D2A-18745392701B",
+        "nama_prodi": "Program Studi S1 Farmasi",
+        "kode_prodi": "48201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "E9A579C2-F827-462B-A70C-A8551C231103",
+            "id_akred": "5",
+            "no_sk": "0067\/LAM-PTKes\/Akr\/Sar\/I\/2023",
+            "tanggal_sk": "2023-01-27",
+            "tanggal_kadaluarsa": "2028-01-26"
+        }
+    },
+    {
+        "id_sms": "4A8F65D2-7B67-4982-8F94-1586098A8BDF",
+        "nama_prodi": "Program Studi S1 Gizi",
+        "kode_prodi": "13211",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": null,
+            "id_akred": null,
+            "no_sk": null,
+            "tanggal_sk": null,
+            "tanggal_kadaluarsa": null
+        }
+    },
+    {
+        "id_sms": "D8A320AF-5A2E-40FA-82A8-394D8FC12BA4",
+        "nama_prodi": "Program Studi S1 Ilmu Hukum",
+        "kode_prodi": "74201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "8F80D06B-0FBF-4E97-8E54-A9C96F66816F",
+            "id_akred": "1",
+            "no_sk": "8668\/SK\/BAN-PT\/Ak-PPJ\/S\/VI\/2021",
+            "tanggal_sk": "2021-06-15",
+            "tanggal_kadaluarsa": "2026-06-11"
+        }
+    },
+    {
+        "id_sms": "EDD11DC8-72ED-4B06-B993-2551D1D4406A",
+        "nama_prodi": "Program Studi S1 Kedokteran",
+        "kode_prodi": "11201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "0A00E8F7-E2E0-42EF-AC12-DBC9DDDD8F20",
+            "id_akred": "1",
+            "no_sk": "003\/LAM-PTKes\/Akr.Bd\/Sar\/X\/2020",
+            "tanggal_sk": "2020-02-28",
+            "tanggal_kadaluarsa": "2025-10-01"
+        }
+    },
+    {
+        "id_sms": "C7C5B1F4-BF27-4172-AC6D-E9E3F751A6B0",
+        "nama_prodi": "Program Studi S2 Ilmu Administrasi",
+        "kode_prodi": "63101",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "E214EC38-2492-430D-8CAE-34E65B474872",
+            "id_akred": "5",
+            "no_sk": "1624\/SK\/BAN-PT\/Ak\/M\/V\/2023",
+            "tanggal_sk": "2023-05-02",
+            "tanggal_kadaluarsa": "2028-05-02"
+        }
+    },
+    {
+        "id_sms": "6A7A584F-65CE-4FCE-8E59-BBB2D7917AF5",
+        "nama_prodi": "Program Studi S2 Ilmu Hukum",
+        "kode_prodi": "74101",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "7220FE82-369C-4B83-A39C-9FA0D7CD2C66",
+            "id_akred": "1",
+            "no_sk": "14005\/SK\/BAN-PT\/Ak-PPJ\/M\/XII\/2021",
+            "tanggal_sk": "2021-12-29",
+            "tanggal_kadaluarsa": "2027-01-11"
+        }
+    },
+    {
+        "id_sms": "19C05C0A-1963-45AD-9BA3-908C47E98452",
+        "nama_prodi": "Program Studi S2 Ilmu Lingkungan",
+        "kode_prodi": "95129",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "5656A711-BB6B-42C5-852C-9F992DD77E58",
+            "id_akred": "2",
+            "no_sk": "3969\/SK\/BAN-PT\/Akred\/M\/X\/2019",
+            "tanggal_sk": "2019-10-22",
+            "tanggal_kadaluarsa": "2024-10-22"
+        }
+    },
+    {
+        "id_sms": "5F3B35D0-0665-46D5-93AA-39BF1E4C6920",
+        "nama_prodi": "Program Studi S2 Ilmu Penyuluhan Pembangunan\/ Pemberdayaan Masyarakat",
+        "kode_prodi": "54103",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "008CCFF8-62E3-4DEE-80C9-1430F09997FC",
+            "id_akred": "6",
+            "no_sk": "6958\/SK\/BAN-PT\/Ak.KP\/M\/X\/2022",
+            "tanggal_sk": "2022-10-05",
+            "tanggal_kadaluarsa": "2024-09-17"
+        }
+    },
+    {
+        "id_sms": "7CF61032-52B1-43B0-B9EC-316D838C735A",
+        "nama_prodi": "Program Studi S2 Kesehatan Masyarakat",
+        "kode_prodi": "13101",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "03A31984-837F-48D1-B8D5-E98AEC0E9383",
+            "id_akred": "6",
+            "no_sk": "0237\/LAM-PTKes\/Akr\/Mag\/VI\/2021",
+            "tanggal_sk": "2021-06-25",
+            "tanggal_kadaluarsa": "2026-06-24"
+        }
+    },
+    {
+        "id_sms": "9BB6FC3D-29E1-4840-8587-ACB806994ED7",
+        "nama_prodi": "Program Studi S2 Manajemen Wilayah Pesisir dan Laut",
+        "kode_prodi": "54145",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "970E6A2A-2BFA-46AF-91D5-F176F3292F7F",
+            "id_akred": "2",
+            "no_sk": "1072\/SK\/BAN-PT\/Akred\/M\/IV\/2019",
+            "tanggal_sk": "2019-04-23",
+            "tanggal_kadaluarsa": "2024-04-23"
+        }
+    },
+    {
+        "id_sms": "6C262EF7-B905-4E2F-A867-DB0062A5EF9F",
+        "nama_prodi": "Program Studi S2 Perencanaan Wilayah dan Kota",
+        "kode_prodi": "95103",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "48637DA3-1B17-41C7-B2C1-691E099B7C61",
+            "id_akred": "6",
+            "no_sk": "1611\/SK\/BAN-PT\/Akred\/M\/III\/2021",
+            "tanggal_sk": "2021-03-23",
+            "tanggal_kadaluarsa": "2026-03-23"
+        }
+    },
+    {
+        "id_sms": "9424B478-2304-4AED-8037-2EE69C110A87",
+        "nama_prodi": "Program Studi S3 Ilmu Akuntansi",
+        "kode_prodi": "62001",
+        "jenjang": "S3",
+        "akreditasi": {
+            "id_akreditasi_prodi": null,
+            "id_akred": null,
+            "no_sk": null,
+            "tanggal_sk": null,
+            "tanggal_kadaluarsa": null
+        }
+    },
+    {
+        "id_sms": "C5CCD1CA-296F-40B2-BF10-84E675F58C8C",
+        "nama_prodi": "Program Studi S3 Ilmu Ekonomi",
+        "kode_prodi": "60001",
+        "jenjang": "S3",
+        "akreditasi": {
+            "id_akreditasi_prodi": "4480683F-3A3B-4B36-AA9D-D28EBFA5A0B9",
+            "id_akred": "4",
+            "no_sk": "3287\/SK\/BAN-PT\/Akred\/D\/V\/2022",
+            "tanggal_sk": "2022-05-31",
+            "tanggal_kadaluarsa": "2027-05-31"
+        }
+    },
+    {
+        "id_sms": "687492E8-EBBF-4FE8-992F-399AC1BEECCF",
+        "nama_prodi": "Program Studi S3 Ilmu Hukum",
+        "kode_prodi": "74001",
+        "jenjang": "S3",
+        "akreditasi": {
+            "id_akreditasi_prodi": "75565EEC-977A-44C4-BAC6-F8A381434244",
+            "id_akred": "5",
+            "no_sk": "13098\/SK\/BAN-PT\/Akred\/D\/XII\/2021",
+            "tanggal_sk": "2021-12-14",
+            "tanggal_kadaluarsa": "2026-12-14"
+        }
+    },
+    {
+        "id_sms": "5EEF5EA5-BB96-4203-8FF0-7196AB9FB6F1",
+        "nama_prodi": "Program Studi S3 Ilmu Lingkungan",
+        "kode_prodi": "95029",
+        "jenjang": "S3",
+        "akreditasi": {
+            "id_akreditasi_prodi": "67B1824C-82CE-4272-9ECD-9E812BB94D92",
+            "id_akred": "6",
+            "no_sk": "8944\/SK\/BAN-PT\/Akred\/D\/VI\/2021",
+            "tanggal_sk": "2021-06-22",
+            "tanggal_kadaluarsa": "2026-06-22"
+        }
+    },
+    {
+        "id_sms": "CD42F605-29CE-45CD-AB3E-6E5CCF72ADBF",
+        "nama_prodi": "Program Studi S3 Ilmu Pertanian",
+        "kode_prodi": "54001",
+        "jenjang": "S3",
+        "akreditasi": {
+            "id_akreditasi_prodi": "93A84E3E-CFBE-4784-B0C9-2136C42CF188",
+            "id_akred": "2",
+            "no_sk": "2504\/SK\/BAN-PT\/Akred\/D\/VII\/2019",
+            "tanggal_sk": "2019-07-17",
+            "tanggal_kadaluarsa": "2024-07-17"
+        }
+    },
+    {
+        "id_sms": "9A29C82B-327F-4242-95F1-F9C3C17A5F0B",
+        "nama_prodi": "Program Studi S3 Matematika dan Ilmu Pengetahuan Alam",
+        "kode_prodi": "44001",
+        "jenjang": "S3",
+        "akreditasi": {
+            "id_akreditasi_prodi": "2CDD42A4-BC6D-411C-86FD-2CF47C095CB1",
+            "id_akred": "5",
+            "no_sk": "9251\/SK\/BAN-PT\/Akred\/D\/VII\/2021",
+            "tanggal_sk": "2021-07-06",
+            "tanggal_kadaluarsa": "2026-07-06"
+        }
+    },
+    {
+        "id_sms": "1ACBF9CC-21AC-4225-AF74-83C97074492A",
+        "nama_prodi": "Program Studi S3 Pendidikan ",
+        "kode_prodi": "86003",
+        "jenjang": "S3",
+        "akreditasi": {
+            "id_akreditasi_prodi": "3806DA21-9900-4AFB-9F0B-8277D76A1BC2",
+            "id_akred": "5",
+            "no_sk": "307\/SK\/LAMDIK\/Ak\/D\/III\/2023",
+            "tanggal_sk": "2023-03-07",
+            "tanggal_kadaluarsa": "2027-09-02"
+        }
+    },
+    {
+        "id_sms": "BAC154D8-5191-4445-B912-41CB5D069B49",
+        "nama_prodi": "Program Studi S3 Studi Pembangunan",
+        "kode_prodi": "60003",
+        "jenjang": "S3",
+        "akreditasi": {
+            "id_akreditasi_prodi": "FA60FF1E-FF6F-4926-9FEA-AC230F69E1F9",
+            "id_akred": "6",
+            "no_sk": "150\/SK\/BAN-PT\/Ak.P\/D\/I\/2023",
+            "tanggal_sk": "2023-01-17",
+            "tanggal_kadaluarsa": "2025-01-17"
+        }
+    },
+    {
+        "id_sms": "ABE8F1F8-BEF0-4793-8EA3-6EFAC5794886",
+        "nama_prodi": "Program Studi Sp-1 Pulmonologi dan Ilmu Kedokteran Respirasi",
+        "kode_prodi": "11743",
+        "jenjang": "Sp-1",
+        "akreditasi": {
+            "id_akreditasi_prodi": null,
+            "id_akred": null,
+            "no_sk": null,
+            "tanggal_sk": null,
+            "tanggal_kadaluarsa": null
+        }
+    },
+    {
+        "id_sms": "29C69D21-E202-40E4-AD28-544C77D68EF7",
+        "nama_prodi": "Proteksi Tanaman",
+        "kode_prodi": "54295",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "42E5011D-F058-49FD-A9AA-5B4E1949A0FE",
+            "id_akred": "2",
+            "no_sk": "2806\/SK\/BAN-PT\/Akred\/S\/VII\/2019",
+            "tanggal_sk": "2019-07-31",
+            "tanggal_kadaluarsa": "2024-07-31"
+        }
+    },
+    {
+        "id_sms": "2D403CFC-77DC-47E2-A3E7-A9AACA64156E",
+        "nama_prodi": "Sistem Informasi",
+        "kode_prodi": "57201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": null,
+            "id_akred": null,
+            "no_sk": null,
+            "tanggal_sk": null,
+            "tanggal_kadaluarsa": null
+        }
+    },
+    {
+        "id_sms": "1BAC1562-F0FD-4366-A351-30B1828524A4",
+        "nama_prodi": "Sosiologi",
+        "kode_prodi": "69201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "F2C3B3D2-3845-424E-A3F1-94A91CF33C93",
+            "id_akred": "1",
+            "no_sk": "3089\/SK\/BAN-PT\/Akred\/S\/VIII\/2019",
+            "tanggal_sk": "2019-08-20",
+            "tanggal_kadaluarsa": "2024-08-20"
+        }
+    },
+    {
+        "id_sms": "F5AEEA8A-431D-4B4E-B1D6-5F0ED1580F22",
+        "nama_prodi": "Sumberdaya Akuatik",
+        "kode_prodi": "54246",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "CD9E296B-A560-4E7D-A8B4-A211D53EFC1F",
+            "id_akred": "2",
+            "no_sk": "2995\/SK\/BAN-PT\/Akred\/S\/VIII\/2019",
+            "tanggal_sk": "2019-08-13",
+            "tanggal_kadaluarsa": "2024-08-13"
+        }
+    },
+    {
+        "id_sms": "C4B67B31-FD42-4670-BCF0-541FF1C20FF7",
+        "nama_prodi": "Teknik Elektro",
+        "kode_prodi": "20201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "A8473442-F797-4E6A-AC69-608FB527061A",
+            "id_akred": "1",
+            "no_sk": "6734\/SK\/BAN-PT\/Akred\/S\/X\/2020",
+            "tanggal_sk": "2020-10-27",
+            "tanggal_kadaluarsa": "2025-10-27"
+        }
+    },
+    {
+        "id_sms": "BB5748D8-DC9A-4598-81C5-48DA8AD5073C",
+        "nama_prodi": "Teknik Elektro",
+        "kode_prodi": "20101",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "EAF639C7-FD65-48CF-B476-047C81D92B12",
+            "id_akred": "2",
+            "no_sk": "3070\/SK\/BAN-PT\/Akred\/M\/VIII\/2019",
+            "tanggal_sk": "2019-08-14",
+            "tanggal_kadaluarsa": "2024-08-14"
+        }
+    },
+    {
+        "id_sms": "B7C6D212-FB4E-46B0-99FB-A551B29802E7",
+        "nama_prodi": "Teknik Geodesi",
+        "kode_prodi": "29201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "390F376C-CBC2-4AB7-AF3D-03A17923FB98",
+            "id_akred": "2",
+            "no_sk": "957\/SK\/BAN-PT\/Akred\/S\/IV\/2019",
+            "tanggal_sk": "2019-04-16",
+            "tanggal_kadaluarsa": "2024-04-16"
+        }
+    },
+    {
+        "id_sms": "6F794916-FF71-443E-AF12-28F15E160569",
+        "nama_prodi": "Teknik Geofisika",
+        "kode_prodi": "33201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "1A6F156A-B71E-4257-B547-6F97299C84BC",
+            "id_akred": "4",
+            "no_sk": "0211\/SK\/LAM Teknik\/AS\/XII\/2022",
+            "tanggal_sk": "2022-12-21",
+            "tanggal_kadaluarsa": "2027-12-20"
+        }
+    },
+    {
+        "id_sms": "C7F898E6-766C-4CBD-8FCF-D695C4A1A2D9",
+        "nama_prodi": "Teknik Geologi",
+        "kode_prodi": "34201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": null,
+            "id_akred": null,
+            "no_sk": null,
+            "tanggal_sk": null,
+            "tanggal_kadaluarsa": null
+        }
+    },
+    {
+        "id_sms": "FC4FC29A-85CA-47B3-8E61-3A9E9E129A88",
+        "nama_prodi": "Teknik Informatika",
+        "kode_prodi": "55202",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "23093A3F-0602-4F68-9FF1-D4A8A94B87C8",
+            "id_akred": "2",
+            "no_sk": "251\/SK\/LAM-INFOKOM\/Ak.S\/S\/XI\/2023",
+            "tanggal_sk": "2023-11-27",
+            "tanggal_kadaluarsa": "2024-04-30"
+        }
+    },
+    {
+        "id_sms": "151CB181-57BD-4686-8E9F-D9BBF83FEFD8",
+        "nama_prodi": "Teknik Kimia",
+        "kode_prodi": "24201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "8D613DE4-B5F2-48E7-9E1C-2F7BD9060822",
+            "id_akred": "2",
+            "no_sk": "206\/SK\/BAN-PT\/Ak-PPJ\/S\/I\/2021",
+            "tanggal_sk": "2021-01-05",
+            "tanggal_kadaluarsa": "2025-12-30"
+        }
+    },
+    {
+        "id_sms": "E01B3F97-75BC-4EC1-9FC5-CC874EAB60B1",
+        "nama_prodi": "Teknik Lingkungan",
+        "kode_prodi": "25201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": null,
+            "id_akred": null,
+            "no_sk": null,
+            "tanggal_sk": null,
+            "tanggal_kadaluarsa": null
+        }
+    },
+    {
+        "id_sms": "B4BE23C9-173C-4CB1-9074-DE1B55DD896B",
+        "nama_prodi": "Teknik Mesin",
+        "kode_prodi": "21101",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "5E2BE627-D84C-4521-B9EA-D5EA5FC61F15",
+            "id_akred": "5",
+            "no_sk": "0228\/SK\/LAM Teknik\/AM\/XII\/2022",
+            "tanggal_sk": "2022-12-21",
+            "tanggal_kadaluarsa": "2027-12-20"
+        }
+    },
+    {
+        "id_sms": "1F0B8DCC-929E-434C-A14D-191468111154",
+        "nama_prodi": "Teknik Mesin",
+        "kode_prodi": "21201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "DDC7DEFE-BA2E-44F5-BC60-5D5367CB51D9",
+            "id_akred": "2",
+            "no_sk": "5828\/SK\/BAN-PT\/Ak-PPJ\/S\/IX\/2020",
+            "tanggal_sk": "2020-09-22",
+            "tanggal_kadaluarsa": "2025-09-20"
+        }
+    },
+    {
+        "id_sms": "426C4F5C-BABD-454F-8373-758408B34F56",
+        "nama_prodi": "Teknik Mesin",
+        "kode_prodi": "21401",
+        "jenjang": "D3",
+        "akreditasi": {
+            "id_akreditasi_prodi": "DD1BDA72-BE65-418C-A397-6CFB7638D4CE",
+            "id_akred": "5",
+            "no_sk": "0127\/SK\/LAM Teknik\/VD3\/XII\/2022",
+            "tanggal_sk": "2022-12-21",
+            "tanggal_kadaluarsa": "2027-12-20"
+        }
+    },
+    {
+        "id_sms": "03182C14-3A21-44A9-AEDE-28908FC7A488",
+        "nama_prodi": "Teknik Pertanian",
+        "kode_prodi": "41201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "71F48B09-1347-4C48-BB14-560AE61E4727",
+            "id_akred": "1",
+            "no_sk": "8230\/SK\/BAN-PT\/Ak-PPJ\/S\/XII\/2020",
+            "tanggal_sk": "2020-12-15",
+            "tanggal_kadaluarsa": "2025-12-13"
+        }
+    },
+    {
+        "id_sms": "C8F6B958-FD7F-4384-B472-15EEFE5FD5FB",
+        "nama_prodi": "Teknik Sipil",
+        "kode_prodi": "22101",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "FE02ABD4-75B9-471B-B49F-35D1E1003DE7",
+            "id_akred": "2",
+            "no_sk": "3169\/SK\/BAN-PT\/Akred\/M\/VIII\/2019",
+            "tanggal_sk": "2019-08-21",
+            "tanggal_kadaluarsa": "2024-08-21"
+        }
+    },
+    {
+        "id_sms": "AD7F4BD4-6347-4CA1-A285-2BDB4A4D61F4",
+        "nama_prodi": "Teknik Sipil",
+        "kode_prodi": "22201",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "A74F93CB-3479-4D7D-9E6E-F3FFE7641CB0",
+            "id_akred": "1",
+            "no_sk": "12913\/SK\/BAN-PT\/Ak-PPJ\/S\/XII\/2021",
+            "tanggal_sk": "2021-12-08",
+            "tanggal_kadaluarsa": "2026-12-02"
+        }
+    },
+    {
+        "id_sms": "9573340A-0254-4CD9-B4AC-DD6E174BEAE9",
+        "nama_prodi": "Teknik Sipil",
+        "kode_prodi": "22401",
+        "jenjang": "D3",
+        "akreditasi": {
+            "id_akreditasi_prodi": "477397D3-42A1-432A-AEE0-664AC01E30CB",
+            "id_akred": "2",
+            "no_sk": "3691\/SK\/BAN-PT\/Akred\/Dipl-III\/X\/2019",
+            "tanggal_sk": "2019-10-09",
+            "tanggal_kadaluarsa": "2024-10-09"
+        }
+    },
+    {
+        "id_sms": "6832394B-91C9-41DD-AFF3-77276AD76C94",
+        "nama_prodi": "Teknik Survey dan Pemetaan",
+        "kode_prodi": "35401",
+        "jenjang": "D3",
+        "akreditasi": {
+            "id_akreditasi_prodi": "A5182002-EEB2-4093-B55C-31CC0ED05EF4",
+            "id_akred": "2",
+            "no_sk": "0183\/SK\/LAM Teknik\/Smtr\/XII\/2022",
+            "tanggal_sk": "2022-12-21",
+            "tanggal_kadaluarsa": "2023-08-20"
+        }
+    },
+    {
+        "id_sms": "D2FFBF81-2BFF-4A82-84E8-30B6F16F2E54",
+        "nama_prodi": "Teknologi Hasil Pertanian",
+        "kode_prodi": "41231",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "2AFDB30D-9DFC-4AAC-A8A3-0392A4DAD1D4",
+            "id_akred": "1",
+            "no_sk": "3860\/SK\/BAN-PT\/Akred\/S\/X\/2019",
+            "tanggal_sk": "2019-10-15",
+            "tanggal_kadaluarsa": "2024-10-15"
+        }
+    },
+    {
+        "id_sms": "0AF4DE26-0F41-481A-8216-D54F6A5F1F19",
+        "nama_prodi": "Teknologi Industri Pertanian",
+        "kode_prodi": "41111",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "C2289EA4-FAED-432D-9024-FCF25798F1C1",
+            "id_akred": "1",
+            "no_sk": "14000\/SK\/BAN-PT\/Ak-PPJ\/M\/XII\/2021",
+            "tanggal_sk": "2021-12-29",
+            "tanggal_kadaluarsa": "2027-01-11"
+        }
+    },
+    {
+        "id_sms": "B78DF3D5-6007-4BEC-AD89-906BB1295761",
+        "nama_prodi": "Teknologi Industri Pertanian",
+        "kode_prodi": "41211",
+        "jenjang": "S1",
+        "akreditasi": {
+            "id_akreditasi_prodi": "8CD8CC55-806B-43B4-862C-52AC5C03584E",
+            "id_akred": "2",
+            "no_sk": "2809\/SK\/BAN-PT\/Akred\/S\/VII\/2019",
+            "tanggal_sk": "2019-07-31",
+            "tanggal_kadaluarsa": "2024-07-31"
+        }
+    },
+    {
+        "id_sms": "A7E60D5E-3B5B-4451-B815-96BDC2DD9A8F",
+        "nama_prodi": "Teknologi Pendidikan",
+        "kode_prodi": "86103",
+        "jenjang": "S2",
+        "akreditasi": {
+            "id_akreditasi_prodi": "713CDA5D-2A43-4A94-9434-01C54CA18135",
+            "id_akred": "2",
+            "no_sk": "3697\/SK\/BAN-PT\/Ak-PPJ\/M\/VI\/2022",
+            "tanggal_sk": "2022-06-14",
+            "tanggal_kadaluarsa": "2027-04-19"
+        }
+    },
+    {
+        "id_sms": "B9CE9522-3EDC-4A44-9A96-41DD31420389",
+        "nama_prodi": "Teknologi Rekayasa Otomotif ",
+        "kode_prodi": "21304",
+        "jenjang": "D4",
+        "akreditasi": {
+            "id_akreditasi_prodi": null,
+            "id_akred": null,
+            "no_sk": null,
+            "tanggal_sk": null,
+            "tanggal_kadaluarsa": null
+        }
+    }
+]

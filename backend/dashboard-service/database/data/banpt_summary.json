@@ -1,0 +1,23 @@
+{
+  "fetched_at": "2025-11-13T21:50:17.799440",
+  "statistics": {
+    "total_fetched": 34423,
+    "unila_only": 122,
+    "by_jenjang": {
+      "S1": 63,
+      "S2": 34,
+      "S3": 8,
+      "Profesi": 2,
+      "D-III": 14,
+      "D-IV": 1
+    },
+    "by_akreditasi": {
+      "A": 8,
+      "Baik": 15,
+      "Baik Sekali": 42,
+      "Unggul": 46,
+      "B": 11
+    }
+  },
+  "source": "banpt_api"
+}
