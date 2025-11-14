@@ -211,7 +211,7 @@ export default function AkreditasiProdi() {
         </div>
       )}
 
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-3 sm:px-4 md:px-6">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -220,35 +220,35 @@ export default function AkreditasiProdi() {
           className="max-w-7xl mx-auto"
         >
           {/* Header */}
-          <motion.div variants={itemVariants} className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-3 pb-1 leading-relaxed">
+          <motion.div variants={itemVariants} className="text-center mb-8 sm:mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2 sm:mb-3 pb-1 leading-relaxed px-2">
               Status Akreditasi Program Studi
             </h2>
-            <div className="flex items-center justify-center mb-3">
-              <div className="h-1 w-20 bg-gradient-to-r from-transparent via-blue-400 to-transparent rounded-full"></div>
+            <div className="flex items-center justify-center mb-2 sm:mb-3">
+              <div className="h-1 w-16 sm:w-20 bg-gradient-to-r from-transparent via-blue-400 to-transparent rounded-full"></div>
             </div>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-2xl mx-auto px-2">
               Data akreditasi terintegrasi dari PDDIKTI
             </p>
           </motion.div>
 
           {/* Main Content Grid */}
-          <div className="grid lg:grid-cols-5 gap-8">
+          <div className="grid lg:grid-cols-5 gap-4 sm:gap-6 md:gap-8">
             {/* Chart Card - Takes 3/5 of space */}
-            <motion.div variants={itemVariants} className="lg:col-span-3 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-              <div className="p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                    <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+            <motion.div variants={itemVariants} className="lg:col-span-3 bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="p-4 sm:p-6 md:p-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 mb-4 sm:mb-6">
+                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     Distribusi Akreditasi
                   </h3>
-                  <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full font-medium">
+                  <div className="text-xs sm:text-sm text-gray-500 bg-gray-100 px-2.5 sm:px-3 py-1 rounded-full font-medium">
                     Total: {totalProdi} Program Studi
                   </div>
                 </div>
-                <div className="h-[420px]">
+                <div className="h-[280px] sm:h-[350px] md:h-[420px]">
                   <ReactECharts
                     option={chartOption}
                     style={{ height: "100%", width: "100%" }}
@@ -259,32 +259,32 @@ export default function AkreditasiProdi() {
             </motion.div>
 
             {/* Stats Cards - Compact Grid - Takes 2/5 of space */}
-            <motion.div variants={itemVariants} className="lg:col-span-2 space-y-5">
+            <motion.div variants={itemVariants} className="lg:col-span-2 space-y-3 sm:space-y-4 md:space-y-5">
               {/* Highlight Card */}
-              <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-lg p-5 text-white">
+              <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-5 text-white">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                      <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center">
+                      <svg className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                       </svg>
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-white/90">Pencapaian Terbaik</div>
-                      <div className="text-3xl font-bold">{excellencePercentage}%</div>
+                      <div className="text-xs sm:text-sm font-medium text-white/90">Pencapaian Terbaik</div>
+                      <div className="text-2xl sm:text-3xl font-bold">{excellencePercentage}%</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm text-white/80">Unggul &</div>
-                    <div className="text-sm text-white/80">Baik Sekali</div>
+                    <div className="text-xs sm:text-sm text-white/80">Unggul &</div>
+                    <div className="text-xs sm:text-sm text-white/80">Baik Sekali</div>
                   </div>
                 </div>
               </div>
 
               {/* Compact Stats Grid - 2 columns */}
-              <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-5">
-                <h4 className="text-sm font-bold text-gray-700 mb-4 uppercase tracking-wide">Detail Akreditasi</h4>
-                <div className="grid grid-cols-2 gap-3">
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 p-4 sm:p-5">
+                <h4 className="text-xs sm:text-sm font-bold text-gray-700 mb-3 sm:mb-4 uppercase tracking-wide">Detail Akreditasi</h4>
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   {akreditasiData.map((item, index) => (
                     <motion.div
                       key={index}
@@ -295,34 +295,34 @@ export default function AkreditasiProdi() {
                       transition={{ duration: 0.3, delay: index * 0.05 }}
                       whileHover={{ scale: 1.03 }}
                     >
-                      <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-3.5 border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-300">
-                        <div className="flex items-start gap-3">
+                      <div className="bg-gradient-to-br from-gray-50 to-white rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-3.5 border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-300">
+                        <div className="flex items-start gap-2 sm:gap-2.5 md:gap-3">
                           {/* Color indicator */}
                           <div
-                            className="w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm"
+                            className="w-8 h-8 sm:w-9 sm:h-9 md:w-11 md:h-11 rounded-md sm:rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm"
                             style={{ backgroundColor: item.color }}
                           >
-                            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className="w-4 h-4 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                             </svg>
                           </div>
 
                           {/* Content */}
                           <div className="flex-1 min-w-0">
-                            <div className="text-xs font-semibold text-gray-500 mb-1 truncate">{item.status}</div>
-                            <div className="flex items-baseline gap-2">
-                              <div className="text-2xl font-bold" style={{ color: item.color }}>{item.jumlah}</div>
-                              <div className="text-xs font-semibold text-gray-400">prodi</div>
+                            <div className="text-[10px] sm:text-xs font-semibold text-gray-500 mb-0.5 sm:mb-1 truncate">{item.status}</div>
+                            <div className="flex items-baseline gap-1 sm:gap-1.5 md:gap-2">
+                              <div className="text-lg sm:text-xl md:text-2xl font-bold" style={{ color: item.color }}>{item.jumlah}</div>
+                              <div className="text-[10px] sm:text-xs font-semibold text-gray-400">prodi</div>
                             </div>
 
                             {/* Progress bar */}
-                            <div className="mt-2">
-                              <div className="flex items-center justify-between mb-1">
-                                <span className="text-xs font-bold text-gray-600">{item.persentase}%</span>
+                            <div className="mt-1.5 sm:mt-2">
+                              <div className="flex items-center justify-between mb-0.5 sm:mb-1">
+                                <span className="text-[10px] sm:text-xs font-bold text-gray-600">{item.persentase}%</span>
                               </div>
-                              <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                              <div className="w-full bg-gray-200 rounded-full h-1 sm:h-1.5 overflow-hidden">
                                 <motion.div
-                                  className="h-1.5 rounded-full"
+                                  className="h-1 sm:h-1.5 rounded-full"
                                   style={{ backgroundColor: item.color }}
                                   initial={{ width: 0 }}
                                   whileInView={{ width: `${item.persentase}%` }}

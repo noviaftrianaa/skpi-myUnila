@@ -431,19 +431,19 @@ export default function GlobalSearch({ variant = "button", className = "" }: Glo
           size="lg"
           radius="full"
           onClick={() => setIsOpen(true)}
-          className="w-full max-w-3xl bg-white text-left justify-start shadow-2xl border-2 border-gray-200 hover:border-myunila hover:shadow-3xl transition-all duration-300 h-16 px-6 font-normal"
+          className="w-full max-w-3xl bg-white text-left justify-start shadow-2xl border-2 border-gray-200 hover:border-myunila hover:shadow-3xl transition-all duration-300 h-12 sm:h-14 md:h-16 px-3 sm:px-4 md:px-6 font-normal"
           startContent={
-            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           }
           endContent={
-            <div className="flex items-center gap-1.5 ml-auto px-2.5 py-1.5 bg-gray-100 rounded-lg">
-              <Kbd className="bg-transparent shadow-none text-gray-600 font-semibold">⌘K</Kbd>
+            <div className="hidden sm:flex items-center gap-1.5 ml-auto px-2.5 py-1.5 bg-gray-100 rounded-lg">
+              <Kbd className="bg-transparent shadow-none text-gray-600 font-semibold text-xs">⌘K</Kbd>
             </div>
           }
         >
-          <span className="text-gray-500 text-base">Cari mahasiswa, dosen, penelitian...</span>
+          <span className="text-gray-500 text-xs sm:text-sm md:text-base truncate">Cari mahasiswa, dosen, penelitian...</span>
         </Button>
       );
     }

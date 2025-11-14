@@ -11,26 +11,7 @@ services:
     env_file:
       - ../../.env
     environment:
-      # Map DASHBOARD_* variables to Laravel expected names
-      APP_NAME: "${DASHBOARD_APP_NAME:-MyUnila Dashboard Service}"
-      APP_ENV: "${DASHBOARD_APP_ENV:-local}"
-      APP_KEY: "${DASHBOARD_APP_KEY}"
-      APP_DEBUG: "${DASHBOARD_APP_DEBUG:-true}"
-      APP_URL: "${DASHBOARD_APP_URL}"
-
-      DB_CONNECTION: "${DASHBOARD_DB_CONNECTION:-sqlsrv}"
-      DB_HOST: "${DASHBOARD_DB_HOST:-host.docker.internal}"
-      DB_PORT: "${DASHBOARD_DB_PORT:-1433}"
-      DB_DATABASE: "${DASHBOARD_DB_DATABASE}"
-      DB_USERNAME: "${DASHBOARD_DB_USERNAME}"
-      DB_PASSWORD: "${DASHBOARD_DB_PASSWORD}"
-
-      # Sister DB connection - loaded from env_file (../../.env)
-      # No need to set these here, env_file will load them directly
-
-      # Redis
-      REDIS_HOST: "${DASHBOARD_REDIS_HOST:-redis}"
-      REDIS_PORT: "${DASHBOARD_REDIS_PORT:-6379}"
+      # Redis (override from env_file if needed)
       CACHE_DRIVER: redis
       SESSION_DRIVER: redis
       QUEUE_CONNECTION: redis
