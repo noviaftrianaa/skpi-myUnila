@@ -21,6 +21,9 @@ deployment/production/**/.env
 deployment/production/**/.env.local
 deployment/production/**/.env.production
 
+# Local development environment files (contains credentials)
+deployment/local/.env
+
 # Keep .env.example files for reference
 !deployment/production/**/.env.example
 
