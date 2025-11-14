@@ -276,23 +276,39 @@ export default function DataDosen() {
     series: [
       {
         type: "bar",
-        data: jabatanData.map((item, index) => ({
-          value: item.jumlah,
-          itemStyle: {
-            color: {
-              type: "linear",
-              x: 0,
-              y: 0,
-              x2: 0,
-              y2: 1,
-              colorStops: [
-                { offset: 0, color: ["#10b981", "#3b82f6", "#8b5cf6", "#f59e0b"][index] },
-                { offset: 1, color: ["#34d399", "#60a5fa", "#a78bfa", "#fbbf24"][index] },
-              ],
+        data: jabatanData.map((item, index) => {
+          // Define color mapping based on jabatan name
+          const colorMap: Record<string, [string, string]> = {
+            'Profesor': ['#10b981', '#34d399'],        // Green
+            'Lektor Kepala': ['#8b5cf6', '#a78bfa'],   // Purple
+            'Lektor': ['#3b82f6', '#60a5fa'],          // Blue
+            'Asisten Ahli': ['#f59e0b', '#fbbf24'],    // Orange
+            'Belum Ada Jabatan': ['#6b7280', '#9ca3af'], // Gray
+          };
+
+          // Get color based on jabatan name, fallback to index-based colors
+          const [colorStart, colorEnd] = colorMap[item.jabatan] ||
+            [['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899'][index % 5],
+             ['#34d399', '#60a5fa', '#a78bfa', '#fbbf24', '#f472b6'][index % 5]];
+
+          return {
+            value: item.jumlah,
+            itemStyle: {
+              color: {
+                type: "linear",
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [
+                  { offset: 0, color: colorStart },
+                  { offset: 1, color: colorEnd },
+                ],
+              },
+              borderRadius: [6, 6, 0, 0],
             },
-            borderRadius: [6, 6, 0, 0],
-          },
-        })),
+          };
+        }),
         barWidth: "50%",
         label: {
           show: true,
