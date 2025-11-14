@@ -90,7 +90,15 @@ class DosenRepository
 
         $sql = "
             SELECT
-                COALESCE(jabfung.nm_jabfung, 'Belum Ada Jabatan') AS jabatan,
+                COALESCE(
+                    CASE
+                        WHEN jabfung.nm_jabfung LIKE '%(%' THEN
+                            RTRIM(SUBSTRING(jabfung.nm_jabfung, 1, CHARINDEX('(', jabfung.nm_jabfung) - 1))
+                        ELSE
+                            jabfung.nm_jabfung
+                    END,
+                    'Belum Ada Jabatan'
+                ) AS jabatan,
                 COUNT(DISTINCT sdm.id_sdm) AS jumlah
             FROM pdrd.sdm AS sdm
             -- Join ke reg_ptk untuk filter dosen aktif
@@ -130,7 +138,13 @@ class DosenRepository
             ) AS jabfung ON jabfung.id_sdm = sdm.id_sdm AND jabfung.rn = 1
             WHERE sdm.soft_delete = 0
                 AND sdm.id_jns_sdm = '12'  -- Jenis SDM = Dosen
-            GROUP BY jabfung.nm_jabfung
+            GROUP BY
+                CASE
+                    WHEN jabfung.nm_jabfung LIKE '%(%' THEN
+                        RTRIM(SUBSTRING(jabfung.nm_jabfung, 1, CHARINDEX('(', jabfung.nm_jabfung) - 1))
+                    ELSE
+                        jabfung.nm_jabfung
+                END
             ORDER BY jumlah DESC
         ";
 
@@ -230,7 +244,7 @@ class DosenRepository
             ) AS jabfung ON jabfung.id_sdm = sdm.id_sdm AND jabfung.rn = 1
             WHERE sdm.soft_delete = 0
                 AND sdm.id_jns_sdm = '12'
-                AND jabfung.nm_jabfung = 'Profesor'
+                AND jabfung.nm_jabfung LIKE 'Profesor%'
         ";
 
         $result = DB::connection('sqlsrv')->select($sql, [$unilaIdSp, $tahunAjaran]);

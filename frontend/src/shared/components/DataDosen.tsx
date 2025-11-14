@@ -121,8 +121,8 @@ export default function DataDosen() {
   // Data dosen berdasarkan jenjang pendidikan
   const pendidikanData = statistics?.pendidikan.data || [];
 
-  // Data dosen berdasarkan jabatan fungsional (top 4)
-  const jabatanData = statistics?.jabatan.data.slice(0, 4) || [];
+  // Data dosen berdasarkan jabatan fungsional (all categories)
+  const jabatanData = statistics?.jabatan.data || [];
 
   // Summary data
   const summary = statistics?.summary || {
