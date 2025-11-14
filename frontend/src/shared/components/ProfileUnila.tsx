@@ -72,7 +72,7 @@ export default function ProfileUnila() {
   // Format status PT
   const getStatusPT = (status: string | null): string => {
     if (!status) return 'Aktif';
-    return status === 'A' ? 'Aktif' : 'Tidak Aktif';
+    return status === 'Unggul' ? 'Aktif' : 'Tidak Aktif';
   };
 
   // Format currency in IDR
