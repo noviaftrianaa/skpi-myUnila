@@ -10,7 +10,6 @@ import {
   TableRow,
   TableCell,
   Input,
-  Button,
   Pagination,
   Select,
   SelectItem,
@@ -329,10 +328,10 @@ export default function DataTable<T extends Record<string, any>>({
       </div>
 
       {/* Pagination Footer - Modern Design */}
-      <div className={`px-6 py-3 border-t border-gray-200 bg-gradient-to-r from-slate-50 via-white to-slate-50 ${!noWrapper ? 'rounded-b-2xl' : 'rounded-b-xl'}`}>
-        <div className="flex flex-col sm:flex-row gap-3 justify-between items-center">
+      <div className={`px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 border-t border-gray-200 bg-gradient-to-r from-slate-50 via-white to-slate-50 ${!noWrapper ? 'rounded-b-2xl' : 'rounded-b-xl'}`}>
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-between items-center">
           {/* Info */}
-          <div className="text-sm text-gray-600 font-medium">
+          <div className="text-[10px] sm:text-xs md:text-sm text-gray-600 font-medium">
             Menampilkan{" "}
             <span className="font-bold text-blue-600">
               {totalDataCount === 0 ? 0 : (page - 1) * rowsPerPage + 1}
@@ -359,11 +358,11 @@ export default function DataTable<T extends Record<string, any>>({
               size="sm"
               showControls
               classNames={{
-                wrapper: "gap-1.5",
-                item: "min-w-8 w-8 h-8 text-xs bg-white border border-gray-200 font-semibold hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 transition-all duration-200 rounded-lg shadow-sm",
-                cursor: "bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-lg hover:shadow-xl border-0 rounded-lg scale-105",
-                prev: "min-w-8 w-8 h-8 bg-white border border-gray-200 hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 rounded-lg shadow-sm transition-all duration-200",
-                next: "min-w-8 w-8 h-8 bg-white border border-gray-200 hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 rounded-lg shadow-sm transition-all duration-200",
+                wrapper: "gap-0.5 sm:gap-1 md:gap-1.5",
+                item: "min-w-6 w-6 h-6 sm:min-w-7 sm:w-7 sm:h-7 md:min-w-8 md:w-8 md:h-8 text-[10px] sm:text-xs bg-white border border-gray-200 font-semibold hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 transition-all duration-200 rounded-md sm:rounded-lg shadow-sm",
+                cursor: "bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-lg hover:shadow-xl border-0 rounded-md sm:rounded-lg scale-105",
+                prev: "min-w-6 w-6 h-6 sm:min-w-7 sm:w-7 sm:h-7 md:min-w-8 md:w-8 md:h-8 bg-white border border-gray-200 hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 rounded-md sm:rounded-lg shadow-sm transition-all duration-200",
+                next: "min-w-6 w-6 h-6 sm:min-w-7 sm:w-7 sm:h-7 md:min-w-8 md:w-8 md:h-8 bg-white border border-gray-200 hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 rounded-md sm:rounded-lg shadow-sm transition-all duration-200",
               }}
             />
           )}

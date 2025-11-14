@@ -737,26 +737,26 @@ export default function StatistikMahasiswa() {
           </motion.div>
 
           {/* Stats Cards */}
-          <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-4 border border-blue-200">
-              <div className="text-xs font-semibold text-gray-600 mb-1">TOTAL MAHASISWA</div>
-              <div className="text-2xl font-bold text-blue-600">{totals.total.toLocaleString()}</div>
+          <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-5 gap-2 sm:gap-3 md:gap-4 mb-6 sm:mb-7 md:mb-8">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-blue-200">
+              <div className="text-[10px] sm:text-xs font-semibold text-gray-600 mb-0.5 sm:mb-1">TOTAL MAHASISWA</div>
+              <div className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-blue-600">{totals.total.toLocaleString()}</div>
             </div>
-            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-xl p-4 border border-emerald-200">
-              <div className="text-xs font-semibold text-gray-600 mb-1">AKTIF</div>
-              <div className="text-2xl font-bold text-emerald-600">{totals.aktif.toLocaleString()}</div>
+            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-emerald-200">
+              <div className="text-[10px] sm:text-xs font-semibold text-gray-600 mb-0.5 sm:mb-1">AKTIF</div>
+              <div className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-emerald-600">{totals.aktif.toLocaleString()}</div>
             </div>
-            <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-xl p-4 border border-amber-200">
-              <div className="text-xs font-semibold text-gray-600 mb-1">CUTI</div>
-              <div className="text-2xl font-bold text-amber-600">{totals.cuti.toLocaleString()}</div>
+            <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-amber-200">
+              <div className="text-[10px] sm:text-xs font-semibold text-gray-600 mb-0.5 sm:mb-1">CUTI</div>
+              <div className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-amber-600">{totals.cuti.toLocaleString()}</div>
             </div>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-4 border border-purple-200">
-              <div className="text-xs font-semibold text-gray-600 mb-1">NON AKTIF</div>
-              <div className="text-2xl font-bold text-purple-600">{totals.nonAktif.toLocaleString()}</div>
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-purple-200">
+              <div className="text-[10px] sm:text-xs font-semibold text-gray-600 mb-0.5 sm:mb-1">NON AKTIF</div>
+              <div className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-purple-600">{totals.nonAktif.toLocaleString()}</div>
             </div>
-            <div className="bg-gradient-to-br from-red-50 to-red-100/50 rounded-xl p-4 border border-red-200">
-              <div className="text-xs font-semibold text-gray-600 mb-1">DO</div>
-              <div className="text-2xl font-bold text-red-600">{totals.do.toLocaleString()}</div>
+            <div className="bg-gradient-to-br from-red-50 to-red-100/50 rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-red-200">
+              <div className="text-[10px] sm:text-xs font-semibold text-gray-600 mb-0.5 sm:mb-1">DO</div>
+              <div className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-red-600">{totals.do.toLocaleString()}</div>
             </div>
           </motion.div>
 
