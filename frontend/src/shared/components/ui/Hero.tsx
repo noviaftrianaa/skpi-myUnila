@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@heroui/react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils/styles";
@@ -68,19 +67,10 @@ export default function Hero({
     },
   };
 
-  const floatAnimation = {
-    y: [0, -20, 0],
-    transition: {
-      duration: 3,
-      repeat: Infinity,
-      ease: "easeInOut",
-    },
-  };
-
   return (
     <section
       className={cn(
-        "relative min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 pt-32 pb-20 px-4 overflow-hidden",
+        "relative min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-16 md:pb-20 px-4 sm:px-6 overflow-hidden",
         className
       )}
     >
@@ -440,7 +430,7 @@ export default function Hero({
 
       {/* Content */}
       <motion.div
-        className="relative z-10 max-w-6xl mx-auto text-center px-6"
+        className="relative z-10 max-w-6xl mx-auto text-center px-4 sm:px-6"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -448,7 +438,7 @@ export default function Hero({
 
         {/* Title with Gradient */}
         <motion.h1
-          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight"
+          className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-5 md:mb-6 leading-tight"
           variants={itemVariants}
         >
           <span className="bg-gradient-to-r from-blue-600 via-myunila to-blue-800 bg-clip-text text-transparent">
@@ -458,7 +448,7 @@ export default function Hero({
 
         {/* Subtitle */}
         <motion.p
-          className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-700 mb-3"
+          className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-700 mb-2 sm:mb-3 px-2"
           variants={itemVariants}
         >
           {subtitle}
@@ -466,7 +456,7 @@ export default function Hero({
 
         {/* Description */}
         <motion.p
-          className="text-sm sm:text-base md:text-lg text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed"
+          className="text-xs sm:text-sm md:text-base lg:text-lg text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed px-2"
           variants={itemVariants}
         >
           {description}
@@ -474,21 +464,21 @@ export default function Hero({
 
         {/* Search Bar - Global Search */}
         {showCTA && (
-          <motion.div variants={itemVariants} className="mb-12 max-w-3xl mx-auto">
+          <motion.div variants={itemVariants} className="mb-8 sm:mb-10 md:mb-12 max-w-3xl mx-auto px-2">
             <GlobalSearch variant="hero" className="w-full" />
 
             {/* Quick Links below search */}
-            <div className="flex flex-wrap justify-center gap-2 mt-4">
-              <span className="text-sm text-gray-500">Coba cari:</span>
-              <Link href="/search?q=teknik informatika&category=prodi" className="text-sm text-myunila hover:underline">
+            <div className="flex flex-wrap justify-center items-center gap-x-2 gap-y-1 mt-3 sm:mt-4 px-2">
+              <span className="text-xs sm:text-sm text-gray-500">Coba cari:</span>
+              <Link href="/search?q=teknik informatika&category=prodi" className="text-xs sm:text-sm text-myunila hover:underline">
                 Teknik Informatika
               </Link>
-              <span className="text-gray-300">•</span>
-              <Link href="/search?q=machine learning&category=penelitian" className="text-sm text-myunila hover:underline">
+              <span className="text-gray-300 hidden sm:inline">•</span>
+              <Link href="/search?q=machine learning&category=penelitian" className="text-xs sm:text-sm text-myunila hover:underline">
                 Machine Learning
               </Link>
-              <span className="text-gray-300">•</span>
-              <Link href="/search?q=dosen&category=dosen" className="text-sm text-myunila hover:underline">
+              <span className="text-gray-300 hidden sm:inline">•</span>
+              <Link href="/search?q=dosen&category=dosen" className="text-xs sm:text-sm text-myunila hover:underline">
                 Dosen
               </Link>
             </div>
@@ -498,7 +488,7 @@ export default function Hero({
         {/* Feature Cards - myUnila Satu Data */}
         <motion.div
           variants={itemVariants}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto mt-20 mb-10"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 max-w-6xl mx-auto mt-12 sm:mt-16 md:mt-20 mb-6 sm:mb-8 md:mb-10"
         >
           {[
             {
@@ -528,18 +518,20 @@ export default function Hero({
           ].map((feature, index) => (
             <motion.div
               key={index}
-              className="group relative bg-white/95 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300 overflow-hidden"
+              className="group relative bg-white/95 backdrop-blur-lg rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300 overflow-hidden"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 + index * 0.1 }}
               whileHover={{ y: -8, scale: 1.02 }}
             >
               <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
-              <div className={`relative inline-flex items-center justify-center w-16 h-16 rounded-xl bg-gradient-to-br ${feature.gradient} text-white mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                {feature.icon}
+              <div className={`relative inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-lg sm:rounded-xl bg-gradient-to-br ${feature.gradient} text-white mb-3 sm:mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8">
+                  {feature.icon}
+                </div>
               </div>
-              <h3 className="relative text-lg font-bold text-gray-800 mb-2">{feature.title}</h3>
-              <p className="relative text-sm text-gray-600 leading-relaxed">{feature.description}</p>
+              <h3 className="relative text-base sm:text-lg font-bold text-gray-800 mb-1.5 sm:mb-2">{feature.title}</h3>
+              <p className="relative text-xs sm:text-sm text-gray-600 leading-relaxed">{feature.description}</p>
             </motion.div>
           ))}
         </motion.div>
@@ -547,7 +539,7 @@ export default function Hero({
 
       {/* Scroll Indicator - Outside content wrapper */}
       <motion.div
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20"
+        className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-1/2 transform -translate-x-1/2 z-20"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2 }}
@@ -559,7 +551,7 @@ export default function Hero({
               behavior: 'smooth'
             });
           }}
-          className="flex flex-col items-center gap-2 text-gray-400 cursor-pointer hover:text-myunila transition-colors focus:outline-none focus:ring-2 focus:ring-myunila/50 rounded-lg p-2"
+          className="flex flex-col items-center gap-1 sm:gap-2 text-gray-400 cursor-pointer hover:text-myunila transition-colors focus:outline-none focus:ring-2 focus:ring-myunila/50 rounded-lg p-1.5 sm:p-2"
           animate={{ y: [0, 8, 0] }}
           transition={{
             duration: 2,
@@ -570,8 +562,8 @@ export default function Hero({
           whileTap={{ scale: 0.95 }}
           aria-label="Scroll ke bawah"
         >
-          <span className="text-xs font-semibold uppercase tracking-wider">Scroll</span>
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider">Scroll</span>
+          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
           </svg>
         </motion.button>
