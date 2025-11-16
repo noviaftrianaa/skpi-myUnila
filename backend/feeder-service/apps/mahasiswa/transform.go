@@ -1,0 +1,357 @@
+package mahasiswa
+
+import (
+	"fmt"
+	"strings"
+	"time"
+)
+
+// TransformFeederToEntities transforms Feeder API responses to database entities
+func TransformFeederToEntities(
+	feederMhs *FeederMahasiswaData,
+	feederReg *FeederRiwayatPendidikan,
+	feederLulusDO *FeederMahasiswaLulusDO,
+	feederKuliah []*FeederPerkuliahanMahasiswa,
+	idSP string,
+	systemUUID string,
+) (*PesertaDidik, *RegPd, []*KuliahMhs, error) {
+	now := time.Now()
+
+	// Transform PesertaDidik
+	pesertaDidik := transformPesertaDidik(feederMhs, systemUUID, now)
+
+	// Transform RegPd
+	regPd := transformRegPd(feederMhs, feederReg, feederLulusDO, idSP, systemUUID, now)
+
+	// Transform KuliahMhs (multiple records)
+	kuliahMhsList := transformKuliahMhs(feederKuliah, feederMhs.IDRegistrasiMahasiswa, systemUUID, now)
+
+	return pesertaDidik, regPd, kuliahMhsList, nil
+}
+
+// transformPesertaDidik converts FeederMahasiswaData to PesertaDidik entity
+func transformPesertaDidik(data *FeederMahasiswaData, systemUUID string, now time.Time) *PesertaDidik {
+	pd := &PesertaDidik{
+		IDPD:       data.IDMahasiswa,
+		NamaPD:     data.NamaMahasiswa,
+		JK:         data.JenisKelamin,
+		NISN:       data.NISN,
+		NIK:        data.NIK,
+		CreateDate: now,
+		IDCreator:  systemUUID,
+		LastUpdate: now,
+		LastSync:   now,
+		SoftDelete: 0,
+	}
+
+	// Tempat & Tanggal Lahir (NOT NULL - use defaults if missing)
+	if data.TempatLahir != nil && *data.TempatLahir != "" {
+		pd.TempatLahir = data.TempatLahir
+	} else {
+		defaultPlace := "-"
+		pd.TempatLahir = &defaultPlace
+	}
+
+	if data.TanggalLahir != nil {
+		if tgl, err := parseDate(*data.TanggalLahir); err == nil {
+			pd.TglLahir = &tgl
+		}
+	}
+
+	// Address
+	pd.Jalan = data.Jalan
+	pd.RT = data.RT
+	pd.RW = data.RW
+	pd.NamaDusun = data.Dusun
+	pd.Kelurahan = data.Kelurahan
+	pd.KodePos = data.KodePos
+	pd.TeleponRumah = data.Telepon
+	pd.TeleponHP = data.Handphone
+	pd.Email = data.Email
+
+	// Wali
+	pd.NamaWali = data.NamaWali
+	if data.TanggalLahirWali != nil {
+		if tgl, err := parseDate(*data.TanggalLahirWali); err == nil {
+			pd.TglLahirWali = &tgl
+		}
+	}
+	pd.IDPekerjaanWali = data.IDPekerjaanWali
+	pd.IDPenghasilanWali = data.IDPenghasilanWali
+	pd.IDPendidikanWali = data.IDPendidikanWali
+
+	// Ibu
+	pd.NamaIbu = data.NamaIbuKandung
+	if data.TanggalLahirIbu != nil {
+		if tgl, err := parseDate(*data.TanggalLahirIbu); err == nil {
+			pd.TglLahirIbu = &tgl
+		}
+	}
+	pd.NIKIbu = data.NIKIbu
+	pd.IDPekerjaanIbu = data.IDPekerjaanIbu
+	pd.IDPenghasilanIbu = data.IDPenghasilanIbu
+	pd.IDPendidikanIbu = data.IDPendidikanIbu
+	pd.IDKKIbu = data.IDKebutuhanKhususIbu
+
+	// Ayah
+	pd.NamaAyah = data.NamaAyah
+	if data.TanggalLahirAyah != nil {
+		if tgl, err := parseDate(*data.TanggalLahirAyah); err == nil {
+			pd.TglLahirAyah = &tgl
+		}
+	}
+	pd.NIKAyah = data.NIKAyah
+	pd.IDPekerjaanAyah = data.IDPekerjaanAyah
+	pd.IDPenghasilanAyah = data.IDPenghasilanAyah
+	pd.IDPendidikanAyah = data.IDPendidikanAyah
+	pd.IDKKAyah = data.IDKebutuhanKhususAyah
+
+	// Assistance
+	pd.ATerimaKPS = data.PenerimaKPS
+	pd.NoKPS = data.NomorKPS
+	pd.IDKK = data.IDKebutuhanKhususMahasiswa
+	pd.IDAlatTransport = data.IDAlatTransportasi
+
+	// References (REQUIRED NOT NULL fields)
+	// id_kewarganegaraan - NOT NULL, default "ID"
+	if data.IDNegara != nil && *data.IDNegara != "" {
+		pd.IDKewarganegaraan = data.IDNegara
+	} else {
+		defaultCountry := "ID"
+		pd.IDKewarganegaraan = &defaultCountry
+	}
+
+	// id_agama - NOT NULL, default 99 (tidak diketahui)
+	if data.IDAgama != nil && *data.IDAgama > 0 {
+		pd.IDAgama = data.IDAgama
+	} else {
+		defaultAgama := 99
+		pd.IDAgama = &defaultAgama
+	}
+
+	pd.IDJenisTinggal = data.IDJenisTinggal
+	pd.IDWilayah = data.IDWilayah
+
+	// id_stat_mhs - NOT NULL, map from nama_status_mahasiswa
+	statusMhs := mapStatusMahasiswa(data.NamaStatusMahasiswa)
+	pd.IDStatMhs = &statusMhs
+
+	return pd
+}
+
+// transformRegPd converts Feeder data to RegPd entity
+func transformRegPd(
+	mhsData *FeederMahasiswaData,
+	regData *FeederRiwayatPendidikan,
+	lulusDOData *FeederMahasiswaLulusDO,
+	idSP string,
+	systemUUID string,
+	now time.Time,
+) *RegPd {
+	reg := &RegPd{
+		IDRegPd:         mhsData.IDRegistrasiMahasiswa,
+		IDSP:            idSP,
+		IDSMS:           mhsData.IDProdi,
+		IDPD:            mhsData.IDMahasiswa,
+		IDSemesterMasuk: regData.IDPeriodeMasuk,
+		CreateDate:      now,
+		IDCreator:       systemUUID,
+		LastUpdate:      now,
+		LastSync:        now,
+		SoftDelete:      0,
+	}
+
+	// REQUIRED NOT NULL fields with defaults
+	// id_jns_daftar - default 1
+	if regData.IDJenisDaftar != nil && *regData.IDJenisDaftar > 0 {
+		reg.IDJenisDaftar = regData.IDJenisDaftar
+	} else {
+		defaultJnsDaftar := 1
+		reg.IDJenisDaftar = &defaultJnsDaftar
+	}
+
+	// id_jalur_daftar - default 5
+	if regData.IDJalurDaftar != nil && *regData.IDJalurDaftar > 0 {
+		reg.IDJalurDaftar = regData.IDJalurDaftar
+	} else {
+		defaultJalur := 5
+		reg.IDJalurDaftar = &defaultJalur
+	}
+
+	// id_pembiayaan - default 1
+	if regData.IDPembiayaan != nil && *regData.IDPembiayaan > 0 {
+		reg.IDPembiayaan = regData.IDPembiayaan
+	} else {
+		defaultPembiayaan := 1
+		reg.IDPembiayaan = &defaultPembiayaan
+	}
+
+	// id_jns_keluar
+	reg.IDJenisKeluar = regData.IDJenisKeluar
+
+	// nipd (NIM) - REQUIRED NOT NULL
+	if regData.NIM != nil && *regData.NIM != "" {
+		reg.NIPD = regData.NIM
+	} else {
+		// Fallback: generate from ID or use placeholder
+		defaultNIM := mhsData.IDMahasiswa[:10]
+		reg.NIPD = &defaultNIM
+	}
+
+	// tgl_masuk_sp - REQUIRED NOT NULL
+	if regData.TanggalDaftar != nil {
+		if tgl, err := parseDate(*regData.TanggalDaftar); err == nil {
+			reg.TglMasukSP = &tgl
+		}
+	}
+	if reg.TglMasukSP == nil {
+		// Fallback: use current date
+		defaultTgl := now
+		reg.TglMasukSP = &defaultTgl
+	}
+
+	// Transfer credits
+	reg.SKSDiakui = regData.SKSDiakui
+	reg.IDPTAsal = regData.IDPerguruanTinggiAsal
+	reg.NamaPTAsal = regData.NamaPerguruanTinggiAsal
+	reg.IDProdiAsal = regData.IDProdiAsal
+	reg.NamaProdiAsal = regData.NamaProgramStudiAsal
+
+	// Lulus/DO data (if available)
+	if lulusDOData != nil {
+		reg.IDJenisKeluar = lulusDOData.IDJenisKeluar
+
+		if lulusDOData.TanggalKeluar != nil {
+			if tgl, err := parseDate(*lulusDOData.TanggalKeluar); err == nil {
+				reg.TglKeluar = &tgl
+			}
+		}
+
+		reg.Keterangan = lulusDOData.Keterangan
+		reg.SKYudisium = lulusDOData.NomorSKYudisium
+
+		if lulusDOData.TanggalSKYudisium != nil {
+			if tgl, err := parseDate(*lulusDOData.TanggalSKYudisium); err == nil {
+				reg.TglSKYudisium = &tgl
+			}
+		}
+
+		reg.IPK = lulusDOData.IPK
+		reg.NoSeriIjazah = lulusDOData.NomorIjazah
+		reg.JalurSkripsi = lulusDOData.JalurSkripsi
+		reg.JudulSkripsi = lulusDOData.JudulSkripsi
+		reg.BlnAwalBimbingan = lulusDOData.BulanAwalBimbingan
+		reg.BlnAkhirBimbingan = lulusDOData.BulanAkhirBimbingan
+		reg.AsalDataIjazah = lulusDOData.AsalIjazah
+	}
+
+	return reg
+}
+
+// transformKuliahMhs converts Feeder perkuliahan data to KuliahMhs entities
+func transformKuliahMhs(
+	feederList []*FeederPerkuliahanMahasiswa,
+	idRegPd string,
+	systemUUID string,
+	now time.Time,
+) []*KuliahMhs {
+	var kuliahList []*KuliahMhs
+
+	for _, feeder := range feederList {
+		kuliah := &KuliahMhs{
+			IDRegPd:       idRegPd,
+			IDSmt:         feeder.IDSemester,
+			IDStatMhs:     feeder.IDStatusMahasiswa,
+			IPS:           feeder.IPS,
+			IPK:           feeder.IPK,
+			SKSSemester:   feeder.SKSSemester,
+			TotalSKS:      feeder.SKSTotal,
+			BiayaSemester: feeder.BiayaKuliahSemester,
+			CreateDate:    now,
+			IDCreator:     systemUUID,
+			LastUpdate:    now,
+			LastSync:      now,
+			SoftDelete:    0,
+		}
+
+		kuliahList = append(kuliahList, kuliah)
+	}
+
+	return kuliahList
+}
+
+// mapStatusMahasiswa maps status mahasiswa name to id_stat_mhs code
+func mapStatusMahasiswa(namaStatus string) string {
+	namaStatus = strings.ToLower(namaStatus)
+
+	statusMap := map[string]string{
+		"aktif":                      "A",
+		"lulus":                      "L",
+		"cuti":                       "C",
+		"keluar":                     "K",
+		"do":                         "D",
+		"meninggal":                  "G",
+		"mengundurkan diri":          "K",
+		"putus studi":                "D",
+		"non aktif":                  "N",
+		"sedang double degree":       "A",
+		"sedang tugas belajar":       "A",
+		"pindah keluar pt":           "K",
+		"lulus/keluar pindah pt":     "L",
+		"transfer/pindah prodi":      "K",
+		"aktif kelas karyawan":       "A",
+	}
+
+	if code, exists := statusMap[namaStatus]; exists {
+		return code
+	}
+
+	// Default: if status contains "lulus", set as L
+	if strings.Contains(namaStatus, "lulus") {
+		return "L"
+	}
+
+	// Default: N (tidak aktif) if unknown
+	return "N"
+}
+
+// parseDate parses date string from Feeder API (format: "YYYY-MM-DD" or "DD-MM-YYYY")
+func parseDate(dateStr string) (time.Time, error) {
+	if dateStr == "" {
+		return time.Time{}, fmt.Errorf("empty date string")
+	}
+
+	// Try multiple formats
+	formats := []string{
+		"2006-01-02",           // YYYY-MM-DD
+		"02-01-2006",           // DD-MM-YYYY
+		"2006-01-02 15:04:05",  // YYYY-MM-DD HH:MM:SS
+		"02/01/2006",           // DD/MM/YYYY
+		"2006/01/02",           // YYYY/MM/DD
+	}
+
+	for _, format := range formats {
+		if t, err := time.Parse(format, dateStr); err == nil {
+			return t, nil
+		}
+	}
+
+	return time.Time{}, fmt.Errorf("unable to parse date: %s", dateStr)
+}
+
+// ExtractAngkatan extracts year from semester ID (e.g., "20211" -> "2021")
+func ExtractAngkatan(idSemester string) string {
+	if len(idSemester) >= 4 {
+		return idSemester[:4]
+	}
+	return idSemester
+}
+
+// IsSemesterPendek checks if semester is short semester (last digit = 3)
+func IsSemesterPendek(idSemester string) bool {
+	if len(idSemester) == 0 {
+		return false
+	}
+	lastChar := idSemester[len(idSemester)-1:]
+	return lastChar == "3"
+}

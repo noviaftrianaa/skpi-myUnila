@@ -9,6 +9,8 @@ services:
     container_name: myunila-feeder-service
     ports:
       - "8084:8084"
+    env_file:
+      - ../../.env
     environment:
       # App Configuration
       APP_NAME: ${FEEDER_APP_NAME:-Feeder Service}

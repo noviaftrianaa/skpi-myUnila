@@ -2,34 +2,17 @@ package main
 
 import (
 	"log"
-	"sister-service/apps/apiconfig"
-	"sister-service/apps/bidang_ilmu"
-	"sister-service/apps/dosen"
-	"sister-service/apps/jabatan_struktural"
-	appLogger "sister-service/apps/logger"
-	"sister-service/apps/monitoring"
-	"sister-service/apps/pendidikan"
-	"sister-service/apps/penelitian"
-	"sister-service/apps/penugasan"
-	"sister-service/apps/publikasi"
-	"sister-service/apps/referensi"
-	"sister-service/apps/riwayat_fungsional"
-	"sister-service/apps/riwayat_pekerjaan"
-	"sister-service/apps/scheduler"
-	"sister-service/apps/sertifikasi_dosen"
-	"sister-service/apps/synclog"
-	"sister-service/apps/tugas_tambahan"
-	_ "sister-service/docs"
-	"sister-service/external/database"
-	"sister-service/external/feeder_api"
-	"sister-service/internal/config"
-	"sister-service/pkg/crypto"
+	"github.com/myunila/feeder-service/apps/apiconfig"
+	"github.com/myunila/feeder-service/apps/mahasiswa"
+	"github.com/myunila/feeder-service/external/database"
+	"github.com/myunila/feeder-service/external/feeder_api"
+	"github.com/myunila/feeder-service/internal/config"
+	"github.com/myunila/feeder-service/pkg/crypto"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	fiberSwagger "github.com/swaggo/fiber-swagger"
 )
 
 // @title Feeder Service API
@@ -43,7 +26,7 @@ import (
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host localhost:8083
+// @host localhost:8084
 // @BasePath /
 // @schemes http https
 
@@ -69,9 +52,13 @@ func main() {
 	}
 	defer db.Close()
 
-	// Initialize Sister API client
-	feederAPI := feeder_api.NewClient(config.Cfg.SisterAPI)
-	log.Println("✅ Sister API client initialized")
+	// Initialize Feeder API client
+	feederAPI, err := feeder_api.NewFeederClient()
+	if err != nil {
+		log.Printf("⚠️  Failed to initialize Feeder API client: %v", err)
+	} else {
+		log.Println("✅ Feeder API client initialized")
+	}
 
 	// Initialize Redis client for caching
 	redisClient := database.ConnectRedis()
@@ -111,14 +98,6 @@ func main() {
 		})
 	})
 
-	// Swagger documentation
-	app.Get("/swagger/*", fiberSwagger.WrapHandler)
-
-	// Alias for consistent documentation URL across all services
-	app.Get("/api/documentation", func(c *fiber.Ctx) error {
-		return c.Redirect("/swagger/index.html", fiber.StatusMovedPermanently)
-	})
-
 	// API routes
 	apiV1 := app.Group("/api/v1")
 
@@ -131,12 +110,6 @@ func main() {
 		log.Println("⚠️  No encryption key configured - API config encryption disabled")
 	}
 
-	// Initialize logger service (needs to be initialized first for referensi)
-	loggerRepo := appLogger.NewRepository(db.DB)
-	loggerService := appLogger.NewService(loggerRepo)
-	loggerHandler := appLogger.NewHandler(loggerService)
-	loggerHandler.RegisterRoutes(app)
-
 	// Initialize API Config routes (accessible without /public prefix)
 	if encryptor != nil {
 		apiConfigRepo := apiconfig.NewRepository(db)
@@ -146,71 +119,9 @@ func main() {
 		log.Println("✅ API Configuration management enabled")
 	}
 
-	// Initialize domain routers and get services for scheduler
-	referensiService := referensi.Init(apiV1, db, feederAPI, loggerService) // Referensi routes (protected with JWT)
-
-	// Initialize Dosen Service with public routes (no auth required)
-	// Register on app directly so it's accessible at /dosen/* without /public prefix
-	dosenService := dosen.Init(app, db, feederAPI, redisClient, loggerService) // Dosen endpoints with Redis cache and DB
-
-	// Initialize Penugasan module
-	penugasanRepo := penugasan.NewRepository(db)
-	penugasanService := penugasan.NewService(penugasanRepo, feederAPI, loggerService)
-	penugasanController := penugasan.NewController(penugasanService)
-	penugasan.SetupRoutes(app, penugasanController)
-	log.Println("✅ Penugasan routes registered")
-
-	// Initialize Penelitian module
-	penelitianService := penelitian.SetupRoutes(app, db, feederAPI, loggerService)
-	log.Println("✅ Penelitian & Pengabdian routes registered")
-
-	// Initialize Publikasi module
-	publikasiService := publikasi.SetupRoutes(app, db, feederAPI, loggerService)
-	log.Println("✅ Publikasi routes registered")
-
-	// Initialize Pendidikan Formal module
-	pendidikanService := pendidikan.SetupRoutes(app, db, feederAPI, loggerService)
-	log.Println("✅ Pendidikan Formal routes registered")
-
-	// Initialize Riwayat Pekerjaan module
-	riwayatPekerjaanService := riwayat_pekerjaan.SetupRoutes(app, db, feederAPI, loggerService)
-	log.Println("✅ Riwayat Pekerjaan routes registered")
-
-	// Initialize Riwayat Fungsional module
-	riwayatFungsionalService := riwayat_fungsional.SetupRoutes(app, db, feederAPI, loggerService)
-	log.Println("✅ Riwayat Fungsional routes registered")
-
-	// Initialize Jabatan Struktural module
-	jabatanStrukturalService := jabatan_struktural.SetupRoutes(app, db, feederAPI, loggerService)
-	log.Println("✅ Jabatan Struktural routes registered")
-
-	// Initialize Tugas Tambahan module
-	tugasTambahanService := tugas_tambahan.SetupRoutes(app, db, feederAPI, loggerService)
-	log.Println("✅ Tugas Tambahan routes registered")
-
-	// Initialize Sertifikasi Dosen module
-	sertifikasiDosenService := sertifikasi_dosen.SetupRoutes(app, db, feederAPI, loggerService)
-	log.Println("✅ Sertifikasi Dosen routes registered")
-
-	// Initialize Bidang Ilmu module
-	bidangIlmuService := bidang_ilmu.SetupRoutes(app, db, feederAPI, loggerService)
-	log.Println("✅ Bidang Ilmu routes registered")
-
-	synclog.RegisterRoutes(app, db)                                      // Sync logs endpoints (public, no auth)
-	monitoring.RegisterRoutes(app)                                       // Monitoring endpoints (public, no auth)
-
-	// Initialize Scheduler Service
-	schedulerRepo := scheduler.NewRepository(db)
-	schedulerService := scheduler.NewService(schedulerRepo, dosenService, referensiService, penugasanService, penelitianService, publikasiService, pendidikanService, riwayatPekerjaanService, riwayatFungsionalService, jabatanStrukturalService, tugasTambahanService, sertifikasiDosenService, bidangIlmuService)
-	schedulerRouter := scheduler.NewRouter(schedulerService)
-	schedulerRouter.RegisterRoutes(app)
-
-	// Start cron scheduler
-	if err := schedulerService.Start(); err != nil {
-		log.Printf("⚠️  Failed to start scheduler: %v", err)
-	} else {
-		log.Println("✅ Scheduler service started successfully")
-	}
+	// Initialize Mahasiswa module
+	_ = mahasiswa.Init(apiV1, db, feederAPI, redisClient)
+	log.Println("✅ Mahasiswa routes registered")
 
 	// Welcome message
 	app.Get("/", func(c *fiber.Ctx) error {
@@ -218,12 +129,11 @@ func main() {
 			"service": config.Cfg.App.Name,
 			"version": "1.0.0",
 			"message": "Feeder Service - Data Synchronization from Neo Feeder PDDIKTI",
-			"documentation": "http://localhost:8083/api/documentation",
 			"endpoints": fiber.Map{
-				"health":        "/health",
-				"api":           "/api/v1",
-				"documentation": "/api/documentation",
-				"swagger":       "/swagger/index.html",
+				"health":     "/health",
+				"api":        "/api/v1",
+				"mahasiswa":  "/api/v1/mahasiswa",
+				"apiconfig":  "/apiconfig",
 			},
 		})
 	})

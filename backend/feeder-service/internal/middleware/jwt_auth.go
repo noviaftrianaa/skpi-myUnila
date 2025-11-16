@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"fmt"
-	"sister-service/internal/config"
-	"sister-service/pkg/response"
+	"github.com/myunila/feeder-service/internal/config"
+	"github.com/myunila/feeder-service/pkg/response"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
