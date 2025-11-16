@@ -289,3 +289,94 @@ func (c *FeederClient) doRequest(req FeederRequest, result interface{}) error {
 func (c *FeederClient) TestConnection() error {
 	return c.GetToken()
 }
+
+// ForceRefreshToken forces a token refresh (clear current token and get new one)
+func (c *FeederClient) ForceRefreshToken() error {
+	c.mu.Lock()
+	c.Token = ""
+	c.mu.Unlock()
+	return c.GetToken()
+}
+
+// GetDataLengkapMahasiswaProdi gets detailed student data for a prodi
+func (c *FeederClient) GetDataLengkapMahasiswaProdi(idProdi string, filter string, limit, offset int) ([]byte, error) {
+	if err := c.GetToken(); err != nil {
+		return nil, err
+	}
+
+	req := FeederRequest{
+		Act:    "GetDataLengkapMahasiswaProdi",
+		Token:  c.Token,
+		Filter: filter,
+		Limit:  limit,
+		Offset: offset,
+	}
+
+	var result FeederResponse
+	if err := c.doRequest(req, &result); err != nil {
+		return nil, err
+	}
+
+	// Return raw JSON bytes
+	return json.Marshal(result.Data)
+}
+
+// GetListRiwayatPendidikanMahasiswa gets student registration history
+func (c *FeederClient) GetListRiwayatPendidikanMahasiswa(idRegPd string) ([]byte, error) {
+	if err := c.GetToken(); err != nil {
+		return nil, err
+	}
+
+	req := FeederRequest{
+		Act:    "GetListRiwayatPendidikanMahasiswa",
+		Token:  c.Token,
+		Filter: fmt.Sprintf("id_registrasi_mahasiswa='%s'", idRegPd),
+	}
+
+	var result FeederResponse
+	if err := c.doRequest(req, &result); err != nil {
+		return nil, err
+	}
+
+	return json.Marshal(result.Data)
+}
+
+// GetDetailMahasiswaLulusDO gets graduate/dropout details
+func (c *FeederClient) GetDetailMahasiswaLulusDO(idRegPd string) ([]byte, error) {
+	if err := c.GetToken(); err != nil {
+		return nil, err
+	}
+
+	req := FeederRequest{
+		Act:    "GetDetailMahasiswaLulusDO",
+		Token:  c.Token,
+		Filter: fmt.Sprintf("id_registrasi_mahasiswa='%s'", idRegPd),
+	}
+
+	var result FeederResponse
+	if err := c.doRequest(req, &result); err != nil {
+		return nil, err
+	}
+
+	return json.Marshal(result.Data)
+}
+
+// GetListPerkuliahanMahasiswa gets student semester activities
+func (c *FeederClient) GetListPerkuliahanMahasiswa(idRegPd string) ([]byte, error) {
+	if err := c.GetToken(); err != nil {
+		return nil, err
+	}
+
+	req := FeederRequest{
+		Act:    "GetListPerkuliahanMahasiswa",
+		Token:  c.Token,
+		Filter: fmt.Sprintf("id_registrasi_mahasiswa='%s'", idRegPd),
+	}
+
+	var result FeederResponse
+	if err := c.doRequest(req, &result); err != nil {
+		return nil, err
+	}
+
+	return json.Marshal(result.Data)
+}

@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"sister-service/pkg/response"
+	"github.com/myunila/feeder-service/pkg/response"
 
 	"github.com/gofiber/fiber/v2"
 )

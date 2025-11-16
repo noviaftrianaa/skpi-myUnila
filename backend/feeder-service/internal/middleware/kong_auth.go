@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"sister-service/pkg/response"
+	"github.com/myunila/feeder-service/pkg/response"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
