@@ -212,6 +212,13 @@
         delay: 5
         timeout: 60
 
+    - name: Clean Docker build cache for Feeder Service
+      shell: |
+        docker builder prune -af --filter "label!=keep"
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
     - name: Rebuild Feeder Service image
       shell: |
         cd {{ deployment_dir }}
