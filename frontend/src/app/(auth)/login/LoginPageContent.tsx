@@ -55,7 +55,12 @@ export default function LoginPageContent() {
 
     // Validation
     if (!username || !password) {
-      setLocalError("Username dan password harus diisi");
+      const errorMsg = "Username dan password harus diisi";
+      setLocalError(errorMsg);
+      toast.error(errorMsg, {
+        duration: 3000,
+        position: 'top-center',
+      });
       return;
     }
 
@@ -74,6 +79,11 @@ export default function LoginPageContent() {
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Login gagal. Periksa username dan password Anda.";
       setLocalError(errorMessage);
+      toast.error(errorMessage, {
+        duration: 4000,
+        position: 'top-center',
+        icon: '🔒',
+      });
     }
   };
 

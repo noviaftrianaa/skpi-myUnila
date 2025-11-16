@@ -22,7 +22,10 @@
       "Bash(docker-compose logs:*)",
       "Bash(docker-compose restart:*)",
       "Bash(git log:*)",
-      "Bash(docker restart:*)"
+      "Bash(docker restart:*)",
+      "Bash(find:*)",
+      "Bash(composer show:*)",
+      "Bash(test:*)"
     ],
     "deny": [],
     "ask": []

@@ -95,7 +95,7 @@ export default function ProgramStudiTable() {
   }, [selectedPeriode, searchQuery, currentPage, rowsPerPage, sortBy, sortOrder]);
 
   const columns: Column<ProgramStudi>[] = [
-    { key: "kode", label: "KODE", align: "center", width: "70px", sortable: true, render: (item) => <span className="font-bold text-gray-900">{item.kode}</span> },
+    { key: "kode", label: "KODE", align: "center", width: "70px", sortable: true, render: (item) => <span className="font-bold text-gray-900 text-[10px] sm:text-xs md:text-sm">{item.kode}</span> },
     {
       key: "nama",
       label: "NAMA PROGRAM STUDI",
@@ -104,7 +104,7 @@ export default function ProgramStudiTable() {
       render: (item) => (
         <Link
           href={`/program-studi/detail/${item.encrypted_id || item.id}`}
-          className="font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+          className="font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors text-[10px] sm:text-xs md:text-sm"
         >
           {item.nama}
         </Link>
@@ -120,29 +120,29 @@ export default function ProgramStudiTable() {
           size="sm"
           color={item.status === "Aktif" ? "success" : "default"}
           variant="flat"
-          className="font-semibold"
+          className="font-semibold text-[9px] sm:text-[10px] md:text-xs h-5 sm:h-6 md:h-auto"
         >
           {item.status}
         </Chip>
       )
     },
-    { key: "jenjang", label: "JENJANG", align: "center", width: "80px", sortable: true, render: (item) => <span className="font-bold text-blue-600">{item.jenjang}</span> },
-    { key: "akreditasi", label: "AKREDITASI", align: "center", width: "110px", sortable: true, render: (item) => <Chip size="sm" color={getAkreditasiColor(item.akreditasi)} variant="flat" className="font-semibold">{item.akreditasi}</Chip> },
-    { key: "total_dosen", label: "DOSEN", align: "center", width: "70px", sortable: true, headerRender: () => <div className="text-center">JUMLAH DOSEN</div>, render: (item) => <span className="font-bold text-gray-900">{item.total_dosen}</span> },
-    { key: "total_mahasiswa", label: "MAHASISWA", align: "center", width: "90px", sortable: true, headerRender: () => <div className="text-center"><div>JUMLAH</div><div>MAHASISWA</div></div>, render: (item) => <span className="font-bold text-indigo-600">{item.total_mahasiswa.toLocaleString('id-ID')}</span> },
-    { key: "rasio", label: "RASIO", align: "center", width: "80px", headerRender: () => <div className="text-center"><div>RASIO DOSEN /</div><div>MAHASISWA</div></div>, render: (item) => <span className="text-gray-700 font-semibold">{item.rasio}</span> },
+    { key: "jenjang", label: "JENJANG", align: "center", width: "80px", sortable: true, render: (item) => <span className="font-bold text-blue-600 text-[10px] sm:text-xs md:text-sm">{item.jenjang}</span> },
+    { key: "akreditasi", label: "AKREDITASI", align: "center", width: "110px", sortable: true, render: (item) => <Chip size="sm" color={getAkreditasiColor(item.akreditasi)} variant="flat" className="font-semibold text-[9px] sm:text-[10px] md:text-xs h-5 sm:h-6 md:h-auto">{item.akreditasi}</Chip> },
+    { key: "total_dosen", label: "DOSEN", align: "center", width: "70px", sortable: true, headerRender: () => <div className="text-center">JUMLAH DOSEN</div>, render: (item) => <span className="font-bold text-gray-900 text-[10px] sm:text-xs md:text-sm">{item.total_dosen}</span> },
+    { key: "total_mahasiswa", label: "MAHASISWA", align: "center", width: "90px", sortable: true, headerRender: () => <div className="text-center"><div>JUMLAH</div><div>MAHASISWA</div></div>, render: (item) => <span className="font-bold text-indigo-600 text-[10px] sm:text-xs md:text-sm">{item.total_mahasiswa.toLocaleString('id-ID')}</span> },
+    { key: "rasio", label: "RASIO", align: "center", width: "80px", headerRender: () => <div className="text-center"><div>RASIO DOSEN /</div><div>MAHASISWA</div></div>, render: (item) => <span className="text-gray-700 font-semibold text-[10px] sm:text-xs md:text-sm">{item.rasio}</span> },
   ];
 
   return (
-    <section className="py-20 bg-white relative">
-      <div className="container mx-auto px-6">
+    <section className="py-12 sm:py-16 md:py-20 bg-white relative">
+      <div className="container mx-auto px-3 sm:px-4 md:px-6">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={containerVariants} className="max-w-7xl mx-auto">
-          <motion.div variants={itemVariants} className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-3 pb-1 leading-relaxed">Program Studi</h2>
-            <div className="flex items-center justify-center mb-3">
-              <div className="h-1 w-20 bg-gradient-to-r from-transparent via-blue-400 to-transparent rounded-full"></div>
+          <motion.div variants={itemVariants} className="text-center mb-8 sm:mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2 sm:mb-3 pb-1 leading-relaxed px-2">Program Studi</h2>
+            <div className="flex items-center justify-center mb-2 sm:mb-3">
+              <div className="h-1 w-16 sm:w-20 bg-gradient-to-r from-transparent via-blue-400 to-transparent rounded-full"></div>
             </div>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">Daftar program studi di Universitas Lampung</p>
+            <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-2xl mx-auto px-2">Daftar program studi di Universitas Lampung</p>
           </motion.div>
 
           <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
@@ -194,7 +194,7 @@ export default function ProgramStudiTable() {
                     }
                   >
                     {periods.map((periode) => (
-                      <SelectItem key={periode.id_smt} value={periode.id_smt}>
+                      <SelectItem key={periode.id_smt}>
                         {periode.name}
                       </SelectItem>
                     ))}
@@ -206,19 +206,19 @@ export default function ProgramStudiTable() {
             {/* Footer Summary */}
             {statistics && (
               <div className="border-t-2 border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-                <div className="px-6 py-4">
-                  <div className="grid grid-cols-3 gap-6">
-                    <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-blue-100">
-                      <div className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Total Dosen</div>
-                      <div className="text-2xl font-bold text-gray-900">{statistics.total_dosen.toLocaleString('id-ID')}</div>
+                <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4">
+                  <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6">
+                    <div className="text-center p-2.5 sm:p-3 md:p-4 bg-white rounded-lg shadow-sm border border-blue-100">
+                      <div className="text-[10px] sm:text-xs font-semibold text-gray-600 mb-1 sm:mb-2 uppercase tracking-wide">Total Dosen</div>
+                      <div className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900">{statistics.total_dosen.toLocaleString('id-ID')}</div>
                     </div>
-                    <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-blue-100">
-                      <div className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Total Mahasiswa</div>
-                      <div className="text-2xl font-bold text-indigo-600">{statistics.total_mahasiswa.toLocaleString('id-ID')}</div>
+                    <div className="text-center p-2.5 sm:p-3 md:p-4 bg-white rounded-lg shadow-sm border border-blue-100">
+                      <div className="text-[10px] sm:text-xs font-semibold text-gray-600 mb-1 sm:mb-2 uppercase tracking-wide">Total Mahasiswa</div>
+                      <div className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-indigo-600">{statistics.total_mahasiswa.toLocaleString('id-ID')}</div>
                     </div>
-                    <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-blue-100">
-                      <div className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Rasio Dosen:Mahasiswa</div>
-                      <div className="text-2xl font-bold text-emerald-600">1:{statistics.avg_rasio}</div>
+                    <div className="text-center p-2.5 sm:p-3 md:p-4 bg-white rounded-lg shadow-sm border border-blue-100">
+                      <div className="text-[10px] sm:text-xs font-semibold text-gray-600 mb-1 sm:mb-2 uppercase tracking-wide">Rasio Dosen:Mahasiswa</div>
+                      <div className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-emerald-600">1:{statistics.avg_rasio}</div>
                     </div>
                   </div>
                 </div>

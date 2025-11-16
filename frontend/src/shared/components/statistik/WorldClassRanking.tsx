@@ -258,8 +258,8 @@ export default function WorldClassRanking() {
   }), [rankingData]);
 
   return (
-    <section className="py-20 bg-white relative">
-      <div className="container mx-auto px-6">
+    <section className="py-12 sm:py-16 md:py-20 bg-white relative">
+      <div className="container mx-auto px-3 sm:px-4 md:px-6">
         <motion.div
           initial="hidden"
           animate="visible"
@@ -267,14 +267,14 @@ export default function WorldClassRanking() {
           className="max-w-7xl mx-auto"
         >
           {/* Header */}
-          <motion.div variants={itemVariants} className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-3 pb-1 leading-relaxed">
+          <motion.div variants={itemVariants} className="text-center mb-8 sm:mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2 sm:mb-3 pb-1 leading-relaxed px-2">
               World Class University Ranking
             </h2>
-            <div className="flex items-center justify-center mb-3">
-              <div className="h-1 w-20 bg-gradient-to-r from-transparent via-blue-400 to-transparent rounded-full"></div>
+            <div className="flex items-center justify-center mb-2 sm:mb-3">
+              <div className="h-1 w-16 sm:w-20 bg-gradient-to-r from-transparent via-blue-400 to-transparent rounded-full"></div>
             </div>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-2xl mx-auto px-2">
               Pencapaian Universitas Lampung di berbagai ranking universitas dunia
             </p>
           </motion.div>
@@ -283,15 +283,15 @@ export default function WorldClassRanking() {
           <motion.div
             key={`rankings-${latestRankings.length}-${loading}`}
             variants={itemVariants}
-            className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12"
+            className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mb-6 sm:mb-8 md:mb-12"
           >
             {loading ? (
               // Loading skeleton
               [1, 2, 3, 4].map((i) => (
-                <div key={i} className="bg-gray-200 rounded-xl p-6 animate-pulse">
-                  <div className="h-8 w-8 bg-gray-300 rounded mb-3"></div>
-                  <div className="h-4 w-20 bg-gray-300 rounded mb-2"></div>
-                  <div className="h-10 w-24 bg-gray-300 rounded"></div>
+                <div key={i} className="bg-gray-200 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 animate-pulse">
+                  <div className="h-6 w-6 sm:h-8 sm:w-8 bg-gray-300 rounded mb-2 sm:mb-3"></div>
+                  <div className="h-3 w-16 sm:h-4 sm:w-20 bg-gray-300 rounded mb-1.5 sm:mb-2"></div>
+                  <div className="h-8 w-20 sm:h-10 sm:w-24 bg-gray-300 rounded"></div>
                 </div>
               ))
             ) : latestRankings && latestRankings.length > 0 ? (
@@ -310,46 +310,46 @@ export default function WorldClassRanking() {
                   <motion.div
                     key={index}
                     variants={itemVariants}
-                    className={`bg-gradient-to-br ${meta.gradient} rounded-xl p-6 text-white shadow-lg relative overflow-hidden`}
+                    className={`bg-gradient-to-br ${meta.gradient} rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg relative overflow-hidden`}
                   >
-                    <div className="absolute top-0 right-0 text-8xl opacity-10 -mt-4 -mr-4">{meta.icon}</div>
+                    <div className="absolute top-0 right-0 text-5xl sm:text-6xl md:text-8xl opacity-10 -mt-2 sm:-mt-3 md:-mt-4 -mr-2 sm:-mr-3 md:-mr-4">{meta.icon}</div>
                     <div className="relative z-10">
-                      <div className="text-3xl mb-3">{meta.icon}</div>
-                      <div className="text-sm font-semibold opacity-90 mb-2">{ranking.category.name}</div>
-                      <div className="text-xs opacity-75 mb-2">
+                      <div className="text-xl sm:text-2xl md:text-3xl mb-1.5 sm:mb-2 md:mb-3">{meta.icon}</div>
+                      <div className="text-[10px] sm:text-xs md:text-sm font-semibold opacity-90 mb-1 sm:mb-1.5 md:mb-2 leading-tight">{ranking.category.name}</div>
+                      <div className="text-[9px] sm:text-[10px] md:text-xs opacity-75 mb-1 sm:mb-1.5 md:mb-2">
                         {ranking.year} {ranking.period && `(${ranking.period})`}
                       </div>
-                      <div className="flex items-baseline gap-2">
-                        <div className="text-4xl font-bold">#{ranking.ranks.world}</div>
+                      <div className="flex items-baseline gap-1 sm:gap-1.5 md:gap-2">
+                        <div className="text-2xl sm:text-3xl md:text-4xl font-bold">#{ranking.ranks.world}</div>
                       </div>
                       {ranking.ranks.national && (
-                        <div className="text-xs opacity-75 mt-2">National Rank: #{ranking.ranks.national}</div>
+                        <div className="text-[9px] sm:text-[10px] md:text-xs opacity-75 mt-1 sm:mt-1.5 md:mt-2">National Rank: #{ranking.ranks.national}</div>
                       )}
-                      <div className="text-xs opacity-75 mt-1">{ranking.category.full_name}</div>
+                      <div className="text-[9px] sm:text-[10px] md:text-xs opacity-75 mt-0.5 sm:mt-1 leading-tight">{ranking.category.full_name}</div>
                     </div>
                   </motion.div>
                 );
               })
             ) : (
               // No data fallback
-              <div className="col-span-full text-center py-8 text-gray-500">
-                <p>Data ranking belum tersedia</p>
+              <div className="col-span-full text-center py-6 sm:py-8 text-gray-500">
+                <p className="text-sm sm:text-base">Data ranking belum tersedia</p>
               </div>
             )}
           </motion.div>
 
           {/* Chart */}
-          <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <div className="px-6 py-5 bg-blue-600">
-              <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+          <motion.div variants={itemVariants} className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-blue-600">
+              <h3 className="text-base sm:text-lg md:text-xl font-bold text-white flex items-center gap-2">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                 </svg>
                 Tren Peringkat 5 Tahun Terakhir
               </h3>
             </div>
-            <div className="p-6">
-              <div className="h-[400px]">
+            <div className="p-3 sm:p-4 md:p-6">
+              <div className="h-[280px] sm:h-[350px] md:h-[400px]">
                 <ReactECharts
                   option={chartOption}
                   style={{ height: "100%", width: "100%" }}
@@ -360,29 +360,29 @@ export default function WorldClassRanking() {
           </motion.div>
 
           {/* Info */}
-          <motion.div variants={itemVariants} className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
-            <div className="flex items-start gap-4">
-              <div className="text-3xl">📊</div>
+          <motion.div variants={itemVariants} className="mt-4 sm:mt-6 md:mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 border border-blue-100">
+            <div className="flex items-start gap-2 sm:gap-3 md:gap-4">
+              <div className="text-xl sm:text-2xl md:text-3xl flex-shrink-0">📊</div>
               <div>
-                <h4 className="font-bold text-gray-800 mb-2">Prestasi Ranking Universitas Dunia</h4>
-                <p className="text-sm text-gray-600 leading-relaxed mb-3">
+                <h4 className="font-bold text-gray-800 mb-1.5 sm:mb-2 text-sm sm:text-base md:text-lg">Prestasi Ranking Universitas Dunia</h4>
+                <p className="text-xs sm:text-sm text-gray-600 leading-relaxed mb-2 sm:mb-3">
                   Universitas Lampung menunjukkan komitmen kuat dalam peningkatan kualitas dengan meraih berbagai prestasi di ranking universitas dunia:
                 </p>
-                <ul className="text-sm text-gray-600 space-y-2 leading-relaxed">
-                  <li className="flex items-start gap-2">
-                    <span className="text-emerald-600 font-bold mt-0.5">•</span>
+                <ul className="text-xs sm:text-sm text-gray-600 space-y-1.5 sm:space-y-2 leading-relaxed">
+                  <li className="flex items-start gap-1.5 sm:gap-2">
+                    <span className="text-emerald-600 font-bold mt-0.5 flex-shrink-0">•</span>
                     <span><strong>UI GreenMetric 2024:</strong> Peringkat 13 nasional dari 183 universitas di Indonesia, fokus pada keberlanjutan lingkungan dan kampus hijau</span>
                   </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-blue-600 font-bold mt-0.5">•</span>
+                  <li className="flex items-start gap-1.5 sm:gap-2">
+                    <span className="text-blue-600 font-bold mt-0.5 flex-shrink-0">•</span>
                     <span><strong>QS World 2025:</strong> Ranking 1401+ dunia, masuk 3 besar universitas terbaik di Sumatra</span>
                   </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-purple-600 font-bold mt-0.5">•</span>
+                  <li className="flex items-start gap-1.5 sm:gap-2">
+                    <span className="text-purple-600 font-bold mt-0.5 flex-shrink-0">•</span>
                     <span><strong>Times Higher Ed. 2024:</strong> Top 1500 dunia dari 1.904 universitas di 108 negara, peringkat 16 terbaik di Indonesia</span>
                   </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-amber-600 font-bold mt-0.5">•</span>
+                  <li className="flex items-start gap-1.5 sm:gap-2">
+                    <span className="text-amber-600 font-bold mt-0.5 flex-shrink-0">•</span>
                     <span><strong>Webometrics 2025:</strong> Ranking 1588 dunia, peringkat 17 nasional, PTN nomor 1 di luar Pulau Jawa berdasarkan web presence</span>
                   </li>
                 </ul>

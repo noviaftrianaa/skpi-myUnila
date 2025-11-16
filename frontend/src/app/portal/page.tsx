@@ -679,7 +679,9 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between h-16">
             {/* Logo & Title */}
             <div className="flex items-center gap-3">
-              <h1 className="text-xl font-bold text-myunila">myUnila Portal</h1>
+              <Link href="/" className="hover:opacity-80 transition-opacity">
+                <h1 className="text-xl font-bold text-myunila">myUnila Portal</h1>
+              </Link>
             </div>
 
             {/* Search Bar - Desktop */}

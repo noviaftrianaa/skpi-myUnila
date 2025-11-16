@@ -32,11 +32,14 @@ export interface LoginResponse {
   success: boolean;
   message: string;
   data: {
-    user: User;
-    tokens: {
+    user?: User;
+    user_id?: string;
+    mfa_required?: boolean;
+    tokens?: {
       access_token: string;
       token_type: string;
       expires_in: number;
+      refresh_token?: string;
     };
   };
 }
@@ -48,6 +51,7 @@ export interface RefreshTokenResponse {
     access_token: string;
     token_type: string;
     expires_in: number;
+    refresh_token?: string;
   };
 }
 

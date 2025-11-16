@@ -11,6 +11,7 @@ const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });
 export default function AkreditasiProdi() {
   const [statistics, setStatistics] = useState<ProgramStudiStatistics | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -21,6 +22,18 @@ export default function AkreditasiProdi() {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
+
+  // Detect screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Load statistics from API
   useEffect(() => {
@@ -116,54 +129,64 @@ export default function AkreditasiProdi() {
       borderWidth: 1,
       textStyle: {
         color: "#1f2937",
-        fontSize: 13,
+        fontSize: isMobile ? 11 : 13,
       },
       extraCssText: "box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px; padding: 10px;",
     },
     legend: {
-      orient: "vertical",
-      right: "5%",
-      top: "center",
-      itemGap: 10,
-      itemWidth: 14,
-      itemHeight: 14,
+      orient: isMobile ? "horizontal" : "vertical",
+      ...(isMobile ? {
+        bottom: "5%",
+        left: "center",
+      } : {
+        right: "5%",
+        top: "center",
+      }),
+      itemGap: isMobile ? 8 : 10,
+      itemWidth: isMobile ? 10 : 14,
+      itemHeight: isMobile ? 10 : 14,
       formatter: (name: string) => {
         const item = akreditasiData.find(d => d.status === name);
-        return `{title|${name}} {value|${item?.jumlah}}`;
+        return isMobile ? `{title|${name.length > 12 ? name.substring(0, 12) + '...' : name}} {value|${item?.jumlah}}` : `{title|${name}} {value|${item?.jumlah}}`;
       },
       textStyle: {
-        fontSize: 11,
+        fontSize: isMobile ? 9 : 11,
         color: "#4b5563",
         fontWeight: 500,
         rich: {
           title: {
-            fontSize: 11,
+            fontSize: isMobile ? 9 : 11,
             fontWeight: 600,
             color: "#1f2937",
             padding: [0, 4, 0, 0],
           },
           value: {
-            fontSize: 11,
+            fontSize: isMobile ? 9 : 11,
             fontWeight: 700,
             color: "#6b7280",
             backgroundColor: "#f3f4f6",
             borderRadius: 4,
-            padding: [2, 6],
+            padding: isMobile ? [1, 4] : [2, 6],
           },
         },
       },
+    },
+    grid: {
+      ...(isMobile ? {
+        bottom: "25%",
+      } : {}),
     },
     series: [
       {
         name: "Akreditasi",
         type: "pie",
-        radius: ["50%", "75%"],
-        center: ["40%", "50%"],
+        radius: isMobile ? ["40%", "65%"] : ["50%", "75%"],
+        center: isMobile ? ["50%", "45%"] : ["40%", "50%"],
         avoidLabelOverlap: false,
         itemStyle: {
-          borderRadius: 10,
+          borderRadius: isMobile ? 6 : 10,
           borderColor: "#fff",
-          borderWidth: 4,
+          borderWidth: isMobile ? 2 : 4,
         },
         label: {
           show: false,
@@ -171,17 +194,17 @@ export default function AkreditasiProdi() {
         emphasis: {
           label: {
             show: true,
-            fontSize: 18,
+            fontSize: isMobile ? 14 : 18,
             fontWeight: "bold",
             formatter: "{d}%",
           },
           itemStyle: {
-            shadowBlur: 25,
+            shadowBlur: isMobile ? 15 : 25,
             shadowOffsetX: 0,
             shadowColor: "rgba(0, 0, 0, 0.4)",
           },
           scale: true,
-          scaleSize: 10,
+          scaleSize: isMobile ? 5 : 10,
         },
         labelLine: {
           show: false,
@@ -195,7 +218,7 @@ export default function AkreditasiProdi() {
         })),
       },
     ],
-  }), [akreditasiData]);
+  }), [akreditasiData, isMobile]);
 
   return (
     <section className="py-20 bg-white relative">

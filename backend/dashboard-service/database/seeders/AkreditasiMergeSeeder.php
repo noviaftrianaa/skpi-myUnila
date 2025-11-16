@@ -24,8 +24,8 @@ class AkreditasiMergeSeeder extends Seeder
      *
      * Usage:
      * - php artisan db:seed --class=AkreditasiMergeSeeder (preview only)
-     * - php artisan db:seed --class=AkreditasiMergeSeeder --fetch (fetch data first, then preview)
-     * - php artisan db:seed --class=AkreditasiMergeSeeder --update (preview + update if confirmed)
+     * - SEEDER_FETCH=true php artisan db:seed --class=AkreditasiMergeSeeder (fetch data first)
+     * - SEEDER_UPDATE=true php artisan db:seed --class=AkreditasiMergeSeeder (preview + update if confirmed)
      */
     public function run(): void
     {
@@ -34,9 +34,10 @@ class AkreditasiMergeSeeder extends Seeder
         $this->command->info('=================================================================');
         $this->command->newLine();
 
-        // Check if --fetch flag is provided
-        $fetchFirst = in_array('--fetch', $_SERVER['argv'] ?? []);
-        $updateMode = in_array('--update', $_SERVER['argv'] ?? []);
+        // Check if --fetch flag is provided via environment variables
+        $fetchFirst = env('SEEDER_FETCH', false) || in_array('--fetch', $_SERVER['argv'] ?? []);
+        $updateMode = env('SEEDER_UPDATE', false) || in_array('--update', $_SERVER['argv'] ?? []);
+        $skipConfirm = env('SEEDER_SKIP_CONFIRM', false);
 
         if ($fetchFirst) {
             $this->fetchDataFromSources();
@@ -78,7 +79,9 @@ class AkreditasiMergeSeeder extends Seeder
             $this->command->line('   Report file: database/data/akreditasi_changes_report.txt');
             $this->command->newLine();
 
-            if ($this->command->confirm('Have you reviewed the report and want to update the database?', false)) {
+            $shouldUpdate = $skipConfirm || $this->command->confirm('Have you reviewed the report and want to update the database?', false);
+
+            if ($shouldUpdate) {
                 $this->updateDatabase($changes, $mergedData, $sisterData);
             } else {
                 $this->command->info('Update cancelled. No changes were made to the database.');
@@ -93,8 +96,8 @@ class AkreditasiMergeSeeder extends Seeder
 
         if (!$updateMode) {
             $this->command->newLine();
-            $this->command->line('💡 Tip: To update the database, run with --update flag:');
-            $this->command->line('   php artisan db:seed --class=AkreditasiMergeSeeder --update');
+            $this->command->line('💡 Tip: To update the database, run with SEEDER_UPDATE environment variable:');
+            $this->command->line('   SEEDER_UPDATE=true php artisan db:seed --class=AkreditasiMergeSeeder');
         }
     }
 
@@ -224,6 +227,7 @@ class AkreditasiMergeSeeder extends Seeder
                 'j.nm_jenj_didik as jenjang',
                 'a.id_akreditasi_prodi',
                 'a.id_akred',
+                'a.id_lemb_akred',
                 'a.sk_akreditasi_prodi as no_sk',
                 'a.tanggal_sk_akreditasi_prodi as tanggal_sk',
                 'a.tst_sk_akreditasi_prodi as tanggal_kadaluarsa',
@@ -624,7 +628,7 @@ class AkreditasiMergeSeeder extends Seeder
                 // Map akreditasi name to id_akred
                 $idAkred = $this->getIdAkredFromName($merged['akreditasi']);
 
-                // Update or insert akreditasi_prodi
+                // Only update existing records, skip new inserts
                 if ($sister['id_akreditasi_prodi']) {
                     // Update existing record
                     DB::connection('sqlsrv')
@@ -642,26 +646,8 @@ class AkreditasiMergeSeeder extends Seeder
                     $this->command->line("✓ Updated: {$change['prodi']} ({$change['jenjang']})");
                     $updatedCount++;
                 } else {
-                    // Insert new akreditasi record for existing prodi
-                    $newId = \Illuminate\Support\Str::uuid()->toString();
-
-                    DB::connection('sqlsrv')
-                        ->table('pdrd.akreditasi_prodi')
-                        ->insert([
-                            'id_akreditasi_prodi' => $newId,
-                            'id_sms' => $sister['id_sms'],
-                            'id_akred' => $idAkred,
-                            'sk_akreditasi_prodi' => $merged['no_sk'],
-                            'tanggal_sk_akreditasi_prodi' => $merged['tahun_sk'] ? "{$merged['tahun_sk']}-01-01" : null,
-                            'tst_sk_akreditasi_prodi' => $merged['tanggal_kadaluarsa'],
-                            'a_aktif' => 1,
-                            'soft_delete' => 0,
-                            'create_date' => now(),
-                            'last_update' => now(),
-                        ]);
-
-                    $this->command->line("✓ Inserted new akreditasi: {$change['prodi']} ({$change['jenjang']})");
-                    $insertedCount++;
+                    // Skip insert for now (requires valid lembaga_akred reference)
+                    $this->command->line("⊘ Skipped (no existing akreditasi): {$change['prodi']} ({$change['jenjang']})");
                 }
             }
 
@@ -699,6 +685,66 @@ class AkreditasiMergeSeeder extends Seeder
         ];
 
         return $map[$akred] ?? null;
+    }
+
+    /**
+     * Get id_lemb_akred from SK number
+     */
+    protected function getIdLembAkredFromSK(string $sk): ?int
+    {
+        $sk = strtoupper($sk);
+
+        // Determine lembaga akreditasi based on SK pattern
+        // 1 = BAN-PT
+        // 2 = LAM-PTKes
+        // 3 = LAM Teknik
+        // 4 = LAMDIK
+        // etc.
+
+        if (str_contains($sk, 'BAN-PT')) {
+            return 1;
+        } elseif (str_contains($sk, 'LAM TEKNIK') || str_contains($sk, 'LAM-TEKNIK')) {
+            return 3;
+        } elseif (str_contains($sk, 'LAMDIK')) {
+            return 4;
+        } elseif (str_contains($sk, 'LAM-PTKES') || str_contains($sk, 'LAMPTKES')) {
+            return 2;
+        }
+
+        // Default to BAN-PT
+        return 1;
+    }
+
+    /**
+     * Lookup valid id_lemb_akred from reference table
+     */
+    protected function lookupIdLembAkred(?int $preferredId): int
+    {
+        // Try to get from reference table
+        if ($preferredId) {
+            $lembAkred = DB::connection('sqlsrv')
+                ->table('ref.lembaga_akred')
+                ->select('id_lemb_akred')
+                ->where('id_lemb_akred', $preferredId)
+                ->first();
+
+            if ($lembAkred) {
+                return $lembAkred->id_lemb_akred;
+            }
+        }
+
+        // Fallback: get first valid id from reference table
+        $fallback = DB::connection('sqlsrv')
+            ->table('ref.lembaga_akred')
+            ->select('id_lemb_akred')
+            ->orderBy('id_lemb_akred')
+            ->first();
+
+        if (!$fallback) {
+            throw new \Exception('No valid lembaga_akred found in reference table');
+        }
+
+        return $fallback->id_lemb_akred;
     }
 
     /**

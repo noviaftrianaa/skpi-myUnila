@@ -3,51 +3,13 @@
  * Service untuk komunikasi dengan Sister Service API
  */
 
-import axios from 'axios';
 import { sisterClient } from '@/lib/api/sisterClient';
 
-// Base URL untuk Sister Service
-const SISTER_API_BASE_URL = process.env.NEXT_PUBLIC_SISTER_API_URL
-  ? `${process.env.NEXT_PUBLIC_SISTER_API_URL}/api/v1`
-  : 'http://localhost:9800/sister-service/api/v1';
-
-// Create axios instance with interceptor for auth token
-const sisterApiClient = axios.create({
-  baseURL: SISTER_API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Add request interceptor to include auth token
-sisterApiClient.interceptors.request.use(
-  (config) => {
-    // Get token from localStorage
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Add response interceptor for error handling
-sisterApiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid - redirect to login
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-        window.location.href = '/login';
-      }
-    }
-    return Promise.reject(error);
-  }
-);
+// sisterClient is already properly configured with:
+// - Correct baseURL from environment variables
+// - JWT token management using correct localStorage keys
+// - Request/response interceptors for auth and error handling
+// - Token refresh mechanism
 
 // Types
 export interface AgamaData {
@@ -94,7 +56,7 @@ export const agamaService = {
   // Get all agama
   getAll: async (): Promise<AgamaData[]> => {
     try {
-      const response = await sisterApiClient.get<ApiResponse<AgamaData[]>>('/referensi/agama');
+      const response = await sisterClient.get<ApiResponse<AgamaData[]>>('/api/v1/referensi/agama');
       return response.data.data;
     } catch (error) {
       console.error('Error fetching agama:', error);
@@ -105,7 +67,7 @@ export const agamaService = {
   // Get agama by ID
   getById: async (id: number): Promise<AgamaData> => {
     try {
-      const response = await sisterApiClient.get<ApiResponse<AgamaData>>(`/referensi/agama/${id}`);
+      const response = await sisterClient.get<ApiResponse<AgamaData>>(`/api/v1/referensi/agama/${id}`);
       return response.data.data;
     } catch (error) {
       console.error(`Error fetching agama with id ${id}:`, error);
@@ -116,7 +78,7 @@ export const agamaService = {
   // Sync agama from Sister API
   sync: async (syncedBy: string): Promise<SyncResponse> => {
     try {
-      const response = await sisterApiClient.post<SyncResponse>('/referensi/agama/sync', {
+      const response = await sisterClient.post<SyncResponse>('/api/v1/referensi/agama/sync', {
         synced_by: syncedBy,
       });
       return response.data;
@@ -132,7 +94,7 @@ export const unitKerjaService = {
   // Get all unit kerja
   getAll: async (): Promise<UnitKerjaData[]> => {
     try {
-      const response = await sisterApiClient.get<ApiResponse<UnitKerjaData[]>>('/referensi/unit-kerja');
+      const response = await sisterClient.get<ApiResponse<UnitKerjaData[]>>('/api/v1/referensi/unit-kerja');
       return response.data.data;
     } catch (error) {
       console.error('Error fetching unit kerja:', error);
@@ -143,7 +105,7 @@ export const unitKerjaService = {
   // Get unit kerja by ID
   getById: async (id: string): Promise<UnitKerjaData> => {
     try {
-      const response = await sisterApiClient.get<ApiResponse<UnitKerjaData>>(`/referensi/unit-kerja/${id}`);
+      const response = await sisterClient.get<ApiResponse<UnitKerjaData>>(`/api/v1/referensi/unit-kerja/${id}`);
       return response.data.data;
     } catch (error) {
       console.error(`Error fetching unit kerja with id ${id}:`, error);
@@ -154,8 +116,8 @@ export const unitKerjaService = {
   // Sync unit kerja from Sister API
   sync: async (idPerguruanTinggi: string, syncedBy: string): Promise<SyncResponse> => {
     try {
-      const response = await sisterApiClient.post<SyncResponse>(
-        `/referensi/unit-kerja/sync?id_perguruan_tinggi=${idPerguruanTinggi}&synced_by=${syncedBy}`
+      const response = await sisterClient.post<SyncResponse>(
+        `/api/v1/referensi/unit-kerja/sync?id_perguruan_tinggi=${idPerguruanTinggi}&synced_by=${syncedBy}`
       );
       return response.data;
     } catch (error) {
@@ -168,7 +130,7 @@ export const unitKerjaService = {
 // Health check
 export const healthCheck = async (): Promise<{ status: string; message: string }> => {
   try {
-    const response = await sisterApiClient.get('/health');
+    const response = await sisterClient.get('/health');
     return response.data;
   } catch (error) {
     console.error('Error checking health:', error);

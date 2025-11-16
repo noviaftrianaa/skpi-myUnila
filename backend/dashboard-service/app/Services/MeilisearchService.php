@@ -8,6 +8,10 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Search\Mahasiswa;
 use App\Models\Search\Dosen;
 use App\Models\Search\Prodi;
+use App\Models\Search\Penelitian;
+use App\Models\Search\Publikasi;
+use App\Models\Search\Pengabdian;
+use App\Models\Search\BidangIlmu;
 use App\Repositories\SearchRepository;
 
 /**
@@ -223,83 +227,187 @@ class MeilisearchService
     }
 
     /**
-     * Search penelitian - fallback to SQL
+     * Search penelitian using Meilisearch
      */
     public function searchPenelitian(string $query, int $limit = 10): array
     {
-        $result = $this->repository->searchPenelitian($query, $limit);
+        try {
+            // Use Meilisearch for ultra-fast search
+            $results = Penelitian::search($query)->take($limit)->raw();
 
-        return array_map(function ($item) {
-            return [
-                'id' => $item->id_penelitian,
-                'judul' => $item->judul,
-                'tahun' => $item->tahun,
-                'skim' => $item->skim,
-                'ketua_peneliti' => $item->ketua_peneliti,
-                'bidang_ilmu' => $item->bidang_ilmu,
-                'category' => 'penelitian',
-            ];
-        }, $result);
+            if (isset($results['hits'])) {
+                return array_map(function ($hit) {
+                    return [
+                        'id' => $hit['id'],
+                        'judul' => $hit['judul'],
+                        'tahun' => $hit['tahun'],
+                        'skim' => $hit['skim'],
+                        'ketua_peneliti' => $hit['ketua_peneliti'],
+                        'bidang_ilmu' => $hit['bidang_ilmu'],
+                        'category' => 'penelitian',
+                    ];
+                }, $results['hits']);
+            }
+
+            return [];
+        } catch (\Exception $e) {
+            // Fallback to SQL if Meilisearch fails
+            Log::warning('Meilisearch penelitian search failed, falling back to SQL', [
+                'error' => $e->getMessage(),
+            ]);
+
+            $result = $this->repository->searchPenelitian($query, $limit);
+
+            return array_map(function ($item) {
+                return [
+                    'id' => $item->id_penelitian,
+                    'judul' => $item->judul,
+                    'tahun' => $item->tahun,
+                    'skim' => $item->skim,
+                    'ketua_peneliti' => $item->ketua_peneliti,
+                    'bidang_ilmu' => $item->bidang_ilmu,
+                    'category' => 'penelitian',
+                ];
+            }, $result);
+        }
     }
 
     /**
-     * Search publikasi - fallback to SQL
+     * Search publikasi using Meilisearch
      */
     public function searchPublikasi(string $query, int $limit = 10): array
     {
-        $result = $this->repository->searchPublikasi($query, $limit);
+        try {
+            // Use Meilisearch for ultra-fast search
+            $results = Publikasi::search($query)->take($limit)->raw();
 
-        return array_map(function ($item) {
-            return [
-                'id' => $item->id_publikasi,
-                'judul' => $item->judul,
-                'tahun' => $item->tahun,
-                'jenis_publikasi' => $item->jenis_publikasi,
-                'penerbit' => $item->penerbit,
-                'penulis_utama' => $item->penulis_utama,
-                'category' => 'publikasi',
-            ];
-        }, $result);
+            if (isset($results['hits'])) {
+                return array_map(function ($hit) {
+                    return [
+                        'id' => $hit['id'],
+                        'judul' => $hit['judul'],
+                        'tahun' => $hit['tahun'],
+                        'jenis_publikasi' => $hit['jenis_publikasi'],
+                        'penerbit' => $hit['penerbit'],
+                        'penulis_utama' => $hit['penulis_utama'],
+                        'category' => 'publikasi',
+                    ];
+                }, $results['hits']);
+            }
+
+            return [];
+        } catch (\Exception $e) {
+            // Fallback to SQL if Meilisearch fails
+            Log::warning('Meilisearch publikasi search failed, falling back to SQL', [
+                'error' => $e->getMessage(),
+            ]);
+
+            $result = $this->repository->searchPublikasi($query, $limit);
+
+            return array_map(function ($item) {
+                return [
+                    'id' => $item->id_publikasi,
+                    'judul' => $item->judul,
+                    'tahun' => $item->tahun,
+                    'jenis_publikasi' => $item->jenis_publikasi,
+                    'penerbit' => $item->penerbit,
+                    'penulis_utama' => $item->penulis_utama,
+                    'category' => 'publikasi',
+                ];
+            }, $result);
+        }
     }
 
     /**
-     * Search pengabdian - fallback to SQL
+     * Search pengabdian using Meilisearch
      */
     public function searchPengabdian(string $query, int $limit = 10): array
     {
-        $result = $this->repository->searchPengabdian($query, $limit);
+        try {
+            // Use Meilisearch for ultra-fast search
+            $results = Pengabdian::search($query)->take($limit)->raw();
 
-        return array_map(function ($item) {
-            return [
-                'id' => $item->id_pengabdian,
-                'judul' => $item->judul,
-                'tahun' => $item->tahun,
-                'skim' => $item->skim,
-                'ketua_pengabdi' => $item->ketua_pengabdi,
-                'bidang_ilmu' => $item->bidang_ilmu,
-                'category' => 'pengabdian',
-            ];
-        }, $result);
+            if (isset($results['hits'])) {
+                return array_map(function ($hit) {
+                    return [
+                        'id' => $hit['id'],
+                        'judul' => $hit['judul'],
+                        'tahun' => $hit['tahun'],
+                        'skim' => $hit['skim'],
+                        'ketua_pengabdi' => $hit['ketua_pengabdi'],
+                        'bidang_ilmu' => $hit['bidang_ilmu'],
+                        'category' => 'pengabdian',
+                    ];
+                }, $results['hits']);
+            }
+
+            return [];
+        } catch (\Exception $e) {
+            // Fallback to SQL if Meilisearch fails
+            Log::warning('Meilisearch pengabdian search failed, falling back to SQL', [
+                'error' => $e->getMessage(),
+            ]);
+
+            $result = $this->repository->searchPengabdian($query, $limit);
+
+            return array_map(function ($item) {
+                return [
+                    'id' => $item->id_pengabdian,
+                    'judul' => $item->judul,
+                    'tahun' => $item->tahun,
+                    'skim' => $item->skim,
+                    'ketua_pengabdi' => $item->ketua_pengabdi,
+                    'bidang_ilmu' => $item->bidang_ilmu,
+                    'category' => 'pengabdian',
+                ];
+            }, $result);
+        }
     }
 
     /**
-     * Search bidang ilmu - returns list of bidang ilmu categories
+     * Search bidang ilmu using Meilisearch
      */
     public function searchBidangIlmu(string $query, int $limit = 10): array
     {
-        $result = $this->repository->searchBidangIlmu($query, $limit);
+        try {
+            // Use Meilisearch for ultra-fast search
+            $results = BidangIlmu::search($query)->take($limit)->raw();
 
-        return array_map(function ($item) {
-            return [
-                'id' => $item->id_kel_bidang,
-                'id_kel_bidang' => $item->id_kel_bidang,
-                'kode_kel_bidang' => $item->kode_kel_bidang ?? null,
-                'nm_kel_bidang' => $item->nm_kel_bidang,
-                'ket_kel_bidang' => $item->ket_kel_bidang ?? null,
-                'total_dosen' => (int) $item->total_dosen,
-                'category' => 'bidang-ilmu',
-            ];
-        }, $result);
+            if (isset($results['hits'])) {
+                return array_map(function ($hit) {
+                    return [
+                        'id' => $hit['id'],
+                        'id_kel_bidang' => $hit['id_kel_bidang'],
+                        'kode_kel_bidang' => $hit['kode_kel_bidang'] ?? null,
+                        'nm_kel_bidang' => $hit['nm_kel_bidang'],
+                        'ket_kel_bidang' => $hit['ket_kel_bidang'] ?? null,
+                        'total_dosen' => (int) $hit['total_dosen'],
+                        'category' => 'bidang-ilmu',
+                    ];
+                }, $results['hits']);
+            }
+
+            return [];
+        } catch (\Exception $e) {
+            // Fallback to SQL if Meilisearch fails
+            Log::warning('Meilisearch bidang ilmu search failed, falling back to SQL', [
+                'error' => $e->getMessage(),
+            ]);
+
+            $result = $this->repository->searchBidangIlmu($query, $limit);
+
+            return array_map(function ($item) {
+                return [
+                    'id' => $item->id_kel_bidang,
+                    'id_kel_bidang' => $item->id_kel_bidang,
+                    'kode_kel_bidang' => $item->kode_kel_bidang ?? null,
+                    'nm_kel_bidang' => $item->nm_kel_bidang,
+                    'ket_kel_bidang' => $item->ket_kel_bidang ?? null,
+                    'total_dosen' => (int) $item->total_dosen,
+                    'category' => 'bidang-ilmu',
+                ];
+            }, $result);
+        }
     }
 
     /**

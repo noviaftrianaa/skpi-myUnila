@@ -162,8 +162,8 @@ export default function DataTable<T extends Record<string, any>>({
   const content = (
     <>
       {/* Search & Controls Bar - Modern Design */}
-      <div className={`px-6 py-3 bg-gradient-to-r from-slate-50 via-white to-slate-50 border-b border-gray-200 ${!noWrapper ? 'rounded-t-2xl' : 'rounded-t-xl'}`}>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
+      <div className={`px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 bg-gradient-to-r from-slate-50 via-white to-slate-50 border-b border-gray-200 ${!noWrapper ? 'rounded-t-2xl' : 'rounded-t-xl'}`}>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-2.5 md:gap-3 items-center">
           {/* Filter (jika ada) - Kiri */}
           {filterSlot && (
             <div className="lg:col-span-3">
@@ -178,14 +178,14 @@ export default function DataTable<T extends Record<string, any>>({
                 isClearable
                 classNames={{
                   base: "w-full",
-                  inputWrapper: "!bg-white !h-9 !rounded-xl !border-0 !shadow-none hover:!bg-gray-50 !transition-all !duration-200 [&>div]:!border-0",
-                  input: "!text-sm !text-gray-700 placeholder:!text-gray-400 !border-0",
+                  inputWrapper: "!bg-white !h-8 sm:!h-9 !rounded-xl !border-0 !shadow-none hover:!bg-gray-50 !transition-all !duration-200 [&>div]:!border-0",
+                  input: "!text-xs sm:!text-sm !text-gray-700 placeholder:!text-gray-400 !border-0",
                   clearButton: "!text-gray-400 hover:!text-gray-600",
                 }}
                 placeholder={searchPlaceholder}
                 size="md"
                 startContent={
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 }
@@ -202,8 +202,8 @@ export default function DataTable<T extends Record<string, any>>({
           )}
 
           {/* Rows per page selector - Kanan */}
-          <div className="lg:col-span-3 flex gap-3 items-center justify-start lg:justify-end">
-            <span className="text-gray-600 font-medium text-sm whitespace-nowrap">Tampilkan</span>
+          <div className="lg:col-span-3 flex gap-2 sm:gap-2.5 md:gap-3 items-center justify-start lg:justify-end">
+            <span className="text-gray-600 font-medium text-[10px] sm:text-xs md:text-sm whitespace-nowrap">Tampilkan</span>
             <Select
               size="sm"
               selectedKeys={[selectedKey]}
@@ -228,9 +228,9 @@ export default function DataTable<T extends Record<string, any>>({
                 }
               }}
               classNames={{
-                base: "w-20",
-                trigger: "bg-white h-9 min-h-0 rounded-xl border border-gray-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all duration-200",
-                value: "text-sm font-semibold text-gray-700",
+                base: "w-16 sm:w-20",
+                trigger: "bg-white h-8 sm:h-9 min-h-0 rounded-xl border border-gray-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all duration-200",
+                value: "text-xs sm:text-sm font-semibold text-gray-700",
                 selectorIcon: "text-gray-500",
                 popoverContent: "bg-white rounded-xl shadow-2xl border border-gray-100",
               }}
@@ -246,15 +246,15 @@ export default function DataTable<T extends Record<string, any>>({
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto px-6 py-4 relative">
+      <div className="overflow-x-auto px-2 sm:px-3 md:px-6 py-2 sm:py-3 md:py-4 relative">
         {/* Loading Overlay */}
         {loading && (
           <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-3">
+            <div className="flex flex-col items-center gap-2 sm:gap-3">
               <div className="relative">
-                <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
               </div>
-              <p className="text-sm font-semibold text-gray-700">Memuat data...</p>
+              <p className="text-xs sm:text-sm font-semibold text-gray-700">Memuat data...</p>
             </div>
           </div>
         )}
@@ -266,8 +266,8 @@ export default function DataTable<T extends Record<string, any>>({
             base: "min-w-full border-t border-gray-200",
             table: "min-w-full",
             thead: "[&>tr]:bg-gradient-to-b [&>tr]:from-gray-50 [&>tr]:to-gray-100/80",
-            th: "bg-transparent text-gray-700 font-bold text-xs uppercase tracking-wider border-b-2 border-gray-300 px-5 py-4 first:pl-6 last:pr-6 shadow-sm",
-            td: "text-sm text-gray-700 px-5 py-4 first:pl-6 last:pr-6",
+            th: "bg-transparent text-gray-700 font-bold text-[9px] sm:text-[10px] md:text-xs uppercase tracking-wider border-b-2 border-gray-300 px-2 sm:px-3 md:px-5 py-2 sm:py-3 md:py-4 first:pl-2 first:sm:pl-3 first:md:pl-6 last:pr-2 last:sm:pr-3 last:md:pr-6 shadow-sm",
+            td: "text-[10px] sm:text-xs md:text-sm text-gray-700 px-2 sm:px-3 md:px-5 py-2 sm:py-3 md:py-4 first:pl-2 first:sm:pl-3 first:md:pl-6 last:pr-2 last:sm:pr-3 last:md:pr-6",
             tr: "border-b border-gray-100 hover:bg-gradient-to-r hover:from-blue-50/50 hover:via-blue-50/30 hover:to-transparent hover:shadow-sm transition-all duration-200 [&:nth-child(odd)]:bg-gray-50/30",
           }}
         >
@@ -280,20 +280,20 @@ export default function DataTable<T extends Record<string, any>>({
               >
                 {column.sortable ? (
                   <div
-                    className="flex items-center gap-2 cursor-pointer select-none hover:text-blue-600 transition-colors group"
+                    className="flex items-center gap-1 sm:gap-1.5 md:gap-2 cursor-pointer select-none hover:text-blue-600 transition-colors group"
                     onClick={() => handleSort(column.key)}
                   >
                     {column.headerRender ? column.headerRender() : column.label}
                     <div className="flex flex-col opacity-60 group-hover:opacity-100 transition-opacity">
                       <svg
-                        className={`w-3 h-3 -mb-1 transition-colors ${sortColumn === column.key && sortDirection === "asc" ? "text-blue-600" : "text-gray-400"}`}
+                        className={`w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 -mb-0.5 sm:-mb-1 transition-colors ${sortColumn === column.key && sortDirection === "asc" ? "text-blue-600" : "text-gray-400"}`}
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
                         <path d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z" />
                       </svg>
                       <svg
-                        className={`w-3 h-3 -mt-1 transition-colors ${sortColumn === column.key && sortDirection === "desc" ? "text-blue-600" : "text-gray-400"}`}
+                        className={`w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 -mt-0.5 sm:-mt-1 transition-colors ${sortColumn === column.key && sortDirection === "desc" ? "text-blue-600" : "text-gray-400"}`}
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >

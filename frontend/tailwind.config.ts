@@ -42,7 +42,8 @@ const config: Config = {
         'gradient-twilight': 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
       },
       fontFamily: {
-        poppins: ['var(--font-poppins)', 'Poppins', 'sans-serif'],
+        poppins: ['Poppins', 'sans-serif'],
+        sans: ['Poppins', 'sans-serif'],
       },
     },
   },

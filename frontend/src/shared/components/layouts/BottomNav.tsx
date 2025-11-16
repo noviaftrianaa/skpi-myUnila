@@ -12,7 +12,7 @@ export default function BottomNav() {
       name: "Beranda",
       href: "/",
       icon: (
-        <svg className="w-7 h-7 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <svg className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
           <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
         </svg>
       )
@@ -21,7 +21,7 @@ export default function BottomNav() {
       name: "Statistik",
       href: "/statistik",
       icon: (
-        <svg className="w-7 h-7 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <svg className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
           <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
         </svg>
       )
@@ -30,7 +30,7 @@ export default function BottomNav() {
       name: "Layanan",
       href: "/layanan",
       icon: (
-        <svg className="w-7 h-7 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <svg className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
           <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
         </svg>
       )
@@ -39,7 +39,7 @@ export default function BottomNav() {
       name: "Tentang",
       href: "/tentang",
       icon: (
-        <svg className="w-7 h-7 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <svg className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
           <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
         </svg>
       )
@@ -54,7 +54,7 @@ export default function BottomNav() {
       animate={{ y: 0 }}
       className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-gray-200 shadow-lg"
     >
-      <div className="flex items-center justify-around h-20 px-2 max-w-md mx-auto">
+      <div className="flex items-center justify-around h-14 sm:h-16 px-1.5 sm:px-2 max-w-md mx-auto">
         {navItems.map((item) => {
           const active = isActive(item.href);
           const isExternal = item.href.startsWith('http');
@@ -108,7 +108,7 @@ export default function BottomNav() {
               >
                 <div
                   className={`
-                    mb-1 transition-all duration-300
+                    mb-0.5 sm:mb-1 transition-all duration-300
                     ${active
                       ? 'text-myunila filter drop-shadow-[0_2px_8px_rgba(59,130,246,0.3)]'
                       : 'text-gray-400 group-hover:text-myunila group-hover:drop-shadow-[0_2px_4px_rgba(59,130,246,0.2)]'
@@ -138,7 +138,7 @@ export default function BottomNav() {
               {/* Label */}
               <motion.span
                 className={`
-                  text-xs font-semibold transition-all duration-300 relative z-10
+                  text-[9px] sm:text-[10px] font-semibold transition-all duration-300 relative z-10
                   ${active
                     ? 'text-myunila font-bold'
                     : 'text-gray-500 group-hover:text-myunila group-hover:font-semibold'
