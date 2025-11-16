@@ -65,9 +65,53 @@ parse_json_id() {
 }
 
 ###############################################################################
+# 0. Setup JWT Consumer & Credentials
+###############################################################################
+echo -e "${GREEN}[0/4] Setting up JWT Consumer...${NC}"
+
+# JWT Configuration
+JWT_SECRET="${JWT_SECRET:-!UnilaAuthService2025}"
+ISSUER="${JWT_ISSUER:-http://localhost:8081}"
+
+# Create Consumer for auth-service
+CONSUMER_RESPONSE=$(curl -s -X POST "$KONG_ADMIN_URL/consumers" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "auth-service",
+    "custom_id": "myunila-auth-service"
+  }')
+
+if echo "$CONSUMER_RESPONSE" | grep -q "already exists"; then
+    echo -e "${YELLOW}  ! Consumer already exists, skipping...${NC}"
+elif echo "$CONSUMER_RESPONSE" | grep -q "id"; then
+    echo -e "${GREEN}  ✓ Consumer created successfully${NC}"
+else
+    echo -e "${YELLOW}  ! Consumer creation response: continuing anyway...${NC}"
+fi
+
+# Add JWT credential to consumer
+JWT_CREDENTIAL_RESPONSE=$(curl -s -X POST "$KONG_ADMIN_URL/consumers/auth-service/jwt" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"key\": \"$ISSUER\",
+    \"secret\": \"$JWT_SECRET\",
+    \"algorithm\": \"HS256\"
+  }")
+
+if echo "$JWT_CREDENTIAL_RESPONSE" | grep -q "already exists"; then
+    echo -e "${YELLOW}  ! JWT credential already exists${NC}"
+elif echo "$JWT_CREDENTIAL_RESPONSE" | grep -q "id"; then
+    echo -e "${GREEN}  ✓ JWT credential added successfully${NC}"
+else
+    echo -e "${YELLOW}  ! JWT credential response: continuing anyway...${NC}"
+fi
+
+echo ""
+
+###############################################################################
 # 1. Dashboard Service
 ###############################################################################
-echo -e "${GREEN}[1/3] Setting up Dashboard Service...${NC}"
+echo -e "${GREEN}[1/4] Setting up Dashboard Service...${NC}"
 
 # Create Dashboard Service
 DASHBOARD_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
@@ -135,7 +179,7 @@ echo ""
 ###############################################################################
 # 2. Auth Service
 ###############################################################################
-echo -e "${GREEN}[2/3] Setting up Auth Service...${NC}"
+echo -e "${GREEN}[2/4] Setting up Auth Service...${NC}"
 
 # Create Auth Service
 AUTH_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
@@ -190,7 +234,7 @@ echo ""
 ###############################################################################
 # 3. Sister Service
 ###############################################################################
-echo -e "${GREEN}[3/3] Setting up Sister Service...${NC}"
+echo -e "${GREEN}[3/4] Setting up Sister Service...${NC}"
 
 # Create Sister Service
 SISTER_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
@@ -237,6 +281,129 @@ else
             }
           }' > /dev/null
         echo -e "${GREEN}  ✓ CORS plugin added${NC}"
+
+        # Add JWT plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$SISTER_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "maximum_expiration": 0,
+              "header_names": ["authorization"],
+              "cookie_names": []
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ JWT plugin added${NC}"
+    fi
+
+    # Create separate PUBLIC route for dosen photo endpoint (no JWT required)
+    echo -e "${YELLOW}  → Creating public photo route...${NC}"
+    PHOTO_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$SISTER_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "sister-photo-public-route",
+        "paths": ["/sister-service/dosen/photo"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"]
+      }')
+
+    PHOTO_ROUTE_ID=$(parse_json_id "$PHOTO_ROUTE")
+
+    if [ -n "$PHOTO_ROUTE_ID" ]; then
+        # Add CORS plugin for photo route (no JWT plugin)
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$PHOTO_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "OPTIONS"],
+              "headers": ["Accept", "Content-Type"],
+              "exposed_headers": [],
+              "credentials": false,
+              "max_age": 3600
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ Public photo route created (no JWT)${NC}"
+    fi
+fi
+
+echo ""
+
+###############################################################################
+# 4. Feeder Service
+###############################################################################
+echo -e "${GREEN}[4/4] Setting up Feeder Service...${NC}"
+
+# Create Feeder Service
+FEEDER_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"feeder-service\",
+    \"url\": \"$FEEDER_SERVICE_URL\"
+  }")
+
+FEEDER_SERVICE_ID=$(parse_json_id "$FEEDER_SERVICE")
+
+if [ -z "$FEEDER_SERVICE_ID" ]; then
+    echo -e "${RED}  ✗ Failed to create Feeder service${NC}"
+else
+    echo -e "${GREEN}  ✓ Feeder service created: $FEEDER_SERVICE_ID${NC}"
+
+    # Create Feeder route
+    FEEDER_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$FEEDER_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "feeder-service-route",
+        "paths": ["/feeder-service"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"]
+      }')
+
+    FEEDER_ROUTE_ID=$(parse_json_id "$FEEDER_ROUTE")
+    echo -e "${GREEN}  ✓ Feeder route created${NC}"
+
+    # Add CORS plugin
+    if [ -n "$FEEDER_ROUTE_ID" ]; then
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$FEEDER_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "exposed_headers": ["X-Auth-Token"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ CORS plugin added${NC}"
+
+        # Add JWT plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$FEEDER_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "maximum_expiration": 0,
+              "header_names": ["authorization"],
+              "cookie_names": []
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ JWT plugin added${NC}"
     fi
 fi
 
@@ -251,6 +418,7 @@ echo "  Dashboard (protected): http://${VM_IP}:${KONG_PROXY_PORT}/dashboard-serv
 echo "  Dashboard (public):    http://${VM_IP}:${KONG_PROXY_PORT}/dashboard-service/public/api/v1"
 echo "  Auth:                  http://${VM_IP}:${KONG_PROXY_PORT}/auth-service/api/v1"
 echo "  Sister:                http://${VM_IP}:${KONG_PROXY_PORT}/sister-service/api/v1"
+echo "  Feeder:                http://${VM_IP}:${KONG_PROXY_PORT}/feeder-service"
 echo ""
 
 echo -e "${YELLOW}Check Kong services:${NC}"

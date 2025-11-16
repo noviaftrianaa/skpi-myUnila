@@ -10,7 +10,7 @@
 @layer base {
   /* Apply Poppins font globally */
   body {
-    font-family: var(--font-poppins), 'Poppins', sans-serif;
+    font-family: 'Poppins', sans-serif;
   }
 
   input:focus,

@@ -3,12 +3,7 @@
  * Handles API calls for referensi metadata and batch sync operations
  */
 
-import axios from 'axios';
-
-// Sister API through Kong Gateway
-const SISTER_API_BASE = process.env.NEXT_PUBLIC_SISTER_API_URL
-  ? `${process.env.NEXT_PUBLIC_SISTER_API_URL}/api/v1`
-  : "http://localhost:9800/sister-service/api/v1";
+import { sisterClient } from '@/lib/api/sisterClient';
 
 export interface ReferensiMetadata {
   key: string;
@@ -42,7 +37,7 @@ export const referensiService = {
    */
   async getMetadata(): Promise<ReferensiMetadata[]> {
     try {
-      const response = await axios.get(`${SISTER_API_BASE}/referensi/metadata`);
+      const response = await sisterClient.get('/api/v1/referensi/metadata');
       return response.data.data || [];
     } catch (error) {
       console.error("Error fetching referensi metadata:", error);
@@ -55,7 +50,7 @@ export const referensiService = {
    */
   async batchSync(endpoints: string[]): Promise<BatchSyncResponse> {
     try {
-      const response = await axios.post(`${SISTER_API_BASE}/referensi/batch-sync`, {
+      const response = await sisterClient.post('/api/v1/referensi/batch-sync', {
         endpoints: endpoints,
       });
       return response.data.data;
@@ -113,7 +108,7 @@ export const referensiService = {
         throw new Error(`Unknown endpoint key: ${key}`);
       }
 
-      const response = await axios.get(`${SISTER_API_BASE}/referensi/${endpoint}`);
+      const response = await sisterClient.get(`/api/v1/referensi/${endpoint}`);
       return response.data.data || [];
     } catch (error) {
       console.error(`Error fetching ${key} data:`, error);
@@ -169,7 +164,7 @@ export const referensiService = {
         throw new Error(`Unknown endpoint key: ${key}`);
       }
 
-      const response = await axios.post(`${SISTER_API_BASE}/referensi/${endpoint}/sync`);
+      const response = await sisterClient.post(`/api/v1/referensi/${endpoint}/sync`);
       return response.data;
     } catch (error) {
       console.error(`Error syncing ${key}:`, error);

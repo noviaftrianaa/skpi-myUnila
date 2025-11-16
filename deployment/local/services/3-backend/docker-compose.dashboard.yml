@@ -38,6 +38,42 @@ services:
         max-file: "5"
         labels: "service=dashboard"
 
+  # Dashboard Scheduler (Supervisor)
+  dashboard-scheduler:
+    image: myunila/dashboard-service:latest
+    container_name: myunila-dashboard-scheduler
+    working_dir: /var/www
+    env_file:
+      - ../../.env
+    environment:
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+      TZ: "${TZ:-Asia/Jakarta}"
+    volumes:
+      - dashboard_storage:/var/www/storage
+      - dashboard_logs:/var/www/storage/logs
+      - ../../../../backend/dashboard-service/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf:ro
+    networks:
+      - myunila-network
+    depends_on:
+      - dashboard-service
+      - redis-check
+    command: >
+      sh -c "
+      apt-get update -qq &&
+      apt-get install -y -qq supervisor > /dev/null 2>&1 &&
+      mkdir -p /var/log/supervisor &&
+      /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+      "
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=dashboard-scheduler"
+
   # Redis health check
   redis-check:
     image: redis:7-alpine

@@ -8,7 +8,7 @@
  * - Get current user
  */
 
-import { apiClient, setToken, removeToken, clearTokens, getToken } from '../api/client';
+import { apiClient, setToken, clearTokens, getToken } from '../api/client';
 import type {
   User,
   LoginRequest,
@@ -37,6 +37,13 @@ class AuthService {
         }
 
         const { user, tokens } = response.data.data;
+
+        // Validate user and tokens exist
+        if (!user || !tokens) {
+          console.error('❌ User or tokens missing in response:', response.data);
+          throw new Error('Data login tidak lengkap. Silakan hubungi administrator.');
+        }
+
         const { access_token, refresh_token } = tokens;
 
         // Validate tokens exist
@@ -56,18 +63,24 @@ class AuthService {
         setToken('USER', JSON.stringify(user));
       } else {
         // Backend returned success: false (invalid credentials, etc)
-        throw new Error(response.data.message || 'Login failed');
+        throw new Error(response.data.message || 'Login gagal. Periksa username dan password Anda.');
       }
 
       return response.data;
     } catch (error: any) {
+      // Handle axios error response
+      if (error.response?.data?.message) {
+        // Backend returned error with message (e.g., 401 with "Invalid credentials")
+        throw new Error(error.response.data.message);
+      }
+
       // If it's already an Error with message, just throw it
       if (error instanceof Error) {
         throw error;
       }
 
-      // Otherwise, handle axios error
-      throw error;
+      // Otherwise, throw generic error
+      throw new Error('Login gagal. Periksa username dan password Anda.');
     }
   }
 
@@ -83,17 +96,44 @@ class AuthService {
 
       if (response.data.success) {
         const { user, tokens } = response.data.data;
+
+        // Validate user and tokens exist
+        if (!user || !tokens) {
+          console.error('❌ User or tokens missing in MFA response:', response.data);
+          throw new Error('Data login tidak lengkap. Silakan hubungi administrator.');
+        }
+
         const { access_token, refresh_token } = tokens;
+
+        // Validate tokens exist
+        if (!access_token) {
+          console.error('❌ Access token missing in MFA response:', response.data);
+          throw new Error('Token tidak ditemukan. Silakan coba lagi.');
+        }
 
         // Store access token, refresh token, and user
         setToken('ACCESS', access_token);
-        setToken('REFRESH', refresh_token);
+        if (refresh_token) {
+          setToken('REFRESH', refresh_token);
+        }
         setToken('USER', JSON.stringify(user));
       }
 
       return response.data;
     } catch (error: any) {
-      throw error;
+      // Handle axios error response
+      if (error.response?.data?.message) {
+        // Backend returned error with message
+        throw new Error(error.response.data.message);
+      }
+
+      // If it's already an Error with message, just throw it
+      if (error instanceof Error) {
+        throw error;
+      }
+
+      // Otherwise, throw generic error
+      throw new Error('Kode verifikasi salah. Silakan coba lagi.');
     }
   }
 

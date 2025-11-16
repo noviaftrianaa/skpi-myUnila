@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  feeder-service:
+    build:
+      context: ../../../../../backend/feeder-service
+      dockerfile: Dockerfile
+    image: myunila/feeder-service:production
+    container_name: myunila-feeder-service
+    ports:
+      - "8084:8084"
+    environment:
+      # App Configuration
+      APP_NAME: ${FEEDER_APP_NAME:-Feeder Service}
+      APP_PORT: ${FEEDER_APP_PORT:-:8084}
+      APP_ENV: ${FEEDER_APP_ENV:-production}
+
+      # Database Configuration
+      DB_DRIVER: ${FEEDER_DB_DRIVER:-sqlserver}
+      DB_HOST: ${FEEDER_DB_HOST}
+      DB_PORT: ${FEEDER_DB_PORT:-1433}
+      DB_USERNAME: ${FEEDER_DB_USERNAME}
+      DB_PASSWORD: ${FEEDER_DB_PASSWORD}
+      DB_DATABASE: ${FEEDER_DB_DATABASE}
+      DB_TRUST_SERVER_CERTIFICATE: ${FEEDER_DB_TRUST_SERVER_CERTIFICATE:-true}
+      # Database connection pool - Optimized for 8 CPU / 16GB RAM
+      DB_MAX_OPEN_CONNS: ${FEEDER_DB_MAX_OPEN_CONNS:-100}
+      DB_MAX_IDLE_CONNS: ${FEEDER_DB_MAX_IDLE_CONNS:-20}
+      DB_CONN_MAX_LIFETIME: ${FEEDER_DB_CONN_MAX_LIFETIME:-5m}
+      # Go runtime settings
+      GOMAXPROCS: 8
+      GOGC: 100
+
+      # Feeder API Configuration (Fallback - Priority: Database > Environment)
+      FEEDER_API_BASE_URL: ${FEEDER_API_BASE_URL}
+      FEEDER_API_USERNAME: ${FEEDER_API_USERNAME}
+      FEEDER_API_PASSWORD: ${FEEDER_API_PASSWORD}
+
+      # Encryption Key
+      API_CONFIG_ENCRYPTION_KEY: ${API_CONFIG_ENCRYPTION_KEY}
+
+      # JWT
+      JWT_SECRET: ${JWT_SECRET}
+
+      # Timezone
+      TZ: ${TZ:-Asia/Jakarta}
+
+    deploy:
+      resources:
+        limits:
+          cpus: '8'
+          memory: 12G
+        reservations:
+          cpus: '4'
+          memory: 4G
+
+    networks:
+      - myunila-prod-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8084/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "service=feeder,vm=vm3"
+
+networks:
+  myunila-prod-network:
+    external: true
+    name: myunila-prod-network

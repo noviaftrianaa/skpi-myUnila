@@ -156,8 +156,8 @@ export default function Navbar() {
                 size="sm"
                 className="btn-gradient-primary font-semibold px-3 sm:px-6 md:px-8 shadow-md rounded-lg text-xs sm:text-sm h-9 sm:h-10 min-w-0"
               >
-                <span className="hidden xs:inline">Portal</span>
-                <span className="xs:hidden">Portal</span>
+                <span className="hidden xs:inline">Kembali ke Portal</span>
+                <span className="xs:hidden">Kembali ke Portal</span>
               </Button>
             ) : (
               <Button
@@ -167,7 +167,7 @@ export default function Navbar() {
                 className="btn-gradient-primary font-semibold px-3 sm:px-6 md:px-8 shadow-md rounded-lg text-xs sm:text-sm h-9 sm:h-10 min-w-0"
               >
                 <span className="hidden xs:inline">Login ke Portal</span>
-                <span className="xs:hidden">Login</span>
+                <span className="xs:hidden">Login ke Login</span>
               </Button>
             )}
           </NavbarItem>

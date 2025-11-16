@@ -61,7 +61,14 @@ export default function APIConfigurationPage() {
     try {
       setLoading(true);
       const data = await apiConfigService.getAll();
-      setConfigs(data);
+      // Filter only sister-related configs (case-insensitive)
+      const sisterConfigs = data.filter(
+        (config) =>
+          config.api_code?.toUpperCase().includes("SISTER") ||
+          config.api_name?.toUpperCase().includes("SISTER") ||
+          config.tags?.toUpperCase().includes("SISTER")
+      );
+      setConfigs(sisterConfigs);
     } catch (error: any) {
       toast.error(`Failed to load API configurations: ${error.message}`);
     } finally {
