@@ -9,7 +9,7 @@
 #   --help, -h       Show this help message
 #   --vm1            Rebuild only VM1 (Frontend & Kong)
 #   --vm2            Rebuild only VM2 (Backend PHP services)
-#   --vm3            Rebuild only VM3 (Sister service)
+#   --vm3            Rebuild only VM3 (Sister & Feeder services)
 #   --check          Dry run - only check connections
 #
 # Examples:
@@ -44,7 +44,7 @@ show_help() {
     echo "  --help, -h       Show this help message"
     echo "  --vm1            Rebuild only VM1 (Frontend & Kong)"
     echo "  --vm2            Rebuild only VM2 (Backend PHP services)"
-    echo "  --vm3            Rebuild only VM3 (Sister service)"
+    echo "  --vm3            Rebuild only VM3 (Sister & Feeder services)"
     echo "  --check          Dry run - only check connections"
     echo ""
     echo "Examples:"
@@ -142,7 +142,7 @@ main() {
             echo -e "${YELLOW}  This will rebuild services on:${NC}"
             echo -e "${YELLOW}  - VM1 (Frontend & Kong)${NC}"
             echo -e "${YELLOW}  - VM2 (Dashboard & Auth)${NC}"
-            echo -e "${YELLOW}  - VM3 (Sister Service)${NC}"
+            echo -e "${YELLOW}  - VM3 (Sister & Feeder Services)${NC}"
             echo -e "${YELLOW}========================================${NC}"
             echo ""
             read -p "Continue? (yes/no): " confirm
