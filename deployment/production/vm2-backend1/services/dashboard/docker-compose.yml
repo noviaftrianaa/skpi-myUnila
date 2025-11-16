@@ -139,6 +139,10 @@ services:
         max-file: "3"
         labels: "service=dashboard-scheduler,vm=vm2"
 
+volumes:
+  dashboard_logs:
+    driver: local
+
 networks:
   myunila-prod-network:
     external: true
