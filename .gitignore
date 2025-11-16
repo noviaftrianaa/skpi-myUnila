@@ -11,6 +11,7 @@ dashboard/.env
 
 # Claude Code settings (local only)
 .claude/settings.local.json
+.claude/feeder/
 
 # Docker compose development files with credentials
 docker-compose.dev.yml
