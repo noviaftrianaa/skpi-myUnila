@@ -176,9 +176,9 @@
         msg: "{{ vm2_status.stdout_lines }}"
 
 # ============================================
-# VM3 - Sister Service (Go)
+# VM3 - Backend Services 2 (Sister + Feeder)
 # ============================================
-- name: Rebuild VM3 - Sister Service
+- name: Rebuild VM3 - Sister & Feeder Services
   hosts: backend2
   become: yes
   gather_facts: no
@@ -209,6 +209,30 @@
       wait_for:
         host: localhost
         port: 8083
+        delay: 5
+        timeout: 60
+
+    - name: Rebuild Feeder Service image
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/feeder/docker-compose.yml build --no-cache
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: feeder_build
+
+    - name: Restart Feeder Service
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/feeder/docker-compose.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Wait for Feeder Service to be healthy
+      wait_for:
+        host: localhost
+        port: 8084
         delay: 5
         timeout: 60
 
@@ -253,3 +277,4 @@
           - Dashboard:   http://192.168.120.41:9800/dashboard-service/api/health
           - Auth:        http://192.168.120.41:9800/auth-service/api/health
           - Sister:      http://192.168.120.41:9800/sister-service/health
+          - Feeder:      http://192.168.120.41:9800/feeder-service/health
