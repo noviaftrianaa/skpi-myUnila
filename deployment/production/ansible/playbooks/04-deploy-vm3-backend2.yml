@@ -1,5 +1,5 @@
 ---
-# Playbook 4: Deploy Backend Services 2 (Sister + Scheduler) to VM3
+# Playbook 4: Deploy Backend Services 2 (Sister + Feeder + Scheduler) to VM3
 # Run: ansible-playbook -i inventory/hosts.yml playbooks/04-deploy-vm3-backend2.yml
 
 - name: Deploy Backend Services 2 to VM3
@@ -48,6 +48,8 @@
 
           Update these values:
           - Sister DB credentials (SISTER_DB_*)
+          - Feeder DB credentials (FEEDER_DB_*)
+          - Feeder API credentials (FEEDER_API_*)
           - APP_KEY for Laravel
           - JWT_SECRET
           - Meilisearch and Redis configuration
@@ -64,6 +66,12 @@
       ufw:
         rule: allow
         port: '8083'
+        proto: tcp
+
+    - name: Allow Feeder Service port 8084
+      ufw:
+        rule: allow
+        port: '8084'
         proto: tcp
 
     - name: Build Sister Service
@@ -86,6 +94,29 @@
       wait_for:
         host: localhost
         port: 8083
+        delay: 10
+        timeout: 60
+
+    - name: Build Feeder Service
+      shell: |
+        cd {{ app_dir }}/deployment/production/vm3-backend2
+        docker compose -f services/feeder/docker-compose.yml build --no-cache feeder-service
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Start Feeder Service
+      shell: |
+        cd {{ app_dir }}/deployment/production/vm3-backend2
+        docker compose -f services/feeder/docker-compose.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Wait for Feeder Service to be healthy
+      wait_for:
+        host: localhost
+        port: 8084
         delay: 10
         timeout: 60
 
