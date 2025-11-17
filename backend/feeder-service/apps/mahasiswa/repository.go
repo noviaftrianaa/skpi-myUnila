@@ -419,7 +419,8 @@ func (r *repository) GetMahasiswaList(ctx context.Context, page, limit int, sear
 	offset := (page - 1) * limit
 
 	// Build WHERE conditions
-	whereConditions := []string{"pd.soft_delete = 0", "reg.soft_delete = 0"}
+	// Note: reg.soft_delete = 0 is already filtered in filtered_reg_pd CTE
+	whereConditions := []string{"pd.soft_delete = 0"}
 	args := []interface{}{}
 	paramIndex := 1
 
@@ -428,8 +429,7 @@ func (r *repository) GetMahasiswaList(ctx context.Context, page, limit int, sear
 		placeholders := make([]string, len(angkatan))
 		for i, ang := range angkatan {
 			placeholders[i] = fmt.Sprintf("@p%d", paramIndex)
-			// Extract year from semester like "20211" -> "2021"
-			args = append(args, ang+"%")
+			args = append(args, ang)
 			paramIndex++
 		}
 		whereConditions = append(whereConditions, fmt.Sprintf("(LEFT(reg.id_semester_masuk, 4) IN (%s))", strings.Join(placeholders, ",")))
@@ -451,22 +451,55 @@ func (r *repository) GetMahasiswaList(ctx context.Context, page, limit int, sear
 
 	whereClause := strings.Join(whereConditions, " AND ")
 
-	// Count total
+	// ============================================================================
+	// PARALLEL EXECUTION with Goroutines
+	// Execute COUNT and SELECT queries concurrently for better performance
+	// ============================================================================
+
+	// Count total query
+	// Use filtered_reg_pd CTE for consistency (already filtered soft_delete = 0)
+	// Include all columns needed for WHERE clause filters (search, angkatan, prodi)
 	countQuery := fmt.Sprintf(`
+		WITH filtered_reg_pd AS (
+			SELECT id_reg_pd, id_pd, id_semester_masuk, id_sms, nipd
+			FROM pdrd.reg_pd
+			WHERE soft_delete = 0
+		)
 		SELECT COUNT(*)
 		FROM pdrd.peserta_didik AS pd
-		INNER JOIN pdrd.reg_pd AS reg ON reg.id_pd = pd.id_pd AND reg.soft_delete = 0
+		INNER JOIN filtered_reg_pd AS reg ON reg.id_pd = pd.id_pd
 		WHERE %s
 	`, whereClause)
 
-	var total int
-	err := r.db.GetContext(ctx, &total, countQuery, args...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to count mahasiswa: %w", err)
-	}
-
-	// Get paginated data with calculated fields
+	// Get paginated data with optimized CTE (Common Table Expression)
+	// This avoids expensive correlated subquery by pre-computing semester counts
+	// Performance: O(n) instead of O(n*m) where n=students, m=avg kuliah_mhs per student
 	dataQuery := fmt.Sprintf(`
+		WITH filtered_reg_pd AS (
+			-- First, filter reg_pd to reduce dataset early
+			SELECT
+				reg.id_reg_pd,
+				reg.id_pd,
+				reg.nipd,
+				reg.id_semester_masuk,
+				reg.id_jalur_daftar,
+				reg.id_jns_daftar,
+				reg.id_sms,
+				reg.id_jns_keluar
+			FROM pdrd.reg_pd AS reg
+			WHERE reg.soft_delete = 0
+		),
+		semester_counts AS (
+			-- Pre-compute semester counts using GROUP BY (much faster than correlated subquery)
+			SELECT
+				kmh.id_reg_pd,
+				COUNT(*) AS semester_sekarang
+			FROM pdrd.kuliah_mhs kmh
+			INNER JOIN filtered_reg_pd freg ON freg.id_reg_pd = kmh.id_reg_pd
+			WHERE kmh.soft_delete = 0
+				AND RIGHT(kmh.id_smt, 1) != '3'
+			GROUP BY kmh.id_reg_pd
+		)
 		SELECT
 			pd.id_pd,
 			pd.nm_pd AS nama,
@@ -474,43 +507,82 @@ func (r *repository) GetMahasiswaList(ctx context.Context, page, limit int, sear
 			LEFT(reg.id_semester_masuk, 4) AS angkatan,
 			jd.nm_jalur_daftar AS jalur_masuk,
 			jdf.nm_jns_daftar AS jenis_pendaftaran,
-			(
-				SELECT COUNT(*)
-				FROM pdrd.kuliah_mhs kmh
-				WHERE kmh.id_reg_pd = reg.id_reg_pd
-					AND kmh.soft_delete = 0
-					AND RIGHT(kmh.id_smt, 1) != '3'
-			) AS semester_sekarang,
-			sm.nm_stat_mhs AS status_mahasiswa,
-			jk.nm_jns_keluar AS jenis_keluar,
+			COALESCE(sc.semester_sekarang, 0) AS semester_sekarang,
+			-- Prioritas status: jika id_jns_keluar ada, tampilkan jenis_keluar; jika tidak, tampilkan status_mahasiswa
+			CASE
+				WHEN reg.id_jns_keluar IS NOT NULL THEN jk.ket_keluar
+				ELSE sm.nm_stat_mhs
+			END AS status_mahasiswa,
+			jk.ket_keluar AS jenis_keluar,
 			pd.last_sync,
 			reg.id_sms AS id_prodi,
-			sms.nm_lemb AS nama_prodi
+			sms.nm_lemb AS nama_prodi,
+			didik.nm_jenj_didik AS nama_jenjang
 		FROM pdrd.peserta_didik AS pd
-		INNER JOIN pdrd.reg_pd AS reg ON reg.id_pd = pd.id_pd AND reg.soft_delete = 0
+		INNER JOIN filtered_reg_pd AS reg ON reg.id_pd = pd.id_pd
 		LEFT JOIN ref.jalur_daftar AS jd ON jd.id_jalur_daftar = reg.id_jalur_daftar
-		LEFT JOIN ref.jenis_daftar AS jdf ON jdf.id_jns_daftar = reg.id_jns_daftar
-		LEFT JOIN ref.status_mahasiswa AS sm ON sm.id_stat_mhs = pd.id_stat_mhs
-		LEFT JOIN ref.jenis_keluar AS jk ON jk.id_jns_keluar = reg.id_jns_keluar
+		LEFT JOIN ref.jenis_pendaftaran AS jdf ON jdf.id_jns_daftar = reg.id_jns_daftar
 		LEFT JOIN pdrd.sms AS sms ON sms.id_sms = reg.id_sms AND sms.soft_delete = 0
+		LEFT JOIN ref.jenjang_pendidikan AS didik ON didik.id_jenj_didik = sms.id_jenj_didik AND didik.expired_date IS NULL
+		LEFT JOIN pdrd.kuliah_mhs AS kmh_aktif ON kmh_aktif.id_reg_pd = reg.id_reg_pd AND kmh_aktif.soft_delete = 0 AND kmh_aktif.id_smt = '20251'
+		LEFT JOIN ref.status_mahasiswa AS sm ON sm.id_stat_mhs = COALESCE(kmh_aktif.id_stat_mhs, pd.id_stat_mhs)
+		LEFT JOIN ref.jenis_keluar AS jk ON jk.id_jns_keluar = reg.id_jns_keluar
+		LEFT JOIN semester_counts sc ON sc.id_reg_pd = reg.id_reg_pd
 		WHERE %s
 		ORDER BY pd.nm_pd ASC
 		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY
 	`, whereClause, paramIndex, paramIndex+1)
 
-	args = append(args, offset, limit)
+	// Add pagination parameters to args
+	dataArgs := append(args, offset, limit)
 
-	var mahasiswaList []*MahasiswaListItem
-	err = r.db.SelectContext(ctx, &mahasiswaList, dataQuery, args...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get mahasiswa list: %w", err)
+	// ============================================================================
+	// Execute COUNT and SELECT in parallel using goroutines
+	// ============================================================================
+	type countResult struct {
+		total int
+		err   error
+	}
+	type dataResult struct {
+		data []*MahasiswaListItem
+		err  error
 	}
 
-	totalPages := (total + limit - 1) / limit
+	countChan := make(chan countResult, 1)
+	dataChan := make(chan dataResult, 1)
+
+	// Goroutine 1: Execute COUNT query
+	go func() {
+		var total int
+		err := r.db.GetContext(ctx, &total, countQuery, args...)
+		countChan <- countResult{total: total, err: err}
+	}()
+
+	// Goroutine 2: Execute SELECT query
+	go func() {
+		var mahasiswaList []*MahasiswaListItem
+		err := r.db.SelectContext(ctx, &mahasiswaList, dataQuery, dataArgs...)
+		dataChan <- dataResult{data: mahasiswaList, err: err}
+	}()
+
+	// Wait for both goroutines to complete
+	countRes := <-countChan
+	dataRes := <-dataChan
+
+	// Check errors
+	if countRes.err != nil {
+		return nil, fmt.Errorf("failed to count mahasiswa: %w", countRes.err)
+	}
+	if dataRes.err != nil {
+		return nil, fmt.Errorf("failed to get mahasiswa list: %w", dataRes.err)
+	}
+
+	// Calculate total pages
+	totalPages := (countRes.total + limit - 1) / limit
 
 	return &MahasiswaListResult{
-		Data:       mahasiswaList,
-		Total:      total,
+		Data:       dataRes.data,
+		Total:      countRes.total,
 		Page:       page,
 		Limit:      limit,
 		TotalPages: totalPages,
@@ -553,20 +625,39 @@ func (r *repository) GetRegPdByID(ctx context.Context, idRegPd string) (*RegPd, 
 func (r *repository) GetMahasiswaStats(ctx context.Context) (*MahasiswaStats, error) {
 	stats := &MahasiswaStats{}
 
-	// Total mahasiswa
+	// Total mahasiswa - Count ALL from reg_pd (raw data = 181.223)
+	// Hanya filter soft_delete = 0, tidak ada filter lain
 	err := r.db.GetContext(ctx, &stats.TotalMahasiswa, `
-		SELECT COUNT(*) FROM pdrd.peserta_didik WHERE soft_delete = 0
+		SELECT COUNT(*)
+		FROM pdrd.reg_pd
+		WHERE soft_delete = 0
 	`)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get total mahasiswa: %w", err)
 	}
 
-	// Total aktif
+	// Total aktif - Mahasiswa yang BELUM keluar (id_jns_keluar IS NULL)
+	// Ini adalah mahasiswa yang masih aktif, cuti, atau status lain yang belum keluar
 	err = r.db.GetContext(ctx, &stats.TotalAktif, `
-		SELECT COUNT(*) FROM pdrd.peserta_didik WHERE id_stat_mhs = 'A' AND soft_delete = 0
+		SELECT COUNT(*)
+		FROM pdrd.reg_pd
+		WHERE soft_delete = 0
+			AND id_jns_keluar IS NULL
 	`)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get total aktif: %w", err)
+	}
+
+	// Total tidak aktif - Mahasiswa yang SUDAH keluar (id_jns_keluar IS NOT NULL)
+	// Ini termasuk: Lulus, DO, Mengundurkan Diri, Meninggal Dunia, dll
+	err = r.db.GetContext(ctx, &stats.TotalTidakAktif, `
+		SELECT COUNT(*)
+		FROM pdrd.reg_pd
+		WHERE soft_delete = 0
+			AND id_jns_keluar IS NOT NULL
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get total tidak aktif: %w", err)
 	}
 
 	// By angkatan
@@ -594,10 +685,10 @@ func (r *repository) GetMahasiswaStats(ctx context.Context) (*MahasiswaStats, er
 		stats.ByAngkatan = append(stats.ByAngkatan, item)
 	}
 
-	// Last sync
+	// Last sync - dari reg_pd
 	var lastSync time.Time
 	err = r.db.GetContext(ctx, &lastSync, `
-		SELECT MAX(last_sync) FROM pdrd.peserta_didik WHERE soft_delete = 0
+		SELECT MAX(last_sync) FROM pdrd.reg_pd WHERE soft_delete = 0
 	`)
 	if err == nil {
 		stats.LastSync = &lastSync
@@ -690,33 +781,39 @@ func (r *repository) GetReferenceCache(ctx context.Context) (*ReferenceCache, er
 		Wilayah:         make(map[string]string),
 	}
 
-	// Load jenis daftar
-	rows, _ := r.db.QueryContext(ctx, "SELECT id_jns_daftar, nm_jns_daftar FROM ref.jenis_daftar")
-	defer rows.Close()
-	for rows.Next() {
-		var id int
-		var nama string
-		rows.Scan(&id, &nama)
-		cache.JenisDaftar[id] = nama
+	// Load jenis daftar (with error handling for missing table)
+	rows, err := r.db.QueryContext(ctx, "SELECT id_jns_daftar, nm_jns_daftar FROM ref.jenis_pendaftaran")
+	if err == nil {
+		defer rows.Close()
+		for rows.Next() {
+			var id int
+			var nama string
+			rows.Scan(&id, &nama)
+			cache.JenisDaftar[id] = nama
+		}
 	}
 
-	// Load jalur daftar
-	rows2, _ := r.db.QueryContext(ctx, "SELECT id_jalur_daftar, nm_jalur_daftar FROM ref.jalur_daftar")
-	defer rows2.Close()
-	for rows2.Next() {
-		var id int
-		var nama string
-		rows2.Scan(&id, &nama)
-		cache.JalurDaftar[id] = nama
+	// Load jalur daftar (with error handling for missing table)
+	rows2, err2 := r.db.QueryContext(ctx, "SELECT id_jalur_daftar, nm_jalur_daftar FROM ref.jalur_daftar")
+	if err2 == nil {
+		defer rows2.Close()
+		for rows2.Next() {
+			var id int
+			var nama string
+			rows2.Scan(&id, &nama)
+			cache.JalurDaftar[id] = nama
+		}
 	}
 
-	// Load status mahasiswa
-	rows3, _ := r.db.QueryContext(ctx, "SELECT id_stat_mhs, nm_stat_mhs FROM ref.status_mahasiswa")
-	defer rows3.Close()
-	for rows3.Next() {
-		var id, nama string
-		rows3.Scan(&id, &nama)
-		cache.StatusMahasiswa[id] = nama
+	// Load status mahasiswa (with error handling for missing table)
+	rows3, err3 := r.db.QueryContext(ctx, "SELECT id_stat_mhs, nm_stat_mhs FROM ref.status_mahasiswa")
+	if err3 == nil {
+		defer rows3.Close()
+		for rows3.Next() {
+			var id, nama string
+			rows3.Scan(&id, &nama)
+			cache.StatusMahasiswa[id] = nama
+		}
 	}
 
 	r.cache = cache

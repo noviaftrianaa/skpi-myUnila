@@ -93,7 +93,7 @@ interface Application {
   color: string;
   isFavorite: boolean;
   href: string;
-  requireRole?: string; // Optional: Only show to specific role
+  requireRole?: string | string[]; // Optional: Only show to specific role(s)
 }
 
 interface AppCategory {
@@ -418,27 +418,27 @@ export default function DashboardPage() {
           color: "bg-purple-600",
           isFavorite: false,
           href: "/dashboard/sister-integrator",
-          requireRole: "Developer", // Only for Developer role
+          requireRole: ["Developer", "Rektor"], // Only for Developer and Rektor role
         },
         {
           id: "api-gateway",
           name: "API Gateway",
-          description: "Kong Dashboard - Developer Only",
+          description: "Kong Dashboard",
           icon: <FaPlug className="w-6 h-6" />,
           color: "bg-slate-700",
           isFavorite: false,
           href: "/portal/kong-admin",
-          requireRole: "Developer", // Only for Developer role
+          requireRole: ["Developer", "Rektor"], // Only for Developer and Rektor role
         },
         {
           id: "monitoring",
           name: "Monitoring & Observability",
-          description: "Grafana, Prometheus, Loki - Developer Only",
+          description: "Grafana, Prometheus, Loki",
           icon: <FaChartLine className="w-6 h-6" />,
           color: "bg-orange-600",
           isFavorite: false,
           href: "/portal/monitoring",
-          requireRole: "Developer", // Only for Developer role
+          requireRole: ["Developer", "Rektor"], // Only for Developer and Rektor role
         },
       ],
     },
@@ -525,14 +525,20 @@ export default function DashboardPage() {
         app.description.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesFavorite = !showFavoritesOnly || app.isFavorite;
       // Role check: Only show apps that match user's role or have no role requirement
-      const matchesRole = !app.requireRole || user?.role === app.requireRole;
+      const matchesRole = !app.requireRole ||
+        (Array.isArray(app.requireRole)
+          ? app.requireRole.includes(user?.role || '')
+          : user?.role === app.requireRole);
       return matchesSearch && matchesFavorite && matchesRole;
     }),
   })).filter((category) => category.apps.length > 0);
 
   const favoriteApps = applications.flatMap((cat) =>
     cat.apps.filter((app) => {
-      const matchesRole = !app.requireRole || user?.role === app.requireRole;
+      const matchesRole = !app.requireRole ||
+        (Array.isArray(app.requireRole)
+          ? app.requireRole.includes(user?.role || '')
+          : user?.role === app.requireRole);
       return app.isFavorite && matchesRole;
     })
   );

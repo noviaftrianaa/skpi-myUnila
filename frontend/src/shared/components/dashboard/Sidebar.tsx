@@ -35,6 +35,7 @@ export default function Sidebar({
 
     const roleLower = user.role.toLowerCase();
     if (roleLower.includes("developer")) return "developer";
+    if (roleLower.includes("rektor")) return "rektor";
     if (roleLower.includes("admin")) return "admin";
     if (roleLower.includes("mahasiswa") || roleLower.includes("student"))
       return "mahasiswa";

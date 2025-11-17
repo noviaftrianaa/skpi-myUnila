@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });
 
@@ -549,6 +549,19 @@ export default function StatistikMahasiswa() {
 
   const chartData = getChartData();
 
+  // Detect mobile screen
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Chart configuration
   const chartOption = useMemo(() => ({
     tooltip: {
@@ -558,38 +571,68 @@ export default function StatistikMahasiswa() {
       borderColor: "#3b82f6",
       borderWidth: 1,
       extraCssText: "box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px;",
+      textStyle: {
+        fontSize: isMobile ? 10 : 12,
+      },
+      formatter: function(params: any) {
+        // Show full name in tooltip even if abbreviated in axis
+        const dataIndex = params[0].dataIndex;
+        const fullName = chartData[dataIndex].name;
+        let result = `<div style="font-weight: 600; margin-bottom: 4px;">${fullName}</div>`;
+        params.forEach((item: any) => {
+          result += `<div style="display: flex; align-items: center; gap: 8px;">
+            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: ${item.color};"></span>
+            <span>${item.seriesName}: <strong>${item.value.toLocaleString()}</strong></span>
+          </div>`;
+        });
+        return result;
+      },
     },
     legend: {
       data: ["Aktif", "Cuti", "Non Aktif", "DO"],
-      bottom: "0%",
+      bottom: isMobile ? "2%" : "0%",
       textStyle: {
-        fontSize: 11,
+        fontSize: isMobile ? 9 : 11,
         fontWeight: 600,
       },
+      itemWidth: isMobile ? 18 : 25,
+      itemHeight: isMobile ? 12 : 14,
+      itemGap: isMobile ? 8 : 10,
     },
     grid: {
-      left: "3%",
-      right: "4%",
-      bottom: "12%",
-      top: "3%",
+      left: isMobile ? "3%" : "3%",
+      right: isMobile ? "3%" : "4%",
+      bottom: isMobile ? "22%" : "12%",
+      top: isMobile ? "5%" : "3%",
       containLabel: true,
     },
     xAxis: {
       type: "category",
       data: chartData.map(item => item.name),
-      axisLabel: {
+      axisLabel: isMobile ? {
+        color: "#1f2937",
+        fontSize: 8,
+        fontWeight: 600,
+        interval: 0,
+        rotate: 30,
+        margin: 8,
+      } : {
         color: "#1f2937",
         fontSize: 10,
         fontWeight: 600,
         interval: 0,
         rotate: drillDownLevel === "fakultas" ? 0 : 15,
+        margin: 10,
+      },
+      axisTick: {
+        alignWithLabel: true,
       },
     },
     yAxis: {
       type: "value",
       axisLabel: {
         color: "#6b7280",
-        fontSize: 11,
+        fontSize: isMobile ? 9 : 11,
       },
       splitLine: {
         lineStyle: {
@@ -604,6 +647,8 @@ export default function StatistikMahasiswa() {
         type: "bar",
         stack: "total",
         data: chartData.map(item => item.aktif),
+        barWidth: "60%",
+        barMinHeight: 3,
         itemStyle: {
           color: {
             type: "linear",
@@ -618,12 +663,19 @@ export default function StatistikMahasiswa() {
           },
           borderRadius: [6, 6, 0, 0],
         },
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowColor: "rgba(16, 185, 129, 0.5)",
+          },
+        },
       },
       {
         name: "Cuti",
         type: "bar",
         stack: "total",
         data: chartData.map(item => item.cuti),
+        barMinHeight: 2,
         itemStyle: {
           color: {
             type: "linear",
@@ -637,12 +689,19 @@ export default function StatistikMahasiswa() {
             ],
           },
         },
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowColor: "rgba(245, 158, 11, 0.5)",
+          },
+        },
       },
       {
         name: "Non Aktif",
         type: "bar",
         stack: "total",
         data: chartData.map(item => item.nonAktif),
+        barMinHeight: 2,
         itemStyle: {
           color: {
             type: "linear",
@@ -656,12 +715,19 @@ export default function StatistikMahasiswa() {
             ],
           },
         },
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowColor: "rgba(139, 92, 246, 0.5)",
+          },
+        },
       },
       {
         name: "DO",
         type: "bar",
         stack: "total",
         data: chartData.map(item => item.do),
+        barMinHeight: 2,
         itemStyle: {
           color: {
             type: "linear",
@@ -675,16 +741,25 @@ export default function StatistikMahasiswa() {
             ],
           },
         },
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowColor: "rgba(239, 68, 68, 0.5)",
+          },
+        },
       },
     ],
-  }), [chartData, drillDownLevel]);
+  }), [chartData, drillDownLevel, isMobile]);
 
   const handleChartClick = (params: any) => {
     if (drillDownLevel === "fakultas") {
-      setSelectedFakultas(params.name);
+      // Get the real faculty name from chartData using dataIndex
+      const realName = chartData[params.dataIndex]?.name || params.name;
+      setSelectedFakultas(realName);
       setDrillDownLevel("prodi");
     } else if (drillDownLevel === "prodi") {
-      setSelectedProdi(params.name);
+      const realName = chartData[params.dataIndex]?.name || params.name;
+      setSelectedProdi(realName);
       setDrillDownLevel("angkatan");
     }
   };
@@ -696,8 +771,8 @@ export default function StatistikMahasiswa() {
   };
 
   return (
-    <section className="py-12 bg-white">
-      <div className="container mx-auto px-6">
+    <section className="py-6 sm:py-8 md:py-12 bg-white">
+      <div className="container mx-auto px-3 sm:px-4 md:px-6">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -706,20 +781,20 @@ export default function StatistikMahasiswa() {
           className="max-w-7xl mx-auto"
         >
           {/* Header */}
-          <motion.div variants={itemVariants} className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <motion.div variants={itemVariants} className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 sm:mb-6 md:mb-8 gap-3 sm:gap-4">
             <div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">Statistik Mahasiswa</h3>
-              <p className="text-gray-600">
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 mb-1 sm:mb-2">Statistik Mahasiswa</h3>
+              <p className="text-gray-600 text-xs sm:text-sm md:text-base">
                 {drillDownLevel === "fakultas" && "Total mahasiswa per fakultas"}
                 {drillDownLevel === "prodi" && `Program Studi di ${selectedFakultas}`}
                 {drillDownLevel === "angkatan" && `Angkatan ${selectedProdi}`}
               </p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-2 sm:gap-3 w-full md:w-auto">
               {drillDownLevel !== "fakultas" && (
                 <button
                   onClick={handleReset}
-                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold text-sm transition-all"
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold text-xs sm:text-sm transition-all"
                 >
                   ← Reset
                 </button>
@@ -727,7 +802,7 @@ export default function StatistikMahasiswa() {
               <select
                 value={selectedSemester}
                 onChange={(e) => setSelectedSemester(e.target.value)}
-                className="px-4 py-2 bg-white border border-gray-300 rounded-lg font-semibold text-sm text-gray-700 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 md:flex-initial px-3 sm:px-4 py-1.5 sm:py-2 bg-white border border-gray-300 rounded-lg font-semibold text-xs sm:text-sm text-gray-700 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {semesterOptions.map(semester => (
                   <option key={semester} value={semester}>{semester}</option>
@@ -761,21 +836,27 @@ export default function StatistikMahasiswa() {
           </motion.div>
 
           {/* Chart */}
-          <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <div className="px-6 py-5 bg-blue-600">
-              <h3 className="text-xl font-bold text-white">Distribusi Mahasiswa ({selectedSemester})</h3>
-              <p className="text-blue-100 text-sm mt-1">Klik pada bar untuk drill-down ke level lebih detail</p>
+          <motion.div variants={itemVariants} className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-blue-600">
+              <h3 className="text-base sm:text-lg md:text-xl font-bold text-white">
+                Distribusi Mahasiswa ({selectedSemester})
+              </h3>
+              <p className="text-blue-100 text-xs sm:text-sm mt-0.5 sm:mt-1">
+                Klik pada bar untuk drill-down ke level lebih detail
+              </p>
             </div>
-            <div className="p-6">
-              <div className="h-[450px]">
-                <ReactECharts
-                  option={chartOption}
-                  style={{ height: "100%", width: "100%" }}
-                  opts={{ renderer: "svg" }}
-                  onEvents={{
-                    click: handleChartClick,
-                  }}
-                />
+            <div className="p-3 sm:p-4 md:p-6">
+              <div className="overflow-x-auto sm:overflow-visible">
+                <div className="h-[420px] sm:h-[400px] md:h-[450px] min-w-[600px] sm:min-w-0">
+                  <ReactECharts
+                    option={chartOption}
+                    style={{ height: "100%", width: "100%" }}
+                    opts={{ renderer: "svg" }}
+                    onEvents={{
+                      click: handleChartClick,
+                    }}
+                  />
+                </div>
               </div>
             </div>
           </motion.div>

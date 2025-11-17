@@ -1,103 +1,91 @@
-import { MenuItem } from "@/shared/components/dashboard/DashboardLayout";
+/**
+ * Menu Configuration untuk Feeder Integrator
+ *
+ * Dashboard untuk sinkronisasi data dengan Neo Feeder PDDIKTI API
+ * Untuk role: Developer dan Rektor
+ */
+
+import {
+  FiActivity,
+  FiFileText,
+  FiSettings,
+  FiBookOpen,
+  FiUsers,
+} from "react-icons/fi";
 import { MdDashboard } from "react-icons/md";
-import { FiBookOpen, FiUsers, FiActivity, FiFileText, FiSettings } from "react-icons/fi";
+import type { MenuItem } from "@/lib/types/dashboardTypes";
 
 export const feederIntegratorMenuConfig: MenuItem[] = [
   {
     title: "Dashboard",
-    icon: <MdDashboard />,
+    icon: <MdDashboard className="w-5 h-5" />,
     href: "/dashboard/feeder-integrator",
-    roles: ["developer"],
+    roles: ["developer", "rektor"],
   },
   {
     title: "Referensi",
-    icon: <FiBookOpen />,
+    icon: <FiBookOpen className="w-5 h-5" />,
     href: "/dashboard/feeder-integrator/referensi",
-    roles: ["developer"],
+    roles: ["developer", "rektor"],
   },
   {
     title: "Data PDRD",
-    icon: <FiUsers />,
-    roles: ["developer"],
+    icon: <FiUsers className="w-5 h-5" />,
+    roles: ["developer", "rektor"],
     children: [
       {
         title: "Mahasiswa",
         href: "/dashboard/feeder-integrator/pdrd/mahasiswa",
-        roles: ["developer"],
+        roles: ["developer", "rektor"],
+      },
+      {
+        title: "Aktivitas Kuliah Mahasiswa",
+        href: "/dashboard/feeder-integrator/pdrd/aktivitas-kuliah",
+        roles: ["developer", "rektor"],
+      },
+      {
+        title: "Nilai Perkuliahan",
+        href: "/dashboard/feeder-integrator/pdrd/nilai-perkuliahan",
+        roles: ["developer", "rektor"],
       },
       {
         title: "Aktivitas Mahasiswa",
         href: "/dashboard/feeder-integrator/pdrd/aktivitas-mahasiswa",
-        roles: ["developer"],
+        roles: ["developer", "rektor"],
       },
       {
-        title: "Anggota Aktivitas",
+        title: "Anggota Aktivitas Mahasiswa",
         href: "/dashboard/feeder-integrator/pdrd/anggota-aktivitas",
-        roles: ["developer"],
+        roles: ["developer", "rektor"],
       },
       {
-        title: "Nilai Kuliah",
-        href: "/dashboard/feeder-integrator/pdrd/nilai-kuliah",
-        roles: ["developer"],
-      },
-      {
-        title: "Konversi",
-        href: "/dashboard/feeder-integrator/pdrd/konversi",
-        roles: ["developer"],
-      },
-      {
-        title: "Nilai Transfer",
-        href: "/dashboard/feeder-integrator/pdrd/nilai-transfer",
-        roles: ["developer"],
-      },
-      {
-        title: "Transkrip",
-        href: "/dashboard/feeder-integrator/pdrd/transkrip",
-        roles: ["developer"],
-      },
-      {
-        title: "Matkul",
-        href: "/dashboard/feeder-integrator/pdrd/matkul",
-        roles: ["developer"],
-      },
-      {
-        title: "Kurikulum",
-        href: "/dashboard/feeder-integrator/pdrd/kurikulum",
-        roles: ["developer"],
-      },
-      {
-        title: "Rencana Ajar",
-        href: "/dashboard/feeder-integrator/pdrd/rencana-ajar",
-        roles: ["developer"],
-      },
-      {
-        title: "Rencana Evaluasi",
-        href: "/dashboard/feeder-integrator/pdrd/rencana-evaluasi",
-        roles: ["developer"],
+        title: "Bimbingan Mahasiswa",
+        href: "/dashboard/feeder-integrator/pdrd/bimbingan",
+        roles: ["developer", "rektor"],
       },
       {
         title: "Prestasi Mahasiswa",
-        href: "/dashboard/feeder-integrator/pdrd/prestasi-mahasiswa",
-        roles: ["developer"],
+        href: "/dashboard/feeder-integrator/pdrd/prestasi",
+        roles: ["developer", "rektor"],
       },
     ],
   },
   {
     title: "Monitoring",
-    icon: <FiActivity />,
+    icon: <FiActivity className="w-5 h-5" />,
     href: "/dashboard/feeder-integrator/monitoring",
-    roles: ["developer"],
+    roles: ["developer", "rektor"],
   },
   {
     title: "Sync Logs",
-    icon: <FiFileText />,
+    icon: <FiFileText className="w-5 h-5" />,
     href: "/dashboard/feeder-integrator/logs",
-    roles: ["developer"],
+    roles: ["developer", "rektor"],
   },
   {
     title: "API Configuration",
-    icon: <FiSettings />,
+    icon: <FiSettings className="w-5 h-5" />,
     href: "/dashboard/feeder-integrator/settings",
-    roles: ["developer"],
+    roles: ["developer", "rektor"],
   },
 ];
