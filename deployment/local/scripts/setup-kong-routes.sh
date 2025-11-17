@@ -301,36 +301,49 @@ else
         echo -e "${GREEN}  ✓ JWT plugin added${NC}"
     fi
 
-    # Create separate PUBLIC route for dosen photo endpoint (no JWT required)
-    echo -e "${YELLOW}  → Creating public photo route...${NC}"
-    PHOTO_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$SISTER_SERVICE_ID/routes" \
+    # Create separate PUBLIC service for dosen endpoints (photo, etc.) - no JWT required
+    echo -e "${YELLOW}  → Creating public dosen service & route...${NC}"
+
+    SISTER_DOSEN_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
       -H "Content-Type: application/json" \
-      -d '{
-        "name": "sister-photo-public-route",
-        "paths": ["/sister-service/dosen/photo"],
-        "strip_path": true,
-        "preserve_host": false,
-        "protocols": ["http", "https"]
-      }')
+      -d "{\n    \\\"name\\\": \\\"sister-dosen-public-service\\\",\n    \\\"url\\\": \\\"$SISTER_SERVICE_URL/dosen\\\"\n  }")
 
-    PHOTO_ROUTE_ID=$(parse_json_id "$PHOTO_ROUTE")
+    SISTER_DOSEN_SERVICE_ID=$(parse_json_id "$SISTER_DOSEN_SERVICE")
 
-    if [ -n "$PHOTO_ROUTE_ID" ]; then
-        # Add CORS plugin for photo route (no JWT plugin)
-        curl -s -X POST "$KONG_ADMIN_URL/routes/$PHOTO_ROUTE_ID/plugins" \
+    if [ -n "$SISTER_DOSEN_SERVICE_ID" ]; then
+        echo -e "${GREEN}  ✓ Sister dosen public service created: $SISTER_DOSEN_SERVICE_ID${NC}"
+
+        # Create route for /sister-service/dosen (handles /photo/{id} and other dosen endpoints)
+        DOSEN_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$SISTER_DOSEN_SERVICE_ID/routes" \
           -H "Content-Type: application/json" \
           -d '{
-            "name": "cors",
-            "config": {
-              "origins": ["*"],
-              "methods": ["GET", "OPTIONS"],
-              "headers": ["Accept", "Content-Type"],
-              "exposed_headers": [],
-              "credentials": false,
-              "max_age": 3600
-            }
-          }' > /dev/null
-        echo -e "${GREEN}  ✓ Public photo route created (no JWT)${NC}"
+            "name": "sister-dosen-public-route",
+            "paths": ["/sister-service/dosen"],
+            "strip_path": true,
+            "preserve_host": false,
+            "protocols": ["http", "https"],
+            "regex_priority": 100
+          }')
+
+        DOSEN_ROUTE_ID=$(parse_json_id "$DOSEN_ROUTE")
+
+        if [ -n "$DOSEN_ROUTE_ID" ]; then
+            # Add CORS plugin for dosen route (no JWT plugin)
+            curl -s -X POST "$KONG_ADMIN_URL/routes/$DOSEN_ROUTE_ID/plugins" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "name": "cors",
+                "config": {
+                  "origins": ["*"],
+                  "methods": ["GET", "OPTIONS"],
+                  "headers": ["Accept", "Content-Type"],
+                  "exposed_headers": [],
+                  "credentials": false,
+                  "max_age": 3600
+                }
+              }' > /dev/null
+            echo -e "${GREEN}  ✓ Public dosen route created (no JWT)${NC}"
+        fi
     fi
 fi
 
