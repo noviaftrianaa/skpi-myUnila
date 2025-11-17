@@ -1,146 +1,150 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
-import { feederIntegratorMenuConfig } from "../config/menuConfig";
+import { FeederSyncLogsTable } from "@/shared/components/feeder-integrator";
+import { syncLogsService } from "@/lib/services/syncLogsService";
+import { Card, CardBody, Spinner } from "@heroui/react";
 import {
-  Card,
-  CardBody,
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
-  Chip,
-  Spinner,
-  Pagination,
-  Select,
-  SelectItem
-} from "@heroui/react";
-import { MdSchool } from "react-icons/md";
-import { FiFileText, FiCheckCircle, FiXCircle, FiClock } from "react-icons/fi";
+  FiFileText,
+  FiCheckCircle,
+  FiXCircle,
+  FiClock,
+  FiDatabase,
+} from "react-icons/fi";
+import { toast } from "react-hot-toast";
+import { feederIntegratorMenuConfig } from "../config/menuConfig";
 
 export default function SyncLogsPage() {
   useRequireAuth();
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [totalPages] = useState(1);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [stats, setStats] = useState<{
+    totalSyncs: number;
+    successRate: number;
+    failedSyncs: number;
+    averageDuration: number;
+  } | null>(null);
 
   useEffect(() => {
-    // Simulate loading
-    setTimeout(() => setIsLoading(false), 500);
+    fetchStats();
   }, []);
+
+  const fetchStats = async () => {
+    try {
+      setIsLoadingStats(true);
+      const data = await syncLogsService.getSyncStats();
+      setStats(data);
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+      toast.error("Gagal memuat statistik sync logs");
+    } finally {
+      setIsLoadingStats(false);
+    }
+  };
 
   return (
     <DashboardLayout
-      appName="Feeder Integrator"
-      appIcon={<MdSchool className="w-6 h-6 text-white" />}
       menuConfig={feederIntegratorMenuConfig}
-      pageTitle="Sync Logs"
+      appName="Feeder Integrator"
+      appIcon={<FiDatabase className="w-6 h-6" />}
     >
-      <div className="space-y-6">
+      <div className="p-6 space-y-6">
         {/* Header */}
-        <Card className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800">
-          <CardBody className="p-6">
-            <div className="flex items-center gap-4 text-white">
-              <FiFileText className="w-12 h-12" />
-              <div>
-                <h1 className="text-2xl font-bold">Sync Logs</h1>
-                <p className="text-blue-100">Riwayat sinkronisasi data mahasiswa</p>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card className="bg-gradient-to-br from-green-500 to-green-600">
-            <CardBody className="p-4">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
-                  <FiCheckCircle className="w-6 h-6 text-white" />
-                </div>
-                <div className="text-white">
-                  <p className="text-xs opacity-90">Success</p>
-                  <h3 className="text-2xl font-bold">0</h3>
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-red-500 to-red-600">
-            <CardBody className="p-4">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
-                  <FiXCircle className="w-6 h-6 text-white" />
-                </div>
-                <div className="text-white">
-                  <p className="text-xs opacity-90">Failed</p>
-                  <h3 className="text-2xl font-bold">0</h3>
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-blue-500 to-blue-600">
-            <CardBody className="p-4">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
-                  <FiClock className="w-6 h-6 text-white" />
-                </div>
-                <div className="text-white">
-                  <p className="text-xs opacity-90">Total Logs</p>
-                  <h3 className="text-2xl font-bold">0</h3>
-                </div>
-              </div>
-            </CardBody>
-          </Card>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+              <FiFileText className="w-8 h-8 text-indigo-600" />
+              Sync Logs
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              Riwayat sinkronisasi data dari Neo Feeder API
+            </p>
+          </div>
         </div>
 
-        {/* Filters */}
-        <Card>
-          <CardBody className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Select label="Status" placeholder="Semua Status">
-                <SelectItem key="all">Semua Status</SelectItem>
-                <SelectItem key="success">Success</SelectItem>
-                <SelectItem key="failed">Failed</SelectItem>
-              </Select>
-              <Select label="Endpoint" placeholder="Semua Endpoint">
-                <SelectItem key="all">Semua Endpoint</SelectItem>
-                <SelectItem key="mahasiswa">Mahasiswa</SelectItem>
-              </Select>
-              <Select label="Periode" placeholder="Semua Waktu">
-                <SelectItem key="all">Semua Waktu</SelectItem>
-                <SelectItem key="today">Hari Ini</SelectItem>
-                <SelectItem key="week">Minggu Ini</SelectItem>
-                <SelectItem key="month">Bulan Ini</SelectItem>
-              </Select>
-            </div>
-          </CardBody>
-        </Card>
+        {/* Stats Cards */}
+        {isLoadingStats ? (
+          <div className="flex justify-center py-12">
+            <Spinner size="lg" />
+          </div>
+        ) : stats && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Total Syncs */}
+            <Card className="bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+              <CardBody className="p-4 relative z-10">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                    <FiDatabase className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-purple-100">Total Syncs</p>
+                    <h3 className="text-3xl font-bold text-white">{stats.totalSyncs.toLocaleString()}</h3>
+                    <p className="text-[10px] text-purple-100/80">Total sinkronisasi</p>
+                  </div>
+                </div>
+              </CardBody>
+            </Card>
 
-        {/* Logs Table */}
-        <Card>
-          <CardBody className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Sync History</h3>
-            
-            {isLoading ? (
-              <div className="flex justify-center py-12">
-                <Spinner size="lg" />
-              </div>
-            ) : (
-              <div className="text-center py-12 text-gray-500">
-                <FiFileText className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                <p className="text-lg font-medium">No sync logs available</p>
-                <p className="text-sm mt-2">Sync logs will appear here after synchronization operations</p>
-              </div>
-            )}
-          </CardBody>
-        </Card>
+            {/* Success Rate */}
+            <Card className="bg-gradient-to-br from-green-500 via-green-600 to-teal-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+              <CardBody className="p-4 relative z-10">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                    <FiCheckCircle className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-green-100">Success Rate</p>
+                    <h3 className="text-3xl font-bold text-white">{stats.successRate.toFixed(1)}%</h3>
+                    <p className="text-[10px] text-green-100/80">Tingkat keberhasilan</p>
+                  </div>
+                </div>
+              </CardBody>
+            </Card>
+
+            {/* Failed Syncs */}
+            <Card className="bg-gradient-to-br from-red-500 via-red-600 to-pink-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+              <CardBody className="p-4 relative z-10">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                    <FiXCircle className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-red-100">Failed Syncs</p>
+                    <h3 className="text-3xl font-bold text-white">{stats.failedSyncs.toLocaleString()}</h3>
+                    <p className="text-[10px] text-red-100/80">Sinkronisasi gagal</p>
+                  </div>
+                </div>
+              </CardBody>
+            </Card>
+
+            {/* Avg Duration */}
+            <Card className="bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+              <CardBody className="p-4 relative z-10">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                    <FiClock className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-blue-100">Avg Duration</p>
+                    <h3 className="text-3xl font-bold text-white">
+                      {(stats.averageDuration / 1000).toFixed(1)}s
+                    </h3>
+                    <p className="text-[10px] text-blue-100/80">Rata-rata durasi</p>
+                  </div>
+                </div>
+              </CardBody>
+            </Card>
+          </div>
+        )}
+
+        {/* Data Table */}
+        <FeederSyncLogsTable />
       </div>
     </DashboardLayout>
   );

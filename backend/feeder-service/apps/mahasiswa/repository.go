@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -42,12 +43,12 @@ type Repository interface {
 
 // ReferenceCache holds reference data for lookup and validation
 type ReferenceCache struct {
-	JenisDaftar      map[int]string    // id_jns_daftar -> nama
-	JalurDaftar      map[int]string    // id_jalur_daftar -> nama
-	StatusMahasiswa  map[string]string // id_stat_mhs -> nama
-	JenisKeluar      map[int]string    // id_jns_keluar -> nama
-	Agama            map[int]string    // id_agama -> nama
-	Wilayah          map[string]string // id_wil -> nama
+	JenisDaftar     map[int]string    // id_jns_daftar -> nama
+	JalurDaftar     map[int]string    // id_jalur_daftar -> nama
+	StatusMahasiswa map[string]string // id_stat_mhs -> nama
+	JenisKeluar     map[int]string    // id_jns_keluar -> nama
+	Agama           map[int]string    // id_agama -> nama
+	Wilayah         map[string]string // id_wil -> nama
 }
 
 // repository implementation
@@ -152,56 +153,56 @@ func (r *repository) BulkUpsertPesertaDidik(ctx context.Context, data []*Peserta
 
 	for _, pd := range data {
 		_, err = tx.ExecContext(ctx, query,
-			pd.IDPD,                 // @p1
-			pd.NamaPD,              // @p2
-			pd.JK,                  // @p3
-			pd.NISN,                // @p4
-			pd.NIK,                 // @p5
-			pd.TempatLahir,         // @p6
-			pd.TglLahir,            // @p7
-			pd.Jalan,               // @p8
-			pd.RT,                  // @p9
-			pd.RW,                  // @p10
-			pd.NamaDusun,           // @p11
-			pd.Kelurahan,           // @p12
-			pd.KodePos,             // @p13
-			pd.TeleponRumah,        // @p14
-			pd.TeleponHP,           // @p15
-			pd.Email,               // @p16
-			pd.NamaWali,            // @p17
-			pd.TglLahirWali,        // @p18
-			pd.IDPekerjaanWali,     // @p19
-			pd.IDPenghasilanWali,   // @p20
-			pd.IDPendidikanWali,    // @p21
-			pd.NamaIbu,             // @p22
-			pd.TglLahirIbu,         // @p23
-			pd.NIKIbu,              // @p24
-			pd.IDPekerjaanIbu,      // @p25
-			pd.IDPenghasilanIbu,    // @p26
-			pd.IDPendidikanIbu,     // @p27
-			pd.IDKKIbu,             // @p28
-			pd.NamaAyah,            // @p29
-			pd.TglLahirAyah,        // @p30
-			pd.NIKAyah,             // @p31
-			pd.IDPekerjaanAyah,     // @p32
-			pd.IDPenghasilanAyah,   // @p33
-			pd.IDPendidikanAyah,    // @p34
-			pd.IDKKAyah,            // @p35
-			pd.ATerimaKPS,          // @p36
-			pd.NoKPS,               // @p37
-			pd.IDKK,                // @p38
-			pd.IDAlatTransport,     // @p39
-			pd.IDKewarganegaraan,   // @p40
-			pd.IDAgama,             // @p41
-			pd.IDJenisTinggal,      // @p42
-			pd.IDWilayah,           // @p43
-			pd.IDStatMhs,           // @p44
-			pd.LastUpdate,          // @p45 - for UPDATE
-			pd.LastSync,            // @p46 - for both
-			pd.CreateDate,          // @p47 - for INSERT
-			pd.IDCreator,           // @p48 - for INSERT
-			pd.IDUpdater,           // @p49 - for INSERT
-			pd.SoftDelete,          // @p50 - for INSERT
+			pd.IDPD,              // @p1
+			pd.NamaPD,            // @p2
+			pd.JK,                // @p3
+			pd.NISN,              // @p4
+			pd.NIK,               // @p5
+			pd.TempatLahir,       // @p6
+			pd.TglLahir,          // @p7
+			pd.Jalan,             // @p8
+			pd.RT,                // @p9
+			pd.RW,                // @p10
+			pd.NamaDusun,         // @p11
+			pd.Kelurahan,         // @p12
+			pd.KodePos,           // @p13
+			pd.TeleponRumah,      // @p14
+			pd.TeleponHP,         // @p15
+			pd.Email,             // @p16
+			pd.NamaWali,          // @p17
+			pd.TglLahirWali,      // @p18
+			pd.IDPekerjaanWali,   // @p19
+			pd.IDPenghasilanWali, // @p20
+			pd.IDPendidikanWali,  // @p21
+			pd.NamaIbu,           // @p22
+			pd.TglLahirIbu,       // @p23
+			pd.NIKIbu,            // @p24
+			pd.IDPekerjaanIbu,    // @p25
+			pd.IDPenghasilanIbu,  // @p26
+			pd.IDPendidikanIbu,   // @p27
+			pd.IDKKIbu,           // @p28
+			pd.NamaAyah,          // @p29
+			pd.TglLahirAyah,      // @p30
+			pd.NIKAyah,           // @p31
+			pd.IDPekerjaanAyah,   // @p32
+			pd.IDPenghasilanAyah, // @p33
+			pd.IDPendidikanAyah,  // @p34
+			pd.IDKKAyah,          // @p35
+			pd.ATerimaKPS,        // @p36
+			pd.NoKPS,             // @p37
+			pd.IDKK,              // @p38
+			pd.IDAlatTransport,   // @p39
+			pd.IDKewarganegaraan, // @p40
+			pd.IDAgama,           // @p41
+			pd.IDJenisTinggal,    // @p42
+			pd.IDWilayah,         // @p43
+			pd.IDStatMhs,         // @p44
+			pd.LastUpdate,        // @p45 - for UPDATE
+			pd.LastSync,          // @p46 - for both
+			pd.CreateDate,        // @p47 - for INSERT
+			pd.IDCreator,         // @p48 - for INSERT
+			pd.IDUpdater,         // @p49 - for INSERT
+			pd.SoftDelete,        // @p50 - for INSERT
 		)
 		if err != nil {
 			return fmt.Errorf("failed to upsert peserta_didik %s: %w", pd.IDPD, err)
@@ -302,39 +303,39 @@ func (r *repository) BulkUpsertRegPd(ctx context.Context, data []*RegPd) error {
 		}
 
 		_, err = tx.ExecContext(ctx, query,
-			reg.IDRegPd,            // @p1
-			reg.IDSMS,              // @p2
-			idJnsDaftar,            // @p3
-			idJalurDaftar,          // @p4
-			idPembiayaan,           // @p5
-			reg.IDJenisKeluar,      // @p6
-			reg.NIPD,               // @p7
-			reg.TglMasukSP,         // @p8
-			reg.SKSDiakui,          // @p9
-			reg.IDPTAsal,           // @p10
-			reg.NamaPTAsal,         // @p11
-			reg.IDProdiAsal,        // @p12
-			reg.NamaProdiAsal,      // @p13
-			reg.TglKeluar,          // @p14
-			reg.Keterangan,         // @p15
-			reg.SKYudisium,         // @p16
-			reg.TglSKYudisium,      // @p17
-			reg.IPK,                // @p18
-			reg.NoSeriIjazah,       // @p19
-			reg.JalurSkripsi,       // @p20
-			reg.JudulSkripsi,       // @p21
-			reg.BlnAwalBimbingan,   // @p22
-			reg.BlnAkhirBimbingan,  // @p23
-			asalDataIjazah,         // @p24
-			reg.LastUpdate,         // @p25 - for UPDATE
-			reg.LastSync,           // @p26 - for both
-			reg.IDSP,               // @p27 - for INSERT
-			reg.IDPD,               // @p28 - for INSERT
-			reg.IDSemesterMasuk,    // @p29 - for INSERT
-			reg.CreateDate,         // @p30 - for INSERT
-			reg.IDCreator,          // @p31 - for INSERT
-			reg.IDUpdater,          // @p32 - for INSERT
-			reg.SoftDelete,         // @p33 - for INSERT
+			reg.IDRegPd,           // @p1
+			reg.IDSMS,             // @p2
+			idJnsDaftar,           // @p3
+			idJalurDaftar,         // @p4
+			idPembiayaan,          // @p5
+			reg.IDJenisKeluar,     // @p6
+			reg.NIPD,              // @p7
+			reg.TglMasukSP,        // @p8
+			reg.SKSDiakui,         // @p9
+			reg.IDPTAsal,          // @p10
+			reg.NamaPTAsal,        // @p11
+			reg.IDProdiAsal,       // @p12
+			reg.NamaProdiAsal,     // @p13
+			reg.TglKeluar,         // @p14
+			reg.Keterangan,        // @p15
+			reg.SKYudisium,        // @p16
+			reg.TglSKYudisium,     // @p17
+			reg.IPK,               // @p18
+			reg.NoSeriIjazah,      // @p19
+			reg.JalurSkripsi,      // @p20
+			reg.JudulSkripsi,      // @p21
+			reg.BlnAwalBimbingan,  // @p22
+			reg.BlnAkhirBimbingan, // @p23
+			asalDataIjazah,        // @p24
+			reg.LastUpdate,        // @p25 - for UPDATE
+			reg.LastSync,          // @p26 - for both
+			reg.IDSP,              // @p27 - for INSERT
+			reg.IDPD,              // @p28 - for INSERT
+			reg.IDSemesterMasuk,   // @p29 - for INSERT
+			reg.CreateDate,        // @p30 - for INSERT
+			reg.IDCreator,         // @p31 - for INSERT
+			reg.IDUpdater,         // @p32 - for INSERT
+			reg.SoftDelete,        // @p33 - for INSERT
 		)
 		if err != nil {
 			return fmt.Errorf("failed to upsert reg_pd %s: %w", reg.IDRegPd, err)
@@ -387,20 +388,20 @@ func (r *repository) BulkUpsertKuliahMhs(ctx context.Context, data []*KuliahMhs)
 
 	for _, kuliah := range data {
 		_, err = tx.ExecContext(ctx, query,
-			kuliah.IDRegPd,      // @p1
-			kuliah.IDSmt,        // @p2
-			kuliah.IDStatMhs,    // @p3
-			kuliah.IPS,          // @p4
-			kuliah.IPK,          // @p5
-			kuliah.SKSSemester,  // @p6
-			kuliah.TotalSKS,     // @p7
-			kuliah.BiayaSemester,// @p8
-			kuliah.LastUpdate,   // @p9
-			kuliah.LastSync,     // @p10
-			kuliah.CreateDate,   // @p11 - for INSERT
-			kuliah.IDCreator,    // @p12 - for INSERT
-			kuliah.IDUpdater,    // @p13 - for INSERT
-			kuliah.SoftDelete,   // @p14 - for INSERT
+			kuliah.IDRegPd,       // @p1
+			kuliah.IDSmt,         // @p2
+			kuliah.IDStatMhs,     // @p3
+			kuliah.IPS,           // @p4
+			kuliah.IPK,           // @p5
+			kuliah.SKSSemester,   // @p6
+			kuliah.TotalSKS,      // @p7
+			kuliah.BiayaSemester, // @p8
+			kuliah.LastUpdate,    // @p9
+			kuliah.LastSync,      // @p10
+			kuliah.CreateDate,    // @p11 - for INSERT
+			kuliah.IDCreator,     // @p12 - for INSERT
+			kuliah.IDUpdater,     // @p13 - for INSERT
+			kuliah.SoftDelete,    // @p14 - for INSERT
 		)
 		if err != nil {
 			return fmt.Errorf("failed to upsert kuliah_mhs %s-%s: %w", kuliah.IDRegPd, kuliah.IDSmt, err)
@@ -437,7 +438,7 @@ func (r *repository) GetMahasiswaList(ctx context.Context, page, limit int, sear
 
 	// Prodi filter (Optional)
 	if idProdi != nil && *idProdi != "" {
-		whereConditions = append(whereConditions, fmt.Sprintf("reg.id_sms = @p%d", paramIndex))
+		whereConditions = append(whereConditions, fmt.Sprintf("reg.id_sms = CAST(@p%d AS UNIQUEIDENTIFIER)", paramIndex))
 		args = append(args, *idProdi)
 		paramIndex++
 	}
@@ -501,7 +502,7 @@ func (r *repository) GetMahasiswaList(ctx context.Context, page, limit int, sear
 			GROUP BY kmh.id_reg_pd
 		)
 		SELECT
-			pd.id_pd,
+			CAST(pd.id_pd AS VARCHAR(50)) AS id_pd,
 			pd.nm_pd AS nama,
 			reg.nipd AS npm,
 			LEFT(reg.id_semester_masuk, 4) AS angkatan,
@@ -515,7 +516,7 @@ func (r *repository) GetMahasiswaList(ctx context.Context, page, limit int, sear
 			END AS status_mahasiswa,
 			jk.ket_keluar AS jenis_keluar,
 			pd.last_sync,
-			reg.id_sms AS id_prodi,
+			CAST(reg.id_sms AS VARCHAR(50)) AS id_prodi,
 			sms.nm_lemb AS nama_prodi,
 			didik.nm_jenj_didik AS nama_jenjang
 		FROM pdrd.peserta_didik AS pd
@@ -591,7 +592,20 @@ func (r *repository) GetMahasiswaList(ctx context.Context, page, limit int, sear
 
 // GetMahasiswaByID retrieves a single mahasiswa by ID
 func (r *repository) GetMahasiswaByID(ctx context.Context, idPD string) (*PesertaDidik, error) {
-	query := `SELECT * FROM pdrd.peserta_didik WHERE id_pd = @p1 AND soft_delete = 0`
+	query := `
+		SELECT
+			CAST(id_pd AS VARCHAR(50)) AS id_pd,
+			nm_pd, jk, nik, nisn, tmpt_lahir, tgl_lahir,
+			jln, rt, rw, nm_dsn, ds_kel, kode_pos, tlpn_rumah, tlpn_hp, email,
+			nm_wali, tgl_lahir_wali, id_pekerjaan_wali, id_penghasilan_wali, id_pendidikan_wali,
+			nm_ibu_kandung, tgl_lahir_ibu, nik_ibu, id_pekerjaan_ibu, id_penghasilan_ibu, id_pendidikan_ibu, id_kk_ibu,
+			nm_ayah, tgl_lahir_ayah, nik_ayah, id_pekerjaan_ayah, id_penghasilan_ayah, id_pendidikan_ayah, id_kk_ayah,
+			a_terima_kps, no_kps, id_kk, id_alat_transport,
+			id_kewarganegaraan, id_agama, id_jns_tinggal, id_wil, id_stat_mhs,
+			create_date, id_creator, last_update, id_updater, soft_delete, last_sync
+		FROM pdrd.peserta_didik
+		WHERE id_pd = CAST(@p1 AS UNIQUEIDENTIFIER) AND soft_delete = 0
+	`
 
 	var pd PesertaDidik
 	err := r.db.GetContext(ctx, &pd, query, idPD)
@@ -607,7 +621,19 @@ func (r *repository) GetMahasiswaByID(ctx context.Context, idPD string) (*Pesert
 
 // GetRegPdByID retrieves registration data by ID
 func (r *repository) GetRegPdByID(ctx context.Context, idRegPd string) (*RegPd, error) {
-	query := `SELECT * FROM pdrd.reg_pd WHERE id_reg_pd = @p1 AND soft_delete = 0`
+	query := `
+		SELECT
+			CAST(id_reg_pd AS VARCHAR(50)) AS id_reg_pd,
+			CAST(id_sp AS VARCHAR(50)) AS id_sp,
+			CAST(id_sms AS VARCHAR(50)) AS id_sms,
+			CAST(id_pd AS VARCHAR(50)) AS id_pd,
+			id_jns_daftar, id_jalur_daftar, id_pembiayaan, id_semester_masuk, id_jns_keluar, nipd, tgl_masuk_sp,
+			sks_diakui, id_pt_asal, nm_pt_asal, id_prodi_asal, nm_prodi_asal,
+			tgl_keluar, ket, sk_yudisium, tgl_sk_yudisium, ipk, no_seri_ijazah, jalur_skripsi, judul_skripsi, bln_awal_bimbingan, bln_akhir_bimbingan, asal_data_ijazah,
+			create_date, id_creator, last_update, id_updater, soft_delete, last_sync
+		FROM pdrd.reg_pd
+		WHERE id_reg_pd = CAST(@p1 AS UNIQUEIDENTIFIER) AND soft_delete = 0
+	`
 
 	var reg RegPd
 	err := r.db.GetContext(ctx, &reg, query, idRegPd)
@@ -621,12 +647,56 @@ func (r *repository) GetRegPdByID(ctx context.Context, idRegPd string) (*RegPd, 
 	return &reg, nil
 }
 
+// getActivePeriod retrieves the active semester from ref.semester table
+// Mimics the Laravel dashboard service's getActivePeriod() method
+func (r *repository) getActivePeriod(ctx context.Context) (string, error) {
+	// First query: Try to get active period with a_periode_aktif = 1
+	var idSmt string
+	err := r.db.GetContext(ctx, &idSmt, `
+		SELECT TOP 1 id_smt
+		FROM ref.semester
+		WHERE expired_date IS NULL
+			AND a_periode_aktif = 1
+	`)
+
+	// If found, return it
+	if err == nil {
+		log.Printf("✅ [Active Period] Found active semester: %s", idSmt)
+		return idSmt, nil
+	}
+
+	// If not found, fallback to latest semester with RIGHT(id_smt, 1) < '3'
+	err = r.db.GetContext(ctx, &idSmt, `
+		SELECT TOP 1 id_smt
+		FROM ref.semester
+		WHERE expired_date IS NULL
+			AND RIGHT(id_smt, 1) < '3'
+		ORDER BY id_smt DESC
+	`)
+
+	if err != nil {
+		// Last resort: return default value
+		log.Printf("⚠️  [Active Period] Could not determine active semester, using default: 20242")
+		return "20242", nil
+	}
+
+	log.Printf("✅ [Active Period] Using latest semester: %s", idSmt)
+	return idSmt, nil
+}
+
 // GetMahasiswaStats retrieves statistics for dashboard
 func (r *repository) GetMahasiswaStats(ctx context.Context) (*MahasiswaStats, error) {
 	stats := &MahasiswaStats{}
 
+	// Get active semester dynamically from database
+	activePeriod, err := r.getActivePeriod(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get active period: %w", err)
+	}
+	log.Printf("📊 [Stats] Using active period: %s", activePeriod)
+
 	// Card 1: Total mahasiswa - Count ALL from reg_pd (seluruh mahasiswa di database)
-	err := r.db.GetContext(ctx, &stats.TotalMahasiswa, `
+	err = r.db.GetContext(ctx, &stats.TotalMahasiswa, `
 		SELECT COUNT(*)
 		FROM pdrd.reg_pd
 		WHERE soft_delete = 0
@@ -636,9 +706,33 @@ func (r *repository) GetMahasiswaStats(ctx context.Context) (*MahasiswaStats, er
 	}
 
 	// Card 2: Total mahasiswa AKTIF - Berdasarkan semester aktif/berjalan (kuliah_mhs)
-	// Sama seperti query di dashboard service UnilaStatisticsRepository
-	// Hitung mahasiswa dengan status 'A' (Aktif) di kuliah_mhs semester berjalan
 	err = r.db.GetContext(ctx, &stats.TotalAktif, `
+		SELECT COUNT(DISTINCT pd.id_pd) AS total
+		FROM pdrd.kuliah_mhs AS kmh
+		JOIN pdrd.reg_pd AS reg
+			ON reg.id_reg_pd = kmh.id_reg_pd
+			AND reg.soft_delete = 0
+		JOIN pdrd.peserta_didik AS pd
+			ON pd.id_pd = reg.id_pd
+			AND pd.soft_delete = 0
+			AND pd.id_stat_mhs = 'A'
+		INNER JOIN pdrd.sms AS sms
+			ON sms.id_sms = reg.id_sms
+			AND sms.soft_delete = 0
+			AND sms.stat_prodi = 'A'
+		INNER JOIN ref.jenjang_pendidikan AS didik
+			ON didik.id_jenj_didik = sms.id_jenj_didik
+			AND didik.expired_date IS NULL
+		WHERE kmh.soft_delete = 0
+			AND kmh.id_stat_mhs = 'A'
+			AND kmh.id_smt = @p1
+	`, activePeriod)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get total aktif: %w", err)
+	}
+
+	// Card 3: Total mahasiswa TIDAK AKTIF - Di semester berjalan
+	err = r.db.GetContext(ctx, &stats.TotalTidakAktif, `
 		SELECT COUNT(DISTINCT pd.id_pd)
 		FROM pdrd.kuliah_mhs AS kmh
 		JOIN pdrd.reg_pd AS reg
@@ -655,41 +749,10 @@ func (r *repository) GetMahasiswaStats(ctx context.Context) (*MahasiswaStats, er
 		INNER JOIN ref.jenjang_pendidikan AS didik
 			ON didik.id_jenj_didik = sms.id_jenj_didik
 			AND didik.expired_date IS NULL
-			AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
 		WHERE kmh.soft_delete = 0
-			AND kmh.id_stat_mhs = 'A'
-			AND kmh.id_smt = '20251'
-	`)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get total aktif: %w", err)
-	}
-
-	// Card 3: Total mahasiswa TIDAK AKTIF - Di semester berjalan
-	// Hitung mahasiswa yang ADA di reg_pd tapi TIDAK ADA atau TIDAK AKTIF di kuliah_mhs semester berjalan
-	// Termasuk: Cuti, Non-Aktif, atau tidak punya kuliah_mhs di semester aktif
-	err = r.db.GetContext(ctx, &stats.TotalTidakAktif, `
-		SELECT COUNT(DISTINCT pd.id_pd)
-		FROM pdrd.reg_pd AS reg
-		JOIN pdrd.peserta_didik AS pd
-			ON pd.id_pd = reg.id_pd
-			AND pd.soft_delete = 0
-			AND pd.id_stat_mhs = 'A'
-		INNER JOIN pdrd.sms AS sms
-			ON sms.id_sms = reg.id_sms
-			AND sms.soft_delete = 0
-			AND sms.stat_prodi = 'A'
-		INNER JOIN ref.jenjang_pendidikan AS didik
-			ON didik.id_jenj_didik = sms.id_jenj_didik
-			AND didik.expired_date IS NULL
-			AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
-		LEFT JOIN pdrd.kuliah_mhs AS kmh
-			ON kmh.id_reg_pd = reg.id_reg_pd
-			AND kmh.soft_delete = 0
-			AND kmh.id_smt = '20251'
-			AND kmh.id_stat_mhs = 'A'
-		WHERE reg.soft_delete = 0
-			AND kmh.id_reg_pd IS NULL
-	`)
+			AND kmh.id_stat_mhs != 'A'
+			AND kmh.id_smt = @p1
+	`, activePeriod)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get total tidak aktif: %w", err)
 	}
@@ -753,12 +816,12 @@ func (r *repository) GetAngkatanList(ctx context.Context) ([]string, error) {
 func (r *repository) GetProdiList(ctx context.Context) ([]map[string]interface{}, error) {
 	query := `
 		SELECT
-			sms.id_sms,
+			CAST(sms.id_sms AS VARCHAR(50)) AS id_sms,
 			sms.nm_lemb AS nama_prodi,
 			sms.kode_prodi,
 			sms.id_jenj_didik,
 			didik.nm_jenj_didik,
-			sms.id_sp,
+			CAST(sms.id_sp AS VARCHAR(50)) AS id_sp,
 			sms.stat_prodi
 		FROM pdrd.sms AS sms
 		INNER JOIN ref.jenjang_pendidikan AS didik
@@ -856,34 +919,33 @@ func (r *repository) GetReferenceCache(ctx context.Context) (*ReferenceCache, er
 
 // CheckOrCreateSyncLog checks if sync log exists for this month, create if not
 func (r *repository) CheckOrCreateSyncLog(ctx context.Context, idSms, angkatan string) error {
-	// Check if log exists for this month
+	// Check if log exists for this month (no angkatan column - same as Laravel seeder)
 	checkQuery := `
 		SELECT COUNT(*)
 		FROM logger.log_sync_pd_sms
 		WHERE id_sms = @p1
-			AND angkatan = @p2
 			AND tgl_sync >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)
 			AND a_selesai = 1
 	`
 
 	var count int
-	err := r.db.QueryRowContext(ctx, checkQuery, idSms, angkatan).Scan(&count)
+	err := r.db.QueryRowContext(ctx, checkQuery, idSms).Scan(&count)
 	if err != nil {
 		return fmt.Errorf("failed to check sync log: %w", err)
 	}
 
-	// If already synced this month, skip
+	// If already synced this month, skip (no matter what angkatan)
 	if count > 0 {
-		return fmt.Errorf("prodi %s angkatan %s already synced this month", idSms, angkatan)
+		return fmt.Errorf("prodi %s already synced this month", idSms)
 	}
 
-	// Create new sync log
+	// Create new sync log (without angkatan - same as Laravel seeder)
 	insertQuery := `
-		INSERT INTO logger.log_sync_pd_sms (id_sms, tgl_sync, waktu_mulai_sync, a_selesai, angkatan)
-		VALUES (@p1, CAST(GETDATE() AS DATE), GETDATE(), 0, @p2)
+		INSERT INTO logger.log_sync_pd_sms (id_sms, tgl_sync, waktu_mulai_sync, a_selesai)
+		VALUES (@p1, CAST(GETDATE() AS DATE), GETDATE(), 0)
 	`
 
-	_, err = r.db.ExecContext(ctx, insertQuery, idSms, angkatan)
+	_, err = r.db.ExecContext(ctx, insertQuery, idSms)
 	if err != nil {
 		return fmt.Errorf("failed to create sync log: %w", err)
 	}
@@ -891,33 +953,26 @@ func (r *repository) CheckOrCreateSyncLog(ctx context.Context, idSms, angkatan s
 	return nil
 }
 
-// UpdateSyncLogProgress updates sync progress
+// UpdateSyncLogProgress updates sync progress (no stats columns - keeping it simple like Laravel seeder)
 func (r *repository) UpdateSyncLogProgress(ctx context.Context, idSms, angkatan string, totalMhs, berhasil, gagal int) error {
-	query := `
-		UPDATE logger.log_sync_pd_sms
-		SET total_mahasiswa = @p1,
-			total_berhasil = @p2,
-			total_gagal = @p3
-		WHERE id_sms = @p4
-			AND angkatan = @p5
-			AND tgl_sync >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)
-	`
-
-	_, err := r.db.ExecContext(ctx, query, totalMhs, berhasil, gagal, idSms, angkatan)
-	return err
+	// No-op: Laravel seeder doesn't update progress, it only creates and completes log
+	// We can log the progress but don't need to update database
+	// log.Printf("📊 [Sync Progress] Prodi %s: %d/%d success, %d failed", idSms, berhasil, totalMhs, gagal)
+	return nil
 }
 
 // CompleteSyncLog marks sync as completed
+// Matches Laravel seeder: updates a_selesai and waktu_selesai_sync for current month sync
 func (r *repository) CompleteSyncLog(ctx context.Context, idSms, angkatan string) error {
+	// Laravel seeder only uses id_sms and current month check (no angkatan column)
 	query := `
 		UPDATE logger.log_sync_pd_sms
 		SET a_selesai = 1,
 			waktu_selesai_sync = GETDATE()
 		WHERE id_sms = @p1
-			AND angkatan = @p2
 			AND tgl_sync >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)
 	`
 
-	_, err := r.db.ExecContext(ctx, query, idSms, angkatan)
+	_, err := r.db.ExecContext(ctx, query, idSms)
 	return err
 }
