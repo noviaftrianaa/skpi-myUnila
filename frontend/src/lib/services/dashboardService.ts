@@ -325,8 +325,12 @@ class DashboardService {
    */
   async getUnilaStatistics(): Promise<UnilaStatisticsResponse> {
     try {
+      // Add cache-busting parameter to force fresh data
       const response = await axios.get<UnilaStatisticsResponse>(
-        `${DASHBOARD_API_URL}/unila/statistics`
+        `${DASHBOARD_API_URL}/unila/statistics`,
+        {
+          params: { _t: Date.now() }
+        }
       );
       return response.data;
     } catch (error) {

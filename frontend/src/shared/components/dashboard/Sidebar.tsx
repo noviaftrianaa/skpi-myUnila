@@ -36,6 +36,11 @@ export default function Sidebar({
     const roleLower = user.role.toLowerCase();
     if (roleLower.includes("developer")) return "developer";
     if (roleLower.includes("rektor")) return "rektor";
+    if (roleLower.includes("wakil rektor 1") || roleLower.includes("wakilrektor1")) return "wakilrektor1";
+    if (roleLower.includes("wakil rektor 2") || roleLower.includes("wakilrektor2")) return "wakilrektor2";
+    if (roleLower.includes("wakil rektor 3") || roleLower.includes("wakilrektor3")) return "wakilrektor3";
+    if (roleLower.includes("wakil rektor 4") || roleLower.includes("wakilrektor4")) return "wakilrektor4";
+    if (roleLower.includes("lp3m")) return "lp3m";
     if (roleLower.includes("admin")) return "admin";
     if (roleLower.includes("mahasiswa") || roleLower.includes("student"))
       return "mahasiswa";

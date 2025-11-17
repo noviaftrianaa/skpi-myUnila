@@ -67,8 +67,10 @@ const serviceDocsMap: Record<string, string> = {
 };
 
 export default function KongAdminPage() {
-  // Require authentication and Developer or Rektor role
-  const { user, isLoading: authLoading } = useRequireAuth({ requireRole: ["Developer", "Rektor"] });
+  // Require authentication and Developer, Rektor, Wakil Rektor, or LP3M role
+  const { user, isLoading: authLoading } = useRequireAuth({
+    requireRole: ["Developer", "Rektor", "Wakil Rektor 1", "Wakil Rektor 2", "Wakil Rektor 3", "Wakil Rektor 4", "LP3M UNILA"]
+  });
   const router = useRouter();
 
   const [services, setServices] = useState<KongService[]>([]);

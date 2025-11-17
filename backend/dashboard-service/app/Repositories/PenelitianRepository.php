@@ -201,7 +201,6 @@ class PenelitianRepository
                 INNER JOIN ref.jenjang_pendidikan AS didik
                     ON didik.id_jenj_didik = sms.id_jenj_didik
                     AND didik.expired_date IS NULL
-                    AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
                 WHERE l.soft_delete = 0
                     AND l.jns_litabmas IN ('L', 'M')
                     AND l.id_thn_kegiatan IS NOT NULL
