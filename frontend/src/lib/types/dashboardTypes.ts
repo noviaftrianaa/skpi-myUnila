@@ -6,7 +6,7 @@
 
 export interface MenuItem {
   title: string;
-  icon: React.ReactNode;
+  icon?: React.ReactNode; // Optional for children/submenu items
   href?: string;
   children?: MenuItem[];
   roles?: string[]; // Roles yang boleh akses menu ini

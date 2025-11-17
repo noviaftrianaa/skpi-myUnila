@@ -286,18 +286,19 @@ type SyncFilter struct {
 
 // MahasiswaListItem - Mahasiswa with calculated fields for list view
 type MahasiswaListItem struct {
-	IDPD              string     `json:"id_pd"`
-	Nama              string     `json:"nama"`
-	NPM               *string    `json:"npm"`
-	Angkatan          *string    `json:"angkatan"` // Extracted from id_semester_masuk
-	NamaJalurMasuk    *string    `json:"jalur_masuk"`
-	NamaJenisDaftar   *string    `json:"jenis_pendaftaran"`
-	SemesterSekarang  *int       `json:"semester_sekarang"` // COUNT from kuliah_mhs
-	NamaStatusMhs     *string    `json:"status_mahasiswa"`
-	NamaJenisKeluar   *string    `json:"jenis_keluar,omitempty"`
-	LastSync          *time.Time `json:"last_sync"`
-	IDProdi           *string    `json:"id_prodi"`
-	NamaProdi         *string    `json:"nama_prodi"`
+	IDPD              string     `db:"id_pd" json:"id_pd"`
+	Nama              string     `db:"nama" json:"nama"`
+	NPM               *string    `db:"npm" json:"npm"`
+	Angkatan          *string    `db:"angkatan" json:"angkatan"` // Extracted from id_semester_masuk
+	NamaJalurMasuk    *string    `db:"jalur_masuk" json:"jalur_masuk"`
+	NamaJenisDaftar   *string    `db:"jenis_pendaftaran" json:"jenis_pendaftaran"`
+	SemesterSekarang  *int       `db:"semester_sekarang" json:"semester_sekarang"` // COUNT from kuliah_mhs
+	NamaStatusMhs     *string    `db:"status_mahasiswa" json:"status_mahasiswa"`
+	NamaJenisKeluar   *string    `db:"jenis_keluar" json:"jenis_keluar,omitempty"`
+	LastSync          *time.Time `db:"last_sync" json:"last_sync"`
+	IDProdi           *string    `db:"id_prodi" json:"id_prodi"`
+	NamaProdi         *string    `db:"nama_prodi" json:"nama_prodi"`
+	NamaJenjang       *string    `db:"nama_jenjang" json:"nama_jenjang"` // Jenjang pendidikan (S1, S2, S3, D3, D4)
 }
 
 // MahasiswaListResult - Paginated list result

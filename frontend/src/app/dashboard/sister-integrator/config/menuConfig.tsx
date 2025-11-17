@@ -2,7 +2,7 @@
  * Menu Configuration untuk SISTER Integrator
  *
  * Dashboard untuk sinkronisasi data dengan SISTER API Kemdikbud
- * Hanya untuk role: Developer
+ * Untuk role: Developer dan Rektor
  */
 
 import {
@@ -27,78 +27,78 @@ export const sisterIntegratorMenuConfig: MenuItem[] = [
     title: "Dashboard",
     icon: <MdDashboard className="w-5 h-5" />,
     href: "/dashboard/sister-integrator",
-    roles: ["developer"],
+    roles: ["developer", "rektor"],
   },
   {
     title: "Referensi",
     icon: <FiBookOpen className="w-5 h-5" />,
     href: "/dashboard/sister-integrator/referensi",
-    roles: ["developer"],
+    roles: ["developer", "rektor"],
   },
   {
     title: "Data PDRD",
     icon: <FiUsers className="w-5 h-5" />,
-    roles: ["developer"],
+    roles: ["developer", "rektor"],
     children: [
       {
         title: "Dosen",
         href: "/dashboard/sister-integrator/pdrd/dosen",
-        roles: ["developer"],
+        roles: ["developer", "rektor"],
       },
       {
         title: "Penugasan PTK",
         href: "/dashboard/sister-integrator/pdrd/penugasan",
-        roles: ["developer"],
+        roles: ["developer", "rektor"],
       },
       {
         title: "Penelitian",
         href: "/dashboard/sister-integrator/pdrd/penelitian",
-        roles: ["developer"],
+        roles: ["developer", "rektor"],
       },
       {
         title: "Pengabdian",
         href: "/dashboard/sister-integrator/pdrd/pengabdian",
-        roles: ["developer"],
+        roles: ["developer", "rektor"],
       },
       {
         title: "Publikasi",
         href: "/dashboard/sister-integrator/pdrd/publikasi",
-        roles: ["developer"],
+        roles: ["developer", "rektor"],
       },
       {
         title: "Pendidikan Formal",
         href: "/dashboard/sister-integrator/pdrd/pendidikan-formal",
-        roles: ["developer"],
+        roles: ["developer", "rektor"],
       },
       {
         title: "Riwayat Pekerjaan",
         href: "/dashboard/sister-integrator/pdrd/riwayat-pekerjaan",
-        roles: ["developer"],
+        roles: ["developer", "rektor"],
       },
       {
         title: "Jabatan Fungsional",
         href: "/dashboard/sister-integrator/pdrd/jabatan-fungsional",
-        roles: ["developer"],
+        roles: ["developer", "rektor"],
       },
       {
         title: "Jabatan Struktural",
         href: "/dashboard/sister-integrator/pdrd/jabatan-struktural",
-        roles: ["developer"],
+        roles: ["developer", "rektor"],
       },
       {
         title: "Tugas Tambahan",
         href: "/dashboard/sister-integrator/pdrd/tugas-tambahan",
-        roles: ["developer"],
+        roles: ["developer", "rektor"],
       },
       {
         title: "Sertifikasi Dosen",
         href: "/dashboard/sister-integrator/pdrd/sertifikasi-dosen",
-        roles: ["developer"],
+        roles: ["developer", "rektor"],
       },
       {
         title: "Bidang Ilmu",
         href: "/dashboard/sister-integrator/pdrd/bidang-ilmu",
-        roles: ["developer"],
+        roles: ["developer", "rektor"],
       },
     ],
   },
@@ -106,18 +106,18 @@ export const sisterIntegratorMenuConfig: MenuItem[] = [
     title: "Monitoring",
     icon: <FiActivity className="w-5 h-5" />,
     href: "/dashboard/sister-integrator/monitoring",
-    roles: ["developer"],
+    roles: ["developer", "rektor"],
   },
   {
     title: "Sync Logs",
     icon: <FiFileText className="w-5 h-5" />,
     href: "/dashboard/sister-integrator/logs",
-    roles: ["developer"],
+    roles: ["developer", "rektor"],
   },
   {
     title: "API Configuration",
     icon: <FiSettings className="w-5 h-5" />,
     href: "/dashboard/sister-integrator/settings",
-    roles: ["developer"],
+    roles: ["developer", "rektor"],
   },
 ];

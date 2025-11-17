@@ -545,3 +545,10 @@ func isRetryableError(errMsg string) bool {
 
 	return false
 }
+
+// SyncSingleMahasiswaTest - Test sync for single mahasiswa by ID (for debugging)
+func (s *service) SyncSingleMahasiswaTest(ctx context.Context, idRegPd string) (*MahasiswaSyncResult, error) {
+	// This is a test/debug endpoint - sync single mahasiswa without full validation
+	result := s.syncSingleMahasiswaWithRetry(idRegPd, "", "")
+	return &result, nil
+}

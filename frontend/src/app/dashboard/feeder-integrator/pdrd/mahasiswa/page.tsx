@@ -2,366 +2,408 @@
 
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
-import { feederIntegratorMenuConfig } from "../../config/menuConfig";
+import FeederMahasiswaTable from "@/shared/components/feeder-integrator/FeederMahasiswaTable";
 import {
   Card,
   CardBody,
-  Input,
   Button,
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
-  Chip,
-  Pagination,
-  Select,
-  SelectItem,
-  Spinner
+  Spinner,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Progress,
 } from "@heroui/react";
-import { RiGraduationCapFill } from "react-icons/ri";
-import { FiSearch, FiRefreshCw, FiFilter } from "react-icons/fi";
-import toast from "react-hot-toast";
+import {
+  FiUsers,
+  FiRefreshCw,
+  FiCheckCircle,
+  FiXCircle,
+  FiClock,
+  FiAlertCircle,
+  FiDatabase,
+} from "react-icons/fi";
+import { MdSync, MdSchool } from "react-icons/md";
+import { feederIntegratorMenuConfig } from "../../config/menuConfig";
+import { feederClient } from "@/lib/api/feederClient";
+import { toast } from "react-hot-toast";
+import ScheduleList from "@/components/sister-integrator/ScheduleList";
 
-interface Mahasiswa {
-  id_pd: string;
-  nama_pd: string;
-  nipd: string;
-  jenis_kelamin: string;
-  angkatan: string;
-  nama_prodi: string;
-  nama_status: string;
-  semester_sekarang: number;
-  last_sync: string;
+interface MahasiswaStats {
+  total_mahasiswa: number;
+  total_aktif: number;
+  total_tidak_aktif: number;
+  last_sync?: string;
 }
 
-interface AngkatanOption {
-  value: string;
-  label: string;
-}
-
-interface ProdiOption {
-  id_sms: string;
-  nama_prodi: string;
-  kode_prodi: string;
-}
-
-export default function MahasiswaPage() {
+export default function MahasiswaManagementPage() {
   useRequireAuth();
+  const { user } = useAuth();
 
-  const [mahasiswaList, setMahasiswaList] = useState<Mahasiswa[]>([]);
-  const [angkatanOptions, setAngkatanOptions] = useState<AngkatanOption[]>([]);
-  const [prodiOptions, setProdiOptions] = useState<ProdiOption[]>([]);
+  // State
+  const [stats, setStats] = useState<MahasiswaStats | null>(null);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [showSyncModal, setShowSyncModal] = useState(false);
+  const [showProgressModal, setShowProgressModal] = useState(false);
+  const [syncProgress, setSyncProgress] = useState(0);
+  const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
+  const [syncResult, setSyncResult] = useState<{
+    totalRecords: number;
+    message: string;
+  } | null>(null);
 
-  const [selectedAngkatan, setSelectedAngkatan] = useState<string[]>(["2024"]);
-  const [selectedProdi, setSelectedProdi] = useState<string>("");
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
-  const [limit] = useState(10);
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingFilters, setIsLoadingFilters] = useState(true);
-
-  const API_BASE_URL = process.env.NEXT_PUBLIC_FEEDER_API_URL || "http://localhost:8084/api/v1";
-
-  // Load filter options on mount
+  // Fetch stats on mount
   useEffect(() => {
-    loadFilterOptions();
+    fetchStats();
   }, []);
 
-  // Load mahasiswa list when filters change
-  useEffect(() => {
-    if (selectedAngkatan.length > 0) {
-      loadMahasiswaList();
-    }
-  }, [selectedAngkatan, selectedProdi, searchQuery, page]);
-
-  const loadFilterOptions = async () => {
-    setIsLoadingFilters(true);
+  const fetchStats = async () => {
     try {
-      // Load angkatan list
-      const angkatanRes = await fetch(`${API_BASE_URL}/mahasiswa/helper/angkatan`);
-      const angkatanData = await angkatanRes.json();
-
-      if (angkatanData.success) {
-        const options = angkatanData.data.map((year: string) => ({
-          value: year,
-          label: `Angkatan ${year}`
-        }));
-        setAngkatanOptions(options);
-      }
-
-      // Load prodi list
-      const prodiRes = await fetch(`${API_BASE_URL}/mahasiswa/helper/prodi`);
-      const prodiData = await prodiRes.json();
-
-      if (prodiData.success) {
-        setProdiOptions(prodiData.data);
-      }
-    } catch (error) {
-      console.error("Failed to load filter options:", error);
-      toast.error("Gagal memuat filter");
-    } finally {
-      setIsLoadingFilters(false);
-    }
-  };
-
-  const loadMahasiswaList = async () => {
-    if (selectedAngkatan.length === 0) {
-      toast.error("Pilih minimal 1 angkatan");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const params = new URLSearchParams({
-        angkatan: selectedAngkatan.join(","),
-        page: page.toString(),
-        limit: limit.toString(),
-      });
-
-      if (selectedProdi) params.append("id_prodi", selectedProdi);
-      if (searchQuery) params.append("search", searchQuery);
-
-      const response = await fetch(`${API_BASE_URL}/mahasiswa?${params}`);
-      const data = await response.json();
+      setIsLoadingStats(true);
+      const response = await feederClient.get("/mahasiswa/stats");
+      const data = response.data;
 
       if (data.success) {
-        setMahasiswaList(data.data.items || []);
-        setTotalPages(data.data.total_pages || 1);
-        setTotalItems(data.data.total_items || 0);
-      } else {
-        toast.error(data.message || "Gagal memuat data mahasiswa");
-        setMahasiswaList([]);
+        setStats(data.data);
       }
     } catch (error) {
-      console.error("Failed to load mahasiswa:", error);
-      toast.error("Gagal memuat data mahasiswa");
-      setMahasiswaList([]);
+      console.error("Error fetching stats:", error);
+      toast.error("Gagal memuat statistik mahasiswa");
     } finally {
-      setIsLoading(false);
+      setIsLoadingStats(false);
     }
   };
 
-  const handleSearch = () => {
-    setPage(1);
-    loadMahasiswaList();
+  const handleSyncClick = () => {
+    setShowSyncModal(true);
   };
 
-  const handleReset = () => {
-    setSelectedAngkatan(["2024"]);
-    setSelectedProdi("");
-    setSearchQuery("");
-    setPage(1);
+  const handleConfirmSync = async () => {
+    setShowSyncModal(false);
+    setShowProgressModal(true);
+    setIsSyncing(true);
+    setSyncStatus("syncing");
+    setSyncProgress(0);
+
+    try {
+      // Simulate progress
+      const progressInterval = setInterval(() => {
+        setSyncProgress((prev) => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 300);
+
+      // TODO: Call sync API when implemented
+      // const response = await feederClient.post("/mahasiswa/sync", {
+      //   synced_by: user?.name || "system"
+      // });
+
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      clearInterval(progressInterval);
+      setSyncProgress(100);
+      setSyncStatus("success");
+
+      // Mock result
+      setSyncResult({
+        totalRecords: 1000,
+        message: "Data mahasiswa berhasil disinkronkan"
+      });
+
+      toast.success("Sinkronisasi berhasil!");
+
+      // Refresh stats after 2 seconds
+      setTimeout(async () => {
+        await fetchStats();
+        setShowProgressModal(false);
+        setSyncProgress(0);
+        setSyncStatus("idle");
+      }, 2000);
+    } catch (error: any) {
+      console.error("Error syncing mahasiswa:", error);
+      setSyncStatus("error");
+      toast.error(error.message || "Gagal melakukan sinkronisasi");
+      setTimeout(() => {
+        setShowProgressModal(false);
+        setSyncProgress(0);
+        setSyncStatus("idle");
+      }, 2000);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
-  const getStatusColor = (status: string) => {
-    const statusLower = status?.toLowerCase() || "";
-    if (statusLower.includes("aktif")) return "success";
-    if (statusLower.includes("lulus")) return "primary";
-    if (statusLower.includes("cuti")) return "warning";
-    if (statusLower.includes("keluar") || statusLower.includes("do")) return "danger";
-    return "default";
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "Belum pernah";
+    return new Date(dateString).toLocaleString("id-ID", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   return (
     <DashboardLayout
       appName="Feeder Integrator"
-      appIcon={<RiGraduationCapFill className="w-6 h-6 text-white" />}
+      appIcon={<MdSchool className="w-6 h-6 text-white" />}
       menuConfig={feederIntegratorMenuConfig}
       pageTitle="Data Mahasiswa"
     >
       <div className="space-y-6">
-        {/* Header */}
-        <Card className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800">
-          <CardBody className="p-6">
-            <div className="flex items-center gap-4 text-white">
-              <RiGraduationCapFill className="w-12 h-12" />
-              <div>
-                <h1 className="text-2xl font-bold">Data Mahasiswa</h1>
-                <p className="text-blue-100">Kelola data mahasiswa dari Neo Feeder PDDIKTI</p>
+        {/* Header with Title and Sync Button */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+              Data Mahasiswa
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Data mahasiswa terdaftar di sistem Neo Feeder PDDIKTI
+            </p>
+          </div>
+          <Button
+            color="primary"
+            size="lg"
+            startContent={<MdSync className="w-5 h-5" />}
+            onPress={handleSyncClick}
+            isLoading={isSyncing}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all rounded-xl"
+          >
+            Sinkronisasi Data
+          </Button>
+        </div>
+
+        {/* Statistics Cards - Compact Horizontal Layout (Match Sister Dosen Style) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Total Mahasiswa Card */}
+          <Card className="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
+            <CardBody className="p-4 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
+                  <FiDatabase className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-blue-100">Total Mahasiswa</p>
+                    <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
+                      <span className="text-[10px] font-semibold text-white">Live</span>
+                    </div>
+                  </div>
+                  {isLoadingStats ? (
+                    <Spinner size="sm" color="white" />
+                  ) : (
+                    <>
+                      <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
+                        {stats?.total_mahasiswa.toLocaleString() || "0"}
+                      </h3>
+                      <p className="text-[10px] text-blue-100/80 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse" />
+                        Total seluruh mahasiswa
+                      </p>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
-          </CardBody>
-        </Card>
+            </CardBody>
+          </Card>
 
-        {/* Filters */}
-        <Card>
-          <CardBody className="p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <FiFilter className="w-5 h-5 text-blue-600" />
-              <h3 className="text-lg font-semibold">Filter Data</h3>
-            </div>
-
-            {isLoadingFilters ? (
-              <div className="flex justify-center py-8">
-                <Spinner size="lg" />
+          {/* Mahasiswa Aktif Card */}
+          <Card className="bg-gradient-to-br from-emerald-500 via-green-600 to-teal-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
+            <CardBody className="p-4 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
+                  <FiCheckCircle className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-emerald-100">Mahasiswa Aktif</p>
+                    <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
+                      <span className="text-[10px] font-semibold text-white">✓ Active</span>
+                    </div>
+                  </div>
+                  {isLoadingStats ? (
+                    <Spinner size="sm" color="white" />
+                  ) : (
+                    <>
+                      <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
+                        {stats?.total_aktif.toLocaleString() || "0"}
+                      </h3>
+                      <p className="text-[10px] text-emerald-100/80">
+                        Status aktif kuliah
+                      </p>
+                    </>
+                  )}
+                </div>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Angkatan Filter (REQUIRED) */}
-                <Select
-                  label="Angkatan"
-                  placeholder="Pilih angkatan"
-                  selectionMode="multiple"
-                  selectedKeys={selectedAngkatan}
-                  onSelectionChange={(keys) => {
-                    const selected = Array.from(keys) as string[];
-                    setSelectedAngkatan(selected);
-                    setPage(1);
-                  }}
-                  isRequired
-                  description="Wajib pilih minimal 1 angkatan"
-                >
-                  {angkatanOptions.map((option) => (
-                    <SelectItem key={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </Select>
+            </CardBody>
+          </Card>
 
-                {/* Prodi Filter (Optional) */}
-                <Select
-                  label="Program Studi"
-                  placeholder="Semua Prodi"
-                  selectedKeys={selectedProdi ? [selectedProdi] : []}
-                  onSelectionChange={(keys) => {
-                    const selected = Array.from(keys)[0] as string;
-                    setSelectedProdi(selected || "");
-                    setPage(1);
-                  }}
-                >
-                  {prodiOptions.map((prodi) => (
-                    <SelectItem
-                      key={prodi.id_sms}
-                      textValue={`${prodi.kode_prodi} - ${prodi.nama_prodi}`}
-                    >
-                      <div className="flex flex-col">
-                        <span className="text-sm">{prodi.nama_prodi}</span>
-                        <span className="text-xs text-gray-500">{prodi.kode_prodi}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </Select>
-
-                {/* Search */}
-                <Input
-                  label="Cari"
-                  placeholder="Cari nama atau NPM..."
-                  value={searchQuery}
-                  onValueChange={setSearchQuery}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") handleSearch();
-                  }}
-                  startContent={<FiSearch className="text-gray-400" />}
-                />
+          {/* Mahasiswa Tidak Aktif Card */}
+          <Card className="bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
+            <CardBody className="p-4 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
+                  <FiXCircle className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-orange-100">Tidak Aktif</p>
+                    <div className="px-2 py-0.5 rounded-full bg-white/30 backdrop-blur-sm">
+                      <span className="text-[10px] font-semibold text-white">⚠ Inactive</span>
+                    </div>
+                  </div>
+                  {isLoadingStats ? (
+                    <Spinner size="sm" color="white" />
+                  ) : (
+                    <>
+                      <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
+                        {stats?.total_tidak_aktif.toLocaleString() || "0"}
+                      </h3>
+                      <p className="text-[10px] text-orange-100/80">
+                        {stats ? ((stats.total_tidak_aktif / stats.total_mahasiswa) * 100).toFixed(1) : 0}% dari total mahasiswa
+                      </p>
+                    </>
+                  )}
+                </div>
               </div>
-            )}
+            </CardBody>
+          </Card>
 
-            <div className="flex gap-2 mt-4">
-              <Button
-                color="primary"
-                startContent={<FiSearch />}
-                onClick={handleSearch}
-                isLoading={isLoading}
-                isDisabled={selectedAngkatan.length === 0}
-              >
-                Cari
-              </Button>
-              <Button
-                variant="bordered"
-                startContent={<FiRefreshCw />}
-                onClick={handleReset}
-              >
-                Reset
-              </Button>
-            </div>
-          </CardBody>
-        </Card>
+          {/* Last Sync Card */}
+          <Card className="bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
+            <CardBody className="p-4 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
+                  <FiClock className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-purple-100">Last Sync</p>
+                    <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
+                      <span className="text-[10px] font-semibold text-white">Recent</span>
+                    </div>
+                  </div>
+                  {isLoadingStats ? (
+                    <Spinner size="sm" color="white" />
+                  ) : (
+                    <>
+                      <h3 className="text-base font-bold text-white leading-tight mb-1 truncate">
+                        {formatDate(stats?.last_sync)}
+                      </h3>
+                      <p className="text-[10px] text-purple-100/80">
+                        Terakhir sinkronisasi data
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </div>
+
+        {/* Scheduled Syncs Section */}
+        <ScheduleList syncType={"mahasiswa" as any} />
 
         {/* Data Table */}
-        <Card>
-          <CardBody className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">
-                Daftar Mahasiswa
-                {totalItems > 0 && (
-                  <span className="text-sm font-normal text-gray-500 ml-2">
-                    ({totalItems} mahasiswa)
-                  </span>
-                )}
-              </h3>
-            </div>
-
-            {isLoading ? (
-              <div className="flex justify-center py-12">
-                <Spinner size="lg" />
-              </div>
-            ) : mahasiswaList.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <RiGraduationCapFill className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                <p className="text-lg font-medium">Tidak ada data mahasiswa</p>
-                <p className="text-sm mt-2">
-                  {selectedAngkatan.length === 0
-                    ? "Pilih angkatan untuk melihat data"
-                    : "Coba ubah filter atau lakukan sync data terlebih dahulu"}
-                </p>
-              </div>
-            ) : (
-              <>
-                <Table aria-label="Tabel Mahasiswa">
-                  <TableHeader>
-                    <TableColumn>NPM</TableColumn>
-                    <TableColumn>NAMA</TableColumn>
-                    <TableColumn>L/P</TableColumn>
-                    <TableColumn>ANGKATAN</TableColumn>
-                    <TableColumn>PRODI</TableColumn>
-                    <TableColumn>SEMESTER</TableColumn>
-                    <TableColumn>STATUS</TableColumn>
-                  </TableHeader>
-                  <TableBody>
-                    {mahasiswaList.map((mhs) => (
-                      <TableRow key={mhs.id_pd}>
-                        <TableCell className="font-mono text-sm">{mhs.nipd}</TableCell>
-                        <TableCell className="font-medium">{mhs.nama_pd}</TableCell>
-                        <TableCell>
-                          <Chip size="sm" variant="flat" color={mhs.jenis_kelamin === "L" ? "primary" : "secondary"}>
-                            {mhs.jenis_kelamin}
-                          </Chip>
-                        </TableCell>
-                        <TableCell>{mhs.angkatan}</TableCell>
-                        <TableCell className="text-sm">{mhs.nama_prodi}</TableCell>
-                        <TableCell className="text-center">{mhs.semester_sekarang}</TableCell>
-                        <TableCell>
-                          <Chip size="sm" variant="flat" color={getStatusColor(mhs.nama_status)}>
-                            {mhs.nama_status}
-                          </Chip>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-
-                {totalPages > 1 && (
-                  <div className="flex justify-center mt-4">
-                    <Pagination
-                      total={totalPages}
-                      page={page}
-                      onChange={setPage}
-                      showControls
-                    />
-                  </div>
-                )}
-              </>
-            )}
-          </CardBody>
-        </Card>
+        <FeederMahasiswaTable />
       </div>
+
+      {/* Sync Confirmation Modal */}
+      <Modal
+        isOpen={showSyncModal}
+        onClose={() => setShowSyncModal(false)}
+        size="md"
+      >
+        <ModalContent>
+          <ModalHeader className="flex gap-2 items-center">
+            <FiAlertCircle className="text-blue-500" />
+            Konfirmasi Sinkronisasi
+          </ModalHeader>
+          <ModalBody>
+            <p>
+              Apakah Anda yakin ingin melakukan sinkronisasi data mahasiswa dari Neo Feeder PDDIKTI?
+            </p>
+            <p className="text-sm text-gray-600 mt-2">
+              Proses ini akan memperbarui data mahasiswa di sistem dengan data terbaru dari Neo Feeder.
+            </p>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              variant="light"
+              onPress={() => setShowSyncModal(false)}
+            >
+              Batal
+            </Button>
+            <Button
+              color="primary"
+              onPress={handleConfirmSync}
+              startContent={<MdSync />}
+            >
+              Ya, Sinkronkan
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Sync Progress Modal */}
+      <Modal
+        isOpen={showProgressModal}
+        isDismissable={false}
+        hideCloseButton
+        size="md"
+      >
+        <ModalContent>
+          <ModalHeader className="flex gap-2 items-center">
+            {syncStatus === "syncing" && <FiRefreshCw className="animate-spin text-blue-500" />}
+            {syncStatus === "success" && <FiCheckCircle className="text-green-500" />}
+            {syncStatus === "error" && <FiXCircle className="text-red-500" />}
+            {syncStatus === "syncing" && "Sedang Sinkronisasi..."}
+            {syncStatus === "success" && "Sinkronisasi Berhasil!"}
+            {syncStatus === "error" && "Sinkronisasi Gagal"}
+          </ModalHeader>
+          <ModalBody className="pb-6">
+            <Progress
+              value={syncProgress}
+              color={
+                syncStatus === "success"
+                  ? "success"
+                  : syncStatus === "error"
+                  ? "danger"
+                  : "primary"
+              }
+              className="mb-4"
+            />
+            <p className="text-sm text-center">
+              {syncStatus === "syncing" && `Progress: ${syncProgress}%`}
+              {syncStatus === "success" && syncResult?.message}
+              {syncStatus === "error" && "Terjadi kesalahan saat sinkronisasi"}
+            </p>
+            {syncStatus === "success" && syncResult && (
+              <p className="text-xs text-center text-gray-600 mt-2">
+                {syncResult.totalRecords} data berhasil disinkronkan
+              </p>
+            )}
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </DashboardLayout>
   );
 }

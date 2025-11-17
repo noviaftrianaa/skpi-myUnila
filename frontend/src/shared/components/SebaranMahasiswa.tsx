@@ -655,24 +655,25 @@ export default function SebaranMahasiswa() {
               </div>
 
               {/* Stats Section */}
-              <div className="p-4 sm:p-6 lg:p-8 bg-white">
+              <div className="p-4 sm:p-6 lg:p-8 bg-white overflow-hidden">
                 <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
                   <svg className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                   </svg>
                   Detail Sebaran
                 </h3>
-                <div className="space-y-4 max-h-[300px] sm:max-h-[350px] lg:max-h-[400px] overflow-y-auto pr-2">
+                <div className="overflow-x-auto overflow-y-hidden -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+                  <div className="space-y-4 max-h-[300px] sm:max-h-[350px] lg:max-h-[400px] overflow-y-auto pr-2 min-w-[450px] sm:min-w-[400px]">
                   {/* Show prodi data when drilled down, otherwise show fakultas or kabupaten data */}
                   {activeView === 'fakultas' && drillLevel === 'prodi'
                     ? prodiData.map((item, index) => (
-                        <div key={index} className="group">
+                        <div key={index} className="group min-w-[380px]">
                           <div className="flex items-center justify-between mb-2">
-                            <div>
-                              <span className="text-sm font-semibold text-gray-700">{item.nama}</span>
-                              <span className="text-xs text-gray-500 ml-2">({item.jenjang})</span>
+                            <div className="flex-1 min-w-0 mr-4">
+                              <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">{item.nama}</span>
+                              <span className="text-xs text-gray-500 ml-2 whitespace-nowrap">({item.jenjang})</span>
                             </div>
-                            <span className="text-sm font-bold text-green-600">{item.jumlah.toLocaleString()}</span>
+                            <span className="text-sm font-bold text-green-600 whitespace-nowrap">{item.jumlah.toLocaleString()}</span>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
                             <motion.div
@@ -687,10 +688,10 @@ export default function SebaranMahasiswa() {
                         </div>
                       ))
                     : (activeView === 'fakultas' ? fakultasData : sebaranData).map((item, index) => (
-                        <div key={index} className="group">
+                        <div key={index} className="group min-w-[380px]">
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-semibold text-gray-700">{activeView === 'fakultas' ? item.nama : item.provinsi}</span>
-                            <span className="text-sm font-bold text-blue-600">{item.jumlah.toLocaleString()}</span>
+                            <span className="text-sm font-semibold text-gray-700 whitespace-nowrap flex-1 min-w-0 mr-4">{activeView === 'fakultas' ? item.nama : item.provinsi}</span>
+                            <span className="text-sm font-bold text-blue-600 whitespace-nowrap">{item.jumlah.toLocaleString()}</span>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
                             <motion.div
@@ -712,6 +713,7 @@ export default function SebaranMahasiswa() {
                         </div>
                       ))
                   }
+                  </div>
                 </div>
               </div>
             </div>

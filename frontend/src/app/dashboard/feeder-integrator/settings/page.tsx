@@ -20,14 +20,14 @@ import {
   useDisclosure,
 } from "@heroui/react";
 import { FiSettings, FiPlus, FiEdit2, FiTrash2, FiCheck, FiX, FiRefreshCw } from "react-icons/fi";
-import { RiGraduationCapFill } from "react-icons/ri";
+import { MdSchool } from "react-icons/md";
 import toast, { Toaster } from "react-hot-toast";
 import { feederIntegratorMenuConfig } from "../config/menuConfig";
 import {
-  feederConfigService,
+  apiConfigService,
   type APIConfig,
   type CreateAPIConfigRequest,
-} from "@/lib/services/feederConfigService";
+} from "@/lib/services/apiConfigService";
 
 export default function APIConfigurationPage() {
   useRequireAuth();
@@ -42,10 +42,10 @@ export default function APIConfigurationPage() {
     api_code: "",
     api_name: "",
     base_url: "",
-    auth_type: "token_based",
+    auth_type: "custom",
     is_active: true,
-    use_env_fallback: true,
-    timeout_seconds: 120,
+    use_env_fallback: false,
+    timeout_seconds: 30,
     max_retries: 3,
   });
   const [credentials, setCredentials] = useState<Record<string, string>>({
@@ -60,7 +60,7 @@ export default function APIConfigurationPage() {
   const loadConfigs = async () => {
     try {
       setLoading(true);
-      const data = await feederConfigService.getAll();
+      const data = await apiConfigService.getAll();
       // Filter only feeder-related configs (case-insensitive)
       const feederConfigs = data.filter(
         (config) =>
@@ -79,7 +79,7 @@ export default function APIConfigurationPage() {
   const handleTest = async (config: APIConfig) => {
     setTesting(true);
     try {
-      const result = await feederConfigService.testConnection({
+      const result = await apiConfigService.testConnection({
         api_code: config.api_code,
         base_url: config.base_url,
       });
@@ -104,10 +104,10 @@ export default function APIConfigurationPage() {
       };
 
       if (selectedConfig) {
-        await feederConfigService.update(selectedConfig.id, request);
+        await apiConfigService.update(selectedConfig.id, request);
         toast.success("Configuration updated successfully");
       } else {
-        await feederConfigService.create(request);
+        await apiConfigService.create(request);
         toast.success("Configuration created successfully");
       }
 
@@ -123,7 +123,7 @@ export default function APIConfigurationPage() {
     if (!confirm("Are you sure you want to delete this configuration?")) return;
 
     try {
-      await feederConfigService.delete(id);
+      await apiConfigService.delete(id);
       toast.success("Configuration deleted successfully");
       loadConfigs();
     } catch (error: any) {
@@ -158,10 +158,10 @@ export default function APIConfigurationPage() {
       api_code: "",
       api_name: "",
       base_url: "",
-      auth_type: "token_based",
+      auth_type: "custom",
       is_active: true,
-      use_env_fallback: true,
-      timeout_seconds: 120,
+      use_env_fallback: false,
+      timeout_seconds: 30,
       max_retries: 3,
     });
     setCredentials({
@@ -290,7 +290,7 @@ export default function APIConfigurationPage() {
   return (
     <DashboardLayout
       appName="Feeder Integrator"
-      appIcon={<RiGraduationCapFill className="w-6 h-6 text-white" />}
+      appIcon={<MdSchool className="w-6 h-6 text-white" />}
       menuConfig={feederIntegratorMenuConfig}
       pageTitle="API Configuration"
     >
@@ -316,7 +316,7 @@ export default function APIConfigurationPage() {
               resetForm();
               onOpen();
             }}
-            className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all rounded-xl"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all rounded-xl"
           >
             Add Configuration
           </Button>
@@ -329,30 +329,6 @@ export default function APIConfigurationPage() {
               <div className="flex flex-col items-center justify-center p-12">
                 <Spinner size="lg" color="primary" />
                 <p className="text-gray-600 mt-4">Loading configurations...</p>
-              </div>
-            ) : configs.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-12 text-center">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center mx-auto mb-4 shadow-lg">
-                  <FiSettings className="w-10 h-10 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
-                  No API Configuration Found
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md">
-                  Belum ada konfigurasi API Feeder. Klik tombol "Add Configuration" untuk menambahkan konfigurasi Neo Feeder PDDIKTI API.
-                </p>
-                <Button
-                  color="primary"
-                  size="lg"
-                  startContent={<FiPlus className="w-5 h-5" />}
-                  onPress={() => {
-                    resetForm();
-                    onOpen();
-                  }}
-                  className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold shadow-lg"
-                >
-                  Add First Configuration
-                </Button>
               </div>
             ) : (
               <DataTable
@@ -383,7 +359,7 @@ export default function APIConfigurationPage() {
               <>
                 <ModalHeader className="flex flex-col gap-1 border-b border-gray-200 dark:border-gray-700 pb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white shadow-lg">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg">
                       <FiSettings className="w-6 h-6" />
                     </div>
                     <div>
@@ -391,7 +367,7 @@ export default function APIConfigurationPage() {
                         {selectedConfig ? "Edit Configuration" : "Add New Configuration"}
                       </h3>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                        {selectedConfig ? "Update API configuration details" : "Configure Neo Feeder PDDIKTI API connection"}
+                        {selectedConfig ? "Update API configuration details" : "Configure new Neo Feeder API connection"}
                       </p>
                     </div>
                   </div>
@@ -403,7 +379,7 @@ export default function APIConfigurationPage() {
                         API Code <span className="text-red-500">*</span>
                       </label>
                       <Input
-                        placeholder="feeder_api"
+                        placeholder="FEEDER, NEO-FEEDER, etc."
                         value={formData.api_code}
                         onValueChange={(value) =>
                           setFormData({ ...formData, api_code: value })
@@ -442,7 +418,7 @@ export default function APIConfigurationPage() {
                         Base URL <span className="text-red-500">*</span>
                       </label>
                       <Input
-                        placeholder="https://dapelmikpdpt.unila.ac.id/New/ws/Api.php"
+                        placeholder="https://api-feeder.kemdikbud.go.id"
                         value={formData.base_url}
                         onValueChange={(value) =>
                           setFormData({ ...formData, base_url: value })
@@ -458,9 +434,9 @@ export default function APIConfigurationPage() {
 
                     {/* Credentials Section - Collapsible */}
                     <details className="border rounded-lg overflow-hidden">
-                      <summary className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
+                      <summary className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
                             <FiSettings className="w-4 h-4 text-white" />
                           </div>
                           <div>
@@ -477,7 +453,7 @@ export default function APIConfigurationPage() {
                           </label>
                           <Input
                             type="text"
-                            placeholder="e.g., one_data"
+                            placeholder="Feeder Username"
                             value={credentials.username || ""}
                             onValueChange={(value) =>
                               setCredentials({ ...credentials, username: value })
@@ -497,7 +473,7 @@ export default function APIConfigurationPage() {
                           </label>
                           <Input
                             type="password"
-                            placeholder="API Password"
+                            placeholder="Feeder Password"
                             value={credentials.password || ""}
                             onValueChange={(value) =>
                               setCredentials({ ...credentials, password: value })
@@ -514,7 +490,7 @@ export default function APIConfigurationPage() {
                         <div className="flex items-start gap-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
                           <FiCheck className="w-4 h-4 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
                           <p className="text-xs text-yellow-800 dark:text-yellow-200">
-                            Kosongkan jika ingin pakai .env file. Credentials akan dienkripsi dengan AES-256 sebelum disimpan.
+                            Kosongkan jika ingin pakai .env file
                           </p>
                         </div>
                       </div>
@@ -568,7 +544,7 @@ export default function APIConfigurationPage() {
                   <Button
                     color="primary"
                     onPress={handleSave}
-                    className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold"
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold"
                     startContent={selectedConfig ? <FiEdit2 /> : <FiPlus />}
                   >
                     {selectedConfig ? "Update Configuration" : "Create Configuration"}
