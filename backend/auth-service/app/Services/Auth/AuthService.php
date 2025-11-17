@@ -33,12 +33,12 @@ class AuthService
         $user = $this->userRepo->findByUsername($username);
 
         if (!$user) {
-            throw new \Exception('Invalid credentials', 401);
+            throw new \Exception('Username tidak ditemukan', 401);
         }
 
         // Verify password
         if (!$this->userRepo->verifyPassword($user, $password)) {
-            throw new \Exception('Invalid credentials', 401);
+            throw new \Exception('Password yang Anda masukkan salah', 401);
         }
 
         // Debug: Check MFA status
