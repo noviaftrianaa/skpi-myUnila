@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
@@ -55,6 +55,19 @@ export default function MahasiswaManagementPage() {
     totalRecords: number;
     message: string;
   } | null>(null);
+  const [syncFilters, setSyncFilters] = useState<{
+    id_prodi?: string;
+    angkatan?: string[];
+  }>({});
+  const [syncFilterLabels, setSyncFilterLabels] = useState<{
+    prodi?: string;
+    angkatan?: string;
+  }>({});
+
+  // Handle filter changes from table
+  const handleFilterChange = useCallback((filters: { id_prodi?: string; angkatan?: string[] }) => {
+    setSyncFilters(filters);
+  }, []);
 
   // Fetch stats on mount
   useEffect(() => {
@@ -64,7 +77,10 @@ export default function MahasiswaManagementPage() {
   const fetchStats = async () => {
     try {
       setIsLoadingStats(true);
-      const response = await feederClient.get("/mahasiswa/stats");
+      // Add cache-busting parameter to force fresh data
+      const response = await feederClient.get("/mahasiswa/stats", {
+        params: { _t: Date.now() }
+      });
       const data = response.data;
 
       if (data.success) {
@@ -90,53 +106,83 @@ export default function MahasiswaManagementPage() {
     setSyncProgress(0);
 
     try {
-      // Simulate progress
+      // Simulate initial progress
       const progressInterval = setInterval(() => {
         setSyncProgress((prev) => {
-          if (prev >= 90) {
+          if (prev >= 20) {
             clearInterval(progressInterval);
-            return 90;
+            return 20;
           }
-          return prev + 10;
+          return prev + 5;
         });
-      }, 300);
+      }, 200);
 
-      // TODO: Call sync API when implemented
-      // const response = await feederClient.post("/mahasiswa/sync", {
-      //   synced_by: user?.name || "system"
-      // });
+      // Build query params for sync API
+      const params = new URLSearchParams();
+      params.append("synced_by", user?.name || "system");
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Add angkatan parameter (required)
+      if (syncFilters.angkatan && syncFilters.angkatan.length > 0) {
+        params.append("angkatan", syncFilters.angkatan.join(","));
+      } else {
+        // If no angkatan filter, sync all recent angkatan (last 5 years)
+        const currentYear = new Date().getFullYear();
+        const defaultAngkatan = [];
+        for (let i = 0; i < 5; i++) {
+          defaultAngkatan.push((currentYear - i).toString());
+        }
+        params.append("angkatan", defaultAngkatan.join(","));
+      }
+
+      // Add id_prodi parameter (optional)
+      if (syncFilters.id_prodi) {
+        params.append("id_prodi", syncFilters.id_prodi);
+      }
+
+      // Call sync API with query parameters
+      const response = await feederClient.post(`/mahasiswa/sync?${params.toString()}`);
 
       clearInterval(progressInterval);
-      setSyncProgress(100);
-      setSyncStatus("success");
 
-      // Mock result
-      setSyncResult({
-        totalRecords: 1000,
-        message: "Data mahasiswa berhasil disinkronkan"
-      });
+      if (response.data.success) {
+        setSyncProgress(100);
+        setSyncStatus("success");
 
-      toast.success("Sinkronisasi berhasil!");
+        // Set result from API response
+        setSyncResult({
+          totalRecords: response.data.data?.total_records || 0,
+          message: response.data.message || "Data mahasiswa berhasil disinkronkan"
+        });
 
-      // Refresh stats after 2 seconds
-      setTimeout(async () => {
-        await fetchStats();
-        setShowProgressModal(false);
-        setSyncProgress(0);
-        setSyncStatus("idle");
-      }, 2000);
+        toast.success("Sinkronisasi berhasil!");
+
+        // Refresh stats after 2 seconds
+        setTimeout(async () => {
+          await fetchStats();
+          setShowProgressModal(false);
+          setSyncProgress(0);
+          setSyncStatus("idle");
+        }, 2000);
+      } else {
+        throw new Error(response.data.message || "Sinkronisasi gagal");
+      }
     } catch (error: any) {
       console.error("Error syncing mahasiswa:", error);
       setSyncStatus("error");
-      toast.error(error.message || "Gagal melakukan sinkronisasi");
+
+      const errorMessage = error.response?.data?.message || error.message || "Gagal melakukan sinkronisasi";
+      toast.error(errorMessage);
+
+      setSyncResult({
+        totalRecords: 0,
+        message: errorMessage
+      });
+
       setTimeout(() => {
         setShowProgressModal(false);
         setSyncProgress(0);
         setSyncStatus("idle");
-      }, 2000);
+      }, 3000);
     } finally {
       setIsSyncing(false);
     }
@@ -323,43 +369,105 @@ export default function MahasiswaManagementPage() {
         <ScheduleList syncType={"mahasiswa" as any} />
 
         {/* Data Table */}
-        <FeederMahasiswaTable />
+        <FeederMahasiswaTable onFilterChange={handleFilterChange} />
       </div>
 
       {/* Sync Confirmation Modal */}
       <Modal
         isOpen={showSyncModal}
-        onClose={() => setShowSyncModal(false)}
+        onOpenChange={setShowSyncModal}
         size="md"
+        backdrop="blur"
+        classNames={{
+          backdrop: "bg-black/50 backdrop-blur-sm",
+          base: "bg-white dark:bg-gray-800",
+        }}
       >
         <ModalContent>
-          <ModalHeader className="flex gap-2 items-center">
-            <FiAlertCircle className="text-blue-500" />
-            Konfirmasi Sinkronisasi
-          </ModalHeader>
-          <ModalBody>
-            <p>
-              Apakah Anda yakin ingin melakukan sinkronisasi data mahasiswa dari Neo Feeder PDDIKTI?
-            </p>
-            <p className="text-sm text-gray-600 mt-2">
-              Proses ini akan memperbarui data mahasiswa di sistem dengan data terbaru dari Neo Feeder.
-            </p>
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              variant="light"
-              onPress={() => setShowSyncModal(false)}
-            >
-              Batal
-            </Button>
-            <Button
-              color="primary"
-              onPress={handleConfirmSync}
-              startContent={<MdSync />}
-            >
-              Ya, Sinkronkan
-            </Button>
-          </ModalFooter>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white shadow-lg">
+                    <MdSync className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-800 dark:text-white">
+                      Konfirmasi Sinkronisasi
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                      Data Mahasiswa Neo Feeder
+                    </p>
+                  </div>
+                </div>
+              </ModalHeader>
+              <ModalBody className="py-6">
+                <div className="space-y-4">
+                  <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                    <div className="flex items-start gap-3">
+                      <FiAlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                      <div className="w-full">
+                        <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                          Proses ini akan mengambil data mahasiswa terbaru dari Neo Feeder PDDIKTI dan menyimpannya ke database.
+                        </p>
+                        <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1 list-disc list-inside">
+                          <li>Data yang sudah ada akan diperbarui</li>
+                          <li>Data baru akan ditambahkan</li>
+                          <li>Proses memerlukan waktu beberapa menit</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Filter Info */}
+                  {(syncFilters.id_prodi || (syncFilters.angkatan && syncFilters.angkatan.length > 0)) && (
+                    <div className="p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
+                      <h4 className="text-sm font-semibold text-gray-800 dark:text-white mb-2">
+                        Filter yang Diterapkan:
+                      </h4>
+                      <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                        {syncFilters.id_prodi && (
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">• Prodi:</span>
+                            <span>{syncFilterLabels.prodi || "Prodi terpilih"}</span>
+                          </div>
+                        )}
+                        {syncFilters.angkatan && syncFilters.angkatan.length > 0 && (
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">• Angkatan:</span>
+                            <span>{syncFilters.angkatan.join(", ")}</span>
+                          </div>
+                        )}
+                        {!syncFilters.id_prodi && (!syncFilters.angkatan || syncFilters.angkatan.length === 0) && (
+                          <p className="text-sm italic">Semua data mahasiswa aktif</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </ModalBody>
+              <ModalFooter className="border-t border-gray-200 dark:border-gray-700">
+                <Button
+                  variant="light"
+                  onPress={onClose}
+                  className="font-medium"
+                >
+                  Batal
+                </Button>
+                <Button
+                  color="primary"
+                  onPress={() => {
+                    onClose();
+                    handleConfirmSync();
+                  }}
+                  startContent={<MdSync className="w-4 h-4" />}
+                  className="font-medium bg-gradient-to-r from-purple-600 to-indigo-600 text-white"
+                >
+                  Ya, Sinkronkan Sekarang
+                </Button>
+              </ModalFooter>
+            </>
+          )}
         </ModalContent>
       </Modal>
 
@@ -369,38 +477,100 @@ export default function MahasiswaManagementPage() {
         isDismissable={false}
         hideCloseButton
         size="md"
+        backdrop="blur"
+        classNames={{
+          backdrop: "bg-black/50 backdrop-blur-sm",
+          base: "bg-white dark:bg-gray-800",
+        }}
       >
         <ModalContent>
-          <ModalHeader className="flex gap-2 items-center">
-            {syncStatus === "syncing" && <FiRefreshCw className="animate-spin text-blue-500" />}
-            {syncStatus === "success" && <FiCheckCircle className="text-green-500" />}
-            {syncStatus === "error" && <FiXCircle className="text-red-500" />}
-            {syncStatus === "syncing" && "Sedang Sinkronisasi..."}
-            {syncStatus === "success" && "Sinkronisasi Berhasil!"}
-            {syncStatus === "error" && "Sinkronisasi Gagal"}
+          <ModalHeader className="flex flex-col gap-1 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg ${
+                  syncStatus === "success"
+                    ? "bg-gradient-to-br from-green-500 to-green-600"
+                    : syncStatus === "error"
+                    ? "bg-gradient-to-br from-red-500 to-red-600"
+                    : "bg-gradient-to-br from-purple-500 to-indigo-600"
+                }`}
+              >
+                {syncStatus === "success" ? (
+                  <FiCheckCircle className="w-6 h-6" />
+                ) : syncStatus === "error" ? (
+                  <FiXCircle className="w-6 h-6" />
+                ) : (
+                  <FiRefreshCw className="w-6 h-6 animate-spin" />
+                )}
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-800 dark:text-white">
+                  {syncStatus === "success"
+                    ? "Sinkronisasi Berhasil!"
+                    : syncStatus === "error"
+                    ? "Sinkronisasi Gagal"
+                    : "Sedang Melakukan Sinkronisasi..."}
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                  {syncStatus === "syncing" && "Mohon tunggu sebentar"}
+                  {syncStatus === "success" && syncResult && `${syncResult.totalRecords} data berhasil disinkronkan`}
+                  {syncStatus === "error" && "Terjadi kesalahan saat sinkronisasi"}
+                </p>
+              </div>
+            </div>
           </ModalHeader>
-          <ModalBody className="pb-6">
-            <Progress
-              value={syncProgress}
-              color={
-                syncStatus === "success"
-                  ? "success"
-                  : syncStatus === "error"
-                  ? "danger"
-                  : "primary"
-              }
-              className="mb-4"
-            />
-            <p className="text-sm text-center">
-              {syncStatus === "syncing" && `Progress: ${syncProgress}%`}
-              {syncStatus === "success" && syncResult?.message}
-              {syncStatus === "error" && "Terjadi kesalahan saat sinkronisasi"}
-            </p>
-            {syncStatus === "success" && syncResult && (
-              <p className="text-xs text-center text-gray-600 mt-2">
-                {syncResult.totalRecords} data berhasil disinkronkan
-              </p>
-            )}
+          <ModalBody className="py-6">
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    Progress
+                  </span>
+                  <span className="text-sm font-bold text-purple-600 dark:text-purple-400">
+                    {syncProgress}%
+                  </span>
+                </div>
+                <Progress
+                  value={syncProgress}
+                  color={
+                    syncStatus === "success"
+                      ? "success"
+                      : syncStatus === "error"
+                      ? "danger"
+                      : "primary"
+                  }
+                  className="mb-2"
+                  size="md"
+                />
+              </div>
+
+              {syncStatus === "success" && syncResult && (
+                <div className="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                  <div className="flex items-center gap-3">
+                    <FiCheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                        {syncResult.message}
+                      </p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        Total: {syncResult.totalRecords} data mahasiswa
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {syncStatus === "error" && (
+                <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                  <div className="flex items-center gap-3">
+                    <FiXCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      Terjadi kesalahan saat melakukan sinkronisasi. Silakan coba lagi.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           </ModalBody>
         </ModalContent>
       </Modal>

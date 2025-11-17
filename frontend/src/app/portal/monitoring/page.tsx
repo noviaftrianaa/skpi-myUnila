@@ -153,7 +153,7 @@ const grafanaDashboards = [
 
 export default function MonitoringPage() {
   const { user, isLoading: authLoading } = useRequireAuth({
-    requireRole: ["Developer", "Rektor"],
+    requireRole: ["Developer", "Rektor", "Wakil Rektor 1", "Wakil Rektor 2", "Wakil Rektor 3", "Wakil Rektor 4", "LP3M UNILA"],
   });
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("tools");

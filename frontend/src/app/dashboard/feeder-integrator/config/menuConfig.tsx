@@ -2,7 +2,7 @@
  * Menu Configuration untuk Feeder Integrator
  *
  * Dashboard untuk sinkronisasi data dengan Neo Feeder PDDIKTI API
- * Untuk role: Developer dan Rektor
+ * Untuk role: Developer, Rektor, Wakil Rektor 1-4, dan LP3M UNILA
  */
 
 import {
@@ -20,53 +20,53 @@ export const feederIntegratorMenuConfig: MenuItem[] = [
     title: "Dashboard",
     icon: <MdDashboard className="w-5 h-5" />,
     href: "/dashboard/feeder-integrator",
-    roles: ["developer", "rektor"],
+    roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
   },
   {
     title: "Referensi",
     icon: <FiBookOpen className="w-5 h-5" />,
     href: "/dashboard/feeder-integrator/referensi",
-    roles: ["developer", "rektor"],
+    roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
   },
   {
     title: "Data PDRD",
     icon: <FiUsers className="w-5 h-5" />,
-    roles: ["developer", "rektor"],
+    roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
     children: [
       {
         title: "Mahasiswa",
         href: "/dashboard/feeder-integrator/pdrd/mahasiswa",
-        roles: ["developer", "rektor"],
+        roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
       },
       {
         title: "Aktivitas Kuliah Mahasiswa",
         href: "/dashboard/feeder-integrator/pdrd/aktivitas-kuliah",
-        roles: ["developer", "rektor"],
+        roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
       },
       {
         title: "Nilai Perkuliahan",
         href: "/dashboard/feeder-integrator/pdrd/nilai-perkuliahan",
-        roles: ["developer", "rektor"],
+        roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
       },
       {
         title: "Aktivitas Mahasiswa",
         href: "/dashboard/feeder-integrator/pdrd/aktivitas-mahasiswa",
-        roles: ["developer", "rektor"],
+        roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
       },
       {
         title: "Anggota Aktivitas Mahasiswa",
         href: "/dashboard/feeder-integrator/pdrd/anggota-aktivitas",
-        roles: ["developer", "rektor"],
+        roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
       },
       {
         title: "Bimbingan Mahasiswa",
         href: "/dashboard/feeder-integrator/pdrd/bimbingan",
-        roles: ["developer", "rektor"],
+        roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
       },
       {
         title: "Prestasi Mahasiswa",
         href: "/dashboard/feeder-integrator/pdrd/prestasi",
-        roles: ["developer", "rektor"],
+        roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
       },
     ],
   },
@@ -74,18 +74,18 @@ export const feederIntegratorMenuConfig: MenuItem[] = [
     title: "Monitoring",
     icon: <FiActivity className="w-5 h-5" />,
     href: "/dashboard/feeder-integrator/monitoring",
-    roles: ["developer", "rektor"],
+    roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
   },
   {
     title: "Sync Logs",
     icon: <FiFileText className="w-5 h-5" />,
     href: "/dashboard/feeder-integrator/logs",
-    roles: ["developer", "rektor"],
+    roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
   },
   {
     title: "API Configuration",
     icon: <FiSettings className="w-5 h-5" />,
     href: "/dashboard/feeder-integrator/settings",
-    roles: ["developer", "rektor"],
+    roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
   },
 ];

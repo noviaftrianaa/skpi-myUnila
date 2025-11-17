@@ -34,7 +34,11 @@ interface ProdiOption {
   nm_jenj_didik: string;
 }
 
-export default function FeederMahasiswaTable() {
+interface FeederMahasiswaTableProps {
+  onFilterChange?: (filters: { id_prodi?: string; angkatan?: string[] }) => void;
+}
+
+export default function FeederMahasiswaTable({ onFilterChange }: FeederMahasiswaTableProps) {
   const [data, setData] = useState<MahasiswaListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -127,6 +131,17 @@ export default function FeederMahasiswaTable() {
 
     loadData();
   }, [currentPage, rowsPerPage, searchQuery, filterAngkatan, filterProdi, angkatanOptions]);
+
+  // Notify parent about filter changes for sync
+  useEffect(() => {
+    if (onFilterChange) {
+      onFilterChange({
+        id_prodi: filterProdi || undefined,
+        angkatan: filterAngkatan.length > 0 ? filterAngkatan : undefined,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterProdi, filterAngkatan]);
 
   const formatDate = (dateString?: string | null) => {
     if (!dateString) return "Belum sync";

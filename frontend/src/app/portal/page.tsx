@@ -418,7 +418,7 @@ export default function DashboardPage() {
           color: "bg-purple-600",
           isFavorite: false,
           href: "/dashboard/sister-integrator",
-          requireRole: ["Developer", "Rektor"], // Only for Developer and Rektor role
+          requireRole: ["Developer", "Rektor", "Wakil Rektor 1", "Wakil Rektor 2", "Wakil Rektor 3", "Wakil Rektor 4", "LP3M UNILA"],
         },
         {
           id: "api-gateway",
@@ -428,7 +428,7 @@ export default function DashboardPage() {
           color: "bg-slate-700",
           isFavorite: false,
           href: "/portal/kong-admin",
-          requireRole: ["Developer", "Rektor"], // Only for Developer and Rektor role
+          requireRole: ["Developer", "Rektor", "Wakil Rektor 1", "Wakil Rektor 2", "Wakil Rektor 3", "Wakil Rektor 4", "LP3M UNILA"],
         },
         {
           id: "monitoring",
@@ -438,7 +438,7 @@ export default function DashboardPage() {
           color: "bg-orange-600",
           isFavorite: false,
           href: "/portal/monitoring",
-          requireRole: ["Developer", "Rektor"], // Only for Developer and Rektor role
+          requireRole: ["Developer", "Rektor", "Wakil Rektor 1", "Wakil Rektor 2", "Wakil Rektor 3", "Wakil Rektor 4", "LP3M UNILA"],
         },
       ],
     },
