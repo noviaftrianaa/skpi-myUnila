@@ -625,8 +625,7 @@ func (r *repository) GetRegPdByID(ctx context.Context, idRegPd string) (*RegPd, 
 func (r *repository) GetMahasiswaStats(ctx context.Context) (*MahasiswaStats, error) {
 	stats := &MahasiswaStats{}
 
-	// Total mahasiswa - Count ALL from reg_pd (raw data = 181.223)
-	// Hanya filter soft_delete = 0, tidak ada filter lain
+	// Card 1: Total mahasiswa - Count ALL from reg_pd (seluruh mahasiswa di database)
 	err := r.db.GetContext(ctx, &stats.TotalMahasiswa, `
 		SELECT COUNT(*)
 		FROM pdrd.reg_pd
@@ -636,25 +635,60 @@ func (r *repository) GetMahasiswaStats(ctx context.Context) (*MahasiswaStats, er
 		return nil, fmt.Errorf("failed to get total mahasiswa: %w", err)
 	}
 
-	// Total aktif - Mahasiswa yang BELUM keluar (id_jns_keluar IS NULL)
-	// Ini adalah mahasiswa yang masih aktif, cuti, atau status lain yang belum keluar
+	// Card 2: Total mahasiswa AKTIF - Berdasarkan semester aktif/berjalan (kuliah_mhs)
+	// Sama seperti query di dashboard service UnilaStatisticsRepository
+	// Hitung mahasiswa dengan status 'A' (Aktif) di kuliah_mhs semester berjalan
 	err = r.db.GetContext(ctx, &stats.TotalAktif, `
-		SELECT COUNT(*)
-		FROM pdrd.reg_pd
-		WHERE soft_delete = 0
-			AND id_jns_keluar IS NULL
+		SELECT COUNT(DISTINCT pd.id_pd)
+		FROM pdrd.kuliah_mhs AS kmh
+		JOIN pdrd.reg_pd AS reg
+			ON reg.id_reg_pd = kmh.id_reg_pd
+			AND reg.soft_delete = 0
+		JOIN pdrd.peserta_didik AS pd
+			ON pd.id_pd = reg.id_pd
+			AND pd.soft_delete = 0
+			AND pd.id_stat_mhs = 'A'
+		INNER JOIN pdrd.sms AS sms
+			ON sms.id_sms = reg.id_sms
+			AND sms.soft_delete = 0
+			AND sms.stat_prodi = 'A'
+		INNER JOIN ref.jenjang_pendidikan AS didik
+			ON didik.id_jenj_didik = sms.id_jenj_didik
+			AND didik.expired_date IS NULL
+			AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
+		WHERE kmh.soft_delete = 0
+			AND kmh.id_stat_mhs = 'A'
+			AND kmh.id_smt = '20251'
 	`)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get total aktif: %w", err)
 	}
 
-	// Total tidak aktif - Mahasiswa yang SUDAH keluar (id_jns_keluar IS NOT NULL)
-	// Ini termasuk: Lulus, DO, Mengundurkan Diri, Meninggal Dunia, dll
+	// Card 3: Total mahasiswa TIDAK AKTIF - Di semester berjalan
+	// Hitung mahasiswa yang ADA di reg_pd tapi TIDAK ADA atau TIDAK AKTIF di kuliah_mhs semester berjalan
+	// Termasuk: Cuti, Non-Aktif, atau tidak punya kuliah_mhs di semester aktif
 	err = r.db.GetContext(ctx, &stats.TotalTidakAktif, `
-		SELECT COUNT(*)
-		FROM pdrd.reg_pd
-		WHERE soft_delete = 0
-			AND id_jns_keluar IS NOT NULL
+		SELECT COUNT(DISTINCT pd.id_pd)
+		FROM pdrd.reg_pd AS reg
+		JOIN pdrd.peserta_didik AS pd
+			ON pd.id_pd = reg.id_pd
+			AND pd.soft_delete = 0
+			AND pd.id_stat_mhs = 'A'
+		INNER JOIN pdrd.sms AS sms
+			ON sms.id_sms = reg.id_sms
+			AND sms.soft_delete = 0
+			AND sms.stat_prodi = 'A'
+		INNER JOIN ref.jenjang_pendidikan AS didik
+			ON didik.id_jenj_didik = sms.id_jenj_didik
+			AND didik.expired_date IS NULL
+			AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
+		LEFT JOIN pdrd.kuliah_mhs AS kmh
+			ON kmh.id_reg_pd = reg.id_reg_pd
+			AND kmh.soft_delete = 0
+			AND kmh.id_smt = '20251'
+			AND kmh.id_stat_mhs = 'A'
+		WHERE reg.soft_delete = 0
+			AND kmh.id_reg_pd IS NULL
 	`)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get total tidak aktif: %w", err)
