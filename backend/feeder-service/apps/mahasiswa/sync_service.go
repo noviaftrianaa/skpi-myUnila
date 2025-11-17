@@ -31,6 +31,16 @@ const (
 func (s *service) SyncMahasiswaByAngkatan(ctx context.Context, filter *SyncFilter, syncedBy string) (*BatchMahasiswaSyncResult, error) {
 	startTime := time.Now()
 
+	log.Printf("🔍 [DEBUG] SyncMahasiswaByAngkatan called, checking feederAPI...")
+
+	// Check if Feeder API client is initialized
+	if s.feederAPI == nil {
+		log.Printf("❌ [ERROR] Feeder API client is NIL!")
+		return nil, fmt.Errorf("feeder API client is not initialized - please configure API credentials in settings")
+	}
+
+	log.Printf("✅ [DEBUG] Feeder API client is initialized")
+
 	// Validation: Angkatan is REQUIRED
 	if filter == nil || len(filter.Angkatan) == 0 {
 		return nil, fmt.Errorf("filter angkatan is required")
