@@ -33,6 +33,11 @@ type Repository interface {
 
 	// Reference cache for validation
 	GetReferenceCache(ctx context.Context) (*ReferenceCache, error)
+
+	// Sync log operations
+	CheckOrCreateSyncLog(ctx context.Context, idSms, angkatan string) error
+	UpdateSyncLogProgress(ctx context.Context, idSms, angkatan string, totalMhs, berhasil, gagal int) error
+	CompleteSyncLog(ctx context.Context, idSms, angkatan string) error
 }
 
 // ReferenceCache holds reference data for lookup and validation
@@ -619,18 +624,26 @@ func (r *repository) GetAngkatanList(ctx context.Context) ([]string, error) {
 	return angkatanList, nil
 }
 
-// GetProdiList retrieves list of prodi from pdrd.sms
+// GetProdiList retrieves list of active prodi from pdrd.sms for Unila only
 func (r *repository) GetProdiList(ctx context.Context) ([]map[string]interface{}, error) {
 	query := `
 		SELECT
-			id_sms,
-			nm_lemb AS nama_prodi,
-			kode_prodi,
-			id_jenj_didik
-		FROM pdrd.sms
-		WHERE soft_delete = 0
-			AND id_jns_sms = 3
-		ORDER BY nm_lemb ASC
+			sms.id_sms,
+			sms.nm_lemb AS nama_prodi,
+			sms.kode_prodi,
+			sms.id_jenj_didik,
+			didik.nm_jenj_didik,
+			sms.id_sp,
+			sms.stat_prodi
+		FROM pdrd.sms AS sms
+		INNER JOIN ref.jenjang_pendidikan AS didik
+			ON didik.id_jenj_didik = sms.id_jenj_didik
+			AND didik.expired_date IS NULL
+		WHERE sms.soft_delete = 0
+			AND sms.stat_prodi = 'A'
+			AND sms.id_jns_sms = '3'
+			AND CAST(sms.id_sp AS VARCHAR(50)) = 'e2b705a7-173e-464a-9fac-509128709515'
+		ORDER BY sms.nm_lemb ASC
 	`
 
 	rows, err := r.db.QueryContext(ctx, query)
@@ -641,18 +654,20 @@ func (r *repository) GetProdiList(ctx context.Context) ([]map[string]interface{}
 
 	var prodiList []map[string]interface{}
 	for rows.Next() {
-		var idSMS, namaProdi, kodeProdi string
-		var idJenjDidik int
-		err := rows.Scan(&idSMS, &namaProdi, &kodeProdi, &idJenjDidik)
+		var idSMS, namaProdi, kodeProdi, idJenjDidik, namaJenjang, idSP, statProdi string
+		err := rows.Scan(&idSMS, &namaProdi, &kodeProdi, &idJenjDidik, &namaJenjang, &idSP, &statProdi)
 		if err != nil {
 			continue
 		}
 
 		prodi := map[string]interface{}{
-			"id_sms":       idSMS,
-			"nama_prodi":   namaProdi,
-			"kode_prodi":   kodeProdi,
+			"id_sms":        idSMS,
+			"nama_prodi":    namaProdi,
+			"kode_prodi":    kodeProdi,
 			"id_jenj_didik": idJenjDidik,
+			"nm_jenj_didik": namaJenjang,
+			"id_sp":         idSP,
+			"stat_prodi":    statProdi,
 		}
 		prodiList = append(prodiList, prodi)
 	}
@@ -706,4 +721,72 @@ func (r *repository) GetReferenceCache(ctx context.Context) (*ReferenceCache, er
 
 	r.cache = cache
 	return cache, nil
+}
+
+// CheckOrCreateSyncLog checks if sync log exists for this month, create if not
+func (r *repository) CheckOrCreateSyncLog(ctx context.Context, idSms, angkatan string) error {
+	// Check if log exists for this month
+	checkQuery := `
+		SELECT COUNT(*)
+		FROM logger.log_sync_pd_sms
+		WHERE id_sms = @p1
+			AND angkatan = @p2
+			AND tgl_sync >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)
+			AND a_selesai = 1
+	`
+
+	var count int
+	err := r.db.QueryRowContext(ctx, checkQuery, idSms, angkatan).Scan(&count)
+	if err != nil {
+		return fmt.Errorf("failed to check sync log: %w", err)
+	}
+
+	// If already synced this month, skip
+	if count > 0 {
+		return fmt.Errorf("prodi %s angkatan %s already synced this month", idSms, angkatan)
+	}
+
+	// Create new sync log
+	insertQuery := `
+		INSERT INTO logger.log_sync_pd_sms (id_sms, tgl_sync, waktu_mulai_sync, a_selesai, angkatan)
+		VALUES (@p1, CAST(GETDATE() AS DATE), GETDATE(), 0, @p2)
+	`
+
+	_, err = r.db.ExecContext(ctx, insertQuery, idSms, angkatan)
+	if err != nil {
+		return fmt.Errorf("failed to create sync log: %w", err)
+	}
+
+	return nil
+}
+
+// UpdateSyncLogProgress updates sync progress
+func (r *repository) UpdateSyncLogProgress(ctx context.Context, idSms, angkatan string, totalMhs, berhasil, gagal int) error {
+	query := `
+		UPDATE logger.log_sync_pd_sms
+		SET total_mahasiswa = @p1,
+			total_berhasil = @p2,
+			total_gagal = @p3
+		WHERE id_sms = @p4
+			AND angkatan = @p5
+			AND tgl_sync >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)
+	`
+
+	_, err := r.db.ExecContext(ctx, query, totalMhs, berhasil, gagal, idSms, angkatan)
+	return err
+}
+
+// CompleteSyncLog marks sync as completed
+func (r *repository) CompleteSyncLog(ctx context.Context, idSms, angkatan string) error {
+	query := `
+		UPDATE logger.log_sync_pd_sms
+		SET a_selesai = 1,
+			waktu_selesai_sync = GETDATE()
+		WHERE id_sms = @p1
+			AND angkatan = @p2
+			AND tgl_sync >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)
+	`
+
+	_, err := r.db.ExecContext(ctx, query, idSms, angkatan)
+	return err
 }
