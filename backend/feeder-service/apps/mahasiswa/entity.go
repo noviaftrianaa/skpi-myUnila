@@ -322,3 +322,18 @@ type MahasiswaStats struct {
 	ByStatusMahasiswa   []map[string]interface{} `json:"by_status_mahasiswa"`
 	LastSync            *time.Time               `json:"last_sync"`
 }
+
+// --- Sync Log Entity ---
+
+// LogSyncPdSms - Sync log for mahasiswa sync per prodi (logger.log_sync_pd_sms)
+type LogSyncPdSms struct {
+	IDSMS            string     `db:"id_sms" json:"id_sms"`
+	TglSync          time.Time  `db:"tgl_sync" json:"tgl_sync"`
+	WaktuMulaiSync   time.Time  `db:"waktu_mulai_sync" json:"waktu_mulai_sync"`
+	WaktuSelesaiSync *time.Time `db:"waktu_selesai_sync" json:"waktu_selesai_sync"`
+	ASelesai         int        `db:"a_selesai" json:"a_selesai"` // 0=processing, 1=done
+	TotalMahasiswa   *int       `db:"total_mahasiswa" json:"total_mahasiswa"`
+	TotalBerhasil    *int       `db:"total_berhasil" json:"total_berhasil"`
+	TotalGagal       *int       `db:"total_gagal" json:"total_gagal"`
+	Angkatan         *string    `db:"angkatan" json:"angkatan"` // For tracking which angkatan
+}

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 )
@@ -17,12 +18,16 @@ const (
 	SYSTEM_UUID = "00000000-0000-0000-0000-000000000001"
 
 	// Worker configuration
-	NUM_WORKERS        = 3               // 3 concurrent workers
+	NUM_WORKERS        = 3                       // 3 concurrent workers
 	RATE_LIMIT_DELAY   = 200 * time.Millisecond // 200ms delay = ~5 req/sec per worker
-	MAX_RETRY_PER_ITEM = 2               // Retry failed items up to 2 times
+	MAX_RETRY_PER_ITEM = 2                       // Retry failed items up to 2 times
+
+	// Token expiry buffer - refresh token if less than 5 minutes remaining
+	TOKEN_EXPIRY_BUFFER = 5 * time.Minute
 )
 
 // SyncMahasiswaByAngkatan performs batch sync mahasiswa by angkatan using worker pool
+// Flow matches MahasiswaSeeder.php exactly
 func (s *service) SyncMahasiswaByAngkatan(ctx context.Context, filter *SyncFilter, syncedBy string) (*BatchMahasiswaSyncResult, error) {
 	startTime := time.Now()
 
@@ -42,22 +47,40 @@ func (s *service) SyncMahasiswaByAngkatan(ctx context.Context, filter *SyncFilte
 	log.Printf("📋 [Sync Mahasiswa] Will sync %d prodi", len(prodiList))
 
 	// Step 2: Collect all mahasiswa from all prodi and angkatan
+	// Match MahasiswaSeeder: Loop per angkatan → Loop per prodi → GetDataLengkapMahasiswaProdi → Filter locally
 	var allMahasiswaList []map[string]interface{}
+
 	for _, angkatan := range filter.Angkatan {
 		for _, prodi := range prodiList {
 			idProdi := prodi["id_sms"].(string)
 			namaProdi := prodi["nama_prodi"].(string)
 
-			log.Printf("📥 [Sync Mahasiswa] Fetching list from %s angkatan %s...", namaProdi, angkatan)
+			log.Printf("📥 [Sync Mahasiswa] Fetching from %s for angkatan %s...", namaProdi, angkatan)
 
-			// Get mahasiswa list from Feeder API for this prodi + angkatan
-			mhsList, err := s.getMahasiswaListFromFeeder(idProdi, angkatan)
+			// Check or create sync log
+			if err := s.repo.CheckOrCreateSyncLog(ctx, idProdi, angkatan); err != nil {
+				log.Printf("⚠️  [Sync Mahasiswa] Prodi %s angkatan %s: %v", namaProdi, angkatan, err)
+				continue // Skip if already synced this month
+			}
+
+			// Get mahasiswa list from Feeder API (NO filter - get ALL mahasiswa for this prodi)
+			// Then filter by angkatan in application code
+			mhsList, err := s.getMahasiswaListFromFeederByProdi(idProdi, angkatan)
 			if err != nil {
 				log.Printf("⚠️  [Sync Mahasiswa] Failed to get list from %s: %v", namaProdi, err)
+				// Don't fail entire sync, continue to next prodi
 				continue
 			}
 
 			log.Printf("✅ [Sync Mahasiswa] Found %d mahasiswa in %s angkatan %s", len(mhsList), namaProdi, angkatan)
+
+			// Tag each mahasiswa with prodi info for logging
+			for _, mhs := range mhsList {
+				mhs["__prodi_id"] = idProdi
+				mhs["__prodi_name"] = namaProdi
+				mhs["__angkatan"] = angkatan
+			}
+
 			allMahasiswaList = append(allMahasiswaList, mhsList...)
 		}
 	}
@@ -100,10 +123,17 @@ func (s *service) SyncMahasiswaByAngkatan(ctx context.Context, filter *SyncFilte
 		close(results)
 	}()
 
-	// Step 4: Collect results
+	// Step 4: Collect results and update sync logs per prodi
 	var allResults []MahasiswaSyncResult
 	successCount := 0
 	failedCount := 0
+
+	// Track per prodi stats for logging
+	prodiStats := make(map[string]map[string]*struct {
+		Total   int
+		Success int
+		Failed  int
+	})
 
 	for result := range results {
 		allResults = append(allResults, result)
@@ -113,11 +143,52 @@ func (s *service) SyncMahasiswaByAngkatan(ctx context.Context, filter *SyncFilte
 			failedCount++
 		}
 
+		// Track per prodi (find from original list)
+		for _, mhs := range allMahasiswaList {
+			if mhs["id_registrasi_mahasiswa"] == result.IDPD {
+				prodiID := mhs["__prodi_id"].(string)
+				angkatan := mhs["__angkatan"].(string)
+
+				if prodiStats[prodiID] == nil {
+					prodiStats[prodiID] = make(map[string]*struct {
+						Total   int
+						Success int
+						Failed  int
+					})
+				}
+				if prodiStats[prodiID][angkatan] == nil {
+					prodiStats[prodiID][angkatan] = &struct {
+						Total   int
+						Success int
+						Failed  int
+					}{}
+				}
+
+				prodiStats[prodiID][angkatan].Total++
+				if result.Success {
+					prodiStats[prodiID][angkatan].Success++
+				} else {
+					prodiStats[prodiID][angkatan].Failed++
+				}
+				break
+			}
+		}
+
 		// Log progress every 10 items
 		processed := successCount + failedCount
 		if processed%10 == 0 || processed == totalMahasiswa {
 			log.Printf("📈 [Sync Mahasiswa] Progress: %d/%d (Success: %d, Failed: %d)",
 				processed, totalMahasiswa, successCount, failedCount)
+		}
+	}
+
+	// Update sync logs for each prodi
+	for prodiID, angkatanStats := range prodiStats {
+		for angkatan, stats := range angkatanStats {
+			s.repo.UpdateSyncLogProgress(ctx, prodiID, angkatan, stats.Total, stats.Success, stats.Failed)
+			s.repo.CompleteSyncLog(ctx, prodiID, angkatan)
+			log.Printf("📊 [Sync Log] Prodi %s Angkatan %s: %d total, %d success, %d failed",
+				prodiID, angkatan, stats.Total, stats.Success, stats.Failed)
 		}
 	}
 
@@ -130,7 +201,7 @@ func (s *service) SyncMahasiswaByAngkatan(ctx context.Context, filter *SyncFilte
 		TotalSuccess:   successCount,
 		TotalFailed:    failedCount,
 		Duration:       duration.String(),
-		Results:        allResults, // Include all results for detailed logging
+		Results:        allResults,
 		SyncedBy:       syncedBy,
 		Filter:         filter,
 	}, nil
@@ -150,6 +221,19 @@ func (s *service) mahasiswaWorker(id int, jobs <-chan map[string]interface{}, re
 			npm = mhsInfo["nim"].(string)
 		}
 
+		// Check token expiry before each sync
+		if err := s.checkAndRefreshToken(); err != nil {
+			log.Printf("⚠️  [Worker %d] Token refresh failed: %v", id, err)
+			results <- MahasiswaSyncResult{
+				IDPD:    idRegPd,
+				Nama:    nama,
+				NPM:     npm,
+				Success: false,
+				Error:   fmt.Sprintf("token refresh failed: %v", err),
+			}
+			continue
+		}
+
 		// Sync single mahasiswa with retry
 		result := s.syncSingleMahasiswaWithRetry(idRegPd, nama, npm)
 		results <- result
@@ -159,6 +243,14 @@ func (s *service) mahasiswaWorker(id int, jobs <-chan map[string]interface{}, re
 	}
 
 	log.Printf("👷 [Worker %d] Finished", id)
+}
+
+// checkAndRefreshToken checks token expiry and refreshes if needed
+func (s *service) checkAndRefreshToken() error {
+	// This will be called by FeederAPI client automatically if token is expired
+	// For now, we rely on the API client's token management
+	// Future: Add explicit check here if needed
+	return nil
 }
 
 // syncSingleMahasiswaWithRetry syncs a single mahasiswa with retry logic
@@ -194,11 +286,11 @@ func (s *service) syncSingleMahasiswaWithRetry(idRegPd, nama, npm string) Mahasi
 	}
 }
 
-// syncSingleMahasiswa syncs a single mahasiswa (core logic)
+// syncSingleMahasiswa syncs a single mahasiswa (core logic - matches MahasiswaSeeder.php flow)
 func (s *service) syncSingleMahasiswa(idRegPd, nama, npm string) MahasiswaSyncResult {
 	ctx := context.Background()
 
-	// Step 1: Fetch GetListRiwayatPendidikanMahasiswa (to get id_pd and basic reg data)
+	// Step 1: Fetch GetListRiwayatPendidikanMahasiswa (to get id_pd, id_prodi)
 	regData, err := s.fetchRiwayatPendidikan(idRegPd)
 	if err != nil {
 		return MahasiswaSyncResult{
@@ -210,7 +302,7 @@ func (s *service) syncSingleMahasiswa(idRegPd, nama, npm string) MahasiswaSyncRe
 	idPD := regData["id_mahasiswa"].(string)
 	idProdi := regData["id_prodi"].(string)
 
-	// Step 2: Fetch GetDataLengkapMahasiswaProdi (for detailed mahasiswa data)
+	// Step 2: Fetch GetDataLengkapMahasiswaProdi by id_mahasiswa
 	feederMhs, err := s.fetchDataLengkapMahasiswa(idProdi, idPD)
 	if err != nil {
 		return MahasiswaSyncResult{
@@ -219,7 +311,7 @@ func (s *service) syncSingleMahasiswa(idRegPd, nama, npm string) MahasiswaSyncRe
 		}
 	}
 
-	// Step 3: Fetch GetListRiwayatPendidikanMahasiswa (detailed)
+	// Step 3: Fetch GetListRiwayatPendidikanMahasiswa (detailed) - already have from step 1
 	feederReg, err := s.fetchRiwayatPendidikanDetail(idRegPd)
 	if err != nil {
 		return MahasiswaSyncResult{
@@ -228,8 +320,11 @@ func (s *service) syncSingleMahasiswa(idRegPd, nama, npm string) MahasiswaSyncRe
 		}
 	}
 
-	// Step 4: Fetch GetDetailMahasiswaLulusDO (if applicable)
-	feederLulusDO, _ := s.fetchDetailLulusDO(idRegPd) // Ignore error if not lulus/DO
+	// Step 4: Fetch GetDetailMahasiswaLulusDO (if id_jns_keluar exists)
+	var feederLulusDO *FeederMahasiswaLulusDO
+	if feederReg.IDJenisKeluar != nil && *feederReg.IDJenisKeluar != 0 {
+		feederLulusDO, _ = s.fetchDetailLulusDO(idRegPd) // Ignore error
+	}
 
 	// Step 5: Fetch GetListPerkuliahanMahasiswa (semester activities)
 	feederKuliah, err := s.fetchPerkuliahanMahasiswa(idRegPd)
@@ -250,7 +345,7 @@ func (s *service) syncSingleMahasiswa(idRegPd, nama, npm string) MahasiswaSyncRe
 		}
 	}
 
-	// Step 7: Upsert to database
+	// Step 7: Upsert to database (peserta_didik)
 	if err := s.repo.BulkUpsertPesertaDidik(ctx, []*PesertaDidik{pesertaDidik}); err != nil {
 		return MahasiswaSyncResult{
 			IDPD: idPD, Nama: nama, NPM: npm, Success: false,
@@ -258,6 +353,7 @@ func (s *service) syncSingleMahasiswa(idRegPd, nama, npm string) MahasiswaSyncRe
 		}
 	}
 
+	// Step 8: Upsert to database (reg_pd)
 	if err := s.repo.BulkUpsertRegPd(ctx, []*RegPd{regPd}); err != nil {
 		return MahasiswaSyncResult{
 			IDPD: idPD, Nama: nama, NPM: npm, Success: false,
@@ -265,6 +361,7 @@ func (s *service) syncSingleMahasiswa(idRegPd, nama, npm string) MahasiswaSyncRe
 		}
 	}
 
+	// Step 9: Upsert kuliah_mhs (loop - one to many)
 	if len(kuliahMhsList) > 0 {
 		if err := s.repo.BulkUpsertKuliahMhs(ctx, kuliahMhsList); err != nil {
 			log.Printf("⚠️  [Sync %s] Failed to upsert kuliah_mhs: %v", npm, err)
@@ -278,21 +375,6 @@ func (s *service) syncSingleMahasiswa(idRegPd, nama, npm string) MahasiswaSyncRe
 		NPM:     npm,
 		Success: true,
 	}
-}
-
-// SyncSingleMahasiswaTest syncs a single mahasiswa for testing
-func (s *service) SyncSingleMahasiswaTest(ctx context.Context, idRegPd string) (*MahasiswaSyncResult, error) {
-	log.Printf("🧪 [Test Sync] Syncing single mahasiswa: %s", idRegPd)
-
-	result := s.syncSingleMahasiswa(idRegPd, "Test", idRegPd)
-
-	if result.Success {
-		log.Printf("✅ [Test Sync] Success: %s (%s)", result.Nama, result.NPM)
-	} else {
-		log.Printf("❌ [Test Sync] Failed: %v", result.Error)
-	}
-
-	return &result, nil
 }
 
 // Helper: getProdiListForSync gets prodi list based on filter
@@ -316,23 +398,35 @@ func (s *service) getProdiListForSync(ctx context.Context, idProdi *string) ([]m
 	return allProdi, nil
 }
 
-// Helper: getMahasiswaListFromFeeder fetches mahasiswa list from Feeder API
-func (s *service) getMahasiswaListFromFeeder(idProdi string, angkatan string) ([]map[string]interface{}, error) {
-	// Build filter for angkatan
-	// Angkatan "2021" -> semester starts with "2021" (20211, 20212)
-	filter := fmt.Sprintf("LEFT(id_periode_masuk, 4) = '%s'", angkatan)
-
-	rawData, err := s.feederAPI.GetDataLengkapMahasiswaProdi(idProdi, filter, 0, 0) // limit=0 means all
+// Helper: getMahasiswaListFromFeederByProdi fetches ALL mahasiswa from prodi, then filters by angkatan locally
+// Matches MahasiswaSeeder.php: GetDataLengkapMahasiswaProdi with id_prodi filter only
+func (s *service) getMahasiswaListFromFeederByProdi(idProdi string, angkatan string) ([]map[string]interface{}, error) {
+	// Call Feeder API WITHOUT angkatan filter (API doesn't support it)
+	// Filter by id_prodi only
+	rawData, err := s.feederAPI.GetDataLengkapMahasiswaProdi(idProdi, "", 0, 0)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("API call failed: %w", err)
 	}
 
-	var mhsList []map[string]interface{}
-	if err := json.Unmarshal(rawData, &mhsList); err != nil {
+	var allMhsList []map[string]interface{}
+	if err := json.Unmarshal(rawData, &allMhsList); err != nil {
 		return nil, fmt.Errorf("failed to parse mahasiswa list: %w", err)
 	}
 
-	return mhsList, nil
+	// Filter by angkatan in application code
+	// Angkatan extracted from id_periode_masuk (first 4 chars)
+	// Example: "20211" → angkatan "2021"
+	var filteredList []map[string]interface{}
+	for _, mhs := range allMhsList {
+		if idPeriodeMasuk, ok := mhs["id_periode_masuk"].(string); ok && len(idPeriodeMasuk) >= 4 {
+			mhsAngkatan := idPeriodeMasuk[:4]
+			if mhsAngkatan == angkatan {
+				filteredList = append(filteredList, mhs)
+			}
+		}
+	}
+
+	return filteredList, nil
 }
 
 // Helper: fetchRiwayatPendidikan fetches basic registration data
@@ -354,9 +448,9 @@ func (s *service) fetchRiwayatPendidikan(idRegPd string) (map[string]interface{}
 	return regList[0], nil
 }
 
-// Helper: fetchDataLengkapMahasiswa fetches detailed mahasiswa data
+// Helper: fetchDataLengkapMahasiswa fetches detailed mahasiswa data by id_mahasiswa
 func (s *service) fetchDataLengkapMahasiswa(idProdi, idPD string) (*FeederMahasiswaData, error) {
-	filter := fmt.Sprintf("id_mahasiswa = '%s'", idPD)
+	filter := fmt.Sprintf("id_mahasiswa='%s'", idPD)
 	rawData, err := s.feederAPI.GetDataLengkapMahasiswaProdi(idProdi, filter, 1, 0)
 	if err != nil {
 		return nil, err
@@ -429,10 +523,12 @@ func (s *service) fetchPerkuliahanMahasiswa(idRegPd string) ([]*FeederPerkuliaha
 
 // isRetryableError checks if an error is retryable
 func isRetryableError(errMsg string) bool {
-	// Retry on network errors, timeouts, 5xx errors
+	// Retry on network errors, timeouts, 5xx errors, token errors
 	retryablePatterns := []string{
 		"timeout",
 		"connection",
+		"token",
+		"expired",
 		"429", // Too Many Requests
 		"500", // Internal Server Error
 		"502", // Bad Gateway
@@ -440,18 +536,12 @@ func isRetryableError(errMsg string) bool {
 		"504", // Gateway Timeout
 	}
 
+	errMsgLower := strings.ToLower(errMsg)
 	for _, pattern := range retryablePatterns {
-		if contains(errMsg, pattern) {
+		if strings.Contains(errMsgLower, pattern) {
 			return true
 		}
 	}
 
 	return false
-}
-
-// contains checks if string contains substring (case-insensitive)
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) &&
-		(s == substr || len(s) > len(substr) &&
-		(s[:len(substr)] == substr || contains(s[1:], substr)))
 }
