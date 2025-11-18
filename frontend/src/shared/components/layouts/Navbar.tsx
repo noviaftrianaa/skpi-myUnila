@@ -173,28 +173,6 @@ export default function Navbar() {
           </NavbarItem>
         </NavbarContent>
       </HeroNavbar>
-
-      {/* Bottom Navigation (Mobile Only) */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-2xl pb-safe">
-        <div className="grid grid-cols-4 h-16">
-          {menuItems.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={`flex flex-col items-center justify-center gap-1 transition-all duration-300 ${
-                isActive(item.href)
-                  ? "text-myunila bg-blue-50"
-                  : "text-gray-600 hover:text-myunila hover:bg-gray-50 active:bg-gray-100"
-              }`}
-            >
-              <div className={`${isActive(item.href) ? "scale-110" : ""} transition-transform duration-300`}>
-                {item.icon}
-              </div>
-              <span className="text-[10px] font-semibold">{item.name}</span>
-            </Link>
-          ))}
-        </div>
-      </nav>
     </>
   );
 }
