@@ -200,46 +200,12 @@ if [ -z "$DASHBOARD_SERVICE_ID" ]; then
 else
     echo -e "${GREEN}  ✓ Dashboard service created: $DASHBOARD_SERVICE_ID${NC}"
 
-    # Note: Kong routing works like this:
-    # Request: /dashboard-service/unila/profile
-    # With strip_path=true and paths=["/dashboard-service"]
-    # → Proxied to: http://backend/api/unila/profile (strips /dashboard-service)
+    # Note: Dashboard service structure:
+    # Public endpoints: /api/public/v1/unila/*, /api/public/v1/dosen/*, etc.
+    # Protected endpoints: /api/v1/my/*
 
-    # Route 1: Public /unila endpoints (highest priority, no JWT)
-    echo -e "${YELLOW}  → Creating public /unila route...${NC}"
-    DASHBOARD_UNILA_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$DASHBOARD_SERVICE_ID/routes" \
-      -H "Content-Type: application/json" \
-      -d '{
-        "name": "dashboard-unila-public-route",
-        "paths": ["/dashboard-service/unila"],
-        "strip_path": true,
-        "preserve_host": false,
-        "protocols": ["http", "https"],
-        "regex_priority": 300
-      }')
-
-    DASHBOARD_UNILA_ROUTE_ID=$(parse_json_id "$DASHBOARD_UNILA_ROUTE")
-
-    if [ -n "$DASHBOARD_UNILA_ROUTE_ID" ]; then
-        # Add CORS plugin (no JWT)
-        curl -s -X POST "$KONG_ADMIN_URL/routes/$DASHBOARD_UNILA_ROUTE_ID/plugins" \
-          -H "Content-Type: application/json" \
-          -d '{
-            "name": "cors",
-            "config": {
-              "origins": ["*"],
-              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-              "headers": ["Accept", "Authorization", "Content-Type"],
-              "exposed_headers": ["X-Auth-Token"],
-              "credentials": true,
-              "max_age": 3600
-            }
-          }' > /dev/null
-        echo -e "${GREEN}  ✓ Public /unila route created (no JWT)${NC}"
-    fi
-
-    # Route 2: Public /public endpoints (high priority, no JWT)
-    echo -e "${YELLOW}  → Creating public /public route...${NC}"
+    # Route 1: Public endpoints (no JWT) - /dashboard-service/public → /api/public
+    echo -e "${YELLOW}  → Creating public route for /public endpoints...${NC}"
     DASHBOARD_PUBLIC_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$DASHBOARD_SERVICE_ID/routes" \
       -H "Content-Type: application/json" \
       -d '{
@@ -248,7 +214,7 @@ else
         "strip_path": true,
         "preserve_host": false,
         "protocols": ["http", "https"],
-        "regex_priority": 250
+        "regex_priority": 300
       }')
 
     DASHBOARD_PUBLIC_ROUTE_ID=$(parse_json_id "$DASHBOARD_PUBLIC_ROUTE")
@@ -268,16 +234,16 @@ else
               "max_age": 3600
             }
           }' > /dev/null
-        echo -e "${GREEN}  ✓ Public /public route created (no JWT)${NC}"
+        echo -e "${GREEN}  ✓ Public route created (no JWT, for /public/api/v1/*)${NC}"
     fi
 
-    # Route 3: Protected endpoints (with JWT) - for my-profile, my-favorites
-    echo -e "${YELLOW}  → Creating protected /my route...${NC}"
+    # Route 2: Protected endpoints (with JWT) - /dashboard-service/api/v1/my → /api/v1/my
+    echo -e "${YELLOW}  → Creating protected route for /my endpoints...${NC}"
     DASHBOARD_PROTECTED_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$DASHBOARD_SERVICE_ID/routes" \
       -H "Content-Type: application/json" \
       -d '{
         "name": "dashboard-protected-route",
-        "paths": ["/dashboard-service/my"],
+        "paths": ["/dashboard-service/api/v1/my"],
         "strip_path": true,
         "preserve_host": false,
         "protocols": ["http", "https"],
@@ -318,7 +284,7 @@ else
               "cookie_names": []
             }
           }' > /dev/null
-        echo -e "${GREEN}  ✓ Protected /my route created with JWT${NC}"
+        echo -e "${GREEN}  ✓ Protected route created with JWT (for /api/v1/my/*)${NC}"
     fi
 fi
 
