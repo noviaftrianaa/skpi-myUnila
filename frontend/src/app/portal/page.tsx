@@ -714,9 +714,12 @@ export default function DashboardPage() {
                   onClick={() => setShowRoleModal(true)}
                   variant="flat"
                   size="sm"
-                  className="hidden md:flex bg-blue-50 text-myunila hover:bg-blue-100 font-medium"
+                  className="bg-blue-50 text-myunila hover:bg-blue-100 font-medium"
+                  startContent={<FiUser className="w-4 h-4" />}
                 >
-                  <span className="text-xs">Peran: {selectedRole || user.role}</span>
+                  {/* Show "Ganti Peran" on mobile, full text on desktop */}
+                  <span className="text-xs hidden sm:inline">Peran: {selectedRole || user.role}</span>
+                  <span className="text-xs sm:hidden">Ganti Peran</span>
                 </Button>
               )}
 
