@@ -204,7 +204,8 @@ else
     # Public endpoints: /api/public/v1/unila/*, /api/public/v1/dosen/*, etc.
     # Protected endpoints: /api/v1/my/*
 
-    # Route 1: Public endpoints (no JWT) - /dashboard-service/public → /api/public
+    # Route 1: Public endpoints (no JWT) - /dashboard-service/public/api/v1/X → /api/public/v1/X
+    # Using request-transformer to rewrite path
     echo -e "${YELLOW}  → Creating public route for /public endpoints...${NC}"
     DASHBOARD_PUBLIC_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$DASHBOARD_SERVICE_ID/routes" \
       -H "Content-Type: application/json" \
@@ -220,6 +221,18 @@ else
     DASHBOARD_PUBLIC_ROUTE_ID=$(parse_json_id "$DASHBOARD_PUBLIC_ROUTE")
 
     if [ -n "$DASHBOARD_PUBLIC_ROUTE_ID" ]; then
+        # Add Request Transformer plugin to prepend /api/public to the path
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$DASHBOARD_PUBLIC_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "request-transformer",
+            "config": {
+              "replace": {
+                "uri": "/api/public$(uri)"
+              }
+            }
+          }' > /dev/null
+
         # Add CORS plugin (no JWT)
         curl -s -X POST "$KONG_ADMIN_URL/routes/$DASHBOARD_PUBLIC_ROUTE_ID/plugins" \
           -H "Content-Type: application/json" \
@@ -234,7 +247,7 @@ else
               "max_age": 3600
             }
           }' > /dev/null
-        echo -e "${GREEN}  ✓ Public route created (no JWT, for /public/api/v1/*)${NC}"
+        echo -e "${GREEN}  ✓ Public route created with path rewrite (no JWT, for /public/api/v1/*)${NC}"
     fi
 
     # Route 2: Protected endpoints (with JWT) - /dashboard-service/api/v1/my → /api/v1/my
