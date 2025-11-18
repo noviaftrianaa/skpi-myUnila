@@ -464,7 +464,7 @@ FEEDER_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "feeder-service",
-    "url": "http://myunila-feeder-service:8084/api"
+    "url": "http://myunila-feeder-service:8084"
   }')
 
 FEEDER_SERVICE_ID=$(parse_json_id "$FEEDER_SERVICE")
