@@ -140,7 +140,7 @@ export default function BottomNav() {
           }
         }
       `}</style>
-      <div className="flex items-center justify-around h-16 px-1 max-w-md mx-auto bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50">
+      <div className="flex items-center justify-around h-16 px-1 max-w-md mx-auto bg-white rounded-2xl shadow-lg border border-gray-200/50">
         {navItems.map((item) => {
           const active = isActive(item.href);
 
