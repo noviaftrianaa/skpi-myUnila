@@ -14,24 +14,20 @@ func SetupRoutes(app *fiber.App, db *sqlx.DB, sisterAPI *sister_api.Client, logg
 	service := NewService(repo, sisterAPI)
 	controller := NewController(service)
 
-	// API routes (protected/authenticated)
+	// API routes (authenticated with JWT at Kong level)
 	api := app.Group("/api/v1")
+	bidangIlmuAPI := api.Group("/bidang-ilmu")
+	{
+		// POST sync routes
+		bidangIlmuAPI.Post("/sync/:id_sdm", controller.SyncSingle)
+		bidangIlmuAPI.Post("/sync-all", controller.SyncAll)
 
-	// Sync routes
-	api.Post("/bidang-ilmu/sync/:id_sdm", controller.SyncSingle)
-	api.Post("/bidang-ilmu/sync-all", controller.SyncAll)
-
-	// Public routes (no auth required)
-	bidangIlmuGroup := app.Group("/bidang-ilmu")
-
-	// Stats route (must be before /:id_sdm to avoid conflict)
-	bidangIlmuGroup.Get("/stats", controller.GetStats)
-
-	// List route (must be before /dosen/:id_sdm to avoid conflict)
-	bidangIlmuGroup.Get("/list", controller.GetList)
-
-	// Get by dosen
-	bidangIlmuGroup.Get("/dosen/:id_sdm", controller.GetByIDSDM)
+		// GET routes (also protected with JWT)
+		// Stats and list routes must be before /dosen/:id_sdm to avoid conflict
+		bidangIlmuAPI.Get("/stats", controller.GetStats)
+		bidangIlmuAPI.Get("/list", controller.GetList)
+		bidangIlmuAPI.Get("/dosen/:id_sdm", controller.GetByIDSDM)
+	}
 
 	return service
 }

@@ -15,23 +15,17 @@ func SetupRoutes(app *fiber.App, db *sqlx.DB, sisterAPI *sister_api.Client, logg
 	service := NewService(repo, syncService)
 	controller := NewController(service)
 
-	// API routes (protected/authenticated)
+	// API routes
 	api := app.Group("/api/v1")
 
-	// Sync routes
+	// Sync routes (authenticated)
 	api.Post("/sertifikasi-dosen/sync", controller.SyncSertifikasiByIDSDM)
 	api.Post("/sertifikasi-dosen/sync-all", controller.BatchSyncAllSertifikasi)
 
-	// Public routes (no auth required)
-	sertifikasiGroup := app.Group("/sertifikasi-dosen")
-
-	// Stats route (must be before /:id to avoid conflict)
+	// Public GET routes under /api/v1 (for Kong Gateway routing consistency)
+	sertifikasiGroup := api.Group("/sertifikasi-dosen")
 	sertifikasiGroup.Get("/stats", controller.GetSertifikasiStats)
-
-	// List route (must be before /:id to avoid conflict)
 	sertifikasiGroup.Get("/list", controller.GetSertifikasiList)
-
-	// Detail route
 	sertifikasiGroup.Get("/:id", controller.GetSertifikasiDetail)
 
 	return service

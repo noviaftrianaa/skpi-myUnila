@@ -12,7 +12,9 @@ const API_V1_BASE = process.env.NEXT_PUBLIC_SISTER_API_URL
   : 'http://localhost:9800/sister-service/api/v1';
 
 // Dashboard API for pengabdian detail
-const DASHBOARD_API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/api/v1';
+const DASHBOARD_API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL
+  ? `${process.env.NEXT_PUBLIC_DASHBOARD_API_URL}/public/api/v1`
+  : 'http://localhost:9800/dashboard-service/public/api/v1';
 
 // Types - Reuse Litabmas type from penelitian since they share the same entity
 export interface AnggotaLitabmasInfo {
@@ -215,7 +217,7 @@ export const sisterPengabdianService = {
    */
   async syncByIDSDM(idSDM: string, syncedBy: string): Promise<BatchPengabdianSyncResult> {
     const response = await sisterClient.post<BatchPengabdianSyncResult>(
-      '/api/v1/pengabdian/sync',
+      '/pengabdian/sync',
       null,
       { params: { id_sdm: idSDM, synced_by: syncedBy } }
     );
@@ -265,8 +267,8 @@ export const sisterPengabdianService = {
    * @param syncedBy - Username of person who triggered the sync
    */
   async syncFromSister(syncedBy: string): Promise<BatchAllSyncResult> {
-    const response = await axios.post<BatchAllSyncResult>(
-      `${API_V1_BASE}/pengabdian/sync-all`,
+    const response = await sisterClient.post<BatchAllSyncResult>(
+      '/pengabdian/sync-all',
       null,
       { params: { synced_by: syncedBy } }
     );

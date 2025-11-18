@@ -11,7 +11,9 @@ const API_V1_BASE = process.env.NEXT_PUBLIC_SISTER_API_URL
   ? `${process.env.NEXT_PUBLIC_SISTER_API_URL}/api/v1`
   : 'http://localhost:9800/sister-service/api/v1';
 
-const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL
+  ? `${process.env.NEXT_PUBLIC_DASHBOARD_API_URL}/public/api/v1`
+  : 'http://localhost:9800/dashboard-service/public/api/v1';
 
 // Types
 export interface PublikasiByJenis {
@@ -229,8 +231,8 @@ export const sisterPublikasiService = {
    * @param syncedBy - Username of person who triggered the sync
    */
   async syncFromSister(syncedBy: string): Promise<BatchAllSyncResult> {
-    const response = await axios.post<BatchAllSyncResult>(
-      `${API_V1_BASE}/publikasi/sync-all`,
+    const response = await sisterClient.post<BatchAllSyncResult>(
+      '/publikasi/sync-all',
       null,
       { params: { synced_by: syncedBy } }
     );

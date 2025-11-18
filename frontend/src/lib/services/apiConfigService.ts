@@ -1,4 +1,4 @@
-import { sisterClient } from '@/lib/api/sisterClient';
+import { feederClient } from '@/lib/api/feederClient';
 
 export interface APIConfig {
   id: number;
@@ -88,31 +88,31 @@ export interface AuditLog {
 
 class APIConfigService {
   async getAll(): Promise<APIConfig[]> {
-    const response = await sisterClient.get<{ data: APIConfig[] }>('/api-configs');
+    const response = await feederClient.get<{ data: APIConfig[] }>('/api-configs');
     return response.data.data || [];
   }
 
   async getByCode(apiCode: string): Promise<APIConfig> {
-    const response = await sisterClient.get<{ data: APIConfig }>(`/api-configs/${apiCode}`);
+    const response = await feederClient.get<{ data: APIConfig }>(`/api-configs/${apiCode}`);
     return response.data.data;
   }
 
   async create(request: CreateAPIConfigRequest): Promise<APIConfig> {
-    const response = await sisterClient.post<{ data: APIConfig }>('/api-configs', request);
+    const response = await feederClient.post<{ data: APIConfig }>('/api-configs', request);
     return response.data.data;
   }
 
   async update(id: number, request: UpdateAPIConfigRequest): Promise<APIConfig> {
-    const response = await sisterClient.put<{ data: APIConfig }>(`/api-configs/${id}`, request);
+    const response = await feederClient.put<{ data: APIConfig }>(`/api-configs/${id}`, request);
     return response.data.data;
   }
 
   async delete(id: number): Promise<void> {
-    await sisterClient.delete(`/api-configs/${id}`);
+    await feederClient.delete(`/api-configs/${id}`);
   }
 
   async testConnection(request: TestConnectionRequest): Promise<TestConnectionResponse> {
-    const response = await sisterClient.post<{ data: TestConnectionResponse }>(
+    const response = await feederClient.post<{ data: TestConnectionResponse }>(
       '/api-configs/test-connection',
       request
     );
@@ -120,7 +120,7 @@ class APIConfigService {
   }
 
   async getAuditLogs(configId: number): Promise<AuditLog[]> {
-    const response = await sisterClient.get<{ data: AuditLog[] }>(`/api-configs/${configId}/audit-logs`);
+    const response = await feederClient.get<{ data: AuditLog[] }>(`/api-configs/${configId}/audit-logs`);
     return response.data.data || [];
   }
 }

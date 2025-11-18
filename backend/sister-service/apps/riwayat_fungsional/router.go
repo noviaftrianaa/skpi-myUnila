@@ -15,23 +15,17 @@ func SetupRoutes(app *fiber.App, db *sqlx.DB, sisterAPI *sister_api.Client, logg
 	service := NewService(repo, syncService)
 	controller := NewController(service)
 
-	// API routes (protected/authenticated)
+	// API routes
 	api := app.Group("/api/v1")
 
-	// Sync routes
+	// Sync routes (authenticated)
 	api.Post("/jabatan-fungsional/sync", controller.SyncRwyFungsionalByIDSDM)
 	api.Post("/jabatan-fungsional/sync-all", controller.BatchSyncAllRwyFungsional)
 
-	// Public routes (no auth required)
-	rwyFungsionalGroup := app.Group("/jabatan-fungsional")
-
-	// Stats route (must be before /:id to avoid conflict)
+	// Public GET routes under /api/v1 (for Kong Gateway routing consistency)
+	rwyFungsionalGroup := api.Group("/jabatan-fungsional")
 	rwyFungsionalGroup.Get("/stats", controller.GetRwyFungsionalStats)
-
-	// List route (must be before /:id to avoid conflict)
 	rwyFungsionalGroup.Get("/list", controller.GetRwyFungsionalList)
-
-	// Detail route
 	rwyFungsionalGroup.Get("/:id", controller.GetRwyFungsionalDetail)
 
 	return service

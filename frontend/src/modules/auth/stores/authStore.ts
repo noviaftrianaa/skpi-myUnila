@@ -90,7 +90,11 @@ export const useAuthStore = create<AuthState>()(
           }
 
           // Verify token with backend
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+          const AUTH_API_URL = process.env.NEXT_PUBLIC_AUTH_API_URL
+            ? `${process.env.NEXT_PUBLIC_AUTH_API_URL}/api/v1`
+            : 'http://localhost:9800/auth-service/api/v1';
+
+          const response = await fetch(`${AUTH_API_URL}/auth/me`, {
             headers: {
               'Authorization': `Bearer ${token}`,
             },

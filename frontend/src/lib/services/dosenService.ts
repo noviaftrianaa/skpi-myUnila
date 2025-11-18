@@ -6,7 +6,9 @@
 import axios from 'axios';
 import { sisterClient } from '@/lib/api/sisterClient';
 
-const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL
+  ? `${process.env.NEXT_PUBLIC_DASHBOARD_API_URL}/public/api/v1`
+  : 'http://localhost:9800/dashboard-service/public/api/v1';
 
 // Types
 export interface PendidikanDosen {
@@ -251,6 +253,7 @@ interface SisterApiResponse<T> {
 export const sisterDosenService = {
   /**
    * Get paginated list of dosen with optional search and filters
+   * Protected endpoint - requires JWT authentication
    */
   async getList(params?: {
     page?: number;
@@ -268,6 +271,7 @@ export const sisterDosenService = {
 
   /**
    * Get dosen statistics (total, by jenis, by status, etc)
+   * Protected endpoint - requires JWT authentication
    */
   async getStats(): Promise<SisterDosenStats> {
     const response = await sisterClient.get<SisterApiResponse<SisterDosenStats>>(
@@ -278,6 +282,7 @@ export const sisterDosenService = {
 
   /**
    * Get dosen detail by ID (GUID format)
+   * Protected endpoint - requires JWT authentication
    */
   async getDetail(idSDM: string): Promise<SisterDosen> {
     const response = await sisterClient.get<SisterApiResponse<SisterDosen>>(
@@ -301,12 +306,12 @@ export const sisterDosenService = {
 
   /**
    * Get dosen photo from SISTER API (public endpoint, no auth required)
-   * Note: This endpoint is registered WITHOUT /public prefix and WITHOUT auth middleware
+   * Note: This endpoint is at /public/api/v1/dosen/photo (no JWT required)
    */
   async getPhoto(idSDM: string): Promise<Blob> {
-    // Use SISTER_API_URL directly - endpoint is /dosen/photo/:id (no /public prefix)
+    // Use public endpoint - no JWT required
     const SISTER_BASE_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:9800/sister-service';
-    const response = await axios.get(`${SISTER_BASE_URL}/dosen/photo/${idSDM}`, {
+    const response = await axios.get(`${SISTER_BASE_URL}/public/api/v1/dosen/photo/${idSDM}`, {
       responseType: 'blob'
     });
     return response.data;

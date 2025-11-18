@@ -14,21 +14,21 @@ func SetupRoutes(app *fiber.App, db *sqlx.DB, sisterAPI *sister_api.Client, logg
 	service := NewService(db, sisterAPI, loggerSvc)
 	controller := NewController(service)
 
-	// API routes (authenticated)
-	apiV1 := app.Group("/api/v1")
+	// API routes (authenticated with JWT at Kong level)
+	api := app.Group("/api/v1")
+	publikasiAPI := api.Group("/publikasi")
+	{
+		// POST sync routes
+		publikasiAPI.Post("/sync", controller.SyncPublikasiByIDSDM)
+		publikasiAPI.Post("/sync-all", controller.BatchSyncAllPublikasi)
 
-	// Publikasi sync endpoints
-	apiV1.Post("/publikasi/sync", controller.SyncPublikasiByIDSDM)
-	apiV1.Post("/publikasi/sync-all", controller.BatchSyncAllPublikasi)
-
-	// Public routes (no auth required)
-	publikasiGroup := app.Group("/publikasi")
-
-	// Publikasi endpoints (specific routes MUST come before :id route)
-	publikasiGroup.Get("/list", controller.GetPublikasiList)
-	publikasiGroup.Get("/stats", controller.GetPublikasiStats)
-	publikasiGroup.Get("/:id", controller.GetPublikasiByID)
-	publikasiGroup.Get("/:id/penulis", controller.GetTulisPubByPublikasi)
+		// GET routes (also protected with JWT)
+		// Specific routes MUST come before :id route
+		publikasiAPI.Get("/list", controller.GetPublikasiList)
+		publikasiAPI.Get("/stats", controller.GetPublikasiStats)
+		publikasiAPI.Get("/:id", controller.GetPublikasiByID)
+		publikasiAPI.Get("/:id/penulis", controller.GetTulisPubByPublikasi)
+	}
 
 	return service
 }

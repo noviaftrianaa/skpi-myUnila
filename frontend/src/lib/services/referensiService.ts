@@ -37,7 +37,7 @@ export const referensiService = {
    */
   async getMetadata(): Promise<ReferensiMetadata[]> {
     try {
-      const response = await sisterClient.get('/api/v1/referensi/metadata');
+      const response = await sisterClient.get('/referensi/metadata');
       return response.data.data || [];
     } catch (error) {
       console.error("Error fetching referensi metadata:", error);
@@ -50,7 +50,7 @@ export const referensiService = {
    */
   async batchSync(endpoints: string[]): Promise<BatchSyncResponse> {
     try {
-      const response = await sisterClient.post('/api/v1/referensi/batch-sync', {
+      const response = await sisterClient.post('/referensi/batch-sync', {
         endpoints: endpoints,
       });
       return response.data.data;
@@ -108,7 +108,7 @@ export const referensiService = {
         throw new Error(`Unknown endpoint key: ${key}`);
       }
 
-      const response = await sisterClient.get(`/api/v1/referensi/${endpoint}`);
+      const response = await sisterClient.get(`/referensi/${endpoint}`);
       return response.data.data || [];
     } catch (error) {
       console.error(`Error fetching ${key} data:`, error);
@@ -164,7 +164,7 @@ export const referensiService = {
         throw new Error(`Unknown endpoint key: ${key}`);
       }
 
-      const response = await sisterClient.post(`/api/v1/referensi/${endpoint}/sync`);
+      const response = await sisterClient.post(`/referensi/${endpoint}/sync`);
       return response.data;
     } catch (error) {
       console.error(`Error syncing ${key}:`, error);

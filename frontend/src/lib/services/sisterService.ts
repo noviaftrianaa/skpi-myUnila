@@ -56,7 +56,7 @@ export const agamaService = {
   // Get all agama
   getAll: async (): Promise<AgamaData[]> => {
     try {
-      const response = await sisterClient.get<ApiResponse<AgamaData[]>>('/api/v1/referensi/agama');
+      const response = await sisterClient.get<ApiResponse<AgamaData[]>>('/referensi/agama');
       return response.data.data;
     } catch (error) {
       console.error('Error fetching agama:', error);
@@ -67,7 +67,7 @@ export const agamaService = {
   // Get agama by ID
   getById: async (id: number): Promise<AgamaData> => {
     try {
-      const response = await sisterClient.get<ApiResponse<AgamaData>>(`/api/v1/referensi/agama/${id}`);
+      const response = await sisterClient.get<ApiResponse<AgamaData>>(`/referensi/agama/${id}`);
       return response.data.data;
     } catch (error) {
       console.error(`Error fetching agama with id ${id}:`, error);
@@ -78,7 +78,7 @@ export const agamaService = {
   // Sync agama from Sister API
   sync: async (syncedBy: string): Promise<SyncResponse> => {
     try {
-      const response = await sisterClient.post<SyncResponse>('/api/v1/referensi/agama/sync', {
+      const response = await sisterClient.post<SyncResponse>('/referensi/agama/sync', {
         synced_by: syncedBy,
       });
       return response.data;
@@ -94,7 +94,7 @@ export const unitKerjaService = {
   // Get all unit kerja
   getAll: async (): Promise<UnitKerjaData[]> => {
     try {
-      const response = await sisterClient.get<ApiResponse<UnitKerjaData[]>>('/api/v1/referensi/unit-kerja');
+      const response = await sisterClient.get<ApiResponse<UnitKerjaData[]>>('/referensi/unit-kerja');
       return response.data.data;
     } catch (error) {
       console.error('Error fetching unit kerja:', error);
@@ -105,7 +105,7 @@ export const unitKerjaService = {
   // Get unit kerja by ID
   getById: async (id: string): Promise<UnitKerjaData> => {
     try {
-      const response = await sisterClient.get<ApiResponse<UnitKerjaData>>(`/api/v1/referensi/unit-kerja/${id}`);
+      const response = await sisterClient.get<ApiResponse<UnitKerjaData>>(`/referensi/unit-kerja/${id}`);
       return response.data.data;
     } catch (error) {
       console.error(`Error fetching unit kerja with id ${id}:`, error);
@@ -117,7 +117,7 @@ export const unitKerjaService = {
   sync: async (idPerguruanTinggi: string, syncedBy: string): Promise<SyncResponse> => {
     try {
       const response = await sisterClient.post<SyncResponse>(
-        `/api/v1/referensi/unit-kerja/sync?id_perguruan_tinggi=${idPerguruanTinggi}&synced_by=${syncedBy}`
+        `/referensi/unit-kerja/sync?id_perguruan_tinggi=${idPerguruanTinggi}&synced_by=${syncedBy}`
       );
       return response.data;
     } catch (error) {

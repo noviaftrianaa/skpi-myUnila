@@ -119,9 +119,6 @@ func main() {
 		return c.Redirect("/swagger/index.html", fiber.StatusMovedPermanently)
 	})
 
-	// API routes
-	apiV1 := app.Group("/api/v1")
-
 	// Initialize encryption service for API config
 	var encryptor *crypto.EncryptionService
 	if config.Cfg.EncryptionKey != "" && len(config.Cfg.EncryptionKey) == 32 {
@@ -147,7 +144,8 @@ func main() {
 	}
 
 	// Initialize domain routers and get services for scheduler
-	referensiService := referensi.Init(apiV1, db, sisterAPI, loggerService) // Referensi routes (protected with JWT)
+	// Note: All routers create their own /api/v1 group internally, so pass app not apiV1
+	referensiService := referensi.Init(app, db, sisterAPI, loggerService) // Referensi routes (protected with JWT)
 
 	// Initialize Dosen Service with public routes (no auth required)
 	// Register on app directly so it's accessible at /dosen/* without /public prefix

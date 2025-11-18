@@ -12,7 +12,9 @@ const API_V1_BASE = process.env.NEXT_PUBLIC_SISTER_API_URL
   : 'http://localhost:9800/sister-service/api/v1';
 
 // Dashboard API for penelitian detail
-const DASHBOARD_API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/api/v1';
+const DASHBOARD_API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL
+  ? `${process.env.NEXT_PUBLIC_DASHBOARD_API_URL}/public/api/v1`
+  : 'http://localhost:9800/dashboard-service/public/api/v1';
 
 // Types
 export interface AnggotaLitabmasInfo {
@@ -243,7 +245,7 @@ export const sisterPenelitianService = {
    */
   async syncByIDSDM(idSDM: string, syncedBy: string): Promise<BatchPenelitianSyncResult> {
     const response = await sisterClient.post<BatchPenelitianSyncResult>(
-      '/api/v1/penelitian/sync',
+      '/penelitian/sync',
       null,
       { params: { id_sdm: idSDM, synced_by: syncedBy } }
     );
@@ -311,8 +313,8 @@ export const sisterPenelitianService = {
    * @param syncedBy - Username of person who triggered the sync
    */
   async syncFromSister(syncedBy: string): Promise<BatchAllSyncResult> {
-    const response = await axios.post<BatchAllSyncResult>(
-      `${API_V1_BASE}/penelitian/sync-all`,
+    const response = await sisterClient.post<BatchAllSyncResult>(
+      '/penelitian/sync-all',
       null,
       { params: { synced_by: syncedBy } }
     );

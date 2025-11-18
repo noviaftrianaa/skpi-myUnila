@@ -1,6 +1,9 @@
 import type { LoginCredentials, LoginResponse, RegisterData, User } from '../types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// Auth API URL - add /api/v1 suffix to base URL
+const API_URL = process.env.NEXT_PUBLIC_AUTH_API_URL
+  ? `${process.env.NEXT_PUBLIC_AUTH_API_URL}/api/v1`
+  : 'http://localhost:9800/auth-service/api/v1';
 
 export class AuthApiClient {
   private baseUrl: string;

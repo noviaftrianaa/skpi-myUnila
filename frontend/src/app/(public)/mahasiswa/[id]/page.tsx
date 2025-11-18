@@ -8,7 +8,9 @@ import { HiAcademicCap } from "react-icons/hi";
 import { MdSchool } from "react-icons/md";
 import { mahasiswaService, type MahasiswaProfile } from "@/lib/services/mahasiswaService";
 
-const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:9800/sister-service';
+const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL
+  ? `${process.env.NEXT_PUBLIC_SISTER_API_URL}/public/api/v1`
+  : 'http://localhost:9800/sister-service/public/api/v1';
 
 type TabType = 'overview' | 'status-semester' | 'mata-kuliah';
 
