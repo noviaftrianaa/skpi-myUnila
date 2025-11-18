@@ -35,8 +35,8 @@ use App\Http\Controllers\SearchController;
 | Base URL: /api (configured in bootstrap/app.php)
 |
 | Structure:
-| - /public/api/v1/* - Public endpoints (no JWT)
-| - /api/v1/*        - Protected endpoints (requires JWT via Kong)
+| - /api/public/v1/* - Public endpoints (no JWT)
+| - /api/v1/my/*     - Protected endpoints (requires JWT via Kong)
 |
 */
 
@@ -53,7 +53,7 @@ Route::get('/health', function () {
 // ============================================
 // PUBLIC API Routes (no JWT required)
 // ============================================
-Route::prefix('public/api/v1')->group(function () {
+Route::prefix('public/v1')->group(function () {
 
     // University Profile
     Route::get('/university-profile', [UniversityProfileController::class, 'index']);
