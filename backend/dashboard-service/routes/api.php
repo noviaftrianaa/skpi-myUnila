@@ -32,10 +32,11 @@ use App\Http\Controllers\SearchController;
 |--------------------------------------------------------------------------
 |
 | Dashboard service routes with public and protected endpoints
-| Base URL: /api (configured in bootstrap/app.php)
+|
+| Note: Laravel 11 does NOT auto-prefix /api anymore (no prefix in bootstrap/app.php)
 |
 | Structure:
-| - /api/public/v1/* - Public endpoints (no JWT)
+| - /public/api/v1/* - Public endpoints (no JWT)
 | - /api/v1/my/*     - Protected endpoints (requires JWT via Kong)
 |
 */
@@ -53,7 +54,7 @@ Route::get('/health', function () {
 // ============================================
 // PUBLIC API Routes (no JWT required)
 // ============================================
-Route::prefix('public/v1')->group(function () {
+Route::prefix('public/api/v1')->group(function () {
 
     // University Profile
     Route::get('/university-profile', [UniversityProfileController::class, 'index']);
