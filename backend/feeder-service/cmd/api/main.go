@@ -3,7 +3,9 @@ package main
 import (
 	"log"
 	"github.com/myunila/feeder-service/apps/apiconfig"
+	"github.com/myunila/feeder-service/apps/logger"
 	"github.com/myunila/feeder-service/apps/mahasiswa"
+	"github.com/myunila/feeder-service/apps/monitoring"
 	"github.com/myunila/feeder-service/external/database"
 	"github.com/myunila/feeder-service/external/feeder_api"
 	"github.com/myunila/feeder-service/internal/config"
@@ -11,7 +13,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/logger"
+	fiberlogger "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 )
 
@@ -77,7 +79,7 @@ func main() {
 
 	// Middlewares
 	app.Use(recover.New())
-	app.Use(logger.New(logger.Config{
+	app.Use(fiberlogger.New(fiberlogger.Config{
 		Format: "[${time}] ${status} - ${latency} ${method} ${path}\n",
 	}))
 	app.Use(cors.New(cors.Config{
@@ -110,17 +112,28 @@ func main() {
 		log.Println("⚠️  No encryption key configured - API config encryption disabled")
 	}
 
-	// Initialize API Config routes (accessible without /public prefix)
+	// Initialize API Config routes (under /api/v1 for consistency)
 	if encryptor != nil {
 		apiConfigRepo := apiconfig.NewRepository(db)
 		apiConfigService := apiconfig.NewService(apiConfigRepo, encryptor)
 		apiConfigHandler := apiconfig.NewHandler(apiConfigService)
-		apiconfig.RegisterRoutes(app, apiConfigHandler)
+		apiconfig.RegisterRoutes(apiV1, apiConfigHandler)
 		log.Println("✅ API Configuration management enabled")
 	}
 
-	// Initialize Mahasiswa module
-	_ = mahasiswa.Init(apiV1, db, feederAPI, redisClient)
+	// Initialize Logger service (shared sync logs)
+	loggerRepo := logger.NewRepository(db)
+	loggerService := logger.NewService(loggerRepo)
+	loggerHandler := logger.NewHandler(loggerService)
+	loggerHandler.RegisterRoutes(apiV1)
+	log.Println("✅ Logger service registered (Sync Logs)")
+
+	// Initialize Monitoring service (in-memory sync progress tracking)
+	monitoring.RegisterRoutes(app)
+	log.Println("✅ Monitoring service registered (Sync Progress)")
+
+	// Initialize Mahasiswa module (pass logger service for sync logging)
+	_ = mahasiswa.Init(apiV1, db, feederAPI, redisClient, loggerService)
 	log.Println("✅ Mahasiswa routes registered")
 
 	// Welcome message
@@ -133,6 +146,8 @@ func main() {
 				"health":     "/health",
 				"api":        "/api/v1",
 				"mahasiswa":  "/api/v1/mahasiswa",
+				"sync_logs":  "/api/v1/sync-logs",
+				"monitoring": "/api/v1/monitoring/active",
 				"apiconfig":  "/apiconfig",
 			},
 		})

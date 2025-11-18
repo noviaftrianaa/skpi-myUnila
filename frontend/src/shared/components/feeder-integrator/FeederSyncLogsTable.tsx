@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import DataTable, { Column } from "../ui/DataTable";
 import { Chip, Select, SelectItem, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/react";
-import { syncLogsService, type SyncLog } from "@/lib/services/syncLogsService";
+import { feederSyncLogsService } from "@/lib/services/feederSyncLogsService";
+import type { FeederSyncLog as SyncLog } from "@/lib/services/feederSyncLogsService";
 import { FiCheckCircle, FiXCircle, FiAlertCircle, FiClock, FiEye } from "react-icons/fi";
 import { toast } from "react-hot-toast";
 
@@ -36,10 +37,10 @@ export default function FeederSyncLogsTable() {
     const loadData = async () => {
       setLoading(true);
       try {
-        const response = await syncLogsService.getSyncLogs({
+        const response = await feederSyncLogsService.getSyncLogs({
           page: currentPage,
           limit: rowsPerPage,
-          search: searchQuery || undefined,
+          endpoint_name: searchQuery || undefined,
           status: filterStatus || undefined,
           sync_type: filterSyncType || undefined,
         });

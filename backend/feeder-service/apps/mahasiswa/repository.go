@@ -39,6 +39,10 @@ type Repository interface {
 	CheckOrCreateSyncLog(ctx context.Context, idSms, angkatan string) error
 	UpdateSyncLogProgress(ctx context.Context, idSms, angkatan string, totalMhs, berhasil, gagal int) error
 	CompleteSyncLog(ctx context.Context, idSms, angkatan string) error
+
+	// Get sync logs with filtering
+	GetSyncLogs(ctx context.Context, page, limit int, search, angkatan string, status *string) (*SyncLogListResult, error)
+	GetSyncLogStats(ctx context.Context) (map[string]interface{}, error)
 }
 
 // ReferenceCache holds reference data for lookup and validation
@@ -953,11 +957,26 @@ func (r *repository) CheckOrCreateSyncLog(ctx context.Context, idSms, angkatan s
 	return nil
 }
 
-// UpdateSyncLogProgress updates sync progress (no stats columns - keeping it simple like Laravel seeder)
+// UpdateSyncLogProgress updates sync progress with stats
 func (r *repository) UpdateSyncLogProgress(ctx context.Context, idSms, angkatan string, totalMhs, berhasil, gagal int) error {
-	// No-op: Laravel seeder doesn't update progress, it only creates and completes log
-	// We can log the progress but don't need to update database
-	// log.Printf("📊 [Sync Progress] Prodi %s: %d/%d success, %d failed", idSms, berhasil, totalMhs, gagal)
+	query := `
+		UPDATE logger.log_sync_pd_sms
+		SET total_mahasiswa = @p1,
+			total_berhasil = @p2,
+			total_gagal = @p3,
+			angkatan = @p4
+		WHERE id_sms = @p5
+			AND tgl_sync >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)
+			AND a_selesai = 0
+	`
+
+	_, err := r.db.ExecContext(ctx, query, totalMhs, berhasil, gagal, angkatan, idSms)
+	if err != nil {
+		log.Printf("⚠️  [Sync Log] Failed to update progress for prodi %s: %v", idSms, err)
+		return err
+	}
+
+	log.Printf("📊 [Sync Progress] Prodi %s Angkatan %s: %d total, %d success, %d failed", idSms, angkatan, totalMhs, berhasil, gagal)
 	return nil
 }
 
@@ -975,4 +994,210 @@ func (r *repository) CompleteSyncLog(ctx context.Context, idSms, angkatan string
 
 	_, err := r.db.ExecContext(ctx, query, idSms)
 	return err
+}
+
+// GetSyncLogs retrieves sync logs with filtering and pagination
+func (r *repository) GetSyncLogs(ctx context.Context, page, limit int, search, angkatan string, status *string) (*SyncLogListResult, error) {
+	offset := (page - 1) * limit
+
+	// Build WHERE conditions
+	var conditions []string
+	var args []interface{}
+	paramCount := 1
+
+	// Search by prodi name
+	if search != "" {
+		conditions = append(conditions, fmt.Sprintf("sp.nm_sp LIKE @p%d", paramCount))
+		args = append(args, "%"+search+"%")
+		paramCount++
+	}
+
+	// Filter by angkatan
+	if angkatan != "" {
+		conditions = append(conditions, fmt.Sprintf("l.angkatan = @p%d", paramCount))
+		args = append(args, angkatan)
+		paramCount++
+	}
+
+	// Filter by status
+	if status != nil && *status != "" {
+		switch *status {
+		case "completed":
+			conditions = append(conditions, "l.a_selesai = 1")
+		case "processing":
+			conditions = append(conditions, "l.a_selesai = 0")
+		}
+	}
+
+	whereClause := ""
+	if len(conditions) > 0 {
+		whereClause = "WHERE " + strings.Join(conditions, " AND ")
+	}
+
+	// Count total
+	countQuery := fmt.Sprintf(`
+		SELECT COUNT(*)
+		FROM logger.log_sync_pd_sms l
+		LEFT JOIN pdrd.satuan_pendidikan sp ON l.id_prodi = sp.id_sp
+		%s
+	`, whereClause)
+
+	var total int
+	err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total)
+	if err != nil {
+		return nil, fmt.Errorf("failed to count sync logs: %w", err)
+	}
+
+	// Get data with pagination
+	args = append(args, offset, limit)
+	query := fmt.Sprintf(`
+		SELECT
+			l.id_sms,
+			l.tgl_sync,
+			l.waktu_mulai_sync,
+			l.waktu_selesai_sync,
+			l.a_selesai,
+			l.total_mahasiswa,
+			l.total_berhasil,
+			l.total_gagal,
+			l.angkatan,
+			sp.nm_sp as nama_prodi,
+			sp.nm_jenj_didik as jenjang_prodi
+		FROM logger.log_sync_pd_sms l
+		LEFT JOIN pdrd.satuan_pendidikan sp ON l.id_prodi = sp.id_sp
+		%s
+		ORDER BY l.tgl_sync DESC, l.waktu_mulai_sync DESC
+		OFFSET @p%d ROWS
+		FETCH NEXT @p%d ROWS ONLY
+	`, whereClause, paramCount, paramCount+1)
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sync logs: %w", err)
+	}
+	defer rows.Close()
+
+	var logs []*LogSyncPdSmsWithProdi
+	for rows.Next() {
+		log := &LogSyncPdSmsWithProdi{}
+		err := rows.Scan(
+			&log.IDSMS,
+			&log.TglSync,
+			&log.WaktuMulaiSync,
+			&log.WaktuSelesaiSync,
+			&log.ASelesai,
+			&log.TotalMahasiswa,
+			&log.TotalBerhasil,
+			&log.TotalGagal,
+			&log.Angkatan,
+			&log.NamaProdi,
+			&log.JenjangProdi,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan sync log: %w", err)
+		}
+
+		// Calculate duration if completed
+		if log.WaktuSelesaiSync != nil {
+			duration := log.WaktuSelesaiSync.Sub(log.WaktuMulaiSync).Milliseconds()
+			log.DurationMs = &duration
+		}
+
+		// Determine status
+		if log.ASelesai == 0 {
+			log.Status = "processing"
+		} else if log.TotalGagal != nil && *log.TotalGagal > 0 {
+			if log.TotalBerhasil != nil && *log.TotalBerhasil > 0 {
+				log.Status = "partial"
+			} else {
+				log.Status = "failed"
+			}
+		} else {
+			log.Status = "success"
+		}
+
+		logs = append(logs, log)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating sync logs: %w", err)
+	}
+
+	totalPages := (total + limit - 1) / limit
+
+	return &SyncLogListResult{
+		Data:       logs,
+		Total:      total,
+		Page:       page,
+		Limit:      limit,
+		TotalPages: totalPages,
+	}, nil
+}
+
+// GetSyncLogStats retrieves statistics for sync logs
+func (r *repository) GetSyncLogStats(ctx context.Context) (map[string]interface{}, error) {
+	query := `
+		SELECT
+			COUNT(*) as total_syncs,
+			SUM(CASE WHEN a_selesai = 1 THEN 1 ELSE 0 END) as completed_syncs,
+			SUM(CASE WHEN a_selesai = 0 THEN 1 ELSE 0 END) as processing_syncs,
+			SUM(CASE WHEN a_selesai = 1 AND total_gagal = 0 THEN 1 ELSE 0 END) as success_syncs,
+			SUM(CASE WHEN a_selesai = 1 AND total_gagal > 0 THEN 1 ELSE 0 END) as failed_syncs,
+			SUM(ISNULL(total_mahasiswa, 0)) as total_mahasiswa_processed,
+			SUM(ISNULL(total_berhasil, 0)) as total_berhasil,
+			SUM(ISNULL(total_gagal, 0)) as total_gagal,
+			MAX(tgl_sync) as last_sync_date
+		FROM logger.log_sync_pd_sms
+		WHERE tgl_sync >= DATEADD(MONTH, -3, GETDATE())
+	`
+
+	var stats struct {
+		TotalSyncs              int
+		CompletedSyncs          int
+		ProcessingSyncs         int
+		SuccessSyncs            int
+		FailedSyncs             int
+		TotalMahasiswaProcessed int
+		TotalBerhasil           int
+		TotalGagal              int
+		LastSyncDate            sql.NullTime
+	}
+
+	err := r.db.QueryRowContext(ctx, query).Scan(
+		&stats.TotalSyncs,
+		&stats.CompletedSyncs,
+		&stats.ProcessingSyncs,
+		&stats.SuccessSyncs,
+		&stats.FailedSyncs,
+		&stats.TotalMahasiswaProcessed,
+		&stats.TotalBerhasil,
+		&stats.TotalGagal,
+		&stats.LastSyncDate,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sync log stats: %w", err)
+	}
+
+	result := map[string]interface{}{
+		"total_syncs":               stats.TotalSyncs,
+		"completed_syncs":           stats.CompletedSyncs,
+		"processing_syncs":          stats.ProcessingSyncs,
+		"success_syncs":             stats.SuccessSyncs,
+		"failed_syncs":              stats.FailedSyncs,
+		"total_mahasiswa_processed": stats.TotalMahasiswaProcessed,
+		"total_berhasil":            stats.TotalBerhasil,
+		"total_gagal":               stats.TotalGagal,
+	}
+
+	if stats.LastSyncDate.Valid {
+		result["last_sync_date"] = stats.LastSyncDate.Time
+	}
+
+	successRate := 0.0
+	if stats.TotalMahasiswaProcessed > 0 {
+		successRate = float64(stats.TotalBerhasil) / float64(stats.TotalMahasiswaProcessed) * 100
+	}
+	result["success_rate"] = successRate
+
+	return result, nil
 }

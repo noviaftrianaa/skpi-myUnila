@@ -4,13 +4,14 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jmoiron/sqlx"
+	"github.com/myunila/feeder-service/apps/logger"
 	"github.com/myunila/feeder-service/external/feeder_api"
 )
 
 // Init initializes mahasiswa routes and returns the service
-func Init(router fiber.Router, db *sqlx.DB, feederAPI *feeder_api.FeederClient, redisClient *redis.Client) Service {
+func Init(router fiber.Router, db *sqlx.DB, feederAPI *feeder_api.FeederClient, redisClient *redis.Client, loggerSvc logger.Service) Service {
 	repo := NewRepository(db)
-	svc := NewService(repo, feederAPI, redisClient)
+	svc := NewService(repo, feederAPI, redisClient, loggerSvc)
 	ctrl := NewController(svc)
 
 	// Mahasiswa routes
@@ -32,14 +33,14 @@ func Init(router fiber.Router, db *sqlx.DB, feederAPI *feeder_api.FeederClient, 
 			helperRouter.Get("/prodi", ctrl.GetProdiList)
 		}
 
-		// GET /mahasiswa/:id_pd - Get mahasiswa detail by ID
-		mahasiswaRouter.Get("/:id_pd", ctrl.GetMahasiswaDetail)
-
 		// POST /mahasiswa/sync - Sync mahasiswa from Neo Feeder API by angkatan
 		mahasiswaRouter.Post("/sync", ctrl.SyncMahasiswaByAngkatan)
 
 		// POST /mahasiswa/sync-one/:id_pd - Test sync single mahasiswa (for debugging)
 		mahasiswaRouter.Post("/sync-one/:id_pd", ctrl.SyncSingleMahasiswaTest)
+
+		// GET /mahasiswa/:id_pd - Get mahasiswa detail by ID (MUST BE LAST to avoid catching other routes)
+		mahasiswaRouter.Get("/:id_pd", ctrl.GetMahasiswaDetail)
 	}
 
 	return svc

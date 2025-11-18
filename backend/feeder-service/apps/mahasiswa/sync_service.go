@@ -22,6 +22,9 @@ const (
 	RATE_LIMIT_DELAY   = 200 * time.Millisecond // 200ms delay = ~5 req/sec per worker
 	MAX_RETRY_PER_ITEM = 2                       // Retry failed items up to 2 times
 
+	// Pagination configuration
+	BATCH_SIZE = 100 // Fetch 100 records per API call to avoid memory exhaustion
+
 	// Token expiry buffer - refresh token if less than 5 minutes remaining
 	TOKEN_EXPIRY_BUFFER = 5 * time.Minute
 )
@@ -414,34 +417,57 @@ func (s *service) getProdiListForSync(ctx context.Context, idProdi *string) ([]m
 	return allProdi, nil
 }
 
-// Helper: getMahasiswaListFromFeederByProdi fetches ALL mahasiswa from prodi, then filters by angkatan locally
-// Matches MahasiswaSeeder.php: GetDataLengkapMahasiswaProdi with id_prodi filter only
+// Helper: getMahasiswaListFromFeederByProdi fetches mahasiswa from prodi with PAGINATION, then filters by angkatan locally
+// FIXED: Use pagination to avoid memory exhaustion on large prodi (e.g., Akuntansi, Arsitektur with 5000+ records)
 func (s *service) getMahasiswaListFromFeederByProdi(idProdi string, angkatan string) ([]map[string]interface{}, error) {
-	// Call Feeder API WITHOUT angkatan filter (API doesn't support it)
-	// Filter by id_prodi only
-	rawData, err := s.feederAPI.GetDataLengkapMahasiswaProdi(idProdi, "", 0, 0)
-	if err != nil {
-		return nil, fmt.Errorf("API call failed: %w", err)
-	}
-
-	var allMhsList []map[string]interface{}
-	if err := json.Unmarshal(rawData, &allMhsList); err != nil {
-		return nil, fmt.Errorf("failed to parse mahasiswa list: %w", err)
-	}
-
-	// Filter by angkatan in application code
-	// Angkatan extracted from id_periode_masuk (first 4 chars)
-	// Example: "20211" → angkatan "2021"
 	var filteredList []map[string]interface{}
-	for _, mhs := range allMhsList {
-		if idPeriodeMasuk, ok := mhs["id_periode_masuk"].(string); ok && len(idPeriodeMasuk) >= 4 {
-			mhsAngkatan := idPeriodeMasuk[:4]
-			if mhsAngkatan == angkatan {
-				filteredList = append(filteredList, mhs)
+	offset := 0
+	totalFetched := 0
+
+	// Pagination loop: fetch BATCH_SIZE records at a time
+	for {
+		// Call Feeder API with pagination parameters
+		// Filter by id_prodi only (angkatan filtering done locally)
+		rawData, err := s.feederAPI.GetDataLengkapMahasiswaProdi(idProdi, "", BATCH_SIZE, offset)
+		if err != nil {
+			return nil, fmt.Errorf("API call failed at offset %d: %w", offset, err)
+		}
+
+		var batchMhsList []map[string]interface{}
+		if err := json.Unmarshal(rawData, &batchMhsList); err != nil {
+			return nil, fmt.Errorf("failed to parse mahasiswa list at offset %d: %w", offset, err)
+		}
+
+		// If batch is empty, we've reached the end
+		if len(batchMhsList) == 0 {
+			break
+		}
+
+		totalFetched += len(batchMhsList)
+		log.Printf("📄 [Pagination] Fetched %d records (offset %d, total so far: %d)", len(batchMhsList), offset, totalFetched)
+
+		// Filter by angkatan in application code
+		// Angkatan extracted from id_periode_masuk (first 4 chars)
+		// Example: "20211" → angkatan "2021"
+		for _, mhs := range batchMhsList {
+			if idPeriodeMasuk, ok := mhs["id_periode_masuk"].(string); ok && len(idPeriodeMasuk) >= 4 {
+				mhsAngkatan := idPeriodeMasuk[:4]
+				if mhsAngkatan == angkatan {
+					filteredList = append(filteredList, mhs)
+				}
 			}
 		}
+
+		// If we got fewer records than BATCH_SIZE, we've reached the end
+		if len(batchMhsList) < BATCH_SIZE {
+			break
+		}
+
+		// Move to next page
+		offset += BATCH_SIZE
 	}
 
+	log.Printf("✅ [Pagination] Completed: fetched %d total records, filtered to %d for angkatan %s", totalFetched, len(filteredList), angkatan)
 	return filteredList, nil
 }
 
