@@ -500,12 +500,12 @@ echo -e "${GREEN}[4/4] Setting up Feeder Service...${NC}"
 
 # Create Feeder Service
 # Note: Upstream is at VM3 (e.g., 192.168.120.43:8084)
-# Add /api path prefix to match Laravel 11 auto-prefixing
+# Feeder service is a Go app with routes at /api/v1/*, no need for /api prefix
 FEEDER_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
   -d "{
     \"name\": \"feeder-service\",
-    \"url\": \"${FEEDER_SERVICE_URL:-http://192.168.120.43:8084/api}\"
+    \"url\": \"${FEEDER_SERVICE_URL:-http://192.168.120.43:8084}\"
   }")
 
 FEEDER_SERVICE_ID=$(parse_json_id "$FEEDER_SERVICE")
