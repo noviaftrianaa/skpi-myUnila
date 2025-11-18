@@ -52,6 +52,10 @@ fi
 
 echo ""
 
+###############################################################################
+# Helper Functions
+###############################################################################
+
 # Helper function to parse JSON
 parse_json_id() {
     local json="$1"
@@ -63,6 +67,34 @@ parse_json_id() {
     fi
     echo "$id"
 }
+
+# Helper function to delete all Kong configurations
+cleanup_kong() {
+    echo -e "${YELLOW}Cleaning up existing Kong configurations...${NC}"
+
+    # Delete all routes first (routes depend on services)
+    echo "  → Deleting all routes..."
+    ROUTES=$(curl -s "$KONG_ADMIN_URL/routes" | python -m json.tool 2>/dev/null | grep '"id"' | cut -d'"' -f4)
+    for route_id in $ROUTES; do
+        curl -s -X DELETE "$KONG_ADMIN_URL/routes/$route_id" > /dev/null 2>&1
+    done
+    echo -e "${GREEN}  ✓ All routes deleted${NC}"
+
+    # Delete all services
+    echo "  → Deleting all services..."
+    SERVICES=$(curl -s "$KONG_ADMIN_URL/services" | python -m json.tool 2>/dev/null | grep '"id"' | cut -d'"' -f4)
+    for service_id in $SERVICES; do
+        curl -s -X DELETE "$KONG_ADMIN_URL/services/$service_id" > /dev/null 2>&1
+    done
+    echo -e "${GREEN}  ✓ All services deleted${NC}"
+
+    echo ""
+}
+
+###############################################################################
+# Cleanup existing configurations
+###############################################################################
+cleanup_kong
 
 ###############################################################################
 # 0. Setup JWT Consumer & Credentials
@@ -113,12 +145,16 @@ echo ""
 ###############################################################################
 echo -e "${GREEN}[1/4] Setting up Dashboard Service...${NC}"
 
-# Create Dashboard Service
+# Note: Dashboard service structure:
+# Public endpoints: /api/public/v1/unila/*, /api/public/v1/dosen/*, /api/public/v1/rankings/*, etc.
+# Protected endpoints: /api/v1/my/*
+
+# Create single Dashboard Service
 DASHBOARD_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "dashboard-service",
-    "url": "http://myunila-nginx:81"
+    "url": "http://myunila-nginx:81/api"
   }')
 
 DASHBOARD_SERVICE_ID=$(parse_json_id "$DASHBOARD_SERVICE")
@@ -128,36 +164,24 @@ if [ -z "$DASHBOARD_SERVICE_ID" ]; then
 else
     echo -e "${GREEN}  ✓ Dashboard service created: $DASHBOARD_SERVICE_ID${NC}"
 
-    # Create protected route (with JWT)
-    curl -s -X POST "$KONG_ADMIN_URL/services/$DASHBOARD_SERVICE_ID/routes" \
-      -H "Content-Type: application/json" \
-      -d '{
-        "name": "dashboard-protected-route",
-        "paths": ["/dashboard-service/api"],
-        "strip_path": true,
-        "preserve_host": false,
-        "protocols": ["http", "https"]
-      }' > /dev/null
-    echo -e "${GREEN}  ✓ Dashboard protected route created${NC}"
-
-    # Create public route (without JWT)
-    curl -s -X POST "$KONG_ADMIN_URL/services/$DASHBOARD_SERVICE_ID/routes" \
+    # Route 1: Public endpoints (no JWT) - /dashboard-service/public → /api/public
+    echo -e "${YELLOW}  → Creating public route for /public endpoints...${NC}"
+    DASHBOARD_PUBLIC_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$DASHBOARD_SERVICE_ID/routes" \
       -H "Content-Type: application/json" \
       -d '{
         "name": "dashboard-public-route",
         "paths": ["/dashboard-service/public"],
         "strip_path": true,
         "preserve_host": false,
-        "protocols": ["http", "https"]
-      }' > /dev/null
-    echo -e "${GREEN}  ✓ Dashboard public route created${NC}"
+        "protocols": ["http", "https"],
+        "regex_priority": 300
+      }')
 
-    # Add CORS plugin to public route
-    PUBLIC_ROUTE_JSON=$(curl -s "$KONG_ADMIN_URL/routes/dashboard-public-route")
-    PUBLIC_ROUTE_ID=$(parse_json_id "$PUBLIC_ROUTE_JSON")
+    DASHBOARD_PUBLIC_ROUTE_ID=$(parse_json_id "$DASHBOARD_PUBLIC_ROUTE")
 
-    if [ -n "$PUBLIC_ROUTE_ID" ]; then
-        curl -s -X POST "$KONG_ADMIN_URL/routes/$PUBLIC_ROUTE_ID/plugins" \
+    if [ -n "$DASHBOARD_PUBLIC_ROUTE_ID" ]; then
+        # Add CORS plugin (no JWT plugin)
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$DASHBOARD_PUBLIC_ROUTE_ID/plugins" \
           -H "Content-Type: application/json" \
           -d '{
             "name": "cors",
@@ -170,7 +194,57 @@ else
               "max_age": 3600
             }
           }' > /dev/null
-        echo -e "${GREEN}  ✓ CORS plugin added to public route${NC}"
+        echo -e "${GREEN}  ✓ Public route created (no JWT)${NC}"
+    fi
+
+    # Route 2: Protected endpoints (with JWT) - /dashboard-service/api/v1/my → /api/v1/my
+    echo -e "${YELLOW}  → Creating protected route for /my endpoints...${NC}"
+    DASHBOARD_PROTECTED_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$DASHBOARD_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "dashboard-protected-route",
+        "paths": ["/dashboard-service/api/v1/my"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 200
+      }')
+
+    DASHBOARD_PROTECTED_ROUTE_ID=$(parse_json_id "$DASHBOARD_PROTECTED_ROUTE")
+
+    if [ -n "$DASHBOARD_PROTECTED_ROUTE_ID" ]; then
+        # Add CORS plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$DASHBOARD_PROTECTED_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "exposed_headers": ["X-Auth-Token"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        # Add JWT plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$DASHBOARD_PROTECTED_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "maximum_expiration": 0,
+              "header_names": ["authorization"],
+              "cookie_names": []
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ Protected route created with JWT${NC}"
     fi
 fi
 
@@ -186,7 +260,7 @@ AUTH_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "auth-service",
-    "url": "http://myunila-nginx:80"
+    "url": "http://myunila-nginx:80/api"
   }')
 
 AUTH_SERVICE_ID=$(parse_json_id "$AUTH_SERVICE")
@@ -196,7 +270,7 @@ if [ -z "$AUTH_SERVICE_ID" ]; then
 else
     echo -e "${GREEN}  ✓ Auth service created: $AUTH_SERVICE_ID${NC}"
 
-    # Create Auth route (public, no JWT needed for login)
+    # Create Auth route (no JWT at Kong level - auth service handles JWT internally)
     AUTH_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$AUTH_SERVICE_ID/routes" \
       -H "Content-Type: application/json" \
       -d '{
@@ -208,7 +282,7 @@ else
       }')
 
     AUTH_ROUTE_ID=$(parse_json_id "$AUTH_ROUTE")
-    echo -e "${GREEN}  ✓ Auth route created${NC}"
+    echo -e "${GREEN}  ✓ Auth route created (no JWT at Kong level)${NC}"
 
     # Add CORS plugin
     if [ -n "$AUTH_ROUTE_ID" ]; then
@@ -236,12 +310,16 @@ echo ""
 ###############################################################################
 echo -e "${GREEN}[3/4] Setting up Sister Service...${NC}"
 
-# Create Sister Service
+# Create Sister Service with extended timeouts for long-running sync operations
 SISTER_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "sister-service",
-    "url": "http://myunila-sister-service:8083"
+    "url": "http://myunila-sister-service:8083",
+    "connect_timeout": 300000,
+    "write_timeout": 300000,
+    "read_timeout": 300000,
+    "retries": 5
   }')
 
 SISTER_SERVICE_ID=$(parse_json_id "$SISTER_SERVICE")
@@ -251,23 +329,24 @@ if [ -z "$SISTER_SERVICE_ID" ]; then
 else
     echo -e "${GREEN}  ✓ Sister service created: $SISTER_SERVICE_ID${NC}"
 
-    # Create Sister route
-    SISTER_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$SISTER_SERVICE_ID/routes" \
+    # Route 1: Protected /api/v1/* endpoints (with JWT for all GET/POST)
+    echo -e "${YELLOW}  → Creating protected /api/v1 route...${NC}"
+    SISTER_API_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$SISTER_SERVICE_ID/routes" \
       -H "Content-Type: application/json" \
       -d '{
-        "name": "sister-service-route",
+        "name": "sister-api-v1-route",
         "paths": ["/sister-service"],
         "strip_path": true,
         "preserve_host": false,
-        "protocols": ["http", "https"]
+        "protocols": ["http", "https"],
+        "regex_priority": 200
       }')
 
-    SISTER_ROUTE_ID=$(parse_json_id "$SISTER_ROUTE")
-    echo -e "${GREEN}  ✓ Sister route created${NC}"
+    SISTER_API_ROUTE_ID=$(parse_json_id "$SISTER_API_ROUTE")
 
-    # Add CORS plugin
-    if [ -n "$SISTER_ROUTE_ID" ]; then
-        curl -s -X POST "$KONG_ADMIN_URL/routes/$SISTER_ROUTE_ID/plugins" \
+    if [ -n "$SISTER_API_ROUTE_ID" ]; then
+        # Add CORS plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$SISTER_API_ROUTE_ID/plugins" \
           -H "Content-Type: application/json" \
           -d '{
             "name": "cors",
@@ -280,10 +359,9 @@ else
               "max_age": 3600
             }
           }' > /dev/null
-        echo -e "${GREEN}  ✓ CORS plugin added${NC}"
 
-        # Add JWT plugin
-        curl -s -X POST "$KONG_ADMIN_URL/routes/$SISTER_ROUTE_ID/plugins" \
+        # Add JWT plugin (authentication required for all methods)
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$SISTER_API_ROUTE_ID/plugins" \
           -H "Content-Type: application/json" \
           -d '{
             "name": "jwt",
@@ -298,52 +376,56 @@ else
               "cookie_names": []
             }
           }' > /dev/null
-        echo -e "${GREEN}  ✓ JWT plugin added${NC}"
+        echo -e "${GREEN}  ✓ Protected /api/v1 route created with JWT${NC}"
     fi
 
-    # Create separate PUBLIC service for dosen endpoints (photo, etc.) - no JWT required
-    echo -e "${YELLOW}  → Creating public dosen service & route...${NC}"
-
-    SISTER_DOSEN_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+    # Route 2: Public endpoints (no JWT) - separate service with /public path
+    echo -e "${YELLOW}  → Creating public service for photo endpoint...${NC}"
+    SISTER_PUBLIC_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
       -H "Content-Type: application/json" \
-      -d "{\n    \\\"name\\\": \\\"sister-dosen-public-service\\\",\n    \\\"url\\\": \\\"$SISTER_SERVICE_URL/dosen\\\"\n  }")
+      -d '{
+        "name": "sister-public-service",
+        "url": "http://myunila-sister-service:8083/public"
+      }')
 
-    SISTER_DOSEN_SERVICE_ID=$(parse_json_id "$SISTER_DOSEN_SERVICE")
+    SISTER_PUBLIC_SERVICE_ID=$(parse_json_id "$SISTER_PUBLIC_SERVICE")
 
-    if [ -n "$SISTER_DOSEN_SERVICE_ID" ]; then
-        echo -e "${GREEN}  ✓ Sister dosen public service created: $SISTER_DOSEN_SERVICE_ID${NC}"
+    if [ -z "$SISTER_PUBLIC_SERVICE_ID" ]; then
+        echo -e "${YELLOW}  ! Public service may already exist, continuing...${NC}"
+    else
+        echo -e "${GREEN}  ✓ Public service created: $SISTER_PUBLIC_SERVICE_ID${NC}"
+    fi
 
-        # Create route for /sister-service/dosen (handles /photo/{id} and other dosen endpoints)
-        DOSEN_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$SISTER_DOSEN_SERVICE_ID/routes" \
+    # Create route for public service
+    SISTER_PUBLIC_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/sister-public-service/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "sister-public-route",
+        "paths": ["/sister-service/public"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 150
+      }')
+
+    SISTER_PUBLIC_ROUTE_ID=$(parse_json_id "$SISTER_PUBLIC_ROUTE")
+
+    if [ -n "$SISTER_PUBLIC_ROUTE_ID" ]; then
+        # Add CORS plugin (no JWT plugin)
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$SISTER_PUBLIC_ROUTE_ID/plugins" \
           -H "Content-Type: application/json" \
           -d '{
-            "name": "sister-dosen-public-route",
-            "paths": ["/sister-service/dosen"],
-            "strip_path": true,
-            "preserve_host": false,
-            "protocols": ["http", "https"],
-            "regex_priority": 100
-          }')
-
-        DOSEN_ROUTE_ID=$(parse_json_id "$DOSEN_ROUTE")
-
-        if [ -n "$DOSEN_ROUTE_ID" ]; then
-            # Add CORS plugin for dosen route (no JWT plugin)
-            curl -s -X POST "$KONG_ADMIN_URL/routes/$DOSEN_ROUTE_ID/plugins" \
-              -H "Content-Type: application/json" \
-              -d '{
-                "name": "cors",
-                "config": {
-                  "origins": ["*"],
-                  "methods": ["GET", "OPTIONS"],
-                  "headers": ["Accept", "Content-Type"],
-                  "exposed_headers": [],
-                  "credentials": false,
-                  "max_age": 3600
-                }
-              }' > /dev/null
-            echo -e "${GREEN}  ✓ Public dosen route created (no JWT)${NC}"
-        fi
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "OPTIONS"],
+              "headers": ["Accept", "Content-Type"],
+              "exposed_headers": [],
+              "credentials": false,
+              "max_age": 3600
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ Public route created (no JWT, for photo endpoint)${NC}"
     fi
 fi
 
@@ -427,13 +509,22 @@ echo -e "${GREEN}=========================================${NC}"
 echo ""
 
 echo -e "${YELLOW}Configured Routes:${NC}"
-echo "  Dashboard (protected): http://localhost:9800/dashboard-service/api/v1"
 echo "  Dashboard (public):    http://localhost:9800/dashboard-service/public/api/v1"
+echo "  Dashboard (protected): http://localhost:9800/dashboard-service/api/v1"
 echo "  Auth:                  http://localhost:9800/auth-service/api/v1"
-echo "  Sister:                http://localhost:9800/sister-service"
-echo "  Feeder:                http://localhost:9800/feeder-service"
+echo "  Sister (protected):    http://localhost:9800/sister-service/api/v1"
+echo "  Sister (public photo): http://localhost:9800/sister-service/public/api/v1/dosen/photo/:id"
+echo "  Feeder (protected):    http://localhost:9800/feeder-service/api/v1"
 echo ""
 
-echo -e "${YELLOW}Check Kong services:${NC}"
+echo -e "${YELLOW}Example Test Commands:${NC}"
+echo "  # Dashboard public (no auth)"
+echo "  curl http://localhost:9800/dashboard-service/public/api/v1/dosen/statistics"
+echo ""
+echo "  # Sister public photo (no auth)"
+echo "  curl http://localhost:9800/sister-service/public/api/v1/dosen/photo/YOUR-ID-HERE"
+echo ""
+echo "  # Check Kong services and routes"
 echo "  curl $KONG_ADMIN_URL/services"
+echo "  curl $KONG_ADMIN_URL/routes"
 echo ""
