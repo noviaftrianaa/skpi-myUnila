@@ -146,15 +146,16 @@ echo ""
 echo -e "${GREEN}[1/4] Setting up Dashboard Service...${NC}"
 
 # Note: Dashboard service structure:
-# Public endpoints: /api/public/v1/unila/*, /api/public/v1/dosen/*, /api/public/v1/rankings/*, etc.
-# Protected endpoints: /api/v1/my/*
+# Public endpoints: /api/public/api/v1/unila/*, /api/public/api/v1/dosen/*, etc.
+# Protected endpoints: /api/api/v1/my/*
 
-# Create single Dashboard Service
+# Create Dashboard Service for protected endpoints
+# Laravel 11 auto-prefixes /api, so service path should be /api
 DASHBOARD_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "dashboard-service",
-    "url": "http://myunila-nginx:81"
+    "url": "http://myunila-nginx:81/api"
   }')
 
 DASHBOARD_SERVICE_ID=$(parse_json_id "$DASHBOARD_SERVICE")
@@ -163,10 +164,30 @@ if [ -z "$DASHBOARD_SERVICE_ID" ]; then
     echo -e "${RED}  ✗ Failed to create Dashboard service${NC}"
 else
     echo -e "${GREEN}  ✓ Dashboard service created: $DASHBOARD_SERVICE_ID${NC}"
+fi
 
-    # Route 1: Public endpoints (no JWT) - /dashboard-service/public → /api/public
+# Create separate Dashboard Public Service for public endpoints
+# Laravel routes: /api/public/api/v1/...
+# Kong will strip /dashboard-service/public and forward to /api/public
+echo -e "${YELLOW}  → Creating dashboard-public-service for public endpoints...${NC}"
+DASHBOARD_PUBLIC_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "dashboard-public-service",
+    "url": "http://myunila-nginx:81/api/public"
+  }')
+
+DASHBOARD_PUBLIC_SERVICE_ID=$(parse_json_id "$DASHBOARD_PUBLIC_SERVICE")
+
+if [ -z "$DASHBOARD_PUBLIC_SERVICE_ID" ]; then
+    echo -e "${RED}  ✗ Failed to create Dashboard Public service${NC}"
+else
+    echo -e "${GREEN}  ✓ Dashboard Public service created: $DASHBOARD_PUBLIC_SERVICE_ID${NC}"
+
+    # Route 1: Public endpoints (no JWT) - /dashboard-service/public/api/v1/X → /api/public/api/v1/X
+    # Strip /dashboard-service/public, forward to /api/public (via service path)
     echo -e "${YELLOW}  → Creating public route for /public endpoints...${NC}"
-    DASHBOARD_PUBLIC_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$DASHBOARD_SERVICE_ID/routes" \
+    DASHBOARD_PUBLIC_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$DASHBOARD_PUBLIC_SERVICE_ID/routes" \
       -H "Content-Type: application/json" \
       -d '{
         "name": "dashboard-public-route",
@@ -196,8 +217,10 @@ else
           }' > /dev/null
         echo -e "${GREEN}  ✓ Public route created (no JWT)${NC}"
     fi
+fi
 
-    # Route 2: Protected endpoints (with JWT) - /dashboard-service/api/v1/my → /api/v1/my
+# Route 2: Protected endpoints (with JWT) - /dashboard-service/api/v1/my → /api/api/v1/my
+if [ -n "$DASHBOARD_SERVICE_ID" ]; then
     echo -e "${YELLOW}  → Creating protected route for /my endpoints...${NC}"
     DASHBOARD_PROTECTED_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$DASHBOARD_SERVICE_ID/routes" \
       -H "Content-Type: application/json" \
