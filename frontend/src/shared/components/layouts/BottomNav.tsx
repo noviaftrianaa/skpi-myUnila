@@ -52,7 +52,7 @@ export default function BottomNav() {
     <motion.nav
       initial={{ y: 100 }}
       animate={{ y: 0 }}
-      className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-gray-200 shadow-lg"
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-gray-100/50 shadow-lg"
     >
       <div className="flex items-center justify-around h-14 sm:h-16 px-1.5 sm:px-2 max-w-md mx-auto">
         {navItems.map((item) => {
