@@ -110,8 +110,8 @@ export const sisterPendidikanService = {
    * @param syncedBy - Username of person who triggered the sync
    */
   async syncFromSister(syncedBy: string): Promise<BatchAllSyncResult> {
-    const response = await axios.post<BatchAllSyncResult>(
-      `${API_V1_BASE}/pendidikan-formal/sync-all`,
+    const response = await sisterClient.post<BatchAllSyncResult>(
+      '/pendidikan-formal/sync-all',
       null,
       { params: { synced_by: syncedBy } }
     );

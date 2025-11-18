@@ -109,7 +109,7 @@ export const sisterPenugasanService = {
    */
   async getListByIDSDM(idSDM: string): Promise<Penugasan[]> {
     const response = await sisterClient.get<SisterApiResponse<Penugasan[]>>(
-      '/api/v1/penugasan',
+      '/penugasan',
       { params: { id_sdm: idSDM } }
     );
     return response.data.data || [];
@@ -120,7 +120,7 @@ export const sisterPenugasanService = {
    */
   async getDetail(idRegPTK: string): Promise<Penugasan> {
     const response = await sisterClient.get<SisterApiResponse<Penugasan>>(
-      `/api/v1/penugasan/${idRegPTK}`
+      `/penugasan/${idRegPTK}`
     );
     return response.data.data;
   },
@@ -132,7 +132,7 @@ export const sisterPenugasanService = {
    */
   async syncByIDSDM(idSDM: string, syncedBy: string): Promise<BatchPenugasanSyncResult> {
     const response = await sisterClient.post<SisterApiResponse<BatchPenugasanSyncResult>>(
-      '/api/v1/penugasan/sync',
+      '/penugasan/sync',
       null,
       { params: { id_sdm: idSDM, synced_by: syncedBy } }
     );

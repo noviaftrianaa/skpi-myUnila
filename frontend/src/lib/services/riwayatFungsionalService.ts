@@ -98,8 +98,8 @@ export const sisterRiwayatFungsionalService = {
    * @param syncedBy - Username of person who triggered the sync
    */
   async syncFromSister(syncedBy: string): Promise<BatchAllSyncResult> {
-    const response = await axios.post<{ success: boolean; data: BatchAllSyncResult }>(
-      `${API_V1_BASE}/jabatan-fungsional/sync-all`,
+    const response = await sisterClient.post<{ success: boolean; data: BatchAllSyncResult }>(
+      '/jabatan-fungsional/sync-all',
       null,
       { params: { synced_by: syncedBy } }
     );

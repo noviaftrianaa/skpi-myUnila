@@ -9,6 +9,7 @@
 #   bash quick-rebuild.sh dashboard    # Rebuild only dashboard
 #   bash quick-rebuild.sh auth         # Rebuild only auth
 #   bash quick-rebuild.sh sister       # Rebuild only sister
+#   bash quick-rebuild.sh feeder       # Rebuild only feeder
 ###############################################################################
 
 # Colors
@@ -61,7 +62,7 @@ rebuild_service() {
     docker compose --env-file .env -f "$compose_file" up -d ${service_name}-service
 
     # Clear Laravel caches if it's a PHP service
-    if [ "$service_name" != "sister" ]; then
+    if [ "$service_name" != "sister" ] && [ "$service_name" != "feeder" ]; then
         sleep 3
         echo "  → Clearing Laravel caches..."
         docker exec $container_name php artisan config:clear 2>/dev/null || true
@@ -70,6 +71,26 @@ rebuild_service() {
     fi
 
     echo -e "${GREEN}✓ ${service_name} service rebuilt${NC}"
+    echo ""
+}
+
+# Function to rebuild frontend
+rebuild_frontend() {
+    echo -e "${GREEN}Rebuilding Frontend...${NC}"
+
+    # Stop the frontend service
+    echo "  → Stopping frontend..."
+    docker compose --env-file .env -f services/1-nextjs/docker-compose.yml stop nextjs 2>/dev/null || true
+
+    # Rebuild without cache
+    echo "  → Rebuilding image..."
+    docker compose --env-file .env -f services/1-nextjs/docker-compose.yml build --pull nextjs
+
+    # Start the service
+    echo "  → Starting frontend..."
+    docker compose --env-file .env -f services/1-nextjs/docker-compose.yml up -d nextjs
+
+    echo -e "${GREEN}✓ Frontend rebuilt${NC}"
     echo ""
 }
 
@@ -84,12 +105,20 @@ case "$SERVICE" in
     sister)
         rebuild_service "sister"
         ;;
+    feeder)
+        rebuild_service "feeder"
+        ;;
+    frontend)
+        rebuild_frontend
+        ;;
     all)
         echo "Rebuilding all services..."
         echo ""
+        rebuild_frontend
         rebuild_service "dashboard"
         rebuild_service "auth"
         rebuild_service "sister"
+        rebuild_service "feeder"
 
         # Restart nginx to ensure connection
         echo -e "${GREEN}Restarting Nginx...${NC}"
@@ -104,6 +133,8 @@ case "$SERVICE" in
         echo "  bash quick-rebuild.sh dashboard    # Rebuild dashboard only"
         echo "  bash quick-rebuild.sh auth         # Rebuild auth only"
         echo "  bash quick-rebuild.sh sister       # Rebuild sister only"
+        echo "  bash quick-rebuild.sh feeder       # Rebuild feeder only"
+        echo "  bash quick-rebuild.sh frontend     # Rebuild frontend only"
         echo ""
         exit 1
         ;;
@@ -123,6 +154,9 @@ echo -e "${GREEN}✓ Quick rebuild complete!${NC}"
 echo ""
 
 echo -e "${YELLOW}Test Endpoints:${NC}"
+if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "frontend" ]; then
+    echo "  Frontend:  curl http://localhost:3001"
+fi
 if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "dashboard" ]; then
     echo "  Dashboard: curl http://localhost:8082/api/health"
 fi
@@ -131,5 +165,8 @@ if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "auth" ]; then
 fi
 if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "sister" ]; then
     echo "  Sister:    curl http://localhost:8083/health"
+fi
+if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "feeder" ]; then
+    echo "  Feeder:    curl http://localhost:8084/health"
 fi
 echo ""

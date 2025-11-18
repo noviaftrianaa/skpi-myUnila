@@ -74,7 +74,7 @@ export const sisterTugasTambahanService = {
 
   async syncFromSister(syncedBy: string): Promise<BatchAllSyncResult> {
     const response = await sisterClient.post<{ success: boolean; data: BatchAllSyncResult }>(
-      '/api/v1/tugas-tambahan/sync-all',
+      '/tugas-tambahan/sync-all',
       null,
       { params: { synced_by: syncedBy } }
     );

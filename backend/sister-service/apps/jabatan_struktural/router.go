@@ -15,23 +15,17 @@ func SetupRoutes(app *fiber.App, db *sqlx.DB, sisterAPI *sister_api.Client, logg
 	service := NewService(repo, syncService)
 	controller := NewController(service)
 
-	// API routes (protected/authenticated)
+	// API routes
 	api := app.Group("/api/v1")
 
-	// Sync routes
+	// Sync routes (authenticated)
 	api.Post("/jabatan-struktural/sync", controller.SyncJabatanStrukturalByIDSDM)
 	api.Post("/jabatan-struktural/sync-all", controller.BatchSyncAllJabatanStruktural)
 
-	// Public routes (no auth required)
-	jabatanStrukturalGroup := app.Group("/jabatan-struktural")
-
-	// Stats route (must be before /:id to avoid conflict)
+	// Public GET routes under /api/v1 (for Kong Gateway routing consistency)
+	jabatanStrukturalGroup := api.Group("/jabatan-struktural")
 	jabatanStrukturalGroup.Get("/stats", controller.GetJabatanStrukturalStats)
-
-	// List route (must be before /:id to avoid conflict)
 	jabatanStrukturalGroup.Get("/list", controller.GetJabatanStrukturalList)
-
-	// Detail route
 	jabatanStrukturalGroup.Get("/:id", controller.GetJabatanStrukturalDetail)
 
 	return service

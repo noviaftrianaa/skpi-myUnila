@@ -14,32 +14,41 @@ func SetupRoutes(app *fiber.App, db *sqlx.DB, sisterAPI *sister_api.Client, logg
 	service := NewService(db, sisterAPI, loggerSvc)
 	controller := NewController(service)
 
-	// API routes (authenticated)
-	apiV1 := app.Group("/api/v1")
+	// API routes (authenticated with JWT at Kong level)
+	api := app.Group("/api/v1")
 
-	// Penelitian sync endpoints
-	apiV1.Post("/penelitian/sync", controller.SyncPenelitianByIDSDM)
-	apiV1.Post("/penelitian/sync-all", controller.BatchSyncAllPenelitian)
+	// Penelitian routes
+	penelitianAPI := api.Group("/penelitian")
+	{
+		// POST sync routes
+		penelitianAPI.Post("/sync", controller.SyncPenelitianByIDSDM)
+		penelitianAPI.Post("/sync-all", controller.BatchSyncAllPenelitian)
 
-	// Pengabdian sync endpoints
-	apiV1.Post("/pengabdian/sync", controller.SyncPengabdianByIDSDM)
-	apiV1.Post("/pengabdian/sync-all", controller.BatchSyncAllPengabdian)
+		// GET routes (also protected with JWT)
+		penelitianAPI.Get("", controller.GetPenelitianByIDSDM)
+		penelitianAPI.Get("/stats", controller.GetPenelitianStats)
+		penelitianAPI.Get("/list", controller.GetPenelitianList)
+	}
 
-	// Public routes (no auth required)
-	penelitianGroup := app.Group("/penelitian")
-	penelitianGroup.Get("", controller.GetPenelitianByIDSDM)
-	penelitianGroup.Get("/stats", controller.GetPenelitianStats)
-	penelitianGroup.Get("/list", controller.GetPenelitianList)
+	// Pengabdian routes
+	pengabdianAPI := api.Group("/pengabdian")
+	{
+		// POST sync routes
+		pengabdianAPI.Post("/sync", controller.SyncPengabdianByIDSDM)
+		pengabdianAPI.Post("/sync-all", controller.BatchSyncAllPengabdian)
 
-	pengabdianGroup := app.Group("/pengabdian")
-	pengabdianGroup.Get("", controller.GetPengabdianByIDSDM)
-	pengabdianGroup.Get("/stats", controller.GetPengabdianStats)
-	pengabdianGroup.Get("/list", controller.GetPengabdianList)
+		// GET routes (also protected with JWT)
+		pengabdianAPI.Get("", controller.GetPengabdianByIDSDM)
+		pengabdianAPI.Get("/stats", controller.GetPengabdianStats)
+		pengabdianAPI.Get("/list", controller.GetPengabdianList)
+	}
 
 	// General litabmas endpoint (works for both penelitian and pengabdian)
-	litabmasGroup := app.Group("/litabmas")
-	litabmasGroup.Get("/:id", controller.GetLitabmasDetail)
-	litabmasGroup.Get("/:id/dokumen", controller.GetDokumenByLitabmas)
+	litabmasAPI := api.Group("/litabmas")
+	{
+		litabmasAPI.Get("/:id", controller.GetLitabmasDetail)
+		litabmasAPI.Get("/:id/dokumen", controller.GetDokumenByLitabmas)
+	}
 
 	return service
 }

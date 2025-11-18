@@ -14,7 +14,10 @@ import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'ax
 import { getToken, setToken, clearTokens } from './client';
 
 // Sister API URL via Kong Gateway
-const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:9800/sister-service';
+// Note: Sister service adds /api/v1 suffix for protected endpoints
+const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL
+  ? `${process.env.NEXT_PUBLIC_SISTER_API_URL}/api/v1`
+  : 'http://localhost:9800/sister-service/api/v1';
 const API_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '120000'); // 2 minutes for long operations
 
 /**

@@ -9,6 +9,7 @@
 #   bash restart-services.sh dashboard    # Restart only dashboard
 #   bash restart-services.sh auth         # Restart only auth
 #   bash restart-services.sh sister       # Restart only sister
+#   bash restart-services.sh feeder       # Restart only feeder
 ###############################################################################
 
 # Colors
@@ -47,7 +48,7 @@ restart_service() {
     docker compose restart ${service_name}-service
 
     # Clear Laravel caches if it's a PHP service
-    if [ "$service_name" != "sister" ]; then
+    if [ "$service_name" != "sister" ] && [ "$service_name" != "feeder" ]; then
         sleep 3
         echo "  → Clearing Laravel caches..."
         docker exec $container_name php artisan config:clear 2>/dev/null || true
@@ -69,6 +70,9 @@ case "$SERVICE" in
         ;;
     sister)
         restart_service "sister"
+        ;;
+    feeder)
+        restart_service "feeder"
         ;;
     redis)
         echo -e "${GREEN}Restarting Redis...${NC}"
@@ -94,6 +98,7 @@ case "$SERVICE" in
         restart_service "dashboard"
         restart_service "auth"
         restart_service "sister"
+        restart_service "feeder"
 
         echo -e "${GREEN}Restarting Nginx...${NC}"
         docker compose restart nginx
@@ -111,6 +116,7 @@ case "$SERVICE" in
         echo "  bash restart-services.sh dashboard    # Restart dashboard only"
         echo "  bash restart-services.sh auth         # Restart auth only"
         echo "  bash restart-services.sh sister       # Restart sister only"
+        echo "  bash restart-services.sh feeder       # Restart feeder only"
         echo "  bash restart-services.sh redis        # Restart redis only"
         echo "  bash restart-services.sh meilisearch  # Restart meilisearch only"
         echo "  bash restart-services.sh nginx        # Restart nginx only"

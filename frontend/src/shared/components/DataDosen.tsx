@@ -8,7 +8,9 @@ import { dosenService, type DosenStatistics } from "@/lib/services/dosenService"
 // Import ECharts dynamically to avoid SSR issues
 const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });
 
-const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL
+  ? `${process.env.NEXT_PUBLIC_DASHBOARD_API_URL}/public/api/v1`
+  : 'http://localhost:9800/dashboard-service/public/api/v1';
 
 export default function DataDosen() {
   const [statistics, setStatistics] = useState<DosenStatistics | null>(null);

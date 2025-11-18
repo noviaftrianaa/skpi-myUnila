@@ -13,8 +13,12 @@ import { HiAcademicCap } from "react-icons/hi";
 import { MdSchool, MdWork, MdScience } from "react-icons/md";
 import { dosenService, type DosenProfile } from "@/lib/services/dosenService";
 
-const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/api/v1';
-const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL || 'http://localhost:9800/sister-service';
+const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL
+  ? `${process.env.NEXT_PUBLIC_DASHBOARD_API_URL}/public/api/v1`
+  : 'http://localhost:9800/dashboard-service/public/api/v1';
+const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL
+  ? `${process.env.NEXT_PUBLIC_SISTER_API_URL}/public/api/v1`
+  : 'http://localhost:9800/sister-service/public/api/v1';
 
 type TabType = 'overview' | 'pengajaran' | 'penelitian' | 'publikasi';
 

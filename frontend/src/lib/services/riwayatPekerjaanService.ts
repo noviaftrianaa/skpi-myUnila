@@ -97,8 +97,8 @@ export const sisterRiwayatPekerjaanService = {
    * @param syncedBy - Username of person who triggered the sync
    */
   async syncFromSister(syncedBy: string): Promise<BatchAllSyncResult> {
-    const response = await axios.post<{ success: boolean; data: BatchAllSyncResult }>(
-      `${API_V1_BASE}/riwayat-pekerjaan/sync-all`,
+    const response = await sisterClient.post<{ success: boolean; data: BatchAllSyncResult }>(
+      '/riwayat-pekerjaan/sync-all',
       null,
       { params: { synced_by: syncedBy } }
     );

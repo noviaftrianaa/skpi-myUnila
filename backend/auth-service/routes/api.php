@@ -16,9 +16,13 @@ use App\Http\Controllers\MfaController;
 | Authentication service routes
 | Base URL: /api (configured in bootstrap/app.php)
 |
+| Structure:
+| - /api/v1/* - All endpoints (no JWT required at Kong level)
+|   Auth service handles its own JWT validation for protected endpoints
+|
 */
 
-// Health check
+// Health check (public)
 Route::get('/health', [HealthController::class, 'check'] ?? function () {
     return response()->json([
         'service' => 'Auth Service',
@@ -28,9 +32,9 @@ Route::get('/health', [HealthController::class, 'check'] ?? function () {
 });
 
 // API version 1
-Route::prefix('v1')->group(function () {
+Route::prefix('api/v1')->group(function () {
 
-    // Public routes (no authentication required)
+    // Public authentication endpoints (no JWT required)
     Route::prefix('auth')->group(function () {
         // Standard Authentication
         Route::post('/login', [AuthController::class, 'login']);
@@ -55,17 +59,19 @@ Route::prefix('v1')->group(function () {
         Route::post('/verify', [MfaController::class, 'verify']); // Verify MFA code during login
     });
 
-    // Protected routes (JWT authentication required)
+    // Protected routes (JWT authentication required - validated by auth service itself)
     Route::middleware('jwt.auth')->group(function () {
         // Auth endpoints
-        Route::post('/auth/logout', [AuthController::class, 'logout']);
-        Route::post('/auth/logout-all', [AuthController::class, 'logoutAllDevices']);
-        Route::get('/auth/me', [AuthController::class, 'me']);
-        Route::post('/auth/switch-role', [AuthController::class, 'switchRole']);
+        Route::prefix('auth')->group(function () {
+            Route::post('/logout', [AuthController::class, 'logout']);
+            Route::post('/logout-all', [AuthController::class, 'logoutAllDevices']);
+            Route::get('/me', [AuthController::class, 'me']);
+            Route::post('/switch-role', [AuthController::class, 'switchRole']);
 
-        // Token management endpoints
-        Route::get('/auth/sessions', [AuthController::class, 'activeSessions']);
-        Route::get('/auth/token-info', [AuthController::class, 'tokenInfo']);
+            // Token management endpoints
+            Route::get('/sessions', [AuthController::class, 'activeSessions']);
+            Route::get('/token-info', [AuthController::class, 'tokenInfo']);
+        });
 
         // MFA endpoints (Protected)
         Route::prefix('mfa')->group(function () {
@@ -90,5 +96,4 @@ Route::prefix('v1')->group(function () {
             Route::post('/invalidate-user', [CacheController::class, 'invalidateUser']);
         });
     });
-
 });

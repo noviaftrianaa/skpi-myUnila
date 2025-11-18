@@ -14,30 +14,24 @@ func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client, redisC
 	svc := NewService(sisterAPI, redisClient, repo, loggerSvc)
 	ctrl := NewController(svc)
 
-	// Public dosen routes (no auth required for most endpoints)
-	dosenRouter := router.Group("/dosen")
+	// API routes (authenticated with JWT at Kong level)
+	api := router.Group("/api/v1")
+	dosenAPI := api.Group("/dosen")
 	{
-		// GET /dosen - Get paginated list of dosen with search and filters
-		dosenRouter.Get("/", ctrl.GetDosenList)
+		// Sync routes (POST)
+		dosenAPI.Post("/sync", ctrl.SyncDosenFromSister)
+		dosenAPI.Post("/test/:id_sdm", ctrl.SyncSingleDosenTest)
 
-		// GET /dosen/stats - Get dosen statistics (must be before /:id_sdm to avoid conflict)
-		dosenRouter.Get("/stats", ctrl.GetDosenStats)
-
-		// GET /dosen/photo/:id_sdm - Get dosen photo from SISTER API (with Redis cache, no auth required)
-		dosenRouter.Get("/photo/:id_sdm", ctrl.GetDosenPhoto)
-
-		// GET /dosen/bidang_ilmu/:id_sdm - Get dosen bidang keahlian from SISTER API
-		dosenRouter.Get("/bidang_ilmu/:id_sdm", ctrl.GetDosenBidangIlmu)
-
-		// GET /dosen/:id_sdm - Get dosen detail by ID
-		dosenRouter.Get("/:id_sdm", ctrl.GetDosenDetail)
-
-		// POST /dosen/sync - Sync all Unila dosen from SISTER API to database
-		dosenRouter.Post("/sync", ctrl.SyncDosenFromSister)
-
-		// POST /dosen/test/:id_sdm - Test sync single dosen (for debugging)
-		dosenRouter.Post("/test/:id_sdm", ctrl.SyncSingleDosenTest)
+		// GET routes (also protected with JWT)
+		dosenAPI.Get("/", ctrl.GetDosenList)
+		dosenAPI.Get("/stats", ctrl.GetDosenStats)
+		dosenAPI.Get("/bidang_ilmu/:id_sdm", ctrl.GetDosenBidangIlmu)
+		dosenAPI.Get("/:id_sdm", ctrl.GetDosenDetail)
 	}
+
+	// Public routes (no JWT required) - only for photo
+	publicAPI := router.Group("/public/api/v1")
+	publicAPI.Get("/dosen/photo/:id_sdm", ctrl.GetDosenPhoto)
 
 	return svc
 }

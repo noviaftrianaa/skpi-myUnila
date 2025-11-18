@@ -14,7 +14,10 @@ import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'ax
 import { getToken, setToken, clearTokens } from './client';
 
 // Feeder API URL via Kong Gateway
-const FEEDER_API_URL = process.env.NEXT_PUBLIC_FEEDER_API_URL || 'http://localhost:9800/feeder-service';
+// Note: Feeder service adds /api/v1 suffix for protected endpoints
+const FEEDER_API_URL = process.env.NEXT_PUBLIC_FEEDER_API_URL
+  ? `${process.env.NEXT_PUBLIC_FEEDER_API_URL}/api/v1`
+  : 'http://localhost:9800/feeder-service/api/v1';
 const API_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '120000'); // 2 minutes for long operations
 
 /**
@@ -74,7 +77,7 @@ const createFeederClient = (): AxiosInstance => {
 
           // Call refresh token endpoint via Kong Gateway with refresh_token in body
           const AUTH_REFRESH_URL = process.env.NEXT_PUBLIC_AUTH_API_URL
-            ? `${process.env.NEXT_PUBLIC_AUTH_API_URL}/auth/refresh`
+            ? `${process.env.NEXT_PUBLIC_AUTH_API_URL}/api/v1/auth/refresh`
             : 'http://localhost:9800/auth-service/api/v1/auth/refresh';
 
           const response = await axios.post(
