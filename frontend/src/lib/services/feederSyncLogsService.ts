@@ -1,11 +1,11 @@
 /**
- * Sync Logs Service
- * Handles API calls for viewing synchronization logs from Sister Integrator
+ * Feeder Sync Logs Service
+ * Handles API calls for viewing synchronization logs from Feeder Integrator
  */
 
-import { sisterClient } from '../api/sisterClient';
+import { feederClient } from '../api/feederClient';
 
-export interface SyncLog {
+export interface FeederSyncLog {
   id: number;
   endpoint_name: string;
   endpoint_key: string;
@@ -23,7 +23,7 @@ export interface SyncLog {
   synced_at: string;
 }
 
-export interface SyncLogFilter {
+export interface FeederSyncLogFilter {
   search?: string;
   endpoint_key?: string;
   status?: "success" | "failed" | "partial";
@@ -34,19 +34,19 @@ export interface SyncLogFilter {
   limit?: number;
 }
 
-export interface SyncLogResponse {
-  data: SyncLog[];
+export interface FeederSyncLogResponse {
+  data: FeederSyncLog[];
   total: number;
   page: number;
   limit: number;
   total_pages: number;
 }
 
-export const syncLogsService = {
+export const feederSyncLogsService = {
   /**
    * Get sync logs with filtering and pagination
    */
-  async getSyncLogs(filter?: SyncLogFilter): Promise<SyncLogResponse> {
+  async getSyncLogs(filter?: FeederSyncLogFilter): Promise<FeederSyncLogResponse> {
     try {
       const params: Record<string, string> = {};
 
@@ -59,10 +59,10 @@ export const syncLogsService = {
       if (filter?.page) params.page = filter.page.toString();
       if (filter?.limit) params.limit = filter.limit.toString();
 
-      const response = await sisterClient.get<SyncLogResponse>('/sync-logs', { params });
+      const response = await feederClient.get<FeederSyncLogResponse>('/api/v1/mahasiswa/sync-logs', { params });
       return response.data;
     } catch (error) {
-      console.error("Error fetching sync logs:", error);
+      console.error("Error fetching feeder sync logs:", error);
       throw error;
     }
   },
@@ -70,12 +70,12 @@ export const syncLogsService = {
   /**
    * Get a single sync log by ID
    */
-  async getSyncLogById(id: number): Promise<SyncLog> {
+  async getSyncLogById(id: number): Promise<FeederSyncLog> {
     try {
-      const response = await sisterClient.get<SyncLog>(`/sync-logs/${id}`);
+      const response = await feederClient.get<FeederSyncLog>(`/api/v1/mahasiswa/sync-logs/${id}`);
       return response.data;
     } catch (error) {
-      console.error(`Error fetching sync log #${id}:`, error);
+      console.error(`Error fetching feeder sync log #${id}:`, error);
       throw error;
     }
   },
@@ -83,15 +83,15 @@ export const syncLogsService = {
   /**
    * Get recent sync logs (default: 10, max: 100)
    */
-  async getRecentSyncLogs(limit: number = 10): Promise<SyncLog[]> {
+  async getRecentSyncLogs(limit: number = 10): Promise<FeederSyncLog[]> {
     try {
-      const response = await sisterClient.get<SyncLogResponse>('/sync-logs', {
+      const response = await feederClient.get<FeederSyncLogResponse>('/api/v1/mahasiswa/sync-logs', {
         params: { limit: limit.toString() }
       });
 
       return response.data.data || [];
     } catch (error) {
-      console.error("Error fetching recent sync logs:", error);
+      console.error("Error fetching recent feeder sync logs:", error);
       throw error;
     }
   },
@@ -124,7 +124,7 @@ export const syncLogsService = {
         averageDuration,
       };
     } catch (error) {
-      console.error("Error fetching sync stats:", error);
+      console.error("Error fetching feeder sync stats:", error);
       throw error;
     }
   },

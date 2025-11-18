@@ -518,7 +518,7 @@ export default function Hero({
           ].map((feature, index) => (
             <motion.div
               key={index}
-              className="group relative bg-white/95 backdrop-blur-lg rounded-lg sm:rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-5 lg:p-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300 overflow-hidden"
+              className="group relative bg-white/95 backdrop-blur-lg rounded-lg sm:rounded-xl md:rounded-2xl p-4 sm:p-4 md:p-5 lg:p-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300 overflow-hidden min-h-[160px] sm:min-h-[180px]"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 + index * 0.1 }}

@@ -39,7 +39,13 @@ func (s *service) SyncMahasiswaByAngkatan(ctx context.Context, filter *SyncFilte
 		return nil, fmt.Errorf("feeder API client is not initialized - please configure API credentials in settings")
 	}
 
-	log.Printf("✅ [DEBUG] Feeder API client is initialized")
+	// Test if feederAPI is properly initialized by testing connection
+	if err := s.feederAPI.TestConnection(); err != nil {
+		log.Printf("❌ [ERROR] Feeder API client failed connection test: %v", err)
+		return nil, fmt.Errorf("feeder API client connection failed: %w - please check API credentials and network connectivity", err)
+	}
+
+	log.Printf("✅ [DEBUG] Feeder API client is initialized and connected")
 
 	// Validation: Angkatan is REQUIRED
 	if filter == nil || len(filter.Angkatan) == 0 {

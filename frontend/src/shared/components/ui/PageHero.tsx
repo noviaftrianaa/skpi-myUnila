@@ -17,7 +17,7 @@ export default function PageHero({
   icon,
 }: PageHeroProps) {
   return (
-    <section className={`relative min-h-[70vh] flex items-start justify-center overflow-hidden bg-gradient-to-br ${gradient} pt-32 pb-16`}>
+    <section className={`relative min-h-[45vh] sm:min-h-[50vh] md:min-h-[60vh] lg:min-h-[70vh] flex items-start justify-center overflow-hidden bg-gradient-to-br ${gradient} pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-6 sm:pb-8 md:pb-12 lg:pb-16`}>
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute inset-0" style={{
@@ -48,22 +48,22 @@ export default function PageHero({
       ))}
 
       {/* Content */}
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="max-w-4xl mx-auto text-center text-white space-y-6">
+      <div className="container mx-auto px-3 sm:px-4 relative z-10">
+        <div className="max-w-4xl mx-auto text-center text-white space-y-3 sm:space-y-4 md:space-y-6">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
             {icon && (
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl mb-6">
+              <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-white/10 backdrop-blur-sm rounded-xl sm:rounded-2xl mb-3 sm:mb-4 md:mb-6">
                 {icon}
               </div>
             )}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-2 sm:mb-3 md:mb-4 leading-tight px-2">
               {title}
             </h1>
-            <p className="text-xl md:text-2xl font-medium opacity-90">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-medium opacity-90 px-3">
               {subtitle}
             </p>
           </motion.div>
@@ -73,7 +73,7 @@ export default function PageHero({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-base md:text-lg opacity-80 max-w-2xl mx-auto mb-8"
+              className="text-xs sm:text-sm md:text-base lg:text-lg opacity-80 max-w-2xl mx-auto mb-4 sm:mb-6 md:mb-8 px-3 leading-relaxed"
             >
               {description}
             </motion.p>
@@ -84,7 +84,7 @@ export default function PageHero({
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="w-24 h-1 bg-white/50 mx-auto mt-4"
+            className="w-16 sm:w-20 md:w-24 h-0.5 sm:h-1 bg-white/50 mx-auto mt-2 sm:mt-3 md:mt-4"
           />
         </div>
       </div>

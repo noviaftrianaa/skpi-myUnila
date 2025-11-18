@@ -1260,20 +1260,20 @@ export default function PenelitianPublikasi() {
     return (
       <>
         {/* Publikasi Section Skeleton */}
-        <section className="py-20 bg-white relative">
-          <div className="container mx-auto px-6">
+        <section className="py-12 sm:py-16 md:py-20 bg-white relative">
+          <div className="container mx-auto px-3 sm:px-4 md:px-6">
             <div className="max-w-7xl mx-auto">
               {/* Header Skeleton */}
-              <div className="text-center mb-16">
+              <div className="text-center mb-8 sm:mb-12 md:mb-16">
                 <div className="animate-pulse">
-                  <div className="h-10 bg-gray-50 dark:bg-gray-600 rounded-lg w-64 mx-auto mb-4"></div>
-                  <div className="h-1 w-20 bg-gray-50 dark:bg-gray-600 rounded-full mx-auto mb-3"></div>
-                  <div className="h-6 bg-gray-50 dark:bg-gray-600 rounded w-96 mx-auto"></div>
+                  <div className="h-8 sm:h-9 md:h-10 bg-gray-50 dark:bg-gray-600 rounded-lg w-48 sm:w-56 md:w-64 mx-auto mb-2 sm:mb-3 md:mb-4"></div>
+                  <div className="h-0.5 sm:h-1 w-16 sm:w-20 bg-gray-50 dark:bg-gray-600 rounded-full mx-auto mb-2 sm:mb-3"></div>
+                  <div className="h-4 sm:h-5 md:h-6 bg-gray-50 dark:bg-gray-600 rounded w-64 sm:w-80 md:w-96 mx-auto"></div>
                 </div>
               </div>
 
               {/* Highlights Skeleton */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4 mb-8 sm:mb-10 md:mb-12">
                 {[1, 2, 3].map((item) => (
                   <div key={item} className="bg-gray-50 dark:bg-gray-600 rounded-xl p-6 animate-pulse">
                     <div className="h-8 w-8 bg-gray-100 dark:bg-gray-500 rounded-full mb-3"></div>
@@ -1371,8 +1371,8 @@ export default function PenelitianPublikasi() {
   return (
     <>
       {/* Publikasi Section */}
-      <section className="py-20 bg-gradient-to-br from-blue-50 via-white to-indigo-50 relative">
-        <div className="container mx-auto px-6">
+      <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-br from-blue-50 via-white to-indigo-50 relative">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6">
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -1381,66 +1381,66 @@ export default function PenelitianPublikasi() {
             className="max-w-7xl mx-auto"
           >
             {/* Header */}
-            <motion.div variants={itemVariants} className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-3 pb-1 leading-relaxed">
+            <motion.div variants={itemVariants} className="text-center mb-8 sm:mb-12 md:mb-16">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2 sm:mb-3 pb-1 leading-relaxed px-2">
                 Publikasi Ilmiah
               </h2>
-              <div className="flex items-center justify-center mb-3">
-                <div className="h-1 w-20 bg-gradient-to-r from-transparent via-blue-400 to-transparent rounded-full"></div>
+              <div className="flex items-center justify-center mb-2 sm:mb-3">
+                <div className="h-0.5 sm:h-1 w-16 sm:w-20 bg-gradient-to-r from-transparent via-blue-400 to-transparent rounded-full"></div>
               </div>
-              <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+              <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-2xl mx-auto px-3">
                 Produktivitas publikasi ilmiah dosen Universitas Lampung
               </p>
             </motion.div>
 
             {/* Highlights */}
-            <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+            <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4 mb-8 sm:mb-10 md:mb-12">
               <motion.div
                 variants={itemVariants}
-                className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg"
+                className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg"
               >
-                <div className="text-3xl mb-3">📄</div>
-                <div className="text-3xl font-bold mb-1">{publikasiData?.total.toLocaleString() || 0}</div>
-                <div className="text-sm font-semibold opacity-90">Total Publikasi</div>
+                <div className="text-xl sm:text-2xl md:text-3xl mb-1 sm:mb-2 md:mb-3">📄</div>
+                <div className="text-xl sm:text-2xl md:text-3xl font-bold mb-0.5 sm:mb-1">{publikasiData?.total.toLocaleString() || 0}</div>
+                <div className="text-[10px] sm:text-xs md:text-sm font-semibold opacity-90">Total Publikasi</div>
               </motion.div>
 
               {publikasiData?.by_year && publikasiData.by_year.length > 0 && (
                 <motion.div
                   variants={itemVariants}
-                  className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl p-6 text-white shadow-lg"
+                  className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg"
                 >
-                  <div className="text-3xl mb-3">📅</div>
-                  <div className="text-3xl font-bold mb-1">{publikasiData.by_year[0].jumlah.toLocaleString()}</div>
-                  <div className="text-sm font-semibold opacity-90">Publikasi {publikasiData.by_year[0].tahun}</div>
+                  <div className="text-xl sm:text-2xl md:text-3xl mb-1 sm:mb-2 md:mb-3">📅</div>
+                  <div className="text-xl sm:text-2xl md:text-3xl font-bold mb-0.5 sm:mb-1">{publikasiData.by_year[0].jumlah.toLocaleString()}</div>
+                  <div className="text-[10px] sm:text-xs md:text-sm font-semibold opacity-90">Publikasi {publikasiData.by_year[0].tahun}</div>
                 </motion.div>
               )}
 
               {publikasiData?.by_jenis && publikasiData.by_jenis.length > 0 && (
                 <motion.div
                   variants={itemVariants}
-                  className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg"
+                  className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg"
                 >
-                  <div className="text-3xl mb-3">🌍</div>
-                  <div className="text-3xl font-bold mb-1">{publikasiData.by_jenis.find(j => j.jenis.toLowerCase().includes('internasional bereputasi'))?.jumlah.toLocaleString() || 0}</div>
-                  <div className="text-sm font-semibold opacity-90">Jurnal Internasional Bereputasi</div>
+                  <div className="text-xl sm:text-2xl md:text-3xl mb-1 sm:mb-2 md:mb-3">🌍</div>
+                  <div className="text-xl sm:text-2xl md:text-3xl font-bold mb-0.5 sm:mb-1">{publikasiData.by_jenis.find(j => j.jenis.toLowerCase().includes('internasional bereputasi'))?.jumlah.toLocaleString() || 0}</div>
+                  <div className="text-[10px] sm:text-xs md:text-sm font-semibold opacity-90">Jurnal Internasional Bereputasi</div>
                 </motion.div>
               )}
             </motion.div>
 
             {/* Charts Grid - 2x2 layout */}
-            <div className="grid lg:grid-cols-2 gap-8">
+            <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
               {/* Publikasi Per Jenis Chart */}
-              <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-                <div className="px-6 py-5 bg-blue-600">
-                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <motion.div variants={itemVariants} className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-blue-600">
+                  <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-1 sm:gap-2">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
                     </svg>
                     Distribusi Jenis Publikasi
                   </h3>
                 </div>
-                <div className="p-6">
-                  <div className="h-[400px]">
+                <div className="p-3 sm:p-4 md:p-6">
+                  <div className="h-[250px] sm:h-[300px] md:h-[350px] lg:h-[400px]">
                     <ReactECharts
                       option={publikasiJenisChartOption}
                       style={{ height: "100%", width: "100%" }}
@@ -1451,17 +1451,17 @@ export default function PenelitianPublikasi() {
               </motion.div>
 
               {/* Publikasi Per Tahun Chart */}
-              <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-                <div className="px-6 py-5 bg-blue-600">
-                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <motion.div variants={itemVariants} className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-blue-600">
+                  <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-1 sm:gap-2">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     Tren Publikasi per Tahun
                   </h3>
                 </div>
-                <div className="p-6">
-                  <div className="h-[400px]">
+                <div className="p-3 sm:p-4 md:p-6">
+                  <div className="h-[250px] sm:h-[300px] md:h-[350px] lg:h-[400px]">
                     <ReactECharts
                       option={publikasiTahunChartOption}
                       style={{ height: "100%", width: "100%" }}
@@ -1472,17 +1472,17 @@ export default function PenelitianPublikasi() {
               </motion.div>
 
               {/* Publikasi Per Kategori Capaian Chart */}
-              <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-                <div className="px-6 py-5 bg-indigo-600">
-                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <motion.div variants={itemVariants} className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-indigo-600">
+                  <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-1 sm:gap-2">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     Kategori Capaian Luaran
                   </h3>
                 </div>
-                <div className="p-6">
-                  <div className="h-[400px]">
+                <div className="p-3 sm:p-4 md:p-6">
+                  <div className="h-[250px] sm:h-[300px] md:h-[350px] lg:h-[400px]">
                     <ReactECharts
                       option={publikasiKategoriCapaianChartOption}
                       style={{ height: "100%", width: "100%" }}
@@ -1493,17 +1493,17 @@ export default function PenelitianPublikasi() {
               </motion.div>
 
               {/* Publikasi Per Peran Chart */}
-              <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-                <div className="px-6 py-5 bg-indigo-600">
-                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <motion.div variants={itemVariants} className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-indigo-600">
+                  <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-1 sm:gap-2">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
                     </svg>
                     Publikasi per Peran
                   </h3>
                 </div>
-                <div className="p-6">
-                  <div className="h-[400px]">
+                <div className="p-3 sm:p-4 md:p-6">
+                  <div className="h-[250px] sm:h-[300px] md:h-[350px] lg:h-[400px]">
                     <ReactECharts
                       option={publikasiPeranChartOption}
                       style={{ height: "100%", width: "100%" }}
@@ -1515,31 +1515,31 @@ export default function PenelitianPublikasi() {
             </div>
 
             {/* Publikasi per Fakultas Chart - Full Width with Drilldown */}
-            <motion.div variants={itemVariants} className="mt-8 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden" id="publikasi-sebaran-chart">
-              <div className="px-6 py-5 bg-emerald-600 flex items-center justify-between">
-                <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <motion.div variants={itemVariants} className="mt-6 sm:mt-8 bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden" id="publikasi-sebaran-chart">
+              <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-emerald-600 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+                <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-1 sm:gap-2">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
                   </svg>
-                  {publikasiDrillLevel === 'fakultas'
+                  <span className="text-xs sm:text-sm md:text-base lg:text-lg">{publikasiDrillLevel === 'fakultas'
                     ? 'Sebaran Publikasi Per Fakultas'
                     : `Sebaran Publikasi Per Prodi - ${publikasiSelectedFakultas?.nama}`
-                  }
+                  }</span>
                 </h3>
                 {publikasiDrillLevel === 'prodi' && (
                   <button
                     onClick={handlePublikasiDrillUp}
-                    className="flex items-center gap-2 px-4 py-2 bg-white text-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors font-semibold text-sm shadow-md"
+                    className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-white text-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors font-semibold text-[10px] sm:text-xs md:text-sm shadow-md w-full sm:w-auto justify-center sm:justify-start"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
                     Kembali ke Fakultas
                   </button>
                 )}
               </div>
-              <div className="p-6">
-                <div className="h-[450px]">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="h-[300px] sm:h-[350px] md:h-[400px] lg:h-[450px]">
                   <ReactECharts
                     option={publikasiDrillLevel === 'fakultas' ? publikasiFakultasSebaranChartOption : publikasiProdiSebaranChartOption}
                     style={{ height: "100%", width: "100%" }}
@@ -1557,14 +1557,14 @@ export default function PenelitianPublikasi() {
                   />
                 </div>
                 {publikasiDrillLevel === 'fakultas' && (
-                  <div className="mt-6 p-4 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-100">
-                    <div className="flex items-start gap-3">
-                      <div className="text-2xl">💡</div>
+                  <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-100">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <div className="text-lg sm:text-xl md:text-2xl">💡</div>
                       <div>
-                        <div className="text-sm font-semibold text-emerald-900 mb-1">
+                        <div className="text-xs sm:text-sm font-semibold text-emerald-900 mb-0.5 sm:mb-1">
                           Tips Navigasi
                         </div>
-                        <div className="text-xs text-emerald-700">
+                        <div className="text-[10px] sm:text-xs text-emerald-700">
                           Klik pada bar chart untuk melihat detail publikasi per program studi di fakultas tersebut
                         </div>
                       </div>
@@ -1578,8 +1578,8 @@ export default function PenelitianPublikasi() {
       </section>
 
       {/* Penelitian Section */}
-      <section className="py-20 bg-gradient-to-br from-purple-50 via-white to-pink-50 relative">
-        <div className="container mx-auto px-6">
+      <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-br from-purple-50 via-white to-pink-50 relative">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6">
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -1588,37 +1588,37 @@ export default function PenelitianPublikasi() {
             className="max-w-7xl mx-auto"
           >
             {/* Header */}
-            <motion.div variants={itemVariants} className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-3 pb-1 leading-relaxed">
+            <motion.div variants={itemVariants} className="text-center mb-8 sm:mb-12 md:mb-16">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2 sm:mb-3 pb-1 leading-relaxed px-2">
                 Penelitian dan Pengabdian
               </h2>
-              <div className="flex items-center justify-center mb-3">
-                <div className="h-1 w-20 bg-gradient-to-r from-transparent via-purple-400 to-transparent rounded-full"></div>
+              <div className="flex items-center justify-center mb-2 sm:mb-3">
+                <div className="h-0.5 sm:h-1 w-16 sm:w-20 bg-gradient-to-r from-transparent via-purple-400 to-transparent rounded-full"></div>
               </div>
-              <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+              <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-2xl mx-auto px-3">
                 Kegiatan penelitian dan pengabdian dosen Universitas Lampung
               </p>
             </motion.div>
 
             {/* Highlights */}
-            <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+            <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4 mb-8 sm:mb-10 md:mb-12">
               <motion.div
                 variants={itemVariants}
-                className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg"
+                className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg"
               >
-                <div className="text-3xl mb-3">🔬</div>
-                <div className="text-3xl font-bold mb-1">{penelitianData?.total.toLocaleString() || 0}</div>
-                <div className="text-sm font-semibold opacity-90">Total Penelitian & Pengabdian (5 Tahun)</div>
+                <div className="text-xl sm:text-2xl md:text-3xl mb-1 sm:mb-2 md:mb-3">🔬</div>
+                <div className="text-xl sm:text-2xl md:text-3xl font-bold mb-0.5 sm:mb-1">{penelitianData?.total.toLocaleString() || 0}</div>
+                <div className="text-[10px] sm:text-xs md:text-sm font-semibold opacity-90">Total Penelitian & Pengabdian (5 Tahun)</div>
               </motion.div>
 
               {penelitianData?.by_year && penelitianData.by_year.length > 0 && (
                 <motion.div
                   variants={itemVariants}
-                  className="bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl p-6 text-white shadow-lg"
+                  className="bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg"
                 >
-                  <div className="text-3xl mb-3">📅</div>
-                  <div className="text-3xl font-bold mb-1">{penelitianData.by_year[0].jumlah.toLocaleString()}</div>
-                  <div className="text-sm font-semibold opacity-90">Penelitian & Pengabdian {penelitianData.by_year[0].tahun}</div>
+                  <div className="text-xl sm:text-2xl md:text-3xl mb-1 sm:mb-2 md:mb-3">📅</div>
+                  <div className="text-xl sm:text-2xl md:text-3xl font-bold mb-0.5 sm:mb-1">{penelitianData.by_year[0].jumlah.toLocaleString()}</div>
+                  <div className="text-[10px] sm:text-xs md:text-sm font-semibold opacity-90">Penelitian & Pengabdian {penelitianData.by_year[0].tahun}</div>
                 </motion.div>
               )}
 
@@ -1642,32 +1642,32 @@ export default function PenelitianPublikasi() {
                 return (
                   <motion.div
                     variants={itemVariants}
-                    className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl p-6 text-white shadow-lg"
+                    className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg"
                   >
-                    <div className="text-3xl mb-3">💰</div>
-                    <div className="text-2xl font-bold mb-1">
+                    <div className="text-xl sm:text-2xl md:text-3xl mb-1 sm:mb-2 md:mb-3">💰</div>
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold mb-0.5 sm:mb-1">
                       {displayValue}
                     </div>
-                    <div className="text-sm font-semibold opacity-90">Total Dana Penelitian (5 Tahun)</div>
+                    <div className="text-[10px] sm:text-xs md:text-sm font-semibold opacity-90">Total Dana Penelitian (5 Tahun)</div>
                   </motion.div>
                 );
               })()}
             </motion.div>
 
             {/* Charts Grid */}
-            <div className="grid lg:grid-cols-2 gap-8">
+            <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
               {/* Penelitian Per Kategori Chart */}
-              <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-                <div className="px-6 py-5 bg-purple-600">
-                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <motion.div variants={itemVariants} className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-purple-600">
+                  <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-1 sm:gap-2">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
                     </svg>
                     Distribusi Kategori Penelitian
                   </h3>
                 </div>
-                <div className="p-6">
-                  <div className="h-[400px]">
+                <div className="p-3 sm:p-4 md:p-6">
+                  <div className="h-[250px] sm:h-[300px] md:h-[350px] lg:h-[400px]">
                     <ReactECharts
                       option={penelitianKategoriChartOption}
                       style={{ height: "100%", width: "100%" }}
@@ -1678,17 +1678,17 @@ export default function PenelitianPublikasi() {
               </motion.div>
 
               {/* Penelitian Per Tahun Chart */}
-              <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-                <div className="px-6 py-5 bg-purple-600">
-                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <motion.div variants={itemVariants} className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-purple-600">
+                  <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-1 sm:gap-2">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     Tren Penelitian per Tahun
                   </h3>
                 </div>
-                <div className="p-6">
-                  <div className="h-[400px]">
+                <div className="p-3 sm:p-4 md:p-6">
+                  <div className="h-[250px] sm:h-[300px] md:h-[350px] lg:h-[400px]">
                     <ReactECharts
                       option={penelitianTahunChartOption}
                       style={{ height: "100%", width: "100%" }}
@@ -1699,18 +1699,18 @@ export default function PenelitianPublikasi() {
               </motion.div>
 
               {/* Dana Penelitian per Tahun Chart */}
-              <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-                <div className="px-6 py-5 bg-pink-600">
-                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <motion.div variants={itemVariants} className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-pink-600">
+                  <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-1 sm:gap-2">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
                     </svg>
                     Dana Penelitian per Tahun
                   </h3>
                 </div>
-                <div className="p-6">
-                  <div className="h-[400px]">
+                <div className="p-3 sm:p-4 md:p-6">
+                  <div className="h-[250px] sm:h-[300px] md:h-[350px] lg:h-[400px]">
                     <ReactECharts
                       option={penelitianFundingChartOption}
                       style={{ height: "100%", width: "100%" }}
@@ -1721,17 +1721,17 @@ export default function PenelitianPublikasi() {
               </motion.div>
 
               {/* Penelitian per Kelompok Bidang Chart */}
-              <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-                <div className="px-6 py-5 bg-pink-600">
-                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <motion.div variants={itemVariants} className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-pink-600">
+                  <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-1 sm:gap-2">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
                     </svg>
                     Kelompok Bidang Penelitian
                   </h3>
                 </div>
-                <div className="p-6">
-                  <div className="h-[400px]">
+                <div className="p-3 sm:p-4 md:p-6">
+                  <div className="h-[250px] sm:h-[300px] md:h-[350px] lg:h-[400px]">
                     <ReactECharts
                       option={penelitianKelompokBidangChartOption}
                       style={{ height: "100%", width: "100%" }}
@@ -1743,31 +1743,31 @@ export default function PenelitianPublikasi() {
             </div>
 
             {/* Penelitian per Fakultas Chart - Full Width with Drilldown */}
-            <motion.div variants={itemVariants} className="mt-8 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden" id="penelitian-sebaran-chart">
-              <div className="px-6 py-5 bg-purple-600 flex items-center justify-between">
-                <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <motion.div variants={itemVariants} className="mt-6 sm:mt-8 bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden" id="penelitian-sebaran-chart">
+              <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-purple-600 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+                <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-1 sm:gap-2">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
                   </svg>
-                  {penelitianDrillLevel === 'fakultas'
+                  <span className="text-xs sm:text-sm md:text-base lg:text-lg">{penelitianDrillLevel === 'fakultas'
                     ? 'Sebaran Penelitian dan Pengabdian Per Fakultas'
                     : `Sebaran Penelitian dan Pengabdian Per Prodi - ${penelitianSelectedFakultas?.nama}`
-                  }
+                  }</span>
                 </h3>
                 {penelitianDrillLevel === 'prodi' && (
                   <button
                     onClick={handlePenelitianDrillUp}
-                    className="flex items-center gap-2 px-4 py-2 bg-white text-purple-600 rounded-lg hover:bg-purple-50 transition-colors font-semibold text-sm shadow-md"
+                    className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-white text-purple-600 rounded-lg hover:bg-purple-50 transition-colors font-semibold text-[10px] sm:text-xs md:text-sm shadow-md w-full sm:w-auto justify-center sm:justify-start"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
                     Kembali ke Fakultas
                   </button>
                 )}
               </div>
-              <div className="p-6">
-                <div className="h-[450px]">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="h-[300px] sm:h-[350px] md:h-[400px] lg:h-[450px]">
                   <ReactECharts
                     option={penelitianDrillLevel === 'fakultas' ? penelitianFakultasSebaranChartOption : penelitianProdiSebaranChartOption}
                     style={{ height: "100%", width: "100%" }}
@@ -1785,14 +1785,14 @@ export default function PenelitianPublikasi() {
                   />
                 </div>
                 {penelitianDrillLevel === 'fakultas' && (
-                  <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-100">
-                    <div className="flex items-start gap-3">
-                      <div className="text-2xl">💡</div>
+                  <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-100">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <div className="text-lg sm:text-xl md:text-2xl">💡</div>
                       <div>
-                        <div className="text-sm font-semibold text-purple-900 mb-1">
+                        <div className="text-xs sm:text-sm font-semibold text-purple-900 mb-0.5 sm:mb-1">
                           Tips Navigasi
                         </div>
-                        <div className="text-xs text-purple-700">
+                        <div className="text-[10px] sm:text-xs text-purple-700">
                           Klik pada bar chart untuk melihat detail penelitian dan pengabdian per program studi di fakultas tersebut
                         </div>
                       </div>

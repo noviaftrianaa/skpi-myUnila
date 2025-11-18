@@ -492,8 +492,8 @@ export default function KelulusanTepatWaktu() {
   }
 
   return (
-    <section className="py-20 bg-gradient-to-b from-gray-50 to-white relative">
-      <div className="container mx-auto px-6">
+    <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-gray-50 to-white relative">
+      <div className="container mx-auto px-3 sm:px-4 md:px-6">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -502,73 +502,73 @@ export default function KelulusanTepatWaktu() {
           className="max-w-7xl mx-auto"
         >
           {/* Header */}
-          <motion.div variants={itemVariants} className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-3 pb-1 leading-relaxed">
+          <motion.div variants={itemVariants} className="text-center mb-8 sm:mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2 sm:mb-3 pb-1 leading-relaxed px-2">
               Kelulusan Tepat Waktu
             </h2>
-            <div className="flex items-center justify-center mb-3">
-              <div className="h-1 w-20 bg-gradient-to-r from-transparent via-blue-400 to-transparent rounded-full"></div>
+            <div className="flex items-center justify-center mb-2 sm:mb-3">
+              <div className="h-0.5 sm:h-1 w-16 sm:w-20 bg-gradient-to-r from-transparent via-blue-400 to-transparent rounded-full"></div>
             </div>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-2xl mx-auto px-3">
               Statistik kelulusan mahasiswa dan analisis masa studi
             </p>
           </motion.div>
 
           {/* Stats Cards */}
           {kelulusanData && (
-            <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+            <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mb-8 sm:mb-10 md:mb-12">
               <motion.div
                 variants={itemVariants}
-                className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg"
+                className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg"
               >
-                <div className="text-3xl mb-3">✅</div>
-                <div className="text-3xl font-bold mb-1">{kelulusanData.persentase_tepat_waktu}%</div>
-                <div className="text-sm font-semibold opacity-90">Kelulusan Tepat Waktu</div>
+                <div className="text-xl sm:text-2xl md:text-3xl mb-1 sm:mb-2 md:mb-3">✅</div>
+                <div className="text-xl sm:text-2xl md:text-3xl font-bold mb-0.5 sm:mb-1">{kelulusanData.persentase_tepat_waktu}%</div>
+                <div className="text-[10px] sm:text-xs md:text-sm font-semibold opacity-90">Kelulusan Tepat Waktu</div>
               </motion.div>
 
               <motion.div
                 variants={itemVariants}
-                className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg"
+                className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg"
               >
-                <div className="text-3xl mb-3">👨‍🎓</div>
-                <div className="text-3xl font-bold mb-1">{kelulusanData.total.toLocaleString('id-ID')}</div>
-                <div className="text-sm font-semibold opacity-90">Total Lulusan {new Date().getFullYear()}</div>
+                <div className="text-xl sm:text-2xl md:text-3xl mb-1 sm:mb-2 md:mb-3">👨‍🎓</div>
+                <div className="text-xl sm:text-2xl md:text-3xl font-bold mb-0.5 sm:mb-1">{kelulusanData.total.toLocaleString('id-ID')}</div>
+                <div className="text-[10px] sm:text-xs md:text-sm font-semibold opacity-90">Total Lulusan {new Date().getFullYear()}</div>
               </motion.div>
 
               <motion.div
                 variants={itemVariants}
-                className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg"
+                className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg"
               >
-                <div className="text-3xl mb-3">🎯</div>
-                <div className="text-3xl font-bold mb-1">{kelulusanData.total_tepat_waktu.toLocaleString('id-ID')}</div>
-                <div className="text-sm font-semibold opacity-90">Lulus Tepat Waktu</div>
+                <div className="text-xl sm:text-2xl md:text-3xl mb-1 sm:mb-2 md:mb-3">🎯</div>
+                <div className="text-xl sm:text-2xl md:text-3xl font-bold mb-0.5 sm:mb-1">{kelulusanData.total_tepat_waktu.toLocaleString('id-ID')}</div>
+                <div className="text-[10px] sm:text-xs md:text-sm font-semibold opacity-90">Lulus Tepat Waktu</div>
               </motion.div>
 
               <motion.div
                 variants={itemVariants}
-                className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl p-6 text-white shadow-lg"
+                className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg"
               >
-                <div className="text-3xl mb-3">⭐</div>
-                <div className="text-3xl font-bold mb-1">{overallAvgIpk.toFixed(2)}</div>
-                <div className="text-sm font-semibold opacity-90">Rata-rata IPK</div>
+                <div className="text-xl sm:text-2xl md:text-3xl mb-1 sm:mb-2 md:mb-3">⭐</div>
+                <div className="text-xl sm:text-2xl md:text-3xl font-bold mb-0.5 sm:mb-1">{overallAvgIpk.toFixed(2)}</div>
+                <div className="text-[10px] sm:text-xs md:text-sm font-semibold opacity-90">Rata-rata IPK</div>
               </motion.div>
             </motion.div>
           )}
 
           {/* Charts Grid */}
-          <div className="grid lg:grid-cols-2 gap-8">
+          <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
             {/* Kelulusan Chart */}
-            <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-              <div className="px-6 py-5 bg-blue-600">
-                <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <motion.div variants={itemVariants} className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-blue-600">
+                <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-1 sm:gap-2">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                   </svg>
                   Tren Kelulusan Tepat Waktu
                 </h3>
               </div>
-              <div className="p-6">
-                <div className="h-[380px]">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="h-[250px] sm:h-[300px] md:h-[350px] lg:h-[380px]">
                   <ReactECharts
                     option={kelulusanChartOption}
                     style={{ height: "100%", width: "100%" }}
@@ -579,17 +579,17 @@ export default function KelulusanTepatWaktu() {
             </motion.div>
 
             {/* Masa Studi & IPK Chart */}
-            <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-              <div className="px-6 py-5 bg-blue-600">
-                <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <motion.div variants={itemVariants} className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-blue-600">
+                <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-1 sm:gap-2">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                   </svg>
                   Masa Studi & IPK
                 </h3>
               </div>
-              <div className="p-6">
-                <div className="h-[380px]">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="h-[250px] sm:h-[300px] md:h-[350px] lg:h-[380px]">
                   <ReactECharts
                     option={masaStudiChartOption}
                     style={{ height: "100%", width: "100%" }}
@@ -601,17 +601,17 @@ export default function KelulusanTepatWaktu() {
           </div>
 
           {/* Kelulusan per Fakultas Chart - Full Width */}
-          <motion.div variants={itemVariants} className="mt-8 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <div className="px-6 py-5 bg-blue-600">
-              <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+          <motion.div variants={itemVariants} className="mt-4 sm:mt-6 md:mt-8 bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-blue-600">
+              <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-1 sm:gap-2">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
                 </svg>
                 Sebaran Kelulusan per Fakultas
               </h3>
             </div>
-            <div className="p-6">
-              <div className="h-[450px]">
+            <div className="p-3 sm:p-4 md:p-6">
+              <div className="h-[350px] sm:h-[400px] md:h-[450px]">
                 <ReactECharts
                   option={fakultasChartOption}
                   style={{ height: "100%", width: "100%" }}
@@ -623,12 +623,12 @@ export default function KelulusanTepatWaktu() {
 
           {/* Info */}
           {kelulusanData && kelulusanData.by_year && kelulusanData.by_year.length > 0 && (
-            <motion.div variants={itemVariants} className="mt-8 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-6 border border-emerald-100">
-              <div className="flex items-start gap-4">
-                <div className="text-3xl">📊</div>
+            <motion.div variants={itemVariants} className="mt-4 sm:mt-6 md:mt-8 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 border border-emerald-100">
+              <div className="flex items-start gap-2 sm:gap-3 md:gap-4">
+                <div className="text-xl sm:text-2xl md:text-3xl">📊</div>
                 <div>
-                  <h4 className="font-bold text-gray-800 mb-2">Statistik Kelulusan Tahun {kelulusanData.by_year[0].tahun}</h4>
-                  <p className="text-sm text-gray-600 leading-relaxed">
+                  <h4 className="font-bold text-gray-800 mb-1 sm:mb-2 text-sm sm:text-base">Statistik Kelulusan Tahun {kelulusanData.by_year[0].tahun}</h4>
+                  <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
                     Dari {kelulusanData.total.toLocaleString('id-ID')} total lulusan tahun {kelulusanData.by_year[0].tahun}, sebanyak {kelulusanData.total_tepat_waktu.toLocaleString('id-ID')} mahasiswa ({kelulusanData.persentase_tepat_waktu}%)
                     berhasil lulus tepat waktu sesuai standar jenjang pendidikan dengan rata-rata IPK {overallAvgIpk.toFixed(2)}.
                     Pencapaian ini menunjukkan peningkatan signifikan dibandingkan tahun-tahun sebelumnya

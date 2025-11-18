@@ -59,7 +59,6 @@ class MahasiswaSebaranRepository
             INNER JOIN ref.jenjang_pendidikan AS didik
                 ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
-                AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
             -- LEFT join ke wilayah (bisa level 2 atau 3, atau NULL untuk id_wil invalid)
             LEFT JOIN ref.wilayah AS wil
                 ON wil.id_wil = pd.id_wil
@@ -183,7 +182,6 @@ class MahasiswaSebaranRepository
             INNER JOIN ref.jenjang_pendidikan AS didik
                 ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
-                AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
             -- Join to fakultas (self-join sms menggunakan id_fak_unila)
             INNER JOIN pdrd.sms AS fak
                 ON fak.id_sms = sms.id_fak_unila
