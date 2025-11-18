@@ -1246,37 +1246,38 @@ export default function DashboardPage() {
         scrollBehavior="inside"
         classNames={{
           backdrop: "bg-gradient-to-t from-zinc-900 to-zinc-900/10 backdrop-opacity-20",
+          base: "mx-4 sm:mx-0",
         }}
       >
-        <ModalContent className="bg-white max-h-[85vh]">
+        <ModalContent className="bg-white max-h-[85vh] sm:max-h-[90vh]">
           {(onClose) => (
             <>
-              <ModalHeader className="flex flex-col gap-1 border-b border-gray-200 pb-4 sticky top-0 bg-white z-10">
-                <h3 className="text-xl font-bold text-gray-800">Ganti Peran</h3>
-                <p className="text-sm text-gray-500 font-normal">Pilih peran yang ingin Anda gunakan</p>
+              <ModalHeader className="flex flex-col gap-0.5 sm:gap-1 border-b border-gray-200 pb-3 sm:pb-4 sticky top-0 bg-white z-10 px-4 sm:px-6">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-800">Ganti Peran</h3>
+                <p className="text-xs sm:text-sm text-gray-500 font-normal">Pilih peran yang ingin Anda gunakan</p>
               </ModalHeader>
-              <ModalBody className="py-6 px-6 overflow-y-auto">
+              <ModalBody className="py-4 sm:py-6 px-4 sm:px-6 overflow-y-auto">
                 {user.roles && user.roles.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-2 sm:space-y-3">
                     {user.roles.map((role, index) => (
                       <button
                         key={index}
                         onClick={() => setSelectedRole(role)}
-                        className={`w-full p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                        className={`w-full p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all duration-200 text-left ${
                           selectedRole === role
                             ? "border-myunila bg-blue-50 shadow-md"
                             : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all flex-shrink-0 ${
                               selectedRole === role ? "bg-myunila text-white" : "bg-gray-200 text-gray-600"
                             }`}>
-                              <FiUser className="w-6 h-6" />
+                              <FiUser className="w-5 h-5 sm:w-6 sm:h-6" />
                             </div>
-                            <div>
-                              <p className={`font-semibold text-base ${
+                            <div className="flex-1 min-w-0">
+                              <p className={`font-semibold text-sm sm:text-base truncate ${
                                 selectedRole === role ? "text-myunila" : "text-gray-800"
                               }`}>
                                 {role}
@@ -1284,8 +1285,8 @@ export default function DashboardPage() {
                             </div>
                           </div>
                           {selectedRole === role && (
-                            <div className="w-6 h-6 rounded-full bg-myunila text-white flex items-center justify-center">
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-myunila text-white flex items-center justify-center flex-shrink-0 ml-2">
+                              <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                               </svg>
                             </div>
@@ -1295,22 +1296,22 @@ export default function DashboardPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <p className="text-gray-500 text-sm">Tidak ada peran lain yang tersedia</p>
+                  <div className="text-center py-6 sm:py-8">
+                    <p className="text-gray-500 text-xs sm:text-sm">Tidak ada peran lain yang tersedia</p>
                   </div>
                 )}
               </ModalBody>
-              <ModalFooter className="border-t border-gray-200 pt-4 sticky bottom-0 bg-white z-10">
+              <ModalFooter className="border-t border-gray-200 pt-3 sm:pt-4 sticky bottom-0 bg-white z-10 px-4 sm:px-6 gap-2">
                 <Button
                   variant="light"
                   onPress={onClose}
-                  className="text-gray-600 hover:bg-gray-100 font-medium"
-                  size="md"
+                  className="text-gray-600 hover:bg-gray-100 font-medium text-xs sm:text-sm"
+                  size="sm"
                 >
                   Batal
                 </Button>
                 <Button
-                  className="bg-myunila text-white hover:bg-blue-700 font-medium"
+                  className="bg-myunila text-white hover:bg-blue-700 font-medium text-xs sm:text-sm"
                   onPress={() => {
                     // Apply the selected role
                     if (selectedRole) {
@@ -1318,7 +1319,7 @@ export default function DashboardPage() {
                       onClose(); // Close modal after applying
                     }
                   }}
-                  size="md"
+                  size="sm"
                 >
                   Terapkan
                 </Button>

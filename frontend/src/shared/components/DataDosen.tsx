@@ -628,8 +628,8 @@ export default function DataDosen() {
   }
 
   return (
-    <section className="py-20 bg-gradient-to-b from-gray-50 to-white relative">
-      <div className="container mx-auto px-6">
+    <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-gray-50 to-white relative">
+      <div className="container mx-auto px-3 sm:px-4 md:px-6">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -638,20 +638,20 @@ export default function DataDosen() {
           className="max-w-7xl mx-auto"
         >
           {/* Header */}
-          <motion.div variants={itemVariants} className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-3 pb-1 leading-relaxed">
+          <motion.div variants={itemVariants} className="text-center mb-8 sm:mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2 sm:mb-3 pb-1 leading-relaxed px-2">
               Data Dosen
             </h2>
-            <div className="flex items-center justify-center mb-3">
-              <div className="h-1 w-20 bg-gradient-to-r from-transparent via-blue-400 to-transparent rounded-full"></div>
+            <div className="flex items-center justify-center mb-2 sm:mb-3">
+              <div className="h-0.5 sm:h-1 w-16 sm:w-20 bg-gradient-to-r from-transparent via-blue-400 to-transparent rounded-full"></div>
             </div>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-2xl mx-auto px-3">
               Profil dan distribusi dosen Universitas Lampung berdasarkan kualifikasi dan jabatan
             </p>
           </motion.div>
 
           {/* Quick Stats */}
-          <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+          <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mb-8 sm:mb-10 md:mb-12">
             {[
               { label: "Total Dosen", value: summary.total_dosen.toLocaleString(), icon: "👨‍🏫", gradient: "from-blue-500 to-blue-600" },
               { label: "Guru Besar", value: summary.total_guru_besar.toLocaleString(), icon: "🎓", gradient: "from-emerald-500 to-emerald-600" },
@@ -661,29 +661,29 @@ export default function DataDosen() {
               <motion.div
                 key={index}
                 variants={itemVariants}
-                className={`bg-gradient-to-br ${stat.gradient} rounded-xl p-6 text-white shadow-lg`}
+                className={`bg-gradient-to-br ${stat.gradient} rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg`}
               >
-                <div className="text-3xl mb-3">{stat.icon}</div>
-                <div className="text-3xl font-bold mb-1">{stat.value}</div>
-                <div className="text-sm font-semibold opacity-90">{stat.label}</div>
+                <div className="text-xl sm:text-2xl md:text-3xl mb-1 sm:mb-2 md:mb-3">{stat.icon}</div>
+                <div className="text-xl sm:text-2xl md:text-3xl font-bold mb-0.5 sm:mb-1">{stat.value}</div>
+                <div className="text-[10px] sm:text-xs md:text-sm font-semibold opacity-90">{stat.label}</div>
               </motion.div>
             ))}
           </motion.div>
 
           {/* Charts Grid */}
-          <div className="grid lg:grid-cols-2 gap-8">
+          <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
             {/* Jenjang Pendidikan Chart */}
-            <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-              <div className="px-6 py-5 bg-blue-600">
-                <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <motion.div variants={itemVariants} className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-blue-600">
+                <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-1 sm:gap-2">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
                   </svg>
                   Jenjang Pendidikan Dosen
                 </h3>
               </div>
-              <div className="p-6">
-                <div className="h-[320px]">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="h-[250px] sm:h-[280px] md:h-[320px]">
                   <ReactECharts
                     option={pendidikanChartOption}
                     style={{ height: "100%", width: "100%" }}
@@ -708,18 +708,18 @@ export default function DataDosen() {
             </motion.div>
 
             {/* Jabatan Fungsional Chart */}
-            <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-              <div className="px-6 py-5 bg-blue-600">
-                <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <motion.div variants={itemVariants} className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-blue-600">
+                <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-1 sm:gap-2">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clipRule="evenodd" />
                     <path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z" />
                   </svg>
                   Jabatan Fungsional Dosen
                 </h3>
               </div>
-              <div className="p-6">
-                <div className="h-[320px]">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="h-[250px] sm:h-[280px] md:h-[320px]">
                   <ReactECharts
                     option={jabatanChartOption}
                     style={{ height: "100%", width: "100%" }}
@@ -739,25 +739,27 @@ export default function DataDosen() {
           </div>
 
           {/* Sebaran Dosen Per Fakultas/Prodi with Drilldown */}
-          <motion.div variants={itemVariants} className="mt-8" id="sebaran-dosen-chart">
-            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-              <div className="px-6 py-5 bg-gradient-to-r from-orange-500 to-orange-600">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+          <motion.div variants={itemVariants} className="mt-4 sm:mt-6 md:mt-8" id="sebaran-dosen-chart">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-gradient-to-r from-orange-500 to-orange-600">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3">
+                  <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-1 sm:gap-2">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
                     </svg>
-                    {drillLevel === 'fakultas'
-                      ? 'Sebaran Dosen Per Fakultas'
-                      : `Sebaran Dosen Per Prodi - ${selectedFakultas?.nama}`
-                    }
+                    <span className="leading-tight">
+                      {drillLevel === 'fakultas'
+                        ? 'Sebaran Dosen Per Fakultas'
+                        : `Sebaran Dosen Per Prodi - ${selectedFakultas?.nama}`
+                      }
+                    </span>
                   </h3>
                   {drillLevel === 'prodi' && (
                     <button
                       onClick={handleDrillUp}
-                      className="flex items-center gap-2 px-4 py-2 bg-white text-orange-600 rounded-lg hover:bg-orange-50 transition-colors font-semibold text-sm shadow-md"
+                      className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-white text-orange-600 rounded-lg hover:bg-orange-50 transition-colors font-semibold text-xs sm:text-sm shadow-md"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                       </svg>
                       Kembali ke Fakultas
@@ -765,8 +767,8 @@ export default function DataDosen() {
                   )}
                 </div>
               </div>
-              <div className="p-6 sm:p-8">
-                <div className="h-[400px] sm:h-[450px] lg:h-[500px]">
+              <div className="p-3 sm:p-4 md:p-6 lg:p-8">
+                <div className="h-[300px] sm:h-[350px] md:h-[400px] lg:h-[450px] xl:h-[500px]">
                   <ReactECharts
                     option={drillLevel === 'fakultas' ? fakultasSebaranChartOption : prodiSebaranChartOption}
                     style={{ height: "100%", width: "100%" }}
@@ -784,11 +786,11 @@ export default function DataDosen() {
                   />
                 </div>
                 {drillLevel === 'fakultas' && (
-                  <div className="mt-6 p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg border border-orange-100">
-                    <div className="flex items-start gap-3">
-                      <div className="text-2xl">💡</div>
+                  <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg border border-orange-100">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <div className="text-lg sm:text-xl md:text-2xl">💡</div>
                       <div>
-                        <p className="text-sm text-gray-700 font-medium">
+                        <p className="text-xs sm:text-sm text-gray-700 font-medium leading-relaxed">
                           <span className="font-bold text-orange-600">Klik pada bar chart</span> untuk melihat detail sebaran dosen per program studi di fakultas tersebut, termasuk rasio dosen:mahasiswa setiap prodi.
                         </p>
                       </div>
@@ -800,12 +802,12 @@ export default function DataDosen() {
           </motion.div>
 
           {/* Additional Info */}
-          <motion.div variants={itemVariants} className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
-            <div className="flex items-start gap-4">
-              <div className="text-3xl">📌</div>
+          <motion.div variants={itemVariants} className="mt-4 sm:mt-6 md:mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 border border-blue-100">
+            <div className="flex items-start gap-2 sm:gap-3 md:gap-4">
+              <div className="text-xl sm:text-2xl md:text-3xl">📌</div>
               <div>
-                <h4 className="font-bold text-gray-800 mb-2">Kualifikasi Dosen Universitas Lampung</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">
+                <h4 className="font-bold text-gray-800 mb-1 sm:mb-2 text-sm sm:text-base">Kualifikasi Dosen Universitas Lampung</h4>
+                <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
                   Universitas Lampung memiliki {summary.total_dosen.toLocaleString()} dosen berkualitas dengan mayoritas bergelar
                   Magister ({pendidikanData.find(p => p.jenjang === 'S2/Magister')?.persentase || 0}%) dan
                   Doktor ({pendidikanData.find(p => p.jenjang === 'S3/Doktor')?.persentase || 0}%).

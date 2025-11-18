@@ -45,6 +45,7 @@ type FeederAPIClient interface {
 	// Authentication
 	GetToken() error
 	ForceRefreshToken() error
+	TestConnection() error
 
 	// Feeder API endpoints
 	GetDataLengkapMahasiswaProdi(idProdi string, filter string, limit, offset int) ([]byte, error)

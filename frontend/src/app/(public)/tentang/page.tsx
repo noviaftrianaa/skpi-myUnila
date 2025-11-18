@@ -1,6 +1,5 @@
 import { PageHero } from "@/shared/components";
 import TentangmyUnila from "@/shared/components/tentang/TentangMyUnila";
-import FiturIntegrasi from "@/shared/components/tentang/FiturIntegrasi";
 import TimelinePengembangan from "@/shared/components/tentang/TimelinePengembangan";
 import StrukturTim from "@/shared/components/tentang/StrukturTim";
 
@@ -27,75 +26,72 @@ export default function TentangPage() {
       {/* Tentang myUnila Section */}
       <TentangmyUnila />
 
-      {/* Fitur & Integrasi Section */}
-      <FiturIntegrasi />
-
       {/* Brand Guidelines CTA Section */}
-      <section className="py-16 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-        <div className="container mx-auto px-6">
+      <section className="py-12 sm:py-14 md:py-16 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6">
           <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl overflow-hidden border border-gray-100">
               <div className="md:flex">
                 {/* Left Side - Icon & Decoration */}
-                <div className="md:w-2/5 bg-gradient-to-br from-myunila to-blue-700 p-8 flex items-center justify-center relative overflow-hidden">
+                <div className="md:w-2/5 bg-gradient-to-br from-myunila to-blue-700 p-6 sm:p-7 md:p-8 flex items-center justify-center relative overflow-hidden">
                   <div className="absolute inset-0 opacity-10">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -translate-y-16 translate-x-16"></div>
                     <div className="absolute bottom-0 left-0 w-24 h-24 bg-white rounded-full translate-y-12 -translate-x-12"></div>
                   </div>
                   <div className="relative z-10 text-center">
                     <svg
-                      className="w-24 h-24 text-white mx-auto mb-4"
+                      className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 text-white mx-auto mb-2 sm:mb-3 md:mb-4"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path fillRule="evenodd" d="M4 2a2 2 0 00-2 2v11a3 3 0 106 0V4a2 2 0 00-2-2H4zm1 14a1 1 0 100-2 1 1 0 000 2zm5-1.757l4.9-4.9a2 2 0 000-2.828L13.485 5.1a2 2 0 00-2.828 0L10 5.757v8.486zM16 18H9.071l6-6H16a2 2 0 012 2v2a2 2 0 01-2 2z" clipRule="evenodd" />
                     </svg>
-                    <h3 className="text-2xl font-bold text-white">Brand Guidelines</h3>
+                    <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white">Brand Guidelines</h3>
                   </div>
                 </div>
 
                 {/* Right Side - Content */}
-                <div className="md:w-3/5 p-8">
-                  <h3 className="text-2xl font-bold text-gray-800 mb-3">
+                <div className="md:w-3/5 p-6 sm:p-7 md:p-8">
+                  <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 mb-2 sm:mb-3">
                     Panduan Identitas Visual myUnila
                   </h3>
-                  <p className="text-gray-600 mb-6 leading-relaxed">
+                  <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-5 md:mb-6 leading-relaxed">
                     Dokumentasi lengkap tentang logo, warna, typography, dan komponen UI untuk
                     memastikan konsistensi brand di seluruh platform dan sistem yang menggunakan
                     identitas myUnila.
                   </p>
 
-                  <div className="space-y-3 mb-6">
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <svg className="w-4 h-4 text-myunila" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-5 md:mb-6">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg className="w-3 h-3 sm:w-4 sm:h-4 text-myunila" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                       </div>
-                      <span className="text-gray-700 text-sm">Download logo dalam berbagai format (SVG, PNG)</span>
+                      <span className="text-gray-700 text-xs sm:text-sm">Download logo dalam berbagai format (SVG, PNG)</span>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <svg className="w-4 h-4 text-myunila" fill="currentColor" viewBox="0 0 20 20">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg className="w-3 h-3 sm:w-4 sm:h-4 text-myunila" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                       </div>
-                      <span className="text-gray-700 text-sm">Palette warna lengkap dengan kode HEX & RGB</span>
+                      <span className="text-gray-700 text-xs sm:text-sm">Palette warna lengkap dengan kode HEX & RGB</span>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <svg className="w-4 h-4 text-myunila" fill="currentColor" viewBox="0 0 20 20">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg className="w-3 h-3 sm:w-4 sm:h-4 text-myunila" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                       </div>
-                      <span className="text-gray-700 text-sm">Font, typography, dan komponen UI siap pakai</span>
+                      <span className="text-gray-700 text-xs sm:text-sm">Font, typography, dan komponen UI siap pakai</span>
                     </div>
                   </div>
 
                   <a
                     href="/brand"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-myunila to-blue-700 text-white font-semibold rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300"
+                    className="inline-flex items-center gap-2 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 bg-gradient-to-r from-myunila to-blue-700 text-white font-semibold text-xs sm:text-sm md:text-base rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300"
                   >
                     <span>Lihat Brand Guidelines</span>
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -113,13 +109,13 @@ export default function TentangPage() {
       <TimelinePengembangan />
 
       {/* Survey CTA Section */}
-      <section className="py-16 bg-gradient-to-br from-amber-50 via-orange-50 to-red-50">
-        <div className="container mx-auto px-6">
+      <section className="py-12 sm:py-14 md:py-16 bg-gradient-to-br from-amber-50 via-orange-50 to-red-50">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6">
           <div className="max-w-5xl mx-auto">
-            <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl overflow-hidden border border-gray-100">
               <div className="md:flex items-center">
                 {/* Left Side - Icon & Decoration */}
-                <div className="md:w-2/5 bg-gradient-to-br from-amber-500 to-orange-600 p-8 flex items-center justify-center relative overflow-hidden">
+                <div className="md:w-2/5 bg-gradient-to-br from-amber-500 to-orange-600 p-6 sm:p-7 md:p-8 flex items-center justify-center relative overflow-hidden">
                   <div className="absolute inset-0 opacity-10">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -translate-y-16 translate-x-16"></div>
                     <div className="absolute bottom-0 left-0 w-24 h-24 bg-white rounded-full translate-y-12 -translate-x-12"></div>
@@ -127,7 +123,7 @@ export default function TentangPage() {
                   </div>
                   <div className="relative z-10 text-center">
                     <svg
-                      className="w-24 h-24 text-white mx-auto mb-4"
+                      className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 text-white mx-auto mb-2 sm:mb-3 md:mb-4"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                       xmlns="http://www.w3.org/2000/svg"
@@ -135,54 +131,54 @@ export default function TentangPage() {
                       <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
                       <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
                     </svg>
-                    <h3 className="text-2xl font-bold text-white">Survey Kepuasan</h3>
-                    <p className="text-white/90 text-sm mt-2">Bantu Kami Lebih Baik</p>
+                    <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white">Survey Kepuasan</h3>
+                    <p className="text-white/90 text-xs sm:text-sm mt-1 sm:mt-2">Bantu Kami Lebih Baik</p>
                   </div>
                 </div>
 
                 {/* Right Side - Content */}
-                <div className="md:w-3/5 p-8">
-                  <h3 className="text-2xl font-bold text-gray-800 mb-3">
+                <div className="md:w-3/5 p-6 sm:p-7 md:p-8">
+                  <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 mb-2 sm:mb-3">
                     Suara Anda Sangat Berarti
                   </h3>
-                  <p className="text-gray-600 mb-6 leading-relaxed">
+                  <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-5 md:mb-6 leading-relaxed">
                     Kami terus berupaya meningkatkan kualitas layanan myUnila. Masukan, kritik, dan saran Anda
                     sangat berharga untuk pengembangan sistem yang lebih baik. Mari bersama membangun myUnila
                     yang lebih baik untuk sivitas akademika UNILA.
                   </p>
 
-                  <div className="space-y-3 mb-6">
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <svg className="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-5 md:mb-6">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg className="w-3 h-3 sm:w-4 sm:h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                       </div>
-                      <span className="text-gray-700 text-sm">Hanya 5-7 menit untuk mengisi survey</span>
+                      <span className="text-gray-700 text-xs sm:text-sm">Hanya 5-7 menit untuk mengisi survey</span>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <svg className="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg className="w-3 h-3 sm:w-4 sm:h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                       </div>
-                      <span className="text-gray-700 text-sm">Data Anda dijaga kerahasiaannya</span>
+                      <span className="text-gray-700 text-xs sm:text-sm">Data Anda dijaga kerahasiaannya</span>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <svg className="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg className="w-3 h-3 sm:w-4 sm:h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                       </div>
-                      <span className="text-gray-700 text-sm">Kontribusi nyata untuk myUnila yang lebih baik</span>
+                      <span className="text-gray-700 text-xs sm:text-sm">Kontribusi nyata untuk myUnila yang lebih baik</span>
                     </div>
                   </div>
 
                   <a
                     href="/survey"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300"
+                    className="inline-flex items-center gap-2 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold text-xs sm:text-sm md:text-base rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300"
                   >
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
                     </svg>
                     <span>Isi Survey Sekarang</span>

@@ -300,6 +300,14 @@ func (c *FeederClient) ForceRefreshToken() error {
 
 // GetDataLengkapMahasiswaProdi gets detailed student data for a prodi
 func (c *FeederClient) GetDataLengkapMahasiswaProdi(idProdi string, filter string, limit, offset int) ([]byte, error) {
+	if c == nil {
+		return nil, errors.New("feeder client is nil")
+	}
+
+	if c.HTTPClient == nil {
+		return nil, errors.New("feeder client HTTP client is not initialized")
+	}
+
 	if err := c.GetToken(); err != nil {
 		return nil, err
 	}

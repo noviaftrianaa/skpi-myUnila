@@ -2,12 +2,7 @@
 
 # Stage 1: Dependencies
 FROM node:20-alpine AS deps
-# Use alternative mirror if main is slow and add retry
-RUN apk update --no-cache || \
-    (echo "http://dl-4.alpinelinux.org/alpine/v3.22/main" > /etc/apk/repositories && \
-     echo "http://dl-4.alpinelinux.org/alpine/v3.22/community" >> /etc/apk/repositories && \
-     apk update --no-cache) && \
-    apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Copy package files
@@ -29,7 +24,6 @@ ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_AUTH_API_URL
 ARG NEXT_PUBLIC_DASHBOARD_API_URL
 ARG NEXT_PUBLIC_SISTER_API_URL
-ARG NEXT_PUBLIC_FEEDER_API_URL
 
 # Set environment variables untuk build
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -38,7 +32,6 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_AUTH_API_URL=$NEXT_PUBLIC_AUTH_API_URL
 ENV NEXT_PUBLIC_DASHBOARD_API_URL=$NEXT_PUBLIC_DASHBOARD_API_URL
 ENV NEXT_PUBLIC_SISTER_API_URL=$NEXT_PUBLIC_SISTER_API_URL
-ENV NEXT_PUBLIC_FEEDER_API_URL=$NEXT_PUBLIC_FEEDER_API_URL
 
 # Build aplikasi
 RUN npm run build

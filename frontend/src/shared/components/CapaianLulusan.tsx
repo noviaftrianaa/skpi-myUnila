@@ -658,8 +658,8 @@ export default function CapaianLulusan() {
   }
 
   return (
-    <section className="py-20 bg-white relative">
-      <div className="container mx-auto px-6">
+    <section className="py-12 sm:py-16 md:py-20 bg-white relative">
+      <div className="container mx-auto px-3 sm:px-4 md:px-6">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -668,73 +668,73 @@ export default function CapaianLulusan() {
           className="max-w-7xl mx-auto"
         >
           {/* Header */}
-          <motion.div variants={itemVariants} className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-3 pb-1 leading-relaxed">
+          <motion.div variants={itemVariants} className="text-center mb-8 sm:mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2 sm:mb-3 pb-1 leading-relaxed px-2">
               Capaian Lulusan
             </h2>
-            <div className="flex items-center justify-center mb-3">
-              <div className="h-1 w-20 bg-gradient-to-r from-transparent via-blue-400 to-transparent rounded-full"></div>
+            <div className="flex items-center justify-center mb-2 sm:mb-3">
+              <div className="h-0.5 sm:h-1 w-16 sm:w-20 bg-gradient-to-r from-transparent via-blue-400 to-transparent rounded-full"></div>
             </div>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-2xl mx-auto px-3">
               Data tracer study dan pencapaian alumni Universitas Lampung (5 tahun terakhir)
             </p>
           </motion.div>
 
           {/* Stats Cards */}
           {capaianData && (
-            <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+            <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mb-8 sm:mb-10 md:mb-12">
               <motion.div
                 variants={itemVariants}
-                className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg"
+                className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg"
               >
-                <div className="text-3xl mb-3">👨‍🎓</div>
-                <div className="text-3xl font-bold mb-1">{capaianData.total_alumni.toLocaleString('id-ID')}</div>
-                <div className="text-sm font-semibold opacity-90">Total Alumni Terdata</div>
+                <div className="text-xl sm:text-2xl md:text-3xl mb-1 sm:mb-2 md:mb-3">👨‍🎓</div>
+                <div className="text-xl sm:text-2xl md:text-3xl font-bold mb-0.5 sm:mb-1">{capaianData.total_alumni.toLocaleString('id-ID')}</div>
+                <div className="text-[10px] sm:text-xs md:text-sm font-semibold opacity-90">Total Alumni Terdata</div>
               </motion.div>
 
               <motion.div
                 variants={itemVariants}
-                className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg"
+                className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg"
               >
-                <div className="text-3xl mb-3">⏱️</div>
-                <div className="text-3xl font-bold mb-1">{capaianData.avg_waktu_tunggu.toFixed(1)}</div>
-                <div className="text-sm font-semibold opacity-90">Rata-rata Waktu Tunggu (Bulan)</div>
+                <div className="text-xl sm:text-2xl md:text-3xl mb-1 sm:mb-2 md:mb-3">⏱️</div>
+                <div className="text-xl sm:text-2xl md:text-3xl font-bold mb-0.5 sm:mb-1">{capaianData.avg_waktu_tunggu.toFixed(1)}</div>
+                <div className="text-[10px] sm:text-xs md:text-sm font-semibold opacity-90">Rata-rata Waktu Tunggu (Bulan)</div>
               </motion.div>
 
               <motion.div
                 variants={itemVariants}
-                className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl p-6 text-white shadow-lg"
+                className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg"
               >
-                <div className="text-3xl mb-3">💰</div>
-                <div className="text-2xl font-bold mb-1">Rp {(capaianData.avg_income / 1000000).toFixed(1)}jt</div>
-                <div className="text-sm font-semibold opacity-90">Rata-rata Penghasilan /Bulan</div>
+                <div className="text-xl sm:text-2xl md:text-3xl mb-1 sm:mb-2 md:mb-3">💰</div>
+                <div className="text-base sm:text-lg md:text-2xl font-bold mb-0.5 sm:mb-1">Rp {(capaianData.avg_income / 1000000).toFixed(1)}jt</div>
+                <div className="text-[10px] sm:text-xs md:text-sm font-semibold opacity-90">Rata-rata Penghasilan /Bulan</div>
               </motion.div>
 
               <motion.div
                 variants={itemVariants}
-                className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg"
+                className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg"
               >
-                <div className="text-3xl mb-3">🚀</div>
-                <div className="text-3xl font-bold mb-1">{capaianData.persentase_bekerja_sebelum_lulus}%</div>
-                <div className="text-sm font-semibold opacity-90">Bekerja Sebelum Lulus</div>
+                <div className="text-xl sm:text-2xl md:text-3xl mb-1 sm:mb-2 md:mb-3">🚀</div>
+                <div className="text-xl sm:text-2xl md:text-3xl font-bold mb-0.5 sm:mb-1">{capaianData.persentase_bekerja_sebelum_lulus}%</div>
+                <div className="text-[10px] sm:text-xs md:text-sm font-semibold opacity-90">Bekerja Sebelum Lulus</div>
               </motion.div>
             </motion.div>
           )}
 
           {/* Charts Grid - 3 Columns */}
-          <div className="grid lg:grid-cols-3 gap-8 mb-8">
+          <div className="grid lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-4 sm:mb-6 md:mb-8">
             {/* Status Lulusan Chart */}
-            <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-              <div className="px-6 py-5 bg-blue-600">
-                <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <motion.div variants={itemVariants} className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-blue-600">
+                <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-1 sm:gap-2">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                   </svg>
                   Status Lulusan
                 </h3>
               </div>
-              <div className="p-6">
-                <div className="h-[350px]">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="h-[250px] sm:h-[300px] md:h-[350px]">
                   <ReactECharts
                     option={statusLulusanChartOption}
                     style={{ height: "100%", width: "100%" }}
@@ -745,18 +745,18 @@ export default function CapaianLulusan() {
             </motion.div>
 
             {/* Kesesuaian Bidang Chart */}
-            <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-              <div className="px-6 py-5 bg-emerald-600">
-                <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <motion.div variants={itemVariants} className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-emerald-600">
+                <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-1 sm:gap-2">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clipRule="evenodd" />
                     <path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z" />
                   </svg>
                   Kesesuaian Bidang Kerja
                 </h3>
               </div>
-              <div className="p-6">
-                <div className="h-[350px]">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="h-[250px] sm:h-[300px] md:h-[350px]">
                   <ReactECharts
                     option={kesesuaianBidangChartOption}
                     style={{ height: "100%", width: "100%" }}
@@ -767,17 +767,17 @@ export default function CapaianLulusan() {
             </motion.div>
 
             {/* Waktu Tunggu Trend Chart */}
-            <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-              <div className="px-6 py-5 bg-blue-600">
-                <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <motion.div variants={itemVariants} className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-blue-600">
+                <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-1 sm:gap-2">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                   </svg>
                   Tren Waktu Tunggu Kerja
                 </h3>
               </div>
-              <div className="p-6">
-                <div className="h-[350px]">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="h-[250px] sm:h-[300px] md:h-[350px]">
                   <ReactECharts
                     option={waktuTungguTrendChartOption}
                     style={{ height: "100%", width: "100%" }}
@@ -789,20 +789,20 @@ export default function CapaianLulusan() {
           </div>
 
           {/* Charts Grid - 2 Columns Full Width */}
-          <div className="grid lg:grid-cols-2 gap-8">
+          <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
             {/* Income Distribution Chart */}
-            <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-              <div className="px-6 py-5 bg-amber-600">
-                <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <motion.div variants={itemVariants} className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-amber-600">
+                <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-1 sm:gap-2">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
                   </svg>
                   Distribusi Penghasilan Alumni
                 </h3>
               </div>
-              <div className="p-6">
-                <div className="h-[400px]">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="h-[300px] sm:h-[350px] md:h-[400px]">
                   <ReactECharts
                     option={incomeDistributionChartOption}
                     style={{ height: "100%", width: "100%" }}
@@ -813,17 +813,17 @@ export default function CapaianLulusan() {
             </motion.div>
 
             {/* Level Perusahaan Chart */}
-            <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-              <div className="px-6 py-5 bg-purple-600">
-                <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <motion.div variants={itemVariants} className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-purple-600">
+                <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-1 sm:gap-2">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clipRule="evenodd" />
                   </svg>
                   Level Tempat Kerja Alumni
                 </h3>
               </div>
-              <div className="p-6">
-                <div className="h-[400px]">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="h-[300px] sm:h-[350px] md:h-[400px]">
                   <ReactECharts
                     option={levelPerusahaanChartOption}
                     style={{ height: "100%", width: "100%" }}
@@ -835,27 +835,27 @@ export default function CapaianLulusan() {
           </div>
 
           {/* Lokasi Kerja Section */}
-          <div className="mt-8">
-            <motion.div variants={itemVariants} className="mb-6">
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-2">
+          <div className="mt-4 sm:mt-6 md:mt-8">
+            <motion.div variants={itemVariants} className="mb-4 sm:mb-6">
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-1 sm:mb-2 px-2">
                 Sebaran Lokasi Kerja Alumni
               </h3>
-              <p className="text-gray-600">Distribusi wilayah kerja alumni berdasarkan hasil tracer study</p>
+              <p className="text-gray-600 text-xs sm:text-sm md:text-base px-2">Distribusi wilayah kerja alumni berdasarkan hasil tracer study</p>
             </motion.div>
 
-            <div className="grid lg:grid-cols-2 gap-8">
+            <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
               {/* Lokasi Kerja Provinsi (Indonesia) Chart */}
-              <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-                <div className="px-6 py-5 bg-emerald-600">
-                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <motion.div variants={itemVariants} className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-emerald-600">
+                  <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-1 sm:gap-2">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                     </svg>
-                    Sebaran Provinsi di Indonesia (Top 15)
+                    <span className="leading-tight">Sebaran Provinsi di Indonesia (Top 15)</span>
                   </h3>
                 </div>
-                <div className="p-6">
-                  <div className="h-[500px]">
+                <div className="p-3 sm:p-4 md:p-6">
+                  <div className="h-[350px] sm:h-[400px] md:h-[450px] lg:h-[500px]">
                     <ReactECharts
                       option={lokasiProvinsiChartOption}
                       style={{ height: "100%", width: "100%" }}
@@ -866,17 +866,17 @@ export default function CapaianLulusan() {
               </motion.div>
 
               {/* Lokasi Kerja International Chart */}
-              <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-                <div className="px-6 py-5 bg-amber-600">
-                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <motion.div variants={itemVariants} className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 bg-amber-600">
+                  <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-1 sm:gap-2">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.523-1.943A5.977 5.977 0 0116 10c0 .34-.028.675-.083 1H15a2 2 0 00-2 2v2.197A5.973 5.973 0 0110 16v-2a2 2 0 00-2-2 2 2 0 01-2-2 2 2 0 00-1.668-1.973z" />
                     </svg>
                     Alumni Bekerja di Luar Negeri
                   </h3>
                 </div>
-                <div className="p-6">
-                  <div className="h-[500px] flex items-center justify-center">
+                <div className="p-3 sm:p-4 md:p-6">
+                  <div className="h-[350px] sm:h-[400px] md:h-[450px] lg:h-[500px] flex items-center justify-center">
                     {capaianData && capaianData.lokasi_kerja_international.length > 0 ? (
                       <ReactECharts
                         option={lokasiInternationalChartOption}
@@ -885,10 +885,10 @@ export default function CapaianLulusan() {
                       />
                     ) : (
                       <div className="text-center text-gray-500">
-                        <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 mx-auto mb-3 sm:mb-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.523-1.943A5.977 5.977 0 0116 10c0 .34-.028.675-.083 1H15a2 2 0 00-2 2v2.197A5.973 5.973 0 0110 16v-2a2 2 0 00-2-2 2 2 0 01-2-2 2 2 0 00-1.668-1.973z" />
                         </svg>
-                        <p className="text-sm">Tidak ada data alumni yang bekerja di luar negeri</p>
+                        <p className="text-xs sm:text-sm">Tidak ada data alumni yang bekerja di luar negeri</p>
                       </div>
                     )}
                   </div>
@@ -898,12 +898,12 @@ export default function CapaianLulusan() {
           </div>
 
           {/* Info Note */}
-          <motion.div variants={itemVariants} className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
-            <div className="flex items-start gap-4">
-              <div className="text-3xl">📊</div>
+          <motion.div variants={itemVariants} className="mt-4 sm:mt-6 md:mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 border border-blue-100">
+            <div className="flex items-start gap-2 sm:gap-3 md:gap-4">
+              <div className="text-xl sm:text-2xl md:text-3xl">📊</div>
               <div>
-                <h4 className="font-bold text-gray-800 mb-2">Tentang Data Tracer Study</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">
+                <h4 className="font-bold text-gray-800 mb-1 sm:mb-2 text-sm sm:text-base">Tentang Data Tracer Study</h4>
+                <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
                   Data ini dikumpulkan dari tracer study alumni Universitas Lampung yang lulus dalam 5 tahun terakhir (berdasarkan tanggal kelulusan).
                   Total {capaianData?.total_alumni.toLocaleString('id-ID')} alumni telah berpartisipasi dalam survei tracer study ini,
                   dengan rata-rata waktu tunggu mendapat pekerjaan {capaianData?.avg_waktu_tunggu.toFixed(1)} bulan dan rata-rata penghasilan Rp {capaianData ? (capaianData.avg_income / 1000000).toFixed(1) : 0} juta per bulan.
