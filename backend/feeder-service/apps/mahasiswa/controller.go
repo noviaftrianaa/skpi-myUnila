@@ -325,3 +325,4 @@ func (ctrl *Controller) SyncSingleMahasiswaTest(c *fiber.Ctx) error {
 		"data":    result,
 	})
 }
+

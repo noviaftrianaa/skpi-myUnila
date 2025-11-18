@@ -338,3 +338,21 @@ type LogSyncPdSms struct {
 	TotalGagal       *int       `db:"total_gagal" json:"total_gagal"`
 	Angkatan         *string    `db:"angkatan" json:"angkatan"` // For tracking which angkatan
 }
+
+// LogSyncPdSmsWithProdi - Sync log with prodi info for list view
+type LogSyncPdSmsWithProdi struct {
+	LogSyncPdSms
+	NamaProdi  *string `db:"nama_prodi" json:"nama_prodi"`
+	JenjangProdi *string `db:"jenjang_prodi" json:"jenjang_prodi"`
+	DurationMs *int64  `json:"duration_ms,omitempty"` // Calculated field
+	Status     string  `json:"status"`                // success/failed/partial
+}
+
+// SyncLogListResult - Paginated sync log result
+type SyncLogListResult struct {
+	Data       []*LogSyncPdSmsWithProdi `json:"data"`
+	Total      int                       `json:"total"`
+	Page       int                       `json:"page"`
+	Limit      int                       `json:"limit"`
+	TotalPages int                       `json:"total_pages"`
+}

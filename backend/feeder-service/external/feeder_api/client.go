@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -24,20 +25,48 @@ type FeederClient struct {
 }
 
 type FeederRequest struct {
-	Act    string                 `json:"act"`
-	Filter string                 `json:"filter,omitempty"`
-	Limit  int                    `json:"limit,omitempty"`
-	Offset int                    `json:"offset,omitempty"`
-	Order  string                 `json:"order,omitempty"`
-	Token  string                 `json:"token,omitempty"`
-	Data   map[string]interface{} `json:"data,omitempty"`
+	Act      string                 `json:"act"`
+	Filter   string                 `json:"filter,omitempty"`
+	Limit    int                    `json:"limit,omitempty"`
+	Offset   int                    `json:"offset,omitempty"`
+	Order    string                 `json:"order,omitempty"`
+	Token    string                 `json:"token,omitempty"`
+	Username string                 `json:"username,omitempty"` // For GetToken only
+	Password string                 `json:"password,omitempty"` // For GetToken only
+	Data     map[string]interface{} `json:"data,omitempty"`
+}
+
+// FlexibleInt handles both string and int values from JSON
+type FlexibleInt int
+
+func (fi *FlexibleInt) UnmarshalJSON(b []byte) error {
+	// Try to unmarshal as int first
+	var i int
+	if err := json.Unmarshal(b, &i); err == nil {
+		*fi = FlexibleInt(i)
+		return nil
+	}
+
+	// Try to unmarshal as string
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+
+	// Convert string to int
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		return fmt.Errorf("cannot convert %q to int: %w", s, err)
+	}
+
+	*fi = FlexibleInt(i)
+	return nil
 }
 
 type FeederResponse struct {
-	ErrorCode    int                      `json:"error_code"`
-	ErrorDesc    string                   `json:"error_desc"`
-	Data         interface{}              `json:"data"`
-	DataResponse []map[string]interface{} `json:"data,omitempty"`
+	ErrorCode FlexibleInt `json:"error_code"`
+	ErrorDesc string      `json:"error_desc"`
+	Data      interface{} `json:"data"`
 }
 
 var (
@@ -90,14 +119,19 @@ func NewFeederClient() (*FeederClient, error) {
 			},
 		}
 
-		// Get token on initialization
+		// Try to get token on initialization, but don't fail if it doesn't work
+		// Token will be obtained lazily when first API call is made
 		if err := globalClient.GetToken(); err != nil {
-			initErr = fmt.Errorf("failed to get initial token: %w", err)
+			fmt.Printf("⚠️  Warning: Failed to get initial token (will retry on first request): %v\n", err)
 		}
 	})
 
-	if initErr != nil {
-		return nil, initErr
+	// Only fail if credentials are missing, not if token generation failed
+	if globalClient == nil {
+		if initErr != nil {
+			return nil, initErr
+		}
+		return nil, errors.New("failed to initialize feeder client")
 	}
 
 	return globalClient, nil
@@ -105,15 +139,21 @@ func NewFeederClient() (*FeederClient, error) {
 
 // GetToken gets authentication token from Feeder API
 func (c *FeederClient) GetToken() error {
+	if c == nil {
+		return errors.New("feeder client is nil")
+	}
+
+	if c.HTTPClient == nil {
+		return errors.New("feeder client HTTP client is not initialized")
+	}
+
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	req := FeederRequest{
-		Act: "GetToken",
-		Data: map[string]interface{}{
-			"username": c.Username,
-			"password": c.Password,
-		},
+		Act:      "GetToken",
+		Username: c.Username,
+		Password: c.Password,
 	}
 
 	var resp FeederResponse
@@ -131,9 +171,10 @@ func (c *FeederClient) GetToken() error {
 			c.Token = token
 			return nil
 		}
+		return fmt.Errorf("token field not found in data map: %+v", dataMap)
 	}
 
-	return errors.New("token not found in response")
+	return fmt.Errorf("token not found in response (data type: %T, value: %+v)", resp.Data, resp.Data)
 }
 
 // GetReferensi fetches reference data from Feeder API
@@ -308,8 +349,11 @@ func (c *FeederClient) GetDataLengkapMahasiswaProdi(idProdi string, filter strin
 		return nil, errors.New("feeder client HTTP client is not initialized")
 	}
 
-	if err := c.GetToken(); err != nil {
-		return nil, err
+	// Only get token if not already exists (matches Laravel seeder behavior)
+	if c.Token == "" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
 	}
 
 	req := FeederRequest{
@@ -325,14 +369,33 @@ func (c *FeederClient) GetDataLengkapMahasiswaProdi(idProdi string, filter strin
 		return nil, err
 	}
 
+	// Check if token expired, retry with new token
+	if result.ErrorCode == 100 || result.ErrorDesc == "Token tidak valid" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+		// Retry with new token
+		req.Token = c.Token
+		if err := c.doRequest(req, &result); err != nil {
+			return nil, err
+		}
+	}
+
+	if result.ErrorCode != 0 {
+		return nil, fmt.Errorf("feeder API error: %s (code: %d)", result.ErrorDesc, result.ErrorCode)
+	}
+
 	// Return raw JSON bytes
 	return json.Marshal(result.Data)
 }
 
 // GetListRiwayatPendidikanMahasiswa gets student registration history
 func (c *FeederClient) GetListRiwayatPendidikanMahasiswa(idRegPd string) ([]byte, error) {
-	if err := c.GetToken(); err != nil {
-		return nil, err
+	// Only get token if not already exists
+	if c.Token == "" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
 	}
 
 	req := FeederRequest{
@@ -346,13 +409,31 @@ func (c *FeederClient) GetListRiwayatPendidikanMahasiswa(idRegPd string) ([]byte
 		return nil, err
 	}
 
+	// Check if token expired, retry with new token
+	if result.ErrorCode == 100 || result.ErrorDesc == "Token tidak valid" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+		req.Token = c.Token
+		if err := c.doRequest(req, &result); err != nil {
+			return nil, err
+		}
+	}
+
+	if result.ErrorCode != 0 {
+		return nil, fmt.Errorf("feeder API error: %s (code: %d)", result.ErrorDesc, result.ErrorCode)
+	}
+
 	return json.Marshal(result.Data)
 }
 
 // GetDetailMahasiswaLulusDO gets graduate/dropout details
 func (c *FeederClient) GetDetailMahasiswaLulusDO(idRegPd string) ([]byte, error) {
-	if err := c.GetToken(); err != nil {
-		return nil, err
+	// Only get token if not already exists
+	if c.Token == "" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
 	}
 
 	req := FeederRequest{
@@ -366,13 +447,31 @@ func (c *FeederClient) GetDetailMahasiswaLulusDO(idRegPd string) ([]byte, error)
 		return nil, err
 	}
 
+	// Check if token expired, retry with new token
+	if result.ErrorCode == 100 || result.ErrorDesc == "Token tidak valid" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+		req.Token = c.Token
+		if err := c.doRequest(req, &result); err != nil {
+			return nil, err
+		}
+	}
+
+	if result.ErrorCode != 0 {
+		return nil, fmt.Errorf("feeder API error: %s (code: %d)", result.ErrorDesc, result.ErrorCode)
+	}
+
 	return json.Marshal(result.Data)
 }
 
 // GetListPerkuliahanMahasiswa gets student semester activities
 func (c *FeederClient) GetListPerkuliahanMahasiswa(idRegPd string) ([]byte, error) {
-	if err := c.GetToken(); err != nil {
-		return nil, err
+	// Only get token if not already exists
+	if c.Token == "" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
 	}
 
 	req := FeederRequest{
@@ -384,6 +483,21 @@ func (c *FeederClient) GetListPerkuliahanMahasiswa(idRegPd string) ([]byte, erro
 	var result FeederResponse
 	if err := c.doRequest(req, &result); err != nil {
 		return nil, err
+	}
+
+	// Check if token expired, retry with new token
+	if result.ErrorCode == 100 || result.ErrorDesc == "Token tidak valid" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+		req.Token = c.Token
+		if err := c.doRequest(req, &result); err != nil {
+			return nil, err
+		}
+	}
+
+	if result.ErrorCode != 0 {
+		return nil, fmt.Errorf("feeder API error: %s (code: %d)", result.ErrorDesc, result.ErrorCode)
 	}
 
 	return json.Marshal(result.Data)

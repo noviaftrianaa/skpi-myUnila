@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
 import { FeederSyncLogsTable } from "@/shared/components/feeder-integrator";
-import { syncLogsService } from "@/lib/services/syncLogsService";
+import { feederSyncLogsService } from "@/lib/services/feederSyncLogsService";
 import { Card, CardBody, Spinner } from "@heroui/react";
 import {
   FiFileText,
@@ -34,7 +34,7 @@ export default function SyncLogsPage() {
   const fetchStats = async () => {
     try {
       setIsLoadingStats(true);
-      const data = await syncLogsService.getSyncStats();
+      const data = await feederSyncLogsService.getSyncStats();
       setStats(data);
     } catch (error) {
       console.error("Error fetching stats:", error);

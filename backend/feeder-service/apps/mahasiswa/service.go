@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/myunila/feeder-service/apps/logger"
 )
 
 // Service interface for mahasiswa business logic
@@ -34,10 +35,10 @@ type Service interface {
 
 // service implementation
 type service struct {
-	repo        Repository
-	feederAPI   FeederAPIClient
-	redisClient *redis.Client
-	// loggerService will be added when implementing logging
+	repo          Repository
+	feederAPI     FeederAPIClient
+	redisClient   *redis.Client
+	loggerService logger.Service
 }
 
 // FeederAPIClient interface for Feeder API operations
@@ -59,11 +60,13 @@ func NewService(
 	repo Repository,
 	feederAPI FeederAPIClient,
 	redisClient *redis.Client,
+	loggerSvc logger.Service,
 ) Service {
 	return &service{
-		repo:        repo,
-		feederAPI:   feederAPI,
-		redisClient: redisClient,
+		repo:          repo,
+		feederAPI:     feederAPI,
+		redisClient:   redisClient,
+		loggerService: loggerSvc,
 	}
 }
 
@@ -205,4 +208,14 @@ func (s *service) cacheMahasiswaList(ctx context.Context, cacheKey string, resul
 
 	log.Printf("✅ [Cache SET] Cached mahasiswa list - key: %s, TTL: %v", cacheKey, ttl)
 	return nil
+}
+
+// GetSyncLogs retrieves sync logs with filtering
+func (s *service) GetSyncLogs(ctx context.Context, page, limit int, search, angkatan string, status *string) (*SyncLogListResult, error) {
+	return s.repo.GetSyncLogs(ctx, page, limit, search, angkatan, status)
+}
+
+// GetSyncLogStats retrieves sync log statistics
+func (s *service) GetSyncLogStats(ctx context.Context) (map[string]interface{}, error) {
+	return s.repo.GetSyncLogStats(ctx)
 }

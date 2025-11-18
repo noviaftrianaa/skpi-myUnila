@@ -1,6 +1,7 @@
 /**
  * Feeder Sync Logs Service
  * Handles API calls for viewing synchronization logs from Feeder Integrator
+ * Uses shared logger.sync_logs table - same as Sister Integrator
  */
 
 import { feederClient } from '../api/feederClient';
@@ -59,7 +60,7 @@ export const feederSyncLogsService = {
       if (filter?.page) params.page = filter.page.toString();
       if (filter?.limit) params.limit = filter.limit.toString();
 
-      const response = await feederClient.get<FeederSyncLogResponse>('/api/v1/mahasiswa/sync-logs', { params });
+      const response = await feederClient.get<FeederSyncLogResponse>('/sync-logs', { params });
       return response.data;
     } catch (error) {
       console.error("Error fetching feeder sync logs:", error);
@@ -72,10 +73,10 @@ export const feederSyncLogsService = {
    */
   async getSyncLogById(id: number): Promise<FeederSyncLog> {
     try {
-      const response = await feederClient.get<FeederSyncLog>(`/api/v1/mahasiswa/sync-logs/${id}`);
+      const response = await feederClient.get<FeederSyncLog>(`/sync-logs/${id}`);
       return response.data;
     } catch (error) {
-      console.error(`Error fetching feeder sync log #${id}:`, error);
+      console.error(`Error fetching sync log #${id}:`, error);
       throw error;
     }
   },
@@ -85,7 +86,7 @@ export const feederSyncLogsService = {
    */
   async getRecentSyncLogs(limit: number = 10): Promise<FeederSyncLog[]> {
     try {
-      const response = await feederClient.get<FeederSyncLogResponse>('/api/v1/mahasiswa/sync-logs', {
+      const response = await feederClient.get<FeederSyncLogResponse>('/sync-logs', {
         params: { limit: limit.toString() }
       });
 
@@ -124,7 +125,7 @@ export const feederSyncLogsService = {
         averageDuration,
       };
     } catch (error) {
-      console.error("Error fetching feeder sync stats:", error);
+      console.error("Error fetching sync stats:", error);
       throw error;
     }
   },
