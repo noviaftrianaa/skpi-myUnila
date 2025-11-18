@@ -30,8 +30,8 @@ import type {
 
 // Dashboard Service Base URL - Via Kong Gateway (Public endpoints)
 const DASHBOARD_API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL
-  ? `${process.env.NEXT_PUBLIC_DASHBOARD_API_URL}/public/v1`
-  : 'http://localhost:9800/dashboard-service/public/v1';
+  ? `${process.env.NEXT_PUBLIC_DASHBOARD_API_URL}/public/api/v1`
+  : 'http://localhost:9800/dashboard-service/public/api/v1';
 
 /**
  * Dashboard Service Class
