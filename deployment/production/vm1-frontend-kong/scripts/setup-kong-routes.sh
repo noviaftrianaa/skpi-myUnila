@@ -186,11 +186,12 @@ echo -e "${GREEN}[1/4] Setting up Dashboard Service...${NC}"
 
 # Create Dashboard Service (for protected endpoints)
 # Note: Upstream is at VM2 (e.g., 192.168.120.42:8082)
+# Add /api path prefix to match Laravel 11 auto-prefixing
 DASHBOARD_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
   -d "{
     \"name\": \"dashboard-service\",
-    \"url\": \"${DASHBOARD_SERVICE_URL:-http://192.168.120.42:8082}\"
+    \"url\": \"${DASHBOARD_SERVICE_URL:-http://192.168.120.42:8082/api}\"
   }")
 
 DASHBOARD_SERVICE_ID=$(parse_json_id "$DASHBOARD_SERVICE")
@@ -298,11 +299,12 @@ echo -e "${GREEN}[2/4] Setting up Auth Service...${NC}"
 
 # Create Auth Service
 # Note: Upstream is at VM2 (e.g., 192.168.120.42:8081)
+# Add /api path prefix to match Laravel 11 auto-prefixing
 AUTH_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
   -d "{
     \"name\": \"auth-service\",
-    \"url\": \"${AUTH_SERVICE_URL:-http://192.168.120.42:8081}\"
+    \"url\": \"${AUTH_SERVICE_URL:-http://192.168.120.42:8081/api}\"
   }")
 
 AUTH_SERVICE_ID=$(parse_json_id "$AUTH_SERVICE")
