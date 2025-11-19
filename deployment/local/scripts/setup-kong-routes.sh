@@ -460,7 +460,7 @@ echo ""
 ###############################################################################
 # 4. Feeder Service
 ###############################################################################
-echo -e "${GREEN}[4/4] Setting up Feeder Service...${NC}"
+echo -e "${GREEN}[4/5] Setting up Feeder Service...${NC}"
 
 # Create Feeder Service
 FEEDER_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
@@ -579,6 +579,47 @@ else
           }' > /dev/null
         echo -e "${GREEN}  ✓ Public route created (no JWT, for frontend SSR)${NC}"
     fi
+fi
+
+###############################################################################
+# 5. JWT Consumer & Credentials Setup
+###############################################################################
+echo ""
+echo -e "${GREEN}[5/5] Setting up JWT Consumer & Credentials...${NC}"
+
+# Create consumer for auth service
+echo -e "${YELLOW}  → Creating consumer 'auth-service'...${NC}"
+CONSUMER_RESPONSE=$(curl -s -X POST "$KONG_ADMIN_URL/consumers" \
+  -H "Content-Type: application/json" \
+  --data-raw '{
+    "username": "auth-service",
+    "custom_id": "auth-service-jwt"
+  }')
+
+if echo "$CONSUMER_RESPONSE" | grep -q '"id"'; then
+    echo -e "${GREEN}  ✓ Consumer created${NC}"
+elif echo "$CONSUMER_RESPONSE" | grep -q "unique constraint violation"; then
+    echo -e "${YELLOW}  ! Consumer already exists${NC}"
+else
+    echo -e "${RED}  ✗ Failed to create consumer${NC}"
+fi
+
+# Create JWT credentials
+echo -e "${YELLOW}  → Creating JWT credentials (iss: http://192.168.120.42)...${NC}"
+JWT_CRED_RESPONSE=$(curl -s -X POST "$KONG_ADMIN_URL/consumers/auth-service/jwt" \
+  -H "Content-Type: application/json" \
+  --data-raw '{
+    "key": "http://192.168.120.42",
+    "algorithm": "HS256",
+    "secret": "!UnilaAuthService2025"
+  }')
+
+if echo "$JWT_CRED_RESPONSE" | grep -q '"id"'; then
+    echo -e "${GREEN}  ✓ JWT credential created${NC}"
+elif echo "$JWT_CRED_RESPONSE" | grep -q "unique constraint violation"; then
+    echo -e "${YELLOW}  ! JWT credential already exists${NC}"
+else
+    echo -e "${RED}  ✗ Failed to create JWT credential${NC}"
 fi
 
 echo ""
