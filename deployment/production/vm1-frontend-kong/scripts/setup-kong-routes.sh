@@ -502,14 +502,16 @@ echo -e "${GREEN}[4/4] Setting up Feeder Service...${NC}"
 
 # Create Feeder Service
 # Note: Upstream is at VM3 (e.g., 192.168.120.43:8084)
-# Feeder service is a Go app with routes at /api/v1/*, no need for /api prefix
-# Feeder service handles JWT authentication internally (like auth service)
-# No JWT plugin at Kong level - backend validates JWT tokens
+# Feeder service is a Go app with routes at /api/v1/*
 FEEDER_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
   -d "{
     \"name\": \"feeder-service\",
-    \"url\": \"${FEEDER_SERVICE_URL:-http://192.168.120.43:8084}\"
+    \"url\": \"${FEEDER_SERVICE_URL:-http://192.168.120.43:8084}\",
+    \"connect_timeout\": 300000,
+    \"write_timeout\": 300000,
+    \"read_timeout\": 300000,
+    \"retries\": 5
   }")
 
 FEEDER_SERVICE_ID=$(parse_json_id "$FEEDER_SERVICE")
@@ -519,23 +521,24 @@ if [ -z "$FEEDER_SERVICE_ID" ]; then
 else
     echo -e "${GREEN}  ✓ Feeder service created: $FEEDER_SERVICE_ID${NC}"
 
-    # Create Feeder route (no JWT at Kong level)
-    FEEDER_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$FEEDER_SERVICE_ID/routes" \
+    # Route 1: Protected /api/v1/* endpoints (with JWT for API calls)
+    echo -e "${YELLOW}  → Creating protected /api/v1 route...${NC}"
+    FEEDER_API_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$FEEDER_SERVICE_ID/routes" \
       -H "Content-Type: application/json" \
       -d '{
-        "name": "feeder-service-route",
-        "paths": ["/feeder-service"],
+        "name": "feeder-api-v1-route",
+        "paths": ["/feeder-service/api"],
         "strip_path": true,
         "preserve_host": false,
-        "protocols": ["http", "https"]
+        "protocols": ["http", "https"],
+        "regex_priority": 200
       }')
 
-    FEEDER_ROUTE_ID=$(parse_json_id "$FEEDER_ROUTE")
-    echo -e "${GREEN}  ✓ Feeder route created (no JWT at Kong level)${NC}"
+    FEEDER_API_ROUTE_ID=$(parse_json_id "$FEEDER_API_ROUTE")
 
-    # Add CORS plugin
-    if [ -n "$FEEDER_ROUTE_ID" ]; then
-        curl -s -X POST "$KONG_ADMIN_URL/routes/$FEEDER_ROUTE_ID/plugins" \
+    if [ -n "$FEEDER_API_ROUTE_ID" ]; then
+        # Add CORS plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$FEEDER_API_ROUTE_ID/plugins" \
           -H "Content-Type: application/json" \
           -d '{
             "name": "cors",
@@ -548,7 +551,73 @@ else
               "max_age": 3600
             }
           }' > /dev/null
-        echo -e "${GREEN}  ✓ CORS plugin added${NC}"
+
+        # Add JWT plugin (authentication required for API calls)
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$FEEDER_API_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "maximum_expiration": 0,
+              "header_names": ["authorization"],
+              "cookie_names": []
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ Protected /api/v1 route created with JWT${NC}"
+    fi
+
+    # Route 2: Public endpoints (no JWT) - separate service for frontend SSR
+    echo -e "${YELLOW}  → Creating public service for frontend SSR...${NC}"
+    FEEDER_PUBLIC_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+      -H "Content-Type: application/json" \
+      -d "{
+        \"name\": \"feeder-public-service\",
+        \"url\": \"${FEEDER_SERVICE_URL:-http://192.168.120.43:8084}/public\"
+      }")
+
+    FEEDER_PUBLIC_SERVICE_ID=$(parse_json_id "$FEEDER_PUBLIC_SERVICE")
+
+    if [ -z "$FEEDER_PUBLIC_SERVICE_ID" ]; then
+        echo -e "${YELLOW}  ! Public service may already exist, continuing...${NC}"
+    else
+        echo -e "${GREEN}  ✓ Public service created: $FEEDER_PUBLIC_SERVICE_ID${NC}"
+    fi
+
+    # Create route for public service
+    FEEDER_PUBLIC_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/feeder-public-service/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "feeder-public-route",
+        "paths": ["/feeder-service/public"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 150
+      }')
+
+    FEEDER_PUBLIC_ROUTE_ID=$(parse_json_id "$FEEDER_PUBLIC_ROUTE")
+
+    if [ -n "$FEEDER_PUBLIC_ROUTE_ID" ]; then
+        # Add CORS plugin (no JWT plugin)
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$FEEDER_PUBLIC_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+              "headers": ["Accept", "Content-Type"],
+              "exposed_headers": [],
+              "credentials": false,
+              "max_age": 3600
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ Public route created (no JWT, for frontend SSR)${NC}"
     fi
 fi
 
