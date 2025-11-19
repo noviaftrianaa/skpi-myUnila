@@ -279,14 +279,14 @@ echo ""
 echo -e "${GREEN}[2/4] Setting up Auth Service...${NC}"
 
 # Create Auth Service
-# Note: DO NOT add /api prefix here, as Laravel routes already include it via Route::prefix('api/v1')
-# Kong will strip /auth-service and forward remaining path to nginx
-# Example: /auth-service/api/v1/auth/login → /api/v1/auth/login → Laravel processes it
+# Note: Laravel 11 auto-adds /api prefix to api routes, so we need /api in service URL
+# Kong will strip /auth-service and forward remaining path to nginx with /api prefix
+# Example: /auth-service/api/v1/auth/login → /api/api/v1/auth/login → Laravel processes it
 AUTH_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "auth-service",
-    "url": "http://myunila-nginx:80"
+    "url": "http://myunila-nginx:80/api"
   }')
 
 AUTH_SERVICE_ID=$(parse_json_id "$AUTH_SERVICE")
