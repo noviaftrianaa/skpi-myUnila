@@ -577,7 +577,7 @@ else
       -H "Content-Type: application/json" \
       -d "{
         \"name\": \"feeder-public-service\",
-        \"url\": \"${FEEDER_SERVICE_URL:-http://192.168.120.43:8084}/public\"
+        \"url\": \"${FEEDER_SERVICE_URL:-http://192.168.120.43:8084}\"
       }")
 
     FEEDER_PUBLIC_SERVICE_ID=$(parse_json_id "$FEEDER_PUBLIC_SERVICE")
