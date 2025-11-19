@@ -527,7 +527,7 @@ else
       -H "Content-Type: application/json" \
       -d '{
         "name": "feeder-api-v1-route",
-        "paths": ["/feeder-service/api"],
+        "paths": ["/feeder-service"],
         "strip_path": true,
         "preserve_host": false,
         "protocols": ["http", "https"],
