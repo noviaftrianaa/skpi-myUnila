@@ -11,6 +11,7 @@ services:
         - NEXT_PUBLIC_AUTH_API_URL=${NEXT_PUBLIC_AUTH_API_URL}
         - NEXT_PUBLIC_DASHBOARD_API_URL=${NEXT_PUBLIC_DASHBOARD_API_URL}
         - NEXT_PUBLIC_SISTER_API_URL=${NEXT_PUBLIC_SISTER_API_URL}
+        - NEXT_PUBLIC_FEEDER_API_URL=${NEXT_PUBLIC_FEEDER_API_URL}
     image: myunila/frontend:production
     container_name: myunila-frontend-service
     restart: unless-stopped
@@ -21,6 +22,7 @@ services:
       NEXT_PUBLIC_AUTH_API_URL: "${NEXT_PUBLIC_AUTH_API_URL}"
       NEXT_PUBLIC_DASHBOARD_API_URL: "${NEXT_PUBLIC_DASHBOARD_API_URL}"
       NEXT_PUBLIC_SISTER_API_URL: "${NEXT_PUBLIC_SISTER_API_URL}"
+      NEXT_PUBLIC_FEEDER_API_URL: "${NEXT_PUBLIC_FEEDER_API_URL}"
       # Performance tuning for 8 CPU / 16GB RAM
       NODE_OPTIONS: "--max-old-space-size=4096"
       UV_THREADPOOL_SIZE: 16
