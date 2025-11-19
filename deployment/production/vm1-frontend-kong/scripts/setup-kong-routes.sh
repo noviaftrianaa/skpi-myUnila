@@ -503,6 +503,8 @@ echo -e "${GREEN}[4/4] Setting up Feeder Service...${NC}"
 # Create Feeder Service
 # Note: Upstream is at VM3 (e.g., 192.168.120.43:8084)
 # Feeder service is a Go app with routes at /api/v1/*, no need for /api prefix
+# Feeder service handles JWT authentication internally (like auth service)
+# No JWT plugin at Kong level - backend validates JWT tokens
 FEEDER_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
   -d "{
@@ -517,7 +519,7 @@ if [ -z "$FEEDER_SERVICE_ID" ]; then
 else
     echo -e "${GREEN}  ✓ Feeder service created: $FEEDER_SERVICE_ID${NC}"
 
-    # Create Feeder route
+    # Create Feeder route (no JWT at Kong level)
     FEEDER_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$FEEDER_SERVICE_ID/routes" \
       -H "Content-Type: application/json" \
       -d '{
@@ -529,7 +531,7 @@ else
       }')
 
     FEEDER_ROUTE_ID=$(parse_json_id "$FEEDER_ROUTE")
-    echo -e "${GREEN}  ✓ Feeder route created${NC}"
+    echo -e "${GREEN}  ✓ Feeder route created (no JWT at Kong level)${NC}"
 
     # Add CORS plugin
     if [ -n "$FEEDER_ROUTE_ID" ]; then
@@ -547,24 +549,6 @@ else
             }
           }' > /dev/null
         echo -e "${GREEN}  ✓ CORS plugin added${NC}"
-
-        # Add JWT plugin
-        curl -s -X POST "$KONG_ADMIN_URL/routes/$FEEDER_ROUTE_ID/plugins" \
-          -H "Content-Type: application/json" \
-          -d '{
-            "name": "jwt",
-            "config": {
-              "claims_to_verify": ["exp"],
-              "key_claim_name": "iss",
-              "secret_is_base64": false,
-              "anonymous": null,
-              "run_on_preflight": false,
-              "maximum_expiration": 0,
-              "header_names": ["authorization"],
-              "cookie_names": []
-            }
-          }' > /dev/null
-        echo -e "${GREEN}  ✓ JWT plugin added${NC}"
     fi
 fi
 
