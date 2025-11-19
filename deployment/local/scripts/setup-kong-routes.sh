@@ -537,7 +537,7 @@ else
       -H "Content-Type: application/json" \
       -d '{
         "name": "feeder-public-service",
-        "url": "http://myunila-feeder-service:8084/public"
+        "url": "http://myunila-feeder-service:8084"
       }')
 
     FEEDER_PUBLIC_SERVICE_ID=$(parse_json_id "$FEEDER_PUBLIC_SERVICE")
