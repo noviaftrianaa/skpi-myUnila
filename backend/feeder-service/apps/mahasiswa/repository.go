@@ -131,6 +131,7 @@ func (r *repository) BulkUpsertPesertaDidik(ctx context.Context, data []*Peserta
 				id_wil = @p43,
 				id_stat_mhs = @p44,
 				last_update = @p45,
+				id_updater = @p49,
 				last_sync = @p46
 		WHEN NOT MATCHED THEN
 			INSERT (
@@ -262,6 +263,7 @@ func (r *repository) BulkUpsertRegPd(ctx context.Context, data []*RegPd) error {
 				bln_akhir_bimbingan = @p23,
 				asal_data_ijazah = @p24,
 				last_update = @p25,
+				id_updater = @p32,
 				last_sync = @p26
 		WHEN NOT MATCHED THEN
 			INSERT (
@@ -378,6 +380,7 @@ func (r *repository) BulkUpsertKuliahMhs(ctx context.Context, data []*KuliahMhs)
 				total_sks = @p7,
 				biaya_smt = @p8,
 				last_update = @p9,
+				id_updater = @p13,
 				last_sync = @p10
 		WHEN NOT MATCHED THEN
 			INSERT (
@@ -921,35 +924,36 @@ func (r *repository) GetReferenceCache(ctx context.Context) (*ReferenceCache, er
 	return cache, nil
 }
 
-// CheckOrCreateSyncLog checks if sync log exists for this month, create if not
+// CheckOrCreateSyncLog checks if sync log exists for this month and angkatan, create if not
 func (r *repository) CheckOrCreateSyncLog(ctx context.Context, idSms, angkatan string) error {
-	// Check if log exists for this month (no angkatan column - same as Laravel seeder)
+	// Check if log exists for this month AND angkatan (allows multiple angkatan syncs per month)
 	checkQuery := `
 		SELECT COUNT(*)
 		FROM logger.log_sync_pd_sms
 		WHERE id_sms = @p1
+			AND angkatan = @p2
 			AND tgl_sync >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)
 			AND a_selesai = 1
 	`
 
 	var count int
-	err := r.db.QueryRowContext(ctx, checkQuery, idSms).Scan(&count)
+	err := r.db.QueryRowContext(ctx, checkQuery, idSms, angkatan).Scan(&count)
 	if err != nil {
 		return fmt.Errorf("failed to check sync log: %w", err)
 	}
 
-	// If already synced this month, skip (no matter what angkatan)
+	// If already synced this month for this angkatan, skip
 	if count > 0 {
-		return fmt.Errorf("prodi %s already synced this month", idSms)
+		return fmt.Errorf("prodi %s angkatan %s already synced this month", idSms, angkatan)
 	}
 
-	// Create new sync log (without angkatan - same as Laravel seeder)
+	// Create new sync log with angkatan (allows multiple angkatan syncs per month)
 	insertQuery := `
-		INSERT INTO logger.log_sync_pd_sms (id_sms, tgl_sync, waktu_mulai_sync, a_selesai)
-		VALUES (@p1, CAST(GETDATE() AS DATE), GETDATE(), 0)
+		INSERT INTO logger.log_sync_pd_sms (id_sms, angkatan, tgl_sync, waktu_mulai_sync, a_selesai)
+		VALUES (@p1, @p2, CAST(GETDATE() AS DATE), GETDATE(), 0)
 	`
 
-	_, err = r.db.ExecContext(ctx, insertQuery, idSms)
+	_, err = r.db.ExecContext(ctx, insertQuery, idSms, angkatan)
 	if err != nil {
 		return fmt.Errorf("failed to create sync log: %w", err)
 	}
@@ -963,14 +967,14 @@ func (r *repository) UpdateSyncLogProgress(ctx context.Context, idSms, angkatan 
 		UPDATE logger.log_sync_pd_sms
 		SET total_mahasiswa = @p1,
 			total_berhasil = @p2,
-			total_gagal = @p3,
-			angkatan = @p4
-		WHERE id_sms = @p5
+			total_gagal = @p3
+		WHERE id_sms = @p4
+			AND angkatan = @p5
 			AND tgl_sync >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)
 			AND a_selesai = 0
 	`
 
-	_, err := r.db.ExecContext(ctx, query, totalMhs, berhasil, gagal, angkatan, idSms)
+	_, err := r.db.ExecContext(ctx, query, totalMhs, berhasil, gagal, idSms, angkatan)
 	if err != nil {
 		log.Printf("⚠️  [Sync Log] Failed to update progress for prodi %s: %v", idSms, err)
 		return err
@@ -980,19 +984,19 @@ func (r *repository) UpdateSyncLogProgress(ctx context.Context, idSms, angkatan 
 	return nil
 }
 
-// CompleteSyncLog marks sync as completed
-// Matches Laravel seeder: updates a_selesai and waktu_selesai_sync for current month sync
+// CompleteSyncLog marks sync as completed for specific angkatan
 func (r *repository) CompleteSyncLog(ctx context.Context, idSms, angkatan string) error {
-	// Laravel seeder only uses id_sms and current month check (no angkatan column)
+	// Include angkatan in WHERE clause to complete only the correct sync log
 	query := `
 		UPDATE logger.log_sync_pd_sms
 		SET a_selesai = 1,
 			waktu_selesai_sync = GETDATE()
 		WHERE id_sms = @p1
+			AND angkatan = @p2
 			AND tgl_sync >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)
 	`
 
-	_, err := r.db.ExecContext(ctx, query, idSms)
+	_, err := r.db.ExecContext(ctx, query, idSms, angkatan)
 	return err
 }
 
