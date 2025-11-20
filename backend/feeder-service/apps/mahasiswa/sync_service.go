@@ -417,18 +417,22 @@ func (s *service) getProdiListForSync(ctx context.Context, idProdi *string) ([]m
 	return allProdi, nil
 }
 
-// Helper: getMahasiswaListFromFeederByProdi fetches mahasiswa from prodi with PAGINATION, then filters by angkatan locally
-// FIXED: Use pagination to avoid memory exhaustion on large prodi (e.g., Akuntansi, Arsitektur with 5000+ records)
+// Helper: getMahasiswaListFromFeederByProdi fetches mahasiswa from prodi with server-side filtering
+// Filter sent to Neo Feeder API to avoid fetching all prodi data
 func (s *service) getMahasiswaListFromFeederByProdi(idProdi string, angkatan string) ([]map[string]interface{}, error) {
-	var filteredList []map[string]interface{}
+	var allMhsList []map[string]interface{}
 	offset := 0
 	totalFetched := 0
 
+	// Build filter for Neo Feeder API
+	// Filter by id_prodi and id_periode_masuk (angkatan + semester)
+	// Example: angkatan "2024" → try "20241" (ganjil) and "20242" (genap)
+	filter := fmt.Sprintf("id_periode_masuk='%s1' or id_periode_masuk='%s2'", angkatan, angkatan)
+
 	// Pagination loop: fetch BATCH_SIZE records at a time
 	for {
-		// Call Feeder API with pagination parameters
-		// Filter by id_prodi only (angkatan filtering done locally)
-		rawData, err := s.feederAPI.GetDataLengkapMahasiswaProdi(idProdi, "", BATCH_SIZE, offset)
+		// Call Feeder API with server-side filter
+		rawData, err := s.feederAPI.GetDataLengkapMahasiswaProdi(idProdi, filter, BATCH_SIZE, offset)
 		if err != nil {
 			return nil, fmt.Errorf("API call failed at offset %d: %w", offset, err)
 		}
@@ -446,17 +450,8 @@ func (s *service) getMahasiswaListFromFeederByProdi(idProdi string, angkatan str
 		totalFetched += len(batchMhsList)
 		log.Printf("📄 [Pagination] Fetched %d records (offset %d, total so far: %d)", len(batchMhsList), offset, totalFetched)
 
-		// Filter by angkatan in application code
-		// Angkatan extracted from id_periode_masuk (first 4 chars)
-		// Example: "20211" → angkatan "2021"
-		for _, mhs := range batchMhsList {
-			if idPeriodeMasuk, ok := mhs["id_periode_masuk"].(string); ok && len(idPeriodeMasuk) >= 4 {
-				mhsAngkatan := idPeriodeMasuk[:4]
-				if mhsAngkatan == angkatan {
-					filteredList = append(filteredList, mhs)
-				}
-			}
-		}
+		// Append all records (already filtered by API)
+		allMhsList = append(allMhsList, batchMhsList...)
 
 		// If we got fewer records than BATCH_SIZE, we've reached the end
 		if len(batchMhsList) < BATCH_SIZE {
@@ -467,8 +462,8 @@ func (s *service) getMahasiswaListFromFeederByProdi(idProdi string, angkatan str
 		offset += BATCH_SIZE
 	}
 
-	log.Printf("✅ [Pagination] Completed: fetched %d total records, filtered to %d for angkatan %s", totalFetched, len(filteredList), angkatan)
-	return filteredList, nil
+	log.Printf("✅ [Pagination] Completed: fetched %d records for angkatan %s (server-side filtered)", totalFetched, angkatan)
+	return allMhsList, nil
 }
 
 // Helper: fetchRiwayatPendidikan fetches basic registration data
