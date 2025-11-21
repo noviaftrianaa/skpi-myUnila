@@ -4,7 +4,7 @@ services:
   dashboard-service:
     build:
       context: ../../../../../backend/dashboard-service
-      dockerfile: Dockerfile.alpine-fixed
+      dockerfile: Dockerfile
       args:
         - APP_ENV=production
     image: myunila/dashboard-service:production
