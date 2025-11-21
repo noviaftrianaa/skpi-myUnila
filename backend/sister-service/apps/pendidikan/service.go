@@ -7,6 +7,7 @@ import (
 	"time"
 
 	appLogger "sister-service/apps/logger"
+	"sister-service/pkg/timeutil"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -38,7 +39,7 @@ func NewService(repo Repository, syncService SyncService, db *sqlx.DB, loggerSvc
 
 // SyncPendidikanFormalByIDSDM syncs pendidikan formal for a single dosen
 func (s *service) SyncPendidikanFormalByIDSDM(idSDM, syncedBy string) (*BatchPendidikanFormalSyncResult, error) {
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 
 	result, err := s.syncService.SyncPendidikanFormalByIDSDM(idSDM, syncedBy)
 
@@ -54,7 +55,7 @@ func (s *service) SyncPendidikanFormalByIDSDM(idSDM, syncedBy string) (*BatchPen
 
 // BatchSyncAllPendidikanFormal syncs pendidikan formal for all dosen
 func (s *service) BatchSyncAllPendidikanFormal(syncedBy string) (*BatchAllSyncResult, error) {
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	log.Printf("🚀 Starting batch sync all pendidikan formal (synced_by: %s)", syncedBy)
 
 	// Get all dosen from database

@@ -19,7 +19,7 @@ type Repository interface {
 	BulkUpsertKuliahMhs(ctx context.Context, data []*KuliahMhs) error
 
 	// List operations with filters
-	GetMahasiswaList(ctx context.Context, page, limit int, search string, angkatan []string, idProdi *string) (*MahasiswaListResult, error)
+	GetMahasiswaList(ctx context.Context, page, limit int, search string, angkatan []string, idProdi *string, sortBy, sortOrder string) (*MahasiswaListResult, error)
 	GetMahasiswaByID(ctx context.Context, idPD string) (*PesertaDidik, error)
 	GetRegPdByID(ctx context.Context, idRegPd string) (*RegPd, error)
 
@@ -423,7 +423,7 @@ func (r *repository) BulkUpsertKuliahMhs(ctx context.Context, data []*KuliahMhs)
 }
 
 // GetMahasiswaList retrieves paginated list of mahasiswa with filters
-func (r *repository) GetMahasiswaList(ctx context.Context, page, limit int, search string, angkatan []string, idProdi *string) (*MahasiswaListResult, error) {
+func (r *repository) GetMahasiswaList(ctx context.Context, page, limit int, search string, angkatan []string, idProdi *string, sortBy, sortOrder string) (*MahasiswaListResult, error) {
 	offset := (page - 1) * limit
 
 	// Build WHERE conditions
@@ -450,11 +450,45 @@ func (r *repository) GetMahasiswaList(ctx context.Context, page, limit int, sear
 		paramIndex++
 	}
 
-	// Search filter
+	// Search filter (only search by NPM and nama)
 	if search != "" {
-		whereConditions = append(whereConditions, fmt.Sprintf("(pd.nm_pd LIKE @p%d OR reg.nipd LIKE @p%d)", paramIndex, paramIndex))
+		whereConditions = append(whereConditions, fmt.Sprintf("(reg.nipd LIKE @p%d OR pd.nm_pd LIKE @p%d)", paramIndex, paramIndex))
 		args = append(args, "%"+search+"%")
 		paramIndex++
+	}
+
+	// Build ORDER BY clause
+	orderByClause := "LEFT(reg.id_semester_masuk, 4) ASC, pd.nm_pd ASC" // Default: angkatan ASC, nama ASC
+	if sortBy != "" {
+		// Map frontend column keys to database columns
+		var dbColumn string
+		switch sortBy {
+		case "npm":
+			dbColumn = "reg.nipd"
+		case "nama":
+			dbColumn = "pd.nm_pd"
+		case "angkatan":
+			dbColumn = "LEFT(reg.id_semester_masuk, 4)"
+		case "ipk":
+			dbColumn = "lk.ipk"
+		case "status_mahasiswa":
+			dbColumn = "CASE WHEN reg.id_jns_keluar IS NOT NULL THEN jk.ket_keluar ELSE sm.nm_stat_mhs END"
+		case "last_sync":
+			dbColumn = "pd.last_sync"
+		default:
+			dbColumn = "" // Invalid sort field, use default
+		}
+
+		// Validate and set sort order
+		order := "ASC"
+		if sortOrder == "desc" || sortOrder == "DESC" {
+			order = "DESC"
+		}
+
+		// Apply custom sorting if valid column
+		if dbColumn != "" {
+			orderByClause = fmt.Sprintf("%s %s", dbColumn, order)
+		}
 	}
 
 	whereClause := strings.Join(whereConditions, " AND ")
@@ -507,6 +541,18 @@ func (r *repository) GetMahasiswaList(ctx context.Context, page, limit int, sear
 			WHERE kmh.soft_delete = 0
 				AND RIGHT(kmh.id_smt, 1) != '3'
 			GROUP BY kmh.id_reg_pd
+		),
+		latest_kuliah AS (
+			-- Get the latest kuliah_mhs record for each student (by id_smt DESC)
+			SELECT
+				kmh.id_reg_pd,
+				kmh.ipk,
+				kmh.total_sks,
+				kmh.id_stat_mhs,
+				ROW_NUMBER() OVER (PARTITION BY kmh.id_reg_pd ORDER BY kmh.id_smt DESC) AS rn
+			FROM pdrd.kuliah_mhs kmh
+			INNER JOIN filtered_reg_pd freg ON freg.id_reg_pd = kmh.id_reg_pd
+			WHERE kmh.soft_delete = 0
 		)
 		SELECT
 			CAST(pd.id_pd AS VARCHAR(50)) AS id_pd,
@@ -516,6 +562,8 @@ func (r *repository) GetMahasiswaList(ctx context.Context, page, limit int, sear
 			jd.nm_jalur_daftar AS jalur_masuk,
 			jdf.nm_jns_daftar AS jenis_pendaftaran,
 			COALESCE(sc.semester_sekarang, 0) AS semester_sekarang,
+			lk.ipk AS ipk,
+			lk.total_sks AS total_sks,
 			-- Prioritas status: jika id_jns_keluar ada, tampilkan jenis_keluar; jika tidak, tampilkan status_mahasiswa
 			CASE
 				WHEN reg.id_jns_keluar IS NOT NULL THEN jk.ket_keluar
@@ -532,14 +580,14 @@ func (r *repository) GetMahasiswaList(ctx context.Context, page, limit int, sear
 		LEFT JOIN ref.jenis_pendaftaran AS jdf ON jdf.id_jns_daftar = reg.id_jns_daftar
 		LEFT JOIN pdrd.sms AS sms ON sms.id_sms = reg.id_sms AND sms.soft_delete = 0
 		LEFT JOIN ref.jenjang_pendidikan AS didik ON didik.id_jenj_didik = sms.id_jenj_didik AND didik.expired_date IS NULL
-		LEFT JOIN pdrd.kuliah_mhs AS kmh_aktif ON kmh_aktif.id_reg_pd = reg.id_reg_pd AND kmh_aktif.soft_delete = 0 AND kmh_aktif.id_smt = '20251'
-		LEFT JOIN ref.status_mahasiswa AS sm ON sm.id_stat_mhs = COALESCE(kmh_aktif.id_stat_mhs, pd.id_stat_mhs)
+		LEFT JOIN latest_kuliah AS lk ON lk.id_reg_pd = reg.id_reg_pd AND lk.rn = 1
+		LEFT JOIN ref.status_mahasiswa AS sm ON sm.id_stat_mhs = COALESCE(lk.id_stat_mhs, pd.id_stat_mhs)
 		LEFT JOIN ref.jenis_keluar AS jk ON jk.id_jns_keluar = reg.id_jns_keluar
 		LEFT JOIN semester_counts sc ON sc.id_reg_pd = reg.id_reg_pd
 		WHERE %s
-		ORDER BY pd.nm_pd ASC
+		ORDER BY %s
 		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY
-	`, whereClause, paramIndex, paramIndex+1)
+	`, whereClause, orderByClause, paramIndex, paramIndex+1)
 
 	// Add pagination parameters to args
 	dataArgs := append(args, offset, limit)

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"sister-service/external/sister_api"
+	"sister-service/pkg/timeutil"
 )
 
 // SyncService handles syncing tugas tambahan from Sister API
@@ -213,7 +214,7 @@ func (s *SyncService) syncDokumen(idTgsTambah string, dokumenList []SisterDokume
 
 // BatchSyncAllTugasTambahan syncs tugas tambahan for all active dosen
 func (s *SyncService) BatchSyncAllTugasTambahan(trigger string) (*BatchSyncResult, error) {
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	log.Printf("🚀 [%s] Starting batch sync for all dosen tugas tambahan", trigger)
 
 	// Get all active dosen
@@ -254,7 +255,7 @@ func (s *SyncService) BatchSyncAllTugasTambahan(trigger string) (*BatchSyncResul
 		time.Sleep(100 * time.Millisecond)
 	}
 
-	result.EndTime = time.Now()
+	result.EndTime = timeutil.NowWIB()
 	result.Duration = result.EndTime.Sub(result.StartTime)
 
 	log.Printf("✅ Batch sync completed - Success: %d, Failed: %d, Duration: %s",

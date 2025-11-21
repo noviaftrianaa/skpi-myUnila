@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"sister-service/apps/monitoring"
+	"sister-service/pkg/timeutil"
 )
 
 // System UUID for created_by/updated_by
@@ -31,7 +32,7 @@ type workerResult struct {
 
 // SyncPublikasiByIDSDM syncs all publikasi for a dosen from Sister API
 func (s *service) SyncPublikasiByIDSDM(idSDM string, syncedBy string) (*BatchPublikasiSyncResult, error) {
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 
 	log.Printf("🚀 Starting publikasi sync for id_sdm: %s (synced_by: %s)", idSDM, syncedBy)
 
@@ -195,7 +196,7 @@ func (s *service) syncSinglePublikasi(idPublikasi string) PublikasiSyncResult {
 
 // transformToPublikasi transforms Sister API response to Publikasi entity
 func (s *service) transformToPublikasi(detail *SisterPublikasiDetail) Publikasi {
-	now := time.Now()
+	now := timeutil.NowWIB()
 
 	// Parse tanggal terbit
 	var tglTerbit *time.Time
@@ -292,7 +293,7 @@ func (s *service) transformToPublikasi(detail *SisterPublikasiDetail) Publikasi 
 // transformTulisPub transforms Sister API penulis to TulisPub entities
 func (s *service) transformTulisPub(detail *SisterPublikasiDetail) []*TulisPub {
 	var result []*TulisPub
-	now := time.Now()
+	now := timeutil.NowWIB()
 
 	for _, penulis := range detail.Penulis {
 		// Map peran_tulis (case-insensitive)
@@ -427,7 +428,7 @@ func (s *service) retryWithBackoff(fn func() error, entityName string) error {
 
 // BatchSyncAllPublikasi syncs publikasi for all dosen from Sister API with 3-worker pool
 func (s *service) BatchSyncAllPublikasi(syncedBy string) (*BatchAllSyncResult, error) {
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 
 	log.Printf("🚀 Starting batch sync all publikasi with 3-worker pool (synced_by: %s)", syncedBy)
 

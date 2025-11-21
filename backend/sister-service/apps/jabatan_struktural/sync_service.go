@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"sister-service/external/sister_api"
+	"sister-service/pkg/timeutil"
 )
 
 // SyncService handles syncing jabatan struktural from Sister API
@@ -126,7 +127,7 @@ func (s *SyncService) syncSingleJabatanStruktural(idSDM string, item *SisterJaba
 func (s *SyncService) BatchSyncAllJabatanStruktural(trigger string) (*BatchSyncResult, error) {
 	log.Printf("🚀 [%s] Starting batch jabatan struktural sync for all dosen", trigger)
 
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	result := &BatchSyncResult{
 		StartTime: startTime,
 		Results:   []SyncResult{},
@@ -161,7 +162,7 @@ func (s *SyncService) BatchSyncAllJabatanStruktural(trigger string) (*BatchSyncR
 		time.Sleep(500 * time.Millisecond)
 	}
 
-	result.EndTime = time.Now()
+	result.EndTime = timeutil.NowWIB()
 	result.Duration = result.EndTime.Sub(startTime)
 
 	log.Printf("✅ Batch sync completed - Success: %d, Failed: %d, Duration: %s", result.TotalSuccess, result.TotalFailed, result.Duration)
@@ -172,7 +173,7 @@ func (s *SyncService) BatchSyncAllJabatanStruktural(trigger string) (*BatchSyncR
 func (s *SyncService) ResyncFailedJabatanStruktural(failedIDSDMs []string, trigger string) (*BatchSyncResult, error) {
 	log.Printf("🔄 [%s] Re-syncing %d failed dosen", trigger, len(failedIDSDMs))
 
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	result := &BatchSyncResult{
 		StartTime:  startTime,
 		TotalDosen: len(failedIDSDMs),
@@ -196,7 +197,7 @@ func (s *SyncService) ResyncFailedJabatanStruktural(failedIDSDMs []string, trigg
 		time.Sleep(500 * time.Millisecond)
 	}
 
-	result.EndTime = time.Now()
+	result.EndTime = timeutil.NowWIB()
 	result.Duration = result.EndTime.Sub(startTime)
 
 	return result, nil

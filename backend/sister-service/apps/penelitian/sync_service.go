@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"sister-service/apps/monitoring"
+	"sister-service/pkg/timeutil"
 
 	"github.com/google/uuid"
 )
@@ -33,7 +34,7 @@ type workerResult struct {
 
 // SyncPenelitianByIDSDM syncs all penelitian for a dosen from Sister API
 func (s *service) SyncPenelitianByIDSDM(idSDM string, syncedBy string) (*BatchPenelitianSyncResult, error) {
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 
 	log.Printf("🚀 Starting penelitian sync for id_sdm: %s (synced_by: %s)", idSDM, syncedBy)
 
@@ -160,7 +161,7 @@ func (s *service) SyncPenelitianByIDSDM(idSDM string, syncedBy string) (*BatchPe
 
 // SyncPengabdianByIDSDM syncs all pengabdian for a dosen from Sister API
 func (s *service) SyncPengabdianByIDSDM(idSDM string, syncedBy string) (*BatchPenelitianSyncResult, error) {
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 
 	log.Printf("🚀 Starting pengabdian sync for id_sdm: %s (synced_by: %s)", idSDM, syncedBy)
 
@@ -395,7 +396,7 @@ func (s *service) syncSinglePenelitian(idLitabmas string, idSDM string, jnsLitab
 
 // transformSisterDataToLitabmas transforms Sister API detail to Litabmas entity
 func (s *service) transformSisterDataToLitabmas(detail *SisterPenelitianDetail, jnsLitabmas string) (*Litabmas, error) {
-	now := time.Now()
+	now := timeutil.NowWIB()
 
 	litabmas := &Litabmas{
 		IDLitabmas:    detail.ID,
@@ -473,7 +474,7 @@ func (s *service) transformSisterDataToLitabmas(detail *SisterPenelitianDetail, 
 // transformAnggotaSDM transforms Sister API anggota to AnggotaSDMLitabmas entities
 func (s *service) transformAnggotaSDM(detail *SisterPenelitianDetail) []*AnggotaSDMLitabmas {
 	var result []*AnggotaSDMLitabmas
-	now := time.Now()
+	now := timeutil.NowWIB()
 
 	for _, ang := range detail.Anggota {
 		// Only process if jenis is "Dosen" and has id_sdm
@@ -520,7 +521,7 @@ func (s *service) transformAnggotaSDM(detail *SisterPenelitianDetail) []*Anggota
 // transformAnggotaPD transforms Sister API anggota to AnggotaPDLitabmas entities
 func (s *service) transformAnggotaPD(detail *SisterPenelitianDetail) []*AnggotaPDLitabmas {
 	var result []*AnggotaPDLitabmas
-	now := time.Now()
+	now := timeutil.NowWIB()
 
 	for _, ang := range detail.Anggota {
 		// Only process if jenis is "Mahasiswa" or similar
@@ -568,7 +569,7 @@ func (s *service) transformAnggotaPD(detail *SisterPenelitianDetail) []*AnggotaP
 func (s *service) transformDokumen(detail *SisterPenelitianDetail, jenisDokumenMap map[string]int) ([]*Dokumen, []*DokLitabmas) {
 	var dokumenList []*Dokumen
 	var dokLitabmasList []*DokLitabmas
-	now := time.Now()
+	now := timeutil.NowWIB()
 
 	for _, dok := range detail.Dokumen {
 		// Map jenis_dokumen string to id_jns_dok
@@ -747,7 +748,7 @@ func retryWithBackoff(operation func() error, entityName string) error {
 
 // BatchSyncAllPenelitian syncs penelitian for all dosen from Sister API with 3-worker pool
 func (s *service) BatchSyncAllPenelitian(syncedBy string) (*BatchAllSyncResult, error) {
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 
 	log.Printf("🚀 Starting batch sync all penelitian with 3-worker pool (synced_by: %s)", syncedBy)
 
@@ -913,7 +914,7 @@ func (s *service) penelitianWorker(id int, jobs <-chan string, results chan<- wo
 
 // BatchSyncAllPengabdian syncs pengabdian for all dosen from Sister API with 3-worker pool
 func (s *service) BatchSyncAllPengabdian(syncedBy string) (*BatchAllSyncResult, error) {
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 
 	log.Printf("🚀 Starting batch sync all pengabdian with 3-worker pool (synced_by: %s)", syncedBy)
 

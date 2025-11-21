@@ -6,12 +6,39 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 	appLogger "sister-service/apps/logger"
 	"sister-service/apps/monitoring"
 	"sister-service/external/sister_api"
+	"sister-service/pkg/timeutil"
 )
+
+// normalizeBinaryUUID converts binary UUID (16 bytes) to standard UUID string format (36 chars with hyphens)
+// If the input is already a valid UUID string, it returns it as-is
+// If the input is binary (16 bytes), it converts to UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+func normalizeBinaryUUID(uuidStr string) string {
+	// Empty string or nil - return as-is
+	if uuidStr == "" {
+		return ""
+	}
+
+	// Already in UUID format (36 chars with hyphens) - return as-is
+	if len(uuidStr) == 36 && strings.Count(uuidStr, "-") == 4 {
+		return uuidStr
+	}
+
+	// Binary UUID (16 bytes) - convert to string format
+	if len(uuidStr) == 16 {
+		b := []byte(uuidStr)
+		return fmt.Sprintf("%x-%x-%x-%x-%x",
+			b[0:4], b[4:6], b[6:8], b[8:10], b[10:16])
+	}
+
+	// Unknown format - return as-is and let validation handle it
+	return uuidStr
+}
 
 // Service defines business logic for referensi domain
 type Service interface {
@@ -137,7 +164,7 @@ func (s *service) GetAgamaByID(ctx context.Context, id int) (*Agama, error) {
 
 // SyncAgamaFromSister synchronizes agama data from Sister API
 func (s *service) SyncAgamaFromSister(ctx context.Context, syncedBy string) (int, error) {
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -736,7 +763,7 @@ func (s *service) GetAllReferensiMetadata(ctx context.Context) ([]ReferensiMetad
 
 // BatchSyncFromSister syncs multiple endpoints in parallel using goroutines
 func (s *service) BatchSyncFromSister(ctx context.Context, endpoints []string, syncedBy string) (*BatchSyncResponse, error) {
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	log.Printf("🔄 Starting batch sync for %d endpoints: %v", len(endpoints), endpoints)
 
 	// Initialize monitoring for batch sync
@@ -1076,7 +1103,7 @@ func (s *service) GetAllBidangPekerjaan() ([]BidangPekerjaan, error) {
 // SyncBidangStudiFromSister syncs bidang_studi data from Sister API to database
 func (s *service) SyncBidangStudiFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1109,7 +1136,7 @@ func (s *service) SyncBidangStudiFromSister(syncedBy string) (int, error) {
 // SyncBidangUsahaFromSister syncs bidang_usaha data from Sister API to database
 func (s *service) SyncBidangUsahaFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1142,7 +1169,7 @@ func (s *service) SyncBidangUsahaFromSister(syncedBy string) (int, error) {
 // SyncJabatanFungsionalFromSister syncs jabatan_fungsional data from Sister API to database
 func (s *service) SyncJabatanFungsionalFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1175,7 +1202,7 @@ func (s *service) SyncJabatanFungsionalFromSister(syncedBy string) (int, error) 
 // SyncJabatanTugasTambahanFromSister syncs jabatan_tugas_tambahan data from Sister API to database
 func (s *service) SyncJabatanTugasTambahanFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1208,7 +1235,7 @@ func (s *service) SyncJabatanTugasTambahanFromSister(syncedBy string) (int, erro
 // SyncJenisBahanAjarFromSister syncs jenis_bahan_ajar data from Sister API to database
 func (s *service) SyncJenisBahanAjarFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1241,7 +1268,7 @@ func (s *service) SyncJenisBahanAjarFromSister(syncedBy string) (int, error) {
 // SyncJenisBeasiswaFromSister syncs jenis_beasiswa data from Sister API to database
 func (s *service) SyncJenisBeasiswaFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1274,7 +1301,7 @@ func (s *service) SyncJenisBeasiswaFromSister(syncedBy string) (int, error) {
 // SyncJenisDiklatFromSister syncs jenis_diklat data from Sister API to database
 func (s *service) SyncJenisDiklatFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1307,7 +1334,7 @@ func (s *service) SyncJenisDiklatFromSister(syncedBy string) (int, error) {
 // SyncJenisDokumenFromSister syncs jenis_dokumen data from Sister API to database
 func (s *service) SyncJenisDokumenFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1340,7 +1367,7 @@ func (s *service) SyncJenisDokumenFromSister(syncedBy string) (int, error) {
 // SyncJenisKeluarFromSister syncs jenis_keluar data from Sister API to database
 func (s *service) SyncJenisKeluarFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1373,7 +1400,7 @@ func (s *service) SyncJenisKeluarFromSister(syncedBy string) (int, error) {
 // SyncJenisKepanitiaanFromSister syncs jenis_kepanitiaan data from Sister API to database
 func (s *service) SyncJenisKepanitiaanFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1406,7 +1433,7 @@ func (s *service) SyncJenisKepanitiaanFromSister(syncedBy string) (int, error) {
 // SyncJenisKesejahteraanFromSister syncs jenis_kesejahteraan data from Sister API to database
 func (s *service) SyncJenisKesejahteraanFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1439,7 +1466,7 @@ func (s *service) SyncJenisKesejahteraanFromSister(syncedBy string) (int, error)
 // SyncJenisPublikasiFromSister syncs jenis_publikasi data from Sister API to database
 func (s *service) SyncJenisPublikasiFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1472,7 +1499,7 @@ func (s *service) SyncJenisPublikasiFromSister(syncedBy string) (int, error) {
 // SyncJenisTesFromSister syncs jenis_tes data from Sister API to database
 func (s *service) SyncJenisTesFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1505,7 +1532,7 @@ func (s *service) SyncJenisTesFromSister(syncedBy string) (int, error) {
 // SyncJenisTunjanganFromSister syncs jenis_tunjangan data from Sister API to database
 func (s *service) SyncJenisTunjanganFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1538,7 +1565,7 @@ func (s *service) SyncJenisTunjanganFromSister(syncedBy string) (int, error) {
 // SyncMediaPublikasiFromSister syncs media_publikasi data from Sister API to database
 func (s *service) SyncMediaPublikasiFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1571,7 +1598,7 @@ func (s *service) SyncMediaPublikasiFromSister(syncedBy string) (int, error) {
 // SyncSkimKegiatanFromSister syncs skim_kegiatan data from Sister API to database
 func (s *service) SyncSkimKegiatanFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1604,7 +1631,7 @@ func (s *service) SyncSkimKegiatanFromSister(syncedBy string) (int, error) {
 // SyncStatusKepegawaianFromSister syncs status_kepegawaian data from Sister API to database
 func (s *service) SyncStatusKepegawaianFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1637,7 +1664,7 @@ func (s *service) SyncStatusKepegawaianFromSister(syncedBy string) (int, error) 
 // SyncSumberGajiFromSister syncs sumber_gaji data from Sister API to database
 func (s *service) SyncSumberGajiFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1670,7 +1697,7 @@ func (s *service) SyncSumberGajiFromSister(syncedBy string) (int, error) {
 // SyncTingkatPenghargaanFromSister syncs tingkat_penghargaan data from Sister API to database
 func (s *service) SyncTingkatPenghargaanFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1703,7 +1730,7 @@ func (s *service) SyncTingkatPenghargaanFromSister(syncedBy string) (int, error)
 // SyncWilayahFromSister syncs wilayah data from Sister API to database
 func (s *service) SyncWilayahFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1742,7 +1769,7 @@ func (s *service) SyncWilayahFromSister(syncedBy string) (int, error) {
 // SyncKategoriCapaianLuaranFromSister syncs kategori_capaian_luaran data from Sister API to database
 func (s *service) SyncKategoriCapaianLuaranFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1775,7 +1802,7 @@ func (s *service) SyncKategoriCapaianLuaranFromSister(syncedBy string) (int, err
 // SyncKategoriKegiatanFromSister syncs kategori_kegiatan data from Sister API to database
 func (s *service) SyncKategoriKegiatanFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1818,7 +1845,7 @@ func (s *service) SyncKategoriKegiatanFromSister(syncedBy string) (int, error) {
 // SyncKelompokBidangFromSister syncs kelompok_bidang data from Sister API to database
 func (s *service) SyncKelompokBidangFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1852,7 +1879,7 @@ func (s *service) SyncKelompokBidangFromSister(syncedBy string) (int, error) {
 // SyncLembagaSertifikasiFromSister syncs lembaga_sertifikasi data from Sister API to database
 func (s *service) SyncLembagaSertifikasiFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1885,7 +1912,7 @@ func (s *service) SyncLembagaSertifikasiFromSister(syncedBy string) (int, error)
 // SyncGolonganPangkatFromSister syncs golongan_pangkat data from Sister API to database
 func (s *service) SyncGolonganPangkatFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1918,7 +1945,7 @@ func (s *service) SyncGolonganPangkatFromSister(syncedBy string) (int, error) {
 // SyncIkatanKerjaFromSister syncs ikatan_kerja data from Sister API to database
 func (s *service) SyncIkatanKerjaFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1951,7 +1978,7 @@ func (s *service) SyncIkatanKerjaFromSister(syncedBy string) (int, error) {
 // SyncJenisPenghargaanFromSister syncs jenis_penghargaan data from Sister API to database
 func (s *service) SyncJenisPenghargaanFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -1984,7 +2011,7 @@ func (s *service) SyncJenisPenghargaanFromSister(syncedBy string) (int, error) {
 // SyncJenisPekerjaanFromSister syncs jenis_pekerjaan data from Sister API to database
 func (s *service) SyncJenisPekerjaanFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -2017,7 +2044,7 @@ func (s *service) SyncJenisPekerjaanFromSister(syncedBy string) (int, error) {
 // SyncBidangPekerjaanFromSister syncs bidang_pekerjaan data from Sister API to database
 func (s *service) SyncBidangPekerjaanFromSister(syncedBy string) (int, error) {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -2070,7 +2097,7 @@ func (s *service) GetUnitKerjaByID(id string) (*UnitKerja, error) {
 // idPerguruanTinggi: ID perguruan tinggi (e.g., UNILA_ID)
 // syncedBy: username who triggered the sync
 func (s *service) SyncUnitKerjaFromSister(idPerguruanTinggi string, syncedBy string) (*BatchUnitKerjaSyncResult, error) {
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -2216,7 +2243,7 @@ func (s *service) processUnitKerja(uk SisterUnitKerja, idPerguruanTinggi string,
 
 // transformToUnitKerja transforms Sister API response to domain entity
 func (s *service) transformToUnitKerja(detail SisterUnitKerjaDetail, idPerguruanTinggi string, syncedBy string) UnitKerja {
-	now := time.Now()
+	now := timeutil.NowWIB()
 
 	// Parse dates
 	var tglBerdiri, tglSK, tmtSK, tstSK *time.Time
@@ -2241,35 +2268,72 @@ func (s *service) transformToUnitKerja(detail SisterUnitKerjaDetail, idPerguruan
 		}
 	}
 
-	// Get wilayah (disabled - not used, wilayah is array of objects)
+	// Get wilayah from Sister API response (wilayah is array of objects)
 	var idWilayah *string
-	// Wilayah is now []interface{} to accept array of objects from Sister API
-	// We don't use this field, so leave it nil
-	idWilayah = nil
+	if len(detail.Wilayah) > 0 {
+		// Parse first wilayah object to get the id
+		if wilayahMap, ok := detail.Wilayah[0].(map[string]interface{}); ok {
+			if id, exists := wilayahMap["id"]; exists {
+				if idStr, ok := id.(string); ok && idStr != "" {
+					// Trim spaces from wilayah id
+					trimmedID := strings.TrimSpace(idStr)
+					idWilayah = &trimmedID
+				}
+			}
+		}
+	}
 
-	// Try to lookup jenjang pendidikan
+	// Get jenjang pendidikan from Sister API response
 	var idJenjang *int
-	if detail.GelarLulusan != nil {
+	if detail.IDJenjang != nil && *detail.IDJenjang != "" {
+		// Sister API returns id_jenjang as string, convert to int
+		var jenjangInt int
+		if _, err := fmt.Sscanf(*detail.IDJenjang, "%d", &jenjangInt); err == nil {
+			idJenjang = &jenjangInt
+		}
+	}
+	// Fallback: if id_jenjang not available, try lookup from gelar_lulusan
+	if idJenjang == nil && detail.GelarLulusan != nil {
 		idJenjang, _ = s.repo.LookupJenjangPendidikan(detail.Nama, *detail.GelarLulusan)
 	}
 
-	// Build hierarki berdasarkan id_induk_unit dan id_jenis_unit
-	var idFakultasUnila, idJurusanUnila, idJurusan *string
+	// Get jurusan ID from Sister API response (jurusan.id is numeric, not UUID)
+	var idJur *string
+	if len(detail.Jurusan) > 0 {
+		// Parse first jurusan object to get the id
+		if jurusanMap, ok := detail.Jurusan[0].(map[string]interface{}); ok {
+			if id, exists := jurusanMap["id"]; exists {
+				if idStr, ok := id.(string); ok && idStr != "" {
+					// Trim spaces from jurusan id
+					trimmedID := strings.TrimSpace(idStr)
+					idJur = &trimmedID
+				}
+			}
+		}
+	}
 
-	if detail.IDIndukUnit != nil {
+	// Build hierarki berdasarkan id_induk_unit dan id_jenis_unit
+	var idFakultasUnila, idJurusanUnila *string
+
+	if detail.IDIndukUnit != nil && *detail.IDIndukUnit != "" {
 		// Ada induk, cek jenis induknya
 		jenisInduk, err := s.repo.GetUnitKerjaJenisUnit(*detail.IDIndukUnit)
 		if err == nil && jenisInduk != nil {
 			switch *jenisInduk {
 			case 1: // Induk adalah Fakultas
-				idFakultasUnila = detail.IDIndukUnit
+				// Validate UUID before assignment
+				if *detail.IDIndukUnit != "" {
+					idFakultasUnila = detail.IDIndukUnit
+				}
 			case 2: // Induk adalah Jurusan
-				idJurusanUnila = detail.IDIndukUnit
-				idJurusan = detail.IDIndukUnit // Copy
+				// Validate UUID before assignment
+				if *detail.IDIndukUnit != "" {
+					idJurusanUnila = detail.IDIndukUnit
+				}
 
 				// Cari fakultas dari jurusan
 				jurusan, err := s.repo.GetUnitKerjaByID(*detail.IDIndukUnit)
-				if err == nil && jurusan != nil && jurusan.IDFakultasUnila != nil {
+				if err == nil && jurusan != nil && jurusan.IDFakultasUnila != nil && *jurusan.IDFakultasUnila != "" {
 					idFakultasUnila = jurusan.IDFakultasUnila
 				}
 			}
@@ -2291,6 +2355,32 @@ func (s *service) transformToUnitKerja(detail SisterUnitKerjaDetail, idPerguruan
 		skPenyelenggara = &detail.SKPenyelenggara
 	}
 
+	// Normalize and validate UUID fields - handle binary UUIDs and empty strings
+	var idIndukSMS *string
+	if detail.IDIndukUnit != nil && *detail.IDIndukUnit != "" {
+		normalized := normalizeBinaryUUID(*detail.IDIndukUnit)
+		if normalized != "" {
+			idIndukSMS = &normalized
+		}
+	}
+
+	// Normalize other UUID fields to prevent conversion errors from binary UUIDs
+	var validIDFakultasUnila *string
+	if idFakultasUnila != nil && *idFakultasUnila != "" {
+		normalized := normalizeBinaryUUID(*idFakultasUnila)
+		if normalized != "" {
+			validIDFakultasUnila = &normalized
+		}
+	}
+
+	var validIDJurusanUnila *string
+	if idJurusanUnila != nil && *idJurusanUnila != "" {
+		normalized := normalizeBinaryUUID(*idJurusanUnila)
+		if normalized != "" {
+			validIDJurusanUnila = &normalized
+		}
+	}
+
 	return UnitKerja{
 		IDSMS:              detail.ID,
 		IDSatuanPendidikan: idPerguruanTinggi,
@@ -2307,10 +2397,12 @@ func (s *service) transformToUnitKerja(detail SisterUnitKerjaDetail, idPerguruan
 		GelarLulusan:       detail.GelarLulusan,
 		IDJenjangDidik:     idJenjang,
 		IDWilayah:          idWilayah,
-		IDFakultasUnila:    idFakultasUnila,
-		IDJurusanUnila:     idJurusanUnila,
-		IDJurusan:          idJurusan,
-		IDIndukSMS:         detail.IDIndukUnit,
+		IDFungsiLab:        "*",        // Default value for char(1) NOT NULL field
+		IDKelUsaha:         "*",        // Default value for char(8) NOT NULL field
+		IDFakultasUnila:    validIDFakultasUnila,
+		IDJurusanUnila:     validIDJurusanUnila,
+		IDJurusan:          idJur,      // Numeric ID from jurusan.id (not UUID)
+		IDIndukSMS:         idIndukSMS,
 		CreateDate:         now,
 		IDCreator:          "00000000-0000-0000-0000-000000000000", // System UUID for sync
 		LastUpdate:         now,

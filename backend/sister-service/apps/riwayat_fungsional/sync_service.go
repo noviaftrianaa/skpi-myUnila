@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"sister-service/external/sister_api"
+	"sister-service/pkg/timeutil"
 )
 
 // SyncService handles syncing riwayat fungsional from Sister API
@@ -140,7 +141,7 @@ func (s *SyncService) syncSingleRwyFungsional(idSDM string, item *SisterJabatanF
 func (s *SyncService) BatchSyncAllRwyFungsional(trigger string) (*BatchSyncResult, error) {
 	log.Printf("🚀 [%s] Starting batch riwayat fungsional sync for all dosen", trigger)
 
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	result := &BatchSyncResult{
 		StartTime: startTime,
 		Results:   []SyncResult{},
@@ -175,7 +176,7 @@ func (s *SyncService) BatchSyncAllRwyFungsional(trigger string) (*BatchSyncResul
 		time.Sleep(500 * time.Millisecond)
 	}
 
-	result.EndTime = time.Now()
+	result.EndTime = timeutil.NowWIB()
 	result.Duration = result.EndTime.Sub(startTime)
 
 	log.Printf("✅ Batch sync completed - Success: %d, Failed: %d, Duration: %s", result.TotalSuccess, result.TotalFailed, result.Duration)
@@ -186,7 +187,7 @@ func (s *SyncService) BatchSyncAllRwyFungsional(trigger string) (*BatchSyncResul
 func (s *SyncService) ResyncFailedRwyFungsional(failedIDSDMs []string, trigger string) (*BatchSyncResult, error) {
 	log.Printf("🔄 [%s] Re-syncing %d failed dosen", trigger, len(failedIDSDMs))
 
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	result := &BatchSyncResult{
 		StartTime:  startTime,
 		TotalDosen: len(failedIDSDMs),
@@ -210,7 +211,7 @@ func (s *SyncService) ResyncFailedRwyFungsional(failedIDSDMs []string, trigger s
 		time.Sleep(500 * time.Millisecond)
 	}
 
-	result.EndTime = time.Now()
+	result.EndTime = timeutil.NowWIB()
 	result.Duration = result.EndTime.Sub(startTime)
 
 	return result, nil

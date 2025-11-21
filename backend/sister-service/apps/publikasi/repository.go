@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"sister-service/pkg/timeutil"
 )
 
 // UUID validation regex
@@ -258,7 +259,7 @@ func (r *repository) MergeTulisPub(idPublikasi string, tulisPubList []*TulisPub)
 				SET soft_delete = 1, last_update = @p1
 				WHERE id_tulis_pub = @p2
 			`
-			_, err := r.db.ExecContext(ctx, deleteSQL, time.Now(), tp.IDTulisPub)
+			_, err := r.db.ExecContext(ctx, deleteSQL, timeutil.NowWIB(), tp.IDTulisPub)
 			if err != nil {
 				log.Printf("⚠️ Failed to delete tulis_pub %s: %v", tp.IDTulisPub, err)
 			} else {

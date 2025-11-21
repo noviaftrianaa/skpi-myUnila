@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"sister-service/external/sister_api"
+	"sister-service/pkg/timeutil"
 )
 
 type SyncService interface {
@@ -27,7 +28,7 @@ func NewSyncService(repo Repository, sisterAPI *sister_api.Client) SyncService {
 
 // SyncPendidikanFormalByIDSDM syncs all pendidikan formal for a dosen from SISTER API
 func (s *syncService) SyncPendidikanFormalByIDSDM(idSDM, syncedBy string) (*BatchPendidikanFormalSyncResult, error) {
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	log.Printf("📚 Starting pendidikan formal sync for id_sdm: %s (synced_by: %s)", idSDM, syncedBy)
 
 	// Get list of pendidikan formal from SISTER API
@@ -122,7 +123,7 @@ func (s *syncService) syncSinglePendidikanFormal(idPendidikan, idSDM string) Pen
 
 // mapSisterResponseToEntity maps SISTER API response to database entity
 func (s *syncService) mapSisterResponseToEntity(detail *SisterPendidikanFormalDetail, idSDM string) *RwyPendFormal {
-	now := time.Now()
+	now := timeutil.NowWIB()
 
 	// Map id_sms (id_program_studi) - insert if has value
 	var idSMS *string

@@ -7,6 +7,7 @@ import (
 	"log"
 	appLogger "sister-service/apps/logger"
 	"sister-service/external/sister_api"
+	"sister-service/pkg/timeutil"
 	"time"
 
 	"github.com/google/uuid"
@@ -43,7 +44,7 @@ func NewService(repo Repository, sisterAPI *sister_api.Client, loggerSvc appLogg
 
 // SyncPenugasanByIDSDM syncs all penugasan for a dosen from Sister API
 func (s *service) SyncPenugasanByIDSDM(idSDM string, syncedBy string) (*BatchPenugasanSyncResult, error) {
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 
 	log.Printf("🔄 Starting sync penugasan for id_sdm: %s (synced_by: %s)", idSDM, syncedBy)
 
@@ -158,7 +159,7 @@ func (s *service) processPenugasan(idRegPTK string, idSDM string) PenugasanSyncR
 
 // transformToPenugasan transforms Sister API response to domain entity
 func (s *service) transformToPenugasan(detail SisterPenugasanDetail) Penugasan {
-	now := time.Now()
+	now := timeutil.NowWIB()
 
 	// Parse dates
 	var tglSrtTgs, tmtSrtTgs, tglPTKKeluar *time.Time
@@ -227,7 +228,7 @@ func (s *service) processKeaktifan(idRegPTK string, keaktifanList []SisterPenuga
 	}
 
 	// INSERT new keaktifan records
-	now := time.Now()
+	now := timeutil.NowWIB()
 	for _, item := range keaktifanList {
 		// Convert apakah_pt_homebase to int (1 or 0)
 		homebase := 0

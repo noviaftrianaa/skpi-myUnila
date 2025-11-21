@@ -1,6 +1,71 @@
 package mahasiswa
 
-import "time"
+import (
+	"encoding/json"
+	"fmt"
+	"strconv"
+	"time"
+)
+
+// FlexibleInt handles both string and int values from JSON
+type FlexibleInt int
+
+func (fi *FlexibleInt) UnmarshalJSON(b []byte) error {
+	// Try to unmarshal as int first
+	var i int
+	if err := json.Unmarshal(b, &i); err == nil {
+		*fi = FlexibleInt(i)
+		return nil
+	}
+
+	// Try to unmarshal as string
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+
+	// Convert string to int
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		return fmt.Errorf("cannot convert %q to int: %w", s, err)
+	}
+
+	*fi = FlexibleInt(i)
+	return nil
+}
+
+// FlexibleFloat handles both string and float values from JSON
+type FlexibleFloat float64
+
+func (ff *FlexibleFloat) UnmarshalJSON(b []byte) error {
+	// Try to unmarshal as float64 first
+	var f float64
+	if err := json.Unmarshal(b, &f); err == nil {
+		*ff = FlexibleFloat(f)
+		return nil
+	}
+
+	// Try to unmarshal as string
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+
+	// Handle empty string
+	if s == "" {
+		*ff = FlexibleFloat(0)
+		return nil
+	}
+
+	// Convert string to float64
+	f, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return fmt.Errorf("cannot convert %q to float64: %w", s, err)
+	}
+
+	*ff = FlexibleFloat(f)
+	return nil
+}
 
 // PesertaDidik - Main entity for student data (pdrd.peserta_didik)
 type PesertaDidik struct {
@@ -196,10 +261,10 @@ type FeederMahasiswaData struct {
 	IDKebutuhanKhususAyah   *int    `json:"id_kebutuhan_khusus_ayah"`
 
 	// Assistance
-	PenerimaKPS             *int    `json:"penerima_kps"`
-	NomorKPS                *string `json:"nomor_kps"`
-	IDKebutuhanKhususMahasiswa *int `json:"id_kebutuhan_khusus_mahasiswa"`
-	IDAlatTransportasi      *int    `json:"id_alat_transportasi"`
+	PenerimaKPS             *FlexibleInt `json:"penerima_kps"`
+	NomorKPS                *string      `json:"nomor_kps"`
+	IDKebutuhanKhususMahasiswa *int      `json:"id_kebutuhan_khusus_mahasiswa"`
+	IDAlatTransportasi      *int         `json:"id_alat_transportasi"`
 
 	// References
 	IDNegara                *string `json:"id_negara"`
@@ -210,19 +275,19 @@ type FeederMahasiswaData struct {
 
 // FeederRiwayatPendidikan - Response from GetListRiwayatPendidikanMahasiswa
 type FeederRiwayatPendidikan struct {
-	IDRegistrasiMahasiswa string  `json:"id_registrasi_mahasiswa"`
-	NIM                   *string `json:"nim"`
-	IDJenisDaftar         *int    `json:"id_jenis_daftar"`
-	IDJalurDaftar         *int    `json:"id_jalur_daftar"`
-	IDPembiayaan          *int    `json:"id_pembiayaan"`
-	IDPeriodeMasuk        string  `json:"id_periode_masuk"`
-	IDJenisKeluar         *int    `json:"id_jenis_keluar"`
-	TanggalDaftar         *string `json:"tanggal_daftar"`
-	SKSDiakui             *int    `json:"sks_diakui"`
-	IDPerguruanTinggiAsal *string `json:"id_perguruan_tinggi_asal"`
-	NamaPerguruanTinggiAsal *string `json:"nama_perguruan_tinggi_asal"`
-	IDProdiAsal           *string `json:"id_prodi_asal"`
-	NamaProgramStudiAsal  *string `json:"nama_program_studi_asal"`
+	IDRegistrasiMahasiswa string       `json:"id_registrasi_mahasiswa"`
+	NIM                   *string      `json:"nim"`
+	IDJenisDaftar         *FlexibleInt `json:"id_jenis_daftar"`
+	IDJalurDaftar         *FlexibleInt `json:"id_jalur_daftar"`
+	IDPembiayaan          *FlexibleInt `json:"id_pembiayaan"`
+	IDPeriodeMasuk        string       `json:"id_periode_masuk"`
+	IDJenisKeluar         *FlexibleInt `json:"id_jenis_keluar"`
+	TanggalDaftar         *string      `json:"tanggal_daftar"`
+	SKSDiakui             *FlexibleInt `json:"sks_diakui"`
+	IDPerguruanTinggiAsal *string      `json:"id_perguruan_tinggi_asal"`
+	NamaPerguruanTinggiAsal *string    `json:"nama_perguruan_tinggi_asal"`
+	IDProdiAsal           *string      `json:"id_prodi_asal"`
+	NamaProgramStudiAsal  *string      `json:"nama_program_studi_asal"`
 }
 
 // FeederMahasiswaLulusDO - Response from GetDetailMahasiswaLulusDO
@@ -243,14 +308,14 @@ type FeederMahasiswaLulusDO struct {
 
 // FeederPerkuliahanMahasiswa - Response from GetListPerkuliahanMahasiswa
 type FeederPerkuliahanMahasiswa struct {
-	IDRegistrasiMahasiswa string   `json:"id_registrasi_mahasiswa"`
-	IDSemester            string   `json:"id_semester"`
-	IDStatusMahasiswa     *string  `json:"id_status_mahasiswa"`
-	IPS                   *float64 `json:"ips"`
-	IPK                   *float64 `json:"ipk"`
-	SKSSemester           *int     `json:"sks_semester"`
-	SKSTotal              *int     `json:"sks_total"`
-	BiayaKuliahSemester   *int64   `json:"biaya_kuliah_smt"`
+	IDRegistrasiMahasiswa string          `json:"id_registrasi_mahasiswa"`
+	IDSemester            string          `json:"id_semester"`
+	IDStatusMahasiswa     *string         `json:"id_status_mahasiswa"`
+	IPS                   *FlexibleFloat  `json:"ips"`
+	IPK                   *FlexibleFloat  `json:"ipk"`
+	SKSSemester           *FlexibleInt    `json:"sks_semester"`
+	SKSTotal              *FlexibleInt    `json:"sks_total"`
+	BiayaKuliahSemester   *int64          `json:"biaya_kuliah_smt"`
 }
 
 // --- Sync Result DTOs ---
@@ -280,6 +345,7 @@ type SyncFilter struct {
 	Angkatan   []string `json:"angkatan"` // WAJIB - format: ["2021", "2022"], support multiple angkatan
 	IDProdi    *string  `json:"id_prodi,omitempty"` // Optional
 	IDSemester *string  `json:"id_semester,omitempty"` // Optional
+	ForceSync  bool     `json:"force_sync,omitempty"` // Optional - bypass "already synced this month" check
 }
 
 // --- List & Pagination DTOs ---
@@ -293,6 +359,8 @@ type MahasiswaListItem struct {
 	NamaJalurMasuk    *string    `db:"jalur_masuk" json:"jalur_masuk"`
 	NamaJenisDaftar   *string    `db:"jenis_pendaftaran" json:"jenis_pendaftaran"`
 	SemesterSekarang  *int       `db:"semester_sekarang" json:"semester_sekarang"` // COUNT from kuliah_mhs
+	IPK               *float64   `db:"ipk" json:"ipk"`                             // IPK from kuliah_mhs
+	TotalSKS          *float64   `db:"total_sks" json:"total_sks"`                 // Total SKS from kuliah_mhs
 	NamaStatusMhs     *string    `db:"status_mahasiswa" json:"status_mahasiswa"`
 	NamaJenisKeluar   *string    `db:"jenis_keluar" json:"jenis_keluar,omitempty"`
 	LastSync          *time.Time `db:"last_sync" json:"last_sync"`
@@ -336,7 +404,7 @@ type LogSyncPdSms struct {
 	TotalMahasiswa   *int       `db:"total_mahasiswa" json:"total_mahasiswa"`
 	TotalBerhasil    *int       `db:"total_berhasil" json:"total_berhasil"`
 	TotalGagal       *int       `db:"total_gagal" json:"total_gagal"`
-	Angkatan         *string    `db:"angkatan" json:"angkatan"` // For tracking which angkatan
+	Angkatan         *string    `json:"angkatan"` // For tracking which angkatan (not in DB, for display only)
 }
 
 // LogSyncPdSmsWithProdi - Sync log with prodi info for list view

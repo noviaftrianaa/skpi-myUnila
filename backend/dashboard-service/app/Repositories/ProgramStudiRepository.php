@@ -188,7 +188,8 @@ class ProgramStudiRepository
             WHERE sms.soft_delete = 0
                 AND sms.stat_prodi = 'A'
                 AND CAST(sms.id_sp AS VARCHAR(50)) = '" . strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')) . "'
-                AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
+                AND sms.id_fak_unila IS NOT NULL
+                AND sms.id_jns_sms = '3'
         ";
 
         $params = [$periode, $periode, $tahunAjaran];
@@ -276,8 +277,9 @@ class ProgramStudiRepository
             ) AS akred ON akred.id_sms = sms.id_sms AND akred.rn = 1
             WHERE sms.soft_delete = 0
                 AND sms.stat_prodi = 'A'
+                AND sms.id_jns_sms = '3'
                 AND CAST(sms.id_sp AS VARCHAR(50)) = '" . strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')) . "'
-                AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
+                AND sms.id_fak_unila IS NOT NULL
         ";
 
         $params = [];
@@ -359,12 +361,13 @@ class ProgramStudiRepository
             ) AS akred ON akred.id_sms = sms.id_sms AND akred.rn = 1
             WHERE sms.soft_delete = 0
                 AND sms.stat_prodi = 'A'
+                AND sms.id_jns_sms = '3'
                 AND CAST(sms.id_sp AS VARCHAR(50)) = '{$unilaIdSp}'
-                AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
+                AND sms.id_fak_unila IS NOT NULL
                 {$filterWhere}
         ";
 
-        // Get total dosen DISTINCT (avoid double count)
+        // Get total dosen DISTINCT (avoid double count) - semua jenjang
         $sqlDosen = "
             SELECT COUNT(DISTINCT ptk.id_sdm) AS total
             FROM pdrd.reg_ptk AS ptk
@@ -384,7 +387,6 @@ class ProgramStudiRepository
             INNER JOIN ref.jenjang_pendidikan AS didik
                 ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
-                AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
             LEFT JOIN (
                 SELECT
                     ap.id_sms,
@@ -1090,5 +1092,73 @@ class ProgramStudiRepository
                 ];
             }, $waktuTungguTrend),
         ];
+    }
+
+    /**
+     * Get riwayat akreditasi for a program studi
+     *
+     * @param string $id_sms
+     * @return array
+     */
+    public function getRiwayatAkreditasi(string $id_sms): array
+    {
+        \Log::info('=== getRiwayatAkreditasi START ===', [
+            'id_sms' => $id_sms,
+            'id_sms_type' => gettype($id_sms),
+            'id_sms_length' => strlen($id_sms),
+        ]);
+
+        // Use native query for better reliability with SQL Server
+        $sql = "
+            SELECT
+                na.nm_akred as peringkat,
+                ap.sk_akreditasi_prodi as no_sk,
+                ap.tanggal_sk_akreditasi_prodi as tanggal_sk,
+                ap.tst_sk_akreditasi_prodi as tanggal_berakhir,
+                la.nm_lemb as lembaga_akreditasi
+            FROM pdrd.akreditasi_prodi ap
+            LEFT JOIN ref.nilai_akred na ON ap.id_akred = na.id_akred
+            LEFT JOIN ref.lembaga_akred la ON ap.id_lemb_akred = la.id_lemb_akred
+            WHERE ap.id_sms = ?
+                AND ap.soft_delete = 0
+            ORDER BY ap.tanggal_sk_akreditasi_prodi DESC
+        ";
+
+        \Log::info('Executing SQL query', [
+            'sql' => $sql,
+            'params' => [$id_sms]
+        ]);
+
+        try {
+            $data = DB::connection('sqlsrv')->select($sql, [$id_sms]);
+
+            \Log::info('Query executed successfully', [
+                'result_count' => count($data),
+                'raw_data' => $data
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Query execution failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return [];
+        }
+
+        $result = array_map(function ($item) {
+            return [
+                'peringkat' => $item->peringkat ?? '-',
+                'no_sk' => $item->no_sk ?? '-',
+                'tanggal_sk' => $item->tanggal_sk ? (is_string($item->tanggal_sk) ? $item->tanggal_sk : date('Y-m-d', strtotime($item->tanggal_sk))) : null,
+                'tanggal_berakhir' => $item->tanggal_berakhir ? (is_string($item->tanggal_berakhir) ? $item->tanggal_berakhir : date('Y-m-d', strtotime($item->tanggal_berakhir))) : null,
+                'lembaga_akreditasi' => $item->lembaga_akreditasi ?? 'BAN-PT',
+            ];
+        }, $data);
+
+        \Log::info('=== getRiwayatAkreditasi END ===', [
+            'final_result_count' => count($result),
+            'final_result' => $result
+        ]);
+
+        return $result;
     }
 }

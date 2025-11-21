@@ -6,6 +6,7 @@ import (
 	"github.com/myunila/feeder-service/apps/logger"
 	"github.com/myunila/feeder-service/apps/mahasiswa"
 	"github.com/myunila/feeder-service/apps/monitoring"
+	"github.com/myunila/feeder-service/apps/scheduler"
 	"github.com/myunila/feeder-service/external/database"
 	"github.com/myunila/feeder-service/external/feeder_api"
 	"github.com/myunila/feeder-service/internal/config"
@@ -133,8 +134,23 @@ func main() {
 	log.Println("✅ Monitoring service registered (Sync Progress)")
 
 	// Initialize Mahasiswa module (pass logger service for sync logging)
-	_ = mahasiswa.Init(apiV1, db, feederAPI, redisClient, loggerService)
+	mahasiswaService := mahasiswa.Init(apiV1, db, feederAPI, redisClient, loggerService)
 	log.Println("✅ Mahasiswa routes registered")
+
+	// Initialize Scheduler service (for scheduled mahasiswa syncs)
+	schedulerRepo := scheduler.NewRepository(db)
+	schedulerService := scheduler.NewService(schedulerRepo, mahasiswaService)
+	schedulerHandler := scheduler.NewHandler(schedulerService)
+	scheduler.RegisterRoutes(apiV1, schedulerHandler)
+
+	// Start scheduler (load and register all active schedules)
+	if err := schedulerService.Start(); err != nil {
+		log.Printf("⚠️  Failed to start scheduler service: %v", err)
+	}
+	// Ensure scheduler stops gracefully on shutdown
+	defer schedulerService.Stop()
+
+	log.Println("✅ Scheduler service registered and started")
 
 	// Welcome message
 	app.Get("/", func(c *fiber.Ctx) error {
@@ -146,6 +162,7 @@ func main() {
 				"health":     "/health",
 				"api":        "/api/v1",
 				"mahasiswa":  "/api/v1/mahasiswa",
+				"schedules":  "/api/v1/schedules",
 				"sync_logs":  "/api/v1/sync-logs",
 				"monitoring": "/api/v1/monitoring/active",
 				"apiconfig":  "/apiconfig",

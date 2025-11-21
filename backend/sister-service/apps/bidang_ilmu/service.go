@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"sister-service/external/sister_api"
+	"sister-service/pkg/timeutil"
 )
 
 // Service defines the business logic for bidang ilmu
@@ -53,7 +54,7 @@ func (s *service) SyncBidangIlmuByIDSDM(idSDM string, syncedBy string) (*SyncRes
 
 // SyncAllDosen syncs bidang ilmu for all dosen using concurrent workers
 func (s *service) SyncAllDosen(syncedBy string) (*BatchSyncResult, error) {
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	log.Printf("🚀 Starting batch sync of all dosen bidang ilmu by %s", syncedBy)
 
 	// Get all active dosen IDs from database
@@ -131,7 +132,7 @@ func (s *service) SyncAllDosen(syncedBy string) (*BatchSyncResult, error) {
 		}
 	}
 
-	endTime := time.Now()
+	endTime := timeutil.NowWIB()
 	duration := endTime.Sub(startTime)
 
 	batchResult := &BatchSyncResult{

@@ -6,11 +6,13 @@ import (
 	"log"
 	"sync"
 	"time"
+
+	"sister-service/pkg/timeutil"
 )
 
 // BatchSyncPenugasan syncs penugasan for all active dosen with 3-worker pool
 func (s *service) BatchSyncPenugasan(syncedBy string) (*BatchPenugasanSyncAllResult, error) {
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 
 	log.Printf("🔄 Starting batch penugasan sync (synced_by: %s)", syncedBy)
 

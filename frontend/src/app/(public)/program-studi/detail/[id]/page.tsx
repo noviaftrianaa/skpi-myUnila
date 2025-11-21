@@ -404,6 +404,55 @@ export default function ProgramStudiDetailPage() {
                 </div>
               </div>
 
+              {/* Riwayat Akreditasi */}
+              {detail.riwayat_akreditasi && detail.riwayat_akreditasi.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <FaAward className="text-yellow-600" />
+                    Riwayat Akreditasi
+                  </h3>
+                  <div className="space-y-3">
+                    {detail.riwayat_akreditasi.map((akreditasi, index) => (
+                      <div
+                        key={index}
+                        className="p-4 bg-gradient-to-r from-yellow-50 to-amber-50 rounded-lg border border-yellow-200 hover:shadow-md transition-shadow"
+                      >
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-sm font-semibold text-yellow-700">Peringkat:</span>
+                              <span className="font-bold text-gray-900">{akreditasi.peringkat}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-gray-600">No. SK:</span>
+                              <span className="text-sm font-mono text-gray-800">{akreditasi.no_sk}</span>
+                            </div>
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-sm text-gray-600">Tanggal SK:</span>
+                              <span className="text-sm font-semibold text-gray-800">
+                                {akreditasi.tanggal_sk ? new Date(akreditasi.tanggal_sk).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-gray-600">Berlaku Hingga:</span>
+                              <span className="text-sm font-semibold text-gray-800">
+                                {akreditasi.tanggal_berakhir ? new Date(akreditasi.tanggal_berakhir).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="mt-2 pt-2 border-t border-yellow-200">
+                          <span className="text-xs text-gray-600">Lembaga: </span>
+                          <span className="text-xs font-semibold text-gray-800">{akreditasi.lembaga_akreditasi}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Visi, Misi, Tujuan */}
               {(detail.profil.visi || detail.profil.misi || detail.profil.tujuan || detail.profil.capaian_belajar) && (
                 <div className="mt-6 space-y-4">

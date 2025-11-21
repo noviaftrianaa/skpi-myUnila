@@ -19,12 +19,15 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/api
 # Final stage
 FROM alpine:latest
 
-RUN apk --no-cache add ca-certificates wget
+RUN apk --no-cache add ca-certificates wget tzdata
 
 WORKDIR /root/
 
 # Copy binary from builder
 COPY --from=builder /app/main .
+
+# Copy timezone data from builder
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 
 # Expose port
 EXPOSE 8084

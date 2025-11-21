@@ -39,8 +39,23 @@ export const feederIntegratorMenuConfig: MenuItem[] = [
         roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
       },
       {
-        title: "Aktivitas Kuliah Mahasiswa",
-        href: "/dashboard/feeder-integrator/pdrd/aktivitas-kuliah",
+        title: "Aktivitas Mahasiswa",
+        href: "/dashboard/feeder-integrator/pdrd/aktivitas-mahasiswa",
+        roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
+      },
+      {
+        title: "Matkul Kurikulum",
+        href: "/dashboard/feeder-integrator/pdrd/matkul-kurikulum",
+        roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
+      },
+      {
+        title: "Rencana Ajar/Eval",
+        href: "/dashboard/feeder-integrator/pdrd/rencana-ajar",
+        roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
+      },
+      {
+        title: "Kelas Mengajaran",
+        href: "/dashboard/feeder-integrator/pdrd/kelas-mengajar",
         roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
       },
       {
@@ -49,18 +64,13 @@ export const feederIntegratorMenuConfig: MenuItem[] = [
         roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
       },
       {
-        title: "Aktivitas Mahasiswa",
-        href: "/dashboard/feeder-integrator/pdrd/aktivitas-mahasiswa",
+        title: "Konversi/Transfer",
+        href: "/dashboard/feeder-integrator/pdrd/konversi-transfer",
         roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
       },
       {
-        title: "Anggota Aktivitas Mahasiswa",
-        href: "/dashboard/feeder-integrator/pdrd/anggota-aktivitas",
-        roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
-      },
-      {
-        title: "Bimbingan Mahasiswa",
-        href: "/dashboard/feeder-integrator/pdrd/bimbingan",
+        title: "Transkrip Nilai",
+        href: "/dashboard/feeder-integrator/pdrd/transkrip-nilai",
         roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
       },
       {

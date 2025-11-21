@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"sister-service/pkg/timeutil"
 )
 
 // truncateString truncates a string pointer to maxLen if it exceeds the limit
@@ -129,7 +130,7 @@ func (r *repository) MergeTugasTambahan(tugasTambahan *TugasTambahan) error {
 		skTugasTambah,               // @p8
 		tugasTambahan.TmtSKTambah,   // @p9
 		tstSKTambahParam,            // @p10 - Pass as interface{}: nil or time.Time value
-		time.Now(),                  // @p11
+		timeutil.NowWIB(),           // @p11
 	)
 
 	if err != nil {
@@ -202,7 +203,7 @@ func (r *repository) MergeDokumen(dokumen *Dokumen) error {
 		mediaType,          // @p7
 		fileName,           // @p8
 		dokumen.IDCreator,  // @p9
-		time.Now(),         // @p10
+		timeutil.NowWIB(),  // @p10
 	)
 
 	if err != nil {
@@ -241,9 +242,9 @@ func (r *repository) MergeDokTugTam(idTgsTambah, idDok string) error {
 	`
 
 	_, err := r.db.ExecContext(ctx, query,
-		idTgsTambah, // @p1
-		idDok,       // @p2
-		time.Now(),  // @p3
+		idTgsTambah,       // @p1
+		idDok,             // @p2
+		timeutil.NowWIB(), // @p3
 	)
 
 	if err != nil {

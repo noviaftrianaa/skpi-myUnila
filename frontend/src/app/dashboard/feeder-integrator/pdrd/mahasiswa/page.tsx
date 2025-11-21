@@ -16,6 +16,7 @@ import {
   ModalBody,
   ModalFooter,
   Progress,
+  Switch,
 } from "@heroui/react";
 import {
   FiUsers,
@@ -63,6 +64,7 @@ export default function MahasiswaManagementPage() {
     prodi?: string;
     angkatan?: string;
   }>({});
+  const [forceSync, setForceSync] = useState(false);
 
   // Handle filter changes from table
   const handleFilterChange = useCallback((filters: { id_prodi?: string; angkatan?: string[] }) => {
@@ -137,6 +139,11 @@ export default function MahasiswaManagementPage() {
       // Add id_prodi parameter (optional)
       if (syncFilters.id_prodi) {
         params.append("id_prodi", syncFilters.id_prodi);
+      }
+
+      // Add force_sync parameter (optional)
+      if (forceSync) {
+        params.append("force_sync", "true");
       }
 
       // Call sync API with query parameters
@@ -444,6 +451,36 @@ export default function MahasiswaManagementPage() {
                       </div>
                     </div>
                   )}
+
+                  {/* Force Sync Option */}
+                  <div className="p-4 rounded-xl bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <h4 className="text-sm font-semibold text-gray-800 dark:text-white mb-1">
+                          Paksa Sinkronisasi Ulang
+                        </h4>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          Aktifkan untuk men-sync ulang data yang sudah pernah di-sync bulan ini. Data yang gagal sync akan dicoba lagi.
+                        </p>
+                      </div>
+                      <Switch
+                        isSelected={forceSync}
+                        onValueChange={setForceSync}
+                        size="sm"
+                        classNames={{
+                          wrapper: forceSync ? "bg-yellow-500 border-0" : "bg-gray-300 border-0",
+                        }}
+                      />
+                    </div>
+                    {forceSync && (
+                      <div className="mt-2 p-2 rounded bg-yellow-100 dark:bg-yellow-900/30">
+                        <p className="text-xs text-yellow-800 dark:text-yellow-200 flex items-center gap-1">
+                          <FiAlertCircle className="flex-shrink-0" />
+                          <span>Mode paksa sync aktif - akan melewati pengecekan "sudah sync bulan ini"</span>
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </ModalBody>
               <ModalFooter className="border-t border-gray-200 dark:border-gray-700">

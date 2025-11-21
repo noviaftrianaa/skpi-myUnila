@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"sister-service/external/sister_api"
+	"sister-service/pkg/timeutil"
 )
 
 // Retry configuration
@@ -102,7 +103,7 @@ func (s *SyncService) SyncBidangIlmuByIDSDM(idSDM string, idCreator string) (*Sy
 	}
 
 	// Step 4: Insert new mappings
-	now := time.Now()
+	now := timeutil.NowWIB()
 	for i, item := range bidangIlmuList {
 		// Parse urutan (string to int)
 		urutan, err := strconv.Atoi(item.Urutan)

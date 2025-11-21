@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"sister-service/pkg/timeutil"
 )
 
 // truncateString truncates a string pointer to maxLen if it exceeds the limit
@@ -132,7 +133,7 @@ func (r *repository) MergeRwyPekerjaan(rwyKerja *RwyPekerjaan) error {
 		rwyKerja.MulaiBekerja,     // @p10
 		rwyKerja.SelesaiBekerja,   // @p11
 		rwyKerja.ALuarNegeri,      // @p12
-		time.Now(),                // @p13
+		timeutil.NowWIB(),         // @p13
 	)
 
 	if err != nil {
@@ -188,9 +189,9 @@ func (r *repository) MergeDokumen(dokumen *Dokumen) error {
 			url,
 			mediaType,
 			fileName,
-			time.Now(),
+			timeutil.NowWIB(),
 			dokumen.IDCreator,
-			time.Now(),
+			timeutil.NowWIB(),
 			dokumen.IDDok,
 		)
 	} else {
@@ -210,12 +211,12 @@ func (r *repository) MergeDokumen(dokumen *Dokumen) error {
 			url,
 			mediaType,
 			fileName,
-			time.Now(),
+			timeutil.NowWIB(),
 			dokumen.IDCreator,
-			time.Now(),
+			timeutil.NowWIB(),
 			dokumen.IDCreator,
 			0,
-			time.Now(),
+			timeutil.NowWIB(),
 		)
 	}
 
@@ -250,12 +251,12 @@ func (r *repository) MergeDokRwyPekerjaan(idRwyKerja, idDok string) error {
 	systemUUID := "00000000-0000-0000-0000-000000000000"
 
 	_, err := r.db.ExecContext(ctx, mergeSQL,
-		idRwyKerja,    // @p1
-		idDok,         // @p2
-		time.Now(),    // @p3 last_update
-		time.Now(),    // @p4 last_sync
-		time.Now(),    // @p5 create_date
-		systemUUID,    // @p6 id_creator/id_updater
+		idRwyKerja,        // @p1
+		idDok,             // @p2
+		timeutil.NowWIB(), // @p3 last_update
+		timeutil.NowWIB(), // @p4 last_sync
+		timeutil.NowWIB(), // @p5 create_date
+		systemUUID,        // @p6 id_creator/id_updater
 	)
 
 	if err != nil {

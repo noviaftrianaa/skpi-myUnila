@@ -173,6 +173,7 @@ class SearchRepository
                 AND sms.id_sp = '{$this->unilaIdSp}'
                 AND sms.id_jns_sms = '3'
                 AND sms.stat_prodi = 'A'
+                AND sms.id_fak_unila IS NOT NULL
                 AND (
                     sms.nm_lemb LIKE '%{$escapedQuery}%'
                     OR sms.kode_prodi LIKE '%{$escapedQuery}%'
