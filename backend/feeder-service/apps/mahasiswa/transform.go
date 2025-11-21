@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/myunila/feeder-service/pkg/timeutil"
 )
 
 // TransformFeederToEntities transforms Feeder API responses to database entities
@@ -15,7 +17,7 @@ func TransformFeederToEntities(
 	idSP string,
 	systemUUID string,
 ) (*PesertaDidik, *RegPd, []*KuliahMhs, error) {
-	now := time.Now()
+	now := timeutil.NowWIB()
 
 	// Transform PesertaDidik
 	pesertaDidik := transformPesertaDidik(feederMhs, systemUUID, now)
@@ -107,7 +109,11 @@ func transformPesertaDidik(data *FeederMahasiswaData, systemUUID string, now tim
 	pd.IDKKAyah = data.IDKebutuhanKhususAyah
 
 	// Assistance
-	pd.ATerimaKPS = data.PenerimaKPS
+	// Convert FlexibleInt to int
+	if data.PenerimaKPS != nil {
+		val := int(*data.PenerimaKPS)
+		pd.ATerimaKPS = &val
+	}
 	pd.NoKPS = data.NomorKPS
 	pd.IDKK = data.IDKebutuhanKhususMahasiswa
 	pd.IDAlatTransport = data.IDAlatTransportasi
@@ -164,7 +170,8 @@ func transformRegPd(
 	// REQUIRED NOT NULL fields with defaults
 	// id_jns_daftar - default 1
 	if regData.IDJenisDaftar != nil && *regData.IDJenisDaftar > 0 {
-		reg.IDJenisDaftar = regData.IDJenisDaftar
+		val := int(*regData.IDJenisDaftar)
+		reg.IDJenisDaftar = &val
 	} else {
 		defaultJnsDaftar := 1
 		reg.IDJenisDaftar = &defaultJnsDaftar
@@ -172,7 +179,8 @@ func transformRegPd(
 
 	// id_jalur_daftar - default 5
 	if regData.IDJalurDaftar != nil && *regData.IDJalurDaftar > 0 {
-		reg.IDJalurDaftar = regData.IDJalurDaftar
+		val := int(*regData.IDJalurDaftar)
+		reg.IDJalurDaftar = &val
 	} else {
 		defaultJalur := 5
 		reg.IDJalurDaftar = &defaultJalur
@@ -180,14 +188,24 @@ func transformRegPd(
 
 	// id_pembiayaan - default 1
 	if regData.IDPembiayaan != nil && *regData.IDPembiayaan > 0 {
-		reg.IDPembiayaan = regData.IDPembiayaan
+		val := int(*regData.IDPembiayaan)
+		reg.IDPembiayaan = &val
 	} else {
 		defaultPembiayaan := 1
 		reg.IDPembiayaan = &defaultPembiayaan
 	}
 
 	// id_jns_keluar
-	reg.IDJenisKeluar = regData.IDJenisKeluar
+	if regData.IDJenisKeluar != nil {
+		val := int(*regData.IDJenisKeluar)
+		reg.IDJenisKeluar = &val
+	}
+
+	// sks_diakui
+	if regData.SKSDiakui != nil {
+		val := int(*regData.SKSDiakui)
+		reg.SKSDiakui = &val
+	}
 
 	// nipd (NIM) - REQUIRED NOT NULL
 	if regData.NIM != nil && *regData.NIM != "" {
@@ -210,8 +228,7 @@ func transformRegPd(
 		reg.TglMasukSP = &defaultTgl
 	}
 
-	// Transfer credits
-	reg.SKSDiakui = regData.SKSDiakui
+	// Transfer credits (SKSDiakui already converted above)
 	reg.IDPTAsal = regData.IDPerguruanTinggiAsal
 	reg.NamaPTAsal = regData.NamaPerguruanTinggiAsal
 	reg.IDProdiAsal = regData.IDProdiAsal
@@ -258,14 +275,36 @@ func transformKuliahMhs(
 	var kuliahList []*KuliahMhs
 
 	for _, feeder := range feederList {
+		// Convert FlexibleFloat to float64
+		var ips, ipk *float64
+		if feeder.IPS != nil {
+			val := float64(*feeder.IPS)
+			ips = &val
+		}
+		if feeder.IPK != nil {
+			val := float64(*feeder.IPK)
+			ipk = &val
+		}
+
+		// Convert FlexibleInt to *int
+		var sksSemester, sksTotal *int
+		if feeder.SKSSemester != nil {
+			val := int(*feeder.SKSSemester)
+			sksSemester = &val
+		}
+		if feeder.SKSTotal != nil {
+			val := int(*feeder.SKSTotal)
+			sksTotal = &val
+		}
+
 		kuliah := &KuliahMhs{
 			IDRegPd:       idRegPd,
 			IDSmt:         feeder.IDSemester,
 			IDStatMhs:     feeder.IDStatusMahasiswa,
-			IPS:           feeder.IPS,
-			IPK:           feeder.IPK,
-			SKSSemester:   feeder.SKSSemester,
-			TotalSKS:      feeder.SKSTotal,
+			IPS:           ips,
+			IPK:           ipk,
+			SKSSemester:   sksSemester,
+			TotalSKS:      sksTotal,
 			BiayaSemester: feeder.BiayaKuliahSemester,
 			CreateDate:    now,
 			IDCreator:     systemUUID,

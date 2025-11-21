@@ -72,6 +72,7 @@ import {
   RiTeamFill,
   RiGovernmentFill,
   RiDashboardFill,
+  RiBarChartBoxFill,
 } from "react-icons/ri";
 import {
   FaUserGraduate,
@@ -83,6 +84,8 @@ import {
   FaHeadset,
   FaBlog,
   FaIdCard,
+  FaLink,
+  FaTable,
 } from "react-icons/fa";
 
 interface Application {
@@ -115,8 +118,40 @@ export default function DashboardPage() {
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [showComingSoonModal, setShowComingSoonModal] = useState(false);
+  const [showAccessDeniedModal, setShowAccessDeniedModal] = useState(false);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
   const router = useRouter();
+
+  // LocalStorage key for favorites
+  const FAVORITES_STORAGE_KEY = 'myunila_favorites';
+
+  // Load favorites from LocalStorage on mount
+  useEffect(() => {
+    const loadFavorites = () => {
+      try {
+        const stored = localStorage.getItem(FAVORITES_STORAGE_KEY);
+
+        if (stored) {
+          const favoriteIds = JSON.parse(stored) as string[];
+
+          // Update applications with favorites from LocalStorage
+          setApplications((prev) =>
+            prev.map((category) => ({
+              ...category,
+              apps: category.apps.map((app) => ({
+                ...app,
+                isFavorite: favoriteIds.includes(app.id),
+              })),
+            }))
+          );
+        }
+      } catch (error) {
+        console.error('Failed to load favorites from LocalStorage:', error);
+      }
+    };
+
+    loadFavorites();
+  }, []);
 
   // Simulate loading data
   useEffect(() => {
@@ -202,7 +237,7 @@ export default function DashboardPage() {
           description: "Sistem Informasi Absensi",
           icon: <BsClipboardCheck className="w-6 h-6" />,
           color: "bg-green-500",
-          isFavorite: true,
+          isFavorite: false,
           href: "#",
         },
         {
@@ -211,7 +246,7 @@ export default function DashboardPage() {
           description: "Sistem Informasi Akademik",
           icon: <HiClipboardList className="w-6 h-6" />,
           color: "bg-blue-600",
-          isFavorite: true,
+          isFavorite: false,
           href: "#",
         },
         {
@@ -268,6 +303,15 @@ export default function DashboardPage() {
           isFavorite: false,
           href: "#",
         },
+        {
+          id: "spmi",
+          name: "SPMI",
+          description: "Sistem Penjaminan Mutu Internal",
+          icon: <FaChartLine className="w-6 h-6" />,
+          color: "bg-green-600",
+          isFavorite: false,
+          href: "#",
+        },
       ],
     },
     {
@@ -297,7 +341,7 @@ export default function DashboardPage() {
           description: "Manajemen publikasi ilmiah",
           icon: <BsNewspaper className="w-6 h-6" />,
           color: "bg-indigo-600",
-          isFavorite: true,
+          isFavorite: false,
           href: "#",
         },
         {
@@ -329,7 +373,7 @@ export default function DashboardPage() {
           description: "Sistem Informasi Beasiswa",
           icon: <MdCardMembership className="w-6 h-6" />,
           color: "bg-emerald-500",
-          isFavorite: true,
+          isFavorite: false,
           href: "#",
         },
         {
@@ -388,13 +432,14 @@ export default function DashboardPage() {
           href: "#",
         },
         {
-          id: "spmi",
-          name: "SPMI",
-          description: "Sistem Penjaminan Mutu Internal",
-          icon: <FaChartLine className="w-6 h-6" />,
-          color: "bg-green-600",
+          id: "dashboard-pimpinan",
+          name: "Dashboard Pimpinan",
+          description: "Visualisasi Data dan Analitik untuk Pengambilan Keputusan",
+          icon: <RiBarChartBoxFill className="w-6 h-6" />,
+          color: "bg-indigo-700",
           isFavorite: false,
           href: "#",
+          requireRole: ["Developer", "Rektor", "Wakil Rektor 1", "Wakil Rektor 2", "Wakil Rektor 3", "Wakil Rektor 4", "LP3M UNILA"],
         },
       ],
     },
@@ -419,6 +464,26 @@ export default function DashboardPage() {
           color: "bg-purple-600",
           isFavorite: false,
           href: "/dashboard/sister-integrator",
+          requireRole: ["Developer", "Rektor", "Wakil Rektor 1", "Wakil Rektor 2", "Wakil Rektor 3", "Wakil Rektor 4", "LP3M UNILA"],
+        },
+        {
+          id: "myunila-integrator",
+          name: "myUnila Integrator",
+          description: "Integrasi Apps Existing di Unila",
+          icon: <FaLink className="w-6 h-6" />,
+          color: "bg-indigo-600",
+          isFavorite: false,
+          href: "#",
+          requireRole: ["Developer", "Rektor", "Wakil Rektor 1", "Wakil Rektor 2", "Wakil Rektor 3", "Wakil Rektor 4", "LP3M UNILA"],
+        },
+        {
+          id: "data-unila",
+          name: "Data Unila",
+          description: "Raw Data Kebutuhan Pelaporan Data di Unila",
+          icon: <FaTable className="w-6 h-6" />,
+          color: "bg-emerald-600",
+          isFavorite: false,
+          href: "#",
           requireRole: ["Developer", "Rektor", "Wakil Rektor 1", "Wakil Rektor 2", "Wakil Rektor 3", "Wakil Rektor 4", "LP3M UNILA"],
         },
       ],
@@ -504,15 +569,61 @@ export default function DashboardPage() {
 
   const toggleFavorite = (categoryIndex: number, appIndex: number) => {
     setApplications((prev) => {
-      const newApps = [...prev];
-      newApps[categoryIndex].apps[appIndex].isFavorite =
-        !newApps[categoryIndex].apps[appIndex].isFavorite;
+      // Create deep copy to trigger React re-render
+      const newApps = prev.map((category, catIdx) => {
+        if (catIdx === categoryIndex) {
+          return {
+            ...category,
+            apps: category.apps.map((app, appIdx) => {
+              if (appIdx === appIndex) {
+                return {
+                  ...app,
+                  isFavorite: !app.isFavorite,
+                };
+              }
+              return app;
+            }),
+          };
+        }
+        return category;
+      });
+
+      // Save to LocalStorage
+      try {
+        const favoriteIds = newApps
+          .flatMap((cat) => cat.apps)
+          .filter((app) => app.isFavorite)
+          .map((app) => app.id);
+
+        localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(favoriteIds));
+      } catch (error) {
+        console.error('Failed to save favorites to LocalStorage:', error);
+      }
+
       return newApps;
     });
   };
 
+  // Check if user has permission to access app
+  const hasPermission = (app: Application): boolean => {
+    if (!app.requireRole) return true; // No role requirement
+
+    const userRole = user?.role || '';
+    if (Array.isArray(app.requireRole)) {
+      return app.requireRole.includes(userRole);
+    }
+    return userRole === app.requireRole;
+  };
+
   // Handle app click
   const handleAppClick = (app: Application) => {
+    // Check permission first
+    if (!hasPermission(app)) {
+      setSelectedApp(app);
+      setShowAccessDeniedModal(true);
+      return;
+    }
+
     if (app.href === "#") {
       // Show coming soon modal
       setSelectedApp(app);
@@ -530,23 +641,13 @@ export default function DashboardPage() {
         app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         app.description.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesFavorite = !showFavoritesOnly || app.isFavorite;
-      // Role check: Only show apps that match user's role or have no role requirement
-      const matchesRole = !app.requireRole ||
-        (Array.isArray(app.requireRole)
-          ? app.requireRole.includes(user?.role || '')
-          : user?.role === app.requireRole);
-      return matchesSearch && matchesFavorite && matchesRole;
+      // No role filtering - all apps are shown
+      return matchesSearch && matchesFavorite;
     }),
   })).filter((category) => category.apps.length > 0);
 
   const favoriteApps = applications.flatMap((cat) =>
-    cat.apps.filter((app) => {
-      const matchesRole = !app.requireRole ||
-        (Array.isArray(app.requireRole)
-          ? app.requireRole.includes(user?.role || '')
-          : user?.role === app.requireRole);
-      return app.isFavorite && matchesRole;
-    })
+    cat.apps.filter((app) => app.isFavorite)
   );
 
   // Show loading while checking authentication or loading data
@@ -854,8 +955,8 @@ export default function DashboardPage() {
                 size="sm"
                 className={
                   showFavoritesOnly
-                    ? "bg-myunila text-white"
-                    : "border-gray-300"
+                    ? "bg-myunila text-white border-myunila"
+                    : "border-gray-400 text-gray-700 hover:border-myunila hover:text-myunila"
                 }
               >
                 <span className="hidden sm:inline">
@@ -1388,6 +1489,92 @@ export default function DashboardPage() {
                   className="bg-myunila text-white"
                 >
                   Mengerti
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      {/* Access Denied Modal */}
+      <Modal
+        isOpen={showAccessDeniedModal}
+        onOpenChange={setShowAccessDeniedModal}
+        size="md"
+        backdrop="blur"
+        classNames={{
+          backdrop: "bg-black/50 backdrop-blur-sm",
+          base: "bg-white",
+          header: "bg-white border-b border-gray-200",
+          body: "bg-white",
+          footer: "bg-white border-t border-gray-200",
+        }}
+      >
+        <ModalContent className="bg-white">
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                <div className="flex items-center gap-3">
+                  <FiX className="w-6 h-6 text-red-600" />
+                  <h3 className="text-xl font-bold text-gray-800">
+                    Akses Ditolak
+                  </h3>
+                </div>
+              </ModalHeader>
+              <ModalBody>
+                <div className="text-center py-4">
+                  {selectedApp && (
+                    <div className="mb-4">
+                      <div
+                        className={`${selectedApp.color} w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-3 opacity-50`}
+                      >
+                        <div className="text-white">{selectedApp.icon}</div>
+                      </div>
+                      <h4 className="font-semibold text-lg text-gray-800 mb-2">
+                        {selectedApp.name}
+                      </h4>
+                    </div>
+                  )}
+                  <p className="text-gray-600 mb-3">
+                    Maaf, Anda tidak memiliki akses ke aplikasi ini.
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Aplikasi ini hanya tersedia untuk peran tertentu. Jika Anda merasa seharusnya memiliki akses,
+                    silakan hubungi administrator atau tim TIK untuk informasi lebih lanjut.
+                  </p>
+                  {selectedApp?.requireRole && (
+                    <div className="mt-4 p-3 bg-red-50 rounded-lg border border-red-100">
+                      <p className="text-xs text-red-700 font-medium mb-1">
+                        Akses Terbatas Untuk:
+                      </p>
+                      <div className="flex flex-wrap gap-2 justify-center">
+                        {Array.isArray(selectedApp.requireRole) ? (
+                          selectedApp.requireRole.map((role, idx) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-md font-medium"
+                            >
+                              {role}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-md font-medium">
+                            {selectedApp.requireRole}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <Button
+                  color="danger"
+                  variant="light"
+                  onPress={onClose}
+                  className="text-gray-600"
+                >
+                  Tutup
                 </Button>
               </ModalFooter>
             </>

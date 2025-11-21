@@ -42,10 +42,11 @@ class DosenRepository
                 ON sms.id_sms = ptk.id_sms
                 AND sms.soft_delete = 0
                 AND sms.stat_prodi = 'A'
+                AND sms.id_jns_sms = '3'
+                AND sms.id_fak_unila IS NOT NULL
             INNER JOIN ref.jenjang_pendidikan AS didik
                 ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
-                AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
             LEFT JOIN (
                 SELECT
                     id_sdm,
@@ -118,11 +119,12 @@ class DosenRepository
                 ON sms.id_sms = ptk.id_sms
                 AND sms.soft_delete = 0
                 AND sms.stat_prodi = 'A'
-            -- Join ke jenjang_pendidikan untuk filter hanya D% dan S%
+                AND sms.id_jns_sms = '3'
+                AND sms.id_fak_unila IS NOT NULL
+            -- Join ke jenjang_pendidikan
             INNER JOIN ref.jenjang_pendidikan AS didik
                 ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
-                AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
             -- Left join ke riwayat jabatan fungsional (ambil yang terbaru)
             LEFT JOIN (
                 SELECT
@@ -179,10 +181,11 @@ class DosenRepository
                 ON sms.id_sms = ptk.id_sms
                 AND sms.soft_delete = 0
                 AND sms.stat_prodi = 'A'
+                AND sms.id_jns_sms = '3'
+                AND sms.id_fak_unila IS NOT NULL
             INNER JOIN ref.jenjang_pendidikan AS didik
                 ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
-                AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
             INNER JOIN pdrd.keaktifan_ptk AS keaktifan
                 ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
                 AND keaktifan.soft_delete = 0
@@ -226,10 +229,11 @@ class DosenRepository
                 ON sms.id_sms = ptk.id_sms
                 AND sms.soft_delete = 0
                 AND sms.stat_prodi = 'A'
+                AND sms.id_jns_sms = '3'
+                AND sms.id_fak_unila IS NOT NULL
             INNER JOIN ref.jenjang_pendidikan AS didik
                 ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
-                AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
             LEFT JOIN (
                 SELECT
                     rwy.id_sdm,
@@ -280,10 +284,11 @@ class DosenRepository
                 ON sms.id_sms = ptk.id_sms
                 AND sms.soft_delete = 0
                 AND sms.stat_prodi = 'A'
+                AND sms.id_jns_sms = '3'
+                AND sms.id_fak_unila IS NOT NULL
             INNER JOIN ref.jenjang_pendidikan AS didik
                 ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
-                AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
             LEFT JOIN (
                 SELECT
                     id_sdm,

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"sister-service/pkg/crypto"
+	"sister-service/pkg/timeutil"
 )
 
 type Service interface {
@@ -271,7 +272,7 @@ func (s *service) Delete(id int, deletedBy string) error {
 
 // TestConnection tests connection to an API endpoint
 func (s *service) TestConnection(req TestConnectionRequest) (*TestConnectionResponse, error) {
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 
 	client := &http.Client{
 		Timeout: 30 * time.Second,

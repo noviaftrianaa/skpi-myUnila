@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"sister-service/pkg/timeutil"
 )
 
 // Service handles in-memory monitoring of sync operations
@@ -27,7 +28,7 @@ func GetInstance() *Service {
 	once.Do(func() {
 		instance = &Service{
 			activeSyncs:   make(map[string]*SyncProgress),
-			lastResetDate: time.Now(),
+			lastResetDate: timeutil.NowWIB(),
 		}
 		// Start cleanup goroutine
 		go instance.cleanupRoutine()
@@ -44,7 +45,7 @@ func (s *Service) StartSync(endpointName, endpointKey, syncType, syncedBy string
 	s.checkDailyReset()
 
 	id := uuid.New().String()
-	now := time.Now()
+	now := timeutil.NowWIB()
 
 	progress := &SyncProgress{
 		ID:            id,
@@ -76,7 +77,7 @@ func (s *Service) UpdateProgress(id string, currentRecord int, message string) {
 	}
 
 	progress.CurrentRecord = currentRecord
-	progress.UpdatedAt = time.Now()
+	progress.UpdatedAt = timeutil.NowWIB()
 	progress.Message = message
 
 	if progress.TotalRecords > 0 {
@@ -98,7 +99,7 @@ func (s *Service) UpdateTotalRecords(id string, totalRecords int) {
 	}
 
 	progress.TotalRecords = totalRecords
-	progress.UpdatedAt = time.Now()
+	progress.UpdatedAt = timeutil.NowWIB()
 
 	// Recalculate progress with new total
 	if totalRecords > 0 {
@@ -121,7 +122,7 @@ func (s *Service) CompleteSync(id string, message string) {
 
 	progress.Status = "completed"
 	progress.Progress = 100
-	progress.UpdatedAt = time.Now()
+	progress.UpdatedAt = timeutil.NowWIB()
 	progress.Message = message
 
 	s.completedToday++
@@ -141,7 +142,7 @@ func (s *Service) FailSync(id string, errorMsg string) {
 	}
 
 	progress.Status = "failed"
-	progress.UpdatedAt = time.Now()
+	progress.UpdatedAt = timeutil.NowWIB()
 	progress.Error = errorMsg
 	progress.Message = "Sinkronisasi gagal"
 
@@ -190,7 +191,7 @@ func (s *Service) GetActiveSyncs(ctx context.Context) *MonitoringListResponse {
 	return &MonitoringListResponse{
 		ActiveSyncs: syncs,
 		Stats:       stats,
-		UpdatedAt:   time.Now(),
+		UpdatedAt:   timeutil.NowWIB(),
 	}
 }
 
@@ -221,7 +222,7 @@ func (s *Service) removeAfterDelay(id string, delay time.Duration) {
 
 // checkDailyReset resets daily counters if new day
 func (s *Service) checkDailyReset() {
-	now := time.Now()
+	now := timeutil.NowWIB()
 	if now.Day() != s.lastResetDate.Day() || now.Month() != s.lastResetDate.Month() || now.Year() != s.lastResetDate.Year() {
 		s.completedToday = 0
 		s.failedToday = 0
@@ -236,7 +237,7 @@ func (s *Service) cleanupRoutine() {
 
 	for range ticker.C {
 		s.mu.Lock()
-		now := time.Now()
+		now := timeutil.NowWIB()
 
 		for id, progress := range s.activeSyncs {
 			// Remove completed/failed syncs older than 5 minutes

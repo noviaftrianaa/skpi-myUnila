@@ -297,6 +297,13 @@ export interface ProgramStudiDetail {
   tanggal_berdiri: string;
   sk_penyelenggara: string;
   akreditasi: string;
+  riwayat_akreditasi?: Array<{
+    peringkat: string;
+    no_sk: string;
+    tanggal_sk: string | null;
+    tanggal_berakhir: string | null;
+    lembaga_akreditasi: string;
+  }>;
   organisasi: {
     fakultas: {
       id: string | null;

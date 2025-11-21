@@ -8,6 +8,9 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/myunila/feeder-service/apps/monitoring"
+	"github.com/myunila/feeder-service/pkg/timeutil"
 )
 
 const (
@@ -18,7 +21,7 @@ const (
 	SYSTEM_UUID = "00000000-0000-0000-0000-000000000001"
 
 	// Worker configuration
-	NUM_WORKERS        = 3                       // 3 concurrent workers
+	NUM_WORKERS        = 5                       // 5 concurrent workers
 	RATE_LIMIT_DELAY   = 200 * time.Millisecond // 200ms delay = ~5 req/sec per worker
 	MAX_RETRY_PER_ITEM = 2                       // Retry failed items up to 2 times
 
@@ -32,9 +35,19 @@ const (
 // SyncMahasiswaByAngkatan performs batch sync mahasiswa by angkatan using worker pool
 // Flow matches MahasiswaSeeder.php exactly
 func (s *service) SyncMahasiswaByAngkatan(ctx context.Context, filter *SyncFilter, syncedBy string) (*BatchMahasiswaSyncResult, error) {
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 
 	log.Printf("🔍 [DEBUG] SyncMahasiswaByAngkatan called, checking feederAPI...")
+
+	// Initialize monitoring (totalRecords will be updated later when we know the count)
+	monitorSvc := monitoring.GetInstance()
+	syncID := monitorSvc.StartSync(
+		"Sync Mahasiswa",
+		"mahasiswa",
+		"batch",
+		syncedBy,
+		0, // Will update totalRecords later
+	)
 
 	// Check if Feeder API client is initialized
 	if s.feederAPI == nil {
@@ -76,10 +89,14 @@ func (s *service) SyncMahasiswaByAngkatan(ctx context.Context, filter *SyncFilte
 
 			log.Printf("📥 [Sync Mahasiswa] Fetching from %s for angkatan %s...", namaProdi, angkatan)
 
-			// Check or create sync log
-			if err := s.repo.CheckOrCreateSyncLog(ctx, idProdi, angkatan); err != nil {
-				log.Printf("⚠️  [Sync Mahasiswa] Prodi %s angkatan %s: %v", namaProdi, angkatan, err)
-				continue // Skip if already synced this month
+			// Check or create sync log (skip check if force_sync is enabled)
+			if !filter.ForceSync {
+				if err := s.repo.CheckOrCreateSyncLog(ctx, idProdi, angkatan); err != nil {
+					log.Printf("⚠️  [Sync Mahasiswa] Prodi %s angkatan %s: %v", namaProdi, angkatan, err)
+					continue // Skip if already synced this month
+				}
+			} else {
+				log.Printf("🔄 [Force Sync] Bypassing 'already synced' check for Prodi %s angkatan %s", namaProdi, angkatan)
 			}
 
 			// Get mahasiswa list from Feeder API (NO filter - get ALL mahasiswa for this prodi)
@@ -107,17 +124,29 @@ func (s *service) SyncMahasiswaByAngkatan(ctx context.Context, filter *SyncFilte
 	totalMahasiswa := len(allMahasiswaList)
 	if totalMahasiswa == 0 {
 		log.Printf("⚠️  [Sync Mahasiswa] No mahasiswa found for angkatan %v", filter.Angkatan)
-		return &BatchMahasiswaSyncResult{
+
+		// Complete monitoring with no data
+		monitorSvc.CompleteSync(syncID, "Tidak ada data mahasiswa ditemukan")
+
+		result := &BatchMahasiswaSyncResult{
 			TotalProcessed: 0,
 			TotalSuccess:   0,
 			TotalFailed:    0,
 			Duration:       time.Since(startTime).String(),
 			SyncedBy:       syncedBy,
 			Filter:         filter,
-		}, nil
+		}
+
+		// Log sync result to database (no data found)
+		s.logSyncResult(ctx, filter, syncedBy, result, startTime, nil)
+
+		return result, nil
 	}
 
 	log.Printf("📊 [Sync Mahasiswa] Total mahasiswa to sync: %d", totalMahasiswa)
+
+	// Update monitoring with total records
+	monitorSvc.UpdateTotalRecords(syncID, totalMahasiswa)
 
 	// Step 3: Setup worker pool
 	jobs := make(chan map[string]interface{}, totalMahasiswa)
@@ -188,6 +217,8 @@ func (s *service) SyncMahasiswaByAngkatan(ctx context.Context, filter *SyncFilte
 					prodiStats[prodiID][angkatan].Success++
 				} else {
 					prodiStats[prodiID][angkatan].Failed++
+				// Log detailed error for debugging
+				log.Printf("❌ Failed to sync mahasiswa %s (%s) NPM %s: %s", result.IDPD, result.Nama, result.NPM, result.Error)
 				}
 				break
 			}
@@ -198,6 +229,11 @@ func (s *service) SyncMahasiswaByAngkatan(ctx context.Context, filter *SyncFilte
 		if processed%10 == 0 || processed == totalMahasiswa {
 			log.Printf("📈 [Sync Mahasiswa] Progress: %d/%d (Success: %d, Failed: %d)",
 				processed, totalMahasiswa, successCount, failedCount)
+
+			// Update monitoring progress
+			message := fmt.Sprintf("Memproses %d dari %d mahasiswa (Berhasil: %d, Gagal: %d)",
+				processed, totalMahasiswa, successCount, failedCount)
+			monitorSvc.UpdateProgress(syncID, processed, message)
 		}
 	}
 
@@ -215,7 +251,12 @@ func (s *service) SyncMahasiswaByAngkatan(ctx context.Context, filter *SyncFilte
 	log.Printf("✅ [Sync Mahasiswa] Completed in %v (Success: %d, Failed: %d)",
 		duration, successCount, failedCount)
 
-	return &BatchMahasiswaSyncResult{
+	// Complete monitoring
+	message := fmt.Sprintf("Selesai! Total: %d, Berhasil: %d, Gagal: %d", totalMahasiswa, successCount, failedCount)
+	monitorSvc.CompleteSync(syncID, message)
+
+	// Prepare result for logging
+	result := &BatchMahasiswaSyncResult{
 		TotalProcessed: len(allResults),
 		TotalSuccess:   successCount,
 		TotalFailed:    failedCount,
@@ -223,7 +264,12 @@ func (s *service) SyncMahasiswaByAngkatan(ctx context.Context, filter *SyncFilte
 		Results:        allResults,
 		SyncedBy:       syncedBy,
 		Filter:         filter,
-	}, nil
+	}
+
+	// Log sync result to database
+	s.logSyncResult(ctx, filter, syncedBy, result, startTime, nil)
+
+	return result, nil
 }
 
 // mahasiswaWorker processes sync jobs concurrently
@@ -425,9 +471,10 @@ func (s *service) getMahasiswaListFromFeederByProdi(idProdi string, angkatan str
 	totalFetched := 0
 
 	// Build filter for Neo Feeder API
-	// Filter by id_prodi and id_periode_masuk (angkatan + semester)
-	// Example: angkatan "2024" → try "20241" (ganjil) and "20242" (genap)
-	filter := fmt.Sprintf("id_periode_masuk='%s1' or id_periode_masuk='%s2'", angkatan, angkatan)
+	// IMPORTANT: Must include id_prodi in filter, GetDataLengkapMahasiswaProdi doesn't auto-filter by prodi!
+	// Filter by both id_prodi and BOTH semesters (ganjil + genap)
+	// Example for angkatan 2024: id_prodi='...' and (id_periode_masuk='20241' or id_periode_masuk='20242')
+	filter := fmt.Sprintf("id_prodi='%s' and (id_periode_masuk='%s1' or id_periode_masuk='%s2')", idProdi, angkatan, angkatan)
 
 	// Pagination loop: fetch BATCH_SIZE records at a time
 	for {

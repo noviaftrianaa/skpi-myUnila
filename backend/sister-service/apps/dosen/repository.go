@@ -247,55 +247,55 @@ func (r *repository) BulkUpsertDosen(data []*Dosen) error {
 
 	for _, dosen := range data {
 		_, err = tx.Exec(query,
-			dosen.IDSDM,            // @p1
-			dosen.NamaSDM,          // @p2
-			dosen.JK,               // @p3
-			dosen.TempatLahir,      // @p4
-			dosen.TanggalLahir,     // @p5
-			dosen.NIK,              // @p6 (NOT NULL, has default)
-			dosen.NIYIGK,           // @p7
-			dosen.NUPTK,            // @p8
-			dosen.NIDN,             // @p9
-			dosen.NSDMI,            // @p10
-			dosen.StatKawin,        // @p11
-			dosen.NoTelRumah,       // @p12
-			dosen.NoHP,             // @p13
-			dosen.Email,            // @p14
-			dosen.NIP,              // @p15
-			dosen.TMTPNS,           // @p16
-			dosen.NamaSuamiIstri,   // @p17
-			dosen.NIPSuamiIstri,    // @p18
-			dosen.SKCPNS,           // @p19
-			dosen.TglSKCPNS,        // @p20
-			dosen.SKAngkat,         // @p21
-			dosen.TMTSKAngkat,      // @p22
-			dosen.NPWP,             // @p23
-			dosen.NmWP,             // @p24
-			dosen.StatData,         // @p25
-			dosen.AktaIjinAjar,     // @p26
-			dosen.NIRA,             // @p27
-			dosen.JnsReg,           // @p28
-			dosen.Kewarganegaraan,  // @p29
-			dosen.IDJenisSDM,       // @p30
-			dosen.IDWilayah,        // @p31
-			dosen.IDStatusAktif,    // @p32
-			dosen.IDAgama,          // @p33
-			dosen.IDKeahlianLab,    // @p34
+			dosen.IDSDM,                 // @p1
+			dosen.NamaSDM,               // @p2
+			dosen.JK,                    // @p3
+			dosen.TempatLahir,           // @p4
+			dosen.TanggalLahir,          // @p5
+			dosen.NIK,                   // @p6 (NOT NULL, has default)
+			dosen.NIYIGK,                // @p7
+			dosen.NUPTK,                 // @p8
+			dosen.NIDN,                  // @p9
+			dosen.NSDMI,                 // @p10
+			dosen.StatKawin,             // @p11
+			dosen.NoTelRumah,            // @p12
+			dosen.NoHP,                  // @p13
+			dosen.Email,                 // @p14
+			dosen.NIP,                   // @p15
+			dosen.TMTPNS,                // @p16
+			dosen.NamaSuamiIstri,        // @p17
+			dosen.NIPSuamiIstri,         // @p18
+			dosen.SKCPNS,                // @p19
+			dosen.TglSKCPNS,             // @p20
+			dosen.SKAngkat,              // @p21
+			dosen.TMTSKAngkat,           // @p22
+			dosen.NPWP,                  // @p23
+			dosen.NmWP,                  // @p24
+			dosen.StatData,              // @p25
+			dosen.AktaIjinAjar,          // @p26
+			dosen.NIRA,                  // @p27
+			dosen.JnsReg,                // @p28
+			dosen.Kewarganegaraan,       // @p29
+			dosen.IDJenisSDM,            // @p30
+			dosen.IDWilayah,             // @p31
+			dosen.IDStatusAktif,         // @p32
+			dosen.IDAgama,               // @p33
+			dosen.IDKeahlianLab,         // @p34
 			dosen.IDPekerjaanSuamiIstri, // @p35
-			dosen.IDLembagaAngkat,  // @p36
-			dosen.IDSumberGaji,     // @p37
-			dosen.Jalan,            // @p38
-			dosen.RT,               // @p39
-			dosen.RW,               // @p40
-			dosen.NamaDusun,        // @p41
-			dosen.DesaKel,          // @p42
-			dosen.KodePos,          // @p43
-			dosen.CreateDate,       // @p44
-			dosen.IDCreator,        // @p45
-			dosen.LastUpdate,       // @p46
-			dosen.IDUpdater,        // @p47
-			dosen.SoftDelete,       // @p48
-			dosen.LastSync,         // @p49
+			dosen.IDLembagaAngkat,       // @p36
+			dosen.IDSumberGaji,          // @p37
+			dosen.Jalan,                 // @p38
+			dosen.RT,                    // @p39
+			dosen.RW,                    // @p40
+			dosen.NamaDusun,             // @p41
+			dosen.DesaKel,               // @p42
+			dosen.KodePos,               // @p43
+			dosen.CreateDate,            // @p44
+			dosen.IDCreator,             // @p45
+			dosen.LastUpdate,            // @p46
+			dosen.IDUpdater,             // @p47
+			dosen.SoftDelete,            // @p48
+			dosen.LastSync,              // @p49
 		)
 		if err != nil {
 			return fmt.Errorf("failed to upsert dosen %s: %w", dosen.IDSDM, err)
@@ -313,31 +313,31 @@ func (r *repository) BulkUpsertDosen(data []*Dosen) error {
 // GetDosenList retrieves paginated list of dosen with search and filters
 func (r *repository) GetDosenList(page, limit int, search string, idJnsSDM, idStatAktif int) (*DosenListResult, error) {
 	offset := (page - 1) * limit
-	
+
 	// Build WHERE clause
 	whereConditions := "WHERE soft_delete = 0"
 	args := []interface{}{}
 	argIndex := 1
-	
+
 	if search != "" {
 		whereConditions += fmt.Sprintf(" AND (nm_sdm LIKE @p%d OR nidn LIKE @p%d OR nip LIKE @p%d)", argIndex, argIndex, argIndex)
 		searchPattern := "%" + search + "%"
 		args = append(args, searchPattern)
 		argIndex++
 	}
-	
+
 	if idJnsSDM > 0 {
 		whereConditions += fmt.Sprintf(" AND id_jns_sdm = @p%d", argIndex)
 		args = append(args, idJnsSDM)
 		argIndex++
 	}
-	
+
 	if idStatAktif > 0 {
 		whereConditions += fmt.Sprintf(" AND id_stat_aktif = @p%d", argIndex)
 		args = append(args, idStatAktif)
 		argIndex++
 	}
-	
+
 	// Count total records
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM pdrd.sdm %s", whereConditions)
 	var total int
@@ -345,7 +345,7 @@ func (r *repository) GetDosenList(page, limit int, search string, idJnsSDM, idSt
 	if err != nil {
 		return nil, fmt.Errorf("failed to count dosen: %w", err)
 	}
-	
+
 	// Get paginated data
 	dataQuery := fmt.Sprintf(`
 		SELECT 
@@ -362,17 +362,17 @@ func (r *repository) GetDosenList(page, limit int, search string, idJnsSDM, idSt
 		OFFSET @p%d ROWS
 		FETCH NEXT @p%d ROWS ONLY
 	`, whereConditions, argIndex, argIndex+1)
-	
+
 	args = append(args, offset, limit)
-	
+
 	var dosenList []*Dosen
 	err = r.db.Select(&dosenList, dataQuery, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get dosen list: %w", err)
 	}
-	
+
 	totalPages := (total + limit - 1) / limit
-	
+
 	return &DosenListResult{
 		Data:       dosenList,
 		Total:      total,
@@ -396,7 +396,7 @@ func (r *repository) GetDosenByID(idSDM string) (*Dosen, error) {
 		FROM pdrd.sdm
 		WHERE id_sdm = @p1 AND soft_delete = 0
 	`
-	
+
 	var dosen Dosen
 	err := r.db.Get(&dosen, query, idSDM)
 	if err != nil {
@@ -405,7 +405,7 @@ func (r *repository) GetDosenByID(idSDM string) (*Dosen, error) {
 		}
 		return nil, fmt.Errorf("failed to get dosen: %w", err)
 	}
-	
+
 	return &dosen, nil
 }
 
@@ -451,7 +451,6 @@ func (r *repository) GetDosenStats() (*DosenStats, error) {
 		INNER JOIN ref.jenjang_pendidikan AS didik
 			ON didik.id_jenj_didik = sms.id_jenj_didik
 			AND didik.expired_date IS NULL
-			AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
 		INNER JOIN pdrd.keaktifan_ptk AS keaktifan
 			ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
 			AND keaktifan.soft_delete = 0
@@ -499,7 +498,7 @@ func (r *repository) GetDosenStats() (*DosenStats, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get total tidak aktif: %w", err)
 	}
-	
+
 	// Get breakdown by jenis SDM
 	byJenisQuery := `
 		SELECT 
@@ -512,13 +511,13 @@ func (r *repository) GetDosenStats() (*DosenStats, error) {
 		GROUP BY js.id_jns_sdm, js.nm_jns_sdm
 		ORDER BY total DESC
 	`
-	
+
 	rows, err := r.db.Query(byJenisQuery)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get breakdown by jenis: %w", err)
 	}
 	defer rows.Close()
-	
+
 	stats.ByJenisSDM = []map[string]interface{}{}
 	for rows.Next() {
 		var idJns int
@@ -526,13 +525,13 @@ func (r *repository) GetDosenStats() (*DosenStats, error) {
 		var total int
 		if err := rows.Scan(&idJns, &nmJns, &total); err == nil {
 			stats.ByJenisSDM = append(stats.ByJenisSDM, map[string]interface{}{
-				"id_jns_sdm":   idJns,
-				"nm_jns_sdm":   nmJns,
-				"total":        total,
+				"id_jns_sdm": idJns,
+				"nm_jns_sdm": nmJns,
+				"total":      total,
 			})
 		}
 	}
-	
+
 	// Get breakdown by status aktif
 	byStatusQuery := `
 		SELECT 
@@ -545,13 +544,13 @@ func (r *repository) GetDosenStats() (*DosenStats, error) {
 		GROUP BY sa.id_stat_aktif, sa.nm_stat_aktif
 		ORDER BY total DESC
 	`
-	
+
 	rows2, err := r.db.Query(byStatusQuery)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get breakdown by status: %w", err)
 	}
 	defer rows2.Close()
-	
+
 	stats.ByStatusAktif = []map[string]interface{}{}
 	for rows2.Next() {
 		var idStat int
@@ -559,13 +558,13 @@ func (r *repository) GetDosenStats() (*DosenStats, error) {
 		var total int
 		if err := rows2.Scan(&idStat, &nmStat, &total); err == nil {
 			stats.ByStatusAktif = append(stats.ByStatusAktif, map[string]interface{}{
-				"id_stat_aktif":   idStat,
-				"nm_stat_aktif":   nmStat,
-				"total":           total,
+				"id_stat_aktif": idStat,
+				"nm_stat_aktif": nmStat,
+				"total":         total,
 			})
 		}
 	}
-	
+
 	// Get last sync timestamp from sync_logs table
 	var lastSync *time.Time
 	err = r.db.Get(&lastSync, `

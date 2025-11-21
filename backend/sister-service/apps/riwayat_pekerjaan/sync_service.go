@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"sister-service/external/sister_api"
+	"sister-service/pkg/timeutil"
 )
 
 // SyncService handles syncing riwayat pekerjaan from Sister API
@@ -212,7 +213,7 @@ func (s *SyncService) syncDokumen(idRwyKerja string, dokumenList []SisterDokumen
 func (s *SyncService) BatchSyncAllRwyPekerjaan(trigger string) (*BatchSyncResult, error) {
 	log.Printf("🚀 [%s] Starting batch riwayat pekerjaan sync for all dosen", trigger)
 
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	result := &BatchSyncResult{
 		StartTime: startTime,
 		Results:   []SyncResult{},
@@ -247,7 +248,7 @@ func (s *SyncService) BatchSyncAllRwyPekerjaan(trigger string) (*BatchSyncResult
 		time.Sleep(500 * time.Millisecond)
 	}
 
-	result.EndTime = time.Now()
+	result.EndTime = timeutil.NowWIB()
 	result.Duration = result.EndTime.Sub(startTime)
 
 	log.Printf("✅ Batch sync completed - Success: %d, Failed: %d, Duration: %s", result.TotalSuccess, result.TotalFailed, result.Duration)
@@ -258,7 +259,7 @@ func (s *SyncService) BatchSyncAllRwyPekerjaan(trigger string) (*BatchSyncResult
 func (s *SyncService) ResyncFailedRwyPekerjaan(failedIDSDMs []string, trigger string) (*BatchSyncResult, error) {
 	log.Printf("🔄 [%s] Re-syncing %d failed dosen", trigger, len(failedIDSDMs))
 
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	result := &BatchSyncResult{
 		StartTime:  startTime,
 		TotalDosen: len(failedIDSDMs),
@@ -282,7 +283,7 @@ func (s *SyncService) ResyncFailedRwyPekerjaan(failedIDSDMs []string, trigger st
 		time.Sleep(500 * time.Millisecond)
 	}
 
-	result.EndTime = time.Now()
+	result.EndTime = timeutil.NowWIB()
 	result.Duration = result.EndTime.Sub(startTime)
 
 	return result, nil

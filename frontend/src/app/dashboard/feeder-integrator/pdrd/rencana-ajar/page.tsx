@@ -1,35 +1,82 @@
 "use client";
 
 import { useRequireAuth } from "@/lib/hoc/withAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
-import { feederIntegratorMenuConfig } from "../../config/menuConfig";
 import { Card, CardBody } from "@heroui/react";
-import { RiGraduationCapFill } from "react-icons/ri";
-import { FiUsers } from "react-icons/fi";
+import { FiFileText, FiClock } from "react-icons/fi";
+import { MdConstruction } from "react-icons/md";
+import { feederIntegratorMenuConfig } from "../../config/menuConfig";
 
 export default function RencanaAjarPage() {
   useRequireAuth();
+  const { user } = useAuth();
 
   return (
     <DashboardLayout
-      appName="Feeder Integrator"
-      appIcon={<RiGraduationCapFill className="w-6 h-6 text-white" />}
       menuConfig={feederIntegratorMenuConfig}
-      pageTitle="Rencana Ajar"
+      userRole={user?.role || ""}
+      breadcrumbs={[
+        { label: "Feeder Integrator", href: "/dashboard/feeder-integrator" },
+        { label: "Data PDRD", href: "#" },
+        { label: "Rencana Ajar/Eval", href: "/dashboard/feeder-integrator/pdrd/rencana-ajar" },
+      ]}
     >
-      <Card className="bg-white dark:bg-gray-800 shadow-lg">
-        <CardBody className="p-8 text-center">
-          <div className="mb-4">
-            <FiUsers className="w-24 h-24 text-blue-500 mx-auto opacity-50" />
+      <div className="p-6 max-w-7xl mx-auto">
+        <div className="mb-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+              <FiFileText className="w-6 h-6 text-green-600 dark:text-green-400" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+                Rencana Ajar/Eval
+              </h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Sinkronisasi data rencana pembelajaran dan evaluasi ke PDDIKTI
+              </p>
+            </div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
-            Coming Soon
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            Halaman Rencana Ajar sedang dalam tahap pengembangan.
-          </p>
-        </CardBody>
-      </Card>
+        </div>
+
+        <Card className="border border-gray-200 dark:border-gray-700">
+          <CardBody className="p-12">
+            <div className="text-center">
+              <div className="flex justify-center mb-6">
+                <div className="p-6 bg-orange-100 dark:bg-orange-900/30 rounded-full">
+                  <MdConstruction className="w-16 h-16 text-orange-600 dark:text-orange-400" />
+                </div>
+              </div>
+
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-3">
+                Fitur Dalam Pengembangan
+              </h2>
+
+              <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                Halaman Rencana Ajar/Eval sedang dalam proses pengembangan.
+                Fitur ini akan segera tersedia untuk membantu Anda mengelola rencana pembelajaran.
+              </p>
+
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-700 dark:text-blue-300">
+                <FiClock className="w-4 h-4" />
+                <span className="text-sm font-medium">Coming Soon</span>
+              </div>
+
+              <div className="mt-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg max-w-md mx-auto">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-medium">
+                  Fitur yang akan tersedia:
+                </p>
+                <ul className="text-xs text-left text-gray-600 dark:text-gray-400 space-y-1">
+                  <li>• Sinkronisasi rencana pembelajaran (RPS)</li>
+                  <li>• Manajemen evaluasi pembelajaran</li>
+                  <li>• Monitoring rencana ajar</li>
+                  <li>• Export data RPS</li>
+                </ul>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+      </div>
     </DashboardLayout>
   );
 }

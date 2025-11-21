@@ -13,6 +13,8 @@ interface MahasiswaListItem {
   jalur_masuk: string | null;
   jenis_pendaftaran: string | null;
   semester_sekarang: number | null;
+  ipk: number | null;
+  total_sks: number | null;
   status_mahasiswa: string | null;
   jenis_keluar: string | null;
   last_sync: string | null;
@@ -47,6 +49,8 @@ export default function FeederMahasiswaTable({ onFilterChange }: FeederMahasiswa
   const [totalRecords, setTotalRecords] = useState(0);
   const [filterAngkatan, setFilterAngkatan] = useState<string[]>([]);
   const [filterProdi, setFilterProdi] = useState<string>("");
+  const [sortBy, setSortBy] = useState<string>("angkatan");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   // Options for filters
   const [angkatanOptions, setAngkatanOptions] = useState<AngkatanOption[]>([]);
@@ -92,6 +96,13 @@ export default function FeederMahasiswaTable({ onFilterChange }: FeederMahasiswa
     loadOptions();
   }, []);
 
+  // Handle sort change
+  const handleSortChange = (key: string, order: "asc" | "desc") => {
+    setSortBy(key);
+    setSortOrder(order);
+    setCurrentPage(1); // Reset to first page when sorting changes
+  };
+
   // Load data when filters change
   useEffect(() => {
     // Don't wait for angkatan options - load data immediately
@@ -115,6 +126,11 @@ export default function FeederMahasiswaTable({ onFilterChange }: FeederMahasiswa
           params.append("id_prodi", filterProdi);
         }
 
+        if (sortBy) {
+          params.append("sort_by", sortBy);
+          params.append("sort_order", sortOrder);
+        }
+
         const response = await feederClient.get(`/mahasiswa?${params.toString()}`);
 
         if (response.data.success) {
@@ -130,7 +146,7 @@ export default function FeederMahasiswaTable({ onFilterChange }: FeederMahasiswa
     };
 
     loadData();
-  }, [currentPage, rowsPerPage, searchQuery, filterAngkatan, filterProdi, angkatanOptions]);
+  }, [currentPage, rowsPerPage, searchQuery, filterAngkatan, filterProdi, sortBy, sortOrder, angkatanOptions]);
 
   // Notify parent about filter changes for sync
   useEffect(() => {
@@ -189,6 +205,7 @@ export default function FeederMahasiswaTable({ onFilterChange }: FeederMahasiswa
       label: "ANGKATAN",
       align: "center",
       width: "120px",
+      sortable: true,
       render: (item) => (
         <Chip
           size="sm"
@@ -221,10 +238,34 @@ export default function FeederMahasiswaTable({ onFilterChange }: FeederMahasiswa
       ),
     },
     {
+      key: "ipk",
+      label: "IPK",
+      align: "center",
+      width: "90px",
+      sortable: true,
+      render: (item) => (
+        <div className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+          {item.ipk ? item.ipk.toFixed(2) : "-"}
+        </div>
+      ),
+    },
+    {
+      key: "total_sks",
+      label: "TOTAL SKS",
+      align: "center",
+      width: "110px",
+      render: (item) => (
+        <div className="text-sm font-semibold text-green-600 dark:text-green-400">
+          {item.total_sks ? Math.round(item.total_sks) : "-"}
+        </div>
+      ),
+    },
+    {
       key: "status_mahasiswa",
       label: "STATUS",
       align: "center",
       width: "130px",
+      sortable: true,
       render: (item) => {
         const status = item.status_mahasiswa?.toUpperCase() || "";
         let color: "success" | "primary" | "warning" | "danger" | "default" = "default";
@@ -263,6 +304,7 @@ export default function FeederMahasiswaTable({ onFilterChange }: FeederMahasiswa
       label: "LAST SYNC",
       align: "center",
       width: "140px",
+      sortable: true,
       render: (item) => (
         <div className="text-xs text-gray-500 dark:text-gray-400">
           {formatDate(item.last_sync)}
@@ -389,7 +431,7 @@ export default function FeederMahasiswaTable({ onFilterChange }: FeederMahasiswa
           data={data}
           columns={columns}
           searchable={true}
-          searchPlaceholder="Cari nama, NPM mahasiswa..."
+          searchPlaceholder="Cari NPM atau nama mahasiswa..."
           loading={loading}
           serverSide={true}
           totalRecords={totalRecords}
@@ -399,6 +441,7 @@ export default function FeederMahasiswaTable({ onFilterChange }: FeederMahasiswa
             setCurrentPage(1);
           }}
           onSearchChange={setSearchQuery}
+          onSortChange={handleSortChange}
           filterSlot={filterSlot}
           emptyMessage={
             <div className="text-center py-12">

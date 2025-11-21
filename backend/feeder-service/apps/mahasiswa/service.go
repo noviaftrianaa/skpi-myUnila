@@ -17,7 +17,7 @@ import (
 // Service interface for mahasiswa business logic
 type Service interface {
 	// List operations
-	GetMahasiswaList(ctx context.Context, page, limit int, search string, angkatan []string, idProdi *string) (*MahasiswaListResult, error)
+	GetMahasiswaList(ctx context.Context, page, limit int, search string, angkatan []string, idProdi *string, sortBy, sortOrder string) (*MahasiswaListResult, error)
 	GetMahasiswaByID(ctx context.Context, idPD string) (*PesertaDidik, error)
 	GetMahasiswaStats(ctx context.Context) (*MahasiswaStats, error)
 
@@ -71,13 +71,13 @@ func NewService(
 }
 
 // GetMahasiswaList retrieves paginated list of mahasiswa with Redis caching
-func (s *service) GetMahasiswaList(ctx context.Context, page, limit int, search string, angkatan []string, idProdi *string) (*MahasiswaListResult, error) {
+func (s *service) GetMahasiswaList(ctx context.Context, page, limit int, search string, angkatan []string, idProdi *string, sortBy, sortOrder string) (*MahasiswaListResult, error) {
 	// Empty angkatan means "all angkatan" - no filter applied
 	// Repository will handle empty array correctly by not adding WHERE clause
 
 	// Check Redis cache first (only for non-search queries to ensure cache efficiency)
 	if search == "" && s.redisClient != nil {
-		cacheKey := s.buildCacheKey(page, limit, angkatan, idProdi)
+		cacheKey := s.buildCacheKey(page, limit, angkatan, idProdi, sortBy, sortOrder)
 
 		// Try to get from cache
 		cachedData, err := s.getCachedMahasiswaList(ctx, cacheKey)
@@ -89,14 +89,14 @@ func (s *service) GetMahasiswaList(ctx context.Context, page, limit int, search 
 	}
 
 	// Delegate to repository
-	result, err := s.repo.GetMahasiswaList(ctx, page, limit, search, angkatan, idProdi)
+	result, err := s.repo.GetMahasiswaList(ctx, page, limit, search, angkatan, idProdi, sortBy, sortOrder)
 	if err != nil {
 		return nil, err
 	}
 
 	// Cache the result (only for non-search queries, TTL 5 minutes)
 	if search == "" && s.redisClient != nil && result != nil {
-		cacheKey := s.buildCacheKey(page, limit, angkatan, idProdi)
+		cacheKey := s.buildCacheKey(page, limit, angkatan, idProdi, sortBy, sortOrder)
 		if err := s.cacheMahasiswaList(ctx, cacheKey, result); err != nil {
 			log.Printf("⚠️  Failed to cache mahasiswa list: %v", err)
 			// Don't return error, just log it
@@ -140,7 +140,7 @@ func (s *service) ForceRefreshToken() error {
 // ============================================================================
 
 // buildCacheKey generates a deterministic cache key based on query parameters
-func (s *service) buildCacheKey(page, limit int, angkatan []string, idProdi *string) string {
+func (s *service) buildCacheKey(page, limit int, angkatan []string, idProdi *string, sortBy, sortOrder string) string {
 	// Sort angkatan for deterministic key
 	sortedAngkatan := make([]string, len(angkatan))
 	copy(sortedAngkatan, angkatan)
@@ -163,6 +163,11 @@ func (s *service) buildCacheKey(page, limit int, angkatan []string, idProdi *str
 		keyParts = append(keyParts, "prodi:"+*idProdi)
 	} else {
 		keyParts = append(keyParts, "prodi:all")
+	}
+
+	// Add sorting parameters to cache key
+	if sortBy != "" {
+		keyParts = append(keyParts, fmt.Sprintf("sort:%s:%s", sortBy, sortOrder))
 	}
 
 	// Create hash for shorter key (optional, for very long angkatan lists)

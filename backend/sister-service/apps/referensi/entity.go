@@ -577,6 +577,8 @@ type UnitKerja struct {
 	GelarLulusan      *string    `json:"gelar_lulusan,omitempty" db:"gelar_lulusan"` // Gelar lulusan
 	IDJenjangDidik    *int       `json:"id_jenjang_didik,omitempty" db:"id_jenj_didik"` // FK ke ref.jenjang_pendidikan
 	IDWilayah         *string    `json:"id_wilayah,omitempty" db:"id_wil"`         // FK ke ref.wilayah
+	IDFungsiLab       string     `json:"id_fungsi_lab" db:"id_fungsi_lab"`         // FK ke ref.fungsi_lab (char 1, default *)
+	IDKelUsaha        string     `json:"id_kel_usaha" db:"id_kel_usaha"`           // FK ke ref.kelompok_usaha (char 8, default *)
 	IDFakultasUnila   *string    `json:"id_fakultas_unila,omitempty" db:"id_fak_unila"` // FK ke pdrd.sms (fakultas)
 	IDJurusanUnila    *string    `json:"id_jurusan_unila,omitempty" db:"id_jur_unila"` // FK ke pdrd.sms (jurusan)
 	IDJurusan         *string    `json:"id_jurusan,omitempty" db:"id_jur"`         // Copy dari id_jur_unila
@@ -606,6 +608,7 @@ type SisterUnitKerjaDetail struct {
 	KodeUnit             string    `json:"kode_unit"`                   // Kode unit
 	Nama                 string    `json:"nama"`                        // Nama unit
 	IDJenisUnit          int       `json:"id_jenis_unit"`               // 1-8
+	IDJenjang            *string   `json:"id_jenjang"`                  // ID jenjang from Sister (nullable)
 	IDIndukUnit          *string   `json:"id_induk_unit"`               // Parent unit ID (nullable)
 	StatusUnit           string    `json:"status_unit"`                 // A/B/K/N/H
 	TanggalBerdiri       string    `json:"tanggal_berdiri"`             // Date string

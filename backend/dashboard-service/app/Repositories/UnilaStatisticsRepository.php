@@ -131,7 +131,7 @@ class UnilaStatisticsRepository
      */
     private function getTotalDosen(string $idSp): int
     {
-        // Count dosen yang terdaftar di prodi aktif (D% atau S%), hindari double count
+        // Count semua dosen yang terdaftar di prodi aktif (semua jenjang), hindari double count
         $tahunAjaran = TahunAjaranHelper::getActiveTahunAjaran();
 
         $sql = "
@@ -145,6 +145,7 @@ class UnilaStatisticsRepository
                 ON sms.id_sms = ptk.id_sms
                 AND sms.soft_delete = 0
                 AND sms.stat_prodi = 'A'
+                AND sms.id_fak_unila IS NOT NULL
             INNER JOIN ref.jenjang_pendidikan AS didik
                 ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
@@ -266,6 +267,7 @@ class UnilaStatisticsRepository
                 AND sms.stat_prodi = 'A'
                 AND sms.id_jns_sms = '3'
                 AND CAST(sms.id_sp AS VARCHAR(50)) = ?
+                AND sms.id_fak_unila IS NOT NULL
         ";
 
         $result = DB::connection('sqlsrv')->select($sql, [$idSp]);
@@ -303,6 +305,7 @@ class UnilaStatisticsRepository
                     ON sms.id_sms = ptk.id_sms
                     AND sms.soft_delete = 0
                     AND sms.stat_prodi = 'A'
+                    AND sms.id_fak_unila IS NOT NULL
                 INNER JOIN ref.jenjang_pendidikan AS didik
                     ON didik.id_jenj_didik = sms.id_jenj_didik
                     AND didik.expired_date IS NULL

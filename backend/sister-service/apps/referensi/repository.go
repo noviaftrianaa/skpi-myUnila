@@ -1813,34 +1813,39 @@ func (r *repository) GetUnitKerjaByID(id string) (*UnitKerja, error) {
 
 // UpsertUnitKerja inserts or updates unit kerja
 func (r *repository) UpsertUnitKerja(uk *UnitKerja) error {
-	// Check if exists
-	existing, err := r.GetUnitKerjaByID(uk.IDSMS)
+	// Check if exists (ignore soft_delete status for existence check)
+	checkQuery := `SELECT COUNT(*) FROM pdrd.sms WHERE id_sms = @p1`
+	var count int
+	err := r.db.QueryRow(checkQuery, uk.IDSMS).Scan(&count)
 	if err != nil {
 		return fmt.Errorf("failed to check existing unit kerja: %w", err)
 	}
 
-	if existing == nil {
-		// INSERT
+	if count == 0 {
+		// INSERT - Use NULLIF to handle empty strings for UUID fields ONLY
 		query := `
 			INSERT INTO pdrd.sms (
 				id_sms, id_sp, id_jns_sms, nm_lemb, kode_prodi, stat_prodi,
 				tgl_berdiri, sk_selenggara, tgl_sk_selenggara, tmt_sk_selenggara, tst_sk_selenggara,
-				sks_lulus, gelar_lulusan, id_jenj_didik, id_wil,
+				sks_lulus, gelar_lulusan, id_jenj_didik, id_wil, id_fungsi_lab, id_kel_usaha,
 				id_fak_unila, id_jur_unila, id_jur, id_induk_sms,
 				create_date, id_creator, last_update, id_updater, soft_delete, last_sync
 			) VALUES (
 				@p1, @p2, @p3, @p4, @p5, @p6,
 				@p7, @p8, @p9, @p10, @p11,
-				@p12, @p13, @p14, @p15,
-				@p16, @p17, @p18, @p19,
-				@p20, @p21, @p22, @p23, @p24, @p25
+				@p12, @p13, @p14, @p15, @p16, @p17,
+				NULLIF(@p18, ''), NULLIF(@p19, ''), @p20, NULLIF(@p21, ''),
+				@p22, @p23, @p24, @p25, @p26, @p27
 			)
 		`
+
 		// For INSERT, id_updater should be NULL (not the same as id_creator for sync)
+		// Use NULLIF for UUID fields (id_fak_unila, id_jur_unila, id_induk_sms) to convert empty strings to NULL
+		// Note: id_jur is VARCHAR(25) for numeric jurusan ID, not UUID
 		_, err = r.db.Exec(query,
 			uk.IDSMS, uk.IDSatuanPendidikan, uk.IDJenisSMS, uk.NamaLembaga, uk.KodeProdi, uk.StatusProdi,
 			uk.TanggalBerdiri, uk.SKPenyelenggara, uk.TanggalSK, uk.TMT, uk.TST,
-			uk.SKSLulus, uk.GelarLulusan, uk.IDJenjangDidik, uk.IDWilayah,
+			uk.SKSLulus, uk.GelarLulusan, uk.IDJenjangDidik, uk.IDWilayah, uk.IDFungsiLab, uk.IDKelUsaha,
 			uk.IDFakultasUnila, uk.IDJurusanUnila, uk.IDJurusan, uk.IDIndukSMS,
 			uk.CreateDate, uk.IDCreator, uk.LastUpdate, nil, uk.SoftDelete, uk.LastSync,
 		)
@@ -1849,6 +1854,7 @@ func (r *repository) UpsertUnitKerja(uk *UnitKerja) error {
 		}
 	} else {
 		// UPDATE - hanya update field dari API, jangan overwrite field yang sudah ada
+		// Use NULLIF for UUID fields to handle empty strings
 		query := `
 			UPDATE pdrd.sms SET
 				nm_lemb = @p1,
@@ -1863,19 +1869,23 @@ func (r *repository) UpsertUnitKerja(uk *UnitKerja) error {
 				gelar_lulusan = COALESCE(@p10, gelar_lulusan),
 				id_jenj_didik = COALESCE(@p11, id_jenj_didik),
 				id_wil = COALESCE(@p12, id_wil),
-				id_fak_unila = COALESCE(@p13, id_fak_unila),
-				id_jur_unila = COALESCE(@p14, id_jur_unila),
-				id_jur = COALESCE(@p15, id_jur),
-				id_induk_sms = COALESCE(@p16, id_induk_sms),
-				last_update = @p17,
-				id_updater = @p18,
-				last_sync = @p19
-			WHERE id_sms = @p20
+				id_fungsi_lab = @p13,
+				id_kel_usaha = @p14,
+				id_fak_unila = COALESCE(NULLIF(@p15, ''), id_fak_unila),
+				id_jur_unila = COALESCE(NULLIF(@p16, ''), id_jur_unila),
+				id_jur = COALESCE(@p17, id_jur),
+				id_induk_sms = COALESCE(NULLIF(@p18, ''), id_induk_sms),
+				last_update = @p19,
+				id_updater = NULLIF(@p20, ''),
+				last_sync = @p21,
+				soft_delete = 0
+			WHERE id_sms = @p22
 		`
+
 		_, err = r.db.Exec(query,
 			uk.NamaLembaga, uk.KodeProdi, uk.StatusProdi,
 			uk.TanggalBerdiri, uk.SKPenyelenggara, uk.TanggalSK, uk.TMT, uk.TST,
-			uk.SKSLulus, uk.GelarLulusan, uk.IDJenjangDidik, uk.IDWilayah,
+			uk.SKSLulus, uk.GelarLulusan, uk.IDJenjangDidik, uk.IDWilayah, uk.IDFungsiLab, uk.IDKelUsaha,
 			uk.IDFakultasUnila, uk.IDJurusanUnila, uk.IDJurusan, uk.IDIndukSMS,
 			uk.LastUpdate, uk.IDUpdater, uk.LastSync,
 			uk.IDSMS,

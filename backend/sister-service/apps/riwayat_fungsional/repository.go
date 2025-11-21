@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"sister-service/pkg/timeutil"
 )
 
 // truncateString truncates a string pointer to maxLen if it exceeds the limit
@@ -124,7 +125,7 @@ func (r *repository) MergeRwyFungsional(rwyFungsional *RwyFungsional) error {
 		rwyFungsional.LebihPengmas,   // @p10
 		rwyFungsional.LebihTunjang,   // @p11
 		bidangIlmu,                   // @p12
-		time.Now(),                   // @p13
+		timeutil.NowWIB(),            // @p13
 	)
 
 	if err != nil {

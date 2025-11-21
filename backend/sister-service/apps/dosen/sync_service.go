@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"sister-service/apps/monitoring"
+	"sister-service/pkg/timeutil"
 )
 
 // jenisSDMMapping maps jenis_sdm name to ID based on ref.jenis_sdm table
@@ -38,7 +39,7 @@ func getJenisSDMID(jenisSDMName string) int {
 
 // SyncDosenFromSister performs batch sync of dosen from Sister API using goroutine workers
 func (s *service) SyncDosenFromSister(idSP string, syncedBy string) (*BatchDosenSyncResult, error) {
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	var totalRecords int
 	var syncErr error
 
@@ -413,7 +414,7 @@ func (s *service) transformSisterDataToDosen(data *SisterDosenData, namaFromSDML
 
 // transformSisterDataToDosenWithJenisSDM transforms combined Sister API data to Dosen entity with jenis_sdm
 func (s *service) transformSisterDataToDosenWithJenisSDM(data *SisterDosenData, namaFromSDMList string, jenisSDMName string, cache *ReferenceCache) (*Dosen, error) {
-	now := time.Now()
+	now := timeutil.NowWIB()
 
 	// System UUID for created_by/updated_by (can be configured)
 	systemUUID := "00000000-0000-0000-0000-000000000001" // Default system user

@@ -32,7 +32,7 @@ class ProgramStudiService
      */
     public function getProgramStudiList(array $filters = [], ?string $search = null, int $page = 1, int $perPage = 10, string $sortBy = 'nama', string $sortOrder = 'asc'): array
     {
-        $cacheKey = 'program_studi_list_' . md5(json_encode($filters) . $search . $page . $perPage . $sortBy . $sortOrder);
+        $cacheKey = 'program_studi_list_v3_' . md5(json_encode($filters) . $search . $page . $perPage . $sortBy . $sortOrder);
 
         return Cache::remember($cacheKey, 3600, function () use ($filters, $search, $page, $perPage, $sortBy, $sortOrder) {
             $offset = ($page - 1) * $perPage;
@@ -87,7 +87,7 @@ class ProgramStudiService
      */
     public function getSummaryStatistics(array $filters = []): array
     {
-        $cacheKey = 'program_studi_summary_' . md5(json_encode($filters));
+        $cacheKey = 'program_studi_summary_v3_' . md5(json_encode($filters));
 
         return Cache::remember($cacheKey, 3600, function () use ($filters) {
             $stats = $this->repository->getStatistics($filters);
@@ -165,20 +165,53 @@ class ProgramStudiService
      */
     public function getProgramStudiDetail(string $idSms, ?string $periode = null): ?array
     {
-        $cacheKey = 'program_studi_detail_' . $idSms . '_' . ($periode ?? 'default');
+        \Log::info('=== getProgramStudiDetail called ===', [
+            'idSms_param' => $idSms,
+            'periode' => $periode
+        ]);
+
+        // Added v2 to cache key to invalidate old cache without riwayat_akreditasi
+        $cacheKey = 'program_studi_detail_v2_' . $idSms . '_' . ($periode ?? 'default');
+
+        \Log::info('Cache key generated', ['cache_key' => $cacheKey]);
 
         return Cache::remember($cacheKey, 3600, function () use ($idSms, $periode) {
+            \Log::info('Cache miss - fetching fresh data');
+
             $detail = $this->repository->getProgramStudiDetail($idSms, $periode);
 
             if (!$detail) {
+                \Log::warning('No program studi detail found', ['id_sms' => $idSms]);
                 return null;
             }
+
+            \Log::info('Program studi detail found', [
+                'id_sms' => $detail->id_sms,
+                'nama_prodi' => $detail->nama_prodi
+            ]);
 
             $totalDosen = (int) ($detail->dosen_tetap + $detail->dosen_tidak_tetap);
             $totalMahasiswa = (int) $detail->total_mahasiswa;
 
             // Encrypt ID untuk keamanan
             $encryptedId = Crypt::encryptString($detail->id_sms);
+
+            // Get riwayat akreditasi with error handling
+            \Log::info('Attempting to fetch riwayat akreditasi', ['id_sms' => $idSms]);
+            try {
+                $riwayatAkreditasi = $this->repository->getRiwayatAkreditasi($idSms);
+                \Log::info('Riwayat akreditasi fetched', [
+                    'count' => count($riwayatAkreditasi),
+                    'data' => $riwayatAkreditasi
+                ]);
+            } catch (\Exception $e) {
+                // Log error but don't fail the entire request
+                \Log::error('Failed to get riwayat akreditasi: ' . $e->getMessage(), [
+                    'exception' => get_class($e),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                $riwayatAkreditasi = [];
+            }
 
             return [
                 'id' => $encryptedId,
@@ -190,6 +223,7 @@ class ProgramStudiService
                 'tanggal_berdiri' => $detail->tgl_berdiri,
                 'sk_penyelenggara' => $detail->sk_selenggara,
                 'akreditasi' => $detail->akreditasi ?? 'Belum Akreditasi',
+                'riwayat_akreditasi' => $riwayatAkreditasi,
                 'organisasi' => [
                     'fakultas' => [
                         'id' => $detail->id_fakultas ? Crypt::encryptString($detail->id_fakultas) : null,

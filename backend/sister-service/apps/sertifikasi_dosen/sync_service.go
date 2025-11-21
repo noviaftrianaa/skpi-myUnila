@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"sister-service/external/sister_api"
+	"sister-service/pkg/timeutil"
 )
 
 type SyncService interface {
@@ -158,7 +159,7 @@ func (s *syncService) syncSertifikasiDetail(idRwySert, idSDM string) error {
 		NoPeserta:  sql.NullString{String: detail.NomorPeserta, Valid: detail.NomorPeserta != ""},
 		TmtSert:    tmtSert,
 		TstSert:    tstSert,
-		LastSync:   sql.NullTime{Time: time.Now(), Valid: true},
+		LastSync:   sql.NullTime{Time: timeutil.NowWIB(), Valid: true},
 	}
 
 	// Merge rwy_sertifikasi
@@ -176,7 +177,7 @@ func (s *syncService) syncSertifikasiDetail(idRwySert, idSDM string) error {
 
 	// Process documents
 	activeDokIDs := []string{}
-	now := time.Now()
+	now := timeutil.NowWIB()
 	for _, dok := range detail.Dokumen {
 		// Skip if nama is empty - required field
 		if dok.Nama == "" {
@@ -248,7 +249,7 @@ func (s *syncService) syncSertifikasiDetail(idRwySert, idSDM string) error {
 
 // BatchSyncAllSertifikasi syncs sertifikasi for all active dosen
 func (s *syncService) BatchSyncAllSertifikasi(syncedBy string) (*BatchSyncResult, error) {
-	startTime := time.Now()
+	startTime := timeutil.NowWIB()
 	log.Printf("🚀 Starting batch sync all sertifikasi - triggered by: %s", syncedBy)
 
 	// Get all active dosen

@@ -30,6 +30,8 @@ func NewController(service Service) *Controller {
 // @Param search query string false "Search by name, NPM, or NIM"
 // @Param angkatan query string false "Filter by angkatan (comma-separated, e.g., 2021,2022)"
 // @Param id_prodi query string false "Filter by ID Prodi (UUID)"
+// @Param sort_by query string false "Sort by field (npm, nama, angkatan, ipk, status_mahasiswa)"
+// @Param sort_order query string false "Sort order (asc, desc)"
 // @Success 200 {object} map[string]interface{} "List of mahasiswa"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /mahasiswa [get]
@@ -40,6 +42,8 @@ func (ctrl *Controller) GetMahasiswaList(c *fiber.Ctx) error {
 	search := c.Query("search", "")
 	angkatanStr := c.Query("angkatan", "")
 	idProdi := c.Query("id_prodi", "")
+	sortBy := c.Query("sort_by", "")
+	sortOrder := c.Query("sort_order", "")
 
 	if page < 1 {
 		page = 1
@@ -64,7 +68,7 @@ func (ctrl *Controller) GetMahasiswaList(c *fiber.Ctx) error {
 		idProdiPtr = &idProdi
 	}
 
-	result, err := ctrl.service.GetMahasiswaList(ctx, page, limit, search, angkatanList, idProdiPtr)
+	result, err := ctrl.service.GetMahasiswaList(ctx, page, limit, search, angkatanList, idProdiPtr, sortBy, sortOrder)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"success": false,
@@ -214,6 +218,7 @@ func (ctrl *Controller) GetProdiList(c *fiber.Ctx) error {
 // @Param angkatan query string true "Angkatan (comma-separated, e.g., 2021,2022)"
 // @Param id_prodi query string false "Filter by ID Prodi (UUID, optional)"
 // @Param synced_by query string true "Username of person who triggered the sync"
+// @Param force_sync query bool false "Force sync even if already synced this month (default: false)"
 // @Success 200 {object} BatchMahasiswaSyncResult "Sync result"
 // @Failure 400 {object} map[string]interface{} "Bad request"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
@@ -223,6 +228,7 @@ func (ctrl *Controller) SyncMahasiswaByAngkatan(c *fiber.Ctx) error {
 	angkatanStr := c.Query("angkatan", "")
 	idProdi := c.Query("id_prodi", "")
 	syncedBy := c.Query("synced_by", "system")
+	forceSync := c.QueryBool("force_sync", false)
 
 	// Validate required parameters
 	if angkatanStr == "" {
@@ -268,8 +274,9 @@ func (ctrl *Controller) SyncMahasiswaByAngkatan(c *fiber.Ctx) error {
 
 	// Build sync filter
 	filter := &SyncFilter{
-		Angkatan: angkatanList,
-		IDProdi:  idProdiPtr,
+		Angkatan:  angkatanList,
+		IDProdi:   idProdiPtr,
+		ForceSync: forceSync,
 	}
 
 	// Perform batch sync

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"sister-service/pkg/timeutil"
 )
 
 // UUID validation regex
@@ -350,7 +351,7 @@ func (r *repository) MergeAnggotaSDM(idLitabmas string, anggotaList []*AnggotaSD
 				SET soft_delete = 1, last_update = @p1
 				WHERE id_litabmas = @p2 AND id_sdm = @p3
 			`
-			_, err := r.db.ExecContext(ctx, deleteSQL, time.Now(), ang.IDLitabmas, ang.IDSDM)
+			_, err := r.db.ExecContext(ctx, deleteSQL, timeutil.NowWIB(), ang.IDLitabmas, ang.IDSDM)
 			if err != nil {
 				log.Printf("⚠️ Failed to delete anggota sdm %s: %v", ang.IDSDM, err)
 			} else {
@@ -453,7 +454,7 @@ func (r *repository) MergeAnggotaPD(idLitabmas string, anggotaList []*AnggotaPDL
 				SET soft_delete = 1, last_update = @p1
 				WHERE id_pd_ang_litabmas = @p2
 			`
-			_, err := r.db.ExecContext(ctx, deleteSQL, time.Now(), ang.IDPDAngLitabmas)
+			_, err := r.db.ExecContext(ctx, deleteSQL, timeutil.NowWIB(), ang.IDPDAngLitabmas)
 			if err != nil {
 				log.Printf("⚠️ Failed to delete anggota pd %s: %v", ang.IDPDAngLitabmas, err)
 			} else {
@@ -680,7 +681,7 @@ func (r *repository) MergeDokumenLitabmas(idLitabmas string, dokList []*DokLitab
 				SET soft_delete = 1, last_update = @p1
 				WHERE id_litabmas = @p2 AND id_dok = @p3
 			`
-			_, err := r.db.ExecContext(ctx, deleteSQL, time.Now(), dk.IDLitabmas, dk.IDDok)
+			_, err := r.db.ExecContext(ctx, deleteSQL, timeutil.NowWIB(), dk.IDLitabmas, dk.IDDok)
 			if err != nil {
 				log.Printf("⚠️ Failed to delete dok_litabmas %s: %v", dk.IDDok, err)
 			}

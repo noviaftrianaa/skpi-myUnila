@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"sister-service/pkg/timeutil"
 )
 
 type Repository interface {
@@ -225,7 +226,7 @@ func (r *repository) MergePendidikanFormal(pendidikan *RwyPendFormal) error {
 		noIjazah,
 		judulTesis,
 		pendidikan.TglLulus,
-		time.Now(),
+		timeutil.NowWIB(),
 	)
 
 	if err != nil {
