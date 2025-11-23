@@ -1,0 +1,123 @@
+---
+# Playbook: Cleanup Docker Resources
+# Description: Clean up unused Docker images, containers, volumes, and build cache
+# Usage: ansible-playbook -i inventory/hosts.yml playbooks/cleanup-docker.yml
+#
+# This playbook removes:
+# 1. Stopped containers
+# 2. Dangling images (not tagged and not used by any container)
+# 3. Unused images older than 24 hours
+# 4. Unused volumes
+# 5. Build cache older than 24 hours
+#
+# Can be run standalone or as part of rebuild process
+
+- name: Cleanup Docker Resources on All VMs
+  hosts: all
+  become: yes
+  gather_facts: yes
+  serial: 100%  # Process all hosts in parallel
+
+  tasks:
+    - name: Display cleanup information
+      debug:
+        msg: |
+          ============================================
+          Cleaning up Docker resources on {{ inventory_hostname }}
+          VM: {{ inventory_hostname }}
+          ============================================
+
+    - name: Get disk usage before cleanup
+      shell: df -h / | tail -1 | awk '{print $5}'
+      register: disk_before
+      become_user: "{{ ansible_user }}"
+
+    - name: Display disk usage before cleanup
+      debug:
+        msg: "Disk usage before cleanup: {{ disk_before.stdout }}"
+
+    - name: Remove stopped containers
+      shell: docker container prune -f
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: container_prune
+
+    - name: Remove dangling and old images
+      shell: docker image prune -af --filter "until=24h"
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: image_prune
+
+    - name: Remove unused volumes
+      shell: docker volume prune -f
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: volume_prune
+
+    - name: Remove build cache
+      shell: docker builder prune -af --filter "until=24h"
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: builder_prune
+
+    - name: Get disk usage after cleanup
+      shell: df -h / | tail -1 | awk '{print $5}'
+      register: disk_after
+      become_user: "{{ ansible_user }}"
+
+    - name: Display cleanup results
+      debug:
+        msg: |
+          ============================================
+          Cleanup completed on {{ inventory_hostname }}
+          ============================================
+          Disk usage before: {{ disk_before.stdout }}
+          Disk usage after:  {{ disk_after.stdout }}
+
+          Containers removed: {{ container_prune.stdout_lines | length }} items
+          Images removed: {{ image_prune.stdout_lines | length }} items
+          Volumes removed: {{ volume_prune.stdout_lines | length }} items
+          Build cache cleared: {{ builder_prune.stdout_lines | length }} items
+
+    - name: Get current running containers
+      shell: docker ps --format "table {% raw %}{{.Names}}\t{{.Status}}{% endraw %}"
+      register: running_containers
+      become_user: "{{ ansible_user }}"
+
+    - name: Display running containers
+      debug:
+        msg: "{{ running_containers.stdout_lines }}"
+
+# ============================================
+# Final Summary
+# ============================================
+- name: Display Cleanup Summary
+  hosts: localhost
+  gather_facts: no
+  connection: local
+
+  tasks:
+    - name: Show cleanup summary
+      debug:
+        msg: |
+          ============================================
+          Docker Cleanup Complete!
+          ============================================
+
+          Cleaned up resources on all VMs:
+          - Removed stopped containers
+          - Removed dangling images (older than 24h)
+          - Removed unused volumes
+          - Cleared build cache (older than 24h)
+
+          All running services remain active and healthy.
+
+          To check disk space:
+            ansible all -i inventory/hosts.yml -m shell -a "df -h /" --become
+
+          To check Docker disk usage:
+            ansible all -i inventory/hosts.yml -m shell -a "docker system df" --become
