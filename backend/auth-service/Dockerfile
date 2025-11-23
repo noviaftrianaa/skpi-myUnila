@@ -6,85 +6,69 @@ FROM php:8.2-fpm-alpine
 # Set working directory
 WORKDIR /var/www
 
-# Install system dependencies (Alpine packages)
+# Install ALL dependencies first (including build tools and ODBC)
 RUN apk add --no-cache \
     git \
     curl \
+    bash \
     libpng-dev \
     oniguruma-dev \
     libxml2-dev \
     libzip-dev \
     zip \
     unzip \
-    bash \
-    && apk add --no-cache --virtual .build-deps \
+    # SQL Server ODBC dependencies - MUST be installed first
+    unixodbc \
+    unixodbc-dev \
+    # Build tools - keep for extension compilation
     $PHPIZE_DEPS \
     autoconf \
     g++ \
     make
 
-# Install PHP extensions
+# Install basic PHP extensions (no SQL Server yet)
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
-# Install unixODBC and development files (needed BEFORE SQL Server driver)
-RUN apk add --no-cache unixodbc unixodbc-dev
-
-# Install SQL Server ODBC Driver and tools (Alpine)
+# Install Microsoft SQL Server ODBC Driver 18 for Alpine
 RUN curl -O https://download.microsoft.com/download/3/5/5/355d7943-a338-41a7-858d-53b259ea33f5/msodbcsql18_18.3.2.1-1_amd64.apk \
     && curl -O https://download.microsoft.com/download/3/5/5/355d7943-a338-41a7-858d-53b259ea33f5/mssql-tools18_18.3.1.1-1_amd64.apk \
     && apk add --allow-untrusted msodbcsql18_18.3.2.1-1_amd64.apk \
     && apk add --allow-untrusted mssql-tools18_18.3.1.1-1_amd64.apk \
-    && rm -f msodbcsql18_18.3.2.1-1_amd64.apk mssql-tools18_18.3.1.1-1_amd64.apk
+    && rm -f *.apk
 
-# Install Redis extension from source (PECL download unreliable from this server)
-RUN cd /tmp \
-    && curl -L https://github.com/phpredis/phpredis/archive/5.3.7.tar.gz -o redis.tar.gz \
-    && tar -xzf redis.tar.gz \
-    && cd phpredis-5.3.7 \
-    && phpize \
-    && ./configure \
-    && make \
-    && make install \
-    && docker-php-ext-enable redis \
-    && cd /tmp && rm -rf phpredis-5.3.7 redis.tar.gz
+# Install Redis extension via PECL (more reliable than manual compile)
+RUN pecl channel-update pecl.php.net \
+    && pecl install redis-5.3.7 \
+    && docker-php-ext-enable redis
 
-# Install SQL Server PHP drivers from source (PECL download unreliable from this server)
-# Re-add build deps temporarily for this step
-RUN apk add --no-cache --virtual .sqlsrv-build-deps \
-    $PHPIZE_DEPS \
-    autoconf \
-    g++ \
-    make \
-    unixodbc-dev \
-    && cd /tmp \
-    && curl -L https://github.com/microsoft/msphpsql/archive/refs/tags/v5.12.0.tar.gz -o msphpsql.tar.gz \
-    && tar -xzf msphpsql.tar.gz \
-    && cd msphpsql-5.12.0/source/sqlsrv \
-    && phpize \
-    && ./configure --enable-sqlsrv=shared \
-    && make \
-    && make install \
-    && cd ../pdo_sqlsrv \
-    && phpize \
-    && ./configure --with-php-config=/usr/local/bin/php-config \
-    && make \
-    && make install \
-    && docker-php-ext-enable sqlsrv pdo_sqlsrv \
-    && cd /tmp && rm -rf msphpsql-5.12.0 msphpsql.tar.gz \
-    && apk del .sqlsrv-build-deps
+# Install SQL Server PHP drivers via PECL
+# IMPORTANT: unixODBC must be installed BEFORE this step
+RUN pecl install sqlsrv-5.12.0 pdo_sqlsrv-5.12.0 \
+    && docker-php-ext-enable sqlsrv pdo_sqlsrv
 
-# Clean up build dependencies
-RUN apk del .build-deps \
-    && rm -rf /tmp/pear /tmp/*
+# Clean up (but keep runtime dependencies)
+RUN apk del $PHPIZE_DEPS autoconf g++ make \
+    && rm -rf /tmp/pear /tmp/* /var/cache/apk/*
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Configure Composer for better network reliability
+RUN composer config -g process-timeout 600 \
+    && composer config -g repos.packagist composer https://packagist.org
+
 # Copy application files
 COPY . /var/www
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+# Install dependencies with increased timeout and retry
+RUN COMPOSER_PROCESS_TIMEOUT=600 composer install \
+    --no-dev \
+    --optimize-autoloader \
+    --no-interaction \
+    --prefer-dist \
+    --no-scripts \
+    || (sleep 5 && COMPOSER_PROCESS_TIMEOUT=600 composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts) \
+    && composer run-script post-autoload-dump --no-interaction || true
 
 # Create necessary directories
 RUN mkdir -p /var/www/storage/framework/{sessions,views,cache} \
@@ -96,32 +80,36 @@ RUN chown -R www-data:www-data /var/www \
     && chmod -R 755 /var/www/storage \
     && chmod -R 755 /var/www/bootstrap/cache
 
-# Configure PHP settings for production
+# PHP configuration - Optimized for 8 CPU / 16GB RAM
 RUN { \
-    echo 'memory_limit = 512M'; \
-    echo 'max_execution_time = 180'; \
-    echo 'max_input_time = 180'; \
+    echo 'memory_limit = 1024M'; \
+    echo 'max_execution_time = 300'; \
+    echo 'max_input_time = 300'; \
     echo 'post_max_size = 100M'; \
     echo 'upload_max_filesize = 100M'; \
     echo 'default_socket_timeout = 180'; \
     echo 'opcache.enable = 1'; \
-    echo 'opcache.memory_consumption = 256'; \
-    echo 'opcache.interned_strings_buffer = 16'; \
-    echo 'opcache.max_accelerated_files = 10000'; \
+    echo 'opcache.memory_consumption = 512'; \
+    echo 'opcache.interned_strings_buffer = 32'; \
+    echo 'opcache.max_accelerated_files = 20000'; \
     echo 'opcache.revalidate_freq = 2'; \
     echo 'opcache.fast_shutdown = 1'; \
-    echo 'realpath_cache_size = 4096K'; \
-    echo 'realpath_cache_ttl = 600'; \
+    echo 'opcache.validate_timestamps = 0'; \
+    echo 'realpath_cache_size = 8192K'; \
+    echo 'realpath_cache_ttl = 7200'; \
 } > /usr/local/etc/php/conf.d/custom.ini
 
-# Configure PHP-FPM pool to handle slow SQL queries
+# PHP-FPM configuration - Optimized for 8 CPU / 16GB RAM
+# With 16GB RAM and assuming ~80MB per PHP process, we can handle ~150 processes
+# Reserving ~4GB for other services, we allocate ~12GB for PHP-FPM
 RUN echo "pm = dynamic" >> /usr/local/etc/php-fpm.d/www.conf \
-    && echo "pm.max_children = 50" >> /usr/local/etc/php-fpm.d/www.conf \
-    && echo "pm.start_servers = 10" >> /usr/local/etc/php-fpm.d/www.conf \
-    && echo "pm.min_spare_servers = 5" >> /usr/local/etc/php-fpm.d/www.conf \
-    && echo "pm.max_spare_servers = 20" >> /usr/local/etc/php-fpm.d/www.conf \
-    && echo "pm.max_requests = 500" >> /usr/local/etc/php-fpm.d/www.conf \
-    && echo "request_terminate_timeout = 180" >> /usr/local/etc/php-fpm.d/www.conf
+    && echo "pm.max_children = 150" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.start_servers = 30" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.min_spare_servers = 20" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.max_spare_servers = 50" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.max_requests = 1000" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.process_idle_timeout = 30s" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "request_terminate_timeout = 300" >> /usr/local/etc/php-fpm.d/www.conf
 
 # Expose port 9000 for PHP-FPM
 EXPOSE 9000
