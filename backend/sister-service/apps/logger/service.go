@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"sister-service/internal/config"
 )
 
 type Service interface {
@@ -35,6 +36,14 @@ func (s *service) LogSync(ctx context.Context, req *CreateSyncLogRequest) (*Sync
 	}
 	if req.Status == "" {
 		return nil, fmt.Errorf("status is required")
+	}
+
+	// Set default api_code from config if not provided
+	if req.APICode == "" {
+		req.APICode = config.Cfg.SisterAPI.APICode
+		if req.APICode == "" {
+			req.APICode = "SISTER" // Fallback default
+		}
 	}
 
 	// Validate status value

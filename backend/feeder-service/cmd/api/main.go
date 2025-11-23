@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"github.com/myunila/feeder-service/apps/aktivitas_mahasiswa"
 	"github.com/myunila/feeder-service/apps/apiconfig"
 	"github.com/myunila/feeder-service/apps/logger"
 	"github.com/myunila/feeder-service/apps/mahasiswa"
@@ -123,10 +124,10 @@ func main() {
 	}
 
 	// Initialize Logger service (shared sync logs)
-	loggerRepo := logger.NewRepository(db)
+	loggerRepo := logger.NewRepository(db.DB)
 	loggerService := logger.NewService(loggerRepo)
 	loggerHandler := logger.NewHandler(loggerService)
-	loggerHandler.RegisterRoutes(apiV1)
+	loggerHandler.RegisterRoutes(app)
 	log.Println("✅ Logger service registered (Sync Logs)")
 
 	// Initialize Monitoring service (in-memory sync progress tracking)
@@ -136,6 +137,10 @@ func main() {
 	// Initialize Mahasiswa module (pass logger service for sync logging)
 	mahasiswaService := mahasiswa.Init(apiV1, db, feederAPI, redisClient, loggerService)
 	log.Println("✅ Mahasiswa routes registered")
+
+	// Initialize Aktivitas Mahasiswa module (pass logger service for sync logging)
+	aktivitas_mahasiswa.Init(apiV1, db, feederAPI, redisClient, loggerService)
+	log.Println("✅ Aktivitas Mahasiswa module initialized")
 
 	// Initialize Scheduler service (for scheduled mahasiswa syncs)
 	schedulerRepo := scheduler.NewRepository(db)
@@ -159,13 +164,14 @@ func main() {
 			"version": "1.0.0",
 			"message": "Feeder Service - Data Synchronization from Neo Feeder PDDIKTI",
 			"endpoints": fiber.Map{
-				"health":     "/health",
-				"api":        "/api/v1",
-				"mahasiswa":  "/api/v1/mahasiswa",
-				"schedules":  "/api/v1/schedules",
-				"sync_logs":  "/api/v1/sync-logs",
-				"monitoring": "/api/v1/monitoring/active",
-				"apiconfig":  "/apiconfig",
+				"health":              "/health",
+				"api":                 "/api/v1",
+				"mahasiswa":           "/api/v1/mahasiswa",
+				"aktivitas_mahasiswa": "/api/v1/aktivitas-mahasiswa",
+				"schedules":           "/api/v1/schedules",
+				"sync_logs":           "/api/v1/sync-logs",
+				"monitoring":          "/api/v1/monitoring/active",
+				"apiconfig":           "/apiconfig",
 			},
 		})
 	})

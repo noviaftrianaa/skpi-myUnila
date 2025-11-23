@@ -9,6 +9,7 @@ type SyncLog struct {
 	EndpointKey  string     `json:"endpoint_key" db:"endpoint_key"`
 	SyncType     string     `json:"sync_type" db:"sync_type"` // 'manual', 'batch', 'scheduled'
 	Status       string     `json:"status" db:"status"`       // 'success', 'failed', 'partial'
+	APICode      string     `json:"api_code" db:"api_code"`   // API source identifier (SISTER, NEO_FEEDER)
 
 	// Record counts
 	TotalRecords  int `json:"total_records" db:"total_records"`
@@ -35,6 +36,7 @@ type CreateSyncLogRequest struct {
 	EndpointKey   string  `json:"endpoint_key" validate:"required"`
 	SyncType      string  `json:"sync_type" validate:"required,oneof=manual batch scheduled"`
 	Status        string  `json:"status" validate:"required,oneof=success failed partial"`
+	APICode       string  `json:"api_code"` // API source identifier (auto-filled from config if empty)
 	TotalRecords  int     `json:"total_records"`
 	InsertedCount int     `json:"inserted_count"`
 	UpdatedCount  int     `json:"updated_count"`
@@ -52,6 +54,7 @@ type SyncLogFilter struct {
 	EndpointKey  *string    `json:"endpoint_key,omitempty"`
 	Status       *string    `json:"status,omitempty"`
 	SyncType     *string    `json:"sync_type,omitempty"`
+	APICode      *string    `json:"api_code,omitempty"` // Filter by API source
 	DateFrom     *time.Time `json:"date_from,omitempty"`
 	DateTo       *time.Time `json:"date_to,omitempty"`
 	Limit        int        `json:"limit"`

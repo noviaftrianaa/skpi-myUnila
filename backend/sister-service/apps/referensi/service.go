@@ -2173,6 +2173,14 @@ func (s *service) SyncUnitKerjaFromSister(idPerguruanTinggi string, syncedBy str
 	duration := time.Since(startTime)
 	log.Printf("✅ Batch sync completed: %d success, %d failed in %s", successCount, failedCount, duration)
 
+	// Post-processing: Update id_fak_unila untuk semua Jurusan dan Prodi
+	log.Printf("🔄 Post-processing: Updating id_fak_unila for all units...")
+	if err := s.repo.UpdateFakultasHierarchy(); err != nil {
+		log.Printf("⚠️  Warning: Failed to update fakultas hierarchy: %v", err)
+	} else {
+		log.Printf("✅ Fakultas hierarchy updated successfully")
+	}
+
 	totalRecords = successCount
 
 	return &BatchUnitKerjaSyncResult{
@@ -2315,29 +2323,51 @@ func (s *service) transformToUnitKerja(detail SisterUnitKerjaDetail, idPerguruan
 	// Build hierarki berdasarkan id_induk_unit dan id_jenis_unit
 	var idFakultasUnila, idJurusanUnila *string
 
-	if detail.IDIndukUnit != nil && *detail.IDIndukUnit != "" {
-		// Ada induk, cek jenis induknya
-		jenisInduk, err := s.repo.GetUnitKerjaJenisUnit(*detail.IDIndukUnit)
-		if err == nil && jenisInduk != nil {
-			switch *jenisInduk {
-			case 1: // Induk adalah Fakultas
-				// Validate UUID before assignment
-				if *detail.IDIndukUnit != "" {
-					idFakultasUnila = detail.IDIndukUnit
-				}
-			case 2: // Induk adalah Jurusan
-				// Validate UUID before assignment
-				if *detail.IDIndukUnit != "" {
-					idJurusanUnila = detail.IDIndukUnit
-				}
+	// Logic berbeda berdasarkan jenis unit SAAT INI (bukan jenis induk)
+	switch detail.IDJenisUnit {
 
-				// Cari fakultas dari jurusan
-				jurusan, err := s.repo.GetUnitKerjaByID(*detail.IDIndukUnit)
-				if err == nil && jurusan != nil && jurusan.IDFakultasUnila != nil && *jurusan.IDFakultasUnila != "" {
-					idFakultasUnila = jurusan.IDFakultasUnila
+	case 1: // FAKULTAS - tidak punya induk, tidak perlu id_fak_unila & id_jur_unila
+		// idFakultasUnila = nil
+		// idJurusanUnila = nil
+
+	case 2: // JURUSAN - induknya pasti Fakultas
+		if detail.IDIndukUnit != nil && *detail.IDIndukUnit != "" {
+			// Induk jurusan PASTI fakultas
+			idFakultasUnila = detail.IDIndukUnit
+		}
+
+	case 3: // PROGRAM STUDI - induknya bisa Fakultas atau Jurusan
+		if detail.IDIndukUnit != nil && *detail.IDIndukUnit != "" {
+			// Cek jenis induknya
+			jenisInduk, err := s.repo.GetUnitKerjaJenisUnit(*detail.IDIndukUnit)
+			if err == nil && jenisInduk != nil {
+				switch *jenisInduk {
+				case 1: // Induk langsung Fakultas (Prodi -> Fakultas)
+					idFakultasUnila = detail.IDIndukUnit
+
+				case 2: // Induk adalah Jurusan (Prodi -> Jurusan -> Fakultas)
+					idJurusanUnila = detail.IDIndukUnit
+
+					// Cari fakultas dari jurusan
+					jurusan, err := s.repo.GetUnitKerjaByID(*detail.IDIndukUnit)
+					if err == nil && jurusan != nil {
+						// Prioritas 1: Ambil dari id_fak_unila jurusan jika ada
+						if jurusan.IDFakultasUnila != nil && *jurusan.IDFakultasUnila != "" {
+							idFakultasUnila = jurusan.IDFakultasUnila
+						} else if jurusan.IDIndukSMS != nil && *jurusan.IDIndukSMS != "" {
+							// Prioritas 2: Jika jurusan belum punya id_fak_unila, ambil dari id_induk_sms jurusan
+							// (karena induk jurusan pasti fakultas)
+							idFakultasUnila = jurusan.IDIndukSMS
+						}
+					}
 				}
 			}
 		}
+
+	default: // Unit lain (4-8): Lab, UPT, MKU, Rektorat, Unit Kerja
+		// Tidak perlu id_fak_unila dan id_jur_unila
+		// idFakultasUnila = nil
+		// idJurusanUnila = nil
 	}
 
 	// Validate kode_prodi and status_prodi - handle NULL/empty/undefined
@@ -2355,29 +2385,34 @@ func (s *service) transformToUnitKerja(detail SisterUnitKerjaDetail, idPerguruan
 		skPenyelenggara = &detail.SKPenyelenggara
 	}
 
-	// Normalize and validate UUID fields - handle binary UUIDs and empty strings
+	// UUID dari Sister API sudah dalam format string yang benar
+	// Tidak perlu normalisasi karena bisa menyebabkan byte order terbalik
+	// Langsung gunakan nilai dari Sister API
+	// PENTING: Validasi UUID - pastikan tidak ada string kosong, "null", atau "undefined"
 	var idIndukSMS *string
-	if detail.IDIndukUnit != nil && *detail.IDIndukUnit != "" {
-		normalized := normalizeBinaryUUID(*detail.IDIndukUnit)
-		if normalized != "" {
-			idIndukSMS = &normalized
+	if detail.IDIndukUnit != nil && *detail.IDIndukUnit != "" &&
+	   *detail.IDIndukUnit != "null" && *detail.IDIndukUnit != "undefined" {
+		trimmed := strings.TrimSpace(*detail.IDIndukUnit)
+		if trimmed != "" {
+			idIndukSMS = &trimmed
 		}
 	}
 
-	// Normalize other UUID fields to prevent conversion errors from binary UUIDs
 	var validIDFakultasUnila *string
-	if idFakultasUnila != nil && *idFakultasUnila != "" {
-		normalized := normalizeBinaryUUID(*idFakultasUnila)
-		if normalized != "" {
-			validIDFakultasUnila = &normalized
+	if idFakultasUnila != nil && *idFakultasUnila != "" &&
+	   *idFakultasUnila != "null" && *idFakultasUnila != "undefined" {
+		trimmed := strings.TrimSpace(*idFakultasUnila)
+		if trimmed != "" {
+			validIDFakultasUnila = &trimmed
 		}
 	}
 
 	var validIDJurusanUnila *string
-	if idJurusanUnila != nil && *idJurusanUnila != "" {
-		normalized := normalizeBinaryUUID(*idJurusanUnila)
-		if normalized != "" {
-			validIDJurusanUnila = &normalized
+	if idJurusanUnila != nil && *idJurusanUnila != "" &&
+	   *idJurusanUnila != "null" && *idJurusanUnila != "undefined" {
+		trimmed := strings.TrimSpace(*idJurusanUnila)
+		if trimmed != "" {
+			validIDJurusanUnila = &trimmed
 		}
 	}
 

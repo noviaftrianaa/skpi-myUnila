@@ -1,6 +1,10 @@
 package publikasi
 
-import "time"
+import (
+	"encoding/json"
+	"strconv"
+	"time"
+)
 
 // Publikasi represents a publication record from SISTER
 type Publikasi struct {
@@ -66,17 +70,61 @@ type TulisPub struct {
 
 // Sister API response structures
 
+// NullableIntString is a custom type to handle int fields that come as strings from API
+// Handles: "3" -> 3, "" -> nil, null -> nil
+type NullableIntString struct {
+	Value *int
+}
+
+// UnmarshalJSON implements custom JSON unmarshaling for NullableIntString
+func (n *NullableIntString) UnmarshalJSON(data []byte) error {
+	// Handle null
+	if string(data) == "null" {
+		n.Value = nil
+		return nil
+	}
+
+	// Try to unmarshal as string first
+	var strValue string
+	if err := json.Unmarshal(data, &strValue); err == nil {
+		// Empty string = nil
+		if strValue == "" {
+			n.Value = nil
+			return nil
+		}
+		// Parse string to int
+		intValue, err := strconv.Atoi(strValue)
+		if err != nil {
+			n.Value = nil
+			return nil // Ignore parse errors, treat as nil
+		}
+		n.Value = &intValue
+		return nil
+	}
+
+	// Try to unmarshal as int directly
+	var intValue int
+	if err := json.Unmarshal(data, &intValue); err == nil {
+		n.Value = &intValue
+		return nil
+	}
+
+	// Default to nil
+	n.Value = nil
+	return nil
+}
+
 // SisterPublikasiListItem represents a publikasi item from Sister API list endpoint
 type SisterPublikasiListItem struct {
-	IDKategoriKegiatan int      `json:"id_kategori_kegiatan"`
-	ID                 string   `json:"id"`
-	Judul              string   `json:"judul"`
-	Quartile           *int     `json:"quartile"`
-	JenisPublikasi     string   `json:"jenis_publikasi"`
-	Tanggal            *string  `json:"tanggal"`
-	KategoriKegiatan   string   `json:"kategori_kegiatan"`
-	AsalData           string   `json:"asal_data"`
-	BidangKeilmuan     []string `json:"bidang_keilmuan"`
+	IDKategoriKegiatan int                `json:"id_kategori_kegiatan"`
+	ID                 string             `json:"id"`
+	Judul              string             `json:"judul"`
+	Quartile           NullableIntString  `json:"quartile"`
+	JenisPublikasi     string             `json:"jenis_publikasi"`
+	Tanggal            *string            `json:"tanggal"`
+	KategoriKegiatan   string             `json:"kategori_kegiatan"`
+	AsalData           string             `json:"asal_data"`
+	BidangKeilmuan     []string           `json:"bidang_keilmuan"`
 }
 
 // SisterPublikasiDetail represents detailed publikasi data from Sister API
@@ -106,7 +154,7 @@ type SisterPublikasiDetail struct {
 	Keterangan                *string                   `json:"keterangan"`
 	IDLitabmas                *string                   `json:"id_litabmas"`
 	IDKategoriCapaianLuaran   int                       `json:"id_kategori_capaian_luaran"`
-	Quartile                  int                       `json:"quartile"`
+	Quartile                  NullableIntString         `json:"quartile"`
 	KategoriKegiatan          string                    `json:"kategori_kegiatan"`
 	JenisPublikasi            string                    `json:"jenis_publikasi"`
 	IDKategoriKegiatan        int                       `json:"id_kategori_kegiatan"`

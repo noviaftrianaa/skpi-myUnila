@@ -103,6 +103,7 @@ type Repository interface {
 	UpsertUnitKerja(unitKerja *UnitKerja) error
 	GetUnitKerjaJenisUnit(idSMS string) (*int, error)
 	LookupJenjangPendidikan(namaUnit, gelarLulusan string) (*int, error)
+	UpdateFakultasHierarchy() error
 }
 
 type repository struct {
@@ -1935,4 +1936,66 @@ func (r *repository) LookupJenjangPendidikan(namaUnit, gelarLulusan string) (*in
 	}
 
 	return &idJenjang, nil
+}
+
+// UpdateFakultasHierarchy updates id_fak_unila for all Jurusan and Prodi
+// This is a post-processing step after sync to ensure all units have correct fakultas reference
+func (r *repository) UpdateFakultasHierarchy() error {
+	// Step 1: Update Jurusan (id_jns_sms = 2)
+	// Set id_fak_unila = id_induk_sms (karena induk jurusan pasti fakultas)
+	queryJurusan := `
+		UPDATE pdrd.sms
+		SET id_fak_unila = id_induk_sms
+		WHERE id_jns_sms = 2
+		  AND id_induk_sms IS NOT NULL
+		  AND soft_delete = 0
+	`
+
+	_, err := r.db.Exec(queryJurusan)
+	if err != nil {
+		return fmt.Errorf("failed to update jurusan fakultas: %w", err)
+	}
+
+	// Step 2: Update Prodi yang induknya langsung Fakultas (id_jns_sms = 3)
+	queryProdiLangsung := `
+		UPDATE pdrd.sms
+		SET id_fak_unila = id_induk_sms
+		WHERE id_jns_sms = 3
+		  AND id_induk_sms IS NOT NULL
+		  AND soft_delete = 0
+		  AND EXISTS (
+			  SELECT 1 FROM pdrd.sms AS parent
+			  WHERE parent.id_sms = pdrd.sms.id_induk_sms
+			    AND parent.id_jns_sms = 1
+			    AND parent.soft_delete = 0
+		  )
+	`
+
+	_, err = r.db.Exec(queryProdiLangsung)
+	if err != nil {
+		return fmt.Errorf("failed to update prodi with fakultas parent: %w", err)
+	}
+
+	// Step 3: Update Prodi yang induknya Jurusan (trace ke fakultas)
+	queryProdiViaJurusan := `
+		UPDATE prodi
+		SET prodi.id_fak_unila = jurusan.id_fak_unila,
+		    prodi.id_jur_unila = prodi.id_induk_sms
+		FROM pdrd.sms AS prodi
+		INNER JOIN pdrd.sms AS jurusan
+		  ON jurusan.id_sms = prodi.id_induk_sms
+		  AND jurusan.id_jns_sms = 2
+		  AND jurusan.soft_delete = 0
+		WHERE prodi.id_jns_sms = 3
+		  AND prodi.id_induk_sms IS NOT NULL
+		  AND prodi.soft_delete = 0
+		  AND jurusan.id_fak_unila IS NOT NULL
+	`
+
+	_, err = r.db.Exec(queryProdiViaJurusan)
+	if err != nil {
+		return fmt.Errorf("failed to update prodi with jurusan parent: %w", err)
+	}
+
+	return nil
 }

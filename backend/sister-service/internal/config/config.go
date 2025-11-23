@@ -43,6 +43,7 @@ type SisterAPIConfig struct {
 	IDPengguna string
 	Username   string
 	Password   string
+	APICode    string // API code identifier for logging (e.g., "SISTER")
 }
 
 var Cfg Config
@@ -79,6 +80,7 @@ func LoadConfig() error {
 			IDPengguna: getEnv("SISTER_API_IDPENGGUNA", ""),
 			Username:   getEnv("SISTER_API_USERNAME", ""),
 			Password:   getEnv("SISTER_API_PASSWORD", ""),
+			APICode:    getEnv("SISTER_API_CODE", "SISTER"), // Default to SISTER
 		},
 		EncryptionKey: getEnv("API_CONFIG_ENCRYPTION_KEY", ""),
 	}
