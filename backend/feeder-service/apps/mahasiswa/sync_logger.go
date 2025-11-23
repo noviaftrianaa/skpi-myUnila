@@ -61,6 +61,7 @@ func (s *service) logSyncResult(ctx context.Context, filter *SyncFilter, syncedB
 	}
 
 	// Create log request
+	// Note: APICode is auto-filled by logger service from config
 	logReq := &logger.CreateSyncLogRequest{
 		EndpointName:  endpointName,
 		EndpointKey:   "mahasiswa",

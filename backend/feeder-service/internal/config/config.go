@@ -39,6 +39,7 @@ type FeederAPIConfig struct {
 	BaseURL  string
 	Username string
 	Password string
+	APICode  string // API code identifier for logging (e.g., "NEO_FEEDER")
 }
 
 var Cfg *Config
@@ -63,7 +64,7 @@ func LoadConfig() error {
 			Driver:                 getEnv("DB_DRIVER", "sqlserver"),
 			Host:                   getEnv("DB_HOST", "localhost"),
 			Port:                   getEnv("DB_PORT", "1433"),
-			Database:               getEnv("DB_DATABASE", "pdut_dev"),
+			Database:               getEnv("DB_DATABASE", "pdut"),
 			Username:               getEnv("DB_USERNAME", "sa"),
 			Password:               getEnv("DB_PASSWORD", ""),
 			TrustServerCertificate: getEnv("DB_TRUST_SERVER_CERTIFICATE", "true") == "true",
@@ -75,6 +76,7 @@ func LoadConfig() error {
 			BaseURL:  getEnv("FEEDER_API_BASE_URL", ""),
 			Username: getEnv("FEEDER_API_USERNAME", ""),
 			Password: getEnv("FEEDER_API_PASSWORD", ""),
+			APICode:  getEnv("FEEDER_API_CODE", "FEEDER"), // Default to FEEDER
 		},
 		EncryptionKey: getEnv("API_CONFIG_ENCRYPTION_KEY", ""),
 	}

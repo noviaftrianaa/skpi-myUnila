@@ -231,11 +231,9 @@ func (s *service) transformToPublikasi(detail *SisterPublikasiDetail) Publikasi 
 		jmlHal = &detail.JumlahHalaman
 	}
 
-	// Handle quartile (0 means NULL)
-	var quartile *int
-	if detail.Quartile > 0 {
-		quartile = &detail.Quartile
-	}
+	// Handle quartile (comes from Sister API as string, could be "", "3", etc.)
+	// NullableIntString already handles conversion, just use the Value
+	quartile := detail.Quartile.Value
 
 	// Handle id_kat_capaian (0 means NULL)
 	var idKatCapaian *int

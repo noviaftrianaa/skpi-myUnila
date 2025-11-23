@@ -11,6 +11,7 @@ export interface SyncLog {
   endpoint_key: string;
   sync_type: "manual" | "batch" | "scheduled";
   status: "success" | "failed" | "partial";
+  api_code: string; // API source identifier (SISTER)
   total_records: number;
   inserted_count: number;
   updated_count: number;
@@ -45,10 +46,14 @@ export interface SyncLogResponse {
 export const syncLogsService = {
   /**
    * Get sync logs with filtering and pagination
+   * Always filters by api_code=SISTER to only show Sister logs
    */
   async getSyncLogs(filter?: SyncLogFilter): Promise<SyncLogResponse> {
     try {
-      const params: Record<string, string> = {};
+      const params: Record<string, string> = {
+        // IMPORTANT: Always filter by SISTER to only show sister logs
+        api_code: 'SISTER'
+      };
 
       if (filter?.search) params.search = filter.search;
       if (filter?.endpoint_key) params.endpoint_key = filter.endpoint_key;
@@ -59,7 +64,7 @@ export const syncLogsService = {
       if (filter?.page) params.page = filter.page.toString();
       if (filter?.limit) params.limit = filter.limit.toString();
 
-      const response = await sisterClient.get<SyncLogResponse>('/sync-logs', { params });
+      const response = await sisterClient.get<SyncLogResponse>('/logs/sync', { params });
       return response.data;
     } catch (error) {
       console.error("Error fetching sync logs:", error);
@@ -72,7 +77,7 @@ export const syncLogsService = {
    */
   async getSyncLogById(id: number): Promise<SyncLog> {
     try {
-      const response = await sisterClient.get<SyncLog>(`/sync-logs/${id}`);
+      const response = await sisterClient.get<SyncLog>(`/logs/sync/${id}`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching sync log #${id}:`, error);
@@ -85,7 +90,7 @@ export const syncLogsService = {
    */
   async getRecentSyncLogs(limit: number = 10): Promise<SyncLog[]> {
     try {
-      const response = await sisterClient.get<SyncLogResponse>('/sync-logs', {
+      const response = await sisterClient.get<SyncLogResponse>('/logs/sync', {
         params: { limit: limit.toString() }
       });
 

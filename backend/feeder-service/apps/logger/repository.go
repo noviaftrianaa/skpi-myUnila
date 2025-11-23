@@ -2,10 +2,10 @@ package logger
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"strings"
-
-	"github.com/jmoiron/sqlx"
+	"time"
 )
 
 type Repository interface {
@@ -16,10 +16,10 @@ type Repository interface {
 }
 
 type repository struct {
-	db *sqlx.DB
+	db *sql.DB
 }
 
-func NewRepository(db *sqlx.DB) Repository {
+func NewRepository(db *sql.DB) Repository {
 	return &repository{db: db}
 }
 
@@ -27,16 +27,16 @@ func NewRepository(db *sqlx.DB) Repository {
 func (r *repository) CreateSyncLog(ctx context.Context, req *CreateSyncLogRequest) (*SyncLog, error) {
 	query := `
 		INSERT INTO logger.sync_logs (
-			endpoint_name, endpoint_key, sync_type, status,
+			endpoint_name, endpoint_key, sync_type, status, api_code,
 			total_records, inserted_count, updated_count, failed_count, skipped_count,
 			duration_ms, error_message, error_details, synced_by, synced_at
 		)
-		OUTPUT INSERTED.id, INSERTED.endpoint_name, INSERTED.endpoint_key, INSERTED.sync_type, INSERTED.status,
+		OUTPUT INSERTED.id, INSERTED.endpoint_name, INSERTED.endpoint_key, INSERTED.sync_type, INSERTED.status, INSERTED.api_code,
 		       INSERTED.total_records, INSERTED.inserted_count, INSERTED.updated_count,
 		       INSERTED.failed_count, INSERTED.skipped_count, INSERTED.duration_ms,
 		       INSERTED.error_message, INSERTED.error_details, INSERTED.synced_by, INSERTED.synced_at
 		VALUES (
-			@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13,
+			@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14,
 			DATEADD(HOUR, 7, GETUTCDATE())
 		)
 	`
@@ -48,6 +48,7 @@ func (r *repository) CreateSyncLog(ctx context.Context, req *CreateSyncLogReques
 		req.EndpointKey,
 		req.SyncType,
 		req.Status,
+		req.APICode, // Add api_code parameter
 		req.TotalRecords,
 		req.InsertedCount,
 		req.UpdatedCount,
@@ -63,6 +64,7 @@ func (r *repository) CreateSyncLog(ctx context.Context, req *CreateSyncLogReques
 		&log.EndpointKey,
 		&log.SyncType,
 		&log.Status,
+		&log.APICode, // Scan api_code
 		&log.TotalRecords,
 		&log.InsertedCount,
 		&log.UpdatedCount,
@@ -78,6 +80,9 @@ func (r *repository) CreateSyncLog(ctx context.Context, req *CreateSyncLogReques
 	if err != nil {
 		return nil, fmt.Errorf("failed to create sync log: %w", err)
 	}
+
+	// Convert timestamp to WIB timezone (database stores as DATETIME2 without timezone info)
+	log.SyncedAt = log.SyncedAt.In(time.FixedZone("WIB", 7*60*60))
 
 	return &log, nil
 }
@@ -110,6 +115,12 @@ func (r *repository) GetSyncLogs(ctx context.Context, filter *SyncLogFilter) ([]
 	if filter.SyncType != nil {
 		conditions = append(conditions, fmt.Sprintf("sync_type = @p%d", argIndex))
 		args = append(args, *filter.SyncType)
+		argIndex++
+	}
+
+	if filter.APICode != nil {
+		conditions = append(conditions, fmt.Sprintf("api_code = @p%d", argIndex))
+		args = append(args, *filter.APICode)
 		argIndex++
 	}
 
@@ -150,7 +161,7 @@ func (r *repository) GetSyncLogs(ctx context.Context, filter *SyncLogFilter) ([]
 
 	query := fmt.Sprintf(`
 		SELECT
-			id, endpoint_name, endpoint_key, sync_type, status,
+			id, endpoint_name, endpoint_key, sync_type, status, api_code,
 			total_records, inserted_count, updated_count, failed_count, skipped_count,
 			duration_ms, error_message, error_details, synced_by, synced_at
 		FROM logger.sync_logs
@@ -177,6 +188,7 @@ func (r *repository) GetSyncLogs(ctx context.Context, filter *SyncLogFilter) ([]
 			&log.EndpointKey,
 			&log.SyncType,
 			&log.Status,
+			&log.APICode, // Add api_code scan
 			&log.TotalRecords,
 			&log.InsertedCount,
 			&log.UpdatedCount,
@@ -191,6 +203,8 @@ func (r *repository) GetSyncLogs(ctx context.Context, filter *SyncLogFilter) ([]
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to scan sync log: %w", err)
 		}
+		// Convert timestamp to WIB timezone
+		log.SyncedAt = log.SyncedAt.In(time.FixedZone("WIB", 7*60*60))
 		logs = append(logs, log)
 	}
 
@@ -205,7 +219,7 @@ func (r *repository) GetSyncLogs(ctx context.Context, filter *SyncLogFilter) ([]
 func (r *repository) GetSyncLogByID(ctx context.Context, id int64) (*SyncLog, error) {
 	query := `
 		SELECT
-			id, endpoint_name, endpoint_key, sync_type, status,
+			id, endpoint_name, endpoint_key, sync_type, status, api_code,
 			total_records, inserted_count, updated_count, failed_count, skipped_count,
 			duration_ms, error_message, error_details, synced_by, synced_at
 		FROM logger.sync_logs
@@ -219,6 +233,7 @@ func (r *repository) GetSyncLogByID(ctx context.Context, id int64) (*SyncLog, er
 		&log.EndpointKey,
 		&log.SyncType,
 		&log.Status,
+		&log.APICode, // Add api_code scan
 		&log.TotalRecords,
 		&log.InsertedCount,
 		&log.UpdatedCount,
@@ -231,9 +246,15 @@ func (r *repository) GetSyncLogByID(ctx context.Context, id int64) (*SyncLog, er
 		&log.SyncedAt,
 	)
 
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to get sync log: %w", err)
 	}
+
+	// Convert timestamp to WIB timezone
+	log.SyncedAt = log.SyncedAt.In(time.FixedZone("WIB", 7*60*60))
 
 	return &log, nil
 }
@@ -246,7 +267,7 @@ func (r *repository) GetRecentSyncLogs(ctx context.Context, limit int) ([]SyncLo
 
 	query := `
 		SELECT TOP (@p1)
-			id, endpoint_name, endpoint_key, sync_type, status,
+			id, endpoint_name, endpoint_key, sync_type, status, api_code,
 			total_records, inserted_count, updated_count, failed_count, skipped_count,
 			duration_ms, error_message, error_details, synced_by, synced_at
 		FROM logger.sync_logs
@@ -268,6 +289,7 @@ func (r *repository) GetRecentSyncLogs(ctx context.Context, limit int) ([]SyncLo
 			&log.EndpointKey,
 			&log.SyncType,
 			&log.Status,
+			&log.APICode, // Add api_code scan
 			&log.TotalRecords,
 			&log.InsertedCount,
 			&log.UpdatedCount,
@@ -282,6 +304,8 @@ func (r *repository) GetRecentSyncLogs(ctx context.Context, limit int) ([]SyncLo
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan sync log: %w", err)
 		}
+		// Convert timestamp to WIB timezone
+		log.SyncedAt = log.SyncedAt.In(time.FixedZone("WIB", 7*60*60))
 		logs = append(logs, log)
 	}
 

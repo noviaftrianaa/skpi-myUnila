@@ -25,6 +25,7 @@ func NewHandler(service Service) *Handler {
 // @Param endpoint_key query string false "Filter by endpoint key"
 // @Param status query string false "Filter by status (success, failed, partial)"
 // @Param sync_type query string false "Filter by sync type (manual, batch, scheduled)"
+// @Param api_code query string false "Filter by API source (SISTER, FEEDER)"
 // @Param date_from query string false "Filter from date (RFC3339 format)"
 // @Param date_to query string false "Filter to date (RFC3339 format)"
 // @Param page query int false "Page number (default: 1)"
@@ -32,7 +33,7 @@ func NewHandler(service Service) *Handler {
 // @Success 200 {object} SyncLogResponse
 // @Failure 400 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
-// @Router /api/v1/sync-logs [get]
+// @Router /api/v1/logs/sync [get]
 func (h *Handler) GetSyncLogs(c *fiber.Ctx) error {
 	filter := &SyncLogFilter{}
 
@@ -51,6 +52,10 @@ func (h *Handler) GetSyncLogs(c *fiber.Ctx) error {
 
 	if syncType := c.Query("sync_type"); syncType != "" {
 		filter.SyncType = &syncType
+	}
+
+	if apiCode := c.Query("api_code"); apiCode != "" {
+		filter.APICode = &apiCode
 	}
 
 	if dateFromStr := c.Query("date_from"); dateFromStr != "" {
@@ -115,7 +120,7 @@ func (h *Handler) GetSyncLogs(c *fiber.Ctx) error {
 // @Failure 400 {object} map[string]interface{}
 // @Failure 404 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
-// @Router /api/v1/sync-logs/{id} [get]
+// @Router /api/v1/logs/sync/{id} [get]
 func (h *Handler) GetSyncLogByID(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
@@ -152,7 +157,7 @@ func (h *Handler) GetSyncLogByID(c *fiber.Ctx) error {
 // @Param limit query int false "Number of logs to retrieve (default: 10, max: 100)"
 // @Success 200 {array} SyncLog
 // @Failure 500 {object} map[string]interface{}
-// @Router /api/v1/sync-logs/recent [get]
+// @Router /api/v1/logs/sync/recent [get]
 func (h *Handler) GetRecentSyncLogs(c *fiber.Ctx) error {
 	limit := c.QueryInt("limit", 10)
 	if limit < 1 {
@@ -174,8 +179,10 @@ func (h *Handler) GetRecentSyncLogs(c *fiber.Ctx) error {
 }
 
 // RegisterRoutes registers all sync log routes
-func (h *Handler) RegisterRoutes(router fiber.Router) {
-	router.Get("/sync-logs", h.GetSyncLogs)
-	router.Get("/sync-logs/recent", h.GetRecentSyncLogs)
-	router.Get("/sync-logs/:id", h.GetSyncLogByID)
+func (h *Handler) RegisterRoutes(app *fiber.App) {
+	api := app.Group("/api/v1/logs")
+
+	api.Get("/sync", h.GetSyncLogs)
+	api.Get("/sync/recent", h.GetRecentSyncLogs)
+	api.Get("/sync/:id", h.GetSyncLogByID)
 }

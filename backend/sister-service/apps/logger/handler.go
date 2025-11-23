@@ -25,6 +25,7 @@ func NewHandler(service Service) *Handler {
 // @Param endpoint_key query string false "Filter by endpoint key"
 // @Param status query string false "Filter by status (success, failed, partial)"
 // @Param sync_type query string false "Filter by sync type (manual, batch, scheduled)"
+// @Param api_code query string false "Filter by API source (SISTER, NEO_FEEDER)"
 // @Param date_from query string false "Filter from date (RFC3339 format)"
 // @Param date_to query string false "Filter to date (RFC3339 format)"
 // @Param page query int false "Page number (default: 1)"
@@ -51,6 +52,10 @@ func (h *Handler) GetSyncLogs(c *fiber.Ctx) error {
 
 	if syncType := c.Query("sync_type"); syncType != "" {
 		filter.SyncType = &syncType
+	}
+
+	if apiCode := c.Query("api_code"); apiCode != "" {
+		filter.APICode = &apiCode
 	}
 
 	if dateFromStr := c.Query("date_from"); dateFromStr != "" {
