@@ -11,7 +11,7 @@ import {
 } from "react-icons/fi";
 import { HiAcademicCap } from "react-icons/hi";
 import { MdSchool, MdWork, MdScience } from "react-icons/md";
-import { dosenService, type DosenProfile } from "@/lib/services/dosenService";
+import { dosenService, type DosenProfile } from "@/lib/services/public/dosenService";
 
 const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL
   ? `${process.env.NEXT_PUBLIC_DASHBOARD_API_URL}/public/api/v1`

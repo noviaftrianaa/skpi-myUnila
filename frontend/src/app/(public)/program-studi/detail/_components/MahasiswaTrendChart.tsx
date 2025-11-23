@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { dashboardService } from '@/lib/services/dashboardService';
+import { dashboardService } from '@/lib/services/public/dashboardService';
 import type { MahasiswaTrendItem } from '@/lib/types/dashboardTypes';
 
 interface MahasiswaTrendChartProps {

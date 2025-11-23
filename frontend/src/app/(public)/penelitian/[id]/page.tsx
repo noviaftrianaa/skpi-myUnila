@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FiFileText, FiUsers, FiBarChart2, FiAward, FiExternalLink, FiCalendar, FiDollarSign, FiTag } from "react-icons/fi";
 import { HiAcademicCap } from "react-icons/hi";
 import { FaMale, FaFemale } from "react-icons/fa";
-import { sisterPenelitianService, type PenelitianDetail } from "@/lib/services/penelitianService";
+import { sisterPenelitianService, type PenelitianDetail } from "@/lib/services/public/penelitianService";
 
 type TabType = 'overview' | 'anggota-tim' | 'publikasi' | 'luaran-lainnya' | 'mahasiswa';
 

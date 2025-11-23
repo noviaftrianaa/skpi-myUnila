@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { getBidangIlmuDetail, type BidangIlmuDetail, type DosenItem } from '@/lib/services/bidangIlmuService';
+import { getBidangIlmuDetail, type BidangIlmuDetail, type DosenItem } from '@/lib/services/public/bidangIlmuService';
 import {
   FiUsers,
   FiBook,

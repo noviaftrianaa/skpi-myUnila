@@ -31,7 +31,7 @@ import {
 import { MdSync, MdCloudDone } from "react-icons/md";
 import { RiGovernmentFill } from "react-icons/ri";
 import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
-import { agamaService, type AgamaData } from "@/lib/services/sisterService";
+import { agamaService, type AgamaData } from "@/lib/services/sister/referensi/sisterService";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
 

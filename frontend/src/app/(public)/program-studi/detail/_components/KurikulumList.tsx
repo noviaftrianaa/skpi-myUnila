@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { FaBook } from 'react-icons/fa';
-import { dashboardService } from '@/lib/services/dashboardService';
+import { dashboardService } from '@/lib/services/public/dashboardService';
 import type { Kurikulum, SemesterMataKuliah } from '@/lib/types/dashboardTypes';
 
 interface KurikulumListProps {

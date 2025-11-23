@@ -29,7 +29,7 @@ import {
 import { MdSync, MdCloudDone } from "react-icons/md";
 import { RiGovernmentFill } from "react-icons/ri";
 import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
-import { unitKerjaService, type UnitKerjaData } from "@/lib/services/sisterService";
+import { unitKerjaService, type UnitKerjaData } from "@/lib/services/sister/referensi/sisterService";
 import { toast } from "react-hot-toast";
 
 // UNILA ID Perguruan Tinggi (from Sister API)

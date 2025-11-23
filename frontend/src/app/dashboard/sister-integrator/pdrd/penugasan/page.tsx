@@ -27,9 +27,9 @@ import {
 import { MdSync } from "react-icons/md";
 import { RiGovernmentFill } from "react-icons/ri";
 import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
-import { sisterPenugasanService, type PenugasanStats } from "@/lib/services/penugasanService";
+import { sisterPenugasanService, type PenugasanStats } from "@/lib/services/sister/pdrd/penugasanService";
 import { toast } from "react-hot-toast";
-import ScheduleList from "@/components/sister-integrator/ScheduleList";
+import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
 
 export default function PenugasanManagementPage() {
   useRequireAuth();

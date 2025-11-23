@@ -25,9 +25,9 @@ import { BsCloudUpload } from "react-icons/bs";
 import { RiGovernmentFill } from "react-icons/ri";
 import { sisterIntegratorMenuConfig } from "./config/menuConfig";
 import Link from "next/link";
-import { referensiService, type ReferensiMetadata } from "@/lib/services/referensiService";
-import { syncLogsService, type SyncLog } from "@/lib/services/syncLogsService";
-import { sisterDosenService } from "@/lib/services/dosenService";
+import { referensiService, type ReferensiMetadata } from "@/lib/services/sister/referensi/referensiService";
+import { syncLogsService, type SyncLog } from "@/lib/services/sister/management/syncLogsService";
+import { sisterDosenService } from "@/lib/services/sister/pdrd/dosenService";
 import { toast } from "react-hot-toast";
 
 interface DosenStats {

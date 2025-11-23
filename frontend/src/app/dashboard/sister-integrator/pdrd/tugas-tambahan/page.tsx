@@ -30,10 +30,10 @@ import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
 import {
   sisterTugasTambahanService,
   type TugasTambahanStats,
-} from "@/lib/services/tugasTambahanService";
+} from "@/lib/services/sister/pdrd/tugasTambahanService";
 import { toast } from "react-hot-toast";
 import SisterTugasTambahanTable from "@/shared/components/sister-integrator/SisterTugasTambahanTable";
-import ScheduleList from "@/components/sister-integrator/ScheduleList";
+import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
 
 export default function TugasTambahanPage() {
   useRequireAuth();

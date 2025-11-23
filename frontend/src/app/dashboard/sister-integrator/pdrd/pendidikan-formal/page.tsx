@@ -25,10 +25,10 @@ import {
 import { MdSync } from "react-icons/md";
 import { RiGovernmentFill } from "react-icons/ri";
 import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
-import { sisterPendidikanService, type PendidikanFormalStats } from "@/lib/services/pendidikanService";
+import { sisterPendidikanService, type PendidikanFormalStats } from "@/lib/services/sister/pdrd/pendidikanService";
 import { toast } from "react-hot-toast";
 import SisterPendidikanTable from "@/shared/components/sister-integrator/SisterPendidikanTable";
-import ScheduleList from "@/components/sister-integrator/ScheduleList";
+import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
 
 export default function PendidikanFormalPage() {
   useRequireAuth();

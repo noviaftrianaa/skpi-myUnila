@@ -26,9 +26,9 @@ import {
 import { MdSync } from "react-icons/md";
 import { RiGovernmentFill } from "react-icons/ri";
 import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
-import { sisterPublikasiService, type PublikasiStats } from "@/lib/services/publikasiService";
+import { sisterPublikasiService, type PublikasiStats } from "@/lib/services/sister/pdrd/publikasiService";
 import { toast } from "react-hot-toast";
-import ScheduleList from "@/components/sister-integrator/ScheduleList";
+import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
 import SisterPublikasiTable from "@/shared/components/sister-integrator/SisterPublikasiTable";
 
 export default function PublikasiManagementPage() {

@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import { useState, useEffect, useMemo } from "react";
-import dashboardService from "@/lib/services/dashboardService";
+import dashboardService from "@/lib/services/public/dashboardService";
 import type { ProgramStudiStatistics } from "@/lib/types/dashboardTypes";
 
 const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });

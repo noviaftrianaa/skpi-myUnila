@@ -31,7 +31,7 @@ import {
 import { MdSync, MdCloudDone } from "react-icons/md";
 import { RiGovernmentFill } from "react-icons/ri";
 import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
-import { semesterService, type SemesterData } from "@/lib/services/semesterService";
+import { semesterService, type SemesterData } from "@/lib/services/sister/referensi/semesterService";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
 

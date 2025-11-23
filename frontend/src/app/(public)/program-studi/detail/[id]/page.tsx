@@ -19,7 +19,7 @@ import {
   FaTrophy,
   FaHandshake,
 } from 'react-icons/fa';
-import { dashboardService } from '@/lib/services/dashboardService';
+import { dashboardService } from '@/lib/services/public/dashboardService';
 import type { ProgramStudiDetail } from '@/lib/types/dashboardTypes';
 import {
   DosenTable,

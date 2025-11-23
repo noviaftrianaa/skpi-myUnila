@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { searchBidangIlmu, type BidangIlmuSearchItem } from '@/lib/services/bidangIlmuService';
+import { searchBidangIlmu, type BidangIlmuSearchItem } from '@/lib/services/public/bidangIlmuService';
 import { FiSearch, FiUsers, FiBook, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { HiAcademicCap } from 'react-icons/hi2';
 

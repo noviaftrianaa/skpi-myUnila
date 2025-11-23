@@ -29,10 +29,10 @@ import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
 import {
   sisterBidangIlmuService,
   type BidangIlmuStats,
-} from "@/lib/services/bidangIlmuService";
+} from "@/lib/services/sister/pdrd/bidangIlmuService";
 import { toast } from "react-hot-toast";
 import SisterBidangIlmuTable from "@/shared/components/sister-integrator/SisterBidangIlmuTable";
-import ScheduleList from "@/components/sister-integrator/ScheduleList";
+import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
 
 export default function BidangIlmuPage() {
   useRequireAuth();
