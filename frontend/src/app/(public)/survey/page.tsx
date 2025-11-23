@@ -3,7 +3,7 @@
 import { PageHero } from "@/shared/components";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
-import { submitSurvey } from "@/lib/services/surveyService";
+import { submitSurvey } from "@/lib/services/public/surveyService";
 
 export default function SurveyPage() {
   const [currentStep, setCurrentStep] = useState(0);

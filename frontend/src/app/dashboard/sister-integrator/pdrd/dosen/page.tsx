@@ -32,9 +32,9 @@ import { MdSync } from "react-icons/md";
 import { RiGovernmentFill } from "react-icons/ri";
 import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
 import Link from "next/link";
-import { sisterDosenService, type SisterDosenStats } from "@/lib/services/dosenService";
+import { sisterDosenService, type SisterDosenStats } from "@/lib/services/sister/pdrd/dosenService";
 import { toast } from "react-hot-toast";
-import ScheduleList from "@/components/sister-integrator/ScheduleList";
+import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
 
 export default function DosenManagementPage() {
   useRequireAuth();

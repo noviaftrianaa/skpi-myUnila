@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FiUser, FiBookOpen, FiCalendar, FiBarChart2 } from "react-icons/fi";
 import { HiAcademicCap } from "react-icons/hi";
 import { MdSchool } from "react-icons/md";
-import { mahasiswaService, type MahasiswaProfile } from "@/lib/services/mahasiswaService";
+import { mahasiswaService, type MahasiswaProfile } from "@/lib/services/public/mahasiswaService";
 
 const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL
   ? `${process.env.NEXT_PUBLIC_SISTER_API_URL}/public/api/v1`

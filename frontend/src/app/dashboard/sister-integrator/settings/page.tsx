@@ -26,7 +26,7 @@ import {
   apiConfigService,
   type APIConfig,
   type CreateAPIConfigRequest,
-} from "@/lib/services/apiConfigService";
+} from "@/lib/services/config/apiConfigService";
 
 export default function APIConfigurationPage() {
   useRequireAuth();

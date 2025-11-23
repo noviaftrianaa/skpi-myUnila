@@ -7,7 +7,7 @@ import { Button, Input, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter
 import Link from "next/link";
 import { Logo } from "@/shared/components";
 import { useAuth } from "@/contexts/AuthContext";
-import { authService } from "@/lib/services/authService";
+import { authService } from "@/lib/services/shared/authService";
 import toast, { Toaster } from 'react-hot-toast';
 
 export default function LoginPageContent() {

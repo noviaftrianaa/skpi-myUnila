@@ -31,7 +31,7 @@ import { MdSync, MdSchool } from "react-icons/md";
 import { feederIntegratorMenuConfig } from "../../config/menuConfig";
 import { feederClient } from "@/lib/api/feederClient";
 import { toast } from "react-hot-toast";
-import ScheduleList from "@/components/sister-integrator/ScheduleList";
+import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
 
 interface AktivitasStats {
   total_aktivitas: number;

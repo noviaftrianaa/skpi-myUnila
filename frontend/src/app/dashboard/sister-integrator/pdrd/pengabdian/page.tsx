@@ -26,9 +26,9 @@ import {
 import { MdSync } from "react-icons/md";
 import { RiGovernmentFill } from "react-icons/ri";
 import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
-import { sisterPengabdianService, type PengabdianStats } from "@/lib/services/pengabdianService";
+import { sisterPengabdianService, type PengabdianStats } from "@/lib/services/sister/pdrd/pengabdianService";
 import { toast } from "react-hot-toast";
-import ScheduleList from "@/components/sister-integrator/ScheduleList";
+import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
 import SisterPengabdianTable from "@/shared/components/sister-integrator/SisterPengabdianTable";
 
 export default function PengabdianManagementPage() {

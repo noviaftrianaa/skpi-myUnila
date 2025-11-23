@@ -26,9 +26,9 @@ import {
 import { MdSync } from "react-icons/md";
 import { RiGovernmentFill } from "react-icons/ri";
 import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
-import { sisterPenelitianService, type PenelitianStats } from "@/lib/services/penelitianService";
+import { sisterPenelitianService, type PenelitianStats } from "@/lib/services/sister/pdrd/penelitianService";
 import { toast } from "react-hot-toast";
-import ScheduleList from "@/components/sister-integrator/ScheduleList";
+import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
 import SisterPenelitianTable from "@/shared/components/sister-integrator/SisterPenelitianTable";
 
 export default function PenelitianManagementPage() {

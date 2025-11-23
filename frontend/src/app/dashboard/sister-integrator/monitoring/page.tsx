@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
-import { monitoringService, type SyncProgress, type MonitoringStats } from "@/lib/services/monitoringService";
+import { monitoringService, type SyncProgress, type MonitoringStats } from "@/lib/services/sister/management/monitoringService";
 import { Card, CardBody, Spinner, Progress, Chip } from "@heroui/react";
 import {
   FiActivity,

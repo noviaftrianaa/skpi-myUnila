@@ -30,10 +30,10 @@ import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
 import {
   sisterSertifikasiDosenService,
   type SertifikasiDosenStats,
-} from "@/lib/services/sertifikasiDosenService";
+} from "@/lib/services/sister/pdrd/sertifikasiDosenService";
 import { toast } from "react-hot-toast";
 import SisterSertifikasiDosenTable from "@/shared/components/sister-integrator/SisterSertifikasiDosenTable";
-import ScheduleList from "@/components/sister-integrator/ScheduleList";
+import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
 
 export default function SertifikasiDosenPage() {
   useRequireAuth();

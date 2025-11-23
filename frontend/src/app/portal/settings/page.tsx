@@ -35,7 +35,7 @@ import {
 } from "react-icons/fi";
 import Link from "next/link";
 import Image from "next/image";
-import { authService } from "@/services/auth";
+import { authService } from "@/lib/services/authService";
 import toast, { Toaster } from 'react-hot-toast';
 
 export default function SettingsPage() {

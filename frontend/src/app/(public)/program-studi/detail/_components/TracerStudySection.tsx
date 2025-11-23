@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { FaUserGraduate, FaBriefcase, FaMoneyBillWave, FaClock, FaChartBar, FaBuilding } from 'react-icons/fa';
-import { dashboardService } from '@/lib/services/dashboardService';
+import { dashboardService } from '@/lib/services/public/dashboardService';
 import type { TracerStudyData } from '@/lib/types/dashboardTypes';
 
 interface TracerStudySectionProps {

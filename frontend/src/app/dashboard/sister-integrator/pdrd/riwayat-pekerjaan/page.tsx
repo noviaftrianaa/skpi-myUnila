@@ -32,10 +32,10 @@ import {
   sisterRiwayatPekerjaanService,
   type RiwayatPekerjaanStats,
   riwayatPekerjaanHelpers,
-} from "@/lib/services/riwayatPekerjaanService";
+} from "@/lib/services/sister/pdrd/riwayatPekerjaanService";
 import { toast } from "react-hot-toast";
 import SisterRiwayatPekerjaanTable from "@/shared/components/sister-integrator/SisterRiwayatPekerjaanTable";
-import ScheduleList from "@/components/sister-integrator/ScheduleList";
+import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
 
 export default function RiwayatPekerjaanPage() {
   useRequireAuth();

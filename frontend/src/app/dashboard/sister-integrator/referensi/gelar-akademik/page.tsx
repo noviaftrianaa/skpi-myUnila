@@ -31,7 +31,7 @@ import {
 import { MdSync, MdCloudDone } from "react-icons/md";
 import { RiGovernmentFill } from "react-icons/ri";
 import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
-import { gelarAkademikService, type GelarAkademikData } from "@/lib/services/gelarAkademikService";
+import { gelarAkademikService, type GelarAkademikData } from "@/lib/services/sister/referensi/gelarAkademikService";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
 

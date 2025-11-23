@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FiFileText, FiUsers, FiBarChart2, FiExternalLink, FiCalendar, FiHash, FiAward, FiFlask, FiTag } from "react-icons/fi";
 import { HiAcademicCap } from "react-icons/hi";
 import { FaMale, FaFemale } from "react-icons/fa";
-import { publikasiService, type PublikasiDetail } from "@/lib/services/publikasiService";
+import { publikasiService, type PublikasiDetail } from "@/lib/services/public/publikasiService";
 import Link from "next/link";
 
 type TabType = 'overview' | 'penulis' | 'mahasiswa';

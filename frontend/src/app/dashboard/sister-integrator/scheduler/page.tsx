@@ -26,7 +26,7 @@ import {
   type ScheduledSync,
   type CreateScheduleRequest,
   type UpdateScheduleRequest,
-} from "@/lib/services/schedulerService";
+} from "@/lib/services/sister/management/schedulerService";
 import { toast } from "react-hot-toast";
 import {
   Calendar,

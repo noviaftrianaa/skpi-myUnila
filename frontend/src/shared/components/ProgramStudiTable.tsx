@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import DataTable, { Column } from "./ui/DataTable";
 import { Chip, Select, SelectItem } from "@heroui/react";
-import dashboardService from "@/lib/services/dashboardService";
+import dashboardService from "@/lib/services/public/dashboardService";
 import type { ProgramStudi, ProgramStudiStatistics, ProgramStudiPeriod } from "@/lib/types/dashboardTypes";
 
 export default function ProgramStudiTable() {

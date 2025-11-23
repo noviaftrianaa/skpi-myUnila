@@ -30,10 +30,10 @@ import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
 import {
   sisterJabatanStrukturalService,
   type JabatanStrukturalStats,
-} from "@/lib/services/jabatanStrukturalService";
+} from "@/lib/services/sister/pdrd/jabatanStrukturalService";
 import { toast } from "react-hot-toast";
 import SisterJabatanStrukturalTable from "@/shared/components/sister-integrator/SisterJabatanStrukturalTable";
-import ScheduleList from "@/components/sister-integrator/ScheduleList";
+import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
 
 export default function JabatanStrukturalPage() {
   useRequireAuth();

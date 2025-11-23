@@ -38,10 +38,10 @@ import {
   referensiService,
   type ReferensiMetadata,
   type BatchSyncResponse,
-} from "@/lib/services/referensiService";
+} from "@/lib/services/sister/referensi/referensiService";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
-import ScheduleList from "@/components/sister-integrator/ScheduleList";
+import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
 
 export default function ReferensiDashboardPage() {
   useRequireAuth();

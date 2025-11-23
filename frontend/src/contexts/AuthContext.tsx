@@ -8,7 +8,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { authService } from '@/lib/services/authService';
+import { authService } from '@/lib/services/shared/authService';
 import type { User, LoginRequest } from '@/lib/types/authTypes';
 import { handleApiError, ApiError } from '@/lib/api/client';
 

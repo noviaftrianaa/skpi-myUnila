@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import { useMemo, useState, useEffect } from "react";
-import { dashboardService } from "@/lib/services/dashboardService";
+import { dashboardService } from "@/lib/services/public/dashboardService";
 import type { Ranking, ChartDataCategory } from "@/lib/types/dashboardTypes";
 
 const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });

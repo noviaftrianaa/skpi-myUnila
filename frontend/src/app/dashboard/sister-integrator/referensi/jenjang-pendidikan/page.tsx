@@ -31,7 +31,7 @@ import {
 import { MdSync, MdCloudDone } from "react-icons/md";
 import { RiGovernmentFill } from "react-icons/ri";
 import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
-import { jenjangPendidikanService, type JenjangPendidikanData } from "@/lib/services/jenjangPendidikanService";
+import { jenjangPendidikanService, type JenjangPendidikanData } from "@/lib/services/sister/referensi/jenjangPendidikanService";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
 

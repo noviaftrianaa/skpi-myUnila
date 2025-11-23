@@ -12,7 +12,7 @@ import {
 } from "@heroui/react";
 import Link from "next/link";
 import { SearchCategory } from "@/shared/components/search/GlobalSearch";
-import { globalSearch, SearchResult as APISearchResult } from "@/lib/services/searchService";
+import { globalSearch, SearchResult as APISearchResult } from "@/lib/services/shared/searchService";
 
 // Search result types
 interface BaseSearchResult {

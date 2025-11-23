@@ -32,10 +32,10 @@ import {
   sisterRiwayatFungsionalService,
   type RiwayatFungsionalStats,
   riwayatFungsionalHelpers,
-} from "@/lib/services/riwayatFungsionalService";
+} from "@/lib/services/sister/pdrd/riwayatFungsionalService";
 import { toast } from "react-hot-toast";
 import SisterRiwayatFungsionalTable from "@/shared/components/sister-integrator/SisterRiwayatFungsionalTable";
-import ScheduleList from "@/components/sister-integrator/ScheduleList";
+import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
 
 export default function JabatanFungsionalPage() {
   useRequireAuth();

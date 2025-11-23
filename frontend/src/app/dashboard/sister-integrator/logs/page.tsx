@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
 import { SyncLogsTable } from "@/shared/components/sister-integrator";
-import { syncLogsService } from "@/lib/services/syncLogsService";
+import { syncLogsService } from "@/lib/services/sister/management/syncLogsService";
 import { Card, CardBody, Spinner } from "@heroui/react";
 import {
   FiFileText,

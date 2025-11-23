@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FiFileText, FiUsers, FiBarChart2, FiAward, FiExternalLink, FiCalendar, FiDollarSign, FiTag } from "react-icons/fi";
 import { HiAcademicCap } from "react-icons/hi";
 import { FaMale, FaFemale } from "react-icons/fa";
-import { sisterPengabdianService, type PengabdianDetail } from "@/lib/services/pengabdianService";
+import { sisterPengabdianService, type PengabdianDetail } from "@/lib/services/public/pengabdianService";
 
 type TabType = 'overview' | 'anggota-tim' | 'publikasi' | 'luaran-lainnya' | 'mahasiswa';
 
