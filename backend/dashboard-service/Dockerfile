@@ -53,11 +53,22 @@ RUN apk del $PHPIZE_DEPS autoconf g++ make \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Configure Composer for better network reliability
+RUN composer config -g process-timeout 600 \
+    && composer config -g repos.packagist composer https://packagist.org
+
 # Copy application
 COPY . /var/www
 
-# Install dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+# Install dependencies with increased timeout and retry
+RUN COMPOSER_PROCESS_TIMEOUT=600 composer install \
+    --no-dev \
+    --optimize-autoloader \
+    --no-interaction \
+    --prefer-dist \
+    --no-scripts \
+    || (sleep 5 && COMPOSER_PROCESS_TIMEOUT=600 composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts) \
+    && composer run-script post-autoload-dump --no-interaction || true
 
 # Create directories
 RUN mkdir -p /var/www/storage/framework/{sessions,views,cache} \
