@@ -46,6 +46,7 @@ show_help() {
     echo "  --vm2            Rebuild only VM2 (Backend PHP services)"
     echo "  --vm3            Rebuild only VM3 (Sister & Feeder services)"
     echo "  --check          Dry run - only check connections"
+    echo "  --cleanup        Clean up Docker resources on all VMs (no rebuild)"
     echo ""
     echo "Examples:"
     echo "  $0                    # Rebuild all VMs"
@@ -53,6 +54,7 @@ show_help() {
     echo "  $0 --vm2              # Rebuild only VM2"
     echo "  $0 --vm3              # Rebuild only VM3"
     echo "  $0 --check            # Check connections only"
+    echo "  $0 --cleanup          # Clean up Docker resources"
     echo ""
     exit 0
 }
@@ -124,6 +126,14 @@ main() {
             ;;
         --check)
             check_connections
+            exit 0
+            ;;
+        --cleanup)
+            echo -e "${BLUE}========================================${NC}"
+            echo -e "${BLUE}  Cleaning up Docker resources${NC}"
+            echo -e "${BLUE}========================================${NC}"
+            echo ""
+            run_playbook "$PLAYBOOK_DIR/cleanup-docker.yml"
             exit 0
             ;;
         --vm1)

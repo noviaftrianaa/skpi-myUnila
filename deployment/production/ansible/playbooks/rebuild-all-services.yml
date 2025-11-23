@@ -107,6 +107,22 @@
       debug:
         msg: "{{ vm1_status.stdout_lines }}"
 
+    - name: Clean up unused Docker images and containers on VM1
+      shell: |
+        echo "Cleaning up unused Docker resources..."
+        docker container prune -f
+        docker image prune -af --filter "until=24h"
+        docker volume prune -f
+        docker builder prune -af --filter "until=24h"
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: vm1_cleanup
+
+    - name: Display VM1 cleanup result
+      debug:
+        msg: "{{ vm1_cleanup.stdout_lines }}"
+
 # ============================================
 # VM2 - Backend PHP Services & Infrastructure
 # ============================================
@@ -174,6 +190,22 @@
     - name: Display VM2 services status
       debug:
         msg: "{{ vm2_status.stdout_lines }}"
+
+    - name: Clean up unused Docker images and containers on VM2
+      shell: |
+        echo "Cleaning up unused Docker resources..."
+        docker container prune -f
+        docker image prune -af --filter "until=24h"
+        docker volume prune -f
+        docker builder prune -af --filter "until=24h"
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: vm2_cleanup
+
+    - name: Display VM2 cleanup result
+      debug:
+        msg: "{{ vm2_cleanup.stdout_lines }}"
 
 # ============================================
 # VM3 - Backend Services 2 (Sister + Feeder)
@@ -252,6 +284,22 @@
       debug:
         msg: "{{ vm3_status.stdout_lines }}"
 
+    - name: Clean up unused Docker images and containers on VM3
+      shell: |
+        echo "Cleaning up unused Docker resources..."
+        docker container prune -f
+        docker image prune -af --filter "until=24h"
+        docker volume prune -f
+        docker builder prune -af --filter "until=24h"
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: vm3_cleanup
+
+    - name: Display VM3 cleanup result
+      debug:
+        msg: "{{ vm3_cleanup.stdout_lines }}"
+
 # ============================================
 # Final Summary
 # ============================================
@@ -269,6 +317,11 @@
           ============================================
 
           All services have been rebuilt and restarted.
+          Docker cleanup completed on all VMs:
+          - Removed unused containers
+          - Removed dangling images (older than 24h)
+          - Removed unused volumes
+          - Cleaned build cache
 
           Next steps:
           1. Verify services are running: docker ps

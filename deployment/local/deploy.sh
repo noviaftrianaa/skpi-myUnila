@@ -50,9 +50,11 @@ show_menu() {
     echo -e "  ${YELLOW}15)${NC} Test Endpoints"
     echo -e "  ${YELLOW}16)${NC} Setup Kong Routes"
     echo ""
+    echo -e "  ${RED}17)${NC} Cleanup Docker Resources (hapus images tidak terpakai)"
+    echo ""
     echo -e "  ${RED}0)${NC} Exit"
     echo ""
-    echo -n "Pilihan [0-16]: "
+    echo -n "Pilihan [0-17]: "
 }
 
 # Function to show container status
@@ -208,6 +210,29 @@ while true; do
             echo ""
             echo -e "${GREEN}Running Kong Routes Setup...${NC}"
             bash "$SCRIPT_DIR/setup-kong-routes.sh"
+            read -p "Press Enter to continue..."
+            ;;
+        17)
+            echo ""
+            echo -e "${YELLOW}Cleaning up Docker resources...${NC}"
+            echo ""
+            echo -e "${BLUE}Removing stopped containers...${NC}"
+            docker container prune -f
+            echo ""
+            echo -e "${BLUE}Removing dangling images (older than 24h)...${NC}"
+            docker image prune -af --filter "until=24h"
+            echo ""
+            echo -e "${BLUE}Removing unused volumes...${NC}"
+            docker volume prune -f
+            echo ""
+            echo -e "${BLUE}Removing build cache (older than 24h)...${NC}"
+            docker builder prune -af --filter "until=24h"
+            echo ""
+            echo -e "${GREEN}✓ Cleanup complete!${NC}"
+            echo ""
+            echo -e "${BLUE}Docker disk usage:${NC}"
+            docker system df
+            echo ""
             read -p "Press Enter to continue..."
             ;;
         0)
