@@ -343,14 +343,10 @@ export default function SebaranProgramStudi() {
   }, [prodiData, selectedFakultas]);
 
   // Handle chart click event
-  const onChartClick = (params: any) => {
-    if (drillLevel === 'fakultas' && params.componentType === 'series') {
-      const fakultasIndex = params.dataIndex;
-      const fakultas = fakultasData[fakultasIndex];
-      if (fakultas) {
-        handleDrillDown(fakultas.id, fakultas.nama);
-      }
-    }
+ const onChartClick = (params: any) => {
+    // TEMPORARY DISABLED - Backend API not deployed yet
+    console.log('Drilldown temporarily disabled');
+    return;
   };
 
   const chartEvents = {
