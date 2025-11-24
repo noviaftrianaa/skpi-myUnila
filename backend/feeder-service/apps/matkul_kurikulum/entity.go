@@ -34,6 +34,33 @@ func (fi *FlexibleInt) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// FlexibleFloat handles both string and float values from JSON
+type FlexibleFloat float64
+
+func (ff *FlexibleFloat) UnmarshalJSON(b []byte) error {
+	// Try to unmarshal as float first
+	var f float64
+	if err := json.Unmarshal(b, &f); err == nil {
+		*ff = FlexibleFloat(f)
+		return nil
+	}
+
+	// Try to unmarshal as string
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+
+	// Convert string to float
+	f, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return fmt.Errorf("cannot convert %q to float: %w", s, err)
+	}
+
+	*ff = FlexibleFloat(f)
+	return nil
+}
+
 // =============================================================================
 // DATABASE ENTITIES
 // =============================================================================
@@ -139,54 +166,54 @@ type Matkul struct {
 
 // FeederKurikulumData - Response from GetListKurikulum
 type FeederKurikulumData struct {
-	IDKurikulum                  string       `json:"id_kurikulum"`
-	IDSemester                   *string      `json:"id_semester"`
-	IDJenisDidik                 *FlexibleInt `json:"id_jenj_didik"`
-	IDProdi                      *string      `json:"id_prodi"`
-	NamaKurikulum                *string      `json:"nama_kurikulum"`
-	JumlahSemesterNormal         *FlexibleInt `json:"jml_sem_normal"`
-	JumlahSksLulus               *FlexibleInt `json:"jumlah_sks_lulus"`
-	JumlahSksWajib               *FlexibleInt `json:"jumlah_sks_wajib"`
-	JumlahSksPilihan             *FlexibleInt `json:"jumlah_sks_pilihan"`
-	JumlahSksMataKuliahWajib     *FlexibleInt `json:"jumlah_sks_mata_kuliah_wajib"`
-	JumlahSksMataKuliahPilihan   *FlexibleInt `json:"jumlah_sks_mata_kuliah_pilihan"`
+	IDKurikulum                  string         `json:"id_kurikulum"`
+	IDSemester                   *string        `json:"id_semester"`
+	IDJenisDidik                 *FlexibleInt   `json:"id_jenj_didik"`
+	IDProdi                      *string        `json:"id_prodi"`
+	NamaKurikulum                *string        `json:"nama_kurikulum"`
+	JumlahSemesterNormal         *FlexibleInt   `json:"jml_sem_normal"`
+	JumlahSksLulus               *FlexibleFloat `json:"jumlah_sks_lulus"`
+	JumlahSksWajib               *FlexibleFloat `json:"jumlah_sks_wajib"`
+	JumlahSksPilihan             *FlexibleFloat `json:"jumlah_sks_pilihan"`
+	JumlahSksMataKuliahWajib     *FlexibleFloat `json:"jumlah_sks_mata_kuliah_wajib"`
+	JumlahSksMataKuliahPilihan   *FlexibleFloat `json:"jumlah_sks_mata_kuliah_pilihan"`
 }
 
 // FeederMatkulKurikulumData - Response from GetMatkulKurikulum
 type FeederMatkulKurikulumData struct {
-	IDKurikulum             string       `json:"id_kurikulum"`
-	IDMatkul                *string      `json:"id_matkul"`
-	Semester                *FlexibleInt `json:"semester"`
-	SksMatKul               *FlexibleInt `json:"sks_mata_kuliah"`
-	SksTatapMuka            *FlexibleInt `json:"sks_tatap_muka"`
-	SksPraktek              *FlexibleInt `json:"sks_praktek"`
-	SksPraktekLapangan      *FlexibleInt `json:"sks_praktek_lapangan"`
-	SksSimulasi             *FlexibleInt `json:"sks_simulasi"`
-	ApakahWajib             *FlexibleInt `json:"apakah_wajib"`
+	IDKurikulum             string         `json:"id_kurikulum"`
+	IDMatkul                *string        `json:"id_matkul"`
+	Semester                *FlexibleInt   `json:"semester"`
+	SksMatKul               *FlexibleFloat `json:"sks_mata_kuliah"`
+	SksTatapMuka            *FlexibleFloat `json:"sks_tatap_muka"`
+	SksPraktek              *FlexibleFloat `json:"sks_praktek"`
+	SksPraktekLapangan      *FlexibleFloat `json:"sks_praktek_lapangan"`
+	SksSimulasi             *FlexibleFloat `json:"sks_simulasi"`
+	ApakahWajib             *FlexibleInt   `json:"apakah_wajib"`
 }
 
 // FeederMatkulData - Response from GetListMataKuliah
 type FeederMatkulData struct {
-	IDMatkul                string       `json:"id_matkul"`
-	IDJenisDidik            *FlexibleInt `json:"id_jenj_didik"`
-	IDProdi                 *string      `json:"id_prodi"`
-	SksMatKul               *FlexibleInt `json:"sks_mata_kuliah"`
-	SksTatapMuka            *FlexibleInt `json:"sks_tatap_muka"`
-	SksPraktek              *FlexibleInt `json:"sks_praktek"`
-	SksPraktekLapangan      *FlexibleInt `json:"sks_praktek_lapangan"`
-	SksSimulasi             *FlexibleInt `json:"sks_simulasi"`
-	KodeMataKuliah          *string      `json:"kode_mata_kuliah"`
-	NamaMataKuliah          *string      `json:"nama_mata_kuliah"`
-	JenisMk                 *string      `json:"jns_mk"`
-	KelompokMk              *string      `json:"kel_mk"`
-	MetodeKuliah            *string      `json:"metode_kuliah"`
-	AdaSap                  *FlexibleInt `json:"ada_sap"`
-	AdaSilabus              *FlexibleInt `json:"ada_silabus"`
-	AdaBahanAjar            *FlexibleInt `json:"ada_bahan_ajar"`
-	AdaAcaraPraktek         *FlexibleInt `json:"ada_acara_praktek"`
-	AdaDiktat               *FlexibleInt `json:"ada_diktat"`
-	TanggalMulaiEfektif     *string      `json:"tanggal_mulai_efektif"`
-	TanggalAkhirEfektif     *string      `json:"tanggal_akhir_efektif"`
+	IDMatkul                string         `json:"id_matkul"`
+	IDJenisDidik            *FlexibleInt   `json:"id_jenj_didik"`
+	IDProdi                 *string        `json:"id_prodi"`
+	SksMatKul               *FlexibleFloat `json:"sks_mata_kuliah"`
+	SksTatapMuka            *FlexibleFloat `json:"sks_tatap_muka"`
+	SksPraktek              *FlexibleFloat `json:"sks_praktek"`
+	SksPraktekLapangan      *FlexibleFloat `json:"sks_praktek_lapangan"`
+	SksSimulasi             *FlexibleFloat `json:"sks_simulasi"`
+	KodeMataKuliah          *string        `json:"kode_mata_kuliah"`
+	NamaMataKuliah          *string        `json:"nama_mata_kuliah"`
+	JenisMk                 *string        `json:"jns_mk"`
+	KelompokMk              *string        `json:"kel_mk"`
+	MetodeKuliah            *string        `json:"metode_kuliah"`
+	AdaSap                  *FlexibleInt   `json:"ada_sap"`
+	AdaSilabus              *FlexibleInt   `json:"ada_silabus"`
+	AdaBahanAjar            *FlexibleInt   `json:"ada_bahan_ajar"`
+	AdaAcaraPraktek         *FlexibleInt   `json:"ada_acara_praktek"`
+	AdaDiktat               *FlexibleInt   `json:"ada_diktat"`
+	TanggalMulaiEfektif     *string        `json:"tanggal_mulai_efektif"`
+	TanggalAkhirEfektif     *string        `json:"tanggal_akhir_efektif"`
 }
 
 // =============================================================================
