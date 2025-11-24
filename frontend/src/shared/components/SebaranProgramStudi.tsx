@@ -389,20 +389,6 @@ export default function SebaranProgramStudi() {
             <motion.div className="lg:col-span-2" variants={itemVariants}>
               <Card className="shadow-lg">
                 <CardBody className="p-6">
-                  <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    right: 0,
-                    background: 'black',
-                    color: 'white',
-                    padding: '10px',
-                    zIndex: 99998,
-                    fontSize: '14px'
-                  }}>
-                    DrillLevel: {drillLevel}<br/>
-                    Loading: {loading ? 'true' : 'false'}<br/>
-                    ProdiOptions: {prodiChartOptions ? 'EXISTS' : 'NULL'}
-                  </div>
 
                   {/* Back Button for Drilldown */}
                   {drillLevel === 'prodi' && (
