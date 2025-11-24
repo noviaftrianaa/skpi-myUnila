@@ -8,7 +8,7 @@ import {
   sisterBidangIlmuService,
   BidangIlmuItem,
   bidangIlmuHelpers,
-} from "@/lib/services/bidangIlmuService";
+} from "@/lib/services/sister/pdrd/bidangIlmuService";
 
 export default function SisterBidangIlmuTable() {
   const [data, setData] = useState<BidangIlmuItem[]>([]);

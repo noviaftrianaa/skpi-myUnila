@@ -8,7 +8,7 @@ import {
   sisterJabatanStrukturalService,
   JabatanStruktural,
   jabatanStrukturalHelpers,
-} from "@/lib/services/jabatanStrukturalService";
+} from "@/lib/services/sister/pdrd/jabatanStrukturalService";
 
 export default function SisterJabatanStrukturalTable() {
   const [data, setData] = useState<JabatanStruktural[]>([]);

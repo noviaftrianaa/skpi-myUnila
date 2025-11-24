@@ -141,3 +141,149 @@ export interface FeederAPIResponse<T = any> {
   data?: T;
   error?: string;
 }
+
+// ============================================================================
+// Kurikulum Types
+// ============================================================================
+
+export interface KurikulumSP {
+  id_kurikulum_sp: string;
+  id_smt?: string;
+  id_jenj_didik?: number;
+  id_sms?: string;
+  nm_kurikulum_sp?: string;
+  jmlh_smt_normal?: number;
+  jmlh_sks_lulus?: number;
+  jmlh_sks_wajib?: number;
+  jmlh_sks_pilihan?: number;
+  stat_kurikulum?: number;
+  a_periode_aktif?: number;
+  tgl_mulai_efektif?: string;
+  tgl_selesai_efektif?: string;
+  create_date: string;
+  id_creator: string;
+  last_update: string;
+  id_updater?: string;
+  soft_delete: number;
+  last_sync: string;
+}
+
+export interface MatkulKurikulum {
+  id_kurikulum_sp: string;
+  id_mk?: string;
+  smt?: number;
+  sks_mk?: number;
+  a_wajib?: number;
+  create_date: string;
+  id_creator: string;
+  last_update: string;
+  id_updater?: string;
+  soft_delete: number;
+  last_sync: string;
+}
+
+export interface Matkul {
+  id_mk_pddikti: string;
+  kode_mk?: string;
+  nm_mk?: string;
+  metode_pelaksanaan_kuliah?: string;
+  create_date: string;
+  id_creator: string;
+  last_update: string;
+  id_updater?: string;
+  soft_delete: number;
+  last_sync: string;
+}
+
+// List view types
+export interface KurikulumListItem {
+  id_kurikulum_sp: string;
+  nm_kurikulum_sp?: string;
+  id_semester?: string;
+  nama_semester?: string;
+  jmlh_smt_normal?: number;
+  jmlh_sks_lulus?: number;
+  jmlh_sks_wajib?: number;
+  jmlh_sks_pilihan?: number;
+  jumlah_matkul?: number;
+  last_sync?: string;
+  id_prodi?: string;
+  nama_prodi?: string;
+  nama_jenjang?: string;
+  kode_prodi?: string;
+  stat_kurikulum?: number;
+  a_periode_aktif?: number;
+}
+
+export interface KurikulumListResult {
+  data: KurikulumListItem[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+}
+
+// Detail view types
+export interface KurikulumMatkulItem {
+  id_mk?: string;
+  kode_mk?: string;
+  nm_mk?: string;
+  smt?: number;
+  sks_mk?: number;
+  a_wajib?: number;
+  metode_pelaksanaan_kuliah?: string;
+}
+
+export interface KurikulumDetail {
+  kurikulum: KurikulumSP;
+  matkul_list: KurikulumMatkulItem[];
+  total_matkul: number;
+  total_sks_wajib: number;
+  total_sks_pilihan: number;
+}
+
+// Sync types
+export interface KurikulumSyncResult {
+  id_kurikulum: string;
+  nama_kurikulum: string;
+  jumlah_matkul: number;
+  success: boolean;
+  error?: string;
+}
+
+export interface KurikulumSyncFilter {
+  id_prodi: string; // MANDATORY
+}
+
+export interface BatchKurikulumSyncResult {
+  total_processed: number;
+  total_success: number;
+  total_failed: number;
+  duration: string;
+  results?: KurikulumSyncResult[];
+  synced_by: string;
+  filter?: KurikulumSyncFilter;
+}
+
+// Stats types
+export interface KurikulumStats {
+  total_kurikulum: number;
+  total_matkul: number;
+  total_prodi: number;
+  last_sync?: string;
+}
+
+// API Request types
+export interface GetKurikulumListParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  id_prodi?: string;
+  sort_by?: string;
+  sort_order?: 'asc' | 'desc';
+}
+
+export interface SyncKurikulumParams {
+  id_prodi: string; // MANDATORY
+  synced_by: string;
+}

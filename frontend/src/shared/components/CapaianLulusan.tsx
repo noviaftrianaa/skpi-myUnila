@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import { useMemo, useEffect, useState } from "react";
-import { capaianLulusanService, CapaianLulusanStatistics } from "@/lib/services/capaianLulusanService";
+import { capaianLulusanService, CapaianLulusanStatistics } from "@/lib/services/public/capaianLulusanService";
 
 const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });
 

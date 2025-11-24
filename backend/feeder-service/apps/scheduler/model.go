@@ -19,31 +19,35 @@ type ScheduledSync struct {
 	UpdatedAt      time.Time  `db:"updated_at" json:"updated_at"`
 
 	// Helper fields (not stored in DB, parsed from endpoint_key)
-	Angkatan       *string    `db:"-" json:"angkatan,omitempty"`         // Comma-separated: "2023,2024"
-	IDProdi        *string    `db:"-" json:"id_prodi,omitempty"`         // Single prodi ID
+	Angkatan       *string  `db:"-" json:"angkatan,omitempty"`   // Comma-separated: "2023,2024"
+	IDSemester     []string `db:"-" json:"id_semester,omitempty"` // For aktivitas_mahasiswa
+	IDProdi        *string  `db:"-" json:"id_prodi,omitempty"`   // Single prodi ID
 }
 
 // CreateScheduledSyncRequest represents request to create a scheduled sync
 type CreateScheduledSyncRequest struct {
-	Name         string  `json:"name" validate:"required"`
-	Description  string  `json:"description"`
-	ScheduleDate string  `json:"schedule_date" validate:"required"` // Format: YYYY-MM-DD
-	ScheduleTime string  `json:"schedule_time" validate:"required"` // Format: HH:mm
-	Angkatan     *string `json:"angkatan"`                          // Comma-separated: "2023,2024"
-	IDProdi      *string `json:"id_prodi"`                          // Single prodi ID
-	IsActive     bool    `json:"is_active"`
-	CreatedBy    string  `json:"created_by" validate:"required"`
+	Name         string   `json:"name" validate:"required"`
+	Description  string   `json:"description"`
+	SyncType     string   `json:"sync_type" validate:"required"`     // 'mahasiswa', 'aktivitas_mahasiswa', 'kurikulum'
+	ScheduleDate string   `json:"schedule_date" validate:"required"` // Format: YYYY-MM-DD
+	ScheduleTime string   `json:"schedule_time" validate:"required"` // Format: HH:mm
+	Angkatan     *string  `json:"angkatan"`                          // Comma-separated: "2023,2024" (for mahasiswa)
+	IDSemester   []string `json:"id_semester"`                       // For aktivitas_mahasiswa
+	IDProdi      *string  `json:"id_prodi"`                          // Single prodi ID
+	IsActive     bool     `json:"is_active"`
+	CreatedBy    string   `json:"created_by" validate:"required"`
 }
 
 // UpdateScheduledSyncRequest represents request to update a scheduled sync
 type UpdateScheduledSyncRequest struct {
-	Name         *string `json:"name"`
-	Description  *string `json:"description"`
-	ScheduleDate *string `json:"schedule_date"` // Format: YYYY-MM-DD
-	ScheduleTime *string `json:"schedule_time"` // Format: HH:mm
-	Angkatan     *string `json:"angkatan"`      // Comma-separated
-	IDProdi      *string `json:"id_prodi"`
-	IsActive     *bool   `json:"is_active"`
+	Name         *string  `json:"name"`
+	Description  *string  `json:"description"`
+	ScheduleDate *string  `json:"schedule_date"` // Format: YYYY-MM-DD
+	ScheduleTime *string  `json:"schedule_time"` // Format: HH:mm
+	Angkatan     *string  `json:"angkatan"`      // Comma-separated
+	IDSemester   []string `json:"id_semester"`   // For aktivitas_mahasiswa
+	IDProdi      *string  `json:"id_prodi"`
+	IsActive     *bool    `json:"is_active"`
 }
 
 // ScheduledSyncListResponse represents paginated list of scheduled syncs

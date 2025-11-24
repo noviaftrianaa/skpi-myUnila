@@ -28,18 +28,16 @@ import {
 import {
   schedulerService,
   type ScheduledSync,
-} from "@/lib/services/sister/management/schedulerService";
+} from "@/lib/services/feeder/management/schedulerService";
 import ScheduleModal from "./ScheduleModal";
 
 interface ScheduleListProps {
-  syncType?: "referensi" | "dosen" | "penugasan" | "penelitian" | "pengabdian" | "pendidikan" | "publikasi" | "riwayat_pekerjaan" | "jabatan_struktural" | "tugas_tambahan";
-  endpointKey?: string;
+  syncType?: "mahasiswa" | "aktivitas_mahasiswa" | "kurikulum";
   showCreateButton?: boolean;
 }
 
 export default function ScheduleList({
   syncType,
-  endpointKey,
   showCreateButton = true,
 }: ScheduleListProps) {
   const [schedules, setSchedules] = useState<ScheduledSync[]>([]);
@@ -58,15 +56,7 @@ export default function ScheduleList({
         // is_active: undefined means get all (both active and inactive)
       });
 
-      // Filter by endpoint if specified
-      let filteredSchedules = response.data;
-      if (endpointKey) {
-        filteredSchedules = filteredSchedules.filter(
-          (s) => s.endpoint_key === endpointKey
-        );
-      }
-
-      setSchedules(filteredSchedules);
+      setSchedules(response.data);
     } catch (error) {
       console.error("Error loading schedules:", error);
     } finally {
@@ -76,7 +66,7 @@ export default function ScheduleList({
 
   useEffect(() => {
     loadSchedules();
-  }, [syncType, endpointKey]);
+  }, [syncType]);
 
   const handleToggle = async (schedule: ScheduledSync) => {
     try {
@@ -265,18 +255,20 @@ export default function ScheduleList({
                           Tipe
                         </p>
                         <p className="text-gray-900 dark:text-white font-medium capitalize">
-                          {schedule.sync_type}
+                          {schedule.sync_type.replace(/_/g, " ")}
                         </p>
                       </div>
 
-                      {/* Endpoint (for referensi) */}
-                      {schedule.endpoint_key && (
+                      {/* Filter Info */}
+                      {(schedule.angkatan || schedule.id_prodi || (schedule.id_semester && schedule.id_semester.length > 0)) && (
                         <div>
                           <p className="text-gray-500 dark:text-slate-500 text-xs">
-                            Endpoint
+                            Filter
                           </p>
-                          <p className="text-gray-900 dark:text-white font-medium">
-                            {schedule.endpoint_key.replace(/_/g, " ")}
+                          <p className="text-gray-900 dark:text-white font-medium text-xs">
+                            {schedule.angkatan && `Angkatan: ${schedule.angkatan}`}
+                            {schedule.id_prodi && ` | Prodi: ${schedule.id_prodi}`}
+                            {schedule.id_semester && schedule.id_semester.length > 0 && ` | Semester: ${schedule.id_semester.length}`}
                           </p>
                         </div>
                       )}
@@ -372,8 +364,7 @@ export default function ScheduleList({
         isOpen={isModalOpen}
         onClose={handleModalClose}
         onSuccess={handleModalSuccess}
-        syncType={syncType || "referensi"}
-        endpointKey={endpointKey}
+        syncType={syncType || "kurikulum"}
         schedule={editingSchedule}
       />
     </>

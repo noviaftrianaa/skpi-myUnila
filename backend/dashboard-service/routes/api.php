@@ -77,6 +77,8 @@ Route::prefix('public/api/v1')->group(function () {
         Route::get('/statistics', [ProgramStudiController::class, 'statistics']);
         Route::get('/periods', [ProgramStudiController::class, 'periods']);
         Route::get('/filter-options', [ProgramStudiController::class, 'filterOptions']);
+        Route::get('/sebaran-fakultas', [ProgramStudiController::class, 'sebaranFakultas']);
+        Route::get('/fakultas/{id}/prodi', [ProgramStudiController::class, 'prodiByFakultas']);
         Route::get('/{id}', [ProgramStudiController::class, 'show']);
         Route::get('/{id}/dosen', [ProgramStudiController::class, 'dosen']);
         Route::get('/{id}/mahasiswa-trend', [ProgramStudiController::class, 'mahasiswaTrend']);

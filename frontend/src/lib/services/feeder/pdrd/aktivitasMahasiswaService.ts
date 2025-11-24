@@ -3,7 +3,7 @@
  * API client for Feeder Service - Aktivitas Mahasiswa endpoints
  */
 
-import { feederClient } from '../api/feederClient';
+import { feederClient } from '@/lib/api/feederClient';
 import type {
   GetAktivitasListParams,
   SyncAktivitasParams,
@@ -12,7 +12,7 @@ import type {
   BatchAktivitasSyncResult,
   ProdiOption,
   FeederAPIResponse,
-} from '../types/feederTypes';
+} from '@/lib/types/feederTypes';
 
 /**
  * Get list of aktivitas mahasiswa (MANDATORY: id_semester)

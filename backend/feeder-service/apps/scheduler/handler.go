@@ -31,12 +31,14 @@ func RegisterRoutes(router fiber.Router, handler *Handler) {
 // @Tags Scheduler
 // @Param page query int false "Page number" default(1)
 // @Param limit query int false "Items per page" default(20)
+// @Param sync_type query string false "Filter by sync type (mahasiswa, aktivitas_mahasiswa, kurikulum)" default(mahasiswa)
 // @Param is_active query bool false "Filter by active status"
 // @Success 200 {object} ScheduledSyncListResponse
 // @Router /schedules [get]
 func (h *Handler) GetAll(c *fiber.Ctx) error {
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	limit, _ := strconv.Atoi(c.Query("limit", "20"))
+	syncType := c.Query("sync_type", "mahasiswa")
 
 	var isActive *bool
 	if c.Query("is_active") != "" {
@@ -44,7 +46,7 @@ func (h *Handler) GetAll(c *fiber.Ctx) error {
 		isActive = &val
 	}
 
-	response, err := h.service.GetAll(page, limit, isActive)
+	response, err := h.service.GetAll(page, limit, syncType, isActive)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"success": false,

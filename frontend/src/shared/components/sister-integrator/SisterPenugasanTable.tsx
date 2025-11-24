@@ -8,7 +8,7 @@ import {
   sisterPenugasanService,
   type Penugasan,
   penugasanHelpers,
-} from "@/lib/services/penugasanService";
+} from "@/lib/services/sister/pdrd/penugasanService";
 
 export default function SisterPenugasanTable() {
   const [data, setData] = useState<Penugasan[]>([]);

@@ -3,8 +3,8 @@
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import { useMemo, useState, useEffect } from "react";
-import { publikasiService, PublikasiStatistics } from "@/lib/services/publikasiService";
-import { penelitianService, PenelitianStatistics } from "@/lib/services/penelitianService";
+import { publikasiService, PublikasiStatistics } from "@/lib/services/public/publikasiService";
+import { penelitianService, PenelitianStatistics } from "@/lib/services/public/penelitianService";
 
 // Import ECharts dynamically to avoid SSR issues
 const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });

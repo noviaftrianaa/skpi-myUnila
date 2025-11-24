@@ -607,3 +607,69 @@ export interface UnilaProfileResponse {
   message: string;
   data: UnilaProfile;
 }
+
+// ============================================
+// Sebaran Program Studi Types
+// ============================================
+
+/**
+ * Jenjang Count
+ */
+export interface JenjangCount {
+  jenjang: string;
+  jumlah: number;
+}
+
+/**
+ * Fakultas Data with Jenjang Breakdown
+ */
+export interface FakultasSebaranData {
+  id: string;
+  nama: string;
+  total_prodi: number;
+  jenjang_counts: JenjangCount[];
+}
+
+/**
+ * Prodi Data
+ */
+export interface ProdiSebaranData {
+  id: string;
+  nama: string;
+  kode_prodi: string;
+  jenjang: string;
+  akreditasi?: string;
+}
+
+/**
+ * Sebaran Statistics
+ */
+export interface SebaranStatistics {
+  total_prodi: number;
+  total_fakultas: number;
+  total_d3: number;
+  total_s1: number;
+  total_s2: number;
+  total_s3: number;
+}
+
+/**
+ * Sebaran Fakultas Response
+ */
+export interface SebaranFakultasResponse {
+  success: boolean;
+  message: string;
+  data: {
+    fakultas: FakultasSebaranData[];
+    statistics: SebaranStatistics;
+  };
+}
+
+/**
+ * Prodi by Fakultas Response
+ */
+export interface ProdiByFakultasResponse {
+  success: boolean;
+  message: string;
+  data: ProdiSebaranData[];
+}

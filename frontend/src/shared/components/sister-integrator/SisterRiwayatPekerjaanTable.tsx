@@ -8,7 +8,7 @@ import {
   sisterRiwayatPekerjaanService,
   RiwayatPekerjaan,
   riwayatPekerjaanHelpers,
-} from "@/lib/services/riwayatPekerjaanService";
+} from "@/lib/services/sister/pdrd/riwayatPekerjaanService";
 
 export default function SisterRiwayatPekerjaanTable() {
   const [data, setData] = useState<RiwayatPekerjaan[]>([]);

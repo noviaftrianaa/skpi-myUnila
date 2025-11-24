@@ -476,6 +476,42 @@ class ProgramStudiService
     }
 
     /**
+     * Get sebaran program studi per fakultas with jenjang breakdown
+     *
+     * @param string|null $periode
+     * @return array
+     */
+    public function getSebaranFakultas(?string $periode = null): array
+    {
+        $cacheKey = 'sebaran_fakultas_' . ($periode ?? 'active');
+
+        return Cache::remember($cacheKey, 3600, function () use ($periode) {
+            $data = $this->repository->getSebaranFakultas($periode);
+
+            return [
+                'fakultas' => $data['fakultas'],
+                'statistics' => $data['statistics'],
+            ];
+        });
+    }
+
+    /**
+     * Get list of prodi by fakultas ID
+     *
+     * @param string $fakultasId
+     * @param string|null $periode
+     * @return array
+     */
+    public function getProdiByFakultas(string $fakultasId, ?string $periode = null): array
+    {
+        $cacheKey = 'prodi_by_fakultas_' . $fakultasId . '_' . ($periode ?? 'active');
+
+        return Cache::remember($cacheKey, 3600, function () use ($fakultasId, $periode) {
+            return $this->repository->getProdiByFakultas($fakultasId, $periode);
+        });
+    }
+
+    /**
      * Calculate rasio dosen:mahasiswa
      *
      * @param int $totalDosen

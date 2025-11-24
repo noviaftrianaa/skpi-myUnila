@@ -8,7 +8,7 @@ import {
   sisterTugasTambahanService,
   TugasTambahan,
   tugasTambahanHelpers,
-} from "@/lib/services/tugasTambahanService";
+} from "@/lib/services/sister/pdrd/tugasTambahanService";
 
 export default function SisterTugasTambahanTable() {
   const [data, setData] = useState<TugasTambahan[]>([]);
