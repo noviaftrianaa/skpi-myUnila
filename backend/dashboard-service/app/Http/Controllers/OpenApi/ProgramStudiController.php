@@ -1052,4 +1052,50 @@ class ProgramStudiController extends Controller
             ], 400);
         }
     }
+
+    /**
+     * Get sebaran program studi per fakultas
+     */
+    public function sebaranFakultas(Request $request): JsonResponse
+    {
+        try {
+            $periode = $request->get('periode');
+            $result = $this->programStudiService->getSebaranFakultas($periode);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Sebaran fakultas retrieved successfully',
+                'data' => $result,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve sebaran fakultas',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get list of prodi by fakultas ID
+     */
+    public function prodiByFakultas(string $id, Request $request): JsonResponse
+    {
+        try {
+            $periode = $request->get('periode');
+            $result = $this->programStudiService->getProdiByFakultas($id, $periode);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Prodi list retrieved successfully',
+                'data' => $result,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve prodi list',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }

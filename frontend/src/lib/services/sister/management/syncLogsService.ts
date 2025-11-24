@@ -3,7 +3,7 @@
  * Handles API calls for viewing synchronization logs from Sister Integrator
  */
 
-import { sisterClient } from '../api/sisterClient';
+import { sisterClient } from '@/lib/api/sisterClient';
 
 export interface SyncLog {
   id: number;

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import DataTable, { Column } from "../ui/DataTable";
 import { Chip } from "@heroui/react";
-import { sisterPendidikanService, type PendidikanFormal } from "@/lib/services/pendidikanService";
+import { sisterPendidikanService, type PendidikanFormal } from "@/lib/services/sister/pdrd/pendidikanService";
 
 export default function SisterPendidikanTable() {
   const [data, setData] = useState<PendidikanFormal[]>([]);

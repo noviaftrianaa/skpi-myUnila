@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import DataTable, { Column } from "../ui/DataTable";
 import { Chip } from "@heroui/react";
-import { sisterPublikasiService, type Publikasi } from "@/lib/services/publikasiService";
+import { sisterPublikasiService, type Publikasi } from "@/lib/services/sister/pdrd/publikasiService";
 
 export default function SisterPublikasiTable() {
   const [data, setData] = useState<Publikasi[]>([]);

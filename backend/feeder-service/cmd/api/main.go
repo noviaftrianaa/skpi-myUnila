@@ -6,6 +6,7 @@ import (
 	"github.com/myunila/feeder-service/apps/apiconfig"
 	"github.com/myunila/feeder-service/apps/logger"
 	"github.com/myunila/feeder-service/apps/mahasiswa"
+	"github.com/myunila/feeder-service/apps/matkul_kurikulum"
 	"github.com/myunila/feeder-service/apps/monitoring"
 	"github.com/myunila/feeder-service/apps/scheduler"
 	"github.com/myunila/feeder-service/external/database"
@@ -87,7 +88,7 @@ func main() {
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     "http://localhost:3000, http://localhost:3001, http://localhost:9800",
 		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS,PATCH",
-		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-Requested-With",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-Requested-With, X-User-ID",
 		AllowCredentials: true,
 		ExposeHeaders:    "Content-Length",
 		MaxAge:           12 * 3600,
@@ -139,12 +140,16 @@ func main() {
 	log.Println("✅ Mahasiswa routes registered")
 
 	// Initialize Aktivitas Mahasiswa module (pass logger service for sync logging)
-	aktivitas_mahasiswa.Init(apiV1, db, feederAPI, redisClient, loggerService)
+	aktivitasService := aktivitas_mahasiswa.Init(apiV1, db, feederAPI, redisClient, loggerService)
 	log.Println("✅ Aktivitas Mahasiswa module initialized")
 
-	// Initialize Scheduler service (for scheduled mahasiswa syncs)
+	// Initialize Matkul Kurikulum module (pass logger service for sync logging)
+	kurikulumService := matkul_kurikulum.Init(apiV1, db, feederAPI, redisClient, loggerService)
+	log.Println("✅ Matkul Kurikulum module initialized")
+
+	// Initialize Scheduler service (supports mahasiswa, aktivitas_mahasiswa, and kurikulum syncs)
 	schedulerRepo := scheduler.NewRepository(db)
-	schedulerService := scheduler.NewService(schedulerRepo, mahasiswaService)
+	schedulerService := scheduler.NewService(schedulerRepo, mahasiswaService, aktivitasService, kurikulumService)
 	schedulerHandler := scheduler.NewHandler(schedulerService)
 	scheduler.RegisterRoutes(apiV1, schedulerHandler)
 
@@ -168,6 +173,7 @@ func main() {
 				"api":                 "/api/v1",
 				"mahasiswa":           "/api/v1/mahasiswa",
 				"aktivitas_mahasiswa": "/api/v1/aktivitas-mahasiswa",
+				"kurikulum":           "/api/v1/kurikulum",
 				"schedules":           "/api/v1/schedules",
 				"sync_logs":           "/api/v1/sync-logs",
 				"monitoring":          "/api/v1/monitoring/active",

@@ -8,7 +8,7 @@
  * - Get current user
  */
 
-import { apiClient, setToken, clearTokens, getToken } from '../api/client';
+import { apiClient, setToken, clearTokens, getToken } from '@/lib/api/client';
 import type {
   User,
   LoginRequest,

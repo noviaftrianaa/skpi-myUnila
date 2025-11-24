@@ -26,6 +26,8 @@ import type {
   TracerStudyResponse,
   UnilaStatisticsResponse,
   UnilaProfileResponse,
+  SebaranFakultasResponse,
+  ProdiByFakultasResponse,
 } from '@/lib/types/dashboardTypes';
 
 // Dashboard Service Base URL - Via Kong Gateway (Public endpoints)
@@ -354,6 +356,40 @@ class DashboardService {
       );
       return response.data;
     } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Get sebaran program studi per fakultas with jenjang breakdown
+   */
+  async getSebaranFakultas(periode?: string): Promise<SebaranFakultasResponse> {
+    try {
+      const params = periode ? { periode } : {};
+      const response = await axios.get<SebaranFakultasResponse>(
+        `${DASHBOARD_API_URL}/program-studi/sebaran-fakultas`,
+        { params }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching sebaran fakultas:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get list of prodi by fakultas ID
+   */
+  async getProdiByFakultas(fakultasId: string, periode?: string): Promise<ProdiByFakultasResponse> {
+    try {
+      const params = periode ? { periode } : {};
+      const response = await axios.get<ProdiByFakultasResponse>(
+        `${DASHBOARD_API_URL}/program-studi/fakultas/${fakultasId}/prodi`,
+        { params }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching prodi by fakultas:', error);
       throw error;
     }
   }

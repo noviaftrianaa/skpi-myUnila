@@ -14,6 +14,7 @@ export { default as DataTable } from './ui/DataTable';
 // Home Page Components
 export { default as ProfileUnila } from './ProfileUnila';
 export { default as ProgramStudiTable } from './ProgramStudiTable';
+export { default as SebaranProgramStudi } from './SebaranProgramStudi';
 export { default as AkreditasiProdi } from './AkreditasiProdi';
 
 // Statistik Page Components

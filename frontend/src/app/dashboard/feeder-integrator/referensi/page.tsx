@@ -7,7 +7,7 @@ import { feederIntegratorMenuConfig } from "../config/menuConfig";
 import { Card, CardBody, Chip, Spinner, Button, Input, Checkbox } from "@heroui/react";
 import { MdSchool, MdSelectAll } from "react-icons/md";
 import { FiBookOpen, FiDatabase, FiCheckCircle, FiClock, FiSearch, FiActivity } from "react-icons/fi";
-import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
+import ScheduleList from "@/shared/components/feeder-integrator/ScheduleList";
 
 const referensiItems = [
   { key: "jalur_masuk", name: "Jalur Masuk", description: "Data jalur masuk mahasiswa", records: 0 },

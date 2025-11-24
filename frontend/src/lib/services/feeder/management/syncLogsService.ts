@@ -4,7 +4,7 @@
  * Uses shared logger.sync_logs table - same as Sister Integrator
  */
 
-import { feederClient } from '../api/feederClient';
+import { feederClient } from '@/lib/api/feederClient';
 
 export interface FeederSyncLog {
   id: number;

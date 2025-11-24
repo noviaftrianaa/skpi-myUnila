@@ -8,7 +8,7 @@ import {
   sisterRiwayatFungsionalService,
   RiwayatFungsional,
   riwayatFungsionalHelpers,
-} from "@/lib/services/riwayatFungsionalService";
+} from "@/lib/services/sister/pdrd/riwayatFungsionalService";
 
 export default function SisterRiwayatFungsionalTable() {
   const [data, setData] = useState<RiwayatFungsional[]>([]);

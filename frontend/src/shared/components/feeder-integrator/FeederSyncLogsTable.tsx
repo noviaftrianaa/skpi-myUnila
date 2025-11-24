@@ -3,8 +3,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import DataTable, { Column } from "../ui/DataTable";
 import { Chip, Select, SelectItem, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/react";
-import { feederSyncLogsService } from "@/lib/services/feederSyncLogsService";
-import type { FeederSyncLog as SyncLog } from "@/lib/services/feederSyncLogsService";
+import { feederSyncLogsService } from "@/lib/services/feeder/management/syncLogsService";
+import type { FeederSyncLog as SyncLog } from "@/lib/services/feeder/management/syncLogsService";
 import { FiCheckCircle, FiXCircle, FiAlertCircle, FiClock, FiEye } from "react-icons/fi";
 import { toast } from "react-hot-toast";
 

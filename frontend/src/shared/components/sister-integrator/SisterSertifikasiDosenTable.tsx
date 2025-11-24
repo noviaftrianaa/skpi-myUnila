@@ -8,7 +8,7 @@ import {
   sisterSertifikasiDosenService,
   SertifikasiDosen,
   sertifikasiDosenHelpers,
-} from "@/lib/services/sertifikasiDosenService";
+} from "@/lib/services/sister/pdrd/sertifikasiDosenService";
 
 export default function SisterSertifikasiDosenTable() {
   const [data, setData] = useState<SertifikasiDosen[]>([]);

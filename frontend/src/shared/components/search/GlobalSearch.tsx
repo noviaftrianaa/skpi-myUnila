@@ -15,8 +15,8 @@ import {
   ModalContent,
   ModalBody,
 } from "@heroui/react";
-import { getSearchSuggestions, globalSearch } from "@/lib/services/searchService";
-import { searchBidangIlmu } from "@/lib/services/bidangIlmuService";
+import { getSearchSuggestions, globalSearch } from "@/lib/services/shared/searchService";
+import { searchBidangIlmu } from "@/lib/services/public/bidangIlmuService";
 
 // Search category type
 export type SearchCategory =

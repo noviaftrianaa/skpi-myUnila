@@ -8,32 +8,39 @@ import (
 	"strings"
 	"time"
 
+	"github.com/myunila/feeder-service/apps/aktivitas_mahasiswa"
 	"github.com/myunila/feeder-service/apps/mahasiswa"
+	"github.com/myunila/feeder-service/apps/matkul_kurikulum"
 	"github.com/robfig/cron/v3"
 )
 
 type Service struct {
-	repo             *Repository
-	cron             *cron.Cron
-	jobs             map[int]cron.EntryID // map schedule ID to cron entry ID
-	mahasiswaService mahasiswa.Service
+	repo                      *Repository
+	cron                      *cron.Cron
+	jobs                      map[int]cron.EntryID // map schedule ID to cron entry ID
+	mahasiswaService          mahasiswa.Service
+	aktivitasMahasiswaService aktivitas_mahasiswa.Service
+	kurikulumService          matkul_kurikulum.Service
 }
 
 // EndpointConfig represents the JSON structure stored in endpoint_key
 type EndpointConfig struct {
-	Angkatan []string `json:"angkatan,omitempty"`
-	IDProdi  *string  `json:"id_prodi,omitempty"`
+	Angkatan   []string `json:"angkatan,omitempty"`
+	IDSemester []string `json:"id_semester,omitempty"`
+	IDProdi    *string  `json:"id_prodi,omitempty"`
 }
 
-func NewService(repo *Repository, mahasiswaService mahasiswa.Service) *Service {
+func NewService(repo *Repository, mahasiswaService mahasiswa.Service, aktivitasService aktivitas_mahasiswa.Service, kurikulumService matkul_kurikulum.Service) *Service {
 	// Create cron with second precision
 	c := cron.New(cron.WithSeconds())
 
 	service := &Service{
-		repo:             repo,
-		cron:             c,
-		jobs:             make(map[int]cron.EntryID),
-		mahasiswaService: mahasiswaService,
+		repo:                      repo,
+		cron:                      c,
+		jobs:                      make(map[int]cron.EntryID),
+		mahasiswaService:          mahasiswaService,
+		aktivitasMahasiswaService: aktivitasService,
+		kurikulumService:          kurikulumService,
 	}
 
 	return service
@@ -93,13 +100,15 @@ func (s *Service) parseEndpointKey(schedule *ScheduledSync) {
 		schedule.Angkatan = &angkatanStr
 	}
 
+	schedule.IDSemester = config.IDSemester
 	schedule.IDProdi = config.IDProdi
 }
 
-// encodeEndpointKey encodes angkatan and id_prodi to JSON string
-func (s *Service) encodeEndpointKey(angkatan *string, idProdi *string) (*string, error) {
+// encodeEndpointKey encodes angkatan, id_semester, and id_prodi to JSON string
+func (s *Service) encodeEndpointKey(angkatan *string, idSemester []string, idProdi *string) (*string, error) {
 	config := EndpointConfig{
-		IDProdi: idProdi,
+		IDProdi:    idProdi,
+		IDSemester: idSemester,
 	}
 
 	// Convert comma-separated string to array
@@ -124,27 +133,22 @@ func (s *Service) encodeEndpointKey(angkatan *string, idProdi *string) (*string,
 func (s *Service) registerSchedule(schedule ScheduledSync) error {
 	// Create job function
 	job := func() {
-		log.Printf("🔔 Executing scheduled sync: %s (ID: %d)", schedule.Name, schedule.ID)
+		log.Printf("🔔 Executing scheduled sync: %s (ID: %d, Type: %s)", schedule.Name, schedule.ID, schedule.SyncType)
 
-		// Parse angkatan from comma-separated string
-		var angkatanList []string
-		if schedule.Angkatan != nil && *schedule.Angkatan != "" {
-			angkatanList = strings.Split(*schedule.Angkatan, ",")
-			// Trim spaces
-			for i := range angkatanList {
-				angkatanList[i] = strings.TrimSpace(angkatanList[i])
-			}
-		}
-
-		// Build sync filter
-		filter := &mahasiswa.SyncFilter{
-			Angkatan: angkatanList,
-			IDProdi:  schedule.IDProdi,
-		}
-
-		// Execute mahasiswa sync
 		ctx := context.Background()
-		_, err := s.mahasiswaService.SyncMahasiswaByAngkatan(ctx, filter, "scheduler")
+		var err error
+
+		// Execute sync based on sync type
+		switch schedule.SyncType {
+		case "mahasiswa":
+			err = s.executeMahasiswaSync(ctx, schedule)
+		case "aktivitas_mahasiswa":
+			err = s.executeAktivitasSync(ctx, schedule)
+		case "kurikulum":
+			err = s.executeKurikulumSync(ctx, schedule)
+		default:
+			err = fmt.Errorf("unknown sync type: %s", schedule.SyncType)
+		}
 
 		// Update last run time
 		now := time.Now().UTC()
@@ -174,6 +178,60 @@ func (s *Service) registerSchedule(schedule ScheduledSync) error {
 	return nil
 }
 
+// executeMahasiswaSync executes mahasiswa sync
+func (s *Service) executeMahasiswaSync(ctx context.Context, schedule ScheduledSync) error {
+	// Parse angkatan from comma-separated string
+	var angkatanList []string
+	if schedule.Angkatan != nil && *schedule.Angkatan != "" {
+		angkatanList = strings.Split(*schedule.Angkatan, ",")
+		for i := range angkatanList {
+			angkatanList[i] = strings.TrimSpace(angkatanList[i])
+		}
+	}
+
+	filter := &mahasiswa.SyncFilter{
+		Angkatan: angkatanList,
+		IDProdi:  schedule.IDProdi,
+	}
+
+	_, err := s.mahasiswaService.SyncMahasiswaByAngkatan(ctx, filter, "scheduler")
+	return err
+}
+
+// executeAktivitasSync executes aktivitas mahasiswa sync
+func (s *Service) executeAktivitasSync(ctx context.Context, schedule ScheduledSync) error {
+	// Parse ID Semester from EndpointKey JSON
+	var config EndpointConfig
+	if schedule.EndpointKey != nil && *schedule.EndpointKey != "" {
+		if err := json.Unmarshal([]byte(*schedule.EndpointKey), &config); err != nil {
+			return fmt.Errorf("failed to parse endpoint_key: %w", err)
+		}
+	}
+
+	filter := &aktivitas_mahasiswa.SyncFilter{
+		IDSemester: config.IDSemester,
+		IDProdi:    config.IDProdi,
+	}
+
+	_, err := s.aktivitasMahasiswaService.SyncAktivitasMahasiswa(ctx, filter, "scheduler")
+	return err
+}
+
+// executeKurikulumSync executes kurikulum sync
+func (s *Service) executeKurikulumSync(ctx context.Context, schedule ScheduledSync) error {
+	// Kurikulum requires id_prodi
+	if schedule.IDProdi == nil || *schedule.IDProdi == "" {
+		return fmt.Errorf("id_prodi is required for kurikulum sync")
+	}
+
+	filter := &matkul_kurikulum.SyncFilter{
+		IDProdi: schedule.IDProdi,
+	}
+
+	_, err := s.kurikulumService.SyncKurikulum(ctx, filter, "scheduler")
+	return err
+}
+
 // unregisterSchedule removes a schedule from cron
 func (s *Service) unregisterSchedule(scheduleID int) {
 	if entryID, exists := s.jobs[scheduleID]; exists {
@@ -191,8 +249,8 @@ func (s *Service) CreateSchedule(req CreateScheduledSyncRequest) (*ScheduledSync
 		return nil, fmt.Errorf("invalid schedule time: %w", err)
 	}
 
-	// Encode endpoint_key from angkatan and id_prodi
-	endpointKey, err := s.encodeEndpointKey(req.Angkatan, req.IDProdi)
+	// Encode endpoint_key from angkatan, id_semester, and id_prodi
+	endpointKey, err := s.encodeEndpointKey(req.Angkatan, req.IDSemester, req.IDProdi)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode endpoint config: %w", err)
 	}
@@ -201,7 +259,7 @@ func (s *Service) CreateSchedule(req CreateScheduledSyncRequest) (*ScheduledSync
 	schedule := &ScheduledSync{
 		Name:           req.Name,
 		Description:    req.Description,
-		SyncType:       "mahasiswa", // Fixed type for feeder service
+		SyncType:       req.SyncType, // Use the sync type from request
 		EndpointKey:    endpointKey,
 		CronExpression: cronExpr,
 		ScheduleTime:   &scheduleTime,
@@ -258,6 +316,10 @@ func (s *Service) UpdateSchedule(id int, req UpdateScheduledSyncRequest) (*Sched
 		existing.Angkatan = req.Angkatan
 		updateEndpointKey = true
 	}
+	if req.IDSemester != nil {
+		existing.IDSemester = req.IDSemester
+		updateEndpointKey = true
+	}
 	if req.IDProdi != nil {
 		existing.IDProdi = req.IDProdi
 		updateEndpointKey = true
@@ -265,7 +327,7 @@ func (s *Service) UpdateSchedule(id int, req UpdateScheduledSyncRequest) (*Sched
 
 	// Re-encode endpoint_key if changed
 	if updateEndpointKey {
-		endpointKey, err := s.encodeEndpointKey(existing.Angkatan, existing.IDProdi)
+		endpointKey, err := s.encodeEndpointKey(existing.Angkatan, existing.IDSemester, existing.IDProdi)
 		if err != nil {
 			return nil, fmt.Errorf("failed to encode endpoint config: %w", err)
 		}
@@ -411,9 +473,14 @@ func (s *Service) calculateNextRun(scheduleTime time.Time) time.Time {
 	return nextRun.UTC()
 }
 
-// GetAll retrieves all schedules with pagination (filter by mahasiswa type)
-func (s *Service) GetAll(page, limit int, isActive *bool) (*ScheduledSyncListResponse, error) {
-	schedules, total, err := s.repo.GetAll(page, limit, "mahasiswa", isActive)
+// GetAll retrieves all schedules with pagination
+func (s *Service) GetAll(page, limit int, syncType string, isActive *bool) (*ScheduledSyncListResponse, error) {
+	// Default to "mahasiswa" if not specified for backward compatibility
+	if syncType == "" {
+		syncType = "mahasiswa"
+	}
+
+	schedules, total, err := s.repo.GetAll(page, limit, syncType, isActive)
 	if err != nil {
 		return nil, err
 	}

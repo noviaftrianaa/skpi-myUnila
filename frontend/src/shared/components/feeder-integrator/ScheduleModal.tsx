@@ -11,53 +11,28 @@ import {
   Input,
   Textarea,
   Switch,
-  Select,
-  SelectItem,
 } from "@heroui/react";
 import { FiClock, FiCalendar } from "react-icons/fi";
 import {
   schedulerService,
-  type CreateScheduleRequest as CreateScheduledSyncRequest,
+  type CreateScheduleRequest,
   type ScheduledSync,
-} from "@/lib/services/sister/management/schedulerService";
+} from "@/lib/services/feeder/management/schedulerService";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface ScheduleModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  syncType: "referensi" | "dosen" | "penugasan" | "penelitian" | "pengabdian" | "pendidikan" | "publikasi" | "riwayat_pekerjaan" | "jabatan_struktural" | "tugas_tambahan";
-  endpointKey?: string;
-  endpointName?: string;
+  syncType: "mahasiswa" | "aktivitas_mahasiswa" | "kurikulum";
   schedule?: ScheduledSync; // For edit mode
 }
-
-// Referensi endpoints untuk dropdown
-const REFERENSI_ENDPOINTS = [
-  { key: "agama", label: "Agama" },
-  { key: "negara", label: "Negara" },
-  { key: "jenjang_pendidikan", label: "Jenjang Pendidikan" },
-  { key: "gelar_akademik", label: "Gelar Akademik" },
-  { key: "semester", label: "Semester" },
-  { key: "wilayah", label: "Wilayah" },
-  { key: "jenis_sdm", label: "Jenis SDM" },
-  { key: "jenis_keluar", label: "Jenis Keluar" },
-  { key: "status_keaktifan", label: "Status Keaktifan" },
-  { key: "lembaga_pengangkat", label: "Lembaga Pengangkat" },
-  { key: "pangkat_golongan", label: "Pangkat Golongan" },
-  { key: "sumber_gaji", label: "Sumber Gaji" },
-  { key: "jenjang_jabatan", label: "Jenjang Jabatan" },
-  { key: "ikatan_kerja", label: "Ikatan Kerja" },
-  { key: "kelompok_bidang", label: "Kelompok Bidang" },
-];
 
 export default function ScheduleModal({
   isOpen,
   onClose,
   onSuccess,
   syncType,
-  endpointKey,
-  endpointName,
   schedule,
 }: ScheduleModalProps) {
   const { user } = useAuth();
@@ -67,7 +42,6 @@ export default function ScheduleModal({
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    endpoint_key: endpointKey || "",
     schedule_date: "",
     schedule_time: "02:00",
     is_active: true,
@@ -77,7 +51,7 @@ export default function ScheduleModal({
   useEffect(() => {
     if (schedule) {
       // Parse schedule_time to get date and time in UTC
-      const scheduleDateTime = new Date(schedule.schedule_time);
+      const scheduleDateTime = new Date(schedule.schedule_time || "");
 
       // Convert UTC to WIB (UTC+7)
       const wibDateTime = new Date(scheduleDateTime.getTime() + (7 * 60 * 60 * 1000));
@@ -89,7 +63,6 @@ export default function ScheduleModal({
       setFormData({
         name: schedule.name,
         description: schedule.description || "",
-        endpoint_key: schedule.endpoint_key || "",
         schedule_date: date,
         schedule_time: time,
         is_active: schedule.is_active,
@@ -104,52 +77,39 @@ export default function ScheduleModal({
       const timestamp = new Date().getTime();
       const getDefaultName = () => {
         switch (syncType) {
-          case "dosen":
-            return `Dosen Sync ${timestamp}`;
-          case "penelitian":
-            return `Penelitian Sync ${timestamp}`;
-          case "pengabdian":
-            return `Pengabdian Sync ${timestamp}`;
-          case "pendidikan":
-            return `Pendidikan Formal Sync ${timestamp}`;
-          case "publikasi":
-            return `Publikasi Sync ${timestamp}`;
-          case "penugasan":
-            return `Penugasan Sync ${timestamp}`;
+          case "mahasiswa":
+            return `Mahasiswa Sync ${timestamp}`;
+          case "aktivitas_mahasiswa":
+            return `Aktivitas Mahasiswa Sync ${timestamp}`;
+          case "kurikulum":
+            return `Kurikulum Sync ${timestamp}`;
           default:
-            return `${endpointName || "Referensi"} Sync ${timestamp}`;
+            return `Sync ${timestamp}`;
         }
       };
 
       const getDefaultDescription = () => {
         switch (syncType) {
-          case "dosen":
-            return "Sync all Unila dosen data every day";
-          case "penelitian":
-            return "Batch sync penelitian data for all dosen every day";
-          case "pengabdian":
-            return "Batch sync pengabdian data for all dosen every day";
-          case "pendidikan":
-            return "Batch sync pendidikan formal data for all dosen every day";
-          case "publikasi":
-            return "Batch sync publikasi data for all dosen every day";
-          case "penugasan":
-            return "Batch sync penugasan data for all active dosen every day";
+          case "mahasiswa":
+            return "Sync mahasiswa data every day";
+          case "aktivitas_mahasiswa":
+            return "Sync aktivitas mahasiswa data every day";
+          case "kurikulum":
+            return "Sync kurikulum data every day";
           default:
-            return `Sync ${endpointName || "referensi"} data every day`;
+            return "Sync data every day";
         }
       };
 
       setFormData({
         name: getDefaultName(),
         description: getDefaultDescription(),
-        endpoint_key: endpointKey || "",
         schedule_date: dateStr,
         schedule_time: "02:00",
         is_active: true,
       });
     }
-  }, [schedule, syncType, endpointKey, endpointName]);
+  }, [schedule, syncType]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -174,14 +134,6 @@ export default function ScheduleModal({
       alert("Jam schedule harus diisi");
       return;
     }
-
-    if (syncType === "referensi" && !formData.endpoint_key) {
-      alert("Endpoint harus dipilih");
-      return;
-    }
-
-    // No endpoint_key validation needed for penelitian, pengabdian, pendidikan, publikasi
-    // These types will batch sync all dosen
 
     setLoading(true);
 
@@ -220,7 +172,7 @@ export default function ScheduleModal({
         });
       } else {
         // Create new schedule
-        const request: CreateScheduledSyncRequest = {
+        const request: CreateScheduleRequest = {
           name: formData.name,
           description: formData.description,
           sync_type: syncType,
@@ -229,11 +181,6 @@ export default function ScheduleModal({
           is_active: formData.is_active,
           created_by: user.username,
         };
-
-        // Add endpoint_key for referensi, penelitian, pengabdian, pendidikan, publikasi
-        if (formData.endpoint_key) {
-          request.endpoint_key = formData.endpoint_key;
-        }
 
         await schedulerService.createSchedule(request);
       }
@@ -271,19 +218,11 @@ export default function ScheduleModal({
               {isEditMode ? "Edit Schedule" : "Buat Schedule Baru"}
             </h3>
             <p className="text-sm font-normal text-gray-600 dark:text-slate-400">
-              {syncType === "dosen"
-                ? "Schedule sync untuk data dosen"
-                : syncType === "referensi"
-                ? "Schedule sync untuk data referensi"
-                : syncType === "penelitian"
-                ? "Schedule sync untuk data penelitian dosen"
-                : syncType === "pengabdian"
-                ? "Schedule sync untuk data pengabdian dosen"
-                : syncType === "pendidikan"
-                ? "Schedule sync untuk data pendidikan formal dosen"
-                : syncType === "publikasi"
-                ? "Schedule sync untuk data publikasi dosen"
-                : "Schedule sync untuk data penugasan"}
+              {syncType === "mahasiswa"
+                ? "Schedule sync untuk data mahasiswa"
+                : syncType === "aktivitas_mahasiswa"
+                ? "Schedule sync untuk data aktivitas mahasiswa"
+                : "Schedule sync untuk data kurikulum"}
             </p>
           </ModalHeader>
 
@@ -294,7 +233,7 @@ export default function ScheduleModal({
                 Nama Schedule <span className="text-red-500">*</span>
               </label>
               <Input
-                placeholder="Contoh: Daily Agama Sync"
+                placeholder="Contoh: Daily Kurikulum Sync"
                 value={formData.name}
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
@@ -327,45 +266,6 @@ export default function ScheduleModal({
                 }}
               />
             </div>
-
-            {/* Endpoint Selection (for referensi only) */}
-            {syncType === "referensi" && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-                  Pilih Endpoint <span className="text-red-500">*</span>
-                </label>
-                <Select
-                  placeholder="Pilih endpoint referensi"
-                  selectedKeys={formData.endpoint_key ? [formData.endpoint_key] : []}
-                  onChange={(e) =>
-                    setFormData({ ...formData, endpoint_key: e.target.value })
-                  }
-                  isRequired
-                  variant="bordered"
-                  isDisabled={!!endpointKey || isEditMode}
-                  classNames={{
-                    value: "text-gray-900 dark:text-white",
-                    trigger: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800",
-                    popoverContent: "bg-white dark:bg-slate-800",
-                    listbox: "bg-white dark:bg-slate-800",
-                  }}
-                >
-                  {REFERENSI_ENDPOINTS.map((endpoint) => (
-                    <SelectItem
-                      key={endpoint.key}
-                      value={endpoint.key}
-                      classNames={{
-                        base: "data-[hover=true]:bg-gray-100 dark:data-[hover=true]:bg-slate-700",
-                        title: "text-gray-900 dark:text-white",
-                      }}
-                    >
-                      {endpoint.label}
-                    </SelectItem>
-                  ))}
-                </Select>
-              </div>
-            )}
-
 
             {/* Date and Time */}
             <div className="grid grid-cols-2 gap-4">

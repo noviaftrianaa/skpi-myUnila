@@ -2,6 +2,7 @@ import {
   Hero,
   ProfileUnila,
   ProgramStudiTable,
+  SebaranProgramStudi,
   AkreditasiProdi,
   WorldClassRanking
 } from "@/shared/components";
@@ -17,6 +18,9 @@ export default function HomePage() {
 
       {/* Program Studi Table Section */}
       <ProgramStudiTable />
+
+      {/* Sebaran Program Studi Chart Section */}
+      <SebaranProgramStudi />
 
       {/* Akreditasi Program Studi Section */}
       <AkreditasiProdi />

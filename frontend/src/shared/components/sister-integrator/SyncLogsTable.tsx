@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import DataTable, { Column } from "../ui/DataTable";
 import { Chip, Select, SelectItem, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/react";
-import { syncLogsService, type SyncLog } from "@/lib/services/syncLogsService";
+import { syncLogsService, type SyncLog } from "@/lib/services/sister/management/syncLogsService";
 import { FiCheckCircle, FiXCircle, FiAlertCircle, FiClock, FiEye } from "react-icons/fi";
 import { toast } from "react-hot-toast";
 

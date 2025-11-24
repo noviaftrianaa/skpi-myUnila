@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import { useState, useEffect, useMemo } from "react";
-import { dosenService, type DosenStatistics } from "@/lib/services/dosenService";
+import { dosenService, type DosenStatistics } from "@/lib/services/public/dosenService";
 
 // Import ECharts dynamically to avoid SSR issues
 const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import DataTable, { Column } from "../ui/DataTable";
 import { Chip } from "@heroui/react";
-import { sisterPenelitianService, type Litabmas } from "@/lib/services/penelitianService";
+import { sisterPenelitianService, type Litabmas } from "@/lib/services/sister/pdrd/penelitianService";
 
 export default function SisterPenelitianTable() {
   const [data, setData] = useState<Litabmas[]>([]);
