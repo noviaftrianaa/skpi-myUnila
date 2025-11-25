@@ -27,6 +27,7 @@ type Service interface {
 
 	// Sync operations (implemented in sync_service.go)
 	SyncKurikulum(ctx context.Context, filter *SyncFilter, syncedBy string) (*BatchKurikulumSyncResult, error)
+	SyncMatkul(ctx context.Context, filter *SyncFilter, syncedBy string) (*BatchMatkulSyncResult, error)
 }
 
 // service implementation
@@ -108,8 +109,14 @@ func (s *service) GetKurikulumDetail(ctx context.Context, idKurikulumSP string) 
 		return nil, err
 	}
 
-	// Get matkul list
-	matkulList, err := s.repo.GetMatkulByKurikulum(ctx, idKurikulumSP)
+	// Get matkul list with details (includes nm_mk, kode_mk, etc.)
+	var matkulList interface{}
+	if detailedRepo, ok := s.repo.(*repository); ok {
+		matkulList, err = detailedRepo.GetMatkulByKurikulumWithDetails(ctx, idKurikulumSP, "")
+	} else {
+		// Fallback to basic query
+		matkulList, err = s.repo.GetMatkulByKurikulum(ctx, idKurikulumSP)
+	}
 	if err != nil {
 		return nil, err
 	}
