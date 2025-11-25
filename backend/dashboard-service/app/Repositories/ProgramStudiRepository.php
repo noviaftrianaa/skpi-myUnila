@@ -1161,4 +1161,152 @@ class ProgramStudiRepository
 
         return $result;
     }
+
+    /**
+     * Get sebaran program studi per fakultas with jenjang breakdown
+     *
+     * @param string|null $periode
+     * @return array
+     */
+    public function getSebaranFakultas(?string $periode = null): array
+    {
+        $periode = $periode ?? $this->getActivePeriod();
+        $unilaIdSp = strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515'));
+
+        // Query sebaran program studi per fakultas with jenjang breakdown
+        $sql = "
+            SELECT
+                fak.id_sms AS id,
+                fak.nm_lemb AS nama,
+                COUNT(DISTINCT sms.id_sms) AS total_prodi,
+                SUM(CASE WHEN didik.nm_jenj_didik = 'D3' THEN 1 ELSE 0 END) AS jenjang_d3,
+                SUM(CASE WHEN didik.nm_jenj_didik = 'D4' THEN 1 ELSE 0 END) AS jenjang_d4,
+                SUM(CASE WHEN didik.nm_jenj_didik = 'S1' THEN 1 ELSE 0 END) AS jenjang_s1,
+                SUM(CASE WHEN didik.nm_jenj_didik = 'S2' THEN 1 ELSE 0 END) AS jenjang_s2,
+                SUM(CASE WHEN didik.nm_jenj_didik = 'S3' THEN 1 ELSE 0 END) AS jenjang_s3,
+                SUM(CASE WHEN didik.nm_jenj_didik = 'Profesi' THEN 1 ELSE 0 END) AS jenjang_profesi,
+                SUM(CASE WHEN didik.nm_jenj_didik = 'Sp-1' THEN 1 ELSE 0 END) AS jenjang_sp1,
+                SUM(CASE WHEN didik.nm_jenj_didik = 'Sp-2' THEN 1 ELSE 0 END) AS jenjang_sp2
+            FROM pdrd.sms AS sms
+            INNER JOIN ref.jenjang_pendidikan AS didik
+                ON didik.id_jenj_didik = sms.id_jenj_didik
+                AND didik.expired_date IS NULL
+            INNER JOIN pdrd.sms AS fak
+                ON fak.id_sms = sms.id_fak_unila
+                AND fak.soft_delete = 0
+            WHERE sms.soft_delete = 0
+                AND sms.stat_prodi = 'A'
+                AND sms.id_jns_sms = '3'
+                AND CAST(sms.id_sp AS VARCHAR(50)) = ?
+                AND sms.id_fak_unila IS NOT NULL
+            GROUP BY fak.id_sms, fak.nm_lemb
+            ORDER BY total_prodi DESC
+        ";
+
+        $result = DB::connection('sqlsrv')->select($sql, [$unilaIdSp]);
+
+        $fakultas = array_map(function($item) {
+            return [
+                'id' => $item->id,
+                'nama' => $item->nama,
+                'total_prodi' => (int) $item->total_prodi,
+                'jenjang' => [
+                    'D3' => (int) ($item->jenjang_d3 ?? 0),
+                    'D4' => (int) ($item->jenjang_d4 ?? 0),
+                    'S1' => (int) ($item->jenjang_s1 ?? 0),
+                    'S2' => (int) ($item->jenjang_s2 ?? 0),
+                    'S3' => (int) ($item->jenjang_s3 ?? 0),
+                    'Profesi' => (int) ($item->jenjang_profesi ?? 0),
+                    'Sp-1' => (int) ($item->jenjang_sp1 ?? 0),
+                    'Sp-2' => (int) ($item->jenjang_sp2 ?? 0),
+                ],
+            ];
+        }, $result);
+
+        // Calculate statistics
+        $totalProdi = array_sum(array_column($fakultas, 'total_prodi'));
+        $totalFakultas = count($fakultas);
+
+        $jenjangTotals = [
+            'D3' => 0,
+            'D4' => 0,
+            'S1' => 0,
+            'S2' => 0,
+            'S3' => 0,
+            'Profesi' => 0,
+            'Sp-1' => 0,
+            'Sp-2' => 0,
+        ];
+
+        foreach ($fakultas as $fak) {
+            foreach ($fak['jenjang'] as $jenjang => $count) {
+                $jenjangTotals[$jenjang] += $count;
+            }
+        }
+
+        return [
+            'fakultas' => $fakultas,
+            'statistics' => [
+                'total_fakultas' => $totalFakultas,
+                'total_prodi' => $totalProdi,
+                'jenjang' => $jenjangTotals,
+            ],
+        ];
+    }
+
+    /**
+     * Get list of prodi by fakultas ID
+     *
+     * @param string $fakultasId
+     * @param string|null $periode
+     * @return array
+     */
+    public function getProdiByFakultas(string $fakultasId, ?string $periode = null): array
+    {
+        $periode = $periode ?? $this->getActivePeriod();
+        $unilaIdSp = strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515'));
+
+        $sql = "
+            SELECT
+                sms.id_sms AS id,
+                sms.nm_lemb AS nama,
+                sms.kode_prodi,
+                didik.nm_jenj_didik AS jenjang,
+                COALESCE(akred.nm_akred, 'Belum Akreditasi') AS akreditasi
+            FROM pdrd.sms AS sms
+            INNER JOIN ref.jenjang_pendidikan AS didik
+                ON didik.id_jenj_didik = sms.id_jenj_didik
+                AND didik.expired_date IS NULL
+            LEFT JOIN (
+                SELECT
+                    ap.id_sms,
+                    na.nm_akred,
+                    ROW_NUMBER() OVER (PARTITION BY ap.id_sms ORDER BY ap.tst_sk_akreditasi_prodi DESC) AS rn
+                FROM pdrd.akreditasi_prodi AS ap
+                JOIN ref.nilai_akred AS na
+                    ON na.id_akred = ap.id_akred
+                    AND na.expired_date IS NULL
+                WHERE ap.soft_delete = 0
+                    AND ap.a_aktif = 1
+            ) AS akred ON akred.id_sms = sms.id_sms AND akred.rn = 1
+            WHERE sms.soft_delete = 0
+                AND sms.stat_prodi = 'A'
+                AND sms.id_jns_sms = '3'
+                AND CAST(sms.id_sp AS VARCHAR(50)) = ?
+                AND sms.id_fak_unila = ?
+            ORDER BY didik.id_jenj_didik, sms.nm_lemb
+        ";
+
+        $result = DB::connection('sqlsrv')->select($sql, [$unilaIdSp, $fakultasId]);
+
+        return array_map(function($item) {
+            return [
+                'id' => $item->id,
+                'nama' => $item->nama,
+                'kode_prodi' => $item->kode_prodi,
+                'jenjang' => $item->jenjang,
+                'akreditasi' => $item->akreditasi,
+            ];
+        }, $result);
+    }
 }
