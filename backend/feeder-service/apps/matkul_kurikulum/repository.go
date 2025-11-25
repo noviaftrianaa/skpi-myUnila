@@ -217,8 +217,8 @@ func (r *repository) BulkUpsertMatkul(ctx context.Context, data []*Matkul) error
 
 	query := `
 		MERGE pdrd.matkul AS target
-		USING (SELECT @p1 AS id_mk_pddikti) AS source
-		ON target.id_mk_pddikti = source.id_mk_pddikti
+		USING (SELECT @p1 AS id_mk) AS source
+		ON target.id_mk = source.id_mk
 		WHEN MATCHED THEN
 			UPDATE SET
 				id_jenj_didik = @p2,
@@ -245,7 +245,7 @@ func (r *repository) BulkUpsertMatkul(ctx context.Context, data []*Matkul) error
 				last_sync = @p22
 		WHEN NOT MATCHED THEN
 			INSERT (
-				id_mk_pddikti, id_jenj_didik, id_sms, sks_mk, sks_tm, sks_prak, sks_prak_lap, sks_sim,
+				id_mk, id_jenj_didik, id_sms, sks_mk, sks_tm, sks_prak, sks_prak_lap, sks_sim,
 				kode_mk, nm_mk, jns_mk, kel_mk, metode_pelaksanaan_kuliah,
 				a_sap, a_silabus, a_bahan_ajar, acara_prak, a_diktat,
 				tgl_mulai_efektif, tgl_akhir_efektif,

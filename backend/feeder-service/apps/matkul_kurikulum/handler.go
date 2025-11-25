@@ -244,3 +244,57 @@ func (h *Handler) SyncKurikulum(c *fiber.Ctx) error {
 		"message": "Sinkronisasi kurikulum berhasil",
 	})
 }
+
+// SyncMatkul godoc
+// @Summary Sync matkul from Neo Feeder
+// @Description Sync all matkul data from Neo Feeder API (bulk sync, separate from kurikulum)
+// @Tags Matkul
+// @Accept json
+// @Produce json
+// @Param id_prodi query string false "Filter by prodi ID (optional)"
+// @Param synced_by query string true "User who triggered the sync"
+// @Success 200 {object} BatchMatkulSyncResult
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /api/v1/matkul/sync [post]
+func (h *Handler) SyncMatkul(c *fiber.Ctx) error {
+	// Get parameters from query string
+	idProdi := c.Query("id_prodi", "")
+	syncedBy := c.Query("synced_by", "system")
+
+	// Validate required parameters: synced_by
+	if syncedBy == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"error":   "Invalid request",
+			"message": "synced_by parameter is required",
+		})
+	}
+
+	// Parse id_prodi (optional)
+	var idProdiPtr *string
+	if idProdi != "" {
+		idProdiPtr = &idProdi
+	}
+
+	// Build sync filter
+	filter := &SyncFilter{
+		IDProdi: idProdiPtr,
+	}
+
+	// Perform sync
+	result, err := h.service.SyncMatkul(c.Context(), filter, syncedBy)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"error":   "Failed to sync matkul",
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    result,
+		"message": "Sinkronisasi matkul berhasil",
+	})
+}

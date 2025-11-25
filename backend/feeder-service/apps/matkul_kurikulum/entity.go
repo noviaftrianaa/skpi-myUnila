@@ -120,7 +120,7 @@ type MatkulKurikulum struct {
 // Matkul - Entity for mata kuliah (pdrd.matkul)
 type Matkul struct {
 	// Primary Key
-	IDMkPDDikti string `json:"id_mk_pddikti" db:"id_mk_pddikti"`
+	IDMkPDDikti string `json:"id_mk_pddikti" db:"id_mk"`
 
 	// Foreign Keys
 	IDJenjDidik *int    `json:"id_jenj_didik" db:"id_jenj_didik"`
@@ -286,4 +286,23 @@ type BatchKurikulumSyncResult struct {
 type SyncFilter struct {
 	IDProdi   *string `json:"id_prodi,omitempty"` // Optional - filter by prodi (id_sms)
 	ForceSync bool    `json:"force_sync,omitempty"` // Optional - force re-sync
+}
+
+// MatkulSyncResult - Result for single matkul sync
+type MatkulSyncResult struct {
+	IDMatkul   string `json:"id_matkul"`
+	NamaMatkul string `json:"nama_matkul"`
+	Success    bool   `json:"success"`
+	Error      string `json:"error,omitempty"`
+}
+
+// BatchMatkulSyncResult - Result for batch matkul sync
+type BatchMatkulSyncResult struct {
+	TotalProcessed int                `json:"total_processed"`
+	TotalSuccess   int                `json:"total_success"`
+	TotalFailed    int                `json:"total_failed"`
+	Duration       string             `json:"duration"`
+	Results        []MatkulSyncResult `json:"results,omitempty"`
+	SyncedBy       string             `json:"synced_by"`
+	Filter         *SyncFilter        `json:"filter,omitempty"`
 }

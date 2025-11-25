@@ -36,5 +36,12 @@ func Init(router fiber.Router, db *sqlx.DB, feederAPI *feeder_api.FeederClient, 
 		kurikulumRouter.Get("/:id", ctrl.GetKurikulumDetail)
 	}
 
+	// Matkul routes (separate from kurikulum)
+	matkulRouter := router.Group("/matkul")
+	{
+		// POST /matkul/sync - Sync all matkul from Neo Feeder API (bulk sync)
+		matkulRouter.Post("/sync", ctrl.SyncMatkul)
+	}
+
 	return svc
 }
