@@ -1206,20 +1206,33 @@ class ProgramStudiRepository
         $result = DB::connection('sqlsrv')->select($sql, [$unilaIdSp]);
 
         $fakultas = array_map(function($item) {
+            // Build jenjang_counts array in the format frontend expects
+            $jenjangCounts = [];
+            $jenjangData = [
+                'D3' => (int) ($item->jenjang_d3 ?? 0),
+                'D4' => (int) ($item->jenjang_d4 ?? 0),
+                'S1' => (int) ($item->jenjang_s1 ?? 0),
+                'S2' => (int) ($item->jenjang_s2 ?? 0),
+                'S3' => (int) ($item->jenjang_s3 ?? 0),
+                'Profesi' => (int) ($item->jenjang_profesi ?? 0),
+                'Sp-1' => (int) ($item->jenjang_sp1 ?? 0),
+                'Sp-2' => (int) ($item->jenjang_sp2 ?? 0),
+            ];
+
+            foreach ($jenjangData as $jenjang => $jumlah) {
+                if ($jumlah > 0) {
+                    $jenjangCounts[] = [
+                        'jenjang' => $jenjang,
+                        'jumlah' => $jumlah,
+                    ];
+                }
+            }
+
             return [
                 'id' => $item->id,
                 'nama' => $item->nama,
                 'total_prodi' => (int) $item->total_prodi,
-                'jenjang' => [
-                    'D3' => (int) ($item->jenjang_d3 ?? 0),
-                    'D4' => (int) ($item->jenjang_d4 ?? 0),
-                    'S1' => (int) ($item->jenjang_s1 ?? 0),
-                    'S2' => (int) ($item->jenjang_s2 ?? 0),
-                    'S3' => (int) ($item->jenjang_s3 ?? 0),
-                    'Profesi' => (int) ($item->jenjang_profesi ?? 0),
-                    'Sp-1' => (int) ($item->jenjang_sp1 ?? 0),
-                    'Sp-2' => (int) ($item->jenjang_sp2 ?? 0),
-                ],
+                'jenjang_counts' => $jenjangCounts,
             ];
         }, $result);
 
@@ -1239,8 +1252,8 @@ class ProgramStudiRepository
         ];
 
         foreach ($fakultas as $fak) {
-            foreach ($fak['jenjang'] as $jenjang => $count) {
-                $jenjangTotals[$jenjang] += $count;
+            foreach ($fak['jenjang_counts'] as $jc) {
+                $jenjangTotals[$jc['jenjang']] += $jc['jumlah'];
             }
         }
 
@@ -1249,7 +1262,14 @@ class ProgramStudiRepository
             'statistics' => [
                 'total_fakultas' => $totalFakultas,
                 'total_prodi' => $totalProdi,
-                'jenjang' => $jenjangTotals,
+                'total_d3' => $jenjangTotals['D3'],
+                'total_d4' => $jenjangTotals['D4'],
+                'total_s1' => $jenjangTotals['S1'],
+                'total_s2' => $jenjangTotals['S2'],
+                'total_s3' => $jenjangTotals['S3'],
+                'total_profesi' => $jenjangTotals['Profesi'],
+                'total_sp1' => $jenjangTotals['Sp-1'],
+                'total_sp2' => $jenjangTotals['Sp-2'],
             ],
         ];
     }
