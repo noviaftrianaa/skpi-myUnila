@@ -178,7 +178,7 @@ class MahasiswaSebaranRepository
                 ON sms.id_sms = reg.id_sms
                 AND sms.soft_delete = 0
                 AND sms.stat_prodi = 'A'
-            -- Join ke jenjang pendidikan untuk filter hanya D% dan S%
+            -- Join ke jenjang pendidikan (tanpa filter jenjang - semua jenjang termasuk)
             INNER JOIN ref.jenjang_pendidikan AS didik
                 ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
