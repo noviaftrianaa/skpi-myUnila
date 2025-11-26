@@ -56,10 +56,10 @@ class DosenSebaranRepository
             JOIN pdrd.reg_pd AS reg
                 ON reg.id_reg_pd = kmh.id_reg_pd
                 AND reg.soft_delete = 0
+            -- Status aktif ditentukan oleh kuliah_mhs.id_stat_mhs (per semester)
             JOIN pdrd.peserta_didik AS pd
                 ON pd.id_pd = reg.id_pd
                 AND pd.soft_delete = 0
-                AND pd.id_stat_mhs = 'A'
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = reg.id_sms
                 AND sms.soft_delete = 0
@@ -185,10 +185,10 @@ class DosenSebaranRepository
             JOIN pdrd.reg_pd AS reg
                 ON reg.id_reg_pd = kmh.id_reg_pd
                 AND reg.soft_delete = 0
+            -- Status aktif ditentukan oleh kuliah_mhs.id_stat_mhs (per semester)
             JOIN pdrd.peserta_didik AS pd
                 ON pd.id_pd = reg.id_pd
                 AND pd.soft_delete = 0
-                AND pd.id_stat_mhs = 'A'
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = reg.id_sms
                 AND sms.soft_delete = 0

@@ -53,9 +53,9 @@ rebuild_service() {
     echo "  → Stopping ${service_name}..."
     docker compose --env-file .env -f "$compose_file" stop ${service_name}-service 2>/dev/null || true
 
-    # Rebuild without cache
-    echo "  → Rebuilding image..."
-    docker compose --env-file .env -f "$compose_file" build --pull ${service_name}-service
+    # Rebuild without cache - use --no-cache to ensure code changes are picked up
+    echo "  → Rebuilding image (no-cache)..."
+    docker compose --env-file .env -f "$compose_file" build --no-cache --pull ${service_name}-service
 
     # Start the service
     echo "  → Starting ${service_name}..."
@@ -82,9 +82,9 @@ rebuild_frontend() {
     echo "  → Stopping frontend..."
     docker compose --env-file .env -f services/1-nextjs/docker-compose.yml stop nextjs 2>/dev/null || true
 
-    # Rebuild without cache
-    echo "  → Rebuilding image..."
-    docker compose --env-file .env -f services/1-nextjs/docker-compose.yml build --pull nextjs
+    # Rebuild without cache - use --no-cache to ensure code changes are picked up
+    echo "  → Rebuilding image (no-cache)..."
+    docker compose --env-file .env -f services/1-nextjs/docker-compose.yml build --no-cache --pull nextjs
 
     # Start the service
     echo "  → Starting frontend..."

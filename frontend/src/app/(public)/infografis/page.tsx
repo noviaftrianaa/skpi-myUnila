@@ -1,19 +1,19 @@
 import {
   PageHero,
-  SebaranMahasiswa,
+  StatistikMahasiswaAktif,
   DataDosen,
   PenelitianPublikasi,
   KelulusanTepatWaktu,
   CapaianLulusan
 } from "@/shared/components";
 
-export default function StatistikPage() {
+export default function InfografisPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <PageHero
-        title="Statistik"
+        title="Infografis"
         subtitle="Data dan Informasi Universitas Lampung"
-        description="Akses data statistik, laporan, dan visualisasi informasi akademik, kemahasiswaan, dan kelembagaan Universitas Lampung secara real-time."
+        description="Akses data infografis, laporan, dan visualisasi informasi akademik, kemahasiswaan, dan kelembagaan Universitas Lampung secara real-time."
         gradient="from-blue-600 via-indigo-600 to-purple-600"
         icon={
           <svg
@@ -27,8 +27,8 @@ export default function StatistikPage() {
         }
       />
 
-      {/* Sebaran Mahasiswa Section - Data mahasiswa per jenjang dan fakultas */}
-      <SebaranMahasiswa />
+      {/* Statistik Mahasiswa Aktif - Charts: Trend 5 tahun, Jenjang, Status, Jenis Kelamin, Jalur Daftar, Sebaran, dll */}
+      <StatistikMahasiswaAktif />
 
       {/* Data Dosen Section - Data dosen per fakultas dan jabatan (includes sebaran with drilldown) */}
       <DataDosen />

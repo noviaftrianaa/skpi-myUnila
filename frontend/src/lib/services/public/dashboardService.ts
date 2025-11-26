@@ -28,6 +28,13 @@ import type {
   UnilaProfileResponse,
   SebaranFakultasResponse,
   ProdiByFakultasResponse,
+  MahasiswaAllStatisticsResponse,
+  MahasiswaAktifTrendResponse,
+  SebaranJenjangResponse,
+  SebaranStatusResponse,
+  SebaranJenisKelaminResponse,
+  SebaranJalurDaftarResponse,
+  SebaranMahasiswaAsingResponse,
 } from '@/lib/types/dashboardTypes';
 
 // Dashboard Service Base URL - Via Kong Gateway (Public endpoints)
@@ -390,6 +397,115 @@ class DashboardService {
       return response.data;
     } catch (error) {
       console.error('Error fetching prodi by fakultas:', error);
+      throw error;
+    }
+  }
+
+  // ============================================
+  // Mahasiswa Statistics Methods (Charts)
+  // ============================================
+
+  /**
+   * Get all mahasiswa statistics combined
+   */
+  async getMahasiswaAllStatistics(): Promise<MahasiswaAllStatisticsResponse> {
+    try {
+      const response = await axios.get<MahasiswaAllStatisticsResponse>(
+        `${DASHBOARD_API_URL}/mahasiswa-statistics`
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching mahasiswa statistics:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get mahasiswa aktif trend for last 5 years
+   */
+  async getMahasiswaAktifTrend(): Promise<MahasiswaAktifTrendResponse> {
+    try {
+      const response = await axios.get<MahasiswaAktifTrendResponse>(
+        `${DASHBOARD_API_URL}/mahasiswa-statistics/trend`
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching mahasiswa trend:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get sebaran mahasiswa by jenjang pendidikan
+   */
+  async getSebaranMahasiswaByJenjang(): Promise<SebaranJenjangResponse> {
+    try {
+      const response = await axios.get<SebaranJenjangResponse>(
+        `${DASHBOARD_API_URL}/mahasiswa-statistics/jenjang`
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching sebaran by jenjang:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get sebaran mahasiswa by status
+   */
+  async getSebaranMahasiswaByStatus(): Promise<SebaranStatusResponse> {
+    try {
+      const response = await axios.get<SebaranStatusResponse>(
+        `${DASHBOARD_API_URL}/mahasiswa-statistics/status`
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching sebaran by status:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get sebaran mahasiswa by jenis kelamin
+   */
+  async getSebaranMahasiswaByJenisKelamin(): Promise<SebaranJenisKelaminResponse> {
+    try {
+      const response = await axios.get<SebaranJenisKelaminResponse>(
+        `${DASHBOARD_API_URL}/mahasiswa-statistics/jenis-kelamin`
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching sebaran by jenis kelamin:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get sebaran mahasiswa by jalur daftar
+   */
+  async getSebaranMahasiswaByJalurDaftar(): Promise<SebaranJalurDaftarResponse> {
+    try {
+      const response = await axios.get<SebaranJalurDaftarResponse>(
+        `${DASHBOARD_API_URL}/mahasiswa-statistics/jalur-daftar`
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching sebaran by jalur daftar:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get sebaran mahasiswa asing
+   */
+  async getSebaranMahasiswaAsing(): Promise<SebaranMahasiswaAsingResponse> {
+    try {
+      const response = await axios.get<SebaranMahasiswaAsingResponse>(
+        `${DASHBOARD_API_URL}/mahasiswa-statistics/mahasiswa-asing`
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching sebaran mahasiswa asing:', error);
       throw error;
     }
   }

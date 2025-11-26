@@ -49,8 +49,8 @@ export const feederIntegratorMenuConfig: MenuItem[] = [
         roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
       },
       {
-        title: "Rencana Ajar/Eval",
-        href: "/dashboard/feeder-integrator/pdrd/rencana-ajar",
+        title: "Rencana Evaluasi MK",
+        href: "/dashboard/feeder-integrator/pdrd/rencana-evaluasi",
         roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
       },
       {

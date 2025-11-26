@@ -782,3 +782,84 @@ func (c *FeederClient) GetListMataKuliah(filter string, limit, offset int) ([]by
 
 	return json.Marshal(result.Data)
 }
+
+// GetListRencanaEvaluasi calls GetListRencanaEvaluasi endpoint with filter and pagination
+// filter format: "id_matkul = 'xyz789'"
+func (c *FeederClient) GetListRencanaEvaluasi(filter string, limit, offset int) ([]byte, error) {
+	// Only get token if not already exists
+	if c.Token == "" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+	}
+
+	req := FeederRequest{
+		Act:    "GetListRencanaEvaluasi",
+		Token:  c.Token,
+		Filter: filter,
+		Limit:  limit,
+		Offset: offset,
+	}
+
+	var result FeederResponse
+	if err := c.doRequest(req, &result); err != nil {
+		return nil, err
+	}
+
+	// Check if token expired, retry with new token
+	if result.ErrorCode == 100 || result.ErrorDesc == "Token tidak valid" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+		req.Token = c.Token
+		if err := c.doRequest(req, &result); err != nil {
+			return nil, err
+		}
+	}
+
+	if result.ErrorCode != 0 {
+		return nil, fmt.Errorf("feeder API error: %s (code: %d)", result.ErrorDesc, result.ErrorCode)
+	}
+
+	return json.Marshal(result.Data)
+}
+
+// GetJenisEvaluasi calls GetJenisEvaluasi endpoint with filter and pagination
+func (c *FeederClient) GetJenisEvaluasi(filter string, limit, offset int) ([]byte, error) {
+	// Only get token if not already exists
+	if c.Token == "" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+	}
+
+	req := FeederRequest{
+		Act:    "GetJenisEvaluasi",
+		Token:  c.Token,
+		Filter: filter,
+		Limit:  limit,
+		Offset: offset,
+	}
+
+	var result FeederResponse
+	if err := c.doRequest(req, &result); err != nil {
+		return nil, err
+	}
+
+	// Check if token expired, retry with new token
+	if result.ErrorCode == 100 || result.ErrorDesc == "Token tidak valid" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+		req.Token = c.Token
+		if err := c.doRequest(req, &result); err != nil {
+			return nil, err
+		}
+	}
+
+	if result.ErrorCode != 0 {
+		return nil, fmt.Errorf("feeder API error: %s (code: %d)", result.ErrorDesc, result.ErrorCode)
+	}
+
+	return json.Marshal(result.Data)
+}
