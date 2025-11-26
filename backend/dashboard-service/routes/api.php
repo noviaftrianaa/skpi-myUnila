@@ -8,6 +8,7 @@ use App\Http\Controllers\OpenApi\ProgramStudiController;
 use App\Http\Controllers\OpenApi\UnilaStatisticsController;
 use App\Http\Controllers\OpenApi\UnilaProfileController;
 use App\Http\Controllers\OpenApi\MahasiswaSebaranController;
+use App\Http\Controllers\OpenApi\MahasiswaStatisticsController;
 use App\Http\Controllers\OpenApi\DosenController;
 use App\Http\Controllers\OpenApi\DosenProfileController;
 use App\Http\Controllers\OpenApi\DosenSebaranController;
@@ -100,6 +101,17 @@ Route::prefix('public/api/v1')->group(function () {
         Route::get('/fakultas', [MahasiswaSebaranController::class, 'getSebaranByFakultas']);
         Route::get('/fakultas/{id_fakultas}/prodi', [MahasiswaSebaranController::class, 'getSebaranByProdiInFakultas']);
         Route::get('/statistics', [MahasiswaSebaranController::class, 'getSebaranStatistics']);
+    });
+
+    // Mahasiswa Statistics (Charts)
+    Route::prefix('mahasiswa-statistics')->group(function () {
+        Route::get('/', [MahasiswaStatisticsController::class, 'index']);
+        Route::get('/trend', [MahasiswaStatisticsController::class, 'getTrend']);
+        Route::get('/jenjang', [MahasiswaStatisticsController::class, 'getSebaranByJenjang']);
+        Route::get('/status', [MahasiswaStatisticsController::class, 'getSebaranByStatus']);
+        Route::get('/jenis-kelamin', [MahasiswaStatisticsController::class, 'getSebaranByJenisKelamin']);
+        Route::get('/jalur-daftar', [MahasiswaStatisticsController::class, 'getSebaranByJalurDaftar']);
+        Route::get('/mahasiswa-asing', [MahasiswaStatisticsController::class, 'getSebaranMahasiswaAsing']);
     });
 
     // Mahasiswa Profile

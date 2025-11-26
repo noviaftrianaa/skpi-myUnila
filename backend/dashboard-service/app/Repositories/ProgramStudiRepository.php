@@ -54,7 +54,8 @@ class ProgramStudiRepository
             SELECT
                 id_smt,
                 nm_smt,
-                id_thn_ajaran
+                id_thn_ajaran,
+                a_periode_aktif
             FROM ref.semester
             WHERE expired_date IS NULL
                 AND RIGHT(id_smt, 1) < '3'
@@ -131,10 +132,10 @@ class ProgramStudiRepository
                 JOIN pdrd.reg_pd AS reg
                     ON reg.id_reg_pd = kmh.id_reg_pd
                     AND reg.soft_delete = 0
+                -- Status aktif ditentukan oleh kuliah_mhs.id_stat_mhs (per semester)
                 JOIN pdrd.peserta_didik AS pd
                     ON pd.id_pd = reg.id_pd
                     AND pd.soft_delete = 0
-                    AND pd.id_stat_mhs = 'A'
                 WHERE kmh.soft_delete = 0
                     AND kmh.id_stat_mhs = 'A'
                     AND kmh.id_smt = ?
@@ -367,7 +368,8 @@ class ProgramStudiRepository
                 {$filterWhere}
         ";
 
-        // Get total dosen DISTINCT (avoid double count) - semua jenjang
+        // Get total dosen DISTINCT (avoid double count)
+        // Filter konsisten dengan sqlProdi: id_jns_sms = '3', id_fak_unila IS NOT NULL
         $sqlDosen = "
             SELECT COUNT(DISTINCT ptk.id_sdm) AS total
             FROM pdrd.reg_ptk AS ptk
@@ -384,6 +386,8 @@ class ProgramStudiRepository
                 ON sms.id_sms = ptk.id_sms
                 AND sms.soft_delete = 0
                 AND sms.stat_prodi = 'A'
+                AND sms.id_jns_sms = '3'
+                AND sms.id_fak_unila IS NOT NULL
             INNER JOIN ref.jenjang_pendidikan AS didik
                 ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
@@ -406,24 +410,27 @@ class ProgramStudiRepository
         ";
 
         // Get total mahasiswa DISTINCT
+        // Filter konsisten dengan sqlProdi: id_jns_sms = '3', id_fak_unila IS NOT NULL, UNILA_ID_SP
         $sqlMahasiswa = "
             SELECT COUNT(DISTINCT pd.id_pd) AS total
             FROM pdrd.kuliah_mhs AS kmh
             JOIN pdrd.reg_pd AS reg
                 ON reg.id_reg_pd = kmh.id_reg_pd
                 AND reg.soft_delete = 0
+            -- Status aktif ditentukan oleh kuliah_mhs.id_stat_mhs (per semester)
             JOIN pdrd.peserta_didik AS pd
                 ON pd.id_pd = reg.id_pd
                 AND pd.soft_delete = 0
-                AND pd.id_stat_mhs = 'A'
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = reg.id_sms
                 AND sms.soft_delete = 0
                 AND sms.stat_prodi = 'A'
+                AND sms.id_jns_sms = '3'
+                AND sms.id_fak_unila IS NOT NULL
+                AND CAST(sms.id_sp AS VARCHAR(50)) = '{$unilaIdSp}'
             INNER JOIN ref.jenjang_pendidikan AS didik
                 ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
-                AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
             LEFT JOIN (
                 SELECT
                     ap.id_sms,
@@ -476,8 +483,9 @@ class ProgramStudiRepository
             ) AS akred ON akred.id_sms = sms.id_sms AND akred.rn = 1
             WHERE sms.soft_delete = 0
                 AND sms.stat_prodi = 'A'
+                AND sms.id_jns_sms = '3'
                 AND CAST(sms.id_sp AS VARCHAR(50)) = '{$unilaIdSp}'
-                AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
+                AND sms.id_fak_unila IS NOT NULL
                 {$filterWhere}
         ";
 
@@ -643,10 +651,10 @@ class ProgramStudiRepository
                 JOIN pdrd.reg_pd AS reg
                     ON reg.id_reg_pd = kmh.id_reg_pd
                     AND reg.soft_delete = 0
+                -- Status aktif ditentukan oleh kuliah_mhs.id_stat_mhs (per semester)
                 JOIN pdrd.peserta_didik AS pd
                     ON pd.id_pd = reg.id_pd
                     AND pd.soft_delete = 0
-                    AND pd.id_stat_mhs = 'A'
                 WHERE kmh.soft_delete = 0
                     AND kmh.id_stat_mhs = 'A'
                     AND kmh.id_smt = ?

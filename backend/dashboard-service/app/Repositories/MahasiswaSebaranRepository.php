@@ -46,10 +46,10 @@ class MahasiswaSebaranRepository
                 ON reg.id_reg_pd = kmh.id_reg_pd
                 AND reg.soft_delete = 0
             -- Join ke peserta_didik
+            -- Status aktif ditentukan oleh kuliah_mhs.id_stat_mhs (per semester)
             JOIN pdrd.peserta_didik AS pd
                 ON pd.id_pd = reg.id_pd
                 AND pd.soft_delete = 0
-                AND pd.id_stat_mhs = 'A'
             -- Join ke sms (program studi) untuk filter prodi aktif dan jenjang D/S
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = reg.id_sms
@@ -129,7 +129,7 @@ class MahasiswaSebaranRepository
                 AND kmh.id_stat_mhs = 'A'  -- Status aktif di semester berjalan
                 AND kmh.id_smt = ?         -- Semester aktif
             WHERE pd.soft_delete = 0
-                AND pd.id_stat_mhs = 'A'   -- Status mahasiswa aktif
+                -- Status aktif ditentukan oleh kuliah_mhs.id_stat_mhs (per semester)
             GROUP BY wil_prov.id_wil, wil_prov.nm_wil
             ORDER BY jumlah_mahasiswa DESC
         ";
@@ -169,10 +169,10 @@ class MahasiswaSebaranRepository
                 ON reg.id_reg_pd = kmh.id_reg_pd
                 AND reg.soft_delete = 0
             -- Join ke peserta_didik
+            -- Status aktif ditentukan oleh kuliah_mhs.id_stat_mhs (per semester)
             JOIN pdrd.peserta_didik AS pd
                 ON pd.id_pd = reg.id_pd
                 AND pd.soft_delete = 0
-                AND pd.id_stat_mhs = 'A'
             -- Join ke sms (program studi)
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = reg.id_sms
@@ -229,10 +229,10 @@ class MahasiswaSebaranRepository
                 ON reg.id_reg_pd = kmh.id_reg_pd
                 AND reg.soft_delete = 0
             -- Join ke peserta_didik
+            -- Status aktif ditentukan oleh kuliah_mhs.id_stat_mhs (per semester)
             JOIN pdrd.peserta_didik AS pd
                 ON pd.id_pd = reg.id_pd
                 AND pd.soft_delete = 0
-                AND pd.id_stat_mhs = 'A'
             -- Join ke sms (program studi)
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = reg.id_sms

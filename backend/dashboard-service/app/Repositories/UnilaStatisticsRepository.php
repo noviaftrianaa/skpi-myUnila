@@ -95,7 +95,8 @@ class UnilaStatisticsRepository
     private function getTotalMahasiswa(string $periode): int
     {
         // Count distinct students who are active in the current semester
-        // Must match the same query as ProgramStudiRepository statistics
+        // Status aktif ditentukan oleh kuliah_mhs.id_stat_mhs = 'A' (per semester)
+        // Tidak perlu filter pd.id_stat_mhs karena status master bisa berbeda
         $sql = "
             SELECT COUNT(DISTINCT pd.id_pd) AS total
             FROM pdrd.kuliah_mhs AS kmh
@@ -105,7 +106,6 @@ class UnilaStatisticsRepository
             JOIN pdrd.peserta_didik AS pd
                 ON pd.id_pd = reg.id_pd
                 AND pd.soft_delete = 0
-                AND pd.id_stat_mhs = 'A'
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = reg.id_sms
                 AND sms.soft_delete = 0

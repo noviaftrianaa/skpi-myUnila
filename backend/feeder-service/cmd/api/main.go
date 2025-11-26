@@ -7,6 +7,7 @@ import (
 	"github.com/myunila/feeder-service/apps/logger"
 	"github.com/myunila/feeder-service/apps/mahasiswa"
 	"github.com/myunila/feeder-service/apps/matkul_kurikulum"
+	"github.com/myunila/feeder-service/apps/rencana_evaluasi"
 	"github.com/myunila/feeder-service/apps/monitoring"
 	"github.com/myunila/feeder-service/apps/scheduler"
 	"github.com/myunila/feeder-service/external/database"
@@ -147,6 +148,10 @@ func main() {
 	kurikulumService := matkul_kurikulum.Init(apiV1, db, feederAPI, redisClient, loggerService)
 	log.Println("✅ Matkul Kurikulum module initialized")
 
+	// Initialize Rencana Evaluasi MK module (pass logger service for sync logging)
+	_ = rencana_evaluasi.Init(apiV1, db, feederAPI, redisClient, loggerService)
+	log.Println("✅ Rencana Evaluasi MK module initialized")
+
 	// Initialize Scheduler service (supports mahasiswa, aktivitas_mahasiswa, and kurikulum syncs)
 	schedulerRepo := scheduler.NewRepository(db)
 	schedulerService := scheduler.NewService(schedulerRepo, mahasiswaService, aktivitasService, kurikulumService)
@@ -174,6 +179,7 @@ func main() {
 				"mahasiswa":           "/api/v1/mahasiswa",
 				"aktivitas_mahasiswa": "/api/v1/aktivitas-mahasiswa",
 				"kurikulum":           "/api/v1/kurikulum",
+				"rencana_evaluasi":    "/api/v1/rencana-evaluasi",
 				"schedules":           "/api/v1/schedules",
 				"sync_logs":           "/api/v1/sync-logs",
 				"monitoring":          "/api/v1/monitoring/active",

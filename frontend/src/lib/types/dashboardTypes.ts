@@ -255,6 +255,7 @@ export interface ProgramStudiPeriod {
   id_smt: string;
   name: string;
   year: string;
+  is_active?: boolean;
 }
 
 /**
@@ -648,9 +649,12 @@ export interface SebaranStatistics {
   total_prodi: number;
   total_fakultas: number;
   total_d3: number;
+  total_d4?: number;
   total_s1: number;
   total_s2: number;
   total_s3: number;
+  total_profesi?: number;
+  total_sp1?: number;
 }
 
 /**
@@ -672,4 +676,213 @@ export interface ProdiByFakultasResponse {
   success: boolean;
   message: string;
   data: ProdiSebaranData[];
+}
+
+// ============================================
+// Mahasiswa Statistics Types (Charts)
+// ============================================
+
+/**
+ * Trend Item (5 tahun terakhir)
+ */
+export interface MahasiswaTrendYearItem {
+  tahun: string;
+  jumlah_mahasiswa: number;
+}
+
+/**
+ * Mahasiswa Aktif Trend Response
+ */
+export interface MahasiswaAktifTrendResponse {
+  success: boolean;
+  message: string;
+  data: {
+    data: MahasiswaTrendYearItem[];
+    total_years: number;
+  };
+}
+
+/**
+ * Jenjang Distribution Item
+ */
+export interface JenjangDistributionItem {
+  jenjang: string;
+  jumlah_mahasiswa: number;
+  persentase: number;
+}
+
+/**
+ * Sebaran Jenjang Response
+ */
+export interface SebaranJenjangResponse {
+  success: boolean;
+  message: string;
+  data: {
+    data: JenjangDistributionItem[];
+    total_mahasiswa: number;
+  };
+}
+
+/**
+ * Status Distribution Item
+ */
+export interface StatusDistributionItem {
+  status: string;
+  jumlah_mahasiswa: number;
+  persentase: number;
+}
+
+/**
+ * Sebaran Status Response
+ */
+export interface SebaranStatusResponse {
+  success: boolean;
+  message: string;
+  data: {
+    data: StatusDistributionItem[];
+    total_mahasiswa: number;
+  };
+}
+
+/**
+ * Jenis Kelamin Distribution Item
+ */
+export interface JenisKelaminDistributionItem {
+  jenis_kelamin: string;
+  jumlah_mahasiswa: number;
+  persentase: number;
+}
+
+/**
+ * Sebaran Jenis Kelamin Response
+ */
+export interface SebaranJenisKelaminResponse {
+  success: boolean;
+  message: string;
+  data: {
+    data: JenisKelaminDistributionItem[];
+    total_mahasiswa: number;
+  };
+}
+
+/**
+ * Jalur Daftar Distribution Item
+ */
+export interface JalurDaftarDistributionItem {
+  jalur_daftar: string;
+  jumlah_mahasiswa: number;
+  persentase: number;
+}
+
+/**
+ * Sebaran Jalur Daftar Response
+ */
+export interface SebaranJalurDaftarResponse {
+  success: boolean;
+  message: string;
+  data: {
+    data: JalurDaftarDistributionItem[];
+    total_mahasiswa: number;
+  };
+}
+
+/**
+ * Jenis Pendaftaran Distribution Item
+ */
+export interface JenisPendaftaranDistributionItem {
+  jenis_pendaftaran: string;
+  jumlah_mahasiswa: number;
+  persentase: number;
+}
+
+/**
+ * Pembiayaan Distribution Item
+ */
+export interface PembiayaanDistributionItem {
+  pembiayaan: string;
+  jumlah_mahasiswa: number;
+  persentase: number;
+}
+
+/**
+ * Mahasiswa Asing by Negara
+ */
+export interface MahasiswaAsingNegaraItem {
+  negara: string;
+  jumlah_mahasiswa: number;
+}
+
+/**
+ * Lokal vs Asing Item
+ */
+export interface LokalVsAsingItem {
+  kategori: string;
+  jumlah_mahasiswa: number;
+}
+
+/**
+ * Sebaran Mahasiswa Asing Response
+ */
+export interface SebaranMahasiswaAsingResponse {
+  success: boolean;
+  message: string;
+  data: {
+    data: MahasiswaAsingNegaraItem[];
+    total_mahasiswa_asing: number;
+    lokal_vs_asing: LokalVsAsingItem[];
+  };
+}
+
+/**
+ * Statistics Summary
+ */
+export interface MahasiswaStatisticsSummary {
+  total_mahasiswa_aktif: number;
+  total_mahasiswa_lokal: number;
+  total_mahasiswa_asing: number;
+  periode: string;
+}
+
+/**
+ * All Mahasiswa Statistics Combined Response
+ */
+export interface MahasiswaAllStatisticsResponse {
+  success: boolean;
+  message: string;
+  data: {
+    summary: MahasiswaStatisticsSummary;
+    trend: {
+      data: MahasiswaTrendYearItem[];
+      total_years: number;
+    };
+    jenjang: {
+      data: JenjangDistributionItem[];
+      total_mahasiswa: number;
+    };
+    status: {
+      data: StatusDistributionItem[];
+      total_mahasiswa: number;
+    };
+    jenis_kelamin: {
+      data: JenisKelaminDistributionItem[];
+      total_mahasiswa: number;
+    };
+    jalur_daftar: {
+      data: JalurDaftarDistributionItem[];
+      total_mahasiswa: number;
+    };
+    jenis_pendaftaran: {
+      data: JenisPendaftaranDistributionItem[];
+      total_mahasiswa: number;
+    };
+    pembiayaan: {
+      data: PembiayaanDistributionItem[];
+      total_mahasiswa: number;
+    };
+    mahasiswa_asing: {
+      data: MahasiswaAsingNegaraItem[];
+      total_mahasiswa_asing: number;
+      lokal_vs_asing: LokalVsAsingItem[];
+    };
+  };
 }

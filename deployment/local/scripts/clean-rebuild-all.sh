@@ -154,10 +154,22 @@ docker compose --env-file .env -f services/3-backend/docker-compose.auth.yml up 
 echo "  → Starting Sister Service..."
 docker compose --env-file .env -f services/3-backend/docker-compose.sister.yml up -d
 
+echo "  → Waiting for service volumes to be created..."
+sleep 10
+
 echo "  → Starting Nginx..."
-docker compose -f services/3-backend/docker-compose.nginx.yml up -d
+# Nginx depends on external volumes created by auth/dashboard services
+docker compose -f services/3-backend/docker-compose.nginx.yml up -d 2>&1 || {
+    echo -e "${YELLOW}  Note: Nginx startup may need retry if volumes not ready${NC}"
+}
 
 sleep 5
+
+# Retry nginx if it's not running
+if ! docker ps --filter "name=myunila-nginx" --filter "status=running" --format "{{.Names}}" | grep -q "myunila-nginx"; then
+    echo -e "${YELLOW}  → Retrying Nginx startup...${NC}"
+    docker compose -f services/3-backend/docker-compose.nginx.yml up -d
+fi
 
 echo ""
 echo -e "${GREEN}✓ All services started${NC}"

@@ -38,8 +38,8 @@ export const ROUTES = {
     DETAIL: (slug: string) => `/program-studi/${slug}`,
   },
 
-  // Statistik
-  STATISTIK: '/statistik',
+  // Infografis
+  INFOGRAFIS: '/infografis',
 
   // Tentang
   TENTANG: '/tentang',

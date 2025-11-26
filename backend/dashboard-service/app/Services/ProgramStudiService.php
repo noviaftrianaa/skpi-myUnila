@@ -131,7 +131,7 @@ class ProgramStudiService
      */
     public function getAvailablePeriods(): array
     {
-        return Cache::remember('available_periods', 3600, function () {
+        return Cache::remember('available_periods_v2', 3600, function () {
             $periods = $this->repository->getAvailablePeriods();
 
             return $periods->map(function ($period) {
@@ -139,6 +139,7 @@ class ProgramStudiService
                     'id_smt' => $period->id_smt,
                     'name' => $period->nm_smt,
                     'year' => $period->id_thn_ajaran,
+                    'is_active' => (bool) ($period->a_periode_aktif ?? false),
                 ];
             })->toArray();
         });

@@ -251,7 +251,7 @@ export default function AkreditasiProdi() {
               <div className="h-1 w-16 sm:w-20 bg-gradient-to-r from-transparent via-blue-400 to-transparent rounded-full"></div>
             </div>
             <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-2xl mx-auto px-2">
-              Data akreditasi terintegrasi dari PDDIKTI
+              Data akreditasi terintegrasi dari BAN-PT
             </p>
           </motion.div>
 

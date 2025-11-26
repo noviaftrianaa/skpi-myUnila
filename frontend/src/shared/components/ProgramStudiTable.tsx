@@ -46,7 +46,9 @@ export default function ProgramStudiTable() {
         const response = await dashboardService.getProgramStudiPeriods();
         if (response.success && response.data.length > 0) {
           setPeriods(response.data);
-          setSelectedPeriode(response.data[0].id_smt);
+          // Find active period (is_active = true), fallback to first period
+          const activePeriod = response.data.find((p: ProgramStudiPeriod) => p.is_active);
+          setSelectedPeriode(activePeriod?.id_smt || response.data[0].id_smt);
         }
       } catch (error) {
         console.error('Error loading periods:', error);
