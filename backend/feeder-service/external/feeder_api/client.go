@@ -863,3 +863,85 @@ func (c *FeederClient) GetJenisEvaluasi(filter string, limit, offset int) ([]byt
 
 	return json.Marshal(result.Data)
 }
+
+// GetListKelasKuliah calls GetListKelasKuliah endpoint with filter and pagination
+// filter format: "id_semester = '20242' AND id_prodi = '1f0b8dcc-929e-434c-a14d-191468111154'"
+func (c *FeederClient) GetListKelasKuliah(filter string, limit, offset int) ([]byte, error) {
+	// Only get token if not already exists
+	if c.Token == "" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+	}
+
+	req := FeederRequest{
+		Act:    "GetListKelasKuliah",
+		Token:  c.Token,
+		Filter: filter,
+		Limit:  limit,
+		Offset: offset,
+	}
+
+	var result FeederResponse
+	if err := c.doRequest(req, &result); err != nil {
+		return nil, err
+	}
+
+	// Check if token expired, retry with new token
+	if result.ErrorCode == 100 || result.ErrorDesc == "Token tidak valid" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+		req.Token = c.Token
+		if err := c.doRequest(req, &result); err != nil {
+			return nil, err
+		}
+	}
+
+	if result.ErrorCode != 0 {
+		return nil, fmt.Errorf("feeder API error: %s (code: %d)", result.ErrorDesc, result.ErrorCode)
+	}
+
+	return json.Marshal(result.Data)
+}
+
+// GetDosenPengajarKelasKuliah calls GetDosenPengajarKelasKuliah endpoint with filter and pagination
+// filter format: "id_kelas_kuliah = 'xyz789'" or "id_semester = '20242' AND id_prodi = '1f0b8dcc-929e-434c-a14d-191468111154'"
+func (c *FeederClient) GetDosenPengajarKelasKuliah(filter string, limit, offset int) ([]byte, error) {
+	// Only get token if not already exists
+	if c.Token == "" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+	}
+
+	req := FeederRequest{
+		Act:    "GetDosenPengajarKelasKuliah",
+		Token:  c.Token,
+		Filter: filter,
+		Limit:  limit,
+		Offset: offset,
+	}
+
+	var result FeederResponse
+	if err := c.doRequest(req, &result); err != nil {
+		return nil, err
+	}
+
+	// Check if token expired, retry with new token
+	if result.ErrorCode == 100 || result.ErrorDesc == "Token tidak valid" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+		req.Token = c.Token
+		if err := c.doRequest(req, &result); err != nil {
+			return nil, err
+		}
+	}
+
+	if result.ErrorCode != 0 {
+		return nil, fmt.Errorf("feeder API error: %s (code: %d)", result.ErrorDesc, result.ErrorCode)
+	}
+
+	return json.Marshal(result.Data)
+}

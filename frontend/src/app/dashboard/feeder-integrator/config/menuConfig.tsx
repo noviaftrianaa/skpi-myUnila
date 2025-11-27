@@ -54,8 +54,8 @@ export const feederIntegratorMenuConfig: MenuItem[] = [
         roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
       },
       {
-        title: "Kelas Mengajaran",
-        href: "/dashboard/feeder-integrator/pdrd/kelas-mengajar",
+        title: "Kelas Pengajaran",
+        href: "/dashboard/feeder-integrator/pdrd/kelas-kuliah",
         roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
       },
       {
