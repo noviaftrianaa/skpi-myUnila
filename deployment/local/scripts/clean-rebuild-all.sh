@@ -59,6 +59,7 @@ echo ""
 # Step 2: Stop all services
 echo -e "${GREEN}[2/7] Stopping all services...${NC}"
 docker compose -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.nginx.yml" down 2>/dev/null || true
+docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.feeder.yml" down 2>/dev/null || true
 docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.sister.yml" down 2>/dev/null || true
 docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.auth.yml" down 2>/dev/null || true
 docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.dashboard.yml" down 2>/dev/null || true
@@ -124,6 +125,10 @@ echo "  → Building Sister Service..."
 docker compose --env-file .env -f services/3-backend/docker-compose.sister.yml build --no-cache --pull sister-service
 echo ""
 
+echo "  → Building Feeder Service..."
+docker compose --env-file .env -f services/3-backend/docker-compose.feeder.yml build --no-cache --pull feeder-service
+echo ""
+
 echo -e "${GREEN}✓ All images rebuilt${NC}"
 echo ""
 
@@ -153,6 +158,9 @@ docker compose --env-file .env -f services/3-backend/docker-compose.auth.yml up 
 
 echo "  → Starting Sister Service..."
 docker compose --env-file .env -f services/3-backend/docker-compose.sister.yml up -d
+
+echo "  → Starting Feeder Service..."
+docker compose --env-file .env -f services/3-backend/docker-compose.feeder.yml up -d
 
 echo "  → Waiting for service volumes to be created..."
 sleep 10
@@ -197,6 +205,7 @@ echo -e "${YELLOW}Access Points (Local):${NC}"
 echo "  Auth Service:      http://localhost:8081"
 echo "  Dashboard Service: http://localhost:8082"
 echo "  Sister Service:    http://localhost:8083"
+echo "  Feeder Service:    http://localhost:8084"
 echo "  Kong Gateway:      http://localhost:9800"
 echo "  Kong Admin:        http://localhost:9801"
 echo "  Kong UI:           http://localhost:9803"
@@ -208,6 +217,7 @@ echo -e "${YELLOW}Test Endpoints:${NC}"
 echo "  Dashboard Health: curl http://localhost:8082/api/health"
 echo "  Auth Health:      curl http://localhost:8081/api/health"
 echo "  Sister Health:    curl http://localhost:8083/health"
+echo "  Feeder Health:    curl http://localhost:8084/health"
 echo ""
 
 echo -e "${YELLOW}Next Steps:${NC}"
@@ -228,6 +238,7 @@ echo -e "${YELLOW}Check logs:${NC}"
 echo "  docker logs myunila-dashboard-service --tail 50"
 echo "  docker logs myunila-auth-service --tail 50"
 echo "  docker logs myunila-sister-service --tail 50"
+echo "  docker logs myunila-feeder-service --tail 50"
 echo ""
 
 echo -e "${GREEN}Done!${NC}"
