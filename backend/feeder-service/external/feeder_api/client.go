@@ -945,3 +945,220 @@ func (c *FeederClient) GetDosenPengajarKelasKuliah(filter string, limit, offset 
 
 	return json.Marshal(result.Data)
 }
+
+// GetDetailNilaiPerkuliahanKelas calls GetDetailNilaiPerkuliahanKelas endpoint with filter and pagination
+// filter format: "id_kelas_kuliah = 'xyz789'"
+// Returns: id_registrasi_mahasiswa, nim, nama_mahasiswa, id_kelas_kuliah, nama_kelas_kuliah, nilai_angka, nilai_huruf, nilai_indeks
+func (c *FeederClient) GetDetailNilaiPerkuliahanKelas(filter string, limit, offset int) ([]byte, error) {
+	// Only get token if not already exists
+	if c.Token == "" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+	}
+
+	req := FeederRequest{
+		Act:    "GetDetailNilaiPerkuliahanKelas",
+		Token:  c.Token,
+		Filter: filter,
+		Limit:  limit,
+		Offset: offset,
+	}
+
+	var result FeederResponse
+	if err := c.doRequest(req, &result); err != nil {
+		return nil, err
+	}
+
+	// Check if token expired, retry with new token
+	if result.ErrorCode == 100 || result.ErrorDesc == "Token tidak valid" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+		req.Token = c.Token
+		if err := c.doRequest(req, &result); err != nil {
+			return nil, err
+		}
+	}
+
+	if result.ErrorCode != 0 {
+		return nil, fmt.Errorf("feeder API error: %s (code: %d)", result.ErrorDesc, result.ErrorCode)
+	}
+
+	return json.Marshal(result.Data)
+}
+
+// GetListKonversiKampusMerdeka calls GetListKonversiKampusMerdeka endpoint with filter and pagination
+// filter format: "id_semester = '20242'"
+// Returns: id_konversi_aktivitas, id_matkul, id_anggota, id_aktivitas, nilai_angka, nilai_huruf, nilai_indeks, sks_mata_kuliah
+func (c *FeederClient) GetListKonversiKampusMerdeka(filter string, limit, offset int) ([]byte, error) {
+	// Only get token if not already exists
+	if c.Token == "" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+	}
+
+	req := FeederRequest{
+		Act:    "GetListKonversiKampusMerdeka",
+		Token:  c.Token,
+		Filter: filter,
+		Limit:  limit,
+		Offset: offset,
+	}
+
+	var result FeederResponse
+	if err := c.doRequest(req, &result); err != nil {
+		return nil, err
+	}
+
+	// Check if token expired, retry with new token
+	if result.ErrorCode == 100 || result.ErrorDesc == "Token tidak valid" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+		req.Token = c.Token
+		if err := c.doRequest(req, &result); err != nil {
+			return nil, err
+		}
+	}
+
+	if result.ErrorCode != 0 {
+		return nil, fmt.Errorf("feeder API error: %s (code: %d)", result.ErrorDesc, result.ErrorCode)
+	}
+
+	return json.Marshal(result.Data)
+}
+
+// GetNilaiTransferPendidikanMahasiswa calls GetNilaiTransferPendidikanMahasiswa endpoint with filter and pagination
+// filter format: "id_semester = '20242'"
+// Returns: id_transfer, id_aktivitas, id_matkul, id_semester, id_registrasi_mahasiswa,
+//
+//	kode_mata_kuliah_asal, nama_mata_kuliah_asal, sks_mata_kuliah_asal, sks_mata_kuliah_diakui,
+//	nilai_huruf_asal, nilai_huruf_diakui, nilai_angka_diakui, id_perguruan_tinggi
+func (c *FeederClient) GetNilaiTransferPendidikanMahasiswa(filter string, limit, offset int) ([]byte, error) {
+	// Only get token if not already exists
+	if c.Token == "" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+	}
+
+	req := FeederRequest{
+		Act:    "GetNilaiTransferPendidikanMahasiswa",
+		Token:  c.Token,
+		Filter: filter,
+		Limit:  limit,
+		Offset: offset,
+	}
+
+	var result FeederResponse
+	if err := c.doRequest(req, &result); err != nil {
+		return nil, err
+	}
+
+	// Check if token expired, retry with new token
+	if result.ErrorCode == 100 || result.ErrorDesc == "Token tidak valid" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+		req.Token = c.Token
+		if err := c.doRequest(req, &result); err != nil {
+			return nil, err
+		}
+	}
+
+	if result.ErrorCode != 0 {
+		return nil, fmt.Errorf("feeder API error: %s (code: %d)", result.ErrorDesc, result.ErrorCode)
+	}
+
+	return json.Marshal(result.Data)
+}
+
+// GetTranskripMahasiswa calls GetTranskripMahasiswa endpoint with filter and pagination
+// filter format: "id_semester = '20242'" or "id_registrasi_mahasiswa = 'xxx'"
+// Returns: id_registrasi_mahasiswa, id_matkul, id_kelas_kuliah, id_konversi_aktivitas, id_nilai_transfer,
+//
+//	nilai_angka, nilai_huruf, nilai_indeks, smt_diambil, sks_mata_kuliah
+func (c *FeederClient) GetTranskripMahasiswa(filter string, limit, offset int) ([]byte, error) {
+	// Only get token if not already exists
+	if c.Token == "" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+	}
+
+	req := FeederRequest{
+		Act:    "GetTranskripMahasiswa",
+		Token:  c.Token,
+		Filter: filter,
+		Limit:  limit,
+		Offset: offset,
+	}
+
+	var result FeederResponse
+	if err := c.doRequest(req, &result); err != nil {
+		return nil, err
+	}
+
+	// Check if token expired, retry with new token
+	if result.ErrorCode == 100 || result.ErrorDesc == "Token tidak valid" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+		req.Token = c.Token
+		if err := c.doRequest(req, &result); err != nil {
+			return nil, err
+		}
+	}
+
+	if result.ErrorCode != 0 {
+		return nil, fmt.Errorf("feeder API error: %s (code: %d)", result.ErrorDesc, result.ErrorCode)
+	}
+
+	return json.Marshal(result.Data)
+}
+
+// GetListPrestasiMahasiswa calls GetListPrestasiMahasiswa endpoint with filter and pagination
+// filter format: "tahun_prestasi = '2025'" or empty for all
+// Returns: id_prestasi, id_mahasiswa, nama_mahasiswa, id_jenis_prestasi, nama_jenis_prestasi,
+//
+//	id_tingkat_prestasi, nama_tingkat_prestasi, nama_prestasi, tahun_prestasi, penyelenggara, peringkat, id_aktivitas, status_sync
+func (c *FeederClient) GetListPrestasiMahasiswa(filter string, limit, offset int) ([]byte, error) {
+	// Only get token if not already exists
+	if c.Token == "" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+	}
+
+	req := FeederRequest{
+		Act:    "GetListPrestasiMahasiswa",
+		Token:  c.Token,
+		Filter: filter,
+		Limit:  limit,
+		Offset: offset,
+	}
+
+	var result FeederResponse
+	if err := c.doRequest(req, &result); err != nil {
+		return nil, err
+	}
+
+	// Check if token expired, retry with new token
+	if result.ErrorCode == 100 || result.ErrorDesc == "Token tidak valid" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+		req.Token = c.Token
+		if err := c.doRequest(req, &result); err != nil {
+			return nil, err
+		}
+	}
+
+	if result.ErrorCode != 0 {
+		return nil, fmt.Errorf("feeder API error: %s (code: %d)", result.ErrorDesc, result.ErrorCode)
+	}
+
+	return json.Marshal(result.Data)
+}

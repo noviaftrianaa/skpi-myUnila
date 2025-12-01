@@ -9,8 +9,13 @@ import (
 	"time"
 
 	"github.com/myunila/feeder-service/apps/aktivitas_mahasiswa"
+	"github.com/myunila/feeder-service/apps/kelas_kuliah"
 	"github.com/myunila/feeder-service/apps/mahasiswa"
 	"github.com/myunila/feeder-service/apps/matkul_kurikulum"
+	"github.com/myunila/feeder-service/apps/nilai_konversi"
+	"github.com/myunila/feeder-service/apps/nilai_perkuliahan"
+	"github.com/myunila/feeder-service/apps/rencana_evaluasi"
+	"github.com/myunila/feeder-service/apps/transkrip_nilai"
 	"github.com/robfig/cron/v3"
 )
 
@@ -21,6 +26,11 @@ type Service struct {
 	mahasiswaService          mahasiswa.Service
 	aktivitasMahasiswaService aktivitas_mahasiswa.Service
 	kurikulumService          matkul_kurikulum.Service
+	rencanaEvaluasiService    rencana_evaluasi.Service
+	kelasKuliahService        kelas_kuliah.Service
+	nilaiPerkuliahanService   nilai_perkuliahan.Service
+	nilaiKonversiService      nilai_konversi.Service
+	transkripNilaiService     transkrip_nilai.Service
 }
 
 // EndpointConfig represents the JSON structure stored in endpoint_key
@@ -30,7 +40,17 @@ type EndpointConfig struct {
 	IDProdi    *string  `json:"id_prodi,omitempty"`
 }
 
-func NewService(repo *Repository, mahasiswaService mahasiswa.Service, aktivitasService aktivitas_mahasiswa.Service, kurikulumService matkul_kurikulum.Service) *Service {
+func NewService(
+	repo *Repository,
+	mahasiswaService mahasiswa.Service,
+	aktivitasService aktivitas_mahasiswa.Service,
+	kurikulumService matkul_kurikulum.Service,
+	rencanaEvaluasiService rencana_evaluasi.Service,
+	kelasKuliahService kelas_kuliah.Service,
+	nilaiPerkuliahanService nilai_perkuliahan.Service,
+	nilaiKonversiService nilai_konversi.Service,
+	transkripNilaiService transkrip_nilai.Service,
+) *Service {
 	// Create cron with second precision
 	c := cron.New(cron.WithSeconds())
 
@@ -41,6 +61,11 @@ func NewService(repo *Repository, mahasiswaService mahasiswa.Service, aktivitasS
 		mahasiswaService:          mahasiswaService,
 		aktivitasMahasiswaService: aktivitasService,
 		kurikulumService:          kurikulumService,
+		rencanaEvaluasiService:    rencanaEvaluasiService,
+		kelasKuliahService:        kelasKuliahService,
+		nilaiPerkuliahanService:   nilaiPerkuliahanService,
+		nilaiKonversiService:      nilaiKonversiService,
+		transkripNilaiService:     transkripNilaiService,
 	}
 
 	return service
@@ -146,6 +171,16 @@ func (s *Service) registerSchedule(schedule ScheduledSync) error {
 			err = s.executeAktivitasSync(ctx, schedule)
 		case "kurikulum":
 			err = s.executeKurikulumSync(ctx, schedule)
+		case "rencana_evaluasi":
+			err = s.executeRencanaEvaluasiSync(ctx, schedule)
+		case "kelas_kuliah":
+			err = s.executeKelasKuliahSync(ctx, schedule)
+		case "nilai_perkuliahan":
+			err = s.executeNilaiPerkuliahanSync(ctx, schedule)
+		case "nilai_konversi":
+			err = s.executeNilaiKonversiSync(ctx, schedule)
+		case "transkrip_nilai":
+			err = s.executeTranskripNilaiSync(ctx, schedule)
 		default:
 			err = fmt.Errorf("unknown sync type: %s", schedule.SyncType)
 		}
@@ -229,6 +264,91 @@ func (s *Service) executeKurikulumSync(ctx context.Context, schedule ScheduledSy
 	}
 
 	_, err := s.kurikulumService.SyncKurikulum(ctx, filter, "scheduler")
+	return err
+}
+
+// executeRencanaEvaluasiSync executes rencana evaluasi sync
+func (s *Service) executeRencanaEvaluasiSync(ctx context.Context, schedule ScheduledSync) error {
+	// Rencana evaluasi syncs all matkul by default (filter is optional)
+	filter := &rencana_evaluasi.SyncFilter{}
+
+	_, err := s.rencanaEvaluasiService.SyncRencanaEvaluasi(ctx, filter, "scheduler")
+	return err
+}
+
+// executeKelasKuliahSync executes kelas kuliah sync
+func (s *Service) executeKelasKuliahSync(ctx context.Context, schedule ScheduledSync) error {
+	// Parse ID Semester from EndpointKey JSON
+	var config EndpointConfig
+	if schedule.EndpointKey != nil && *schedule.EndpointKey != "" {
+		if err := json.Unmarshal([]byte(*schedule.EndpointKey), &config); err != nil {
+			return fmt.Errorf("failed to parse endpoint_key: %w", err)
+		}
+	}
+
+	filter := &kelas_kuliah.SyncFilter{
+		IDSemester: config.IDSemester,
+		IDProdi:    config.IDProdi,
+	}
+
+	_, err := s.kelasKuliahService.SyncKelasKuliah(ctx, filter, "scheduler")
+	return err
+}
+
+// executeNilaiPerkuliahanSync executes nilai perkuliahan sync
+func (s *Service) executeNilaiPerkuliahanSync(ctx context.Context, schedule ScheduledSync) error {
+	// Parse ID Semester from EndpointKey JSON
+	var config EndpointConfig
+	if schedule.EndpointKey != nil && *schedule.EndpointKey != "" {
+		if err := json.Unmarshal([]byte(*schedule.EndpointKey), &config); err != nil {
+			return fmt.Errorf("failed to parse endpoint_key: %w", err)
+		}
+	}
+
+	filter := &nilai_perkuliahan.SyncFilter{
+		IDSemester: config.IDSemester,
+		IDProdi:    config.IDProdi,
+	}
+
+	_, err := s.nilaiPerkuliahanService.SyncNilaiPerkuliahan(ctx, filter, "scheduler")
+	return err
+}
+
+// executeNilaiKonversiSync executes nilai konversi sync
+func (s *Service) executeNilaiKonversiSync(ctx context.Context, schedule ScheduledSync) error {
+	// Parse ID Semester from EndpointKey JSON
+	var config EndpointConfig
+	if schedule.EndpointKey != nil && *schedule.EndpointKey != "" {
+		if err := json.Unmarshal([]byte(*schedule.EndpointKey), &config); err != nil {
+			return fmt.Errorf("failed to parse endpoint_key: %w", err)
+		}
+	}
+
+	filter := &nilai_konversi.SyncFilter{
+		IDSemester: config.IDSemester,
+		IDProdi:    config.IDProdi,
+	}
+
+	_, err := s.nilaiKonversiService.SyncNilaiKonversi(ctx, filter, "scheduler")
+	return err
+}
+
+// executeTranskripNilaiSync executes transkrip nilai sync
+func (s *Service) executeTranskripNilaiSync(ctx context.Context, schedule ScheduledSync) error {
+	// Parse ID Semester from EndpointKey JSON
+	var config EndpointConfig
+	if schedule.EndpointKey != nil && *schedule.EndpointKey != "" {
+		if err := json.Unmarshal([]byte(*schedule.EndpointKey), &config); err != nil {
+			return fmt.Errorf("failed to parse endpoint_key: %w", err)
+		}
+	}
+
+	filter := &transkrip_nilai.SyncFilter{
+		IDSemester: config.IDSemester,
+		IDProdi:    config.IDProdi,
+	}
+
+	_, err := s.transkripNilaiService.SyncTranskripNilai(ctx, filter, "scheduler")
 	return err
 }
 

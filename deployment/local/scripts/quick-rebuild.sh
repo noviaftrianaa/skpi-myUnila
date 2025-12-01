@@ -94,6 +94,26 @@ rebuild_frontend() {
     echo ""
 }
 
+# Function to rebuild nginx
+rebuild_nginx() {
+    echo -e "${GREEN}Rebuilding Nginx...${NC}"
+
+    # Stop the nginx service
+    echo "  → Stopping nginx..."
+    docker compose --env-file .env -f services/3-backend/docker-compose.nginx.yml stop nginx 2>/dev/null || true
+
+    # Rebuild without cache
+    echo "  → Rebuilding image (no-cache)..."
+    docker compose --env-file .env -f services/3-backend/docker-compose.nginx.yml build --no-cache nginx
+
+    # Start the service
+    echo "  → Starting nginx..."
+    docker compose --env-file .env -f services/3-backend/docker-compose.nginx.yml up -d nginx
+
+    echo -e "${GREEN}✓ Nginx rebuilt${NC}"
+    echo ""
+}
+
 # Rebuild based on argument
 case "$SERVICE" in
     dashboard)
@@ -111,6 +131,9 @@ case "$SERVICE" in
     frontend)
         rebuild_frontend
         ;;
+    nginx)
+        rebuild_nginx
+        ;;
     all)
         echo "Rebuilding all services..."
         echo ""
@@ -119,10 +142,7 @@ case "$SERVICE" in
         rebuild_service "auth"
         rebuild_service "sister"
         rebuild_service "feeder"
-
-        # Restart nginx to ensure connection
-        echo -e "${GREEN}Restarting Nginx...${NC}"
-        docker compose -f services/3-backend/docker-compose.nginx.yml restart nginx
+        rebuild_nginx
         echo ""
         ;;
     *)
@@ -135,6 +155,7 @@ case "$SERVICE" in
         echo "  bash quick-rebuild.sh sister       # Rebuild sister only"
         echo "  bash quick-rebuild.sh feeder       # Rebuild feeder only"
         echo "  bash quick-rebuild.sh frontend     # Rebuild frontend only"
+        echo "  bash quick-rebuild.sh nginx        # Rebuild nginx only"
         echo ""
         exit 1
         ;;
