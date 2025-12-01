@@ -42,15 +42,20 @@ func transformKelasKuliah(data *FeederKelasKuliahData, systemUUID string, now ti
 	return kelas
 }
 
+// Default value for id_katgiat when null or missing from Feeder response
+const defaultIDKatgiat = 110100
+
 // transformDosenPengajar converts FeederDosenPengajarData to AktAjarDosen entity
 func transformDosenPengajar(data *FeederDosenPengajarData, systemUUID string, now time.Time) *AktAjarDosen {
 	ajar := &AktAjarDosen{
-		IDAjar:     data.IDAktivitasMengajar,
-		CreateDate: now,
-		IDCreator:  systemUUID,
-		LastUpdate: now,
-		LastSync:   now,
-		SoftDelete: 0,
+		IDAjar:               data.IDAktivitasMengajar,
+		IDKatgiat:            defaultIDKatgiat, // Default value for FK constraint
+		KatgiatAjarIDKatgiat: defaultIDKatgiat, // Default value for FK constraint
+		CreateDate:           now,
+		IDCreator:            systemUUID,
+		LastUpdate:           now,
+		LastSync:             now,
+		SoftDelete:           0,
 	}
 
 	// Foreign Keys

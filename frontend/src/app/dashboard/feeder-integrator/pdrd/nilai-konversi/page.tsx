@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
-import FeederNilaiPerkuliahanTable from "@/shared/components/feeder-integrator/FeederNilaiPerkuliahanTable";
+import FeederNilaiKonversiTable from "@/shared/components/feeder-integrator/FeederNilaiKonversiTable";
 import {
   Card,
   CardBody,
@@ -26,26 +26,26 @@ import {
   FiUsers,
   FiRefreshCw,
 } from "react-icons/fi";
-import { MdSync, MdSchool, MdGrade, MdClass } from "react-icons/md";
+import { MdSync, MdSchool, MdSwapHoriz, MdTransform } from "react-icons/md";
 import { feederIntegratorMenuConfig } from "../../config/menuConfig";
 import { feederClient } from "@/lib/api/feederClient";
 import { toast } from "react-hot-toast";
 import ScheduleList from "@/shared/components/feeder-integrator/ScheduleList";
 
-interface NilaiPerkuliahanStats {
-  total_nilai: number;
+interface NilaiKonversiStats {
+  total_konversi: number;
+  total_transfer: number;
   total_mahasiswa: number;
-  total_kelas: number;
   total_prodi: number;
   last_sync?: string;
 }
 
-export default function NilaiPerkuliahanManagementPage() {
+export default function NilaiKonversiManagementPage() {
   useRequireAuth();
   const { user } = useAuth();
 
   // State
-  const [stats, setStats] = useState<NilaiPerkuliahanStats | null>(null);
+  const [stats, setStats] = useState<NilaiKonversiStats | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [showSyncModal, setShowSyncModal] = useState(false);
@@ -53,25 +53,23 @@ export default function NilaiPerkuliahanManagementPage() {
   const [syncProgress, setSyncProgress] = useState(0);
   const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
   const [syncResult, setSyncResult] = useState<{
-    totalKelas: number;
-    totalNilai: number;
+    totalKonversi: number;
+    totalTransfer: number;
     message: string;
   } | null>(null);
   const [syncFilters, setSyncFilters] = useState<{
     id_prodi?: string;
     id_semester?: string[];
-    id_kelas?: string;
   }>({});
   const [syncFilterLabels, setSyncFilterLabels] = useState<{
     prodi?: string;
     semester?: string;
-    kelas?: string;
   }>({});
   const [forceSync, setForceSync] = useState(false);
 
   // Handle filter changes from table
   const handleFilterChange = useCallback(
-    (filters: { id_semester?: string[]; id_prodi?: string; id_kelas?: string }) => {
+    (filters: { id_semester?: string[]; id_prodi?: string }) => {
       setSyncFilters(filters);
       if (filters.id_semester) {
         setSyncFilterLabels((prev) => ({
@@ -91,7 +89,7 @@ export default function NilaiPerkuliahanManagementPage() {
   const fetchStats = async () => {
     try {
       setIsLoadingStats(true);
-      const response = await feederClient.get("/nilai-perkuliahan/stats", {
+      const response = await feederClient.get("/nilai-konversi/stats", {
         params: { _t: Date.now() },
       });
       const data = response.data;
@@ -101,7 +99,7 @@ export default function NilaiPerkuliahanManagementPage() {
       }
     } catch (error) {
       console.error("Error fetching stats:", error);
-      toast.error("Gagal memuat statistik nilai perkuliahan");
+      toast.error("Gagal memuat statistik nilai konversi");
     } finally {
       setIsLoadingStats(false);
     }
@@ -140,16 +138,12 @@ export default function NilaiPerkuliahanManagementPage() {
         params.append("id_prodi", syncFilters.id_prodi);
       }
 
-      if (syncFilters.id_kelas) {
-        params.append("id_kelas", syncFilters.id_kelas);
-      }
-
       if (forceSync) {
         params.append("force_sync", "true");
       }
 
       const response = await feederClient.post(
-        `/nilai-perkuliahan/sync?${params.toString()}`
+        `/nilai-konversi/sync?${params.toString()}`
       );
 
       clearInterval(progressInterval);
@@ -159,11 +153,12 @@ export default function NilaiPerkuliahanManagementPage() {
         setSyncStatus("success");
 
         setSyncResult({
-          totalKelas: response.data.data?.total_kelas || 0,
-          totalNilai: response.data.data?.total_nilai || 0,
+          totalKonversi: response.data.data?.total_konversi || 0,
+          totalTransfer: response.data.data?.total_transfer || 0,
           message:
+            response.data.data?.message ||
             response.data.message ||
-            "Data nilai perkuliahan berhasil disinkronkan",
+            "Data nilai konversi berhasil disinkronkan",
         });
 
         toast.success("Sinkronisasi berhasil!");
@@ -178,7 +173,7 @@ export default function NilaiPerkuliahanManagementPage() {
         throw new Error(response.data.message || "Sinkronisasi gagal");
       }
     } catch (error: any) {
-      console.error("Error syncing nilai perkuliahan:", error);
+      console.error("Error syncing nilai konversi:", error);
       setSyncStatus("error");
 
       const errorMessage =
@@ -188,8 +183,8 @@ export default function NilaiPerkuliahanManagementPage() {
       toast.error(errorMessage);
 
       setSyncResult({
-        totalKelas: 0,
-        totalNilai: 0,
+        totalKonversi: 0,
+        totalTransfer: 0,
         message: errorMessage,
       });
 
@@ -219,17 +214,17 @@ export default function NilaiPerkuliahanManagementPage() {
       appName="Feeder Integrator"
       appIcon={<MdSchool className="w-6 h-6 text-white" />}
       menuConfig={feederIntegratorMenuConfig}
-      pageTitle="Nilai Perkuliahan"
+      pageTitle="Nilai Konversi"
     >
       <div className="space-y-6">
         {/* Header with Title and Sync Button */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-              Nilai Perkuliahan
+              Nilai Konversi & Transfer
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Data nilai perkuliahan mahasiswa dari Neo Feeder PDDIKTI
+              Data nilai konversi MBKM dan nilai transfer mahasiswa dari Neo Feeder PDDIKTI
             </p>
           </div>
           <Button
@@ -238,7 +233,7 @@ export default function NilaiPerkuliahanManagementPage() {
             startContent={<MdSync className="w-5 h-5" />}
             onPress={handleSyncClick}
             isLoading={isSyncing}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all rounded-xl"
+            className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all rounded-xl"
           >
             Sinkronisasi Data
           </Button>
@@ -246,19 +241,19 @@ export default function NilaiPerkuliahanManagementPage() {
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Total Nilai Card */}
-          <Card className="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+          {/* Total Konversi Card */}
+          <Card className="bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
             <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
             <CardBody className="p-4 relative z-10">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
-                  <MdGrade className="w-7 h-7 text-white" />
+                  <MdTransform className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs font-medium text-blue-100">
-                      Total Nilai
+                    <p className="text-xs font-medium text-purple-100">
+                      Konversi MBKM
                     </p>
                     <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
                       <span className="text-[10px] font-semibold text-white">
@@ -271,11 +266,48 @@ export default function NilaiPerkuliahanManagementPage() {
                   ) : (
                     <>
                       <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
-                        {stats?.total_nilai.toLocaleString() || "0"}
+                        {stats?.total_konversi.toLocaleString() || "0"}
                       </h3>
-                      <p className="text-[10px] text-blue-100/80 flex items-center gap-1">
+                      <p className="text-[10px] text-purple-100/80 flex items-center gap-1">
                         <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse" />
-                        Total record nilai
+                        Total record konversi
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* Total Transfer Card */}
+          <Card className="bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
+            <CardBody className="p-4 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
+                  <MdSwapHoriz className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-orange-100">
+                      Nilai Transfer
+                    </p>
+                    <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
+                      <span className="text-[10px] font-semibold text-white">
+                        Active
+                      </span>
+                    </div>
+                  </div>
+                  {isLoadingStats ? (
+                    <Spinner size="sm" color="white" />
+                  ) : (
+                    <>
+                      <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
+                        {stats?.total_transfer.toLocaleString() || "0"}
+                      </h3>
+                      <p className="text-[10px] text-orange-100/80">
+                        Total record transfer
                       </p>
                     </>
                   )}
@@ -312,44 +344,7 @@ export default function NilaiPerkuliahanManagementPage() {
                         {stats?.total_mahasiswa.toLocaleString() || "0"}
                       </h3>
                       <p className="text-[10px] text-emerald-100/80">
-                        Mahasiswa dengan nilai
-                      </p>
-                    </>
-                  )}
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-
-          {/* Total Kelas Card */}
-          <Card className="bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
-            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
-            <CardBody className="p-4 relative z-10">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
-                  <MdClass className="w-7 h-7 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs font-medium text-orange-100">
-                      Kelas
-                    </p>
-                    <div className="px-2 py-0.5 rounded-full bg-white/30 backdrop-blur-sm">
-                      <span className="text-[10px] font-semibold text-white">
-                        Active
-                      </span>
-                    </div>
-                  </div>
-                  {isLoadingStats ? (
-                    <Spinner size="sm" color="white" />
-                  ) : (
-                    <>
-                      <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
-                        {stats?.total_kelas.toLocaleString() || "0"}
-                      </h3>
-                      <p className="text-[10px] text-orange-100/80">
-                        Kelas dengan nilai
+                        Mahasiswa terlibat
                       </p>
                     </>
                   )}
@@ -359,7 +354,7 @@ export default function NilaiPerkuliahanManagementPage() {
           </Card>
 
           {/* Last Sync Card */}
-          <Card className="bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+          <Card className="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
             <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
             <CardBody className="p-4 relative z-10">
@@ -369,7 +364,7 @@ export default function NilaiPerkuliahanManagementPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs font-medium text-purple-100">
+                    <p className="text-xs font-medium text-blue-100">
                       Last Sync
                     </p>
                     <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
@@ -385,7 +380,7 @@ export default function NilaiPerkuliahanManagementPage() {
                       <h3 className="text-base font-bold text-white leading-tight mb-1 truncate">
                         {formatDate(stats?.last_sync)}
                       </h3>
-                      <p className="text-[10px] text-purple-100/80">
+                      <p className="text-[10px] text-blue-100/80">
                         Terakhir sinkronisasi data
                       </p>
                     </>
@@ -397,10 +392,10 @@ export default function NilaiPerkuliahanManagementPage() {
         </div>
 
         {/* Scheduled Syncs Section */}
-        <ScheduleList syncType={"nilai_perkuliahan" as any} />
+        <ScheduleList syncType={"nilai_konversi" as any} />
 
         {/* Data Table */}
-        <FeederNilaiPerkuliahanTable onFilterChange={handleFilterChange} />
+        <FeederNilaiKonversiTable onFilterChange={handleFilterChange} />
       </div>
 
       {/* Sync Confirmation Modal */}
@@ -427,7 +422,7 @@ export default function NilaiPerkuliahanManagementPage() {
                       Konfirmasi Sinkronisasi
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                      Data Nilai Perkuliahan Neo Feeder
+                      Data Nilai Konversi & Transfer Neo Feeder
                     </p>
                   </div>
                 </div>
@@ -439,14 +434,13 @@ export default function NilaiPerkuliahanManagementPage() {
                       <FiAlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                       <div className="w-full">
                         <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
-                          Proses ini akan mengambil data nilai perkuliahan
-                          terbaru dari Neo Feeder PDDIKTI dan menyimpannya ke
-                          database.
+                          Proses ini akan mengambil data nilai konversi MBKM dan
+                          nilai transfer terbaru dari Neo Feeder PDDIKTI.
                         </p>
                         <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1 list-disc list-inside">
+                          <li>Konversi: nilai MBKM Kampus Merdeka</li>
+                          <li>Transfer: nilai transfer dari PT lain</li>
                           <li>Data yang sudah ada akan diperbarui</li>
-                          <li>Data baru akan ditambahkan</li>
-                          <li>Proses memerlukan waktu beberapa menit</li>
                         </ul>
                       </div>
                     </div>
@@ -454,7 +448,6 @@ export default function NilaiPerkuliahanManagementPage() {
 
                   {/* Filter Info */}
                   {(syncFilters.id_prodi ||
-                    syncFilters.id_kelas ||
                     (syncFilters.id_semester &&
                       syncFilters.id_semester.length > 0)) && (
                     <div className="p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
@@ -477,16 +470,7 @@ export default function NilaiPerkuliahanManagementPage() {
                             </span>
                           </div>
                         )}
-                        {syncFilters.id_kelas && (
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">Kelas:</span>
-                            <span>
-                              {syncFilterLabels.kelas || "Kelas terpilih"}
-                            </span>
-                          </div>
-                        )}
                         {!syncFilters.id_prodi &&
-                          !syncFilters.id_kelas &&
                           (!syncFilters.id_semester ||
                             syncFilters.id_semester.length === 0) && (
                             <p className="text-sm italic">
@@ -506,7 +490,7 @@ export default function NilaiPerkuliahanManagementPage() {
                         </h4>
                         <p className="text-xs text-gray-600 dark:text-gray-400">
                           Aktifkan untuk men-sync ulang data yang sudah pernah
-                          di-sync. Data yang gagal sync akan dicoba lagi.
+                          di-sync.
                         </p>
                       </div>
                       <Switch
@@ -603,7 +587,7 @@ export default function NilaiPerkuliahanManagementPage() {
                   {syncStatus === "syncing" && "Mohon tunggu sebentar"}
                   {syncStatus === "success" &&
                     syncResult &&
-                    `${syncResult.totalKelas} kelas, ${syncResult.totalNilai} nilai berhasil disinkronkan`}
+                    `Konversi: ${syncResult.totalKonversi}, Transfer: ${syncResult.totalTransfer}`}
                   {syncStatus === "error" &&
                     "Terjadi kesalahan saat sinkronisasi"}
                 </p>
@@ -644,7 +628,7 @@ export default function NilaiPerkuliahanManagementPage() {
                         {syncResult.message}
                       </p>
                       <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                        Total: {syncResult.totalKelas} kelas, {syncResult.totalNilai} nilai
+                        Konversi: {syncResult.totalKonversi}, Transfer: {syncResult.totalTransfer}
                       </p>
                     </div>
                   </div>

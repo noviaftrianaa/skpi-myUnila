@@ -4,11 +4,16 @@ import (
 	"log"
 	"github.com/myunila/feeder-service/apps/aktivitas_mahasiswa"
 	"github.com/myunila/feeder-service/apps/apiconfig"
+	"github.com/myunila/feeder-service/apps/dashboard"
 	"github.com/myunila/feeder-service/apps/kelas_kuliah"
 	"github.com/myunila/feeder-service/apps/logger"
 	"github.com/myunila/feeder-service/apps/mahasiswa"
 	"github.com/myunila/feeder-service/apps/matkul_kurikulum"
+	"github.com/myunila/feeder-service/apps/nilai_konversi"
+	"github.com/myunila/feeder-service/apps/nilai_perkuliahan"
+	"github.com/myunila/feeder-service/apps/prestasi"
 	"github.com/myunila/feeder-service/apps/rencana_evaluasi"
+	"github.com/myunila/feeder-service/apps/transkrip_nilai"
 	"github.com/myunila/feeder-service/apps/monitoring"
 	"github.com/myunila/feeder-service/apps/scheduler"
 	"github.com/myunila/feeder-service/external/database"
@@ -150,16 +155,46 @@ func main() {
 	log.Println("✅ Matkul Kurikulum module initialized")
 
 	// Initialize Rencana Evaluasi MK module (pass logger service for sync logging)
-	_ = rencana_evaluasi.Init(apiV1, db, feederAPI, redisClient, loggerService)
+	rencanaEvaluasiService := rencana_evaluasi.Init(apiV1, db, feederAPI, redisClient, loggerService)
 	log.Println("✅ Rencana Evaluasi MK module initialized")
 
 	// Initialize Kelas Kuliah module (pass logger service for sync logging)
-	_ = kelas_kuliah.Init(apiV1, db, feederAPI, redisClient, loggerService)
+	kelasKuliahService := kelas_kuliah.Init(apiV1, db, feederAPI, redisClient, loggerService)
 	log.Println("✅ Kelas Kuliah module initialized")
 
-	// Initialize Scheduler service (supports mahasiswa, aktivitas_mahasiswa, and kurikulum syncs)
+	// Initialize Nilai Perkuliahan module (pass logger service for sync logging)
+	nilaiPerkuliahanService := nilai_perkuliahan.Init(apiV1, db, feederAPI, redisClient, loggerService)
+	log.Println("✅ Nilai Perkuliahan module initialized")
+
+	// Initialize Nilai Konversi module (pass logger service for sync logging)
+	nilaiKonversiService := nilai_konversi.Init(apiV1, db, feederAPI, redisClient, loggerService)
+	log.Println("✅ Nilai Konversi module initialized")
+
+	// Initialize Transkrip Nilai module (pass logger service for sync logging)
+	transkripNilaiService := transkrip_nilai.Init(apiV1, db, feederAPI, redisClient, loggerService)
+	log.Println("✅ Transkrip Nilai module initialized")
+
+	// Initialize Prestasi module (pass logger service for sync logging)
+	prestasi.Init(apiV1, db, feederAPI, redisClient, loggerService)
+	log.Println("✅ Prestasi module initialized")
+
+	// Initialize Dashboard module (for dashboard statistics)
+	dashboard.Init(apiV1, db)
+	log.Println("✅ Dashboard module initialized")
+
+	// Initialize Scheduler service (supports all sync types)
 	schedulerRepo := scheduler.NewRepository(db)
-	schedulerService := scheduler.NewService(schedulerRepo, mahasiswaService, aktivitasService, kurikulumService)
+	schedulerService := scheduler.NewService(
+		schedulerRepo,
+		mahasiswaService,
+		aktivitasService,
+		kurikulumService,
+		rencanaEvaluasiService,
+		kelasKuliahService,
+		nilaiPerkuliahanService,
+		nilaiKonversiService,
+		transkripNilaiService,
+	)
 	schedulerHandler := scheduler.NewHandler(schedulerService)
 	scheduler.RegisterRoutes(apiV1, schedulerHandler)
 
@@ -186,6 +221,11 @@ func main() {
 				"kurikulum":           "/api/v1/kurikulum",
 				"rencana_evaluasi":    "/api/v1/rencana-evaluasi",
 				"kelas_kuliah":        "/api/v1/kelas-kuliah",
+				"nilai_perkuliahan":   "/api/v1/nilai-perkuliahan",
+				"nilai_konversi":      "/api/v1/nilai-konversi",
+				"transkrip_nilai":     "/api/v1/transkrip-nilai",
+				"prestasi":            "/api/v1/prestasi",
+				"dashboard":           "/api/v1/dashboard/stats",
 				"schedules":           "/api/v1/schedules",
 				"sync_logs":           "/api/v1/sync-logs",
 				"monitoring":          "/api/v1/monitoring/active",

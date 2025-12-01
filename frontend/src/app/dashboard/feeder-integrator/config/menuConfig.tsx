@@ -64,8 +64,8 @@ export const feederIntegratorMenuConfig: MenuItem[] = [
         roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
       },
       {
-        title: "Konversi/Transfer",
-        href: "/dashboard/feeder-integrator/pdrd/konversi-transfer",
+        title: "Nilai Konversi",
+        href: "/dashboard/feeder-integrator/pdrd/nilai-konversi",
         roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
       },
       {

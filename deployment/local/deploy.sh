@@ -38,23 +38,25 @@ show_menu() {
     echo -e "  ${GREEN}5)${NC} Quick Rebuild - Sister Only"
     echo -e "  ${GREEN}6)${NC} Quick Rebuild - Feeder Only"
     echo -e "  ${GREEN}7)${NC} Quick Rebuild - Frontend Only"
+    echo -e "  ${GREEN}8)${NC} Quick Rebuild - Nginx Only"
     echo ""
-    echo -e "  ${BLUE}8)${NC} Restart All Services"
-    echo -e "  ${BLUE}9)${NC} Restart Dashboard Only"
-    echo -e "  ${BLUE}10)${NC} Restart Auth Only"
-    echo -e "  ${BLUE}11)${NC} Restart Sister Only"
-    echo -e "  ${BLUE}12)${NC} Restart Feeder Only"
+    echo -e "  ${BLUE}9)${NC} Restart All Services"
+    echo -e "  ${BLUE}10)${NC} Restart Dashboard Only"
+    echo -e "  ${BLUE}11)${NC} Restart Auth Only"
+    echo -e "  ${BLUE}12)${NC} Restart Sister Only"
+    echo -e "  ${BLUE}13)${NC} Restart Feeder Only"
+    echo -e "  ${BLUE}14)${NC} Restart Nginx Only"
     echo ""
-    echo -e "  ${YELLOW}13)${NC} Show Container Status"
-    echo -e "  ${YELLOW}14)${NC} Show Logs"
-    echo -e "  ${YELLOW}15)${NC} Test Endpoints"
-    echo -e "  ${YELLOW}16)${NC} Setup Kong Routes"
+    echo -e "  ${YELLOW}15)${NC} Show Container Status"
+    echo -e "  ${YELLOW}16)${NC} Show Logs"
+    echo -e "  ${YELLOW}17)${NC} Test Endpoints"
+    echo -e "  ${YELLOW}18)${NC} Setup Kong Routes"
     echo ""
-    echo -e "  ${RED}17)${NC} Cleanup Docker Resources (hapus images tidak terpakai)"
+    echo -e "  ${RED}19)${NC} Cleanup Docker Resources (hapus images tidak terpakai)"
     echo ""
     echo -e "  ${RED}0)${NC} Exit"
     echo ""
-    echo -n "Pilihan [0-17]: "
+    echo -n "Pilihan [0-19]: "
 }
 
 # Function to show container status
@@ -178,41 +180,49 @@ while true; do
             read -p "Press Enter to continue..."
             ;;
         8)
-            bash "$SCRIPT_DIR/restart-services.sh"
+            bash "$SCRIPT_DIR/quick-rebuild.sh" nginx
             read -p "Press Enter to continue..."
             ;;
         9)
-            bash "$SCRIPT_DIR/restart-services.sh" dashboard
+            bash "$SCRIPT_DIR/restart-services.sh"
             read -p "Press Enter to continue..."
             ;;
         10)
-            bash "$SCRIPT_DIR/restart-services.sh" auth
+            bash "$SCRIPT_DIR/restart-services.sh" dashboard
             read -p "Press Enter to continue..."
             ;;
         11)
-            bash "$SCRIPT_DIR/restart-services.sh" sister
+            bash "$SCRIPT_DIR/restart-services.sh" auth
             read -p "Press Enter to continue..."
             ;;
         12)
-            bash "$SCRIPT_DIR/restart-services.sh" feeder
+            bash "$SCRIPT_DIR/restart-services.sh" sister
             read -p "Press Enter to continue..."
             ;;
         13)
-            show_status
+            bash "$SCRIPT_DIR/restart-services.sh" feeder
+            read -p "Press Enter to continue..."
             ;;
         14)
-            show_logs
+            bash "$SCRIPT_DIR/restart-services.sh" nginx
+            read -p "Press Enter to continue..."
             ;;
         15)
-            test_endpoints
+            show_status
             ;;
         16)
+            show_logs
+            ;;
+        17)
+            test_endpoints
+            ;;
+        18)
             echo ""
             echo -e "${GREEN}Running Kong Routes Setup...${NC}"
             bash "$SCRIPT_DIR/setup-kong-routes.sh"
             read -p "Press Enter to continue..."
             ;;
-        17)
+        19)
             echo ""
             echo -e "${YELLOW}Cleaning up Docker resources...${NC}"
             echo ""
