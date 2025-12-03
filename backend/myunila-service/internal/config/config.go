@@ -58,6 +58,10 @@ func LoadConfig() error {
 	maxIdleConns, _ := strconv.Atoi(getEnv("DB_MAX_IDLE_CONNS", "5"))
 	connMaxLifetime, _ := time.ParseDuration(getEnv("DB_CONN_MAX_LIFETIME", "5m"))
 
+	dbName := getEnv("DB_DATABASE", "pdut")
+	dbHost := getEnv("DB_HOST", "localhost")
+	fmt.Printf("Database config: host=%s, database=%s\n", dbHost, dbName)
+
 	Cfg = &Config{
 		App: AppConfig{
 			Name: getEnv("APP_NAME", "MyUnila Service"),
@@ -66,9 +70,9 @@ func LoadConfig() error {
 		},
 		Database: DatabaseConfig{
 			Driver:                 getEnv("DB_DRIVER", "sqlserver"),
-			Host:                   getEnv("DB_HOST", "localhost"),
+			Host:                   dbHost,
 			Port:                   getEnv("DB_PORT", "1433"),
-			Database:               getEnv("DB_DATABASE", "pdut"),
+			Database:               dbName,
 			Username:               getEnv("DB_USERNAME", "sa"),
 			Password:               getEnv("DB_PASSWORD", ""),
 			TrustServerCertificate: getEnv("DB_TRUST_SERVER_CERTIFICATE", "true") == "true",
