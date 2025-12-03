@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  myunila-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: myunila-service
+    ports:
+      - "8086:8086"
+    environment:
+      - APP_NAME=MyUnila Service
+      - APP_PORT=:8086
+      - APP_ENV=production
+      - DB_DRIVER=sqlserver
+      - DB_HOST=${DB_HOST:-host.docker.internal}
+      - DB_PORT=${DB_PORT:-1433}
+      - DB_DATABASE=${DB_DATABASE:-pdut}
+      - DB_USERNAME=${DB_USERNAME:-sa}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_TRUST_SERVER_CERTIFICATE=true
+      - SIKEP_API_BASE_URL=${SIKEP_API_BASE_URL:-https://sikep.unila.ac.id/2022/api/v1}
+      - SIKEP_API_USERNAME=${SIKEP_API_USERNAME:-myunila}
+      - SIKEP_API_PASSWORD=${SIKEP_API_PASSWORD}
+    restart: unless-stopped
+    networks:
+      - myunila-network
+
+networks:
+  myunila-network:
+    driver: bridge

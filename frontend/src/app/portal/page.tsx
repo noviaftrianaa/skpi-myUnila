@@ -471,9 +471,9 @@ export default function DashboardPage() {
           name: "myUnila Integrator",
           description: "Integrasi Apps Existing di Unila",
           icon: <FaLink className="w-6 h-6" />,
-          color: "bg-indigo-600",
+          color: "bg-emerald-600",
           isFavorite: false,
-          href: "#",
+          href: "/dashboard/integrator",
           requireRole: ["Developer", "Rektor", "Wakil Rektor 1", "Wakil Rektor 2", "Wakil Rektor 3", "Wakil Rektor 4", "LP3M UNILA"],
         },
         {

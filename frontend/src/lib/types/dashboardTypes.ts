@@ -401,6 +401,33 @@ export interface MahasiswaTrendResponse {
 }
 
 /**
+ * Mahasiswa Item (for list)
+ */
+export interface MahasiswaItem {
+  npm: string;
+  nama: string;
+  angkatan: string;
+  status: string;
+}
+
+/**
+ * Mahasiswa List Response
+ */
+export interface MahasiswaListResponse {
+  success: boolean;
+  message: string;
+  data: MahasiswaItem[];
+  pagination: {
+    total: number;
+    per_page: number;
+    current_page: number;
+    last_page: number;
+    from: number;
+    to: number;
+  };
+}
+
+/**
  * Kurikulum Item
  */
 export interface Kurikulum {

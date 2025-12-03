@@ -645,6 +645,11 @@ export default function DosenProfilePage() {
                                 <h3 className="text-lg font-bold text-gray-900 mb-1 truncate">
                                   {item.jabatan}
                                 </h3>
+                                {item.nama_unit && (
+                                  <p className="text-sm font-medium text-violet-600 mb-1">
+                                    {item.nama_unit}
+                                  </p>
+                                )}
                                 {item.deskripsi && (
                                   <p className="text-sm text-gray-600 mb-2">
                                     {item.deskripsi}

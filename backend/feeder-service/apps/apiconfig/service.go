@@ -1,6 +1,7 @@
 package apiconfig
 
 import (
+	"crypto/tls"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -273,8 +274,13 @@ func (s *service) Delete(id int, deletedBy string) error {
 func (s *service) TestConnection(req TestConnectionRequest) (*TestConnectionResponse, error) {
 	startTime := time.Now()
 
+	// Skip SSL certificate verification for self-signed certificates
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
 	client := &http.Client{
-		Timeout: 30 * time.Second,
+		Timeout:   30 * time.Second,
+		Transport: tr,
 	}
 
 	// Build test request based on API type
@@ -315,16 +321,28 @@ func (s *service) TestConnection(req TestConnectionRequest) (*TestConnectionResp
 	// Read response body
 	body, _ := io.ReadAll(resp.Body)
 
+	// Connection is successful if we get ANY response from the server
+	// Even 404/401/403 means the server is reachable
+	// Only network errors, SSL errors, timeouts count as connection failures
 	result := &TestConnectionResponse{
-		Success:      resp.StatusCode >= 200 && resp.StatusCode < 300,
+		Success:      true, // We got a response, so connection works
 		Status:       "success",
 		Message:      fmt.Sprintf("Connected successfully. Status: %d, Response time: %dms", resp.StatusCode, responseTime),
 		ResponseTime: responseTime,
 	}
 
-	if !result.Success {
-		result.Status = "failed"
-		result.Message = fmt.Sprintf("HTTP %d: %s", resp.StatusCode, string(body))
+	// Add note for non-2xx responses
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		result.Message = fmt.Sprintf("Server reachable (HTTP %d). Response time: %dms. Note: Base URL may require specific endpoint path.", resp.StatusCode, responseTime)
+		// Truncate body if too long
+		bodyStr := string(body)
+		if len(bodyStr) > 200 {
+			bodyStr = bodyStr[:200] + "..."
+		}
+		// Only show body for non-HTML responses
+		if !strings.Contains(bodyStr, "<!DOCTYPE") && !strings.Contains(bodyStr, "<html") {
+			result.Message += fmt.Sprintf(" Response: %s", bodyStr)
+		}
 	}
 
 	// Update test result in database if API code provided

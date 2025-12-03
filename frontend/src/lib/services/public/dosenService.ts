@@ -75,6 +75,7 @@ export interface DosenProfile {
   tugas_tambahan: Array<{
     jabatan: string;
     deskripsi: string;
+    nama_unit?: string;
     tmt: string;
     no_sk: string;
     tgl_sk: string;

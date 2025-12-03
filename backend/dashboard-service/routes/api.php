@@ -80,12 +80,14 @@ Route::prefix('public/api/v1')->group(function () {
         Route::get('/filter-options', [ProgramStudiController::class, 'filterOptions']);
         Route::get('/sebaran-fakultas', [ProgramStudiController::class, 'sebaranFakultas']);
         Route::get('/fakultas/{id}/prodi', [ProgramStudiController::class, 'prodiByFakultas']);
+        Route::get('/kurikulum/{id_kurikulum}/mata-kuliah', [ProgramStudiController::class, 'mataKuliahByKurikulum']);
+        // Routes with encrypted ID (URL-safe base64: uses - and _ instead of + and /)
         Route::get('/{id}', [ProgramStudiController::class, 'show']);
         Route::get('/{id}/dosen', [ProgramStudiController::class, 'dosen']);
+        Route::get('/{id}/mahasiswa', [ProgramStudiController::class, 'mahasiswa']);
         Route::get('/{id}/mahasiswa-trend', [ProgramStudiController::class, 'mahasiswaTrend']);
         Route::get('/{id}/kurikulum', [ProgramStudiController::class, 'kurikulum']);
         Route::get('/{id}/tracer-study', [ProgramStudiController::class, 'tracerStudy']);
-        Route::get('/kurikulum/{id_kurikulum}/mata-kuliah', [ProgramStudiController::class, 'mataKuliahByKurikulum']);
     });
 
     // Universitas Lampung

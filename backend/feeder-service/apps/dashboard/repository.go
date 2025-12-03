@@ -225,7 +225,7 @@ func (r *repository) GetModuleStats(ctx context.Context) ([]ModuleStat, error) {
 	var matkulLastSync sql.NullTime
 	err = r.db.QueryRowContext(ctx, `
 		SELECT COUNT(*), MAX(last_sync)
-		FROM pdrd.mk_kurikulum WITH(NOLOCK)
+		FROM pdrd.matkul_kurikulum WITH(NOLOCK)
 		WHERE soft_delete = 0
 	`).Scan(&matkulCount, &matkulLastSync)
 	if err != nil && err != sql.ErrNoRows {
@@ -313,10 +313,12 @@ func (r *repository) GetQuickStats(ctx context.Context) (*QuickStats, error) {
 		return nil, err
 	}
 
-	// Total Mahasiswa Aktif (status aktif based on id_stat_mhs = 'A')
+	// Total Mahasiswa Aktif (status aktif based on peserta_didik.id_stat_mhs = 'A')
 	err = r.db.QueryRowContext(ctx, `
-		SELECT COUNT(*) FROM pdrd.reg_pd WITH(NOLOCK)
-		WHERE soft_delete = 0 AND id_stat_mhs = 'A'
+		SELECT COUNT(*)
+		FROM pdrd.reg_pd AS reg WITH(NOLOCK)
+		INNER JOIN pdrd.peserta_didik AS pd WITH(NOLOCK) ON pd.id_pd = reg.id_pd AND pd.soft_delete = 0
+		WHERE reg.soft_delete = 0 AND pd.id_stat_mhs = 'A'
 	`).Scan(&stats.TotalMahasiswaAktif)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, err
@@ -364,7 +366,7 @@ func (r *repository) GetQuickStats(ctx context.Context) (*QuickStats, error) {
 
 	// Total Matkul
 	err = r.db.QueryRowContext(ctx, `
-		SELECT COUNT(*) FROM pdrd.mk_kurikulum WITH(NOLOCK) WHERE soft_delete = 0
+		SELECT COUNT(*) FROM pdrd.matkul_kurikulum WITH(NOLOCK) WHERE soft_delete = 0
 	`).Scan(&stats.TotalMatkul)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, err
@@ -402,7 +404,7 @@ func (r *repository) GetTotalRecordsSynced(ctx context.Context) (int64, error) {
 		"SELECT COUNT(*) FROM pdrd.nilai_smt_mhs WITH(NOLOCK) WHERE soft_delete = 0",
 		"SELECT COUNT(*) FROM pdrd.nilai_transkrip WITH(NOLOCK) WHERE soft_delete = 0",
 		"SELECT COUNT(*) FROM pdrd.prestasi WITH(NOLOCK) WHERE soft_delete = 0",
-		"SELECT COUNT(*) FROM pdrd.mk_kurikulum WITH(NOLOCK) WHERE soft_delete = 0",
+		"SELECT COUNT(*) FROM pdrd.matkul_kurikulum WITH(NOLOCK) WHERE soft_delete = 0",
 	}
 
 	for _, q := range tables {

@@ -1,4 +1,4 @@
-import { feederClient } from '@/lib/api/feederClient';
+import { myunilaClient } from '@/lib/api/myunilaClient';
 
 export interface APIConfig {
   id: number;
@@ -88,31 +88,31 @@ export interface AuditLog {
 
 class APIConfigService {
   async getAll(): Promise<APIConfig[]> {
-    const response = await feederClient.get<{ data: APIConfig[] }>('/api-configs');
+    const response = await myunilaClient.get<{ data: APIConfig[] }>('/api-configs');
     return response.data.data || [];
   }
 
   async getByCode(apiCode: string): Promise<APIConfig> {
-    const response = await feederClient.get<{ data: APIConfig }>(`/api-configs/${apiCode}`);
+    const response = await myunilaClient.get<{ data: APIConfig }>(`/api-configs/${apiCode}`);
     return response.data.data;
   }
 
   async create(request: CreateAPIConfigRequest): Promise<APIConfig> {
-    const response = await feederClient.post<{ data: APIConfig }>('/api-configs', request);
+    const response = await myunilaClient.post<{ data: APIConfig }>('/api-configs', request);
     return response.data.data;
   }
 
   async update(id: number, request: UpdateAPIConfigRequest): Promise<APIConfig> {
-    const response = await feederClient.put<{ data: APIConfig }>(`/api-configs/${id}`, request);
+    const response = await myunilaClient.put<{ data: APIConfig }>(`/api-configs/${id}`, request);
     return response.data.data;
   }
 
   async delete(id: number): Promise<void> {
-    await feederClient.delete(`/api-configs/${id}`);
+    await myunilaClient.delete(`/api-configs/${id}`);
   }
 
   async testConnection(request: TestConnectionRequest): Promise<TestConnectionResponse> {
-    const response = await feederClient.post<{ data: TestConnectionResponse }>(
+    const response = await myunilaClient.post<{ data: TestConnectionResponse }>(
       '/api-configs/test-connection',
       request
     );
@@ -120,7 +120,7 @@ class APIConfigService {
   }
 
   async getAuditLogs(configId: number): Promise<AuditLog[]> {
-    const response = await feederClient.get<{ data: AuditLog[] }>(`/api-configs/${configId}/audit-logs`);
+    const response = await myunilaClient.get<{ data: AuditLog[] }>(`/api-configs/${configId}/audit-logs`);
     return response.data.data || [];
   }
 }

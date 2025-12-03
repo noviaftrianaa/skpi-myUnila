@@ -10,7 +10,7 @@ import {
   FiFileText,
   FiSettings,
   FiBookOpen,
-  FiUsers,
+  FiDatabase,
 } from "react-icons/fi";
 import { MdDashboard } from "react-icons/md";
 import type { MenuItem } from "@/lib/types/dashboardTypes";
@@ -30,7 +30,7 @@ export const feederIntegratorMenuConfig: MenuItem[] = [
   },
   {
     title: "Data PDRD",
-    icon: <FiUsers className="w-5 h-5" />,
+    icon: <FiDatabase className="w-5 h-5" />,
     roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
     children: [
       {

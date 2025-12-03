@@ -24,6 +24,7 @@ import type { ProgramStudiDetail } from '@/lib/types/dashboardTypes';
 import {
   DosenTable,
   MahasiswaTrendChart,
+  MahasiswaTable,
   KurikulumList,
   TracerStudySection,
 } from '../_components';
@@ -160,7 +161,7 @@ export default function ProgramStudiDetailPage() {
   const tabs = [
     { id: 'profile' as TabType, label: 'Profil & Info', icon: FaInfoCircle },
     { id: 'dosen' as TabType, label: 'Daftar Dosen', icon: FaChalkboardTeacher },
-    { id: 'mahasiswa' as TabType, label: 'Statistik Mahasiswa', icon: FaUserGraduate },
+    { id: 'mahasiswa' as TabType, label: 'Daftar Mahasiswa', icon: FaUserGraduate },
     { id: 'kurikulum' as TabType, label: 'Kurikulum', icon: FaBook },
     { id: 'alumni' as TabType, label: 'Capaian Alumni', icon: FaTrophy },
   ];
@@ -589,7 +590,7 @@ export default function ProgramStudiDetailPage() {
           </section>
           )}
 
-          {/* Statistik Mahasiswa Section */}
+          {/* Daftar Mahasiswa Section */}
           {activeTab === 'mahasiswa' && (
           <section>
             <motion.div
@@ -602,7 +603,7 @@ export default function ProgramStudiDetailPage() {
                 <div className="bg-blue-100 p-3 rounded-lg">
                   <FaUserGraduate className="text-blue-600 text-xl" />
                 </div>
-                Statistik Mahasiswa
+                Daftar Mahasiswa
               </h2>
 
               {/* Current Stats */}
@@ -626,6 +627,9 @@ export default function ProgramStudiDetailPage() {
 
               {/* Mahasiswa Trend Chart */}
               <MahasiswaTrendChart programStudiId={detail.id} />
+
+              {/* Mahasiswa Table */}
+              <MahasiswaTable programStudiId={detail.id} />
             </motion.div>
           </section>
           )}

@@ -47,12 +47,20 @@ export default function TimelinePengembangan() {
       status: "Selesai",
     },
     {
-      year: "2025-2026",
+      year: "2025",
       title: "Super App myUnila v2.0",
       description: "Transformasi ke arsitektur microservice modern dengan API Gateway, service mesh, dan containerization untuk skalabilitas tinggi",
       icon: "✨",
       color: "sky",
       status: "Berlangsung",
+    },
+    {
+      year: "2026",
+      title: "Integrasi Sistem Terpadu",
+      description: "Konsolidasi dan integrasi menyeluruh sistem informasi existing di lingkungan Universitas Lampung ke dalam ekosistem myUnila untuk mewujudkan layanan digital yang seamless dan terpusat",
+      icon: "🔗",
+      color: "teal",
+      status: "Direncanakan",
     },
     {
       year: "2027",
