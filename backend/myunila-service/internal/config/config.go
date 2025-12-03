@@ -43,9 +43,15 @@ type SikepAPIConfig struct {
 var Cfg *Config
 
 func LoadConfig() error {
-	// Load .env file
-	if err := godotenv.Load(); err != nil {
-		fmt.Println("Warning: .env file not found, using environment variables")
+	// Only load .env file in development mode
+	// In production, environment variables are passed via docker-compose
+	env := os.Getenv("APP_ENV")
+	if env == "" || env == "development" || env == "local" {
+		if err := godotenv.Load(); err != nil {
+			fmt.Println("Warning: .env file not found, using environment variables")
+		}
+	} else {
+		fmt.Printf("Running in %s mode, using environment variables from docker-compose\n", env)
 	}
 
 	maxOpenConns, _ := strconv.Atoi(getEnv("DB_MAX_OPEN_CONNS", "25"))
