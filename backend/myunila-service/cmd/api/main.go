@@ -117,6 +117,10 @@ func main() {
 	api_config.Init(apiV1, db.DB, encryptor)
 	log.Println("✅ API Config module initialized")
 
+	// Initialize Logger module FIRST (before other modules that depend on it)
+	logger.Init(apiV1, db.DB)
+	log.Println("✅ Logger module initialized")
+
 	// Initialize SIKEP Pegawai module
 	pegawai.Init(apiV1, db.DB, sikepAPI)
 	log.Println("✅ SIKEP Pegawai module initialized")
@@ -124,10 +128,6 @@ func main() {
 	// Initialize SIKEP Referensi module
 	referensi.Init(apiV1, db.DB, sikepAPI)
 	log.Println("✅ SIKEP Referensi module initialized")
-
-	// Initialize Logger module
-	logger.Init(apiV1, db.DB)
-	log.Println("✅ Logger module initialized")
 
 	// Initialize Monitoring module
 	monitoring.Init(apiV1)

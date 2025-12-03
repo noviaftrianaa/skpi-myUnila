@@ -446,7 +446,13 @@ func (s *service) syncPendidikan(ctx context.Context) (int, error) {
 // ========================================
 
 func (s *service) logSyncResult(ctx context.Context, endpoint, status, syncedBy string, totalRecords, durationMs int, errMsg *string) {
-	if s.loggerSvc == nil {
+	// Get logger service lazily at runtime
+	loggerSvc := s.loggerSvc
+	if loggerSvc == nil {
+		loggerSvc = logger.GetService()
+	}
+	if loggerSvc == nil {
+		log.Printf("⚠️  [SIKEP Referensi] Logger service not available, skipping log")
 		return
 	}
 
@@ -472,7 +478,7 @@ func (s *service) logSyncResult(ctx context.Context, endpoint, status, syncedBy 
 		SyncedBy:      syncedBy,
 	}
 
-	_, err := s.loggerSvc.LogSync(ctx, req)
+	_, err := loggerSvc.LogSync(ctx, req)
 	if err != nil {
 		log.Printf("⚠️  [SIKEP Referensi] Failed to log sync result: %v", err)
 	}
