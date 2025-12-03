@@ -1,0 +1,42 @@
+# Environment files (NEVER include in Docker image)
+.env
+.env.*
+*.env
+
+# Git
+.git
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Binaries (will be built in Docker)
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+main
+
+# Test files
+*_test.go
+*.test
+*.out
+
+# Build output
+/build/
+/dist/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation
+*.md
+!README.md
+
+# Vendor (if using go modules)
+vendor/
