@@ -178,6 +178,7 @@ class UnilaStatisticsRepository
                 SELECT COUNT(*) AS total
                 FROM sikep.pegawai
                 WHERE status = 'Aktif'
+                    AND jns_tenaga = 'Non Dosen'
             ";
 
             $result = DB::connection('sqlsrv')->select($sql);
