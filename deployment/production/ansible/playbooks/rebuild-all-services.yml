@@ -154,15 +154,6 @@
       become_user: "{{ ansible_user }}"
       register: auth_build
 
-    - name: Rebuild MyUnila Service image
-      shell: |
-        cd {{ deployment_dir }}
-        docker compose --env-file .env -f services/myunila/docker-compose.yml build --no-cache
-      args:
-        executable: /bin/bash
-      become_user: "{{ ansible_user }}"
-      register: myunila_build
-
     - name: Restart Dashboard Service
       shell: |
         cd {{ deployment_dir }}
@@ -178,21 +169,6 @@
       args:
         executable: /bin/bash
       become_user: "{{ ansible_user }}"
-
-    - name: Restart MyUnila Service
-      shell: |
-        cd {{ deployment_dir }}
-        docker compose --env-file .env -f services/myunila/docker-compose.yml up -d
-      args:
-        executable: /bin/bash
-      become_user: "{{ ansible_user }}"
-
-    - name: Wait for MyUnila Service to be healthy
-      wait_for:
-        host: localhost
-        port: 8086
-        delay: 5
-        timeout: 60
 
     - name: Restart Nginx (pickup new config)
       shell: |
@@ -232,9 +208,9 @@
         msg: "{{ vm2_cleanup.stdout_lines }}"
 
 # ============================================
-# VM3 - Backend Services 2 (Sister + Feeder)
+# VM3 - Backend Services 2 (Sister + Feeder + MyUnila)
 # ============================================
-- name: Rebuild VM3 - Sister & Feeder Services
+- name: Rebuild VM3 - Sister, Feeder & MyUnila Services
   hosts: backend2
   become: yes
   gather_facts: no
@@ -296,6 +272,37 @@
       wait_for:
         host: localhost
         port: 8084
+        delay: 5
+        timeout: 60
+
+    - name: Clean Docker build cache for MyUnila Service
+      shell: |
+        docker builder prune -af --filter "label!=keep"
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Rebuild MyUnila Service image
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/myunila/docker-compose.yml build --no-cache
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: myunila_build
+
+    - name: Restart MyUnila Service
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/myunila/docker-compose.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Wait for MyUnila Service to be healthy
+      wait_for:
+        host: localhost
+        port: 8086
         delay: 5
         timeout: 60
 

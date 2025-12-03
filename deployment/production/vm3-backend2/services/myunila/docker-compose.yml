@@ -1,0 +1,67 @@
+services:
+  myunila-service:
+    build:
+      context: ../../../../../backend/myunila-service
+      dockerfile: Dockerfile
+    image: myunila/myunila-service:production
+    container_name: myunila-integrator-service
+    ports:
+      - "8086:8086"
+    environment:
+      # App Configuration
+      APP_NAME: ${MYUNILA_APP_NAME:-MyUnila Service}
+      APP_PORT: ${MYUNILA_APP_PORT:-:8086}
+      APP_ENV: ${MYUNILA_APP_ENV:-production}
+
+      # Database Configuration
+      DB_DRIVER: ${MYUNILA_DB_DRIVER:-sqlserver}
+      DB_HOST: ${MYUNILA_DB_HOST:-${SISTER_DB_HOST}}
+      DB_PORT: ${MYUNILA_DB_PORT:-${SISTER_DB_PORT:-1433}}
+      DB_USERNAME: ${MYUNILA_DB_USERNAME:-${SISTER_DB_USERNAME}}
+      DB_PASSWORD: ${MYUNILA_DB_PASSWORD:-${SISTER_DB_PASSWORD}}
+      DB_DATABASE: ${MYUNILA_DB_DATABASE:-${SISTER_DB_DATABASE}}
+      DB_TRUST_SERVER_CERTIFICATE: "true"
+
+      # SIKEP API Configuration
+      SIKEP_API_BASE_URL: ${SIKEP_API_BASE_URL:-https://sikep.unila.ac.id/api/v1}
+      SIKEP_API_USERNAME: ${SIKEP_API_USERNAME}
+      SIKEP_API_PASSWORD: ${SIKEP_API_PASSWORD}
+
+      # Encryption Key
+      API_CONFIG_ENCRYPTION_KEY: ${API_CONFIG_ENCRYPTION_KEY}
+
+      # JWT
+      JWT_SECRET: ${JWT_SECRET}
+
+      # Timezone
+      TZ: ${TZ:-Asia/Jakarta}
+
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+    networks:
+      - myunila-prod-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8086/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "service=myunila,vm=vm3"
+
+networks:
+  myunila-prod-network:
+    external: true
+    name: myunila-prod-network
