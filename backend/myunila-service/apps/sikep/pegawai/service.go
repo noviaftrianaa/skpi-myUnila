@@ -346,10 +346,10 @@ func (s *service) transformSikepData(data map[string]interface{}, creatorID stri
 	p.Status = getString("status")
 	p.TmtPensiun = getString("tmtpensiun")
 
-	// Set creator
-	if creatorID != "" {
-		p.IDCreator = &creatorID
-	}
+	// Set creator - use system UUID for sync operations
+	// id_creator is uniqueidentifier in production, so use a valid UUID
+	systemCreatorID := "00000000-0000-0000-0000-000000000000" // System sync user UUID
+	p.IDCreator = &systemCreatorID
 
 	return p
 }

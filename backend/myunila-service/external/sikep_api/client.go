@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -39,6 +40,12 @@ type PegawaiResponse struct {
 	Message string                   `json:"message"`
 	Total   int                      `json:"total"`
 	Data    []map[string]interface{} `json:"data"`
+}
+
+// PegawaiResult represents the result with Total for pagination
+type PegawaiResult struct {
+	Total int
+	Data  []map[string]interface{}
 }
 
 var (
@@ -226,6 +233,10 @@ func (c *SikepClient) GetPegawai(start, limit int) ([]map[string]interface{}, er
 	if !pegawaiResp.Status {
 		return nil, fmt.Errorf("API error: %s", pegawaiResp.Message)
 	}
+
+	// Debug log for production troubleshooting
+	log.Printf("📊 [SIKEP API] GetPegawai(start=%d, limit=%d) -> returned %d records, API total: %d",
+		start, limit, len(pegawaiResp.Data), pegawaiResp.Total)
 
 	return pegawaiResp.Data, nil
 }

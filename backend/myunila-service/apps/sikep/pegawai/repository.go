@@ -69,6 +69,7 @@ func (r *repository) BulkUpsertPegawaiWithResult(ctx context.Context, data []*Pe
 
 	// SQL Server MERGE query for upsert
 	// Includes id_org1, id_org2, id_org3 for unit organization info
+	// id_creator is included for INSERT to handle NOT NULL constraint in production
 	query := `
 		MERGE sikep.pegawai AS target
 		USING (SELECT @p1 AS id_pegawai) AS source
@@ -98,14 +99,14 @@ func (r *repository) BulkUpsertPegawaiWithResult(ctx context.Context, data []*Pe
 				jns_pegawai, tmt_cpns, tmt_pns, jns_tenaga,
 				status, tmt_pensiun,
 				id_org1, id_org2, id_org3,
-				create_date, last_sync
+				id_creator, create_date, last_sync
 			)
 			VALUES (
 				@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8,
 				@p9, @p10, @p11, @p12,
 				@p13, @p14,
 				@p15, @p16, @p17,
-				@p19, @p18
+				@p20, @p19, @p18
 			);
 	`
 
@@ -133,6 +134,7 @@ func (r *repository) BulkUpsertPegawaiWithResult(ctx context.Context, data []*Pe
 			p.IDOrg3,     // @p17
 			now,          // @p18 - last_sync
 			now,          // @p19 - create_date (for INSERT)
+			p.IDCreator,  // @p20 - id_creator (for INSERT)
 		)
 		if err != nil {
 			result.TotalFailed++
