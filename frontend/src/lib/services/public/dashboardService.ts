@@ -21,6 +21,7 @@ import type {
   ProgramStudiDetailResponse,
   DosenListResponse,
   MahasiswaTrendResponse,
+  MahasiswaListResponse,
   KurikulumListResponse,
   MataKuliahResponse,
   TracerStudyResponse,
@@ -278,6 +279,34 @@ class DashboardService {
       return response.data;
     } catch (error) {
       console.error('Error fetching mahasiswa trend:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get mahasiswa list by program studi with pagination
+   */
+  async getMahasiswaByProgramStudi(
+    id: string,
+    params?: {
+      periode?: string;
+      search?: string;
+      page?: number;
+      per_page?: number;
+    }
+  ): Promise<MahasiswaListResponse> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params?.periode) queryParams.append('periode', params.periode);
+      if (params?.search) queryParams.append('search', params.search);
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+
+      const url = `${DASHBOARD_API_URL}/program-studi/${id}/mahasiswa${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      const response = await axios.get<MahasiswaListResponse>(url);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching mahasiswa list:', error);
       throw error;
     }
   }

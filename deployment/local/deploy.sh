@@ -37,26 +37,28 @@ show_menu() {
     echo -e "  ${GREEN}4)${NC} Quick Rebuild - Auth Only"
     echo -e "  ${GREEN}5)${NC} Quick Rebuild - Sister Only"
     echo -e "  ${GREEN}6)${NC} Quick Rebuild - Feeder Only"
-    echo -e "  ${GREEN}7)${NC} Quick Rebuild - Frontend Only"
-    echo -e "  ${GREEN}8)${NC} Quick Rebuild - Nginx Only"
+    echo -e "  ${GREEN}7)${NC} Quick Rebuild - MyUnila Only"
+    echo -e "  ${GREEN}8)${NC} Quick Rebuild - Frontend Only"
+    echo -e "  ${GREEN}9)${NC} Quick Rebuild - Nginx Only"
     echo ""
-    echo -e "  ${BLUE}9)${NC} Restart All Services"
-    echo -e "  ${BLUE}10)${NC} Restart Dashboard Only"
-    echo -e "  ${BLUE}11)${NC} Restart Auth Only"
-    echo -e "  ${BLUE}12)${NC} Restart Sister Only"
-    echo -e "  ${BLUE}13)${NC} Restart Feeder Only"
-    echo -e "  ${BLUE}14)${NC} Restart Nginx Only"
+    echo -e "  ${BLUE}10)${NC} Restart All Services"
+    echo -e "  ${BLUE}11)${NC} Restart Dashboard Only"
+    echo -e "  ${BLUE}12)${NC} Restart Auth Only"
+    echo -e "  ${BLUE}13)${NC} Restart Sister Only"
+    echo -e "  ${BLUE}14)${NC} Restart Feeder Only"
+    echo -e "  ${BLUE}15)${NC} Restart MyUnila Only"
+    echo -e "  ${BLUE}16)${NC} Restart Nginx Only"
     echo ""
-    echo -e "  ${YELLOW}15)${NC} Show Container Status"
-    echo -e "  ${YELLOW}16)${NC} Show Logs"
-    echo -e "  ${YELLOW}17)${NC} Test Endpoints"
-    echo -e "  ${YELLOW}18)${NC} Setup Kong Routes"
+    echo -e "  ${YELLOW}17)${NC} Show Container Status"
+    echo -e "  ${YELLOW}18)${NC} Show Logs"
+    echo -e "  ${YELLOW}19)${NC} Test Endpoints"
+    echo -e "  ${YELLOW}20)${NC} Setup Kong Routes"
     echo ""
-    echo -e "  ${RED}19)${NC} Cleanup Docker Resources (hapus images tidak terpakai)"
+    echo -e "  ${RED}21)${NC} Cleanup Docker Resources (hapus images tidak terpakai)"
     echo ""
     echo -e "  ${RED}0)${NC} Exit"
     echo ""
-    echo -n "Pilihan [0-19]: "
+    echo -n "Pilihan [0-21]: "
 }
 
 # Function to show container status
@@ -77,22 +79,24 @@ show_logs() {
     echo "  2) Auth"
     echo "  3) Sister"
     echo "  4) Feeder"
-    echo "  5) Nginx"
-    echo "  6) Redis"
-    echo "  7) MeiliSearch"
-    echo "  8) Kong"
+    echo "  5) MyUnila"
+    echo "  6) Nginx"
+    echo "  7) Redis"
+    echo "  8) MeiliSearch"
+    echo "  9) Kong"
     echo ""
-    read -p "Pilihan [1-8]: " log_choice
+    read -p "Pilihan [1-9]: " log_choice
 
     case $log_choice in
         1) docker logs myunila-dashboard-service --tail 100 -f ;;
         2) docker logs myunila-auth-service --tail 100 -f ;;
         3) docker logs myunila-sister-service --tail 100 -f ;;
         4) docker logs myunila-feeder-service --tail 100 -f ;;
-        5) docker logs myunila-nginx --tail 100 -f ;;
-        6) docker logs myunila-redis --tail 100 -f ;;
-        7) docker logs myunila-meilisearch --tail 100 -f ;;
-        8) docker logs myunila-kong --tail 100 -f ;;
+        5) docker logs myunila-integrator-service --tail 100 -f ;;
+        6) docker logs myunila-nginx --tail 100 -f ;;
+        7) docker logs myunila-redis --tail 100 -f ;;
+        8) docker logs myunila-meilisearch --tail 100 -f ;;
+        9) docker logs myunila-kong --tail 100 -f ;;
         *) echo "Invalid choice" ;;
     esac
 }
@@ -135,12 +139,21 @@ test_endpoints() {
         echo -e "${RED}✗ $FEEDER_STATUS${NC}"
     fi
 
+    echo -n "MyUnila Health:   "
+    MYUNILA_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8086/health 2>/dev/null || echo "000")
+    if [ "$MYUNILA_STATUS" = "200" ]; then
+        echo -e "${GREEN}✓ $MYUNILA_STATUS OK${NC}"
+    else
+        echo -e "${RED}✗ $MYUNILA_STATUS${NC}"
+    fi
+
     echo ""
     echo -e "${YELLOW}URLs:${NC}"
     echo "  Dashboard: http://localhost:8082"
     echo "  Auth:      http://localhost:8081"
     echo "  Sister:    http://localhost:8083"
     echo "  Feeder:    http://localhost:8084"
+    echo "  MyUnila:   http://localhost:8086"
     echo ""
     read -p "Press Enter to continue..."
 }
@@ -176,53 +189,61 @@ while true; do
             read -p "Press Enter to continue..."
             ;;
         7)
-            bash "$SCRIPT_DIR/quick-rebuild.sh" frontend
+            bash "$SCRIPT_DIR/quick-rebuild.sh" myunila
             read -p "Press Enter to continue..."
             ;;
         8)
-            bash "$SCRIPT_DIR/quick-rebuild.sh" nginx
+            bash "$SCRIPT_DIR/quick-rebuild.sh" frontend
             read -p "Press Enter to continue..."
             ;;
         9)
-            bash "$SCRIPT_DIR/restart-services.sh"
+            bash "$SCRIPT_DIR/quick-rebuild.sh" nginx
             read -p "Press Enter to continue..."
             ;;
         10)
-            bash "$SCRIPT_DIR/restart-services.sh" dashboard
+            bash "$SCRIPT_DIR/restart-services.sh"
             read -p "Press Enter to continue..."
             ;;
         11)
-            bash "$SCRIPT_DIR/restart-services.sh" auth
+            bash "$SCRIPT_DIR/restart-services.sh" dashboard
             read -p "Press Enter to continue..."
             ;;
         12)
-            bash "$SCRIPT_DIR/restart-services.sh" sister
+            bash "$SCRIPT_DIR/restart-services.sh" auth
             read -p "Press Enter to continue..."
             ;;
         13)
-            bash "$SCRIPT_DIR/restart-services.sh" feeder
+            bash "$SCRIPT_DIR/restart-services.sh" sister
             read -p "Press Enter to continue..."
             ;;
         14)
-            bash "$SCRIPT_DIR/restart-services.sh" nginx
+            bash "$SCRIPT_DIR/restart-services.sh" feeder
             read -p "Press Enter to continue..."
             ;;
         15)
-            show_status
+            bash "$SCRIPT_DIR/restart-services.sh" myunila
+            read -p "Press Enter to continue..."
             ;;
         16)
-            show_logs
+            bash "$SCRIPT_DIR/restart-services.sh" nginx
+            read -p "Press Enter to continue..."
             ;;
         17)
-            test_endpoints
+            show_status
             ;;
         18)
+            show_logs
+            ;;
+        19)
+            test_endpoints
+            ;;
+        20)
             echo ""
             echo -e "${GREEN}Running Kong Routes Setup...${NC}"
             bash "$SCRIPT_DIR/setup-kong-routes.sh"
             read -p "Press Enter to continue..."
             ;;
-        19)
+        21)
             echo ""
             echo -e "${YELLOW}Cleaning up Docker resources...${NC}"
             echo ""

@@ -64,8 +64,6 @@ class MahasiswaProfileService
                 'kode_mk' => $mk->kode_mk,
                 'nama_mk' => $mk->nama_mk,
                 'sks' => (int) $mk->sks,
-                'nilai_huruf' => $mk->nilai_huruf,
-                'nilai_indeks' => $mk->nilai_indeks ? (float) $mk->nilai_indeks : null,
             ];
         }
 
@@ -74,7 +72,6 @@ class MahasiswaProfileService
             'success' => true,
             'message' => 'Mahasiswa profile retrieved successfully',
             'data' => [
-                'id_pd' => $basicInfo->id_pd,
                 'nama' => ucwords(strtolower($basicInfo->nama)),
                 'nim' => $homebase->nim,
                 'jenis_kelamin' => $basicInfo->jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan',

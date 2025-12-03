@@ -1337,4 +1337,133 @@ class ProgramStudiRepository
             ];
         }, $result);
     }
+
+    /**
+     * Get mahasiswa list by program studi with pagination
+     *
+     * @param string $idSms
+     * @param string|null $periode
+     * @param string|null $search
+     * @param int $offset
+     * @param int $limit
+     * @return array
+     */
+    public function getMahasiswaByProgramStudi(string $idSms, ?string $periode = null, ?string $search = null, int $offset = 0, int $limit = 10): array
+    {
+        $periode = $periode ?? $this->getActivePeriod();
+        $unilaIdSp = strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515'));
+
+        $searchCondition = '';
+        $params = [$idSms, $periode, $unilaIdSp];
+
+        if (!empty($search)) {
+            $searchCondition = "AND (pd.nm_pd LIKE ? OR reg.nipd LIKE ?)";
+            $params[] = "%{$search}%";
+            $params[] = "%{$search}%";
+        }
+
+        // Count total
+        $countSql = "
+            SELECT COUNT(DISTINCT pd.id_pd) AS total
+            FROM pdrd.kuliah_mhs AS kmh
+            JOIN pdrd.reg_pd AS reg
+                ON reg.id_reg_pd = kmh.id_reg_pd
+                AND reg.soft_delete = 0
+                AND reg.id_sms = ?
+            JOIN pdrd.peserta_didik AS pd
+                ON pd.id_pd = reg.id_pd
+                AND pd.soft_delete = 0
+            WHERE kmh.soft_delete = 0
+                AND kmh.id_stat_mhs = 'A'
+                AND kmh.id_smt = ?
+                AND CAST(reg.id_sp AS VARCHAR(50)) = ?
+                {$searchCondition}
+        ";
+
+        $countResult = DB::connection('sqlsrv')->select($countSql, $params);
+        $total = $countResult[0]->total ?? 0;
+
+        // Get data with pagination
+        $dataSql = "
+            SELECT
+                pd.id_pd,
+                reg.nipd AS npm,
+                pd.nm_pd AS nama,
+                LEFT(reg.id_semester_masuk, 4) AS angkatan,
+                stat.nm_stat_mhs AS status
+            FROM pdrd.kuliah_mhs AS kmh
+            JOIN pdrd.reg_pd AS reg
+                ON reg.id_reg_pd = kmh.id_reg_pd
+                AND reg.soft_delete = 0
+                AND reg.id_sms = ?
+            JOIN pdrd.peserta_didik AS pd
+                ON pd.id_pd = reg.id_pd
+                AND pd.soft_delete = 0
+            LEFT JOIN ref.status_mahasiswa AS stat
+                ON stat.id_stat_mhs = kmh.id_stat_mhs
+                AND stat.expired_date IS NULL
+            WHERE kmh.soft_delete = 0
+                AND kmh.id_stat_mhs = 'A'
+                AND kmh.id_smt = ?
+                AND CAST(reg.id_sp AS VARCHAR(50)) = ?
+                {$searchCondition}
+            ORDER BY pd.nm_pd
+            OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
+        ";
+
+        $dataParams = $params;
+        $dataParams[] = $offset;
+        $dataParams[] = $limit;
+
+        $data = DB::connection('sqlsrv')->select($dataSql, $dataParams);
+
+        return [
+            'data' => collect($data),
+            'total' => $total,
+        ];
+    }
+
+    /**
+     * Count mahasiswa by program studi
+     *
+     * @param string $idSms
+     * @param string|null $periode
+     * @param string|null $search
+     * @return int
+     */
+    public function countMahasiswaByProgramStudi(string $idSms, ?string $periode = null, ?string $search = null): int
+    {
+        $periode = $periode ?? $this->getActivePeriod();
+        $unilaIdSp = strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515'));
+
+        $searchCondition = '';
+        $params = [$idSms, $periode, $unilaIdSp];
+
+        if (!empty($search)) {
+            $searchCondition = "AND (pd.nm_pd LIKE ? OR reg.nipd LIKE ?)";
+            $params[] = "%{$search}%";
+            $params[] = "%{$search}%";
+        }
+
+        $sql = "
+            SELECT COUNT(DISTINCT pd.id_pd) AS total
+            FROM pdrd.kuliah_mhs AS kmh
+            JOIN pdrd.reg_pd AS reg
+                ON reg.id_reg_pd = kmh.id_reg_pd
+                AND reg.soft_delete = 0
+                AND reg.id_sms = ?
+            JOIN pdrd.peserta_didik AS pd
+                ON pd.id_pd = reg.id_pd
+                AND pd.soft_delete = 0
+            WHERE kmh.soft_delete = 0
+                AND kmh.id_stat_mhs = 'A'
+                AND kmh.id_smt = ?
+                AND CAST(reg.id_sp AS VARCHAR(50)) = ?
+                {$searchCondition}
+        ";
+
+        $result = DB::connection('sqlsrv')->select($sql, $params);
+
+        return $result[0]->total ?? 0;
+    }
 }

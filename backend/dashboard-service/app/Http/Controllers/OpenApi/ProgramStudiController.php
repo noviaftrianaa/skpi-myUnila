@@ -4,6 +4,7 @@ namespace App\Http\Controllers\OpenApi;
 
 use App\Http\Controllers\Controller;
 use App\Services\ProgramStudiService;
+use App\Helpers\EncryptionHelper;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Crypt;
@@ -553,7 +554,7 @@ class ProgramStudiController extends Controller
     {
         try {
             // Decrypt ID
-            $decryptedId = Crypt::decryptString($id);
+            $decryptedId = EncryptionHelper::decryptUrlSafe($id);
 
             $periode = $request->get('periode');
             $detail = $this->programStudiService->getProgramStudiDetail($decryptedId, $periode);
@@ -661,7 +662,7 @@ class ProgramStudiController extends Controller
     {
         try {
             // Decrypt ID
-            $decryptedId = Crypt::decryptString($id);
+            $decryptedId = EncryptionHelper::decryptUrlSafe($id);
 
             $dosenList = $this->programStudiService->getDosenByProgramStudi($decryptedId);
 
@@ -669,6 +670,123 @@ class ProgramStudiController extends Controller
                 'success' => true,
                 'message' => 'Dosen list retrieved successfully',
                 'data' => $dosenList,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid ID',
+            ], 400);
+        }
+    }
+
+    /**
+     * Get mahasiswa list by program studi
+     */
+    #[OA\Get(
+        path: '/api/v1/program-studi/{id}/mahasiswa',
+        operationId: 'getMahasiswaByProgramStudi',
+        summary: 'Get list of mahasiswa by program studi',
+        description: 'Retrieve paginated list of active mahasiswa in a specific program studi',
+        tags: ['Program Studi'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                description: 'Program studi ID (encrypted id_sms)',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'string')
+            ),
+            new OA\Parameter(
+                name: 'periode',
+                description: 'Semester period (optional, defaults to active period)',
+                in: 'query',
+                required: false,
+                schema: new OA\Schema(type: 'string', example: '20242')
+            ),
+            new OA\Parameter(
+                name: 'search',
+                description: 'Search by name or NPM',
+                in: 'query',
+                required: false,
+                schema: new OA\Schema(type: 'string')
+            ),
+            new OA\Parameter(
+                name: 'page',
+                description: 'Page number',
+                in: 'query',
+                required: false,
+                schema: new OA\Schema(type: 'integer', default: 1)
+            ),
+            new OA\Parameter(
+                name: 'per_page',
+                description: 'Items per page',
+                in: 'query',
+                required: false,
+                schema: new OA\Schema(type: 'integer', default: 10)
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Successful operation',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'message', type: 'string', example: 'Mahasiswa list retrieved successfully'),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'array',
+                            items: new OA\Items(
+                                properties: [
+                                    new OA\Property(property: 'npm', type: 'string', example: '2015051001'),
+                                    new OA\Property(property: 'nama', type: 'string', example: 'John Doe'),
+                                    new OA\Property(property: 'angkatan', type: 'string', example: '2020'),
+                                    new OA\Property(property: 'status', type: 'string', example: 'Aktif'),
+                                ],
+                                type: 'object'
+                            )
+                        ),
+                        new OA\Property(
+                            property: 'pagination',
+                            properties: [
+                                new OA\Property(property: 'total', type: 'integer', example: 450),
+                                new OA\Property(property: 'per_page', type: 'integer', example: 10),
+                                new OA\Property(property: 'current_page', type: 'integer', example: 1),
+                                new OA\Property(property: 'last_page', type: 'integer', example: 45),
+                            ],
+                            type: 'object'
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Invalid program studi ID format'
+            ),
+            new OA\Response(
+                response: 500,
+                description: 'Server error'
+            ),
+        ]
+    )]
+    public function mahasiswa(string $id, Request $request): JsonResponse
+    {
+        try {
+            // Decrypt ID
+            $decryptedId = EncryptionHelper::decryptUrlSafe($id);
+
+            $periode = $request->get('periode');
+            $search = $request->get('search');
+            $page = (int) $request->get('page', 1);
+            $perPage = (int) $request->get('per_page', 10);
+
+            $result = $this->programStudiService->getMahasiswaByProgramStudi($decryptedId, $periode, $search, $page, $perPage);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Mahasiswa list retrieved successfully',
+                'data' => $result['data'],
+                'pagination' => $result['pagination'],
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -733,7 +851,7 @@ class ProgramStudiController extends Controller
     {
         try {
             // Decrypt ID
-            $decryptedId = Crypt::decryptString($id);
+            $decryptedId = EncryptionHelper::decryptUrlSafe($id);
 
             $trendData = $this->programStudiService->getMahasiswaTrendByProgramStudi($decryptedId);
 
@@ -834,7 +952,7 @@ class ProgramStudiController extends Controller
     {
         try {
             // Decrypt ID
-            $decryptedId = Crypt::decryptString($id);
+            $decryptedId = EncryptionHelper::decryptUrlSafe($id);
 
             $kurikulumList = $this->programStudiService->getKurikulumByProgramStudi($decryptedId);
 
@@ -1036,7 +1154,7 @@ class ProgramStudiController extends Controller
     {
         try {
             // Decrypt ID
-            $decryptedId = Crypt::decryptString($id);
+            $decryptedId = EncryptionHelper::decryptUrlSafe($id);
 
             $tracerData = $this->programStudiService->getTracerStudyData($decryptedId);
 

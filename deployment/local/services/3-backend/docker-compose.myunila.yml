@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  myunila-service:
+    container_name: myunila-service
+    build:
+      context: ../../../../backend/myunila-service
+      dockerfile: Dockerfile
+    ports:
+      - "8086:8086"
+    env_file:
+      - ../../.env
+    environment:
+      - APP_NAME=${MYUNILA_APP_NAME:-MyUnila Service}
+      - APP_PORT=${MYUNILA_APP_PORT:-:8086}
+      - APP_ENV=${MYUNILA_APP_ENV:-development}
+      - DB_DRIVER=sqlserver
+      - DB_HOST=${DB_MSSQL_HOST}
+      - DB_PORT=${DB_MSSQL_PORT:-1433}
+      - DB_DATABASE=${DB_MSSQL_DATABASE}
+      - DB_USERNAME=${DB_MSSQL_USERNAME}
+      - DB_PASSWORD=${DB_MSSQL_PASSWORD}
+      - DB_TRUST_SERVER_CERTIFICATE=true
+      - SIKEP_API_BASE_URL=${SIKEP_API_BASE_URL:-https://sikep.unila.ac.id/2022/api/v1}
+      - SIKEP_API_USERNAME=${SIKEP_API_USERNAME:-myunila}
+      - SIKEP_API_PASSWORD=${SIKEP_API_PASSWORD}
+    restart: unless-stopped
+    networks:
+      - myunila-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8086/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  myunila-network:
+    external: true

@@ -8,7 +8,7 @@
 # Options:
 #   --help, -h       Show this help message
 #   --vm1            Rebuild only VM1 (Frontend & Kong)
-#   --vm2            Rebuild only VM2 (Backend PHP services)
+#   --vm2            Rebuild only VM2 (Dashboard, Auth & MyUnila services)
 #   --vm3            Rebuild only VM3 (Sister & Feeder services)
 #   --check          Dry run - only check connections
 #
@@ -43,7 +43,7 @@ show_help() {
     echo "Options:"
     echo "  --help, -h       Show this help message"
     echo "  --vm1            Rebuild only VM1 (Frontend & Kong)"
-    echo "  --vm2            Rebuild only VM2 (Backend PHP services)"
+    echo "  --vm2            Rebuild only VM2 (Dashboard, Auth & MyUnila services)"
     echo "  --vm3            Rebuild only VM3 (Sister & Feeder services)"
     echo "  --check          Dry run - only check connections"
     echo "  --cleanup        Clean up Docker resources on all VMs (no rebuild)"
@@ -151,7 +151,7 @@ main() {
             echo -e "${YELLOW}  WARNING: Rebuilding ALL VMs${NC}"
             echo -e "${YELLOW}  This will rebuild services on:${NC}"
             echo -e "${YELLOW}  - VM1 (Frontend & Kong)${NC}"
-            echo -e "${YELLOW}  - VM2 (Dashboard & Auth)${NC}"
+            echo -e "${YELLOW}  - VM2 (Dashboard, Auth & MyUnila)${NC}"
             echo -e "${YELLOW}  - VM3 (Sister & Feeder Services)${NC}"
             echo -e "${YELLOW}========================================${NC}"
             echo ""

@@ -152,7 +152,6 @@ class DosenProfileService
         // Format response
         $data = [
             'id' => $encryptedId,
-            'id_sdm' => $profile->id_sdm,
             'nama' => $namaLengkap, // Nama lengkap dengan gelar
             'nama_tanpa_gelar' => $profile->nm_sdm,
             'nidn' => $profile->nidn,
@@ -188,6 +187,7 @@ class DosenProfileService
                 return [
                     'jabatan' => $item->jabatan,
                     'deskripsi' => $item->deskripsi,
+                    'nama_unit' => $item->nama_unit ?? null,
                     'tmt' => $item->tmt ? date('Y-m-d', strtotime($item->tmt)) : null,
                     'no_sk' => $item->no_sk,
                     'tgl_sk' => $item->tgl_sk ? date('Y-m-d', strtotime($item->tgl_sk)) : null,

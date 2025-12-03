@@ -61,8 +61,8 @@ rebuild_service() {
     echo "  → Starting ${service_name}..."
     docker compose --env-file .env -f "$compose_file" up -d ${service_name}-service
 
-    # Clear Laravel caches if it's a PHP service
-    if [ "$service_name" != "sister" ] && [ "$service_name" != "feeder" ]; then
+    # Clear Laravel caches if it's a PHP service (not Go services)
+    if [ "$service_name" != "sister" ] && [ "$service_name" != "feeder" ] && [ "$service_name" != "myunila" ]; then
         sleep 3
         echo "  → Clearing Laravel caches..."
         docker exec $container_name php artisan config:clear 2>/dev/null || true
@@ -128,6 +128,9 @@ case "$SERVICE" in
     feeder)
         rebuild_service "feeder"
         ;;
+    myunila)
+        rebuild_service "myunila"
+        ;;
     frontend)
         rebuild_frontend
         ;;
@@ -142,6 +145,7 @@ case "$SERVICE" in
         rebuild_service "auth"
         rebuild_service "sister"
         rebuild_service "feeder"
+        rebuild_service "myunila"
         rebuild_nginx
         echo ""
         ;;
@@ -154,6 +158,7 @@ case "$SERVICE" in
         echo "  bash quick-rebuild.sh auth         # Rebuild auth only"
         echo "  bash quick-rebuild.sh sister       # Rebuild sister only"
         echo "  bash quick-rebuild.sh feeder       # Rebuild feeder only"
+        echo "  bash quick-rebuild.sh myunila      # Rebuild myunila only"
         echo "  bash quick-rebuild.sh frontend     # Rebuild frontend only"
         echo "  bash quick-rebuild.sh nginx        # Rebuild nginx only"
         echo ""
@@ -189,5 +194,8 @@ if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "sister" ]; then
 fi
 if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "feeder" ]; then
     echo "  Feeder:    curl http://localhost:8084/health"
+fi
+if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "myunila" ]; then
+    echo "  MyUnila:   curl http://localhost:8086/health"
 fi
 echo ""

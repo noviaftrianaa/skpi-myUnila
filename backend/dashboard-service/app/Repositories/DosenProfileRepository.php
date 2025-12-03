@@ -443,6 +443,7 @@ class DosenProfileRepository
                 SELECT
                     jt.nm_jab_tgs AS jabatan,
                     kk.nm_kat AS deskripsi,
+                    sms.nm_lemb AS nama_unit,
                     tt.tmt_sk_tambah AS tmt,
                     tt.sk_tugas_tambah AS no_sk,
                     tt.tst_sk_tambah AS tgl_sk
@@ -451,6 +452,9 @@ class DosenProfileRepository
                     ON jt.id_jab_tgs = tt.id_jab_tgs
                 LEFT JOIN ref.kategori_kegiatan AS kk
                     ON kk.id_katgiat = tt.id_katgiat
+                LEFT JOIN pdrd.sms AS sms
+                    ON sms.id_sms = tt.id_sms
+                    AND sms.soft_delete = 0
                 WHERE tt.id_sdm = ?
                     AND tt.soft_delete = 0
                     AND tt.tmt_sk_tambah IS NOT NULL

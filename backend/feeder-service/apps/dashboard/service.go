@@ -2,6 +2,7 @@ package dashboard
 
 import (
 	"context"
+	"sync"
 )
 
 type Service interface {
@@ -17,60 +18,107 @@ func NewService(repo Repository) Service {
 }
 
 // GetDashboardStats returns comprehensive dashboard statistics
+// Uses parallel goroutines for faster response
 func (s *service) GetDashboardStats(ctx context.Context) (*DashboardStats, error) {
 	stats := &DashboardStats{
-		APIStatus: "healthy", // Default to healthy, can be checked later
+		APIStatus: "healthy",
 	}
 
-	// Get module stats
-	moduleStats, err := s.repo.GetModuleStats(ctx)
-	if err != nil {
-		return nil, err
-	}
-	stats.ModuleStats = moduleStats
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	var firstErr error
 
-	// Calculate synced endpoints
-	stats.TotalEndpoints = len(moduleStats)
-	syncedCount := 0
-	for _, m := range moduleStats {
-		if m.Status == "active" {
-			syncedCount++
+	// Run all queries in parallel
+	wg.Add(5)
+
+	// 1. Get module stats
+	go func() {
+		defer wg.Done()
+		moduleStats, err := s.repo.GetModuleStats(ctx)
+		mu.Lock()
+		defer mu.Unlock()
+		if err != nil && firstErr == nil {
+			firstErr = err
+			return
 		}
-	}
-	stats.SyncedEndpoints = syncedCount
+		stats.ModuleStats = moduleStats
 
-	// Calculate success rate
-	if stats.TotalEndpoints > 0 {
-		stats.SuccessRate = float64(syncedCount) / float64(stats.TotalEndpoints) * 100
-	}
+		// Calculate synced endpoints
+		stats.TotalEndpoints = len(moduleStats)
+		syncedCount := 0
+		for _, m := range moduleStats {
+			if m.Status == "active" {
+				syncedCount++
+			}
+		}
+		stats.SyncedEndpoints = syncedCount
 
-	// Get recent syncs
-	recentSyncs, err := s.repo.GetRecentSyncs(ctx, 10)
-	if err != nil {
-		return nil, err
-	}
-	stats.RecentSyncs = recentSyncs
+		// Calculate success rate
+		if stats.TotalEndpoints > 0 {
+			stats.SuccessRate = float64(syncedCount) / float64(stats.TotalEndpoints) * 100
+		}
+	}()
 
-	// Get quick stats
-	quickStats, err := s.repo.GetQuickStats(ctx)
-	if err != nil {
-		return nil, err
-	}
-	stats.QuickStats = *quickStats
+	// 2. Get recent syncs
+	go func() {
+		defer wg.Done()
+		recentSyncs, err := s.repo.GetRecentSyncs(ctx, 10)
+		mu.Lock()
+		defer mu.Unlock()
+		if err != nil && firstErr == nil {
+			firstErr = err
+			return
+		}
+		stats.RecentSyncs = recentSyncs
+	}()
 
-	// Get last sync time
-	lastSync, err := s.repo.GetLastSyncTime(ctx)
-	if err != nil {
-		return nil, err
-	}
-	stats.LastSyncTime = lastSync
+	// 3. Get quick stats
+	go func() {
+		defer wg.Done()
+		quickStats, err := s.repo.GetQuickStats(ctx)
+		mu.Lock()
+		defer mu.Unlock()
+		if err != nil && firstErr == nil {
+			firstErr = err
+			return
+		}
+		if quickStats != nil {
+			stats.QuickStats = *quickStats
+		}
+	}()
 
-	// Get total records synced
-	totalRecords, err := s.repo.GetTotalRecordsSynced(ctx)
-	if err != nil {
-		return nil, err
+	// 4. Get last sync time
+	go func() {
+		defer wg.Done()
+		lastSync, err := s.repo.GetLastSyncTime(ctx)
+		mu.Lock()
+		defer mu.Unlock()
+		if err != nil && firstErr == nil {
+			firstErr = err
+			return
+		}
+		stats.LastSyncTime = lastSync
+	}()
+
+	// 5. Get total records synced
+	go func() {
+		defer wg.Done()
+		totalRecords, err := s.repo.GetTotalRecordsSynced(ctx)
+		mu.Lock()
+		defer mu.Unlock()
+		if err != nil && firstErr == nil {
+			firstErr = err
+			return
+		}
+		stats.TotalRecordsSynced = totalRecords
+	}()
+
+	// Wait for all goroutines to complete
+	wg.Wait()
+
+	if firstErr != nil {
+		return nil, firstErr
 	}
-	stats.TotalRecordsSynced = totalRecords
 
 	return stats, nil
 }

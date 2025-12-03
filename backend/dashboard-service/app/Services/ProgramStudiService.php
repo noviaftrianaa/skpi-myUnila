@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Repositories\ProgramStudiRepository;
+use App\Helpers\EncryptionHelper;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 
@@ -45,7 +46,7 @@ class ProgramStudiService
             $processedData = $data->map(function ($item) {
                 return [
                     'id' => $item->id_sms, // Keep original ID for compatibility
-                    'encrypted_id' => Crypt::encryptString($item->id_sms), // Encrypted ID for links
+                    'encrypted_id' => EncryptionHelper::encryptUrlSafe($item->id_sms), // URL-safe encrypted ID for links
                     'kode' => $item->kode_prodi,
                     'nama' => $item->nm_lemb,
                     'status' => $item->stat_prodi === 'A' ? 'Aktif' : 'Tidak Aktif',
@@ -194,8 +195,8 @@ class ProgramStudiService
             $totalDosen = (int) ($detail->dosen_tetap + $detail->dosen_tidak_tetap);
             $totalMahasiswa = (int) $detail->total_mahasiswa;
 
-            // Encrypt ID untuk keamanan
-            $encryptedId = Crypt::encryptString($detail->id_sms);
+            // Encrypt ID untuk keamanan (URL-safe)
+            $encryptedId = EncryptionHelper::encryptUrlSafe($detail->id_sms);
 
             // Get riwayat akreditasi with error handling
             \Log::info('Attempting to fetch riwayat akreditasi', ['id_sms' => $idSms]);
@@ -227,11 +228,11 @@ class ProgramStudiService
                 'riwayat_akreditasi' => $riwayatAkreditasi,
                 'organisasi' => [
                     'fakultas' => [
-                        'id' => $detail->id_fakultas ? Crypt::encryptString($detail->id_fakultas) : null,
+                        'id' => $detail->id_fakultas ? EncryptionHelper::encryptUrlSafe($detail->id_fakultas) : null,
                         'nama' => $detail->fakultas,
                     ],
                     'jurusan' => [
-                        'id' => $detail->id_jurusan ? Crypt::encryptString($detail->id_jurusan) : null,
+                        'id' => $detail->id_jurusan ? EncryptionHelper::encryptUrlSafe($detail->id_jurusan) : null,
                         'nama' => $detail->jurusan,
                     ],
                 ],
@@ -291,7 +292,7 @@ class ProgramStudiService
 
                 return [
                     'id' => $dosen->id_sdm,
-                    'encrypted_id' => Crypt::encryptString($dosen->id_sdm),
+                    'encrypted_id' => EncryptionHelper::encryptUrlSafe($dosen->id_sdm),
                     'nama' => $namaLengkap, // Use properly formatted nama
                     'nama_tanpa_gelar' => $dosen->nama,
                     'nidn' => $dosen->nidn ?? '-',
@@ -509,6 +510,51 @@ class ProgramStudiService
 
         return Cache::remember($cacheKey, 3600, function () use ($fakultasId, $periode) {
             return $this->repository->getProdiByFakultas($fakultasId, $periode);
+        });
+    }
+
+    /**
+     * Get mahasiswa list by program studi with pagination
+     *
+     * @param string $idSms
+     * @param string|null $periode
+     * @param string|null $search
+     * @param int $page
+     * @param int $perPage
+     * @return array
+     */
+    public function getMahasiswaByProgramStudi(string $idSms, ?string $periode = null, ?string $search = null, int $page = 1, int $perPage = 10): array
+    {
+        $cacheKey = 'mahasiswa_list_prodi_' . $idSms . '_' . ($periode ?? 'default') . '_' . md5($search ?? '') . '_' . $page . '_' . $perPage;
+
+        return Cache::remember($cacheKey, 1800, function () use ($idSms, $periode, $search, $page, $perPage) {
+            $offset = ($page - 1) * $perPage;
+
+            $result = $this->repository->getMahasiswaByProgramStudi($idSms, $periode, $search, $offset, $perPage);
+
+            $processedData = $result['data']->map(function ($item) {
+                // Format angkatan from semester id (e.g., 20241 -> 2024)
+                $angkatan = $item->angkatan ? substr($item->angkatan, 0, 4) : '-';
+
+                return [
+                    'npm' => $item->npm ?? '-',
+                    'nama' => $item->nama ?? '-',
+                    'angkatan' => $angkatan,
+                    'status' => $item->status ?? 'Aktif',
+                ];
+            })->toArray();
+
+            return [
+                'data' => $processedData,
+                'pagination' => [
+                    'total' => $result['total'],
+                    'per_page' => $perPage,
+                    'current_page' => $page,
+                    'last_page' => ceil($result['total'] / $perPage),
+                    'from' => $offset + 1,
+                    'to' => min($offset + $perPage, $result['total']),
+                ],
+            ];
         });
     }
 

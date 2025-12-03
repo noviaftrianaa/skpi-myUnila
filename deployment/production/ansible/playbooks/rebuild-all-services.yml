@@ -154,6 +154,15 @@
       become_user: "{{ ansible_user }}"
       register: auth_build
 
+    - name: Rebuild MyUnila Service image
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/myunila/docker-compose.yml build --no-cache
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: myunila_build
+
     - name: Restart Dashboard Service
       shell: |
         cd {{ deployment_dir }}
@@ -169,6 +178,21 @@
       args:
         executable: /bin/bash
       become_user: "{{ ansible_user }}"
+
+    - name: Restart MyUnila Service
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/myunila/docker-compose.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Wait for MyUnila Service to be healthy
+      wait_for:
+        host: localhost
+        port: 8086
+        delay: 5
+        timeout: 60
 
     - name: Restart Nginx (pickup new config)
       shell: |
@@ -338,3 +362,4 @@
           - Auth:        http://192.168.120.41:9800/auth-service/api/health
           - Sister:      http://192.168.120.41:9800/sister-service/health
           - Feeder:      http://192.168.120.41:9800/feeder-service/health
+          - MyUnila:     http://192.168.120.41:9800/myunila-service/health
