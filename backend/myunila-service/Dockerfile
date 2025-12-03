@@ -32,9 +32,6 @@ ENV TZ=Asia/Jakarta
 # Copy the binary from builder
 COPY --from=builder /app/main .
 
-# Copy .env.example as reference (actual .env should be mounted or use env vars)
-COPY --from=builder /app/.env.example .env.example
-
 # Expose port
 EXPOSE 8086
 
