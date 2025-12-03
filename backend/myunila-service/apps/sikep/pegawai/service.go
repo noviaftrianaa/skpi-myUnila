@@ -269,7 +269,13 @@ func joinErrors(errors []string) string {
 
 // logSyncResult logs the sync result to database
 func (s *service) logSyncResult(ctx context.Context, syncType, status, syncedBy string, total, inserted, updated, failed, skipped, durationMs int, errMsg, errDetails *string) {
-	if s.loggerSvc == nil {
+	// Get logger service lazily at runtime
+	loggerSvc := s.loggerSvc
+	if loggerSvc == nil {
+		loggerSvc = logger.GetService()
+	}
+	if loggerSvc == nil {
+		log.Printf("⚠️  [Pegawai Sync] Logger service not available, skipping log")
 		return
 	}
 
@@ -290,7 +296,7 @@ func (s *service) logSyncResult(ctx context.Context, syncType, status, syncedBy 
 		SyncedBy:      syncedBy,
 	}
 
-	_, err := s.loggerSvc.LogSync(ctx, req)
+	_, err := loggerSvc.LogSync(ctx, req)
 	if err != nil {
 		log.Printf("⚠️  [Pegawai Sync] Failed to log sync result: %v", err)
 	}
