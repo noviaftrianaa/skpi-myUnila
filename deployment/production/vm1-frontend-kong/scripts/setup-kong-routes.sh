@@ -138,7 +138,7 @@ cleanup_kong
 ###############################################################################
 # 0. Setup JWT Consumer & Credentials
 ###############################################################################
-echo -e "${GREEN}[0/4] Setting up JWT Consumer...${NC}"
+echo -e "${GREEN}[0/6] Setting up JWT Consumer...${NC}"
 
 # JWT Configuration
 JWT_SECRET="${JWT_SECRET:-!UnilaAuthService2025}"
@@ -182,7 +182,7 @@ echo ""
 ###############################################################################
 # 1. Dashboard Service
 ###############################################################################
-echo -e "${GREEN}[1/4] Setting up Dashboard Service...${NC}"
+echo -e "${GREEN}[1/6] Setting up Dashboard Service...${NC}"
 
 # Create Dashboard Service (for protected endpoints)
 # Note: Upstream is at VM2 (e.g., 192.168.120.42:8082)
@@ -312,7 +312,7 @@ echo ""
 ###############################################################################
 # 2. Auth Service
 ###############################################################################
-echo -e "${GREEN}[2/4] Setting up Auth Service...${NC}"
+echo -e "${GREEN}[2/6] Setting up Auth Service...${NC}"
 
 # Create Auth Service
 # Note: Upstream is at VM2 (e.g., 192.168.120.42:8081)
@@ -371,7 +371,7 @@ echo ""
 ###############################################################################
 # 3. Sister Service
 ###############################################################################
-echo -e "${GREEN}[3/4] Setting up Sister Service...${NC}"
+echo -e "${GREEN}[3/6] Setting up Sister Service...${NC}"
 
 # Create Sister Service with extended timeouts for long-running sync operations
 # Note: Upstream is at VM3 (e.g., 192.168.120.43:8083)
@@ -498,7 +498,7 @@ echo ""
 ###############################################################################
 # 4. Feeder Service
 ###############################################################################
-echo -e "${GREEN}[4/5] Setting up Feeder Service...${NC}"
+echo -e "${GREEN}[4/6] Setting up Feeder Service...${NC}"
 
 # Create Feeder Service
 # Note: Upstream is at VM3 (e.g., 192.168.120.43:8084)
@@ -622,10 +622,138 @@ else
 fi
 
 ###############################################################################
-# 5. JWT Consumer & Credentials Setup
+# 5. MyUnila Service
+###############################################################################
+echo -e "${GREEN}[5/6] Setting up MyUnila Service...${NC}"
+
+# Create MyUnila Service
+# Note: Upstream is at VM3 (e.g., 192.168.120.43:8086)
+# MyUnila service is a Go app with routes at /api/v1/* (SIKEP, etc.)
+MYUNILA_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"myunila-service\",
+    \"url\": \"${MYUNILA_SERVICE_URL:-http://192.168.120.43:8086}\",
+    \"connect_timeout\": 300000,
+    \"write_timeout\": 300000,
+    \"read_timeout\": 300000,
+    \"retries\": 5
+  }")
+
+MYUNILA_SERVICE_ID=$(parse_json_id "$MYUNILA_SERVICE")
+
+if [ -z "$MYUNILA_SERVICE_ID" ]; then
+    echo -e "${RED}  ✗ Failed to create MyUnila service${NC}"
+else
+    echo -e "${GREEN}  ✓ MyUnila service created: $MYUNILA_SERVICE_ID${NC}"
+
+    # Route 1: Protected /api/v1/* endpoints (with JWT for API calls)
+    echo -e "${YELLOW}  → Creating protected /api/v1 route...${NC}"
+    MYUNILA_API_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$MYUNILA_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "myunila-api-v1-route",
+        "paths": ["/myunila-service"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 200
+      }')
+
+    MYUNILA_API_ROUTE_ID=$(parse_json_id "$MYUNILA_API_ROUTE")
+
+    if [ -n "$MYUNILA_API_ROUTE_ID" ]; then
+        # Add CORS plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$MYUNILA_API_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "exposed_headers": ["X-Auth-Token"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        # Add JWT plugin (authentication required for API calls)
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$MYUNILA_API_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "maximum_expiration": 0,
+              "header_names": ["authorization"],
+              "cookie_names": []
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ Protected /api/v1 route created with JWT${NC}"
+    fi
+
+    # Route 2: Public endpoints (no JWT) - separate service for public data
+    echo -e "${YELLOW}  → Creating public service for public endpoints...${NC}"
+    MYUNILA_PUBLIC_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+      -H "Content-Type: application/json" \
+      -d "{
+        \"name\": \"myunila-public-service\",
+        \"url\": \"${MYUNILA_SERVICE_URL:-http://192.168.120.43:8086}\"
+      }")
+
+    MYUNILA_PUBLIC_SERVICE_ID=$(parse_json_id "$MYUNILA_PUBLIC_SERVICE")
+
+    if [ -z "$MYUNILA_PUBLIC_SERVICE_ID" ]; then
+        echo -e "${YELLOW}  ! Public service may already exist, continuing...${NC}"
+    else
+        echo -e "${GREEN}  ✓ Public service created: $MYUNILA_PUBLIC_SERVICE_ID${NC}"
+    fi
+
+    # Create route for public service
+    MYUNILA_PUBLIC_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/myunila-public-service/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "myunila-public-route",
+        "paths": ["/myunila-service/public"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 150
+      }')
+
+    MYUNILA_PUBLIC_ROUTE_ID=$(parse_json_id "$MYUNILA_PUBLIC_ROUTE")
+
+    if [ -n "$MYUNILA_PUBLIC_ROUTE_ID" ]; then
+        # Add CORS plugin (no JWT plugin)
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$MYUNILA_PUBLIC_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+              "headers": ["Accept", "Content-Type"],
+              "exposed_headers": [],
+              "credentials": false,
+              "max_age": 3600
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ Public route created (no JWT, for public endpoints)${NC}"
+    fi
+fi
+
+echo ""
+
+###############################################################################
+# 6. JWT Consumer & Credentials Setup
 ###############################################################################
 echo ""
-echo -e "${GREEN}[5/5] Setting up JWT Consumer & Credentials...${NC}"
+echo -e "${GREEN}[6/6] Setting up JWT Consumer & Credentials...${NC}"
 
 # Create consumer for auth service
 echo -e "${YELLOW}  → Creating consumer 'auth-service'...${NC}"
@@ -675,6 +803,8 @@ echo "  Auth:                  http://localhost:9800/auth-service/api/v1"
 echo "  Sister (protected):    http://localhost:9800/sister-service/api/v1"
 echo "  Sister (public photo): http://localhost:9800/sister-service/public/api/v1/dosen/photo/:id"
 echo "  Feeder (protected):    http://localhost:9800/feeder-service/api/v1"
+echo "  MyUnila (protected):   http://localhost:9800/myunila-service/api/v1"
+echo "  MyUnila (public):      http://localhost:9800/myunila-service/public/api/v1"
 echo ""
 
 echo -e "${YELLOW}Example Test Commands:${NC}"
@@ -683,6 +813,9 @@ echo "  curl http://localhost:9800/dashboard-service/public/api/v1/dosen/statist
 echo ""
 echo "  # Sister public photo (no auth)"
 echo "  curl http://localhost:9800/sister-service/public/api/v1/dosen/photo/YOUR-ID-HERE"
+echo ""
+echo "  # MyUnila SIKEP (requires JWT)"
+echo "  curl -H 'Authorization: Bearer <token>' http://localhost:9800/myunila-service/api/v1/sikep/referensi/metadata"
 echo ""
 echo "  # Check Kong services and routes"
 echo "  curl $KONG_ADMIN_URL/services"
