@@ -61,8 +61,7 @@ services:
       - redis-check
     command: >
       sh -c "
-      apt-get update -qq &&
-      apt-get install -y -qq supervisor > /dev/null 2>&1 &&
+      apk add --no-cache supervisor > /dev/null 2>&1 &&
       mkdir -p /var/log/supervisor &&
       /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
       "
