@@ -18,13 +18,20 @@ services:
       APP_DEBUG: "${APP_DEBUG:-false}"
       APP_URL: "${APP_URL}"
 
-      # Database
+      # Database (SQL Server - Main)
       DB_CONNECTION: sqlsrv
       DB_HOST: "${AUTH_DB_HOST}"
       DB_PORT: "${AUTH_DB_PORT}"
       DB_DATABASE: "${AUTH_DB_DATABASE}"
       DB_USERNAME: "${AUTH_DB_USERNAME}"
       DB_PASSWORD: "${AUTH_DB_PASSWORD}"
+
+      # Radius Database (MySQL - SSO)
+      RADIUS_DB_HOST: "${RADIUS_DB_HOST}"
+      RADIUS_DB_PORT: "${RADIUS_DB_PORT:-3306}"
+      RADIUS_DB_DATABASE: "${RADIUS_DB_DATABASE:-radius}"
+      RADIUS_DB_USERNAME: "${RADIUS_DB_USERNAME}"
+      RADIUS_DB_PASSWORD: "${RADIUS_DB_PASSWORD}"
 
       # JWT Configuration
       JWT_SECRET: "${JWT_SECRET}"

@@ -19,13 +19,20 @@ services:
       APP_URL: "${AUTH_APP_URL}"
       APLIKASI_ID: "${AUTH_APLIKASI_ID:-1}"
 
-      # Database Configuration
+      # Database Configuration (SQL Server - Main)
       DB_CONNECTION: "${AUTH_DB_CONNECTION:-sqlsrv}"
       DB_HOST: "${AUTH_DB_HOST:-host.docker.internal}"
       DB_PORT: "${AUTH_DB_PORT:-1433}"
       DB_DATABASE: "${AUTH_DB_DATABASE}"
       DB_USERNAME: "${AUTH_DB_USERNAME}"
       DB_PASSWORD: "${AUTH_DB_PASSWORD}"
+
+      # Radius Database Configuration (MySQL - SSO)
+      RADIUS_DB_HOST: "${RADIUS_DB_HOST:-host.docker.internal}"
+      RADIUS_DB_PORT: "${RADIUS_DB_PORT:-3306}"
+      RADIUS_DB_DATABASE: "${RADIUS_DB_DATABASE:-radius}"
+      RADIUS_DB_USERNAME: "${RADIUS_DB_USERNAME:-root}"
+      RADIUS_DB_PASSWORD: "${RADIUS_DB_PASSWORD:-}"
 
       # Redis Configuration
       REDIS_HOST: "${AUTH_REDIS_HOST:-redis}"
@@ -45,6 +52,10 @@ services:
     volumes:
       - auth_storage:/var/www/storage
       - auth_logs:/var/www/storage/logs
+      # Development: Mount source code for hot reload (no rebuild needed)
+      - ../../../../backend/auth-service/app:/var/www/app:ro
+      - ../../../../backend/auth-service/routes:/var/www/routes:ro
+      - ../../../../backend/auth-service/config:/var/www/config:ro
     networks:
       - myunila-network
     depends_on:

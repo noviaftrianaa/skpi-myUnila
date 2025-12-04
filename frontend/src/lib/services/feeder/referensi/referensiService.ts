@@ -97,6 +97,21 @@ export async function getAllReferensiStats(): Promise<FeederAPIResponse<AllRefer
 }
 
 /**
+ * Referensi List Response from Backend
+ * Backend returns data directly in 'data' and pagination in 'meta'
+ */
+interface ReferensiListBackendResponse {
+  success: boolean;
+  data: ReferensiItem[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+  };
+  message?: string;
+}
+
+/**
  * Get specific referensi data by endpoint key
  * @param endpointKey - The referensi endpoint key (e.g., "jalur_masuk", "semester")
  * @param params - Optional query parameters (page, limit, search)
@@ -110,8 +125,22 @@ export async function getReferensiByKey(
   if (params?.limit) queryParams.limit = params.limit.toString();
   if (params?.search) queryParams.search = params.search;
 
-  const response = await feederClient.get(`/referensi/${endpointKey}`, { params: queryParams });
-  return response.data;
+  const response = await feederClient.get<ReferensiListBackendResponse>(`/referensi/${endpointKey}`, { params: queryParams });
+
+  // Transform backend response to expected format
+  // Backend: { success, data: [], meta: { total, page, limit } }
+  // Frontend expects: { success, data: { data: [], total, page, limit } }
+  const backendData = response.data;
+  return {
+    success: backendData.success,
+    message: backendData.message,
+    data: {
+      data: backendData.data || [],
+      total: backendData.meta?.total || 0,
+      page: backendData.meta?.page || 1,
+      limit: backendData.meta?.limit || 10,
+    },
+  };
 }
 
 /**

@@ -56,6 +56,7 @@ import {
   MdGroup,
   MdCardMembership,
   MdCampaign,
+  MdSecurity,
 } from "react-icons/md";
 import {
   BsFileEarmarkText,
@@ -532,6 +533,16 @@ export default function DashboardPage() {
           color: "bg-orange-600",
           isFavorite: false,
           href: "/portal/monitoring",
+          requireRole: ["Developer"],
+        },
+        {
+          id: "manajemen-akses",
+          name: "Manajemen Akses",
+          description: "Identity & Access Management",
+          icon: <MdSecurity className="w-6 h-6" />,
+          color: "bg-indigo-600",
+          isFavorite: false,
+          href: "/dashboard/manajemen-akses",
           requireRole: ["Developer"],
         },
       ],

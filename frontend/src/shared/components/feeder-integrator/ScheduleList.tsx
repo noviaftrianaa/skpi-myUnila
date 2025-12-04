@@ -32,7 +32,7 @@ import {
 import ScheduleModal from "./ScheduleModal";
 
 interface ScheduleListProps {
-  syncType?: "mahasiswa" | "aktivitas_mahasiswa" | "kurikulum";
+  syncType?: "mahasiswa" | "aktivitas_mahasiswa" | "kurikulum" | "referensi";
   showCreateButton?: boolean;
 }
 

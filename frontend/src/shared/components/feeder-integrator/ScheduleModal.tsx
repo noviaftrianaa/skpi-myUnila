@@ -24,7 +24,7 @@ interface ScheduleModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  syncType: "mahasiswa" | "aktivitas_mahasiswa" | "kurikulum";
+  syncType: "mahasiswa" | "aktivitas_mahasiswa" | "kurikulum" | "referensi";
   schedule?: ScheduledSync; // For edit mode
 }
 
@@ -83,6 +83,8 @@ export default function ScheduleModal({
             return `Aktivitas Mahasiswa Sync ${timestamp}`;
           case "kurikulum":
             return `Kurikulum Sync ${timestamp}`;
+          case "referensi":
+            return `Referensi Sync ${timestamp}`;
           default:
             return `Sync ${timestamp}`;
         }
@@ -96,6 +98,8 @@ export default function ScheduleModal({
             return "Sync aktivitas mahasiswa data every day";
           case "kurikulum":
             return "Sync kurikulum data every day";
+          case "referensi":
+            return "Sync referensi data every day";
           default:
             return "Sync data every day";
         }
@@ -222,6 +226,8 @@ export default function ScheduleModal({
                 ? "Schedule sync untuk data mahasiswa"
                 : syncType === "aktivitas_mahasiswa"
                 ? "Schedule sync untuk data aktivitas mahasiswa"
+                : syncType === "referensi"
+                ? "Schedule sync untuk data referensi"
                 : "Schedule sync untuk data kurikulum"}
             </p>
           </ModalHeader>
