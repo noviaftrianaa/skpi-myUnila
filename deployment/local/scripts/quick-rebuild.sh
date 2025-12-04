@@ -118,9 +118,15 @@ rebuild_nginx() {
 case "$SERVICE" in
     dashboard)
         rebuild_service "dashboard"
+        # Dashboard uses nginx as reverse proxy, need to restart nginx too
+        echo -e "${YELLOW}Restarting nginx to reconnect to dashboard-service...${NC}"
+        docker restart myunila-nginx 2>/dev/null || true
         ;;
     auth)
         rebuild_service "auth"
+        # Auth uses nginx as reverse proxy, need to restart nginx too
+        echo -e "${YELLOW}Restarting nginx to reconnect to auth-service...${NC}"
+        docker restart myunila-nginx 2>/dev/null || true
         ;;
     sister)
         rebuild_service "sister"

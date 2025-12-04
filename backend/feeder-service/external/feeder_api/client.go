@@ -228,6 +228,57 @@ func (c *FeederClient) GetReferensi(table string, filter string, limit int, offs
 	return nil, errors.New("invalid response data format")
 }
 
+// GetReferensiData fetches reference data using specific action (e.g., GetJalurMasuk, GetAgama, etc.)
+func (c *FeederClient) GetReferensiData(act string, filter string, limit int, offset int) ([]map[string]interface{}, error) {
+	if c.Token == "" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+	}
+
+	req := FeederRequest{
+		Act:    act,
+		Token:  c.Token,
+		Filter: filter,
+		Limit:  limit,
+		Offset: offset,
+	}
+
+	var resp FeederResponse
+	if err := c.doRequest(req, &resp); err != nil {
+		return nil, fmt.Errorf("failed to get records: %w", err)
+	}
+
+	if resp.ErrorCode != 0 {
+		// Token expired, retry with new token
+		if resp.ErrorCode == 100 || resp.ErrorDesc == "Token tidak valid" {
+			if err := c.GetToken(); err != nil {
+				return nil, err
+			}
+			// Retry request with new token
+			req.Token = c.Token
+			if err := c.doRequest(req, &resp); err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, fmt.Errorf("feeder API error: %s (code: %d)", resp.ErrorDesc, resp.ErrorCode)
+		}
+	}
+
+	// Parse response data
+	if dataList, ok := resp.Data.([]interface{}); ok {
+		result := make([]map[string]interface{}, 0, len(dataList))
+		for _, item := range dataList {
+			if record, ok := item.(map[string]interface{}); ok {
+				result = append(result, record)
+			}
+		}
+		return result, nil
+	}
+
+	return nil, errors.New("invalid response data format")
+}
+
 // GetMahasiswa fetches student data from Feeder API
 func (c *FeederClient) GetMahasiswa(filter string, limit int, offset int) ([]map[string]interface{}, error) {
 	return c.GetRecordTable("mahasiswa", filter, limit, offset)

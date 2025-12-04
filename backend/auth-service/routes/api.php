@@ -7,6 +7,8 @@ use App\Http\Controllers\SsoController;
 use App\Http\Controllers\DebugController;
 use App\Http\Controllers\CacheController;
 use App\Http\Controllers\MfaController;
+use App\Http\Controllers\Api\ManAkses\PenggunaController;
+use App\Http\Controllers\Api\ManAkses\AplikasiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,7 +34,7 @@ Route::get('/health', [HealthController::class, 'check'] ?? function () {
 });
 
 // API version 1
-Route::prefix('api/v1')->group(function () {
+Route::prefix('v1')->group(function () {
 
     // Public authentication endpoints (no JWT required)
     Route::prefix('auth')->group(function () {
@@ -94,6 +96,23 @@ Route::prefix('api/v1')->group(function () {
             Route::get('/health', [CacheController::class, 'health']);
             Route::post('/clear', [CacheController::class, 'clear']);
             Route::post('/invalidate-user', [CacheController::class, 'invalidateUser']);
+        });
+
+        // Manajemen Akses endpoints
+        Route::prefix('manakses')->group(function () {
+            // Pengguna (User Management)
+            Route::prefix('pengguna')->group(function () {
+                Route::get('/', [PenggunaController::class, 'index']);
+                Route::get('/stats', [PenggunaController::class, 'stats']);
+                Route::get('/{id}', [PenggunaController::class, 'show']);
+            });
+
+            // Aplikasi (Application Management)
+            Route::prefix('aplikasi')->group(function () {
+                Route::get('/', [AplikasiController::class, 'index']);
+                Route::get('/stats', [AplikasiController::class, 'stats']);
+                Route::get('/{id}', [AplikasiController::class, 'show']);
+            });
         });
     });
 });
