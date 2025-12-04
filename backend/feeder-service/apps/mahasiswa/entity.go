@@ -238,38 +238,38 @@ type FeederMahasiswaData struct {
 	// Parents - Wali
 	NamaWali                *string `json:"nama_wali"`
 	TanggalLahirWali        *string `json:"tanggal_lahir_wali"`
-	IDPekerjaanWali         *int    `json:"id_pekerjaan_wali"`
-	IDPenghasilanWali       *int    `json:"id_penghasilan_wali"`
-	IDPendidikanWali        *int    `json:"id_pendidikan_wali"`
+	IDPekerjaanWali         *FlexibleInt    `json:"id_pekerjaan_wali"`
+	IDPenghasilanWali       *FlexibleInt    `json:"id_penghasilan_wali"`
+	IDPendidikanWali        *FlexibleInt    `json:"id_pendidikan_wali"`
 
 	// Parents - Ibu
 	NamaIbuKandung          *string `json:"nama_ibu_kandung"`
 	TanggalLahirIbu         *string `json:"tanggal_lahir_ibu"`
 	NIKIbu                  *string `json:"nik_ibu"`
-	IDPekerjaanIbu          *int    `json:"id_pekerjaan_ibu"`
-	IDPenghasilanIbu        *int    `json:"id_penghasilan_ibu"`
-	IDPendidikanIbu         *int    `json:"id_pendidikan_ibu"`
-	IDKebutuhanKhususIbu    *int    `json:"id_kebutuhan_khusus_ibu"`
+	IDPekerjaanIbu          *FlexibleInt    `json:"id_pekerjaan_ibu"`
+	IDPenghasilanIbu        *FlexibleInt    `json:"id_penghasilan_ibu"`
+	IDPendidikanIbu         *FlexibleInt    `json:"id_pendidikan_ibu"`
+	IDKebutuhanKhususIbu    *FlexibleInt    `json:"id_kebutuhan_khusus_ibu"`
 
 	// Parents - Ayah
 	NamaAyah                *string `json:"nama_ayah"`
 	TanggalLahirAyah        *string `json:"tanggal_lahir_ayah"`
 	NIKAyah                 *string `json:"nik_ayah"`
-	IDPekerjaanAyah         *int    `json:"id_pekerjaan_ayah"`
-	IDPenghasilanAyah       *int    `json:"id_penghasilan_ayah"`
-	IDPendidikanAyah        *int    `json:"id_pendidikan_ayah"`
-	IDKebutuhanKhususAyah   *int    `json:"id_kebutuhan_khusus_ayah"`
+	IDPekerjaanAyah         *FlexibleInt    `json:"id_pekerjaan_ayah"`
+	IDPenghasilanAyah       *FlexibleInt    `json:"id_penghasilan_ayah"`
+	IDPendidikanAyah        *FlexibleInt    `json:"id_pendidikan_ayah"`
+	IDKebutuhanKhususAyah   *FlexibleInt    `json:"id_kebutuhan_khusus_ayah"`
 
 	// Assistance
 	PenerimaKPS             *FlexibleInt `json:"penerima_kps"`
 	NomorKPS                *string      `json:"nomor_kps"`
-	IDKebutuhanKhususMahasiswa *int      `json:"id_kebutuhan_khusus_mahasiswa"`
-	IDAlatTransportasi      *int         `json:"id_alat_transportasi"`
+	IDKebutuhanKhususMahasiswa *FlexibleInt      `json:"id_kebutuhan_khusus_mahasiswa"`
+	IDAlatTransportasi      *FlexibleInt         `json:"id_alat_transportasi"`
 
 	// References
 	IDNegara                *string `json:"id_negara"`
-	IDAgama                 *int    `json:"id_agama"`
-	IDJenisTinggal          *int    `json:"id_jenis_tinggal"`
+	IDAgama                 *FlexibleInt    `json:"id_agama"`
+	IDJenisTinggal          *FlexibleInt    `json:"id_jenis_tinggal"`
 	IDWilayah               *string `json:"id_wilayah"`
 }
 

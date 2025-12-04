@@ -8,6 +8,15 @@ import (
 	"github.com/myunila/feeder-service/pkg/timeutil"
 )
 
+// flexibleIntToInt converts *FlexibleInt to *int
+func flexibleIntToInt(fi *FlexibleInt) *int {
+	if fi == nil {
+		return nil
+	}
+	val := int(*fi)
+	return &val
+}
+
 // TransformFeederToEntities transforms Feeder API responses to database entities
 func TransformFeederToEntities(
 	feederMhs *FeederMahasiswaData,
@@ -78,9 +87,9 @@ func transformPesertaDidik(data *FeederMahasiswaData, systemUUID string, now tim
 			pd.TglLahirWali = &tgl
 		}
 	}
-	pd.IDPekerjaanWali = data.IDPekerjaanWali
-	pd.IDPenghasilanWali = data.IDPenghasilanWali
-	pd.IDPendidikanWali = data.IDPendidikanWali
+	pd.IDPekerjaanWali = flexibleIntToInt(data.IDPekerjaanWali)
+	pd.IDPenghasilanWali = flexibleIntToInt(data.IDPenghasilanWali)
+	pd.IDPendidikanWali = flexibleIntToInt(data.IDPendidikanWali)
 
 	// Ibu
 	pd.NamaIbu = data.NamaIbuKandung
@@ -90,10 +99,10 @@ func transformPesertaDidik(data *FeederMahasiswaData, systemUUID string, now tim
 		}
 	}
 	pd.NIKIbu = data.NIKIbu
-	pd.IDPekerjaanIbu = data.IDPekerjaanIbu
-	pd.IDPenghasilanIbu = data.IDPenghasilanIbu
-	pd.IDPendidikanIbu = data.IDPendidikanIbu
-	pd.IDKKIbu = data.IDKebutuhanKhususIbu
+	pd.IDPekerjaanIbu = flexibleIntToInt(data.IDPekerjaanIbu)
+	pd.IDPenghasilanIbu = flexibleIntToInt(data.IDPenghasilanIbu)
+	pd.IDPendidikanIbu = flexibleIntToInt(data.IDPendidikanIbu)
+	pd.IDKKIbu = flexibleIntToInt(data.IDKebutuhanKhususIbu)
 
 	// Ayah
 	pd.NamaAyah = data.NamaAyah
@@ -103,10 +112,10 @@ func transformPesertaDidik(data *FeederMahasiswaData, systemUUID string, now tim
 		}
 	}
 	pd.NIKAyah = data.NIKAyah
-	pd.IDPekerjaanAyah = data.IDPekerjaanAyah
-	pd.IDPenghasilanAyah = data.IDPenghasilanAyah
-	pd.IDPendidikanAyah = data.IDPendidikanAyah
-	pd.IDKKAyah = data.IDKebutuhanKhususAyah
+	pd.IDPekerjaanAyah = flexibleIntToInt(data.IDPekerjaanAyah)
+	pd.IDPenghasilanAyah = flexibleIntToInt(data.IDPenghasilanAyah)
+	pd.IDPendidikanAyah = flexibleIntToInt(data.IDPendidikanAyah)
+	pd.IDKKAyah = flexibleIntToInt(data.IDKebutuhanKhususAyah)
 
 	// Assistance
 	// Convert FlexibleInt to int
@@ -115,8 +124,8 @@ func transformPesertaDidik(data *FeederMahasiswaData, systemUUID string, now tim
 		pd.ATerimaKPS = &val
 	}
 	pd.NoKPS = data.NomorKPS
-	pd.IDKK = data.IDKebutuhanKhususMahasiswa
-	pd.IDAlatTransport = data.IDAlatTransportasi
+	pd.IDKK = flexibleIntToInt(data.IDKebutuhanKhususMahasiswa)
+	pd.IDAlatTransport = flexibleIntToInt(data.IDAlatTransportasi)
 
 	// References (REQUIRED NOT NULL fields)
 	// id_kewarganegaraan - NOT NULL, default "ID"
@@ -128,14 +137,14 @@ func transformPesertaDidik(data *FeederMahasiswaData, systemUUID string, now tim
 	}
 
 	// id_agama - NOT NULL, default 99 (tidak diketahui)
-	if data.IDAgama != nil && *data.IDAgama > 0 {
-		pd.IDAgama = data.IDAgama
+	if data.IDAgama != nil && int(*data.IDAgama) > 0 {
+		pd.IDAgama = flexibleIntToInt(data.IDAgama)
 	} else {
 		defaultAgama := 99
 		pd.IDAgama = &defaultAgama
 	}
 
-	pd.IDJenisTinggal = data.IDJenisTinggal
+	pd.IDJenisTinggal = flexibleIntToInt(data.IDJenisTinggal)
 	pd.IDWilayah = data.IDWilayah
 
 	// id_stat_mhs - NOT NULL, map from nama_status_mahasiswa
