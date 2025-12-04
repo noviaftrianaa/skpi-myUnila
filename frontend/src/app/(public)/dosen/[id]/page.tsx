@@ -7,15 +7,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   FiMail, FiUser, FiBookOpen, FiAward,
   FiFileText, FiTrendingUp, FiBook, FiBarChart2,
-  FiChevronDown, FiChevronUp, FiSearch, FiExternalLink
+  FiChevronDown, FiChevronUp, FiExternalLink
 } from "react-icons/fi";
 import { HiAcademicCap } from "react-icons/hi";
 import { MdSchool, MdWork, MdScience } from "react-icons/md";
 import { dosenService, type DosenProfile } from "@/lib/services/public/dosenService";
 
-const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL
-  ? `${process.env.NEXT_PUBLIC_DASHBOARD_API_URL}/public/api/v1`
-  : 'http://localhost:9800/dashboard-service/public/api/v1';
 const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL
   ? `${process.env.NEXT_PUBLIC_SISTER_API_URL}/public/api/v1`
   : 'http://localhost:9800/sister-service/public/api/v1';
@@ -79,16 +76,6 @@ export default function DosenProfilePage() {
   const [pengajaranPage, setPengajaranPage] = useState(1);
   const [penelitianPage, setPenelitianPage] = useState(1);
   const [dosen, setDosen] = useState<DosenProfile | null>(null);
-  const [bidangKeahlian, setBidangKeahlian] = useState<Array<{
-    id_sdm: string;
-    nama_dosen: string;
-    nidn: string;
-    id_kel_bidang: string;
-    kode_bidang: string;
-    nama_bidang: string;
-    urutan: string;
-    last_sync: string;
-  }>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 5;
@@ -102,21 +89,6 @@ export default function DosenProfilePage() {
 
         if (response.success && response.data) {
           setDosen(response.data);
-
-          // Fetch bidang keahlian from dashboard-service
-          try {
-            const bidangResponse = await fetch(`${API_URL}/dosen/bidang-ilmu/${response.data.id_sdm}`);
-
-            if (bidangResponse.ok) {
-              const bidangData = await bidangResponse.json();
-
-              if (bidangData.success && bidangData.data) {
-                setBidangKeahlian(bidangData.data);
-              }
-            }
-          } catch (bidangErr) {
-            // Don't set error (bidang keahlian is optional)
-          }
         } else {
           setError(response.message || 'Data dosen tidak ditemukan');
         }
@@ -237,7 +209,7 @@ export default function DosenProfilePage() {
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20 inline-block">
                   <div className="w-40 h-52 rounded-xl overflow-hidden shadow-2xl">
                   <img
-                    src={`${SISTER_API_URL}/dosen/photo/${dosen.id_sdm}`}
+                    src={`${SISTER_API_URL}/dosen/photo/${dosen.id}`}
                     alt={dosen.nama}
                     className="w-full h-full object-cover"
                     onError={(e) => {
@@ -425,7 +397,7 @@ export default function DosenProfilePage() {
                   </div>
 
                   {/* Bidang Keahlian */}
-                  {bidangKeahlian.length > 0 && (
+                  {dosen.bidang_ilmu && dosen.bidang_ilmu.length > 0 && (
                     <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
                       <div className="flex items-center gap-3 mb-6">
                         <div className="bg-teal-100 p-3 rounded-lg">
@@ -434,7 +406,7 @@ export default function DosenProfilePage() {
                         <h2 className="text-2xl font-bold text-gray-800">Bidang Keahlian</h2>
                       </div>
                       <div className="grid gap-4">
-                        {bidangKeahlian.map((bidang, index) => {
+                        {dosen.bidang_ilmu.map((bidang, index) => {
                           // Parse nama_bidang untuk memisahkan kode dan hierarki
                           const namaBidang = bidang.nama_bidang || '';
                           // Hilangkan kode di awal (format: [kode] text)

@@ -13,6 +13,7 @@ type Config struct {
 	Database      DatabaseConfig
 	SisterAPI     SisterAPIConfig
 	EncryptionKey string
+	LaravelAppKey string // Laravel APP_KEY for decrypting encrypted IDs from dashboard-service
 }
 
 type AppConfig struct {
@@ -83,6 +84,7 @@ func LoadConfig() error {
 			APICode:    getEnv("SISTER_API_CODE", "SISTER"), // Default to SISTER
 		},
 		EncryptionKey: getEnv("API_CONFIG_ENCRYPTION_KEY", ""),
+		LaravelAppKey: getEnv("LARAVEL_APP_KEY", ""), // Laravel APP_KEY (base64 encoded, without "base64:" prefix)
 	}
 
 	return nil

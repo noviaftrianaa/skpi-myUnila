@@ -15,17 +15,28 @@ class BidangIlmuService
     }
 
     /**
-     * Get bidang ilmu for a dosen by ID SDM
+     * Get bidang ilmu for a dosen by encrypted ID
+     * Accepts encrypted ID and decrypts it to get the actual id_sdm
      */
-    public function getBidangIlmuByIdSdm(string $idSdm)
+    public function getBidangIlmuByEncryptedId(string $encryptedId)
     {
         try {
+            // Decrypt the encrypted ID to get actual id_sdm
+            $idSdm = Crypt::decryptString($encryptedId);
+
             $bidangIlmu = $this->repository->getBidangIlmuByIdSdm($idSdm);
 
             return [
                 'success' => true,
                 'message' => 'Bidang ilmu retrieved successfully',
                 'data' => $bidangIlmu
+            ];
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            return [
+                'success' => false,
+                'message' => 'Invalid dosen ID',
+                'error' => 'Decryption failed',
+                'data' => []
             ];
         } catch (\Exception $e) {
             return [

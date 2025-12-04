@@ -17,16 +17,16 @@ class BidangIlmuController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/v1/dosen/bidang-ilmu/{id_sdm}",
+     *     path="/api/v1/dosen/bidang-ilmu/{encrypted_id}",
      *     tags={"Bidang Ilmu"},
      *     summary="Get bidang ilmu for a dosen",
-     *     description="Retrieve all bidang ilmu/keahlian for a specific dosen by ID SDM",
+     *     description="Retrieve all bidang ilmu/keahlian for a specific dosen by encrypted ID",
      *     @OA\Parameter(
-     *         name="id_sdm",
+     *         name="encrypted_id",
      *         in="path",
      *         required=true,
-     *         description="ID SDM (GUID format)",
-     *         @OA\Schema(type="string", example="84C1A403-9926-4DC0-BC56-18123B9BDF26")
+     *         description="Encrypted dosen ID",
+     *         @OA\Schema(type="string", example="eyJpdiI6Ik...")
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -51,6 +51,15 @@ class BidangIlmuController extends Controller
      *         )
      *     ),
      *     @OA\Response(
+     *         response=400,
+     *         description="Invalid dosen ID",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Invalid dosen ID"),
+     *             @OA\Property(property="data", type="array", @OA\Items())
+     *         )
+     *     ),
+     *     @OA\Response(
      *         response=500,
      *         description="Failed to retrieve bidang ilmu",
      *         @OA\JsonContent(
@@ -62,9 +71,13 @@ class BidangIlmuController extends Controller
      *     )
      * )
      */
-    public function getByIdSdm(string $idSdm)
+    public function getByEncryptedId(string $encryptedId)
     {
-        $result = $this->service->getBidangIlmuByIdSdm($idSdm);
+        $result = $this->service->getBidangIlmuByEncryptedId($encryptedId);
+
+        if (!$result['success'] && $result['message'] === 'Invalid dosen ID') {
+            return response()->json($result, 400);
+        }
 
         $statusCode = $result['success'] ? 200 : 500;
 
