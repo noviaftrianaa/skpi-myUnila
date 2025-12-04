@@ -15,9 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(\App\Http\Middleware\Cors::class);
         $middleware->append(\App\Http\Middleware\ForceJsonResponse::class);
 
-        // Register JWT authentication middleware alias
+        // Register middleware aliases
         $middleware->alias([
             'jwt.auth' => \App\Http\Middleware\JwtAuthenticate::class,
+            'kong.auth' => \App\Http\Middleware\KongAuth::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
