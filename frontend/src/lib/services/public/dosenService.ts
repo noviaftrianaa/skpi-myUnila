@@ -42,11 +42,19 @@ export interface DosenStatistics {
   };
 }
 
+// Bidang Ilmu Type
+export interface BidangIlmu {
+  id_kel_bidang: string;
+  kode_bidang: string;
+  nama_bidang: string;
+  urutan: number;
+}
+
 // Dosen Profile Types
 export interface DosenProfile {
   id: string;
-  id_sdm: string;
   nama: string;
+  nama_tanpa_gelar?: string;
   nidn?: string;
   nuptk: string;
   email: string;
@@ -57,6 +65,7 @@ export interface DosenProfile {
     prodi: string;
     jenjang: string;
   };
+  bidang_ilmu: BidangIlmu[];
   riwayat_pendidikan: Array<{
     jenjang: string;
     gelar?: string;

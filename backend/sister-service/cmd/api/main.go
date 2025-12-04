@@ -128,6 +128,20 @@ func main() {
 		log.Println("⚠️  No encryption key configured - API config encryption disabled")
 	}
 
+	// Initialize Laravel encryption service for decrypting encrypted IDs from dashboard-service
+	var laravelCrypto *crypto.LaravelEncryption
+	if config.Cfg.LaravelAppKey != "" {
+		var err error
+		laravelCrypto, err = crypto.NewLaravelEncryption(config.Cfg.LaravelAppKey)
+		if err != nil {
+			log.Printf("⚠️  Failed to initialize Laravel encryption: %v", err)
+		} else {
+			log.Println("✅ Laravel encryption service initialized for decrypting encrypted IDs")
+		}
+	} else {
+		log.Println("⚠️  No LARAVEL_APP_KEY configured - encrypted ID decryption disabled")
+	}
+
 	// Initialize logger service (needs to be initialized first for referensi)
 	loggerRepo := appLogger.NewRepository(db.DB)
 	loggerService := appLogger.NewService(loggerRepo)
@@ -149,7 +163,7 @@ func main() {
 
 	// Initialize Dosen Service with public routes (no auth required)
 	// Register on app directly so it's accessible at /dosen/* without /public prefix
-	dosenService := dosen.Init(app, db, sisterAPI, redisClient, loggerService) // Dosen endpoints with Redis cache and DB
+	dosenService := dosen.Init(app, db, sisterAPI, redisClient, loggerService, laravelCrypto) // Dosen endpoints with Redis cache and DB
 
 	// Initialize Penugasan module
 	penugasanRepo := penugasan.NewRepository(db)

@@ -3,15 +3,19 @@
 namespace App\Services;
 
 use App\Repositories\DosenProfileRepository;
+use App\Repositories\BidangIlmuRepository;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
 
 class DosenProfileService
 {
     protected $repository;
+    protected $bidangIlmuRepository;
 
-    public function __construct(DosenProfileRepository $repository)
+    public function __construct(DosenProfileRepository $repository, BidangIlmuRepository $bidangIlmuRepository)
     {
         $this->repository = $repository;
+        $this->bidangIlmuRepository = $bidangIlmuRepository;
     }
 
     /**
@@ -149,6 +153,14 @@ class DosenProfileService
         $buku = $this->repository->getBuku($idSdm);
         $prosiding = $this->repository->getProsiding($idSdm);
 
+        // Get bidang ilmu/keahlian
+        $bidangIlmu = [];
+        try {
+            $bidangIlmu = $this->bidangIlmuRepository->getBidangIlmuByIdSdm($idSdm);
+        } catch (\Exception $e) {
+            Log::warning('Failed to fetch bidang ilmu for dosen: ' . $e->getMessage());
+        }
+
         // Format response
         $data = [
             'id' => $encryptedId,
@@ -164,6 +176,14 @@ class DosenProfileService
                 'prodi' => $profile->homebase_prodi,
                 'jenjang' => $profile->homebase_jenjang,
             ],
+            'bidang_ilmu' => array_map(function ($item) {
+                return [
+                    'id_kel_bidang' => $item->id_kel_bidang,
+                    'kode_bidang' => $item->kode_bidang,
+                    'nama_bidang' => $item->nama_bidang,
+                    'urutan' => $item->urutan,
+                ];
+            }, $bidangIlmu),
             'riwayat_pendidikan' => array_map(function ($item) {
                 return [
                     'jenjang' => $item->jenjang,

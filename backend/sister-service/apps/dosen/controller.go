@@ -1,12 +1,15 @@
 package dosen
 
 import (
+	"sister-service/pkg/crypto"
+
 	"github.com/gofiber/fiber/v2"
 )
 
 // Controller defines the dosen controller
 type Controller struct {
-	service Service
+	service         Service
+	laravelCrypto   *crypto.LaravelEncryption
 }
 
 // NewController creates a new dosen controller
@@ -16,25 +19,50 @@ func NewController(service Service) *Controller {
 	}
 }
 
-// GetDosenPhoto handles GET /public/dosen/photo/:id_sdm
+// NewControllerWithCrypto creates a new dosen controller with Laravel encryption support
+func NewControllerWithCrypto(service Service, laravelCrypto *crypto.LaravelEncryption) *Controller {
+	return &Controller{
+		service:       service,
+		laravelCrypto: laravelCrypto,
+	}
+}
+
+// GetDosenPhoto handles GET /public/dosen/photo/:encrypted_id
 // @Summary Get dosen photo from SISTER API
-// @Description Fetches dosen photo binary from SISTER API and returns it directly
+// @Description Fetches dosen photo binary from SISTER API using encrypted dosen ID
 // @Tags Dosen
 // @Produce image/jpeg,image/png
-// @Param id_sdm path string true "ID SDM (Dosen ID)"
+// @Param encrypted_id path string true "Encrypted Dosen ID"
 // @Success 200 {file} binary "Photo binary data"
 // @Failure 400 {object} map[string]interface{} "Bad request"
 // @Failure 404 {object} map[string]interface{} "Photo not found"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
-// @Router /public/dosen/photo/{id_sdm} [get]
+// @Router /public/dosen/photo/{encrypted_id} [get]
 func (ctrl *Controller) GetDosenPhoto(c *fiber.Ctx) error {
-	idSdm := c.Params("id_sdm")
+	encryptedId := c.Params("encrypted_id")
 
-	if idSdm == "" {
+	if encryptedId == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"success": false,
-			"message": "id_sdm parameter is required",
+			"message": "encrypted_id parameter is required",
 		})
+	}
+
+	// Decrypt the encrypted ID to get actual id_sdm
+	var idSdm string
+	if ctrl.laravelCrypto != nil {
+		decrypted, err := ctrl.laravelCrypto.Decrypt(encryptedId)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"success": false,
+				"message": "Invalid dosen ID",
+				"error":   "Decryption failed",
+			})
+		}
+		idSdm = decrypted
+	} else {
+		// Fallback: assume it's already a plain id_sdm (for backward compatibility)
+		idSdm = encryptedId
 	}
 
 	// Get photo from SISTER API

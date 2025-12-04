@@ -126,8 +126,8 @@ Route::prefix('public/api/v1')->group(function () {
         Route::get('/pendidikan', [DosenController::class, 'getDosenByJenjangPendidikan']);
         Route::get('/jabatan', [DosenController::class, 'getDosenByJabatanFungsional']);
         Route::get('/statistics', [DosenController::class, 'getStatistics']);
-        // Bidang Ilmu - must be before /{id} to avoid conflict
-        Route::get('/bidang-ilmu/{id_sdm}', [BidangIlmuController::class, 'getByIdSdm']);
+        // Bidang Ilmu - accepts encrypted ID, must be before /{id} to avoid conflict
+        Route::get('/bidang-ilmu/{encrypted_id}', [BidangIlmuController::class, 'getByEncryptedId']);
         // Dosen Profile
         Route::get('/{id}', [DosenProfileController::class, 'show']);
     });

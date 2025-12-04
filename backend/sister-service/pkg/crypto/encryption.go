@@ -5,6 +5,7 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"io"
 )
@@ -112,4 +113,107 @@ func (s *EncryptionService) IsEncrypted(text string) bool {
 	// Try to decode base64
 	_, err := base64.StdEncoding.DecodeString(text)
 	return err == nil && len(text) > 32 // Encrypted text should be reasonably long
+}
+
+// LaravelEncryption handles Laravel's AES-256-CBC encryption format
+// Laravel's encrypted strings are base64-encoded JSON with: iv, value, mac
+type LaravelEncryption struct {
+	key []byte
+}
+
+// LaravelPayload represents Laravel's encrypted payload structure
+type LaravelPayload struct {
+	IV    string `json:"iv"`
+	Value string `json:"value"`
+	Mac   string `json:"mac"`
+}
+
+// NewLaravelEncryption creates a new Laravel-compatible encryption service
+// Key should be the APP_KEY from Laravel (without base64: prefix)
+func NewLaravelEncryption(appKey string) (*LaravelEncryption, error) {
+	// Laravel APP_KEY is base64 encoded (after removing "base64:" prefix)
+	keyBytes, err := base64.StdEncoding.DecodeString(appKey)
+	if err != nil {
+		return nil, errors.New("failed to decode APP_KEY: " + err.Error())
+	}
+
+	if len(keyBytes) != 32 {
+		return nil, errors.New("APP_KEY must decode to 32 bytes for AES-256")
+	}
+
+	return &LaravelEncryption{
+		key: keyBytes,
+	}, nil
+}
+
+// Decrypt decrypts a Laravel-encrypted string
+// The input is the full base64-encoded JSON payload from Laravel's Crypt::encryptString()
+func (l *LaravelEncryption) Decrypt(encryptedText string) (string, error) {
+	if encryptedText == "" {
+		return "", errors.New("encrypted text is empty")
+	}
+
+	// Decode the outer base64 (Laravel's payload)
+	payloadJSON, err := base64.StdEncoding.DecodeString(encryptedText)
+	if err != nil {
+		return "", errors.New("failed to decode base64 payload: " + err.Error())
+	}
+
+	// Parse the JSON payload
+	var payload LaravelPayload
+	if err := json.Unmarshal(payloadJSON, &payload); err != nil {
+		return "", errors.New("failed to parse JSON payload: " + err.Error())
+	}
+
+	// Decode IV
+	iv, err := base64.StdEncoding.DecodeString(payload.IV)
+	if err != nil {
+		return "", errors.New("failed to decode IV: " + err.Error())
+	}
+
+	// Decode ciphertext
+	ciphertext, err := base64.StdEncoding.DecodeString(payload.Value)
+	if err != nil {
+		return "", errors.New("failed to decode ciphertext: " + err.Error())
+	}
+
+	// Create AES cipher block
+	block, err := aes.NewCipher(l.key)
+	if err != nil {
+		return "", errors.New("failed to create cipher: " + err.Error())
+	}
+
+	// Decrypt using CBC mode
+	mode := cipher.NewCBCDecrypter(block, iv)
+	plaintext := make([]byte, len(ciphertext))
+	mode.CryptBlocks(plaintext, ciphertext)
+
+	// Remove PKCS7 padding
+	plaintext, err = pkcs7Unpad(plaintext)
+	if err != nil {
+		return "", errors.New("failed to unpad: " + err.Error())
+	}
+
+	return string(plaintext), nil
+}
+
+// pkcs7Unpad removes PKCS7 padding from decrypted data
+func pkcs7Unpad(data []byte) ([]byte, error) {
+	if len(data) == 0 {
+		return nil, errors.New("data is empty")
+	}
+
+	padding := int(data[len(data)-1])
+	if padding > len(data) || padding > aes.BlockSize {
+		return nil, errors.New("invalid padding")
+	}
+
+	// Verify padding
+	for i := len(data) - padding; i < len(data); i++ {
+		if data[i] != byte(padding) {
+			return nil, errors.New("invalid padding bytes")
+		}
+	}
+
+	return data[:len(data)-padding], nil
 }
