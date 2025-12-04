@@ -370,20 +370,19 @@ class PenggunaRepository
 
         $stats = DB::selectOne($sql);
 
-        // Get SSO count efficiently
+        // Get SSO count efficiently using native SQL
         // Instead of loading all 111k usernames into memory and doing whereIn,
-        // we count distinct usernames in radius that exist in pengguna using EXISTS subquery
+        // we count distinct usernames directly from radius table
         if ($this->isRadiusAvailable()) {
             try {
-                // Count distinct SSO usernames from radius
-                // These are users who have SSO access
-                $ssoCount = DB::connection('radius')
-                    ->table('radcheck')
-                    ->select('username')
-                    ->whereNotNull('username')
-                    ->where('username', '!=', '')
-                    ->distinct()
-                    ->count('username');
+                // Count distinct SSO usernames from radius using native SQL
+                $ssoResult = DB::connection('radius')->selectOne("
+                    SELECT COUNT(DISTINCT username) as total_sso
+                    FROM radcheck
+                    WHERE username IS NOT NULL AND username != ''
+                ");
+
+                $ssoCount = $ssoResult->total_sso ?? 0;
 
                 // Note: This counts ALL radius users, not just those in pengguna table
                 // For a more accurate count, we'd need to do a cross-database check
