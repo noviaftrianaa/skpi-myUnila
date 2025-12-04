@@ -299,8 +299,8 @@ func (r *repository) UpsertJenisEvaluasi(ctx context.Context, data []map[string]
 		Status:       "success",
 	}
 
+	// Note: ref.jenis_evaluasi does not have IDENTITY column, so no IDENTITY_INSERT needed
 	query := `
-		SET IDENTITY_INSERT ref.jenis_evaluasi ON;
 		MERGE ref.jenis_evaluasi AS target
 		USING (SELECT @p1 AS id_jns_eval) AS source
 		ON target.id_jns_eval = source.id_jns_eval
@@ -309,7 +309,6 @@ func (r *repository) UpsertJenisEvaluasi(ctx context.Context, data []map[string]
 		WHEN NOT MATCHED THEN
 			INSERT (id_jns_eval, nm_jns_eval, create_date, last_update, last_sync)
 			VALUES (@p1, @p2, @p3, @p3, @p3);
-		SET IDENTITY_INSERT ref.jenis_evaluasi OFF;
 	`
 
 	now := time.Now()
@@ -338,8 +337,8 @@ func (r *repository) UpsertJenisPendaftaran(ctx context.Context, data []map[stri
 		Status:       "success",
 	}
 
+	// Note: ref.jenis_pendaftaran does not have IDENTITY column, so no IDENTITY_INSERT needed
 	query := `
-		SET IDENTITY_INSERT ref.jenis_pendaftaran ON;
 		MERGE ref.jenis_pendaftaran AS target
 		USING (SELECT @p1 AS id_jns_daftar) AS source
 		ON target.id_jns_daftar = source.id_jns_daftar
@@ -348,7 +347,6 @@ func (r *repository) UpsertJenisPendaftaran(ctx context.Context, data []map[stri
 		WHEN NOT MATCHED THEN
 			INSERT (id_jns_daftar, nm_jns_daftar, create_date, last_update, last_sync)
 			VALUES (@p1, @p2, @p3, @p3, @p3);
-		SET IDENTITY_INSERT ref.jenis_pendaftaran OFF;
 	`
 
 	now := time.Now()
