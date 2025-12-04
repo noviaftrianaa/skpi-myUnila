@@ -604,7 +604,7 @@ func (c *FeederClient) GetListAnggotaAktivitasMahasiswa(idAktivitas string) ([]b
 	req := FeederRequest{
 		Act:    "GetListAnggotaAktivitasMahasiswa",
 		Token:  c.Token,
-		Filter: fmt.Sprintf(`"id_aktivitas":"%s"`, idAktivitas),
+		Filter: fmt.Sprintf("id_aktivitas='%s'", idAktivitas),
 	}
 
 	var result FeederResponse
