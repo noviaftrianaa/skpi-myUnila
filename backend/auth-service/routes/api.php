@@ -98,21 +98,23 @@ Route::prefix('v1')->group(function () {
             Route::post('/invalidate-user', [CacheController::class, 'invalidateUser']);
         });
 
-        // Manajemen Akses endpoints
-        Route::prefix('manakses')->group(function () {
-            // Pengguna (User Management)
-            Route::prefix('pengguna')->group(function () {
-                Route::get('/', [PenggunaController::class, 'index']);
-                Route::get('/stats', [PenggunaController::class, 'stats']);
-                Route::get('/{id}', [PenggunaController::class, 'show']);
-            });
+    });
 
-            // Aplikasi (Application Management)
-            Route::prefix('aplikasi')->group(function () {
-                Route::get('/', [AplikasiController::class, 'index']);
-                Route::get('/stats', [AplikasiController::class, 'stats']);
-                Route::get('/{id}', [AplikasiController::class, 'show']);
-            });
+    // Manajemen Akses endpoints (Kong validates JWT, we just decode it)
+    // Uses kong.auth middleware - trusts Kong's JWT validation like sister/feeder services
+    Route::middleware('kong.auth')->prefix('manakses')->group(function () {
+        // Pengguna (User Management)
+        Route::prefix('pengguna')->group(function () {
+            Route::get('/', [PenggunaController::class, 'index']);
+            Route::get('/stats', [PenggunaController::class, 'stats']);
+            Route::get('/{id}', [PenggunaController::class, 'show']);
+        });
+
+        // Aplikasi (Application Management)
+        Route::prefix('aplikasi')->group(function () {
+            Route::get('/', [AplikasiController::class, 'index']);
+            Route::get('/stats', [AplikasiController::class, 'stats']);
+            Route::get('/{id}', [AplikasiController::class, 'show']);
         });
     });
 });

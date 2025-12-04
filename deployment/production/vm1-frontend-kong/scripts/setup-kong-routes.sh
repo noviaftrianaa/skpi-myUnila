@@ -366,6 +366,73 @@ else
     fi
 fi
 
+# Create Auth Manakses Service (protected with JWT at Kong level)
+# Similar to sister/feeder services - Kong validates JWT, Laravel trusts it
+echo -e "${YELLOW}  → Creating auth-manakses-service for protected manakses endpoints...${NC}"
+AUTH_MANAKSES_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"auth-manakses-service\",
+    \"url\": \"${AUTH_SERVICE_URL:-http://192.168.120.42:8081}/api/v1/manakses\"
+  }")
+
+AUTH_MANAKSES_SERVICE_ID=$(parse_json_id "$AUTH_MANAKSES_SERVICE")
+
+if [ -z "$AUTH_MANAKSES_SERVICE_ID" ]; then
+    echo -e "${YELLOW}  ! Manakses service may already exist, continuing...${NC}"
+else
+    echo -e "${GREEN}  ✓ Manakses service created: $AUTH_MANAKSES_SERVICE_ID${NC}"
+fi
+
+# Create route for manakses service with JWT validation
+AUTH_MANAKSES_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/auth-manakses-service/routes" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "auth-manakses-route",
+    "paths": ["/auth-service/api/v1/manakses"],
+    "strip_path": true,
+    "preserve_host": false,
+    "protocols": ["http", "https"],
+    "regex_priority": 100
+  }')
+
+AUTH_MANAKSES_ROUTE_ID=$(parse_json_id "$AUTH_MANAKSES_ROUTE")
+
+if [ -n "$AUTH_MANAKSES_ROUTE_ID" ]; then
+    # Add CORS plugin
+    curl -s -X POST "$KONG_ADMIN_URL/routes/$AUTH_MANAKSES_ROUTE_ID/plugins" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "cors",
+        "config": {
+          "origins": ["*"],
+          "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+          "headers": ["Accept", "Authorization", "Content-Type"],
+          "exposed_headers": ["X-Auth-Token"],
+          "credentials": true,
+          "max_age": 3600
+        }
+      }' > /dev/null
+
+    # Add JWT plugin (authentication required)
+    curl -s -X POST "$KONG_ADMIN_URL/routes/$AUTH_MANAKSES_ROUTE_ID/plugins" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "jwt",
+        "config": {
+          "claims_to_verify": ["exp"],
+          "key_claim_name": "iss",
+          "secret_is_base64": false,
+          "anonymous": null,
+          "run_on_preflight": false,
+          "maximum_expiration": 0,
+          "header_names": ["authorization"],
+          "cookie_names": []
+        }
+      }' > /dev/null
+    echo -e "${GREEN}  ✓ Manakses route created with JWT (for /api/v1/manakses/*)${NC}"
+fi
+
 echo ""
 
 ###############################################################################
