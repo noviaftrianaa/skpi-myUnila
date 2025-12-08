@@ -11,21 +11,14 @@ class Cors
     /**
      * Handle an incoming request.
      *
-     * Skip CORS headers if Kong/Nginx already added them (via X-Kong-* headers or existing CORS headers).
-     *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Skip CORS handling if request came through Kong (Kong handles CORS)
-        if ($request->hasHeader('X-Kong-Request-Id') || $request->hasHeader('X-Forwarded-By')) {
-            return $next($request);
-        }
-
         $allowedOrigins = config('cors.allowed_origins', ['*']);
         $origin = $request->header('Origin');
 
-        // Handle preflight OPTIONS request (only if not from Kong)
+        // Handle preflight OPTIONS request
         if ($request->isMethod('OPTIONS')) {
             return response('', 200)
                 ->header('Access-Control-Allow-Origin', '*')
@@ -37,7 +30,7 @@ class Cors
 
         $response = $next($request);
 
-        // Add CORS headers only if not already set (avoid duplicates)
+        // Add CORS headers only if not already set (avoid duplicates from Kong)
         if (!$response->headers->has('Access-Control-Allow-Origin')) {
             if (in_array('*', $allowedOrigins) || ($origin && in_array($origin, $allowedOrigins))) {
                 $response->headers->set('Access-Control-Allow-Origin', in_array('*', $allowedOrigins) ? '*' : $origin);

@@ -237,21 +237,8 @@ else
     DASHBOARD_PUBLIC_ROUTE_ID=$(parse_json_id "$DASHBOARD_PUBLIC_ROUTE")
 
     if [ -n "$DASHBOARD_PUBLIC_ROUTE_ID" ]; then
-        # Add CORS plugin (no JWT)
-        curl -s -X POST "$KONG_ADMIN_URL/routes/$DASHBOARD_PUBLIC_ROUTE_ID/plugins" \
-          -H "Content-Type: application/json" \
-          -d '{
-            "name": "cors",
-            "config": {
-              "origins": ["*"],
-              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-              "headers": ["Accept", "Authorization", "Content-Type"],
-              "exposed_headers": ["X-Auth-Token"],
-              "credentials": true,
-              "max_age": 3600
-            }
-          }' > /dev/null
-        echo -e "${GREEN}  ✓ Public route created (no JWT, for /public/v1/*)${NC}"
+        # No CORS plugin here - Laravel handles CORS to avoid duplicate headers
+        echo -e "${GREEN}  ✓ Public route created (no JWT, no Kong CORS - Laravel handles CORS)${NC}"
     fi
 fi
 
