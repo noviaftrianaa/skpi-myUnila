@@ -182,23 +182,24 @@ func (s *service) fetchFromFeeder(endpointKey string) ([]map[string]interface{},
 
 	// Map endpoint key to Feeder API action
 	actMap := map[string]string{
-		"jalur_masuk":       "GetJalurMasuk",
-		"jenis_evaluasi":    "GetJenisEvaluasi",
-		"jenis_pendaftaran": "GetJenisPendaftaran",
-		"jenis_keluar":      "GetJenisKeluar",
-		"status_mahasiswa":  "GetStatusMahasiswa",
-		"tahun_ajaran":      "GetTahunAjaran",
-		"semester":          "GetSemester",
-		"jenis_prestasi":    "GetJenisPrestasi",
-		"tingkat_prestasi":  "GetTingkatPrestasi",
-		"kebutuhan_khusus":  "GetKebutuhanKhusus",
-		"wilayah":           "GetWilayah",
-		"agama":             "GetAgama",
-		"jenis_tinggal":     "GetJenisTinggal",
-		"pekerjaan":         "GetPekerjaan",
-		"penghasilan":       "GetPenghasilan",
+		"jalur_masuk":        "GetJalurMasuk",
+		"jenis_evaluasi":     "GetJenisEvaluasi",
+		"jenis_pendaftaran":  "GetJenisPendaftaran",
+		"jenis_keluar":       "GetJenisKeluar",
+		"status_mahasiswa":   "GetStatusMahasiswa",
+		"tahun_ajaran":       "GetTahunAjaran",
+		"semester":           "GetSemester",
+		"jenis_prestasi":     "GetJenisPrestasi",
+		"tingkat_prestasi":   "GetTingkatPrestasi",
+		"kebutuhan_khusus":   "GetKebutuhanKhusus",
+		"wilayah":            "GetWilayah",
+		"agama":              "GetAgama",
+		"jenis_tinggal":      "GetJenisTinggal",
+		"pekerjaan":          "GetPekerjaan",
+		"penghasilan":        "GetPenghasilan",
 		"jenjang_pendidikan": "GetJenjangPendidikan",
-		"pembiayaan":        "GetPembiayaan",
+		"pembiayaan":         "GetPembiayaan",
+		"jenis_aktivitas":    "GetJenisAktivitasMahasiswa",
 	}
 
 	act, ok := actMap[endpointKey]
@@ -247,6 +248,8 @@ func (s *service) upsertData(ctx context.Context, endpointKey string, data []map
 		return s.repo.UpsertJenjangPendidikan(ctx, data)
 	case "pembiayaan":
 		return s.repo.UpsertPembiayaan(ctx, data)
+	case "jenis_aktivitas":
+		return s.repo.UpsertJenisAktivitas(ctx, data)
 	default:
 		return nil, fmt.Errorf("no upsert handler for endpoint: %s", endpointKey)
 	}
@@ -272,6 +275,7 @@ func (s *service) getNameField(endpointKey string) string {
 		"penghasilan":        "nm_penghasilan",
 		"jenjang_pendidikan": "nm_jenj_didik",
 		"pembiayaan":         "nm_pembiayaan",
+		"jenis_aktivitas":    "nm_jns_akt_mhs",
 	}
 
 	if field, ok := nameFields[endpointKey]; ok {

@@ -29,14 +29,14 @@ func Init(router fiber.Router, db *sqlx.DB, feederAPI *feeder_api.FeederClient, 
 		// GET /aktivitas-mahasiswa/semester - Get list of semesters with aktivitas data
 		aktivitasRouter.Get("/semester", ctrl.GetSemesterList)
 
-		// GET /aktivitas-mahasiswa/jenis-aktivitas - Get list of jenis aktivitas
-		aktivitasRouter.Get("/jenis-aktivitas", ctrl.GetJenisAktivitasList)
+		// GET /aktivitas-mahasiswa/jenis - Get list of jenis aktivitas
+		aktivitasRouter.Get("/jenis", ctrl.GetJenisAktivitasList)
 
 		// POST /aktivitas-mahasiswa/sync - Sync aktivitas mahasiswa from Neo Feeder API
 		aktivitasRouter.Post("/sync", ctrl.SyncAktivitasMahasiswa)
 
-		// GET /aktivitas-mahasiswa/:id_akt_mhs - Get aktivitas detail by ID (MUST BE LAST to avoid catching other routes)
-		aktivitasRouter.Get("/:id_akt_mhs", ctrl.GetAktivitasDetail)
+		// GET /aktivitas-mahasiswa/detail/:id_akt_mhs - Get aktivitas detail by ID
+		aktivitasRouter.Get("/detail/:id_akt_mhs", ctrl.GetAktivitasDetail)
 	}
 
 	return svc
