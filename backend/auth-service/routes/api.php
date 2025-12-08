@@ -100,9 +100,8 @@ Route::prefix('v1')->group(function () {
 
     });
 
-    // Manajemen Akses endpoints (Kong validates JWT, we just decode it)
-    // Uses kong.auth middleware - trusts Kong's JWT validation like sister/feeder services
-    Route::middleware('kong.auth')->prefix('manakses')->group(function () {
+    // Manajemen Akses endpoints (protected with JWT)
+    Route::middleware('jwt.auth')->prefix('manakses')->group(function () {
         // Pengguna (User Management)
         Route::prefix('pengguna')->group(function () {
             Route::get('/', [PenggunaController::class, 'index']);
