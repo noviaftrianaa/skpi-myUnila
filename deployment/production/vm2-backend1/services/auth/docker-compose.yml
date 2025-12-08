@@ -42,10 +42,13 @@ services:
       APLIKASI_ID: "${AUTH_APLIKASI_ID:-1}"
       APP_APLIKASI_ID: "${AUTH_APLIKASI_ID:-1}"
 
-      # Redis
+      # Redis & Cache
       REDIS_HOST: "${REDIS_HOST}"
       REDIS_PORT: "${REDIS_PORT}"
       REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      CACHE_STORE: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
 
       TZ: "${TIMEZONE:-Asia/Jakarta}"
     networks:
