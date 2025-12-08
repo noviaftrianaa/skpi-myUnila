@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api\ManAkses;
 
 use App\Http\Controllers\Controller;
 use App\Services\Sync\SyncRadiusService;
+use App\Services\RadiusApi\RadiusApiClient;
+use App\Services\RadiusApi\RadiusUserService;
 use App\Jobs\SyncRadiusJob;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -179,49 +181,86 @@ class SyncController extends Controller
     }
 
     /**
-     * Get Radius database statistics
+     * Get Radius statistics (via API or database fallback)
      *
      * @return JsonResponse
      */
     public function getRadiusStats(): JsonResponse
     {
         try {
-            // Count active users in radius
-            $totalActive = \DB::connection('radius')
-                ->selectOne("
-                    SELECT COUNT(*) as total
-                    FROM radcheck
-                    WHERE a_aktif = 1
-                      AND soft_delete = 0
-                      AND username IS NOT NULL
-                      AND email IS NOT NULL
-                ");
+            // Check if Radius API is enabled
+            $apiEnabled = config('radius_api.enabled', false);
+            $apiConfigured = !empty(config('radius_api.base_url'));
 
-            // Count by domain
-            $byDomain = \DB::connection('radius')
-                ->select("
-                    SELECT
-                        SUBSTRING_INDEX(SUBSTRING_INDEX(email, '@', -1), '.', 1) AS domain,
-                        COUNT(*) as total
-                    FROM radcheck
-                    WHERE a_aktif = 1
-                      AND soft_delete = 0
-                      AND username IS NOT NULL
-                      AND email IS NOT NULL
-                    GROUP BY SUBSTRING_INDEX(SUBSTRING_INDEX(email, '@', -1), '.', 1)
-                    ORDER BY total DESC
-                    LIMIT 10
-                ");
+            if ($apiEnabled && $apiConfigured) {
+                // Try Radius API first
+                $client = new RadiusApiClient();
+                $radiusService = new RadiusUserService($client);
 
-            return $this->successResponse([
-                'total_active' => (int) $totalActive->total,
-                'by_domain' => array_map(function ($item) {
-                    return [
-                        'domain' => $item->domain,
-                        'total' => (int) $item->total,
-                    ];
-                }, $byDomain),
-            ], 'Statistik Radius berhasil diambil');
+                if ($radiusService->isAvailable()) {
+                    $stats = $radiusService->getStats();
+
+                    return $this->successResponse([
+                        'total_active' => $stats['total_sso'] ?? 0,
+                        'source' => 'api',
+                        'by_domain' => [], // API doesn't provide domain breakdown
+                    ], 'Statistik Radius berhasil diambil via API');
+                }
+            }
+
+            // Fallback to database connection
+            try {
+                // Count active users in radius
+                $totalActive = \DB::connection('radius')
+                    ->selectOne("
+                        SELECT COUNT(*) as total
+                        FROM radcheck
+                        WHERE a_aktif = 1
+                          AND soft_delete = 0
+                          AND username IS NOT NULL
+                          AND email IS NOT NULL
+                    ");
+
+                // Count by domain
+                $byDomain = \DB::connection('radius')
+                    ->select("
+                        SELECT
+                            SUBSTRING_INDEX(SUBSTRING_INDEX(email, '@', -1), '.', 1) AS domain,
+                            COUNT(*) as total
+                        FROM radcheck
+                        WHERE a_aktif = 1
+                          AND soft_delete = 0
+                          AND username IS NOT NULL
+                          AND email IS NOT NULL
+                        GROUP BY SUBSTRING_INDEX(SUBSTRING_INDEX(email, '@', -1), '.', 1)
+                        ORDER BY total DESC
+                        LIMIT 10
+                    ");
+
+                return $this->successResponse([
+                    'total_active' => (int) $totalActive->total,
+                    'source' => 'database',
+                    'by_domain' => array_map(function ($item) {
+                        return [
+                            'domain' => $item->domain,
+                            'total' => (int) $item->total,
+                        ];
+                    }, $byDomain),
+                ], 'Statistik Radius berhasil diambil via database');
+
+            } catch (\Exception $dbError) {
+                // Both API and database failed
+                Log::warning('SyncController::getRadiusStats - both API and database failed', [
+                    'error' => $dbError->getMessage(),
+                ]);
+
+                return $this->successResponse([
+                    'total_active' => 0,
+                    'source' => 'none',
+                    'by_domain' => [],
+                    'message' => 'Radius tidak tersedia (API dan database tidak dapat diakses)',
+                ], 'Radius tidak tersedia');
+            }
 
         } catch (\Exception $e) {
             Log::error('SyncController::getRadiusStats error', [

@@ -2,6 +2,8 @@
 
 namespace App\Services\Sync;
 
+use App\Services\RadiusApi\RadiusApiClient;
+use App\Services\RadiusApi\RadiusUserService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
@@ -48,9 +50,23 @@ class SyncRadiusService
     private string $syncedBy;
     private float $syncStartTime;
 
+    // Radius API support
+    private ?RadiusUserService $radiusService = null;
+    private bool $useApi = false;
+
     public function __construct()
     {
         $this->syncedBy = '00000000-0000-0000-0000-000000000000'; // System user
+
+        // Check if Radius API is enabled
+        $apiEnabled = config('radius_api.enabled', false);
+        $apiConfigured = !empty(config('radius_api.base_url'));
+
+        if ($apiEnabled && $apiConfigured) {
+            $client = new RadiusApiClient();
+            $this->radiusService = new RadiusUserService($client);
+            $this->useApi = $this->radiusService->isAvailable();
+        }
     }
 
     /**
@@ -221,6 +237,13 @@ class SyncRadiusService
      */
     private function countSsoUsers(array $options = []): int
     {
+        // Use API if available
+        if ($this->useApi && $this->radiusService) {
+            $stats = $this->radiusService->getStats();
+            return $stats['total_sso'] ?? 0;
+        }
+
+        // Fallback to database
         $query = "
             SELECT COUNT(*) as total
             FROM radcheck
@@ -271,6 +294,93 @@ class SyncRadiusService
      */
     private function processUsersInChunks(array $options = []): void
     {
+        // Use API if available
+        if ($this->useApi && $this->radiusService) {
+            $this->processUsersInChunksViaApi($options);
+            return;
+        }
+
+        // Fallback to database
+        $this->processUsersInChunksViaDatabase($options);
+    }
+
+    /**
+     * Process users in chunks via API
+     */
+    private function processUsersInChunksViaApi(array $options = []): void
+    {
+        $page = 1;
+        $chunkNumber = 1;
+        $totalChunks = ceil($this->stats['total'] / self::CHUNK_SIZE);
+
+        while (true) {
+            // Get page of users from API
+            $result = $this->radiusService->getUsers($page, self::CHUNK_SIZE, $options['username_filter'] ?? null);
+
+            if (!$result || empty($result['data'])) {
+                break;
+            }
+
+            $ssoUsers = array_map(function ($user) {
+                // Convert API response to object format matching database query
+                return (object) [
+                    'id' => $user['id'] ?? null,
+                    'username' => $user['username'] ?? null,
+                    'password_hash' => null, // API doesn't return password
+                    'nm_pengguna' => $user['nm_pengguna'] ?? null,
+                    'email' => $user['email'] ?? null,
+                    'tanggal_lahir' => $user['tanggal_lahir'] ?? null,
+                    'nip' => $user['nip'] ?? null,
+                    'status' => $user['status'] ?? null,
+                    'domain_email' => $user['domain_email'] ?? null,
+                ];
+            }, $result['data']);
+
+            if (empty($ssoUsers)) {
+                break;
+            }
+
+            // Update progress
+            $progress = $this->getProgress();
+            $progress['current_chunk'] = $chunkNumber;
+            $progress['total_chunks'] = $totalChunks;
+            $progress['source'] = 'api';
+            Cache::put(self::CACHE_KEY_PROGRESS, $progress, 3600);
+
+            Log::info("SyncRadiusService: Processing chunk {$chunkNumber}/{$totalChunks} via API", [
+                'page' => $page,
+                'count' => count($ssoUsers),
+            ]);
+
+            // Preload related data for this chunk
+            $this->preloadDataForChunk($ssoUsers);
+
+            // Process chunk
+            $this->processChunk($ssoUsers);
+
+            // Clear cache after chunk
+            $this->clearCache();
+
+            // Check if there are more pages
+            $totalPages = $result['total_pages'] ?? 1;
+            if ($page >= $totalPages) {
+                break;
+            }
+
+            // Next page
+            $page++;
+            $chunkNumber++;
+
+            // Force garbage collection
+            gc_collect_cycles();
+        }
+    }
+
+    /**
+     * Process users in chunks via database (fallback)
+     */
+    private function processUsersInChunksViaDatabase(array $options = []): void
+    {
         $offset = 0;
         $chunkNumber = 1;
         $totalChunks = ceil($this->stats['total'] / self::CHUNK_SIZE);
@@ -318,9 +428,10 @@ class SyncRadiusService
             $progress = $this->getProgress();
             $progress['current_chunk'] = $chunkNumber;
             $progress['total_chunks'] = $totalChunks;
+            $progress['source'] = 'database';
             Cache::put(self::CACHE_KEY_PROGRESS, $progress, 3600);
 
-            Log::info("SyncRadiusService: Processing chunk {$chunkNumber}/{$totalChunks}", [
+            Log::info("SyncRadiusService: Processing chunk {$chunkNumber}/{$totalChunks} via database", [
                 'offset' => $offset,
                 'count' => count($ssoUsers),
             ]);
