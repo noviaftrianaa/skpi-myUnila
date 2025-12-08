@@ -29,6 +29,9 @@ func Init(router fiber.Router, db *sqlx.DB, feederAPI *feeder_api.FeederClient, 
 		// GET /aktivitas-mahasiswa/semester - Get list of semesters with aktivitas data
 		aktivitasRouter.Get("/semester", ctrl.GetSemesterList)
 
+		// GET /aktivitas-mahasiswa/jenis-aktivitas - Get list of jenis aktivitas
+		aktivitasRouter.Get("/jenis-aktivitas", ctrl.GetJenisAktivitasList)
+
 		// POST /aktivitas-mahasiswa/sync - Sync aktivitas mahasiswa from Neo Feeder API
 		aktivitasRouter.Post("/sync", ctrl.SyncAktivitasMahasiswa)
 

@@ -215,6 +215,33 @@ func (ctrl *Controller) GetSemesterList(c *fiber.Ctx) error {
 	})
 }
 
+// GetJenisAktivitasList handles GET /aktivitas-mahasiswa/jenis-aktivitas
+// @Summary Get list of jenis aktivitas
+// @Description Retrieves list of jenis aktivitas mahasiswa from reference table
+// @Tags AktivitasMahasiswa
+// @Produce json
+// @Success 200 {object} map[string]interface{} "List of jenis aktivitas"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /aktivitas-mahasiswa/jenis-aktivitas [get]
+func (ctrl *Controller) GetJenisAktivitasList(c *fiber.Ctx) error {
+	ctx := context.Background()
+
+	jenisAktivitasList, err := ctrl.service.GetJenisAktivitasList(ctx)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to retrieve jenis aktivitas list",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Jenis aktivitas list retrieved successfully",
+		"data":    jenisAktivitasList,
+	})
+}
+
 // SyncAktivitasMahasiswa handles POST /aktivitas-mahasiswa/sync
 // @Summary Sync aktivitas mahasiswa data from Neo Feeder API
 // @Description Performs batch sync of aktivitas mahasiswa and anggota from Neo Feeder PDDIKTI API. If no semester filter provided, will sync all semesters.
