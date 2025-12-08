@@ -91,6 +91,7 @@ class RadiusApiClient
     {
         try {
             $response = Http::timeout($this->timeout)
+                ->withoutVerifying()
                 ->post("{$this->baseUrl}/auth/login", [
                     'app_key' => $this->appKey,
                     'username' => $this->username,
@@ -170,6 +171,7 @@ class RadiusApiClient
 
         try {
             $response = Http::timeout($this->timeout)
+                ->withoutVerifying()
                 ->withHeaders([
                     'Authorization' => $token, // Token langsung tanpa "Bearer"
                     'Accept' => 'application/json',
@@ -192,6 +194,7 @@ class RadiusApiClient
                 $token = $this->fetchNewToken();
                 if ($token) {
                     $retryResponse = Http::timeout($this->timeout)
+                        ->withoutVerifying()
                         ->withHeaders([
                             'Authorization' => $token,
                             'Accept' => 'application/json',
