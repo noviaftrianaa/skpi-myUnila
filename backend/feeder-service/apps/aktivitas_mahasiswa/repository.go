@@ -21,9 +21,10 @@ type Repository interface {
 	GetAktivitasByID(ctx context.Context, idAktMhs string) (*AktMhs, error)
 	GetAnggotaByAktivitas(ctx context.Context, idAktMhs string) ([]*AnggotaAktMhs, error)
 
-	// Utility - Get prodi list and semester list
+	// Utility - Get prodi list, semester list, and jenis aktivitas list
 	GetProdiList(ctx context.Context) ([]map[string]interface{}, error)
 	GetSemesterList(ctx context.Context) ([]map[string]interface{}, error)
+	GetJenisAktivitasList(ctx context.Context) ([]map[string]interface{}, error)
 
 	// Stats operations
 	GetStats(ctx context.Context) (*AktivitasStats, error)
@@ -542,6 +543,42 @@ func (r *repository) GetSemesterList(ctx context.Context) ([]map[string]interfac
 	}
 
 	return semesterList, nil
+}
+
+// GetJenisAktivitasList retrieves list of jenis aktivitas from ref.jenis_akt_mhs
+func (r *repository) GetJenisAktivitasList(ctx context.Context) ([]map[string]interface{}, error) {
+	query := `
+		SELECT
+			ja.id_jns_akt_mhs,
+			ja.nm_jns_akt_mhs
+		FROM ref.jenis_akt_mhs AS ja
+		WHERE ja.expired_date IS NULL
+		ORDER BY ja.id_jns_akt_mhs ASC
+	`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get jenis aktivitas list: %w", err)
+	}
+	defer rows.Close()
+
+	var jenisAktivitasList []map[string]interface{}
+	for rows.Next() {
+		var idJnsAktMhs int
+		var nmJnsAktMhs string
+		err := rows.Scan(&idJnsAktMhs, &nmJnsAktMhs)
+		if err != nil {
+			continue
+		}
+
+		jenisAktivitas := map[string]interface{}{
+			"id_jns_akt_mhs": idJnsAktMhs,
+			"nm_jns_akt_mhs": nmJnsAktMhs,
+		}
+		jenisAktivitasList = append(jenisAktivitasList, jenisAktivitas)
+	}
+
+	return jenisAktivitasList, nil
 }
 
 // GetStats retrieves statistics for aktivitas mahasiswa

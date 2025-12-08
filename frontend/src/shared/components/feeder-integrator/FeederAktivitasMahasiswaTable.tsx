@@ -35,8 +35,13 @@ interface SemesterOption {
   a_periode_aktif: number;
 }
 
+interface JenisAktivitasOption {
+  id_jns_akt_mhs: number;
+  nm_jns_akt_mhs: string;
+}
+
 interface FeederAktivitasMahasiswaTableProps {
-  onFilterChange?: (filters: { id_semester?: string[]; id_prodi?: string }) => void;
+  onFilterChange?: (filters: { id_semester?: string[]; id_prodi?: string; id_jenis_aktivitas?: number }) => void;
 }
 
 export default function FeederAktivitasMahasiswaTable({ onFilterChange }: FeederAktivitasMahasiswaTableProps) {
@@ -48,12 +53,14 @@ export default function FeederAktivitasMahasiswaTable({ onFilterChange }: Feeder
   const [totalRecords, setTotalRecords] = useState(0);
   const [filterSemester, setFilterSemester] = useState<string[]>([]); // Default: all semesters (no filter)
   const [filterProdi, setFilterProdi] = useState<string>("");
+  const [filterJenisAktivitas, setFilterJenisAktivitas] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   // Options for filters
   const [semesterOptions, setSemesterOptions] = useState<SemesterOption[]>([]);
   const [prodiOptions, setProdiOptions] = useState<ProdiOption[]>([]);
+  const [jenisAktivitasOptions, setJenisAktivitasOptions] = useState<JenisAktivitasOption[]>([]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -79,6 +86,12 @@ export default function FeederAktivitasMahasiswaTable({ onFilterChange }: Feeder
         const prodiRes = await feederClient.get("/aktivitas-mahasiswa/prodi");
         if (prodiRes.data.success) {
           setProdiOptions(prodiRes.data.data);
+        }
+
+        // Load jenis aktivitas list
+        const jenisAktivitasRes = await feederClient.get("/aktivitas-mahasiswa/jenis-aktivitas");
+        if (jenisAktivitasRes.data.success) {
+          setJenisAktivitasOptions(jenisAktivitasRes.data.data);
         }
       } catch (error) {
         console.error('Error loading options:', error);
@@ -118,6 +131,10 @@ export default function FeederAktivitasMahasiswaTable({ onFilterChange }: Feeder
           params.append("id_prodi", filterProdi);
         }
 
+        if (filterJenisAktivitas) {
+          params.append("id_jenis_aktivitas", filterJenisAktivitas);
+        }
+
         if (sortBy) {
           params.append("sort_by", sortBy);
           params.append("sort_order", sortOrder);
@@ -138,7 +155,7 @@ export default function FeederAktivitasMahasiswaTable({ onFilterChange }: Feeder
     };
 
     loadData();
-  }, [currentPage, rowsPerPage, searchQuery, filterSemester, filterProdi, sortBy, sortOrder]);
+  }, [currentPage, rowsPerPage, searchQuery, filterSemester, filterProdi, filterJenisAktivitas, sortBy, sortOrder]);
 
   // Notify parent about filter changes for sync
   useEffect(() => {
@@ -146,10 +163,11 @@ export default function FeederAktivitasMahasiswaTable({ onFilterChange }: Feeder
       onFilterChange({
         id_semester: filterSemester.length > 0 ? filterSemester : undefined,
         id_prodi: filterProdi || undefined,
+        id_jenis_aktivitas: filterJenisAktivitas ? parseInt(filterJenisAktivitas) : undefined,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterProdi, filterSemester]);
+  }, [filterProdi, filterSemester, filterJenisAktivitas]);
 
   const formatDate = (dateString?: string | null) => {
     if (!dateString) return "Belum sync";
@@ -279,7 +297,7 @@ export default function FeederAktivitasMahasiswaTable({ onFilterChange }: Feeder
           filterSlot={
             <div className="flex gap-2 w-full">
               {/* Filter dropdowns */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 flex-1">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 flex-1">
                 <Select
                   aria-label="Filter Semester"
                   placeholder="Semua Semester"
@@ -311,6 +329,41 @@ export default function FeederAktivitasMahasiswaTable({ onFilterChange }: Feeder
                   {semesterOptions.map((sem) => (
                     <SelectItem key={sem.id_smt} textValue={sem.nm_smt}>
                       <span className="text-xs">{sem.nm_smt}</span>
+                    </SelectItem>
+                  ))}
+                </Select>
+
+                <Select
+                  aria-label="Filter Jenis Aktivitas"
+                  placeholder="Semua Jenis"
+                  selectedKeys={filterJenisAktivitas ? [filterJenisAktivitas] : []}
+                  onSelectionChange={(keys) => {
+                    const selected = Array.from(keys)[0] as string;
+                    setFilterJenisAktivitas(selected || "");
+                    setCurrentPage(1);
+                  }}
+                  classNames={{
+                    base: "w-full",
+                    trigger: "h-10 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-blue-400 focus:border-blue-500 transition-colors shadow-sm",
+                    value: "text-[10px] font-medium text-gray-700 dark:text-gray-300",
+                    innerWrapper: "!bg-white dark:!bg-gray-800 pr-8",
+                    popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200 min-w-[250px]",
+                    listbox: "!bg-white dark:!bg-gray-800",
+                    selectorIcon: "right-2",
+                  }}
+                  size="sm"
+                  variant="bordered"
+                  renderValue={(items) => {
+                    if (!items || items.length === 0) return <span className="text-[10px]">Semua Jenis</span>;
+                    const item = items[0];
+                    const jenis = jenisAktivitasOptions.find(j => j.id_jns_akt_mhs.toString() === item.key);
+                    if (!jenis) return <span className="text-[10px]">Semua Jenis</span>;
+                    return <span className="text-[10px] truncate">{jenis.nm_jns_akt_mhs}</span>;
+                  }}
+                >
+                  {jenisAktivitasOptions.map((jenis) => (
+                    <SelectItem key={jenis.id_jns_akt_mhs.toString()} textValue={jenis.nm_jns_akt_mhs}>
+                      <span className="text-xs">{jenis.nm_jns_akt_mhs}</span>
                     </SelectItem>
                   ))}
                 </Select>
@@ -370,10 +423,11 @@ export default function FeederAktivitasMahasiswaTable({ onFilterChange }: Feeder
                   onPress={() => {
                     setFilterSemester([]);
                     setFilterProdi("");
+                    setFilterJenisAktivitas("");
                     setCurrentPage(1);
                   }}
                   className="h-10 px-3 text-[10px] whitespace-nowrap bg-white hover:bg-gray-100 border border-gray-200"
-                  isDisabled={filterSemester.length === 0 && filterProdi === ""}
+                  isDisabled={filterSemester.length === 0 && filterProdi === "" && filterJenisAktivitas === ""}
                 >
                   Reset Filter
                 </Button>

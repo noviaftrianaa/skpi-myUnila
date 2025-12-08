@@ -23,6 +23,7 @@ type Service interface {
 	// Utility operations
 	GetProdiList(ctx context.Context) ([]map[string]interface{}, error)
 	GetSemesterList(ctx context.Context) ([]map[string]interface{}, error)
+	GetJenisAktivitasList(ctx context.Context) ([]map[string]interface{}, error)
 	GetStats(ctx context.Context) (*AktivitasStats, error)
 
 	// Sync operations (implemented in sync_service.go)
@@ -133,6 +134,11 @@ func (s *service) GetProdiList(ctx context.Context) ([]map[string]interface{}, e
 // GetSemesterList retrieves list of semesters with aktivitas data
 func (s *service) GetSemesterList(ctx context.Context) ([]map[string]interface{}, error) {
 	return s.repo.GetSemesterList(ctx)
+}
+
+// GetJenisAktivitasList retrieves list of jenis aktivitas
+func (s *service) GetJenisAktivitasList(ctx context.Context) ([]map[string]interface{}, error) {
+	return s.repo.GetJenisAktivitasList(ctx)
 }
 
 // GetStats retrieves statistics for aktivitas mahasiswa
