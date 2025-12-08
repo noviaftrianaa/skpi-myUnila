@@ -1,5 +1,6 @@
 # ========================================
 # Auth Service Dockerfile - Alpine Version
+# With Supervisor for PHP-FPM + Queue Worker
 # ========================================
 FROM php:8.2-fpm-alpine
 
@@ -17,6 +18,8 @@ RUN apk add --no-cache \
     libzip-dev \
     zip \
     unzip \
+    # Supervisor for running multiple processes
+    supervisor \
     # SQL Server ODBC dependencies - MUST be installed first
     unixodbc \
     unixodbc-dev \
@@ -111,8 +114,14 @@ RUN echo "pm = dynamic" >> /usr/local/etc/php-fpm.d/www.conf \
     && echo "pm.process_idle_timeout = 30s" >> /usr/local/etc/php-fpm.d/www.conf \
     && echo "request_terminate_timeout = 300" >> /usr/local/etc/php-fpm.d/www.conf
 
+# Copy supervisor configuration
+COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Create supervisor log directory
+RUN mkdir -p /var/log/supervisor
+
 # Expose port 9000 for PHP-FPM
 EXPOSE 9000
 
-# Start PHP-FPM
-CMD ["php-fpm"]
+# Start Supervisor (manages both PHP-FPM and Queue Worker)
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

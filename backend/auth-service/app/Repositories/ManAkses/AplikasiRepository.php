@@ -260,4 +260,168 @@ class AplikasiRepository
 
         return DB::selectOne($sql);
     }
+
+    /**
+     * Create new aplikasi
+     *
+     * @param array $data
+     * @return string ID of created aplikasi
+     */
+    public function create(array $data): string
+    {
+        $id = $this->generateUuid();
+        $now = now()->format('Y-m-d H:i:s');
+
+        $sql = "
+            INSERT INTO man_akses.aplikasi (
+                id_aplikasi, id_organisasi, nm_aplikasi, ket_aplikasi,
+                token_aplikasi, app_key, url, port, teknologi, endpoint_ws,
+                a_generate_menu, a_integrasi_cas, a_sistem_internal_pt,
+                tgl_create, last_update, last_sync
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ";
+
+        DB::insert($sql, [
+            $id,
+            $data['id_organisasi'] ?? null,
+            $data['nm_aplikasi'],
+            $data['ket_aplikasi'] ?? null,
+            $data['token_aplikasi'] ?? $this->generateToken(),
+            $data['app_key'] ?? $this->generateAppKey(),
+            $data['url'] ?? null,
+            $data['port'] ?? null,
+            $data['teknologi'] ?? null,
+            $data['endpoint_ws'] ?? null,
+            $data['a_generate_menu'] ?? 0,
+            $data['a_integrasi_cas'] ?? 0,
+            $data['a_sistem_internal_pt'] ?? 1,
+            $now,
+            $now,
+            $now,
+        ]);
+
+        return $id;
+    }
+
+    /**
+     * Update existing aplikasi
+     *
+     * @param string $id
+     * @param array $data
+     * @return bool
+     */
+    public function update(string $id, array $data): bool
+    {
+        $now = now()->format('Y-m-d H:i:s');
+
+        $sql = "
+            UPDATE man_akses.aplikasi SET
+                id_organisasi = ?,
+                nm_aplikasi = ?,
+                ket_aplikasi = ?,
+                url = ?,
+                port = ?,
+                teknologi = ?,
+                endpoint_ws = ?,
+                a_generate_menu = ?,
+                a_integrasi_cas = ?,
+                a_sistem_internal_pt = ?,
+                last_update = ?,
+                last_sync = ?
+            WHERE id_aplikasi = ?
+        ";
+
+        $affected = DB::update($sql, [
+            $data['id_organisasi'] ?? null,
+            $data['nm_aplikasi'],
+            $data['ket_aplikasi'] ?? null,
+            $data['url'] ?? null,
+            $data['port'] ?? null,
+            $data['teknologi'] ?? null,
+            $data['endpoint_ws'] ?? null,
+            $data['a_generate_menu'] ?? 0,
+            $data['a_integrasi_cas'] ?? 0,
+            $data['a_sistem_internal_pt'] ?? 1,
+            $now,
+            $now,
+            $id,
+        ]);
+
+        return $affected > 0;
+    }
+
+    /**
+     * Delete aplikasi (soft delete via expired_date)
+     *
+     * @param string $id
+     * @return bool
+     */
+    public function delete(string $id): bool
+    {
+        $now = now()->format('Y-m-d H:i:s');
+
+        $sql = "
+            UPDATE man_akses.aplikasi SET
+                expired_date = ?,
+                last_update = ?,
+                last_sync = ?
+            WHERE id_aplikasi = ?
+        ";
+
+        $affected = DB::update($sql, [$now, $now, $now, $id]);
+
+        return $affected > 0;
+    }
+
+    /**
+     * Check if aplikasi name exists
+     *
+     * @param string $name
+     * @param string|null $excludeId
+     * @return bool
+     */
+    public function nameExists(string $name, ?string $excludeId = null): bool
+    {
+        $sql = "SELECT COUNT(*) as count FROM man_akses.aplikasi WHERE nm_aplikasi = ?";
+        $bindings = [$name];
+
+        if ($excludeId) {
+            $sql .= " AND id_aplikasi != ?";
+            $bindings[] = $excludeId;
+        }
+
+        $result = DB::selectOne($sql, $bindings);
+        return ($result->count ?? 0) > 0;
+    }
+
+    /**
+     * Generate UUID for new record
+     */
+    private function generateUuid(): string
+    {
+        return strtoupper(sprintf(
+            '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+            mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0x0fff) | 0x4000,
+            mt_rand(0, 0x3fff) | 0x8000,
+            mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+        ));
+    }
+
+    /**
+     * Generate random token for aplikasi
+     */
+    private function generateToken(): string
+    {
+        return bin2hex(random_bytes(32));
+    }
+
+    /**
+     * Generate random app key
+     */
+    private function generateAppKey(): string
+    {
+        return 'APP_' . strtoupper(bin2hex(random_bytes(16)));
+    }
 }

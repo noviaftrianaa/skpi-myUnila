@@ -170,6 +170,38 @@
         executable: /bin/bash
       become_user: "{{ ansible_user }}"
 
+    - name: Clear Laravel caches for Auth Service
+      shell: |
+        docker exec myunila-auth-service php artisan config:clear 2>/dev/null || true
+        docker exec myunila-auth-service php artisan route:clear 2>/dev/null || true
+        docker exec myunila-auth-service php artisan cache:clear 2>/dev/null || true
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      ignore_errors: yes
+
+    - name: Start queue worker for Auth Service (background sync jobs)
+      shell: |
+        docker exec -d myunila-auth-service sh -c "nohup php artisan queue:work redis --tries=3 --timeout=1800 --memory=256 > /var/www/storage/logs/queue-worker.log 2>&1 &"
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      ignore_errors: yes
+
+    - name: Verify queue worker is running
+      shell: |
+        docker exec myunila-auth-service ps aux | grep -q "queue:work" && echo "Queue worker is running" || echo "Queue worker NOT running"
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: queue_worker_status
+      ignore_errors: yes
+
+    - name: Display queue worker status
+      debug:
+        msg: "{{ queue_worker_status.stdout }}"
+      when: queue_worker_status is defined
+
     - name: Restart Nginx (pickup new config)
       shell: |
         cd {{ deployment_dir }}

@@ -79,6 +79,7 @@ return [
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? [
                 PDO::ATTR_EMULATE_PREPARES => true,
+                PDO::ATTR_TIMEOUT => env('RADIUS_DB_TIMEOUT', 3), // 3 second timeout
             ] : [],
         ],
 

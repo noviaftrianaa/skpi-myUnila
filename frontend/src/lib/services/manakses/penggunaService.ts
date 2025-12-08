@@ -71,6 +71,35 @@ export interface PenggunaListParams {
   has_sso?: 'yes' | 'no';
 }
 
+export interface RadiusStatus {
+  api_enabled: boolean;
+  api_configured: boolean;
+  api_available: boolean;
+  fallback_available: boolean;
+  source: 'api' | 'database' | 'none';
+}
+
+export interface SsoUser {
+  username: string;
+  nama: string | null;
+  email: string | null;
+  [key: string]: unknown;
+}
+
+export interface SsoUsersResult {
+  data: SsoUser[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+}
+
+export interface SsoUsersParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+}
+
 // API Response wrapper
 interface ApiResponse<T> {
   success: boolean;
@@ -115,6 +144,37 @@ export const penggunaService = {
       `/manakses/pengguna/${id}`
     );
     return response.data.data;
+  },
+
+  /**
+   * Get Radius API status
+   * Protected endpoint - requires JWT authentication
+   */
+  async getRadiusStatus(): Promise<RadiusStatus> {
+    const response = await authClient.get<ApiResponse<RadiusStatus>>(
+      '/manakses/pengguna/radius-status'
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Get SSO users from Radius API
+   * Protected endpoint - requires JWT authentication
+   */
+  async getSsoUsers(params?: SsoUsersParams): Promise<SsoUsersResult> {
+    const response = await authClient.get<ApiResponse<SsoUsersResult>>(
+      '/manakses/pengguna/sso-users',
+      { params }
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Clear Radius API cache
+   * Protected endpoint - requires JWT authentication
+   */
+  async clearRadiusCache(): Promise<void> {
+    await authClient.post('/manakses/pengguna/clear-radius-cache');
   },
 };
 

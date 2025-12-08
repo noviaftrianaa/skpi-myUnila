@@ -156,4 +156,89 @@ class AplikasiService
             throw $e;
         }
     }
+
+    /**
+     * Create new aplikasi
+     *
+     * @param array $data
+     * @return array
+     */
+    public function create(array $data): array
+    {
+        try {
+            // Check if name already exists
+            if ($this->repository->nameExists($data['nm_aplikasi'])) {
+                throw new \Exception('Nama aplikasi sudah digunakan');
+            }
+
+            $id = $this->repository->create($data);
+
+            return $this->getDetail($id);
+        } catch (\Exception $e) {
+            Log::error('AplikasiService::create error', [
+                'message' => $e->getMessage(),
+                'data' => $data
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Update existing aplikasi
+     *
+     * @param string $id
+     * @param array $data
+     * @return array|null
+     */
+    public function update(string $id, array $data): ?array
+    {
+        try {
+            // Check if aplikasi exists
+            $existing = $this->repository->getDetail($id);
+            if (!$existing) {
+                return null;
+            }
+
+            // Check if name already exists (excluding current)
+            if ($this->repository->nameExists($data['nm_aplikasi'], $id)) {
+                throw new \Exception('Nama aplikasi sudah digunakan');
+            }
+
+            $this->repository->update($id, $data);
+
+            return $this->getDetail($id);
+        } catch (\Exception $e) {
+            Log::error('AplikasiService::update error', [
+                'message' => $e->getMessage(),
+                'id' => $id,
+                'data' => $data
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Delete aplikasi (soft delete)
+     *
+     * @param string $id
+     * @return bool
+     */
+    public function delete(string $id): bool
+    {
+        try {
+            // Check if aplikasi exists
+            $existing = $this->repository->getDetail($id);
+            if (!$existing) {
+                return false;
+            }
+
+            return $this->repository->delete($id);
+        } catch (\Exception $e) {
+            Log::error('AplikasiService::delete error', [
+                'message' => $e->getMessage(),
+                'id' => $id
+            ]);
+            throw $e;
+        }
+    }
 }

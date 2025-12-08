@@ -9,6 +9,11 @@ use App\Http\Controllers\CacheController;
 use App\Http\Controllers\MfaController;
 use App\Http\Controllers\Api\ManAkses\PenggunaController;
 use App\Http\Controllers\Api\ManAkses\AplikasiController;
+use App\Http\Controllers\Api\ManAkses\SyncController;
+use App\Http\Controllers\Api\ManAkses\UnitOrganisasiController;
+use App\Http\Controllers\Api\ManAkses\PeranController;
+use App\Http\Controllers\Api\ManAkses\RolePenggunaController;
+use App\Http\Controllers\Api\ManAkses\EndpointController;
 
 /*
 |--------------------------------------------------------------------------
@@ -106,6 +111,9 @@ Route::prefix('v1')->group(function () {
         Route::prefix('pengguna')->group(function () {
             Route::get('/', [PenggunaController::class, 'index']);
             Route::get('/stats', [PenggunaController::class, 'stats']);
+            Route::get('/radius-status', [PenggunaController::class, 'radiusStatus']);
+            Route::get('/sso-users', [PenggunaController::class, 'ssoUsers']);
+            Route::post('/clear-radius-cache', [PenggunaController::class, 'clearRadiusCache']);
             Route::get('/{id}', [PenggunaController::class, 'show']);
         });
 
@@ -113,7 +121,70 @@ Route::prefix('v1')->group(function () {
         Route::prefix('aplikasi')->group(function () {
             Route::get('/', [AplikasiController::class, 'index']);
             Route::get('/stats', [AplikasiController::class, 'stats']);
+            Route::post('/', [AplikasiController::class, 'store']);
             Route::get('/{id}', [AplikasiController::class, 'show']);
+            Route::put('/{id}', [AplikasiController::class, 'update']);
+            Route::delete('/{id}', [AplikasiController::class, 'destroy']);
+        });
+
+        // Sync Radius to ManAkses
+        Route::prefix('sync')->group(function () {
+            // Get sync status and progress
+            Route::get('/status', [SyncController::class, 'getStatus']);
+            Route::get('/progress', [SyncController::class, 'getProgress']);
+            Route::get('/logs', [SyncController::class, 'getLogs']);
+
+            // Get radius database stats
+            Route::get('/radius-stats', [SyncController::class, 'getRadiusStats']);
+
+            // Start sync (foreground - blocking)
+            Route::post('/start', [SyncController::class, 'startSync']);
+
+            // Start sync (background - non-blocking via queue)
+            Route::post('/start-background', [SyncController::class, 'startSyncBackground']);
+        });
+
+        // Unit Organisasi (Organization Unit Management)
+        Route::prefix('unit-organisasi')->group(function () {
+            Route::get('/', [UnitOrganisasiController::class, 'index']);
+            Route::get('/all', [UnitOrganisasiController::class, 'all']);
+            Route::get('/stats', [UnitOrganisasiController::class, 'stats']);
+            Route::post('/', [UnitOrganisasiController::class, 'store']);
+            Route::get('/{id}', [UnitOrganisasiController::class, 'show']);
+            Route::put('/{id}', [UnitOrganisasiController::class, 'update']);
+            Route::delete('/{id}', [UnitOrganisasiController::class, 'destroy']);
+        });
+
+        // Peran (Role Management)
+        Route::prefix('peran')->group(function () {
+            Route::get('/', [PeranController::class, 'index']);
+            Route::get('/all', [PeranController::class, 'all']);
+            Route::get('/stats', [PeranController::class, 'stats']);
+            Route::post('/', [PeranController::class, 'store']);
+            Route::get('/{id}', [PeranController::class, 'show']);
+            Route::put('/{id}', [PeranController::class, 'update']);
+            Route::delete('/{id}', [PeranController::class, 'destroy']);
+        });
+
+        // Role Pengguna (User Role Assignment Management)
+        Route::prefix('role-pengguna')->group(function () {
+            Route::get('/', [RolePenggunaController::class, 'index']);
+            Route::get('/by-pengguna/{idPengguna}', [RolePenggunaController::class, 'byPengguna']);
+            Route::post('/', [RolePenggunaController::class, 'store']);
+            Route::get('/{id}', [RolePenggunaController::class, 'show']);
+            Route::put('/{id}', [RolePenggunaController::class, 'update']);
+            Route::delete('/{id}', [RolePenggunaController::class, 'destroy']);
+        });
+
+        // Endpoint (WS Endpoint Management)
+        Route::prefix('endpoint')->group(function () {
+            Route::get('/', [EndpointController::class, 'index']);
+            Route::get('/groups', [EndpointController::class, 'groups']);
+            Route::get('/stats', [EndpointController::class, 'stats']);
+            Route::post('/', [EndpointController::class, 'store']);
+            Route::get('/{id}', [EndpointController::class, 'show']);
+            Route::put('/{id}', [EndpointController::class, 'update']);
+            Route::delete('/{id}', [EndpointController::class, 'destroy']);
         });
     });
 });

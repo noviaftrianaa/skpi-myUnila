@@ -3,27 +3,27 @@
 namespace App\Http\Controllers\Api\ManAkses;
 
 use App\Http\Controllers\Controller;
-use App\Services\ManAkses\AplikasiService;
-use App\Repositories\ManAkses\AplikasiRepository;
+use App\Services\ManAkses\PeranService;
+use App\Repositories\ManAkses\PeranRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * Aplikasi Controller
- * API endpoints for aplikasi (application) management
+ * Peran Controller
+ * API endpoints for peran (role) management
  */
-class AplikasiController extends Controller
+class PeranController extends Controller
 {
-    protected AplikasiService $service;
+    protected PeranService $service;
 
     public function __construct()
     {
-        $repository = new AplikasiRepository();
-        $this->service = new AplikasiService($repository);
+        $repository = new PeranRepository();
+        $this->service = new PeranService($repository);
     }
 
     /**
-     * Get paginated list of aplikasi
+     * Get paginated list of peran
      *
      * @param Request $request
      * @return JsonResponse
@@ -35,33 +35,56 @@ class AplikasiController extends Controller
                 'page' => (int) $request->get('page', 1),
                 'limit' => (int) $request->get('limit', 10),
                 'search' => $request->get('search'),
-                'status' => $request->get('status'), // 'aktif', 'nonaktif'
-                'jenis' => $request->get('jenis'), // 'internal', 'external'
+                'status' => $request->get('status'),
             ];
 
             $result = $this->service->getList($params);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data aplikasi berhasil diambil',
+                'message' => 'Data peran berhasil diambil',
                 'data' => $result
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengambil data aplikasi: ' . $e->getMessage(),
+                'message' => 'Gagal mengambil data peran: ' . $e->getMessage(),
                 'data' => null
             ], 500);
         }
     }
 
     /**
-     * Get aplikasi detail
+     * Get all peran for dropdown
      *
-     * @param string $id
      * @return JsonResponse
      */
-    public function show(string $id): JsonResponse
+    public function all(): JsonResponse
+    {
+        try {
+            $result = $this->service->getAll();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data peran berhasil diambil',
+                'data' => $result
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data peran: ' . $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+    }
+
+    /**
+     * Get peran detail
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function show(int $id): JsonResponse
     {
         try {
             $result = $this->service->getDetail($id);
@@ -69,27 +92,27 @@ class AplikasiController extends Controller
             if (!$result) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Aplikasi tidak ditemukan',
+                    'message' => 'Peran tidak ditemukan',
                     'data' => null
                 ], 404);
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Detail aplikasi berhasil diambil',
+                'message' => 'Detail peran berhasil diambil',
                 'data' => $result
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengambil detail aplikasi: ' . $e->getMessage(),
+                'message' => 'Gagal mengambil detail peran: ' . $e->getMessage(),
                 'data' => null
             ], 500);
         }
     }
 
     /**
-     * Get aplikasi statistics
+     * Get peran statistics
      *
      * @return JsonResponse
      */
@@ -100,20 +123,20 @@ class AplikasiController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Statistik aplikasi berhasil diambil',
+                'message' => 'Statistik peran berhasil diambil',
                 'data' => $result
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengambil statistik aplikasi: ' . $e->getMessage(),
+                'message' => 'Gagal mengambil statistik peran: ' . $e->getMessage(),
                 'data' => null
             ], 500);
         }
     }
 
     /**
-     * Create new aplikasi
+     * Create new peran
      *
      * @param Request $request
      * @return JsonResponse
@@ -122,29 +145,16 @@ class AplikasiController extends Controller
     {
         try {
             $request->validate([
-                'nm_aplikasi' => 'required|string|max:255',
-                'ket_aplikasi' => 'nullable|string',
-                'id_organisasi' => 'nullable|string|max:36',
-                'url' => 'nullable|string|max:255',
-                'port' => 'nullable|string|max:10',
-                'teknologi' => 'nullable|string|max:100',
-                'endpoint_ws' => 'nullable|string|max:255',
-                'a_generate_menu' => 'nullable|boolean',
-                'a_integrasi_cas' => 'nullable|boolean',
-                'a_sistem_internal_pt' => 'nullable|boolean',
+                'nm_peran' => 'required|string|max:100',
+                'a_perlu_sk' => 'nullable|boolean',
             ]);
 
-            $data = $request->only([
-                'nm_aplikasi', 'ket_aplikasi', 'id_organisasi',
-                'url', 'port', 'teknologi', 'endpoint_ws',
-                'a_generate_menu', 'a_integrasi_cas', 'a_sistem_internal_pt'
-            ]);
-
+            $data = $request->only(['nm_peran', 'a_perlu_sk']);
             $result = $this->service->create($data);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Aplikasi berhasil ditambahkan',
+                'message' => 'Peran berhasil ditambahkan',
                 'data' => $result
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -156,54 +166,41 @@ class AplikasiController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menambahkan aplikasi: ' . $e->getMessage(),
+                'message' => 'Gagal menambahkan peran: ' . $e->getMessage(),
                 'data' => null
             ], 500);
         }
     }
 
     /**
-     * Update existing aplikasi
+     * Update existing peran
      *
      * @param Request $request
-     * @param string $id
+     * @param int $id
      * @return JsonResponse
      */
-    public function update(Request $request, string $id): JsonResponse
+    public function update(Request $request, int $id): JsonResponse
     {
         try {
             $request->validate([
-                'nm_aplikasi' => 'required|string|max:255',
-                'ket_aplikasi' => 'nullable|string',
-                'id_organisasi' => 'nullable|string|max:36',
-                'url' => 'nullable|string|max:255',
-                'port' => 'nullable|string|max:10',
-                'teknologi' => 'nullable|string|max:100',
-                'endpoint_ws' => 'nullable|string|max:255',
-                'a_generate_menu' => 'nullable|boolean',
-                'a_integrasi_cas' => 'nullable|boolean',
-                'a_sistem_internal_pt' => 'nullable|boolean',
+                'nm_peran' => 'required|string|max:100',
+                'a_perlu_sk' => 'nullable|boolean',
             ]);
 
-            $data = $request->only([
-                'nm_aplikasi', 'ket_aplikasi', 'id_organisasi',
-                'url', 'port', 'teknologi', 'endpoint_ws',
-                'a_generate_menu', 'a_integrasi_cas', 'a_sistem_internal_pt'
-            ]);
-
+            $data = $request->only(['nm_peran', 'a_perlu_sk']);
             $result = $this->service->update($id, $data);
 
             if (!$result) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Aplikasi tidak ditemukan',
+                    'message' => 'Peran tidak ditemukan',
                     'data' => null
                 ], 404);
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Aplikasi berhasil diperbarui',
+                'message' => 'Peran berhasil diperbarui',
                 'data' => $result
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -215,19 +212,19 @@ class AplikasiController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal memperbarui aplikasi: ' . $e->getMessage(),
+                'message' => 'Gagal memperbarui peran: ' . $e->getMessage(),
                 'data' => null
             ], 500);
         }
     }
 
     /**
-     * Delete aplikasi (soft delete)
+     * Delete peran (soft delete)
      *
-     * @param string $id
+     * @param int $id
      * @return JsonResponse
      */
-    public function destroy(string $id): JsonResponse
+    public function destroy(int $id): JsonResponse
     {
         try {
             $result = $this->service->delete($id);
@@ -235,20 +232,20 @@ class AplikasiController extends Controller
             if (!$result) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Aplikasi tidak ditemukan',
+                    'message' => 'Peran tidak ditemukan',
                     'data' => null
                 ], 404);
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Aplikasi berhasil dihapus',
+                'message' => 'Peran berhasil dihapus',
                 'data' => null
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menghapus aplikasi: ' . $e->getMessage(),
+                'message' => 'Gagal menghapus peran: ' . $e->getMessage(),
                 'data' => null
             ], 500);
         }
