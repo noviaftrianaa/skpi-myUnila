@@ -173,7 +173,7 @@ class RadiusApiClient
             $response = Http::timeout($this->timeout)
                 ->withoutVerifying()
                 ->withHeaders([
-                    'Authorization' => $token, // Token langsung tanpa "Bearer"
+                    'Authorization' => "Bearer {$token}",
                     'Accept' => 'application/json',
                 ])
                 ->get("{$this->baseUrl}{$endpoint}", $params);
@@ -196,7 +196,7 @@ class RadiusApiClient
                     $retryResponse = Http::timeout($this->timeout)
                         ->withoutVerifying()
                         ->withHeaders([
-                            'Authorization' => $token,
+                            'Authorization' => "Bearer {$token}",
                             'Accept' => 'application/json',
                         ])
                         ->get("{$this->baseUrl}{$endpoint}", $params);
