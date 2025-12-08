@@ -288,6 +288,7 @@ func (s *service) syncSingleAktivitas(aktData *FeederAktivitasData) AktivitasSyn
 }
 
 // Helper: buildFeederFilter builds Neo Feeder API filter string from SyncFilter
+// Example output: "id_semester = '20251' and id_prodi='15300df3-faf0-41fe-a79c-1e06f64e5e3d' and id_jenis_aktivitas='24'"
 func (s *service) buildFeederFilter(filter *SyncFilter) string {
 	if filter == nil {
 		return ""
@@ -314,12 +315,17 @@ func (s *service) buildFeederFilter(filter *SyncFilter) string {
 		conditions = append(conditions, fmt.Sprintf("id_prodi = '%s'", *filter.IDProdi))
 	}
 
+	// Build id_jenis_aktivitas filter (optional)
+	if filter.IDJenisAktivitas != nil && *filter.IDJenisAktivitas != 0 {
+		conditions = append(conditions, fmt.Sprintf("id_jenis_aktivitas = '%d'", *filter.IDJenisAktivitas))
+	}
+
 	// Join with AND
 	if len(conditions) == 0 {
 		return ""
 	}
 
-	return strings.Join(conditions, " AND ")
+	return strings.Join(conditions, " and ")
 }
 
 // Helper: getAktivitasListFromFeederWithFilter fetches aktivitas from Feeder API with filter

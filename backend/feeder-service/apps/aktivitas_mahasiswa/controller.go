@@ -250,6 +250,7 @@ func (ctrl *Controller) GetJenisAktivitasList(c *fiber.Ctx) error {
 // @Produce json
 // @Param id_semester query string false "Filter by ID Semester (comma-separated, optional, e.g., 20251,20241). If not provided, syncs all semesters"
 // @Param id_prodi query string false "Filter by ID Prodi (UUID, optional)"
+// @Param id_jenis_aktivitas query int false "Filter by ID Jenis Aktivitas (optional, e.g., 24 for Magang)"
 // @Param synced_by query string true "Username of person who triggered the sync"
 // @Param force_sync query bool false "Force sync (default: false)"
 // @Success 200 {object} BatchAktivitasSyncResult "Sync result"
@@ -259,6 +260,7 @@ func (ctrl *Controller) SyncAktivitasMahasiswa(c *fiber.Ctx) error {
 	ctx := context.Background()
 	idSemesterStr := c.Query("id_semester", "")
 	idProdi := c.Query("id_prodi", "")
+	idJenisAktivitasStr := c.Query("id_jenis_aktivitas", "")
 	syncedBy := c.Query("synced_by", "system")
 	forceSync := c.QueryBool("force_sync", false)
 
@@ -282,11 +284,20 @@ func (ctrl *Controller) SyncAktivitasMahasiswa(c *fiber.Ctx) error {
 		idProdiPtr = &idProdi
 	}
 
+	// Parse id_jenis_aktivitas (optional)
+	var idJenisAktivitasPtr *int
+	if idJenisAktivitasStr != "" {
+		if val, err := strconv.Atoi(idJenisAktivitasStr); err == nil {
+			idJenisAktivitasPtr = &val
+		}
+	}
+
 	// Build sync filter
 	filter := &SyncFilter{
-		IDSemester: idSemester,
-		IDProdi:    idProdiPtr,
-		ForceSync:  forceSync,
+		IDSemester:       idSemester,
+		IDProdi:          idProdiPtr,
+		IDJenisAktivitas: idJenisAktivitasPtr,
+		ForceSync:        forceSync,
 	}
 
 	// Perform batch sync

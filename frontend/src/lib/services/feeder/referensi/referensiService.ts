@@ -84,6 +84,7 @@ export const REFERENSI_ENDPOINTS = [
   { key: 'tingkat_prestasi', name: 'Tingkat Prestasi', description: 'Data tingkat prestasi' },
   { key: 'kebutuhan_khusus', name: 'Kebutuhan Khusus', description: 'Data kebutuhan khusus mahasiswa' },
   { key: 'wilayah', name: 'Wilayah', description: 'Data wilayah' },
+  { key: 'jenis_aktivitas', name: 'Jenis Aktivitas', description: 'Data jenis aktivitas mahasiswa' },
 ] as const;
 
 /**

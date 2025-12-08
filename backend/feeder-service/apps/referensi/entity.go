@@ -66,6 +66,7 @@ func GetReferensiEndpoints() []ReferensiEndpoint {
 		{Key: "penghasilan", Name: "Penghasilan", Description: "Data penghasilan", TableName: "ref.penghasilan", FeederAct: "GetPenghasilan", PKField: "id_penghasilan"},
 		{Key: "jenjang_pendidikan", Name: "Jenjang Pendidikan", Description: "Data jenjang pendidikan", TableName: "ref.jenjang_pendidikan", FeederAct: "GetJenjangPendidikan", PKField: "id_jenj_didik"},
 		{Key: "pembiayaan", Name: "Pembiayaan", Description: "Data pembiayaan", TableName: "ref.pembiayaan", FeederAct: "GetPembiayaan", PKField: "id_pembiayaan"},
+		{Key: "jenis_aktivitas", Name: "Jenis Aktivitas", Description: "Data jenis aktivitas mahasiswa", TableName: "ref.jenis_akt_mhs", FeederAct: "GetJenisAktivitasMahasiswa", PKField: "id_jns_akt_mhs"},
 	}
 }
 
@@ -323,4 +324,18 @@ type Pembiayaan struct {
 	LastUpdate   time.Time  `json:"last_update" db:"last_update"`
 	ExpiredDate  *time.Time `json:"expired_date" db:"expired_date"`
 	LastSync     time.Time  `json:"last_sync" db:"last_sync"`
+}
+
+// JenisAktivitas entity (ref.jenis_akt_mhs)
+type JenisAktivitas struct {
+	IDJnsAktMhs           int        `json:"id_jns_akt_mhs" db:"id_jns_akt_mhs"`
+	NmJnsAktMhs           string     `json:"nm_jns_akt_mhs" db:"nm_jns_akt_mhs"`
+	KetJnsAktMhs          *string    `json:"ket_jns_akt_mhs" db:"ket_jns_akt_mhs"`
+	ARefPddikti           int        `json:"a_ref_pddikti" db:"a_ref_pddikti"`
+	ARefUnila             int        `json:"a_ref_unila" db:"a_ref_unila"`
+	AKegiatanKampusMerdeka int       `json:"a_kegiatan_kampus_merdeka" db:"a_kegiatan_kampus_merdeka"`
+	CreateDate            time.Time  `json:"create_date" db:"create_date"`
+	LastUpdate            time.Time  `json:"last_update" db:"last_update"`
+	ExpiredDate           *time.Time `json:"expired_date" db:"expired_date"`
+	LastSync              time.Time  `json:"last_sync" db:"last_sync"`
 }

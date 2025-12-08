@@ -40,6 +40,7 @@ type Repository interface {
 	UpsertPenghasilan(ctx context.Context, data []map[string]interface{}) (*SyncResult, error)
 	UpsertJenjangPendidikan(ctx context.Context, data []map[string]interface{}) (*SyncResult, error)
 	UpsertPembiayaan(ctx context.Context, data []map[string]interface{}) (*SyncResult, error)
+	UpsertJenisAktivitas(ctx context.Context, data []map[string]interface{}) (*SyncResult, error)
 }
 
 type repository struct {
@@ -894,6 +895,50 @@ func (r *repository) UpsertPembiayaan(ctx context.Context, data []map[string]int
 		if err != nil {
 			result.FailedCount++
 			log.Printf("⚠️  [Referensi] Failed to upsert pembiayaan %d: %v", id, err)
+		} else {
+			result.InsertedCount++
+		}
+	}
+
+	result.TotalRecords = len(data)
+	return result, nil
+}
+
+// UpsertJenisAktivitas syncs jenis aktivitas mahasiswa data
+func (r *repository) UpsertJenisAktivitas(ctx context.Context, data []map[string]interface{}) (*SyncResult, error) {
+	result := &SyncResult{
+		EndpointKey:  "jenis_aktivitas",
+		EndpointName: "Jenis Aktivitas",
+		Status:       "success",
+	}
+
+	query := `
+		MERGE ref.jenis_akt_mhs AS target
+		USING (SELECT @p1 AS id_jns_akt_mhs) AS source
+		ON target.id_jns_akt_mhs = source.id_jns_akt_mhs
+		WHEN MATCHED THEN
+			UPDATE SET nm_jns_akt_mhs = @p2, ket_jns_akt_mhs = @p3, a_kegiatan_kampus_merdeka = @p4, last_update = @p5, last_sync = @p5
+		WHEN NOT MATCHED THEN
+			INSERT (id_jns_akt_mhs, nm_jns_akt_mhs, ket_jns_akt_mhs, a_kegiatan_kampus_merdeka, a_ref_pddikti, a_ref_unila, create_date, last_update, last_sync)
+			VALUES (@p1, @p2, @p3, @p4, 1, 1, @p5, @p5, @p5);
+	`
+
+	now := time.Now()
+	for _, item := range data {
+		id := getInt(item, "id_jenis_aktivitas_mahasiswa")
+		nama := getString(item, "nama_jenis_aktivitas_mahasiswa")
+		keterangan := getString(item, "ket_jenis_aktivitas_mahasiswa")
+		aKegiatanKM := getInt(item, "untuk_lesm_lkm")
+
+		var ketPtr *string
+		if keterangan != "" {
+			ketPtr = &keterangan
+		}
+
+		_, err := r.db.ExecContext(ctx, query, id, nama, ketPtr, aKegiatanKM, now)
+		if err != nil {
+			result.FailedCount++
+			log.Printf("⚠️  [Referensi] Failed to upsert jenis_aktivitas %d: %v", id, err)
 		} else {
 			result.InsertedCount++
 		}

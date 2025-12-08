@@ -173,9 +173,10 @@ type BatchAktivitasSyncResult struct {
 
 // SyncFilter - Filter for sync operations
 type SyncFilter struct {
-	IDSemester []string `json:"id_semester"` // Optional - format: ["20251", "20241"], support multiple semester. If empty, sync all semesters
-	IDProdi    *string  `json:"id_prodi,omitempty"` // Optional
-	ForceSync  bool     `json:"force_sync,omitempty"` // Optional
+	IDSemester        []string `json:"id_semester"`                   // Optional - format: ["20251", "20241"], support multiple semester. If empty, sync all semesters
+	IDProdi           *string  `json:"id_prodi,omitempty"`            // Optional
+	IDJenisAktivitas  *int     `json:"id_jenis_aktivitas,omitempty"`  // Optional - filter by jenis aktivitas (e.g., 24 for Magang)
+	ForceSync         bool     `json:"force_sync,omitempty"`          // Optional
 }
 
 // --- Sync Log Entity ---

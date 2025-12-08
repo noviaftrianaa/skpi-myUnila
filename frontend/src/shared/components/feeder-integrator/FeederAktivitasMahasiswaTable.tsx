@@ -89,7 +89,7 @@ export default function FeederAktivitasMahasiswaTable({ onFilterChange }: Feeder
         }
 
         // Load jenis aktivitas list
-        const jenisAktivitasRes = await feederClient.get("/aktivitas-mahasiswa/jenis-aktivitas");
+        const jenisAktivitasRes = await feederClient.get("/aktivitas-mahasiswa/jenis");
         if (jenisAktivitasRes.data.success) {
           setJenisAktivitasOptions(jenisAktivitasRes.data.data);
         }
