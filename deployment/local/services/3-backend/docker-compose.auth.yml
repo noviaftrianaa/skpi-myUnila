@@ -37,7 +37,7 @@ services:
       # Redis Configuration
       REDIS_HOST: "${AUTH_REDIS_HOST:-redis}"
       REDIS_PORT: "${AUTH_REDIS_PORT:-6379}"
-      CACHE_DRIVER: redis
+      CACHE_STORE: redis
       SESSION_DRIVER: redis
       QUEUE_CONNECTION: redis
 
