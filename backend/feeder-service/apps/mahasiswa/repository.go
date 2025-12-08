@@ -761,6 +761,8 @@ func (r *repository) GetMahasiswaStats(ctx context.Context) (*MahasiswaStats, er
 	}
 
 	// Card 2: Total mahasiswa AKTIF - Berdasarkan semester aktif/berjalan (kuliah_mhs)
+	// Status aktif ditentukan oleh kuliah_mhs.id_stat_mhs = 'A' (per semester)
+	// Tidak perlu filter pd.id_stat_mhs karena status master bisa berbeda
 	err = r.db.GetContext(ctx, &stats.TotalAktif, `
 		SELECT COUNT(DISTINCT pd.id_pd) AS total
 		FROM pdrd.kuliah_mhs AS kmh
@@ -770,7 +772,6 @@ func (r *repository) GetMahasiswaStats(ctx context.Context) (*MahasiswaStats, er
 		JOIN pdrd.peserta_didik AS pd
 			ON pd.id_pd = reg.id_pd
 			AND pd.soft_delete = 0
-			AND pd.id_stat_mhs = 'A'
 		INNER JOIN pdrd.sms AS sms
 			ON sms.id_sms = reg.id_sms
 			AND sms.soft_delete = 0
@@ -787,6 +788,7 @@ func (r *repository) GetMahasiswaStats(ctx context.Context) (*MahasiswaStats, er
 	}
 
 	// Card 3: Total mahasiswa TIDAK AKTIF - Di semester berjalan
+	// Status tidak aktif ditentukan oleh kuliah_mhs.id_stat_mhs != 'A' (per semester)
 	err = r.db.GetContext(ctx, &stats.TotalTidakAktif, `
 		SELECT COUNT(DISTINCT pd.id_pd)
 		FROM pdrd.kuliah_mhs AS kmh
@@ -796,7 +798,6 @@ func (r *repository) GetMahasiswaStats(ctx context.Context) (*MahasiswaStats, er
 		JOIN pdrd.peserta_didik AS pd
 			ON pd.id_pd = reg.id_pd
 			AND pd.soft_delete = 0
-			AND pd.id_stat_mhs = 'A'
 		INNER JOIN pdrd.sms AS sms
 			ON sms.id_sms = reg.id_sms
 			AND sms.soft_delete = 0
