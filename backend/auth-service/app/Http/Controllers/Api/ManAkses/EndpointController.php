@@ -3,27 +3,27 @@
 namespace App\Http\Controllers\Api\ManAkses;
 
 use App\Http\Controllers\Controller;
-use App\Services\ManAkses\AplikasiService;
-use App\Repositories\ManAkses\AplikasiRepository;
+use App\Services\ManAkses\EndpointService;
+use App\Repositories\ManAkses\EndpointRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * Aplikasi Controller
- * API endpoints for aplikasi (application) management
+ * Endpoint Controller
+ * API endpoints for WS endpoint management
  */
-class AplikasiController extends Controller
+class EndpointController extends Controller
 {
-    protected AplikasiService $service;
+    protected EndpointService $service;
 
     public function __construct()
     {
-        $repository = new AplikasiRepository();
-        $this->service = new AplikasiService($repository);
+        $repository = new EndpointRepository();
+        $this->service = new EndpointService($repository);
     }
 
     /**
-     * Get paginated list of aplikasi
+     * Get paginated list of endpoints
      *
      * @param Request $request
      * @return JsonResponse
@@ -35,28 +35,29 @@ class AplikasiController extends Controller
                 'page' => (int) $request->get('page', 1),
                 'limit' => (int) $request->get('limit', 10),
                 'search' => $request->get('search'),
-                'status' => $request->get('status'), // 'aktif', 'nonaktif'
-                'jenis' => $request->get('jenis'), // 'internal', 'external'
+                'nm_group' => $request->get('nm_group'),
+                'nm_method' => $request->get('nm_method'),
+                'a_active' => $request->has('a_active') ? filter_var($request->get('a_active'), FILTER_VALIDATE_BOOLEAN) : null,
             ];
 
             $result = $this->service->getList($params);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data aplikasi berhasil diambil',
+                'message' => 'Data endpoint berhasil diambil',
                 'data' => $result
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengambil data aplikasi: ' . $e->getMessage(),
+                'message' => 'Gagal mengambil data endpoint: ' . $e->getMessage(),
                 'data' => null
             ], 500);
         }
     }
 
     /**
-     * Get aplikasi detail
+     * Get endpoint detail
      *
      * @param string $id
      * @return JsonResponse
@@ -69,27 +70,51 @@ class AplikasiController extends Controller
             if (!$result) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Aplikasi tidak ditemukan',
+                    'message' => 'Endpoint tidak ditemukan',
                     'data' => null
                 ], 404);
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Detail aplikasi berhasil diambil',
+                'message' => 'Detail endpoint berhasil diambil',
                 'data' => $result
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengambil detail aplikasi: ' . $e->getMessage(),
+                'message' => 'Gagal mengambil detail endpoint: ' . $e->getMessage(),
                 'data' => null
             ], 500);
         }
     }
 
     /**
-     * Get aplikasi statistics
+     * Get all groups for dropdown
+     *
+     * @return JsonResponse
+     */
+    public function groups(): JsonResponse
+    {
+        try {
+            $result = $this->service->getGroups();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data group berhasil diambil',
+                'data' => $result
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data group: ' . $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+    }
+
+    /**
+     * Get endpoint statistics
      *
      * @return JsonResponse
      */
@@ -100,20 +125,20 @@ class AplikasiController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Statistik aplikasi berhasil diambil',
+                'message' => 'Statistik endpoint berhasil diambil',
                 'data' => $result
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengambil statistik aplikasi: ' . $e->getMessage(),
+                'message' => 'Gagal mengambil statistik endpoint: ' . $e->getMessage(),
                 'data' => null
             ], 500);
         }
     }
 
     /**
-     * Create new aplikasi
+     * Create new endpoint
      *
      * @param Request $request
      * @return JsonResponse
@@ -122,29 +147,19 @@ class AplikasiController extends Controller
     {
         try {
             $request->validate([
-                'nm_aplikasi' => 'required|string|max:255',
-                'ket_aplikasi' => 'nullable|string',
-                'id_organisasi' => 'nullable|string|max:36',
-                'url' => 'nullable|string|max:255',
-                'port' => 'nullable|string|max:10',
-                'teknologi' => 'nullable|string|max:100',
-                'endpoint_ws' => 'nullable|string|max:255',
-                'a_generate_menu' => 'nullable|boolean',
-                'a_integrasi_cas' => 'nullable|boolean',
-                'a_sistem_internal_pt' => 'nullable|boolean',
+                'nm_endpoint' => 'required|string|max:255',
+                'path_url' => 'required|string|max:500',
+                'nm_group' => 'nullable|string|max:100',
+                'nm_method' => 'nullable|string|in:GET,POST,PUT,PATCH,DELETE',
+                'a_active' => 'nullable|boolean',
             ]);
 
-            $data = $request->only([
-                'nm_aplikasi', 'ket_aplikasi', 'id_organisasi',
-                'url', 'port', 'teknologi', 'endpoint_ws',
-                'a_generate_menu', 'a_integrasi_cas', 'a_sistem_internal_pt'
-            ]);
-
+            $data = $request->all();
             $result = $this->service->create($data);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Aplikasi berhasil ditambahkan',
+                'message' => 'Endpoint berhasil ditambahkan',
                 'data' => $result
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -156,14 +171,14 @@ class AplikasiController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menambahkan aplikasi: ' . $e->getMessage(),
+                'message' => 'Gagal menambahkan endpoint: ' . $e->getMessage(),
                 'data' => null
             ], 500);
         }
     }
 
     /**
-     * Update existing aplikasi
+     * Update existing endpoint
      *
      * @param Request $request
      * @param string $id
@@ -173,37 +188,27 @@ class AplikasiController extends Controller
     {
         try {
             $request->validate([
-                'nm_aplikasi' => 'required|string|max:255',
-                'ket_aplikasi' => 'nullable|string',
-                'id_organisasi' => 'nullable|string|max:36',
-                'url' => 'nullable|string|max:255',
-                'port' => 'nullable|string|max:10',
-                'teknologi' => 'nullable|string|max:100',
-                'endpoint_ws' => 'nullable|string|max:255',
-                'a_generate_menu' => 'nullable|boolean',
-                'a_integrasi_cas' => 'nullable|boolean',
-                'a_sistem_internal_pt' => 'nullable|boolean',
+                'nm_endpoint' => 'required|string|max:255',
+                'path_url' => 'required|string|max:500',
+                'nm_group' => 'nullable|string|max:100',
+                'nm_method' => 'nullable|string|in:GET,POST,PUT,PATCH,DELETE',
+                'a_active' => 'nullable|boolean',
             ]);
 
-            $data = $request->only([
-                'nm_aplikasi', 'ket_aplikasi', 'id_organisasi',
-                'url', 'port', 'teknologi', 'endpoint_ws',
-                'a_generate_menu', 'a_integrasi_cas', 'a_sistem_internal_pt'
-            ]);
-
+            $data = $request->all();
             $result = $this->service->update($id, $data);
 
             if (!$result) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Aplikasi tidak ditemukan',
+                    'message' => 'Endpoint tidak ditemukan',
                     'data' => null
                 ], 404);
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Aplikasi berhasil diperbarui',
+                'message' => 'Endpoint berhasil diperbarui',
                 'data' => $result
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -215,14 +220,14 @@ class AplikasiController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal memperbarui aplikasi: ' . $e->getMessage(),
+                'message' => 'Gagal memperbarui endpoint: ' . $e->getMessage(),
                 'data' => null
             ], 500);
         }
     }
 
     /**
-     * Delete aplikasi (soft delete)
+     * Delete endpoint (soft delete)
      *
      * @param string $id
      * @return JsonResponse
@@ -235,20 +240,20 @@ class AplikasiController extends Controller
             if (!$result) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Aplikasi tidak ditemukan',
+                    'message' => 'Endpoint tidak ditemukan',
                     'data' => null
                 ], 404);
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Aplikasi berhasil dihapus',
+                'message' => 'Endpoint berhasil dihapus',
                 'data' => null
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menghapus aplikasi: ' . $e->getMessage(),
+                'message' => 'Gagal menghapus endpoint: ' . $e->getMessage(),
                 'data' => null
             ], 500);
         }

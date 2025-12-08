@@ -2,19 +2,61 @@
 
 namespace App\Repositories\ManAkses;
 
+use App\Services\RadiusApi\RadiusApiClient;
+use App\Services\RadiusApi\RadiusUserService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Pengguna Repository
  * Handle all pengguna (user) related database operations for Manajemen Akses
+ *
+ * Updated: Sekarang menggunakan Radius API untuk mengecek status SSO
+ * Fallback ke database connection jika API tidak tersedia/disabled
  */
 class PenggunaRepository
 {
+    protected ?RadiusUserService $radiusUserService = null;
+
     /**
-     * Check if radius database (MySQL) is available
+     * Get Radius User Service instance (lazy loading)
+     */
+    private function getRadiusUserService(): RadiusUserService
+    {
+        if ($this->radiusUserService === null) {
+            $client = new RadiusApiClient();
+            $this->radiusUserService = new RadiusUserService($client);
+        }
+        return $this->radiusUserService;
+    }
+
+    /**
+     * Check if Radius API is enabled and configured
+     */
+    private function isRadiusApiEnabled(): bool
+    {
+        return config('radius_api.enabled', true) &&
+               !empty(config('radius_api.base_url'));
+    }
+
+    /**
+     * Check if radius is available (API or database)
      */
     private function isRadiusAvailable(): bool
+    {
+        // Try API first if enabled
+        if ($this->isRadiusApiEnabled()) {
+            return $this->getRadiusUserService()->isAvailable();
+        }
+
+        // Fallback to database connection
+        return $this->isRadiusDatabaseAvailable();
+    }
+
+    /**
+     * Check if radius database (MySQL) is available (fallback)
+     */
+    private function isRadiusDatabaseAvailable(): bool
     {
         try {
             DB::connection('radius')->select("SELECT 1");
@@ -26,12 +68,29 @@ class PenggunaRepository
     }
 
     /**
-     * Get usernames from radius database that exist in SSO
+     * Get usernames from Radius (via API or database)
      * Returns array of usernames for efficient lookup
      */
     private function getRadiusUsernames(): array
     {
-        if (!$this->isRadiusAvailable()) {
+        // Try API first if enabled
+        if ($this->isRadiusApiEnabled()) {
+            $usernames = $this->getRadiusUserService()->getAllUsernames();
+            if (!empty($usernames)) {
+                return $usernames;
+            }
+        }
+
+        // Fallback to database if API failed or not enabled
+        return $this->getRadiusUsernamesFromDatabase();
+    }
+
+    /**
+     * Get usernames from radius database (fallback method)
+     */
+    private function getRadiusUsernamesFromDatabase(): array
+    {
+        if (!$this->isRadiusDatabaseAvailable()) {
             return [];
         }
 
@@ -46,7 +105,7 @@ class PenggunaRepository
             // Filter out any null/empty values that might slip through
             return array_filter($results, fn($v) => is_string($v) && $v !== '');
         } catch (\Exception $e) {
-            Log::warning('Failed to get radius usernames: ' . $e->getMessage());
+            Log::warning('Failed to get radius usernames from database: ' . $e->getMessage());
             return [];
         }
     }
@@ -347,12 +406,7 @@ class PenggunaRepository
 
     /**
      * Get statistics for pengguna
-     * Note: Radius is MySQL, main DB is SQL Server - calculate SSO counts separately
-     *
-     * Optimized: Instead of fetching all 111k usernames and doing whereIn,
-     * we use a more efficient approach:
-     * 1. Get SSO count directly from radius (unique usernames that match pengguna format)
-     * 2. This is much faster as we don't need to transfer 111k usernames
+     * Note: Radius data diambil via API atau database (dengan fallback)
      *
      * @return object
      */
@@ -370,12 +424,38 @@ class PenggunaRepository
 
         $stats = DB::selectOne($sql);
 
-        // Get SSO count efficiently using native SQL
-        // Instead of loading all 111k usernames into memory and doing whereIn,
-        // we count distinct usernames directly from radius table
-        if ($this->isRadiusAvailable()) {
+        // Get SSO count from Radius API or database
+        if ($this->isRadiusApiEnabled()) {
+            // Try Radius API first
             try {
-                // Count distinct SSO usernames from radius using native SQL
+                $radiusStats = $this->getRadiusUserService()->getStats();
+                if ($radiusStats['available']) {
+                    $stats->total_sso = $radiusStats['total_sso'];
+                    $stats->total_non_sso = max(0, $stats->total_pengguna - $radiusStats['total_sso']);
+                } else {
+                    // API not available, try database fallback
+                    $this->getSsoStatsFromDatabase($stats);
+                }
+            } catch (\Exception $e) {
+                Log::warning('Failed to get SSO stats from API: ' . $e->getMessage());
+                // Try database fallback
+                $this->getSsoStatsFromDatabase($stats);
+            }
+        } else {
+            // API disabled, use database
+            $this->getSsoStatsFromDatabase($stats);
+        }
+
+        return $stats;
+    }
+
+    /**
+     * Get SSO stats from database (fallback method)
+     */
+    private function getSsoStatsFromDatabase(object $stats): void
+    {
+        if ($this->isRadiusDatabaseAvailable()) {
+            try {
                 $ssoResult = DB::connection('radius')->selectOne("
                     SELECT COUNT(DISTINCT username) as total_sso
                     FROM radcheck
@@ -383,16 +463,10 @@ class PenggunaRepository
                 ");
 
                 $ssoCount = $ssoResult->total_sso ?? 0;
-
-                // Note: This counts ALL radius users, not just those in pengguna table
-                // For a more accurate count, we'd need to do a cross-database check
-                // But for dashboard display purposes, this provides a reasonable estimate
-                // and is much faster than the previous approach
-
                 $stats->total_sso = $ssoCount;
                 $stats->total_non_sso = max(0, $stats->total_pengguna - $ssoCount);
             } catch (\Exception $e) {
-                Log::warning('Failed to get SSO stats: ' . $e->getMessage());
+                Log::warning('Failed to get SSO stats from database: ' . $e->getMessage());
                 $stats->total_sso = 0;
                 $stats->total_non_sso = $stats->total_pengguna;
             }
@@ -401,19 +475,31 @@ class PenggunaRepository
             $stats->total_sso = 0;
             $stats->total_non_sso = $stats->total_pengguna;
         }
-
-        return $stats;
     }
 
     /**
-     * Check if username exists in SSO Radius (MySQL database)
+     * Check if username exists in SSO Radius (via API or database)
      *
      * @param string $username
      * @return bool
      */
     public function checkSsoStatus(string $username): bool
     {
-        if (!$this->isRadiusAvailable()) {
+        // Try API first if enabled
+        if ($this->isRadiusApiEnabled()) {
+            return $this->getRadiusUserService()->usernameExists($username);
+        }
+
+        // Fallback to database
+        return $this->checkSsoStatusFromDatabase($username);
+    }
+
+    /**
+     * Check SSO status from database (fallback method)
+     */
+    private function checkSsoStatusFromDatabase(string $username): bool
+    {
+        if (!$this->isRadiusDatabaseAvailable()) {
             return false;
         }
 
@@ -424,7 +510,7 @@ class PenggunaRepository
                 ->first();
             return $result !== null;
         } catch (\Exception $e) {
-            Log::warning('Failed to check SSO status: ' . $e->getMessage());
+            Log::warning('Failed to check SSO status from database: ' . $e->getMessage());
             return false;
         }
     }

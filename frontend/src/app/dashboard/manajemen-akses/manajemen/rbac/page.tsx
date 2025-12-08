@@ -1,15 +1,41 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
-import { Card, CardBody, Button } from "@heroui/react";
-import { FiKey, FiArrowLeft } from "react-icons/fi";
-import { MdSecurity, MdConstruction } from "react-icons/md";
+import RolePenggunaTable from "@/shared/components/manakses/RolePenggunaTable";
+import {
+  Spinner,
+} from "@heroui/react";
+import { MdSecurity } from "react-icons/md";
 import { manajemenAksesMenuConfig } from "../../config/menuConfig";
-import Link from "next/link";
 
 export default function RBACPage() {
   useRequireAuth();
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <DashboardLayout
+        appName="Manajemen Akses"
+        appIcon={<MdSecurity className="w-6 h-6 text-white" />}
+        menuConfig={manajemenAksesMenuConfig}
+        pageTitle="Role Base Access"
+      >
+        <div className="flex justify-center items-center h-96">
+          <Spinner size="lg" color="primary" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout
@@ -18,53 +44,21 @@ export default function RBACPage() {
       menuConfig={manajemenAksesMenuConfig}
       pageTitle="Role Base Access"
     >
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Card className="max-w-lg w-full border-none shadow-xl">
-          <CardBody className="p-8 text-center">
-            <div className="mb-6">
-              <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center mb-4">
-                <MdConstruction className="w-12 h-12 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                Coming Soon
-              </h2>
-              <p className="text-gray-500 dark:text-gray-400">
-                Fitur Role Base Access Control sedang dalam pengembangan
-              </p>
-            </div>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+              Role Base Access Control
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Kelola assignment peran ke pengguna di sistem Manajemen Akses
+            </p>
+          </div>
+        </div>
 
-            <div className="space-y-3 mb-6">
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
-                <FiKey className="w-5 h-5 text-blue-500" />
-                <span className="text-sm text-gray-600 dark:text-gray-300">
-                  Konfigurasi RBAC policies
-                </span>
-              </div>
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
-                <FiKey className="w-5 h-5 text-green-500" />
-                <span className="text-sm text-gray-600 dark:text-gray-300">
-                  Resource-based access control
-                </span>
-              </div>
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
-                <FiKey className="w-5 h-5 text-purple-500" />
-                <span className="text-sm text-gray-600 dark:text-gray-300">
-                  Permission matrix management
-                </span>
-              </div>
-            </div>
-
-            <Button
-              as={Link}
-              href="/dashboard/manajemen-akses"
-              color="primary"
-              variant="flat"
-              startContent={<FiArrowLeft className="w-4 h-4" />}
-            >
-              Kembali ke Dashboard
-            </Button>
-          </CardBody>
-        </Card>
+        {/* Data Table */}
+        <RolePenggunaTable />
       </div>
     </DashboardLayout>
   );

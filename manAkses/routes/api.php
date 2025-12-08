@@ -23,5 +23,12 @@ Route::group([
             Route::get('/reset', 'PenggunaController@reset');
         });
 
+        // SSO Radius API - Fetch data from radius MySQL database (protected)
+        Route::middleware('auth.api')->prefix('v1/sso-radius')->group(function () {
+            Route::get('/stats', 'SsoRadiusController@stats');
+            Route::get('/users', 'SsoRadiusController@users');
+            Route::get('/preview/{username}', 'SsoRadiusController@preview');
+        });
+
     });
 });

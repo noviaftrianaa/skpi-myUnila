@@ -90,7 +90,7 @@ export default function DaftarAplikasiPage() {
                     </div>
                   </div>
                   <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
-                    {stats?.total_aplikasi.toLocaleString() || "0"}
+                    {stats?.total_aplikasi?.toLocaleString() || "0"}
                   </h3>
                   <p className="text-[10px] text-indigo-100/80 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
@@ -117,7 +117,7 @@ export default function DaftarAplikasiPage() {
                     </div>
                   </div>
                   <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
-                    {stats?.total_aktif.toLocaleString() || "0"}
+                    {stats?.total_aktif?.toLocaleString() || "0"}
                   </h3>
                   <p className="text-[10px] text-emerald-100/80">
                     Aplikasi yang masih aktif
@@ -143,7 +143,7 @@ export default function DaftarAplikasiPage() {
                     </div>
                   </div>
                   <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
-                    {stats?.total_internal.toLocaleString() || "0"}
+                    {stats?.total_internal?.toLocaleString() || "0"}
                   </h3>
                   <p className="text-[10px] text-blue-100/80">
                     Sistem internal PT
@@ -169,7 +169,7 @@ export default function DaftarAplikasiPage() {
                     </div>
                   </div>
                   <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
-                    {stats?.total_integrasi_cas.toLocaleString() || "0"}
+                    {stats?.total_integrasi_cas?.toLocaleString() || "0"}
                   </h3>
                   <p className="text-[10px] text-orange-100/80">
                     Terintegrasi CAS/SSO

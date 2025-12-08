@@ -70,6 +70,18 @@ rebuild_service() {
         docker exec $container_name php artisan cache:clear 2>/dev/null || true
     fi
 
+    # Start queue worker for auth-service (for background sync jobs)
+    if [ "$service_name" == "auth" ]; then
+        echo "  → Starting queue worker for background jobs..."
+        docker exec -d $container_name sh -c "nohup php artisan queue:work redis --tries=3 --timeout=1800 --memory=256 > /var/www/storage/logs/queue-worker.log 2>&1 &"
+        sleep 2
+        if docker exec $container_name ps aux | grep -q "queue:work"; then
+            echo -e "  ${GREEN}✓ Queue worker started${NC}"
+        else
+            echo -e "  ${YELLOW}! Queue worker may not have started, check manually${NC}"
+        fi
+    fi
+
     echo -e "${GREEN}✓ ${service_name} service rebuilt${NC}"
     echo ""
 }
