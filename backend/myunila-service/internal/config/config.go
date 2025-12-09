@@ -47,7 +47,23 @@ func LoadConfig() error {
 	// In production, environment variables are passed via docker-compose
 	env := os.Getenv("APP_ENV")
 	if env == "" || env == "development" || env == "local" {
-		if err := godotenv.Load(); err != nil {
+		// Try multiple locations for .env file
+		envPaths := []string{
+			".env",                          // Current directory
+			"../../.env",                    // From cmd/api/ to root
+			"../../../myunila-service/.env", // Alternative path
+		}
+
+		loaded := false
+		for _, path := range envPaths {
+			if err := godotenv.Load(path); err == nil {
+				fmt.Printf("Loaded .env from: %s\n", path)
+				loaded = true
+				break
+			}
+		}
+
+		if !loaded {
 			fmt.Println("Warning: .env file not found, using environment variables")
 		}
 	} else {

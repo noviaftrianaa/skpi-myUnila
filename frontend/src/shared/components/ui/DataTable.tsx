@@ -36,6 +36,7 @@ interface DataTableProps<T> {
   rowsPerPageOptions?: number[];
   className?: string;
   filterSlot?: React.ReactNode;
+  actionSlot?: React.ReactNode;
   noWrapper?: boolean;
   loading?: boolean;
   serverSide?: boolean;
@@ -44,6 +45,7 @@ interface DataTableProps<T> {
   onRowsPerPageChange?: (rows: number) => void;
   onSearchChange?: (query: string) => void;
   onSortChange?: (key: string, order: "asc" | "desc") => void;
+  emptyMessage?: React.ReactNode;
 }
 
 export default function DataTable<T extends Record<string, any>>({
@@ -56,6 +58,7 @@ export default function DataTable<T extends Record<string, any>>({
   rowsPerPageOptions = [5, 10, 25, 50],
   className = "",
   filterSlot,
+  actionSlot,
   noWrapper = false,
   loading = false,
   serverSide = false,
@@ -64,6 +67,7 @@ export default function DataTable<T extends Record<string, any>>({
   onRowsPerPageChange,
   onSearchChange,
   onSortChange,
+  emptyMessage,
 }: DataTableProps<T>) {
   const [searchValue, setSearchValue] = useState("");
   const [page, setPage] = useState(1);
@@ -241,6 +245,7 @@ export default function DataTable<T extends Record<string, any>>({
                 </SelectItem>
               ))}
             </Select>
+            {actionSlot && actionSlot}
           </div>
         </div>
       </div>

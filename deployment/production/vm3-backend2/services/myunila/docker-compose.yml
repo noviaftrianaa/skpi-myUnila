@@ -23,9 +23,14 @@ services:
       DB_TRUST_SERVER_CERTIFICATE: "true"
 
       # SIKEP API Configuration
-      SIKEP_API_BASE_URL: ${SIKEP_API_BASE_URL:-https://sikep.unila.ac.id/api/v1}
+      SIKEP_API_BASE_URL: ${SIKEP_API_BASE_URL:-https://sikep.unila.ac.id/2022/api/v1}
       SIKEP_API_USERNAME: ${SIKEP_API_USERNAME}
       SIKEP_API_PASSWORD: ${SIKEP_API_PASSWORD}
+
+      # Radius API Configuration (SSO Unila)
+      RADIUS_API_BASE_URL: ${RADIUS_API_BASE_URL:-https://akses.unila.ac.id/api/live/v1}
+      RADIUS_API_APP_KEY: ${RADIUS_API_APP_KEY}
+      RADIUS_API_USERNAME: ${RADIUS_API_USERNAME}
 
       # Encryption Key
       API_CONFIG_ENCRYPTION_KEY: ${API_CONFIG_ENCRYPTION_KEY}
