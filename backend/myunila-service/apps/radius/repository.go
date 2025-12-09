@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // Repository interface for pengguna data access
@@ -24,6 +25,10 @@ type Repository interface {
 
 	// Statistics
 	GetPenggunaStats(ctx context.Context) (*PenggunaStats, error)
+
+	// Role operations
+	UpsertRolePengguna(ctx context.Context, idPengguna string, roles []*RolePengguna) *UpsertResult
+	GetRolesByPengguna(ctx context.Context, idPengguna string) ([]*RolePengguna, error)
 
 	// Helpers
 	GetAllUsernames(ctx context.Context) ([]string, error)
@@ -61,6 +66,7 @@ func (r *repository) BulkUpsertPengguna(ctx context.Context, data []*Pengguna) *
 
 	// SQL Server MERGE query for upsert
 	// Match by username (SSO identifier)
+	// Password Strategy: SHA1 (from SSO) + bcrypt(SHA1) for auth service
 	query := `
 		MERGE man_akses.pengguna AS target
 		USING (SELECT @p1 AS username) AS source
@@ -70,18 +76,20 @@ func (r *repository) BulkUpsertPengguna(ctx context.Context, data []*Pengguna) *
 				nm_pengguna = @p2,
 				email = @p3,
 				a_aktif = @p4,
-				last_update = @p5,
-				last_sync = @p5
+				password = @p5,
+				password_encrypt = @p6,
+				last_update = @p7,
+				last_sync = @p7
 		WHEN NOT MATCHED THEN
 			INSERT (
 				id_pengguna, username, nm_pengguna, email,
-				a_aktif, disable, soft_delete,
+				a_aktif, disable, soft_delete, password, password_encrypt,
 				tgl_create, last_update, last_sync
 			)
 			VALUES (
-				@p6, @p1, @p2, @p3,
-				@p4, 0, 0,
-				@p5, @p5, @p5
+				@p8, @p1, @p2, @p3,
+				@p4, 0, 0, @p5, @p6,
+				@p7, @p7, @p7
 			);
 	`
 
@@ -92,13 +100,34 @@ func (r *repository) BulkUpsertPengguna(ctx context.Context, data []*Pengguna) *
 		// Generate UUID for new records
 		newUUID := uuid.New().String()
 
-		_, err := r.db.ExecContext(ctx, query,
-			p.Username,   // @p1 - username (for matching and insert)
-			p.NmPengguna, // @p2 - nm_pengguna
-			p.Email,      // @p3 - email
-			p.AAktif,     // @p4 - a_aktif
-			now,          // @p5 - timestamp (last_update, last_sync, tgl_create)
-			newUUID,      // @p6 - id_pengguna (only for insert)
+		// Password handling:
+		// p.Password contains SHA1 hash from SSO (radcheck.value)
+		// Generate bcrypt(SHA1) for auth service verification
+		passwordSha1 := p.Password
+		if passwordSha1 == "" {
+			// Default password if not provided (SHA1 of 'unilajaya')
+			passwordSha1 = "7c4a8d09ca3762af61e59520943dc26494f8941b" // sha1('123456')
+		}
+
+		// Generate bcrypt hash of SHA1 password (cost 12 matches Laravel's bcrypt)
+		passwordBcrypt, err := bcrypt.GenerateFromPassword([]byte(passwordSha1), 12)
+		if err != nil {
+			result.TotalFailed++
+			errMsg := fmt.Sprintf("bcrypt %s: %v", p.Username, err)
+			result.Errors = append(result.Errors, errMsg)
+			log.Printf("⚠️  [Radius Upsert] bcrypt error: %s", errMsg)
+			continue
+		}
+
+		_, err = r.db.ExecContext(ctx, query,
+			p.Username,            // @p1 - username (for matching and insert)
+			p.NmPengguna,          // @p2 - nm_pengguna
+			p.Email,               // @p3 - email
+			p.AAktif,              // @p4 - a_aktif
+			passwordSha1,          // @p5 - password (SHA1)
+			string(passwordBcrypt), // @p6 - password_encrypt (bcrypt of SHA1)
+			now,                   // @p7 - timestamp (last_update, last_sync, tgl_create)
+			newUUID,               // @p8 - id_pengguna (only for insert)
 		)
 		if err != nil {
 			result.TotalFailed++
@@ -433,4 +462,111 @@ func (r *repository) GetAllUsernames(ctx context.Context) ([]string, error) {
 	}
 
 	return usernames, nil
+}
+
+// UpsertRolePengguna performs upsert for role_pengguna
+// Matches by id_pengguna + id_peran + id_organisasi combination
+// If exists, updates; if not, inserts new role
+func (r *repository) UpsertRolePengguna(ctx context.Context, idPengguna string, roles []*RolePengguna) *UpsertResult {
+	result := &UpsertResult{
+		Errors: make([]string, 0),
+	}
+
+	if len(roles) == 0 {
+		return result
+	}
+
+	now := time.Now()
+
+	// Process each role
+	for _, role := range roles {
+		// Check if role already exists for this pengguna
+		checkQuery := `
+			SELECT id_role_pengguna 
+			FROM man_akses.role_pengguna 
+			WHERE id_pengguna = @p1 AND id_peran = @p2 AND soft_delete = 0
+		`
+		
+		var existingID string
+		err := r.db.GetContext(ctx, &existingID, checkQuery, idPengguna, role.IDPeran)
+		
+		if err == sql.ErrNoRows {
+			// Insert new role
+			insertQuery := `
+				INSERT INTO man_akses.role_pengguna (
+					id_role_pengguna, id_pengguna, id_organisasi, id_peran,
+					approval_peran, soft_delete, tgl_create, last_update, last_sync
+				) VALUES (
+					@p1, @p2, @p3, @p4, @p5, 0, @p6, @p6, @p6
+				)
+			`
+			newUUID := uuid.New().String()
+			_, err = r.db.ExecContext(ctx, insertQuery,
+				newUUID,            // @p1 - id_role_pengguna
+				idPengguna,         // @p2 - id_pengguna
+				role.IDOrganisasi,  // @p3 - id_organisasi
+				role.IDPeran,       // @p4 - id_peran
+				1,                  // @p5 - approval_peran (default approved)
+				now,                // @p6 - timestamps
+			)
+			if err != nil {
+				result.TotalFailed++
+				errMsg := fmt.Sprintf("insert role %d for %s: %v", role.IDPeran, idPengguna, err)
+				result.Errors = append(result.Errors, errMsg)
+				log.Printf("⚠️  [Role Upsert] %s", errMsg)
+			} else {
+				result.TotalInserted++
+				result.TotalSuccess++
+			}
+		} else if err != nil {
+			result.TotalFailed++
+			errMsg := fmt.Sprintf("check role %d for %s: %v", role.IDPeran, idPengguna, err)
+			result.Errors = append(result.Errors, errMsg)
+		} else {
+			// Update existing role
+			updateQuery := `
+				UPDATE man_akses.role_pengguna 
+				SET id_organisasi = @p1, last_update = @p2, last_sync = @p2
+				WHERE id_role_pengguna = @p3
+			`
+			_, err = r.db.ExecContext(ctx, updateQuery,
+				role.IDOrganisasi,  // @p1
+				now,                // @p2
+				existingID,         // @p3
+			)
+			if err != nil {
+				result.TotalFailed++
+				errMsg := fmt.Sprintf("update role %d for %s: %v", role.IDPeran, idPengguna, err)
+				result.Errors = append(result.Errors, errMsg)
+				log.Printf("⚠️  [Role Upsert] %s", errMsg)
+			} else {
+				result.TotalUpdated++
+				result.TotalSuccess++
+			}
+		}
+	}
+
+	return result
+}
+
+// GetRolesByPengguna retrieves all roles for a pengguna
+func (r *repository) GetRolesByPengguna(ctx context.Context, idPengguna string) ([]*RolePengguna, error) {
+	query := `
+		SELECT 
+			CONVERT(VARCHAR(36), id_role_pengguna) as id_role_pengguna,
+			CONVERT(VARCHAR(36), id_pengguna) as id_pengguna,
+			CONVERT(VARCHAR(36), id_organisasi) as id_organisasi,
+			id_peran,
+			soft_delete
+		FROM man_akses.role_pengguna
+		WHERE id_pengguna = @p1 AND soft_delete = 0
+	`
+
+	var roles []*RolePengguna
+	err := r.db.SelectContext(ctx, &roles, query, idPengguna)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get roles: %w", err)
+	}
+
+	return roles, nil
 }

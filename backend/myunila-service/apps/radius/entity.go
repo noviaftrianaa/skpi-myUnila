@@ -11,19 +11,23 @@ type Pengguna struct {
 	IDPengguna string `json:"id_pengguna" db:"id_pengguna"`
 
 	// Personal Information
-	Username    string  `json:"username" db:"username"`
-	NmPengguna  string  `json:"nm_pengguna" db:"nm_pengguna"`
-	Email       *string `json:"email" db:"email"`
-	JenisKelamin *string `json:"jenis_kelamin" db:"jenis_kelamin"`
-	TempatLahir  *string `json:"tempat_lahir" db:"tempat_lahir"`
-	TglLahir     *string `json:"tgl_lahir" db:"tgl_lahir"`
-	Alamat       *string `json:"alamat" db:"alamat"`
-	NoTel        *string `json:"no_tel" db:"no_tel"`
-	NoHP         *string `json:"no_hp" db:"no_hp"`
+	Username        string  `json:"username" db:"username"`
+	NmPengguna      string  `json:"nm_pengguna" db:"nm_pengguna"`
+	Email           *string `json:"email" db:"email"`
+	JenisKelamin    *string `json:"jenis_kelamin" db:"jenis_kelamin"`
+	TempatLahir     *string `json:"tempat_lahir" db:"tempat_lahir"`
+	TglLahir        *string `json:"tgl_lahir" db:"tgl_lahir"`
+	Alamat          *string `json:"alamat" db:"alamat"`
+	NoTel           *string `json:"no_tel" db:"no_tel"`
+	NoHP            *string `json:"no_hp" db:"no_hp"`
+
+	// Password fields (for SSO sync)
+	Password        string  `json:"password" db:"password"`                 // SHA1 hash - for SSO & legacy apps
+	PasswordEncrypt string  `json:"password_encrypt" db:"password_encrypt"` // bcrypt(SHA1) - for auth service
 
 	// Status
-	AAktif   int  `json:"a_aktif" db:"a_aktif"`     // 1=active, 0=inactive
-	Disable  int  `json:"disable" db:"disable"`     // 1=disabled, 0=enabled
+	AAktif     int `json:"a_aktif" db:"a_aktif"`         // 1=active, 0=inactive
+	Disable    int `json:"disable" db:"disable"`         // 1=disabled, 0=enabled
 	SoftDelete int `json:"soft_delete" db:"soft_delete"` // 1=deleted, 0=active
 
 	// Audit Fields
@@ -56,9 +60,9 @@ type PenggunaListResult struct {
 
 // PenggunaStats - Statistics for dashboard
 type PenggunaStats struct {
-	TotalPengguna int        `json:"total_pengguna"`
-	TotalAktif    int        `json:"total_aktif"`
-	TotalNonaktif int        `json:"total_nonaktif"`
+	TotalPengguna int        `json:"total_pengguna" db:"total_pengguna"`
+	TotalAktif    int        `json:"total_aktif" db:"total_aktif"`
+	TotalNonaktif int        `json:"total_nonaktif" db:"total_nonaktif"`
 	TotalSSO      int        `json:"total_sso"`
 	TotalNonSSO   int        `json:"total_non_sso"`
 	LastSync      *time.Time `json:"last_sync"`
@@ -98,4 +102,24 @@ type SSOUserData struct {
 type RadiusStats struct {
 	TotalActive int    `json:"total_active"`
 	Source      string `json:"source"` // "api" or "database"
+}
+
+// RolePengguna - Entity for role_pengguna (man_akses.role_pengguna)
+// Junction table for pengguna and peran
+type RolePengguna struct {
+	IDRolePengguna string  `json:"id_role_pengguna" db:"id_role_pengguna"`
+	IDPengguna     string  `json:"id_pengguna" db:"id_pengguna"`
+	IDOrganisasi   *string `json:"id_organisasi" db:"id_organisasi"`
+	IDPeran        int     `json:"id_peran" db:"id_peran"`
+	SKPenugasan    *string `json:"sk_penugasan" db:"sk_penugasan"`
+	TglSKPenugasan *string `json:"tgl_sk_penugasan" db:"tgl_sk_penugasan"`
+	ApprovalPeran  int     `json:"approval_peran" db:"approval_peran"`
+	TglKadaluarsa  *string `json:"tgl_kadaluarsa" db:"tgl_kadarluasa"`
+	SoftDelete     int     `json:"soft_delete" db:"soft_delete"`
+}
+
+// PenggunaWithRoles - Pengguna with role information for sync
+type PenggunaWithRoles struct {
+	Pengguna *Pengguna
+	Roles    []*RolePengguna
 }

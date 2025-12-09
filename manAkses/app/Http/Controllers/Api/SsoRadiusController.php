@@ -89,6 +89,7 @@ class SsoRadiusController extends Controller
                 ->select(
                     'id',
                     'username',
+                    'value as password_hash', // SHA1 password from radcheck
                     'nm_pengguna',
                     'email',
                     'tanggal_lahir',
@@ -113,6 +114,7 @@ class SsoRadiusController extends Controller
                 return [
                     'id' => $user->id,
                     'username' => $user->username,
+                    'password_hash' => $user->password_hash ?? null, // SHA1 password for sync
                     'nm_pengguna' => $user->nm_pengguna,
                     'email' => $user->email,
                     'tanggal_lahir' => $user->tanggal_lahir,
