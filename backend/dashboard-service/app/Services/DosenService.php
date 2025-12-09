@@ -22,7 +22,7 @@ class DosenService
     public function getDosenByJenjangPendidikan(): array
     {
         $cacheKey = 'dosen_jenjang_pendidikan_v2';
-        $cacheDuration = 3600; // 1 hour
+        $cacheDuration = 1800; // 30 minutes
 
         return Cache::remember($cacheKey, $cacheDuration, function () {
             $data = $this->repository->getDosenByJenjangPendidikan();
@@ -58,7 +58,7 @@ class DosenService
     public function getDosenByJabatanFungsional(): array
     {
         $cacheKey = 'dosen_jabatan_fungsional_v2';
-        $cacheDuration = 3600; // 1 hour
+        $cacheDuration = 1800; // 30 minutes
 
         return Cache::remember($cacheKey, $cacheDuration, function () {
             $data = $this->repository->getDosenByJabatanFungsional();
@@ -107,7 +107,7 @@ class DosenService
     public function getStatistics(): array
     {
         $cacheKey = 'dosen_statistics_v2';
-        $cacheDuration = 3600; // 1 hour
+        $cacheDuration = 1800; // 30 minutes
 
         return Cache::remember($cacheKey, $cacheDuration, function () {
             $totalDosen = $this->repository->getTotalDosen();
