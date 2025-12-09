@@ -22,7 +22,7 @@ class DosenSebaranService
     public function getSebaranByFakultas(): array
     {
         $cacheKey = 'dosen_sebaran_fakultas';
-        $cacheDuration = 3600; // 1 hour
+        $cacheDuration = 1800; // 30 minutes
 
         return Cache::remember($cacheKey, $cacheDuration, function () {
             $data = $this->repository->getSebaranDosenByFakultas();
@@ -54,7 +54,7 @@ class DosenSebaranService
     public function getSebaranByProdiInFakultas(string $idFakultas): array
     {
         $cacheKey = "dosen_sebaran_prodi_{$idFakultas}";
-        $cacheDuration = 3600; // 1 hour
+        $cacheDuration = 1800; // 30 minutes
 
         return Cache::remember($cacheKey, $cacheDuration, function () use ($idFakultas) {
             $data = $this->repository->getSebaranDosenByProdiInFakultas($idFakultas);
