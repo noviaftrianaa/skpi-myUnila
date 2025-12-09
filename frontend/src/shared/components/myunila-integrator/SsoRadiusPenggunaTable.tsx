@@ -11,7 +11,8 @@ interface PenggunaListItem {
   nm_pengguna: string;
   email: string | null;
   a_aktif: number;
-  a_sso: number;
+  role_pengguna: string[] | null;
+
   last_sync: string | null;
   created_at: string | null;
   updated_at: string | null;
@@ -29,7 +30,7 @@ export default function SsoRadiusPenggunaTable({ refreshTrigger }: SsoRadiusPeng
   const [searchQuery, setSearchQuery] = useState("");
   const [totalRecords, setTotalRecords] = useState(0);
   const [filterStatus, setFilterStatus] = useState<string>("");
-  const [filterSso, setFilterSso] = useState<string>("");
+  
   const [sortBy, setSortBy] = useState<string>("username");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
@@ -49,10 +50,6 @@ export default function SsoRadiusPenggunaTable({ refreshTrigger }: SsoRadiusPeng
     { value: "nonaktif", label: "Non-Aktif" },
   ];
 
-  const ssoOptions = [
-    { value: "yes", label: "Sudah Sync SSO" },
-    { value: "no", label: "Belum Sync SSO" },
-  ];
 
   // Handle sort change
   const handleSortChange = (key: string, order: "asc" | "desc") => {
@@ -79,9 +76,6 @@ export default function SsoRadiusPenggunaTable({ refreshTrigger }: SsoRadiusPeng
           params.append("status", filterStatus);
         }
 
-        if (filterSso) {
-          params.append("has_sso", filterSso);
-        }
 
         if (sortBy) {
           params.append("sort_by", sortBy);
@@ -103,7 +97,7 @@ export default function SsoRadiusPenggunaTable({ refreshTrigger }: SsoRadiusPeng
     };
 
     loadData();
-  }, [currentPage, rowsPerPage, searchQuery, filterStatus, filterSso, sortBy, sortOrder, refreshTrigger]);
+  }, [currentPage, rowsPerPage, searchQuery, filterStatus, sortBy, sortOrder, refreshTrigger]);
 
   const formatDate = (dateString?: string | null) => {
     if (!dateString) return "-";
@@ -124,6 +118,12 @@ export default function SsoRadiusPenggunaTable({ refreshTrigger }: SsoRadiusPeng
   const cleanString = (str: string | null | undefined): string => {
     if (!str) return "-";
     return str.trim();
+  };
+
+  // Get first role from role_pengguna array
+  const getFirstRole = (roles: string[] | null): string => {
+    if (!roles || roles.length === 0) return "-";
+    return roles[0];
   };
 
   const columns: Column<PenggunaListItem>[] = [
@@ -156,6 +156,24 @@ export default function SsoRadiusPenggunaTable({ refreshTrigger }: SsoRadiusPeng
       ),
     },
     {
+      key: "role_pengguna",
+      label: "PERAN",
+      align: "center",
+      width: "150px",
+      render: (item) => {
+        const role = getFirstRole(item.role_pengguna);
+        return (
+          <Chip
+            size="sm"
+            variant="flat"
+            color={role !== "-" ? "secondary" : "default"}
+          >
+            {role}
+          </Chip>
+        );
+      },
+    },
+    {
       key: "a_aktif",
       label: "STATUS",
       align: "center",
@@ -170,36 +188,6 @@ export default function SsoRadiusPenggunaTable({ refreshTrigger }: SsoRadiusPeng
             color={isAktif ? "success" : "danger"}
           >
             {isAktif ? "Aktif" : "Non-Aktif"}
-          </Chip>
-        );
-      },
-    },
-    {
-      key: "a_sso",
-      label: "SSO RADIUS",
-      align: "center",
-      width: "140px",
-      sortable: true,
-      render: (item) => {
-        const hasSso = item.a_sso === 1;
-        return (
-          <Chip
-            size="sm"
-            variant="flat"
-            color={hasSso ? "primary" : "default"}
-            startContent={
-              hasSso ? (
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-              ) : (
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              )
-            }
-          >
-            {hasSso ? "Sudah Sync" : "Belum Sync"}
           </Chip>
         );
       },
@@ -261,34 +249,6 @@ export default function SsoRadiusPenggunaTable({ refreshTrigger }: SsoRadiusPeng
             </SelectItem>
           ))}
         </Select>
-
-        <Select
-          aria-label="Filter SSO"
-          placeholder="Semua SSO Status"
-          selectedKeys={filterSso ? [filterSso] : []}
-          onSelectionChange={(keys) => {
-            const selected = Array.from(keys)[0] as string;
-            setFilterSso(selected || "");
-            setCurrentPage(1);
-          }}
-          classNames={{
-            base: "w-full",
-            trigger: "h-10 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-blue-400 focus:border-blue-500 transition-colors shadow-sm",
-            value: "text-[10px] font-medium text-gray-700 dark:text-gray-300",
-            innerWrapper: "!bg-white dark:!bg-gray-800 pr-8",
-            popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200 min-w-[180px]",
-            listbox: "!bg-white dark:!bg-gray-800",
-            selectorIcon: "right-2",
-          }}
-          size="sm"
-          variant="bordered"
-        >
-          {ssoOptions.map((option) => (
-            <SelectItem key={option.value} textValue={option.label}>
-              <span className="text-xs">{option.label}</span>
-            </SelectItem>
-          ))}
-        </Select>
       </div>
 
       <div className="flex gap-2 items-center">
@@ -298,11 +258,10 @@ export default function SsoRadiusPenggunaTable({ refreshTrigger }: SsoRadiusPeng
           color="default"
           onPress={() => {
             setFilterStatus("");
-            setFilterSso("");
             setCurrentPage(1);
           }}
           className="h-10 px-3 text-[10px] whitespace-nowrap bg-white hover:bg-gray-100 border border-gray-200"
-          isDisabled={filterStatus === "" && filterSso === ""}
+          isDisabled={filterStatus === ""}
         >
           Reset Filter
         </Button>

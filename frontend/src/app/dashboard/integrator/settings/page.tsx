@@ -61,20 +61,8 @@ export default function APIConfigurationPage() {
     try {
       setLoading(true);
       const data = await apiConfigService.getAll();
-      // Filter only SIKEP/MyUnila-related configs (case-insensitive)
-      const myunilaConfigs = data.filter(
-        (config) =>
-          config.api_code?.toUpperCase().includes("SIKEP") ||
-          config.api_code?.toUpperCase().includes("MYUNILA") ||
-          config.api_code?.toUpperCase().includes("SIAKADU") ||
-          config.api_code?.toUpperCase().includes("SIRANDU") ||
-          config.api_code?.toUpperCase().includes("MANAKSES") ||
-          config.api_name?.toUpperCase().includes("SIKEP") ||
-          config.api_name?.toUpperCase().includes("MYUNILA") ||
-          config.tags?.toUpperCase().includes("SIKEP") ||
-          config.tags?.toUpperCase().includes("MYUNILA")
-      );
-      setConfigs(myunilaConfigs);
+      // Show all API configs without filter
+      setConfigs(data);
     } catch (error: any) {
       toast.error(`Failed to load API configurations: ${error.message}`);
     } finally {

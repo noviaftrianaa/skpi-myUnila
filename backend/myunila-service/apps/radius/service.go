@@ -31,7 +31,7 @@ type RadiusAPIClient interface {
 	GetToken() error
 	ForceRefreshToken() error
 	TestConnection() error
-	GetUsers(page, limit int) (*radius_api.UsersData, error)
+	GetUsers(page, limit int) (*radius_api.UsersResponse, error)
 	GetAllUsers() ([]radius_api.SSOUser, error)
 	GetStats() (int, error)
 	IsAvailable() bool
@@ -57,18 +57,9 @@ func NewService(repo Repository, radiusAPI RadiusAPIClient) Service {
 
 // GetPenggunaList retrieves paginated list of pengguna
 func (s *service) GetPenggunaList(ctx context.Context, page, limit int, search string, status, hasSso *string) (*PenggunaListResult, error) {
-	// Get SSO usernames from Radius API for filtering
-	var ssoUsernames []string
-	if s.radiusAPI != nil && s.radiusAPI.IsAvailable() {
-		users, err := s.radiusAPI.GetAllUsers()
-		if err == nil {
-			for _, u := range users {
-				ssoUsernames = append(ssoUsernames, u.Username)
-			}
-		}
-	}
-
-	return s.repo.GetPenggunaList(ctx, page, limit, search, status, hasSso, ssoUsernames)
+	// Query directly from database without SSO API call
+	// SSO usernames are no longer needed for filtering since we removed SSO column
+	return s.repo.GetPenggunaList(ctx, page, limit, search, status, hasSso, nil)
 }
 
 // GetPenggunaByID retrieves a single pengguna by ID
@@ -204,6 +195,33 @@ func (s *service) SyncFromRadius(ctx context.Context, filter *SyncFilter, synced
 		}
 	}
 
+	// Sync roles for each user
+	log.Printf("🔄 [Radius Sync] Syncing roles for users...")
+	rolesSynced := 0
+	rolesErrors := 0
+	for _, user := range users {
+		if user.RolePengguna == nil {
+			continue
+		}
+		// Get pengguna ID by username
+		p, err := s.repo.GetPenggunaByUsername(ctx, user.Username)
+		if err != nil || p == nil {
+			continue
+		}
+		// Build role list
+		roles := []*RolePengguna{
+			{
+				IDPeran:      user.RolePengguna.IDPeran,
+				IDOrganisasi: &user.RolePengguna.IDOrganisasi,
+			},
+		}
+		// Upsert roles
+		roleResult := s.repo.UpsertRolePengguna(ctx, p.IDPengguna, roles)
+		rolesSynced += roleResult.TotalSuccess
+		rolesErrors += roleResult.TotalFailed
+	}
+	log.Printf("✅ [Radius Sync] Roles synced: %d success, %d failed", rolesSynced, rolesErrors)
+
 	duration := time.Since(startTime)
 	durationMs := int(duration.Milliseconds())
 
@@ -319,10 +337,18 @@ func (s *service) logSyncResult(ctx context.Context, syncType, status, syncedBy 
 
 // transformRadiusUser transforms Radius API response to Pengguna entity
 func (s *service) transformRadiusUser(user radius_api.SSOUser) *Pengguna {
+	// Determine active status based on Status field
+	// If status is not empty (e.g., "karyawan", "Mahasiswa"), consider active
+	aAktif := 0
+	if user.Status != "" {
+		aAktif = 1
+	}
+
 	p := &Pengguna{
 		Username:   user.Username,
-		NmPengguna: user.Nama,
-		AAktif:     user.AktifInt,
+		NmPengguna: user.NmPengguna,
+		AAktif:     aAktif,
+		Password:   user.PasswordHash, // SHA1 password from SSO API
 	}
 
 	if user.Email != "" {

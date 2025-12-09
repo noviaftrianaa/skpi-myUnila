@@ -41,27 +41,44 @@ type LoginResponse struct {
 
 // UsersResponse represents the response from /sso-radius/users
 type UsersResponse struct {
-	Status  bool        `json:"status"`
-	Message string      `json:"message"`
-	Data    UsersData   `json:"data"`
+	Success bool       `json:"success"`
+	Message string     `json:"message"`
+	Data    []SSOUser  `json:"data"`
+	Meta    UsersMeta  `json:"meta"`
 }
 
-// UsersData represents the nested data structure
-type UsersData struct {
-	Data       []SSOUser `json:"data"`
-	Total      int       `json:"total"`
-	Page       int       `json:"page"`
-	Limit      int       `json:"limit"`
-	TotalPages int       `json:"total_pages"`
+// UsersMeta represents pagination metadata
+type UsersMeta struct {
+	Total      int `json:"total"`
+	Page       int `json:"page"`
+	Limit      int `json:"limit"`
+	TotalPages int `json:"total_pages"`
 }
 
 // SSOUser represents a user from SSO Radius API
 type SSOUser struct {
-	ID        int    `json:"id"`
-	Username  string `json:"username"`
-	Nama      string `json:"nama"`
-	Email     string `json:"email"`
-	AktifInt  int    `json:"a_aktif"`
+	ID           int           `json:"id"`
+	Username     string        `json:"username"`
+	PasswordHash string        `json:"password_hash"` // SHA1 password from radcheck
+	NmPengguna   string        `json:"nm_pengguna"`
+	Email        string        `json:"email"`
+	TanggalLahir string        `json:"tanggal_lahir"`
+	NIP          string        `json:"nip"`
+	Status       string        `json:"status"`
+	DomainEmail  string        `json:"domain_email"`
+	RolePengguna *RolePengguna `json:"role_pengguna"`
+	FoundInPDUT  bool          `json:"found_in_pdut"`
+}
+
+// RolePengguna represents user role from SSO Radius API
+type RolePengguna struct {
+	IDPeran       int     `json:"id_peran"`
+	NmPeran       string  `json:"nm_peran"`
+	IDOrganisasi  string  `json:"id_organisasi"`
+	NmOrganisasi  string  `json:"nm_organisasi"`
+	IDPdPengguna  *string `json:"id_pd_pengguna"`
+	IDSdmPengguna *string `json:"id_sdm_pengguna"`
+	IDUserSikep   *string `json:"id_user_sikep"`
 }
 
 var (
@@ -215,7 +232,7 @@ func (c *RadiusClient) GetToken() error {
 }
 
 // GetUsers fetches SSO users from Radius API with pagination
-func (c *RadiusClient) GetUsers(page, limit int) (*UsersData, error) {
+func (c *RadiusClient) GetUsers(page, limit int) (*UsersResponse, error) {
 	if c.Token == "" {
 		if err := c.GetToken(); err != nil {
 			return nil, err
@@ -264,14 +281,14 @@ func (c *RadiusClient) GetUsers(page, limit int) (*UsersData, error) {
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 
-	if !usersResp.Status {
+	if !usersResp.Success {
 		return nil, fmt.Errorf("API error: %s", usersResp.Message)
 	}
 
 	log.Printf("📊 [Radius API] GetUsers(page=%d, limit=%d) -> returned %d records, total: %d",
-		page, limit, len(usersResp.Data.Data), usersResp.Data.Total)
+		page, limit, len(usersResp.Data), usersResp.Meta.Total)
 
-	return &usersResp.Data, nil
+	return &usersResp, nil
 }
 
 // GetAllUsers fetches all SSO users with automatic pagination
@@ -281,7 +298,7 @@ func (c *RadiusClient) GetAllUsers() ([]SSOUser, error) {
 	limit := 1000 // Large batch size
 
 	for {
-		data, err := c.GetUsers(page, limit)
+		resp, err := c.GetUsers(page, limit)
 		if err != nil {
 			if len(allUsers) > 0 {
 				log.Printf("⚠️  [Radius API] Error at page %d, returning %d records collected so far: %v", page, len(allUsers), err)
@@ -290,13 +307,13 @@ func (c *RadiusClient) GetAllUsers() ([]SSOUser, error) {
 			return nil, err
 		}
 
-		if len(data.Data) == 0 {
+		if len(resp.Data) == 0 {
 			break
 		}
 
-		allUsers = append(allUsers, data.Data...)
+		allUsers = append(allUsers, resp.Data...)
 
-		if page >= data.TotalPages {
+		if page >= resp.Meta.TotalPages {
 			break
 		}
 
@@ -309,11 +326,11 @@ func (c *RadiusClient) GetAllUsers() ([]SSOUser, error) {
 
 // GetStats fetches SSO statistics
 func (c *RadiusClient) GetStats() (int, error) {
-	data, err := c.GetUsers(1, 1)
+	resp, err := c.GetUsers(1, 1)
 	if err != nil {
 		return 0, err
 	}
-	return data.Total, nil
+	return resp.Meta.Total, nil
 }
 
 // TestConnection tests the connection to Radius API
