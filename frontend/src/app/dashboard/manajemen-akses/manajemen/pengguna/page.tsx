@@ -1,78 +1,31 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
 import PenggunaTable from "@/shared/components/manakses/PenggunaTable";
-import SyncRadiusModal from "@/shared/components/manakses/SyncRadiusModal";
 import {
   Card,
   CardBody,
-  Spinner,
-  Button,
-  Chip,
-  Tooltip,
 } from "@heroui/react";
 import {
   FiUsers,
   FiCheckCircle,
   FiDatabase,
   FiWifi,
-  FiRefreshCw,
-  FiServer,
-  FiCloud,
 } from "react-icons/fi";
 import { MdSecurity } from "react-icons/md";
 import { manajemenAksesMenuConfig } from "../../config/menuConfig";
-import { penggunaService, type PenggunaStats, type RadiusStatus } from "@/lib/services/manakses/penggunaService";
+import { type PenggunaStats } from "@/lib/services/manakses/penggunaService";
 
 export default function DaftarPenggunaPage() {
   useRequireAuth();
 
   const [stats, setStats] = useState<PenggunaStats | null>(null);
-  const [radiusStatus, setRadiusStatus] = useState<RadiusStatus | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
-  const [tableKey, setTableKey] = useState(0);
-
-  useEffect(() => {
-    // Load radius status on mount
-    const loadRadiusStatus = async () => {
-      try {
-        const status = await penggunaService.getRadiusStatus();
-        setRadiusStatus(status);
-      } catch (error) {
-        console.error("Failed to load radius status:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadRadiusStatus();
-  }, []);
 
   const handleStatsLoaded = (loadedStats: PenggunaStats) => {
     setStats(loadedStats);
   };
-
-  // Refresh table after sync completes
-  const handleSyncComplete = useCallback(() => {
-    setTableKey((prev) => prev + 1);
-  }, []);
-
-  if (isLoading) {
-    return (
-      <DashboardLayout
-        appName="Manajemen Akses"
-        appIcon={<MdSecurity className="w-6 h-6 text-white" />}
-        menuConfig={manajemenAksesMenuConfig}
-        pageTitle="Daftar Pengguna"
-      >
-        <div className="flex justify-center items-center h-96">
-          <Spinner size="lg" color="primary" />
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   return (
     <DashboardLayout
@@ -88,42 +41,10 @@ export default function DaftarPenggunaPage() {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
               Daftar Pengguna
             </h1>
-            <div className="flex items-center gap-2 mt-1">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Kelola data pengguna sistem Manajemen Akses
-              </p>
-              {radiusStatus && (
-                <Tooltip
-                  content={
-                    <div className="p-2 text-xs">
-                      <p><strong>Sumber Data SSO:</strong> {radiusStatus.source === 'api' ? 'Radius API' : radiusStatus.source === 'database' ? 'Database MySQL' : 'Tidak tersedia'}</p>
-                      <p><strong>API Enabled:</strong> {radiusStatus.api_enabled ? 'Ya' : 'Tidak'}</p>
-                      <p><strong>API Available:</strong> {radiusStatus.api_available ? 'Ya' : 'Tidak'}</p>
-                      <p><strong>DB Fallback:</strong> {radiusStatus.fallback_available ? 'Tersedia' : 'Tidak tersedia'}</p>
-                    </div>
-                  }
-                >
-                  <Chip
-                    size="sm"
-                    variant="flat"
-                    color={radiusStatus.source === 'api' ? 'success' : radiusStatus.source === 'database' ? 'warning' : 'danger'}
-                    startContent={radiusStatus.source === 'api' ? <FiCloud className="w-3 h-3" /> : <FiServer className="w-3 h-3" />}
-                    className="cursor-help"
-                  >
-                    {radiusStatus.source === 'api' ? 'Radius API' : radiusStatus.source === 'database' ? 'Database' : 'Offline'}
-                  </Chip>
-                </Tooltip>
-              )}
-            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Kelola data pengguna sistem Manajemen Akses
+            </p>
           </div>
-          <Button
-            color="primary"
-            variant="shadow"
-            startContent={<FiRefreshCw className="w-4 h-4" />}
-            onPress={() => setIsSyncModalOpen(true)}
-          >
-            Sync dari Radius
-          </Button>
         </div>
 
         {/* Statistics Cards */}
@@ -235,14 +156,7 @@ export default function DaftarPenggunaPage() {
         </div>
 
         {/* Data Table */}
-        <PenggunaTable key={tableKey} onStatsLoaded={handleStatsLoaded} />
-
-        {/* Sync Modal */}
-        <SyncRadiusModal
-          isOpen={isSyncModalOpen}
-          onClose={() => setIsSyncModalOpen(false)}
-          onSyncComplete={handleSyncComplete}
-        />
+        <PenggunaTable onStatsLoaded={handleStatsLoaded} />
       </div>
     </DashboardLayout>
   );

@@ -14,9 +14,11 @@ import (
 	"github.com/myunila/myunila-service/apps/logger"
 	"github.com/myunila/myunila-service/apps/monitoring"
 	"github.com/myunila/myunila-service/apps/scheduler"
+	"github.com/myunila/myunila-service/apps/radius"
 	"github.com/myunila/myunila-service/apps/sikep/pegawai"
 	"github.com/myunila/myunila-service/apps/sikep/referensi"
 	"github.com/myunila/myunila-service/external/database"
+	"github.com/myunila/myunila-service/external/radius_api"
 	"github.com/myunila/myunila-service/external/sikep_api"
 	"github.com/myunila/myunila-service/internal/config"
 	"github.com/myunila/myunila-service/pkg/crypto"
@@ -80,6 +82,14 @@ func main() {
 		log.Println("✅ SIKEP API client initialized")
 	}
 
+	// Initialize Radius API client
+	radiusAPI, err := radius_api.NewRadiusClient()
+	if err != nil {
+		log.Printf("⚠️  Failed to initialize Radius API client: %v", err)
+	} else {
+		log.Println("✅ Radius API client initialized")
+	}
+
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
 		AppName:      config.Cfg.App.Name,
@@ -87,18 +97,18 @@ func main() {
 		ErrorHandler: customErrorHandler,
 	})
 
-	// Middlewares
+	// Middlewares - CORS must be first to handle preflight requests properly
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     "http://localhost:3000, http://localhost:3001, http://localhost:9800, *",
+		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS,PATCH",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-Requested-With, X-User-ID",
+		AllowCredentials: false, // Set to false when using * in AllowOrigins
+		ExposeHeaders:    "Content-Length",
+		MaxAge:           12 * 3600,
+	}))
 	app.Use(recover.New())
 	app.Use(fiberlogger.New(fiberlogger.Config{
 		Format: "[${time}] ${status} - ${latency} ${method} ${path}\n",
-	}))
-	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:3000, http://localhost:3001, http://localhost:9800",
-		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS,PATCH",
-		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-Requested-With, X-User-ID",
-		AllowCredentials: true,
-		ExposeHeaders:    "Content-Length",
-		MaxAge:           12 * 3600,
 	}))
 
 	// Health check
@@ -129,6 +139,10 @@ func main() {
 	referensi.Init(apiV1, db.DB, sikepAPI)
 	log.Println("✅ SIKEP Referensi module initialized")
 
+	// Initialize Radius module
+	radiusSvc := radius.Init(apiV1, db.DB, radiusAPI)
+	log.Println("✅ Radius module initialized")
+
 	// Initialize Monitoring module
 	monitoring.Init(apiV1)
 	log.Println("✅ Monitoring module initialized")
@@ -136,6 +150,10 @@ func main() {
 	// Initialize Scheduler module
 	schedulerSvc := scheduler.Init(apiV1, db.DB)
 	log.Println("✅ Scheduler module initialized")
+
+	// Connect sync services to scheduler
+	schedulerSvc.SetRadiusSyncService(radiusSvc)
+	log.Println("✅ Radius sync service connected to scheduler")
 
 	// Start scheduler
 	if err := schedulerSvc.Start(); err != nil {
@@ -157,6 +175,9 @@ func main() {
 				"sikep_sync":       "/api/v1/sikep/pegawai/sync",
 				"sikep_referensi":  "/api/v1/sikep/referensi",
 				"sikep_ref_meta":   "/api/v1/sikep/referensi/metadata",
+				"radius_pengguna":  "/api/v1/radius/pengguna",
+				"radius_stats":     "/api/v1/radius/stats",
+				"radius_sync":      "/api/v1/radius/sync",
 				"logger":           "/api/v1/logger",
 				"monitoring":       "/api/v1/monitoring",
 				"scheduler":        "/api/v1/schedules",

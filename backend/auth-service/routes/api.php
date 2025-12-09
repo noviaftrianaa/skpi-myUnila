@@ -9,7 +9,6 @@ use App\Http\Controllers\CacheController;
 use App\Http\Controllers\MfaController;
 use App\Http\Controllers\Api\ManAkses\PenggunaController;
 use App\Http\Controllers\Api\ManAkses\AplikasiController;
-use App\Http\Controllers\Api\ManAkses\SyncController;
 use App\Http\Controllers\Api\ManAkses\UnitOrganisasiController;
 use App\Http\Controllers\Api\ManAkses\PeranController;
 use App\Http\Controllers\Api\ManAkses\RolePenggunaController;
@@ -125,23 +124,6 @@ Route::prefix('v1')->group(function () {
             Route::get('/{id}', [AplikasiController::class, 'show']);
             Route::put('/{id}', [AplikasiController::class, 'update']);
             Route::delete('/{id}', [AplikasiController::class, 'destroy']);
-        });
-
-        // Sync Radius to ManAkses
-        Route::prefix('sync')->group(function () {
-            // Get sync status and progress
-            Route::get('/status', [SyncController::class, 'getStatus']);
-            Route::get('/progress', [SyncController::class, 'getProgress']);
-            Route::get('/logs', [SyncController::class, 'getLogs']);
-
-            // Get radius database stats
-            Route::get('/radius-stats', [SyncController::class, 'getRadiusStats']);
-
-            // Start sync (foreground - blocking)
-            Route::post('/start', [SyncController::class, 'startSync']);
-
-            // Start sync (background - non-blocking via queue)
-            Route::post('/start-background', [SyncController::class, 'startSyncBackground']);
         });
 
         // Unit Organisasi (Organization Unit Management)

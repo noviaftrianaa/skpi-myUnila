@@ -17,6 +17,11 @@ type PegawaiSyncService interface {
 	SyncPegawai(ctx context.Context, filter interface{}, syncedBy string) (interface{}, error)
 }
 
+// RadiusSyncService interface for radius sync operations
+type RadiusSyncService interface {
+	SyncPengguna(ctx context.Context, filter interface{}, syncedBy string) (interface{}, error)
+}
+
 type Service interface {
 	Start() error
 	Stop()
@@ -26,6 +31,8 @@ type Service interface {
 	Update(ctx context.Context, id int, req *UpdateScheduledSyncRequest) (*ScheduledSync, error)
 	Delete(ctx context.Context, id int) error
 	Toggle(ctx context.Context, id int, isActive bool) (*ScheduledSync, error)
+	SetPegawaiSyncService(svc PegawaiSyncService)
+	SetRadiusSyncService(svc RadiusSyncService)
 }
 
 type service struct {
@@ -34,6 +41,7 @@ type service struct {
 	cronJobs     map[int]cron.EntryID
 	mu           sync.RWMutex
 	pegawaiSync  PegawaiSyncService
+	radiusSync   RadiusSyncService
 }
 
 func NewService(repo Repository) Service {
@@ -50,6 +58,11 @@ func NewService(repo Repository) Service {
 // SetPegawaiSyncService sets the pegawai sync service for scheduled syncs
 func (s *service) SetPegawaiSyncService(svc PegawaiSyncService) {
 	s.pegawaiSync = svc
+}
+
+// SetRadiusSyncService sets the radius sync service for scheduled syncs
+func (s *service) SetRadiusSyncService(svc RadiusSyncService) {
+	s.radiusSync = svc
 }
 
 // Start loads active schedules and starts the cron scheduler
@@ -181,6 +194,12 @@ func (s *service) executeSync(ctx context.Context, syncType, syncedBy string) er
 			return fmt.Errorf("pegawai sync service not configured")
 		}
 		_, err := s.pegawaiSync.SyncPegawai(ctx, nil, syncedBy)
+		return err
+	case "radius":
+		if s.radiusSync == nil {
+			return fmt.Errorf("radius sync service not configured")
+		}
+		_, err := s.radiusSync.SyncPengguna(ctx, nil, syncedBy)
 		return err
 	default:
 		return fmt.Errorf("unknown sync type: %s", syncType)

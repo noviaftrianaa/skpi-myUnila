@@ -80,6 +80,21 @@ export interface AplikasiListParams {
   jenis?: 'internal' | 'external';
 }
 
+export interface CreateAplikasiRequest {
+  nm_aplikasi: string;
+  ket_aplikasi?: string | null;
+  id_organisasi?: string | null;
+  url?: string | null;
+  port?: string | null;
+  teknologi?: string | null;
+  endpoint_ws?: string | null;
+  a_generate_menu?: boolean;
+  a_integrasi_cas?: boolean;
+  a_sistem_internal_pt?: boolean;
+}
+
+export interface UpdateAplikasiRequest extends CreateAplikasiRequest {}
+
 // API Response wrapper
 interface ApiResponse<T> {
   success: boolean;
@@ -124,6 +139,38 @@ export const aplikasiService = {
       `/manakses/aplikasi/${id}`
     );
     return response.data.data;
+  },
+
+  /**
+   * Create new aplikasi
+   * Protected endpoint - requires JWT authentication
+   */
+  async create(data: CreateAplikasiRequest): Promise<Aplikasi> {
+    const response = await authClient.post<ApiResponse<Aplikasi>>(
+      '/manakses/aplikasi',
+      data
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Update existing aplikasi
+   * Protected endpoint - requires JWT authentication
+   */
+  async update(id: string, data: UpdateAplikasiRequest): Promise<Aplikasi> {
+    const response = await authClient.put<ApiResponse<Aplikasi>>(
+      `/manakses/aplikasi/${id}`,
+      data
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Delete aplikasi
+   * Protected endpoint - requires JWT authentication
+   */
+  async delete(id: string): Promise<void> {
+    await authClient.delete(`/manakses/aplikasi/${id}`);
   },
 };
 

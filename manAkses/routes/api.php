@@ -28,6 +28,8 @@ Route::group([
             Route::get('/stats', 'SsoRadiusController@stats');
             Route::get('/users', 'SsoRadiusController@users');
             Route::get('/preview/{username}', 'SsoRadiusController@preview');
+            Route::get('/user-role/{username}', 'SsoRadiusController@userRole');
+            Route::get('/users-with-roles', 'SsoRadiusController@usersWithRoles');
         });
 
     });
