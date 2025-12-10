@@ -67,6 +67,7 @@ func (r *repository) BulkUpsertPengguna(ctx context.Context, data []*Pengguna) *
 	// SQL Server MERGE query for upsert
 	// Match by username (SSO identifier)
 	// Password Strategy: SHA1 (from SSO) + bcrypt(SHA1) for auth service
+	// Note: jenis_kelamin is NOT NULL in database, default to 'L'
 	query := `
 		MERGE man_akses.pengguna AS target
 		USING (SELECT @p1 AS username) AS source
@@ -84,12 +85,12 @@ func (r *repository) BulkUpsertPengguna(ctx context.Context, data []*Pengguna) *
 			INSERT (
 				id_pengguna, username, nm_pengguna, email,
 				a_aktif, disable, soft_delete, password, password_encrypt,
-				tgl_create, last_update, last_sync
+				jenis_kelamin, tgl_create, last_update, last_sync
 			)
 			VALUES (
 				@p8, @p1, @p2, @p3,
 				@p4, 0, 0, @p5, @p6,
-				@p7, @p7, @p7
+				'L', @p7, @p7, @p7
 			);
 	`
 
