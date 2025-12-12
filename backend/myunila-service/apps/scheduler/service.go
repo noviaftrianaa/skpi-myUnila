@@ -22,6 +22,11 @@ type RadiusSyncService interface {
 	SyncPengguna(ctx context.Context, filter interface{}, syncedBy string) (interface{}, error)
 }
 
+// UnitOrganisasiSyncService interface for unit organisasi sync operations
+type UnitOrganisasiSyncService interface {
+	SyncFromSMS(ctx context.Context, syncedBy string) (interface{}, error)
+}
+
 type Service interface {
 	Start() error
 	Stop()
@@ -33,15 +38,17 @@ type Service interface {
 	Toggle(ctx context.Context, id int, isActive bool) (*ScheduledSync, error)
 	SetPegawaiSyncService(svc PegawaiSyncService)
 	SetRadiusSyncService(svc RadiusSyncService)
+	SetUnitOrganisasiSyncService(svc UnitOrganisasiSyncService)
 }
 
 type service struct {
-	repo         Repository
-	cron         *cron.Cron
-	cronJobs     map[int]cron.EntryID
-	mu           sync.RWMutex
-	pegawaiSync  PegawaiSyncService
-	radiusSync   RadiusSyncService
+	repo              Repository
+	cron              *cron.Cron
+	cronJobs          map[int]cron.EntryID
+	mu                sync.RWMutex
+	pegawaiSync       PegawaiSyncService
+	radiusSync        RadiusSyncService
+	unitOrgSync       UnitOrganisasiSyncService
 }
 
 func NewService(repo Repository) Service {
@@ -63,6 +70,11 @@ func (s *service) SetPegawaiSyncService(svc PegawaiSyncService) {
 // SetRadiusSyncService sets the radius sync service for scheduled syncs
 func (s *service) SetRadiusSyncService(svc RadiusSyncService) {
 	s.radiusSync = svc
+}
+
+// SetUnitOrganisasiSyncService sets the unit organisasi sync service for scheduled syncs
+func (s *service) SetUnitOrganisasiSyncService(svc UnitOrganisasiSyncService) {
+	s.unitOrgSync = svc
 }
 
 // Start loads active schedules and starts the cron scheduler
@@ -200,6 +212,12 @@ func (s *service) executeSync(ctx context.Context, syncType, syncedBy string) er
 			return fmt.Errorf("radius sync service not configured")
 		}
 		_, err := s.radiusSync.SyncPengguna(ctx, nil, syncedBy)
+		return err
+	case "unit_organisasi":
+		if s.unitOrgSync == nil {
+			return fmt.Errorf("unit organisasi sync service not configured")
+		}
+		_, err := s.unitOrgSync.SyncFromSMS(ctx, syncedBy)
 		return err
 	default:
 		return fmt.Errorf("unknown sync type: %s", syncType)

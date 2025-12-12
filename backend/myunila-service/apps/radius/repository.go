@@ -67,7 +67,10 @@ func (r *repository) BulkUpsertPengguna(ctx context.Context, data []*Pengguna) *
 	// SQL Server MERGE query for upsert
 	// Match by username (SSO identifier)
 	// Password Strategy: SHA1 (from SSO) + bcrypt(SHA1) for auth service
-	// Note: jenis_kelamin is NOT NULL in database, default to 'L'
+	// jenis_kelamin: from peserta_didik (mahasiswa) or sdm (dosen), default 'L'
+	// id_updater: required NOT NULL field, use system UUID for sync operations
+	// id_pd_pengguna, id_sdm_pengguna, id_user_sikep: reference IDs from PDUT
+	systemUUID := "00000000-0000-0000-0000-000000000001" // System user for sync
 	query := `
 		MERGE man_akses.pengguna AS target
 		USING (SELECT @p1 AS username) AS source
@@ -79,18 +82,25 @@ func (r *repository) BulkUpsertPengguna(ctx context.Context, data []*Pengguna) *
 				a_aktif = @p4,
 				password = @p5,
 				password_encrypt = @p6,
+				jenis_kelamin = @p9,
+				id_pd_pengguna = @p11,
+				id_sdm_pengguna = @p12,
+				id_user_sikep = @p13,
 				last_update = @p7,
-				last_sync = @p7
+				last_sync = @p7,
+				id_updater = @p10
 		WHEN NOT MATCHED THEN
 			INSERT (
 				id_pengguna, username, nm_pengguna, email,
 				a_aktif, disable, soft_delete, password, password_encrypt,
-				jenis_kelamin, tgl_create, last_update, last_sync
+				jenis_kelamin, id_pd_pengguna, id_sdm_pengguna, id_user_sikep,
+				tgl_create, last_update, last_sync, id_updater
 			)
 			VALUES (
 				@p8, @p1, @p2, @p3,
 				@p4, 0, 0, @p5, @p6,
-				'L', @p7, @p7, @p7
+				@p9, @p11, @p12, @p13,
+				@p7, @p7, @p7, @p10
 			);
 	`
 
@@ -107,7 +117,7 @@ func (r *repository) BulkUpsertPengguna(ctx context.Context, data []*Pengguna) *
 		passwordSha1 := p.Password
 		if passwordSha1 == "" {
 			// Default password if not provided (SHA1 of 'unilajaya')
-			passwordSha1 = "7c4a8d09ca3762af61e59520943dc26494f8941b" // sha1('123456')
+			passwordSha1 = "6461aeaed17aab2ed577647aab64e0a79caf868f" // sha1('unilajaya')
 		}
 
 		// Generate bcrypt hash of SHA1 password (cost 12 matches Laravel's bcrypt)
@@ -120,15 +130,26 @@ func (r *repository) BulkUpsertPengguna(ctx context.Context, data []*Pengguna) *
 			continue
 		}
 
+		// jenis_kelamin: use from data, default to 'L' if empty
+		jenisKelamin := "L"
+		if p.JenisKelamin != nil && *p.JenisKelamin != "" {
+			jenisKelamin = *p.JenisKelamin
+		}
+
 		_, err = r.db.ExecContext(ctx, query,
-			p.Username,            // @p1 - username (for matching and insert)
-			p.NmPengguna,          // @p2 - nm_pengguna
-			p.Email,               // @p3 - email
-			p.AAktif,              // @p4 - a_aktif
-			passwordSha1,          // @p5 - password (SHA1)
+			p.Username,             // @p1 - username (for matching and insert)
+			p.NmPengguna,           // @p2 - nm_pengguna
+			p.Email,                // @p3 - email
+			p.AAktif,               // @p4 - a_aktif
+			passwordSha1,           // @p5 - password (SHA1)
 			string(passwordBcrypt), // @p6 - password_encrypt (bcrypt of SHA1)
-			now,                   // @p7 - timestamp (last_update, last_sync, tgl_create)
-			newUUID,               // @p8 - id_pengguna (only for insert)
+			now,                    // @p7 - timestamp (last_update, last_sync, tgl_create)
+			newUUID,                // @p8 - id_pengguna (only for insert)
+			jenisKelamin,           // @p9 - jenis_kelamin (from peserta_didik/sdm)
+			systemUUID,             // @p10 - id_updater (system user for sync)
+			p.IDPdPengguna,         // @p11 - id_pd_pengguna (peserta_didik.id_pd)
+			p.IDSdmPengguna,        // @p12 - id_sdm_pengguna (sdm.id_sdm)
+			p.IDUserSikep,          // @p13 - id_user_sikep (sikep.pegawai.id_pegawai)
 		)
 		if err != nil {
 			result.TotalFailed++

@@ -11,19 +11,24 @@ type Pengguna struct {
 	IDPengguna string `json:"id_pengguna" db:"id_pengguna"`
 
 	// Personal Information
-	Username        string  `json:"username" db:"username"`
-	NmPengguna      string  `json:"nm_pengguna" db:"nm_pengguna"`
-	Email           *string `json:"email" db:"email"`
-	JenisKelamin    *string `json:"jenis_kelamin" db:"jenis_kelamin"`
-	TempatLahir     *string `json:"tempat_lahir" db:"tempat_lahir"`
-	TglLahir        *string `json:"tgl_lahir" db:"tgl_lahir"`
-	Alamat          *string `json:"alamat" db:"alamat"`
-	NoTel           *string `json:"no_tel" db:"no_tel"`
-	NoHP            *string `json:"no_hp" db:"no_hp"`
+	Username     string  `json:"username" db:"username"`
+	NmPengguna   string  `json:"nm_pengguna" db:"nm_pengguna"`
+	Email        *string `json:"email" db:"email"`
+	JenisKelamin *string `json:"jenis_kelamin" db:"jenis_kelamin"`
+	TempatLahir  *string `json:"tempat_lahir" db:"tempat_lahir"`
+	TglLahir     *string `json:"tgl_lahir" db:"tgl_lahir"`
+	Alamat       *string `json:"alamat" db:"alamat"`
+	NoTel        *string `json:"no_tel" db:"no_tel"`
+	NoHP         *string `json:"no_hp" db:"no_hp"`
+
+	// Reference IDs for PDUT integration
+	IDPdPengguna  *string `json:"id_pd_pengguna" db:"id_pd_pengguna"`   // peserta_didik.id_pd
+	IDSdmPengguna *string `json:"id_sdm_pengguna" db:"id_sdm_pengguna"` // sdm.id_sdm
+	IDUserSikep   *string `json:"id_user_sikep" db:"id_user_sikep"`     // sikep.pegawai.id_pegawai
 
 	// Password fields (for SSO sync)
-	Password        string  `json:"password" db:"password"`                 // SHA1 hash - for SSO & legacy apps
-	PasswordEncrypt string  `json:"password_encrypt" db:"password_encrypt"` // bcrypt(SHA1) - for auth service
+	Password        string `json:"password" db:"password"`                 // SHA1 hash - for SSO & legacy apps
+	PasswordEncrypt string `json:"password_encrypt" db:"password_encrypt"` // bcrypt(SHA1) - for auth service
 
 	// Status
 	AAktif     int `json:"a_aktif" db:"a_aktif"`         // 1=active, 0=inactive

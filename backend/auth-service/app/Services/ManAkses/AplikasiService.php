@@ -46,6 +46,16 @@ class AplikasiService
                     'jenis' => $item->jenis,
                     'id_organisasi' => $item->id_organisasi,
                     'nm_organisasi' => $item->nm_organisasi,
+                    'id_kategori' => $item->id_kategori,
+                    'nm_kategori' => $item->nm_kategori,
+                    'icon_name' => $item->icon_name,
+                    'icon_color' => $item->icon_color,
+                    'app_slug' => $item->app_slug,
+                    'urutan' => (int) $item->urutan,
+                    'a_tampil_portal' => (bool) $item->a_tampil_portal,
+                    'a_maintenance' => (bool) $item->a_maintenance,
+                    'a_coming_soon' => (bool) $item->a_coming_soon,
+                    'a_terintegrasi' => (bool) $item->a_terintegrasi,
                     'jumlah_table' => (int) $item->jumlah_table,
                     'jumlah_pj' => (int) $item->jumlah_pj,
                     'tgl_create' => $item->tgl_create,
@@ -83,6 +93,7 @@ class AplikasiService
                 'id_aplikasi' => $aplikasi->id_aplikasi,
                 'id_blob' => $aplikasi->id_blob,
                 'id_organisasi' => $aplikasi->id_organisasi,
+                'id_kategori' => $aplikasi->id_kategori,
                 'nm_aplikasi' => $aplikasi->nm_aplikasi,
                 'ket_aplikasi' => $aplikasi->ket_aplikasi,
                 'token_aplikasi' => $aplikasi->token_aplikasi,
@@ -91,21 +102,36 @@ class AplikasiService
                 'port' => $aplikasi->port,
                 'teknologi' => $aplikasi->teknologi,
                 'endpoint_ws' => $aplikasi->endpoint_ws,
+                'icon_name' => $aplikasi->icon_name,
+                'icon_color' => $aplikasi->icon_color,
+                'app_slug' => $aplikasi->app_slug,
+                'urutan' => (int) $aplikasi->urutan,
                 'a_generate_menu' => (bool) $aplikasi->a_generate_menu,
                 'a_integrasi_cas' => (bool) $aplikasi->a_integrasi_cas,
                 'a_sistem_internal_pt' => (bool) $aplikasi->a_sistem_internal_pt,
+                'a_tampil_portal' => (bool) $aplikasi->a_tampil_portal,
+                'a_maintenance' => (bool) $aplikasi->a_maintenance,
+                'a_coming_soon' => (bool) $aplikasi->a_coming_soon,
+                'a_terintegrasi' => (bool) $aplikasi->a_terintegrasi,
                 'status' => $aplikasi->status,
                 'jenis' => $aplikasi->jenis,
                 'nm_organisasi' => $aplikasi->nm_organisasi,
+                'nm_kategori' => $aplikasi->nm_kategori,
                 'tgl_create' => $aplikasi->tgl_create,
                 'last_update' => $aplikasi->last_update,
                 'expired_date' => $aplikasi->expired_date,
                 'last_sync' => $aplikasi->last_sync,
                 'tables' => array_map(function ($table) {
                     return [
+                        'id_akses_table_app' => $table->id_akses_table_app,
                         'id_table_app' => $table->id_table_app,
                         'nm_table' => $table->nm_table,
-                        'ket_table' => $table->ket_table,
+                        'tabel_alias' => $table->tabel_alias,
+                        'skema_tbl' => $table->skema_tbl,
+                        'a_boleh_get' => (bool) $table->a_boleh_get,
+                        'a_boleh_insert' => (bool) $table->a_boleh_insert,
+                        'a_boleh_update' => (bool) $table->a_boleh_update,
+                        'a_boleh_delete' => (bool) $table->a_boleh_delete,
                         'tgl_create' => $table->tgl_create,
                         'last_update' => $table->last_update,
                     ];
@@ -121,6 +147,19 @@ class AplikasiService
                         'last_update' => $pj->last_update,
                     ];
                 }, $aplikasi->pj_list ?? []),
+                'menus' => array_map(function ($menu) {
+                    return [
+                        'id_menu' => $menu->id_menu,
+                        'id_menu_parent' => $menu->id_menu_parent,
+                        'nm_menu' => $menu->nm_menu,
+                        'icon_menu' => $menu->icon_menu,
+                        'url_menu' => $menu->url_menu,
+                        'urutan' => (int) $menu->urutan,
+                        'a_aktif' => (bool) $menu->a_aktif,
+                        'tgl_create' => $menu->tgl_create,
+                        'last_update' => $menu->last_update,
+                    ];
+                }, $aplikasi->menus ?? []),
             ];
         } catch (\Exception $e) {
             Log::error('AplikasiService::getDetail error', [
@@ -237,6 +276,33 @@ class AplikasiService
             Log::error('AplikasiService::delete error', [
                 'message' => $e->getMessage(),
                 'id' => $id
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Get all categories for dropdown
+     *
+     * @return array
+     */
+    public function getCategories(): array
+    {
+        try {
+            $categories = $this->repository->getCategories();
+
+            return array_map(function ($cat) {
+                return [
+                    'id_kategori' => $cat->id_kategori,
+                    'nm_kategori' => $cat->nm_kategori,
+                    'icon_kategori' => $cat->icon_kategori,
+                    'icon_color' => $cat->icon_color,
+                    'urutan' => (int) $cat->urutan,
+                ];
+            }, $categories);
+        } catch (\Exception $e) {
+            Log::error('AplikasiService::getCategories error', [
+                'message' => $e->getMessage()
             ]);
             throw $e;
         }

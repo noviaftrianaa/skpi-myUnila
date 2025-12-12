@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"os/signal"
@@ -12,6 +13,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/myunila/myunila-service/apps/api_config"
 	"github.com/myunila/myunila-service/apps/logger"
+	"github.com/myunila/myunila-service/apps/manakses/unit_organisasi"
 	"github.com/myunila/myunila-service/apps/monitoring"
 	"github.com/myunila/myunila-service/apps/scheduler"
 	"github.com/myunila/myunila-service/apps/radius"
@@ -132,7 +134,7 @@ func main() {
 	log.Println("✅ Logger module initialized")
 
 	// Initialize SIKEP Pegawai module
-	pegawai.Init(apiV1, db.DB, sikepAPI)
+	pegawaiSvc := pegawai.Init(apiV1, db.DB, sikepAPI)
 	log.Println("✅ SIKEP Pegawai module initialized")
 
 	// Initialize SIKEP Referensi module
@@ -142,6 +144,10 @@ func main() {
 	// Initialize Radius module
 	radiusSvc := radius.Init(apiV1, db.DB, radiusAPI)
 	log.Println("✅ Radius module initialized")
+
+	// Initialize ManAkses Unit Organisasi module
+	unitOrgSvc := unit_organisasi.RegisterRoutes(apiV1, db.DB)
+	log.Println("✅ ManAkses Unit Organisasi module initialized")
 
 	// Initialize Monitoring module
 	monitoring.Init(apiV1)
@@ -154,6 +160,14 @@ func main() {
 	// Connect sync services to scheduler
 	schedulerSvc.SetRadiusSyncService(radiusSvc)
 	log.Println("✅ Radius sync service connected to scheduler")
+
+	// Connect pegawai sync service to scheduler
+	schedulerSvc.SetPegawaiSyncService(&pegawaiSyncAdapter{svc: pegawaiSvc})
+	log.Println("✅ Pegawai sync service connected to scheduler")
+
+	// Connect unit organisasi sync service to scheduler
+	schedulerSvc.SetUnitOrganisasiSyncService(&unitOrgSyncAdapter{svc: unitOrgSvc})
+	log.Println("✅ Unit Organisasi sync service connected to scheduler")
 
 	// Start scheduler
 	if err := schedulerSvc.Start(); err != nil {
@@ -217,4 +231,29 @@ func customErrorHandler(c *fiber.Ctx, err error) error {
 		"success": false,
 		"message": err.Error(),
 	})
+}
+
+// pegawaiSyncAdapter adapts pegawai.Service to scheduler.PegawaiSyncService
+type pegawaiSyncAdapter struct {
+	svc pegawai.Service
+}
+
+func (a *pegawaiSyncAdapter) SyncPegawai(ctx context.Context, filter interface{}, syncedBy string) (interface{}, error) {
+	// Convert filter to pegawai.SyncFilter if needed
+	var syncFilter *pegawai.SyncFilter
+	if filter != nil {
+		if f, ok := filter.(*pegawai.SyncFilter); ok {
+			syncFilter = f
+		}
+	}
+	return a.svc.SyncPegawai(ctx, syncFilter, syncedBy)
+}
+
+// unitOrgSyncAdapter adapts unit_organisasi.Service to scheduler.UnitOrganisasiSyncService
+type unitOrgSyncAdapter struct {
+	svc unit_organisasi.Service
+}
+
+func (a *unitOrgSyncAdapter) SyncFromSMS(ctx context.Context, syncedBy string) (interface{}, error) {
+	return a.svc.SyncFromSMS(ctx, syncedBy)
 }

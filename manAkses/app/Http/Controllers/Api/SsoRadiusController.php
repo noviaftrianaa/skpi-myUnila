@@ -19,6 +19,12 @@ class SsoRadiusController extends Controller
     private $tendikCache = [];
     private $dosenCache = [];
     private $fakultasCache = [];
+    private $mahasiswaJkCache = [];  // Cache jenis kelamin mahasiswa
+    private $dosenJkCache = [];      // Cache jenis kelamin dosen
+    private $tendikJkCache = [];     // Cache jenis kelamin tendik
+    private $tendikOrgCache = [];    // Cache organisasi tendik: ['nm_organisasi' => string, 'id_organisasi' => string|null]
+    private $dosenOrgCache = [];     // Cache id_sms dosen dari reg_ptk (terbaru)
+    private $smsNameToIdCache = [];  // Cache mapping pdrd.sms.nm_lemb -> id_sms
 
     /**
      * Get SSO users stats from radius database
@@ -121,14 +127,16 @@ class SsoRadiusController extends Controller
                     'nip' => $user->nip,
                     'status' => $user->status,
                     'domain_email' => $user->domain_email,
+                    'jenis_kelamin' => $roleData['jenis_kelamin'], // From peserta_didik/sdm
+                    // Reference IDs at top level (kolom di man_akses.pengguna)
+                    'id_pd_pengguna' => $roleData['id_pd_pengguna'],
+                    'id_sdm_pengguna' => $roleData['id_sdm_pengguna'],
+                    'id_user_sikep' => $roleData['id_user_sikep'],
                     'role_pengguna' => [
                         'id_peran' => $roleData['id_peran'],
                         'nm_peran' => $roleData['nm_peran'],
                         'id_organisasi' => $roleData['id_organisasi'],
                         'nm_organisasi' => $roleData['nm_organisasi'],
-                        'id_pd_pengguna' => $roleData['id_pd_pengguna'],
-                        'id_sdm_pengguna' => $roleData['id_sdm_pengguna'],
-                        'id_user_sikep' => $roleData['id_user_sikep'],
                     ],
                     'found_in_pdut' => $roleData['id_pd_pengguna'] || $roleData['id_sdm_pengguna'] || $roleData['id_user_sikep'] ? true : false,
                 ];
@@ -326,12 +334,22 @@ class SsoRadiusController extends Controller
 
     /**
      * Preload data for chunk
+     *
+     * Logic mapping organisasi:
+     * - Mahasiswa: pdrd.peserta_didik -> pdrd.reg_pd (terbaru, karena one-to-many) -> id_sms
+     * - Dosen: pdrd.sdm -> pdrd.reg_ptk (terbaru, karena one-to-many) -> id_sms
+     * - Tendik: sikep.pegawai -> sikep.unit_orga (nm_unit_orga langsung)
      */
     private function preloadDataForChunk(array $ssoUsers): void
     {
         $this->mahasiswaCache = [];
         $this->tendikCache = [];
         $this->dosenCache = [];
+        $this->mahasiswaJkCache = [];
+        $this->dosenJkCache = [];
+        $this->tendikJkCache = [];
+        $this->tendikOrgCache = [];
+        $this->dosenOrgCache = [];
 
         $nips = array_filter(array_unique(array_column($ssoUsers, 'nip')));
 
@@ -341,43 +359,120 @@ class SsoRadiusController extends Controller
 
         $nipChunks = array_chunk($nips, 1000);
 
-        // Preload mahasiswa
+        // Preload mahasiswa - native SQL with jenis kelamin from peserta_didik
+        // PENTING: Ambil reg_pd TERBARU (ROW_NUMBER by id_reg_pd DESC) karena one-to-many
         foreach ($nipChunks as $nipChunk) {
-            $mahasiswa = DB::connection('sqlsrv')
-                ->table('pdrd.reg_pd')
-                ->whereIn('nipd', $nipChunk)
-                ->select('id_pd', 'nipd', 'id_sms')
-                ->get();
+            $placeholders = implode(',', array_fill(0, count($nipChunk), '?'));
+            $sql = "
+                WITH LatestRegPd AS (
+                    SELECT rp.id_pd, rp.nipd, rp.id_sms, pd.jk,
+                           ROW_NUMBER() OVER (PARTITION BY rp.nipd ORDER BY rp.id_reg_pd DESC) as rn
+                    FROM pdrd.reg_pd rp
+                    LEFT JOIN pdrd.peserta_didik pd ON rp.id_pd = pd.id_pd
+                    WHERE rp.nipd IN ({$placeholders})
+                )
+                SELECT id_pd, nipd, id_sms, jk
+                FROM LatestRegPd
+                WHERE rn = 1
+            ";
+            $mahasiswa = DB::connection('sqlsrv')->select($sql, array_values($nipChunk));
 
             foreach ($mahasiswa as $m) {
                 $this->mahasiswaCache[$m->nipd] = $m;
+                $this->mahasiswaJkCache[$m->nipd] = $m->jk;
             }
         }
 
-        // Preload tendik
+        // Preload tendik - native SQL dengan join ke unit_orga untuk organisasi
+        // Juga coba cari id_sms dari pdrd.sms dengan nama yang cocok
+        // Prioritas: id_org3 (unit terkecil) > id_org2 > id_org1 (untuk nama unit yang paling spesifik)
         foreach ($nipChunks as $nipChunk) {
-            $tendik = DB::connection('sqlsrv')
-                ->table('sikep.pegawai')
-                ->whereIn('nip', $nipChunk)
-                ->where('soft_delete', 0)
-                ->select('id_pegawai', 'nip', 'jns_pegawai')
-                ->get();
+            $placeholders = implode(',', array_fill(0, count($nipChunk), '?'));
+            // Query dengan LEFT JOIN ke pdrd.sms untuk cari id_sms yang namanya cocok
+            $sql = "
+                SELECT p.id_pegawai, RTRIM(LTRIM(p.nip)) as nip, p.jns_pegawai,
+                       RTRIM(LTRIM(p.jk)) as jk, p.status, p.last_sync,
+                       p.id_org1, p.id_org2, p.id_org3,
+                       COALESCE(o3.nm_unit_orga, o2.nm_unit_orga, o1.nm_unit_orga) as nm_unit_orga,
+                       CONVERT(VARCHAR(36), sms.id_sms) as matched_id_sms,
+                       sms.nm_lemb as matched_nm_lemb
+                FROM sikep.pegawai p
+                LEFT JOIN sikep.unit_orga o1 ON p.id_org1 = o1.id_unit_orga
+                LEFT JOIN sikep.unit_orga o2 ON p.id_org2 = o2.id_unit_orga
+                LEFT JOIN sikep.unit_orga o3 ON p.id_org3 = o3.id_unit_orga
+                -- Coba cari pdrd.sms dengan nama yang cocok (partial match)
+                OUTER APPLY (
+                    SELECT TOP 1 id_sms, nm_lemb
+                    FROM pdrd.sms
+                    WHERE soft_delete = 0
+                      AND (
+                          nm_lemb LIKE '%' + COALESCE(o3.nm_singkat, o2.nm_singkat, o1.nm_singkat, '') + '%'
+                          OR nm_lemb LIKE '%' + COALESCE(o3.nm_unit_orga, o2.nm_unit_orga, o1.nm_unit_orga, '') + '%'
+                      )
+                    ORDER BY
+                        CASE WHEN nm_lemb = COALESCE(o3.nm_unit_orga, o2.nm_unit_orga, o1.nm_unit_orga) THEN 0
+                             WHEN nm_lemb LIKE '%' + COALESCE(o3.nm_singkat, o2.nm_singkat, o1.nm_singkat, '') + '%' THEN 1
+                             ELSE 2
+                        END
+                ) sms
+                WHERE p.nip IN ({$placeholders})
+                  AND p.soft_delete = 0
+                ORDER BY CASE WHEN p.status = 'Aktif' THEN 0 ELSE 1 END, p.last_sync DESC
+            ";
+            $tendik = DB::connection('sqlsrv')->select($sql, array_values($nipChunk));
 
             foreach ($tendik as $t) {
-                $this->tendikCache[$t->nip] = $t;
+                $nipTrimmed = trim($t->nip);
+                // Hanya set cache jika belum ada atau status saat ini 'Aktif' (replace non-aktif dengan aktif)
+                if (!isset($this->tendikCache[$nipTrimmed]) || $t->status === 'Aktif') {
+                    $this->tendikCache[$nipTrimmed] = $t;
+                    $this->tendikJkCache[$nipTrimmed] = trim($t->jk ?? '');
+                    // Simpan nama unit dan id_sms (jika ada match di pdrd.sms)
+                    $this->tendikOrgCache[$nipTrimmed] = [
+                        'nm_organisasi' => trim($t->nm_unit_orga ?? ''),
+                        'id_sms' => $t->matched_id_sms ?? null,
+                    ];
+                }
             }
         }
 
-        // Preload dosen
+        // Preload dosen - native SQL with jenis kelamin from sdm
         foreach ($nipChunks as $nipChunk) {
-            $dosen = DB::connection('sqlsrv')
-                ->table('pdrd.sdm')
-                ->whereIn('nip', $nipChunk)
-                ->select('id_sdm', 'nip')
-                ->get();
+            $placeholders = implode(',', array_fill(0, count($nipChunk), '?'));
+            $sql = "
+                SELECT id_sdm, RTRIM(LTRIM(nip)) as nip, jk
+                FROM pdrd.sdm
+                WHERE nip IN ({$placeholders})
+            ";
+            $dosen = DB::connection('sqlsrv')->select($sql, array_values($nipChunk));
 
             foreach ($dosen as $d) {
-                $this->dosenCache[$d->nip] = $d;
+                $nipTrimmed = trim($d->nip);
+                $this->dosenCache[$nipTrimmed] = $d;
+                $this->dosenJkCache[$nipTrimmed] = $d->jk;
+            }
+        }
+
+        // Preload dosen organisasi dari reg_ptk - PENTING: Ambil TERBARU karena one-to-many
+        foreach ($nipChunks as $nipChunk) {
+            $placeholders = implode(',', array_fill(0, count($nipChunk), '?'));
+            $sql = "
+                WITH LatestRegPtk AS (
+                    SELECT s.nip, rp.id_sms,
+                           ROW_NUMBER() OVER (PARTITION BY s.nip ORDER BY rp.id_reg_ptk DESC) as rn
+                    FROM pdrd.sdm s
+                    INNER JOIN pdrd.reg_ptk rp ON s.id_sdm = rp.id_sdm
+                    WHERE s.nip IN ({$placeholders})
+                )
+                SELECT RTRIM(LTRIM(nip)) as nip, id_sms
+                FROM LatestRegPtk
+                WHERE rn = 1
+            ";
+            $dosenOrg = DB::connection('sqlsrv')->select($sql, array_values($nipChunk));
+
+            foreach ($dosenOrg as $do) {
+                $nipTrimmed = trim($do->nip);
+                $this->dosenOrgCache[$nipTrimmed] = $do->id_sms;
             }
         }
     }
@@ -411,8 +506,9 @@ class SsoRadiusController extends Controller
         elseif ($domain === 'staff') {
             $result['id_peran'] = 111;
 
-            if (!empty($user->nip) && isset($this->tendikCache[$user->nip])) {
-                $tendik = $this->tendikCache[$user->nip];
+            $nipTrimmed = trim($user->nip ?? '');
+            if (!empty($nipTrimmed) && isset($this->tendikCache[$nipTrimmed])) {
+                $tendik = $this->tendikCache[$nipTrimmed];
                 $result['id_user_sikep'] = $tendik->id_pegawai;
             }
         }
@@ -420,8 +516,9 @@ class SsoRadiusController extends Controller
         elseif (isset($this->fakultasCache[$domain])) {
             $result['id_peran'] = 46;
 
-            if (!empty($user->nip) && isset($this->dosenCache[$user->nip])) {
-                $dosen = $this->dosenCache[$user->nip];
+            $nipTrimmed = trim($user->nip ?? '');
+            if (!empty($nipTrimmed) && isset($this->dosenCache[$nipTrimmed])) {
+                $dosen = $this->dosenCache[$nipTrimmed];
                 $result['id_sdm_pengguna'] = $dosen->id_sdm;
                 $id_sms = $this->fakultasCache[$domain];
                 $result['id_organisasi'] = $this->getOrganisasiByLembaga($id_sms);
@@ -469,8 +566,13 @@ class SsoRadiusController extends Controller
     }
 
     /**
-     * Determine role with full details (nm_peran, nm_organisasi)
+     * Determine role with full details (nm_peran, nm_organisasi, jenis_kelamin)
      * Based on email domain and PDUT database verification
+     *
+     * Mapping logic:
+     * - Mahasiswa: pdrd.peserta_didik -> pdrd.reg_pd (latest) -> id_sms -> man_akses.unit_organisasi
+     * - Dosen: pdrd.sdm -> pdrd.reg_ptk (latest) -> id_sms -> man_akses.unit_organisasi
+     * - Tendik: sikep.pegawai -> sikep.unit_orga (langsung return nm_unit_orga sebagai nm_organisasi)
      */
     private function determineRoleWithDetails(object $user): array
     {
@@ -482,6 +584,7 @@ class SsoRadiusController extends Controller
             'id_user_sikep' => null,
             'id_organisasi' => 'e2b705a7-173e-464a-9fac-509128709515',
             'nm_organisasi' => 'Universitas Lampung',
+            'jenis_kelamin' => 'L', // Default jenis kelamin
         ];
 
         $domain = strtolower($user->domain_email ?? '');
@@ -494,9 +597,15 @@ class SsoRadiusController extends Controller
             if (!empty($user->nip) && isset($this->mahasiswaCache[$user->nip])) {
                 $mhs = $this->mahasiswaCache[$user->nip];
                 $result['id_pd_pengguna'] = $mhs->id_pd;
+                // id_sms sudah diambil dari reg_pd terbaru di preload
                 $orgData = $this->getOrganisasiWithName($mhs->id_sms);
                 $result['id_organisasi'] = $orgData['id_organisasi'];
                 $result['nm_organisasi'] = $orgData['nm_organisasi'];
+
+                // Get jenis kelamin from peserta_didik
+                if (isset($this->mahasiswaJkCache[$user->nip]) && $this->mahasiswaJkCache[$user->nip]) {
+                    $result['jenis_kelamin'] = $this->mahasiswaJkCache[$user->nip];
+                }
             }
         }
         // TENDIK: Email @staff.unila.ac.id
@@ -504,9 +613,29 @@ class SsoRadiusController extends Controller
             $result['id_peran'] = 111;
             $result['nm_peran'] = 'Tendik';
 
-            if (!empty($user->nip) && isset($this->tendikCache[$user->nip])) {
-                $tendik = $this->tendikCache[$user->nip];
+            $nipTrimmed = trim($user->nip ?? '');
+            if (!empty($nipTrimmed) && isset($this->tendikCache[$nipTrimmed])) {
+                $tendik = $this->tendikCache[$nipTrimmed];
                 $result['id_user_sikep'] = $tendik->id_pegawai;
+
+                // Get jenis kelamin from sikep.pegawai
+                if (isset($this->tendikJkCache[$nipTrimmed]) && $this->tendikJkCache[$nipTrimmed]) {
+                    $result['jenis_kelamin'] = $this->tendikJkCache[$nipTrimmed];
+                }
+
+                // Untuk tendik: gunakan nm_unit_orga dari sikep sebagai nm_organisasi
+                // Jika ada matched_id_sms dari pdrd.sms, gunakan untuk lookup id_organisasi
+                if (isset($this->tendikOrgCache[$nipTrimmed])) {
+                    $orgCache = $this->tendikOrgCache[$nipTrimmed];
+                    $result['nm_organisasi'] = $orgCache['nm_organisasi'] ?? 'Universitas Lampung';
+
+                    // Jika ada id_sms yang cocok dari pdrd.sms, cari id_organisasi
+                    if (!empty($orgCache['id_sms'])) {
+                        $orgData = $this->getOrganisasiWithName($orgCache['id_sms']);
+                        $result['id_organisasi'] = $orgData['id_organisasi'];
+                        // Tetap gunakan nm_organisasi dari sikep.unit_orga (lebih akurat untuk tendik)
+                    }
+                }
             }
         }
         // DOSEN: Email @ft, @fp, @fmipa, dll (fakultas domain)
@@ -514,13 +643,28 @@ class SsoRadiusController extends Controller
             $result['id_peran'] = 46;
             $result['nm_peran'] = 'Dosen';
 
-            if (!empty($user->nip) && isset($this->dosenCache[$user->nip])) {
-                $dosen = $this->dosenCache[$user->nip];
+            $nipTrimmed = trim($user->nip ?? '');
+            if (!empty($nipTrimmed) && isset($this->dosenCache[$nipTrimmed])) {
+                $dosen = $this->dosenCache[$nipTrimmed];
                 $result['id_sdm_pengguna'] = $dosen->id_sdm;
-                $id_sms = $this->fakultasCache[$domain];
-                $orgData = $this->getOrganisasiWithName($id_sms);
-                $result['id_organisasi'] = $orgData['id_organisasi'];
-                $result['nm_organisasi'] = $orgData['nm_organisasi'];
+
+                // Untuk dosen: gunakan id_sms dari reg_ptk terbaru (bukan dari fakultas domain)
+                if (isset($this->dosenOrgCache[$nipTrimmed]) && $this->dosenOrgCache[$nipTrimmed]) {
+                    $orgData = $this->getOrganisasiWithName($this->dosenOrgCache[$nipTrimmed]);
+                    $result['id_organisasi'] = $orgData['id_organisasi'];
+                    $result['nm_organisasi'] = $orgData['nm_organisasi'];
+                } else {
+                    // Fallback ke fakultas domain jika tidak ada data reg_ptk
+                    $id_sms = $this->fakultasCache[$domain];
+                    $orgData = $this->getOrganisasiWithName($id_sms);
+                    $result['id_organisasi'] = $orgData['id_organisasi'];
+                    $result['nm_organisasi'] = $orgData['nm_organisasi'];
+                }
+
+                // Get jenis kelamin from sdm
+                if (isset($this->dosenJkCache[$nipTrimmed]) && $this->dosenJkCache[$nipTrimmed]) {
+                    $result['jenis_kelamin'] = $this->dosenJkCache[$nipTrimmed];
+                }
             } else {
                 // Jika tidak ketemu di SDM, set ke Guest
                 $result['id_peran'] = 40;

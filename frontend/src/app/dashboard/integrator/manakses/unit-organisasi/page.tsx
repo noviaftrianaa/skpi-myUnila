@@ -1,80 +1,83 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
 import {
   Card,
   CardBody,
-  Button,
   Spinner,
+  Button,
   Modal,
   ModalContent,
   ModalHeader,
   ModalBody,
   ModalFooter,
   Progress,
+  Tabs,
+  Tab,
 } from "@heroui/react";
+import { MdSchool, MdSync } from "react-icons/md";
 import {
-  FiUsers,
-  FiRefreshCw,
+  FiDatabase,
   FiCheckCircle,
-  FiXCircle,
   FiClock,
+  FiRefreshCw,
+  FiXCircle,
   FiAlertCircle,
-  FiUserCheck,
+  FiLayers,
+  FiArrowRight,
 } from "react-icons/fi";
-import { MdSync, MdSchool } from "react-icons/md";
-import SikepPegawaiTable from "@/shared/components/myunila-integrator/SikepPegawaiTable";
-import ScheduleList from "@/shared/components/myunila-integrator/ScheduleList";
 import { myunilaIntegratorMenuConfig } from "../../config/menuConfig";
-import { myunilaClient } from "@/lib/api/myunilaClient";
+import {
+  unitOrganisasiSyncService,
+  UnitOrganisasiSyncStats,
+  SyncResult,
+} from "@/lib/services/myunila/manakses/unitOrganisasiSyncService";
+import UnitOrganisasiTable from "@/shared/components/myunila-integrator/UnitOrganisasiTable";
+import ScheduleList from "@/shared/components/myunila-integrator/ScheduleList";
 import { toast } from "react-hot-toast";
 
-interface StatsData {
-  total_pegawai: number;
-  total_dosen_aktif: number;
-  total_tendik_aktif: number;
-  last_sync: string | null;
-}
 
-export default function SikepPegawaiPage() {
+export default function UnitOrganisasiSyncPage() {
   useRequireAuth();
   const { user } = useAuth();
 
-  const [stats, setStats] = useState<StatsData | null>(null);
+  const [stats, setStats] = useState<UnitOrganisasiSyncStats | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [showSyncModal, setShowSyncModal] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [syncProgress, setSyncProgress] = useState(0);
   const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
-  const [syncResult, setSyncResult] = useState<{
-    totalRecords: number;
-    message: string;
-  } | null>(null);
+  const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
 
-  // Fetch stats on mount
-  useEffect(() => {
-    fetchStats();
-  }, []);
+  // Tab state
+  const [activeTab, setActiveTab] = useState("comparison");
 
-  const fetchStats = async () => {
+  // Key for refreshing table
+  const [tableKey, setTableKey] = useState(0);
+
+  const fetchStats = useCallback(async () => {
     try {
       setIsLoadingStats(true);
-      const response = await myunilaClient.get("/sikep/pegawai/stats", {
-        params: { _t: Date.now() }
-      });
-
-      if (response.data.success) {
-        setStats(response.data.data);
-      }
+      const data = await unitOrganisasiSyncService.getStats();
+      setStats(data);
     } catch (error) {
       console.error("Error fetching stats:", error);
+      toast.error("Gagal memuat statistik");
     } finally {
       setIsLoadingStats(false);
     }
+  }, []);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  const handleTabChange = (key: React.Key) => {
+    setActiveTab(key as string);
   };
 
   const handleSyncClick = () => {
@@ -87,9 +90,9 @@ export default function SikepPegawaiPage() {
     setIsSyncing(true);
     setSyncStatus("syncing");
     setSyncProgress(0);
+    setSyncResult(null);
 
     try {
-      // Simulate progress while API is called
       const progressInterval = setInterval(() => {
         setSyncProgress((prev) => {
           if (prev >= 80) {
@@ -100,48 +103,25 @@ export default function SikepPegawaiPage() {
         });
       }, 500);
 
-      // Call sync API
-      const response = await myunilaClient.post("/sikep/pegawai/sync", null, {
-        params: {
-          synced_by: user?.name || "system",
-        },
-      });
+      const result = await unitOrganisasiSyncService.syncFromSMS(user?.username || 'system');
 
       clearInterval(progressInterval);
 
-      if (response.data.success) {
-        setSyncProgress(100);
-        setSyncStatus("success");
+      setSyncProgress(100);
+      setSyncStatus("success");
+      setSyncResult(result);
 
-        const data = response.data.data;
-        setSyncResult({
-          totalRecords: data.total_processed || 0,
-          message: `Berhasil: ${data.total_success || 0}, Gagal: ${data.total_failed || 0}`
-        });
+      toast.success(`Berhasil sinkronisasi ${result.total_inserted + result.total_updated} data!`);
 
-        toast.success("Sinkronisasi berhasil!");
-      } else {
-        throw new Error(response.data.message || "Sinkronisasi gagal");
-      }
-
-      // Refresh stats after 2 seconds
       setTimeout(async () => {
         await fetchStats();
-        setShowProgressModal(false);
-        setSyncProgress(0);
-        setSyncStatus("idle");
+        // Refresh table
+        setTableKey(prev => prev + 1);
       }, 2000);
     } catch (error: any) {
-      console.error("Error syncing pegawai:", error);
+      console.error("Error syncing:", error);
       setSyncStatus("error");
-
-      const errorMessage = error.response?.data?.message || error.message || "Gagal melakukan sinkronisasi";
-      toast.error(errorMessage);
-
-      setSyncResult({
-        totalRecords: 0,
-        message: errorMessage
-      });
+      toast.error(error.response?.data?.message || "Gagal melakukan sinkronisasi");
 
       setTimeout(() => {
         setShowProgressModal(false);
@@ -169,49 +149,50 @@ export default function SikepPegawaiPage() {
       appName="MyUnila Integrator"
       appIcon={<MdSchool className="w-6 h-6 text-white" />}
       menuConfig={myunilaIntegratorMenuConfig}
-      pageTitle="Data Pegawai SIKEP"
+      pageTitle="Unit Organisasi Sync"
     >
       <div className="space-y-6">
-        {/* Header with Title and Sync Button */}
+        {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-              Data Pegawai SIKEP
+              Sinkronisasi Unit Organisasi
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Data pegawai dari Sistem Kepegawaian UNILA
+              Sinkronisasi data dari pdrd.sms ke man_akses.unit_organisasi
             </p>
           </div>
+
           <Button
             color="primary"
             size="lg"
             startContent={<MdSync className="w-5 h-5" />}
-            onPress={handleSyncClick}
             isLoading={isSyncing}
+            onPress={handleSyncClick}
             className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all rounded-xl"
           >
             Sinkronisasi Data
           </Button>
         </div>
 
-        {/* Statistics Cards - 4 Cards Only */}
+        {/* Summary Cards - 4 Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Total Pegawai Card */}
+          {/* Total SMS */}
           <Card className="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative rounded-xl">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
             <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
             <CardBody className="p-5 relative z-10">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
-                  <FiUsers className="w-7 h-7 text-white" />
+                  <FiDatabase className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-blue-100 mb-1">Total Pegawai</p>
+                  <p className="text-sm font-medium text-blue-100 mb-1">Total SMS (Sumber)</p>
                   {isLoadingStats ? (
                     <Spinner size="sm" color="white" />
                   ) : (
                     <h3 className="text-3xl font-bold text-white tracking-tight leading-none">
-                      {(stats?.total_pegawai ?? 0).toLocaleString("id-ID")}
+                      {(stats?.total_sms ?? 0).toLocaleString("id-ID")}
                     </h3>
                   )}
                 </div>
@@ -219,22 +200,22 @@ export default function SikepPegawaiPage() {
             </CardBody>
           </Card>
 
-          {/* Dosen Aktif Card */}
+          {/* Total Unit Organisasi */}
           <Card className="bg-gradient-to-br from-emerald-500 via-green-600 to-teal-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative rounded-xl">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
             <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
             <CardBody className="p-5 relative z-10">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
-                  <FiUserCheck className="w-7 h-7 text-white" />
+                  <FiLayers className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-emerald-100 mb-1">Dosen Aktif</p>
+                  <p className="text-sm font-medium text-emerald-100 mb-1">Unit Organisasi (Target)</p>
                   {isLoadingStats ? (
                     <Spinner size="sm" color="white" />
                   ) : (
                     <h3 className="text-3xl font-bold text-white tracking-tight leading-none">
-                      {(stats?.total_dosen_aktif ?? 0).toLocaleString("id-ID")}
+                      {(stats?.total_unit_organisasi ?? 0).toLocaleString("id-ID")}
                     </h3>
                   )}
                 </div>
@@ -242,22 +223,22 @@ export default function SikepPegawaiPage() {
             </CardBody>
           </Card>
 
-          {/* Tendik Aktif Card */}
-          <Card className="bg-gradient-to-br from-amber-500 via-orange-500 to-yellow-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative rounded-xl">
+          {/* Synced */}
+          <Card className="bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative rounded-xl">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
             <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
             <CardBody className="p-5 relative z-10">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
-                  <FiUsers className="w-7 h-7 text-white" />
+                  <FiCheckCircle className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-amber-100 mb-1">Tendik Aktif</p>
+                  <p className="text-sm font-medium text-purple-100 mb-1">Sudah Sync</p>
                   {isLoadingStats ? (
                     <Spinner size="sm" color="white" />
                   ) : (
                     <h3 className="text-3xl font-bold text-white tracking-tight leading-none">
-                      {(stats?.total_tendik_aktif ?? 0).toLocaleString("id-ID")}
+                      {(stats?.total_synced ?? 0).toLocaleString("id-ID")}
                     </h3>
                   )}
                 </div>
@@ -265,8 +246,8 @@ export default function SikepPegawaiPage() {
             </CardBody>
           </Card>
 
-          {/* Last Sync Card */}
-          <Card className="bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative rounded-xl">
+          {/* Not Synced */}
+          <Card className="bg-gradient-to-br from-amber-500 via-orange-500 to-yellow-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative rounded-xl">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
             <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
             <CardBody className="p-5 relative z-10">
@@ -275,12 +256,12 @@ export default function SikepPegawaiPage() {
                   <FiClock className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-purple-100 mb-1">Last Sync</p>
+                  <p className="text-sm font-medium text-amber-100 mb-1">Belum Sync</p>
                   {isLoadingStats ? (
                     <Spinner size="sm" color="white" />
                   ) : (
-                    <h3 className="text-base font-bold text-white leading-tight truncate">
-                      {formatDate(stats?.last_sync)}
+                    <h3 className="text-3xl font-bold text-white tracking-tight leading-none">
+                      {(stats?.total_not_synced ?? 0).toLocaleString("id-ID")}
                     </h3>
                   )}
                 </div>
@@ -290,12 +271,69 @@ export default function SikepPegawaiPage() {
         </div>
 
         {/* Scheduled Syncs Section */}
-        <ScheduleList syncType="pegawai" />
+        <ScheduleList syncType="unit_organisasi" />
 
-        {/* Data Table */}
+        {/* Tabs */}
         <Card className="border-none shadow-lg rounded-xl overflow-hidden">
           <CardBody className="p-0">
-            <SikepPegawaiTable />
+            <div className="px-4 sm:px-6 pt-4 pb-2 bg-gradient-to-r from-slate-50 via-white to-slate-50 border-b border-gray-200">
+              <Tabs
+                selectedKey={activeTab}
+                onSelectionChange={handleTabChange}
+                aria-label="Data tabs"
+                variant="underlined"
+                classNames={{
+                  tabList: "gap-6",
+                  cursor: "w-full bg-blue-600",
+                  tab: "max-w-fit px-0 h-10",
+                  tabContent: "group-data-[selected=true]:text-blue-600 font-semibold text-gray-600",
+                }}
+              >
+                <Tab key="comparison" title="Perbandingan Data" />
+                <Tab key="sms" title="Data SMS (Sumber)" />
+                <Tab key="unit_org" title="Unit Organisasi (Target)" />
+              </Tabs>
+            </div>
+
+            {/* Table Content */}
+            <div key={tableKey}>
+              {activeTab === "comparison" && (
+                <UnitOrganisasiTable mode="comparison" />
+              )}
+              {activeTab === "sms" && (
+                <UnitOrganisasiTable mode="sms" />
+              )}
+              {activeTab === "unit_org" && (
+                <UnitOrganisasiTable mode="unit_org" />
+              )}
+            </div>
+          </CardBody>
+        </Card>
+
+        {/* Info Card */}
+        <Card className="bg-blue-50 dark:bg-gray-800 border-none shadow-md rounded-xl">
+          <CardBody className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center flex-shrink-0">
+                <FiArrowRight className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                  Tentang Sinkronisasi Unit Organisasi
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Proses ini akan menyalin data dari tabel <code className="bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded text-xs font-mono">pdrd.sms</code> (data prodi/unit dari PDRD)
+                  ke tabel <code className="bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded text-xs font-mono">man_akses.unit_organisasi</code> (data unit organisasi untuk manajemen akses).
+                  Data yang sudah ada akan diperbarui, sedangkan data baru akan ditambahkan.
+                </p>
+                {stats?.last_sync && (
+                  <div className="flex items-center gap-2 mt-3 text-sm text-gray-500">
+                    <FiClock className="w-4 h-4" />
+                    <span>Terakhir sync: <span className="font-semibold text-gray-700 dark:text-gray-300">{formatDate(stats.last_sync)}</span></span>
+                  </div>
+                )}
+              </div>
+            </div>
           </CardBody>
         </Card>
       </div>
@@ -324,7 +362,7 @@ export default function SikepPegawaiPage() {
                       Konfirmasi Sinkronisasi
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400 font-normal">
-                      Data Pegawai SIKEP UNILA
+                      Unit Organisasi dari pdrd.sms
                     </p>
                   </div>
                 </div>
@@ -336,37 +374,35 @@ export default function SikepPegawaiPage() {
                       <FiAlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                       <div className="w-full">
                         <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
-                          Proses ini akan mengambil data pegawai terbaru dari SIKEP dan menyimpannya ke database.
+                          Proses ini akan:
                         </p>
                         <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1 list-disc list-inside">
-                          <li>Data yang sudah ada akan diperbarui</li>
-                          <li>Data baru akan ditambahkan</li>
-                          <li>Proses memerlukan waktu beberapa menit</li>
+                          <li>Mengambil semua data dari pdrd.sms</li>
+                          <li>Menyisipkan data baru ke man_akses.unit_organisasi</li>
+                          <li>Memperbarui data yang sudah ada</li>
                         </ul>
                       </div>
                     </div>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
-                    <h4 className="text-sm font-semibold text-gray-800 dark:text-white mb-2 flex items-center gap-2">
-                      <FiUsers className="w-4 h-4 text-emerald-600" />
-                      Data yang akan disinkronkan:
-                    </h4>
-                    <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">• Total Pegawai:</span>
-                        <span>{(stats?.total_pegawai ?? 0).toLocaleString("id-ID")} data</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">• Dosen Aktif:</span>
-                        <span>{(stats?.total_dosen_aktif ?? 0).toLocaleString("id-ID")} data</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">• Tendik Aktif:</span>
-                        <span>{(stats?.total_tendik_aktif ?? 0).toLocaleString("id-ID")} data</span>
+                  {stats && (
+                    <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+                      <h4 className="text-sm font-semibold text-gray-800 dark:text-white mb-2 flex items-center gap-2">
+                        <FiDatabase className="w-4 h-4 text-emerald-600" />
+                        Data yang akan disinkronkan:
+                      </h4>
+                      <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">Total data SMS:</span>
+                          <span>{stats.total_sms.toLocaleString("id-ID")} record</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">Belum sync:</span>
+                          <span className="text-amber-600 font-semibold">{stats.total_not_synced.toLocaleString("id-ID")} record</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </ModalBody>
               <ModalFooter className="border-t border-gray-200 dark:border-gray-700">
@@ -397,8 +433,9 @@ export default function SikepPegawaiPage() {
       {/* Sync Progress Modal */}
       <Modal
         isOpen={showProgressModal}
-        isDismissable={false}
-        hideCloseButton
+        isDismissable={syncStatus !== "syncing"}
+        hideCloseButton={syncStatus === "syncing"}
+        onOpenChange={setShowProgressModal}
         size="md"
         backdrop="blur"
         classNames={{
@@ -436,7 +473,7 @@ export default function SikepPegawaiPage() {
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 font-normal">
                   {syncStatus === "syncing" && "Mohon tunggu sebentar"}
-                  {syncStatus === "success" && syncResult && `${syncResult.totalRecords.toLocaleString("id-ID")} data berhasil disinkronkan`}
+                  {syncStatus === "success" && syncResult && `${(syncResult.total_inserted + syncResult.total_updated).toLocaleString("id-ID")} data berhasil diproses`}
                   {syncStatus === "error" && "Terjadi kesalahan saat sinkronisasi"}
                 </p>
               </div>
@@ -446,22 +483,12 @@ export default function SikepPegawaiPage() {
             <div className="space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                    Progress
-                  </span>
-                  <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                    {syncProgress}%
-                  </span>
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Progress</span>
+                  <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{syncProgress}%</span>
                 </div>
                 <Progress
                   value={syncProgress}
-                  color={
-                    syncStatus === "success"
-                      ? "success"
-                      : syncStatus === "error"
-                      ? "danger"
-                      : "primary"
-                  }
+                  color={syncStatus === "success" ? "success" : syncStatus === "error" ? "danger" : "primary"}
                   className="mb-2"
                   size="md"
                   classNames={{
@@ -473,15 +500,26 @@ export default function SikepPegawaiPage() {
 
               {syncStatus === "success" && syncResult && (
                 <div className="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-                  <div className="flex items-center gap-3">
-                    <FiCheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" />
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                        {syncResult.message}
-                      </p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                        Total: {syncResult.totalRecords.toLocaleString("id-ID")} data pegawai
-                      </p>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Total Diproses:</span>
+                      <span className="font-bold">{syncResult.total_processed.toLocaleString("id-ID")}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Data Baru:</span>
+                      <span className="font-bold text-green-600">{syncResult.total_inserted.toLocaleString("id-ID")}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Diperbarui:</span>
+                      <span className="font-bold text-blue-600">{syncResult.total_updated.toLocaleString("id-ID")}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Gagal:</span>
+                      <span className="font-bold text-red-600">{syncResult.total_failed.toLocaleString("id-ID")}</span>
+                    </div>
+                    <div className="col-span-2 flex justify-between pt-2 border-t border-green-200 dark:border-green-800">
+                      <span className="text-gray-600 dark:text-gray-400">Durasi:</span>
+                      <span className="font-bold">{syncResult.duration}</span>
                     </div>
                   </div>
                 </div>
@@ -499,6 +537,17 @@ export default function SikepPegawaiPage() {
               )}
             </div>
           </ModalBody>
+          {syncStatus !== "syncing" && (
+            <ModalFooter className="border-t border-gray-200 dark:border-gray-700">
+              <Button
+                color="primary"
+                onPress={() => setShowProgressModal(false)}
+                className="font-medium rounded-xl"
+              >
+                Tutup
+              </Button>
+            </ModalFooter>
+          )}
         </ModalContent>
       </Modal>
     </DashboardLayout>

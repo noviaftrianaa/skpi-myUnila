@@ -23,7 +23,6 @@ import {
   FiXCircle,
   FiClock,
   FiAlertCircle,
-  FiWifi,
 } from "react-icons/fi";
 import { MdSync, MdSchool } from "react-icons/md";
 import SsoRadiusPenggunaTable from "@/shared/components/myunila-integrator/SsoRadiusPenggunaTable";
@@ -224,22 +223,22 @@ export default function ManaksesSsoRadiusPage() {
             </CardBody>
           </Card>
 
-          {/* Sudah Sync SSO Card */}
+          {/* Pengguna Aktif Card */}
           <Card className="bg-gradient-to-br from-emerald-500 via-green-600 to-teal-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative rounded-xl">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
             <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
             <CardBody className="p-5 relative z-10">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
-                  <FiWifi className="w-7 h-7 text-white" />
+                  <FiCheckCircle className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-emerald-100 mb-1">Sudah Sync SSO</p>
+                  <p className="text-sm font-medium text-emerald-100 mb-1">Pengguna Aktif</p>
                   {isLoadingStats ? (
                     <Spinner size="sm" color="white" />
                   ) : (
                     <h3 className="text-3xl font-bold text-white tracking-tight leading-none">
-                      {(stats?.total_sso ?? 0).toLocaleString("id-ID")}
+                      {(stats?.total_aktif ?? 0).toLocaleString("id-ID")}
                     </h3>
                   )}
                 </div>
@@ -247,7 +246,7 @@ export default function ManaksesSsoRadiusPage() {
             </CardBody>
           </Card>
 
-          {/* Belum Sync SSO Card */}
+          {/* Pengguna Tidak Aktif Card */}
           <Card className="bg-gradient-to-br from-amber-500 via-orange-500 to-yellow-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative rounded-xl">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
             <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
@@ -257,12 +256,12 @@ export default function ManaksesSsoRadiusPage() {
                   <FiXCircle className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-amber-100 mb-1">Belum Sync SSO</p>
+                  <p className="text-sm font-medium text-amber-100 mb-1">Pengguna Tidak Aktif</p>
                   {isLoadingStats ? (
                     <Spinner size="sm" color="white" />
                   ) : (
                     <h3 className="text-3xl font-bold text-white tracking-tight leading-none">
-                      {(stats?.total_non_sso ?? 0).toLocaleString("id-ID")}
+                      {(stats?.total_nonaktif ?? 0).toLocaleString("id-ID")}
                     </h3>
                   )}
                 </div>
@@ -360,12 +359,12 @@ export default function ManaksesSsoRadiusPage() {
                         <span>{(stats?.total_pengguna ?? 0).toLocaleString("id-ID")} data</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-medium">Sudah Sync SSO:</span>
-                        <span>{(stats?.total_sso ?? 0).toLocaleString("id-ID")} data</span>
+                        <span className="font-medium">Pengguna Aktif:</span>
+                        <span>{(stats?.total_aktif ?? 0).toLocaleString("id-ID")} data</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-medium">Belum Sync SSO:</span>
-                        <span>{(stats?.total_non_sso ?? 0).toLocaleString("id-ID")} data</span>
+                        <span className="font-medium">Pengguna Tidak Aktif:</span>
+                        <span>{(stats?.total_nonaktif ?? 0).toLocaleString("id-ID")} data</span>
                       </div>
                     </div>
                   </div>
