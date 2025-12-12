@@ -113,6 +113,30 @@ class AplikasiController extends Controller
     }
 
     /**
+     * Get categories for dropdown
+     *
+     * @return JsonResponse
+     */
+    public function categories(): JsonResponse
+    {
+        try {
+            $result = $this->service->getCategories();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Kategori aplikasi berhasil diambil',
+                'data' => $result
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil kategori aplikasi: ' . $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+    }
+
+    /**
      * Create new aplikasi
      *
      * @param Request $request
@@ -125,19 +149,30 @@ class AplikasiController extends Controller
                 'nm_aplikasi' => 'required|string|max:255',
                 'ket_aplikasi' => 'nullable|string',
                 'id_organisasi' => 'nullable|string|max:36',
+                'id_kategori' => 'nullable|string|max:36',
                 'url' => 'nullable|string|max:255',
                 'port' => 'nullable|string|max:10',
                 'teknologi' => 'nullable|string|max:100',
                 'endpoint_ws' => 'nullable|string|max:255',
+                'icon_name' => 'nullable|string|max:100',
+                'icon_color' => 'nullable|string|max:50',
+                'app_slug' => 'nullable|string|max:100',
+                'urutan' => 'nullable|integer',
                 'a_generate_menu' => 'nullable|boolean',
                 'a_integrasi_cas' => 'nullable|boolean',
                 'a_sistem_internal_pt' => 'nullable|boolean',
+                'a_tampil_portal' => 'nullable|boolean',
+                'a_maintenance' => 'nullable|boolean',
+                'a_coming_soon' => 'nullable|boolean',
+                'a_terintegrasi' => 'nullable|boolean',
             ]);
 
             $data = $request->only([
-                'nm_aplikasi', 'ket_aplikasi', 'id_organisasi',
+                'nm_aplikasi', 'ket_aplikasi', 'id_organisasi', 'id_kategori',
                 'url', 'port', 'teknologi', 'endpoint_ws',
-                'a_generate_menu', 'a_integrasi_cas', 'a_sistem_internal_pt'
+                'icon_name', 'icon_color', 'app_slug', 'urutan',
+                'a_generate_menu', 'a_integrasi_cas', 'a_sistem_internal_pt',
+                'a_tampil_portal', 'a_maintenance', 'a_coming_soon', 'a_terintegrasi'
             ]);
 
             $result = $this->service->create($data);
@@ -176,19 +211,30 @@ class AplikasiController extends Controller
                 'nm_aplikasi' => 'required|string|max:255',
                 'ket_aplikasi' => 'nullable|string',
                 'id_organisasi' => 'nullable|string|max:36',
+                'id_kategori' => 'nullable|string|max:36',
                 'url' => 'nullable|string|max:255',
                 'port' => 'nullable|string|max:10',
                 'teknologi' => 'nullable|string|max:100',
                 'endpoint_ws' => 'nullable|string|max:255',
+                'icon_name' => 'nullable|string|max:100',
+                'icon_color' => 'nullable|string|max:50',
+                'app_slug' => 'nullable|string|max:100',
+                'urutan' => 'nullable|integer',
                 'a_generate_menu' => 'nullable|boolean',
                 'a_integrasi_cas' => 'nullable|boolean',
                 'a_sistem_internal_pt' => 'nullable|boolean',
+                'a_tampil_portal' => 'nullable|boolean',
+                'a_maintenance' => 'nullable|boolean',
+                'a_coming_soon' => 'nullable|boolean',
+                'a_terintegrasi' => 'nullable|boolean',
             ]);
 
             $data = $request->only([
-                'nm_aplikasi', 'ket_aplikasi', 'id_organisasi',
+                'nm_aplikasi', 'ket_aplikasi', 'id_organisasi', 'id_kategori',
                 'url', 'port', 'teknologi', 'endpoint_ws',
-                'a_generate_menu', 'a_integrasi_cas', 'a_sistem_internal_pt'
+                'icon_name', 'icon_color', 'app_slug', 'urutan',
+                'a_generate_menu', 'a_integrasi_cas', 'a_sistem_internal_pt',
+                'a_tampil_portal', 'a_maintenance', 'a_coming_soon', 'a_terintegrasi'
             ]);
 
             $result = $this->service->update($id, $data);

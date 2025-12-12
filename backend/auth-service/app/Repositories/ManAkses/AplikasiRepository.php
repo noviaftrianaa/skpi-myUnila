@@ -43,10 +43,21 @@ class AplikasiRepository
                 a.expired_date,
                 CONVERT(VARCHAR(36), a.id_organisasi) as id_organisasi,
                 uo.nm_lemb as nm_organisasi,
+                CONVERT(VARCHAR(36), a.id_kategori) as id_kategori,
+                k.nm_kategori,
+                a.icon_name,
+                a.icon_color,
+                a.app_slug,
+                a.urutan,
+                ISNULL(a.a_tampil_portal, 0) as a_tampil_portal,
+                ISNULL(a.a_maintenance, 0) as a_maintenance,
+                ISNULL(a.a_coming_soon, 0) as a_coming_soon,
+                ISNULL(a.a_terintegrasi, 0) as a_terintegrasi,
                 (SELECT COUNT(*) FROM man_akses.akses_table_aplikasi ata WHERE ata.id_aplikasi = a.id_aplikasi) as jumlah_table,
                 (SELECT COUNT(*) FROM man_akses.pj_aplikasi pj WHERE pj.id_aplikasi = a.id_aplikasi) as jumlah_pj
             FROM man_akses.aplikasi a
             LEFT JOIN man_akses.unit_organisasi uo ON uo.id_organisasi = a.id_organisasi
+            LEFT JOIN man_akses.kategori_aplikasi k ON k.id_kategori = a.id_kategori
             WHERE 1=1
         ";
 
@@ -121,6 +132,11 @@ class AplikasiRepository
             $isExpired = $item->expired_date && strtotime($item->expired_date) <= $now->timestamp;
             $item->status = $isExpired ? 'Tidak Aktif' : 'Aktif';
             $item->jenis = $item->a_sistem_internal_pt ? 'Internal' : 'External';
+            // Cast bit fields to int for JSON
+            $item->a_tampil_portal = (int) $item->a_tampil_portal;
+            $item->a_maintenance = (int) $item->a_maintenance;
+            $item->a_coming_soon = (int) $item->a_coming_soon;
+            $item->a_terintegrasi = (int) $item->a_terintegrasi;
         }
 
         return [
@@ -145,6 +161,7 @@ class AplikasiRepository
                 CONVERT(VARCHAR(36), a.id_aplikasi) as id_aplikasi,
                 CONVERT(VARCHAR(36), a.id_blob) as id_blob,
                 CONVERT(VARCHAR(36), a.id_organisasi) as id_organisasi,
+                CONVERT(VARCHAR(36), a.id_kategori) as id_kategori,
                 a.nm_aplikasi,
                 a.ket_aplikasi,
                 a.token_aplikasi,
@@ -156,13 +173,23 @@ class AplikasiRepository
                 a.a_generate_menu,
                 a.a_integrasi_cas,
                 a.a_sistem_internal_pt,
+                a.icon_name,
+                a.icon_color,
+                a.app_slug,
+                a.urutan,
+                ISNULL(a.a_tampil_portal, 0) as a_tampil_portal,
+                ISNULL(a.a_maintenance, 0) as a_maintenance,
+                ISNULL(a.a_coming_soon, 0) as a_coming_soon,
+                ISNULL(a.a_terintegrasi, 0) as a_terintegrasi,
                 a.tgl_create,
                 a.last_update,
                 a.expired_date,
                 a.last_sync,
-                uo.nm_organisasi
+                uo.nm_lemb as nm_organisasi,
+                k.nm_kategori
             FROM man_akses.aplikasi a
             LEFT JOIN man_akses.unit_organisasi uo ON uo.id_organisasi = a.id_organisasi
+            LEFT JOIN man_akses.kategori_aplikasi k ON k.id_kategori = a.id_kategori
             WHERE a.id_aplikasi = ?
         ";
 
@@ -173,12 +200,20 @@ class AplikasiRepository
             $isExpired = $aplikasi->expired_date && strtotime($aplikasi->expired_date) <= $now->timestamp;
             $aplikasi->status = $isExpired ? 'Tidak Aktif' : 'Aktif';
             $aplikasi->jenis = $aplikasi->a_sistem_internal_pt ? 'Internal' : 'External';
+            // Cast bit fields
+            $aplikasi->a_tampil_portal = (int) $aplikasi->a_tampil_portal;
+            $aplikasi->a_maintenance = (int) $aplikasi->a_maintenance;
+            $aplikasi->a_coming_soon = (int) $aplikasi->a_coming_soon;
+            $aplikasi->a_terintegrasi = (int) $aplikasi->a_terintegrasi;
 
             // Get tables for this application
             $aplikasi->tables = $this->getTables($id);
 
             // Get PJs (project owners) for this application
             $aplikasi->pj_list = $this->getPjList($id);
+
+            // Get menus for this application
+            $aplikasi->menus = $this->getMenus($id);
         }
 
         return $aplikasi;
@@ -241,6 +276,56 @@ class AplikasiRepository
     }
 
     /**
+     * Get menus for an application
+     *
+     * @param string $idAplikasi
+     * @return array
+     */
+    public function getMenus(string $idAplikasi): array
+    {
+        $sql = "
+            SELECT
+                CONVERT(VARCHAR(36), m.id_menu) as id_menu,
+                CONVERT(VARCHAR(36), m.id_menu_parent) as id_menu_parent,
+                m.nm_menu,
+                m.icon_menu,
+                m.url_menu,
+                m.urutan,
+                m.a_aktif,
+                m.tgl_create,
+                m.last_update
+            FROM man_akses.menu m
+            WHERE m.id_aplikasi = ?
+              AND m.soft_delete = 0
+            ORDER BY m.urutan ASC, m.nm_menu ASC
+        ";
+
+        return DB::select($sql, [$idAplikasi]);
+    }
+
+    /**
+     * Get all categories for aplikasi dropdown
+     *
+     * @return array
+     */
+    public function getCategories(): array
+    {
+        $sql = "
+            SELECT
+                CONVERT(VARCHAR(36), id_kategori) as id_kategori,
+                nm_kategori,
+                icon_kategori,
+                icon_color,
+                urutan
+            FROM man_akses.kategori_aplikasi
+            WHERE soft_delete = 0
+            ORDER BY urutan ASC
+        ";
+
+        return DB::select($sql);
+    }
+
+    /**
      * Get statistics for aplikasi
      *
      * @return object
@@ -274,16 +359,19 @@ class AplikasiRepository
 
         $sql = "
             INSERT INTO man_akses.aplikasi (
-                id_aplikasi, id_organisasi, nm_aplikasi, ket_aplikasi,
+                id_aplikasi, id_organisasi, id_kategori, nm_aplikasi, ket_aplikasi,
                 token_aplikasi, app_key, url, port, teknologi, endpoint_ws,
+                icon_name, icon_color, app_slug, urutan,
                 a_generate_menu, a_integrasi_cas, a_sistem_internal_pt,
+                a_tampil_portal, a_maintenance, a_coming_soon, a_terintegrasi,
                 tgl_create, last_update, last_sync
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ";
 
         DB::insert($sql, [
             $id,
             $data['id_organisasi'] ?? null,
+            $data['id_kategori'] ?? null,
             $data['nm_aplikasi'],
             $data['ket_aplikasi'] ?? null,
             $data['token_aplikasi'] ?? $this->generateToken(),
@@ -292,9 +380,17 @@ class AplikasiRepository
             $data['port'] ?? null,
             $data['teknologi'] ?? null,
             $data['endpoint_ws'] ?? null,
+            $data['icon_name'] ?? null,
+            $data['icon_color'] ?? null,
+            $data['app_slug'] ?? null,
+            $data['urutan'] ?? 0,
             $data['a_generate_menu'] ?? 0,
             $data['a_integrasi_cas'] ?? 0,
             $data['a_sistem_internal_pt'] ?? 1,
+            $data['a_tampil_portal'] ?? 1,
+            $data['a_maintenance'] ?? 0,
+            $data['a_coming_soon'] ?? 0,
+            $data['a_terintegrasi'] ?? 0,
             $now,
             $now,
             $now,
@@ -317,15 +413,24 @@ class AplikasiRepository
         $sql = "
             UPDATE man_akses.aplikasi SET
                 id_organisasi = ?,
+                id_kategori = ?,
                 nm_aplikasi = ?,
                 ket_aplikasi = ?,
                 url = ?,
                 port = ?,
                 teknologi = ?,
                 endpoint_ws = ?,
+                icon_name = ?,
+                icon_color = ?,
+                app_slug = ?,
+                urutan = ?,
                 a_generate_menu = ?,
                 a_integrasi_cas = ?,
                 a_sistem_internal_pt = ?,
+                a_tampil_portal = ?,
+                a_maintenance = ?,
+                a_coming_soon = ?,
+                a_terintegrasi = ?,
                 last_update = ?,
                 last_sync = ?
             WHERE id_aplikasi = ?
@@ -333,15 +438,24 @@ class AplikasiRepository
 
         $affected = DB::update($sql, [
             $data['id_organisasi'] ?? null,
+            $data['id_kategori'] ?? null,
             $data['nm_aplikasi'],
             $data['ket_aplikasi'] ?? null,
             $data['url'] ?? null,
             $data['port'] ?? null,
             $data['teknologi'] ?? null,
             $data['endpoint_ws'] ?? null,
+            $data['icon_name'] ?? null,
+            $data['icon_color'] ?? null,
+            $data['app_slug'] ?? null,
+            $data['urutan'] ?? 0,
             $data['a_generate_menu'] ?? 0,
             $data['a_integrasi_cas'] ?? 0,
             $data['a_sistem_internal_pt'] ?? 1,
+            $data['a_tampil_portal'] ?? 1,
+            $data['a_maintenance'] ?? 0,
+            $data['a_coming_soon'] ?? 0,
+            $data['a_terintegrasi'] ?? 0,
             $now,
             $now,
             $id,

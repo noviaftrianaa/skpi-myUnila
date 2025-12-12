@@ -21,6 +21,16 @@ export interface Aplikasi {
   jenis: 'Internal' | 'External';
   id_organisasi: string | null;
   nm_organisasi: string | null;
+  id_kategori: string | null;
+  nm_kategori: string | null;
+  icon_name: string | null;
+  icon_color: string | null;
+  app_slug: string | null;
+  urutan: number;
+  a_tampil_portal: boolean;
+  a_maintenance: boolean;
+  a_coming_soon: boolean;
+  a_terintegrasi: boolean;
   jumlah_table: number;
   jumlah_pj: number;
   tgl_create: string | null;
@@ -28,10 +38,24 @@ export interface Aplikasi {
   expired_date: string | null;
 }
 
+export interface KategoriAplikasi {
+  id_kategori: string;
+  nm_kategori: string;
+  icon_kategori: string | null;
+  icon_color: string | null;
+  urutan: number;
+}
+
 export interface AplikasiTable {
+  id_akses_table_app: string;
   id_table_app: string;
   nm_table: string;
-  ket_table: string | null;
+  tabel_alias: string | null;
+  skema_tbl: string | null;
+  a_boleh_get: boolean;
+  a_boleh_insert: boolean;
+  a_boleh_update: boolean;
+  a_boleh_delete: boolean;
   tgl_create: string | null;
   last_update: string | null;
 }
@@ -46,6 +70,18 @@ export interface AplikasiPJ {
   last_update: string | null;
 }
 
+export interface AplikasiMenu {
+  id_menu: string;
+  id_menu_parent: string | null;
+  nm_menu: string;
+  icon_menu: string | null;
+  url_menu: string | null;
+  urutan: number;
+  a_aktif: boolean;
+  tgl_create: string | null;
+  last_update: string | null;
+}
+
 export interface AplikasiDetail extends Aplikasi {
   id_blob: string | null;
   token_aplikasi: string | null;
@@ -53,6 +89,7 @@ export interface AplikasiDetail extends Aplikasi {
   last_sync: string | null;
   tables: AplikasiTable[];
   pj_list: AplikasiPJ[];
+  menus: AplikasiMenu[];
 }
 
 export interface AplikasiListResult {
@@ -84,13 +121,22 @@ export interface CreateAplikasiRequest {
   nm_aplikasi: string;
   ket_aplikasi?: string | null;
   id_organisasi?: string | null;
+  id_kategori?: string | null;
   url?: string | null;
   port?: string | null;
   teknologi?: string | null;
   endpoint_ws?: string | null;
+  icon_name?: string | null;
+  icon_color?: string | null;
+  app_slug?: string | null;
+  urutan?: number;
   a_generate_menu?: boolean;
   a_integrasi_cas?: boolean;
   a_sistem_internal_pt?: boolean;
+  a_tampil_portal?: boolean;
+  a_maintenance?: boolean;
+  a_coming_soon?: boolean;
+  a_terintegrasi?: boolean;
 }
 
 export interface UpdateAplikasiRequest extends CreateAplikasiRequest {}
@@ -126,6 +172,17 @@ export const aplikasiService = {
   async getStats(): Promise<AplikasiStats> {
     const response = await authClient.get<ApiResponse<AplikasiStats>>(
       '/manakses/aplikasi/stats'
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Get aplikasi categories for dropdown
+   * Protected endpoint - requires JWT authentication
+   */
+  async getCategories(): Promise<KategoriAplikasi[]> {
+    const response = await authClient.get<ApiResponse<KategoriAplikasi[]>>(
+      '/manakses/aplikasi/categories'
     );
     return response.data.data;
   },

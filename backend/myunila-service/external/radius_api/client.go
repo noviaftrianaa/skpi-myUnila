@@ -66,19 +66,21 @@ type SSOUser struct {
 	NIP          string        `json:"nip"`
 	Status       string        `json:"status"`
 	DomainEmail  string        `json:"domain_email"`
-	RolePengguna *RolePengguna `json:"role_pengguna"`
-	FoundInPDUT  bool          `json:"found_in_pdut"`
+	JenisKelamin string        `json:"jenis_kelamin"` // From peserta_didik/sdm (L/P)
+	// Reference IDs (kolom di man_akses.pengguna) - moved to top level
+	IDPdPengguna  *string       `json:"id_pd_pengguna"`
+	IDSdmPengguna *string       `json:"id_sdm_pengguna"`
+	IDUserSikep   *string       `json:"id_user_sikep"`
+	RolePengguna  *RolePengguna `json:"role_pengguna"`
+	FoundInPDUT   bool          `json:"found_in_pdut"`
 }
 
 // RolePengguna represents user role from SSO Radius API
 type RolePengguna struct {
-	IDPeran       int     `json:"id_peran"`
-	NmPeran       string  `json:"nm_peran"`
-	IDOrganisasi  string  `json:"id_organisasi"`
-	NmOrganisasi  string  `json:"nm_organisasi"`
-	IDPdPengguna  *string `json:"id_pd_pengguna"`
-	IDSdmPengguna *string `json:"id_sdm_pengguna"`
-	IDUserSikep   *string `json:"id_user_sikep"`
+	IDPeran      int    `json:"id_peran"`
+	NmPeran      string `json:"nm_peran"`
+	IDOrganisasi string `json:"id_organisasi"`
+	NmOrganisasi string `json:"nm_organisasi"`
 }
 
 var (

@@ -13,6 +13,8 @@ use App\Http\Controllers\Api\ManAkses\UnitOrganisasiController;
 use App\Http\Controllers\Api\ManAkses\PeranController;
 use App\Http\Controllers\Api\ManAkses\RolePenggunaController;
 use App\Http\Controllers\Api\ManAkses\EndpointController;
+use App\Http\Controllers\Api\ManAkses\KategoriAplikasiController;
+use App\Http\Controllers\Api\UserContextController;
 
 /*
 |--------------------------------------------------------------------------
@@ -102,6 +104,19 @@ Route::prefix('v1')->group(function () {
             Route::post('/invalidate-user', [CacheController::class, 'invalidateUser']);
         });
 
+        // User Context endpoints (role/unit selection for app access)
+        Route::prefix('user-context')->group(function () {
+            Route::get('/', [UserContextController::class, 'getUserContext']);           // Get all roles & units
+            Route::post('/select', [UserContextController::class, 'selectContext']);      // Select role + unit
+            Route::get('/active', [UserContextController::class, 'getActiveContext']);    // Get active context
+            Route::get('/check-access', [UserContextController::class, 'checkAppAccess']); // Check app access
+            Route::delete('/clear', [UserContextController::class, 'clearContext']);      // Clear context
+
+            // Portal Apps endpoints (filtered by organization access)
+            Route::get('/portal-apps', [UserContextController::class, 'getPortalApps']);       // Get portal apps for user
+            Route::get('/portal-categories', [UserContextController::class, 'getPortalCategories']); // Get all categories
+        });
+
     });
 
     // Manajemen Akses endpoints (protected with JWT)
@@ -120,6 +135,7 @@ Route::prefix('v1')->group(function () {
         Route::prefix('aplikasi')->group(function () {
             Route::get('/', [AplikasiController::class, 'index']);
             Route::get('/stats', [AplikasiController::class, 'stats']);
+            Route::get('/categories', [AplikasiController::class, 'categories']);
             Route::post('/', [AplikasiController::class, 'store']);
             Route::get('/{id}', [AplikasiController::class, 'show']);
             Route::put('/{id}', [AplikasiController::class, 'update']);
@@ -167,6 +183,17 @@ Route::prefix('v1')->group(function () {
             Route::get('/{id}', [EndpointController::class, 'show']);
             Route::put('/{id}', [EndpointController::class, 'update']);
             Route::delete('/{id}', [EndpointController::class, 'destroy']);
+        });
+
+        // Kategori Aplikasi (Application Category Management)
+        Route::prefix('kategori-aplikasi')->group(function () {
+            Route::get('/', [KategoriAplikasiController::class, 'index']);
+            Route::get('/all', [KategoriAplikasiController::class, 'all']);
+            Route::get('/stats', [KategoriAplikasiController::class, 'stats']);
+            Route::post('/', [KategoriAplikasiController::class, 'store']);
+            Route::get('/{id}', [KategoriAplikasiController::class, 'show']);
+            Route::put('/{id}', [KategoriAplikasiController::class, 'update']);
+            Route::delete('/{id}', [KategoriAplikasiController::class, 'destroy']);
         });
     });
 });

@@ -355,6 +355,22 @@ func (s *service) transformRadiusUser(user radius_api.SSOUser) *Pengguna {
 		p.Email = &user.Email
 	}
 
+	// jenis_kelamin from peserta_didik/sdm, default 'L' if empty
+	if user.JenisKelamin != "" {
+		p.JenisKelamin = &user.JenisKelamin
+	}
+
+	// Reference IDs from PDUT (now at top level of API response)
+	if user.IDPdPengguna != nil {
+		p.IDPdPengguna = user.IDPdPengguna
+	}
+	if user.IDSdmPengguna != nil {
+		p.IDSdmPengguna = user.IDSdmPengguna
+	}
+	if user.IDUserSikep != nil {
+		p.IDUserSikep = user.IDUserSikep
+	}
+
 	return p
 }
 

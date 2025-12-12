@@ -119,6 +119,11 @@ export const myunilaIntegratorMenuConfig: MenuItem[] = [
     roles: defaultRoles,
     children: [
       {
+        title: "Unit Organisasi",
+        href: "/dashboard/integrator/manakses/unit-organisasi",
+        roles: defaultRoles,
+      },
+      {
         title: "SSO Radius",
         href: "/dashboard/integrator/manakses/sso-radius",
         roles: defaultRoles,

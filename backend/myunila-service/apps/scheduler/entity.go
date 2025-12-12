@@ -23,7 +23,7 @@ type ScheduledSync struct {
 type CreateScheduledSyncRequest struct {
 	Name         string  `json:"name" validate:"required"`
 	Description  string  `json:"description"`
-	SyncType     string  `json:"sync_type" validate:"required,oneof=pegawai"`
+	SyncType     string  `json:"sync_type" validate:"required,oneof=pegawai unit_organisasi"`
 	EndpointKey  *string `json:"endpoint_key"`
 	ScheduleDate string  `json:"schedule_date" validate:"required"` // Format: YYYY-MM-DD
 	ScheduleTime string  `json:"schedule_time" validate:"required"` // Format: HH:mm
@@ -63,6 +63,11 @@ func GetSyncTypes() []SyncTypeInfo {
 			Type:        "pegawai",
 			Name:        "Pegawai SIKEP",
 			Description: "Sinkronisasi data pegawai dari SIKEP",
+		},
+		{
+			Type:        "unit_organisasi",
+			Name:        "Unit Organisasi SMS",
+			Description: "Sinkronisasi data unit organisasi dari SMS ke Manakses",
 		},
 	}
 }

@@ -1,7 +1,7 @@
 /**
  * MyUnila Sync Logs Service
  * Handles API calls for viewing synchronization logs from MyUnila Integrator
- * Uses logger.sync_logs table with api_code=SIKEP
+ * Supports multiple API sources: SIKEP, SMS, Radius, etc.
  */
 
 import { myunilaClient } from '@/lib/api/myunilaClient';
@@ -12,7 +12,7 @@ export interface MyUnilaSyncLog {
   endpoint_key: string;
   sync_type: "manual" | "batch" | "scheduled";
   status: "success" | "failed" | "partial";
-  api_code: string; // API source identifier (SIKEP)
+  api_code: string; // API source identifier (SIKEP, SMS, Radius)
   total_records: number;
   inserted_count: number;
   updated_count: number;
@@ -47,15 +47,13 @@ export interface MyUnilaSyncLogResponse {
 class MyUnilaSyncLogsService {
   /**
    * Get sync logs with filtering and pagination
-   * Always filters by api_code=SIKEP to only show MyUnila logs
+   * Shows all MyUnila logs (SIKEP, SMS, Radius, etc.)
    */
   async getSyncLogs(filter?: MyUnilaSyncLogFilter): Promise<MyUnilaSyncLogResponse> {
     try {
-      const params: Record<string, string> = {
-        // IMPORTANT: Always filter by SIKEP to only show myunila logs
-        api_code: 'SIKEP'
-      };
+      const params: Record<string, string> = {};
 
+      // No api_code filter - show all MyUnila sync logs (SIKEP, SMS, Radius, etc.)
       if (filter?.search) params.endpoint_name = filter.search;
       if (filter?.endpoint_key) params.endpoint_key = filter.endpoint_key;
       if (filter?.status) params.status = filter.status;
