@@ -111,25 +111,31 @@ class UnitOrganisasiService
     }
 
     /**
-     * Get all unit organisasi for dropdown
+     * Get all unit organisasi for dropdown with optional search
      *
+     * @param string|null $search
+     * @param int $limit
      * @return array
      */
-    public function getAll(): array
+    public function getAll(?string $search = null, int $limit = 100): array
     {
         try {
-            $data = $this->repository->getAll();
+            $data = $this->repository->getAll($search, $limit);
 
             return array_map(function ($item) {
                 return [
                     'id_organisasi' => $item->id_organisasi,
                     'nm_lemb' => $item->nm_lemb,
+                    'display_name' => $item->display_name ?? $item->nm_lemb,
                     'level_organisasi' => $item->level_organisasi,
+                    'nm_jns_lemb' => $item->nm_jns_lemb ?? null,
+                    'jenjang' => $item->jenjang ?? null,
                 ];
             }, $data);
         } catch (\Exception $e) {
             Log::error('UnitOrganisasiService::getAll error', [
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
+                'search' => $search
             ]);
             throw $e;
         }

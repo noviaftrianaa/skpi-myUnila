@@ -514,4 +514,101 @@ class PenggunaRepository
             return false;
         }
     }
+
+    /**
+     * Update pengguna data
+     *
+     * @param string $id
+     * @param array $data
+     * @return bool
+     */
+    public function update(string $id, array $data): bool
+    {
+        // Filter only allowed fields
+        $allowedFields = [
+            'nm_pengguna', 'email', 'jenis_kelamin', 'tempat_lahir',
+            'tgl_lahir', 'alamat', 'no_tel', 'no_hp', 'jabatan',
+            'a_aktif', 'disable'
+        ];
+
+        $updateData = array_filter(
+            $data,
+            fn($key) => in_array($key, $allowedFields) && $data[$key] !== null,
+            ARRAY_FILTER_USE_KEY
+        );
+
+        if (empty($updateData)) {
+            return false;
+        }
+
+        // Convert boolean to integer for SQL Server
+        if (isset($updateData['a_aktif'])) {
+            $updateData['a_aktif'] = $updateData['a_aktif'] ? 1 : 0;
+        }
+        if (isset($updateData['disable'])) {
+            $updateData['disable'] = $updateData['disable'] ? 1 : 0;
+        }
+
+        // Add last_update timestamp
+        $updateData['last_update'] = now();
+
+        // Build SET clause
+        $setClauses = [];
+        $bindings = [];
+        foreach ($updateData as $field => $value) {
+            $setClauses[] = "{$field} = ?";
+            $bindings[] = $value;
+        }
+        $bindings[] = $id;
+
+        $sql = "UPDATE man_akses.pengguna SET " . implode(', ', $setClauses) . " WHERE id_pengguna = ?";
+
+        try {
+            $affected = DB::update($sql, $bindings);
+            return $affected > 0;
+        } catch (\Exception $e) {
+            Log::error('PenggunaRepository::update error', [
+                'message' => $e->getMessage(),
+                'id' => $id,
+                'data' => $data
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Check if pengguna exists by ID
+     *
+     * @param string $id
+     * @return bool
+     */
+    public function exists(string $id): bool
+    {
+        $result = DB::selectOne(
+            "SELECT 1 FROM man_akses.pengguna WHERE id_pengguna = ? AND soft_delete = 0",
+            [$id]
+        );
+        return $result !== null;
+    }
+
+    /**
+     * Soft delete pengguna
+     *
+     * @param string $id
+     * @return bool
+     */
+    public function delete(string $id): bool
+    {
+        try {
+            $sql = "UPDATE man_akses.pengguna SET soft_delete = 1, last_update = ? WHERE id_pengguna = ?";
+            $affected = DB::update($sql, [now(), $id]);
+            return $affected > 0;
+        } catch (\Exception $e) {
+            Log::error('PenggunaRepository::delete error', [
+                'message' => $e->getMessage(),
+                'id' => $id
+            ]);
+            throw $e;
+        }
+    }
 }

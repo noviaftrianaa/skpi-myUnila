@@ -257,4 +257,97 @@ class PenggunaController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Update pengguna
+     *
+     * @param Request $request
+     * @param string $id
+     * @return JsonResponse
+     */
+    public function update(Request $request, string $id): JsonResponse
+    {
+        try {
+            $request->validate([
+                'nm_pengguna' => 'nullable|string|max:100',
+                'email' => 'nullable|email|max:100',
+                'jenis_kelamin' => 'nullable|string|in:L,P',
+                'tempat_lahir' => 'nullable|string|max:100',
+                'tgl_lahir' => 'nullable|date',
+                'alamat' => 'nullable|string|max:255',
+                'no_tel' => 'nullable|string|max:20',
+                'no_hp' => 'nullable|string|max:20',
+                'jabatan' => 'nullable|string|max:100',
+                'a_aktif' => 'nullable|boolean',
+                'disable' => 'nullable|boolean',
+            ]);
+
+            $data = $request->only([
+                'nm_pengguna', 'email', 'jenis_kelamin', 'tempat_lahir',
+                'tgl_lahir', 'alamat', 'no_tel', 'no_hp', 'jabatan',
+                'a_aktif', 'disable'
+            ]);
+
+            $result = $this->service->update($id, $data);
+
+            if (!$result) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pengguna tidak ditemukan',
+                    'data' => null
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pengguna berhasil diperbarui',
+                'data' => $result
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui pengguna: ' . $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete pengguna (soft delete)
+     *
+     * @param string $id
+     * @return JsonResponse
+     */
+    public function destroy(string $id): JsonResponse
+    {
+        try {
+            $result = $this->service->delete($id);
+
+            if (!$result) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pengguna tidak ditemukan',
+                    'data' => null
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pengguna berhasil dihapus',
+                'data' => null
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus pengguna: ' . $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+    }
 }

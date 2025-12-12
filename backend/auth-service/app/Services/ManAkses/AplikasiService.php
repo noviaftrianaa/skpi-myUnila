@@ -56,6 +56,7 @@ class AplikasiService
                     'a_maintenance' => (bool) $item->a_maintenance,
                     'a_coming_soon' => (bool) $item->a_coming_soon,
                     'a_terintegrasi' => (bool) $item->a_terintegrasi,
+                    'a_live' => (bool) $item->a_live,
                     'jumlah_table' => (int) $item->jumlah_table,
                     'jumlah_pj' => (int) $item->jumlah_pj,
                     'tgl_create' => $item->tgl_create,
@@ -113,6 +114,7 @@ class AplikasiService
                 'a_maintenance' => (bool) $aplikasi->a_maintenance,
                 'a_coming_soon' => (bool) $aplikasi->a_coming_soon,
                 'a_terintegrasi' => (bool) $aplikasi->a_terintegrasi,
+                'a_live' => (bool) $aplikasi->a_live,
                 'status' => $aplikasi->status,
                 'jenis' => $aplikasi->jenis,
                 'nm_organisasi' => $aplikasi->nm_organisasi,
@@ -182,11 +184,13 @@ class AplikasiService
 
             return [
                 'total_aplikasi' => (int) $stats->total_aplikasi,
+                'total_live' => (int) $stats->total_live,
+                'total_dev' => (int) $stats->total_dev,
+                'total_terintegrasi' => (int) $stats->total_terintegrasi,
+                'total_portal' => (int) $stats->total_portal,
+                'total_maintenance' => (int) $stats->total_maintenance,
                 'total_aktif' => (int) $stats->total_aktif,
                 'total_nonaktif' => (int) $stats->total_nonaktif,
-                'total_internal' => (int) $stats->total_internal,
-                'total_external' => (int) $stats->total_external,
-                'total_integrasi_cas' => (int) $stats->total_integrasi_cas,
             ];
         } catch (\Exception $e) {
             Log::error('AplikasiService::getStats error', [
@@ -303,6 +307,40 @@ class AplikasiService
         } catch (\Exception $e) {
             Log::error('AplikasiService::getCategories error', [
                 'message' => $e->getMessage()
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Regenerate app_key for an aplikasi
+     *
+     * @param string $id
+     * @return array|null
+     */
+    public function regenerateAppKey(string $id): ?array
+    {
+        try {
+            // Check if aplikasi exists
+            $existing = $this->repository->getDetail($id);
+            if (!$existing) {
+                return null;
+            }
+
+            $newAppKey = $this->repository->regenerateAppKey($id);
+
+            if (!$newAppKey) {
+                throw new \Exception('Gagal generate app key baru');
+            }
+
+            return [
+                'id_aplikasi' => $id,
+                'app_key' => $newAppKey,
+            ];
+        } catch (\Exception $e) {
+            Log::error('AplikasiService::regenerateAppKey error', [
+                'message' => $e->getMessage(),
+                'id' => $id
             ]);
             throw $e;
         }
