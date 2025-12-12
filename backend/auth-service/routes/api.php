@@ -129,6 +129,8 @@ Route::prefix('v1')->group(function () {
             Route::get('/sso-users', [PenggunaController::class, 'ssoUsers']);
             Route::post('/clear-radius-cache', [PenggunaController::class, 'clearRadiusCache']);
             Route::get('/{id}', [PenggunaController::class, 'show']);
+            Route::put('/{id}', [PenggunaController::class, 'update']);
+            Route::delete('/{id}', [PenggunaController::class, 'destroy']);
         });
 
         // Aplikasi (Application Management)
@@ -140,6 +142,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/{id}', [AplikasiController::class, 'show']);
             Route::put('/{id}', [AplikasiController::class, 'update']);
             Route::delete('/{id}', [AplikasiController::class, 'destroy']);
+            Route::post('/{id}/regenerate-app-key', [AplikasiController::class, 'regenerateAppKey']);
         });
 
         // Unit Organisasi (Organization Unit Management)

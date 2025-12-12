@@ -31,6 +31,7 @@ export interface Aplikasi {
   a_maintenance: boolean;
   a_coming_soon: boolean;
   a_terintegrasi: boolean;
+  a_live: boolean;
   jumlah_table: number;
   jumlah_pj: number;
   tgl_create: string | null;
@@ -72,7 +73,6 @@ export interface AplikasiPJ {
 
 export interface AplikasiMenu {
   id_menu: string;
-  id_menu_parent: string | null;
   nm_menu: string;
   icon_menu: string | null;
   url_menu: string | null;
@@ -102,11 +102,13 @@ export interface AplikasiListResult {
 
 export interface AplikasiStats {
   total_aplikasi: number;
+  total_live: number;
+  total_dev: number;
+  total_terintegrasi: number;
+  total_portal: number;
+  total_maintenance: number;
   total_aktif: number;
   total_nonaktif: number;
-  total_internal: number;
-  total_external: number;
-  total_integrasi_cas: number;
 }
 
 export interface AplikasiListParams {
@@ -114,7 +116,12 @@ export interface AplikasiListParams {
   limit?: number;
   search?: string;
   status?: 'aktif' | 'nonaktif';
-  jenis?: 'internal' | 'external';
+  mode?: 'production' | 'development';
+  portal?: 'ya' | 'tidak';
+  terintegrasi?: 'ya' | 'tidak';
+  sso_cas?: 'ya' | 'tidak';
+  maintenance?: 'ya' | 'tidak';
+  coming_soon?: 'ya' | 'tidak';
 }
 
 export interface CreateAplikasiRequest {
@@ -137,6 +144,8 @@ export interface CreateAplikasiRequest {
   a_maintenance?: boolean;
   a_coming_soon?: boolean;
   a_terintegrasi?: boolean;
+  a_live?: boolean;
+  status?: 'Aktif' | 'Tidak Aktif';
 }
 
 export interface UpdateAplikasiRequest extends CreateAplikasiRequest {}
@@ -228,6 +237,17 @@ export const aplikasiService = {
    */
   async delete(id: string): Promise<void> {
     await authClient.delete(`/manakses/aplikasi/${id}`);
+  },
+
+  /**
+   * Regenerate app_key for aplikasi
+   * Protected endpoint - requires JWT authentication
+   */
+  async regenerateAppKey(id: string): Promise<{ id_aplikasi: string; app_key: string }> {
+    const response = await authClient.post<ApiResponse<{ id_aplikasi: string; app_key: string }>>(
+      `/manakses/aplikasi/${id}/regenerate-app-key`
+    );
+    return response.data.data;
   },
 };
 

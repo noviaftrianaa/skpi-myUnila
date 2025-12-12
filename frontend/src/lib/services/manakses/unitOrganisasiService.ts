@@ -63,10 +63,20 @@ export interface UnitOrganisasiCreateData {
 
 export interface UnitOrganisasiUpdateData extends UnitOrganisasiCreateData {}
 
-// Dropdown option type
+// Dropdown option type with extended info
 export interface UnitOrganisasiOption {
   id_organisasi: string;
   nm_lemb: string;
+  display_name?: string;
+  level_organisasi?: number | null;
+  nm_jns_lemb?: string | null;
+  jenjang?: string | null;
+}
+
+// Search params for dropdown
+export interface UnitOrganisasiSearchParams {
+  search?: string;
+  limit?: number;
 }
 
 // API Response wrapper
@@ -94,12 +104,13 @@ export const unitOrganisasiService = {
   },
 
   /**
-   * Get all unit organisasi for dropdown
+   * Get all unit organisasi for dropdown with optional search
    * Protected endpoint - requires JWT authentication
    */
-  async getAll(): Promise<UnitOrganisasiOption[]> {
+  async getAll(params?: UnitOrganisasiSearchParams): Promise<UnitOrganisasiOption[]> {
     const response = await authClient.get<ApiResponse<UnitOrganisasiOption[]>>(
-      '/manakses/unit-organisasi/all'
+      '/manakses/unit-organisasi/all',
+      { params }
     );
     return response.data.data;
   },

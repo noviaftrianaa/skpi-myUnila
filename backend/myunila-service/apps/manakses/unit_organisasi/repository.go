@@ -45,6 +45,9 @@ func NewRepository(db *sqlx.DB) Repository {
 	return &repository{db: db}
 }
 
+// Universitas Lampung id_sp - only sync SMS from this SP
+const UnilaIDSP = "e2b705a7-173e-464a-9fac-509128709515"
+
 // GetStats returns statistics for dashboard
 func (r *repository) GetStats(ctx context.Context) (*SyncStats, error) {
 	stats := &SyncStats{}
@@ -57,21 +60,22 @@ func (r *repository) GetStats(ctx context.Context) (*SyncStats, error) {
 		return nil, fmt.Errorf("failed to count unit organisasi: %w", err)
 	}
 
-	// Count total SMS
+	// Count total SMS - only from Universitas Lampung (id_sp)
 	err = r.db.GetContext(ctx, &stats.TotalSMS, `
-		SELECT COUNT(*) FROM pdrd.sms WHERE soft_delete = 0
-	`)
+		SELECT COUNT(*) FROM pdrd.sms
+		WHERE soft_delete = 0 AND CONVERT(VARCHAR(36), id_sp) = @p1
+	`, UnilaIDSP)
 	if err != nil {
 		return nil, fmt.Errorf("failed to count sms: %w", err)
 	}
 
-	// Count synced (SMS that exist in unit_organisasi)
+	// Count synced (SMS that exist in unit_organisasi) - only from Universitas Lampung
 	// Use CONVERT to ensure proper UUID string comparison
 	err = r.db.GetContext(ctx, &stats.TotalSynced, `
 		SELECT COUNT(*) FROM pdrd.sms s
 		INNER JOIN man_akses.unit_organisasi u ON CONVERT(VARCHAR(36), s.id_sms) = CONVERT(VARCHAR(36), u.id_organisasi)
-		WHERE s.soft_delete = 0 AND u.soft_delete = 0
-	`)
+		WHERE s.soft_delete = 0 AND u.soft_delete = 0 AND CONVERT(VARCHAR(36), s.id_sp) = @p1
+	`, UnilaIDSP)
 	if err != nil {
 		return nil, fmt.Errorf("failed to count synced: %w", err)
 	}
@@ -90,28 +94,30 @@ func (r *repository) GetStats(ctx context.Context) (*SyncStats, error) {
 	return stats, nil
 }
 
-// GetSMSList returns paginated list of SMS
+// GetSMSList returns paginated list of SMS - filtered by Universitas Lampung id_sp
 func (r *repository) GetSMSList(ctx context.Context, page, limit int, search string) ([]*SMS, int, error) {
 	offset := (page - 1) * limit
 
-	// Count total
+	// Count total - only from Universitas Lampung
 	var total int
 	var countErr error
 	if search != "" {
 		countErr = r.db.GetContext(ctx, &total, `
 			SELECT COUNT(*) FROM pdrd.sms
-			WHERE soft_delete = 0 AND (nm_lemb LIKE @p1 OR singkatan LIKE @p1)
-		`, "%"+search+"%")
+			WHERE soft_delete = 0 AND CONVERT(VARCHAR(36), id_sp) = @p1 AND (nm_lemb LIKE @p2 OR singkatan LIKE @p2)
+		`, UnilaIDSP, "%"+search+"%")
 	} else {
 		countErr = r.db.GetContext(ctx, &total, `
-			SELECT COUNT(*) FROM pdrd.sms WHERE soft_delete = 0
-		`)
+			SELECT COUNT(*) FROM pdrd.sms
+			WHERE soft_delete = 0 AND CONVERT(VARCHAR(36), id_sp) = @p1
+		`, UnilaIDSP)
 	}
 	if countErr != nil {
 		return nil, 0, fmt.Errorf("failed to count SMS: %w", countErr)
 	}
 
 	// Get data - use CONVERT(VARCHAR(36), ...) for uniqueidentifier columns to avoid binary data
+	// Filtered by Universitas Lampung id_sp
 	var smsList []*SMS
 	var queryErr error
 	smsSelectQuery := `
@@ -143,16 +149,16 @@ func (r *repository) GetSMSList(ctx context.Context, page, limit int, search str
 	`
 	if search != "" {
 		queryErr = r.db.SelectContext(ctx, &smsList, smsSelectQuery+`
-			WHERE soft_delete = 0 AND (nm_lemb LIKE @p1 OR singkatan LIKE @p1)
+			WHERE soft_delete = 0 AND CONVERT(VARCHAR(36), id_sp) = @p1 AND (nm_lemb LIKE @p2 OR singkatan LIKE @p2)
 			ORDER BY nm_lemb ASC
-			OFFSET @p2 ROWS FETCH NEXT @p3 ROWS ONLY
-		`, "%"+search+"%", offset, limit)
+			OFFSET @p3 ROWS FETCH NEXT @p4 ROWS ONLY
+		`, UnilaIDSP, "%"+search+"%", offset, limit)
 	} else {
 		queryErr = r.db.SelectContext(ctx, &smsList, smsSelectQuery+`
-			WHERE soft_delete = 0
+			WHERE soft_delete = 0 AND CONVERT(VARCHAR(36), id_sp) = @p1
 			ORDER BY nm_lemb ASC
-			OFFSET @p1 ROWS FETCH NEXT @p2 ROWS ONLY
-		`, offset, limit)
+			OFFSET @p2 ROWS FETCH NEXT @p3 ROWS ONLY
+		`, UnilaIDSP, offset, limit)
 	}
 	if queryErr != nil {
 		return nil, 0, fmt.Errorf("failed to get SMS list: %w", queryErr)
@@ -410,11 +416,12 @@ func (r *repository) SyncFromSMS(ctx context.Context, syncedBy string) (*SyncRes
 }
 
 // GetComparisonList returns comparison between SMS and unit_organisasi
+// Filtered by Universitas Lampung id_sp
 func (r *repository) GetComparisonList(ctx context.Context, page, limit int, search string, filter string) ([]*ComparisonItem, int, error) {
 	offset := (page - 1) * limit
 
-	// Build base query
-	baseWhere := "WHERE s.soft_delete = 0"
+	// Build base query - always filter by Universitas Lampung id_sp
+	baseWhere := "WHERE s.soft_delete = 0 AND CONVERT(VARCHAR(36), s.id_sp) = '" + UnilaIDSP + "'"
 	if search != "" {
 		baseWhere += " AND s.nm_lemb LIKE @p1"
 	}

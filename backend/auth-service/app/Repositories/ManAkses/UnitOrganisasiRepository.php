@@ -136,24 +136,59 @@ class UnitOrganisasiRepository
     }
 
     /**
-     * Get all unit organisasi for dropdown
+     * Get all unit organisasi for dropdown with optional search
+     * Includes jenis lembaga and jenjang (for prodi/jurusan) from pdrd.sms
      *
+     * @param string|null $search
+     * @param int $limit
      * @return array
      */
-    public function getAll(): array
+    public function getAll(?string $search = null, int $limit = 100): array
     {
+        $bindings = [];
+
         $sql = "
             SELECT
-                CONVERT(VARCHAR(36), id_organisasi) as id_organisasi,
-                nm_lemb,
-                level_organisasi,
-                a_aktif
-            FROM man_akses.unit_organisasi
-            WHERE soft_delete = 0 AND a_aktif = 1
-            ORDER BY nm_lemb ASC
+                CONVERT(VARCHAR(36), uo.id_organisasi) as id_organisasi,
+                uo.nm_lemb,
+                uo.level_organisasi,
+                uo.a_aktif,
+                uo.id_jns_lemb,
+                jns.nm_jns_sms as nm_jns_lemb,
+                didik.nm_jenj_didik as jenjang,
+                CASE
+                    WHEN jns.nm_jns_sms IS NOT NULL THEN
+                        CASE
+                            WHEN didik.nm_jenj_didik IS NOT NULL THEN
+                                uo.nm_lemb + ' (' + jns.nm_jns_sms + ' - ' + didik.nm_jenj_didik + ')'
+                            ELSE
+                                uo.nm_lemb + ' (' + jns.nm_jns_sms + ')'
+                        END
+                    ELSE uo.nm_lemb
+                END as display_name
+            FROM man_akses.unit_organisasi uo
+            LEFT JOIN pdrd.sms sms ON CONVERT(VARCHAR(36), sms.id_sms) = CONVERT(VARCHAR(36), uo.id_lembaga_asal)
+                AND sms.soft_delete = 0
+            LEFT JOIN ref.jenis_sms jns ON jns.id_jns_sms = sms.id_jns_sms
+                AND jns.expired_date IS NULL
+            LEFT JOIN ref.jenjang_pendidikan didik ON didik.id_jenj_didik = sms.id_jenj_didik
+                AND didik.expired_date IS NULL
+            WHERE uo.soft_delete = 0 AND uo.a_aktif = 1
         ";
 
-        return DB::select($sql);
+        if (!empty($search)) {
+            $sql .= " AND uo.nm_lemb LIKE ?";
+            $bindings[] = "%{$search}%";
+        }
+
+        $sql .= " ORDER BY uo.nm_lemb ASC";
+
+        if ($limit > 0) {
+            $sql .= " OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
+            $bindings[] = $limit;
+        }
+
+        return DB::select($sql, $bindings);
     }
 
     /**

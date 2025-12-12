@@ -22,10 +22,16 @@ class AplikasiRepository
         $limit = $params['limit'] ?? 10;
         $search = $params['search'] ?? null;
         $status = $params['status'] ?? null; // 'aktif', 'nonaktif', null for all
-        $jenis = $params['jenis'] ?? null; // 'internal', 'external', null for all
+        $mode = $params['mode'] ?? null; // 'production', 'development', null for all
+        $portal = $params['portal'] ?? null; // 'ya', 'tidak', null for all
+        $terintegrasi = $params['terintegrasi'] ?? null; // 'ya', 'tidak', null for all
+        $ssoCas = $params['sso_cas'] ?? null; // 'ya', 'tidak', null for all
+        $maintenance = $params['maintenance'] ?? null; // 'ya', 'tidak', null for all
+        $comingSoon = $params['coming_soon'] ?? null; // 'ya', 'tidak', null for all
         $offset = ($page - 1) * $limit;
 
         // Base query for data from SQL Server
+        // Default filter: only show non-deleted records (expired_date IS NULL)
         $dataSql = "
             SELECT
                 CONVERT(VARCHAR(36), a.id_aplikasi) as id_aplikasi,
@@ -53,19 +59,20 @@ class AplikasiRepository
                 ISNULL(a.a_maintenance, 0) as a_maintenance,
                 ISNULL(a.a_coming_soon, 0) as a_coming_soon,
                 ISNULL(a.a_terintegrasi, 0) as a_terintegrasi,
+                ISNULL(a.a_live, 0) as a_live,
                 (SELECT COUNT(*) FROM man_akses.akses_table_aplikasi ata WHERE ata.id_aplikasi = a.id_aplikasi) as jumlah_table,
                 (SELECT COUNT(*) FROM man_akses.pj_aplikasi pj WHERE pj.id_aplikasi = a.id_aplikasi) as jumlah_pj
             FROM man_akses.aplikasi a
             LEFT JOIN man_akses.unit_organisasi uo ON uo.id_organisasi = a.id_organisasi
             LEFT JOIN man_akses.kategori_aplikasi k ON k.id_kategori = a.id_kategori
-            WHERE 1=1
+            WHERE a.expired_date IS NULL
         ";
 
-        // Base query for count
+        // Base query for count - also filter expired_date IS NULL
         $countSql = "
             SELECT COUNT(*) as total
             FROM man_akses.aplikasi a
-            WHERE 1=1
+            WHERE a.expired_date IS NULL
         ";
 
         $bindings = [];
@@ -92,26 +99,81 @@ class AplikasiRepository
             $countBindings[] = $searchTerm;
         }
 
-        // Add status filter (based on expired_date)
+        // Add status filter (based on status column)
         if ($status !== null) {
             if ($status === 'aktif') {
-                $statusCondition = " AND (a.expired_date IS NULL OR a.expired_date > GETDATE())";
+                $statusCondition = " AND a.status = 'Aktif'";
             } else {
-                $statusCondition = " AND a.expired_date IS NOT NULL AND a.expired_date <= GETDATE()";
+                $statusCondition = " AND a.status = 'Tidak Aktif'";
             }
             $countSql .= $statusCondition;
             $dataSql .= $statusCondition;
         }
 
-        // Add jenis filter (internal/external based on a_sistem_internal_pt)
-        if ($jenis !== null) {
-            if ($jenis === 'internal') {
-                $jenisCondition = " AND a.a_sistem_internal_pt = 1";
+        // Add mode filter (production/development based on a_live)
+        if ($mode !== null) {
+            if ($mode === 'production') {
+                $modeCondition = " AND ISNULL(a.a_live, 0) = 1";
             } else {
-                $jenisCondition = " AND a.a_sistem_internal_pt = 0";
+                $modeCondition = " AND ISNULL(a.a_live, 0) = 0";
             }
-            $countSql .= $jenisCondition;
-            $dataSql .= $jenisCondition;
+            $countSql .= $modeCondition;
+            $dataSql .= $modeCondition;
+        }
+
+        // Add portal filter (tampil di portal)
+        if ($portal !== null) {
+            if ($portal === 'ya') {
+                $portalCondition = " AND ISNULL(a.a_tampil_portal, 0) = 1";
+            } else {
+                $portalCondition = " AND ISNULL(a.a_tampil_portal, 0) = 0";
+            }
+            $countSql .= $portalCondition;
+            $dataSql .= $portalCondition;
+        }
+
+        // Add terintegrasi filter
+        if ($terintegrasi !== null) {
+            if ($terintegrasi === 'ya') {
+                $terintegrasiCondition = " AND ISNULL(a.a_terintegrasi, 0) = 1";
+            } else {
+                $terintegrasiCondition = " AND ISNULL(a.a_terintegrasi, 0) = 0";
+            }
+            $countSql .= $terintegrasiCondition;
+            $dataSql .= $terintegrasiCondition;
+        }
+
+        // Add SSO/CAS filter
+        if ($ssoCas !== null) {
+            if ($ssoCas === 'ya') {
+                $ssoCasCondition = " AND ISNULL(a.a_integrasi_cas, 0) = 1";
+            } else {
+                $ssoCasCondition = " AND ISNULL(a.a_integrasi_cas, 0) = 0";
+            }
+            $countSql .= $ssoCasCondition;
+            $dataSql .= $ssoCasCondition;
+        }
+
+        // Add maintenance filter
+        if ($maintenance !== null) {
+            if ($maintenance === 'ya') {
+                $maintenanceCondition = " AND ISNULL(a.a_maintenance, 0) = 1";
+            } else {
+                $maintenanceCondition = " AND ISNULL(a.a_maintenance, 0) = 0";
+            }
+            $countSql .= $maintenanceCondition;
+            $dataSql .= $maintenanceCondition;
+        }
+
+        // Add coming soon filter
+        if ($comingSoon !== null) {
+            if ($comingSoon === 'ya') {
+                $comingSoonCondition = " AND ISNULL(a.a_coming_soon, 0) = 1";
+            } else {
+                $comingSoonCondition = " AND ISNULL(a.a_coming_soon, 0) = 0";
+            }
+            $countSql .= $comingSoonCondition;
+            $dataSql .= $comingSoonCondition;
         }
 
         // Get total count
@@ -119,7 +181,7 @@ class AplikasiRepository
         $total = $countResult->total ?? 0;
 
         // Add ordering and pagination
-        $dataSql .= " ORDER BY a.nm_aplikasi ASC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        $dataSql .= " ORDER BY a.last_update DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         $bindings[] = $offset;
         $bindings[] = $limit;
 
@@ -137,6 +199,7 @@ class AplikasiRepository
             $item->a_maintenance = (int) $item->a_maintenance;
             $item->a_coming_soon = (int) $item->a_coming_soon;
             $item->a_terintegrasi = (int) $item->a_terintegrasi;
+            $item->a_live = (int) $item->a_live;
         }
 
         return [
@@ -181,6 +244,7 @@ class AplikasiRepository
                 ISNULL(a.a_maintenance, 0) as a_maintenance,
                 ISNULL(a.a_coming_soon, 0) as a_coming_soon,
                 ISNULL(a.a_terintegrasi, 0) as a_terintegrasi,
+                ISNULL(a.a_live, 0) as a_live,
                 a.tgl_create,
                 a.last_update,
                 a.expired_date,
@@ -205,6 +269,7 @@ class AplikasiRepository
             $aplikasi->a_maintenance = (int) $aplikasi->a_maintenance;
             $aplikasi->a_coming_soon = (int) $aplikasi->a_coming_soon;
             $aplikasi->a_terintegrasi = (int) $aplikasi->a_terintegrasi;
+            $aplikasi->a_live = (int) $aplikasi->a_live;
 
             // Get tables for this application
             $aplikasi->tables = $this->getTables($id);
@@ -283,24 +348,9 @@ class AplikasiRepository
      */
     public function getMenus(string $idAplikasi): array
     {
-        $sql = "
-            SELECT
-                CONVERT(VARCHAR(36), m.id_menu) as id_menu,
-                CONVERT(VARCHAR(36), m.id_menu_parent) as id_menu_parent,
-                m.nm_menu,
-                m.icon_menu,
-                m.url_menu,
-                m.urutan,
-                m.a_aktif,
-                m.tgl_create,
-                m.last_update
-            FROM man_akses.menu m
-            WHERE m.id_aplikasi = ?
-              AND m.soft_delete = 0
-            ORDER BY m.urutan ASC, m.nm_menu ASC
-        ";
-
-        return DB::select($sql, [$idAplikasi]);
+        // Menu table has different structure - return empty array for now
+        // TODO: Query actual menu table structure and implement properly
+        return [];
     }
 
     /**
@@ -318,7 +368,6 @@ class AplikasiRepository
                 icon_color,
                 urutan
             FROM man_akses.kategori_aplikasi
-            WHERE soft_delete = 0
             ORDER BY urutan ASC
         ";
 
@@ -332,15 +381,19 @@ class AplikasiRepository
      */
     public function getStats(): object
     {
+        // Only count non-deleted records (expired_date IS NULL)
         $sql = "
             SELECT
                 COUNT(*) as total_aplikasi,
-                SUM(CASE WHEN a.expired_date IS NULL OR a.expired_date > GETDATE() THEN 1 ELSE 0 END) as total_aktif,
-                SUM(CASE WHEN a.expired_date IS NOT NULL AND a.expired_date <= GETDATE() THEN 1 ELSE 0 END) as total_nonaktif,
-                SUM(CASE WHEN a.a_sistem_internal_pt = 1 THEN 1 ELSE 0 END) as total_internal,
-                SUM(CASE WHEN a.a_sistem_internal_pt = 0 THEN 1 ELSE 0 END) as total_external,
-                SUM(CASE WHEN a.a_integrasi_cas = 1 THEN 1 ELSE 0 END) as total_integrasi_cas
+                SUM(CASE WHEN ISNULL(a.a_live, 0) = 1 THEN 1 ELSE 0 END) as total_live,
+                SUM(CASE WHEN ISNULL(a.a_live, 0) = 0 THEN 1 ELSE 0 END) as total_dev,
+                SUM(CASE WHEN ISNULL(a.a_terintegrasi, 0) = 1 THEN 1 ELSE 0 END) as total_terintegrasi,
+                SUM(CASE WHEN ISNULL(a.a_tampil_portal, 0) = 1 THEN 1 ELSE 0 END) as total_portal,
+                SUM(CASE WHEN ISNULL(a.a_maintenance, 0) = 1 THEN 1 ELSE 0 END) as total_maintenance,
+                SUM(CASE WHEN a.status = 'Aktif' THEN 1 ELSE 0 END) as total_aktif,
+                SUM(CASE WHEN a.status = 'Tidak Aktif' THEN 1 ELSE 0 END) as total_nonaktif
             FROM man_akses.aplikasi a
+            WHERE a.expired_date IS NULL
         ";
 
         return DB::selectOne($sql);
@@ -363,9 +416,9 @@ class AplikasiRepository
                 token_aplikasi, app_key, url, port, teknologi, endpoint_ws,
                 icon_name, icon_color, app_slug, urutan,
                 a_generate_menu, a_integrasi_cas, a_sistem_internal_pt,
-                a_tampil_portal, a_maintenance, a_coming_soon, a_terintegrasi,
+                a_tampil_portal, a_maintenance, a_coming_soon, a_terintegrasi, a_live,
                 tgl_create, last_update, last_sync
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ";
 
         DB::insert($sql, [
@@ -391,6 +444,7 @@ class AplikasiRepository
             $data['a_maintenance'] ?? 0,
             $data['a_coming_soon'] ?? 0,
             $data['a_terintegrasi'] ?? 0,
+            $data['a_live'] ?? 0,
             $now,
             $now,
             $now,
@@ -431,6 +485,7 @@ class AplikasiRepository
                 a_maintenance = ?,
                 a_coming_soon = ?,
                 a_terintegrasi = ?,
+                a_live = ?,
                 last_update = ?,
                 last_sync = ?
             WHERE id_aplikasi = ?
@@ -456,6 +511,7 @@ class AplikasiRepository
             $data['a_maintenance'] ?? 0,
             $data['a_coming_soon'] ?? 0,
             $data['a_terintegrasi'] ?? 0,
+            $data['a_live'] ?? 0,
             $now,
             $now,
             $id,
@@ -532,10 +588,36 @@ class AplikasiRepository
     }
 
     /**
-     * Generate random app key
+     * Generate random app key (similar to Laravel key:generate)
+     * Format: base64:XXXXXXXX (reversed)
      */
     private function generateAppKey(): string
     {
-        return 'APP_' . strtoupper(bin2hex(random_bytes(16)));
+        $key = 'base64:' . base64_encode(random_bytes(32));
+        return strrev($key); // Reverse the key like manAkses does
+    }
+
+    /**
+     * Regenerate app_key for an aplikasi
+     *
+     * @param string $id
+     * @return string|null New app_key or null if failed
+     */
+    public function regenerateAppKey(string $id): ?string
+    {
+        $newAppKey = $this->generateAppKey();
+        $now = now()->format('Y-m-d H:i:s');
+
+        $sql = "
+            UPDATE man_akses.aplikasi SET
+                app_key = ?,
+                last_update = ?,
+                last_sync = ?
+            WHERE id_aplikasi = ?
+        ";
+
+        $affected = DB::update($sql, [$newAppKey, $now, $now, $id]);
+
+        return $affected > 0 ? $newAppKey : null;
     }
 }

@@ -55,14 +55,18 @@ class UnitOrganisasiController extends Controller
     }
 
     /**
-     * Get all unit organisasi for dropdown
+     * Get all unit organisasi for dropdown with optional search
      *
+     * @param Request $request
      * @return JsonResponse
      */
-    public function all(): JsonResponse
+    public function all(Request $request): JsonResponse
     {
         try {
-            $result = $this->service->getAll();
+            $search = $request->get('search');
+            $limit = (int) $request->get('limit', 100);
+
+            $result = $this->service->getAll($search, $limit);
 
             return response()->json([
                 'success' => true,

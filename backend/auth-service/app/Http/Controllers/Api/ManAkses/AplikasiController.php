@@ -37,6 +37,12 @@ class AplikasiController extends Controller
                 'search' => $request->get('search'),
                 'status' => $request->get('status'), // 'aktif', 'nonaktif'
                 'jenis' => $request->get('jenis'), // 'internal', 'external'
+                'mode' => $request->get('mode'), // 'production', 'development'
+                'portal' => $request->get('portal'), // 'ya', 'tidak'
+                'terintegrasi' => $request->get('terintegrasi'), // 'ya', 'tidak'
+                'sso_cas' => $request->get('sso_cas'), // 'ya', 'tidak'
+                'maintenance' => $request->get('maintenance'), // 'ya', 'tidak'
+                'coming_soon' => $request->get('coming_soon'), // 'ya', 'tidak'
             ];
 
             $result = $this->service->getList($params);
@@ -165,6 +171,8 @@ class AplikasiController extends Controller
                 'a_maintenance' => 'nullable|boolean',
                 'a_coming_soon' => 'nullable|boolean',
                 'a_terintegrasi' => 'nullable|boolean',
+                'a_live' => 'nullable|boolean',
+                'status' => 'nullable|string|in:Aktif,Tidak Aktif',
             ]);
 
             $data = $request->only([
@@ -172,7 +180,8 @@ class AplikasiController extends Controller
                 'url', 'port', 'teknologi', 'endpoint_ws',
                 'icon_name', 'icon_color', 'app_slug', 'urutan',
                 'a_generate_menu', 'a_integrasi_cas', 'a_sistem_internal_pt',
-                'a_tampil_portal', 'a_maintenance', 'a_coming_soon', 'a_terintegrasi'
+                'a_tampil_portal', 'a_maintenance', 'a_coming_soon', 'a_terintegrasi', 'a_live',
+                'status'
             ]);
 
             $result = $this->service->create($data);
@@ -227,6 +236,8 @@ class AplikasiController extends Controller
                 'a_maintenance' => 'nullable|boolean',
                 'a_coming_soon' => 'nullable|boolean',
                 'a_terintegrasi' => 'nullable|boolean',
+                'a_live' => 'nullable|boolean',
+                'status' => 'nullable|string|in:Aktif,Tidak Aktif',
             ]);
 
             $data = $request->only([
@@ -234,7 +245,8 @@ class AplikasiController extends Controller
                 'url', 'port', 'teknologi', 'endpoint_ws',
                 'icon_name', 'icon_color', 'app_slug', 'urutan',
                 'a_generate_menu', 'a_integrasi_cas', 'a_sistem_internal_pt',
-                'a_tampil_portal', 'a_maintenance', 'a_coming_soon', 'a_terintegrasi'
+                'a_tampil_portal', 'a_maintenance', 'a_coming_soon', 'a_terintegrasi', 'a_live',
+                'status'
             ]);
 
             $result = $this->service->update($id, $data);
@@ -295,6 +307,39 @@ class AplikasiController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal menghapus aplikasi: ' . $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+    }
+
+    /**
+     * Regenerate app_key for aplikasi
+     *
+     * @param string $id
+     * @return JsonResponse
+     */
+    public function regenerateAppKey(string $id): JsonResponse
+    {
+        try {
+            $result = $this->service->regenerateAppKey($id);
+
+            if (!$result) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Aplikasi tidak ditemukan',
+                    'data' => null
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'App Key berhasil di-generate ulang',
+                'data' => $result
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal generate app key: ' . $e->getMessage(),
                 'data' => null
             ], 500);
         }

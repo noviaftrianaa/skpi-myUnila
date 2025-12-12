@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Modal,
   ModalContent,
@@ -10,26 +10,104 @@ import {
   Button,
   Input,
   Textarea,
-  Switch,
   Select,
   SelectItem,
+  Tabs,
+  Tab,
+  Divider,
+  Autocomplete,
+  AutocompleteItem,
 } from "@heroui/react";
-import { FiGlobe, FiServer, FiCode } from "react-icons/fi";
+import { FiGlobe, FiCode, FiGrid, FiHash, FiLayout, FiSearch, FiKey, FiCopy, FiRefreshCw, FiEye, FiEyeOff, FiMenu, FiList, FiBox } from "react-icons/fi";
+import { Icon } from "@iconify/react";
 import {
   aplikasiService,
   type Aplikasi,
+  type AplikasiDetail,
+  type AplikasiMenu,
   type CreateAplikasiRequest,
+  type KategoriAplikasi,
 } from "@/lib/services/manakses/aplikasiService";
 import {
   unitOrganisasiService,
   type UnitOrganisasiOption,
 } from "@/lib/services/manakses/unitOrganisasiService";
 
+// Debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
+// Icon options for aplikasi
+const ICON_OPTIONS = [
+  { key: "heroicons:academic-cap", label: "Academic Cap" },
+  { key: "heroicons:arrow-trending-up", label: "Trending Up" },
+  { key: "heroicons:banknotes", label: "Banknotes" },
+  { key: "heroicons:book-open", label: "Book Open" },
+  { key: "heroicons:briefcase", label: "Briefcase" },
+  { key: "heroicons:building-office", label: "Building Office" },
+  { key: "heroicons:building-library", label: "Building Library" },
+  { key: "heroicons:calendar", label: "Calendar" },
+  { key: "heroicons:chart-bar", label: "Chart Bar" },
+  { key: "heroicons:chart-pie", label: "Chart Pie" },
+  { key: "heroicons:clipboard-document-list", label: "Clipboard" },
+  { key: "heroicons:cog-6-tooth", label: "Settings" },
+  { key: "heroicons:computer-desktop", label: "Desktop" },
+  { key: "heroicons:cube", label: "Cube" },
+  { key: "heroicons:document-text", label: "Document" },
+  { key: "heroicons:folder", label: "Folder" },
+  { key: "heroicons:globe-alt", label: "Globe" },
+  { key: "heroicons:home", label: "Home" },
+  { key: "heroicons:identification", label: "ID Card" },
+  { key: "heroicons:key", label: "Key" },
+  { key: "heroicons:map", label: "Map" },
+  { key: "heroicons:newspaper", label: "Newspaper" },
+  { key: "heroicons:presentation-chart-line", label: "Presentation" },
+  { key: "heroicons:server", label: "Server" },
+  { key: "heroicons:shopping-cart", label: "Shopping Cart" },
+  { key: "heroicons:user-group", label: "User Group" },
+  { key: "heroicons:users", label: "Users" },
+  { key: "heroicons:wallet", label: "Wallet" },
+  { key: "heroicons:wrench-screwdriver", label: "Tools" },
+];
+
+// Color class options (Tailwind colors)
+const COLOR_OPTIONS = [
+  { key: "text-blue-500", label: "Blue", color: "#3B82F6" },
+  { key: "text-indigo-500", label: "Indigo", color: "#6366F1" },
+  { key: "text-purple-500", label: "Purple", color: "#A855F7" },
+  { key: "text-pink-500", label: "Pink", color: "#EC4899" },
+  { key: "text-red-500", label: "Red", color: "#EF4444" },
+  { key: "text-orange-500", label: "Orange", color: "#F97316" },
+  { key: "text-amber-500", label: "Amber", color: "#F59E0B" },
+  { key: "text-yellow-500", label: "Yellow", color: "#EAB308" },
+  { key: "text-lime-500", label: "Lime", color: "#84CC16" },
+  { key: "text-green-500", label: "Green", color: "#22C55E" },
+  { key: "text-emerald-500", label: "Emerald", color: "#10B981" },
+  { key: "text-teal-500", label: "Teal", color: "#14B8A6" },
+  { key: "text-cyan-500", label: "Cyan", color: "#06B6D4" },
+  { key: "text-sky-500", label: "Sky", color: "#0EA5E9" },
+  { key: "text-gray-500", label: "Gray", color: "#6B7280" },
+  { key: "text-slate-500", label: "Slate", color: "#64748B" },
+];
+
 interface AplikasiFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
-  aplikasi?: Aplikasi | null; // For edit mode
+  onSuccess: (isEdit: boolean, appName: string) => void;
+  aplikasi?: (Aplikasi & { app_key?: string | null; menus?: AplikasiMenu[] }) | null; // For edit mode - includes app_key and menus from detail
 }
 
 export default function AplikasiFormModal({
@@ -42,33 +120,76 @@ export default function AplikasiFormModal({
 
   const [loading, setLoading] = useState(false);
   const [unitOrganisasiList, setUnitOrganisasiList] = useState<UnitOrganisasiOption[]>([]);
-  const [formData, setFormData] = useState<CreateAplikasiRequest>({
+  const [kategoriList, setKategoriList] = useState<KategoriAplikasi[]>([]);
+  const [activeTab, setActiveTab] = useState("basic");
+  const [unitSearchQuery, setUnitSearchQuery] = useState("");
+  const [isLoadingUnits, setIsLoadingUnits] = useState(false);
+  const debouncedUnitSearch = useDebounce(unitSearchQuery, 300);
+
+  // App Key management
+  const [currentAppKey, setCurrentAppKey] = useState<string | null>(null);
+  const [showAppKey, setShowAppKey] = useState(false);
+  const [isRegeneratingKey, setIsRegeneratingKey] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [formData, setFormData] = useState<CreateAplikasiRequest & { status?: 'Aktif' | 'Tidak Aktif' }>({
     nm_aplikasi: "",
     ket_aplikasi: "",
     id_organisasi: null,
+    id_kategori: null,
     url: "",
     port: "",
     teknologi: "",
     endpoint_ws: "",
+    icon_name: null,
+    icon_color: null,
+    app_slug: null,
+    urutan: 0,
     a_generate_menu: false,
     a_integrasi_cas: false,
     a_sistem_internal_pt: false,
+    a_tampil_portal: true,
+    a_maintenance: false,
+    a_coming_soon: false,
+    a_terintegrasi: false,
+    a_live: false,
+    status: 'Aktif',
   });
 
-  // Load unit organisasi for dropdown
+  // Load categories for dropdown
   useEffect(() => {
-    const loadUnitOrganisasi = async () => {
+    const loadKategori = async () => {
       try {
-        const data = await unitOrganisasiService.getAll();
-        setUnitOrganisasiList(data);
+        const kategoriData = await aplikasiService.getCategories();
+        setKategoriList(kategoriData);
       } catch (error) {
-        console.error("Error loading unit organisasi:", error);
+        console.error("Error loading kategori:", error);
       }
     };
     if (isOpen) {
-      loadUnitOrganisasi();
+      loadKategori();
     }
   }, [isOpen]);
+
+  // Load unit organisasi with search
+  useEffect(() => {
+    const loadUnits = async () => {
+      if (!isOpen) return;
+
+      setIsLoadingUnits(true);
+      try {
+        const unitData = await unitOrganisasiService.getAll({
+          search: debouncedUnitSearch || undefined,
+          limit: 50,
+        });
+        setUnitOrganisasiList(unitData);
+      } catch (error) {
+        console.error("Error loading unit organisasi:", error);
+      } finally {
+        setIsLoadingUnits(false);
+      }
+    };
+    loadUnits();
+  }, [isOpen, debouncedUnitSearch]);
 
   // Initialize form data for edit mode
   useEffect(() => {
@@ -77,30 +198,96 @@ export default function AplikasiFormModal({
         nm_aplikasi: aplikasi.nm_aplikasi || "",
         ket_aplikasi: aplikasi.ket_aplikasi || "",
         id_organisasi: aplikasi.id_organisasi || null,
+        id_kategori: aplikasi.id_kategori || null,
         url: aplikasi.url || "",
         port: aplikasi.port?.toString() || "",
         teknologi: aplikasi.teknologi || "",
         endpoint_ws: aplikasi.endpoint_ws || "",
+        icon_name: aplikasi.icon_name || null,
+        icon_color: aplikasi.icon_color || null,
+        app_slug: aplikasi.app_slug || null,
+        urutan: aplikasi.urutan || 0,
         a_generate_menu: aplikasi.a_generate_menu || false,
         a_integrasi_cas: aplikasi.a_integrasi_cas || false,
         a_sistem_internal_pt: aplikasi.a_sistem_internal_pt || false,
+        a_tampil_portal: aplikasi.a_tampil_portal ?? true,
+        a_maintenance: aplikasi.a_maintenance || false,
+        a_coming_soon: aplikasi.a_coming_soon || false,
+        a_terintegrasi: aplikasi.a_terintegrasi || false,
+        a_live: aplikasi.a_live || false,
+        status: aplikasi.status || 'Aktif',
       });
+      // Set app key for edit mode
+      setCurrentAppKey(aplikasi.app_key || null);
+      setShowAppKey(false);
+      setCopySuccess(false);
+      setActiveTab("basic");
     } else {
       // Reset for create mode
       setFormData({
         nm_aplikasi: "",
         ket_aplikasi: "",
         id_organisasi: null,
+        id_kategori: null,
         url: "",
         port: "",
         teknologi: "",
         endpoint_ws: "",
+        icon_name: null,
+        icon_color: null,
+        app_slug: null,
+        urutan: 0,
         a_generate_menu: false,
         a_integrasi_cas: false,
         a_sistem_internal_pt: false,
+        a_tampil_portal: true,
+        a_maintenance: false,
+        a_coming_soon: false,
+        a_terintegrasi: false,
+        a_live: false,
+        status: 'Aktif',
       });
+      setCurrentAppKey(null);
+      setShowAppKey(false);
+      setCopySuccess(false);
+      setActiveTab("basic");
     }
   }, [aplikasi, isOpen]);
+
+  // Copy app key to clipboard
+  const handleCopyAppKey = async () => {
+    if (currentAppKey) {
+      try {
+        await navigator.clipboard.writeText(currentAppKey);
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
+      } catch {
+        console.error("Failed to copy app key");
+      }
+    }
+  };
+
+  // Regenerate app key
+  const handleRegenerateAppKey = async () => {
+    if (!aplikasi?.id_aplikasi) return;
+
+    if (!confirm("Apakah Anda yakin ingin regenerate App Key? Key lama tidak akan bisa digunakan lagi.")) {
+      return;
+    }
+
+    setIsRegeneratingKey(true);
+    try {
+      const result = await aplikasiService.regenerateAppKey(aplikasi.id_aplikasi);
+      setCurrentAppKey(result.app_key);
+      setShowAppKey(true); // Show the new key immediately
+    } catch (error: unknown) {
+      console.error("Error regenerating app key:", error);
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
+      alert(err.response?.data?.message || err.message || "Gagal regenerate app key");
+    } finally {
+      setIsRegeneratingKey(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,7 +307,7 @@ export default function AplikasiFormModal({
         await aplikasiService.create(formData);
       }
 
-      onSuccess();
+      onSuccess(isEditMode, formData.nm_aplikasi);
       onClose();
     } catch (error: unknown) {
       console.error("Error saving aplikasi:", error);
@@ -160,224 +347,805 @@ export default function AplikasiFormModal({
             </p>
           </ModalHeader>
 
-          <ModalBody className="gap-5 py-6">
-            {/* Nama Aplikasi */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-                Nama Aplikasi <span className="text-red-500">*</span>
-              </label>
-              <Input
-                placeholder="Contoh: SIAKAD, SIMPEG, dll"
-                value={formData.nm_aplikasi}
-                onChange={(e) =>
-                  setFormData({ ...formData, nm_aplikasi: e.target.value })
-                }
-                isRequired
-                variant="bordered"
-                classNames={{
-                  input: "text-gray-900 dark:text-white",
-                  inputWrapper: "border-gray-300 dark:border-slate-600",
-                }}
-              />
-            </div>
+          <ModalBody className="gap-0 py-0">
+            <Tabs
+              selectedKey={activeTab}
+              onSelectionChange={(key) => setActiveTab(key as string)}
+              classNames={{
+                tabList: "bg-gray-100 dark:bg-slate-700/50 p-1 rounded-lg mx-6 mt-4",
+                cursor: "bg-white dark:bg-slate-600 shadow-sm",
+                tab: "px-4 py-2 text-sm font-medium",
+                tabContent: "group-data-[selected=true]:text-indigo-600 dark:group-data-[selected=true]:text-indigo-400",
+                panel: "px-6 py-5",
+              }}
+            >
+              {/* Basic Info Tab */}
+              <Tab key="basic" title="Info Dasar">
+                <div className="space-y-5">
+                  {/* Informasi Utama Section */}
+                  <div className="bg-gray-50/80 dark:bg-slate-700/20 rounded-xl p-4 border border-gray-200/80 dark:border-slate-600/50">
+                    <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                      Informasi Utama
+                    </h4>
+                    <div className="space-y-4">
+                      {/* Nama & Kategori */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                            Nama Aplikasi <span className="text-red-500">*</span>
+                          </label>
+                          <Input
+                            placeholder="Contoh: SIAKAD, SIMPEG"
+                            value={formData.nm_aplikasi}
+                            onChange={(e) =>
+                              setFormData({ ...formData, nm_aplikasi: e.target.value })
+                            }
+                            isRequired
+                            variant="bordered"
+                            size="sm"
+                            classNames={{
+                              input: "text-gray-900 dark:text-white",
+                              inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
+                            }}
+                          />
+                        </div>
 
-            {/* Keterangan */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-                Keterangan
-              </label>
-              <Textarea
-                placeholder="Deskripsi singkat aplikasi (opsional)"
-                value={formData.ket_aplikasi || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, ket_aplikasi: e.target.value })
-                }
-                variant="bordered"
-                minRows={2}
-                classNames={{
-                  input: "text-gray-900 dark:text-white",
-                  inputWrapper: "border-gray-300 dark:border-slate-600",
-                }}
-              />
-            </div>
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                            Kategori
+                          </label>
+                          <Select
+                            aria-label="Pilih Kategori"
+                            placeholder="Pilih kategori"
+                            selectedKeys={formData.id_kategori ? [formData.id_kategori] : []}
+                            onSelectionChange={(keys) => {
+                              const selected = Array.from(keys)[0] as string;
+                              setFormData({ ...formData, id_kategori: selected || null });
+                            }}
+                            variant="bordered"
+                            size="sm"
+                            startContent={<FiGrid className="text-gray-400 flex-shrink-0" />}
+                            classNames={{
+                              trigger: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
+                              value: "text-gray-900 dark:text-white",
+                              popoverContent: "bg-white dark:bg-slate-800",
+                            }}
+                          >
+                            {kategoriList.map((kat) => (
+                              <SelectItem key={kat.id_kategori} textValue={kat.nm_kategori}>
+                                {kat.nm_kategori}
+                              </SelectItem>
+                            ))}
+                          </Select>
+                        </div>
+                      </div>
 
-            {/* Unit Organisasi */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-                Unit Organisasi
-              </label>
-              <Select
-                aria-label="Pilih Unit Organisasi"
-                placeholder="Pilih unit organisasi"
-                selectedKeys={formData.id_organisasi ? [formData.id_organisasi] : []}
-                onSelectionChange={(keys) => {
-                  const selected = Array.from(keys)[0] as string;
-                  setFormData({ ...formData, id_organisasi: selected || null });
-                }}
-                variant="bordered"
-                classNames={{
-                  trigger: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800",
-                  value: "text-gray-900 dark:text-white",
-                  popoverContent: "bg-white dark:bg-slate-800",
-                }}
-              >
-                {unitOrganisasiList.map((unit) => (
-                  <SelectItem key={unit.id_organisasi} textValue={unit.nm_lemb}>
-                    {unit.nm_lemb}
-                  </SelectItem>
-                ))}
-              </Select>
-            </div>
+                      {/* Keterangan */}
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                          Keterangan
+                        </label>
+                        <Textarea
+                          placeholder="Deskripsi singkat aplikasi (opsional)"
+                          value={formData.ket_aplikasi || ""}
+                          onChange={(e) =>
+                            setFormData({ ...formData, ket_aplikasi: e.target.value })
+                          }
+                          variant="bordered"
+                          minRows={2}
+                          classNames={{
+                            input: "text-gray-900 dark:text-white",
+                            inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
+                          }}
+                        />
+                      </div>
 
-            {/* URL and Port */}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="col-span-2 space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-                  URL Aplikasi
-                </label>
-                <Input
-                  placeholder="https://aplikasi.unila.ac.id"
-                  value={formData.url || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, url: e.target.value })
-                  }
-                  variant="bordered"
-                  startContent={<FiGlobe className="text-gray-400 flex-shrink-0" />}
-                  classNames={{
-                    input: "text-gray-900 dark:text-white",
-                    inputWrapper: "border-gray-300 dark:border-slate-600",
-                  }}
-                />
-              </div>
+                      {/* Unit Organisasi with Autocomplete */}
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                          Unit Organisasi
+                        </label>
+                        <Autocomplete
+                          aria-label="Pilih Unit Organisasi"
+                          placeholder="Ketik untuk mencari unit organisasi..."
+                          selectedKey={formData.id_organisasi}
+                          onSelectionChange={(key) => {
+                            setFormData({ ...formData, id_organisasi: key as string || null });
+                          }}
+                          onInputChange={(value) => setUnitSearchQuery(value)}
+                          isLoading={isLoadingUnits}
+                          variant="bordered"
+                          size="sm"
+                          startContent={<FiSearch className="text-gray-400 flex-shrink-0" />}
+                          classNames={{
+                            base: "w-full",
+                            listboxWrapper: "max-h-[300px]",
+                            popoverContent: "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 shadow-lg",
+                          }}
+                          inputProps={{
+                            classNames: {
+                              input: "text-gray-900 dark:text-white",
+                              inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
+                            },
+                          }}
+                          listboxProps={{
+                            emptyContent: isLoadingUnits ? "Memuat..." : "Tidak ada unit ditemukan",
+                            className: "bg-white dark:bg-slate-800",
+                          }}
+                        >
+                          {unitOrganisasiList.map((unit) => (
+                            <AutocompleteItem
+                              key={unit.id_organisasi}
+                              textValue={unit.display_name || unit.nm_lemb}
+                            >
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium">{unit.nm_lemb}</span>
+                                {(unit.nm_jns_lemb || unit.jenjang) && (
+                                  <span className="text-xs text-gray-500 dark:text-slate-400">
+                                    {unit.nm_jns_lemb}
+                                    {unit.nm_jns_lemb && unit.jenjang && " - "}
+                                    {unit.jenjang}
+                                  </span>
+                                )}
+                              </div>
+                            </AutocompleteItem>
+                          ))}
+                        </Autocomplete>
+                        <p className="text-xs text-gray-500 dark:text-slate-400">Ketik minimal 2 karakter untuk mencari</p>
+                      </div>
+                    </div>
+                  </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-                  Port
-                </label>
-                <Input
-                  placeholder="8080"
-                  value={formData.port || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, port: e.target.value })
-                  }
-                  variant="bordered"
-                  startContent={<FiServer className="text-gray-400 flex-shrink-0" />}
-                  classNames={{
-                    input: "text-gray-900 dark:text-white",
-                    inputWrapper: "border-gray-300 dark:border-slate-600",
-                  }}
-                />
-              </div>
-            </div>
+                  {/* Informasi Teknis Section */}
+                  <div className="bg-blue-50/50 dark:bg-blue-900/10 rounded-xl p-4 border border-blue-200/50 dark:border-blue-800/30">
+                    <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                      Informasi Teknis
+                    </h4>
+                    <div className="space-y-4">
+                      {/* URL and Port */}
+                      <div className="grid grid-cols-4 gap-3">
+                        <div className="col-span-3 space-y-1.5">
+                          <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                            URL Aplikasi
+                          </label>
+                          <Input
+                            placeholder="https://aplikasi.unila.ac.id"
+                            value={formData.url || ""}
+                            onChange={(e) =>
+                              setFormData({ ...formData, url: e.target.value })
+                            }
+                            variant="bordered"
+                            size="sm"
+                            startContent={<FiGlobe className="text-gray-400 flex-shrink-0" />}
+                            classNames={{
+                              input: "text-gray-900 dark:text-white",
+                              inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
+                            }}
+                          />
+                        </div>
 
-            {/* Teknologi and Endpoint WS */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-                  Teknologi
-                </label>
-                <Input
-                  placeholder="Laravel, React, Go, dll"
-                  value={formData.teknologi || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, teknologi: e.target.value })
-                  }
-                  variant="bordered"
-                  startContent={<FiCode className="text-gray-400 flex-shrink-0" />}
-                  classNames={{
-                    input: "text-gray-900 dark:text-white",
-                    inputWrapper: "border-gray-300 dark:border-slate-600",
-                  }}
-                />
-              </div>
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                            Port
+                          </label>
+                          <Input
+                            placeholder="8080"
+                            value={formData.port || ""}
+                            onChange={(e) =>
+                              setFormData({ ...formData, port: e.target.value })
+                            }
+                            variant="bordered"
+                            size="sm"
+                            classNames={{
+                              input: "text-gray-900 dark:text-white",
+                              inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
+                            }}
+                          />
+                        </div>
+                      </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-                  Endpoint Web Service
-                </label>
-                <Input
-                  placeholder="/api/v1"
-                  value={formData.endpoint_ws || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, endpoint_ws: e.target.value })
-                  }
-                  variant="bordered"
-                  classNames={{
-                    input: "text-gray-900 dark:text-white",
-                    inputWrapper: "border-gray-300 dark:border-slate-600",
-                  }}
-                />
-              </div>
-            </div>
+                      {/* Teknologi and Endpoint WS */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                            Teknologi
+                          </label>
+                          <Input
+                            placeholder="Laravel, React, Go"
+                            value={formData.teknologi || ""}
+                            onChange={(e) =>
+                              setFormData({ ...formData, teknologi: e.target.value })
+                            }
+                            variant="bordered"
+                            size="sm"
+                            startContent={<FiCode className="text-gray-400 flex-shrink-0" />}
+                            classNames={{
+                              input: "text-gray-900 dark:text-white",
+                              inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
+                            }}
+                          />
+                        </div>
 
-            {/* Switches */}
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-                Pengaturan Aplikasi
-              </label>
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                            Endpoint Web Service
+                          </label>
+                          <Input
+                            placeholder="/api/v1"
+                            value={formData.endpoint_ws || ""}
+                            onChange={(e) =>
+                              setFormData({ ...formData, endpoint_ws: e.target.value })
+                            }
+                            variant="bordered"
+                            size="sm"
+                            classNames={{
+                              input: "text-gray-900 dark:text-white",
+                              inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Tab>
 
-              <div className="space-y-3">
-                {/* Generate Menu */}
-                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg border border-gray-200 dark:border-slate-600">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      Generate Menu
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                      Aktifkan jika aplikasi memerlukan auto-generate menu
+              {/* Portal Tab */}
+              <Tab key="portal" title="Portal">
+                <div className="space-y-5">
+                  {/* Tampilan Portal Section */}
+                  <div className="bg-purple-50/50 dark:bg-purple-900/10 rounded-xl p-4 border border-purple-200/50 dark:border-purple-800/30">
+                    <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                      Tampilan Portal
+                    </h4>
+                    <div className="space-y-4">
+                      {/* Icon and Color */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                            Icon Aplikasi
+                          </label>
+                          <Autocomplete
+                            aria-label="Pilih Icon"
+                            placeholder="Cari icon..."
+                            selectedKey={formData.icon_name}
+                            onSelectionChange={(key) => {
+                              setFormData({ ...formData, icon_name: key as string || null });
+                            }}
+                            variant="bordered"
+                            size="sm"
+                            startContent={
+                              formData.icon_name ? (
+                                <Icon icon={formData.icon_name} className="w-4 h-4 text-gray-600 dark:text-slate-400 flex-shrink-0" />
+                              ) : (
+                                <FiBox className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                              )
+                            }
+                            classNames={{
+                              base: "w-full",
+                              listboxWrapper: "max-h-[300px]",
+                              popoverContent: "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 shadow-lg",
+                            }}
+                            inputProps={{
+                              classNames: {
+                                input: "text-gray-900 dark:text-white",
+                                inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
+                              },
+                            }}
+                            listboxProps={{
+                              emptyContent: "Tidak ada icon ditemukan",
+                              className: "bg-white dark:bg-slate-800",
+                            }}
+                          >
+                            {ICON_OPTIONS.map((icon) => (
+                              <AutocompleteItem key={icon.key} textValue={icon.label}>
+                                <div className="flex items-center gap-2">
+                                  <Icon icon={icon.key} className="w-5 h-5 text-gray-700 dark:text-slate-300" />
+                                  <span className="text-sm">{icon.label}</span>
+                                </div>
+                              </AutocompleteItem>
+                            ))}
+                          </Autocomplete>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                            Warna Icon
+                          </label>
+                          <Select
+                            aria-label="Pilih Warna"
+                            placeholder="Pilih warna"
+                            selectedKeys={formData.icon_color ? [formData.icon_color] : []}
+                            onSelectionChange={(keys) => {
+                              const selected = Array.from(keys)[0] as string;
+                              setFormData({ ...formData, icon_color: selected || null });
+                            }}
+                            variant="bordered"
+                            size="sm"
+                            classNames={{
+                              trigger: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
+                              value: "text-gray-900 dark:text-white",
+                              popoverContent: "bg-white dark:bg-slate-800",
+                            }}
+                            renderValue={(items) => {
+                              const item = items[0];
+                              const colorOption = COLOR_OPTIONS.find(c => c.key === item?.key);
+                              return (
+                                <div className="flex items-center gap-2">
+                                  {colorOption && (
+                                    <span
+                                      className="w-4 h-4 rounded-full border border-gray-200"
+                                      style={{ backgroundColor: colorOption.color }}
+                                    />
+                                  )}
+                                  <span>{colorOption?.label || "Pilih warna"}</span>
+                                </div>
+                              );
+                            }}
+                          >
+                            {COLOR_OPTIONS.map((color) => (
+                              <SelectItem key={color.key} textValue={color.label}>
+                                <div className="flex items-center gap-2">
+                                  <span
+                                    className="w-4 h-4 rounded-full border border-gray-200"
+                                    style={{ backgroundColor: color.color }}
+                                  />
+                                  <span>{color.label}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </Select>
+                        </div>
+                      </div>
+
+                      {/* App Slug and Urutan */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                            App Slug
+                          </label>
+                          <Input
+                            placeholder="siakad, simpeg"
+                            value={formData.app_slug || ""}
+                            onChange={(e) =>
+                              setFormData({ ...formData, app_slug: e.target.value || null })
+                            }
+                            variant="bordered"
+                            size="sm"
+                            startContent={<FiLayout className="text-gray-400 flex-shrink-0" />}
+                            classNames={{
+                              input: "text-gray-900 dark:text-white",
+                              inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
+                            }}
+                          />
+                          <p className="text-xs text-gray-500 dark:text-slate-400">Untuk URL routing</p>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                            Urutan
+                          </label>
+                          <Input
+                            type="number"
+                            placeholder="0"
+                            value={formData.urutan?.toString() || "0"}
+                            onChange={(e) =>
+                              setFormData({ ...formData, urutan: parseInt(e.target.value) || 0 })
+                            }
+                            variant="bordered"
+                            size="sm"
+                            startContent={<FiHash className="text-gray-400 flex-shrink-0" />}
+                            classNames={{
+                              input: "text-gray-900 dark:text-white",
+                              inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
+                            }}
+                          />
+                          <p className="text-xs text-gray-500 dark:text-slate-400">Kecil = tampil lebih atas</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Status Portal Section */}
+                  <div className="bg-orange-50/50 dark:bg-orange-900/10 rounded-xl p-4 border border-orange-200/50 dark:border-orange-800/30">
+                    <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                      Status Portal
+                    </h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Tampil di Portal */}
+                      <label
+                        className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border cursor-pointer transition-all ${
+                          formData.a_tampil_portal
+                            ? "border-primary-400 bg-white dark:bg-primary-900/20 shadow-sm"
+                            : "border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700/30 hover:border-gray-300 dark:hover:border-slate-500"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.a_tampil_portal}
+                          onChange={(e) =>
+                            setFormData({ ...formData, a_tampil_portal: e.target.checked })
+                          }
+                          className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 focus:ring-offset-0 cursor-pointer"
+                        />
+                        <span className="text-sm font-medium text-gray-800 dark:text-white">Tampil di Portal</span>
+                      </label>
+
+                      {/* Maintenance */}
+                      <label
+                        className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border cursor-pointer transition-all ${
+                          formData.a_maintenance
+                            ? "border-warning-400 bg-white dark:bg-warning-900/20 shadow-sm"
+                            : "border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700/30 hover:border-gray-300 dark:hover:border-slate-500"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.a_maintenance}
+                          onChange={(e) =>
+                            setFormData({ ...formData, a_maintenance: e.target.checked })
+                          }
+                          className="w-4 h-4 rounded border-gray-300 text-warning-600 focus:ring-warning-500 focus:ring-offset-0 cursor-pointer"
+                        />
+                        <span className="text-sm font-medium text-gray-800 dark:text-white">Maintenance</span>
+                      </label>
+
+                      {/* Coming Soon */}
+                      <label
+                        className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border cursor-pointer transition-all ${
+                          formData.a_coming_soon
+                            ? "border-secondary-400 bg-white dark:bg-secondary-900/20 shadow-sm"
+                            : "border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700/30 hover:border-gray-300 dark:hover:border-slate-500"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.a_coming_soon}
+                          onChange={(e) =>
+                            setFormData({ ...formData, a_coming_soon: e.target.checked })
+                          }
+                          className="w-4 h-4 rounded border-gray-300 text-secondary-600 focus:ring-secondary-500 focus:ring-offset-0 cursor-pointer"
+                        />
+                        <span className="text-sm font-medium text-gray-800 dark:text-white">Coming Soon</span>
+                      </label>
+
+                      {/* Terintegrasi myUnila */}
+                      <label
+                        className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border cursor-pointer transition-all ${
+                          formData.a_terintegrasi
+                            ? "border-purple-400 bg-white dark:bg-purple-900/20 shadow-sm"
+                            : "border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700/30 hover:border-gray-300 dark:hover:border-slate-500"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.a_terintegrasi}
+                          onChange={(e) =>
+                            setFormData({ ...formData, a_terintegrasi: e.target.checked })
+                          }
+                          className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500 focus:ring-offset-0 cursor-pointer"
+                        />
+                        <span className="text-sm font-medium text-gray-800 dark:text-white">Terintegrasi myUnila</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </Tab>
+
+              {/* Settings Tab */}
+              <Tab key="settings" title="Pengaturan">
+                <div className="space-y-5">
+                  {/* Status Aplikasi Section */}
+                  <div className="bg-green-50/50 dark:bg-green-900/10 rounded-xl p-4 border border-green-200/50 dark:border-green-800/30">
+                    <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                      Status Aplikasi
+                    </h4>
+                    <div className="flex items-center gap-4 p-3 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700/30">
+                      <label
+                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border-2 cursor-pointer transition-all ${
+                          formData.status === 'Aktif'
+                            ? "border-success-500 bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-400 shadow-sm"
+                            : "border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-600 dark:text-slate-400 hover:border-gray-300"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="status"
+                          value="Aktif"
+                          checked={formData.status === 'Aktif'}
+                          onChange={() => setFormData({ ...formData, status: 'Aktif' })}
+                          className="sr-only"
+                        />
+                        <span className={`w-2.5 h-2.5 rounded-full ${formData.status === 'Aktif' ? 'bg-success-500' : 'bg-gray-300'}`}></span>
+                        <span className="text-sm font-semibold">Aktif</span>
+                      </label>
+                      <label
+                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border-2 cursor-pointer transition-all ${
+                          formData.status === 'Tidak Aktif'
+                            ? "border-danger-500 bg-danger-50 dark:bg-danger-900/20 text-danger-700 dark:text-danger-400 shadow-sm"
+                            : "border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-600 dark:text-slate-400 hover:border-gray-300"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="status"
+                          value="Tidak Aktif"
+                          checked={formData.status === 'Tidak Aktif'}
+                          onChange={() => setFormData({ ...formData, status: 'Tidak Aktif' })}
+                          className="sr-only"
+                        />
+                        <span className={`w-2.5 h-2.5 rounded-full ${formData.status === 'Tidak Aktif' ? 'bg-danger-500' : 'bg-gray-300'}`}></span>
+                        <span className="text-sm font-semibold">Tidak Aktif</span>
+                      </label>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-3">
+                      Mengubah status akan memperbarui expired_date aplikasi secara otomatis
                     </p>
                   </div>
-                  <Switch
-                    isSelected={formData.a_generate_menu}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, a_generate_menu: value })
-                    }
-                    color="primary"
-                    size="sm"
-                  />
-                </div>
 
-                {/* Integrasi CAS */}
-                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg border border-gray-200 dark:border-slate-600">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      Integrasi CAS/SSO
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                      Aktifkan jika aplikasi terintegrasi dengan SSO Unila
-                    </p>
-                  </div>
-                  <Switch
-                    isSelected={formData.a_integrasi_cas}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, a_integrasi_cas: value })
-                    }
-                    color="success"
-                    size="sm"
-                  />
-                </div>
+                  {/* Pengaturan Aplikasi Section */}
+                  <div className="bg-slate-50/80 dark:bg-slate-700/20 rounded-xl p-4 border border-slate-200/80 dark:border-slate-600/50">
+                    <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                      Pengaturan Aplikasi
+                    </h4>
+                    <div className="space-y-3">
+                      {/* Generate Menu */}
+                      <label
+                        className={`flex items-start gap-3 px-3 py-3 rounded-lg border cursor-pointer transition-all ${
+                          formData.a_generate_menu
+                            ? "border-primary-400 bg-white dark:bg-primary-900/20 shadow-sm"
+                            : "border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700/30 hover:border-gray-300 dark:hover:border-slate-500"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.a_generate_menu}
+                          onChange={(e) =>
+                            setFormData({ ...formData, a_generate_menu: e.target.checked })
+                          }
+                          className="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 focus:ring-offset-0 cursor-pointer"
+                        />
+                        <div className="flex-1">
+                          <span className="text-sm font-medium text-gray-800 dark:text-white">Generate Menu</span>
+                          <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                            Aktifkan auto-generate menu
+                          </p>
+                        </div>
+                      </label>
 
-                {/* Sistem Internal PT */}
-                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg border border-gray-200 dark:border-slate-600">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      Sistem Internal PT
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                      Tandai sebagai sistem internal perguruan tinggi
-                    </p>
+                      {/* Integrasi SSO/CAS */}
+                      <label
+                        className={`flex items-start gap-3 px-3 py-3 rounded-lg border cursor-pointer transition-all ${
+                          formData.a_integrasi_cas
+                            ? "border-teal-400 bg-white dark:bg-teal-900/20 shadow-sm"
+                            : "border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700/30 hover:border-gray-300 dark:hover:border-slate-500"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.a_integrasi_cas}
+                          onChange={(e) =>
+                            setFormData({ ...formData, a_integrasi_cas: e.target.checked })
+                          }
+                          className="mt-0.5 w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500 focus:ring-offset-0 cursor-pointer"
+                        />
+                        <div className="flex-1">
+                          <span className="text-sm font-medium text-gray-800 dark:text-white">Integrasi SSO/CAS</span>
+                          <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                            Login menggunakan Single Sign-On (CAS) Unila
+                          </p>
+                        </div>
+                      </label>
+
+                      {/* Sistem Internal PT */}
+                      <label
+                        className={`flex items-start gap-3 px-3 py-3 rounded-lg border cursor-pointer transition-all ${
+                          formData.a_sistem_internal_pt
+                            ? "border-warning-400 bg-white dark:bg-warning-900/20 shadow-sm"
+                            : "border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700/30 hover:border-gray-300 dark:hover:border-slate-500"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.a_sistem_internal_pt}
+                          onChange={(e) =>
+                            setFormData({ ...formData, a_sistem_internal_pt: e.target.checked })
+                          }
+                          className="mt-0.5 w-4 h-4 rounded border-gray-300 text-warning-600 focus:ring-warning-500 focus:ring-offset-0 cursor-pointer"
+                        />
+                        <div className="flex-1">
+                          <span className="text-sm font-medium text-gray-800 dark:text-white">Sistem Internal PT</span>
+                          <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                            Sistem internal perguruan tinggi
+                          </p>
+                        </div>
+                      </label>
+
+                      {/* Mode Production/Live */}
+                      <label
+                        className={`flex items-start gap-3 px-3 py-3 rounded-lg border cursor-pointer transition-all ${
+                          formData.a_live
+                            ? "border-emerald-400 bg-white dark:bg-emerald-900/20 shadow-sm"
+                            : "border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700/30 hover:border-gray-300 dark:hover:border-slate-500"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.a_live}
+                          onChange={(e) =>
+                            setFormData({ ...formData, a_live: e.target.checked })
+                          }
+                          className="mt-0.5 w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer"
+                        />
+                        <div className="flex-1">
+                          <span className="text-sm font-medium text-gray-800 dark:text-white">Mode Production</span>
+                          <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                            Aplikasi sudah live/production (bukan development)
+                          </p>
+                        </div>
+                      </label>
+                    </div>
                   </div>
-                  <Switch
-                    isSelected={formData.a_sistem_internal_pt}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, a_sistem_internal_pt: value })
-                    }
-                    color="warning"
-                    size="sm"
-                  />
+
+                  {/* App Key Section - Only show in edit mode */}
+                  {isEditMode && (
+                    <div className="bg-amber-50/50 dark:bg-amber-900/10 rounded-xl p-4 border border-amber-200/50 dark:border-amber-800/30">
+                      <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+                        <FiKey className="text-amber-600" />
+                        App Key
+                      </h4>
+                      <div className="bg-white dark:bg-slate-700/50 rounded-lg p-4 border border-gray-200 dark:border-slate-600 shadow-sm">
+                          {currentAppKey ? (
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-2">
+                                <code className="flex-1 text-sm font-mono bg-white dark:bg-slate-800 px-3 py-2 rounded border border-gray-200 dark:border-slate-600 overflow-x-auto">
+                                  {showAppKey ? currentAppKey : "••••••••••••••••••••••••••••••••"}
+                                </code>
+                                <Button
+                                  type="button"
+                                  isIconOnly
+                                  size="sm"
+                                  variant="flat"
+                                  onPress={() => setShowAppKey(!showAppKey)}
+                                  className="text-gray-600 dark:text-slate-400"
+                                >
+                                  {showAppKey ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                                </Button>
+                                <Button
+                                  type="button"
+                                  isIconOnly
+                                  size="sm"
+                                  variant="flat"
+                                  onPress={handleCopyAppKey}
+                                  className={copySuccess ? "text-green-600" : "text-gray-600 dark:text-slate-400"}
+                                >
+                                  <FiCopy size={16} />
+                                </Button>
+                              </div>
+                              {copySuccess && (
+                                <p className="text-xs text-green-600 dark:text-green-400">App Key berhasil disalin!</p>
+                              )}
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="flat"
+                                color="warning"
+                                startContent={<FiRefreshCw size={14} className={isRegeneratingKey ? "animate-spin" : ""} />}
+                                isLoading={isRegeneratingKey}
+                                onPress={handleRegenerateAppKey}
+                                className="w-full"
+                              >
+                                Regenerate App Key
+                              </Button>
+                              <p className="text-xs text-amber-600 dark:text-amber-400">
+                                Peringatan: Regenerate akan membuat key lama tidak berlaku lagi.
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="text-center py-2">
+                              <p className="text-sm text-gray-500 dark:text-slate-400 mb-3">
+                                Aplikasi ini belum memiliki App Key.
+                              </p>
+                              <Button
+                                type="button"
+                                size="sm"
+                                color="primary"
+                                startContent={<FiKey size={14} />}
+                                isLoading={isRegeneratingKey}
+                                onPress={handleRegenerateAppKey}
+                              >
+                                Generate App Key
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                  )}
                 </div>
-              </div>
-            </div>
+              </Tab>
+
+              {/* Menu Tab - Only show in edit mode */}
+              {isEditMode && (
+                <Tab key="menu" title="Menu Aplikasi">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <FiList className="text-gray-500" />
+                        <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                          Daftar Menu Aplikasi
+                        </label>
+                      </div>
+                      <span className="text-xs text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded-full">
+                        {aplikasi?.menus?.length || 0} menu
+                      </span>
+                    </div>
+
+                    {aplikasi?.menus && aplikasi.menus.length > 0 ? (
+                      <div className="border border-gray-200 dark:border-slate-600 rounded-lg overflow-hidden">
+                        <table className="w-full text-sm">
+                          <thead className="bg-gray-50 dark:bg-slate-700/50">
+                            <tr>
+                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                Nama Menu
+                              </th>
+                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                URL
+                              </th>
+                              <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                Urutan
+                              </th>
+                              <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                Status
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200 dark:divide-slate-600">
+                            {aplikasi.menus.map((menu) => (
+                              <tr key={menu.id_menu} className="hover:bg-gray-50 dark:hover:bg-slate-700/30">
+                                <td className="px-3 py-2 text-gray-900 dark:text-white font-medium">
+                                  {menu.nm_menu}
+                                </td>
+                                <td className="px-3 py-2 text-gray-600 dark:text-slate-400 text-xs font-mono">
+                                  {menu.url_menu || "-"}
+                                </td>
+                                <td className="px-3 py-2 text-center text-gray-600 dark:text-slate-400">
+                                  {menu.urutan}
+                                </td>
+                                <td className="px-3 py-2 text-center">
+                                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                    menu.a_aktif
+                                      ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                                      : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400"
+                                  }`}>
+                                    {menu.a_aktif ? "Aktif" : "Nonaktif"}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 bg-gray-50 dark:bg-slate-700/30 rounded-lg border border-dashed border-gray-300 dark:border-slate-600">
+                        <FiMenu className="mx-auto h-10 w-10 text-gray-400 dark:text-slate-500 mb-3" />
+                        <p className="text-sm text-gray-500 dark:text-slate-400">
+                          Belum ada menu untuk aplikasi ini
+                        </p>
+                        <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">
+                          Menu dapat ditambahkan melalui fitur manajemen menu aplikasi
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </Tab>
+              )}
+            </Tabs>
           </ModalBody>
 
           <ModalFooter className="gap-3 px-6 py-4 border-t border-gray-200 dark:border-slate-700">

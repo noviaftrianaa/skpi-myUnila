@@ -41,6 +41,11 @@ show_menu() {
     echo -e "  ${GREEN}8)${NC} Quick Rebuild - Frontend Only"
     echo -e "  ${GREEN}9)${NC} Quick Rebuild - Nginx Only"
     echo ""
+    echo -e "  ${CYAN}--- Quick Dev Rebuild (Dengan Cache, Lebih Cepat) ---${NC}"
+    echo -e "  ${CYAN}22)${NC} Quick Dev Rebuild - All Laravel (auth + dashboard)"
+    echo -e "  ${CYAN}23)${NC} Quick Dev Rebuild - Dashboard Only"
+    echo -e "  ${CYAN}24)${NC} Quick Dev Rebuild - Auth Only"
+    echo ""
     echo -e "  ${BLUE}10)${NC} Restart All Services"
     echo -e "  ${BLUE}11)${NC} Restart Dashboard Only"
     echo -e "  ${BLUE}12)${NC} Restart Auth Only"
@@ -58,7 +63,7 @@ show_menu() {
     echo ""
     echo -e "  ${RED}0)${NC} Exit"
     echo ""
-    echo -n "Pilihan [0-21]: "
+    echo -n "Pilihan [0-24]: "
 }
 
 # Function to show container status
@@ -264,6 +269,30 @@ while true; do
             echo -e "${BLUE}Docker disk usage:${NC}"
             docker system df
             echo ""
+            read -p "Press Enter to continue..."
+            ;;
+        22)
+            echo ""
+            echo -e "${CYAN}Quick Dev Rebuild - All Laravel Services (dengan cache)${NC}"
+            echo -e "${YELLOW}Lebih cepat untuk perubahan kode saja!${NC}"
+            echo ""
+            bash "$SCRIPT_DIR/quick-dev-rebuild.sh"
+            read -p "Press Enter to continue..."
+            ;;
+        23)
+            echo ""
+            echo -e "${CYAN}Quick Dev Rebuild - Dashboard Only (dengan cache)${NC}"
+            echo -e "${YELLOW}Lebih cepat untuk perubahan kode saja!${NC}"
+            echo ""
+            bash "$SCRIPT_DIR/quick-dev-rebuild.sh" dashboard
+            read -p "Press Enter to continue..."
+            ;;
+        24)
+            echo ""
+            echo -e "${CYAN}Quick Dev Rebuild - Auth Only (dengan cache)${NC}"
+            echo -e "${YELLOW}Lebih cepat untuk perubahan kode saja!${NC}"
+            echo ""
+            bash "$SCRIPT_DIR/quick-dev-rebuild.sh" auth
             read -p "Press Enter to continue..."
             ;;
         0)

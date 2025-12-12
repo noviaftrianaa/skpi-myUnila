@@ -47,6 +47,8 @@ class PenggunaService
                     'tgl_create' => $item->tgl_create,
                     'last_update' => $item->last_update,
                     'last_login_at' => $item->last_login_at,
+                    'active_role' => $item->active_role ?? null,
+                    'active_organisasi' => $item->active_organisasi ?? null,
                 ];
             }, $result['data']);
 
@@ -141,6 +143,61 @@ class PenggunaService
         } catch (\Exception $e) {
             Log::error('PenggunaService::getStats error', [
                 'message' => $e->getMessage()
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Update pengguna
+     *
+     * @param string $id
+     * @param array $data
+     * @return array|null
+     */
+    public function update(string $id, array $data): ?array
+    {
+        try {
+            // Check if pengguna exists
+            if (!$this->repository->exists($id)) {
+                return null;
+            }
+
+            // Update pengguna
+            $this->repository->update($id, $data);
+
+            // Return updated pengguna detail
+            return $this->getDetail($id);
+        } catch (\Exception $e) {
+            Log::error('PenggunaService::update error', [
+                'message' => $e->getMessage(),
+                'id' => $id,
+                'data' => $data
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Delete pengguna (soft delete)
+     *
+     * @param string $id
+     * @return bool
+     */
+    public function delete(string $id): bool
+    {
+        try {
+            // Check if pengguna exists
+            if (!$this->repository->exists($id)) {
+                return false;
+            }
+
+            // Soft delete pengguna
+            return $this->repository->delete($id);
+        } catch (\Exception $e) {
+            Log::error('PenggunaService::delete error', [
+                'message' => $e->getMessage(),
+                'id' => $id
             ]);
             throw $e;
         }

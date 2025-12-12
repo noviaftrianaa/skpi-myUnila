@@ -100,6 +100,20 @@ export interface SsoUsersParams {
   search?: string;
 }
 
+export interface PenggunaUpdateData {
+  nm_pengguna?: string;
+  email?: string;
+  jenis_kelamin?: 'L' | 'P';
+  tempat_lahir?: string;
+  tgl_lahir?: string;
+  alamat?: string;
+  no_tel?: string;
+  no_hp?: string;
+  jabatan?: string;
+  a_aktif?: boolean;
+  disable?: boolean;
+}
+
 // API Response wrapper
 interface ApiResponse<T> {
   success: boolean;
@@ -175,6 +189,26 @@ export const penggunaService = {
    */
   async clearRadiusCache(): Promise<void> {
     await authClient.post('/manakses/pengguna/clear-radius-cache');
+  },
+
+  /**
+   * Update pengguna
+   * Protected endpoint - requires JWT authentication
+   */
+  async update(id: string, data: PenggunaUpdateData): Promise<PenggunaDetail> {
+    const response = await authClient.put<ApiResponse<PenggunaDetail>>(
+      `/manakses/pengguna/${id}`,
+      data
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Delete pengguna (soft delete)
+   * Protected endpoint - requires JWT authentication
+   */
+  async delete(id: string): Promise<void> {
+    await authClient.delete(`/manakses/pengguna/${id}`);
   },
 };
 
