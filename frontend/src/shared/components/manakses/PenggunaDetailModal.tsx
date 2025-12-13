@@ -272,7 +272,7 @@ export default function PenggunaDetailModal({
                 <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
                   Aktivitas
                 </h4>
-                <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                   <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2">
                     <p className="text-[10px] text-gray-500 mb-0.5">Terdaftar</p>
                     <p className="font-medium text-gray-900 dark:text-white text-[11px]">
@@ -295,6 +295,12 @@ export default function PenggunaDetailModal({
                         IP: {pengguna.last_login_ip}
                       </p>
                     )}
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2">
+                    <p className="text-[10px] text-gray-500 mb-0.5">Ganti Password</p>
+                    <p className="font-medium text-gray-900 dark:text-white text-[11px]">
+                      {formatDateTime(pengguna.tgl_ganti_pwd)}
+                    </p>
                   </div>
                 </div>
               </div>

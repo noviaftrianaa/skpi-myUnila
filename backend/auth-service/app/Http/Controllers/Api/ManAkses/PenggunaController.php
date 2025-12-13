@@ -376,4 +376,103 @@ class PenggunaController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get MFA status for a pengguna
+     *
+     * @param string $id
+     * @return JsonResponse
+     */
+    public function mfaStatus(string $id): JsonResponse
+    {
+        try {
+            $result = $this->service->getMfaStatus($id);
+
+            if (!$result) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pengguna tidak ditemukan',
+                    'data' => null
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Status MFA berhasil diambil',
+                'data' => $result
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil status MFA: ' . $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+    }
+
+    /**
+     * Reset MFA for a pengguna
+     *
+     * @param string $id
+     * @return JsonResponse
+     */
+    public function resetMfa(string $id): JsonResponse
+    {
+        try {
+            $result = $this->service->resetMfa($id);
+
+            if (!$result) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pengguna tidak ditemukan',
+                    'data' => null
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $result['message'],
+                'data' => $result
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mereset MFA: ' . $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+    }
+
+    /**
+     * Reset password for a pengguna to default "unilajaya"
+     *
+     * @param string $id
+     * @return JsonResponse
+     */
+    public function resetPassword(string $id): JsonResponse
+    {
+        try {
+            $result = $this->service->resetPassword($id);
+
+            if (!$result) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pengguna tidak ditemukan',
+                    'data' => null
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $result['message'],
+                'data' => $result
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mereset password: ' . $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+    }
 }

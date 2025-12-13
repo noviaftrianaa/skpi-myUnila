@@ -42,6 +42,7 @@ class PenggunaService
                     'a_aktif' => (bool) $item->a_aktif,
                     'disable' => (bool) $item->disable,
                     'status' => $item->a_aktif && !$item->disable ? 'Aktif' : 'Tidak Aktif',
+                    'mfa_enabled' => (bool) ($item->google2fa_enabled ?? 0),
                     'has_sso' => (bool) $item->has_sso,
                     'sumber_data' => $item->sumber_data,
                     'tgl_create' => $item->tgl_create,
@@ -101,6 +102,7 @@ class PenggunaService
                 'sumber_data' => $pengguna->sumber_data,
                 'tgl_create' => $pengguna->tgl_create,
                 'last_update' => $pengguna->last_update,
+                'tgl_ganti_pwd' => $pengguna->tgl_ganti_pwd,
                 'last_login_at' => $pengguna->last_login_at,
                 'last_login_ip' => $pengguna->last_login_ip,
                 'roles' => array_map(function ($role) {
@@ -110,6 +112,10 @@ class PenggunaService
                         'nm_peran' => $role->nm_peran,
                         'id_organisasi' => $role->id_organisasi,
                         'nm_organisasi' => $role->nm_organisasi,
+                        'id_jns_lemb' => $role->id_jns_lemb ?? null,
+                        'nm_jns_lemb' => $role->nm_jns_lemb ?? null,
+                        'jenjang' => $role->jenjang ?? null,
+                        'display_organisasi' => $role->display_organisasi ?? null,
                         'approval_peran' => (bool) $role->approval_peran,
                         'tgl_create' => $role->tgl_create,
                         'last_active' => $role->last_active,
@@ -202,6 +208,127 @@ class PenggunaService
             return $this->repository->delete($id);
         } catch (\Exception $e) {
             Log::error('PenggunaService::delete error', [
+                'message' => $e->getMessage(),
+                'id' => $id
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Get MFA status for a pengguna
+     *
+     * @param string $id
+     * @return array|null
+     */
+    public function getMfaStatus(string $id): ?array
+    {
+        try {
+            $mfaStatus = $this->repository->getMfaStatus($id);
+
+            if (!$mfaStatus) {
+                return null;
+            }
+
+            return [
+                'id_pengguna' => $mfaStatus->id_pengguna,
+                'username' => $mfaStatus->username,
+                'nm_pengguna' => $mfaStatus->nm_pengguna,
+                'mfa_enabled' => (bool) $mfaStatus->google2fa_enabled,
+                'mfa_enabled_at' => $mfaStatus->google2fa_enabled_at,
+            ];
+        } catch (\Exception $e) {
+            Log::error('PenggunaService::getMfaStatus error', [
+                'message' => $e->getMessage(),
+                'id' => $id
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Reset MFA for a pengguna
+     *
+     * @param string $id
+     * @return array|null Returns pengguna info if successful, null if not found
+     */
+    public function resetMfa(string $id): ?array
+    {
+        try {
+            // Check if pengguna exists and get MFA status
+            $mfaStatus = $this->repository->getMfaStatus($id);
+
+            if (!$mfaStatus) {
+                return null;
+            }
+
+            // Check if MFA is enabled
+            if (!$mfaStatus->google2fa_enabled) {
+                return [
+                    'id_pengguna' => $mfaStatus->id_pengguna,
+                    'username' => $mfaStatus->username,
+                    'nm_pengguna' => $mfaStatus->nm_pengguna,
+                    'mfa_was_enabled' => false,
+                    'message' => 'MFA tidak aktif untuk pengguna ini',
+                ];
+            }
+
+            // Reset MFA
+            $this->repository->resetMfa($id);
+
+            Log::info('MFA Reset by admin', [
+                'target_user_id' => $id,
+                'target_username' => $mfaStatus->username,
+            ]);
+
+            return [
+                'id_pengguna' => $mfaStatus->id_pengguna,
+                'username' => $mfaStatus->username,
+                'nm_pengguna' => $mfaStatus->nm_pengguna,
+                'mfa_was_enabled' => true,
+                'message' => 'MFA berhasil direset',
+            ];
+        } catch (\Exception $e) {
+            Log::error('PenggunaService::resetMfa error', [
+                'message' => $e->getMessage(),
+                'id' => $id
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Reset password for a pengguna to default "unilajaya"
+     *
+     * @param string $id
+     * @return array|null Returns pengguna info if successful, null if not found
+     */
+    public function resetPassword(string $id): ?array
+    {
+        try {
+            // Check if pengguna exists
+            $passwordInfo = $this->repository->getPasswordInfo($id);
+
+            if (!$passwordInfo) {
+                return null;
+            }
+
+            // Reset password
+            $this->repository->resetPassword($id);
+
+            Log::info('Password Reset by admin', [
+                'target_user_id' => $id,
+                'target_username' => $passwordInfo->username,
+            ]);
+
+            return [
+                'id_pengguna' => $passwordInfo->id_pengguna,
+                'username' => $passwordInfo->username,
+                'nm_pengguna' => $passwordInfo->nm_pengguna,
+                'message' => 'Password berhasil direset ke default (unilajaya)',
+            ];
+        } catch (\Exception $e) {
+            Log::error('PenggunaService::resetPassword error', [
                 'message' => $e->getMessage(),
                 'id' => $id
             ]);

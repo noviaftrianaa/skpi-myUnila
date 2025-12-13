@@ -450,7 +450,7 @@ class AuthService
             throw new \Exception('Refresh token not found', 401);
         }
 
-        if ($tokenInDb->a_revoked) {
+        if ($tokenInDb->is_revoked) {
             Log::warning('Attempted to use revoked refresh token', [
                 'token_id' => $tokenId,
                 'user_id' => $userId,

@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import DataTable, { Column } from "../ui/DataTable";
 import { Chip, Select, SelectItem, Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/react";
-import { FiEye, FiEdit2, FiMoreVertical, FiTrash2, FiPlus } from "react-icons/fi";
+import { FiEye, FiEdit2, FiMoreVertical, FiTrash2, FiPlus, FiShield, FiShieldOff, FiKey } from "react-icons/fi";
 import { penggunaService, type Pengguna, type PenggunaStats, type PenggunaDetail, type PeranOption } from "@/lib/services/manakses/penggunaService";
 import PenggunaDetailModal from "./PenggunaDetailModal";
 import PenggunaEditModal from "./PenggunaEditModal";
@@ -34,6 +34,16 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
   const [selectedPengguna, setSelectedPengguna] = useState<PenggunaDetail | null>(null);
   const [deletingPengguna, setDeletingPengguna] = useState<Pengguna | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Reset MFA modal states
+  const [resetMfaModalOpen, setResetMfaModalOpen] = useState(false);
+  const [resetMfaPengguna, setResetMfaPengguna] = useState<Pengguna | null>(null);
+  const [resetMfaLoading, setResetMfaLoading] = useState(false);
+
+  // Reset Password modal states
+  const [resetPasswordModalOpen, setResetPasswordModalOpen] = useState(false);
+  const [resetPasswordPengguna, setResetPasswordPengguna] = useState<Pengguna | null>(null);
+  const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
 
   // Use ref to store callback to avoid infinite loop
   const onStatsLoadedRef = useRef(onStatsLoaded);
@@ -167,6 +177,106 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
     setDeleteModalOpen(true);
   };
 
+  const handleResetMfaClick = (pengguna: Pengguna) => {
+    setResetMfaPengguna(pengguna);
+    setResetMfaModalOpen(true);
+  };
+
+  const handleResetMfaConfirm = async () => {
+    if (!resetMfaPengguna) return;
+
+    setResetMfaLoading(true);
+    try {
+      const result = await penggunaService.resetMfa(resetMfaPengguna.id_pengguna);
+      setRefreshTrigger((prev) => prev + 1);
+      setResetMfaModalOpen(false);
+      setResetMfaPengguna(null);
+
+      if (result.mfa_was_enabled) {
+        toast.success(`MFA untuk "${result.nm_pengguna}" berhasil direset`, {
+          duration: 3000,
+          style: {
+            borderRadius: "12px",
+            background: "#10B981",
+            color: "#fff",
+            fontWeight: "500",
+          },
+          iconTheme: {
+            primary: "#fff",
+            secondary: "#10B981",
+          },
+        });
+      } else {
+        toast(result.message, {
+          duration: 3000,
+          icon: "ℹ️",
+          style: {
+            borderRadius: "12px",
+            background: "#3B82F6",
+            color: "#fff",
+            fontWeight: "500",
+          },
+        });
+      }
+    } catch (error) {
+      console.error('Error resetting MFA:', error);
+      toast.error("Gagal mereset MFA. Silakan coba lagi.", {
+        duration: 4000,
+        style: {
+          borderRadius: "12px",
+          background: "#EF4444",
+          color: "#fff",
+          fontWeight: "500",
+        },
+      });
+    } finally {
+      setResetMfaLoading(false);
+    }
+  };
+
+  const handleResetPasswordClick = (pengguna: Pengguna) => {
+    setResetPasswordPengguna(pengguna);
+    setResetPasswordModalOpen(true);
+  };
+
+  const handleResetPasswordConfirm = async () => {
+    if (!resetPasswordPengguna) return;
+
+    setResetPasswordLoading(true);
+    try {
+      const result = await penggunaService.resetPassword(resetPasswordPengguna.id_pengguna);
+      setResetPasswordModalOpen(false);
+      setResetPasswordPengguna(null);
+
+      toast.success(`Password untuk "${result.nm_pengguna}" berhasil direset ke default`, {
+        duration: 4000,
+        style: {
+          borderRadius: "12px",
+          background: "#10B981",
+          color: "#fff",
+          fontWeight: "500",
+        },
+        iconTheme: {
+          primary: "#fff",
+          secondary: "#10B981",
+        },
+      });
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      toast.error("Gagal mereset password. Silakan coba lagi.", {
+        duration: 4000,
+        style: {
+          borderRadius: "12px",
+          background: "#EF4444",
+          color: "#fff",
+          fontWeight: "500",
+        },
+      });
+    } finally {
+      setResetPasswordLoading(false);
+    }
+  };
+
   const handleDeleteConfirm = async () => {
     if (!deletingPengguna) return;
 
@@ -277,15 +387,30 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
       key: "status",
       label: "STATUS",
       align: "center",
-      width: "120px",
+      width: "140px",
       render: (item) => (
-        <Chip
-          size="sm"
-          variant="flat"
-          color={item.a_aktif && !item.disable ? "success" : "danger"}
-        >
-          {item.a_aktif && !item.disable ? "Aktif" : "Tidak Aktif"}
-        </Chip>
+        <div className="flex flex-col items-center gap-1">
+          <Chip
+            size="sm"
+            variant="flat"
+            color={item.a_aktif && !item.disable ? "success" : "danger"}
+          >
+            {item.a_aktif && !item.disable ? "Aktif" : "Tidak Aktif"}
+          </Chip>
+          <div className="flex items-center gap-1 text-xs">
+            {item.mfa_enabled ? (
+              <span className="flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400">
+                <FiShield className="w-3 h-3" />
+                MFA
+              </span>
+            ) : (
+              <span className="flex items-center gap-0.5 text-gray-400">
+                <FiShieldOff className="w-3 h-3" />
+                MFA
+              </span>
+            )}
+          </div>
+        </div>
       ),
     },
     {
@@ -343,7 +468,7 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
               <FiMoreVertical className="w-4 h-4" />
             </Button>
           </DropdownTrigger>
-          <DropdownMenu aria-label="Aksi Pengguna" className="min-w-[120px] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 shadow-lg rounded-lg">
+          <DropdownMenu aria-label="Aksi Pengguna" className="min-w-[140px] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 shadow-lg rounded-lg">
             <DropdownItem
               key="view"
               startContent={<FiEye className="w-4 h-4" />}
@@ -359,6 +484,23 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
               className="text-gray-700 dark:text-gray-300"
             >
               Edit
+            </DropdownItem>
+            <DropdownItem
+              key="reset-mfa"
+              startContent={<FiShieldOff className="w-4 h-4" />}
+              onPress={() => handleResetMfaClick(item)}
+              className={item.mfa_enabled ? "text-warning" : "text-gray-400"}
+              isDisabled={!item.mfa_enabled}
+            >
+              Reset MFA
+            </DropdownItem>
+            <DropdownItem
+              key="reset-password"
+              startContent={<FiKey className="w-4 h-4" />}
+              onPress={() => handleResetPasswordClick(item)}
+              className="text-warning"
+            >
+              Reset Password
             </DropdownItem>
             <DropdownItem
               key="delete"
@@ -594,6 +736,121 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
               isLoading={deleteLoading}
             >
               Hapus
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Reset MFA Confirmation Modal */}
+      <Modal
+        isOpen={resetMfaModalOpen}
+        onClose={() => {
+          setResetMfaModalOpen(false);
+          setResetMfaPengguna(null);
+        }}
+        size="md"
+        classNames={{
+          backdrop: "bg-black/50 backdrop-blur-sm",
+          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl",
+        }}
+      >
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1 px-6 py-4 border-b border-gray-200 dark:border-slate-700">
+            <div className="flex items-center gap-2">
+              <FiShieldOff className="w-5 h-5 text-warning" />
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                Reset MFA
+              </h3>
+            </div>
+          </ModalHeader>
+          <ModalBody className="py-6">
+            <p className="text-gray-700 dark:text-gray-300">
+              Apakah Anda yakin ingin mereset MFA untuk pengguna{" "}
+              <span className="font-semibold text-gray-900 dark:text-white">
+                {resetMfaPengguna?.nm_pengguna}
+              </span>
+              ?
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+              Pengguna harus melakukan setup ulang MFA setelah direset.
+            </p>
+          </ModalBody>
+          <ModalFooter className="gap-3 px-6 py-4 border-t border-gray-200 dark:border-slate-700">
+            <Button
+              variant="flat"
+              onPress={() => {
+                setResetMfaModalOpen(false);
+                setResetMfaPengguna(null);
+              }}
+              isDisabled={resetMfaLoading}
+            >
+              Batal
+            </Button>
+            <Button
+              color="warning"
+              onPress={handleResetMfaConfirm}
+              isLoading={resetMfaLoading}
+            >
+              Reset MFA
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Reset Password Confirmation Modal */}
+      <Modal
+        isOpen={resetPasswordModalOpen}
+        onClose={() => {
+          setResetPasswordModalOpen(false);
+          setResetPasswordPengguna(null);
+        }}
+        size="md"
+        classNames={{
+          backdrop: "bg-black/50 backdrop-blur-sm",
+          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl",
+        }}
+      >
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1 px-6 py-4 border-b border-gray-200 dark:border-slate-700">
+            <div className="flex items-center gap-2">
+              <FiKey className="w-5 h-5 text-warning" />
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                Reset Password
+              </h3>
+            </div>
+          </ModalHeader>
+          <ModalBody className="py-6">
+            <p className="text-gray-700 dark:text-gray-300">
+              Apakah Anda yakin ingin mereset password untuk pengguna{" "}
+              <span className="font-semibold text-gray-900 dark:text-white">
+                {resetPasswordPengguna?.nm_pengguna}
+              </span>
+              ?
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+              Password akan direset ke default:{" "}
+              <span className="font-mono font-semibold text-amber-600 dark:text-amber-400">
+                unilajaya
+              </span>
+            </p>
+          </ModalBody>
+          <ModalFooter className="gap-3 px-6 py-4 border-t border-gray-200 dark:border-slate-700">
+            <Button
+              variant="flat"
+              onPress={() => {
+                setResetPasswordModalOpen(false);
+                setResetPasswordPengguna(null);
+              }}
+              isDisabled={resetPasswordLoading}
+            >
+              Batal
+            </Button>
+            <Button
+              color="warning"
+              onPress={handleResetPasswordConfirm}
+              isLoading={resetPasswordLoading}
+            >
+              Reset Password
             </Button>
           </ModalFooter>
         </ModalContent>

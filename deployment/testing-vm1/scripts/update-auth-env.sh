@@ -181,11 +181,11 @@ fi
 
 # Update AUTH_APLIKASI_ID (for login logging)
 if grep -q "^AUTH_APLIKASI_ID=" "$ENV_FILE"; then
-    sed -i "s|^AUTH_APLIKASI_ID=.*|AUTH_APLIKASI_ID=1|" "$ENV_FILE"
-    log_info "✓ Updated AUTH_APLIKASI_ID=1"
+    sed -i "s|^AUTH_APLIKASI_ID=.*|AUTH_APLIKASI_ID=6df39588-e4d7-4e92-b3b1-e7b5078a3832|" "$ENV_FILE"
+    log_info "✓ Updated AUTH_APLIKASI_ID=6df39588-e4d7-4e92-b3b1-e7b5078a3832"
 else
-    echo "AUTH_APLIKASI_ID=1" >> "$ENV_FILE"
-    log_info "✓ Added AUTH_APLIKASI_ID=1"
+    echo "AUTH_APLIKASI_ID=6df39588-e4d7-4e92-b3b1-e7b5078a3832" >> "$ENV_FILE"
+    log_info "✓ Added AUTH_APLIKASI_ID=6df39588-e4d7-4e92-b3b1-e7b5078a3832"
 fi
 
 # Update JWT_SECRET
