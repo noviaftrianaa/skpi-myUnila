@@ -128,11 +128,6 @@ export const myunilaIntegratorMenuConfig: MenuItem[] = [
         href: "/dashboard/integrator/manakses/sso-radius",
         roles: defaultRoles,
       },
-      {
-        title: "Role Base",
-        href: "/dashboard/integrator/manakses/role-base",
-        roles: defaultRoles,
-      },
     ],
   },
   {

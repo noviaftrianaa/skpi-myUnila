@@ -11,10 +11,11 @@ import {
 import {
   FiUsers,
   FiCheckCircle,
-  FiDatabase,
-  FiWifi,
+  FiXCircle,
+  FiShield,
 } from "react-icons/fi";
 import { MdSecurity } from "react-icons/md";
+import { Toaster } from "react-hot-toast";
 import { manajemenAksesMenuConfig } from "../../config/menuConfig";
 import { type PenggunaStats } from "@/lib/services/manakses/penggunaService";
 
@@ -34,6 +35,7 @@ export default function DaftarPenggunaPage() {
       menuConfig={manajemenAksesMenuConfig}
       pageTitle="Daftar Pengguna"
     >
+      <Toaster position="top-right" />
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -102,53 +104,65 @@ export default function DaftarPenggunaPage() {
             </CardBody>
           </Card>
 
-          {/* SSO Radius Card */}
-          <Card className="bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative rounded-xl">
+          {/* Pengguna Tidak Aktif Card */}
+          <Card className="bg-gradient-to-br from-red-500 via-rose-600 to-pink-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative rounded-xl">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
             <CardBody className="p-4 relative z-10">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
-                  <FiWifi className="w-7 h-7 text-white" />
+                  <FiXCircle className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs font-medium text-blue-100">SSO Radius</p>
+                    <p className="text-xs font-medium text-red-100">Tidak Aktif</p>
                     <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
-                      <span className="text-[10px] font-semibold text-white">SSO</span>
+                      <span className="text-[10px] font-semibold text-white">Inactive</span>
                     </div>
                   </div>
                   <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
-                    {stats?.total_sso?.toLocaleString() || "0"}
+                    {stats?.total_nonaktif?.toLocaleString() || "0"}
                   </h3>
-                  <p className="text-[10px] text-blue-100/80">
-                    Terdaftar di SSO Radius
+                  <p className="text-[10px] text-red-100/80">
+                    Status tidak aktif atau disable
                   </p>
                 </div>
               </div>
             </CardBody>
           </Card>
 
-          {/* Manajemen Akses Only Card */}
+          {/* Sebaran Peran Card */}
           <Card className="bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative rounded-xl">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
             <CardBody className="p-4 relative z-10">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
-                  <FiDatabase className="w-7 h-7 text-white" />
+                  <FiShield className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs font-medium text-orange-100">ManAkses Only</p>
+                    <p className="text-xs font-medium text-orange-100">Sebaran Peran</p>
                     <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
-                      <span className="text-[10px] font-semibold text-white">Local</span>
+                      <span className="text-[10px] font-semibold text-white">Roles</span>
                     </div>
                   </div>
-                  <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
-                    {stats?.total_non_sso?.toLocaleString() || "0"}
-                  </h3>
-                  <p className="text-[10px] text-orange-100/80">
-                    Hanya di Manajemen Akses
-                  </p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-white mt-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-orange-100">Mahasiswa</span>
+                      <span className="font-bold">{stats?.role_mahasiswa?.toLocaleString() || "0"}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-orange-100">Dosen</span>
+                      <span className="font-bold">{stats?.role_dosen?.toLocaleString() || "0"}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-orange-100">Tendik</span>
+                      <span className="font-bold">{stats?.role_tendik?.toLocaleString() || "0"}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-orange-100">Lainnya</span>
+                      <span className="font-bold">{stats?.role_lainnya?.toLocaleString() || "0"}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardBody>

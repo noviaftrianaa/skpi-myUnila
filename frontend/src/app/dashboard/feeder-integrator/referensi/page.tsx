@@ -11,7 +11,6 @@ import {
   Spinner,
   Button,
   Input,
-  Checkbox,
   Modal,
   ModalContent,
   ModalHeader,
@@ -528,14 +527,13 @@ export default function ReferensiPage() {
 
                 <CardBody className="p-5 relative z-10">
                   {/* Header with checkbox and title */}
-                  <div className="flex items-start gap-3.5 mb-4">
-                    <Checkbox
-                      isSelected={selectedEndpoints.includes(item.key)}
-                      onValueChange={() => handleCheckboxChange(item.key)}
-                      color="primary"
-                      size="sm"
+                  <div className="flex items-start gap-3 mb-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedEndpoints.includes(item.key)}
+                      onChange={() => handleCheckboxChange(item.key)}
                       onClick={(e) => e.stopPropagation()}
-                      className="mt-1 mr-1"
+                      className="mt-0.5 w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 focus:ring-2 cursor-pointer flex-shrink-0"
                     />
                     <div className="flex-1 min-w-0">
                       <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1 leading-tight">

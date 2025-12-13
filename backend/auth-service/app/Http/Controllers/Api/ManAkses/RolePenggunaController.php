@@ -134,6 +134,8 @@ class RolePenggunaController extends Controller
             ]);
 
             $data = $request->all();
+            // Add id_updater from authenticated user
+            $data['id_updater'] = $request->user()->id_pengguna ?? $request->user()->id ?? null;
             $result = $this->service->create($data);
 
             return response()->json([
@@ -176,6 +178,8 @@ class RolePenggunaController extends Controller
             ]);
 
             $data = $request->all();
+            // Add id_updater from authenticated user
+            $data['id_updater'] = $request->user()->id_pengguna ?? $request->user()->id ?? null;
             $result = $this->service->update($id, $data);
 
             if (!$result) {

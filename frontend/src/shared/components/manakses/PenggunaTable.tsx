@@ -3,10 +3,11 @@ import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import DataTable, { Column } from "../ui/DataTable";
 import { Chip, Select, SelectItem, Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/react";
-import { FiEye, FiEdit2, FiMoreVertical, FiTrash2 } from "react-icons/fi";
-import { penggunaService, type Pengguna, type PenggunaStats, type PenggunaDetail } from "@/lib/services/manakses/penggunaService";
+import { FiEye, FiEdit2, FiMoreVertical, FiTrash2, FiPlus } from "react-icons/fi";
+import { penggunaService, type Pengguna, type PenggunaStats, type PenggunaDetail, type PeranOption } from "@/lib/services/manakses/penggunaService";
 import PenggunaDetailModal from "./PenggunaDetailModal";
 import PenggunaEditModal from "./PenggunaEditModal";
+import toast from "react-hot-toast";
 
 interface PenggunaTableProps {
   onStatsLoaded?: (stats: PenggunaStats) => void;
@@ -21,7 +22,9 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [totalRecords, setTotalRecords] = useState(0);
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [filterSso, setFilterSso] = useState<string>("all");
+  const [filterPeran, setFilterPeran] = useState<string>("all");
+  const [peranOptions, setPeranOptions] = useState<PeranOption[]>([]);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Modal states
   const [detailModalOpen, setDetailModalOpen] = useState(false);
@@ -46,47 +49,64 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
 
-  // Load stats on mount only
+  // Load stats and peran options on mount only
   useEffect(() => {
-    const loadStats = async () => {
+    let isMounted = true;
+    const loadInitialData = async () => {
       try {
-        const statsData = await penggunaService.getStats();
-        setStats(statsData);
-        if (onStatsLoadedRef.current) {
-          onStatsLoadedRef.current(statsData);
+        // Load stats and peran options in parallel
+        const [statsData, peranData] = await Promise.all([
+          penggunaService.getStats(),
+          penggunaService.getPeranOptions(),
+        ]);
+        if (isMounted) {
+          setStats(statsData);
+          setPeranOptions(peranData);
+          if (onStatsLoadedRef.current) {
+            onStatsLoadedRef.current(statsData);
+          }
         }
-      } catch (error) {
-        console.error('Error loading stats:', error);
+      } catch (error: unknown) {
+        // Ignore aborted requests (happens in React Strict Mode)
+        if (error && typeof error === 'object' && 'code' in error && error.code === 'ECONNABORTED') return;
+        console.error('Error loading initial data:', error);
       }
     };
-    loadStats();
+    loadInitialData();
+    return () => { isMounted = false; };
   }, []); // Empty dependency - only run on mount
-
-  // Load data function
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const response = await penggunaService.getList({
-        page: currentPage,
-        limit: rowsPerPage,
-        search: searchQuery || undefined,
-        status: filterStatus !== "all" ? (filterStatus as 'aktif' | 'nonaktif') : undefined,
-        has_sso: filterSso !== "all" ? (filterSso as 'yes' | 'no') : undefined,
-      });
-
-      setData(response.data);
-      setTotalRecords(response.total);
-    } catch (error) {
-      console.error('Error loading pengguna:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Load data when filters change
   useEffect(() => {
+    let isMounted = true;
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const response = await penggunaService.getList({
+          page: currentPage,
+          limit: rowsPerPage,
+          search: searchQuery || undefined,
+          status: filterStatus !== "all" ? (filterStatus as 'aktif' | 'nonaktif') : undefined,
+          id_peran: filterPeran !== "all" ? filterPeran : undefined,
+        });
+
+        if (isMounted) {
+          setData(response.data);
+          setTotalRecords(response.total);
+        }
+      } catch (error: unknown) {
+        // Ignore aborted requests (happens in React Strict Mode)
+        if (error && typeof error === 'object' && 'code' in error && error.code === 'ECONNABORTED') return;
+        console.error('Error loading pengguna:', error);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
     loadData();
-  }, [currentPage, rowsPerPage, searchQuery, filterStatus, filterSso]);
+    return () => { isMounted = false; };
+  }, [currentPage, rowsPerPage, searchQuery, filterStatus, filterPeran, refreshTrigger]);
 
   const handleViewDetail = (penggunaId: string) => {
     setSelectedPenggunaId(penggunaId);
@@ -106,12 +126,40 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
       setEditModalOpen(true);
     } catch (error) {
       console.error('Error loading pengguna for edit:', error);
+      toast.error("Gagal memuat data pengguna", {
+        duration: 3000,
+        style: {
+          borderRadius: "12px",
+          background: "#EF4444",
+          color: "#fff",
+          fontWeight: "500",
+        },
+      });
     }
   };
 
-  const handleEditSuccess = () => {
+  const handleEditSuccess = async () => {
     // Reload data after edit
-    loadData();
+    setRefreshTrigger((prev) => prev + 1);
+    // Reload stats
+    const statsData = await penggunaService.getStats();
+    setStats(statsData);
+    if (onStatsLoadedRef.current) {
+      onStatsLoadedRef.current(statsData);
+    }
+    toast.success("Data pengguna berhasil diperbarui", {
+      duration: 3000,
+      style: {
+        borderRadius: "12px",
+        background: "#10B981",
+        color: "#fff",
+        fontWeight: "500",
+      },
+      iconTheme: {
+        primary: "#fff",
+        secondary: "#10B981",
+      },
+    });
   };
 
   const handleDeleteClick = (pengguna: Pengguna) => {
@@ -122,30 +170,45 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
   const handleDeleteConfirm = async () => {
     if (!deletingPengguna) return;
 
+    const deletedName = deletingPengguna.nm_pengguna;
     setDeleteLoading(true);
     try {
       await penggunaService.delete(deletingPengguna.id_pengguna);
-      loadData();
+      setRefreshTrigger((prev) => prev + 1);
       setDeleteModalOpen(false);
       setDeletingPengguna(null);
+      // Reload stats
+      const statsData = await penggunaService.getStats();
+      setStats(statsData);
+      if (onStatsLoadedRef.current) {
+        onStatsLoadedRef.current(statsData);
+      }
+      toast.success(`Pengguna "${deletedName}" berhasil dihapus`, {
+        duration: 3000,
+        style: {
+          borderRadius: "12px",
+          background: "#10B981",
+          color: "#fff",
+          fontWeight: "500",
+        },
+        iconTheme: {
+          primary: "#fff",
+          secondary: "#10B981",
+        },
+      });
     } catch (error) {
       console.error('Error deleting pengguna:', error);
+      toast.error("Gagal menghapus pengguna. Silakan coba lagi.", {
+        duration: 4000,
+        style: {
+          borderRadius: "12px",
+          background: "#EF4444",
+          color: "#fff",
+          fontWeight: "500",
+        },
+      });
     } finally {
       setDeleteLoading(false);
-    }
-  };
-
-  const formatDate = (dateString?: string | null) => {
-    if (!dateString) return "-";
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      });
-    } catch {
-      return "-";
     }
   };
 
@@ -195,6 +258,22 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
       ),
     },
     {
+      key: "jenis_kelamin",
+      label: "L/P",
+      align: "center",
+      width: "60px",
+      render: (item) => (
+        <Chip
+          size="sm"
+          variant="flat"
+          color={item.jenis_kelamin === "L" ? "primary" : item.jenis_kelamin === "P" ? "secondary" : "default"}
+          className="min-w-[28px]"
+        >
+          {item.jenis_kelamin || "-"}
+        </Chip>
+      ),
+    },
+    {
       key: "status",
       label: "STATUS",
       align: "center",
@@ -212,7 +291,7 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
     {
       key: "active_role",
       label: "ROLE AKTIF",
-      width: "200px",
+      width: "220px",
       render: (item) => (
         <div className="text-sm">
           {item.active_role ? (
@@ -220,31 +299,20 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
               <div className="font-medium text-gray-900 dark:text-white">
                 {item.active_role}
               </div>
-              {item.active_organisasi && (
+              {item.active_display_organisasi ? (
+                <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  {item.active_display_organisasi}
+                </div>
+              ) : item.active_organisasi ? (
                 <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
                   {item.active_organisasi}
                 </div>
-              )}
+              ) : null}
             </>
           ) : (
             <span className="text-gray-400">-</span>
           )}
         </div>
-      ),
-    },
-    {
-      key: "sumber_data",
-      label: "SUMBER DATA",
-      align: "center",
-      width: "150px",
-      render: (item) => (
-        <Chip
-          size="sm"
-          variant="flat"
-          color={item.has_sso ? "primary" : "warning"}
-        >
-          {item.sumber_data}
-        </Chip>
       ),
     },
     {
@@ -275,7 +343,7 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
               <FiMoreVertical className="w-4 h-4" />
             </Button>
           </DropdownTrigger>
-          <DropdownMenu aria-label="Aksi Pengguna" className="min-w-[120px]">
+          <DropdownMenu aria-label="Aksi Pengguna" className="min-w-[120px] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 shadow-lg rounded-lg">
             <DropdownItem
               key="view"
               startContent={<FiEye className="w-4 h-4" />}
@@ -309,7 +377,7 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
 
   // Filter slot
   const filterSlot = (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
+    <div className="flex items-center gap-2 w-full flex-wrap">
       <Select
         aria-label="Filter Status"
         placeholder="Semua Status"
@@ -319,9 +387,9 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
           setCurrentPage(1);
         }}
         classNames={{
-          base: "w-full",
-          trigger: "h-10 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-indigo-400 focus:border-indigo-500 transition-colors shadow-sm",
-          value: "text-sm font-medium text-gray-700 dark:text-gray-300 pr-8",
+          base: "w-40",
+          trigger: "h-9 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-indigo-400 focus:border-indigo-500 transition-colors shadow-sm",
+          value: "text-sm font-medium text-gray-700 dark:text-gray-300 pr-6",
           innerWrapper: "!bg-white dark:!bg-gray-800",
           popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200",
           listbox: "!bg-white dark:!bg-gray-800",
@@ -345,42 +413,79 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
           Tidak Aktif ({stats?.total_nonaktif || 0})
         </SelectItem>
       </Select>
+
       <Select
-        aria-label="Filter Sumber Data"
-        placeholder="Semua Sumber"
-        selectedKeys={[filterSso]}
+        aria-label="Filter Peran"
+        placeholder="Semua Peran"
+        selectedKeys={[filterPeran]}
         onChange={(e) => {
-          setFilterSso(e.target.value || "all");
+          setFilterPeran(e.target.value || "all");
           setCurrentPage(1);
         }}
         classNames={{
-          base: "w-full",
-          trigger: "h-10 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-indigo-400 focus:border-indigo-500 transition-colors shadow-sm",
-          value: "text-sm font-medium text-gray-700 dark:text-gray-300 pr-8",
+          base: "w-40",
+          trigger: "h-9 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-indigo-400 focus:border-indigo-500 transition-colors shadow-sm",
+          value: "text-sm font-medium text-gray-700 dark:text-gray-300 pr-6",
           innerWrapper: "!bg-white dark:!bg-gray-800",
-          popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200",
+          popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200 max-h-72 min-w-[280px]",
           listbox: "!bg-white dark:!bg-gray-800",
         }}
         size="sm"
         variant="bordered"
         renderValue={(items) => {
-          if (!items || items.length === 0) return "Semua Sumber";
+          if (!items || items.length === 0) return "Semua Peran";
           const item = items[0];
-          if (item.key === "all") return "Semua Sumber";
-          return item.textValue || "Semua Sumber";
+          if (item.key === "all") return "Semua Peran";
+          // Find the peran to get jumlah_pengguna
+          const selectedPeran = peranOptions.find(p => p.id_peran === item.key);
+          if (selectedPeran) {
+            return `${selectedPeran.nm_peran} (${selectedPeran.jumlah_pengguna})`;
+          }
+          return item.textValue || "Semua Peran";
         }}
       >
-        <SelectItem key="all" value="all" textValue="Semua Sumber">
-          Semua Sumber ({stats?.total_pengguna || 0})
+        <SelectItem key="all" value="all" textValue="Semua Peran">
+          <span className="text-sm">Semua Peran</span>
         </SelectItem>
-        <SelectItem key="yes" value="yes" textValue="SSO Radius">
-          SSO Radius ({stats?.total_sso || 0})
-        </SelectItem>
-        <SelectItem key="no" value="no" textValue="Manajemen Akses">
-          Manajemen Akses ({stats?.total_non_sso || 0})
-        </SelectItem>
+        {peranOptions.map((peran) => (
+          <SelectItem key={peran.id_peran} value={peran.id_peran} textValue={peran.nm_peran}>
+            <div className="flex items-center justify-between w-full gap-2">
+              <span className="text-sm truncate">{peran.nm_peran}</span>
+              <span className="text-xs text-gray-500 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                {peran.jumlah_pengguna}
+              </span>
+            </div>
+          </SelectItem>
+        ))}
       </Select>
     </div>
+  );
+
+  // Handle add pengguna (placeholder for future implementation)
+  const handleAdd = () => {
+    toast("Fitur tambah pengguna akan segera tersedia", {
+      duration: 2000,
+      icon: "🚧",
+      style: {
+        borderRadius: "12px",
+        background: "#F59E0B",
+        color: "#fff",
+        fontWeight: "500",
+      },
+    });
+  };
+
+  // Action slot with Add button
+  const actionSlot = (
+    <Button
+      color="primary"
+      startContent={<FiPlus className="w-4 h-4" />}
+      onPress={handleAdd}
+      className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium shadow-md hover:shadow-lg transition-all rounded-lg"
+      size="sm"
+    >
+      Tambah
+    </Button>
   );
 
   return (
@@ -413,6 +518,7 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
               setCurrentPage(1);
             }}
             filterSlot={filterSlot}
+            actionSlot={actionSlot}
             className="shadow-lg"
           />
         </motion.div>

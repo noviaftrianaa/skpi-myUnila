@@ -115,7 +115,7 @@ class PenggunaRepository
      * Note: Radius is MySQL, main DB is SQL Server - no cross-db JOIN possible
      * We fetch radius usernames separately and merge in PHP
      *
-     * @param array $params [page, limit, search, status, has_sso]
+     * @param array $params [page, limit, search, status, has_sso, id_peran]
      * @return array
      */
     public function getList(array $params = []): array
@@ -125,6 +125,7 @@ class PenggunaRepository
         $search = $params['search'] ?? null;
         $status = $params['status'] ?? null; // 'aktif', 'nonaktif', null for all
         $hasSso = $params['has_sso'] ?? null; // 'yes', 'no', null for all
+        $idPeran = $params['id_peran'] ?? null; // filter by peran id
         $offset = ($page - 1) * $limit;
 
         // Get radius usernames from MySQL for SSO check
@@ -147,7 +148,9 @@ class PenggunaRepository
                 p.last_update,
                 ll.waktu_login as last_login_at,
                 rp_active.nm_peran as active_role,
-                rp_active.nm_organisasi as active_organisasi
+                rp_active.nm_organisasi as active_organisasi,
+                rp_active.jenjang as active_jenjang,
+                rp_active.display_organisasi as active_display_organisasi
             FROM man_akses.pengguna p
             LEFT JOIN (
                 SELECT id_pengguna, MAX(waktu_login) as waktu_login
@@ -156,10 +159,20 @@ class PenggunaRepository
             ) ll ON ll.id_pengguna = p.id_pengguna
             LEFT JOIN (
                 SELECT rp.id_pengguna, pr.nm_peran, uo.nm_lemb as nm_organisasi, rp.last_active,
+                       didik.nm_jenj_didik as jenjang,
+                       CASE
+                           WHEN didik.nm_jenj_didik IS NOT NULL THEN
+                               uo.nm_lemb + ' (' + didik.nm_jenj_didik + ')'
+                           ELSE uo.nm_lemb
+                       END as display_organisasi,
                        ROW_NUMBER() OVER (PARTITION BY rp.id_pengguna ORDER BY COALESCE(rp.last_active, '1900-01-01') DESC) as rn
                 FROM man_akses.role_pengguna rp
                 LEFT JOIN man_akses.peran pr ON pr.id_peran = rp.id_peran
                 LEFT JOIN man_akses.unit_organisasi uo ON uo.id_organisasi = rp.id_organisasi
+                LEFT JOIN pdrd.sms sms ON CONVERT(VARCHAR(36), sms.id_sms) = CONVERT(VARCHAR(36), uo.id_organisasi)
+                    AND sms.soft_delete = 0
+                LEFT JOIN ref.jenjang_pendidikan didik ON didik.id_jenj_didik = sms.id_jenj_didik
+                    AND didik.expired_date IS NULL
                 WHERE rp.soft_delete = 0
             ) rp_active ON rp_active.id_pengguna = p.id_pengguna AND rp_active.rn = 1
             WHERE p.soft_delete = 0
@@ -202,6 +215,20 @@ class PenggunaRepository
             }
             $countSql .= $statusCondition;
             $dataSql .= $statusCondition;
+        }
+
+        // Add peran filter - filter pengguna who have this role
+        if (!empty($idPeran)) {
+            $peranCondition = " AND EXISTS (
+                SELECT 1 FROM man_akses.role_pengguna rp2
+                WHERE rp2.id_pengguna = p.id_pengguna
+                AND rp2.id_peran = ?
+                AND rp2.soft_delete = 0
+            )";
+            $countSql .= $peranCondition;
+            $dataSql .= $peranCondition;
+            $bindings[] = $idPeran;
+            $countBindings[] = $idPeran;
         }
 
         // For SSO filter, we need to filter BEFORE pagination
@@ -376,7 +403,7 @@ class PenggunaRepository
     }
 
     /**
-     * Get pengguna roles
+     * Get pengguna roles with jenjang for prodi-level organisasi
      *
      * @param string $id
      * @return array
@@ -390,12 +417,26 @@ class PenggunaRepository
                 pr.nm_peran,
                 CONVERT(VARCHAR(36), rp.id_organisasi) as id_organisasi,
                 uo.nm_lemb as nm_organisasi,
+                uo.id_jns_lemb,
+                jns.nm_jns_sms as nm_jns_lemb,
+                didik.nm_jenj_didik as jenjang,
+                CASE
+                    WHEN didik.nm_jenj_didik IS NOT NULL THEN
+                        uo.nm_lemb + ' (' + didik.nm_jenj_didik + ')'
+                    ELSE uo.nm_lemb
+                END as display_organisasi,
                 rp.approval_peran,
                 rp.tgl_create,
                 rp.last_active
             FROM man_akses.role_pengguna rp
             LEFT JOIN man_akses.peran pr ON pr.id_peran = rp.id_peran
             LEFT JOIN man_akses.unit_organisasi uo ON uo.id_organisasi = rp.id_organisasi
+            LEFT JOIN pdrd.sms sms ON CONVERT(VARCHAR(36), sms.id_sms) = CONVERT(VARCHAR(36), uo.id_organisasi)
+                AND sms.soft_delete = 0
+            LEFT JOIN ref.jenis_sms jns ON jns.id_jns_sms = sms.id_jns_sms
+                AND jns.expired_date IS NULL
+            LEFT JOIN ref.jenjang_pendidikan didik ON didik.id_jenj_didik = sms.id_jenj_didik
+                AND didik.expired_date IS NULL
             WHERE rp.id_pengguna = ?
               AND rp.soft_delete = 0
             ORDER BY COALESCE(rp.last_active, '1900-01-01') DESC
@@ -423,6 +464,48 @@ class PenggunaRepository
         ";
 
         $stats = DB::selectOne($sql);
+
+        // Get total peran (distinct roles count) - peran table uses expired_date, not soft_delete
+        $peranSql = "
+            SELECT COUNT(DISTINCT pr.id_peran) as total_peran
+            FROM man_akses.peran pr
+            WHERE pr.expired_date IS NULL
+        ";
+        $peranResult = DB::selectOne($peranSql);
+        $stats->total_peran = $peranResult->total_peran ?? 0;
+
+        // Get role breakdown by peran type (mahasiswa, dosen, tendik, lainnya)
+        // Count DISTINCT pengguna per role type (one user can have multiple roles)
+        // Match exact peran names from database: Mahasiswa, Dosen, Tenaga Kependidikan
+        $roleSql = "
+            SELECT
+                COUNT(DISTINCT CASE
+                    WHEN pr.nm_peran = 'Mahasiswa'
+                    THEN rp.id_pengguna
+                END) as role_mahasiswa,
+                COUNT(DISTINCT CASE
+                    WHEN pr.nm_peran = 'Dosen'
+                    THEN rp.id_pengguna
+                END) as role_dosen,
+                COUNT(DISTINCT CASE
+                    WHEN pr.nm_peran = 'Tenaga Kependidikan'
+                    THEN rp.id_pengguna
+                END) as role_tendik,
+                COUNT(DISTINCT CASE
+                    WHEN pr.nm_peran NOT IN ('Mahasiswa', 'Dosen', 'Tenaga Kependidikan')
+                    THEN rp.id_pengguna
+                END) as role_lainnya
+            FROM man_akses.role_pengguna rp
+            INNER JOIN man_akses.peran pr ON pr.id_peran = rp.id_peran AND pr.expired_date IS NULL
+            INNER JOIN man_akses.pengguna p ON p.id_pengguna = rp.id_pengguna AND p.soft_delete = 0
+            WHERE rp.soft_delete = 0
+        ";
+        $roleResult = DB::selectOne($roleSql);
+        $stats->role_mahasiswa = (int) ($roleResult->role_mahasiswa ?? 0);
+        $stats->role_dosen = (int) ($roleResult->role_dosen ?? 0);
+        $stats->role_tendik = (int) ($roleResult->role_tendik ?? 0);
+
+        $stats->role_lainnya = (int) ($roleResult->role_lainnya ?? 0);
 
         // Get SSO count from Radius API or database
         if ($this->isRadiusApiEnabled()) {
@@ -610,5 +693,32 @@ class PenggunaRepository
             ]);
             throw $e;
         }
+    }
+
+    /**
+     * Get distinct peran list from role_pengguna for filter dropdown
+     * Only returns peran that have at least one user assigned
+     * Includes count of users per peran
+     *
+     * @return array
+     */
+    public function getPeranOptions(): array
+    {
+        $sql = "
+            SELECT
+                CONVERT(VARCHAR(36), pr.id_peran) as id_peran,
+                pr.nm_peran,
+                COUNT(DISTINCT rp.id_pengguna) as jumlah_pengguna
+            FROM man_akses.role_pengguna rp
+            INNER JOIN man_akses.peran pr ON pr.id_peran = rp.id_peran
+                AND pr.expired_date IS NULL
+            INNER JOIN man_akses.pengguna p ON p.id_pengguna = rp.id_pengguna
+                AND p.soft_delete = 0
+            WHERE rp.soft_delete = 0
+            GROUP BY pr.id_peran, pr.nm_peran
+            ORDER BY pr.nm_peran ASC
+        ";
+
+        return DB::select($sql);
     }
 }

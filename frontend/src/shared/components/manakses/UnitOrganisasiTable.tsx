@@ -344,17 +344,24 @@ export default function UnitOrganisasiTable({ onStatsLoaded }: UnitOrganisasiTab
           base: "w-full max-w-[200px]",
           trigger: "h-10 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-indigo-400 focus:border-indigo-500 transition-colors shadow-sm",
           value: "text-sm font-medium text-gray-700 dark:text-gray-300 pr-8",
+          popoverContent: "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg",
+          listbox: "bg-white dark:bg-gray-800",
+        }}
+        popoverProps={{
+          classNames: {
+            content: "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg rounded-lg",
+          },
         }}
         size="sm"
         variant="bordered"
       >
-        <SelectItem key="all" value="all">
+        <SelectItem key="all" value="all" className="text-gray-700 dark:text-gray-300 data-[hover=true]:bg-gray-100 dark:data-[hover=true]:bg-gray-700">
           Semua Status ({stats?.total_unit || 0})
         </SelectItem>
-        <SelectItem key="aktif" value="aktif">
+        <SelectItem key="aktif" value="aktif" className="text-gray-700 dark:text-gray-300 data-[hover=true]:bg-gray-100 dark:data-[hover=true]:bg-gray-700">
           Aktif ({stats?.total_aktif || 0})
         </SelectItem>
-        <SelectItem key="nonaktif" value="nonaktif">
+        <SelectItem key="nonaktif" value="nonaktif" className="text-gray-700 dark:text-gray-300 data-[hover=true]:bg-gray-100 dark:data-[hover=true]:bg-gray-700">
           Tidak Aktif ({stats?.total_nonaktif || 0})
         </SelectItem>
       </Select>

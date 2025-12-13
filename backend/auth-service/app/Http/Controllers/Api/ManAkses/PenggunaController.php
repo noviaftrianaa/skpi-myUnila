@@ -40,6 +40,7 @@ class PenggunaController extends Controller
                 'search' => $request->get('search'),
                 'status' => $request->get('status'), // 'aktif', 'nonaktif'
                 'has_sso' => $request->get('has_sso'), // 'yes', 'no'
+                'id_peran' => $request->get('id_peran'), // filter by peran id
             ];
 
             $result = $this->service->getList($params);
@@ -346,6 +347,31 @@ class PenggunaController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal menghapus pengguna: ' . $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+    }
+
+    /**
+     * Get distinct peran options for filter dropdown
+     * Only returns peran that have at least one user assigned
+     *
+     * @return JsonResponse
+     */
+    public function peranOptions(): JsonResponse
+    {
+        try {
+            $result = $this->repository->getPeranOptions();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data peran options berhasil diambil',
+                'data' => $result
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil peran options: ' . $e->getMessage(),
                 'data' => null
             ], 500);
         }

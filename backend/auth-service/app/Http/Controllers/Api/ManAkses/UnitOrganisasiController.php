@@ -64,7 +64,7 @@ class UnitOrganisasiController extends Controller
     {
         try {
             $search = $request->get('search');
-            $limit = (int) $request->get('limit', 100);
+            $limit = (int) $request->get('limit', 500);
 
             $result = $this->service->getAll($search, $limit);
 

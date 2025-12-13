@@ -125,6 +125,7 @@ Route::prefix('v1')->group(function () {
         Route::prefix('pengguna')->group(function () {
             Route::get('/', [PenggunaController::class, 'index']);
             Route::get('/stats', [PenggunaController::class, 'stats']);
+            Route::get('/peran-options', [PenggunaController::class, 'peranOptions']);
             Route::get('/radius-status', [PenggunaController::class, 'radiusStatus']);
             Route::get('/sso-users', [PenggunaController::class, 'ssoUsers']);
             Route::post('/clear-radius-cache', [PenggunaController::class, 'clearRadiusCache']);
