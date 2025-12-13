@@ -143,7 +143,7 @@ class UnitOrganisasiRepository
      * @param int $limit
      * @return array
      */
-    public function getAll(?string $search = null, int $limit = 100): array
+    public function getAll(?string $search = null, int $limit = 500): array
     {
         $bindings = [];
 
@@ -167,13 +167,13 @@ class UnitOrganisasiRepository
                     ELSE uo.nm_lemb
                 END as display_name
             FROM man_akses.unit_organisasi uo
-            LEFT JOIN pdrd.sms sms ON CONVERT(VARCHAR(36), sms.id_sms) = CONVERT(VARCHAR(36), uo.id_lembaga_asal)
+            LEFT JOIN pdrd.sms sms ON CONVERT(VARCHAR(36), sms.id_sms) = CONVERT(VARCHAR(36), uo.id_organisasi)
                 AND sms.soft_delete = 0
             LEFT JOIN ref.jenis_sms jns ON jns.id_jns_sms = sms.id_jns_sms
                 AND jns.expired_date IS NULL
             LEFT JOIN ref.jenjang_pendidikan didik ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
-            WHERE uo.soft_delete = 0 AND uo.a_aktif = 1
+            WHERE uo.soft_delete = 0
         ";
 
         if (!empty($search)) {
@@ -181,7 +181,7 @@ class UnitOrganisasiRepository
             $bindings[] = "%{$search}%";
         }
 
-        $sql .= " ORDER BY uo.nm_lemb ASC";
+        $sql .= " ORDER BY uo.a_aktif DESC, uo.nm_lemb ASC";
 
         if ($limit > 0) {
             $sql .= " OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";

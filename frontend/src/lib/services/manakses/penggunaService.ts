@@ -24,6 +24,8 @@ export interface Pengguna {
   last_login_at: string | null;
   active_role: string | null;
   active_organisasi: string | null;
+  active_jenjang: string | null;
+  active_display_organisasi: string | null;
 }
 
 export interface PenggunaDetail extends Pengguna {
@@ -42,6 +44,10 @@ export interface PenggunaRole {
   nm_peran: string;
   id_organisasi: string | null;
   nm_organisasi: string | null;
+  id_jns_lemb: number | null;
+  nm_jns_lemb: string | null;
+  jenjang: string | null;
+  display_organisasi: string | null;
   approval_peran: boolean;
   tgl_create: string | null;
   last_active: string | null;
@@ -61,6 +67,11 @@ export interface PenggunaStats {
   total_nonaktif: number;
   total_sso: number;
   total_non_sso: number;
+  total_peran: number;
+  role_mahasiswa: number;
+  role_dosen: number;
+  role_tendik: number;
+  role_lainnya: number;
 }
 
 export interface PenggunaListParams {
@@ -69,6 +80,13 @@ export interface PenggunaListParams {
   search?: string;
   status?: 'aktif' | 'nonaktif';
   has_sso?: 'yes' | 'no';
+  id_peran?: string;
+}
+
+export interface PeranOption {
+  id_peran: string;
+  nm_peran: string;
+  jumlah_pengguna: number;
 }
 
 export interface RadiusStatus {
@@ -209,6 +227,17 @@ export const penggunaService = {
    */
   async delete(id: string): Promise<void> {
     await authClient.delete(`/manakses/pengguna/${id}`);
+  },
+
+  /**
+   * Get distinct peran options from role_pengguna
+   * Protected endpoint - requires JWT authentication
+   */
+  async getPeranOptions(): Promise<PeranOption[]> {
+    const response = await authClient.get<ApiResponse<PeranOption[]>>(
+      '/manakses/pengguna/peran-options'
+    );
+    return response.data.data;
   },
 };
 

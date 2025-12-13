@@ -382,6 +382,7 @@ class AplikasiRepository
     public function getStats(): object
     {
         // Only count non-deleted records (expired_date IS NULL)
+        // Note: status aktif/nonaktif determined by expired_date (NULL = aktif)
         $sql = "
             SELECT
                 COUNT(*) as total_aplikasi,
@@ -390,8 +391,8 @@ class AplikasiRepository
                 SUM(CASE WHEN ISNULL(a.a_terintegrasi, 0) = 1 THEN 1 ELSE 0 END) as total_terintegrasi,
                 SUM(CASE WHEN ISNULL(a.a_tampil_portal, 0) = 1 THEN 1 ELSE 0 END) as total_portal,
                 SUM(CASE WHEN ISNULL(a.a_maintenance, 0) = 1 THEN 1 ELSE 0 END) as total_maintenance,
-                SUM(CASE WHEN a.status = 'Aktif' THEN 1 ELSE 0 END) as total_aktif,
-                SUM(CASE WHEN a.status = 'Tidak Aktif' THEN 1 ELSE 0 END) as total_nonaktif
+                COUNT(*) as total_aktif,
+                0 as total_nonaktif
             FROM man_akses.aplikasi a
             WHERE a.expired_date IS NULL
         ";

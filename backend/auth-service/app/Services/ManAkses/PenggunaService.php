@@ -139,6 +139,10 @@ class PenggunaService
                 'total_nonaktif' => (int) $stats->total_nonaktif,
                 'total_sso' => (int) $stats->total_sso,
                 'total_non_sso' => (int) $stats->total_non_sso,
+                'role_mahasiswa' => (int) ($stats->role_mahasiswa ?? 0),
+                'role_dosen' => (int) ($stats->role_dosen ?? 0),
+                'role_tendik' => (int) ($stats->role_tendik ?? 0),
+                'role_lainnya' => (int) ($stats->role_lainnya ?? 0),
             ];
         } catch (\Exception $e) {
             Log::error('PenggunaService::getStats error', [
