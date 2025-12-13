@@ -49,6 +49,8 @@ class PenggunaService
                     'last_login_at' => $item->last_login_at,
                     'active_role' => $item->active_role ?? null,
                     'active_organisasi' => $item->active_organisasi ?? null,
+                    'active_jenjang' => $item->active_jenjang ?? null,
+                    'active_display_organisasi' => $item->active_display_organisasi ?? null,
                 ];
             }, $result['data']);
 
