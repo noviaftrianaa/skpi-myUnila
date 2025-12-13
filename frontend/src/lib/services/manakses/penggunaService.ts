@@ -17,6 +17,7 @@ export interface Pengguna {
   a_aktif: boolean;
   disable: boolean;
   status: string;
+  mfa_enabled: boolean;
   has_sso: boolean;
   sumber_data: 'SSO Radius' | 'Manajemen Akses';
   tgl_create: string | null;
@@ -34,6 +35,7 @@ export interface PenggunaDetail extends Pengguna {
   alamat: string | null;
   no_tel: string | null;
   approval_pengguna: boolean;
+  tgl_ganti_pwd: string | null;
   last_login_ip: string | null;
   roles: PenggunaRole[];
 }
@@ -130,6 +132,21 @@ export interface PenggunaUpdateData {
   jabatan?: string;
   a_aktif?: boolean;
   disable?: boolean;
+}
+
+export interface MfaResetResult {
+  id_pengguna: string;
+  username: string;
+  nm_pengguna: string;
+  mfa_was_enabled: boolean;
+  message: string;
+}
+
+export interface PasswordResetResult {
+  id_pengguna: string;
+  username: string;
+  nm_pengguna: string;
+  message: string;
 }
 
 // API Response wrapper
@@ -236,6 +253,28 @@ export const penggunaService = {
   async getPeranOptions(): Promise<PeranOption[]> {
     const response = await authClient.get<ApiResponse<PeranOption[]>>(
       '/manakses/pengguna/peran-options'
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Reset MFA for a pengguna
+   * Protected endpoint - requires JWT authentication
+   */
+  async resetMfa(id: string): Promise<MfaResetResult> {
+    const response = await authClient.post<ApiResponse<MfaResetResult>>(
+      `/manakses/pengguna/${id}/reset-mfa`
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Reset password for a pengguna to default "unilajaya"
+   * Protected endpoint - requires JWT authentication
+   */
+  async resetPassword(id: string): Promise<PasswordResetResult> {
+    const response = await authClient.post<ApiResponse<PasswordResetResult>>(
+      `/manakses/pengguna/${id}/reset-password`
     );
     return response.data.data;
   },

@@ -144,6 +144,7 @@ class PenggunaRepository
                 p.jabatan,
                 p.a_aktif,
                 p.disable,
+                p.google2fa_enabled,
                 p.tgl_create,
                 p.last_update,
                 ll.waktu_login as last_login_at,
@@ -376,6 +377,7 @@ class PenggunaRepository
                 p.approval_pengguna,
                 p.tgl_create,
                 p.last_update,
+                p.tgl_ganti_pwd,
                 ll.waktu_login as last_login_at,
                 ll.ip_address as last_login_ip
             FROM man_akses.pengguna p
@@ -720,5 +722,116 @@ class PenggunaRepository
         ";
 
         return DB::select($sql);
+    }
+
+    /**
+     * Get MFA status for a pengguna
+     *
+     * @param string $id
+     * @return object|null
+     */
+    public function getMfaStatus(string $id): ?object
+    {
+        $sql = "
+            SELECT
+                CONVERT(VARCHAR(36), p.id_pengguna) as id_pengguna,
+                p.username,
+                p.nm_pengguna,
+                p.google2fa_enabled,
+                p.google2fa_enabled_at
+            FROM man_akses.pengguna p
+            WHERE p.id_pengguna = ?
+              AND p.soft_delete = 0
+        ";
+
+        return DB::selectOne($sql, [$id]);
+    }
+
+    /**
+     * Reset MFA for a pengguna (clear MFA settings)
+     *
+     * @param string $id
+     * @return bool
+     */
+    public function resetMfa(string $id): bool
+    {
+        try {
+            $sql = "
+                UPDATE man_akses.pengguna
+                SET google2fa_enabled = 0,
+                    google2fa_secret = NULL,
+                    google2fa_enabled_at = NULL,
+                    last_update = ?
+                WHERE id_pengguna = ?
+            ";
+
+            $affected = DB::update($sql, [now(), $id]);
+            return $affected > 0;
+        } catch (\Exception $e) {
+            Log::error('PenggunaRepository::resetMfa error', [
+                'message' => $e->getMessage(),
+                'id' => $id
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Reset password for a pengguna to default "unilajaya"
+     * Uses SHA1 hash + bcrypt(SHA1) as per sync convention
+     *
+     * @param string $id
+     * @return bool
+     */
+    public function resetPassword(string $id): bool
+    {
+        try {
+            // SHA1 hash of 'unilajaya' (from myunila-service/apps/radius/repository.go)
+            $passwordSha1 = '6461aeaed17aab2ed577647aab64e0a79caf868f';
+
+            // Generate bcrypt hash of SHA1 password (cost 12 matches Laravel's bcrypt)
+            $passwordBcrypt = password_hash($passwordSha1, PASSWORD_BCRYPT, ['cost' => 12]);
+
+            $sql = "
+                UPDATE man_akses.pengguna
+                SET password = ?,
+                    password_encrypt = ?,
+                    tgl_ganti_pwd = ?,
+                    last_update = ?
+                WHERE id_pengguna = ?
+            ";
+
+            $now = now();
+            $affected = DB::update($sql, [$passwordSha1, $passwordBcrypt, $now, $now, $id]);
+            return $affected > 0;
+        } catch (\Exception $e) {
+            Log::error('PenggunaRepository::resetPassword error', [
+                'message' => $e->getMessage(),
+                'id' => $id
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Get password info for a pengguna (tgl_ganti_pwd)
+     *
+     * @param string $id
+     * @return object|null
+     */
+    public function getPasswordInfo(string $id): ?object
+    {
+        $sql = "
+            SELECT
+                CONVERT(VARCHAR(36), p.id_pengguna) as id_pengguna,
+                p.username,
+                p.nm_pengguna,
+                p.tgl_ganti_pwd
+            FROM man_akses.pengguna p
+            WHERE p.id_pengguna = ?
+              AND p.soft_delete = 0
+        ";
+
+        return DB::selectOne($sql, [$id]);
     }
 }

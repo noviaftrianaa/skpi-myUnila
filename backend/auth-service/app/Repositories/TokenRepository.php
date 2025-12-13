@@ -205,7 +205,7 @@ class TokenRepository
     {
         $sql = "
             INSERT INTO man_akses.refresh_token (
-                id_refresh_token, token_value, waktu_expired, a_revoked
+                id_refresh_token, token_value, waktu_expired, is_revoked
             ) VALUES (
                 ?, ?, ?, 0
             )
@@ -234,7 +234,7 @@ class TokenRepository
                 CONVERT(VARCHAR(36), id_refresh_token) as id_refresh_token,
                 token_value,
                 waktu_expired,
-                a_revoked
+                is_revoked
             FROM man_akses.refresh_token
             WHERE id_refresh_token = ?
         ";
@@ -249,7 +249,7 @@ class TokenRepository
     {
         $sql = "
             UPDATE man_akses.refresh_token
-            SET a_revoked = 1
+            SET is_revoked = 1
             WHERE id_refresh_token = ?
         ";
 
@@ -279,7 +279,7 @@ class TokenRepository
         $sql = "
             DELETE FROM man_akses.refresh_token
             WHERE waktu_expired < GETDATE()
-               OR a_revoked = 1
+               OR is_revoked = 1
         ";
 
         try {

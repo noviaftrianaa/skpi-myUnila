@@ -37,9 +37,10 @@ class AuthController extends Controller
 
             return $this->successResponse($result, 'Login successful');
         } catch (\Exception $e) {
+            $code = $e->getCode();
             return $this->errorResponse(
                 $e->getMessage(),
-                $e->getCode() ?: 500
+                is_int($code) && $code > 0 ? $code : 500
             );
         }
     }

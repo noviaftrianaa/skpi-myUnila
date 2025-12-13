@@ -130,6 +130,9 @@ Route::prefix('v1')->group(function () {
             Route::get('/sso-users', [PenggunaController::class, 'ssoUsers']);
             Route::post('/clear-radius-cache', [PenggunaController::class, 'clearRadiusCache']);
             Route::get('/{id}', [PenggunaController::class, 'show']);
+            Route::get('/{id}/mfa-status', [PenggunaController::class, 'mfaStatus']);
+            Route::post('/{id}/reset-mfa', [PenggunaController::class, 'resetMfa']);
+            Route::post('/{id}/reset-password', [PenggunaController::class, 'resetPassword']);
             Route::put('/{id}', [PenggunaController::class, 'update']);
             Route::delete('/{id}', [PenggunaController::class, 'destroy']);
         });
