@@ -19,19 +19,20 @@ use Illuminate\Support\Str;
  */
 class PortalMenuSeeder extends Seeder
 {
-    // Role IDs from database
+    // Role IDs from database (man_akses.peran)
+    // Updated based on actual database values
     private const ROLE_ADMINISTRATOR = 1;
     private const ROLE_DEVELOPER = 107;
-    private const ROLE_MAHASISWA = 2;
-    private const ROLE_DOSEN = 3;
+    private const ROLE_MAHASISWA = 39;        // Was 2, actual is 39
+    private const ROLE_DOSEN = 46;            // Was 3, actual is 46
     private const ROLE_TENDIK = 111;
     private const ROLE_REKTOR = 38;
-    private const ROLE_WAKIL_REKTOR_1 = 33;
-    private const ROLE_WAKIL_REKTOR_2 = 34;
+    private const ROLE_WAKIL_REKTOR_1 = 37;   // Was 33, actual is 37
+    private const ROLE_WAKIL_REKTOR_2 = 36;   // Was 34, actual is 36
     private const ROLE_WAKIL_REKTOR_3 = 35;
-    private const ROLE_WAKIL_REKTOR_4 = 36;
-    private const ROLE_DEKAN = 40;
-    private const ROLE_KAPRODI = 5;
+    private const ROLE_WAKIL_REKTOR_4 = 34;   // Was 36, actual is 34
+    private const ROLE_DEKAN = 43;            // Was 40, actual is 43
+    private const ROLE_KAPRODI = 42;          // Was 5, actual is 42
     private const ROLE_ADMIN_PRODI = 6;
     private const ROLE_ADMIN_FAKULTAS = 106;
     private const ROLE_LP3M = 33;

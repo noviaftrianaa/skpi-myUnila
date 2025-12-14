@@ -1,0 +1,129 @@
+{
+  "app_slug": "manajemen-akses",
+  "app_name": "Manajemen Akses",
+  "exported_at": "2025-12-14T07:34:03.841Z",
+  "total_menus": 13,
+  "menus": [
+    {
+      "nm_menu": "Dashboard",
+      "nm_file": "dashboard",
+      "icon": "MdDashboard",
+      "urutan_menu": 1,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true
+    },
+    {
+      "nm_menu": "Manajemen",
+      "nm_file": "manajemen/pengguna",
+      "icon": "FiGrid",
+      "urutan_menu": 2,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true,
+      "children": [
+        {
+          "nm_menu": "Daftar Pengguna",
+          "nm_file": "manajemen/pengguna",
+          "icon": null,
+          "urutan_menu": 1,
+          "level_menu": 1,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Daftar Aplikasi",
+          "nm_file": "manajemen/aplikasi",
+          "icon": null,
+          "urutan_menu": 2,
+          "level_menu": 1,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Kategori Aplikasi",
+          "nm_file": "manajemen/kategori-aplikasi",
+          "icon": null,
+          "urutan_menu": 3,
+          "level_menu": 1,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Daftar Unit",
+          "nm_file": "manajemen/unit",
+          "icon": null,
+          "urutan_menu": 4,
+          "level_menu": 1,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Peran",
+          "nm_file": "manajemen/peran",
+          "icon": null,
+          "urutan_menu": 5,
+          "level_menu": 1,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Role Base Access",
+          "nm_file": "manajemen/rbac",
+          "icon": null,
+          "urutan_menu": 6,
+          "level_menu": 1,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "WS Endpoint",
+          "nm_file": "manajemen/ws-endpoint",
+          "icon": null,
+          "urutan_menu": 7,
+          "level_menu": 1,
+          "a_aktif": true,
+          "a_tampil": true
+        }
+      ]
+    },
+    {
+      "nm_menu": "Logger",
+      "nm_file": "logger/log-login",
+      "icon": "FiActivity",
+      "urutan_menu": 3,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true,
+      "children": [
+        {
+          "nm_menu": "Log Login",
+          "nm_file": "logger/log-login",
+          "icon": null,
+          "urutan_menu": 1,
+          "level_menu": 1,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Log JWT",
+          "nm_file": "logger/log-jwt",
+          "icon": null,
+          "urutan_menu": 2,
+          "level_menu": 1,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Log Akses",
+          "nm_file": "logger/log-akses",
+          "icon": null,
+          "urutan_menu": 3,
+          "level_menu": 1,
+          "a_aktif": true,
+          "a_tampil": true
+        }
+      ]
+    }
+  ]
+}

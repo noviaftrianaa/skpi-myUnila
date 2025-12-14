@@ -232,10 +232,11 @@ export default function DataTable<T extends Record<string, any>>({
                 }
               }}
               classNames={{
-                base: "w-16 sm:w-20",
-                trigger: "bg-white h-8 sm:h-9 min-h-0 rounded-xl border border-gray-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all duration-200",
-                value: "text-xs sm:text-sm font-semibold text-gray-700",
-                selectorIcon: "text-gray-500",
+                base: "w-[70px] sm:w-[80px]",
+                trigger: "bg-white h-8 sm:h-9 min-h-0 rounded-xl border border-gray-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all duration-200 px-2 sm:px-3",
+                value: "text-xs sm:text-sm font-semibold text-gray-700 pr-1",
+                innerWrapper: "pr-5",
+                selectorIcon: "text-gray-500 right-2",
                 popoverContent: "bg-white rounded-xl shadow-2xl border border-gray-100",
               }}
             >

@@ -22,7 +22,21 @@ class UnitOrganisasiRepository
         $limit = $params['limit'] ?? 10;
         $search = $params['search'] ?? null;
         $status = $params['status'] ?? null;
+        $sortBy = $params['sort_by'] ?? 'nm_lemb'; // column to sort by
+        $sortOrder = $params['sort_order'] ?? 'asc'; // 'asc' or 'desc'
         $offset = ($page - 1) * $limit;
+
+        // Validate sort column to prevent SQL injection
+        $allowedSortColumns = [
+            'nm_lemb' => 'uo.nm_lemb',
+            'email' => 'uo.email',
+            'level_organisasi' => 'uo.level_organisasi',
+            'nm_induk_organisasi' => 'induk.nm_lemb',
+            'tgl_create' => 'uo.tgl_create',
+            'last_update' => 'uo.last_update',
+        ];
+        $sortColumn = $allowedSortColumns[$sortBy] ?? 'uo.nm_lemb';
+        $sortDirection = strtolower($sortOrder) === 'desc' ? 'DESC' : 'ASC';
 
         $dataSql = "
             SELECT
@@ -76,7 +90,7 @@ class UnitOrganisasiRepository
         $countResult = DB::selectOne($countSql, $countBindings);
         $total = $countResult->total ?? 0;
 
-        $dataSql .= " ORDER BY uo.nm_lemb ASC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        $dataSql .= " ORDER BY {$sortColumn} {$sortDirection} OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         $bindings[] = $offset;
         $bindings[] = $limit;
 
@@ -241,7 +255,7 @@ class UnitOrganisasiRepository
             $data['rt'] ?? null,
             $data['rw'] ?? null,
             $data['nm_dsn'] ?? null,
-            $data['ds_kel'] ?? null,
+            $data['ds_kel'] ?? '-', // NOT NULL column - use default
             $data['kode_pos'] ?? null,
             $data['lintang'] ?? null,
             $data['bujur'] ?? null,
@@ -251,7 +265,7 @@ class UnitOrganisasiRepository
             $data['website'] ?? null,
             $data['kd_kl'] ?? null,
             $data['kd_satker'] ?? null,
-            $data['level_organisasi'] ?? null,
+            $data['level_organisasi'] ?? 1,
             $data['id_lembaga_asal'] ?? null,
             $data['a_aktif'] ?? 1,
             $data['id_jns_lemb'] ?? null,
@@ -311,7 +325,7 @@ class UnitOrganisasiRepository
             $data['rt'] ?? null,
             $data['rw'] ?? null,
             $data['nm_dsn'] ?? null,
-            $data['ds_kel'] ?? null,
+            $data['ds_kel'] ?? '-', // NOT NULL column - use default
             $data['kode_pos'] ?? null,
             $data['lintang'] ?? null,
             $data['bujur'] ?? null,
@@ -321,7 +335,7 @@ class UnitOrganisasiRepository
             $data['website'] ?? null,
             $data['kd_kl'] ?? null,
             $data['kd_satker'] ?? null,
-            $data['level_organisasi'] ?? null,
+            $data['level_organisasi'] ?? 1,
             $data['id_lembaga_asal'] ?? null,
             $data['a_aktif'] ?? 1,
             $data['id_jns_lemb'] ?? null,

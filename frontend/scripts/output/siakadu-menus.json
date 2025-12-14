@@ -1,0 +1,181 @@
+{
+  "app_slug": "siakadu",
+  "app_name": "SIAKADU",
+  "exported_at": "2025-12-14T07:34:03.842Z",
+  "total_menus": 19,
+  "menus": [
+    {
+      "nm_menu": "Dashboard",
+      "nm_file": "dashboard",
+      "icon": "MdDashboard",
+      "urutan_menu": 1,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true
+    },
+    {
+      "nm_menu": "Mahasiswa",
+      "nm_file": "mahasiswa",
+      "icon": "FiUsers",
+      "urutan_menu": 2,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true
+    },
+    {
+      "nm_menu": "Dosen Ajar",
+      "nm_file": "dosen-ajar",
+      "icon": "FiUser",
+      "urutan_menu": 3,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true
+    },
+    {
+      "nm_menu": "Kurikulum",
+      "nm_file": "kurikulum",
+      "icon": "FiBook",
+      "urutan_menu": 4,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true
+    },
+    {
+      "nm_menu": "Matakuliah",
+      "nm_file": "matakuliah",
+      "icon": "FiFileText",
+      "urutan_menu": 5,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true
+    },
+    {
+      "nm_menu": "Kelas Kuliah",
+      "nm_file": "kelas-kuliah",
+      "icon": "MdSchool",
+      "urutan_menu": 6,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true
+    },
+    {
+      "nm_menu": "Status Mahasiswa",
+      "nm_file": "status-mahasiswa",
+      "icon": "FiCheckCircle",
+      "urutan_menu": 7,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true
+    },
+    {
+      "nm_menu": "Nilai Mahasiswa",
+      "nm_file": "nilai-mahasiswa",
+      "icon": "FiClipboard",
+      "urutan_menu": 8,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true
+    },
+    {
+      "nm_menu": "Mahasiswa Lulus",
+      "nm_file": "mahasiswa-lulus",
+      "icon": "FiAward",
+      "urutan_menu": 9,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true
+    },
+    {
+      "nm_menu": "Chat Grup Kelas",
+      "nm_file": "chat-grup",
+      "icon": "FiMessageSquare",
+      "urutan_menu": 10,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true
+    },
+    {
+      "nm_menu": "Biodata",
+      "nm_file": "biodata",
+      "icon": "FiUser",
+      "urutan_menu": 11,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true
+    },
+    {
+      "nm_menu": "Jadwal Kuliah",
+      "nm_file": "jadwal-kuliah",
+      "icon": "FiCalendar",
+      "urutan_menu": 12,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true
+    },
+    {
+      "nm_menu": "KRS/KHS/Transkrip",
+      "nm_file": "krs",
+      "icon": "FiFileText",
+      "urutan_menu": 13,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true,
+      "children": [
+        {
+          "nm_menu": "KRS",
+          "nm_file": "krs",
+          "icon": "FiFileText",
+          "urutan_menu": 1,
+          "level_menu": 1,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "KHS",
+          "nm_file": "khs",
+          "icon": "FiFileText",
+          "urutan_menu": 2,
+          "level_menu": 1,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Transkrip",
+          "nm_file": "transkrip",
+          "icon": "FiFileText",
+          "urutan_menu": 3,
+          "level_menu": 1,
+          "a_aktif": true,
+          "a_tampil": true
+        }
+      ]
+    },
+    {
+      "nm_menu": "Status Kuliah",
+      "nm_file": "status-kuliah",
+      "icon": "FiCheckCircle",
+      "urutan_menu": 14,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true
+    },
+    {
+      "nm_menu": "Jadwal Kelas",
+      "nm_file": "jadwal-kelas",
+      "icon": "FiCalendar",
+      "urutan_menu": 15,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true
+    },
+    {
+      "nm_menu": "Nilai Kuliah",
+      "nm_file": "nilai-kuliah",
+      "icon": "FiClipboard",
+      "urutan_menu": 16,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true
+    }
+  ]
+}

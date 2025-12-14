@@ -36,6 +36,8 @@ class UnitOrganisasiController extends Controller
                 'limit' => (int) $request->get('limit', 10),
                 'search' => $request->get('search'),
                 'status' => $request->get('status'),
+                'sort_by' => $request->get('sort_by'), // column name
+                'sort_order' => $request->get('sort_order'), // 'asc', 'desc'
             ];
 
             $result = $this->service->getList($params);

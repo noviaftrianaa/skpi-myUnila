@@ -24,7 +24,24 @@ class RolePenggunaRepository
         $idPengguna = $params['id_pengguna'] ?? null;
         $idPeran = $params['id_peran'] ?? null;
         $idOrganisasi = $params['id_organisasi'] ?? null;
+        $sortBy = $params['sort_by'] ?? 'tgl_create'; // column to sort by
+        $sortOrder = $params['sort_order'] ?? 'desc'; // 'asc' or 'desc'
         $offset = ($page - 1) * $limit;
+
+        // Validate sort column to prevent SQL injection
+        $allowedSortColumns = [
+            'nm_pengguna' => 'p.nm_pengguna',
+            'username' => 'p.username',
+            'nm_peran' => 'pr.nm_peran',
+            'nm_organisasi' => 'uo.nm_lemb',
+            'sk_penugasan' => 'rp.sk_penugasan',
+            'tgl_sk_penugasan' => 'rp.tgl_sk_penugasan',
+            'last_active' => 'rp.last_active',
+            'tgl_create' => 'rp.tgl_create',
+            'last_update' => 'rp.last_update',
+        ];
+        $sortColumn = $allowedSortColumns[$sortBy] ?? 'rp.tgl_create';
+        $sortDirection = strtolower($sortOrder) === 'asc' ? 'ASC' : 'DESC';
 
         $dataSql = "
             SELECT
@@ -95,7 +112,7 @@ class RolePenggunaRepository
         $countResult = DB::selectOne($countSql, $countBindings);
         $total = $countResult->total ?? 0;
 
-        $dataSql .= " ORDER BY rp.tgl_create DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        $dataSql .= " ORDER BY {$sortColumn} {$sortDirection} OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         $bindings[] = $offset;
         $bindings[] = $limit;
 

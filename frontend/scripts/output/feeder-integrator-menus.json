@@ -1,0 +1,145 @@
+{
+  "app_slug": "feeder-integrator",
+  "app_name": "Feeder Integrator",
+  "exported_at": "2025-12-14T07:34:03.844Z",
+  "total_menus": 15,
+  "menus": [
+    {
+      "nm_menu": "Dashboard",
+      "nm_file": "dashboard",
+      "icon": "MdDashboard",
+      "urutan_menu": 1,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true
+    },
+    {
+      "nm_menu": "Referensi",
+      "nm_file": "referensi",
+      "icon": "FiBookOpen",
+      "urutan_menu": 2,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true
+    },
+    {
+      "nm_menu": "Data PDRD",
+      "nm_file": "pdrd/mahasiswa",
+      "icon": "FiDatabase",
+      "urutan_menu": 3,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true,
+      "children": [
+        {
+          "nm_menu": "Mahasiswa",
+          "nm_file": "pdrd/mahasiswa",
+          "icon": null,
+          "urutan_menu": 1,
+          "level_menu": 1,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Aktivitas Mahasiswa",
+          "nm_file": "pdrd/aktivitas-mahasiswa",
+          "icon": null,
+          "urutan_menu": 2,
+          "level_menu": 1,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Matkul Kurikulum",
+          "nm_file": "pdrd/matkul-kurikulum",
+          "icon": null,
+          "urutan_menu": 3,
+          "level_menu": 1,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Rencana Evaluasi MK",
+          "nm_file": "pdrd/rencana-evaluasi",
+          "icon": null,
+          "urutan_menu": 4,
+          "level_menu": 1,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Kelas Pengajaran",
+          "nm_file": "pdrd/kelas-kuliah",
+          "icon": null,
+          "urutan_menu": 5,
+          "level_menu": 1,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Nilai Perkuliahan",
+          "nm_file": "pdrd/nilai-perkuliahan",
+          "icon": null,
+          "urutan_menu": 6,
+          "level_menu": 1,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Nilai Konversi",
+          "nm_file": "pdrd/nilai-konversi",
+          "icon": null,
+          "urutan_menu": 7,
+          "level_menu": 1,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Transkrip Nilai",
+          "nm_file": "pdrd/transkrip-nilai",
+          "icon": null,
+          "urutan_menu": 8,
+          "level_menu": 1,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Prestasi Mahasiswa",
+          "nm_file": "pdrd/prestasi",
+          "icon": null,
+          "urutan_menu": 9,
+          "level_menu": 1,
+          "a_aktif": true,
+          "a_tampil": true
+        }
+      ]
+    },
+    {
+      "nm_menu": "Monitoring",
+      "nm_file": "monitoring",
+      "icon": "FiActivity",
+      "urutan_menu": 4,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true
+    },
+    {
+      "nm_menu": "Sync Logs",
+      "nm_file": "logs",
+      "icon": "FiFileText",
+      "urutan_menu": 5,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true
+    },
+    {
+      "nm_menu": "API Configuration",
+      "nm_file": "settings",
+      "icon": "FiSettings",
+      "urutan_menu": 6,
+      "level_menu": 0,
+      "a_aktif": true,
+      "a_tampil": true
+    }
+  ]
+}

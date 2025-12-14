@@ -122,6 +122,8 @@ export interface AplikasiListParams {
   sso_cas?: 'ya' | 'tidak';
   maintenance?: 'ya' | 'tidak';
   coming_soon?: 'ya' | 'tidak';
+  sort_by?: 'nm_aplikasi' | 'url' | 'teknologi' | 'nm_kategori' | 'nm_organisasi' | 'tgl_create' | 'last_update' | 'urutan';
+  sort_order?: 'asc' | 'desc';
 }
 
 export interface CreateAplikasiRequest {

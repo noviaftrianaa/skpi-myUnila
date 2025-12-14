@@ -126,7 +126,21 @@ class PenggunaRepository
         $status = $params['status'] ?? null; // 'aktif', 'nonaktif', null for all
         $hasSso = $params['has_sso'] ?? null; // 'yes', 'no', null for all
         $idPeran = $params['id_peran'] ?? null; // filter by peran id
+        $sortBy = $params['sort_by'] ?? 'username'; // column to sort by
+        $sortOrder = $params['sort_order'] ?? 'asc'; // 'asc' or 'desc'
         $offset = ($page - 1) * $limit;
+
+        // Validate sort column to prevent SQL injection
+        $allowedSortColumns = [
+            'username' => 'p.username',
+            'nm_pengguna' => 'p.nm_pengguna',
+            'email' => 'p.email',
+            'tgl_create' => 'p.tgl_create',
+            'last_update' => 'p.last_update',
+            'last_login_at' => 'll.waktu_login',
+        ];
+        $sortColumn = $allowedSortColumns[$sortBy] ?? 'p.username';
+        $sortDirection = strtolower($sortOrder) === 'desc' ? 'DESC' : 'ASC';
 
         // Get radius usernames from MySQL for SSO check
         $radiusUsernames = $this->getRadiusUsernames();
@@ -282,11 +296,11 @@ class PenggunaRepository
 
         // Add ordering and pagination (only if not filtering by SSO, as we handle that above)
         if (!$filterBySso) {
-            $dataSql .= " ORDER BY p.username ASC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+            $dataSql .= " ORDER BY {$sortColumn} {$sortDirection} OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
             $bindings[] = $offset;
             $bindings[] = $limit;
         } else {
-            $dataSql .= " ORDER BY p.username ASC";
+            $dataSql .= " ORDER BY {$sortColumn} {$sortDirection}";
         }
 
         // Get data from SQL Server

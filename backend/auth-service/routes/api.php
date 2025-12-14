@@ -14,6 +14,8 @@ use App\Http\Controllers\Api\ManAkses\PeranController;
 use App\Http\Controllers\Api\ManAkses\RolePenggunaController;
 use App\Http\Controllers\Api\ManAkses\EndpointController;
 use App\Http\Controllers\Api\ManAkses\KategoriAplikasiController;
+use App\Http\Controllers\Api\ManAkses\MenuController;
+use App\Http\Controllers\Api\ManAkses\MenuRoleController;
 use App\Http\Controllers\Api\UserContextController;
 
 /*
@@ -201,6 +203,32 @@ Route::prefix('v1')->group(function () {
             Route::get('/{id}', [KategoriAplikasiController::class, 'show']);
             Route::put('/{id}', [KategoriAplikasiController::class, 'update']);
             Route::delete('/{id}', [KategoriAplikasiController::class, 'destroy']);
+        });
+
+        // Menu (Application Menu Management)
+        Route::prefix('menu')->group(function () {
+            Route::get('/stats', [MenuController::class, 'stats']);
+            Route::get('/by-aplikasi/{idAplikasi}', [MenuController::class, 'byAplikasi']);
+            Route::post('/sync/{idAplikasi}', [MenuController::class, 'sync']);
+            Route::post('/', [MenuController::class, 'store']);
+            Route::get('/{id}', [MenuController::class, 'show']);
+            Route::get('/{id}/roles', [MenuController::class, 'roles']);
+            Route::put('/{id}', [MenuController::class, 'update']);
+            Route::delete('/{id}', [MenuController::class, 'destroy']);
+        });
+
+        // Menu Role (RBAC - Role Based Access Control)
+        Route::prefix('menu-role')->group(function () {
+            Route::get('/', [MenuRoleController::class, 'index']);
+            Route::get('/stats', [MenuRoleController::class, 'stats']);
+            Route::get('/by-menu/{idMenu}', [MenuRoleController::class, 'byMenu']);
+            Route::get('/by-role/{idPeran}', [MenuRoleController::class, 'byRole']);
+            Route::post('/', [MenuRoleController::class, 'store']);
+            Route::post('/bulk-assign-roles', [MenuRoleController::class, 'bulkAssignRoles']);
+            Route::post('/bulk-assign-menus', [MenuRoleController::class, 'bulkAssignMenus']);
+            Route::get('/{idMenu}/{idPeran}', [MenuRoleController::class, 'show']);
+            Route::put('/{idMenu}/{idPeran}', [MenuRoleController::class, 'update']);
+            Route::delete('/{idMenu}/{idPeran}', [MenuRoleController::class, 'destroy']);
         });
     });
 });

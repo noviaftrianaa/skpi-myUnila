@@ -48,6 +48,8 @@ export interface UnitOrganisasiListParams {
   limit?: number;
   search?: string;
   status?: 'aktif' | 'nonaktif';
+  sort_by?: 'nm_lemb' | 'email' | 'level_organisasi' | 'nm_induk_organisasi' | 'tgl_create' | 'last_update';
+  sort_order?: 'asc' | 'desc';
 }
 
 export interface UnitOrganisasiCreateData {

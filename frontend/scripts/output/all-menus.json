@@ -1,0 +1,855 @@
+{
+  "exported_at": "2025-12-14T07:34:03.850Z",
+  "apps": {
+    "manajemen-akses": {
+      "app_slug": "manajemen-akses",
+      "app_name": "Manajemen Akses",
+      "exported_at": "2025-12-14T07:34:03.841Z",
+      "total_menus": 13,
+      "menus": [
+        {
+          "nm_menu": "Dashboard",
+          "nm_file": "dashboard",
+          "icon": "MdDashboard",
+          "urutan_menu": 1,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Manajemen",
+          "nm_file": "manajemen/pengguna",
+          "icon": "FiGrid",
+          "urutan_menu": 2,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true,
+          "children": [
+            {
+              "nm_menu": "Daftar Pengguna",
+              "nm_file": "manajemen/pengguna",
+              "icon": null,
+              "urutan_menu": 1,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Daftar Aplikasi",
+              "nm_file": "manajemen/aplikasi",
+              "icon": null,
+              "urutan_menu": 2,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Kategori Aplikasi",
+              "nm_file": "manajemen/kategori-aplikasi",
+              "icon": null,
+              "urutan_menu": 3,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Daftar Unit",
+              "nm_file": "manajemen/unit",
+              "icon": null,
+              "urutan_menu": 4,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Peran",
+              "nm_file": "manajemen/peran",
+              "icon": null,
+              "urutan_menu": 5,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Role Base Access",
+              "nm_file": "manajemen/rbac",
+              "icon": null,
+              "urutan_menu": 6,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "WS Endpoint",
+              "nm_file": "manajemen/ws-endpoint",
+              "icon": null,
+              "urutan_menu": 7,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            }
+          ]
+        },
+        {
+          "nm_menu": "Logger",
+          "nm_file": "logger/log-login",
+          "icon": "FiActivity",
+          "urutan_menu": 3,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true,
+          "children": [
+            {
+              "nm_menu": "Log Login",
+              "nm_file": "logger/log-login",
+              "icon": null,
+              "urutan_menu": 1,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Log JWT",
+              "nm_file": "logger/log-jwt",
+              "icon": null,
+              "urutan_menu": 2,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Log Akses",
+              "nm_file": "logger/log-akses",
+              "icon": null,
+              "urutan_menu": 3,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            }
+          ]
+        }
+      ]
+    },
+    "siakadu": {
+      "app_slug": "siakadu",
+      "app_name": "SIAKADU",
+      "exported_at": "2025-12-14T07:34:03.842Z",
+      "total_menus": 19,
+      "menus": [
+        {
+          "nm_menu": "Dashboard",
+          "nm_file": "dashboard",
+          "icon": "MdDashboard",
+          "urutan_menu": 1,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Mahasiswa",
+          "nm_file": "mahasiswa",
+          "icon": "FiUsers",
+          "urutan_menu": 2,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Dosen Ajar",
+          "nm_file": "dosen-ajar",
+          "icon": "FiUser",
+          "urutan_menu": 3,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Kurikulum",
+          "nm_file": "kurikulum",
+          "icon": "FiBook",
+          "urutan_menu": 4,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Matakuliah",
+          "nm_file": "matakuliah",
+          "icon": "FiFileText",
+          "urutan_menu": 5,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Kelas Kuliah",
+          "nm_file": "kelas-kuliah",
+          "icon": "MdSchool",
+          "urutan_menu": 6,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Status Mahasiswa",
+          "nm_file": "status-mahasiswa",
+          "icon": "FiCheckCircle",
+          "urutan_menu": 7,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Nilai Mahasiswa",
+          "nm_file": "nilai-mahasiswa",
+          "icon": "FiClipboard",
+          "urutan_menu": 8,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Mahasiswa Lulus",
+          "nm_file": "mahasiswa-lulus",
+          "icon": "FiAward",
+          "urutan_menu": 9,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Chat Grup Kelas",
+          "nm_file": "chat-grup",
+          "icon": "FiMessageSquare",
+          "urutan_menu": 10,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Biodata",
+          "nm_file": "biodata",
+          "icon": "FiUser",
+          "urutan_menu": 11,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Jadwal Kuliah",
+          "nm_file": "jadwal-kuliah",
+          "icon": "FiCalendar",
+          "urutan_menu": 12,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "KRS/KHS/Transkrip",
+          "nm_file": "krs",
+          "icon": "FiFileText",
+          "urutan_menu": 13,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true,
+          "children": [
+            {
+              "nm_menu": "KRS",
+              "nm_file": "krs",
+              "icon": "FiFileText",
+              "urutan_menu": 1,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "KHS",
+              "nm_file": "khs",
+              "icon": "FiFileText",
+              "urutan_menu": 2,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Transkrip",
+              "nm_file": "transkrip",
+              "icon": "FiFileText",
+              "urutan_menu": 3,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            }
+          ]
+        },
+        {
+          "nm_menu": "Status Kuliah",
+          "nm_file": "status-kuliah",
+          "icon": "FiCheckCircle",
+          "urutan_menu": 14,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Jadwal Kelas",
+          "nm_file": "jadwal-kelas",
+          "icon": "FiCalendar",
+          "urutan_menu": 15,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Nilai Kuliah",
+          "nm_file": "nilai-kuliah",
+          "icon": "FiClipboard",
+          "urutan_menu": 16,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        }
+      ]
+    },
+    "feeder-integrator": {
+      "app_slug": "feeder-integrator",
+      "app_name": "Feeder Integrator",
+      "exported_at": "2025-12-14T07:34:03.844Z",
+      "total_menus": 15,
+      "menus": [
+        {
+          "nm_menu": "Dashboard",
+          "nm_file": "dashboard",
+          "icon": "MdDashboard",
+          "urutan_menu": 1,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Referensi",
+          "nm_file": "referensi",
+          "icon": "FiBookOpen",
+          "urutan_menu": 2,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Data PDRD",
+          "nm_file": "pdrd/mahasiswa",
+          "icon": "FiDatabase",
+          "urutan_menu": 3,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true,
+          "children": [
+            {
+              "nm_menu": "Mahasiswa",
+              "nm_file": "pdrd/mahasiswa",
+              "icon": null,
+              "urutan_menu": 1,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Aktivitas Mahasiswa",
+              "nm_file": "pdrd/aktivitas-mahasiswa",
+              "icon": null,
+              "urutan_menu": 2,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Matkul Kurikulum",
+              "nm_file": "pdrd/matkul-kurikulum",
+              "icon": null,
+              "urutan_menu": 3,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Rencana Evaluasi MK",
+              "nm_file": "pdrd/rencana-evaluasi",
+              "icon": null,
+              "urutan_menu": 4,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Kelas Pengajaran",
+              "nm_file": "pdrd/kelas-kuliah",
+              "icon": null,
+              "urutan_menu": 5,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Nilai Perkuliahan",
+              "nm_file": "pdrd/nilai-perkuliahan",
+              "icon": null,
+              "urutan_menu": 6,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Nilai Konversi",
+              "nm_file": "pdrd/nilai-konversi",
+              "icon": null,
+              "urutan_menu": 7,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Transkrip Nilai",
+              "nm_file": "pdrd/transkrip-nilai",
+              "icon": null,
+              "urutan_menu": 8,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Prestasi Mahasiswa",
+              "nm_file": "pdrd/prestasi",
+              "icon": null,
+              "urutan_menu": 9,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            }
+          ]
+        },
+        {
+          "nm_menu": "Monitoring",
+          "nm_file": "monitoring",
+          "icon": "FiActivity",
+          "urutan_menu": 4,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Sync Logs",
+          "nm_file": "logs",
+          "icon": "FiFileText",
+          "urutan_menu": 5,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "API Configuration",
+          "nm_file": "settings",
+          "icon": "FiSettings",
+          "urutan_menu": 6,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        }
+      ]
+    },
+    "sister-integrator": {
+      "app_slug": "sister-integrator",
+      "app_name": "Sister Integrator",
+      "exported_at": "2025-12-14T07:34:03.846Z",
+      "total_menus": 18,
+      "menus": [
+        {
+          "nm_menu": "Dashboard",
+          "nm_file": "dashboard",
+          "icon": "MdDashboard",
+          "urutan_menu": 1,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Referensi",
+          "nm_file": "referensi",
+          "icon": "FiBookOpen",
+          "urutan_menu": 2,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Data PDRD",
+          "nm_file": "pdrd/dosen",
+          "icon": "FiDatabase",
+          "urutan_menu": 3,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true,
+          "children": [
+            {
+              "nm_menu": "Dosen",
+              "nm_file": "pdrd/dosen",
+              "icon": null,
+              "urutan_menu": 1,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Penugasan PTK",
+              "nm_file": "pdrd/penugasan",
+              "icon": null,
+              "urutan_menu": 2,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Penelitian",
+              "nm_file": "pdrd/penelitian",
+              "icon": null,
+              "urutan_menu": 3,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Pengabdian",
+              "nm_file": "pdrd/pengabdian",
+              "icon": null,
+              "urutan_menu": 4,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Publikasi",
+              "nm_file": "pdrd/publikasi",
+              "icon": null,
+              "urutan_menu": 5,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Pendidikan Formal",
+              "nm_file": "pdrd/pendidikan-formal",
+              "icon": null,
+              "urutan_menu": 6,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Riwayat Pekerjaan",
+              "nm_file": "pdrd/riwayat-pekerjaan",
+              "icon": null,
+              "urutan_menu": 7,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Jabatan Fungsional",
+              "nm_file": "pdrd/jabatan-fungsional",
+              "icon": null,
+              "urutan_menu": 8,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Jabatan Struktural",
+              "nm_file": "pdrd/jabatan-struktural",
+              "icon": null,
+              "urutan_menu": 9,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Tugas Tambahan",
+              "nm_file": "pdrd/tugas-tambahan",
+              "icon": null,
+              "urutan_menu": 10,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Sertifikasi Dosen",
+              "nm_file": "pdrd/sertifikasi-dosen",
+              "icon": null,
+              "urutan_menu": 11,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Bidang Ilmu",
+              "nm_file": "pdrd/bidang-ilmu",
+              "icon": null,
+              "urutan_menu": 12,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            }
+          ]
+        },
+        {
+          "nm_menu": "Monitoring",
+          "nm_file": "monitoring",
+          "icon": "FiActivity",
+          "urutan_menu": 4,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Sync Logs",
+          "nm_file": "logs",
+          "icon": "FiFileText",
+          "urutan_menu": 5,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "API Configuration",
+          "nm_file": "settings",
+          "icon": "FiSettings",
+          "urutan_menu": 6,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        }
+      ]
+    },
+    "myunila-integrator": {
+      "app_slug": "myunila-integrator",
+      "app_name": "MyUnila Integrator",
+      "exported_at": "2025-12-14T07:34:03.850Z",
+      "total_menus": 23,
+      "menus": [
+        {
+          "nm_menu": "Dashboard",
+          "nm_file": "/dashboard/integrator",
+          "icon": "MdDashboard",
+          "urutan_menu": 1,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Data SIKEP",
+          "nm_file": "/dashboard/integrator/sikep/referensi",
+          "icon": "FiUsers",
+          "urutan_menu": 2,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true,
+          "children": [
+            {
+              "nm_menu": "Referensi",
+              "nm_file": "/dashboard/integrator/sikep/referensi",
+              "icon": null,
+              "urutan_menu": 1,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Pegawai",
+              "nm_file": "/dashboard/integrator/sikep/pegawai",
+              "icon": null,
+              "urutan_menu": 2,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            }
+          ]
+        },
+        {
+          "nm_menu": "Data Siakadu",
+          "nm_file": "/dashboard/integrator/siakadu/mahasiswa",
+          "icon": "FiBookOpen",
+          "urutan_menu": 3,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true,
+          "children": [
+            {
+              "nm_menu": "Mahasiswa",
+              "nm_file": "/dashboard/integrator/siakadu/mahasiswa",
+              "icon": null,
+              "urutan_menu": 1,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Pegawai",
+              "nm_file": "/dashboard/integrator/siakadu/pegawai",
+              "icon": null,
+              "urutan_menu": 2,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Kurikulum",
+              "nm_file": "/dashboard/integrator/siakadu/kurikulum",
+              "icon": null,
+              "urutan_menu": 3,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Mata Kuliah",
+              "nm_file": "/dashboard/integrator/siakadu/mata-kuliah",
+              "icon": null,
+              "urutan_menu": 4,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Kelas",
+              "nm_file": "/dashboard/integrator/siakadu/kelas",
+              "icon": null,
+              "urutan_menu": 5,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "KRS/KHS",
+              "nm_file": "/dashboard/integrator/siakadu/krs-khs",
+              "icon": null,
+              "urutan_menu": 6,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Transkrip",
+              "nm_file": "/dashboard/integrator/siakadu/transkrip",
+              "icon": null,
+              "urutan_menu": 7,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Status Kuliah",
+              "nm_file": "/dashboard/integrator/siakadu/status-kuliah",
+              "icon": null,
+              "urutan_menu": 8,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Wisuda",
+              "nm_file": "/dashboard/integrator/siakadu/wisuda",
+              "icon": null,
+              "urutan_menu": 9,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            }
+          ]
+        },
+        {
+          "nm_menu": "Sirandu",
+          "nm_file": "/dashboard/integrator/sirandu/presensi-mahasiswa",
+          "icon": "FiCalendar",
+          "urutan_menu": 4,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true,
+          "children": [
+            {
+              "nm_menu": "Presensi Mahasiswa",
+              "nm_file": "/dashboard/integrator/sirandu/presensi-mahasiswa",
+              "icon": null,
+              "urutan_menu": 1,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "Presensi Dosen",
+              "nm_file": "/dashboard/integrator/sirandu/presensi-dosen",
+              "icon": null,
+              "urutan_menu": 2,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            }
+          ]
+        },
+        {
+          "nm_menu": "ManAkses",
+          "nm_file": "/dashboard/integrator/manakses/unit-organisasi",
+          "icon": "FiKey",
+          "urutan_menu": 5,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true,
+          "children": [
+            {
+              "nm_menu": "Unit Organisasi",
+              "nm_file": "/dashboard/integrator/manakses/unit-organisasi",
+              "icon": null,
+              "urutan_menu": 1,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            },
+            {
+              "nm_menu": "SSO Radius",
+              "nm_file": "/dashboard/integrator/manakses/sso-radius",
+              "icon": null,
+              "urutan_menu": 2,
+              "level_menu": 1,
+              "a_aktif": true,
+              "a_tampil": true
+            }
+          ]
+        },
+        {
+          "nm_menu": "Monitoring",
+          "nm_file": "/dashboard/integrator/monitoring",
+          "icon": "FiActivity",
+          "urutan_menu": 6,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "Sync Logs",
+          "nm_file": "/dashboard/integrator/logs",
+          "icon": "FiFileText",
+          "urutan_menu": 7,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        },
+        {
+          "nm_menu": "API Configuration",
+          "nm_file": "/dashboard/integrator/settings",
+          "icon": "FiSettings",
+          "urutan_menu": 8,
+          "level_menu": 0,
+          "a_aktif": true,
+          "a_tampil": true
+        }
+      ]
+    }
+  }
+}
