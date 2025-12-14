@@ -22,7 +22,20 @@ class PeranRepository
         $limit = $params['limit'] ?? 10;
         $search = $params['search'] ?? null;
         $status = $params['status'] ?? null;
+        $sortBy = $params['sort_by'] ?? 'nm_peran'; // column to sort by
+        $sortOrder = $params['sort_order'] ?? 'asc'; // 'asc' or 'desc'
         $offset = ($page - 1) * $limit;
+
+        // Validate sort column to prevent SQL injection
+        $allowedSortColumns = [
+            'id_peran' => 'p.id_peran',
+            'nm_peran' => 'p.nm_peran',
+            'jumlah_pengguna' => 'jumlah_pengguna',
+            'tgl_create' => 'p.tgl_create',
+            'last_update' => 'p.last_update',
+        ];
+        $sortColumn = $allowedSortColumns[$sortBy] ?? 'p.nm_peran';
+        $sortDirection = strtolower($sortOrder) === 'desc' ? 'DESC' : 'ASC';
 
         $dataSql = "
             SELECT
@@ -34,13 +47,13 @@ class PeranRepository
                 p.expired_date,
                 (SELECT COUNT(*) FROM man_akses.role_pengguna rp WHERE rp.id_peran = p.id_peran AND rp.soft_delete = 0) as jumlah_pengguna
             FROM man_akses.peran p
-            WHERE 1=1
+            WHERE (p.expired_date IS NULL OR p.expired_date > GETDATE())
         ";
 
         $countSql = "
             SELECT COUNT(*) as total
             FROM man_akses.peran p
-            WHERE 1=1
+            WHERE (p.expired_date IS NULL OR p.expired_date > GETDATE())
         ";
 
         $bindings = [];
@@ -55,20 +68,39 @@ class PeranRepository
             $countBindings[] = $searchTerm;
         }
 
-        if ($status !== null) {
-            if ($status === 'aktif') {
-                $statusCondition = " AND (p.expired_date IS NULL OR p.expired_date > GETDATE())";
-            } else {
-                $statusCondition = " AND p.expired_date IS NOT NULL AND p.expired_date <= GETDATE()";
-            }
-            $countSql .= $statusCondition;
-            $dataSql .= $statusCondition;
+        // Status filter is already applied in base query (only showing active/non-expired)
+        // This filter allows showing ALL (including expired) or only specific status
+        if ($status === 'semua') {
+            // Remove default filter to show all including expired
+            $dataSql = str_replace(
+                "WHERE (p.expired_date IS NULL OR p.expired_date > GETDATE())",
+                "WHERE 1=1",
+                $dataSql
+            );
+            $countSql = str_replace(
+                "WHERE (p.expired_date IS NULL OR p.expired_date > GETDATE())",
+                "WHERE 1=1",
+                $countSql
+            );
+        } elseif ($status === 'nonaktif') {
+            // Show only expired
+            $dataSql = str_replace(
+                "WHERE (p.expired_date IS NULL OR p.expired_date > GETDATE())",
+                "WHERE p.expired_date IS NOT NULL AND p.expired_date <= GETDATE()",
+                $dataSql
+            );
+            $countSql = str_replace(
+                "WHERE (p.expired_date IS NULL OR p.expired_date > GETDATE())",
+                "WHERE p.expired_date IS NOT NULL AND p.expired_date <= GETDATE()",
+                $countSql
+            );
         }
+        // Default: status=null or status='aktif' keeps the base filter (only active)
 
         $countResult = DB::selectOne($countSql, $countBindings);
         $total = $countResult->total ?? 0;
 
-        $dataSql .= " ORDER BY p.nm_peran ASC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        $dataSql .= " ORDER BY {$sortColumn} {$sortDirection} OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         $bindings[] = $offset;
         $bindings[] = $limit;
 

@@ -38,6 +38,8 @@ class RolePenggunaController extends Controller
                 'id_pengguna' => $request->get('id_pengguna'),
                 'id_peran' => $request->get('id_peran'),
                 'id_organisasi' => $request->get('id_organisasi'),
+                'sort_by' => $request->get('sort_by'), // column name
+                'sort_order' => $request->get('sort_order'), // 'asc', 'desc'
             ];
 
             $result = $this->service->getList($params);

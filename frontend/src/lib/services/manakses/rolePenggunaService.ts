@@ -40,6 +40,8 @@ export interface RolePenggunaListParams {
   id_pengguna?: string;
   id_peran?: number;
   id_organisasi?: string;
+  sort_by?: 'nm_pengguna' | 'username' | 'nm_peran' | 'nm_organisasi' | 'sk_penugasan' | 'tgl_sk_penugasan' | 'last_active' | 'tgl_create' | 'last_update';
+  sort_order?: 'asc' | 'desc';
 }
 
 export interface RolePenggunaCreateData {

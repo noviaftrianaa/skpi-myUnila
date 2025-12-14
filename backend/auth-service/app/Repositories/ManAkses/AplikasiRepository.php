@@ -28,7 +28,23 @@ class AplikasiRepository
         $ssoCas = $params['sso_cas'] ?? null; // 'ya', 'tidak', null for all
         $maintenance = $params['maintenance'] ?? null; // 'ya', 'tidak', null for all
         $comingSoon = $params['coming_soon'] ?? null; // 'ya', 'tidak', null for all
+        $sortBy = $params['sort_by'] ?? 'last_update'; // column to sort by
+        $sortOrder = $params['sort_order'] ?? 'desc'; // 'asc' or 'desc'
         $offset = ($page - 1) * $limit;
+
+        // Validate sort column to prevent SQL injection
+        $allowedSortColumns = [
+            'nm_aplikasi' => 'a.nm_aplikasi',
+            'url' => 'a.url',
+            'teknologi' => 'a.teknologi',
+            'nm_kategori' => 'k.nm_kategori',
+            'nm_organisasi' => 'uo.nm_lemb',
+            'tgl_create' => 'a.tgl_create',
+            'last_update' => 'a.last_update',
+            'urutan' => 'a.urutan',
+        ];
+        $sortColumn = $allowedSortColumns[$sortBy] ?? 'a.last_update';
+        $sortDirection = strtolower($sortOrder) === 'asc' ? 'ASC' : 'DESC';
 
         // Base query for data from SQL Server
         // Default filter: only show non-deleted records (expired_date IS NULL)
@@ -181,7 +197,7 @@ class AplikasiRepository
         $total = $countResult->total ?? 0;
 
         // Add ordering and pagination
-        $dataSql .= " ORDER BY a.last_update DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        $dataSql .= " ORDER BY {$sortColumn} {$sortDirection} OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         $bindings[] = $offset;
         $bindings[] = $limit;
 

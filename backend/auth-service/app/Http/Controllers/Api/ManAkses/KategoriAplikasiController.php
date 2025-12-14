@@ -59,6 +59,8 @@ class KategoriAplikasiController extends Controller
                 'page' => (int) $request->get('page', 1),
                 'limit' => (int) $request->get('limit', 10),
                 'search' => $request->get('search'),
+                'sort_by' => $request->get('sort_by'), // column name
+                'sort_order' => $request->get('sort_order'), // 'asc', 'desc'
             ];
 
             $result = $this->service->getList($params);

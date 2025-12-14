@@ -83,6 +83,8 @@ export interface PenggunaListParams {
   status?: 'aktif' | 'nonaktif';
   has_sso?: 'yes' | 'no';
   id_peran?: string;
+  sort_by?: 'username' | 'nm_pengguna' | 'email' | 'tgl_create' | 'last_update' | 'last_login_at';
+  sort_order?: 'asc' | 'desc';
 }
 
 export interface PeranOption {

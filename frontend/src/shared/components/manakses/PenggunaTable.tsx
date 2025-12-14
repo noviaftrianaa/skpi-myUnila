@@ -25,6 +25,8 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
   const [filterPeran, setFilterPeran] = useState<string>("all");
   const [peranOptions, setPeranOptions] = useState<PeranOption[]>([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [sortBy, setSortBy] = useState<string>("username");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   // Modal states
   const [detailModalOpen, setDetailModalOpen] = useState(false);
@@ -98,6 +100,8 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
           search: searchQuery || undefined,
           status: filterStatus !== "all" ? (filterStatus as 'aktif' | 'nonaktif') : undefined,
           id_peran: filterPeran !== "all" ? filterPeran : undefined,
+          sort_by: sortBy as 'username' | 'nm_pengguna' | 'email' | 'tgl_create' | 'last_update' | 'last_login_at',
+          sort_order: sortOrder,
         });
 
         if (isMounted) {
@@ -116,7 +120,7 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
     };
     loadData();
     return () => { isMounted = false; };
-  }, [currentPage, rowsPerPage, searchQuery, filterStatus, filterPeran, refreshTrigger]);
+  }, [currentPage, rowsPerPage, searchQuery, filterStatus, filterPeran, refreshTrigger, sortBy, sortOrder]);
 
   const handleViewDetail = (penggunaId: string) => {
     setSelectedPenggunaId(penggunaId);
@@ -617,6 +621,13 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
     });
   };
 
+  // Handle sort change
+  const handleSortChange = (column: string, direction: "asc" | "desc") => {
+    setSortBy(column);
+    setSortOrder(direction);
+    setCurrentPage(1); // Reset to first page when sorting changes
+  };
+
   // Action slot with Add button
   const actionSlot = (
     <Button
@@ -626,7 +637,7 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
       className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium shadow-md hover:shadow-lg transition-all rounded-lg"
       size="sm"
     >
-      Tambah
+      Tambah Data
     </Button>
   );
 
@@ -659,6 +670,7 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
               setSearchQuery(query);
               setCurrentPage(1);
             }}
+            onSortChange={handleSortChange}
             filterSlot={filterSlot}
             actionSlot={actionSlot}
             className="shadow-lg"

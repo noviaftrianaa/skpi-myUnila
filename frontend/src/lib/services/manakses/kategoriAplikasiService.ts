@@ -54,6 +54,8 @@ export interface KategoriAplikasiListParams {
   page?: number;
   limit?: number;
   search?: string;
+  sort_by?: 'nm_kategori' | 'urutan' | 'jumlah_aplikasi' | 'tgl_create' | 'last_update';
+  sort_order?: 'asc' | 'desc';
 }
 
 export interface CreateKategoriAplikasiRequest {

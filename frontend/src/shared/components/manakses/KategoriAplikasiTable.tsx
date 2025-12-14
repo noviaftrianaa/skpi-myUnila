@@ -6,6 +6,7 @@ import { Chip, Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Mo
 import { FiMoreVertical, FiEdit2, FiTrash2, FiPlus } from "react-icons/fi";
 import { kategoriAplikasiService, type KategoriAplikasiListItem, type KategoriAplikasiStats } from "@/lib/services/manakses/kategoriAplikasiService";
 import KategoriAplikasiFormModal from "./KategoriAplikasiFormModal";
+import toast from "react-hot-toast";
 
 interface KategoriAplikasiTableProps {
   onStatsLoaded?: (stats: KategoriAplikasiStats) => void;
@@ -20,6 +21,8 @@ export default function KategoriAplikasiTable({ onStatsLoaded }: KategoriAplikas
   const [searchQuery, setSearchQuery] = useState("");
   const [totalRecords, setTotalRecords] = useState(0);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [sortBy, setSortBy] = useState<string>("urutan");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   // Modal states
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -67,6 +70,8 @@ export default function KategoriAplikasiTable({ onStatsLoaded }: KategoriAplikas
           page: currentPage,
           limit: rowsPerPage,
           search: searchQuery || undefined,
+          sort_by: sortBy as 'nm_kategori' | 'urutan' | 'jumlah_aplikasi' | 'tgl_create' | 'last_update',
+          sort_order: sortOrder,
         });
 
         setData(response.data);
@@ -79,7 +84,14 @@ export default function KategoriAplikasiTable({ onStatsLoaded }: KategoriAplikas
     };
 
     loadData();
-  }, [currentPage, rowsPerPage, searchQuery, refreshTrigger]);
+  }, [currentPage, rowsPerPage, searchQuery, refreshTrigger, sortBy, sortOrder]);
+
+  // Handle sort change
+  const handleSortChange = (column: string, direction: "asc" | "desc") => {
+    setSortBy(column);
+    setSortOrder(direction);
+    setCurrentPage(1);
+  };
 
   // Handlers
   const handleAdd = () => {
@@ -100,6 +112,7 @@ export default function KategoriAplikasiTable({ onStatsLoaded }: KategoriAplikas
   const handleDeleteConfirm = async () => {
     if (!deletingKategori) return;
 
+    const deletedName = deletingKategori.nm_kategori;
     setDeleteLoading(true);
     try {
       await kategoriAplikasiService.delete(deletingKategori.id_kategori);
@@ -112,10 +125,35 @@ export default function KategoriAplikasiTable({ onStatsLoaded }: KategoriAplikas
       if (onStatsLoadedRef.current) {
         onStatsLoadedRef.current(statsData);
       }
+      toast.success(`Kategori "${deletedName}" berhasil dihapus`, {
+        duration: 3000,
+        style: {
+          borderRadius: "12px",
+          background: "#10B981",
+          color: "#fff",
+          fontWeight: "500",
+        },
+        iconTheme: {
+          primary: "#fff",
+          secondary: "#10B981",
+        },
+      });
     } catch (error: unknown) {
       console.error("Error deleting kategori:", error);
       const err = error as { response?: { data?: { message?: string } }; message?: string };
-      alert(err.response?.data?.message || err.message || "Gagal menghapus kategori");
+      toast.error(err.response?.data?.message || err.message || "Gagal menghapus kategori", {
+        duration: 4000,
+        style: {
+          borderRadius: "12px",
+          background: "#EF4444",
+          color: "#fff",
+          fontWeight: "500",
+        },
+        iconTheme: {
+          primary: "#fff",
+          secondary: "#EF4444",
+        },
+      });
     } finally {
       setDeleteLoading(false);
     }
@@ -202,6 +240,7 @@ export default function KategoriAplikasiTable({ onStatsLoaded }: KategoriAplikas
       label: "JUMLAH APLIKASI",
       align: "center",
       width: "140px",
+      sortable: true,
       render: (item) => (
         <Chip size="sm" variant="flat" color="primary">
           {item.jumlah_aplikasi} App
@@ -213,6 +252,7 @@ export default function KategoriAplikasiTable({ onStatsLoaded }: KategoriAplikas
       label: "URUTAN",
       align: "center",
       width: "100px",
+      sortable: true,
       render: (item) => (
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
           {item.urutan}
@@ -249,7 +289,7 @@ export default function KategoriAplikasiTable({ onStatsLoaded }: KategoriAplikas
       key: "actions",
       label: "AKSI",
       align: "center",
-      width: "80px",
+      width: "100px",
       render: (item) => (
         <Dropdown>
           <DropdownTrigger>
@@ -257,17 +297,19 @@ export default function KategoriAplikasiTable({ onStatsLoaded }: KategoriAplikas
               isIconOnly
               size="sm"
               variant="light"
-              className="text-gray-500 hover:text-gray-700"
+              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             >
               <FiMoreVertical className="w-4 h-4" />
             </Button>
           </DropdownTrigger>
-          <DropdownMenu aria-label="Aksi" className="min-w-[120px]">
+          <DropdownMenu
+            aria-label="Aksi"
+            className="min-w-[120px] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 shadow-lg rounded-lg"
+          >
             <DropdownItem
               key="edit"
               startContent={<FiEdit2 className="w-4 h-4" />}
               onPress={() => handleEdit(item)}
-              className="text-gray-700 dark:text-gray-300"
             >
               Edit
             </DropdownItem>
@@ -275,8 +317,8 @@ export default function KategoriAplikasiTable({ onStatsLoaded }: KategoriAplikas
               key="delete"
               startContent={<FiTrash2 className="w-4 h-4" />}
               onPress={() => handleDeleteClick(item)}
-              className="text-danger"
               color="danger"
+              className="text-danger"
               isDisabled={item.jumlah_aplikasi > 0}
             >
               Hapus
@@ -293,10 +335,10 @@ export default function KategoriAplikasiTable({ onStatsLoaded }: KategoriAplikas
       color="primary"
       startContent={<FiPlus className="w-4 h-4" />}
       onPress={handleAdd}
-      className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium shadow-md hover:shadow-lg transition-all"
+      className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium shadow-md hover:shadow-lg transition-all rounded-lg"
       size="sm"
     >
-      Tambah
+      Tambah Data
     </Button>
   );
 
@@ -328,6 +370,7 @@ export default function KategoriAplikasiTable({ onStatsLoaded }: KategoriAplikas
             setSearchQuery(query);
             setCurrentPage(1);
           }}
+          onSortChange={handleSortChange}
           actionSlot={actionSlot}
           className="shadow-lg"
         />

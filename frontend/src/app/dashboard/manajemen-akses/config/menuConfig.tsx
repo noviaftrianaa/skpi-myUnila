@@ -43,6 +43,11 @@ export const manajemenAksesMenuConfig: MenuItem[] = [
         roles: ["developer"],
       },
       {
+        title: "Role Base Access",
+        href: "/dashboard/manajemen-akses/manajemen/rbac",
+        roles: ["developer"],
+      },
+      {
         title: "Kategori Aplikasi",
         href: "/dashboard/manajemen-akses/manajemen/kategori-aplikasi",
         roles: ["developer"],
@@ -55,11 +60,6 @@ export const manajemenAksesMenuConfig: MenuItem[] = [
       {
         title: "Peran",
         href: "/dashboard/manajemen-akses/manajemen/peran",
-        roles: ["developer"],
-      },
-      {
-        title: "Role Base Access",
-        href: "/dashboard/manajemen-akses/manajemen/rbac",
         roles: ["developer"],
       },
       {

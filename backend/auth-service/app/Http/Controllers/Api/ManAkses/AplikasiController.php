@@ -43,6 +43,8 @@ class AplikasiController extends Controller
                 'sso_cas' => $request->get('sso_cas'), // 'ya', 'tidak'
                 'maintenance' => $request->get('maintenance'), // 'ya', 'tidak'
                 'coming_soon' => $request->get('coming_soon'), // 'ya', 'tidak'
+                'sort_by' => $request->get('sort_by'), // column name
+                'sort_order' => $request->get('sort_order'), // 'asc', 'desc'
             ];
 
             $result = $this->service->getList($params);

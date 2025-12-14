@@ -43,6 +43,8 @@ export interface PeranListParams {
   limit?: number;
   search?: string;
   status?: string;
+  sort_by?: 'id_peran' | 'nm_peran' | 'jumlah_pengguna' | 'tgl_create' | 'last_update';
+  sort_order?: 'asc' | 'desc';
 }
 
 export interface PeranCreateData {

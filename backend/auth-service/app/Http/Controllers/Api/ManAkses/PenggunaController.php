@@ -41,6 +41,8 @@ class PenggunaController extends Controller
                 'status' => $request->get('status'), // 'aktif', 'nonaktif'
                 'has_sso' => $request->get('has_sso'), // 'yes', 'no'
                 'id_peran' => $request->get('id_peran'), // filter by peran id
+                'sort_by' => $request->get('sort_by', 'username'), // column to sort by
+                'sort_order' => $request->get('sort_order', 'asc'), // 'asc' or 'desc'
             ];
 
             $result = $this->service->getList($params);

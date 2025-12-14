@@ -6,6 +6,7 @@ import { Chip, Select, SelectItem, Button, Dropdown, DropdownTrigger, DropdownMe
 import { FiMoreVertical, FiEdit2, FiTrash2, FiPlus, FiRefreshCw, FiFilter, FiEye } from "react-icons/fi";
 import { aplikasiService, type Aplikasi, type AplikasiDetail, type AplikasiStats, type AplikasiMenu } from "@/lib/services/manakses/aplikasiService";
 import AplikasiFormModal from "./AplikasiFormModal";
+import AplikasiDetailModal from "./AplikasiDetailModal";
 import toast from "react-hot-toast";
 
 interface AplikasiTableProps {
@@ -29,6 +30,8 @@ export default function AplikasiTable({ onStatsLoaded }: AplikasiTableProps) {
   const [filterMaintenance, setFilterMaintenance] = useState<boolean | null>(null); // null=all, true=ya, false=tidak
   const [filterComingSoon, setFilterComingSoon] = useState<boolean | null>(null); // null=all, true=ya, false=tidak
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [sortBy, setSortBy] = useState<string>("last_update");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   // Modal states
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -90,6 +93,8 @@ export default function AplikasiTable({ onStatsLoaded }: AplikasiTableProps) {
           sso_cas: filterSSOCAS === null ? undefined : (filterSSOCAS ? 'ya' : 'tidak'),
           maintenance: filterMaintenance === null ? undefined : (filterMaintenance ? 'ya' : 'tidak'),
           coming_soon: filterComingSoon === null ? undefined : (filterComingSoon ? 'ya' : 'tidak'),
+          sort_by: sortBy as 'nm_aplikasi' | 'url' | 'teknologi' | 'nm_kategori' | 'nm_organisasi' | 'tgl_create' | 'last_update' | 'urutan',
+          sort_order: sortOrder,
         });
 
         setData(response.data);
@@ -102,7 +107,14 @@ export default function AplikasiTable({ onStatsLoaded }: AplikasiTableProps) {
     };
 
     loadData();
-  }, [currentPage, rowsPerPage, searchQuery, filterStatus, filterProduction, filterPortal, filterTerintegrasi, filterSSOCAS, filterMaintenance, filterComingSoon, refreshTrigger]);
+  }, [currentPage, rowsPerPage, searchQuery, filterStatus, filterProduction, filterPortal, filterTerintegrasi, filterSSOCAS, filterMaintenance, filterComingSoon, refreshTrigger, sortBy, sortOrder]);
+
+  // Handle sort change
+  const handleSortChange = (column: string, direction: "asc" | "desc") => {
+    setSortBy(column);
+    setSortOrder(direction);
+    setCurrentPage(1);
+  };
 
   // Handlers
   const handleAdd = () => {
@@ -678,7 +690,7 @@ export default function AplikasiTable({ onStatsLoaded }: AplikasiTableProps) {
       className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium shadow-md hover:shadow-lg transition-all rounded-lg"
       size="sm"
     >
-      Tambah
+      Tambah Data
     </Button>
   );
 
@@ -710,6 +722,7 @@ export default function AplikasiTable({ onStatsLoaded }: AplikasiTableProps) {
             setSearchQuery(query);
             setCurrentPage(1);
           }}
+          onSortChange={handleSortChange}
           filterSlot={filterSlot}
           actionSlot={actionSlot}
           className="shadow-lg"
@@ -781,317 +794,19 @@ export default function AplikasiTable({ onStatsLoaded }: AplikasiTableProps) {
       </Modal>
 
       {/* Detail Modal */}
-      <Modal
+      <AplikasiDetailModal
         isOpen={isDetailModalOpen}
         onClose={() => {
           setIsDetailModalOpen(false);
           setDetailAplikasi(null);
         }}
-        size="3xl"
-        scrollBehavior="inside"
-        classNames={{
-          backdrop: "bg-black/50 backdrop-blur-sm",
-          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl",
+        aplikasi={detailAplikasi}
+        isLoading={isLoadingDetailModal}
+        onEdit={(app) => {
+          setIsDetailModalOpen(false);
+          handleEdit(app);
         }}
-      >
-        <ModalContent>
-          <ModalHeader className="flex flex-col gap-1 px-6 py-4 border-b border-gray-200 dark:border-slate-700">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-              Detail Aplikasi
-            </h3>
-            {detailAplikasi && (
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {detailAplikasi.nm_aplikasi}
-              </p>
-            )}
-          </ModalHeader>
-          <ModalBody className="py-6 px-6">
-            {isLoadingDetailModal ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                <span className="ml-3 text-gray-500 dark:text-gray-400">Memuat detail...</span>
-              </div>
-            ) : detailAplikasi ? (
-              <div className="space-y-5">
-                {/* Statistics Cards - Top */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 p-3 rounded-xl text-center border border-indigo-200/50 dark:border-indigo-700/30">
-                    <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{detailAplikasi.jumlah_table || 0}</div>
-                    <div className="text-xs text-indigo-600/70 dark:text-indigo-400/70 font-medium">Tabel</div>
-                  </div>
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-3 rounded-xl text-center border border-green-200/50 dark:border-green-700/30">
-                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">{detailAplikasi.jumlah_pj || 0}</div>
-                    <div className="text-xs text-green-600/70 dark:text-green-400/70 font-medium">Penanggung Jawab</div>
-                  </div>
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-3 rounded-xl text-center border border-purple-200/50 dark:border-purple-700/30">
-                    <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{detailAplikasi.menus?.length || 0}</div>
-                    <div className="text-xs text-purple-600/70 dark:text-purple-400/70 font-medium">Menu</div>
-                  </div>
-                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-3 rounded-xl text-center border border-orange-200/50 dark:border-orange-700/30">
-                    <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{detailAplikasi.urutan || 0}</div>
-                    <div className="text-xs text-orange-600/70 dark:text-orange-400/70 font-medium">Urutan</div>
-                  </div>
-                </div>
-
-                {/* Basic Info & Teknis */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Informasi Dasar */}
-                  <div className="bg-gray-50/80 dark:bg-slate-700/20 rounded-xl p-4 border border-gray-200/80 dark:border-slate-600/50">
-                    <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3 flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                      Informasi Dasar
-                    </h4>
-                    <div className="space-y-2.5 text-sm">
-                      <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-white/60 dark:bg-slate-700/40">
-                        <span className="text-gray-500 dark:text-gray-400">ID Aplikasi</span>
-                        <span className="text-gray-900 dark:text-white font-mono text-xs bg-gray-100 dark:bg-slate-600 px-2 py-0.5 rounded">{detailAplikasi.id_aplikasi.substring(0, 12)}...</span>
-                      </div>
-                      <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-white/60 dark:bg-slate-700/40">
-                        <span className="text-gray-500 dark:text-gray-400">Status</span>
-                        <Chip size="sm" color={detailAplikasi.status === "Aktif" ? "success" : "danger"} variant="flat">
-                          {detailAplikasi.status}
-                        </Chip>
-                      </div>
-                      <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-white/60 dark:bg-slate-700/40">
-                        <span className="text-gray-500 dark:text-gray-400">Jenis</span>
-                        <span className="text-gray-900 dark:text-white font-medium">{detailAplikasi.jenis || "-"}</span>
-                      </div>
-                      <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-white/60 dark:bg-slate-700/40">
-                        <span className="text-gray-500 dark:text-gray-400">Kategori</span>
-                        <span className="text-gray-900 dark:text-white font-medium">{detailAplikasi.nm_kategori || "-"}</span>
-                      </div>
-                      <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-white/60 dark:bg-slate-700/40">
-                        <span className="text-gray-500 dark:text-gray-400">Organisasi</span>
-                        <span className="text-gray-900 dark:text-white font-medium text-right max-w-[150px] truncate">{detailAplikasi.nm_organisasi || "-"}</span>
-                      </div>
-                      {detailAplikasi.ket_aplikasi && (
-                        <div className="pt-1">
-                          <span className="text-gray-500 dark:text-gray-400 text-xs block mb-1.5 px-2">Keterangan:</span>
-                          <p className="text-gray-800 dark:text-gray-200 text-xs bg-white dark:bg-slate-700 p-2.5 rounded-lg border border-gray-200 dark:border-slate-600">{detailAplikasi.ket_aplikasi}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Teknis */}
-                  <div className="bg-blue-50/50 dark:bg-blue-900/10 rounded-xl p-4 border border-blue-200/50 dark:border-blue-800/30">
-                    <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3 flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                      Informasi Teknis
-                    </h4>
-                    <div className="space-y-2.5 text-sm">
-                      <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-white/60 dark:bg-slate-700/40">
-                        <span className="text-gray-500 dark:text-gray-400">URL</span>
-                        <span className="text-right max-w-[180px] truncate">
-                          {detailAplikasi.url ? (
-                            <a href={detailAplikasi.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-xs font-mono">
-                              {detailAplikasi.url}
-                            </a>
-                          ) : <span className="text-gray-400">-</span>}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-white/60 dark:bg-slate-700/40">
-                        <span className="text-gray-500 dark:text-gray-400">Port</span>
-                        <span className="text-gray-900 dark:text-white font-mono">{detailAplikasi.port || "-"}</span>
-                      </div>
-                      <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-white/60 dark:bg-slate-700/40">
-                        <span className="text-gray-500 dark:text-gray-400">Teknologi</span>
-                        <span className="text-gray-900 dark:text-white">{detailAplikasi.teknologi || "-"}</span>
-                      </div>
-                      <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-white/60 dark:bg-slate-700/40">
-                        <span className="text-gray-500 dark:text-gray-400">App Slug</span>
-                        <span className="text-gray-900 dark:text-white font-mono text-xs">{detailAplikasi.app_slug || "-"}</span>
-                      </div>
-                      <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-white/60 dark:bg-slate-700/40">
-                        <span className="text-gray-500 dark:text-gray-400">Endpoint WS</span>
-                        <span className="text-gray-900 dark:text-white font-mono text-xs max-w-[150px] truncate">{detailAplikasi.endpoint_ws || "-"}</span>
-                      </div>
-                      {detailAplikasi.app_key && (
-                        <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-white/60 dark:bg-slate-700/40">
-                          <span className="text-gray-500 dark:text-gray-400">App Key</span>
-                          <span className="text-gray-900 dark:text-white font-mono text-xs bg-gray-100 dark:bg-slate-600 px-2 py-0.5 rounded">{detailAplikasi.app_key.substring(0, 16)}...</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Pengaturan Flags */}
-                <div className="bg-slate-50/80 dark:bg-slate-700/20 rounded-xl p-4 border border-slate-200/80 dark:border-slate-600/50">
-                  <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3 flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
-                    Pengaturan
-                  </h4>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${detailAplikasi.a_live ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800/30" : "bg-gray-100 dark:bg-slate-700/30 border-gray-200 dark:border-slate-600"}`}>
-                      <span className={`w-2.5 h-2.5 rounded-full ${detailAplikasi.a_live ? "bg-green-500" : "bg-gray-300 dark:bg-slate-500"}`}></span>
-                      <span className={`text-xs font-medium ${detailAplikasi.a_live ? "text-green-700 dark:text-green-400" : "text-gray-500 dark:text-slate-400"}`}>Production</span>
-                    </div>
-                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${detailAplikasi.a_tampil_portal ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800/30" : "bg-gray-100 dark:bg-slate-700/30 border-gray-200 dark:border-slate-600"}`}>
-                      <span className={`w-2.5 h-2.5 rounded-full ${detailAplikasi.a_tampil_portal ? "bg-blue-500" : "bg-gray-300 dark:bg-slate-500"}`}></span>
-                      <span className={`text-xs font-medium ${detailAplikasi.a_tampil_portal ? "text-blue-700 dark:text-blue-400" : "text-gray-500 dark:text-slate-400"}`}>Portal</span>
-                    </div>
-                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${detailAplikasi.a_terintegrasi ? "bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800/30" : "bg-gray-100 dark:bg-slate-700/30 border-gray-200 dark:border-slate-600"}`}>
-                      <span className={`w-2.5 h-2.5 rounded-full ${detailAplikasi.a_terintegrasi ? "bg-purple-500" : "bg-gray-300 dark:bg-slate-500"}`}></span>
-                      <span className={`text-xs font-medium ${detailAplikasi.a_terintegrasi ? "text-purple-700 dark:text-purple-400" : "text-gray-500 dark:text-slate-400"}`}>myUnila</span>
-                    </div>
-                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${detailAplikasi.a_integrasi_cas ? "bg-teal-50 dark:bg-teal-900/20 border-teal-200 dark:border-teal-800/30" : "bg-gray-100 dark:bg-slate-700/30 border-gray-200 dark:border-slate-600"}`}>
-                      <span className={`w-2.5 h-2.5 rounded-full ${detailAplikasi.a_integrasi_cas ? "bg-teal-500" : "bg-gray-300 dark:bg-slate-500"}`}></span>
-                      <span className={`text-xs font-medium ${detailAplikasi.a_integrasi_cas ? "text-teal-700 dark:text-teal-400" : "text-gray-500 dark:text-slate-400"}`}>SSO/CAS</span>
-                    </div>
-                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${detailAplikasi.a_maintenance ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800/30" : "bg-gray-100 dark:bg-slate-700/30 border-gray-200 dark:border-slate-600"}`}>
-                      <span className={`w-2.5 h-2.5 rounded-full ${detailAplikasi.a_maintenance ? "bg-yellow-500" : "bg-gray-300 dark:bg-slate-500"}`}></span>
-                      <span className={`text-xs font-medium ${detailAplikasi.a_maintenance ? "text-yellow-700 dark:text-yellow-400" : "text-gray-500 dark:text-slate-400"}`}>Maintenance</span>
-                    </div>
-                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${detailAplikasi.a_coming_soon ? "bg-cyan-50 dark:bg-cyan-900/20 border-cyan-200 dark:border-cyan-800/30" : "bg-gray-100 dark:bg-slate-700/30 border-gray-200 dark:border-slate-600"}`}>
-                      <span className={`w-2.5 h-2.5 rounded-full ${detailAplikasi.a_coming_soon ? "bg-cyan-500" : "bg-gray-300 dark:bg-slate-500"}`}></span>
-                      <span className={`text-xs font-medium ${detailAplikasi.a_coming_soon ? "text-cyan-700 dark:text-cyan-400" : "text-gray-500 dark:text-slate-400"}`}>Coming Soon</span>
-                    </div>
-                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${detailAplikasi.a_generate_menu ? "bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800/30" : "bg-gray-100 dark:bg-slate-700/30 border-gray-200 dark:border-slate-600"}`}>
-                      <span className={`w-2.5 h-2.5 rounded-full ${detailAplikasi.a_generate_menu ? "bg-indigo-500" : "bg-gray-300 dark:bg-slate-500"}`}></span>
-                      <span className={`text-xs font-medium ${detailAplikasi.a_generate_menu ? "text-indigo-700 dark:text-indigo-400" : "text-gray-500 dark:text-slate-400"}`}>Gen Menu</span>
-                    </div>
-                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${detailAplikasi.a_sistem_internal_pt ? "bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800/30" : "bg-gray-100 dark:bg-slate-700/30 border-gray-200 dark:border-slate-600"}`}>
-                      <span className={`w-2.5 h-2.5 rounded-full ${detailAplikasi.a_sistem_internal_pt ? "bg-rose-500" : "bg-gray-300 dark:bg-slate-500"}`}></span>
-                      <span className={`text-xs font-medium ${detailAplikasi.a_sistem_internal_pt ? "text-rose-700 dark:text-rose-400" : "text-gray-500 dark:text-slate-400"}`}>Internal PT</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Tanggal */}
-                <div className="bg-amber-50/50 dark:bg-amber-900/10 rounded-xl p-4 border border-amber-200/50 dark:border-amber-800/30">
-                  <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3 flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                    Tanggal
-                  </h4>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <div className="bg-white/60 dark:bg-slate-700/40 p-2.5 rounded-lg">
-                      <span className="text-gray-500 dark:text-gray-400 block text-xs mb-1">Dibuat</span>
-                      <span className="text-gray-900 dark:text-white text-sm font-medium">{formatDate(detailAplikasi.tgl_create)}</span>
-                    </div>
-                    <div className="bg-white/60 dark:bg-slate-700/40 p-2.5 rounded-lg">
-                      <span className="text-gray-500 dark:text-gray-400 block text-xs mb-1">Update Terakhir</span>
-                      <span className="text-gray-900 dark:text-white text-sm font-medium">{formatDate(detailAplikasi.last_update)}</span>
-                    </div>
-                    <div className="bg-white/60 dark:bg-slate-700/40 p-2.5 rounded-lg">
-                      <span className="text-gray-500 dark:text-gray-400 block text-xs mb-1">Sync Terakhir</span>
-                      <span className="text-gray-900 dark:text-white text-sm font-medium">{formatDate(detailAplikasi.last_sync)}</span>
-                    </div>
-                    <div className="bg-white/60 dark:bg-slate-700/40 p-2.5 rounded-lg">
-                      <span className="text-gray-500 dark:text-gray-400 block text-xs mb-1">Expired</span>
-                      <span className="text-gray-900 dark:text-white text-sm font-medium">{formatDate(detailAplikasi.expired_date)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* PJ List */}
-                {detailAplikasi.pj_list && detailAplikasi.pj_list.length > 0 && (
-                  <div className="bg-green-50/50 dark:bg-green-900/10 rounded-xl p-4 border border-green-200/50 dark:border-green-800/30">
-                    <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3 flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                      Penanggung Jawab ({detailAplikasi.pj_list.length})
-                    </h4>
-                    <div className="overflow-x-auto rounded-lg border border-green-200/50 dark:border-green-800/30">
-                      <table className="w-full text-sm">
-                        <thead className="bg-green-100/50 dark:bg-green-900/30">
-                          <tr>
-                            <th className="text-left py-2.5 px-3 text-green-700 dark:text-green-400 font-medium text-xs">Nama</th>
-                            <th className="text-left py-2.5 px-3 text-green-700 dark:text-green-400 font-medium text-xs">Username</th>
-                            <th className="text-left py-2.5 px-3 text-green-700 dark:text-green-400 font-medium text-xs">Email</th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white dark:bg-slate-800/50">
-                          {detailAplikasi.pj_list.map((pj) => (
-                            <tr key={pj.id_pj_aplikasi} className="border-t border-green-100 dark:border-green-900/30">
-                              <td className="py-2 px-3 text-gray-900 dark:text-white">{pj.nm_pengguna}</td>
-                              <td className="py-2 px-3 text-gray-600 dark:text-gray-300 font-mono text-xs">{pj.username}</td>
-                              <td className="py-2 px-3 text-gray-600 dark:text-gray-300">{pj.email || "-"}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-
-                {/* Tables List */}
-                {detailAplikasi.tables && detailAplikasi.tables.length > 0 && (
-                  <div className="bg-indigo-50/50 dark:bg-indigo-900/10 rounded-xl p-4 border border-indigo-200/50 dark:border-indigo-800/30">
-                    <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3 flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                      Tabel Akses ({detailAplikasi.tables.length})
-                    </h4>
-                    <div className="overflow-x-auto rounded-lg border border-indigo-200/50 dark:border-indigo-800/30">
-                      <table className="w-full text-sm">
-                        <thead className="bg-indigo-100/50 dark:bg-indigo-900/30">
-                          <tr>
-                            <th className="text-left py-2.5 px-3 text-indigo-700 dark:text-indigo-400 font-medium text-xs">Nama Tabel</th>
-                            <th className="text-center py-2.5 px-3 text-indigo-700 dark:text-indigo-400 font-medium text-xs">GET</th>
-                            <th className="text-center py-2.5 px-3 text-indigo-700 dark:text-indigo-400 font-medium text-xs">INSERT</th>
-                            <th className="text-center py-2.5 px-3 text-indigo-700 dark:text-indigo-400 font-medium text-xs">UPDATE</th>
-                            <th className="text-center py-2.5 px-3 text-indigo-700 dark:text-indigo-400 font-medium text-xs">DELETE</th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white dark:bg-slate-800/50">
-                          {detailAplikasi.tables.slice(0, 10).map((table) => (
-                            <tr key={table.id_akses_table_app} className="border-t border-indigo-100 dark:border-indigo-900/30">
-                              <td className="py-2 px-3 text-gray-900 dark:text-white font-mono text-xs">{table.nm_table}</td>
-                              <td className="py-2 px-3 text-center">
-                                <span className={`w-3 h-3 rounded-full inline-block ${table.a_boleh_get ? "bg-green-500" : "bg-gray-300 dark:bg-slate-500"}`}></span>
-                              </td>
-                              <td className="py-2 px-3 text-center">
-                                <span className={`w-3 h-3 rounded-full inline-block ${table.a_boleh_insert ? "bg-green-500" : "bg-gray-300 dark:bg-slate-500"}`}></span>
-                              </td>
-                              <td className="py-2 px-3 text-center">
-                                <span className={`w-3 h-3 rounded-full inline-block ${table.a_boleh_update ? "bg-green-500" : "bg-gray-300 dark:bg-slate-500"}`}></span>
-                              </td>
-                              <td className="py-2 px-3 text-center">
-                                <span className={`w-3 h-3 rounded-full inline-block ${table.a_boleh_delete ? "bg-green-500" : "bg-gray-300 dark:bg-slate-500"}`}></span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                      {detailAplikasi.tables.length > 10 && (
-                        <p className="text-xs text-indigo-600 dark:text-indigo-400 py-2 text-center bg-indigo-50/50 dark:bg-indigo-900/20">
-                          Menampilkan 10 dari {detailAplikasi.tables.length} tabel
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                Gagal memuat detail aplikasi
-              </div>
-            )}
-          </ModalBody>
-          <ModalFooter className="gap-3 px-6 py-4 border-t border-gray-200 dark:border-slate-700">
-            <Button
-              variant="flat"
-              onPress={() => {
-                setIsDetailModalOpen(false);
-                setDetailAplikasi(null);
-              }}
-            >
-              Tutup
-            </Button>
-            {detailAplikasi && (
-              <Button
-                color="primary"
-                startContent={<FiEdit2 className="w-4 h-4" />}
-                onPress={() => {
-                  setIsDetailModalOpen(false);
-                  handleEdit(detailAplikasi);
-                }}
-              >
-                Edit
-              </Button>
-            )}
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+      />
     </motion.div>
   );
 }

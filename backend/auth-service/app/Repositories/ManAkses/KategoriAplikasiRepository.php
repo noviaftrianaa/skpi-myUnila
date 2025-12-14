@@ -46,7 +46,20 @@ class KategoriAplikasiRepository
         $page = $params['page'] ?? 1;
         $limit = $params['limit'] ?? 10;
         $search = $params['search'] ?? null;
+        $sortBy = $params['sort_by'] ?? 'urutan'; // column to sort by
+        $sortOrder = $params['sort_order'] ?? 'asc'; // 'asc' or 'desc'
         $offset = ($page - 1) * $limit;
+
+        // Validate sort column to prevent SQL injection
+        $allowedSortColumns = [
+            'nm_kategori' => 'k.nm_kategori',
+            'urutan' => 'k.urutan',
+            'jumlah_aplikasi' => 'jumlah_aplikasi',
+            'tgl_create' => 'k.tgl_create',
+            'last_update' => 'k.last_update',
+        ];
+        $sortColumn = $allowedSortColumns[$sortBy] ?? 'k.urutan';
+        $sortDirection = strtolower($sortOrder) === 'desc' ? 'DESC' : 'ASC';
 
         // Base query for data
         $dataSql = "
@@ -89,7 +102,7 @@ class KategoriAplikasiRepository
         $total = $countResult->total ?? 0;
 
         // Add ordering and pagination
-        $dataSql .= " ORDER BY k.urutan ASC, k.nm_kategori ASC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        $dataSql .= " ORDER BY {$sortColumn} {$sortDirection} OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         $bindings[] = $offset;
         $bindings[] = $limit;
 
