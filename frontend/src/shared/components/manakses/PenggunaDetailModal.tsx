@@ -313,7 +313,7 @@ export default function PenggunaDetailModal({
           </Button>
           {pengguna && onEdit && (
             <Button
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold"
+              className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold"
               onPress={() => onEdit(pengguna)}
               size="sm"
             >

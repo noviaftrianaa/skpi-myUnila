@@ -611,9 +611,16 @@ export default function AplikasiFormModal({
                           <Autocomplete
                             aria-label="Pilih Icon"
                             placeholder="Cari icon..."
+                            allowsCustomValue
                             selectedKey={formData.icon_name}
+                            inputValue={formData.icon_name || ""}
+                            onInputChange={(value) => {
+                              setFormData({ ...formData, icon_name: value || null });
+                            }}
                             onSelectionChange={(key) => {
-                              setFormData({ ...formData, icon_name: key as string || null });
+                              if (key) {
+                                setFormData({ ...formData, icon_name: key as string });
+                              }
                             }}
                             variant="bordered"
                             size="sm"
@@ -655,39 +662,55 @@ export default function AplikasiFormModal({
                           <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
                             Warna Icon
                           </label>
-                          <Select
+                          <Autocomplete
                             aria-label="Pilih Warna"
                             placeholder="Pilih warna"
-                            selectedKeys={formData.icon_color ? [formData.icon_color] : []}
-                            onSelectionChange={(keys) => {
-                              const selected = Array.from(keys)[0] as string;
-                              setFormData({ ...formData, icon_color: selected || null });
+                            allowsCustomValue
+                            selectedKey={formData.icon_color}
+                            inputValue={formData.icon_color || ""}
+                            onInputChange={(value) => {
+                              setFormData({ ...formData, icon_color: value || null });
+                            }}
+                            onSelectionChange={(key) => {
+                              if (key) {
+                                setFormData({ ...formData, icon_color: key as string });
+                              }
                             }}
                             variant="bordered"
                             size="sm"
-                            classNames={{
-                              trigger: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
-                              value: "text-gray-900 dark:text-white",
-                              popoverContent: "bg-white dark:bg-slate-800",
-                            }}
-                            renderValue={(items) => {
-                              const item = items[0];
-                              const colorOption = COLOR_OPTIONS.find(c => c.key === item?.key);
-                              return (
-                                <div className="flex items-center gap-2">
-                                  {colorOption && (
+                            startContent={
+                              formData.icon_color ? (
+                                (() => {
+                                  const colorOption = COLOR_OPTIONS.find(c => c.key === formData.icon_color);
+                                  return colorOption ? (
                                     <span
-                                      className="w-4 h-4 rounded-full border border-gray-200"
+                                      className="w-4 h-4 rounded-full border border-gray-200 flex-shrink-0"
                                       style={{ backgroundColor: colorOption.color }}
                                     />
-                                  )}
-                                  <span>{colorOption?.label || "Pilih warna"}</span>
-                                </div>
-                              );
+                                  ) : (
+                                    <span className={`w-4 h-4 rounded-full border border-gray-200 flex-shrink-0 ${formData.icon_color}`} />
+                                  );
+                                })()
+                              ) : null
+                            }
+                            classNames={{
+                              base: "w-full",
+                              listboxWrapper: "max-h-[300px]",
+                              popoverContent: "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 shadow-lg",
+                            }}
+                            inputProps={{
+                              classNames: {
+                                input: "text-gray-900 dark:text-white",
+                                inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
+                              },
+                            }}
+                            listboxProps={{
+                              emptyContent: "Tidak ada warna ditemukan",
+                              className: "bg-white dark:bg-slate-800",
                             }}
                           >
                             {COLOR_OPTIONS.map((color) => (
-                              <SelectItem key={color.key} textValue={color.label}>
+                              <AutocompleteItem key={color.key} textValue={color.label}>
                                 <div className="flex items-center gap-2">
                                   <span
                                     className="w-4 h-4 rounded-full border border-gray-200"
@@ -695,9 +718,9 @@ export default function AplikasiFormModal({
                                   />
                                   <span>{color.label}</span>
                                 </div>
-                              </SelectItem>
+                              </AutocompleteItem>
                             ))}
-                          </Select>
+                          </Autocomplete>
                         </div>
                       </div>
 
@@ -884,7 +907,7 @@ export default function AplikasiFormModal({
                       </label>
                     </div>
                     <p className="text-xs text-gray-500 dark:text-slate-400 mt-3">
-                      Mengubah status akan memperbarui expired_date aplikasi secara otomatis
+                      Status menentukan apakah aplikasi aktif atau tidak aktif dalam sistem
                     </p>
                   </div>
 
@@ -1161,7 +1184,7 @@ export default function AplikasiFormModal({
             <Button
               type="submit"
               isLoading={loading}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all"
+              className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold shadow-lg hover:shadow-xl transition-all"
               size="lg"
             >
               {isEditMode ? "Simpan Perubahan" : "Tambah Aplikasi"}

@@ -207,6 +207,7 @@ Route::prefix('v1')->group(function () {
 
         // Menu (Application Menu Management)
         Route::prefix('menu')->group(function () {
+            Route::get('/', [MenuController::class, 'index']);
             Route::get('/stats', [MenuController::class, 'stats']);
             Route::get('/by-aplikasi/{idAplikasi}', [MenuController::class, 'byAplikasi']);
             Route::post('/sync/{idAplikasi}', [MenuController::class, 'sync']);

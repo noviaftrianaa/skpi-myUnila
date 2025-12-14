@@ -15,6 +15,17 @@ class MenuService
     ) {}
 
     /**
+     * Get paginated list of all menus
+     *
+     * @param array $params
+     * @return array
+     */
+    public function getList(array $params = []): array
+    {
+        return $this->repository->getList($params);
+    }
+
+    /**
      * Get menus by aplikasi with tree structure
      *
      * @param string $idAplikasi

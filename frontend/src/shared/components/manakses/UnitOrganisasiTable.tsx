@@ -430,7 +430,7 @@ export default function UnitOrganisasiTable({ onStatsLoaded }: UnitOrganisasiTab
       color="primary"
       startContent={<FiPlus className="w-4 h-4" />}
       onPress={handleAdd}
-      className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium shadow-md hover:shadow-lg transition-all rounded-lg"
+      className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-medium shadow-md hover:shadow-lg transition-all rounded-lg"
       size="sm"
     >
       Tambah Data
@@ -554,7 +554,7 @@ export default function UnitOrganisasiTable({ onStatsLoaded }: UnitOrganisasiTab
           </ModalBody>
           <ModalFooter className="gap-3 px-6 py-4 border-t border-gray-200 dark:border-slate-700">
             <Button variant="flat" onPress={onAddClose} className="font-medium">Batal</Button>
-            <Button color="primary" onPress={handleSubmitAdd} isLoading={isSubmitting} className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all">Simpan</Button>
+            <Button color="primary" onPress={handleSubmitAdd} isLoading={isSubmitting} className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold shadow-lg hover:shadow-xl transition-all">Simpan</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
@@ -639,7 +639,7 @@ export default function UnitOrganisasiTable({ onStatsLoaded }: UnitOrganisasiTab
           </ModalBody>
           <ModalFooter className="gap-3 px-6 py-4 border-t border-gray-200 dark:border-slate-700">
             <Button variant="flat" onPress={onEditClose} className="font-medium">Batal</Button>
-            <Button color="primary" onPress={handleSubmitEdit} isLoading={isSubmitting} className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all">Simpan Perubahan</Button>
+            <Button color="primary" onPress={handleSubmitEdit} isLoading={isSubmitting} className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold shadow-lg hover:shadow-xl transition-all">Simpan Perubahan</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>

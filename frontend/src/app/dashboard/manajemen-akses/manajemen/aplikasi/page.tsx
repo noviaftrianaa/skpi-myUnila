@@ -113,16 +113,16 @@ export default function DaftarAplikasiPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs font-medium text-emerald-100">Aplikasi Aktif</p>
+                    <p className="text-xs font-medium text-emerald-100">Aplikasi Live</p>
                     <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
-                      <span className="text-[10px] font-semibold text-white">Live</span>
+                      <span className="text-[10px] font-semibold text-white">Production</span>
                     </div>
                   </div>
                   <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
                     {stats?.total_live?.toLocaleString() || "0"}
                   </h3>
                   <p className="text-[10px] text-emerald-100/80">
-                    Aplikasi live/production
+                    Sudah live/production
                   </p>
                 </div>
               </div>

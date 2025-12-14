@@ -76,23 +76,39 @@ class AplikasiRepository
                 ISNULL(a.a_coming_soon, 0) as a_coming_soon,
                 ISNULL(a.a_terintegrasi, 0) as a_terintegrasi,
                 ISNULL(a.a_live, 0) as a_live,
+                ISNULL(a.a_aktif, 1) as a_aktif,
                 (SELECT COUNT(*) FROM man_akses.akses_table_aplikasi ata WHERE ata.id_aplikasi = a.id_aplikasi) as jumlah_table,
                 (SELECT COUNT(*) FROM man_akses.pj_aplikasi pj WHERE pj.id_aplikasi = a.id_aplikasi) as jumlah_pj
             FROM man_akses.aplikasi a
             LEFT JOIN man_akses.unit_organisasi uo ON uo.id_organisasi = a.id_organisasi
             LEFT JOIN man_akses.kategori_aplikasi k ON k.id_kategori = a.id_kategori
-            WHERE a.expired_date IS NULL
+            WHERE 1=1
         ";
 
-        // Base query for count - also filter expired_date IS NULL
+        // Base query for count
         $countSql = "
             SELECT COUNT(*) as total
             FROM man_akses.aplikasi a
-            WHERE a.expired_date IS NULL
+            WHERE 1=1
         ";
 
         $bindings = [];
         $countBindings = [];
+
+        // Default: only show non-deleted records (expired_date IS NULL)
+        $dataSql .= " AND a.expired_date IS NULL";
+        $countSql .= " AND a.expired_date IS NULL";
+
+        // Add status filter (based on a_aktif column: 1 = aktif, 0 = tidak aktif)
+        if ($status !== null) {
+            if ($status === 'aktif') {
+                $statusCondition = " AND ISNULL(a.a_aktif, 1) = 1";
+            } else {
+                $statusCondition = " AND ISNULL(a.a_aktif, 1) = 0";
+            }
+            $countSql .= $statusCondition;
+            $dataSql .= $statusCondition;
+        }
 
         // Add search filter
         if (!empty($search)) {
@@ -113,17 +129,6 @@ class AplikasiRepository
             $countBindings[] = $searchTerm;
             $countBindings[] = $searchTerm;
             $countBindings[] = $searchTerm;
-        }
-
-        // Add status filter (based on status column)
-        if ($status !== null) {
-            if ($status === 'aktif') {
-                $statusCondition = " AND a.status = 'Aktif'";
-            } else {
-                $statusCondition = " AND a.status = 'Tidak Aktif'";
-            }
-            $countSql .= $statusCondition;
-            $dataSql .= $statusCondition;
         }
 
         // Add mode filter (production/development based on a_live)
@@ -205,10 +210,9 @@ class AplikasiRepository
         $data = DB::select($dataSql, $bindings);
 
         // Add computed status field
-        $now = now();
         foreach ($data as $item) {
-            $isExpired = $item->expired_date && strtotime($item->expired_date) <= $now->timestamp;
-            $item->status = $isExpired ? 'Tidak Aktif' : 'Aktif';
+            // Status based on a_aktif column (1 = Aktif, 0 = Tidak Aktif)
+            $item->status = $item->a_aktif ? 'Aktif' : 'Tidak Aktif';
             $item->jenis = $item->a_sistem_internal_pt ? 'Internal' : 'External';
             // Cast bit fields to int for JSON
             $item->a_tampil_portal = (int) $item->a_tampil_portal;
@@ -216,6 +220,7 @@ class AplikasiRepository
             $item->a_coming_soon = (int) $item->a_coming_soon;
             $item->a_terintegrasi = (int) $item->a_terintegrasi;
             $item->a_live = (int) $item->a_live;
+            $item->a_aktif = (int) $item->a_aktif;
         }
 
         return [
@@ -261,6 +266,7 @@ class AplikasiRepository
                 ISNULL(a.a_coming_soon, 0) as a_coming_soon,
                 ISNULL(a.a_terintegrasi, 0) as a_terintegrasi,
                 ISNULL(a.a_live, 0) as a_live,
+                ISNULL(a.a_aktif, 1) as a_aktif,
                 a.tgl_create,
                 a.last_update,
                 a.expired_date,
@@ -276,9 +282,8 @@ class AplikasiRepository
         $aplikasi = DB::selectOne($sql, [$id]);
 
         if ($aplikasi) {
-            $now = now();
-            $isExpired = $aplikasi->expired_date && strtotime($aplikasi->expired_date) <= $now->timestamp;
-            $aplikasi->status = $isExpired ? 'Tidak Aktif' : 'Aktif';
+            // Status based on a_aktif column (1 = Aktif, 0 = Tidak Aktif)
+            $aplikasi->status = $aplikasi->a_aktif ? 'Aktif' : 'Tidak Aktif';
             $aplikasi->jenis = $aplikasi->a_sistem_internal_pt ? 'Internal' : 'External';
             // Cast bit fields
             $aplikasi->a_tampil_portal = (int) $aplikasi->a_tampil_portal;
@@ -286,6 +291,7 @@ class AplikasiRepository
             $aplikasi->a_coming_soon = (int) $aplikasi->a_coming_soon;
             $aplikasi->a_terintegrasi = (int) $aplikasi->a_terintegrasi;
             $aplikasi->a_live = (int) $aplikasi->a_live;
+            $aplikasi->a_aktif = (int) $aplikasi->a_aktif;
 
             // Get tables for this application
             $aplikasi->tables = $this->getTables($id);
@@ -364,9 +370,32 @@ class AplikasiRepository
      */
     public function getMenus(string $idAplikasi): array
     {
-        // Menu table has different structure - return empty array for now
-        // TODO: Query actual menu table structure and implement properly
-        return [];
+        $sql = "
+            SELECT
+                CONVERT(VARCHAR(36), m.id_menu) as id_menu,
+                m.nm_menu,
+                m.nm_file as url_menu,
+                m.urutan_menu as urutan,
+                ISNULL(m.a_aktif, 1) as a_aktif,
+                m.icon,
+                m.level_menu,
+                CONVERT(VARCHAR(36), m.id_group_menu) as id_group_menu,
+                m.tgl_create,
+                m.last_update
+            FROM man_akses.menu m
+            WHERE m.id_aplikasi = ?
+              AND m.expired_date IS NULL
+            ORDER BY m.level_menu ASC, m.urutan_menu ASC, m.nm_menu ASC
+        ";
+
+        $menus = DB::select($sql, [$idAplikasi]);
+
+        // Cast bit fields to int
+        foreach ($menus as $menu) {
+            $menu->a_aktif = (int) $menu->a_aktif;
+        }
+
+        return $menus;
     }
 
     /**
@@ -397,18 +426,19 @@ class AplikasiRepository
      */
     public function getStats(): object
     {
-        // Only count non-deleted records (expired_date IS NULL)
-        // Note: status aktif/nonaktif determined by expired_date (NULL = aktif)
+        // Count only non-deleted records (expired_date IS NULL)
+        // Status aktif/nonaktif based on a_aktif column (1 = aktif, 0 = tidak aktif)
+        // total_live: aplikasi yang live/production DAN aktif (a_live = 1 AND a_aktif = 1)
         $sql = "
             SELECT
                 COUNT(*) as total_aplikasi,
-                SUM(CASE WHEN ISNULL(a.a_live, 0) = 1 THEN 1 ELSE 0 END) as total_live,
+                SUM(CASE WHEN ISNULL(a.a_live, 0) = 1 AND ISNULL(a.a_aktif, 1) = 1 THEN 1 ELSE 0 END) as total_live,
                 SUM(CASE WHEN ISNULL(a.a_live, 0) = 0 THEN 1 ELSE 0 END) as total_dev,
                 SUM(CASE WHEN ISNULL(a.a_terintegrasi, 0) = 1 THEN 1 ELSE 0 END) as total_terintegrasi,
                 SUM(CASE WHEN ISNULL(a.a_tampil_portal, 0) = 1 THEN 1 ELSE 0 END) as total_portal,
                 SUM(CASE WHEN ISNULL(a.a_maintenance, 0) = 1 THEN 1 ELSE 0 END) as total_maintenance,
-                COUNT(*) as total_aktif,
-                0 as total_nonaktif
+                SUM(CASE WHEN ISNULL(a.a_aktif, 1) = 1 THEN 1 ELSE 0 END) as total_aktif,
+                SUM(CASE WHEN ISNULL(a.a_aktif, 1) = 0 THEN 1 ELSE 0 END) as total_nonaktif
             FROM man_akses.aplikasi a
             WHERE a.expired_date IS NULL
         ";
@@ -427,6 +457,13 @@ class AplikasiRepository
         $id = $this->generateUuid();
         $now = now()->format('Y-m-d H:i:s');
 
+        // Convert status string to a_aktif boolean (1/0)
+        // 'Aktif' = 1, 'Tidak Aktif' = 0
+        $aAktif = 1; // default aktif
+        if (isset($data['status'])) {
+            $aAktif = ($data['status'] === 'Aktif') ? 1 : 0;
+        }
+
         $sql = "
             INSERT INTO man_akses.aplikasi (
                 id_aplikasi, id_organisasi, id_kategori, nm_aplikasi, ket_aplikasi,
@@ -434,8 +471,8 @@ class AplikasiRepository
                 icon_name, icon_color, app_slug, urutan,
                 a_generate_menu, a_integrasi_cas, a_sistem_internal_pt,
                 a_tampil_portal, a_maintenance, a_coming_soon, a_terintegrasi, a_live,
-                tgl_create, last_update, last_sync
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                a_aktif, tgl_create, last_update, last_sync
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ";
 
         DB::insert($sql, [
@@ -462,6 +499,7 @@ class AplikasiRepository
             $data['a_coming_soon'] ?? 0,
             $data['a_terintegrasi'] ?? 0,
             $data['a_live'] ?? 0,
+            $aAktif,
             $now,
             $now,
             $now,
@@ -480,6 +518,13 @@ class AplikasiRepository
     public function update(string $id, array $data): bool
     {
         $now = now()->format('Y-m-d H:i:s');
+
+        // Convert status string to a_aktif boolean (1/0)
+        // 'Aktif' = 1, 'Tidak Aktif' = 0
+        $aAktif = 1; // default aktif
+        if (isset($data['status'])) {
+            $aAktif = ($data['status'] === 'Aktif') ? 1 : 0;
+        }
 
         $sql = "
             UPDATE man_akses.aplikasi SET
@@ -503,6 +548,7 @@ class AplikasiRepository
                 a_coming_soon = ?,
                 a_terintegrasi = ?,
                 a_live = ?,
+                a_aktif = ?,
                 last_update = ?,
                 last_sync = ?
             WHERE id_aplikasi = ?
@@ -529,6 +575,7 @@ class AplikasiRepository
             $data['a_coming_soon'] ?? 0,
             $data['a_terintegrasi'] ?? 0,
             $data['a_live'] ?? 0,
+            $aAktif,
             $now,
             $now,
             $id,
@@ -569,7 +616,7 @@ class AplikasiRepository
      */
     public function nameExists(string $name, ?string $excludeId = null): bool
     {
-        $sql = "SELECT COUNT(*) as count FROM man_akses.aplikasi WHERE nm_aplikasi = ?";
+        $sql = "SELECT COUNT(*) as count FROM man_akses.aplikasi WHERE nm_aplikasi = ? AND expired_date IS NULL";
         $bindings = [$name];
 
         if ($excludeId) {

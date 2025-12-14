@@ -816,7 +816,7 @@ export default function PenggunaEditModal({
             onPress={handleSave}
             isLoading={saving}
             startContent={!saving && <FiSave className="w-4 h-4" />}
-            className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all"
+            className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold shadow-lg hover:shadow-xl transition-all"
             size="lg"
           >
             Simpan Perubahan
