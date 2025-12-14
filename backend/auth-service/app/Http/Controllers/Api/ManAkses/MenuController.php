@@ -33,6 +33,44 @@ class MenuController extends Controller
     }
 
     /**
+     * Get all menus (paginated)
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function index(Request $request): JsonResponse
+    {
+        try {
+            $params = [
+                'page' => (int) $request->get('page', 1),
+                'limit' => (int) $request->get('limit', 10),
+                'search' => $request->get('search'),
+                'id_aplikasi' => $request->get('id_aplikasi'),
+                'a_aktif' => $request->get('a_aktif'),
+                'sort_by' => $request->get('sort_by', 'nm_menu'),
+                'sort_order' => $request->get('sort_order', 'asc'),
+            ];
+
+            $result = $this->service->getList($params);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data menu berhasil diambil',
+                'data' => $result['data'],
+                'total' => $result['total'],
+                'page' => $params['page'],
+                'limit' => $params['limit'],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data menu: ' . $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+    }
+
+    /**
      * Get menus by aplikasi ID
      *
      * @param Request $request

@@ -335,7 +335,7 @@ export default function KategoriAplikasiTable({ onStatsLoaded }: KategoriAplikas
       color="primary"
       startContent={<FiPlus className="w-4 h-4" />}
       onPress={handleAdd}
-      className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium shadow-md hover:shadow-lg transition-all rounded-lg"
+      className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-medium shadow-md hover:shadow-lg transition-all rounded-lg"
       size="sm"
     >
       Tambah Data

@@ -152,14 +152,15 @@ class AplikasiService
                 'menus' => array_map(function ($menu) {
                     return [
                         'id_menu' => $menu->id_menu,
-                        'id_menu_parent' => $menu->id_menu_parent,
+                        'id_group_menu' => $menu->id_group_menu ?? null,
                         'nm_menu' => $menu->nm_menu,
-                        'icon_menu' => $menu->icon_menu,
-                        'url_menu' => $menu->url_menu,
-                        'urutan' => (int) $menu->urutan,
-                        'a_aktif' => (bool) $menu->a_aktif,
-                        'tgl_create' => $menu->tgl_create,
-                        'last_update' => $menu->last_update,
+                        'icon' => $menu->icon ?? null,
+                        'url_menu' => $menu->url_menu ?? null,
+                        'urutan' => (int) ($menu->urutan ?? 0),
+                        'level_menu' => (int) ($menu->level_menu ?? 1),
+                        'a_aktif' => (bool) ($menu->a_aktif ?? true),
+                        'tgl_create' => $menu->tgl_create ?? null,
+                        'last_update' => $menu->last_update ?? null,
                     ];
                 }, $aplikasi->menus ?? []),
             ];

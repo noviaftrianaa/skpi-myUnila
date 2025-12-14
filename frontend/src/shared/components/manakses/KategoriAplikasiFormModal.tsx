@@ -399,7 +399,7 @@ export default function KategoriAplikasiFormModal({
             <Button
               type="submit"
               isLoading={loading}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all"
+              className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold shadow-lg hover:shadow-xl transition-all"
             >
               {isEditMode ? "Simpan Perubahan" : "Simpan"}
             </Button>

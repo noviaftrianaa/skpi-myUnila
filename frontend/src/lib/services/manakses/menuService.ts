@@ -128,11 +128,45 @@ interface ApiResponse<T> {
   data: T;
 }
 
+export interface MenuListParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  id_aplikasi?: string;
+  a_aktif?: string;
+  sort_by?: string;
+  sort_order?: 'asc' | 'desc';
+}
+
+export interface MenuListResult {
+  data: Menu[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 /**
  * Menu Service for ManAkses
  * Manages menu data from auth-service
  */
 export const menuService = {
+  /**
+   * Get paginated list of all menus
+   * @param params - Query parameters
+   */
+  async getList(params: MenuListParams = {}): Promise<MenuListResult> {
+    const response = await authClient.get<MenuListResult & { success: boolean; message: string }>(
+      '/manakses/menu',
+      { params }
+    );
+    return {
+      data: response.data.data,
+      total: response.data.total,
+      page: response.data.page,
+      limit: response.data.limit,
+    };
+  },
+
   /**
    * Get menu statistics
    * @param idAplikasi - Optional filter by aplikasi

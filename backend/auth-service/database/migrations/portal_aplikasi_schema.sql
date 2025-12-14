@@ -104,4 +104,19 @@ BEGIN
 END
 GO
 
+-- ============================================================================
+-- STEP 5: Add a_aktif column to aplikasi table
+-- ============================================================================
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'man_akses' AND TABLE_NAME = 'aplikasi' AND COLUMN_NAME = 'a_aktif')
+BEGIN
+    ALTER TABLE man_akses.aplikasi ADD a_aktif BIT DEFAULT 1;
+    PRINT 'Column a_aktif added to aplikasi';
+END
+GO
+
+-- Update existing records to be active (1)
+UPDATE man_akses.aplikasi SET a_aktif = 1 WHERE a_aktif IS NULL;
+PRINT 'Existing records updated with a_aktif = 1';
+GO
+
 PRINT '=== Migration completed successfully ===';

@@ -15,6 +15,95 @@ use Illuminate\Support\Facades\DB;
 class MenuRepository
 {
     /**
+     * Get paginated list of all menus
+     *
+     * @param array $params
+     * @return array ['data' => [], 'total' => int]
+     */
+    public function getList(array $params = []): array
+    {
+        $page = $params['page'] ?? 1;
+        $limit = $params['limit'] ?? 10;
+        $offset = ($page - 1) * $limit;
+        $search = $params['search'] ?? null;
+        $idAplikasi = $params['id_aplikasi'] ?? null;
+        $aAktif = $params['a_aktif'] ?? null;
+        $sortBy = $params['sort_by'] ?? 'nm_menu';
+        $sortOrder = strtoupper($params['sort_order'] ?? 'ASC');
+
+        // Validate sort order
+        $sortOrder = in_array($sortOrder, ['ASC', 'DESC']) ? $sortOrder : 'ASC';
+
+        // Validate sort column
+        $allowedSortColumns = ['nm_menu', 'nm_aplikasi', 'level_menu', 'urutan_menu', 'tgl_create', 'last_update'];
+        $sortBy = in_array($sortBy, $allowedSortColumns) ? $sortBy : 'nm_menu';
+
+        $baseSql = "
+            FROM man_akses.menu m
+            INNER JOIN man_akses.aplikasi a ON a.id_aplikasi = m.id_aplikasi AND a.expired_date IS NULL
+            LEFT JOIN man_akses.menu pm ON pm.id_menu = m.id_group_menu
+            WHERE m.expired_date IS NULL
+        ";
+
+        $bindings = [];
+
+        if ($idAplikasi) {
+            $baseSql .= " AND m.id_aplikasi = ?";
+            $bindings[] = $idAplikasi;
+        }
+
+        if ($aAktif !== null && $aAktif !== '') {
+            $baseSql .= " AND m.a_aktif = ?";
+            $bindings[] = $aAktif;
+        }
+
+        if ($search) {
+            $baseSql .= " AND (m.nm_menu LIKE ? OR m.nm_file LIKE ? OR a.nm_aplikasi LIKE ?)";
+            $searchTerm = "%{$search}%";
+            $bindings[] = $searchTerm;
+            $bindings[] = $searchTerm;
+            $bindings[] = $searchTerm;
+        }
+
+        // Count total
+        $countSql = "SELECT COUNT(*) as total " . $baseSql;
+        $totalResult = DB::selectOne($countSql, $bindings);
+        $total = $totalResult->total ?? 0;
+
+        // Get data with pagination
+        $dataSql = "
+            SELECT
+                CONVERT(VARCHAR(36), m.id_menu) as id_menu,
+                m.nm_menu,
+                m.nm_file,
+                m.urutan_menu,
+                m.a_aktif,
+                m.a_tampil,
+                m.icon,
+                m.level_menu,
+                CONVERT(VARCHAR(36), m.id_aplikasi) as id_aplikasi,
+                a.nm_aplikasi,
+                CONVERT(VARCHAR(36), m.id_group_menu) as id_group_menu,
+                pm.nm_menu as parent_menu_name,
+                m.tgl_create,
+                m.last_update
+            " . $baseSql . "
+            ORDER BY {$sortBy} {$sortOrder}
+            OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
+        ";
+
+        $bindings[] = $offset;
+        $bindings[] = $limit;
+
+        $data = DB::select($dataSql, $bindings);
+
+        return [
+            'data' => $data,
+            'total' => $total,
+        ];
+    }
+
+    /**
      * Get menus by aplikasi ID with tree structure
      *
      * @param string $idAplikasi

@@ -43,6 +43,8 @@ class MenuRoleRepository
         $sortColumn = $allowedSortColumns[$sortBy] ?? 'a.nm_aplikasi';
         $sortDirection = strtolower($sortOrder) === 'desc' ? 'DESC' : 'ASC';
 
+        // Filter: only show active menu_role records
+        // Note: expired_date filter for aplikasi is handled in INNER JOIN clause
         $baseWhere = " WHERE mr.soft_delete = 0";
         $bindings = [];
 
@@ -68,11 +70,13 @@ class MenuRoleRepository
         }
 
         // Get total count
+        // Use INNER JOIN for aplikasi to ensure only valid (non-deleted) aplikasi are included
         $countSql = "
             SELECT COUNT(*) as total
             FROM man_akses.menu_role mr
             INNER JOIN man_akses.menu m ON m.id_menu = mr.id_menu
             INNER JOIN man_akses.peran p ON p.id_peran = mr.id_peran
+            INNER JOIN man_akses.aplikasi a ON a.id_aplikasi = m.id_aplikasi AND a.expired_date IS NULL
             {$baseWhere}
         ";
 
@@ -80,6 +84,7 @@ class MenuRoleRepository
         $total = $countResult->total ?? 0;
 
         // Get paginated data
+        // Use INNER JOIN for aplikasi to ensure only valid (non-deleted) aplikasi are included
         $dataSql = "
             SELECT
                 CONVERT(VARCHAR(36), mr.id_menu) as id_menu,
@@ -100,7 +105,7 @@ class MenuRoleRepository
             FROM man_akses.menu_role mr
             INNER JOIN man_akses.menu m ON m.id_menu = mr.id_menu
             INNER JOIN man_akses.peran p ON p.id_peran = mr.id_peran
-            LEFT JOIN man_akses.aplikasi a ON a.id_aplikasi = m.id_aplikasi
+            INNER JOIN man_akses.aplikasi a ON a.id_aplikasi = m.id_aplikasi AND a.expired_date IS NULL
             {$baseWhere}
             ORDER BY {$sortColumn} {$sortDirection}, m.nm_menu ASC, p.nm_peran ASC
             OFFSET {$offset} ROWS FETCH NEXT {$limit} ROWS ONLY
@@ -186,7 +191,7 @@ class MenuRoleRepository
                 mr.last_update
             FROM man_akses.menu_role mr
             INNER JOIN man_akses.menu m ON m.id_menu = mr.id_menu
-            LEFT JOIN man_akses.aplikasi a ON a.id_aplikasi = m.id_aplikasi
+            INNER JOIN man_akses.aplikasi a ON a.id_aplikasi = m.id_aplikasi AND a.expired_date IS NULL
             WHERE mr.id_peran = ?
               AND mr.soft_delete = 0
               AND m.expired_date IS NULL
@@ -460,6 +465,7 @@ class MenuRoleRepository
      */
     public function getStats(): object
     {
+        // Use INNER JOIN to only count menu_role for non-deleted aplikasi
         $sql = "
             SELECT
                 COUNT(*) as total_assignments,
@@ -468,6 +474,7 @@ class MenuRoleRepository
                 COUNT(DISTINCT m.id_aplikasi) as total_aplikasi_with_rbac
             FROM man_akses.menu_role mr
             INNER JOIN man_akses.menu m ON m.id_menu = mr.id_menu
+            INNER JOIN man_akses.aplikasi a ON a.id_aplikasi = m.id_aplikasi AND a.expired_date IS NULL
             WHERE mr.soft_delete = 0
         ";
 

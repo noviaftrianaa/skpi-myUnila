@@ -48,6 +48,11 @@ export const manajemenAksesMenuConfig: MenuItem[] = [
         roles: ["developer"],
       },
       {
+        title: "Menu Aplikasi",
+        href: "/dashboard/manajemen-akses/manajemen/menu",
+        roles: ["developer"],
+      },
+      {
         title: "Kategori Aplikasi",
         href: "/dashboard/manajemen-akses/manajemen/kategori-aplikasi",
         roles: ["developer"],
