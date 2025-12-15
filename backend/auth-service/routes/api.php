@@ -104,6 +104,12 @@ Route::prefix('v1')->group(function () {
             Route::get('/health', [CacheController::class, 'health']);
             Route::post('/clear', [CacheController::class, 'clear']);
             Route::post('/invalidate-user', [CacheController::class, 'invalidateUser']);
+
+            // Permission cache invalidation endpoints
+            Route::post('/invalidate-menu-role', [CacheController::class, 'invalidateMenuRole']);
+            Route::post('/invalidate-app-info', [CacheController::class, 'invalidateAppInfo']);
+            Route::post('/invalidate-portal-apps', [CacheController::class, 'invalidatePortalApps']);
+            Route::post('/invalidate-all-permissions', [CacheController::class, 'invalidateAllPermissions']);
         });
 
         // User Context endpoints (role/unit selection for app access)

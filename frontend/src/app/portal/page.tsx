@@ -39,6 +39,7 @@ import {
   FiRefreshCw,
   FiFilter,
   FiCheck,
+  FiLock,
 } from "react-icons/fi";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
@@ -53,6 +54,7 @@ import type { PortalApp, PortalCategory } from "@/lib/services/userContext/userC
 // Extended app type for local state (with favorites)
 interface AppWithFavorite extends PortalApp {
   isFavorite: boolean;
+  has_access: boolean;
 }
 
 interface CategoryWithFavorites extends Omit<PortalCategory, 'apps'> {
@@ -177,10 +179,14 @@ export default function PortalPage() {
   // Count apps by filter type
   const filterCounts = useMemo(() => {
     const allApps = categoriesWithFavorites.flatMap(cat => cat.apps);
+    // Count locked only for production apps (a_live AND a_terintegrasi)
+    const productionApps = allApps.filter(app => app.a_live && app.a_terintegrasi);
     return {
       favorites: allApps.filter(app => app.isFavorite).length,
       comingSoon: allApps.filter(app => app.a_coming_soon).length,
       terintegrasi: allApps.filter(app => app.a_terintegrasi).length,
+      locked: productionApps.filter(app => !app.has_access).length,
+      accessible: productionApps.filter(app => app.has_access).length,
     };
   }, [categoriesWithFavorites]);
 
@@ -214,9 +220,9 @@ export default function PortalPage() {
     );
   };
 
-  // Get all favorite apps
+  // Get all favorite apps (only accessible ones for quick access)
   const favoriteApps = useMemo(() => {
-    return categoriesWithFavorites.flatMap(cat => cat.apps.filter(app => app.isFavorite));
+    return categoriesWithFavorites.flatMap(cat => cat.apps.filter(app => app.isFavorite && app.has_access));
   }, [categoriesWithFavorites]);
 
   // Dummy notifications data
@@ -305,6 +311,19 @@ export default function PortalPage() {
 
   // Handle app click
   const handleAppClick = async (app: AppWithFavorite) => {
+    // Determine if app is in production (a_live AND a_terintegrasi)
+    const isProduction = app.a_live && app.a_terintegrasi;
+
+    // Check if locked (no access) - only for production apps
+    if (isProduction && !app.has_access) {
+      setSelectedApp(app);
+      setAccessDeniedMessage(
+        `Role ${activeContext?.nm_peran || 'Anda'} di unit ${activeContext?.nm_organisasi || ''} tidak memiliki akses ke aplikasi ${app.nm_aplikasi}`
+      );
+      setShowAccessDeniedModal(true);
+      return;
+    }
+
     // Check if coming soon
     if (app.a_coming_soon) {
       setSelectedApp(app);
@@ -319,27 +338,29 @@ export default function PortalPage() {
       return;
     }
 
-    // Check if URL exists
-    if (!app.url) {
+    // Check if URL exists or not integrated yet
+    if (!app.url || app.url === '#' || !isProduction) {
       setSelectedApp(app);
       setShowComingSoonModal(true);
       return;
     }
 
-    // Check access via API
-    const accessResult = await checkAppAccess(app.id_aplikasi);
+    // Check access via API for additional menu_role validation (only for production apps)
+    if (isProduction) {
+      const accessResult = await checkAppAccess(app.id_aplikasi);
 
-    if (accessResult.requiresSelection) {
-      // Need to select a role first
-      setShowRoleModal(true);
-      return;
-    }
+      if (accessResult.requiresSelection) {
+        // Need to select a role first
+        setShowRoleModal(true);
+        return;
+      }
 
-    if (!accessResult.hasAccess) {
-      setSelectedApp(app);
-      setAccessDeniedMessage(accessResult.message);
-      setShowAccessDeniedModal(true);
-      return;
+      if (!accessResult.hasAccess) {
+        setSelectedApp(app);
+        setAccessDeniedMessage(accessResult.message);
+        setShowAccessDeniedModal(true);
+        return;
+      }
     }
 
     // Navigate to the app
@@ -417,18 +438,19 @@ export default function PortalPage() {
   // Get icon component from icon_name
   const getAppIcon = (iconName: string | null, iconColor: string | null) => {
     if (!iconName) {
-      return <FiInfo className="w-6 h-6" />;
+      return <FiInfo className="w-6 h-6 text-white" />;
     }
 
     // Convert React Icons format to Iconify format
     const iconifyName = convertToIconifyFormat(iconName);
 
     // Use Iconify for dynamic icon rendering
+    // Note: Iconify loads icons from CDN on demand
+    // Using style prop for color ensures it works with SSR
     return (
       <Icon
         icon={iconifyName}
-        className="w-6 h-6"
-        style={{ color: 'white' }}
+        style={{ width: 24, height: 24, color: 'white' }}
       />
     );
   };
@@ -753,7 +775,12 @@ export default function PortalPage() {
                   </h2>
                   {portalData && (
                     <p className="text-sm text-gray-500 mt-1">
-                      {filteredCategories.reduce((acc, cat) => acc + cat.apps.length, 0)} dari {portalData.total_apps} aplikasi
+                      {filteredCategories.reduce((acc, cat) => acc + cat.apps.length, 0)} aplikasi
+                      {filterCounts.locked > 0 && (
+                        <span className="ml-1 text-gray-400">
+                          ({filterCounts.accessible} dapat diakses, {filterCounts.locked} akses terbatas)
+                        </span>
+                      )}
                     </p>
                   )}
                 </div>
@@ -1033,6 +1060,9 @@ export default function PortalPage() {
                       {category.apps.map((app) => {
                         const bgColor = getIconBgColor(app.icon_color);
                         const isHexColor = bgColor.startsWith('#');
+                        // Show "Akses Terbatas" only for production apps (a_live AND a_terintegrasi)
+                        const isProduction = app.a_live && app.a_terintegrasi;
+                        const isLocked = !app.has_access && isProduction;
 
                         return (
                           <motion.div
@@ -1044,26 +1074,42 @@ export default function PortalPage() {
                             <Card
                               isPressable
                               onPress={() => handleAppClick(app)}
-                              className={`bg-white hover:shadow-lg transition-all duration-300 border border-gray-100 h-full w-full relative ${
-                                app.a_maintenance || app.a_coming_soon ? 'opacity-75' : ''
+                              className={`bg-white hover:shadow-lg transition-all duration-300 border h-full w-full relative ${
+                                isLocked
+                                  ? 'border-gray-200'
+                                  : app.a_maintenance || app.a_coming_soon
+                                    ? 'opacity-75 border-gray-100'
+                                    : 'border-gray-100'
                               }`}
                             >
                               <CardBody className="p-3 sm:p-4 flex flex-col h-full">
                                 {/* Mobile Layout */}
                                 <div className="flex flex-col items-center text-center sm:hidden gap-2">
-                                  <div
-                                    className={`${!isHexColor ? bgColor : ''} p-2.5 rounded-xl text-white flex-shrink-0`}
-                                    style={isHexColor ? { backgroundColor: bgColor } : undefined}
-                                  >
-                                    <div className="w-6 h-6 flex items-center justify-center">
-                                      {getAppIcon(app.icon_name, app.icon_color)}
+                                  <div className="relative">
+                                    <div
+                                      className={`${!isHexColor ? bgColor : ''} p-2.5 rounded-xl text-white flex-shrink-0`}
+                                      style={isHexColor ? { backgroundColor: bgColor } : undefined}
+                                    >
+                                      <div className="w-6 h-6 flex items-center justify-center">
+                                        {getAppIcon(app.icon_name, app.icon_color)}
+                                      </div>
                                     </div>
+                                    {/* Lock badge for mobile */}
+                                    {isLocked && (
+                                      <div className="absolute -bottom-1 -right-1 bg-orange-500 rounded-full p-1 shadow-sm">
+                                        <FiLock className="w-2.5 h-2.5 text-white" />
+                                      </div>
+                                    )}
                                   </div>
                                   <div className="w-full">
                                     <h4 className="font-semibold text-gray-800 text-xs line-clamp-2 min-h-[2.5rem] flex items-center justify-center">
                                       {app.nm_aplikasi}
                                     </h4>
-                                    {(app.a_maintenance || app.a_coming_soon) && (
+                                    {isLocked ? (
+                                      <Chip size="sm" variant="flat" className="mt-1 text-[10px] bg-orange-100 text-orange-600" startContent={<FiLock className="w-2.5 h-2.5" />}>
+                                        Akses Terbatas
+                                      </Chip>
+                                    ) : (app.a_maintenance || app.a_coming_soon) && (
                                       <Chip size="sm" color={app.a_maintenance ? "warning" : "primary"} variant="flat" className="mt-1 text-[10px]">
                                         {app.a_maintenance ? "Maintenance" : "Coming Soon"}
                                       </Chip>
@@ -1073,20 +1119,32 @@ export default function PortalPage() {
 
                                 {/* Desktop/Tablet Layout */}
                                 <div className="hidden sm:flex items-start gap-3">
-                                  <div
-                                    className={`${!isHexColor ? bgColor : ''} p-3 rounded-xl text-white flex-shrink-0`}
-                                    style={isHexColor ? { backgroundColor: bgColor } : undefined}
-                                  >
-                                    <div className="w-6 h-6">
-                                      {getAppIcon(app.icon_name, app.icon_color)}
+                                  <div className="relative flex-shrink-0">
+                                    <div
+                                      className={`${!isHexColor ? bgColor : ''} p-3 rounded-xl text-white`}
+                                      style={isHexColor ? { backgroundColor: bgColor } : undefined}
+                                    >
+                                      <div className="w-6 h-6">
+                                        {getAppIcon(app.icon_name, app.icon_color)}
+                                      </div>
                                     </div>
+                                    {/* Lock badge for desktop */}
+                                    {isLocked && (
+                                      <div className="absolute -bottom-1 -right-1 bg-orange-500 rounded-full p-1 shadow-sm">
+                                        <FiLock className="w-3 h-3 text-white" />
+                                      </div>
+                                    )}
                                   </div>
                                   <div className="flex-1 min-w-0 pr-6">
-                                    <div className="flex items-center gap-2 mb-1">
-                                      <h4 className="font-semibold text-gray-800 text-sm line-clamp-1">
+                                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                      <h4 className="font-semibold text-sm line-clamp-1 text-gray-800">
                                         {app.nm_aplikasi}
                                       </h4>
-                                      {(app.a_maintenance || app.a_coming_soon) && (
+                                      {isLocked ? (
+                                        <Chip size="sm" variant="flat" className="text-[10px] bg-orange-100 text-orange-600" startContent={<FiLock className="w-2.5 h-2.5" />}>
+                                          Akses Terbatas
+                                        </Chip>
+                                      ) : (app.a_maintenance || app.a_coming_soon) && (
                                         <Chip size="sm" color={app.a_maintenance ? "warning" : "primary"} variant="flat" className="text-[10px]">
                                           {app.a_maintenance ? "Maintenance" : "Soon"}
                                         </Chip>
@@ -1098,7 +1156,7 @@ export default function PortalPage() {
                                   </div>
                                 </div>
                               </CardBody>
-                              {/* Favorite Button */}
+                              {/* Favorite Button - show for all apps */}
                               <div
                                 onClick={(e) => {
                                   e.stopPropagation();

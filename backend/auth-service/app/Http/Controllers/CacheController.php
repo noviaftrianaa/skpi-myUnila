@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\CacheService;
+use App\Services\UserContext\UserContextService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,7 +18,8 @@ class CacheController extends Controller
     use ApiResponse;
 
     public function __construct(
-        private CacheService $cache
+        private CacheService $cache,
+        private UserContextService $userContextService
     ) {}
 
     /**
@@ -110,6 +112,111 @@ class CacheController extends Controller
         } catch (\Exception $e) {
             Log::error('Invalidate user cache error: ' . $e->getMessage());
             return $this->serverErrorResponse('Failed to invalidate user cache');
+        }
+    }
+
+    /**
+     * Invalidate menu_role permission cache
+     * Call this when menu_role is updated in admin panel
+     */
+    public function invalidateMenuRole(Request $request): JsonResponse
+    {
+        try {
+            $idPeran = $request->input('id_peran');
+            $idAplikasi = $request->input('id_aplikasi');
+
+            if (!$idPeran) {
+                return $this->errorResponse('id_peran is required', 400);
+            }
+
+            $this->userContextService->invalidateMenuRoleCache((int) $idPeran, $idAplikasi);
+
+            return $this->successResponse(
+                null,
+                $idAplikasi
+                    ? "Menu role cache invalidated for role {$idPeran} and app {$idAplikasi}"
+                    : "All menu role cache invalidated for role {$idPeran}"
+            );
+        } catch (\Exception $e) {
+            Log::error('Invalidate menu role cache error: ' . $e->getMessage());
+            return $this->serverErrorResponse('Failed to invalidate menu role cache');
+        }
+    }
+
+    /**
+     * Invalidate app info cache
+     * Call this when app is updated in admin panel
+     */
+    public function invalidateAppInfo(Request $request): JsonResponse
+    {
+        try {
+            $appId = $request->input('app_id');
+            $appKey = $request->input('app_key');
+
+            if (!$appId && !$appKey) {
+                return $this->errorResponse('app_id or app_key is required', 400);
+            }
+
+            $this->userContextService->invalidateAppInfoCache($appId, $appKey);
+
+            return $this->successResponse(
+                null,
+                "App info cache invalidated"
+            );
+        } catch (\Exception $e) {
+            Log::error('Invalidate app info cache error: ' . $e->getMessage());
+            return $this->serverErrorResponse('Failed to invalidate app info cache');
+        }
+    }
+
+    /**
+     * Invalidate portal apps cache
+     * Call this when apps list is updated
+     */
+    public function invalidatePortalApps(Request $request): JsonResponse
+    {
+        try {
+            $orgId = $request->input('org_id'); // Optional - if null, clears all
+
+            $this->userContextService->invalidatePortalAppsCache($orgId);
+
+            return $this->successResponse(
+                null,
+                $orgId
+                    ? "Portal apps cache invalidated for org {$orgId}"
+                    : "All portal apps cache invalidated"
+            );
+        } catch (\Exception $e) {
+            Log::error('Invalidate portal apps cache error: ' . $e->getMessage());
+            return $this->serverErrorResponse('Failed to invalidate portal apps cache');
+        }
+    }
+
+    /**
+     * Invalidate all permission-related caches
+     * Use with caution - clears all permission caches
+     */
+    public function invalidateAllPermissions(Request $request): JsonResponse
+    {
+        try {
+            // Require confirmation
+            $confirm = $request->input('confirm');
+            if ($confirm !== 'yes') {
+                return $this->errorResponse(
+                    'Confirmation required. Add {"confirm": "yes"} to request body',
+                    400
+                );
+            }
+
+            $this->userContextService->invalidateAllPermissionCache();
+
+            return $this->successResponse(
+                null,
+                'All permission caches invalidated successfully'
+            );
+        } catch (\Exception $e) {
+            Log::error('Invalidate all permissions cache error: ' . $e->getMessage());
+            return $this->serverErrorResponse('Failed to invalidate permission caches');
         }
     }
 }
