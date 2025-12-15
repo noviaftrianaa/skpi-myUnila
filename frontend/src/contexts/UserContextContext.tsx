@@ -151,15 +151,18 @@ export function UserContextProvider({ children }: UserContextProviderProps) {
       const result = await userContextService.checkAppAccess(appId, appKey);
       return {
         hasAccess: result.has_access,
-        requiresSelection: result.requires_context_selection,
-        message: result.has_access ? 'Akses diizinkan' : 'Akses ditolak',
+        requiresSelection: result.requires_context_selection || false,
+        message: result.has_access ? 'Akses diizinkan' : (result.requires_context_selection ? 'Silakan pilih peran terlebih dahulu' : 'Anda tidak memiliki akses ke aplikasi ini'),
       };
     } catch (err: any) {
       console.error('Failed to check app access:', err);
+      // Check if it's a "requires context selection" error
+      const message = err.response?.data?.message || err.message || 'Gagal memeriksa akses';
+      const requiresSelection = message.toLowerCase().includes('pilih') || message.toLowerCase().includes('belum');
       return {
         hasAccess: false,
-        requiresSelection: false,
-        message: err.response?.data?.message || err.message || 'Gagal memeriksa akses',
+        requiresSelection,
+        message,
       };
     }
   };

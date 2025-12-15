@@ -23,6 +23,9 @@ class UserContextService
     // Super roles with full access (Administrator, Developer)
     private const SUPER_ROLES = [1, 107];
 
+    // "Semua Unit" organization ID - universal access
+    private const SEMUA_UNIT_ORG_ID = '86942cdf-44f1-446e-8e9e-cb37bbbb16e6';
+
     protected UserContextRepository $repository;
 
     public function __construct(UserContextRepository $repository)
@@ -154,6 +157,14 @@ class UserContextService
     /**
      * Check if user has access to specific app based on active context
      *
+     * Access is granted if:
+     * 1. User has menu_role access for this app, AND
+     * 2. Organization check passes:
+     *    - App's org is NULL (accessible by all), OR
+     *    - App's org is "Semua Unit" (accessible by all), OR
+     *    - User's role org matches app's org, OR
+     *    - User's role org is "Semua Unit" (has global access)
+     *
      * @param string $userId
      * @param string|null $appId
      * @param string|null $appKey
@@ -174,7 +185,7 @@ class UserContextService
                 ];
             }
 
-            // Get app info
+            // Get app info (includes id_organisasi)
             $app = $this->repository->getAppInfo($appId, $appKey);
             if (!$app) {
                 return [
@@ -199,6 +210,21 @@ class UserContextService
                 ];
             }
 
+            // Check organization access
+            $hasOrgAccess = $this->checkOrganizationAccess(
+                $context['id_organisasi'] ?? null,
+                $app->id_organisasi ?? null
+            );
+
+            if (!$hasOrgAccess) {
+                return [
+                    'success' => true,
+                    'has_access' => false,
+                    'reason' => 'Unit organisasi ' . ($context['nm_organisasi'] ?? 'Anda') . ' tidak memiliki akses ke aplikasi ' . $app->nm_aplikasi,
+                    'context' => $context,
+                ];
+            }
+
             return [
                 'success' => true,
                 'has_access' => true,
@@ -207,7 +233,7 @@ class UserContextService
                 'app' => [
                     'id_aplikasi' => $app->id_aplikasi,
                     'nm_aplikasi' => $app->nm_aplikasi,
-                    'app_key' => $app->app_key,
+                    'app_key' => $app->app_slug,
                 ],
             ];
         } catch (\Exception $e) {
@@ -219,6 +245,45 @@ class UserContextService
             ]);
             throw $e;
         }
+    }
+
+    /**
+     * Check if user's organization has access to app's organization
+     *
+     * @param string|null $userOrgId User's active role organization ID
+     * @param string|null $appOrgId App's organization ID
+     * @return bool
+     */
+    private function checkOrganizationAccess(?string $userOrgId, ?string $appOrgId): bool
+    {
+        // If app has no org restriction, allow access
+        if ($appOrgId === null) {
+            return true;
+        }
+
+        // Normalize to lowercase for comparison
+        $appOrgIdLower = strtolower($appOrgId);
+        $semuaUnitLower = strtolower(self::SEMUA_UNIT_ORG_ID);
+
+        // If app's org is "Semua Unit", allow access to everyone
+        if ($appOrgIdLower === $semuaUnitLower) {
+            return true;
+        }
+
+        // If user has no org (shouldn't happen), deny access
+        if ($userOrgId === null) {
+            return false;
+        }
+
+        $userOrgIdLower = strtolower($userOrgId);
+
+        // If user's org is "Semua Unit", they have global access
+        if ($userOrgIdLower === $semuaUnitLower) {
+            return true;
+        }
+
+        // Finally, check if user's org matches app's org
+        return $userOrgIdLower === $appOrgIdLower;
     }
 
     /**

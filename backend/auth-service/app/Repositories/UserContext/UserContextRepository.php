@@ -118,32 +118,36 @@ class UserContextRepository
     }
 
     /**
-     * Get app info by ID or key
+     * Get app info by ID or slug
      *
-     * @param string|null $appId
-     * @param string|null $appKey
+     * @param string|null $appId Application UUID
+     * @param string|null $appKey Application slug (app_slug column)
      * @return object|null
      */
     public function getAppInfo(?string $appId, ?string $appKey): ?object
     {
         $sql = "
             SELECT
-                CONVERT(VARCHAR(36), id_aplikasi) as id_aplikasi,
-                nm_aplikasi,
-                app_key,
-                url,
-                port
-            FROM man_akses.aplikasi
-            WHERE (expired_date IS NULL OR expired_date > GETDATE())
+                CONVERT(VARCHAR(36), a.id_aplikasi) as id_aplikasi,
+                a.nm_aplikasi,
+                a.app_slug,
+                a.url,
+                a.port,
+                CONVERT(VARCHAR(36), a.id_organisasi) as id_organisasi,
+                uo.nm_lemb as nm_organisasi
+            FROM man_akses.aplikasi a
+            LEFT JOIN man_akses.unit_organisasi uo ON uo.id_organisasi = a.id_organisasi
+            WHERE (a.expired_date IS NULL OR a.expired_date > GETDATE())
         ";
 
         if ($appId) {
-            $sql .= " AND id_aplikasi = ?";
+            $sql .= " AND a.id_aplikasi = ?";
             return DB::selectOne($sql, [$appId]);
         }
 
         if ($appKey) {
-            $sql .= " AND app_key = ?";
+            // Use app_slug column for app_key parameter
+            $sql .= " AND a.app_slug = ?";
             return DB::selectOne($sql, [$appKey]);
         }
 

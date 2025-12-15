@@ -34,6 +34,7 @@ export interface Aplikasi {
   a_live: boolean;
   jumlah_table: number;
   jumlah_pj: number;
+  jumlah_menu: number;
   tgl_create: string | null;
   last_update: string | null;
   expired_date: string | null;
