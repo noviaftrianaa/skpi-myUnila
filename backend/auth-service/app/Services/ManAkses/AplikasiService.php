@@ -3,6 +3,7 @@
 namespace App\Services\ManAkses;
 
 use App\Repositories\ManAkses\AplikasiRepository;
+use App\Services\UserContext\UserContextService;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -12,10 +13,14 @@ use Illuminate\Support\Facades\Log;
 class AplikasiService
 {
     protected AplikasiRepository $repository;
+    protected UserContextService $userContextService;
 
-    public function __construct(AplikasiRepository $repository)
-    {
+    public function __construct(
+        AplikasiRepository $repository,
+        UserContextService $userContextService
+    ) {
         $this->repository = $repository;
+        $this->userContextService = $userContextService;
     }
 
     /**
@@ -251,6 +256,10 @@ class AplikasiService
 
             $this->repository->update($id, $data);
 
+            // Invalidate cache for this app
+            $this->userContextService->invalidateAppInfoCache($id, $existing->app_slug ?? null);
+            $this->userContextService->invalidatePortalAppsCache();
+
             return $this->getDetail($id);
         } catch (\Exception $e) {
             Log::error('AplikasiService::update error', [
@@ -277,7 +286,15 @@ class AplikasiService
                 return false;
             }
 
-            return $this->repository->delete($id);
+            $result = $this->repository->delete($id);
+
+            if ($result) {
+                // Invalidate cache for this app
+                $this->userContextService->invalidateAppInfoCache($id, $existing->app_slug ?? null);
+                $this->userContextService->invalidatePortalAppsCache();
+            }
+
+            return $result;
         } catch (\Exception $e) {
             Log::error('AplikasiService::delete error', [
                 'message' => $e->getMessage(),

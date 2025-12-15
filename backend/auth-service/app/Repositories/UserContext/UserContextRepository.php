@@ -177,11 +177,14 @@ class UserContextRepository
     }
 
     /**
-     * Get all portal apps with categories
-     * Filtered by organization access:
+     * Get all portal apps with categories (HYBRID approach)
+     * Returns ALL apps with has_access flag to indicate accessibility
+     *
+     * Access is granted if:
      * - User's role org matches app's org, OR
      * - App's org is "Semua Unit", OR
-     * - User's role org is "Semua Unit"
+     * - User's role org is "Semua Unit", OR
+     * - App has no org restriction (id_organisasi IS NULL)
      *
      * @param string|null $userOrgId User's active role organization ID
      * @return array
@@ -190,6 +193,30 @@ class UserContextRepository
     {
         // Semua Unit org ID - apps with this org are accessible by everyone
         $semuaUnitOrgId = '86942cdf-44f1-446e-8e9e-cb37bbbb16e6';
+
+        // Build has_access CASE expression
+        $hasAccessCase = "
+            CASE
+                WHEN a.id_organisasi IS NULL THEN 1
+                WHEN LOWER(CONVERT(VARCHAR(36), a.id_organisasi)) = LOWER(?) THEN 1
+        ";
+
+        $params = [$semuaUnitOrgId];
+
+        if ($userOrgId) {
+            $hasAccessCase .= "
+                WHEN LOWER(CONVERT(VARCHAR(36), a.id_organisasi)) = LOWER(?) THEN 1
+                WHEN LOWER(?) = LOWER(?) THEN 1
+            ";
+            $params[] = $userOrgId;
+            $params[] = $userOrgId;
+            $params[] = $semuaUnitOrgId;
+        }
+
+        $hasAccessCase .= "
+                ELSE 0
+            END as has_access
+        ";
 
         $sql = "
             SELECT
@@ -210,7 +237,9 @@ class UserContextRepository
                 k.urutan as kategori_urutan,
                 ISNULL(a.a_maintenance, 0) as a_maintenance,
                 ISNULL(a.a_coming_soon, 0) as a_coming_soon,
-                ISNULL(a.a_terintegrasi, 0) as a_terintegrasi
+                ISNULL(a.a_terintegrasi, 0) as a_terintegrasi,
+                ISNULL(a.a_live, 0) as a_live,
+                {$hasAccessCase}
             FROM man_akses.aplikasi a
             INNER JOIN man_akses.kategori_aplikasi k ON k.id_kategori = a.id_kategori
             LEFT JOIN man_akses.unit_organisasi uo ON uo.id_organisasi = a.id_organisasi
@@ -218,23 +247,8 @@ class UserContextRepository
               AND a.expired_date IS NULL
               AND ISNULL(a.a_aktif, 1) = 1
               AND k.soft_delete = 0
+            ORDER BY k.urutan, a.urutan, a.nm_aplikasi
         ";
-
-        // Add organization filter if user org is provided
-        if ($userOrgId) {
-            $sql .= "
-              AND (
-                  a.id_organisasi = ?           -- User's org matches app's org
-                  OR a.id_organisasi = ?        -- App is for 'Semua Unit'
-                  OR ? = ?                      -- User's org is 'Semua Unit' (has global access)
-              )
-            ";
-            $params = [$userOrgId, $semuaUnitOrgId, $userOrgId, $semuaUnitOrgId];
-        } else {
-            $params = [];
-        }
-
-        $sql .= " ORDER BY k.urutan, a.urutan, a.nm_aplikasi";
 
         return DB::select($sql, $params);
     }

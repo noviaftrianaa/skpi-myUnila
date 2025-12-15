@@ -4,6 +4,7 @@ namespace App\Services\ManAkses;
 
 use App\Repositories\ManAkses\MenuRoleRepository;
 use App\Repositories\ManAkses\MenuRepository;
+use App\Services\UserContext\UserContextService;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -14,13 +15,16 @@ class MenuRoleService
 {
     protected MenuRoleRepository $menuRoleRepository;
     protected MenuRepository $menuRepository;
+    protected UserContextService $userContextService;
 
     public function __construct(
         MenuRoleRepository $menuRoleRepository,
-        MenuRepository $menuRepository
+        MenuRepository $menuRepository,
+        UserContextService $userContextService
     ) {
         $this->menuRoleRepository = $menuRoleRepository;
         $this->menuRepository = $menuRepository;
+        $this->userContextService = $userContextService;
     }
 
     /**
@@ -124,6 +128,9 @@ class MenuRoleService
             throw new \Exception('Failed to create menu role assignment', 500);
         }
 
+        // Invalidate cache for this role's access to the app
+        $this->invalidateCacheForMenuRole($data['id_menu'], $data['id_peran']);
+
         Log::info('Menu role created', [
             'id_menu' => $data['id_menu'],
             'id_peran' => $data['id_peran'],
@@ -159,6 +166,9 @@ class MenuRoleService
         if (!$success) {
             throw new \Exception('Failed to update menu role assignment', 500);
         }
+
+        // Invalidate cache for this role's access to the app
+        $this->invalidateCacheForMenuRole($idMenu, $idPeran);
 
         Log::info('Menu role updated', [
             'id_menu' => $idMenu,
@@ -199,6 +209,9 @@ class MenuRoleService
             throw new \Exception('Failed to delete menu role assignment', 500);
         }
 
+        // Invalidate cache for this role's access to the app
+        $this->invalidateCacheForMenuRole($idMenu, $idPeran);
+
         Log::info('Menu role deleted', [
             'id_menu' => $idMenu,
             'id_peran' => $idPeran,
@@ -231,6 +244,11 @@ class MenuRoleService
 
         $count = $this->menuRoleRepository->bulkAssignRolesToMenu($idMenu, $roleIds, $permissions, $idUpdater);
 
+        // Invalidate cache for all affected roles
+        foreach ($roleIds as $roleId) {
+            $this->invalidateCacheForMenuRole($idMenu, $roleId);
+        }
+
         Log::info('Bulk roles assigned to menu', [
             'id_menu' => $idMenu,
             'role_count' => $count,
@@ -257,6 +275,9 @@ class MenuRoleService
     {
         $count = $this->menuRoleRepository->bulkAssignMenusToRole($idPeran, $menuIds, $permissions, $idUpdater);
 
+        // Invalidate cache for the role - invalidate all apps for this role
+        $this->userContextService->invalidateMenuRoleCache($idPeran);
+
         Log::info('Bulk menus assigned to role', [
             'id_peran' => $idPeran,
             'menu_count' => $count,
@@ -278,5 +299,35 @@ class MenuRoleService
     public function getStats(): object
     {
         return $this->menuRoleRepository->getStats();
+    }
+
+    /**
+     * Invalidate cache when menu_role changes
+     * Gets app_id from menu and invalidates the role's cache for that app
+     *
+     * @param string $idMenu
+     * @param int $idPeran
+     * @return void
+     */
+    private function invalidateCacheForMenuRole(string $idMenu, int $idPeran): void
+    {
+        try {
+            // Get app_id from menu
+            $menu = $this->menuRepository->getDetail($idMenu);
+            if ($menu && $menu->id_aplikasi) {
+                $this->userContextService->invalidateMenuRoleCache($idPeran, $menu->id_aplikasi);
+                Log::debug('Cache invalidated for menu_role change', [
+                    'id_peran' => $idPeran,
+                    'id_aplikasi' => $menu->id_aplikasi,
+                ]);
+            }
+        } catch (\Exception $e) {
+            // Log but don't throw - cache invalidation failure shouldn't break the operation
+            Log::warning('Failed to invalidate cache for menu_role', [
+                'id_menu' => $idMenu,
+                'id_peran' => $idPeran,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

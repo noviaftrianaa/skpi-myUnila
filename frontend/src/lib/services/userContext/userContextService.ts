@@ -65,6 +65,8 @@ export interface PortalApp {
   a_maintenance: boolean;
   a_coming_soon: boolean;
   a_terintegrasi: boolean;
+  a_live: boolean;
+  has_access: boolean;
 }
 
 export interface PortalCategory {
@@ -80,6 +82,7 @@ export interface PortalAppsData {
   context: ActiveContext | null;
   categories: PortalCategory[];
   total_apps: number;
+  accessible_apps: number;
 }
 
 export interface CheckAccessResult {
