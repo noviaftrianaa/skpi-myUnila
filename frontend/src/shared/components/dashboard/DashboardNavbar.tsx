@@ -27,8 +27,10 @@ import {
   FiCheckCircle,
   FiInfo,
   FiX,
+  FiShield,
 } from "react-icons/fi";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserContext } from "@/contexts/UserContextContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ThemeSwitcher from "./ThemeSwitcher";
@@ -87,6 +89,7 @@ export default function DashboardNavbar({
   onMenuClick,
 }: DashboardNavbarProps) {
   const { user, logout } = useAuth();
+  const { activeContext } = useUserContext();
   const router = useRouter();
   const [notifications, setNotifications] = useState(dummyNotifications);
   const [currentDate, setCurrentDate] = useState<string>("");
@@ -133,48 +136,24 @@ export default function DashboardNavbar({
     );
   };
 
-  // Get fakultas and prodi - use real data from user object
-  const getFakultasProdi = () => {
-    // If user has fakultas and prodi data, show them
-    if (user?.fakultas && user?.prodi) {
+  // Get role and organization info based on active context
+  const getRoleInfo = () => {
+    // Priority: use activeContext if available (role yang dipilih user)
+    if (activeContext) {
       return {
-        fakultas: user.fakultas,
-        prodi: user.prodi,
-        npm: user.id_pd_pengguna,
-        nuptk: user.id_sdm_pengguna,
+        role: activeContext.nm_peran,
+        organization: activeContext.nm_organisasi,
       };
     }
 
-    // If user has fakultas only, show fakultas and role
-    if (user?.fakultas) {
-      return {
-        fakultas: user.fakultas,
-        prodi: user.role || "Role tidak tersedia",
-        npm: user.id_pd_pengguna,
-        nuptk: user.id_sdm_pengguna,
-      };
-    }
-
-    // If user has prodi only, show satuan_pendidikan/default and prodi
-    if (user?.prodi) {
-      return {
-        fakultas: user.satuan_pendidikan || "Universitas Lampung",
-        prodi: user.prodi,
-        npm: user.id_pd_pengguna,
-        nuptk: user.id_sdm_pengguna,
-      };
-    }
-
-    // Default: show satuan_pendidikan and role name (asli dari backend)
+    // Fallback to user data from auth context
     return {
-      fakultas: user?.satuan_pendidikan || "Universitas Lampung",
-      prodi: user?.role || "User",
-      npm: user?.id_pd_pengguna,
-      nuptk: user?.id_sdm_pengguna,
+      role: user?.role || "User",
+      organization: user?.satuan_pendidikan || user?.fakultas || "Universitas Lampung",
     };
   };
 
-  const info = getFakultasProdi();
+  const roleInfo = getRoleInfo();
   const userInitials = getUserInitials(user?.name);
 
   return (
@@ -358,40 +337,40 @@ export default function DashboardNavbar({
         {/* User Dropdown */}
         <Dropdown placement="bottom-end">
           <DropdownTrigger>
-            <button className="flex items-center gap-2 sm:gap-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg p-2 transition-colors">
+            <button className="flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg p-1.5 sm:p-2 transition-colors max-w-[280px]">
               {/* Avatar with initials fallback */}
               {user?.avatar ? (
                 <Avatar
                   src={user.avatar}
                   size="sm"
-                  className="w-9 h-9 ring-2 ring-blue-100 dark:ring-blue-900"
+                  className="w-8 h-8 sm:w-9 sm:h-9 ring-2 ring-blue-100 dark:ring-blue-900 flex-shrink-0"
                 />
               ) : (
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-sm ring-2 ring-blue-100 dark:ring-blue-900">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-xs sm:text-sm ring-2 ring-blue-100 dark:ring-blue-900 flex-shrink-0">
                   {userInitials}
                 </div>
               )}
 
-              {/* User Info - Show fakultas and prodi directly */}
-              <div className="hidden xl:flex flex-col items-start">
-                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+              {/* User Info - Show active role and organization */}
+              <div className="hidden lg:flex flex-col items-start min-w-0 max-w-[160px] xl:max-w-[180px]">
+                <span className="text-sm font-semibold text-gray-900 dark:text-white truncate w-full text-left">
                   {user?.name || "User"}
                 </span>
-                <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                  <FiMapPin className="w-3 h-3 flex-shrink-0" />
-                  <span>{info.fakultas}</span>
+                <div className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 w-full">
+                  <FiShield className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate font-medium">{roleInfo.role}</span>
                 </div>
-                <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                  <FiBook className="w-3 h-3 flex-shrink-0" />
-                  <span>{info.prodi}</span>
+                <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 w-full">
+                  <FiMapPin className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">{roleInfo.organization}</span>
                 </div>
               </div>
-              <FiChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-300 hidden lg:block" />
+              <FiChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-300 hidden lg:block flex-shrink-0" />
             </button>
           </DropdownTrigger>
           <DropdownMenu
             aria-label="User menu actions"
-            className="w-56 p-1"
+            className="w-72 p-1"
             classNames={{
               base: "bg-white dark:bg-gray-800",
               list: "bg-white dark:bg-gray-800",
@@ -407,7 +386,49 @@ export default function DashboardNavbar({
               ],
             }}
           >
-            {/* Menu Items - No redundant header */}
+            {/* User Info Header in Dropdown */}
+            <DropdownItem
+              key="user-info"
+              isReadOnly
+              className="bg-white dark:bg-gray-800 opacity-100 cursor-default"
+              textValue="User Info"
+            >
+              <div className="px-1 py-2">
+                <p className="font-semibold text-gray-900 dark:text-white">
+                  {user?.name || "User"}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                  {user?.email || "-"}
+                </p>
+                {/* Active Role Badge */}
+                <div className="flex flex-col gap-1.5 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <FiShield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                      {roleInfo.role}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FiMapPin className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                    <span className="text-xs text-gray-600 dark:text-gray-400">
+                      {roleInfo.organization}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </DropdownItem>
+
+            {/* Divider */}
+            <DropdownItem
+              key="divider-1"
+              isReadOnly
+              className="h-px p-0 my-2 bg-white dark:bg-gray-800 opacity-100"
+              textValue="Divider"
+            >
+              <div className="w-full h-px bg-gray-200 dark:bg-gray-700" />
+            </DropdownItem>
+
+            {/* Menu Items */}
             <DropdownItem
               key="profile"
               startContent={<FiUser className="w-4 h-4" />}

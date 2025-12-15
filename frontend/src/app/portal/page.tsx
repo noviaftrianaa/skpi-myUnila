@@ -47,6 +47,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUserContext } from "@/contexts/UserContextContext";
 import { useRouter } from "next/navigation";
 import { MdCampaign, MdConstruction } from "react-icons/md";
+import toast, { Toaster } from "react-hot-toast";
 import type { PortalApp, PortalCategory } from "@/lib/services/userContext/userContextService";
 
 // Extended app type for local state (with favorites)
@@ -289,9 +290,16 @@ export default function PortalPage() {
   const handleRoleChange = async () => {
     if (!selectedRoleId) return;
 
+    const selectedRole = roles.find(r => r.id_role_pengguna === selectedRoleId);
     const success = await selectContext(selectedRoleId);
     if (success) {
       setShowRoleModal(false);
+      toast.success(
+        `Peran berhasil diubah ke ${selectedRole?.nm_peran || 'peran baru'}`,
+        { duration: 3000 }
+      );
+    } else {
+      toast.error('Gagal mengubah peran. Silakan coba lagi.');
     }
   };
 
@@ -559,6 +567,9 @@ export default function PortalPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+      {/* Toast Container */}
+      <Toaster position="top-right" />
+
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1146,7 +1157,12 @@ export default function PortalPage() {
                             <p className="text-xs text-blue-100 leading-relaxed">{activeContext.nm_organisasi}</p>
                           </>
                         ) : (
-                          <p className="text-xs text-blue-100 leading-relaxed">Universitas Lampung</p>
+                          <>
+                            <p className="text-xs text-blue-100 leading-relaxed">{user.role || 'Pengguna'}</p>
+                            <p className="text-xs text-blue-100 leading-relaxed">
+                              {user.fakultas || user.satuan_pendidikan || 'Universitas Lampung'}
+                            </p>
+                          </>
                         )}
                       </div>
                       <Dropdown placement="bottom-start">

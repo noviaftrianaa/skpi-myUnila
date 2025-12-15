@@ -7,9 +7,10 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserContext } from '@/contexts/UserContextContext';
 
 export interface WithAuthOptions {
   redirectTo?: string;
@@ -121,4 +122,102 @@ export function useRequireAuth(options: WithAuthOptions = {}) {
   }, [isAuthenticated, isLoading, user, router, redirectTo, requireRole]);
 
   return { isAuthenticated, isLoading, user };
+}
+
+/**
+ * Options for app access check
+ */
+export interface WithAppAccessOptions {
+  appId?: string;
+  appKey?: string;
+  redirectOnDenied?: string;
+  showAccessDenied?: boolean;
+}
+
+/**
+ * Hook to check app access based on user's active context/role
+ * This hook will:
+ * 1. Check if user is authenticated
+ * 2. Check if user has selected a context (role)
+ * 3. Check if that role has access to the specified app
+ */
+export function useRequireAppAccess(options: WithAppAccessOptions = {}) {
+  const { appId, appKey, redirectOnDenied = '/portal', showAccessDenied = true } = options;
+  const { isAuthenticated, isLoading: authLoading, user } = useAuth();
+  const { activeContext, isLoadingContext, checkAppAccess, roles, loadUserContext } = useUserContext();
+  const router = useRouter();
+
+  const [accessState, setAccessState] = useState<{
+    isChecking: boolean;
+    hasAccess: boolean | null;
+    requiresContextSelection: boolean;
+    message: string;
+  }>({
+    isChecking: true,
+    hasAccess: null,
+    requiresContextSelection: false,
+    message: '',
+  });
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      // Wait for auth to load
+      if (authLoading || isLoadingContext) return;
+
+      // Not authenticated - redirect to login
+      if (!isAuthenticated) {
+        const currentPath = window.location.pathname;
+        router.push(`/login?redirect=${encodeURIComponent(currentPath)}`);
+        return;
+      }
+
+      // If no appId or appKey provided, allow access
+      if (!appId && !appKey) {
+        setAccessState({
+          isChecking: false,
+          hasAccess: true,
+          requiresContextSelection: false,
+          message: 'Akses diizinkan',
+        });
+        return;
+      }
+
+      // Check app access
+      const result = await checkAppAccess(appId, appKey);
+
+      setAccessState({
+        isChecking: false,
+        hasAccess: result.hasAccess,
+        requiresContextSelection: result.requiresSelection,
+        message: result.message,
+      });
+
+      // Redirect if denied and showAccessDenied is false
+      if (!result.hasAccess && !showAccessDenied && !result.requiresSelection) {
+        router.push(redirectOnDenied);
+      }
+    };
+
+    checkAccess();
+  }, [
+    isAuthenticated,
+    authLoading,
+    isLoadingContext,
+    activeContext,
+    appId,
+    appKey,
+    checkAppAccess,
+    router,
+    redirectOnDenied,
+    showAccessDenied,
+  ]);
+
+  return {
+    ...accessState,
+    isLoading: authLoading || isLoadingContext || accessState.isChecking,
+    user,
+    activeContext,
+    roles,
+    loadUserContext,
+  };
 }

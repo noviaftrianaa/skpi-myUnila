@@ -327,14 +327,14 @@ export default function AplikasiDetailModal({
                 >
                   <div className="pt-4">
                     {aplikasi.pj_list && aplikasi.pj_list.length > 0 ? (
-                      <div className="bg-green-50/50 dark:bg-green-900/10 rounded-xl p-4 border border-green-200/50 dark:border-green-800/30">
-                        <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3 flex items-center gap-2">
+                      <div className="bg-green-50/50 dark:bg-green-900/10 rounded-xl p-4 border border-green-200/50 dark:border-green-800/30 max-h-[400px] overflow-y-auto">
+                        <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3 flex items-center gap-2 sticky top-0 bg-green-50/90 dark:bg-green-900/30 py-1 -mt-1 backdrop-blur-sm">
                           <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
                           Penanggung Jawab ({aplikasi.pj_list.length})
                         </h4>
                         <div className="overflow-x-auto rounded-lg border border-green-200/50 dark:border-green-800/30">
                           <table className="w-full text-sm">
-                            <thead className="bg-green-100/50 dark:bg-green-900/30">
+                            <thead className="bg-green-100/50 dark:bg-green-900/30 sticky top-0">
                               <tr>
                                 <th className="text-left py-2.5 px-3 text-green-700 dark:text-green-400 font-medium text-xs">Nama</th>
                                 <th className="text-left py-2.5 px-3 text-green-700 dark:text-green-400 font-medium text-xs">Username</th>
@@ -373,14 +373,14 @@ export default function AplikasiDetailModal({
                 >
                   <div className="pt-4">
                     {aplikasi.tables && aplikasi.tables.length > 0 ? (
-                      <div className="bg-indigo-50/50 dark:bg-indigo-900/10 rounded-xl p-4 border border-indigo-200/50 dark:border-indigo-800/30">
-                        <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3 flex items-center gap-2">
+                      <div className="bg-indigo-50/50 dark:bg-indigo-900/10 rounded-xl p-4 border border-indigo-200/50 dark:border-indigo-800/30 max-h-[400px] overflow-y-auto">
+                        <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3 flex items-center gap-2 sticky top-0 bg-indigo-50/90 dark:bg-indigo-900/30 py-1 -mt-1 backdrop-blur-sm z-10">
                           <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
                           Tabel Akses ({aplikasi.tables.length})
                         </h4>
-                        <div className="overflow-x-auto rounded-lg border border-indigo-200/50 dark:border-indigo-800/30 max-h-[300px]">
+                        <div className="overflow-x-auto rounded-lg border border-indigo-200/50 dark:border-indigo-800/30">
                           <table className="w-full text-sm">
-                            <thead className="bg-indigo-100/50 dark:bg-indigo-900/30 sticky top-0">
+                            <thead className="bg-indigo-100/50 dark:bg-indigo-900/30 sticky top-8 z-[5]">
                               <tr>
                                 <th className="text-left py-2.5 px-3 text-indigo-700 dark:text-indigo-400 font-medium text-xs">Nama Tabel</th>
                                 <th className="text-center py-2.5 px-3 text-indigo-700 dark:text-indigo-400 font-medium text-xs">GET</th>

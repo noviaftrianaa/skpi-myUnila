@@ -59,6 +59,7 @@ class AplikasiService
                     'a_live' => (bool) $item->a_live,
                     'jumlah_table' => (int) $item->jumlah_table,
                     'jumlah_pj' => (int) $item->jumlah_pj,
+                    'jumlah_menu' => (int) $item->jumlah_menu,
                     'tgl_create' => $item->tgl_create,
                     'last_update' => $item->last_update,
                     'expired_date' => $item->expired_date,

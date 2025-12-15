@@ -97,6 +97,8 @@ export default function MenuRoleTable({ onStatsLoaded }: MenuRoleTableProps) {
           aplikasiService.getList({ limit: 100 }),
           peranService.getList({ limit: 100 }),
         ]);
+        // Debug: log aplikasi data to check jumlah_menu
+        console.log('Aplikasi data loaded:', aplikasiData.data.map(a => ({ nm: a.nm_aplikasi, jumlah_menu: a.jumlah_menu })));
         setAplikasiOptions(aplikasiData.data);
         setPeranOptions(peranResult.data);
       } catch (error) {

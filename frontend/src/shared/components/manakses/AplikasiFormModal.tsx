@@ -467,6 +467,8 @@ export default function AplikasiFormModal({
   const [unitSearchQuery, setUnitSearchQuery] = useState("");
   const [isLoadingUnits, setIsLoadingUnits] = useState(false);
   const debouncedUnitSearch = useDebounce(unitSearchQuery, 300);
+  // Track selected unit for edit mode (to preserve selection even if not in search results)
+  const [selectedUnit, setSelectedUnit] = useState<UnitOrganisasiOption | null>(null);
 
   // App Key management
   const [currentAppKey, setCurrentAppKey] = useState<string | null>(null);
@@ -523,7 +525,13 @@ export default function AplikasiFormModal({
           search: debouncedUnitSearch || undefined,
           limit: 50,
         });
-        setUnitOrganisasiList(unitData);
+
+        // If we have a selected unit (from edit mode), ensure it's in the list
+        if (selectedUnit && !unitData.find(u => u.id_organisasi === selectedUnit.id_organisasi)) {
+          setUnitOrganisasiList([selectedUnit, ...unitData]);
+        } else {
+          setUnitOrganisasiList(unitData);
+        }
       } catch (error) {
         console.error("Error loading unit organisasi:", error);
       } finally {
@@ -531,7 +539,7 @@ export default function AplikasiFormModal({
       }
     };
     loadUnits();
-  }, [isOpen, debouncedUnitSearch]);
+  }, [isOpen, debouncedUnitSearch, selectedUnit]);
 
   // Initialize form data for edit mode
   useEffect(() => {
@@ -559,6 +567,16 @@ export default function AplikasiFormModal({
         a_live: aplikasi.a_live || false,
         status: aplikasi.status || 'Aktif',
       });
+      // Set selected unit for edit mode (to preserve in autocomplete list)
+      if (aplikasi.id_organisasi && aplikasi.nm_organisasi) {
+        setSelectedUnit({
+          id_organisasi: aplikasi.id_organisasi,
+          nm_lemb: aplikasi.nm_organisasi,
+          display_name: aplikasi.nm_organisasi,
+        });
+      } else {
+        setSelectedUnit(null);
+      }
       // Set app key for edit mode
       setCurrentAppKey(aplikasi.app_key || null);
       setShowAppKey(false);
@@ -589,6 +607,7 @@ export default function AplikasiFormModal({
         a_live: false,
         status: 'Aktif',
       });
+      setSelectedUnit(null);
       setCurrentAppKey(null);
       setShowAppKey(false);
       setCopySuccess(false);
@@ -793,7 +812,17 @@ export default function AplikasiFormModal({
                           placeholder="Ketik untuk mencari unit organisasi..."
                           selectedKey={formData.id_organisasi}
                           onSelectionChange={(key) => {
-                            setFormData({ ...formData, id_organisasi: key as string || null });
+                            const keyStr = key as string || null;
+                            setFormData({ ...formData, id_organisasi: keyStr });
+                            // Update selectedUnit to preserve selection
+                            if (keyStr) {
+                              const unit = unitOrganisasiList.find(u => u.id_organisasi === keyStr);
+                              if (unit) {
+                                setSelectedUnit(unit);
+                              }
+                            } else {
+                              setSelectedUnit(null);
+                            }
                           }}
                           onInputChange={(value) => setUnitSearchQuery(value)}
                           isLoading={isLoadingUnits}
@@ -1452,9 +1481,9 @@ export default function AplikasiFormModal({
                     </div>
 
                     {aplikasi?.menus && aplikasi.menus.length > 0 ? (
-                      <div className="border border-gray-200 dark:border-slate-600 rounded-lg overflow-hidden">
+                      <div className="border border-gray-200 dark:border-slate-600 rounded-lg overflow-hidden max-h-[350px] overflow-y-auto">
                         <table className="w-full text-sm">
-                          <thead className="bg-gray-50 dark:bg-slate-700/50">
+                          <thead className="bg-gray-50 dark:bg-slate-700/50 sticky top-0 z-10">
                             <tr>
                               <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
                                 Nama Menu

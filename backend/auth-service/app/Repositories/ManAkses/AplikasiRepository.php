@@ -78,7 +78,8 @@ class AplikasiRepository
                 ISNULL(a.a_live, 0) as a_live,
                 ISNULL(a.a_aktif, 1) as a_aktif,
                 (SELECT COUNT(*) FROM man_akses.akses_table_aplikasi ata WHERE ata.id_aplikasi = a.id_aplikasi) as jumlah_table,
-                (SELECT COUNT(*) FROM man_akses.pj_aplikasi pj WHERE pj.id_aplikasi = a.id_aplikasi) as jumlah_pj
+                (SELECT COUNT(*) FROM man_akses.pj_aplikasi pj WHERE pj.id_aplikasi = a.id_aplikasi) as jumlah_pj,
+                (SELECT COUNT(*) FROM man_akses.menu m WHERE m.id_aplikasi = a.id_aplikasi AND m.expired_date IS NULL) as jumlah_menu
             FROM man_akses.aplikasi a
             LEFT JOIN man_akses.unit_organisasi uo ON uo.id_organisasi = a.id_organisasi
             LEFT JOIN man_akses.kategori_aplikasi k ON k.id_kategori = a.id_kategori
@@ -221,6 +222,10 @@ class AplikasiRepository
             $item->a_terintegrasi = (int) $item->a_terintegrasi;
             $item->a_live = (int) $item->a_live;
             $item->a_aktif = (int) $item->a_aktif;
+            // Cast count fields to int
+            $item->jumlah_table = (int) $item->jumlah_table;
+            $item->jumlah_pj = (int) $item->jumlah_pj;
+            $item->jumlah_menu = (int) $item->jumlah_menu;
         }
 
         return [
