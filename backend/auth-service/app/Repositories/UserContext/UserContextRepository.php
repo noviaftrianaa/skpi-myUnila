@@ -211,6 +211,8 @@ class UserContextRepository
             INNER JOIN man_akses.kategori_aplikasi k ON k.id_kategori = a.id_kategori
             LEFT JOIN man_akses.unit_organisasi uo ON uo.id_organisasi = a.id_organisasi
             WHERE a.a_tampil_portal = 1
+              AND a.expired_date IS NULL
+              AND ISNULL(a.a_aktif, 1) = 1
               AND k.soft_delete = 0
         ";
 

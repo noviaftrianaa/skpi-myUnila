@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { HeroUIProvider } from "@heroui/react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { UserContextProvider } from "@/contexts/UserContextContext";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -26,7 +27,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <NextThemesProvider attribute="class" defaultTheme="light" enableSystem={false}>
         <HeroUIProvider>
           <AuthProvider>
-            {children}
+            <UserContextProvider>
+              {children}
+            </UserContextProvider>
           </AuthProvider>
         </HeroUIProvider>
       </NextThemesProvider>
