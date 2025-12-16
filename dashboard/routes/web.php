@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Main\dosen\PangGolController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SyncController;
 use App\Http\Controllers\DosenController;
@@ -13,27 +12,31 @@ use App\Http\Controllers\ProgramStudiController;
 use App\Http\Controllers\authentications\LoginBasic;
 use App\Http\Controllers\language\LanguageController;
 use App\Http\Controllers\tridarma\LitabmasController;
+use App\Http\Controllers\Main\dosen\PangGolController;
 use App\Http\Controllers\tridarma\PublikasiController;
 use App\Http\Controllers\authentications\RegisterBasic;
 use App\Http\Controllers\KelulusanTepatWaktuController;
+use App\Http\Controllers\Main\dosen\JabFungControlller;
 use App\Http\Controllers\tridarma\PenelitianController;
 use App\Http\Controllers\tridarma\PengabdianController;
+use App\Http\Controllers\Main\dosen\JenisKelaminController;
 use App\Http\Controllers\Main\Mahasiswa\PrestasiController;
+use App\Http\Controllers\Main\akreditasi\AkreditasiController;
 use App\Http\Controllers\Main\Mahasiswa\TracerStudyController;
 use App\Http\Controllers\Main\perkuliahan\KurikulumController;
 use App\Http\Controllers\Main\perkuliahan\MataKuliahController;
 use App\Http\Controllers\Main\Mahasiswa\KampusMerdekaController;
 use App\Http\Controllers\Main\perkuliahan\KelasKuliahController;
 use App\Http\Controllers\Main\KTWController as MainKTWController;
+//MAIN
 use App\Http\Controllers\Main\mahasiswa\DaftarMahasiswaController;
 use App\Http\Controllers\Main\iku\Iku1Controller as Iku1Controller;
 use App\Http\Controllers\Main\iku\Iku2Controller as Iku2Controller;
-//MAIN
 use App\Http\Controllers\Main\iku\Iku3Controller as Iku3Controller;
+//IKU
 use App\Http\Controllers\Main\iku\Iku4Controller as Iku4Controller;
 use App\Http\Controllers\Main\iku\Iku5Controller as Iku5Controller;
 use App\Http\Controllers\Main\iku\Iku6Controller as Iku6Controller;
-//IKU
 use App\Http\Controllers\Main\iku\Iku7Controller as Iku7Controller;
 use App\Http\Controllers\Main\iku\Iku8Controller as Iku8Controller;
 use App\Http\Controllers\Main\mahasiswa\ProfileMahasiswaController;
@@ -43,8 +46,6 @@ use App\Http\Controllers\Main\SDM\DosenController as DosenSMSController;
 use App\Http\Controllers\Main\SDM\TendikController as TendikSMSController;
 use App\Http\Controllers\Main\ProfilPTController as MainProfilPTController;
 use App\Http\Controllers\Main\DashboardController as MainDashboardController;
-use App\Http\Controllers\Main\dosen\JabFungControlller;
-use App\Http\Controllers\Main\dosen\JenisKelaminController;
 
 // locale
 Route::get('lang/{locale}', [LanguageController::class, 'swap'])->name('swap_language');
@@ -120,6 +121,13 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('main')->group(function () {
         Route::get('/', [MainDashboardController::class, 'index'])->name('main-index');
 
+        Route::prefix('/akreditasi')->group(function () {
+            Route::get('/', [AkreditasiController::class, 'index'])->name("akreditasi");
+            Route::get('/tahun', [AkreditasiController::class, 'getTahun'])->name('akreditasi.tahun');
+            Route::get('/data', [AkreditasiController::class, 'getDataAkreditasi'])->name('akreditasi.data.fakultas');
+            Route::get('/data/{idProdi}', [AkreditasiController::class, 'getDataAkreditasiProdi'])->name('akreditasi.data.prodi');
+            Route::get('/{idProdi}', [AkreditasiController::class, 'prodiDetail'])->name("akreditasi.prodi");
+        });
         Route::prefix('/dashboard_dosen')->group(function () {
             Route::get('/', [MainDashboardController::class, 'dashboard_dosen'])->name('dashboard_dosen');
             Route::get('/jk', [JenisKelaminController::class, 'index'])->name('dashboard_dosen.jk');
@@ -127,15 +135,15 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/jk/load', action: [JenisKelaminController::class, 'load'])->name('dashboard_dosen.jk_chart_load');
             Route::post('/jk/reload', action: [JenisKelaminController::class, 'reload'])->name('dashboard_dosen.jk_chart_reload');
 
-            Route::get('/jabfung', [JabFungControlller::class, 'index'])->name('dashboard_dosen.jabfung');
-            Route::post('/jabfung', action: [JabFungControlller::class, 'chart'])->name('dashboard_dosen.jabfung_chart');
-            Route::get('/jabfung/load', action: [JabFungControlller::class, 'load'])->name('dashboard_dosen.jabfung_chart_load');
-            Route::post('/jabfung/reload', action: [JabFungControlller::class, 'reload'])->name('dashboard_dosen.jabfung_chart_reload');
+            // Route::get('/jabfung', [JabFungControlller::class, 'index'])->name('dashboard_dosen.jabfung');
+            // Route::post('/jabfung', action: [JabFungControlller::class, 'chart'])->name('dashboard_dosen.jabfung_chart');
+            // Route::get('/jabfung/load', action: [JabFungControlller::class, 'load'])->name('dashboard_dosen.jabfung_chart_load');
+            // Route::post('/jabfung/reload', action: [JabFungControlller::class, 'reload'])->name('dashboard_dosen.jabfung_chart_reload');
 
-            Route::get('/pang_gol', [PangGolController::class, 'index'])->name('dashboard_dosen.panggol');
-            Route::post('/pang_gol', action: [PangGolController::class, 'chart'])->name('dashboard_dosen.panggol_chart');
-            Route::get('/pang_gol/load', action: [PangGolController::class, 'load'])->name('dashboard_dosen.panggol_chart_load');
-            Route::post('/pang_gol/reload', action: [PangGolController::class, 'reload'])->name('dashboard_dosen.panggol_chart_reload');
+            // Route::get('/pang_gol', [PangGolController::class, 'index'])->name('dashboard_dosen.panggol');
+            // Route::post('/pang_gol', action: [PangGolController::class, 'chart'])->name('dashboard_dosen.panggol_chart');
+            // Route::get('/pang_gol/load', action: [PangGolController::class, 'load'])->name('dashboard_dosen.panggol_chart_load');
+            // Route::post('/pang_gol/reload', action: [PangGolController::class, 'reload'])->name('dashboard_dosen.panggol_chart_reload');
 
 
         });
