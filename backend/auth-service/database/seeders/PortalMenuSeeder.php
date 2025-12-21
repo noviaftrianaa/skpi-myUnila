@@ -129,6 +129,31 @@ class PortalMenuSeeder extends Seeder
         $menuCount = 0;
         $roleCount = 0;
 
+        // Clean up existing menus for integrator apps and manajemen-akses (to avoid duplicates)
+        $integratorApps = ['feeder-integrator', 'sister-integrator', 'myunila-integrator', 'manajemen-akses'];
+        if (in_array($appSlug, $integratorApps)) {
+            // Get all menu IDs for this app
+            $existingMenuIds = DB::select(
+                "SELECT id_menu FROM man_akses.menu WHERE id_aplikasi = ?",
+                [$appId]
+            );
+
+            if (!empty($existingMenuIds)) {
+                $menuIds = array_map(fn($m) => $m->id_menu, $existingMenuIds);
+
+                // Delete role assignments first
+                DB::delete(
+                    "DELETE FROM man_akses.menu_role WHERE id_menu IN (SELECT id_menu FROM man_akses.menu WHERE id_aplikasi = ?)",
+                    [$appId]
+                );
+
+                // Delete all menus
+                DB::delete("DELETE FROM man_akses.menu WHERE id_aplikasi = ?", [$appId]);
+
+                $this->command->line("  ~ Cleaned up " . count($menuIds) . " existing menus");
+            }
+        }
+
         // Process each menu (level 0)
         foreach ($menus as $menu) {
             $menuId = $this->createOrUpdateMenu($menu, $appId, null, $now, 0);
@@ -166,7 +191,7 @@ class PortalMenuSeeder extends Seeder
     {
         $nmFile = $menu['nm_file'] ?? '#';
         $nmMenu = $menu['nm_menu'] ?? 'Untitled';
-        $icon = $menu['icon'] ?? 'heroicons:document';
+        $icon = $menu['icon'] ?? null;  // No default icon - use null for children
         $urutan = $menu['urutan'] ?? 99;
 
         // Check if menu exists

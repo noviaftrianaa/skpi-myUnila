@@ -22,25 +22,44 @@ class UserContextService
     private const CACHE_APP_INFO_PREFIX = 'app_info:';
     private const CACHE_PORTAL_APPS_PREFIX = 'portal_apps:';
     private const CACHE_CATEGORIES_KEY = 'portal_categories';
+    private const CACHE_PERMISSIONS_PREFIX = 'permissions:';  // New: CRUD permissions cache
 
     // Cache TTL (Time To Live) in seconds
-    private const CACHE_TTL = 300;              // 5 minutes for user context
-    private const CACHE_MENU_ROLE_TTL = 600;    // 10 minutes for menu_role permissions
+    // Note: CACHE_TTL should match JWT_TTL (default 60 minutes) to avoid frequent re-selection
+    private const CACHE_TTL = 3600;             // 60 minutes for user context (same as JWT token)
+    private const CACHE_MENU_ROLE_TTL = 3600;   // 60 minutes for menu_role permissions
     private const CACHE_APP_INFO_TTL = 3600;    // 1 hour for app info (rarely changes)
-    private const CACHE_PORTAL_APPS_TTL = 300;  // 5 minutes for portal apps
+    private const CACHE_PORTAL_APPS_TTL = 3600; // 60 minutes for portal apps
     private const CACHE_CATEGORIES_TTL = 3600;  // 1 hour for categories
-
-    // Super roles with full access (Administrator, Developer)
-    private const SUPER_ROLES = [1, 107];
-
-    // "Semua Unit" organization ID - universal access
-    private const SEMUA_UNIT_ORG_ID = '86942cdf-44f1-446e-8e9e-cb37bbbb16e6';
+    private const CACHE_PERMISSIONS_TTL = 3600; // 60 minutes for CRUD permissions
 
     protected UserContextRepository $repository;
 
     public function __construct(UserContextRepository $repository)
     {
         $this->repository = $repository;
+    }
+
+    /**
+     * Get super role IDs from config
+     * Configurable via AUTH_SUPER_ROLES env variable
+     *
+     * @return array
+     */
+    private function getSuperRoles(): array
+    {
+        return config('auth.super_roles', [1, 107]);
+    }
+
+    /**
+     * Check if a role ID is a super role
+     *
+     * @param int $idPeran
+     * @return bool
+     */
+    private function isSuperRole(int $idPeran): bool
+    {
+        return in_array($idPeran, $this->getSuperRoles());
     }
 
     /**
@@ -205,7 +224,10 @@ class UserContextService
                 ];
             }
 
-            // Check menu_role for this role and app
+            // Check menu_role for this role and app (RBAC is the ONLY access control)
+            // Note: Organization filter is NOT used for app access.
+            // If a role has menu_role for an app, they can access it regardless of organization.
+            // Organization on aplikasi is for administrative grouping, not access control.
             $hasMenuAccess = $this->checkMenuRoleAccess(
                 (int) $context['id_peran'],
                 $app->id_aplikasi
@@ -220,20 +242,11 @@ class UserContextService
                 ];
             }
 
-            // Check organization access
-            $hasOrgAccess = $this->checkOrganizationAccess(
-                $context['id_organisasi'] ?? null,
-                $app->id_organisasi ?? null
+            // Get CRUD permissions for this role on this app
+            $permissions = $this->getAppPermissions(
+                (int) $context['id_peran'],
+                $app->id_aplikasi
             );
-
-            if (!$hasOrgAccess) {
-                return [
-                    'success' => true,
-                    'has_access' => false,
-                    'reason' => 'Unit organisasi ' . ($context['nm_organisasi'] ?? 'Anda') . ' tidak memiliki akses ke aplikasi ' . $app->nm_aplikasi,
-                    'context' => $context,
-                ];
-            }
 
             return [
                 'success' => true,
@@ -245,6 +258,7 @@ class UserContextService
                     'nm_aplikasi' => $app->nm_aplikasi,
                     'app_key' => $app->app_slug,
                 ],
+                'permissions' => $permissions,
             ];
         } catch (\Exception $e) {
             Log::error('UserContextService::checkAppAccess error', [
@@ -255,45 +269,6 @@ class UserContextService
             ]);
             throw $e;
         }
-    }
-
-    /**
-     * Check if user's organization has access to app's organization
-     *
-     * @param string|null $userOrgId User's active role organization ID
-     * @param string|null $appOrgId App's organization ID
-     * @return bool
-     */
-    private function checkOrganizationAccess(?string $userOrgId, ?string $appOrgId): bool
-    {
-        // If app has no org restriction, allow access
-        if ($appOrgId === null) {
-            return true;
-        }
-
-        // Normalize to lowercase for comparison
-        $appOrgIdLower = strtolower($appOrgId);
-        $semuaUnitLower = strtolower(self::SEMUA_UNIT_ORG_ID);
-
-        // If app's org is "Semua Unit", allow access to everyone
-        if ($appOrgIdLower === $semuaUnitLower) {
-            return true;
-        }
-
-        // If user has no org (shouldn't happen), deny access
-        if ($userOrgId === null) {
-            return false;
-        }
-
-        $userOrgIdLower = strtolower($userOrgId);
-
-        // If user's org is "Semua Unit", they have global access
-        if ($userOrgIdLower === $semuaUnitLower) {
-            return true;
-        }
-
-        // Finally, check if user's org matches app's org
-        return $userOrgIdLower === $appOrgIdLower;
     }
 
     /**
@@ -381,7 +356,7 @@ class UserContextService
     private function checkMenuRoleAccess(int $idPeran, string $idAplikasi): bool
     {
         // Super roles always have access
-        if (in_array($idPeran, self::SUPER_ROLES)) {
+        if ($this->isSuperRole($idPeran)) {
             return true;
         }
 
@@ -416,9 +391,11 @@ class UserContextService
     }
 
     /**
-     * Get portal apps for the current user context (HYBRID approach)
-     * Returns ALL apps with has_access flag indicating accessibility
+     * Get portal apps for the current user context (RBAC-based approach)
+     * Returns ALL apps with has_access flag based on menu_role (RBAC)
      * Uses Redis caching for performance
+     *
+     * Note: Access is determined by RBAC (menu_role), not by organization.
      *
      * @param string $userId
      * @return array
@@ -429,26 +406,26 @@ class UserContextService
             // Get active context
             $context = $this->getActiveContext($userId);
 
-            // Get user's organization ID from active context
-            $userOrgId = $context['id_organisasi'] ?? null;
+            // Get user's role ID from active context (for RBAC check)
+            $idPeran = isset($context['id_peran']) ? (int) $context['id_peran'] : null;
 
-            // Build cache key based on org ID (apps list is org-specific)
-            $cacheKey = self::CACHE_PORTAL_APPS_PREFIX . ($userOrgId ? strtolower($userOrgId) : 'all');
+            // Build cache key based on role ID (apps access is role-specific)
+            $cacheKey = self::CACHE_PORTAL_APPS_PREFIX . ($idPeran ? 'role:' . $idPeran : 'norole');
 
             // Try cache first
             $cachedApps = Cache::get($cacheKey);
             if ($cachedApps !== null) {
-                Log::debug('Portal apps from cache', ['org_id' => $userOrgId]);
+                Log::debug('Portal apps from cache', ['id_peran' => $idPeran]);
                 $apps = array_map(fn($a) => (object) $a, $cachedApps);
             } else {
-                // Get from database
-                $apps = $this->repository->getPortalApps($userOrgId);
+                // Get from database with RBAC-based has_access
+                $apps = $this->repository->getPortalApps($idPeran);
 
                 // Cache the raw apps data
                 $appsArray = array_map(fn($a) => (array) $a, $apps);
                 Cache::put($cacheKey, $appsArray, self::CACHE_PORTAL_APPS_TTL);
 
-                Log::debug('Portal apps from database (cached)', ['org_id' => $userOrgId]);
+                Log::debug('Portal apps from database (cached)', ['id_peran' => $idPeran]);
             }
 
             // Get all portal apps with has_access flag (from cache or db)
@@ -565,6 +542,254 @@ class UserContextService
     }
 
     /**
+     * Get aggregated CRUD permissions for a role on an application
+     * Uses Redis caching for performance
+     *
+     * @param int $idPeran Role ID
+     * @param string $idAplikasi Application UUID
+     * @return array
+     */
+    public function getAppPermissions(int $idPeran, string $idAplikasi): array
+    {
+        // Super roles have full permissions
+        if ($this->isSuperRole($idPeran)) {
+            return [
+                'can_show' => true,
+                'can_insert' => true,
+                'can_update' => true,
+                'can_delete' => true,
+                'can_reject' => true,
+                'can_approve' => true,
+                'is_super_role' => true,
+            ];
+        }
+
+        // Build cache key: permissions:{id_peran}:{id_aplikasi}
+        $cacheKey = self::CACHE_PERMISSIONS_PREFIX . $idPeran . ':' . strtolower($idAplikasi);
+
+        // Try cache first
+        $cachedPermissions = Cache::get($cacheKey);
+        if ($cachedPermissions !== null) {
+            Log::debug('Permissions from cache', [
+                'id_peran' => $idPeran,
+                'id_aplikasi' => $idAplikasi,
+            ]);
+            return $cachedPermissions;
+        }
+
+        // Query database for aggregated permissions
+        $dbPermissions = $this->repository->getAppPermissions($idPeran, $idAplikasi);
+
+        $permissions = [
+            'can_show' => (bool) ($dbPermissions->can_show ?? false),
+            'can_insert' => (bool) ($dbPermissions->can_insert ?? false),
+            'can_update' => (bool) ($dbPermissions->can_update ?? false),
+            'can_delete' => (bool) ($dbPermissions->can_delete ?? false),
+            'can_reject' => (bool) ($dbPermissions->can_reject ?? false),
+            'can_approve' => (bool) ($dbPermissions->can_approve ?? false),
+            'is_super_role' => false,
+        ];
+
+        // Store in cache
+        Cache::put($cacheKey, $permissions, self::CACHE_PERMISSIONS_TTL);
+
+        Log::debug('Permissions from database (cached)', [
+            'id_peran' => $idPeran,
+            'id_aplikasi' => $idAplikasi,
+            'permissions' => $permissions,
+        ]);
+
+        return $permissions;
+    }
+
+    /**
+     * Get user's accessible menus for an application based on RBAC
+     * Returns hierarchical menu structure (nested) with permissions
+     * Uses Redis caching for performance
+     *
+     * @param string $userId User ID
+     * @param string|null $appId Application UUID
+     * @param string|null $appKey Application slug
+     * @return array
+     */
+    public function getUserMenus(string $userId, ?string $appId = null, ?string $appKey = null): array
+    {
+        try {
+            // Get active context
+            $context = $this->getActiveContext($userId);
+
+            if (!$context) {
+                return [
+                    'success' => false,
+                    'message' => 'Belum memilih role/unit. Silakan pilih terlebih dahulu.',
+                    'requires_context_selection' => true,
+                    'menus' => [],
+                ];
+            }
+
+            // Get app info
+            $app = $this->getCachedAppInfo($appId, $appKey);
+            if (!$app) {
+                return [
+                    'success' => false,
+                    'message' => 'Aplikasi tidak ditemukan',
+                    'menus' => [],
+                ];
+            }
+
+            $idPeran = (int) $context['id_peran'];
+            $isSuperRole = $this->isSuperRole($idPeran);
+
+            // All roles (including super roles) now use menu_role for visibility
+            // This allows admins to hide menus even for super roles via a_boleh_show = 0
+            // Super roles still get full CRUD permissions, but menu visibility is controlled by RBAC
+            $flatMenus = $this->repository->getUserMenus($idPeran, $app->id_aplikasi);
+
+            // Build hierarchical structure
+            $hierarchicalMenus = $this->buildMenuHierarchy($flatMenus);
+
+            return [
+                'success' => true,
+                'context' => $context,
+                'app' => [
+                    'id_aplikasi' => $app->id_aplikasi,
+                    'nm_aplikasi' => $app->nm_aplikasi,
+                    'app_key' => $app->app_slug,
+                ],
+                'menus' => $hierarchicalMenus,
+                'is_super_role' => $isSuperRole,
+            ];
+        } catch (\Exception $e) {
+            Log::error('UserContextService::getUserMenus error', [
+                'user_id' => $userId,
+                'app_id' => $appId,
+                'app_key' => $appKey,
+                'error' => $e->getMessage(),
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Build hierarchical menu structure from flat array
+     *
+     * @param array $flatMenus
+     * @return array
+     */
+    private function buildMenuHierarchy(array $flatMenus): array
+    {
+        $menuMap = [];
+        $rootMenus = [];
+
+        // First pass: create map of all menus
+        foreach ($flatMenus as $menu) {
+            $menuData = [
+                'id_menu' => $menu->id_menu,
+                'title' => $menu->nm_menu,
+                'href' => $menu->href,
+                'icon' => $menu->icon,
+                'level' => $menu->level_menu,
+                'order' => $menu->urutan_menu,
+                'is_maintenance' => !(bool) ($menu->a_tampil ?? true),
+                'permissions' => [
+                    'can_show' => (bool) ($menu->can_show ?? true),
+                    'can_insert' => (bool) ($menu->can_insert ?? false),
+                    'can_update' => (bool) ($menu->can_update ?? false),
+                    'can_delete' => (bool) ($menu->can_delete ?? false),
+                    'can_reject' => (bool) ($menu->can_reject ?? false),
+                    'can_approve' => (bool) ($menu->can_approve ?? false),
+                ],
+                'children' => [],
+            ];
+
+            $menuMap[$menu->id_menu] = $menuData;
+        }
+
+        // Second pass: build hierarchy
+        foreach ($flatMenus as $menu) {
+            if ($menu->id_parent && isset($menuMap[$menu->id_parent])) {
+                // This is a child menu
+                $menuMap[$menu->id_parent]['children'][] = &$menuMap[$menu->id_menu];
+            } else {
+                // This is a root menu
+                $rootMenus[] = &$menuMap[$menu->id_menu];
+            }
+        }
+
+        // Sort by order at each level
+        usort($rootMenus, fn($a, $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
+        foreach ($menuMap as &$menu) {
+            if (!empty($menu['children'])) {
+                usort($menu['children'], fn($a, $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
+            }
+        }
+
+        return $rootMenus;
+    }
+
+    /**
+     * Get detailed menu-level permissions for a role on an application
+     * Useful for fine-grained permission checks on specific menus
+     *
+     * @param int $idPeran Role ID
+     * @param string $idAplikasi Application UUID
+     * @return array
+     */
+    public function getMenuPermissions(int $idPeran, string $idAplikasi): array
+    {
+        // Super roles have full permissions on all menus
+        if ($this->isSuperRole($idPeran)) {
+            return [
+                'is_super_role' => true,
+                'menus' => [],  // Super roles don't need menu list, they have all access
+            ];
+        }
+
+        // Get detailed menu permissions from database
+        $menus = $this->repository->getMenuPermissions($idPeran, $idAplikasi);
+
+        return [
+            'is_super_role' => false,
+            'menus' => array_map(function ($menu) {
+                return [
+                    'id_menu' => $menu->id_menu,
+                    'nm_menu' => $menu->nm_menu,
+                    'url_menu' => $menu->url_menu,
+                    'can_show' => (bool) $menu->can_show,
+                    'can_insert' => (bool) $menu->can_insert,
+                    'can_update' => (bool) $menu->can_update,
+                    'can_delete' => (bool) $menu->can_delete,
+                    'can_reject' => (bool) $menu->can_reject,
+                    'can_approve' => (bool) $menu->can_approve,
+                    'akses_menu' => $menu->akses_menu,
+                ];
+            }, $menus),
+        ];
+    }
+
+    /**
+     * Invalidate permissions cache for a role
+     * Call this when menu_role permissions are updated
+     *
+     * @param int $idPeran
+     * @param string|null $idAplikasi If null, invalidates all apps for this role
+     * @return void
+     */
+    public function invalidatePermissionsCache(int $idPeran, ?string $idAplikasi = null): void
+    {
+        if ($idAplikasi) {
+            $cacheKey = self::CACHE_PERMISSIONS_PREFIX . $idPeran . ':' . strtolower($idAplikasi);
+            Cache::forget($cacheKey);
+            Log::info('Invalidated permissions cache', ['id_peran' => $idPeran, 'id_aplikasi' => $idAplikasi]);
+        } else {
+            // Pattern-based invalidation
+            $pattern = self::CACHE_PERMISSIONS_PREFIX . $idPeran . ':*';
+            $this->invalidateCacheByPattern($pattern);
+            Log::info('Invalidated all permissions cache for role', ['id_peran' => $idPeran]);
+        }
+    }
+
+    /**
      * Invalidate cache for specific role's menu access
      * Call this when menu_role is updated
      *
@@ -646,6 +871,7 @@ class UserContextService
         $this->invalidateCacheByPattern(self::CACHE_MENU_ROLE_PREFIX . '*');
         $this->invalidateCacheByPattern(self::CACHE_APP_INFO_PREFIX . '*');
         $this->invalidateCacheByPattern(self::CACHE_PORTAL_APPS_PREFIX . '*');
+        $this->invalidateCacheByPattern(self::CACHE_PERMISSIONS_PREFIX . '*');
         Cache::forget(self::CACHE_CATEGORIES_KEY);
         Log::info('Invalidated all permission caches');
     }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import {
   Card,
   CardBody,
@@ -25,6 +25,8 @@ import { MdSchool } from "react-icons/md";
 import { BsCloudUpload } from "react-icons/bs";
 import Link from "next/link";
 import { myunilaIntegratorMenuConfig } from "./config/menuConfig";
+
+const APP_KEY = "myunila-integrator";
 
 // Interface untuk dashboard stats
 interface ModuleStat {
@@ -261,22 +263,24 @@ export default function MyUnilaIntegratorDashboard() {
 
   if (isLoading) {
     return (
-      <DashboardLayout
+      <DashboardLayoutWithDynamicMenu
         appName="MyUnila Integrator"
         appIcon={<MdSchool className="w-6 h-6 text-white" />}
-        menuConfig={myunilaIntegratorMenuConfig}
+        appKey={APP_KEY}
+        fallbackMenus={myunilaIntegratorMenuConfig}
         pageTitle="Dashboard"
       >
         <DashboardSkeleton />
-      </DashboardLayout>
+      </DashboardLayoutWithDynamicMenu>
     );
   }
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="MyUnila Integrator"
       appIcon={<MdSchool className="w-6 h-6 text-white" />}
-      menuConfig={myunilaIntegratorMenuConfig}
+      appKey={APP_KEY}
+      fallbackMenus={myunilaIntegratorMenuConfig}
       pageTitle="Dashboard"
     >
       <div className="space-y-6">
@@ -517,6 +521,6 @@ export default function MyUnilaIntegratorDashboard() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

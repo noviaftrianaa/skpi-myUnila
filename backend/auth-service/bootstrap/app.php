@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'jwt.auth' => \App\Http\Middleware\JwtAuthenticate::class,
             'kong.auth' => \App\Http\Middleware\KongAuth::class,
+            'permission' => \App\Http\Middleware\CheckCrudPermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

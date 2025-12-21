@@ -85,6 +85,16 @@ export interface PortalAppsData {
   accessible_apps: number;
 }
 
+export interface AppPermissions {
+  can_show: boolean;
+  can_insert: boolean;
+  can_update: boolean;
+  can_delete: boolean;
+  can_reject: boolean;
+  can_approve: boolean;
+  is_super_role: boolean;
+}
+
 export interface CheckAccessResult {
   has_access: boolean;
   requires_context_selection: boolean;
@@ -94,6 +104,39 @@ export interface CheckAccessResult {
     nm_aplikasi: string;
     app_key: string;
   } | null;
+  permissions?: AppPermissions;
+}
+
+export interface MenuPermissions {
+  can_show: boolean;
+  can_insert: boolean;
+  can_update: boolean;
+  can_delete: boolean;
+  can_reject: boolean;
+  can_approve: boolean;
+}
+
+export interface AppMenu {
+  id_menu: string;
+  title: string;
+  href: string | null;
+  icon: string | null;
+  level: number | string; // Backend may send as string "0" or number 0
+  order: number;
+  is_maintenance: boolean;
+  permissions: MenuPermissions;
+  children: AppMenu[];
+}
+
+export interface AppMenusData {
+  context: ActiveContext | null;
+  app: {
+    id_aplikasi: string;
+    nm_aplikasi: string;
+    app_key: string;
+  } | null;
+  menus: AppMenu[];
+  is_super_role: boolean;
 }
 
 // API Response wrapper
@@ -176,6 +219,24 @@ export const userContextService = {
   async getPortalCategories(): Promise<{ categories: PortalCategory[] }> {
     const response = await apiClient.get<ApiResponse<{ categories: PortalCategory[] }>>(
       '/user-context/portal-categories'
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Get user's accessible menus for an application
+   * Returns hierarchical menu structure based on RBAC (menu_role.a_boleh_show)
+   * @param appId - Application UUID
+   * @param appKey - Application key/slug (alternative to appId)
+   */
+  async getAppMenus(appId?: string, appKey?: string): Promise<AppMenusData> {
+    const params: Record<string, string> = {};
+    if (appId) params.app_id = appId;
+    if (appKey) params.app_key = appKey;
+
+    const response = await apiClient.get<ApiResponse<AppMenusData>>(
+      '/user-context/app-menus',
+      { params }
     );
     return response.data.data;
   },

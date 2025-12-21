@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import {
   Card,
   CardBody,
@@ -24,6 +24,8 @@ import {
 import { MdSecurity } from "react-icons/md";
 import { manajemenAksesMenuConfig } from "./config/menuConfig";
 import Link from "next/link";
+
+const APP_KEY = "manajemen-akses";
 
 export default function ManajemenAksesDashboardPage() {
   useRequireAuth();
@@ -150,24 +152,26 @@ export default function ManajemenAksesDashboardPage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout
+      <DashboardLayoutWithDynamicMenu
         appName="Manajemen Akses"
         appIcon={<MdSecurity className="w-6 h-6 text-white" />}
-        menuConfig={manajemenAksesMenuConfig}
+        appKey={APP_KEY}
+        fallbackMenus={manajemenAksesMenuConfig}
         pageTitle="Dashboard"
       >
         <div className="flex justify-center items-center h-96">
           <Spinner size="lg" color="primary" />
         </div>
-      </DashboardLayout>
+      </DashboardLayoutWithDynamicMenu>
     );
   }
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="Manajemen Akses"
       appIcon={<MdSecurity className="w-6 h-6 text-white" />}
-      menuConfig={manajemenAksesMenuConfig}
+      appKey={APP_KEY}
+      fallbackMenus={manajemenAksesMenuConfig}
       pageTitle="Dashboard"
     >
       <div className="space-y-6">
@@ -352,6 +356,6 @@ export default function ManajemenAksesDashboardPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

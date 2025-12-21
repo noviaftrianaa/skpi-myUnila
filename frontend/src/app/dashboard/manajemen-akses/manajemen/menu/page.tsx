@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import MenuTable from "@/shared/components/manakses/MenuTable";
 import {
   Spinner,
@@ -13,6 +13,8 @@ import { MdSecurity } from "react-icons/md";
 import { FiList, FiCheckCircle, FiXCircle, FiLayers } from "react-icons/fi";
 import { manajemenAksesMenuConfig } from "../../config/menuConfig";
 import { type MenuStats } from "@/lib/services/manakses/menuService";
+
+const APP_KEY = "manajemen-akses";
 
 export default function MenuPage() {
   useRequireAuth();
@@ -29,24 +31,26 @@ export default function MenuPage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout
+      <DashboardLayoutWithDynamicMenu
         appName="Manajemen Akses"
         appIcon={<MdSecurity className="w-6 h-6 text-white" />}
-        menuConfig={manajemenAksesMenuConfig}
+        appKey={APP_KEY}
+        fallbackMenus={manajemenAksesMenuConfig}
         pageTitle="Menu Aplikasi"
       >
         <div className="flex justify-center items-center h-96">
           <Spinner size="lg" color="primary" />
         </div>
-      </DashboardLayout>
+      </DashboardLayoutWithDynamicMenu>
     );
   }
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="Manajemen Akses"
       appIcon={<MdSecurity className="w-6 h-6 text-white" />}
-      menuConfig={manajemenAksesMenuConfig}
+      appKey={APP_KEY}
+      fallbackMenus={manajemenAksesMenuConfig}
       pageTitle="Menu Aplikasi"
     >
       <div className="space-y-6">
@@ -175,6 +179,6 @@ export default function MenuPage() {
         {/* Table */}
         <MenuTable onStatsLoaded={setMenuStats} />
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

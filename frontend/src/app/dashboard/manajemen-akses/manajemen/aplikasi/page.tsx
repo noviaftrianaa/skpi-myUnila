@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import AplikasiTable from "@/shared/components/manakses/AplikasiTable";
 import {
   Card,
@@ -19,6 +19,8 @@ import { MdSecurity } from "react-icons/md";
 import { Toaster } from "react-hot-toast";
 import { manajemenAksesMenuConfig } from "../../config/menuConfig";
 import { type AplikasiStats } from "@/lib/services/manakses/aplikasiService";
+
+const APP_KEY = "manajemen-akses";
 
 export default function DaftarAplikasiPage() {
   useRequireAuth();
@@ -40,24 +42,26 @@ export default function DaftarAplikasiPage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout
+      <DashboardLayoutWithDynamicMenu
         appName="Manajemen Akses"
         appIcon={<MdSecurity className="w-6 h-6 text-white" />}
-        menuConfig={manajemenAksesMenuConfig}
+        appKey={APP_KEY}
+        fallbackMenus={manajemenAksesMenuConfig}
         pageTitle="Daftar Aplikasi"
       >
         <div className="flex justify-center items-center h-96">
           <Spinner size="lg" color="primary" />
         </div>
-      </DashboardLayout>
+      </DashboardLayoutWithDynamicMenu>
     );
   }
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="Manajemen Akses"
       appIcon={<MdSecurity className="w-6 h-6 text-white" />}
-      menuConfig={manajemenAksesMenuConfig}
+      appKey={APP_KEY}
+      fallbackMenus={manajemenAksesMenuConfig}
       pageTitle="Daftar Aplikasi"
     >
       <Toaster position="top-right" />
@@ -185,6 +189,6 @@ export default function DaftarAplikasiPage() {
         {/* Data Table */}
         <AplikasiTable onStatsLoaded={handleStatsLoaded} />
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

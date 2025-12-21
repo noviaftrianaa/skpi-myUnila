@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import {
   Card,
   CardBody,
@@ -31,6 +31,8 @@ import { feederIntegratorMenuConfig } from "./config/menuConfig";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
 import { feederClient } from "@/lib/api/feederClient";
+
+const APP_KEY = "feeder-integrator";
 
 interface ModuleStat {
   name: string;
@@ -387,22 +389,24 @@ export default function FeederIntegratorDashboard() {
 
   if (isLoading) {
     return (
-      <DashboardLayout
+      <DashboardLayoutWithDynamicMenu
         appName="Feeder Integrator"
         appIcon={<MdSchool className="w-6 h-6 text-white" />}
-        menuConfig={feederIntegratorMenuConfig}
+        appKey={APP_KEY}
+        fallbackMenus={feederIntegratorMenuConfig}
         pageTitle="Dashboard"
       >
         <DashboardSkeleton />
-      </DashboardLayout>
+      </DashboardLayoutWithDynamicMenu>
     );
   }
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="Feeder Integrator"
       appIcon={<MdSchool className="w-6 h-6 text-white" />}
-      menuConfig={feederIntegratorMenuConfig}
+      appKey={APP_KEY}
+      fallbackMenus={feederIntegratorMenuConfig}
       pageTitle="Dashboard"
     >
       <div className="space-y-6">
@@ -764,6 +768,6 @@ export default function FeederIntegratorDashboard() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

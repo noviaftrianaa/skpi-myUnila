@@ -277,6 +277,8 @@ class MenuRoleService
 
         // Invalidate cache for the role - invalidate all apps for this role
         $this->userContextService->invalidateMenuRoleCache($idPeran);
+        // Also invalidate permissions cache for all apps
+        $this->userContextService->invalidatePermissionsCache($idPeran);
 
         Log::info('Bulk menus assigned to role', [
             'id_peran' => $idPeran,
@@ -304,6 +306,7 @@ class MenuRoleService
     /**
      * Invalidate cache when menu_role changes
      * Gets app_id from menu and invalidates the role's cache for that app
+     * Also invalidates CRUD permissions cache
      *
      * @param string $idMenu
      * @param int $idPeran
@@ -315,7 +318,10 @@ class MenuRoleService
             // Get app_id from menu
             $menu = $this->menuRepository->getDetail($idMenu);
             if ($menu && $menu->id_aplikasi) {
+                // Invalidate menu_role access cache
                 $this->userContextService->invalidateMenuRoleCache($idPeran, $menu->id_aplikasi);
+                // Invalidate CRUD permissions cache
+                $this->userContextService->invalidatePermissionsCache($idPeran, $menu->id_aplikasi);
                 Log::debug('Cache invalidated for menu_role change', [
                     'id_peran' => $idPeran,
                     'id_aplikasi' => $menu->id_aplikasi,

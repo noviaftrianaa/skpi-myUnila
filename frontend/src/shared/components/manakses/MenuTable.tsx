@@ -19,8 +19,11 @@ import {
   DropdownMenu,
   DropdownItem,
   Input,
+  Autocomplete,
+  AutocompleteItem,
 } from "@heroui/react";
 import { FiPlus, FiEdit2, FiTrash2, FiMoreVertical, FiEye, FiEyeOff, FiFolder, FiFile } from "react-icons/fi";
+import { Icon } from "@iconify/react";
 import {
   menuService,
   type Menu,
@@ -30,6 +33,362 @@ import {
 } from "@/lib/services/manakses/menuService";
 import { aplikasiService, type Aplikasi } from "@/lib/services/manakses/aplikasiService";
 import { toast } from "react-hot-toast";
+
+// Icon options for menu - Iconify format (same as AplikasiFormModal)
+const ICON_OPTIONS = [
+  // === HEROICONS (Most Popular) ===
+  // Education & Academic
+  { key: "heroicons:academic-cap", label: "Academic Cap" },
+  { key: "heroicons:book-open", label: "Book Open" },
+  { key: "heroicons:building-library", label: "Library" },
+  { key: "heroicons:clipboard-document-check", label: "Clipboard Check" },
+  { key: "heroicons:clipboard-document-list", label: "Clipboard List" },
+  { key: "heroicons:document-text", label: "Document Text" },
+  { key: "heroicons:pencil-square", label: "Pencil Square" },
+  { key: "heroicons:presentation-chart-line", label: "Presentation" },
+  { key: "heroicons:trophy", label: "Trophy" },
+  { key: "heroicons:light-bulb", label: "Light Bulb" },
+  // Business & Office
+  { key: "heroicons:briefcase", label: "Briefcase" },
+  { key: "heroicons:building-office", label: "Office" },
+  { key: "heroicons:building-office-2", label: "Office Building" },
+  { key: "heroicons:building-storefront", label: "Storefront" },
+  { key: "heroicons:identification", label: "ID Card" },
+  { key: "heroicons:user-group", label: "User Group" },
+  { key: "heroicons:users", label: "Users" },
+  { key: "heroicons:user-circle", label: "User Circle" },
+  // Charts & Analytics
+  { key: "heroicons:chart-bar", label: "Chart Bar" },
+  { key: "heroicons:chart-bar-square", label: "Chart Bar Square" },
+  { key: "heroicons:chart-pie", label: "Chart Pie" },
+  { key: "heroicons:arrow-trending-up", label: "Trending Up" },
+  { key: "heroicons:arrow-trending-down", label: "Trending Down" },
+  { key: "heroicons:presentation-chart-bar", label: "Presentation Bar" },
+  { key: "heroicons:table-cells", label: "Table Cells" },
+  // Finance
+  { key: "heroicons:banknotes", label: "Banknotes" },
+  { key: "heroicons:credit-card", label: "Credit Card" },
+  { key: "heroicons:currency-dollar", label: "Dollar" },
+  { key: "heroicons:wallet", label: "Wallet" },
+  { key: "heroicons:receipt-percent", label: "Receipt" },
+  { key: "heroicons:calculator", label: "Calculator" },
+  // Technology
+  { key: "heroicons:server", label: "Server" },
+  { key: "heroicons:server-stack", label: "Server Stack" },
+  { key: "heroicons:circle-stack", label: "Database" },
+  { key: "heroicons:computer-desktop", label: "Desktop" },
+  { key: "heroicons:cpu-chip", label: "CPU Chip" },
+  { key: "heroicons:cloud", label: "Cloud" },
+  { key: "heroicons:cloud-arrow-up", label: "Cloud Upload" },
+  { key: "heroicons:code-bracket", label: "Code" },
+  { key: "heroicons:command-line", label: "Terminal" },
+  { key: "heroicons:cube", label: "Cube" },
+  { key: "heroicons:cube-transparent", label: "Cube Transparent" },
+  { key: "heroicons:link", label: "Link" },
+  { key: "heroicons:qr-code", label: "QR Code" },
+  { key: "heroicons:signal", label: "Signal" },
+  { key: "heroicons:wifi", label: "WiFi" },
+  // Security
+  { key: "heroicons:key", label: "Key" },
+  { key: "heroicons:lock-closed", label: "Lock Closed" },
+  { key: "heroicons:lock-open", label: "Lock Open" },
+  { key: "heroicons:shield-check", label: "Shield Check" },
+  { key: "heroicons:shield-exclamation", label: "Shield Alert" },
+  { key: "heroicons:finger-print", label: "Fingerprint" },
+  { key: "heroicons:eye", label: "Eye" },
+  // Communication
+  { key: "heroicons:envelope", label: "Envelope" },
+  { key: "heroicons:envelope-open", label: "Envelope Open" },
+  { key: "heroicons:chat-bubble-left-right", label: "Chat" },
+  { key: "heroicons:phone", label: "Phone" },
+  { key: "heroicons:megaphone", label: "Megaphone" },
+  { key: "heroicons:bell", label: "Bell" },
+  { key: "heroicons:inbox", label: "Inbox" },
+  { key: "heroicons:inbox-stack", label: "Inbox Stack" },
+  // Navigation & Location
+  { key: "heroicons:home", label: "Home" },
+  { key: "heroicons:home-modern", label: "Home Modern" },
+  { key: "heroicons:globe-alt", label: "Globe" },
+  { key: "heroicons:globe-americas", label: "Globe Americas" },
+  { key: "heroicons:globe-asia-australia", label: "Globe Asia" },
+  { key: "heroicons:map", label: "Map" },
+  { key: "heroicons:map-pin", label: "Map Pin" },
+  // Files & Documents
+  { key: "heroicons:document", label: "Document" },
+  { key: "heroicons:document-chart-bar", label: "Document Chart" },
+  { key: "heroicons:document-check", label: "Document Check" },
+  { key: "heroicons:document-duplicate", label: "Document Duplicate" },
+  { key: "heroicons:folder", label: "Folder" },
+  { key: "heroicons:folder-open", label: "Folder Open" },
+  { key: "heroicons:clipboard", label: "Clipboard" },
+  { key: "heroicons:archive-box", label: "Archive Box" },
+  { key: "heroicons:newspaper", label: "Newspaper" },
+  // Time & Calendar
+  { key: "heroicons:calendar", label: "Calendar" },
+  { key: "heroicons:calendar-days", label: "Calendar Days" },
+  { key: "heroicons:clock", label: "Clock" },
+  // Settings & Tools
+  { key: "heroicons:cog-6-tooth", label: "Settings" },
+  { key: "heroicons:cog-8-tooth", label: "Settings Alt" },
+  { key: "heroicons:adjustments-horizontal", label: "Adjustments" },
+  { key: "heroicons:wrench", label: "Wrench" },
+  { key: "heroicons:wrench-screwdriver", label: "Tools" },
+  { key: "heroicons:scissors", label: "Scissors" },
+  { key: "heroicons:paint-brush", label: "Paint Brush" },
+  // Status & Actions
+  { key: "heroicons:check-circle", label: "Check Circle" },
+  { key: "heroicons:check-badge", label: "Check Badge" },
+  { key: "heroicons:x-circle", label: "X Circle" },
+  { key: "heroicons:exclamation-circle", label: "Exclamation" },
+  { key: "heroicons:information-circle", label: "Info" },
+  { key: "heroicons:magnifying-glass", label: "Search" },
+  { key: "heroicons:plus", label: "Plus" },
+  { key: "heroicons:plus-circle", label: "Plus Circle" },
+  { key: "heroicons:pencil", label: "Pencil" },
+  { key: "heroicons:trash", label: "Trash" },
+  { key: "heroicons:share", label: "Share" },
+  { key: "heroicons:paper-airplane", label: "Paper Airplane" },
+  { key: "heroicons:rocket-launch", label: "Rocket" },
+  // Media
+  { key: "heroicons:camera", label: "Camera" },
+  { key: "heroicons:photo", label: "Photo" },
+  { key: "heroicons:film", label: "Film" },
+  { key: "heroicons:video-camera", label: "Video Camera" },
+  { key: "heroicons:microphone", label: "Microphone" },
+  { key: "heroicons:musical-note", label: "Music" },
+  { key: "heroicons:play", label: "Play" },
+  { key: "heroicons:play-circle", label: "Play Circle" },
+  { key: "heroicons:speaker-wave", label: "Speaker" },
+  // Commerce
+  { key: "heroicons:shopping-bag", label: "Shopping Bag" },
+  { key: "heroicons:shopping-cart", label: "Shopping Cart" },
+  { key: "heroicons:tag", label: "Tag" },
+  { key: "heroicons:ticket", label: "Ticket" },
+  { key: "heroicons:gift", label: "Gift" },
+  // Support
+  { key: "heroicons:lifebuoy", label: "Lifebuoy" },
+  { key: "heroicons:hand-raised", label: "Hand Raised" },
+  { key: "heroicons:hand-thumb-up", label: "Thumb Up" },
+  // Social
+  { key: "heroicons:heart", label: "Heart" },
+  { key: "heroicons:star", label: "Star" },
+  { key: "heroicons:sparkles", label: "Sparkles" },
+  { key: "heroicons:hashtag", label: "Hashtag" },
+  { key: "heroicons:face-smile", label: "Smile" },
+  { key: "heroicons:fire", label: "Fire" },
+  { key: "heroicons:bolt", label: "Bolt" },
+  // Objects
+  { key: "heroicons:puzzle-piece", label: "Puzzle" },
+  { key: "heroicons:rectangle-stack", label: "Stack" },
+  { key: "heroicons:squares-2x2", label: "Grid" },
+  { key: "heroicons:squares-plus", label: "Squares Plus" },
+  { key: "heroicons:square-3-stack-3d", label: "3D Stack" },
+  { key: "heroicons:flag", label: "Flag" },
+  { key: "heroicons:bookmark", label: "Bookmark" },
+  { key: "heroicons:scale", label: "Scale" },
+  { key: "heroicons:beaker", label: "Beaker" },
+  { key: "heroicons:cake", label: "Cake" },
+  { key: "heroicons:truck", label: "Truck" },
+  { key: "heroicons:tv", label: "TV" },
+  { key: "heroicons:printer", label: "Printer" },
+  { key: "heroicons:sun", label: "Sun" },
+  { key: "heroicons:language", label: "Language" },
+  { key: "heroicons:rss", label: "RSS" },
+  { key: "heroicons:variable", label: "Variable" },
+  { key: "heroicons:viewfinder-circle", label: "Viewfinder" },
+  { key: "heroicons:window", label: "Window" },
+  { key: "heroicons:swatch", label: "Swatch" },
+  { key: "heroicons:queue-list", label: "Queue List" },
+  { key: "heroicons:paper-clip", label: "Paper Clip" },
+  // === PHOSPHOR ICONS ===
+  { key: "ph:graduation-cap-fill", label: "Graduation Cap (Ph)" },
+  { key: "ph:student-fill", label: "Student (Ph)" },
+  { key: "ph:chalkboard-teacher-fill", label: "Teacher (Ph)" },
+  { key: "ph:book-fill", label: "Book (Ph)" },
+  { key: "ph:books-fill", label: "Books (Ph)" },
+  { key: "ph:notebook-fill", label: "Notebook (Ph)" },
+  { key: "ph:exam-fill", label: "Exam (Ph)" },
+  { key: "ph:certificate-fill", label: "Certificate (Ph)" },
+  { key: "ph:medal-fill", label: "Medal (Ph)" },
+  { key: "ph:trophy-fill", label: "Trophy (Ph)" },
+  { key: "ph:crown-fill", label: "Crown (Ph)" },
+  { key: "ph:database-fill", label: "Database (Ph)" },
+  { key: "ph:hard-drives-fill", label: "Hard Drives (Ph)" },
+  { key: "ph:terminal-fill", label: "Terminal (Ph)" },
+  { key: "ph:code-fill", label: "Code (Ph)" },
+  { key: "ph:headset-fill", label: "Headset (Ph)" },
+  { key: "ph:handshake-fill", label: "Handshake (Ph)" },
+  { key: "ph:bank-fill", label: "Bank (Ph)" },
+  { key: "ph:money-fill", label: "Money (Ph)" },
+  { key: "ph:chart-line-up-fill", label: "Chart Up (Ph)" },
+  { key: "ph:chart-bar-fill", label: "Chart Bar (Ph)" },
+  { key: "ph:chart-pie-slice-fill", label: "Pie Chart (Ph)" },
+  { key: "ph:buildings-fill", label: "Buildings (Ph)" },
+  { key: "ph:hospital-fill", label: "Hospital (Ph)" },
+  { key: "ph:factory-fill", label: "Factory (Ph)" },
+  { key: "ph:users-three-fill", label: "Users Three (Ph)" },
+  { key: "ph:users-four-fill", label: "Users Four (Ph)" },
+  { key: "ph:user-gear-fill", label: "User Gear (Ph)" },
+  { key: "ph:identification-card-fill", label: "ID Card (Ph)" },
+  { key: "ph:fingerprint-fill", label: "Fingerprint (Ph)" },
+  { key: "ph:shield-check-fill", label: "Shield Check (Ph)" },
+  { key: "ph:globe-fill", label: "Globe (Ph)" },
+  { key: "ph:translate-fill", label: "Translate (Ph)" },
+  { key: "ph:calendar-check-fill", label: "Calendar Check (Ph)" },
+  { key: "ph:file-text-fill", label: "File Text (Ph)" },
+  { key: "ph:file-pdf-fill", label: "PDF (Ph)" },
+  { key: "ph:folder-fill", label: "Folder (Ph)" },
+  { key: "ph:cloud-fill", label: "Cloud (Ph)" },
+  { key: "ph:lightning-fill", label: "Lightning (Ph)" },
+  { key: "ph:star-fill", label: "Star (Ph)" },
+  { key: "ph:heart-fill", label: "Heart (Ph)" },
+  { key: "ph:chat-circle-fill", label: "Chat (Ph)" },
+  { key: "ph:bell-fill", label: "Bell (Ph)" },
+  { key: "ph:gear-fill", label: "Gear (Ph)" },
+  { key: "ph:sliders-fill", label: "Sliders (Ph)" },
+  // === MATERIAL DESIGN ICONS ===
+  { key: "mdi:account-school", label: "Account School (MDI)" },
+  { key: "mdi:school", label: "School (MDI)" },
+  { key: "mdi:book-education", label: "Book Education (MDI)" },
+  { key: "mdi:human-male-board", label: "Teacher (MDI)" },
+  { key: "mdi:briefcase", label: "Briefcase (MDI)" },
+  { key: "mdi:office-building", label: "Office (MDI)" },
+  { key: "mdi:domain", label: "Domain (MDI)" },
+  { key: "mdi:city", label: "City (MDI)" },
+  { key: "mdi:database", label: "Database (MDI)" },
+  { key: "mdi:server", label: "Server (MDI)" },
+  { key: "mdi:api", label: "API (MDI)" },
+  { key: "mdi:cog", label: "Cog (MDI)" },
+  { key: "mdi:tools", label: "Tools (MDI)" },
+  { key: "mdi:chart-line", label: "Chart Line (MDI)" },
+  { key: "mdi:chart-bar", label: "Chart Bar (MDI)" },
+  { key: "mdi:chart-pie", label: "Chart Pie (MDI)" },
+  { key: "mdi:monitor-dashboard", label: "Dashboard (MDI)" },
+  { key: "mdi:view-dashboard", label: "Dashboard View (MDI)" },
+  { key: "mdi:finance", label: "Finance (MDI)" },
+  { key: "mdi:cash", label: "Cash (MDI)" },
+  { key: "mdi:cash-multiple", label: "Cash Multiple (MDI)" },
+  { key: "mdi:wallet", label: "Wallet (MDI)" },
+  { key: "mdi:credit-card", label: "Credit Card (MDI)" },
+  { key: "mdi:account", label: "Account (MDI)" },
+  { key: "mdi:account-group", label: "Account Group (MDI)" },
+  { key: "mdi:account-multiple", label: "Account Multiple (MDI)" },
+  { key: "mdi:badge-account", label: "Badge Account (MDI)" },
+  { key: "mdi:card-account-details", label: "Card Account (MDI)" },
+  { key: "mdi:shield-check", label: "Shield Check (MDI)" },
+  { key: "mdi:shield-lock", label: "Shield Lock (MDI)" },
+  { key: "mdi:lock", label: "Lock (MDI)" },
+  { key: "mdi:key", label: "Key (MDI)" },
+  { key: "mdi:earth", label: "Earth (MDI)" },
+  { key: "mdi:web", label: "Web (MDI)" },
+  { key: "mdi:calendar", label: "Calendar (MDI)" },
+  { key: "mdi:calendar-check", label: "Calendar Check (MDI)" },
+  { key: "mdi:file-document", label: "File Document (MDI)" },
+  { key: "mdi:folder", label: "Folder (MDI)" },
+  { key: "mdi:email", label: "Email (MDI)" },
+  { key: "mdi:message", label: "Message (MDI)" },
+  { key: "mdi:phone", label: "Phone (MDI)" },
+  { key: "mdi:bell", label: "Bell (MDI)" },
+  { key: "mdi:home", label: "Home (MDI)" },
+  { key: "mdi:magnify", label: "Search (MDI)" },
+  { key: "mdi:check-circle", label: "Check Circle (MDI)" },
+  { key: "mdi:alert", label: "Alert (MDI)" },
+  { key: "mdi:help-circle", label: "Help (MDI)" },
+  { key: "mdi:headset", label: "Headset (MDI)" },
+  { key: "mdi:lifebuoy", label: "Lifebuoy (MDI)" },
+  { key: "mdi:star", label: "Star (MDI)" },
+  { key: "mdi:heart", label: "Heart (MDI)" },
+  { key: "mdi:share", label: "Share (MDI)" },
+  { key: "mdi:link", label: "Link (MDI)" },
+  { key: "mdi:cloud", label: "Cloud (MDI)" },
+  { key: "mdi:sync", label: "Sync (MDI)" },
+  { key: "mdi:rocket", label: "Rocket (MDI)" },
+  { key: "mdi:lightbulb", label: "Lightbulb (MDI)" },
+  { key: "mdi:puzzle", label: "Puzzle (MDI)" },
+  { key: "mdi:cube", label: "Cube (MDI)" },
+  { key: "mdi:package", label: "Package (MDI)" },
+  { key: "mdi:cart", label: "Cart (MDI)" },
+  { key: "mdi:store", label: "Store (MDI)" },
+  { key: "mdi:gift", label: "Gift (MDI)" },
+  { key: "mdi:trophy", label: "Trophy (MDI)" },
+  { key: "mdi:medal", label: "Medal (MDI)" },
+  { key: "mdi:certificate", label: "Certificate (MDI)" },
+  { key: "mdi:map", label: "Map (MDI)" },
+  { key: "mdi:map-marker", label: "Map Marker (MDI)" },
+  { key: "mdi:image", label: "Image (MDI)" },
+  { key: "mdi:video", label: "Video (MDI)" },
+  { key: "mdi:music", label: "Music (MDI)" },
+  { key: "mdi:monitor", label: "Monitor (MDI)" },
+  { key: "mdi:laptop", label: "Laptop (MDI)" },
+  { key: "mdi:cellphone", label: "Cellphone (MDI)" },
+  { key: "mdi:printer", label: "Printer (MDI)" },
+  // === TABLER ICONS ===
+  { key: "tabler:school", label: "School (Tabler)" },
+  { key: "tabler:book", label: "Book (Tabler)" },
+  { key: "tabler:books", label: "Books (Tabler)" },
+  { key: "tabler:certificate", label: "Certificate (Tabler)" },
+  { key: "tabler:award", label: "Award (Tabler)" },
+  { key: "tabler:trophy", label: "Trophy (Tabler)" },
+  { key: "tabler:building", label: "Building (Tabler)" },
+  { key: "tabler:building-skyscraper", label: "Skyscraper (Tabler)" },
+  { key: "tabler:database", label: "Database (Tabler)" },
+  { key: "tabler:server", label: "Server (Tabler)" },
+  { key: "tabler:api", label: "API (Tabler)" },
+  { key: "tabler:code", label: "Code (Tabler)" },
+  { key: "tabler:terminal", label: "Terminal (Tabler)" },
+  { key: "tabler:settings", label: "Settings (Tabler)" },
+  { key: "tabler:tool", label: "Tool (Tabler)" },
+  { key: "tabler:chart-line", label: "Chart Line (Tabler)" },
+  { key: "tabler:chart-bar", label: "Chart Bar (Tabler)" },
+  { key: "tabler:chart-pie", label: "Chart Pie (Tabler)" },
+  { key: "tabler:dashboard", label: "Dashboard (Tabler)" },
+  { key: "tabler:report-analytics", label: "Analytics (Tabler)" },
+  { key: "tabler:cash", label: "Cash (Tabler)" },
+  { key: "tabler:wallet", label: "Wallet (Tabler)" },
+  { key: "tabler:credit-card", label: "Credit Card (Tabler)" },
+  { key: "tabler:user", label: "User (Tabler)" },
+  { key: "tabler:users", label: "Users (Tabler)" },
+  { key: "tabler:id", label: "ID (Tabler)" },
+  { key: "tabler:id-badge", label: "ID Badge (Tabler)" },
+  { key: "tabler:shield-check", label: "Shield Check (Tabler)" },
+  { key: "tabler:lock", label: "Lock (Tabler)" },
+  { key: "tabler:key", label: "Key (Tabler)" },
+  { key: "tabler:world", label: "World (Tabler)" },
+  { key: "tabler:calendar", label: "Calendar (Tabler)" },
+  { key: "tabler:clock", label: "Clock (Tabler)" },
+  { key: "tabler:file", label: "File (Tabler)" },
+  { key: "tabler:file-text", label: "File Text (Tabler)" },
+  { key: "tabler:folder", label: "Folder (Tabler)" },
+  { key: "tabler:mail", label: "Mail (Tabler)" },
+  { key: "tabler:message", label: "Message (Tabler)" },
+  { key: "tabler:phone", label: "Phone (Tabler)" },
+  { key: "tabler:bell", label: "Bell (Tabler)" },
+  { key: "tabler:home", label: "Home (Tabler)" },
+  { key: "tabler:search", label: "Search (Tabler)" },
+  { key: "tabler:check", label: "Check (Tabler)" },
+  { key: "tabler:alert-circle", label: "Alert (Tabler)" },
+  { key: "tabler:help", label: "Help (Tabler)" },
+  { key: "tabler:headset", label: "Headset (Tabler)" },
+  { key: "tabler:star", label: "Star (Tabler)" },
+  { key: "tabler:heart", label: "Heart (Tabler)" },
+  { key: "tabler:share", label: "Share (Tabler)" },
+  { key: "tabler:link", label: "Link (Tabler)" },
+  { key: "tabler:cloud", label: "Cloud (Tabler)" },
+  { key: "tabler:rocket", label: "Rocket (Tabler)" },
+  { key: "tabler:bulb", label: "Bulb (Tabler)" },
+  { key: "tabler:puzzle", label: "Puzzle (Tabler)" },
+  { key: "tabler:cube", label: "Cube (Tabler)" },
+  { key: "tabler:package", label: "Package (Tabler)" },
+  { key: "tabler:shopping-cart", label: "Cart (Tabler)" },
+  { key: "tabler:gift", label: "Gift (Tabler)" },
+  { key: "tabler:map", label: "Map (Tabler)" },
+  { key: "tabler:map-pin", label: "Map Pin (Tabler)" },
+  { key: "tabler:photo", label: "Photo (Tabler)" },
+  { key: "tabler:video", label: "Video (Tabler)" },
+  { key: "tabler:device-desktop", label: "Desktop (Tabler)" },
+  { key: "tabler:device-laptop", label: "Laptop (Tabler)" },
+  { key: "tabler:device-mobile", label: "Mobile (Tabler)" },
+];
 
 // Extended Menu type with nm_aplikasi
 interface MenuWithAplikasi extends Menu {
@@ -129,8 +488,8 @@ export default function MenuTable({ onStatsLoaded }: MenuTableProps) {
       }
       try {
         const result = await menuService.getByAplikasi(formData.id_aplikasi, "flat");
-        // Filter only level 0 and 1 as potential parents
-        const parents = result.menus.filter(m => (m.level_menu ?? 0) < 2);
+        // Filter only level 0 (parent menus) as potential parents for level 1 (child menus)
+        const parents = result.menus.filter(m => (m.level_menu ?? 0) === 0);
         setParentMenuOptions(parents);
       } catch (error) {
         console.error("Error loading parent menus:", error);
@@ -417,6 +776,22 @@ export default function MenuTable({ onStatsLoaded }: MenuTableProps) {
       });
       return;
     }
+    // Validate icon for Level 0 (Parent)
+    if (formData.level_menu === 0 && !formData.icon) {
+      toast.error("Icon wajib dipilih untuk Menu Utama (Level 0)", {
+        duration: 3000,
+        style: { borderRadius: "12px", background: "#EF4444", color: "#fff", fontWeight: "500" },
+      });
+      return;
+    }
+    // Validate parent menu for Level 1 (Child)
+    if (formData.level_menu === 1 && !formData.id_group_menu) {
+      toast.error("Parent Menu harus dipilih untuk Sub Menu (Level 1)", {
+        duration: 3000,
+        style: { borderRadius: "12px", background: "#EF4444", color: "#fff", fontWeight: "500" },
+      });
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -442,6 +817,22 @@ export default function MenuTable({ onStatsLoaded }: MenuTableProps) {
   const handleSubmitEdit = async () => {
     if (!selectedItem || !formData.nm_menu) {
       toast.error("Nama Menu harus diisi", {
+        duration: 3000,
+        style: { borderRadius: "12px", background: "#EF4444", color: "#fff", fontWeight: "500" },
+      });
+      return;
+    }
+    // Validate icon for Level 0 (Parent)
+    if (formData.level_menu === 0 && !formData.icon) {
+      toast.error("Icon wajib dipilih untuk Menu Utama (Level 0)", {
+        duration: 3000,
+        style: { borderRadius: "12px", background: "#EF4444", color: "#fff", fontWeight: "500" },
+      });
+      return;
+    }
+    // Validate parent menu for Level 1 (Child)
+    if (formData.level_menu === 1 && !formData.id_group_menu) {
+      toast.error("Parent Menu harus dipilih untuk Sub Menu (Level 1)", {
         duration: 3000,
         style: { borderRadius: "12px", background: "#EF4444", color: "#fff", fontWeight: "500" },
       });
@@ -650,22 +1041,68 @@ export default function MenuTable({ onStatsLoaded }: MenuTableProps) {
               }}
             />
           </div>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-              Icon
-            </label>
-            <Input
-              placeholder="heroicons:home"
-              value={formData.icon || ""}
-              onValueChange={(value) => setFormData({ ...formData, icon: value })}
-              variant="bordered"
-              size="sm"
-              classNames={{
-                inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 shadow-sm",
-                input: "text-gray-900 dark:text-white font-mono",
-              }}
-            />
-          </div>
+          {/* Icon Picker - Only show for Level 0 (Parent) menus */}
+          {formData.level_menu === 0 && (
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                Icon <span className="text-red-500">*</span>
+              </label>
+              <Autocomplete
+                aria-label="Pilih Icon"
+                placeholder="Cari icon..."
+                allowsCustomValue
+                defaultItems={ICON_OPTIONS}
+                inputValue={formData.icon || ""}
+                onInputChange={(value) => {
+                  setFormData({ ...formData, icon: value });
+                }}
+                onSelectionChange={(key) => {
+                  if (key) {
+                    setFormData({ ...formData, icon: key as string });
+                  }
+                }}
+                startContent={
+                  formData.icon ? (
+                    <Icon icon={formData.icon} className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                  ) : null
+                }
+                size="sm"
+                variant="bordered"
+                classNames={{
+                  base: "w-full",
+                  listboxWrapper: "max-h-[300px]",
+                  popoverContent: "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600",
+                }}
+                inputProps={{
+                  classNames: {
+                    inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 shadow-sm",
+                    input: "text-gray-900 dark:text-white",
+                  },
+                }}
+              >
+                {(icon) => (
+                  <AutocompleteItem
+                    key={icon.key}
+                    textValue={icon.key}
+                    classNames={{
+                      base: "data-[hover=true]:bg-gray-100 dark:data-[hover=true]:bg-slate-700",
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon icon={icon.key} className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                      <div className="flex flex-col">
+                        <span className="text-sm text-gray-800 dark:text-gray-200">{icon.label}</span>
+                        <span className="text-xs text-gray-400 dark:text-gray-500 font-mono">{icon.key}</span>
+                      </div>
+                    </div>
+                  </AutocompleteItem>
+                )}
+              </Autocomplete>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Icon wajib untuk menu utama. Pilih dari daftar atau ketik nama icon Iconify.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -675,59 +1112,120 @@ export default function MenuTable({ onStatsLoaded }: MenuTableProps) {
           <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
           Hierarki & Urutan
         </h4>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-              Parent Menu
-            </label>
-            <Select
-              aria-label="Pilih Parent Menu"
-              placeholder="Tidak ada (Root)"
-              selectedKeys={formData.id_group_menu ? [formData.id_group_menu] : []}
-              onChange={(e) => {
-                const value = e.target.value || null;
-                const parentMenu = parentMenuOptions.find(m => m.id_menu === value);
-                setFormData({
-                  ...formData,
-                  id_group_menu: value,
-                  level_menu: parentMenu ? (parentMenu.level_menu ?? 0) + 1 : 0,
-                });
-              }}
-              isDisabled={!formData.id_aplikasi}
-              variant="bordered"
-              size="sm"
-              classNames={{
-                trigger: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
-                value: "text-gray-900 dark:text-white",
-                popoverContent: "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600",
-              }}
-            >
-              {parentMenuOptions.map((menu) => (
-                <SelectItem key={menu.id_menu} value={menu.id_menu}>
-                  <span className="text-xs text-gray-400 mr-2">L{menu.level_menu ?? 0}</span>
-                  {menu.nm_menu}
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                Level Menu <span className="text-red-500">*</span>
+              </label>
+              <Select
+                aria-label="Pilih Level Menu"
+                placeholder="Pilih level menu"
+                selectedKeys={new Set([String(formData.level_menu)])}
+                disallowEmptySelection
+                onSelectionChange={(keys) => {
+                  const selectedKey = Array.from(keys)[0] as string;
+                  const level = parseInt(selectedKey) || 0;
+                  setFormData({
+                    ...formData,
+                    level_menu: level,
+                    // Reset parent menu when switching to Level 0 (parent)
+                    // Also clear icon when switching to Level 1
+                    id_group_menu: level === 0 ? null : formData.id_group_menu,
+                    icon: level === 1 ? "" : formData.icon,
+                  });
+                }}
+                variant="bordered"
+                size="sm"
+                classNames={{
+                  trigger: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
+                  value: "text-gray-900 dark:text-white",
+                  popoverContent: "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600",
+                }}
+              >
+                <SelectItem key="0" textValue="Level 0 - Menu Utama (Parent)">
+                  <div className="flex items-center gap-2">
+                    <FiFolder className="w-4 h-4 text-indigo-500" />
+                    <span>Level 0 - Menu Utama (Parent)</span>
+                  </div>
                 </SelectItem>
-              ))}
-            </Select>
+                <SelectItem key="1" textValue="Level 1 - Sub Menu (Child)">
+                  <div className="flex items-center gap-2">
+                    <FiFile className="w-4 h-4 text-gray-400" />
+                    <span>Level 1 - Sub Menu (Child)</span>
+                  </div>
+                </SelectItem>
+              </Select>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {formData.level_menu === 0
+                  ? "Menu utama yang tampil di sidebar dengan icon"
+                  : "Sub menu yang tampil di bawah menu utama"
+                }
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                Urutan
+              </label>
+              <Input
+                type="number"
+                placeholder="1"
+                value={String(formData.urutan_menu || 1)}
+                onValueChange={(value) => setFormData({ ...formData, urutan_menu: parseInt(value) || 1 })}
+                min={1}
+                variant="bordered"
+                size="sm"
+                classNames={{
+                  inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 shadow-sm",
+                  input: "text-gray-900 dark:text-white",
+                }}
+              />
+            </div>
           </div>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-              Urutan
-            </label>
-            <Input
-              type="number"
-              placeholder="1"
-              value={String(formData.urutan_menu || 1)}
-              onValueChange={(value) => setFormData({ ...formData, urutan_menu: parseInt(value) || 1 })}
-              min={1}
-              variant="bordered"
-              size="sm"
-              classNames={{
-                inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 shadow-sm",
-                input: "text-gray-900 dark:text-white",
-              }}
-            />
-          </div>
+
+          {/* Parent Menu - only show when Level 1 (child) is selected */}
+          {formData.level_menu === 1 && (
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                Parent Menu <span className="text-red-500">*</span>
+              </label>
+              <Select
+                aria-label="Pilih Parent Menu"
+                placeholder="Pilih menu utama (Level 0)"
+                selectedKeys={formData.id_group_menu ? [formData.id_group_menu] : []}
+                onChange={(e) => {
+                  const value = e.target.value || null;
+                  setFormData({
+                    ...formData,
+                    id_group_menu: value,
+                  });
+                }}
+                isDisabled={!formData.id_aplikasi}
+                variant="bordered"
+                size="sm"
+                classNames={{
+                  trigger: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
+                  value: "text-gray-900 dark:text-white",
+                  popoverContent: "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600",
+                }}
+              >
+                {parentMenuOptions
+                  .filter(m => (m.level_menu ?? 0) === 0) // Only show Level 0 menus as parent
+                  .map((menu) => (
+                    <SelectItem key={menu.id_menu} value={menu.id_menu}>
+                      <div className="flex items-center gap-2">
+                        <FiFolder className="w-4 h-4 text-indigo-500" />
+                        {menu.nm_menu}
+                      </div>
+                    </SelectItem>
+                  ))
+                }
+              </Select>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Pilih menu utama sebagai parent dari sub menu ini
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

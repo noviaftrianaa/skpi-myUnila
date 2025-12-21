@@ -35,7 +35,7 @@ DECLARE @kat_tools UNIQUEIDENTIFIER = NEWID();
 IF NOT EXISTS (SELECT 1 FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Akademik')
 BEGIN
     INSERT INTO man_akses.kategori_aplikasi (id_kategori, nm_kategori, icon_kategori, icon_color, urutan)
-    VALUES (@kat_akademik, 'Akademik', 'FiBook', 'bg-blue-500', 1);
+    VALUES (@kat_akademik, 'Akademik', 'heroicons:book-open', 'bg-blue-500', 1);
 END
 ELSE
     SELECT @kat_akademik = id_kategori FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Akademik';
@@ -43,7 +43,7 @@ ELSE
 IF NOT EXISTS (SELECT 1 FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Riset dan Kerjasama')
 BEGIN
     INSERT INTO man_akses.kategori_aplikasi (id_kategori, nm_kategori, icon_kategori, icon_color, urutan)
-    VALUES (@kat_riset, 'Riset dan Kerjasama', 'FiSearch', 'bg-purple-500', 2);
+    VALUES (@kat_riset, 'Riset dan Kerjasama', 'heroicons:magnifying-glass', 'bg-purple-500', 2);
 END
 ELSE
     SELECT @kat_riset = id_kategori FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Riset dan Kerjasama';
@@ -51,7 +51,7 @@ ELSE
 IF NOT EXISTS (SELECT 1 FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Kemahasiswaan')
 BEGIN
     INSERT INTO man_akses.kategori_aplikasi (id_kategori, nm_kategori, icon_kategori, icon_color, urutan)
-    VALUES (@kat_kemahasiswaan, 'Kemahasiswaan', 'FiUsers', 'bg-green-500', 3);
+    VALUES (@kat_kemahasiswaan, 'Kemahasiswaan', 'heroicons:users', 'bg-green-500', 3);
 END
 ELSE
     SELECT @kat_kemahasiswaan = id_kategori FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Kemahasiswaan';
@@ -59,7 +59,7 @@ ELSE
 IF NOT EXISTS (SELECT 1 FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Alumni')
 BEGIN
     INSERT INTO man_akses.kategori_aplikasi (id_kategori, nm_kategori, icon_kategori, icon_color, urutan)
-    VALUES (@kat_alumni, 'Alumni', 'FaUserGraduate', 'bg-orange-500', 4);
+    VALUES (@kat_alumni, 'Alumni', 'heroicons:academic-cap', 'bg-orange-500', 4);
 END
 ELSE
     SELECT @kat_alumni = id_kategori FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Alumni';
@@ -67,7 +67,7 @@ ELSE
 IF NOT EXISTS (SELECT 1 FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Dashboard & Akreditasi')
 BEGIN
     INSERT INTO man_akses.kategori_aplikasi (id_kategori, nm_kategori, icon_kategori, icon_color, urutan)
-    VALUES (@kat_dashboard, 'Dashboard & Akreditasi', 'RiDashboardFill', 'bg-indigo-500', 5);
+    VALUES (@kat_dashboard, 'Dashboard & Akreditasi', 'heroicons:chart-bar-square', 'bg-indigo-500', 5);
 END
 ELSE
     SELECT @kat_dashboard = id_kategori FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Dashboard & Akreditasi';
@@ -75,7 +75,7 @@ ELSE
 IF NOT EXISTS (SELECT 1 FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Data dan Pelaporan')
 BEGIN
     INSERT INTO man_akses.kategori_aplikasi (id_kategori, nm_kategori, icon_kategori, icon_color, urutan)
-    VALUES (@kat_data, 'Data dan Pelaporan', 'FaDatabase', 'bg-cyan-500', 6);
+    VALUES (@kat_data, 'Data dan Pelaporan', 'heroicons:circle-stack', 'bg-cyan-500', 6);
 END
 ELSE
     SELECT @kat_data = id_kategori FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Data dan Pelaporan';
@@ -83,7 +83,7 @@ ELSE
 IF NOT EXISTS (SELECT 1 FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Layanan')
 BEGIN
     INSERT INTO man_akses.kategori_aplikasi (id_kategori, nm_kategori, icon_kategori, icon_color, urutan)
-    VALUES (@kat_layanan, 'Layanan', 'FaHeadset', 'bg-red-500', 7);
+    VALUES (@kat_layanan, 'Layanan', 'heroicons:phone', 'bg-red-500', 7);
 END
 ELSE
     SELECT @kat_layanan = id_kategori FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Layanan';
@@ -91,7 +91,7 @@ ELSE
 IF NOT EXISTS (SELECT 1 FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Tools & Utilities')
 BEGIN
     INSERT INTO man_akses.kategori_aplikasi (id_kategori, nm_kategori, icon_kategori, icon_color, urutan)
-    VALUES (@kat_tools, 'Tools & Utilities', 'FiSettings', 'bg-slate-500', 8);
+    VALUES (@kat_tools, 'Tools & Utilities', 'heroicons:cog-6-tooth', 'bg-slate-500', 8);
 END
 ELSE
     SELECT @kat_tools = id_kategori FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Tools & Utilities';
@@ -147,21 +147,21 @@ INSERT INTO #PortalApps VALUES
 ('minat-bakat', 'Minat Bakat', 'Sistem Minat dan Bakat', '#', 'BsLightbulb', 'bg-amber-500', 'Kemahasiswaan', 4, @ORG_SEMUA_UNIT),
 
 -- Alumni (Semua Unit)
-('tracer-study', 'Tracer Study', 'Pelacakan Alumni', '#', 'FaUserGraduate', 'bg-orange-500', 'Alumni', 1, @ORG_SEMUA_UNIT),
+('tracer-study', 'Tracer Study', 'Pelacakan Alumni', '#', 'heroicons:academic-cap', 'bg-orange-500', 'Alumni', 1, @ORG_SEMUA_UNIT),
 ('service-layanan', 'Service Layanan', 'Layanan untuk Alumni', '#', 'FaHandsHelping', 'bg-teal-500', 'Alumni', 2, @ORG_SEMUA_UNIT),
 
 -- Dashboard & Akreditasi (Unila/Rektorat - Pimpinan only)
-('iku-dashboard', 'IKU Dashboard', 'Dashboard Indikator Kinerja Utama', '#', 'RiDashboardFill', 'bg-blue-600', 'Dashboard & Akreditasi', 1, @ORG_UNILA),
+('iku-dashboard', 'IKU Dashboard', 'Dashboard Indikator Kinerja Utama', '#', 'heroicons:chart-bar-square', 'bg-blue-600', 'Dashboard & Akreditasi', 1, @ORG_UNILA),
 ('dashboard-pimpinan', 'Dashboard Pimpinan', 'Visualisasi Data dan Analitik untuk Pengambilan Keputusan', '#', 'RiBarChartBoxFill', 'bg-indigo-700', 'Dashboard & Akreditasi', 2, @ORG_UNILA),
 
 -- Data dan Pelaporan (Unila/Rektorat)
-('feeder-integrator', 'Feeder Integrator', 'Integrasi Data PDDikti', '/dashboard/feeder-integrator', 'FaDatabase', 'bg-cyan-600', 'Data dan Pelaporan', 1, @ORG_UNILA),
+('feeder-integrator', 'Feeder Integrator', 'Integrasi Data PDDikti', '/dashboard/feeder-integrator', 'heroicons:circle-stack', 'bg-cyan-600', 'Data dan Pelaporan', 1, @ORG_UNILA),
 ('sister-integrator', 'SISTER Integrator', 'Integrasi SISTER Kemenristekdikti', '/dashboard/sister-integrator', 'RiGovernmentFill', 'bg-purple-600', 'Data dan Pelaporan', 2, @ORG_UNILA),
 ('myunila-integrator', 'myUnila Integrator', 'Integrasi Apps Existing di Unila', '/dashboard/integrator', 'FaLink', 'bg-emerald-600', 'Data dan Pelaporan', 3, @ORG_UPT_TIK),
 ('data-unila', 'Data Unila', 'Raw Data Kebutuhan Pelaporan Data di Unila', '#', 'FaTable', 'bg-emerald-600', 'Data dan Pelaporan', 4, @ORG_UNILA),
 
 -- Layanan (Semua Unit)
-('helpdesk-tik', 'Helpdesk TIK', 'Layanan Bantuan TIK', 'https://helpdesktik.unila.ac.id', 'FaHeadset', 'bg-red-500', 'Layanan', 1, @ORG_SEMUA_UNIT),
+('helpdesk-tik', 'Helpdesk TIK', 'Layanan Bantuan TIK', 'https://helpdesktik.unila.ac.id', 'heroicons:phone', 'bg-red-500', 'Layanan', 1, @ORG_SEMUA_UNIT),
 ('blog-unila', 'Blog Unila', 'Portal Berita dan Artikel', '#', 'FaBlog', 'bg-pink-500', 'Layanan', 2, @ORG_SEMUA_UNIT),
 
 -- Tools & Utilities (UPT TIK - Developer only)

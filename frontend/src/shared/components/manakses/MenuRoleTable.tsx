@@ -97,8 +97,6 @@ export default function MenuRoleTable({ onStatsLoaded }: MenuRoleTableProps) {
           aplikasiService.getList({ limit: 100 }),
           peranService.getList({ limit: 100 }),
         ]);
-        // Debug: log aplikasi data to check jumlah_menu
-        console.log('Aplikasi data loaded:', aplikasiData.data.map(a => ({ nm: a.nm_aplikasi, jumlah_menu: a.jumlah_menu })));
         setAplikasiOptions(aplikasiData.data);
         setPeranOptions(peranResult.data);
       } catch (error) {
@@ -518,15 +516,21 @@ export default function MenuRoleTable({ onStatsLoaded }: MenuRoleTableProps) {
       align: "center",
       width: "100px",
       sortable: true,
-      render: (item) => (
-        <Chip
-          size="sm"
-          variant="flat"
-          color={item.akses_menu === "full" ? "success" : item.akses_menu === "read" ? "warning" : "default"}
-        >
-          {item.akses_menu || "full"}
-        </Chip>
-      ),
+      render: (item) => {
+        // Normalize akses_menu values (database has inconsistent values: 'full', 'read', 'custom', '1', null)
+        const normalizeAkses = (value: string | null | undefined): { label: string; color: "success" | "warning" | "secondary" | "default" } => {
+          if (!value || value === "full" || value === "1") return { label: "Full", color: "success" };
+          if (value === "read") return { label: "Read", color: "warning" };
+          if (value === "custom") return { label: "Custom", color: "secondary" };
+          return { label: value, color: "default" };
+        };
+        const akses = normalizeAkses(item.akses_menu);
+        return (
+          <Chip size="sm" variant="flat" color={akses.color}>
+            {akses.label}
+          </Chip>
+        );
+      },
     },
     {
       key: "last_update",

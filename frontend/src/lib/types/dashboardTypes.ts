@@ -5,9 +5,12 @@
  */
 
 export interface MenuItem {
+  id?: string; // Unique ID from backend (id_menu) - used as React key
   title: string;
   icon?: React.ReactNode; // Optional for children/submenu items
+  iconName?: string; // Original icon name string for maintenance page
   href?: string;
+  isMaintenance?: boolean; // Menu is under development (a_tampil = 0)
   children?: MenuItem[];
   roles?: string[]; // Roles yang boleh akses menu ini
 }

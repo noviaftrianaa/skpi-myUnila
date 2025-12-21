@@ -1,21 +1,24 @@
 "use client";
 
 import { useRequireAuth } from "@/lib/hoc/withAuth";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { Card, CardBody, Button } from "@heroui/react";
 import { FiLogIn, FiArrowLeft } from "react-icons/fi";
 import { MdSecurity, MdConstruction } from "react-icons/md";
 import { manajemenAksesMenuConfig } from "../../config/menuConfig";
 import Link from "next/link";
 
+const APP_KEY = "manajemen-akses";
+
 export default function LogLoginPage() {
   useRequireAuth();
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="Manajemen Akses"
       appIcon={<MdSecurity className="w-6 h-6 text-white" />}
-      menuConfig={manajemenAksesMenuConfig}
+      appKey={APP_KEY}
+      fallbackMenus={manajemenAksesMenuConfig}
       pageTitle="Log Login"
     >
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -66,6 +69,6 @@ export default function LogLoginPage() {
           </CardBody>
         </Card>
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

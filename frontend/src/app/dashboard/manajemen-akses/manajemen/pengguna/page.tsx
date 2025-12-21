@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import PenggunaTable from "@/shared/components/manakses/PenggunaTable";
 import {
   Card,
@@ -19,6 +19,8 @@ import { Toaster } from "react-hot-toast";
 import { manajemenAksesMenuConfig } from "../../config/menuConfig";
 import { type PenggunaStats } from "@/lib/services/manakses/penggunaService";
 
+const APP_KEY = "manajemen-akses";
+
 export default function DaftarPenggunaPage() {
   useRequireAuth();
 
@@ -29,10 +31,11 @@ export default function DaftarPenggunaPage() {
   };
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="Manajemen Akses"
       appIcon={<MdSecurity className="w-6 h-6 text-white" />}
-      menuConfig={manajemenAksesMenuConfig}
+      appKey={APP_KEY}
+      fallbackMenus={manajemenAksesMenuConfig}
       pageTitle="Daftar Pengguna"
     >
       <Toaster position="top-right" />
@@ -172,6 +175,6 @@ export default function DaftarPenggunaPage() {
         {/* Data Table */}
         <PenggunaTable onStatsLoaded={handleStatsLoaded} />
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }
