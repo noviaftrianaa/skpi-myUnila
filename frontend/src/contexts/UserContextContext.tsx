@@ -8,7 +8,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { userContextService, type UserRole, type ActiveContext, type PortalAppsData } from '@/lib/services/userContext/userContextService';
+import { userContextService, type UserRole, type ActiveContext, type PortalAppsData, type AppPermissions } from '@/lib/services/userContext/userContextService';
 import { useAuth } from './AuthContext';
 
 /**
@@ -32,7 +32,7 @@ interface UserContextState {
   loadUserContext: () => Promise<void>;
   loadPortalApps: () => Promise<void>;
   selectContext: (idRolePengguna: string) => Promise<boolean>;
-  checkAppAccess: (appId?: string, appKey?: string) => Promise<{ hasAccess: boolean; requiresSelection: boolean; message: string }>;
+  checkAppAccess: (appId?: string, appKey?: string) => Promise<{ hasAccess: boolean; requiresSelection: boolean; message: string; permissions?: AppPermissions }>;
   clearError: () => void;
 }
 
@@ -145,14 +145,16 @@ export function UserContextProvider({ children }: UserContextProviderProps) {
 
   /**
    * Check if user has access to specific app
+   * Returns access status and CRUD permissions
    */
-  const checkAppAccess = async (appId?: string, appKey?: string): Promise<{ hasAccess: boolean; requiresSelection: boolean; message: string }> => {
+  const checkAppAccess = async (appId?: string, appKey?: string): Promise<{ hasAccess: boolean; requiresSelection: boolean; message: string; permissions?: AppPermissions }> => {
     try {
       const result = await userContextService.checkAppAccess(appId, appKey);
       return {
         hasAccess: result.has_access,
         requiresSelection: result.requires_context_selection || false,
         message: result.has_access ? 'Akses diizinkan' : (result.requires_context_selection ? 'Silakan pilih peran terlebih dahulu' : 'Anda tidak memiliki akses ke aplikasi ini'),
+        permissions: result.permissions,
       };
     } catch (err: any) {
       console.error('Failed to check app access:', err);
@@ -163,6 +165,7 @@ export function UserContextProvider({ children }: UserContextProviderProps) {
         hasAccess: false,
         requiresSelection,
         message,
+        permissions: undefined,
       };
     }
   };

@@ -123,119 +123,150 @@ Route::prefix('v1')->group(function () {
             // Portal Apps endpoints (filtered by organization access)
             Route::get('/portal-apps', [UserContextController::class, 'getPortalApps']);       // Get portal apps for user
             Route::get('/portal-categories', [UserContextController::class, 'getPortalCategories']); // Get all categories
+
+            // App Menus endpoint (RBAC-based menu visibility)
+            Route::get('/app-menus', [UserContextController::class, 'getAppMenus']);           // Get user's accessible menus for an app
         });
 
     });
 
     // Manajemen Akses endpoints (protected with JWT)
+    // Permission middleware uses app_key from header X-App-Key or query param
     Route::middleware('jwt.auth')->prefix('manakses')->group(function () {
         // Pengguna (User Management)
         Route::prefix('pengguna')->group(function () {
+            // Read operations - no permission check (show permission assumed for authenticated users)
             Route::get('/', [PenggunaController::class, 'index']);
             Route::get('/stats', [PenggunaController::class, 'stats']);
             Route::get('/peran-options', [PenggunaController::class, 'peranOptions']);
             Route::get('/radius-status', [PenggunaController::class, 'radiusStatus']);
             Route::get('/sso-users', [PenggunaController::class, 'ssoUsers']);
-            Route::post('/clear-radius-cache', [PenggunaController::class, 'clearRadiusCache']);
             Route::get('/{id}', [PenggunaController::class, 'show']);
             Route::get('/{id}/mfa-status', [PenggunaController::class, 'mfaStatus']);
-            Route::post('/{id}/reset-mfa', [PenggunaController::class, 'resetMfa']);
-            Route::post('/{id}/reset-password', [PenggunaController::class, 'resetPassword']);
-            Route::put('/{id}', [PenggunaController::class, 'update']);
-            Route::delete('/{id}', [PenggunaController::class, 'destroy']);
+
+            // Write operations - require permission check
+            Route::post('/clear-radius-cache', [PenggunaController::class, 'clearRadiusCache'])->middleware('permission:update,manajemen-akses');
+            Route::post('/{id}/reset-mfa', [PenggunaController::class, 'resetMfa'])->middleware('permission:update,manajemen-akses');
+            Route::post('/{id}/reset-password', [PenggunaController::class, 'resetPassword'])->middleware('permission:update,manajemen-akses');
+            Route::put('/{id}', [PenggunaController::class, 'update'])->middleware('permission:update,manajemen-akses');
+            Route::delete('/{id}', [PenggunaController::class, 'destroy'])->middleware('permission:delete,manajemen-akses');
         });
 
         // Aplikasi (Application Management)
         Route::prefix('aplikasi')->group(function () {
+            // Read operations
             Route::get('/', [AplikasiController::class, 'index']);
             Route::get('/stats', [AplikasiController::class, 'stats']);
             Route::get('/categories', [AplikasiController::class, 'categories']);
-            Route::post('/', [AplikasiController::class, 'store']);
             Route::get('/{id}', [AplikasiController::class, 'show']);
-            Route::put('/{id}', [AplikasiController::class, 'update']);
-            Route::delete('/{id}', [AplikasiController::class, 'destroy']);
-            Route::post('/{id}/regenerate-app-key', [AplikasiController::class, 'regenerateAppKey']);
+
+            // Write operations - require permission check
+            Route::post('/', [AplikasiController::class, 'store'])->middleware('permission:insert,manajemen-akses');
+            Route::put('/{id}', [AplikasiController::class, 'update'])->middleware('permission:update,manajemen-akses');
+            Route::delete('/{id}', [AplikasiController::class, 'destroy'])->middleware('permission:delete,manajemen-akses');
+            Route::post('/{id}/regenerate-app-key', [AplikasiController::class, 'regenerateAppKey'])->middleware('permission:update,manajemen-akses');
         });
 
         // Unit Organisasi (Organization Unit Management)
         Route::prefix('unit-organisasi')->group(function () {
+            // Read operations
             Route::get('/', [UnitOrganisasiController::class, 'index']);
             Route::get('/all', [UnitOrganisasiController::class, 'all']);
             Route::get('/stats', [UnitOrganisasiController::class, 'stats']);
-            Route::post('/', [UnitOrganisasiController::class, 'store']);
             Route::get('/{id}', [UnitOrganisasiController::class, 'show']);
-            Route::put('/{id}', [UnitOrganisasiController::class, 'update']);
-            Route::delete('/{id}', [UnitOrganisasiController::class, 'destroy']);
+
+            // Write operations - require permission check
+            Route::post('/', [UnitOrganisasiController::class, 'store'])->middleware('permission:insert,manajemen-akses');
+            Route::put('/{id}', [UnitOrganisasiController::class, 'update'])->middleware('permission:update,manajemen-akses');
+            Route::delete('/{id}', [UnitOrganisasiController::class, 'destroy'])->middleware('permission:delete,manajemen-akses');
         });
 
         // Peran (Role Management)
         Route::prefix('peran')->group(function () {
+            // Read operations
             Route::get('/', [PeranController::class, 'index']);
             Route::get('/all', [PeranController::class, 'all']);
             Route::get('/stats', [PeranController::class, 'stats']);
-            Route::post('/', [PeranController::class, 'store']);
             Route::get('/{id}', [PeranController::class, 'show']);
-            Route::put('/{id}', [PeranController::class, 'update']);
-            Route::delete('/{id}', [PeranController::class, 'destroy']);
+
+            // Write operations - require permission check
+            Route::post('/', [PeranController::class, 'store'])->middleware('permission:insert,manajemen-akses');
+            Route::put('/{id}', [PeranController::class, 'update'])->middleware('permission:update,manajemen-akses');
+            Route::delete('/{id}', [PeranController::class, 'destroy'])->middleware('permission:delete,manajemen-akses');
         });
 
         // Role Pengguna (User Role Assignment Management)
         Route::prefix('role-pengguna')->group(function () {
+            // Read operations
             Route::get('/', [RolePenggunaController::class, 'index']);
             Route::get('/by-pengguna/{idPengguna}', [RolePenggunaController::class, 'byPengguna']);
-            Route::post('/', [RolePenggunaController::class, 'store']);
             Route::get('/{id}', [RolePenggunaController::class, 'show']);
-            Route::put('/{id}', [RolePenggunaController::class, 'update']);
-            Route::delete('/{id}', [RolePenggunaController::class, 'destroy']);
+
+            // Write operations - require permission check
+            Route::post('/', [RolePenggunaController::class, 'store'])->middleware('permission:insert,manajemen-akses');
+            Route::put('/{id}', [RolePenggunaController::class, 'update'])->middleware('permission:update,manajemen-akses');
+            Route::delete('/{id}', [RolePenggunaController::class, 'destroy'])->middleware('permission:delete,manajemen-akses');
         });
 
         // Endpoint (WS Endpoint Management)
         Route::prefix('endpoint')->group(function () {
+            // Read operations
             Route::get('/', [EndpointController::class, 'index']);
             Route::get('/groups', [EndpointController::class, 'groups']);
             Route::get('/stats', [EndpointController::class, 'stats']);
-            Route::post('/', [EndpointController::class, 'store']);
             Route::get('/{id}', [EndpointController::class, 'show']);
-            Route::put('/{id}', [EndpointController::class, 'update']);
-            Route::delete('/{id}', [EndpointController::class, 'destroy']);
+
+            // Write operations - require permission check
+            Route::post('/', [EndpointController::class, 'store'])->middleware('permission:insert,manajemen-akses');
+            Route::put('/{id}', [EndpointController::class, 'update'])->middleware('permission:update,manajemen-akses');
+            Route::delete('/{id}', [EndpointController::class, 'destroy'])->middleware('permission:delete,manajemen-akses');
         });
 
         // Kategori Aplikasi (Application Category Management)
         Route::prefix('kategori-aplikasi')->group(function () {
+            // Read operations
             Route::get('/', [KategoriAplikasiController::class, 'index']);
             Route::get('/all', [KategoriAplikasiController::class, 'all']);
             Route::get('/stats', [KategoriAplikasiController::class, 'stats']);
-            Route::post('/', [KategoriAplikasiController::class, 'store']);
             Route::get('/{id}', [KategoriAplikasiController::class, 'show']);
-            Route::put('/{id}', [KategoriAplikasiController::class, 'update']);
-            Route::delete('/{id}', [KategoriAplikasiController::class, 'destroy']);
+
+            // Write operations - require permission check
+            Route::post('/', [KategoriAplikasiController::class, 'store'])->middleware('permission:insert,manajemen-akses');
+            Route::put('/{id}', [KategoriAplikasiController::class, 'update'])->middleware('permission:update,manajemen-akses');
+            Route::delete('/{id}', [KategoriAplikasiController::class, 'destroy'])->middleware('permission:delete,manajemen-akses');
         });
 
         // Menu (Application Menu Management)
         Route::prefix('menu')->group(function () {
+            // Read operations
             Route::get('/', [MenuController::class, 'index']);
             Route::get('/stats', [MenuController::class, 'stats']);
             Route::get('/by-aplikasi/{idAplikasi}', [MenuController::class, 'byAplikasi']);
-            Route::post('/sync/{idAplikasi}', [MenuController::class, 'sync']);
-            Route::post('/', [MenuController::class, 'store']);
             Route::get('/{id}', [MenuController::class, 'show']);
             Route::get('/{id}/roles', [MenuController::class, 'roles']);
-            Route::put('/{id}', [MenuController::class, 'update']);
-            Route::delete('/{id}', [MenuController::class, 'destroy']);
+
+            // Write operations - require permission check
+            Route::post('/sync/{idAplikasi}', [MenuController::class, 'sync'])->middleware('permission:update,manajemen-akses');
+            Route::post('/', [MenuController::class, 'store'])->middleware('permission:insert,manajemen-akses');
+            Route::put('/{id}', [MenuController::class, 'update'])->middleware('permission:update,manajemen-akses');
+            Route::delete('/{id}', [MenuController::class, 'destroy'])->middleware('permission:delete,manajemen-akses');
         });
 
         // Menu Role (RBAC - Role Based Access Control)
         Route::prefix('menu-role')->group(function () {
+            // Read operations
             Route::get('/', [MenuRoleController::class, 'index']);
             Route::get('/stats', [MenuRoleController::class, 'stats']);
             Route::get('/by-menu/{idMenu}', [MenuRoleController::class, 'byMenu']);
             Route::get('/by-role/{idPeran}', [MenuRoleController::class, 'byRole']);
-            Route::post('/', [MenuRoleController::class, 'store']);
-            Route::post('/bulk-assign-roles', [MenuRoleController::class, 'bulkAssignRoles']);
-            Route::post('/bulk-assign-menus', [MenuRoleController::class, 'bulkAssignMenus']);
             Route::get('/{idMenu}/{idPeran}', [MenuRoleController::class, 'show']);
-            Route::put('/{idMenu}/{idPeran}', [MenuRoleController::class, 'update']);
-            Route::delete('/{idMenu}/{idPeran}', [MenuRoleController::class, 'destroy']);
+
+            // Write operations - require permission check
+            Route::post('/', [MenuRoleController::class, 'store'])->middleware('permission:insert,manajemen-akses');
+            Route::post('/bulk-assign-roles', [MenuRoleController::class, 'bulkAssignRoles'])->middleware('permission:insert,manajemen-akses');
+            Route::post('/bulk-assign-menus', [MenuRoleController::class, 'bulkAssignMenus'])->middleware('permission:insert,manajemen-akses');
+            Route::put('/{idMenu}/{idPeran}', [MenuRoleController::class, 'update'])->middleware('permission:update,manajemen-akses');
+            Route::delete('/{idMenu}/{idPeran}', [MenuRoleController::class, 'destroy'])->middleware('permission:delete,manajemen-akses');
         });
     });
 });

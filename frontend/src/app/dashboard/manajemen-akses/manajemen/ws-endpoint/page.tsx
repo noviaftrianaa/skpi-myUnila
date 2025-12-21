@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import EndpointTable from "@/shared/components/manakses/EndpointTable";
 import {
   Card,
@@ -18,6 +18,8 @@ import {
 import { MdSecurity } from "react-icons/md";
 import { manajemenAksesMenuConfig } from "../../config/menuConfig";
 import { type EndpointStats } from "@/lib/services/manakses/endpointService";
+
+const APP_KEY = "manajemen-akses";
 
 export default function WSEndpointPage() {
   useRequireAuth();
@@ -38,24 +40,26 @@ export default function WSEndpointPage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout
+      <DashboardLayoutWithDynamicMenu
         appName="Manajemen Akses"
         appIcon={<MdSecurity className="w-6 h-6 text-white" />}
-        menuConfig={manajemenAksesMenuConfig}
+        appKey={APP_KEY}
+        fallbackMenus={manajemenAksesMenuConfig}
         pageTitle="WS Endpoint"
       >
         <div className="flex justify-center items-center h-96">
           <Spinner size="lg" color="primary" />
         </div>
-      </DashboardLayout>
+      </DashboardLayoutWithDynamicMenu>
     );
   }
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="Manajemen Akses"
       appIcon={<MdSecurity className="w-6 h-6 text-white" />}
-      menuConfig={manajemenAksesMenuConfig}
+      appKey={APP_KEY}
+      fallbackMenus={manajemenAksesMenuConfig}
       pageTitle="WS Endpoint"
     >
       <div className="space-y-6">
@@ -182,6 +186,6 @@ export default function WSEndpointPage() {
         {/* Data Table */}
         <EndpointTable onStatsLoaded={handleStatsLoaded} />
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\ManAkses;
 use App\Http\Controllers\Controller;
 use App\Services\ManAkses\AplikasiService;
 use App\Repositories\ManAkses\AplikasiRepository;
+use App\Repositories\UserContext\UserContextRepository;
+use App\Services\UserContext\UserContextService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -19,7 +21,9 @@ class AplikasiController extends Controller
     public function __construct()
     {
         $repository = new AplikasiRepository();
-        $this->service = new AplikasiService($repository);
+        $userContextRepository = new UserContextRepository();
+        $userContextService = new UserContextService($userContextRepository);
+        $this->service = new AplikasiService($repository, $userContextService);
     }
 
     /**

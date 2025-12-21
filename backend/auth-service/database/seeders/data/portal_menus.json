@@ -32,7 +32,7 @@
         {
           "nm_menu": "Dashboard",
           "nm_file": "/dashboard/sister-integrator",
-          "icon": "mdi:view-dashboard",
+          "icon": "heroicons:squares-2x2",
           "urutan": 1
         },
         {
@@ -44,27 +44,27 @@
         {
           "nm_menu": "Data PDRD",
           "nm_file": "#pdrd",
-          "icon": "heroicons:database",
+          "icon": "heroicons:circle-stack",
           "urutan": 3,
           "children": [
-            {"nm_menu": "Dosen", "nm_file": "/dashboard/sister-integrator/pdrd/dosen", "icon": "heroicons:users", "urutan": 1},
-            {"nm_menu": "Penugasan PTK", "nm_file": "/dashboard/sister-integrator/pdrd/penugasan", "icon": "heroicons:clipboard-document-list", "urutan": 2},
-            {"nm_menu": "Penelitian", "nm_file": "/dashboard/sister-integrator/pdrd/penelitian", "icon": "heroicons:document-magnifying-glass", "urutan": 3},
-            {"nm_menu": "Pengabdian", "nm_file": "/dashboard/sister-integrator/pdrd/pengabdian", "icon": "heroicons:user-group", "urutan": 4},
-            {"nm_menu": "Publikasi", "nm_file": "/dashboard/sister-integrator/pdrd/publikasi", "icon": "heroicons:newspaper", "urutan": 5},
-            {"nm_menu": "Pendidikan Formal", "nm_file": "/dashboard/sister-integrator/pdrd/pendidikan-formal", "icon": "heroicons:academic-cap", "urutan": 6},
-            {"nm_menu": "Riwayat Pekerjaan", "nm_file": "/dashboard/sister-integrator/pdrd/riwayat-pekerjaan", "icon": "heroicons:briefcase", "urutan": 7},
-            {"nm_menu": "Jabatan Fungsional", "nm_file": "/dashboard/sister-integrator/pdrd/jabatan-fungsional", "icon": "heroicons:identification", "urutan": 8},
-            {"nm_menu": "Jabatan Struktural", "nm_file": "/dashboard/sister-integrator/pdrd/jabatan-struktural", "icon": "heroicons:building-office", "urutan": 9},
-            {"nm_menu": "Tugas Tambahan", "nm_file": "/dashboard/sister-integrator/pdrd/tugas-tambahan", "icon": "heroicons:plus-circle", "urutan": 10},
-            {"nm_menu": "Sertifikasi Dosen", "nm_file": "/dashboard/sister-integrator/pdrd/sertifikasi-dosen", "icon": "heroicons:document-check", "urutan": 11},
-            {"nm_menu": "Bidang Ilmu", "nm_file": "/dashboard/sister-integrator/pdrd/bidang-ilmu", "icon": "heroicons:light-bulb", "urutan": 12}
+            {"nm_menu": "Dosen", "nm_file": "/dashboard/sister-integrator/pdrd/dosen", "urutan": 1},
+            {"nm_menu": "Penugasan PTK", "nm_file": "/dashboard/sister-integrator/pdrd/penugasan", "urutan": 2},
+            {"nm_menu": "Penelitian", "nm_file": "/dashboard/sister-integrator/pdrd/penelitian", "urutan": 3},
+            {"nm_menu": "Pengabdian", "nm_file": "/dashboard/sister-integrator/pdrd/pengabdian", "urutan": 4},
+            {"nm_menu": "Publikasi", "nm_file": "/dashboard/sister-integrator/pdrd/publikasi", "urutan": 5},
+            {"nm_menu": "Pendidikan Formal", "nm_file": "/dashboard/sister-integrator/pdrd/pendidikan-formal", "urutan": 6},
+            {"nm_menu": "Riwayat Pekerjaan", "nm_file": "/dashboard/sister-integrator/pdrd/riwayat-pekerjaan", "urutan": 7},
+            {"nm_menu": "Jabatan Fungsional", "nm_file": "/dashboard/sister-integrator/pdrd/jabatan-fungsional", "urutan": 8},
+            {"nm_menu": "Jabatan Struktural", "nm_file": "/dashboard/sister-integrator/pdrd/jabatan-struktural", "urutan": 9},
+            {"nm_menu": "Tugas Tambahan", "nm_file": "/dashboard/sister-integrator/pdrd/tugas-tambahan", "urutan": 10},
+            {"nm_menu": "Sertifikasi Dosen", "nm_file": "/dashboard/sister-integrator/pdrd/sertifikasi-dosen", "urutan": 11},
+            {"nm_menu": "Bidang Ilmu", "nm_file": "/dashboard/sister-integrator/pdrd/bidang-ilmu", "urutan": 12}
           ]
         },
         {
           "nm_menu": "Monitoring",
           "nm_file": "/dashboard/sister-integrator/monitoring",
-          "icon": "heroicons:chart-bar",
+          "icon": "heroicons:presentation-chart-line",
           "urutan": 4
         },
         {
@@ -88,7 +88,7 @@
         {
           "nm_menu": "Dashboard",
           "nm_file": "/dashboard/feeder-integrator",
-          "icon": "mdi:view-dashboard",
+          "icon": "heroicons:squares-2x2",
           "urutan": 1
         },
         {
@@ -100,24 +100,24 @@
         {
           "nm_menu": "Data PDRD",
           "nm_file": "#feeder-pdrd",
-          "icon": "heroicons:database",
+          "icon": "heroicons:circle-stack",
           "urutan": 3,
           "children": [
-            {"nm_menu": "Mahasiswa", "nm_file": "/dashboard/feeder-integrator/pdrd/mahasiswa", "icon": "heroicons:users", "urutan": 1},
-            {"nm_menu": "Aktivitas Mahasiswa", "nm_file": "/dashboard/feeder-integrator/pdrd/aktivitas-mahasiswa", "icon": "heroicons:clipboard-document-list", "urutan": 2},
-            {"nm_menu": "Matkul Kurikulum", "nm_file": "/dashboard/feeder-integrator/pdrd/matkul-kurikulum", "icon": "heroicons:book-open", "urutan": 3},
-            {"nm_menu": "Rencana Evaluasi MK", "nm_file": "/dashboard/feeder-integrator/pdrd/rencana-evaluasi", "icon": "heroicons:clipboard-document-check", "urutan": 4},
-            {"nm_menu": "Kelas Pengajaran", "nm_file": "/dashboard/feeder-integrator/pdrd/kelas-kuliah", "icon": "heroicons:academic-cap", "urutan": 5},
-            {"nm_menu": "Nilai Perkuliahan", "nm_file": "/dashboard/feeder-integrator/pdrd/nilai-perkuliahan", "icon": "heroicons:clipboard", "urutan": 6},
-            {"nm_menu": "Nilai Konversi", "nm_file": "/dashboard/feeder-integrator/pdrd/nilai-konversi", "icon": "heroicons:arrow-path", "urutan": 7},
-            {"nm_menu": "Transkrip Nilai", "nm_file": "/dashboard/feeder-integrator/pdrd/transkrip-nilai", "icon": "heroicons:document-text", "urutan": 8},
-            {"nm_menu": "Prestasi Mahasiswa", "nm_file": "/dashboard/feeder-integrator/pdrd/prestasi", "icon": "heroicons:trophy", "urutan": 9}
+            {"nm_menu": "Mahasiswa", "nm_file": "/dashboard/feeder-integrator/pdrd/mahasiswa", "urutan": 1},
+            {"nm_menu": "Aktivitas Mahasiswa", "nm_file": "/dashboard/feeder-integrator/pdrd/aktivitas-mahasiswa", "urutan": 2},
+            {"nm_menu": "Matkul Kurikulum", "nm_file": "/dashboard/feeder-integrator/pdrd/matkul-kurikulum", "urutan": 3},
+            {"nm_menu": "Rencana Evaluasi MK", "nm_file": "/dashboard/feeder-integrator/pdrd/rencana-evaluasi", "urutan": 4},
+            {"nm_menu": "Kelas Pengajaran", "nm_file": "/dashboard/feeder-integrator/pdrd/kelas-kuliah", "urutan": 5},
+            {"nm_menu": "Nilai Perkuliahan", "nm_file": "/dashboard/feeder-integrator/pdrd/nilai-perkuliahan", "urutan": 6},
+            {"nm_menu": "Nilai Konversi", "nm_file": "/dashboard/feeder-integrator/pdrd/nilai-konversi", "urutan": 7},
+            {"nm_menu": "Transkrip Nilai", "nm_file": "/dashboard/feeder-integrator/pdrd/transkrip-nilai", "urutan": 8},
+            {"nm_menu": "Prestasi Mahasiswa", "nm_file": "/dashboard/feeder-integrator/pdrd/prestasi", "urutan": 9}
           ]
         },
         {
           "nm_menu": "Monitoring",
           "nm_file": "/dashboard/feeder-integrator/monitoring",
-          "icon": "heroicons:chart-bar",
+          "icon": "heroicons:presentation-chart-line",
           "urutan": 4
         },
         {
@@ -141,34 +141,34 @@
         {
           "nm_menu": "Dashboard",
           "nm_file": "/dashboard/integrator",
-          "icon": "mdi:view-dashboard",
+          "icon": "heroicons:squares-2x2",
           "urutan": 1
         },
         {
           "nm_menu": "Data SIKEP",
           "nm_file": "#sikep",
-          "icon": "heroicons:users",
+          "icon": "heroicons:user-group",
           "urutan": 2,
           "children": [
-            {"nm_menu": "Referensi SIKEP", "nm_file": "/dashboard/integrator/sikep/referensi", "icon": "heroicons:book-open", "urutan": 1},
-            {"nm_menu": "Pegawai SIKEP", "nm_file": "/dashboard/integrator/sikep/pegawai", "icon": "heroicons:user-group", "urutan": 2}
+            {"nm_menu": "Referensi", "nm_file": "/dashboard/integrator/sikep/referensi", "urutan": 1},
+            {"nm_menu": "Pegawai", "nm_file": "/dashboard/integrator/sikep/pegawai", "urutan": 2}
           ]
         },
         {
           "nm_menu": "Data Siakadu",
-          "nm_file": "#siakadu-int",
+          "nm_file": "#siakadu",
           "icon": "heroicons:book-open",
           "urutan": 3,
           "children": [
-            {"nm_menu": "Mahasiswa Siakadu", "nm_file": "/dashboard/integrator/siakadu/mahasiswa", "icon": "heroicons:users", "urutan": 1},
-            {"nm_menu": "Pegawai Siakadu", "nm_file": "/dashboard/integrator/siakadu/pegawai", "icon": "heroicons:user-group", "urutan": 2},
-            {"nm_menu": "Kurikulum Siakadu", "nm_file": "/dashboard/integrator/siakadu/kurikulum", "icon": "heroicons:document-text", "urutan": 3},
-            {"nm_menu": "Mata Kuliah Siakadu", "nm_file": "/dashboard/integrator/siakadu/mata-kuliah", "icon": "heroicons:book-open", "urutan": 4},
-            {"nm_menu": "Kelas Siakadu", "nm_file": "/dashboard/integrator/siakadu/kelas", "icon": "heroicons:academic-cap", "urutan": 5},
-            {"nm_menu": "KRS/KHS Siakadu", "nm_file": "/dashboard/integrator/siakadu/krs-khs", "icon": "heroicons:clipboard-document-list", "urutan": 6},
-            {"nm_menu": "Transkrip Siakadu", "nm_file": "/dashboard/integrator/siakadu/transkrip", "icon": "heroicons:document-check", "urutan": 7},
-            {"nm_menu": "Status Kuliah Siakadu", "nm_file": "/dashboard/integrator/siakadu/status-kuliah", "icon": "heroicons:check-circle", "urutan": 8},
-            {"nm_menu": "Wisuda Siakadu", "nm_file": "/dashboard/integrator/siakadu/wisuda", "icon": "heroicons:academic-cap", "urutan": 9}
+            {"nm_menu": "Mahasiswa", "nm_file": "/dashboard/integrator/siakadu/mahasiswa", "urutan": 1},
+            {"nm_menu": "Pegawai", "nm_file": "/dashboard/integrator/siakadu/pegawai", "urutan": 2},
+            {"nm_menu": "Kurikulum", "nm_file": "/dashboard/integrator/siakadu/kurikulum", "urutan": 3},
+            {"nm_menu": "Mata Kuliah", "nm_file": "/dashboard/integrator/siakadu/mata-kuliah", "urutan": 4},
+            {"nm_menu": "Kelas", "nm_file": "/dashboard/integrator/siakadu/kelas", "urutan": 5},
+            {"nm_menu": "KRS/KHS", "nm_file": "/dashboard/integrator/siakadu/krs-khs", "urutan": 6},
+            {"nm_menu": "Transkrip", "nm_file": "/dashboard/integrator/siakadu/transkrip", "urutan": 7},
+            {"nm_menu": "Status Kuliah", "nm_file": "/dashboard/integrator/siakadu/status-kuliah", "urutan": 8},
+            {"nm_menu": "Wisuda", "nm_file": "/dashboard/integrator/siakadu/wisuda", "urutan": 9}
           ]
         },
         {
@@ -177,24 +177,24 @@
           "icon": "heroicons:calendar",
           "urutan": 4,
           "children": [
-            {"nm_menu": "Presensi Mahasiswa", "nm_file": "/dashboard/integrator/sirandu/presensi-mahasiswa", "icon": "heroicons:clipboard-document-check", "urutan": 1},
-            {"nm_menu": "Presensi Dosen", "nm_file": "/dashboard/integrator/sirandu/presensi-dosen", "icon": "heroicons:clipboard-document-check", "urutan": 2}
+            {"nm_menu": "Presensi Mahasiswa", "nm_file": "/dashboard/integrator/sirandu/presensi-mahasiswa", "urutan": 1},
+            {"nm_menu": "Presensi Dosen", "nm_file": "/dashboard/integrator/sirandu/presensi-dosen", "urutan": 2}
           ]
         },
         {
           "nm_menu": "ManAkses",
-          "nm_file": "#manakses-int",
-          "icon": "heroicons:key",
+          "nm_file": "#manakses",
+          "icon": "heroicons:lock-closed",
           "urutan": 5,
           "children": [
-            {"nm_menu": "Unit Organisasi", "nm_file": "/dashboard/integrator/manakses/unit-organisasi", "icon": "heroicons:building-office", "urutan": 1},
-            {"nm_menu": "SSO Radius", "nm_file": "/dashboard/integrator/manakses/sso-radius", "icon": "heroicons:wifi", "urutan": 2}
+            {"nm_menu": "Unit Organisasi", "nm_file": "/dashboard/integrator/manakses/unit-organisasi", "urutan": 1},
+            {"nm_menu": "SSO Radius", "nm_file": "/dashboard/integrator/manakses/sso-radius", "urutan": 2}
           ]
         },
         {
           "nm_menu": "Monitoring",
           "nm_file": "/dashboard/integrator/monitoring",
-          "icon": "heroicons:chart-bar",
+          "icon": "heroicons:presentation-chart-line",
           "urutan": 6
         },
         {
@@ -218,34 +218,34 @@
         {
           "nm_menu": "Dashboard",
           "nm_file": "/dashboard/manajemen-akses",
-          "icon": "mdi:view-dashboard",
+          "icon": "heroicons:home",
           "urutan": 1
         },
         {
           "nm_menu": "Manajemen",
           "nm_file": "#manajemen",
-          "icon": "heroicons:squares-2x2",
+          "icon": "heroicons:cog-6-tooth",
           "urutan": 2,
           "children": [
-            {"nm_menu": "Daftar Pengguna", "nm_file": "/dashboard/manajemen-akses/manajemen/pengguna", "icon": "heroicons:users", "urutan": 1},
-            {"nm_menu": "Daftar Aplikasi", "nm_file": "/dashboard/manajemen-akses/manajemen/aplikasi", "icon": "heroicons:squares-2x2", "urutan": 2},
-            {"nm_menu": "Role Base Access", "nm_file": "/dashboard/manajemen-akses/manajemen/rbac", "icon": "heroicons:shield-check", "urutan": 3},
-            {"nm_menu": "Menu Aplikasi", "nm_file": "/dashboard/manajemen-akses/manajemen/menu", "icon": "heroicons:bars-3", "urutan": 4},
-            {"nm_menu": "Kategori Aplikasi", "nm_file": "/dashboard/manajemen-akses/manajemen/kategori-aplikasi", "icon": "heroicons:folder", "urutan": 5},
-            {"nm_menu": "Daftar Unit", "nm_file": "/dashboard/manajemen-akses/manajemen/unit", "icon": "heroicons:building-office", "urutan": 6},
-            {"nm_menu": "Peran", "nm_file": "/dashboard/manajemen-akses/manajemen/peran", "icon": "heroicons:identification", "urutan": 7},
-            {"nm_menu": "WS Endpoint", "nm_file": "/dashboard/manajemen-akses/manajemen/ws-endpoint", "icon": "heroicons:server", "urutan": 8}
+            {"nm_menu": "Daftar Pengguna", "nm_file": "/dashboard/manajemen-akses/manajemen/pengguna", "urutan": 1},
+            {"nm_menu": "Daftar Aplikasi", "nm_file": "/dashboard/manajemen-akses/manajemen/aplikasi", "urutan": 2},
+            {"nm_menu": "Role Base Access", "nm_file": "/dashboard/manajemen-akses/manajemen/rbac", "urutan": 3},
+            {"nm_menu": "Menu Aplikasi", "nm_file": "/dashboard/manajemen-akses/manajemen/menu", "urutan": 4},
+            {"nm_menu": "Kategori Aplikasi", "nm_file": "/dashboard/manajemen-akses/manajemen/kategori-aplikasi", "urutan": 5},
+            {"nm_menu": "Daftar Unit", "nm_file": "/dashboard/manajemen-akses/manajemen/unit", "urutan": 6},
+            {"nm_menu": "Peran", "nm_file": "/dashboard/manajemen-akses/manajemen/peran", "urutan": 7},
+            {"nm_menu": "WS Endpoint", "nm_file": "/dashboard/manajemen-akses/manajemen/ws-endpoint", "urutan": 8}
           ]
         },
         {
           "nm_menu": "Logger",
           "nm_file": "#logger",
-          "icon": "heroicons:chart-bar",
+          "icon": "heroicons:presentation-chart-line",
           "urutan": 3,
           "children": [
-            {"nm_menu": "Log Login", "nm_file": "/dashboard/manajemen-akses/logger/log-login", "icon": "heroicons:arrow-right-on-rectangle", "urutan": 1},
-            {"nm_menu": "Log JWT", "nm_file": "/dashboard/manajemen-akses/logger/log-jwt", "icon": "heroicons:key", "urutan": 2},
-            {"nm_menu": "Log Akses", "nm_file": "/dashboard/manajemen-akses/logger/log-akses", "icon": "heroicons:clock", "urutan": 3}
+            {"nm_menu": "Log Login", "nm_file": "/dashboard/manajemen-akses/logger/log-login", "urutan": 1},
+            {"nm_menu": "Log JWT", "nm_file": "/dashboard/manajemen-akses/logger/log-jwt", "urutan": 2},
+            {"nm_menu": "Log Akses", "nm_file": "/dashboard/manajemen-akses/logger/log-akses", "urutan": 3}
           ]
         }
       ]

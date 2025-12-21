@@ -61,9 +61,14 @@ show_menu() {
     echo ""
     echo -e "  ${RED}21)${NC} Cleanup Docker Resources (hapus images tidak terpakai)"
     echo ""
+    echo -e "  ${CYAN}--- Cache Management ---${NC}"
+    echo -e "  ${YELLOW}25)${NC} Clear All Cache (Redis + Laravel)"
+    echo -e "  ${YELLOW}26)${NC} Clear Redis Cache Only"
+    echo -e "  ${YELLOW}27)${NC} Clear Laravel Cache Only (all services)"
+    echo ""
     echo -e "  ${RED}0)${NC} Exit"
     echo ""
-    echo -n "Pilihan [0-24]: "
+    echo -n "Pilihan [0-27]: "
 }
 
 # Function to show container status
@@ -293,6 +298,45 @@ while true; do
             echo -e "${YELLOW}Lebih cepat untuk perubahan kode saja!${NC}"
             echo ""
             bash "$SCRIPT_DIR/quick-dev-rebuild.sh" auth
+            read -p "Press Enter to continue..."
+            ;;
+        25)
+            echo ""
+            echo -e "${CYAN}Clear All Cache (Redis + Laravel)${NC}"
+            echo ""
+            # Clear Redis
+            echo -e "${BLUE}Clearing Redis cache...${NC}"
+            docker exec myunila-redis redis-cli FLUSHALL
+            echo -e "${GREEN}✓ Redis cache cleared${NC}"
+            echo ""
+            # Clear Laravel cache for all services
+            echo -e "${BLUE}Clearing Laravel cache on Auth Service...${NC}"
+            docker exec myunila-auth-service php artisan optimize:clear 2>/dev/null || echo "Auth service not running"
+            echo -e "${BLUE}Clearing Laravel cache on Dashboard Service...${NC}"
+            docker exec myunila-dashboard-service php artisan optimize:clear 2>/dev/null || echo "Dashboard service not running"
+            echo ""
+            echo -e "${GREEN}✓ All cache cleared!${NC}"
+            read -p "Press Enter to continue..."
+            ;;
+        26)
+            echo ""
+            echo -e "${CYAN}Clear Redis Cache Only${NC}"
+            echo ""
+            echo -e "${BLUE}Clearing Redis cache...${NC}"
+            docker exec myunila-redis redis-cli FLUSHALL
+            echo -e "${GREEN}✓ Redis cache cleared${NC}"
+            read -p "Press Enter to continue..."
+            ;;
+        27)
+            echo ""
+            echo -e "${CYAN}Clear Laravel Cache Only (all services)${NC}"
+            echo ""
+            echo -e "${BLUE}Clearing Laravel cache on Auth Service...${NC}"
+            docker exec myunila-auth-service php artisan optimize:clear 2>/dev/null || echo "Auth service not running"
+            echo -e "${BLUE}Clearing Laravel cache on Dashboard Service...${NC}"
+            docker exec myunila-dashboard-service php artisan optimize:clear 2>/dev/null || echo "Dashboard service not running"
+            echo ""
+            echo -e "${GREEN}✓ Laravel cache cleared!${NC}"
             read -p "Press Enter to continue..."
             ;;
         0)

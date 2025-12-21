@@ -13,9 +13,11 @@ import type { MenuItem } from "@/lib/types/dashboardTypes";
 interface SidebarProps {
   appName: string;
   appIcon?: React.ReactNode;
-  menuConfig: MenuItem[]; // Menu config dari setiap app
+  menuConfig: MenuItem[]; // Menu config dari setiap app (can be dynamic from RBAC API)
   isOpen: boolean;
   onClose: () => void;
+  isLoading?: boolean; // Loading state for dynamic menus
+  skipRoleFilter?: boolean; // Skip frontend role filtering (when using RBAC API)
 }
 
 export default function Sidebar({
@@ -24,6 +26,8 @@ export default function Sidebar({
   menuConfig,
   isOpen,
   onClose,
+  isLoading = false,
+  skipRoleFilter = false,
 }: SidebarProps) {
   const pathname = usePathname();
   const { user } = useAuth();
@@ -35,6 +39,7 @@ export default function Sidebar({
 
     const roleLower = user.role.toLowerCase();
     if (roleLower.includes("developer")) return "developer";
+    if (roleLower.includes("administrator")) return "admin"; // Administrator -> admin
     if (roleLower.includes("rektor")) return "rektor";
     if (roleLower.includes("wakil rektor 1") || roleLower.includes("wakilrektor1")) return "wakilrektor1";
     if (roleLower.includes("wakil rektor 2") || roleLower.includes("wakilrektor2")) return "wakilrektor2";
@@ -52,11 +57,13 @@ export default function Sidebar({
 
   const userRole = getUserRole();
 
-  // Filter menu berdasarkan role
-  const menuItems = menuConfig.filter((item) => {
-    if (!item.roles) return true; // Jika tidak ada roles, tampilkan untuk semua
-    return item.roles.includes(userRole);
-  });
+  // Filter menu berdasarkan role (skip jika menggunakan dynamic menu dari RBAC API)
+  const menuItems = skipRoleFilter
+    ? menuConfig // RBAC API sudah filter berdasarkan permission
+    : menuConfig.filter((item) => {
+        if (!item.roles) return true; // Jika tidak ada roles, tampilkan untuk semua
+        return item.roles.includes(userRole);
+      });
 
   // Check if any child of a menu item is active
   const hasActiveChild = (item: MenuItem): boolean => {
@@ -89,14 +96,16 @@ export default function Sidebar({
   const renderMenuItem = (item: MenuItem, level: number = 0) => {
     const hasChildren = item.children && item.children.length > 0;
     const childIsActive = hasActiveChild(item);
-    const isOpen = openMenus[item.title] !== undefined ? openMenus[item.title] : childIsActive;
+    // Use id (from backend) or title as unique key
+    const itemKey = item.id || item.title;
+    const isOpen = openMenus[itemKey] !== undefined ? openMenus[itemKey] : childIsActive;
     const active = isActive(item.href);
 
     if (hasChildren) {
       return (
-        <div key={item.title}>
+        <div key={itemKey}>
           <button
-            onClick={() => toggleMenu(item.title)}
+            onClick={() => toggleMenu(itemKey)}
             className={`w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg mb-0.5
               ${
                 level === 0
@@ -134,7 +143,7 @@ export default function Sidebar({
     }
 
     return (
-      <Link key={item.title} href={item.href || "#"} onClick={handleLinkClick}>
+      <Link key={itemKey} href={item.href || "#"} onClick={handleLinkClick}>
         <div
           className={`flex items-center gap-3 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg mb-0.5
             ${
@@ -191,7 +200,25 @@ export default function Sidebar({
 
         {/* Menu Items */}
         <nav className="flex-1 overflow-y-auto px-3 py-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent">
-          {menuItems.map((item) => renderMenuItem(item))}
+          {isLoading ? (
+            // Loading skeleton
+            <div className="space-y-2">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="flex items-center gap-3 px-3 py-2.5">
+                    <div className="w-5 h-5 bg-gray-200 dark:bg-slate-700 rounded" />
+                    <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-24" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : menuItems.length === 0 ? (
+            <div className="px-3 py-4 text-sm text-gray-500 dark:text-slate-400 text-center">
+              Tidak ada menu yang tersedia
+            </div>
+          ) : (
+            menuItems.map((item) => renderMenuItem(item))
+          )}
         </nav>
 
         {/* Back to Portal */}
@@ -249,7 +276,25 @@ export default function Sidebar({
 
         {/* Menu Items */}
         <nav className="flex-1 overflow-y-auto px-3 py-2">
-          {menuItems.map((item) => renderMenuItem(item))}
+          {isLoading ? (
+            // Loading skeleton
+            <div className="space-y-2">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="flex items-center gap-3 px-3 py-2.5">
+                    <div className="w-5 h-5 bg-gray-200 dark:bg-slate-700 rounded" />
+                    <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-24" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : menuItems.length === 0 ? (
+            <div className="px-3 py-4 text-sm text-gray-500 dark:text-slate-400 text-center">
+              Tidak ada menu yang tersedia
+            </div>
+          ) : (
+            menuItems.map((item) => renderMenuItem(item))
+          )}
         </nav>
 
         {/* Back to Portal */}

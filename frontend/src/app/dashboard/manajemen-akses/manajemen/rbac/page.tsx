@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import RolePenggunaTable from "@/shared/components/manakses/RolePenggunaTable";
 import MenuRoleTable from "@/shared/components/manakses/MenuRoleTable";
 import {
@@ -14,6 +14,8 @@ import { MdSecurity } from "react-icons/md";
 import { FiUsers, FiLock, FiShield } from "react-icons/fi";
 import { manajemenAksesMenuConfig } from "../../config/menuConfig";
 import { type MenuRoleStats } from "@/lib/services/manakses/menuRoleService";
+
+const APP_KEY = "manajemen-akses";
 
 export default function RBACPage() {
   useRequireAuth();
@@ -31,24 +33,26 @@ export default function RBACPage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout
+      <DashboardLayoutWithDynamicMenu
         appName="Manajemen Akses"
         appIcon={<MdSecurity className="w-6 h-6 text-white" />}
-        menuConfig={manajemenAksesMenuConfig}
+        appKey={APP_KEY}
+        fallbackMenus={manajemenAksesMenuConfig}
         pageTitle="Role Base Access"
       >
         <div className="flex justify-center items-center h-96">
           <Spinner size="lg" color="primary" />
         </div>
-      </DashboardLayout>
+      </DashboardLayoutWithDynamicMenu>
     );
   }
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="Manajemen Akses"
       appIcon={<MdSecurity className="w-6 h-6 text-white" />}
-      menuConfig={manajemenAksesMenuConfig}
+      appKey={APP_KEY}
+      fallbackMenus={manajemenAksesMenuConfig}
       pageTitle="Role Base Access"
     >
       <div className="space-y-6">
@@ -212,6 +216,6 @@ export default function RBACPage() {
           {activeTab === "role-pengguna" && <RolePenggunaTable />}
         </div>
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

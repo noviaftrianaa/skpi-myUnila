@@ -42,6 +42,7 @@ import {
   FiLock,
 } from "react-icons/fi";
 import { Icon } from "@iconify/react";
+import * as HeroIcons from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
@@ -98,6 +99,8 @@ export default function PortalPage() {
   const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
   const [selectedApp, setSelectedApp] = useState<AppWithFavorite | null>(null);
   const [accessDeniedMessage, setAccessDeniedMessage] = useState("");
+  const [accessDeniedRequiresRole, setAccessDeniedRequiresRole] = useState(false);
+  const [isCheckingAccess, setIsCheckingAccess] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
 
   // LocalStorage key for favorites
@@ -317,9 +320,16 @@ export default function PortalPage() {
     // Check if locked (no access) - only for production apps
     if (isProduction && !app.has_access) {
       setSelectedApp(app);
-      setAccessDeniedMessage(
-        `Role ${activeContext?.nm_peran || 'Anda'} di unit ${activeContext?.nm_organisasi || ''} tidak memiliki akses ke aplikasi ${app.nm_aplikasi}`
-      );
+      // Check if user hasn't selected a role yet
+      if (!activeContext) {
+        setAccessDeniedMessage(`Anda belum memilih peran untuk mengakses aplikasi ${app.nm_aplikasi}`);
+        setAccessDeniedRequiresRole(true);
+      } else {
+        setAccessDeniedMessage(
+          `Role ${activeContext?.nm_peran || 'Anda'} di unit ${activeContext?.nm_organisasi || ''} tidak memiliki akses ke aplikasi ${app.nm_aplikasi}`
+        );
+        setAccessDeniedRequiresRole(false);
+      }
       setShowAccessDeniedModal(true);
       return;
     }
@@ -347,18 +357,36 @@ export default function PortalPage() {
 
     // Check access via API for additional menu_role validation (only for production apps)
     if (isProduction) {
-      const accessResult = await checkAppAccess(app.id_aplikasi);
+      // Show loading modal while checking access
+      setSelectedApp(app);
+      setIsCheckingAccess(true);
+      setShowAccessDeniedModal(true);
 
-      if (accessResult.requiresSelection) {
-        // Need to select a role first
-        setShowRoleModal(true);
-        return;
-      }
+      try {
+        const accessResult = await checkAppAccess(app.id_aplikasi);
 
-      if (!accessResult.hasAccess) {
-        setSelectedApp(app);
-        setAccessDeniedMessage(accessResult.message);
-        setShowAccessDeniedModal(true);
+        if (accessResult.requiresSelection) {
+          // Need to select a role first
+          setShowAccessDeniedModal(false);
+          setIsCheckingAccess(false);
+          setShowRoleModal(true);
+          return;
+        }
+
+        if (!accessResult.hasAccess) {
+          setAccessDeniedMessage(accessResult.message);
+          setAccessDeniedRequiresRole(accessResult.requiresSelection);
+          setIsCheckingAccess(false);
+          return;
+        }
+
+        // Has access - close modal and navigate
+        setShowAccessDeniedModal(false);
+        setIsCheckingAccess(false);
+      } catch (error) {
+        setAccessDeniedMessage("Gagal memeriksa akses. Silakan coba lagi.");
+        setAccessDeniedRequiresRole(false);
+        setIsCheckingAccess(false);
         return;
       }
     }
@@ -441,12 +469,32 @@ export default function PortalPage() {
       return <FiInfo className="w-6 h-6 text-white" />;
     }
 
-    // Convert React Icons format to Iconify format
-    const iconifyName = convertToIconifyFormat(iconName);
+    // If icon is in heroicons:icon-name format, use @heroicons/react directly
+    if (iconName.startsWith('heroicons:')) {
+      const iconKey = iconName.replace('heroicons:', '');
+      // Convert kebab-case to PascalCase for React component name
+      const componentName = iconKey
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join('') + 'Icon';
 
-    // Use Iconify for dynamic icon rendering
-    // Note: Iconify loads icons from CDN on demand
-    // Using style prop for color ensures it works with SSR
+      const HeroIcon = (HeroIcons as any)[componentName];
+
+      if (HeroIcon) {
+        return <HeroIcon className="w-6 h-6 text-white" />;
+      } else {
+        // If Heroicon not found, fallback to Iconify
+        return (
+          <Icon
+            icon={iconName}
+            style={{ width: 24, height: 24, color: 'white' }}
+          />
+        );
+      }
+    }
+
+    // Fallback to Iconify for other icon formats
+    const iconifyName = convertToIconifyFormat(iconName);
     return (
       <Icon
         icon={iconifyName}
@@ -455,19 +503,55 @@ export default function PortalPage() {
     );
   };
 
-  // Get background color class from icon_color
-  const getIconBgColor = (iconColor: string | null) => {
-    if (!iconColor) return 'bg-blue-500';
-    // If it's a hex color, use inline style
+  // Get background color (returns hex color for inline style)
+  const getIconBgColor = (iconColor: string | null): string => {
+    if (!iconColor) return '#3b82f6'; // blue-500
+
+    // If already a hex color, return it
     if (iconColor.startsWith('#')) {
       return iconColor;
     }
-    // Convert text-xxx-500 to bg-xxx-500 format
-    if (iconColor.startsWith('text-')) {
-      return iconColor.replace('text-', 'bg-');
-    }
-    // Otherwise treat as Tailwind class (already bg-xxx format)
-    return iconColor;
+
+    // Map Tailwind color classes to hex values
+    const colorMap: { [key: string]: string } = {
+      'text-green-600': '#16a34a',
+      'text-blue-600': '#2563eb',
+      'text-teal-600': '#0d9488',
+      'text-violet-600': '#7c3aed',
+      'text-rose-600': '#e11d48',
+      'text-lime-600': '#65a30d',
+      'text-purple-600': '#9333ea',
+      'text-orange-600': '#ea580c',
+      'text-pink-600': '#db2777',
+      'text-cyan-600': '#0891b2',
+      'text-indigo-600': '#4f46e5',
+      'text-red-600': '#dc2626',
+      'text-yellow-600': '#ca8a04',
+      'text-emerald-600': '#059669',
+      'text-sky-600': '#0284c7',
+      'text-amber-600': '#d97706',
+      'text-fuchsia-600': '#c026d3',
+      // Fallback for bg- prefix
+      'bg-green-600': '#16a34a',
+      'bg-blue-600': '#2563eb',
+      'bg-teal-600': '#0d9488',
+      'bg-violet-600': '#7c3aed',
+      'bg-rose-600': '#e11d48',
+      'bg-lime-600': '#65a30d',
+      'bg-purple-600': '#9333ea',
+      'bg-orange-600': '#ea580c',
+      'bg-pink-600': '#db2777',
+      'bg-cyan-600': '#0891b2',
+      'bg-indigo-600': '#4f46e5',
+      'bg-red-600': '#dc2626',
+      'bg-yellow-600': '#ca8a04',
+      'bg-emerald-600': '#059669',
+      'bg-sky-600': '#0284c7',
+      'bg-amber-600': '#d97706',
+      'bg-fuchsia-600': '#c026d3',
+    };
+
+    return colorMap[iconColor] || '#3b82f6'; // Default to blue-500
   };
 
   // Use authenticated user data
@@ -1059,7 +1143,6 @@ export default function PortalPage() {
                     <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                       {category.apps.map((app) => {
                         const bgColor = getIconBgColor(app.icon_color);
-                        const isHexColor = bgColor.startsWith('#');
                         // Show "Akses Terbatas" only for production apps (a_live AND a_terintegrasi)
                         const isProduction = app.a_live && app.a_terintegrasi;
                         const isLocked = !app.has_access && isProduction;
@@ -1087,8 +1170,8 @@ export default function PortalPage() {
                                 <div className="flex flex-col items-center text-center sm:hidden gap-2">
                                   <div className="relative">
                                     <div
-                                      className={`${!isHexColor ? bgColor : ''} p-2.5 rounded-xl text-white flex-shrink-0`}
-                                      style={isHexColor ? { backgroundColor: bgColor } : undefined}
+                                      className="p-2.5 rounded-xl text-white flex-shrink-0"
+                                      style={{ backgroundColor: bgColor }}
                                     >
                                       <div className="w-6 h-6 flex items-center justify-center">
                                         {getAppIcon(app.icon_name, app.icon_color)}
@@ -1121,8 +1204,8 @@ export default function PortalPage() {
                                 <div className="hidden sm:flex items-start gap-3">
                                   <div className="relative flex-shrink-0">
                                     <div
-                                      className={`${!isHexColor ? bgColor : ''} p-3 rounded-xl text-white`}
-                                      style={isHexColor ? { backgroundColor: bgColor } : undefined}
+                                      className="p-3 rounded-xl text-white"
+                                      style={{ backgroundColor: bgColor }}
                                     >
                                       <div className="w-6 h-6">
                                         {getAppIcon(app.icon_name, app.icon_color)}
@@ -1361,7 +1444,6 @@ export default function PortalPage() {
                     <div className="space-y-2">
                       {favoriteApps.slice(0, 5).map((app) => {
                         const bgColor = getIconBgColor(app.icon_color);
-                        const isHexColor = bgColor.startsWith('#');
 
                         return (
                           <button
@@ -1370,8 +1452,8 @@ export default function PortalPage() {
                             className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group"
                           >
                             <div
-                              className={`${!isHexColor ? bgColor : ''} p-2 rounded-lg text-white`}
-                              style={isHexColor ? { backgroundColor: bgColor } : undefined}
+                              className="p-2 rounded-lg text-white"
+                              style={{ backgroundColor: bgColor }}
                             >
                               {getAppIcon(app.icon_name, app.icon_color)}
                             </div>
@@ -1703,7 +1785,14 @@ export default function PortalPage() {
       {/* Access Denied Modal */}
       <Modal
         isOpen={showAccessDeniedModal}
-        onOpenChange={setShowAccessDeniedModal}
+        onOpenChange={(isOpen) => {
+          setShowAccessDeniedModal(isOpen);
+          if (!isOpen) {
+            // Reset state when modal closes
+            setAccessDeniedRequiresRole(false);
+            setIsCheckingAccess(false);
+          }
+        }}
         size="md"
         backdrop="blur"
         classNames={{
@@ -1716,9 +1805,17 @@ export default function PortalPage() {
             <>
               <ModalHeader className="flex flex-col gap-1 border-b border-gray-200">
                 <div className="flex items-center gap-3">
-                  <FiX className="w-6 h-6 text-red-600" />
+                  {isCheckingAccess ? (
+                    <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
+                      <Spinner size="sm" color="primary" />
+                    </div>
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
+                      <FiX className="w-4 h-4 text-red-600" />
+                    </div>
+                  )}
                   <h3 className="text-xl font-bold text-gray-800">
-                    Akses Ditolak
+                    {isCheckingAccess ? "Memeriksa Akses" : "Akses Ditolak"}
                   </h3>
                 </div>
               </ModalHeader>
@@ -1727,7 +1824,7 @@ export default function PortalPage() {
                   {selectedApp && (
                     <div className="mb-4">
                       <div
-                        className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-3 opacity-50"
+                        className={`w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-3 ${isCheckingAccess ? '' : 'opacity-50'}`}
                         style={{
                           backgroundColor: selectedApp.icon_color?.startsWith('#')
                             ? selectedApp.icon_color
@@ -1743,33 +1840,94 @@ export default function PortalPage() {
                       </h4>
                     </div>
                   )}
-                  <p className="text-gray-600 mb-3">
-                    {accessDeniedMessage || "Maaf, Anda tidak memiliki akses ke aplikasi ini."}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Jika Anda merasa seharusnya memiliki akses, silakan hubungi administrator.
-                  </p>
-                  {activeContext && (
-                    <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                      <p className="text-xs text-gray-600 font-medium mb-1">
-                        Peran Aktif Saat Ini:
-                      </p>
-                      <p className="text-sm text-gray-800">
-                        {activeContext.nm_peran} - {activeContext.nm_organisasi}
-                      </p>
+                  {isCheckingAccess ? (
+                    <div className="flex flex-col items-center gap-4 py-6">
+                      <div className="relative">
+                        <div className="w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center">
+                          <Spinner size="lg" color="primary" />
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-gray-800 font-medium">Memeriksa Akses...</p>
+                        <p className="text-sm text-gray-500 mt-1">Mohon tunggu sebentar</p>
+                      </div>
                     </div>
+                  ) : (
+                    <>
+                      <p className="text-gray-600 mb-3">
+                        {accessDeniedMessage || "Maaf, Anda tidak memiliki akses ke aplikasi ini."}
+                      </p>
+                      {accessDeniedRequiresRole ? (
+                        <>
+                          <div className="mt-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                            <p className="text-sm text-amber-700">
+                              <FiAlertCircle className="inline-block mr-1 -mt-0.5" />
+                              Silakan pilih peran terlebih dahulu untuk mengakses aplikasi ini.
+                            </p>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-sm text-gray-500">
+                            Jika Anda merasa seharusnya memiliki akses, silakan hubungi administrator.
+                          </p>
+                          {activeContext && (
+                            <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                              <p className="text-xs text-gray-600 font-medium mb-1">
+                                Peran Aktif Saat Ini:
+                              </p>
+                              <p className="text-sm text-gray-800">
+                                {activeContext.nm_peran} - {activeContext.nm_organisasi}
+                              </p>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </>
                   )}
                 </div>
               </ModalBody>
               <ModalFooter className="border-t border-gray-200">
-                <Button
-                  color="danger"
-                  variant="light"
-                  onPress={onClose}
-                  className="text-gray-600"
-                >
-                  Tutup
-                </Button>
+                {isCheckingAccess ? (
+                  <Button
+                    color="default"
+                    variant="light"
+                    onPress={onClose}
+                    className="text-gray-600"
+                  >
+                    Batal
+                  </Button>
+                ) : accessDeniedRequiresRole ? (
+                  <>
+                    <Button
+                      color="default"
+                      variant="light"
+                      onPress={onClose}
+                      className="text-gray-600"
+                    >
+                      Tutup
+                    </Button>
+                    <Button
+                      color="primary"
+                      onPress={() => {
+                        onClose();
+                        setShowRoleModal(true);
+                      }}
+                      startContent={<FiUser className="w-4 h-4" />}
+                    >
+                      Pilih Peran
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    color="danger"
+                    variant="light"
+                    onPress={onClose}
+                    className="text-gray-600"
+                  >
+                    Tutup
+                  </Button>
+                )}
               </ModalFooter>
             </>
           )}

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import {
   Card,
   CardBody,
@@ -29,6 +29,8 @@ import { referensiService, type ReferensiMetadata } from "@/lib/services/sister/
 import { syncLogsService, type SyncLog } from "@/lib/services/sister/management/syncLogsService";
 import { sisterDosenService } from "@/lib/services/sister/pdrd/dosenService";
 import { toast } from "react-hot-toast";
+
+const APP_KEY = "sister-integrator";
 
 interface DosenStats {
   total_dosen: number;
@@ -223,24 +225,26 @@ export default function SisterIntegratorDashboardPage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout
+      <DashboardLayoutWithDynamicMenu
         appName="SISTER Integrator"
         appIcon={<RiGovernmentFill className="w-6 h-6 text-white" />}
-        menuConfig={sisterIntegratorMenuConfig}
+        appKey={APP_KEY}
+        fallbackMenus={sisterIntegratorMenuConfig}
         pageTitle="Dashboard"
       >
         <div className="flex justify-center items-center h-96">
           <Spinner size="lg" color="primary" />
         </div>
-      </DashboardLayout>
+      </DashboardLayoutWithDynamicMenu>
     );
   }
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="SISTER Integrator"
       appIcon={<RiGovernmentFill className="w-6 h-6 text-white" />}
-      menuConfig={sisterIntegratorMenuConfig}
+      appKey={APP_KEY}
+      fallbackMenus={sisterIntegratorMenuConfig}
       pageTitle="Dashboard"
     >
       <div className="space-y-6">
@@ -535,6 +539,6 @@ export default function SisterIntegratorDashboardPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

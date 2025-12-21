@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserContext } from '@/contexts/UserContextContext';
+import { type AppPermissions } from '@/lib/services/userContext/userContextService';
 
 export interface WithAuthOptions {
   redirectTo?: string;
@@ -39,7 +40,6 @@ export function withAuth<P extends object>(
         const currentPath = window.location.pathname;
         const redirectUrl = `${redirectTo}?redirect=${encodeURIComponent(currentPath)}`;
 
-        console.log('❌ Not authenticated - redirecting to login');
         router.push(redirectUrl);
         return;
       }
@@ -50,7 +50,6 @@ export function withAuth<P extends object>(
         const hasRequiredRole = allowedRoles.includes(user.role || '');
 
         if (!hasRequiredRole) {
-          console.log('❌ Insufficient permissions - user role:', user.role);
           router.push('/unauthorized');
           return;
         }
@@ -104,7 +103,6 @@ export function useRequireAuth(options: WithAuthOptions = {}) {
       const currentPath = window.location.pathname;
       const redirectUrl = `${redirectTo}?redirect=${encodeURIComponent(currentPath)}`;
 
-      console.log('❌ Not authenticated - redirecting to login');
       router.push(redirectUrl);
       return;
     }
@@ -114,7 +112,6 @@ export function useRequireAuth(options: WithAuthOptions = {}) {
       const hasRequiredRole = allowedRoles.includes(user.role || '');
 
       if (!hasRequiredRole) {
-        console.log('❌ Insufficient permissions - user role:', user.role);
         router.push('/unauthorized');
         return;
       }
@@ -135,11 +132,25 @@ export interface WithAppAccessOptions {
 }
 
 /**
+ * Default permissions (all false)
+ */
+const DEFAULT_PERMISSIONS: AppPermissions = {
+  can_show: false,
+  can_insert: false,
+  can_update: false,
+  can_delete: false,
+  can_reject: false,
+  can_approve: false,
+  is_super_role: false,
+};
+
+/**
  * Hook to check app access based on user's active context/role
  * This hook will:
  * 1. Check if user is authenticated
  * 2. Check if user has selected a context (role)
  * 3. Check if that role has access to the specified app
+ * 4. Return CRUD permissions for the role on that app
  */
 export function useRequireAppAccess(options: WithAppAccessOptions = {}) {
   const { appId, appKey, redirectOnDenied = '/portal', showAccessDenied = true } = options;
@@ -152,11 +163,13 @@ export function useRequireAppAccess(options: WithAppAccessOptions = {}) {
     hasAccess: boolean | null;
     requiresContextSelection: boolean;
     message: string;
+    permissions: AppPermissions;
   }>({
     isChecking: true,
     hasAccess: null,
     requiresContextSelection: false,
     message: '',
+    permissions: DEFAULT_PERMISSIONS,
   });
 
   useEffect(() => {
@@ -171,13 +184,22 @@ export function useRequireAppAccess(options: WithAppAccessOptions = {}) {
         return;
       }
 
-      // If no appId or appKey provided, allow access
+      // If no appId or appKey provided, allow access with full permissions
       if (!appId && !appKey) {
         setAccessState({
           isChecking: false,
           hasAccess: true,
           requiresContextSelection: false,
           message: 'Akses diizinkan',
+          permissions: {
+            can_show: true,
+            can_insert: true,
+            can_update: true,
+            can_delete: true,
+            can_reject: true,
+            can_approve: true,
+            is_super_role: false,
+          },
         });
         return;
       }
@@ -190,6 +212,7 @@ export function useRequireAppAccess(options: WithAppAccessOptions = {}) {
         hasAccess: result.hasAccess,
         requiresContextSelection: result.requiresSelection,
         message: result.message,
+        permissions: result.permissions || DEFAULT_PERMISSIONS,
       });
 
       // Redirect if denied and showAccessDenied is false

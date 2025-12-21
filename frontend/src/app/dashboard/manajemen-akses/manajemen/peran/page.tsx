@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import PeranTable from "@/shared/components/manakses/PeranTable";
 import {
   Card,
@@ -18,6 +18,8 @@ import {
 import { MdSecurity } from "react-icons/md";
 import { manajemenAksesMenuConfig } from "../../config/menuConfig";
 import { type PeranStats } from "@/lib/services/manakses/peranService";
+
+const APP_KEY = "manajemen-akses";
 
 export default function PeranPage() {
   useRequireAuth();
@@ -38,24 +40,26 @@ export default function PeranPage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout
+      <DashboardLayoutWithDynamicMenu
         appName="Manajemen Akses"
         appIcon={<MdSecurity className="w-6 h-6 text-white" />}
-        menuConfig={manajemenAksesMenuConfig}
+        appKey={APP_KEY}
+        fallbackMenus={manajemenAksesMenuConfig}
         pageTitle="Peran"
       >
         <div className="flex justify-center items-center h-96">
           <Spinner size="lg" color="primary" />
         </div>
-      </DashboardLayout>
+      </DashboardLayoutWithDynamicMenu>
     );
   }
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="Manajemen Akses"
       appIcon={<MdSecurity className="w-6 h-6 text-white" />}
-      menuConfig={manajemenAksesMenuConfig}
+      appKey={APP_KEY}
+      fallbackMenus={manajemenAksesMenuConfig}
       pageTitle="Peran"
     >
       <div className="space-y-6">
@@ -182,6 +186,6 @@ export default function PeranPage() {
         {/* Data Table */}
         <PeranTable onStatsLoaded={handleStatsLoaded} />
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

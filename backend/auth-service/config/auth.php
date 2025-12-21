@@ -112,4 +112,26 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Super Roles
+    |--------------------------------------------------------------------------
+    |
+    | Roles with elevated privileges. Super roles have:
+    | - Full CRUD permissions on all menus
+    | - Access to all applications
+    |
+    | Note: Menu visibility is still controlled by a_boleh_show in menu_role
+    | even for super roles. This allows fine-grained control over what
+    | menus are visible to admin users.
+    |
+    | Format: comma-separated role IDs (e.g., "1,107,2009")
+    | Default: 1 (Administrator), 107 (Developer)
+    |
+    */
+
+    'super_roles' => array_map('intval', array_filter(
+        explode(',', env('AUTH_SUPER_ROLES', '1,107'))
+    )),
+
 ];

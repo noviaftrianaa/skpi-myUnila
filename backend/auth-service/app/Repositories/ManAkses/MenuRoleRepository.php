@@ -107,7 +107,7 @@ class MenuRoleRepository
             INNER JOIN man_akses.peran p ON p.id_peran = mr.id_peran
             INNER JOIN man_akses.aplikasi a ON a.id_aplikasi = m.id_aplikasi AND a.expired_date IS NULL
             {$baseWhere}
-            ORDER BY {$sortColumn} {$sortDirection}, m.nm_menu ASC, p.nm_peran ASC
+            ORDER BY {$sortColumn} {$sortDirection}
             OFFSET {$offset} ROWS FETCH NEXT {$limit} ROWS ONLY
         ";
 
@@ -289,12 +289,12 @@ class MenuRoleRepository
 
             DB::update($sql, [
                 $data['akses_menu'] ?? 'full',
-                $data['a_boleh_show'] ?? 1,
-                $data['a_boleh_insert'] ?? 0,
-                $data['a_boleh_update'] ?? 0,
-                $data['a_boleh_delete'] ?? 0,
-                $data['a_boleh_sanggah'] ?? 0,
-                $data['approval_menu'] ?? 0,
+                $this->toBit($data['a_boleh_show'] ?? true),
+                $this->toBit($data['a_boleh_insert'] ?? false),
+                $this->toBit($data['a_boleh_update'] ?? false),
+                $this->toBit($data['a_boleh_delete'] ?? false),
+                $this->toBit($data['a_boleh_sanggah'] ?? false),
+                $this->toBit($data['approval_menu'] ?? false),
                 $now,
                 $now,
                 $idUpdater,
@@ -318,12 +318,12 @@ class MenuRoleRepository
             $data['id_peran'],
             $data['id_menu'],
             $data['akses_menu'] ?? 'full',
-            $data['a_boleh_show'] ?? 1,
-            $data['a_boleh_insert'] ?? 0,
-            $data['a_boleh_update'] ?? 0,
-            $data['a_boleh_delete'] ?? 0,
-            $data['a_boleh_sanggah'] ?? 0,
-            $data['approval_menu'] ?? 0,
+            $this->toBit($data['a_boleh_show'] ?? true),
+            $this->toBit($data['a_boleh_insert'] ?? false),
+            $this->toBit($data['a_boleh_update'] ?? false),
+            $this->toBit($data['a_boleh_delete'] ?? false),
+            $this->toBit($data['a_boleh_sanggah'] ?? false),
+            $this->toBit($data['approval_menu'] ?? false),
             $now,
             $now,
             $now,
@@ -361,14 +361,15 @@ class MenuRoleRepository
             WHERE id_menu = ? AND id_peran = ? AND soft_delete = 0
         ";
 
+        // Convert boolean values to integer (1/0) for SQL Server
         $affected = DB::update($sql, [
             $data['akses_menu'] ?? 'full',
-            $data['a_boleh_show'] ?? 1,
-            $data['a_boleh_insert'] ?? 0,
-            $data['a_boleh_update'] ?? 0,
-            $data['a_boleh_delete'] ?? 0,
-            $data['a_boleh_sanggah'] ?? 0,
-            $data['approval_menu'] ?? 0,
+            $this->toBit($data['a_boleh_show'] ?? true),
+            $this->toBit($data['a_boleh_insert'] ?? false),
+            $this->toBit($data['a_boleh_update'] ?? false),
+            $this->toBit($data['a_boleh_delete'] ?? false),
+            $this->toBit($data['a_boleh_sanggah'] ?? false),
+            $this->toBit($data['approval_menu'] ?? false),
             $now,
             $now,
             $idUpdater,
@@ -377,6 +378,20 @@ class MenuRoleRepository
         ]);
 
         return $affected > 0;
+    }
+
+    /**
+     * Convert various boolean representations to SQL Server BIT (1/0)
+     *
+     * @param mixed $value
+     * @return int
+     */
+    private function toBit($value): int
+    {
+        if ($value === true || $value === 1 || $value === '1' || $value === 'true') {
+            return 1;
+        }
+        return 0;
     }
 
     /**

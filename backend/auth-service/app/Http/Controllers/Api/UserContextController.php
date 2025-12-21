@@ -314,4 +314,77 @@ class UserContextController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get user's accessible menus for an application
+     * Returns hierarchical menu structure based on RBAC (menu_role.a_boleh_show)
+     *
+     * Query params:
+     * - app_id: Application UUID
+     * - app_key: Application slug (alternative to app_id)
+     *
+     * Response:
+     * - menus: Hierarchical menu array with permissions
+     * - is_super_role: Whether user has super role (full access)
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getAppMenus(Request $request): JsonResponse
+    {
+        try {
+            $authUser = $request->attributes->get('auth_user');
+            $userId = $authUser->id_pengguna ?? null;
+
+            if (!$userId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User ID tidak ditemukan dari token',
+                    'data' => null
+                ], 401);
+            }
+
+            $appId = $request->query('app_id');
+            $appKey = $request->query('app_key');
+
+            if (!$appId && !$appKey) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Parameter app_id atau app_key diperlukan',
+                    'data' => null
+                ], 400);
+            }
+
+            $result = $this->service->getUserMenus($userId, $appId, $appKey);
+
+            if (!$result['success']) {
+                $statusCode = isset($result['requires_context_selection']) && $result['requires_context_selection'] ? 403 : 400;
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['message'] ?? 'Gagal mengambil menu',
+                    'data' => [
+                        'requires_context_selection' => $result['requires_context_selection'] ?? false,
+                        'menus' => [],
+                    ]
+                ], $statusCode);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'App menus berhasil diambil',
+                'data' => [
+                    'context' => $result['context'] ?? null,
+                    'app' => $result['app'] ?? null,
+                    'menus' => $result['menus'] ?? [],
+                    'is_super_role' => $result['is_super_role'] ?? false,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil app menus: ' . $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+    }
 }
