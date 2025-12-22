@@ -1,263 +1,632 @@
 -- ============================================================================
 -- SEEDER: Portal Aplikasi Data
--- Description: Seed kategori_aplikasi and update aplikasi with portal data
--- Source: frontend/src/app/portal/page.tsx (static data)
--- Date: 2025-12-11
--- Updated: 2025-12-12 - Added id_organisasi mapping
+-- Description: Seed kategori_aplikasi and aplikasi with portal data
+-- Source: PortalAplikasiSeeder.php
+-- Date: 2025-12-22
+-- Updated: Sync with latest Laravel seeder (icon colors, all apps)
 -- ============================================================================
 
 -- ============================================================================
--- STEP 0: Define Organisation IDs
+-- STEP 0: Define Organisation IDs (Get from database to ensure they exist)
 -- ============================================================================
-DECLARE @ORG_UPT_TIK UNIQUEIDENTIFIER = 'c4453e71-a6db-4487-8f5e-84cb4de54fec';      -- UPT TIK (Developer)
-DECLARE @ORG_UNILA UNIQUEIDENTIFIER = 'e2b705a7-173e-464a-9fac-509128709515';         -- Universitas Lampung (Rektorat)
-DECLARE @ORG_SEMUA_UNIT UNIQUEIDENTIFIER = '86942cdf-44f1-446e-8e9e-cb37bbbb16e6';    -- Semua Unit (Global access)
+DECLARE @ORG_UPT_TIK UNIQUEIDENTIFIER;
+DECLARE @ORG_UNILA UNIQUEIDENTIFIER;
+DECLARE @ORG_SEMUA_UNIT UNIQUEIDENTIFIER;
+
+-- Get existing organization IDs or use NULL if not found
+SELECT @ORG_UPT_TIK = id_organisasi FROM man_akses.unit_organisasi WHERE LOWER(nm_organisasi) LIKE '%upt%tik%' OR LOWER(nm_organisasi) LIKE '%teknologi informasi%';
+SELECT @ORG_UNILA = id_organisasi FROM man_akses.unit_organisasi WHERE LOWER(nm_organisasi) LIKE '%universitas lampung%' OR LOWER(nm_organisasi) = 'unila';
+SELECT @ORG_SEMUA_UNIT = id_organisasi FROM man_akses.unit_organisasi WHERE LOWER(nm_organisasi) LIKE '%semua%unit%';
+
+-- If not found, try to get any organization as fallback
+IF @ORG_UPT_TIK IS NULL
+    SELECT TOP 1 @ORG_UPT_TIK = id_organisasi FROM man_akses.unit_organisasi;
+
+IF @ORG_UNILA IS NULL
+    SELECT TOP 1 @ORG_UNILA = id_organisasi FROM man_akses.unit_organisasi;
+
+IF @ORG_SEMUA_UNIT IS NULL
+    SELECT TOP 1 @ORG_SEMUA_UNIT = id_organisasi FROM man_akses.unit_organisasi;
+
+PRINT 'Organization IDs resolved:';
+PRINT '  UPT TIK: ' + ISNULL(CONVERT(VARCHAR(36), @ORG_UPT_TIK), 'NULL');
+PRINT '  UNILA: ' + ISNULL(CONVERT(VARCHAR(36), @ORG_UNILA), 'NULL');
+PRINT '  SEMUA UNIT: ' + ISNULL(CONVERT(VARCHAR(36), @ORG_SEMUA_UNIT), 'NULL');
+PRINT '';
 
 -- ============================================================================
--- STEP 1: Insert Kategori Aplikasi
+-- STEP 1: Insert/Update Kategori Aplikasi
 -- ============================================================================
 PRINT 'Seeding kategori_aplikasi...';
 
--- Clear existing data (optional - comment out if you want to preserve)
--- DELETE FROM man_akses.kategori_aplikasi;
+DECLARE @kat_akademik UNIQUEIDENTIFIER;
+DECLARE @kat_riset UNIQUEIDENTIFIER;
+DECLARE @kat_kemahasiswaan UNIQUEIDENTIFIER;
+DECLARE @kat_alumni UNIQUEIDENTIFIER;
+DECLARE @kat_dashboard UNIQUEIDENTIFIER;
+DECLARE @kat_data UNIQUEIDENTIFIER;
+DECLARE @kat_layanan UNIQUEIDENTIFIER;
+DECLARE @kat_tools UNIQUEIDENTIFIER;
 
--- Insert categories
-DECLARE @kat_akademik UNIQUEIDENTIFIER = NEWID();
-DECLARE @kat_riset UNIQUEIDENTIFIER = NEWID();
-DECLARE @kat_kemahasiswaan UNIQUEIDENTIFIER = NEWID();
-DECLARE @kat_alumni UNIQUEIDENTIFIER = NEWID();
-DECLARE @kat_dashboard UNIQUEIDENTIFIER = NEWID();
-DECLARE @kat_data UNIQUEIDENTIFIER = NEWID();
-DECLARE @kat_layanan UNIQUEIDENTIFIER = NEWID();
-DECLARE @kat_tools UNIQUEIDENTIFIER = NEWID();
-
--- Insert only if not exists
+-- Akademik
 IF NOT EXISTS (SELECT 1 FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Akademik')
 BEGIN
-    INSERT INTO man_akses.kategori_aplikasi (id_kategori, nm_kategori, icon_kategori, icon_color, urutan)
-    VALUES (@kat_akademik, 'Akademik', 'heroicons:book-open', 'bg-blue-500', 1);
+    SET @kat_akademik = NEWID();
+    INSERT INTO man_akses.kategori_aplikasi (id_kategori, nm_kategori, icon_kategori, icon_color, urutan, a_aktif, tgl_create, last_update, soft_delete)
+    VALUES (@kat_akademik, 'Akademik', 'heroicons:book-open', 'bg-blue-500', 1, 1, GETDATE(), GETDATE(), 0);
+    PRINT '  + Kategori Akademik created';
 END
 ELSE
+BEGIN
     SELECT @kat_akademik = id_kategori FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Akademik';
+    PRINT '  - Kategori Akademik already exists';
+END
 
+-- Riset dan Kerjasama
 IF NOT EXISTS (SELECT 1 FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Riset dan Kerjasama')
 BEGIN
-    INSERT INTO man_akses.kategori_aplikasi (id_kategori, nm_kategori, icon_kategori, icon_color, urutan)
-    VALUES (@kat_riset, 'Riset dan Kerjasama', 'heroicons:magnifying-glass', 'bg-purple-500', 2);
+    SET @kat_riset = NEWID();
+    INSERT INTO man_akses.kategori_aplikasi (id_kategori, nm_kategori, icon_kategori, icon_color, urutan, a_aktif, tgl_create, last_update, soft_delete)
+    VALUES (@kat_riset, 'Riset dan Kerjasama', 'heroicons:magnifying-glass', 'bg-purple-500', 2, 1, GETDATE(), GETDATE(), 0);
+    PRINT '  + Kategori Riset dan Kerjasama created';
 END
 ELSE
+BEGIN
     SELECT @kat_riset = id_kategori FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Riset dan Kerjasama';
+    PRINT '  - Kategori Riset dan Kerjasama already exists';
+END
 
+-- Kemahasiswaan
 IF NOT EXISTS (SELECT 1 FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Kemahasiswaan')
 BEGIN
-    INSERT INTO man_akses.kategori_aplikasi (id_kategori, nm_kategori, icon_kategori, icon_color, urutan)
-    VALUES (@kat_kemahasiswaan, 'Kemahasiswaan', 'heroicons:users', 'bg-green-500', 3);
+    SET @kat_kemahasiswaan = NEWID();
+    INSERT INTO man_akses.kategori_aplikasi (id_kategori, nm_kategori, icon_kategori, icon_color, urutan, a_aktif, tgl_create, last_update, soft_delete)
+    VALUES (@kat_kemahasiswaan, 'Kemahasiswaan', 'heroicons:users', 'bg-green-500', 3, 1, GETDATE(), GETDATE(), 0);
+    PRINT '  + Kategori Kemahasiswaan created';
 END
 ELSE
+BEGIN
     SELECT @kat_kemahasiswaan = id_kategori FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Kemahasiswaan';
+    PRINT '  - Kategori Kemahasiswaan already exists';
+END
 
+-- Alumni
 IF NOT EXISTS (SELECT 1 FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Alumni')
 BEGIN
-    INSERT INTO man_akses.kategori_aplikasi (id_kategori, nm_kategori, icon_kategori, icon_color, urutan)
-    VALUES (@kat_alumni, 'Alumni', 'heroicons:academic-cap', 'bg-orange-500', 4);
+    SET @kat_alumni = NEWID();
+    INSERT INTO man_akses.kategori_aplikasi (id_kategori, nm_kategori, icon_kategori, icon_color, urutan, a_aktif, tgl_create, last_update, soft_delete)
+    VALUES (@kat_alumni, 'Alumni', 'heroicons:academic-cap', 'bg-orange-500', 4, 1, GETDATE(), GETDATE(), 0);
+    PRINT '  + Kategori Alumni created';
 END
 ELSE
+BEGIN
     SELECT @kat_alumni = id_kategori FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Alumni';
+    PRINT '  - Kategori Alumni already exists';
+END
 
+-- Dashboard & Akreditasi
 IF NOT EXISTS (SELECT 1 FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Dashboard & Akreditasi')
 BEGIN
-    INSERT INTO man_akses.kategori_aplikasi (id_kategori, nm_kategori, icon_kategori, icon_color, urutan)
-    VALUES (@kat_dashboard, 'Dashboard & Akreditasi', 'heroicons:chart-bar-square', 'bg-indigo-500', 5);
+    SET @kat_dashboard = NEWID();
+    INSERT INTO man_akses.kategori_aplikasi (id_kategori, nm_kategori, icon_kategori, icon_color, urutan, a_aktif, tgl_create, last_update, soft_delete)
+    VALUES (@kat_dashboard, 'Dashboard & Akreditasi', 'heroicons:chart-bar-square', 'bg-indigo-500', 5, 1, GETDATE(), GETDATE(), 0);
+    PRINT '  + Kategori Dashboard & Akreditasi created';
 END
 ELSE
+BEGIN
     SELECT @kat_dashboard = id_kategori FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Dashboard & Akreditasi';
+    PRINT '  - Kategori Dashboard & Akreditasi already exists';
+END
 
+-- Data dan Pelaporan
 IF NOT EXISTS (SELECT 1 FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Data dan Pelaporan')
 BEGIN
-    INSERT INTO man_akses.kategori_aplikasi (id_kategori, nm_kategori, icon_kategori, icon_color, urutan)
-    VALUES (@kat_data, 'Data dan Pelaporan', 'heroicons:circle-stack', 'bg-cyan-500', 6);
+    SET @kat_data = NEWID();
+    INSERT INTO man_akses.kategori_aplikasi (id_kategori, nm_kategori, icon_kategori, icon_color, urutan, a_aktif, tgl_create, last_update, soft_delete)
+    VALUES (@kat_data, 'Data dan Pelaporan', 'heroicons:circle-stack', 'bg-cyan-500', 6, 1, GETDATE(), GETDATE(), 0);
+    PRINT '  + Kategori Data dan Pelaporan created';
 END
 ELSE
+BEGIN
     SELECT @kat_data = id_kategori FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Data dan Pelaporan';
+    PRINT '  - Kategori Data dan Pelaporan already exists';
+END
 
+-- Layanan
 IF NOT EXISTS (SELECT 1 FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Layanan')
 BEGIN
-    INSERT INTO man_akses.kategori_aplikasi (id_kategori, nm_kategori, icon_kategori, icon_color, urutan)
-    VALUES (@kat_layanan, 'Layanan', 'heroicons:phone', 'bg-red-500', 7);
+    SET @kat_layanan = NEWID();
+    INSERT INTO man_akses.kategori_aplikasi (id_kategori, nm_kategori, icon_kategori, icon_color, urutan, a_aktif, tgl_create, last_update, soft_delete)
+    VALUES (@kat_layanan, 'Layanan', 'heroicons:phone', 'bg-red-500', 7, 1, GETDATE(), GETDATE(), 0);
+    PRINT '  + Kategori Layanan created';
 END
 ELSE
+BEGIN
     SELECT @kat_layanan = id_kategori FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Layanan';
+    PRINT '  - Kategori Layanan already exists';
+END
 
+-- Tools & Utilities
 IF NOT EXISTS (SELECT 1 FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Tools & Utilities')
 BEGIN
-    INSERT INTO man_akses.kategori_aplikasi (id_kategori, nm_kategori, icon_kategori, icon_color, urutan)
-    VALUES (@kat_tools, 'Tools & Utilities', 'heroicons:cog-6-tooth', 'bg-slate-500', 8);
+    SET @kat_tools = NEWID();
+    INSERT INTO man_akses.kategori_aplikasi (id_kategori, nm_kategori, icon_kategori, icon_color, urutan, a_aktif, tgl_create, last_update, soft_delete)
+    VALUES (@kat_tools, 'Tools & Utilities', 'heroicons:cog-6-tooth', 'bg-slate-500', 8, 1, GETDATE(), GETDATE(), 0);
+    PRINT '  + Kategori Tools & Utilities created';
 END
 ELSE
+BEGIN
     SELECT @kat_tools = id_kategori FROM man_akses.kategori_aplikasi WHERE nm_kategori = 'Tools & Utilities';
+    PRINT '  - Kategori Tools & Utilities already exists';
+END
 
 PRINT 'Kategori aplikasi seeded successfully';
+PRINT '';
 
 -- ============================================================================
--- STEP 2: Insert/Update Aplikasi Portal
--- Using MERGE to handle both insert and update
+-- STEP 2: Insert/Update Aplikasi
 -- ============================================================================
-PRINT 'Seeding aplikasi portal...';
+PRINT 'Seeding aplikasi...';
 
--- Create temp table for portal apps data (with id_organisasi)
-CREATE TABLE #PortalApps (
-    app_slug VARCHAR(100),
-    nm_aplikasi VARCHAR(100),
-    ket_aplikasi VARCHAR(500),
-    url VARCHAR(256),
-    icon_name VARCHAR(100),
-    icon_color VARCHAR(50),
-    kategori VARCHAR(100),
-    urutan INT,
-    id_organisasi UNIQUEIDENTIFIER
-);
+-- Akademik Applications (Semua Unit)
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'Presensi (SIRANDU)', @ket = 'Sistem Presensi Perkuliahan', @url = '#', @icon_name = 'heroicons:clipboard-document-check', @icon_color = 'text-green-600', @kategori = @kat_akademik, @org = @ORG_SEMUA_UNIT, @slug = 'presensi-sirandu', @urutan = 1, @terintegrasi = 0, @coming_soon = 1;
 
--- Insert all portal apps data with id_organisasi mapping:
--- @ORG_UPT_TIK      = Tools & Utilities (Developer only)
--- @ORG_UNILA        = Dashboard, Data, Riset, Kepegawaian (Rektorat level)
--- @ORG_SEMUA_UNIT   = Akademik, Kemahasiswaan, Alumni, Layanan (All units)
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'SIAKADU', @ket = 'Sistem Informasi Akademik', @url = '#', @icon_name = 'heroicons:clipboard-document-list', @icon_color = 'text-blue-600', @kategori = @kat_akademik, @org = @ORG_SEMUA_UNIT, @slug = 'siakadu', @urutan = 2, @terintegrasi = 0, @coming_soon = 1;
 
-INSERT INTO #PortalApps VALUES
--- Akademik (Semua Unit - accessible by all homebase)
-('presensi-sirandu', 'Presensi (SIRANDU)', 'Sistem Presensi Perkuliahan', '#', 'BsClipboardCheck', 'bg-green-500', 'Akademik', 1, @ORG_SEMUA_UNIT),
-('siakadu', 'SIAKADU', 'Sistem Informasi Akademik', '#', 'HiClipboardList', 'bg-blue-600', 'Akademik', 2, @ORG_SEMUA_UNIT),
-('e-kkn', 'E-KKN', 'Sistem Kuliah Kerja Nyata', '#', 'BsGlobe', 'bg-teal-600', 'Akademik', 3, @ORG_SEMUA_UNIT),
-('berdampak-mbkm', 'Berdampak (MBKM)', 'Merdeka Belajar Kampus Merdeka', '#', 'HiPresentationChartLine', 'bg-teal-500', 'Akademik', 4, @ORG_SEMUA_UNIT),
-('v-class', 'V-CLASS', 'Platform Pembelajaran Virtual', '#', 'HiLibrary', 'bg-cyan-500', 'Akademik', 5, @ORG_SEMUA_UNIT),
-('wali', 'Wali', 'Sistem Perwalian', '#', 'BsPeopleFill', 'bg-blue-500', 'Akademik', 6, @ORG_SEMUA_UNIT),
-('sikebas', 'SIKEBAS', 'Sistem Keringanan & Bebas UKT', '#', 'BsCash', 'bg-emerald-600', 'Akademik', 7, @ORG_SEMUA_UNIT),
-('sikep', 'SIKEP', 'Sistem Kepegawaian', '#', 'FaIdCard', 'bg-slate-600', 'Akademik', 8, @ORG_UNILA),
-('spmi', 'SPMI', 'Sistem Penjaminan Mutu Internal', '#', 'FaChartLine', 'bg-green-600', 'Akademik', 9, @ORG_SEMUA_UNIT),
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'E-KKN', @ket = 'Sistem Kuliah Kerja Nyata', @url = '#', @icon_name = 'heroicons:map-pin', @icon_color = 'text-teal-600', @kategori = @kat_akademik, @org = @ORG_SEMUA_UNIT, @slug = 'e-kkn', @urutan = 3, @terintegrasi = 0, @coming_soon = 1;
 
--- Riset dan Kerjasama (Unila/Rektorat level)
-('si-penelitian', 'SI Penelitian', 'Manajemen penelitian', '#', 'BsFileEarmarkText', 'bg-sky-500', 'Riset dan Kerjasama', 1, @ORG_UNILA),
-('si-pengabdian', 'SI Pengabdian', 'Pengabdian masyarakat', '#', 'HiUserGroup', 'bg-fuchsia-500', 'Riset dan Kerjasama', 2, @ORG_UNILA),
-('si-publikasi', 'SI Publikasi', 'Manajemen publikasi ilmiah', '#', 'BsNewspaper', 'bg-indigo-600', 'Riset dan Kerjasama', 3, @ORG_UNILA),
-('sikerma', 'SIKERMA', 'Sistem Kerjasama Institusi', '#', 'RiGovernmentFill', 'bg-blue-700', 'Riset dan Kerjasama', 4, @ORG_UNILA),
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'Berdampak (MBKM)', @ket = 'Merdeka Belajar Kampus Merdeka', @url = '#', @icon_name = 'heroicons:presentation-chart-line', @icon_color = 'text-cyan-600', @kategori = @kat_akademik, @org = @ORG_SEMUA_UNIT, @slug = 'berdampak-mbkm', @urutan = 4, @terintegrasi = 0, @coming_soon = 1;
+
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'V-CLASS', @ket = 'Platform Pembelajaran Virtual', @url = '#', @icon_name = 'heroicons:building-library', @icon_color = 'text-sky-600', @kategori = @kat_akademik, @org = @ORG_SEMUA_UNIT, @slug = 'v-class', @urutan = 5, @terintegrasi = 0, @coming_soon = 1;
+
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'Wali', @ket = 'Sistem Perwalian', @url = '#', @icon_name = 'heroicons:users', @icon_color = 'text-violet-600', @kategori = @kat_akademik, @org = @ORG_SEMUA_UNIT, @slug = 'wali', @urutan = 6, @terintegrasi = 0, @coming_soon = 1;
+
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'SIKEBAS', @ket = 'Sistem Keringanan & Bebas UKT', @url = '#', @icon_name = 'heroicons:banknotes', @icon_color = 'text-emerald-600', @kategori = @kat_akademik, @org = @ORG_SEMUA_UNIT, @slug = 'sikebas', @urutan = 7, @terintegrasi = 0, @coming_soon = 1;
+
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'SIKEP', @ket = 'Sistem Kepegawaian', @url = '#', @icon_name = 'heroicons:identification', @icon_color = 'text-rose-600', @kategori = @kat_akademik, @org = @ORG_UNILA, @slug = 'sikep', @urutan = 8, @terintegrasi = 0, @coming_soon = 1;
+
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'SPMI', @ket = 'Sistem Penjaminan Mutu Internal', @url = '#', @icon_name = 'heroicons:chart-bar', @icon_color = 'text-lime-600', @kategori = @kat_akademik, @org = @ORG_SEMUA_UNIT, @slug = 'spmi', @urutan = 9, @terintegrasi = 0, @coming_soon = 1;
+
+-- Riset dan Kerjasama (UNILA)
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'SI Penelitian', @ket = 'Manajemen penelitian', @url = '#', @icon_name = 'heroicons:document-text', @icon_color = 'text-sky-600', @kategori = @kat_riset, @org = @ORG_UNILA, @slug = 'si-penelitian', @urutan = 1, @terintegrasi = 0, @coming_soon = 1;
+
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'SI Pengabdian', @ket = 'Pengabdian masyarakat', @url = '#', @icon_name = 'heroicons:user-group', @icon_color = 'text-pink-600', @kategori = @kat_riset, @org = @ORG_UNILA, @slug = 'si-pengabdian', @urutan = 2, @terintegrasi = 0, @coming_soon = 1;
+
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'SI Publikasi', @ket = 'Manajemen publikasi ilmiah', @url = '#', @icon_name = 'heroicons:newspaper', @icon_color = 'text-indigo-600', @kategori = @kat_riset, @org = @ORG_UNILA, @slug = 'si-publikasi', @urutan = 3, @terintegrasi = 0, @coming_soon = 1;
+
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'SIKERMA', @ket = 'Sistem Kerjasama Institusi', @url = '#', @icon_name = 'heroicons:building-office', @icon_color = 'text-fuchsia-600', @kategori = @kat_riset, @org = @ORG_UNILA, @slug = 'sikerma', @urutan = 4, @terintegrasi = 0, @coming_soon = 1;
 
 -- Kemahasiswaan (Semua Unit)
-('si-prestasi', 'SI Prestasi', 'Sistem Informasi Prestasi', '#', 'BsTrophy', 'bg-yellow-500', 'Kemahasiswaan', 1, @ORG_SEMUA_UNIT),
-('beasiswa', 'Beasiswa', 'Sistem Informasi Beasiswa', '#', 'MdCardMembership', 'bg-emerald-500', 'Kemahasiswaan', 2, @ORG_SEMUA_UNIT),
-('ormawa', 'Ormawa', 'Organisasi Kemahasiswaan', '#', 'RiTeamFill', 'bg-violet-500', 'Kemahasiswaan', 3, @ORG_SEMUA_UNIT),
-('minat-bakat', 'Minat Bakat', 'Sistem Minat dan Bakat', '#', 'BsLightbulb', 'bg-amber-500', 'Kemahasiswaan', 4, @ORG_SEMUA_UNIT),
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'SI Prestasi', @ket = 'Sistem Informasi Prestasi', @url = '#', @icon_name = 'heroicons:trophy', @icon_color = 'text-yellow-600', @kategori = @kat_kemahasiswaan, @org = @ORG_SEMUA_UNIT, @slug = 'si-prestasi', @urutan = 1, @terintegrasi = 0, @coming_soon = 1;
+
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'Beasiswa', @ket = 'Sistem Informasi Beasiswa', @url = '#', @icon_name = 'heroicons:academic-cap', @icon_color = 'text-emerald-600', @kategori = @kat_kemahasiswaan, @org = @ORG_SEMUA_UNIT, @slug = 'beasiswa', @urutan = 2, @terintegrasi = 0, @coming_soon = 1;
+
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'Ormawa', @ket = 'Organisasi Kemahasiswaan', @url = '#', @icon_name = 'heroicons:users', @icon_color = 'text-purple-600', @kategori = @kat_kemahasiswaan, @org = @ORG_SEMUA_UNIT, @slug = 'ormawa', @urutan = 3, @terintegrasi = 0, @coming_soon = 1;
+
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'Minat Bakat', @ket = 'Sistem Minat dan Bakat', @url = '#', @icon_name = 'heroicons:light-bulb', @icon_color = 'text-amber-600', @kategori = @kat_kemahasiswaan, @org = @ORG_SEMUA_UNIT, @slug = 'minat-bakat', @urutan = 4, @terintegrasi = 0, @coming_soon = 1;
 
 -- Alumni (Semua Unit)
-('tracer-study', 'Tracer Study', 'Pelacakan Alumni', '#', 'heroicons:academic-cap', 'bg-orange-500', 'Alumni', 1, @ORG_SEMUA_UNIT),
-('service-layanan', 'Service Layanan', 'Layanan untuk Alumni', '#', 'FaHandsHelping', 'bg-teal-500', 'Alumni', 2, @ORG_SEMUA_UNIT),
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'Tracer Alumni', @ket = 'Sistem Pelacakan Alumni', @url = '#', @icon_name = 'heroicons:user-group', @icon_color = 'text-orange-600', @kategori = @kat_alumni, @org = @ORG_SEMUA_UNIT, @slug = 'tracer-alumni', @urutan = 1, @terintegrasi = 0, @coming_soon = 1;
 
--- Dashboard & Akreditasi (Unila/Rektorat - Pimpinan only)
-('iku-dashboard', 'IKU Dashboard', 'Dashboard Indikator Kinerja Utama', '#', 'heroicons:chart-bar-square', 'bg-blue-600', 'Dashboard & Akreditasi', 1, @ORG_UNILA),
-('dashboard-pimpinan', 'Dashboard Pimpinan', 'Visualisasi Data dan Analitik untuk Pengambilan Keputusan', '#', 'RiBarChartBoxFill', 'bg-indigo-700', 'Dashboard & Akreditasi', 2, @ORG_UNILA),
+-- Dashboard & Akreditasi (UNILA)
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'Dashboard Unila', @ket = 'Dashboard Institusi Unila', @url = '/dashboard', @icon_name = 'heroicons:presentation-chart-bar', @icon_color = 'text-indigo-600', @kategori = @kat_dashboard, @org = @ORG_UNILA, @slug = 'dashboard-unila', @urutan = 1, @terintegrasi = 1, @coming_soon = 0;
 
--- Data dan Pelaporan (Unila/Rektorat)
-('feeder-integrator', 'Feeder Integrator', 'Integrasi Data PDDikti', '/dashboard/feeder-integrator', 'heroicons:circle-stack', 'bg-cyan-600', 'Data dan Pelaporan', 1, @ORG_UNILA),
-('sister-integrator', 'SISTER Integrator', 'Integrasi SISTER Kemenristekdikti', '/dashboard/sister-integrator', 'RiGovernmentFill', 'bg-purple-600', 'Data dan Pelaporan', 2, @ORG_UNILA),
-('myunila-integrator', 'myUnila Integrator', 'Integrasi Apps Existing di Unila', '/dashboard/integrator', 'FaLink', 'bg-emerald-600', 'Data dan Pelaporan', 3, @ORG_UPT_TIK),
-('data-unila', 'Data Unila', 'Raw Data Kebutuhan Pelaporan Data di Unila', '#', 'FaTable', 'bg-emerald-600', 'Data dan Pelaporan', 4, @ORG_UNILA),
+-- Data dan Pelaporan (UPT TIK)
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'Feeder Integrator', @ket = 'Integrasi Feeder PDDikti', @url = '/dashboard/integrator/feeder', @icon_name = 'heroicons:circle-stack', @icon_color = 'text-blue-600', @kategori = @kat_data, @org = @ORG_UPT_TIK, @slug = 'feeder-integrator', @urutan = 1, @terintegrasi = 1, @coming_soon = 0;
+
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'SISTER Integrator', @ket = 'Integrasi SISTER (PDDIKTI)', @url = '/dashboard/integrator/sister', @icon_name = 'heroicons:share', @icon_color = 'text-purple-600', @kategori = @kat_data, @org = @ORG_UPT_TIK, @slug = 'sister-integrator', @urutan = 2, @terintegrasi = 1, @coming_soon = 0;
+
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'myUnila Integrator', @ket = 'Integrasi Apps Existing di Unila', @url = '/dashboard/integrator', @icon_name = 'heroicons:link', @icon_color = 'text-emerald-600', @kategori = @kat_data, @org = @ORG_UPT_TIK, @slug = 'myunila-integrator', @urutan = 3, @terintegrasi = 1, @coming_soon = 0;
+
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'Data Unila', @ket = 'Raw Data Kebutuhan Pelaporan Data di Unila', @url = '#', @icon_name = 'heroicons:table-cells', @icon_color = 'text-emerald-600', @kategori = @kat_data, @org = @ORG_UNILA, @slug = 'data-unila', @urutan = 4, @terintegrasi = 0, @coming_soon = 1;
 
 -- Layanan (Semua Unit)
-('helpdesk-tik', 'Helpdesk TIK', 'Layanan Bantuan TIK', 'https://helpdesktik.unila.ac.id', 'heroicons:phone', 'bg-red-500', 'Layanan', 1, @ORG_SEMUA_UNIT),
-('blog-unila', 'Blog Unila', 'Portal Berita dan Artikel', '#', 'FaBlog', 'bg-pink-500', 'Layanan', 2, @ORG_SEMUA_UNIT),
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'Helpdesk TIK', @ket = 'Layanan Bantuan TIK', @url = 'https://helpdesktik.unila.ac.id', @icon_name = 'heroicons:phone', @icon_color = 'text-red-600', @kategori = @kat_layanan, @org = @ORG_SEMUA_UNIT, @slug = 'helpdesk-tik', @urutan = 1, @terintegrasi = 0, @coming_soon = 0;
 
--- Tools & Utilities (UPT TIK - Developer only)
-('api-gateway', 'API Gateway', 'Kong Dashboard', '/portal/kong-admin', 'FaPlug', 'bg-slate-700', 'Tools & Utilities', 1, @ORG_UPT_TIK),
-('monitoring', 'Monitoring & Observability', 'Grafana, Prometheus, Loki', '/portal/monitoring', 'FaChartLine', 'bg-orange-600', 'Tools & Utilities', 2, @ORG_UPT_TIK),
-('manajemen-akses', 'Manajemen Akses', 'Identity & Access Management', '/dashboard/manajemen-akses', 'MdSecurity', 'bg-indigo-600', 'Tools & Utilities', 3, @ORG_UPT_TIK);
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'Blog Unila', @ket = 'Portal Berita dan Artikel', @url = '#', @icon_name = 'heroicons:newspaper', @icon_color = 'text-pink-600', @kategori = @kat_layanan, @org = @ORG_SEMUA_UNIT, @slug = 'blog-unila', @urutan = 2, @terintegrasi = 0, @coming_soon = 1;
 
--- Insert new apps that don't exist yet
-INSERT INTO man_akses.aplikasi (
-    id_aplikasi,
-    nm_aplikasi,
-    ket_aplikasi,
-    url,
-    icon_name,
-    icon_color,
-    id_kategori,
-    app_slug,
-    urutan,
-    a_tampil_portal,
-    a_generate_menu,
-    a_integrasi_cas,
-    a_sistem_internal_pt,
-    id_organisasi,
-    tgl_create,
-    last_update,
-    last_sync
-)
-SELECT
-    NEWID(),
-    p.nm_aplikasi,
-    p.ket_aplikasi,
-    p.url,
-    p.icon_name,
-    p.icon_color,
-    k.id_kategori,
-    p.app_slug,
-    p.urutan,
-    1, -- a_tampil_portal
-    0, -- a_generate_menu
-    0, -- a_integrasi_cas
-    0, -- a_sistem_internal_pt
-    p.id_organisasi,
-    GETDATE(),
-    GETDATE(),
-    GETDATE()
-FROM #PortalApps p
-INNER JOIN man_akses.kategori_aplikasi k ON k.nm_kategori = p.kategori
-WHERE NOT EXISTS (
-    SELECT 1 FROM man_akses.aplikasi a
-    WHERE a.app_slug = p.app_slug OR a.nm_aplikasi = p.nm_aplikasi
-);
+-- Tools & Utilities (UPT TIK - Developer Only, INTEGRATED)
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'API Gateway', @ket = 'Kong Dashboard', @url = '/portal/kong-admin', @icon_name = 'heroicons:cube', @icon_color = 'text-blue-600', @kategori = @kat_tools, @org = @ORG_UPT_TIK, @slug = 'api-gateway', @urutan = 1, @terintegrasi = 1, @coming_soon = 0;
 
-PRINT 'New aplikasi inserted';
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'Monitoring & Observability', @ket = 'Grafana, Prometheus, Loki', @url = '/portal/monitoring', @icon_name = 'heroicons:chart-bar', @icon_color = 'text-orange-600', @kategori = @kat_tools, @org = @ORG_UPT_TIK, @slug = 'monitoring', @urutan = 2, @terintegrasi = 1, @coming_soon = 0;
 
--- Update existing apps with new columns (match by name)
-UPDATE a
-SET
-    a.icon_name = p.icon_name,
-    a.icon_color = p.icon_color,
-    a.id_kategori = k.id_kategori,
-    a.app_slug = COALESCE(a.app_slug, p.app_slug),
-    a.urutan = p.urutan,
-    a.a_tampil_portal = 1,
-    a.id_organisasi = COALESCE(a.id_organisasi, p.id_organisasi),
-    a.last_update = GETDATE()
-FROM man_akses.aplikasi a
-INNER JOIN #PortalApps p ON a.nm_aplikasi = p.nm_aplikasi
-INNER JOIN man_akses.kategori_aplikasi k ON k.nm_kategori = p.kategori
-WHERE a.icon_name IS NULL OR a.id_kategori IS NULL OR a.id_organisasi IS NULL;
-
-PRINT 'Existing aplikasi updated';
-
--- Clean up temp table
-DROP TABLE #PortalApps;
-
--- ============================================================================
--- STEP 3: Verify seeded data
--- ============================================================================
-PRINT '';
-PRINT '=== VERIFICATION ===';
-
-SELECT 'Kategori Count: ' + CAST(COUNT(*) AS VARCHAR) as info
-FROM man_akses.kategori_aplikasi WHERE soft_delete = 0;
-
-SELECT 'Aplikasi Portal Count: ' + CAST(COUNT(*) AS VARCHAR) as info
-FROM man_akses.aplikasi WHERE a_tampil_portal = 1;
-
--- Show summary
-SELECT
-    k.nm_kategori,
-    COUNT(a.id_aplikasi) as app_count
-FROM man_akses.kategori_aplikasi k
-LEFT JOIN man_akses.aplikasi a ON a.id_kategori = k.id_kategori AND a.a_tampil_portal = 1
-WHERE k.soft_delete = 0
-GROUP BY k.nm_kategori, k.urutan
-ORDER BY k.urutan;
+EXEC sp_executesql N'
+    IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
+    BEGIN
+        INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan, a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance, a_aktif, expired_date, tgl_create, last_update, last_sync)
+        VALUES (NEWID(), @nm, @ket, @url, @icon_name, @icon_color, @kategori, @org, @slug, @urutan, 1, 0, 0, 0, @terintegrasi, @coming_soon, 0, 1, NULL, GETDATE(), GETDATE(), GETDATE());
+        PRINT ''  + '' + @nm;
+    END
+    ELSE
+    BEGIN
+        UPDATE man_akses.aplikasi SET ket_aplikasi = @ket, icon_name = @icon_name, icon_color = @icon_color, id_kategori = @kategori, id_organisasi = @org, app_slug = @slug, urutan = @urutan, a_terintegrasi = @terintegrasi, a_coming_soon = @coming_soon, last_update = GETDATE(), last_sync = GETDATE()
+        WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url;
+        PRINT ''  ~ '' + @nm;
+    END',
+N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
+@nm = 'Manajemen Akses myUnila', @ket = 'Identity & Access Management', @url = '/dashboard/manajemen-akses', @icon_name = 'heroicons:key', @icon_color = 'text-indigo-600', @kategori = @kat_tools, @org = @ORG_UPT_TIK, @slug = 'manajemen-akses', @urutan = 3, @terintegrasi = 1, @coming_soon = 0;
 
 PRINT '';
-PRINT '=== Seeder completed successfully ===';
+PRINT 'Aplikasi seeded successfully';
+PRINT '';
+PRINT '============================================================================';
+PRINT 'SEEDER COMPLETED SUCCESSFULLY';
+PRINT '============================================================================';
