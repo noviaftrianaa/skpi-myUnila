@@ -50,6 +50,27 @@ class CheckCrudPermission
             ], 401);
         }
 
+        // TEMPORARY BYPASS: Allow developers full access without permission check
+        // TODO: Remove this after production database sync is complete
+        if (env('BYPASS_PERMISSION_CHECK', false)) {
+            Log::info('BYPASS: Permission check bypassed for user', [
+                'user_id' => $user->id_pengguna,
+                'permission_type' => $permissionType,
+            ]);
+
+            // Attach super permissions
+            $request->attributes->set('crud_permissions', [
+                'is_super_role' => true,
+                'can_show' => true,
+                'can_insert' => true,
+                'can_update' => true,
+                'can_delete' => true,
+                'can_reject' => true,
+                'can_approve' => true,
+            ]);
+            return $next($request);
+        }
+
         // Get app key from parameter, header, or query string
         $appKey = $appKey
             ?? $request->header('X-App-Key')

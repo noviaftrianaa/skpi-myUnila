@@ -8,7 +8,7 @@
 --   3. Add status columns to aplikasi table
 -- =============================================
 
-USE [my_unila]; -- Adjust database name as needed
+USE [pdut]; -- Adjust database name as needed
 GO
 
 -- =============================================

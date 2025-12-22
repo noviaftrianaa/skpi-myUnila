@@ -202,6 +202,37 @@ class UserContextService
     public function checkAppAccess(string $userId, ?string $appId = null, ?string $appKey = null): array
     {
         try {
+            // TEMPORARY BYPASS: Allow full access when bypass is enabled
+            // TODO: Remove this after production database sync is complete
+            // if (env('BYPASS_PERMISSION_CHECK', false)) {
+            //     Log::info('BYPASS: App access check bypassed', [
+            //         'user_id' => $userId,
+            //         'app_id' => $appId,
+            //         'app_key' => $appKey,
+            //     ]);
+
+            //     return [
+            //         'success' => true,
+            //         'has_access' => true,
+            //         'reason' => 'Akses diizinkan (bypass mode)',
+            //         'context' => [
+            //             'id_peran' => 1,
+            //             'nm_peran' => 'Administrator (Bypass)',
+            //             'id_organisasi' => '00000000-0000-0000-0000-000000000000',
+            //             'nm_organisasi' => 'System',
+            //         ],
+            //         'permissions' => [
+            //             'is_super_role' => true,
+            //             'can_show' => true,
+            //             'can_insert' => true,
+            //             'can_update' => true,
+            //             'can_delete' => true,
+            //             'can_reject' => true,
+            //             'can_approve' => true,
+            //         ],
+            //     ];
+            // }
+
             // Get active context
             $context = $this->getActiveContext($userId);
 
