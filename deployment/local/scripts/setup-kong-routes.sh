@@ -623,7 +623,7 @@ MYUNILA_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "myunila-service",
-    "url": "http://myunila-integrator-service:8086",
+    "url": "http://myunila-service:8086",
     "connect_timeout": 300000,
     "write_timeout": 300000,
     "read_timeout": 300000,
