@@ -46,6 +46,7 @@ use App\Http\Controllers\Main\SDM\DosenController as DosenSMSController;
 use App\Http\Controllers\Main\SDM\TendikController as TendikSMSController;
 use App\Http\Controllers\Main\ProfilPTController as MainProfilPTController;
 use App\Http\Controllers\Main\DashboardController as MainDashboardController;
+use App\Http\Controllers\Main\rasio\RasioController;
 
 // locale
 Route::get('lang/{locale}', [LanguageController::class, 'swap'])->name('swap_language');
@@ -128,6 +129,15 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/data/{idProdi}', [AkreditasiController::class, 'getDataAkreditasiProdi'])->name('akreditasi.data.prodi');
             Route::get('/{idProdi}', [AkreditasiController::class, 'prodiDetail'])->name("akreditasi.prodi");
         });
+
+        Route::prefix('/rasio')->group(function () {
+            Route::get('/', [RasioController::class, 'index'])->name("rasio.index");
+            Route::get('/data', [RasioController::class, 'getDataFakultas'])->name('rasio.data');
+            Route::get('/prodi/{id}', [RasioController::class, 'getDataProdi'])->name('rasio.prodi');
+            Route::get('/dosen/datatable', [RasioController::class, 'getDosenDatatable'])->name('rasio.dosen.datatable');
+            Route::get('/mahasiswa/datatable', [RasioController::class, 'getMahasiswaDatatable'])->name('rasio.mahasiswa.datatable');
+        });
+
         Route::prefix('/dashboard_dosen')->group(function () {
             Route::get('/', [MainDashboardController::class, 'dashboard_dosen'])->name('dashboard_dosen');
             Route::get('/jk', [JenisKelaminController::class, 'index'])->name('dashboard_dosen.jk');
