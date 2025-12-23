@@ -102,6 +102,7 @@ export default function PortalPage() {
   const [accessDeniedRequiresRole, setAccessDeniedRequiresRole] = useState(false);
   const [isCheckingAccess, setIsCheckingAccess] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [pendingAppToOpen, setPendingAppToOpen] = useState<AppWithFavorite | null>(null);
 
   // LocalStorage key for favorites
   const FAVORITES_STORAGE_KEY = 'myunila_favorites';
@@ -307,6 +308,44 @@ export default function PortalPage() {
         `Peran berhasil diubah ke ${selectedRole?.nm_peran || 'peran baru'}`,
         { duration: 3000 }
       );
+
+      // Jika ada aplikasi yang menunggu untuk dibuka, buka aplikasi tersebut
+      if (pendingAppToOpen) {
+        // Reset pending app
+        const appToOpen = pendingAppToOpen;
+        setPendingAppToOpen(null);
+
+        // Tunggu sebentar agar context ter-update di server dan portal apps ter-reload
+        setTimeout(async () => {
+          // Check ulang akses karena context sudah berubah
+          const isProduction = appToOpen.a_live && appToOpen.a_terintegrasi;
+
+          if (isProduction) {
+            try {
+              const accessResult = await checkAppAccess(appToOpen.id_aplikasi);
+
+              if (!accessResult.hasAccess) {
+                setSelectedApp(appToOpen);
+                setAccessDeniedMessage(accessResult.message);
+                setAccessDeniedRequiresRole(false);
+                setShowAccessDeniedModal(true);
+                return;
+              }
+            } catch (error) {
+              console.error('Error checking access after role change:', error);
+            }
+          }
+
+          // Langsung navigate tanpa handleAppClick untuk menghindari double checking
+          if (appToOpen.url && appToOpen.url !== '#') {
+            if (appToOpen.url.startsWith('http')) {
+              window.open(appToOpen.url, '_blank');
+            } else {
+              router.push(appToOpen.url);
+            }
+          }
+        }, 1000); // Increase timeout to ensure portal apps are reloaded
+      }
     } else {
       toast.error('Gagal mengubah peran. Silakan coba lagi.');
     }
@@ -322,6 +361,8 @@ export default function PortalPage() {
       setSelectedApp(app);
       // Check if user hasn't selected a role yet
       if (!activeContext) {
+        // Simpan aplikasi yang ingin dibuka
+        setPendingAppToOpen(app);
         setAccessDeniedMessage(`Anda belum memilih peran untuk mengakses aplikasi ${app.nm_aplikasi}`);
         setAccessDeniedRequiresRole(true);
       } else {
@@ -367,6 +408,7 @@ export default function PortalPage() {
 
         if (accessResult.requiresSelection) {
           // Need to select a role first
+          setPendingAppToOpen(app); // Simpan aplikasi yang ingin dibuka
           setShowAccessDeniedModal(false);
           setIsCheckingAccess(false);
           setShowRoleModal(true);
@@ -1543,7 +1585,13 @@ export default function PortalPage() {
       {/* Role Switching Modal */}
       <Modal
         isOpen={showRoleModal}
-        onOpenChange={setShowRoleModal}
+        onOpenChange={(isOpen) => {
+          setShowRoleModal(isOpen);
+          // Reset pending app jika modal ditutup tanpa memilih role
+          if (!isOpen) {
+            setPendingAppToOpen(null);
+          }
+        }}
         size="md"
         backdrop="opaque"
         scrollBehavior="inside"
@@ -1910,6 +1958,10 @@ export default function PortalPage() {
                     <Button
                       color="primary"
                       onPress={() => {
+                        // Simpan aplikasi yang ingin dibuka
+                        if (selectedApp) {
+                          setPendingAppToOpen(selectedApp);
+                        }
                         onClose();
                         setShowRoleModal(true);
                       }}

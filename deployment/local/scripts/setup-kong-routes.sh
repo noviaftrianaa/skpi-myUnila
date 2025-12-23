@@ -24,6 +24,7 @@ fi
 source "$ENV_FILE"
 
 KONG_ADMIN_URL="http://localhost:9801"
+LOG_RECEIVER_URL="http://myunila-nginx:80/api/v1/internal/kong-logs"
 
 echo ""
 echo -e "${BLUE}=========================================${NC}"
@@ -66,6 +67,35 @@ parse_json_id() {
         id=$(echo "$json" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
     fi
     echo "$id"
+}
+
+# Helper function to add HTTP Log plugin to a route
+add_http_log_plugin() {
+    local route_id=$1
+    local route_name=$2
+
+    echo -e "${YELLOW}  → Adding HTTP Log plugin...${NC}"
+
+    curl -s -X POST "$KONG_ADMIN_URL/routes/$route_id/plugins" \
+      -H "Content-Type: application/json" \
+      -d "{
+        \"name\": \"http-log\",
+        \"config\": {
+          \"http_endpoint\": \"$LOG_RECEIVER_URL\",
+          \"method\": \"POST\",
+          \"timeout\": 5000,
+          \"keepalive\": 60000,
+          \"retry_count\": 3,
+          \"queue_size\": 1000,
+          \"flush_timeout\": 2,
+          \"content_type\": \"application/json\",
+          \"headers\": {
+            \"X-Log-Source\": \"kong-gateway\"
+          }
+        }
+      }" > /dev/null
+
+    echo -e "${GREEN}  ✓ HTTP Log plugin added${NC}"
 }
 
 # Helper function to delete all Kong configurations
@@ -279,14 +309,13 @@ echo ""
 echo -e "${GREEN}[2/4] Setting up Auth Service...${NC}"
 
 # Create Auth Service
-# Note: Laravel 11 auto-adds /api prefix to api routes, so we need /api in service URL
-# Kong will strip /auth-service and forward remaining path to nginx with /api prefix
-# Example: /auth-service/api/v1/auth/login → /api/api/v1/auth/login → Laravel processes it
+# Kong will strip /auth-service and forward remaining path to nginx
+# Example: /auth-service/api/v1/auth/login → /api/v1/auth/login → nginx routes to auth-service
 AUTH_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "auth-service",
-    "url": "http://myunila-nginx:80/api"
+    "url": "http://myunila-nginx:80"
   }')
 
 AUTH_SERVICE_ID=$(parse_json_id "$AUTH_SERVICE")
@@ -326,6 +355,9 @@ else
             }
           }' > /dev/null
         echo -e "${GREEN}  ✓ CORS plugin added${NC}"
+
+        # Add HTTP Log plugin
+        add_http_log_plugin "$AUTH_ROUTE_ID" "auth-service"
     fi
 fi
 

@@ -563,6 +563,9 @@ class AuthService
             'mfa_verified' => 0,
             'a_sesi_aktif' => 1,
         ]);
+
+        // Update last_login_at and last_login_ip in pengguna table
+        $this->userRepo->updateLastLogin($user->id_pengguna, $ipAddress);
     }
 
     /**
@@ -589,5 +592,8 @@ class AuthService
             'mfa_verified' => 1, // MFA verified!
             'a_sesi_aktif' => 1,
         ]);
+
+        // Update last_login_at and last_login_ip in pengguna table
+        $this->userRepo->updateLastLogin($user->id_pengguna, $ipAddress);
     }
 }

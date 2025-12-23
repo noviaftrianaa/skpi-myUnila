@@ -16,7 +16,10 @@ use App\Http\Controllers\Api\ManAkses\EndpointController;
 use App\Http\Controllers\Api\ManAkses\KategoriAplikasiController;
 use App\Http\Controllers\Api\ManAkses\MenuController;
 use App\Http\Controllers\Api\ManAkses\MenuRoleController;
+use App\Http\Controllers\Api\ManAkses\DashboardController;
 use App\Http\Controllers\Api\UserContextController;
+use App\Http\Controllers\Api\Logger\LoggerController;
+use App\Http\Controllers\Api\Logger\KongLogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,6 +43,11 @@ Route::get('/health', [HealthController::class, 'check'] ?? function () {
         'timestamp' => now()->toIso8601String(),
     ]);
 });
+
+// Kong Log Receiver (internal endpoint - called by Kong Gateway)
+// No middleware - Kong will send logs here directly
+Route::post('/v1/internal/kong-logs', [KongLogController::class, 'store']);
+Route::get('/v1/internal/kong-logs/health', [KongLogController::class, 'health']);
 
 // API version 1
 Route::prefix('v1')->group(function () {
@@ -70,7 +78,7 @@ Route::prefix('v1')->group(function () {
     });
 
     // Protected routes (JWT authentication required - validated by auth service itself)
-    Route::middleware('jwt.auth')->group(function () {
+    Route::middleware(['jwt.auth', 'log.jwt.access'])->group(function () {
         // Auth endpoints
         Route::prefix('auth')->group(function () {
             Route::post('/logout', [AuthController::class, 'logout']);
@@ -132,7 +140,11 @@ Route::prefix('v1')->group(function () {
 
     // Manajemen Akses endpoints (protected with JWT)
     // Permission middleware uses app_key from header X-App-Key or query param
-    Route::middleware('jwt.auth')->prefix('manakses')->group(function () {
+    Route::middleware(['jwt.auth', 'log.role.access'])->prefix('manakses')->group(function () {
+        // Dashboard
+        Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
+        Route::get('/dashboard/recent-activities', [DashboardController::class, 'recentActivities']);
+
         // Pengguna (User Management)
         Route::prefix('pengguna')->group(function () {
             // Read operations - no permission check (show permission assumed for authenticated users)
@@ -267,6 +279,29 @@ Route::prefix('v1')->group(function () {
             Route::post('/bulk-assign-menus', [MenuRoleController::class, 'bulkAssignMenus'])->middleware('permission:insert,manajemen-akses');
             Route::put('/{idMenu}/{idPeran}', [MenuRoleController::class, 'update'])->middleware('permission:update,manajemen-akses');
             Route::delete('/{idMenu}/{idPeran}', [MenuRoleController::class, 'destroy'])->middleware('permission:delete,manajemen-akses');
+        });
+
+        // Logger (Activity Logs Management)
+        Route::prefix('logger')->group(function () {
+            // Statistics
+            Route::get('/stats', [LoggerController::class, 'stats']);
+            Route::get('/most-active-users', [LoggerController::class, 'mostActiveUsers']);
+
+            // Login Logs
+            Route::get('/login', [LoggerController::class, 'loginLogs']);
+            Route::get('/login/{id}', [LoggerController::class, 'loginLogDetail']);
+
+            // JWT Logs
+            Route::get('/jwt', [LoggerController::class, 'jwtLogs']);
+            Route::get('/jwt/{id}', [LoggerController::class, 'jwtLogDetail']);
+
+            // JWT Access Logs
+            Route::get('/jwt-access', [LoggerController::class, 'jwtAccessLogs']);
+            Route::get('/jwt-access/{id}', [LoggerController::class, 'jwtAccessLogDetail']);
+
+            // Role Access Logs
+            Route::get('/role-access', [LoggerController::class, 'roleAccessLogs']);
+            Route::get('/role-access/{id}', [LoggerController::class, 'roleAccessLogDetail']);
         });
     });
 });

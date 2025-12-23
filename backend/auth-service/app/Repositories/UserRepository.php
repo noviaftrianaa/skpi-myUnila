@@ -257,4 +257,29 @@ class UserRepository
         // Verify SHA1 hash dengan bcrypt
         return password_verify($sha1Hash, $user->password_encrypt);
     }
+
+    /**
+     * Update last login timestamp and IP address
+     */
+    public function updateLastLogin(string $userId, string $ipAddress): bool
+    {
+        $sql = "
+            UPDATE man_akses.pengguna
+            SET last_login_at = GETDATE(),
+                last_login_ip = ?
+            WHERE id_pengguna = ?
+        ";
+
+        try {
+            $affected = DB::update($sql, [$ipAddress, $userId]);
+            return $affected > 0;
+        } catch (\Exception $e) {
+            Log::error('Failed to update last login', [
+                'user_id' => $userId,
+                'ip_address' => $ipAddress,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
 }

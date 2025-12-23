@@ -66,9 +66,12 @@ show_menu() {
     echo -e "  ${YELLOW}26)${NC} Clear Redis Cache Only"
     echo -e "  ${YELLOW}27)${NC} Clear Laravel Cache Only (all services)"
     echo ""
+    echo -e "  ${CYAN}--- Service Generator ---${NC}"
+    echo -e "  ${GREEN}28)${NC} Create New Service (Laravel atau Go)"
+    echo ""
     echo -e "  ${RED}0)${NC} Exit"
     echo ""
-    echo -n "Pilihan [0-27]: "
+    echo -n "Pilihan [0-28]: "
 }
 
 # Function to show container status
@@ -338,6 +341,11 @@ while true; do
             echo ""
             echo -e "${GREEN}✓ Laravel cache cleared!${NC}"
             read -p "Press Enter to continue..."
+            ;;
+        28)
+            echo ""
+            echo -e "${GREEN}Running Create New Service Script...${NC}"
+            bash "$SCRIPT_DIR/create-new-service.sh"
             ;;
         0)
             echo ""

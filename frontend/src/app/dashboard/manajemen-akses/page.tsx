@@ -18,12 +18,12 @@ import {
   FiActivity,
   FiKey,
   FiHome,
-  FiClock,
   FiCheckCircle,
 } from "react-icons/fi";
 import { MdSecurity } from "react-icons/md";
 import { manajemenAksesMenuConfig } from "./config/menuConfig";
 import Link from "next/link";
+import { dashboardService, type DashboardStats, type RecentActivity } from "@/lib/services/manakses/dashboardService";
 
 const APP_KEY = "manajemen-akses";
 
@@ -31,50 +31,70 @@ export default function ManajemenAksesDashboardPage() {
   useRequireAuth();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
 
   useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
+    let isMounted = true;
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        const [statsData, activitiesData] = await Promise.all([
+          dashboardService.getStats(),
+          dashboardService.getRecentActivities(),
+        ]);
+
+        if (isMounted) {
+          setStats(statsData);
+          setRecentActivities(activitiesData);
+        }
+      } catch (error) {
+        console.error("Error loading dashboard data:", error);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+    loadData();
+    return () => { isMounted = false; };
   }, []);
 
-  // Stats cards
-  const statsCards = [
+  // Stats cards (dynamic based on API data)
+  const statsCards = stats ? [
     {
       title: "Total Pengguna",
-      value: "1,234",
+      value: stats.total_pengguna.toLocaleString(),
       icon: <FiUsers className="w-7 h-7 text-white" />,
       color: "from-blue-500 to-blue-600",
-      change: "+12",
-      subtitle: "pengguna aktif",
+      change: `${stats.pengguna_aktif.toLocaleString()} Aktif`,
+      subtitle: "pengguna terdaftar",
     },
     {
       title: "Total Aplikasi",
-      value: "45",
+      value: stats.total_aplikasi.toLocaleString(),
       icon: <FiGrid className="w-7 h-7 text-white" />,
       color: "from-green-500 to-green-600",
-      change: "Aktif",
-      subtitle: "terdaftar",
+      change: `${stats.aplikasi_aktif.toLocaleString()} Aktif`,
+      subtitle: "aplikasi terdaftar",
     },
     {
       title: "Total Peran",
-      value: "28",
+      value: stats.total_peran.toLocaleString(),
       icon: <FiShield className="w-7 h-7 text-white" />,
       color: "from-purple-500 to-purple-600",
-      change: "Aktif",
-      subtitle: "roles",
+      change: `${stats.peran_aktif.toLocaleString()} Aktif`,
+      subtitle: "peran terdaftar",
     },
     {
       title: "Endpoint API",
-      value: "156",
+      value: stats.total_endpoint.toLocaleString(),
       icon: <FiServer className="w-7 h-7 text-white" />,
       color: "from-orange-500 to-orange-600",
-      change: "Protected",
-      subtitle: "endpoints",
+      change: `${stats.endpoint_aktif.toLocaleString()} Aktif`,
+      subtitle: "endpoint terdaftar",
     },
-  ];
+  ] : [];
 
   // Quick links
   const quickLinks = [
@@ -122,33 +142,24 @@ export default function ManajemenAksesDashboardPage() {
     },
   ];
 
-  // Recent activities (dummy data)
-  const recentActivities = [
-    {
-      action: "Login Success",
-      user: "john.doe@unila.ac.id",
-      time: "2 menit yang lalu",
-      status: "success",
-    },
-    {
-      action: "New User Created",
-      user: "admin@unila.ac.id",
-      time: "15 menit yang lalu",
-      status: "success",
-    },
-    {
-      action: "Role Updated",
-      user: "superadmin@unila.ac.id",
-      time: "1 jam yang lalu",
-      status: "info",
-    },
-    {
-      action: "Failed Login Attempt",
-      user: "unknown@mail.com",
-      time: "2 jam yang lalu",
-      status: "warning",
-    },
-  ];
+  // Format time helper
+  const formatTimeAgo = (date: string) => {
+    try {
+      const loginDate = new Date(date);
+      const now = new Date();
+      const diffMs = now.getTime() - loginDate.getTime();
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
+
+      if (diffMins < 1) return "Baru saja";
+      if (diffMins < 60) return `${diffMins} menit yang lalu`;
+      if (diffHours < 24) return `${diffHours} jam yang lalu`;
+      return `${diffDays} hari yang lalu`;
+    } catch {
+      return "Unknown";
+    }
+  };
 
   if (isLoading) {
     return (
@@ -295,33 +306,47 @@ export default function ManajemenAksesDashboardPage() {
                   </h3>
                 </div>
                 <div className="space-y-3">
-                  {recentActivities.map((activity, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
-                    >
+                  {recentActivities.length > 0 ? (
+                    recentActivities.map((activity, index) => (
                       <div
-                        className={`w-2 h-2 rounded-full ${
-                          activity.status === "success"
-                            ? "bg-green-500"
-                            : activity.status === "warning"
-                            ? "bg-yellow-500"
-                            : "bg-blue-500"
-                        }`}
-                      ></div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">
-                          {activity.action}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                          {activity.user}
-                        </p>
+                        key={index}
+                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+                      >
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            activity.status === "success"
+                              ? "bg-green-500"
+                              : activity.status === "failed"
+                              ? "bg-red-500"
+                              : "bg-blue-500"
+                          }`}
+                        ></div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {activity.status === "success" ? "Login Berhasil" : "Login Gagal"}
+                            {activity.nm_aplikasi && ` - ${activity.nm_aplikasi}`}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {activity.email || activity.username}
+                          </p>
+                          <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+                            <span>{activity.browser}</span>
+                            <span>•</span>
+                            <span>{activity.os}</span>
+                            <span>•</span>
+                            <span>{activity.ip_address}</span>
+                          </p>
+                        </div>
+                        <span className="text-xs text-gray-400 flex-shrink-0">
+                          {formatTimeAgo(activity.waktu_login)}
+                        </span>
                       </div>
-                      <span className="text-xs text-gray-400 flex-shrink-0">
-                        {activity.time}
-                      </span>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                      <p className="text-sm">Tidak ada aktivitas terbaru</p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </CardBody>
             </Card>
