@@ -20,6 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'jwt.auth' => \App\Http\Middleware\JwtAuthenticate::class,
             'kong.auth' => \App\Http\Middleware\KongAuth::class,
             'permission' => \App\Http\Middleware\CheckCrudPermission::class,
+            'log.jwt.access' => \App\Http\Middleware\LogJwtAccess::class,
+            'log.role.access' => \App\Http\Middleware\LogRoleAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
