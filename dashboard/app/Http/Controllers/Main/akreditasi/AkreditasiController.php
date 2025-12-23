@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Main\akreditasi;
 use Carbon\Carbon;
 use App\Models\Pdrd\SMS;
 use Illuminate\Http\Request;
+use App\Models\UnitOrganisasi;
 use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
@@ -13,27 +14,30 @@ use Illuminate\Support\Facades\Crypt;
 
 class AkreditasiController extends Controller
 {
+
+
+
+
     /**
      * Menampilkan halaman utama untuk data akreditasi.
      * Fungsi ini menyiapkan header tabel dan data awal yang diperlukan oleh view.
      *
-     * @return \Illuminate\View\View Mengembalikan view yang menampilkan daftar akreditasi fakultas.
+     * @return \Illuminate\Http\RedirectResponse Mengembalikan view yang menampilkan daftar akreditasi fakultas.x
+     * @return \Illuminate\View\View Mengembalikan view yang menampilkan daftar akreditasi fakultas.x
      */
     public function index()
     {
-        // Mendefinisikan kolom-kolom untuk header tabel di halaman utama.
-        $thead = "          <th>No</th>
-                            <th>Nama Fakultas</th>
-                            <th>Total Prodi</th>
-                            <th>Jenjang Prodi</th>
-                            <th>Jumlah Prodi Akreditasi Masih Aktif</th>
-                            <th>Jumlah Hampir Kadaluwarsa</th>";
 
         // Inisialisasi variabel id_prodi sebagai string kosong.
         $id_prodi = "";
+        $role = session()->get('login.role');
+        $unit = UnitOrganisasi::find($role->id_organisasi);
+        if ($unit->id_jns_lemb == 24) {
+            return redirect(route('akreditasi.prodi', [Crypt::encrypt($unit->id_induk_organisasi)]));
+        }
 
         // Mengembalikan view 'index' dengan data thead dan id_prodi.
-        return view('content.main.akreditasi.index', compact('thead', "id_prodi"));
+        return view('content.main.akreditasi.index', compact("id_prodi", 'unit'));
     }
 
     /**
@@ -45,21 +49,18 @@ class AkreditasiController extends Controller
      */
     public function prodiDetail($idProdi)
     {
-        // Mendefinisikan kolom-kolom untuk header tabel di halaman detail prodi.
-        $thead = "                      <th>No</th>
-            <th>Nama Prodi</th>
-            <th>Jenjang</th>
-            <th>No SK</th>
-            <th>Tanggal SK</th>
-            <th>TST SK</th>
-            <th>Akreditasi</th>";
+
 
         // Menyimpan ID prodi yang dienkripsi.
         $id_prodi = $idProdi;
         // Mengambil informasi fakultas berdasarkan ID prodi yang telah didekripsi.
         $get_fak = SMS::find(Crypt::decrypt($id_prodi));
+        $role = session()->get('login.role');
+
+        $unit = UnitOrganisasi::find($role->id_organisasi);
+
         // Mengembalikan view 'index' dengan data thead, id_prodi, dan informasi fakultas.
-        return view('content.main.akreditasi.index', compact('thead', 'id_prodi', 'get_fak'));
+        return view('content.main.akreditasi.index', compact('id_prodi', 'get_fak', 'unit'));
     }
 
     /**
@@ -91,7 +92,7 @@ class AkreditasiController extends Controller
                 ->pluck('nm_thn_ajaran', 'id_thn_ajaran')
                 ->toArray();
         }
-        
+
         $response = array();
         foreach ($ta_list as $id => $nama) {
             $response[] = array(
@@ -99,7 +100,7 @@ class AkreditasiController extends Controller
                 'text' => $id, // Format untuk select2.
             );
         }
-        
+
         // Mengembalikan hasil dalam format JSON.
         return response()->json([
             "results" => $response
@@ -143,6 +144,7 @@ class AkreditasiController extends Controller
                     AND didik.expired_date
                     IS NULL LEFT JOIN pdrd.akreditasi_prodi AS akred_prodi ON psms.id_sms = akred_prodi.id_sms
                     AND akred_prodi.soft_delete = 0
+
                     WHERE
                     psms.id_jns_sms = '3'
                     AND psms.id_sp = 'E2B705A7-173E-464A-9FAC-509128709515'
@@ -179,10 +181,14 @@ class AkreditasiController extends Controller
             ];
         });
 
-        // Mengembalikan data yang telah diformat untuk DataTables.
+        $role = session()->get('login.role');
+        $unit = UnitOrganisasi::find($role->id_organisasi);
+        $data_akreditasi = $unit->id_jns_lemb == 23
+            ? $data_akreditasi->where('id', $unit->id_organisasi)
+            : $data_akreditasi;
         return DataTables::of($data_akreditasi)
-            ->addIndexColumn() // Menambahkan kolom nomor urut.
-            ->rawColumns(['nama_lembaga', 'jenjang_list']) // Kolom yang mengandung HTML.
+            ->addIndexColumn()
+            ->rawColumns(['nama_lembaga', 'jenjang_list'])
             ->make(true);
     }
 
@@ -226,14 +232,24 @@ class AkreditasiController extends Controller
             AND psms.soft_delete = 0
             AND psms.id_fak_unila = ?
             AND psms.stat_prodi = 'A'
+            ORDER BY akred_prodi.tanggal_sk_akreditasi_prodi DESC
         ";
+
+
 
         $data = collect(DB::select($sql, [$id_prodi]));
 
-        // Mengelompokkan data berdasarkan ID prodi dan memproses setiap grup.
-        $merged = $data->groupBy('id')->map(function ($items) {
+        $role = session()->get('login.role');
+        $unit = UnitOrganisasi::find($role->id_organisasi);
 
-            // Menghitung tanggal selesai (TST) jika kosong, dengan asumsi 5 tahun dari tanggal SK.
+        $data = $unit->id_jns_lemb == 24
+            ? $data->where('id', $unit->id_organisasi)
+            : $data;
+
+        $merged = $data->groupBy('id')->map(function ($items) {
+            $first = $items->first();
+
+
             $items = $items->map(function ($row) {
                 if (!$row->tst_sk_akreditasi_prodi && $row->tanggal_sk_akreditasi_prodi) {
                     $row->tst_sk_akreditasi_prodi = Carbon::parse($row->tanggal_sk_akreditasi_prodi)
@@ -243,55 +259,56 @@ class AkreditasiController extends Controller
                 return $row;
             });
 
-            // Mengambil data akreditasi terbaru berdasarkan tanggal SK.
-            $terbaru = $items
-                ->sortByDesc(fn($r) => Carbon::parse($r->tanggal_sk_akreditasi_prodi))
-                ->first();
+            $histori = $items->map(function ($row) {
 
-            // Jika tidak ada data akreditasi yang valid, lewati.
-            if (!$terbaru) {
-                return null;
-            }
+                $tglAkhir = $row->tst_sk_akreditasi_prodi;
+                $warna = 'bg-success-subtle text-success'; // default hijau
+                $status = 'Masih berlaku';
 
-            // Menentukan status dan warna tampilan berdasarkan tanggal kedaluwarsa.
-            $akhir = Carbon::parse($terbaru->tst_sk_akreditasi_prodi);
-            $sekarang = Carbon::now();
+                if ($tglAkhir) {
+                    $akhir = Carbon::parse($tglAkhir);
+                    $sekarang = Carbon::now();
 
-            // Jika sudah kadaluwarsa, jangan tampilkan.
-            if ($akhir->isPast()) {
-                return null;
-            }
+                    // sudah kadaluarsa
+                    if ($akhir->isPast()) {
+                        $warna = 'bg-danger-subtle text-danger';
+                        $status = 'Kadaluarsa';
+                    }
+                    // <= 2 tahun lagi
+                    elseif ($sekarang->diffInYears($akhir) <= 1) {
+                        $warna = 'bg-warning-subtle text-warning';
+                        $status = 'Akan kadaluarsa';
+                    }
+                } else {
+                    $warna = 'bg-secondary-subtle text-secondary';
+                    $status = 'Tidak ada tanggal';
+                }
 
-            $warna = 'bg-success-subtle text-success'; // Default: masih berlaku
-            $status = 'Masih berlaku';
-
-            // Jika akan kadaluwarsa dalam 1 tahun.
-            if ($sekarang->diffInYears($akhir) <= 1) {
-                $warna = 'bg-warning-subtle text-warning';
-                $status = 'Akan kadaluarsa';
-            }
-
-            return [
-                'id' => $terbaru->id,
-                'id_fak' => $terbaru->id_fak,
-                'id_jur' => $terbaru->id_jur,
-                'nama_prodi' => $terbaru->nama_prodi,
-                'jenjang_didik' => $terbaru->jenjang_didik,
-                'histori_akreditasi' => "
-            <div class='p-2 rounded {$warna}'>
-                <strong>Nilai : {$terbaru->nilai_akreditasi}</strong><br>
+                return "
+            <div class='p-2 rounded {$warna} mb-2'>
+                <strong>Nilai : {$row->nilai_akreditasi}</strong><br>
                 <small>
-                    SK: {$terbaru->sk_akreditasi_prodi}<br>
-                    Berlaku: {$terbaru->tanggal_sk_akreditasi_prodi}
-                    s/d {$terbaru->tst_sk_akreditasi_prodi}<br>
-                    Lembaga Akreditasi : {$terbaru->lembaga_akreditasi}<br>
+                    SK: {$row->sk_akreditasi_prodi}<br>
+                    Berlaku: {$row->tanggal_sk_akreditasi_prodi} s/d {$tglAkhir}<br>
+                    Lembaga Akreditasi : {$row->lembaga_akreditasi}<br>
                     <em>Status: {$status}</em>
                 </small>
             </div>
-        "
+        ";
+            })->implode('');
+
+
+            return [
+                'id' => $first->id,
+                'id_fak' => $first->id_fak,
+                'id_jur' => $first->id_jur,
+                'nama_prodi' => $first->nama_prodi,
+                'jenjang_didik' => $first->jenjang_didik,
+                'histori_akreditasi' => $histori
             ];
-        })->filter()->values(); // Hapus item null dan re-index collection.
-        
+        })->values();
+
+
         // Mengembalikan data yang telah diformat untuk DataTables.
         return DataTables::of($merged)
             ->addIndexColumn()

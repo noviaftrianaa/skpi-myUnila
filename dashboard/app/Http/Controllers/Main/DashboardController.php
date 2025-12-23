@@ -229,64 +229,6 @@ class DashboardController extends Controller
         return view('content.main.dosen.dosen_jk', compact('ta_pilih', 'ta_list', 'judul', 'dosen_jk'));
     }
 
-    public function chart_jk(Request $request)
-    {
-        $level = $request->level;
-        $drildownType = $request->drildownType;
-        $getTahun = $request->tahun;
-
-        $selectedPoint = $request->selectedPoint;
-
-        // inisiasi variabel
-        $select = "";
-
-        $from = "pdrd.sdm AS sdm";
-
-        $join = "
-            JOIN pdrd.reg_ptk AS reg_ptk ON sdm.id_sdm = reg_ptk.id_sdm
-                AND reg_ptk.soft_delete = 0
-                AND reg_ptk.id_jns_keluar IS NULL
-            JOIN pdrd.keaktifan_ptk AS kptk ON reg_ptk.id_reg_ptk = kptk.id_reg_ptk
-                AND kptk.soft_delete = 0
-                AND kptk.a_sp_homebase = 1
-                AND kptk.id_thn_ajaran = ".$getTahun."
-
-            JOIN pdrd.sms AS psms ON psms.id_sms = reg_ptk.id_sms
-                AND psms.soft_delete = 0
-        ";
-
-        $where = "
-        sdm.soft_delete = 0
-        AND sdm.id_jns_sdm = 12
-        ";
-
-        $group_by = "";
-
-        if($drildownType === "chart" && $selectedPoint){
-            $where .= " AND sdm.jk='".$selectedPoint."' ";
-        }
-
-        if ($drildownType == "chart") {
-            if ($level == "Perguruan Tinggi") {
-                $select = "
-                SELECT
-                    SUM(CASE WHEN sdm.jk='L' THEN 1 ELSE 0 END) AS 'Laki laki',
-                    SUM(CASE WHEN sdm.jk='P' THEN 1 ELSE 0 END) AS Perempuan
-            ";
-            }else if($level == "Fakultas"){
-                $join .= " JOIN pdrd.sms tfak ON tfak.id_sms=psms.id_fak_unila ";
-                $select = "SELECT tfak.nm_lemb as 'Fakultas' ,COUNT(*) as total, tfak.id_sms as id, kptk.id_thn_ajaran as tahun ";
-                $group_by = " GROUP BY tfak.id_sms, id_thn_ajaran, tfak.nm_lemb ";
-            }
-        }
-
-        $sql = $select . " FROM " . $from . " " . $join . " WHERE " . $where . $group_by;
-
-        $data = DB::select($sql);
-
-        return response()->json($data);
-    }
-
     public function dashboard_mahasiswa(Request $request)
     {
         $judul = 'Dashboard Mahasiswa ';
