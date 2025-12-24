@@ -32,6 +32,16 @@ type Repository interface {
 
 	// Helpers
 	GetAllUsernames(ctx context.Context) ([]string, error)
+
+	// Scheduler operations
+	GetSchedulers(ctx context.Context, page, limit int, jenisSync string) (*SchedulerListResult, error)
+	GetSchedulerByID(ctx context.Context, idScheduler string) (*SyncScheduler, error)
+	CreateScheduler(ctx context.Context, scheduler *SyncScheduler) error
+	UpdateScheduler(ctx context.Context, scheduler *SyncScheduler) error
+	DeleteScheduler(ctx context.Context, idScheduler string) error
+	ToggleSchedulerActive(ctx context.Context, idScheduler string, isActive int) error
+	UpdateSchedulerRunStatus(ctx context.Context, idScheduler string, status string, message string, nextRunAt *time.Time) error
+	GetActiveSchedulers(ctx context.Context, jenisSync string) ([]*SyncScheduler, error)
 }
 
 // repository implementation
@@ -502,15 +512,15 @@ func (r *repository) UpsertRolePengguna(ctx context.Context, idPengguna string, 
 
 	// Process each role
 	for _, role := range roles {
-		// Check if role already exists for this pengguna
+		// Check if role already exists for this pengguna + peran + organisasi combination (MULTIPLE ROLES SUPPORT)
 		checkQuery := `
 			SELECT id_role_pengguna 
 			FROM man_akses.role_pengguna 
-			WHERE id_pengguna = @p1 AND id_peran = @p2 AND soft_delete = 0
+			WHERE id_pengguna = @p1 AND id_peran = @p2 AND id_organisasi = @p3 AND soft_delete = 0
 		`
 		
 		var existingID string
-		err := r.db.GetContext(ctx, &existingID, checkQuery, idPengguna, role.IDPeran)
+		err := r.db.GetContext(ctx, &existingID, checkQuery, idPengguna, role.IDPeran, role.IDOrganisasi)
 		
 		if err == sql.ErrNoRows {
 			// Insert new role
@@ -574,7 +584,7 @@ func (r *repository) UpsertRolePengguna(ctx context.Context, idPengguna string, 
 // GetRolesByPengguna retrieves all roles for a pengguna
 func (r *repository) GetRolesByPengguna(ctx context.Context, idPengguna string) ([]*RolePengguna, error) {
 	query := `
-		SELECT 
+		SELECT
 			CONVERT(VARCHAR(36), id_role_pengguna) as id_role_pengguna,
 			CONVERT(VARCHAR(36), id_pengguna) as id_pengguna,
 			CONVERT(VARCHAR(36), id_organisasi) as id_organisasi,
@@ -591,4 +601,337 @@ func (r *repository) GetRolesByPengguna(ctx context.Context, idPengguna string) 
 	}
 
 	return roles, nil
+}
+
+// ===========================
+// SCHEDULER REPOSITORY METHODS
+// ===========================
+
+// GetSchedulers retrieves paginated list of schedulers with optional filter by jenis_sync
+func (r *repository) GetSchedulers(ctx context.Context, page, limit int, jenisSync string) (*SchedulerListResult, error) {
+	offset := (page - 1) * limit
+
+	// Build WHERE conditions
+	whereConditions := []string{"soft_delete = 0"}
+	args := []interface{}{}
+	paramIndex := 1
+
+	// Filter by jenis_sync
+	if jenisSync != "" {
+		whereConditions = append(whereConditions, fmt.Sprintf("jenis_sync = @p%d", paramIndex))
+		args = append(args, jenisSync)
+		paramIndex++
+	}
+
+	whereClause := strings.Join(whereConditions, " AND ")
+
+	// Count query
+	countQuery := fmt.Sprintf(`
+		SELECT COUNT(*)
+		FROM man_akses.sync_scheduler
+		WHERE %s
+	`, whereClause)
+
+	var total int
+	err := r.db.GetContext(ctx, &total, countQuery, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to count schedulers: %w", err)
+	}
+
+	// Data query with pagination
+	dataArgs := append(args, offset, limit)
+	dataQuery := fmt.Sprintf(`
+		SELECT
+			CONVERT(VARCHAR(36), id_scheduler) as id_scheduler,
+			nama_scheduler,
+			deskripsi,
+			jenis_sync,
+			cron_expression,
+			is_active,
+			username_filter,
+			role_filter,
+			date_from,
+			date_to,
+			last_run_at,
+			next_run_at,
+			last_run_status,
+			last_run_message,
+			created_by,
+			tgl_create,
+			last_update
+		FROM man_akses.sync_scheduler
+		WHERE %s
+		ORDER BY tgl_create DESC
+		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY
+	`, whereClause, paramIndex, paramIndex+1)
+
+	var schedulers []*SyncScheduler
+	err = r.db.SelectContext(ctx, &schedulers, dataQuery, dataArgs...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get schedulers: %w", err)
+	}
+
+	totalPages := (total + limit - 1) / limit
+
+	return &SchedulerListResult{
+		Data:       schedulers,
+		Total:      total,
+		Page:       page,
+		Limit:      limit,
+		TotalPages: totalPages,
+	}, nil
+}
+
+// GetSchedulerByID retrieves a single scheduler by ID
+func (r *repository) GetSchedulerByID(ctx context.Context, idScheduler string) (*SyncScheduler, error) {
+	query := `
+		SELECT
+			CONVERT(VARCHAR(36), id_scheduler) as id_scheduler,
+			nama_scheduler,
+			deskripsi,
+			jenis_sync,
+			cron_expression,
+			is_active,
+			username_filter,
+			role_filter,
+			date_from,
+			date_to,
+			last_run_at,
+			next_run_at,
+			last_run_status,
+			last_run_message,
+			created_by,
+			tgl_create,
+			last_update
+		FROM man_akses.sync_scheduler
+		WHERE id_scheduler = @p1 AND soft_delete = 0
+	`
+
+	var scheduler SyncScheduler
+	err := r.db.GetContext(ctx, &scheduler, query, idScheduler)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("scheduler not found")
+		}
+		return nil, fmt.Errorf("failed to get scheduler: %w", err)
+	}
+
+	return &scheduler, nil
+}
+
+// CreateScheduler creates a new scheduler
+func (r *repository) CreateScheduler(ctx context.Context, scheduler *SyncScheduler) error {
+	query := `
+		INSERT INTO man_akses.sync_scheduler (
+			id_scheduler, nama_scheduler, deskripsi, jenis_sync, cron_expression,
+			is_active, username_filter, role_filter, date_from, date_to,
+			next_run_at, created_by, tgl_create, last_update, soft_delete
+		) VALUES (
+			@p1, @p2, @p3, @p4, @p5,
+			@p6, @p7, @p8, @p9, @p10,
+			@p11, @p12, @p13, @p13, 0
+		)
+	`
+
+	newUUID := uuid.New().String()
+	now := time.Now()
+
+	_, err := r.db.ExecContext(ctx, query,
+		newUUID,                    // @p1 - id_scheduler
+		scheduler.NamaScheduler,    // @p2 - nama_scheduler
+		scheduler.Deskripsi,        // @p3 - deskripsi
+		scheduler.JenisSync,        // @p4 - jenis_sync
+		scheduler.CronExpression,   // @p5 - cron_expression
+		scheduler.IsActive,         // @p6 - is_active
+		scheduler.UsernameFilter,   // @p7 - username_filter
+		scheduler.RoleFilter,       // @p8 - role_filter
+		scheduler.DateFrom,         // @p9 - date_from
+		scheduler.DateTo,           // @p10 - date_to
+		scheduler.NextRunAt,        // @p11 - next_run_at
+		scheduler.CreatedBy,        // @p12 - created_by
+		now,                        // @p13 - tgl_create, last_update
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create scheduler: %w", err)
+	}
+
+	scheduler.IDScheduler = newUUID
+	scheduler.TglCreate = &now
+	scheduler.LastUpdate = &now
+
+	return nil
+}
+
+// UpdateScheduler updates an existing scheduler
+func (r *repository) UpdateScheduler(ctx context.Context, scheduler *SyncScheduler) error {
+	query := `
+		UPDATE man_akses.sync_scheduler
+		SET
+			nama_scheduler = @p1,
+			deskripsi = @p2,
+			jenis_sync = @p3,
+			cron_expression = @p4,
+			is_active = @p5,
+			username_filter = @p6,
+			role_filter = @p7,
+			date_from = @p8,
+			date_to = @p9,
+			next_run_at = @p10,
+			last_update = @p11
+		WHERE id_scheduler = @p12 AND soft_delete = 0
+	`
+
+	now := time.Now()
+
+	result, err := r.db.ExecContext(ctx, query,
+		scheduler.NamaScheduler,    // @p1
+		scheduler.Deskripsi,        // @p2
+		scheduler.JenisSync,        // @p3
+		scheduler.CronExpression,   // @p4
+		scheduler.IsActive,         // @p5
+		scheduler.UsernameFilter,   // @p6
+		scheduler.RoleFilter,       // @p7
+		scheduler.DateFrom,         // @p8
+		scheduler.DateTo,           // @p9
+		scheduler.NextRunAt,        // @p10
+		now,                        // @p11
+		scheduler.IDScheduler,      // @p12
+	)
+	if err != nil {
+		return fmt.Errorf("failed to update scheduler: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("scheduler not found or already deleted")
+	}
+
+	scheduler.LastUpdate = &now
+
+	return nil
+}
+
+// DeleteScheduler performs soft delete on a scheduler
+func (r *repository) DeleteScheduler(ctx context.Context, idScheduler string) error {
+	query := `
+		UPDATE man_akses.sync_scheduler
+		SET soft_delete = 1, last_update = @p1
+		WHERE id_scheduler = @p2 AND soft_delete = 0
+	`
+
+	now := time.Now()
+
+	result, err := r.db.ExecContext(ctx, query, now, idScheduler)
+	if err != nil {
+		return fmt.Errorf("failed to delete scheduler: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("scheduler not found or already deleted")
+	}
+
+	return nil
+}
+
+// ToggleSchedulerActive toggles the is_active status of a scheduler
+func (r *repository) ToggleSchedulerActive(ctx context.Context, idScheduler string, isActive int) error {
+	query := `
+		UPDATE man_akses.sync_scheduler
+		SET is_active = @p1, last_update = @p2
+		WHERE id_scheduler = @p3 AND soft_delete = 0
+	`
+
+	now := time.Now()
+
+	result, err := r.db.ExecContext(ctx, query, isActive, now, idScheduler)
+	if err != nil {
+		return fmt.Errorf("failed to toggle scheduler active: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("scheduler not found or already deleted")
+	}
+
+	return nil
+}
+
+// UpdateSchedulerRunStatus updates the run status and next run time of a scheduler
+func (r *repository) UpdateSchedulerRunStatus(ctx context.Context, idScheduler string, status string, message string, nextRunAt *time.Time) error {
+	query := `
+		UPDATE man_akses.sync_scheduler
+		SET
+			last_run_at = @p1,
+			last_run_status = @p2,
+			last_run_message = @p3,
+			next_run_at = @p4,
+			last_update = @p1
+		WHERE id_scheduler = @p5 AND soft_delete = 0
+	`
+
+	now := time.Now()
+
+	result, err := r.db.ExecContext(ctx, query, now, status, message, nextRunAt, idScheduler)
+	if err != nil {
+		return fmt.Errorf("failed to update scheduler run status: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("scheduler not found or already deleted")
+	}
+
+	return nil
+}
+
+// GetActiveSchedulers retrieves all active schedulers for a specific jenis_sync
+func (r *repository) GetActiveSchedulers(ctx context.Context, jenisSync string) ([]*SyncScheduler, error) {
+	query := `
+		SELECT
+			CONVERT(VARCHAR(36), id_scheduler) as id_scheduler,
+			nama_scheduler,
+			deskripsi,
+			jenis_sync,
+			cron_expression,
+			is_active,
+			username_filter,
+			role_filter,
+			date_from,
+			date_to,
+			last_run_at,
+			next_run_at,
+			last_run_status,
+			last_run_message,
+			created_by,
+			tgl_create,
+			last_update
+		FROM man_akses.sync_scheduler
+		WHERE jenis_sync = @p1 AND is_active = 1 AND soft_delete = 0
+		ORDER BY next_run_at ASC
+	`
+
+	var schedulers []*SyncScheduler
+	err := r.db.SelectContext(ctx, &schedulers, query, jenisSync)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get active schedulers: %w", err)
+	}
+
+	return schedulers, nil
 }

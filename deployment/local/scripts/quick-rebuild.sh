@@ -44,22 +44,29 @@ cd "$DEPLOYMENT_DIR" || exit 1
 # Function to rebuild a specific service
 rebuild_service() {
     local service_name=$1
-    local container_name="myunila-${service_name}-service"
+    # Special case: myunila service has container name "myunila-service" not "myunila-myunila-service"
+    if [ "$service_name" == "myunila" ]; then
+        local container_name="myunila-service"
+        local docker_service_name="myunila-service"
+    else
+        local container_name="myunila-${service_name}-service"
+        local docker_service_name="${service_name}-service"
+    fi
     local compose_file="services/3-backend/docker-compose.${service_name}.yml"
 
     echo -e "${GREEN}Rebuilding ${service_name} service...${NC}"
 
     # Stop the service
     echo "  → Stopping ${service_name}..."
-    docker compose --env-file .env -f "$compose_file" stop ${service_name}-service 2>/dev/null || true
+    docker compose --env-file .env -f "$compose_file" stop ${docker_service_name} 2>/dev/null || true
 
     # Rebuild without cache - use --no-cache to ensure code changes are picked up
     echo "  → Rebuilding image (no-cache)..."
-    docker compose --env-file .env -f "$compose_file" build --no-cache --pull ${service_name}-service
+    docker compose --env-file .env -f "$compose_file" build --no-cache --pull ${docker_service_name}
 
     # Start the service
     echo "  → Starting ${service_name}..."
-    docker compose --env-file .env -f "$compose_file" up -d ${service_name}-service
+    docker compose --env-file .env -f "$compose_file" up -d ${docker_service_name}
 
     # Clear Laravel caches if it's a PHP service (not Go services)
     if [ "$service_name" != "sister" ] && [ "$service_name" != "feeder" ] && [ "$service_name" != "myunila" ]; then

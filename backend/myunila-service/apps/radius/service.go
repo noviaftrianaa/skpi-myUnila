@@ -24,6 +24,14 @@ type Service interface {
 
 	// For scheduler
 	SyncPengguna(ctx context.Context, filter interface{}, syncedBy string) (interface{}, error)
+
+	// Scheduler operations
+	GetSchedulers(ctx context.Context, page, limit int, jenisSync string) (*SchedulerListResult, error)
+	GetSchedulerByID(ctx context.Context, idScheduler string) (*SyncScheduler, error)
+	CreateScheduler(ctx context.Context, scheduler *SyncScheduler) error
+	UpdateScheduler(ctx context.Context, scheduler *SyncScheduler) error
+	DeleteScheduler(ctx context.Context, idScheduler string) error
+	ToggleSchedulerActive(ctx context.Context, idScheduler string, isActive int) error
 }
 
 // RadiusAPIClient interface for Radius API operations
@@ -33,6 +41,8 @@ type RadiusAPIClient interface {
 	TestConnection() error
 	GetUsers(page, limit int) (*radius_api.UsersResponse, error)
 	GetAllUsers() ([]radius_api.SSOUser, error)
+	GetUsersWithFilter(page, limit int, username, nmPeran, updatedAtFrom, updatedAtTo string) (*radius_api.UsersResponse, error)
+	GetAllUsersWithFilter(username, nmPeran, updatedAtFrom, updatedAtTo string) ([]radius_api.SSOUser, error)
 	GetStats() (int, error)
 	IsAvailable() bool
 }
@@ -135,8 +145,9 @@ func (s *service) SyncFromRadius(ctx context.Context, filter *SyncFilter, synced
 	}
 
 	// Fetch all users from Radius API
-	log.Printf("📥 [Radius Sync] Fetching data from Radius API...")
-	users, err := s.radiusAPI.GetAllUsers()
+	log.Printf("📥 [Radius Sync] Fetching data from Radius API (filters: username=%s, role=%s, dateFrom=%s, dateTo=%s)...",
+		filter.UsernameFilter, filter.RoleFilter, filter.DateFrom, filter.DateTo)
+	users, err := s.radiusAPI.GetAllUsersWithFilter(filter.UsernameFilter, filter.RoleFilter, filter.DateFrom, filter.DateTo)
 	if err != nil {
 		errMsg := fmt.Sprintf("failed to fetch users from Radius: %v", err)
 		s.logSyncResult(ctx, syncType, "failed", syncedBy, 0, 0, 0, 0, 0, int(time.Since(startTime).Milliseconds()), &errMsg, nil)
@@ -195,12 +206,12 @@ func (s *service) SyncFromRadius(ctx context.Context, filter *SyncFilter, synced
 		}
 	}
 
-	// Sync roles for each user
+	// Sync roles for each user (support multiple roles)
 	log.Printf("🔄 [Radius Sync] Syncing roles for users...")
 	rolesSynced := 0
 	rolesErrors := 0
 	for _, user := range users {
-		if user.RolePengguna == nil {
+		if user.RolesPengguna == nil || len(user.RolesPengguna) == 0 {
 			continue
 		}
 		// Get pengguna ID by username
@@ -208,14 +219,15 @@ func (s *service) SyncFromRadius(ctx context.Context, filter *SyncFilter, synced
 		if err != nil || p == nil {
 			continue
 		}
-		// Build role list
-		roles := []*RolePengguna{
-			{
-				IDPeran:      user.RolePengguna.IDPeran,
-				IDOrganisasi: &user.RolePengguna.IDOrganisasi,
-			},
+		// Build role list from ALL roles in user.RolesPengguna array
+		roles := make([]*RolePengguna, 0, len(user.RolesPengguna))
+		for _, roleAPI := range user.RolesPengguna {
+			roles = append(roles, &RolePengguna{
+				IDPeran:      roleAPI.IDPeran,
+				IDOrganisasi: &roleAPI.IDOrganisasi,
+			})
 		}
-		// Upsert roles
+		// Upsert all roles for this user
 		roleResult := s.repo.UpsertRolePengguna(ctx, p.IDPengguna, roles)
 		rolesSynced += roleResult.TotalSuccess
 		rolesErrors += roleResult.TotalFailed
@@ -372,6 +384,79 @@ func (s *service) transformRadiusUser(user radius_api.SSOUser) *Pengguna {
 	}
 
 	return p
+}
+
+// ===========================
+// SCHEDULER SERVICE METHODS
+// ===========================
+
+// GetSchedulers retrieves paginated list of schedulers
+func (s *service) GetSchedulers(ctx context.Context, page, limit int, jenisSync string) (*SchedulerListResult, error) {
+	return s.repo.GetSchedulers(ctx, page, limit, jenisSync)
+}
+
+// GetSchedulerByID retrieves a single scheduler by ID
+func (s *service) GetSchedulerByID(ctx context.Context, idScheduler string) (*SyncScheduler, error) {
+	return s.repo.GetSchedulerByID(ctx, idScheduler)
+}
+
+// CreateScheduler creates a new scheduler with validation
+func (s *service) CreateScheduler(ctx context.Context, scheduler *SyncScheduler) error {
+	// Validate cron expression format (basic validation)
+	if scheduler.CronExpression == "" {
+		return fmt.Errorf("cron expression is required")
+	}
+
+	// Validate jenis_sync
+	if scheduler.JenisSync == "" {
+		return fmt.Errorf("jenis_sync is required")
+	}
+
+	// Set next_run_at based on cron expression (for now, set to current time + 1 minute as placeholder)
+	// TODO: Implement proper cron parser to calculate next run time
+	if scheduler.NextRunAt == nil {
+		nextRun := time.Now().Add(1 * time.Minute)
+		scheduler.NextRunAt = &nextRun
+	}
+
+	return s.repo.CreateScheduler(ctx, scheduler)
+}
+
+// UpdateScheduler updates an existing scheduler with validation
+func (s *service) UpdateScheduler(ctx context.Context, scheduler *SyncScheduler) error {
+	// Validate cron expression format
+	if scheduler.CronExpression == "" {
+		return fmt.Errorf("cron expression is required")
+	}
+
+	// Validate jenis_sync
+	if scheduler.JenisSync == "" {
+		return fmt.Errorf("jenis_sync is required")
+	}
+
+	// Recalculate next_run_at if cron expression changed
+	// TODO: Implement proper cron parser to calculate next run time
+	if scheduler.NextRunAt == nil {
+		nextRun := time.Now().Add(1 * time.Minute)
+		scheduler.NextRunAt = &nextRun
+	}
+
+	return s.repo.UpdateScheduler(ctx, scheduler)
+}
+
+// DeleteScheduler deletes a scheduler (soft delete)
+func (s *service) DeleteScheduler(ctx context.Context, idScheduler string) error {
+	return s.repo.DeleteScheduler(ctx, idScheduler)
+}
+
+// ToggleSchedulerActive toggles the active status of a scheduler
+func (s *service) ToggleSchedulerActive(ctx context.Context, idScheduler string, isActive int) error {
+	// Validate isActive value (0 or 1)
+	if isActive != 0 && isActive != 1 {
+		return fmt.Errorf("isActive must be 0 or 1")
+	}
+
+	return s.repo.ToggleSchedulerActive(ctx, idScheduler, isActive)
 }
 
 // Global service instance
