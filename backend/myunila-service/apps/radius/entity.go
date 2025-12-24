@@ -75,10 +75,12 @@ type PenggunaStats struct {
 
 // SyncFilter - Filter for sync operations
 type SyncFilter struct {
-	UsernameFilter string `json:"username_filter,omitempty"`
-	RoleFilter     string `json:"role_filter,omitempty"`
-	ForceSync      bool   `json:"force_sync,omitempty"`
-	SyncType       string `json:"sync_type,omitempty"` // 'manual', 'scheduled'
+	UsernameFilter  string `json:"username_filter,omitempty"`  // Filter by username (partial match)
+	RoleFilter      string `json:"role_filter,omitempty"`      // Filter by role name (nm_peran)
+	DateFrom        string `json:"date_from,omitempty"`        // Filter by updated_at >= date (YYYY-MM-DD)
+	DateTo          string `json:"date_to,omitempty"`          // Filter by updated_at <= date (YYYY-MM-DD)
+	ForceSync       bool   `json:"force_sync,omitempty"`       // Force sync even if already synced
+	SyncType        string `json:"sync_type,omitempty"`        // 'manual', 'scheduled'
 }
 
 // SyncResult - Result for radius sync
@@ -127,4 +129,35 @@ type RolePengguna struct {
 type PenggunaWithRoles struct {
 	Pengguna *Pengguna
 	Roles    []*RolePengguna
+}
+
+// SyncScheduler - Entity for sync scheduler (man_akses.sync_scheduler)
+type SyncScheduler struct {
+	IDScheduler      string     `json:"id_scheduler" db:"id_scheduler"`
+	NamaScheduler    string     `json:"nama_scheduler" db:"nama_scheduler"`
+	Deskripsi        *string    `json:"deskripsi" db:"deskripsi"`
+	JenisSync        string     `json:"jenis_sync" db:"jenis_sync"` // 'radius', 'sikep', etc
+	CronExpression   string     `json:"cron_expression" db:"cron_expression"`
+	IsActive         int        `json:"is_active" db:"is_active"` // 1=active, 0=inactive
+	UsernameFilter   *string    `json:"username_filter" db:"username_filter"`
+	RoleFilter       *string    `json:"role_filter" db:"role_filter"`
+	DateFrom         *string    `json:"date_from" db:"date_from"`
+	DateTo           *string    `json:"date_to" db:"date_to"`
+	LastRunAt        *time.Time `json:"last_run_at" db:"last_run_at"`
+	NextRunAt        *time.Time `json:"next_run_at" db:"next_run_at"`
+	LastRunStatus    *string    `json:"last_run_status" db:"last_run_status"` // 'success', 'failed', 'running'
+	LastRunMessage   *string    `json:"last_run_message" db:"last_run_message"`
+	CreatedBy        string     `json:"created_by" db:"created_by"`
+	TglCreate        *time.Time `json:"tgl_create" db:"tgl_create"`
+	LastUpdate       *time.Time `json:"last_update" db:"last_update"`
+	SoftDelete       int        `json:"soft_delete" db:"soft_delete"`
+}
+
+// SchedulerListResult - Paginated list result for schedulers
+type SchedulerListResult struct {
+	Data       []*SyncScheduler `json:"data"`
+	Total      int              `json:"total"`
+	Page       int              `json:"page"`
+	Limit      int              `json:"limit"`
+	TotalPages int              `json:"total_pages"`
 }

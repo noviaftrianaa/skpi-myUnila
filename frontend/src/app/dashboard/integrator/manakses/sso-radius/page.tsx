@@ -15,6 +15,11 @@ import {
   ModalBody,
   ModalFooter,
   Progress,
+  Input,
+  Select,
+  SelectItem,
+  Tabs,
+  Tab,
 } from "@heroui/react";
 import {
   FiUsers,
@@ -23,9 +28,12 @@ import {
   FiXCircle,
   FiClock,
   FiAlertCircle,
+  FiFilter,
+  FiCalendar,
 } from "react-icons/fi";
 import { MdSync, MdSchool } from "react-icons/md";
 import SsoRadiusPenggunaTable from "@/shared/components/myunila-integrator/SsoRadiusPenggunaTable";
+import SsoRadiusSchedulerTable from "@/shared/components/myunila-integrator/SsoRadiusSchedulerTable";
 import { myunilaIntegratorMenuConfig } from "../../config/menuConfig";
 import { myunilaClient } from "@/lib/api/myunilaClient";
 import { toast } from "react-hot-toast";
@@ -56,6 +64,12 @@ export default function ManaksesSsoRadiusPage() {
   } | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
+  // Filter states
+  const [usernameFilter, setUsernameFilter] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+  const [dateFromFilter, setDateFromFilter] = useState("");
+  const [dateToFilter, setDateToFilter] = useState("");
+
   // Fetch stats on mount
   useEffect(() => {
     fetchStats();
@@ -82,6 +96,13 @@ export default function ManaksesSsoRadiusPage() {
     setShowSyncModal(true);
   };
 
+  const handleClearFilters = () => {
+    setUsernameFilter("");
+    setRoleFilter("");
+    setDateFromFilter("");
+    setDateToFilter("");
+  };
+
   const handleConfirmSync = async () => {
     setShowSyncModal(false);
     setShowProgressModal(true);
@@ -101,8 +122,26 @@ export default function ManaksesSsoRadiusPage() {
         });
       }, 500);
 
-      // Call sync API
-      const response = await myunilaClient.post("/radius/sync", null, {
+      // Build filter payload
+      const filterPayload: any = {
+        sync_type: "manual",
+      };
+
+      if (usernameFilter) {
+        filterPayload.username_filter = usernameFilter;
+      }
+      if (roleFilter) {
+        filterPayload.role_filter = roleFilter;
+      }
+      if (dateFromFilter) {
+        filterPayload.date_from = dateFromFilter;
+      }
+      if (dateToFilter) {
+        filterPayload.date_to = dateToFilter;
+      }
+
+      // Call sync API with filters
+      const response = await myunilaClient.post("/radius/sync", filterPayload, {
         params: {
           synced_by: user?.name || "system",
         },
@@ -293,10 +332,47 @@ export default function ManaksesSsoRadiusPage() {
           </Card>
         </div>
 
-        {/* Data Table */}
+        {/* Tabs for Data Pengguna and Scheduler */}
         <Card className="border-none shadow-lg rounded-xl overflow-hidden">
-          <CardBody className="p-0">
-            <SsoRadiusPenggunaTable refreshTrigger={refreshTrigger} />
+          <CardBody className="p-6">
+            <Tabs
+              aria-label="SSO Radius tabs"
+              color="primary"
+              variant="underlined"
+              classNames={{
+                tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider",
+                cursor: "w-full bg-primary",
+                tab: "max-w-fit px-0 h-12",
+                tabContent: "group-data-[selected=true]:text-primary font-semibold"
+              }}
+            >
+              <Tab
+                key="data"
+                title={
+                  <div className="flex items-center space-x-2">
+                    <FiUsers />
+                    <span>Data Pengguna</span>
+                  </div>
+                }
+              >
+                <div className="py-4">
+                  <SsoRadiusPenggunaTable refreshTrigger={refreshTrigger} />
+                </div>
+              </Tab>
+              <Tab
+                key="scheduler"
+                title={
+                  <div className="flex items-center space-x-2">
+                    <FiClock />
+                    <span>Scheduler</span>
+                  </div>
+                }
+              >
+                <div className="py-4">
+                  <SsoRadiusSchedulerTable />
+                </div>
+              </Tab>
+            </Tabs>
           </CardBody>
         </Card>
       </div>
@@ -305,8 +381,9 @@ export default function ManaksesSsoRadiusPage() {
       <Modal
         isOpen={showSyncModal}
         onOpenChange={setShowSyncModal}
-        size="md"
+        size="2xl"
         backdrop="blur"
+        scrollBehavior="inside"
         classNames={{
           backdrop: "bg-black/50 backdrop-blur-sm",
           base: "bg-white dark:bg-gray-800 rounded-2xl",
@@ -332,6 +409,118 @@ export default function ManaksesSsoRadiusPage() {
               </ModalHeader>
               <ModalBody className="py-6">
                 <div className="space-y-4">
+                  {/* Filter Section */}
+                  <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-sm font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+                        <FiFilter className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                        Filter Sinkronisasi (Opsional)
+                        {(usernameFilter || roleFilter || dateFromFilter || dateToFilter) && (
+                          <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-blue-500 text-white rounded-full">
+                            {[usernameFilter, roleFilter, dateFromFilter, dateToFilter].filter(Boolean).length} aktif
+                          </span>
+                        )}
+                      </h4>
+                      {(usernameFilter || roleFilter || dateFromFilter || dateToFilter) && (
+                        <Button
+                          size="sm"
+                          variant="light"
+                          onPress={handleClearFilters}
+                          className="text-xs font-medium text-gray-600 dark:text-gray-400"
+                        >
+                          Reset Filter
+                        </Button>
+                      )}
+                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                          Filter Username
+                        </label>
+                        <Input
+                          placeholder="Contoh: john.doe"
+                          value={usernameFilter}
+                          onValueChange={setUsernameFilter}
+                          size="sm"
+                          variant="bordered"
+                          classNames={{
+                            input: "text-sm",
+                            inputWrapper: "h-10",
+                          }}
+                        />
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          Kosongkan untuk sync semua user
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                          Filter Role
+                        </label>
+                        <Select
+                          placeholder="Pilih role (kosongkan untuk semua)"
+                          selectedKeys={roleFilter ? [roleFilter] : []}
+                          onChange={(e) => setRoleFilter(e.target.value)}
+                          size="sm"
+                          variant="bordered"
+                          classNames={{
+                            trigger: "h-10",
+                          }}
+                        >
+                          <SelectItem key="Mahasiswa" value="Mahasiswa">
+                            Mahasiswa
+                          </SelectItem>
+                          <SelectItem key="Dosen" value="Dosen">
+                            Dosen
+                          </SelectItem>
+                          <SelectItem key="Tendik" value="Tendik">
+                            Tendik
+                          </SelectItem>
+                          <SelectItem key="Guest" value="Guest">
+                            Guest
+                          </SelectItem>
+                        </Select>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                            Tanggal Dari
+                          </label>
+                          <Input
+                            placeholder="YYYY-MM-DD"
+                            value={dateFromFilter}
+                            onValueChange={setDateFromFilter}
+                            size="sm"
+                            variant="bordered"
+                            type="date"
+                            classNames={{
+                              input: "text-sm",
+                              inputWrapper: "h-10",
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                            Tanggal Sampai
+                          </label>
+                          <Input
+                            placeholder="YYYY-MM-DD"
+                            value={dateToFilter}
+                            onValueChange={setDateToFilter}
+                            size="sm"
+                            variant="bordered"
+                            type="date"
+                            classNames={{
+                              input: "text-sm",
+                              inputWrapper: "h-10",
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
                     <div className="flex items-start gap-3">
                       <FiAlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
@@ -343,6 +532,7 @@ export default function ManaksesSsoRadiusPage() {
                           <li>Data yang sudah ada akan diperbarui</li>
                           <li>Data baru akan ditambahkan</li>
                           <li>Kolom a_sso akan diupdate menjadi 1</li>
+                          <li>User dengan multiple registrasi akan punya multiple roles</li>
                         </ul>
                       </div>
                     </div>

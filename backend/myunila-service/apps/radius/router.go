@@ -36,6 +36,17 @@ func Init(router fiber.Router, db *sqlx.DB, radiusAPI *radius_api.RadiusClient) 
 			penggunaGroup.Get("/stats", handler.GetPenggunaStats)
 			penggunaGroup.Get("/:id", handler.GetPenggunaByID)
 		}
+
+		// Scheduler routes
+		schedulerGroup := radiusGroup.Group("/schedulers")
+		{
+			schedulerGroup.Get("/", handler.GetSchedulers)
+			schedulerGroup.Get("/:id", handler.GetSchedulerByID)
+			schedulerGroup.Post("/", handler.CreateScheduler)
+			schedulerGroup.Put("/:id", handler.UpdateScheduler)
+			schedulerGroup.Delete("/:id", handler.DeleteScheduler)
+			schedulerGroup.Patch("/:id/toggle", handler.ToggleSchedulerActive)
+		}
 	}
 
 	return svc
