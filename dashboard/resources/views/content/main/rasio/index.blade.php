@@ -40,7 +40,7 @@
                         <div class="d-flex justify-content-between">
                             <h3 class="card-title">Rasio Mahasiswa dan Dosen</h3>
                             <div class="card-tools">
-                                <div class="d-flex">
+                                <div class="gap-2 d-flex">
                                     <div class="mr-2">
                                         <button type="button" class="btn btn-primary" data-bs-toggle="modal"
                                             data-bs-target="#detail-modal">
@@ -60,9 +60,13 @@
                                         <select class="form-control select2" id="fakultas-filter" style="width: 100%;">
                                             <option value="">Pilih Fakultas</option>
                                             @foreach ($fakultas as $item)
-                                                <option value="{{ $item->id }}">{{ $item->nama }}</option>
+                                                <option value="{{ $item->id_sms }}">{{ $item->nm_lemb }}</option>
                                             @endforeach
                                         </select>
+                                    </div>
+                                    <div id="container-btn-back" style="display: none">
+                                        <button id="button-back" class="btn btn-primary">
+                                            Back</button>
                                     </div>
                                 </div>
                             </div>
@@ -82,18 +86,28 @@
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="detail-modal-label">Row Data</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <h3 class="modal-title" id="detail-modal-label">Detail Data</h5>
+                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                 </div>
                 <div class="modal-body">
                     <div class="card">
                         <div class="p-0 card-header d-flex">
-                            <ul class="p-2 ml-auto nav nav-pills">
-                                <li class="nav-item"><a class="nav-link active" href="#tab_1" data-toggle="tab">Dosen</a>
+                            <ul class="p-2 nav nav-pills ms-auto" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="dosen-tab" data-bs-toggle="tab"
+                                        data-bs-target="#tab_1" type="button" role="tab">
+                                        Dosen
+                                    </button>
                                 </li>
-                                <li class="nav-item"><a class="nav-link" href="#tab_2" data-toggle="tab">Mahasiswa</a></li>
+
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="mahasiswa-tab" data-bs-toggle="tab" data-bs-target="#tab_2"
+                                        type="button" role="tab">
+                                        Mahasiswa
+                                    </button>
+                                </li>
                             </ul>
                         </div>
                         <div class="card-body">
@@ -106,6 +120,7 @@
                                                 <th>Nama Dosen</th>
                                                 <th>NIP</th>
                                                 <th>Fakultas</th>
+                                                <th>Prodi</th>
                                             </tr>
                                         </thead>
                                     </table>
