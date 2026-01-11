@@ -11,10 +11,8 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
 // Auth API URL from environment variable (via Kong Gateway)
-// Note: Service adds /api/v1 suffix automatically
-const API_URL = process.env.NEXT_PUBLIC_AUTH_API_URL
-  ? `${process.env.NEXT_PUBLIC_AUTH_API_URL}/api/v1`
-  : 'http://localhost:9800/auth-service/api/v1';
+// Note: Environment variable should include full path with /api/v1 suffix
+const API_URL = process.env.NEXT_PUBLIC_AUTH_API_URL || 'http://localhost:9800/auth-service/api/v1';
 const API_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '30000');
 
 /**

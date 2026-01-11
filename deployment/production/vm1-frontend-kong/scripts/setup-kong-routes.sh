@@ -185,18 +185,15 @@ echo ""
 echo -e "${GREEN}[1/6] Setting up Public Service...${NC}"
 
 # Note: Public service only has public endpoints (no JWT required)
-# All endpoints: /api/v1/* (Kong route: /public-service/api/v1/*)
-
-# Create Public Service for public endpoints
-# Laravel routes: /api/v1/...
-# Kong will strip /public-service and forward to backend with /api/v1 prefix
-# Frontend calls: /public-service/unila/statistics → backend: /api/v1/unila/statistics
+# Frontend env includes /api/v1: NEXT_PUBLIC_PUBLIC_API_URL=http://kong:9800/public-service/api/v1
+# Kong strips /public-service prefix and forwards remaining path to backend
+# Example: Frontend calls /public-service/api/v1/unila/statistics → Kong forwards /api/v1/unila/statistics to backend
 echo -e "${YELLOW}  → Creating public-service for public endpoints...${NC}"
 PUBLIC_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
   -d "{
     \"name\": \"public-service\",
-    \"url\": \"${PUBLIC_SERVICE_URL:-http://192.168.120.42:8082}/api/v1\"
+    \"url\": \"${PUBLIC_SERVICE_URL:-http://192.168.120.42:8082}\"
   }")
 
 PUBLIC_SERVICE_ID=$(parse_json_id "$PUBLIC_SERVICE")
@@ -206,7 +203,8 @@ if [ -z "$PUBLIC_SERVICE_ID" ]; then
 else
     echo -e "${GREEN}  ✓ Public service created: $PUBLIC_SERVICE_ID${NC}"
 
-    # Route: Public endpoints (no JWT) - /public-service/api/v1/X → /api/v1/X
+    # Route: Public endpoints (no JWT) - /public-service/* → /*
+    # Frontend: /public-service/api/v1/unila/statistics → backend: /api/v1/unila/statistics
     echo -e "${YELLOW}  → Creating public route...${NC}"
     PUBLIC_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$PUBLIC_SERVICE_ID/routes" \
       -H "Content-Type: application/json" \
@@ -249,13 +247,14 @@ echo -e "${GREEN}[2/6] Setting up Auth Service...${NC}"
 
 # Create Auth Service
 # Note: Upstream is at VM2 (e.g., 192.168.120.42:8081)
-# Kong will strip /auth-service and forward to backend with /api prefix
-# Frontend calls: /auth-service/v1/auth/login → backend: /api/v1/auth/login
+# Frontend env includes /api/v1: NEXT_PUBLIC_AUTH_API_URL=http://kong:9800/auth-service/api/v1
+# Kong strips /auth-service prefix and forwards remaining path to backend
+# Example: Frontend calls /auth-service/api/v1/auth/login → Kong forwards /api/v1/auth/login to backend
 AUTH_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
   -d "{
     \"name\": \"auth-service\",
-    \"url\": \"${AUTH_SERVICE_URL:-http://192.168.120.42:8081}/api\"
+    \"url\": \"${AUTH_SERVICE_URL:-http://192.168.120.42:8081}\"
   }")
 
 AUTH_SERVICE_ID=$(parse_json_id "$AUTH_SERVICE")
@@ -300,6 +299,7 @@ fi
 
 # Create Auth Manakses Service (protected with JWT at Kong level)
 # Similar to sister/feeder services - Kong validates JWT, Laravel trusts it
+# This routes /auth-service/api/v1/manakses/* to backend /api/v1/manakses/*
 echo -e "${YELLOW}  → Creating auth-manakses-service for protected manakses endpoints...${NC}"
 AUTH_MANAKSES_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
@@ -795,19 +795,23 @@ echo -e "${GREEN}  Kong Routes Setup Complete!${NC}"
 echo -e "${GREEN}=========================================${NC}"
 echo ""
 
-echo -e "${YELLOW}Configured Routes:${NC}"
-echo "  Public (public):       http://localhost:9800/public-service/api/v1"
-echo "  Auth:                  http://localhost:9800/auth-service/api/v1"
-echo "  Sister (protected):    http://localhost:9800/sister-service/api/v1"
-echo "  Sister (public photo): http://localhost:9800/sister-service/public/api/v1/dosen/photo/:id"
-echo "  Feeder (protected):    http://localhost:9800/feeder-service/api/v1"
-echo "  MyUnila (protected):   http://localhost:9800/myunila-service/api/v1"
-echo "  MyUnila (public):      http://localhost:9800/myunila-service/public/api/v1"
+echo -e "${YELLOW}Configured Routes (Kong strips service prefix, forwards remaining path):${NC}"
+echo "  Public (no JWT):       /public-service/* → backend/*"
+echo "  Auth (no JWT@Kong):    /auth-service/* → backend/*"
+echo "  Sister (JWT required): /sister-service/* → backend/*"
+echo "  Sister (public photo): /sister-service/public/* → backend/public/*"
+echo "  Feeder (JWT required): /feeder-service/* → backend/*"
+echo "  MyUnila (JWT req):     /myunila-service/* → backend/*"
+echo "  MyUnila (public):      /myunila-service/public/* → backend/*"
 echo ""
 
 echo -e "${YELLOW}Example Test Commands:${NC}"
-echo "  # Public service (no auth)"
+echo "  # Public service (no auth) - frontend includes /api/v1 in env"
+echo "  curl http://localhost:9800/public-service/api/v1/unila/statistics"
 echo "  curl http://localhost:9800/public-service/api/v1/dosen/statistics"
+echo ""
+echo "  # Auth service (no JWT at Kong level)"
+echo "  curl http://localhost:9800/auth-service/api/v1/auth/login -X POST -d '{...}'"
 echo ""
 echo "  # Sister public photo (no auth)"
 echo "  curl http://localhost:9800/sister-service/public/api/v1/dosen/photo/YOUR-ID-HERE"
