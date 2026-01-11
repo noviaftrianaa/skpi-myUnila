@@ -189,13 +189,14 @@ echo -e "${GREEN}[1/6] Setting up Public Service...${NC}"
 
 # Create Public Service for public endpoints
 # Laravel routes: /api/v1/...
-# Kong will strip /public-service and forward to backend
+# Kong will strip /public-service and forward to backend with /api/v1 prefix
+# Frontend calls: /public-service/unila/statistics → backend: /api/v1/unila/statistics
 echo -e "${YELLOW}  → Creating public-service for public endpoints...${NC}"
 PUBLIC_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
   -d "{
     \"name\": \"public-service\",
-    \"url\": \"${PUBLIC_SERVICE_URL:-http://192.168.120.42:8082}\"
+    \"url\": \"${PUBLIC_SERVICE_URL:-http://192.168.120.42:8082}/api/v1\"
   }")
 
 PUBLIC_SERVICE_ID=$(parse_json_id "$PUBLIC_SERVICE")
@@ -248,14 +249,13 @@ echo -e "${GREEN}[2/6] Setting up Auth Service...${NC}"
 
 # Create Auth Service
 # Note: Upstream is at VM2 (e.g., 192.168.120.42:8081)
-# Auth service routes are already prefixed with /api/v1 in Laravel, no need to add /api in service URL
-# Kong will strip /auth-service and forward remaining path to upstream nginx
-# Example: /auth-service/api/v1/auth/login → /api/v1/auth/login → Laravel processes it
+# Kong will strip /auth-service and forward to backend with /api prefix
+# Frontend calls: /auth-service/v1/auth/login → backend: /api/v1/auth/login
 AUTH_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
   -d "{
     \"name\": \"auth-service\",
-    \"url\": \"${AUTH_SERVICE_URL:-http://192.168.120.42:8081}\"
+    \"url\": \"${AUTH_SERVICE_URL:-http://192.168.120.42:8081}/api\"
   }")
 
 AUTH_SERVICE_ID=$(parse_json_id "$AUTH_SERVICE")
