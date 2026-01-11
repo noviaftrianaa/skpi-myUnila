@@ -13,7 +13,7 @@ type Config struct {
 	Database      DatabaseConfig
 	SisterAPI     SisterAPIConfig
 	EncryptionKey string
-	LaravelAppKey string // Laravel APP_KEY for decrypting encrypted IDs from dashboard-service
+	LaravelAppKey string // Laravel APP_KEY for decrypting encrypted IDs from public-service
 }
 
 type AppConfig struct {
@@ -77,7 +77,7 @@ func LoadConfig() error {
 			ConnMaxLifetime: getEnv("DB_CONN_MAX_LIFETIME", "5m"),
 		},
 		SisterAPI: SisterAPIConfig{
-			BaseURL:    getEnv("SISTER_API_BASE_URL", "https://sister-api.kemdikbud.go.id/ws.php"),
+			BaseURL:    getEnv("SISTER_API_BASE_URL", "https://sister-api.kemdiksaintek.go.id/ws.php"),
 			IDPengguna: getEnv("SISTER_API_IDPENGGUNA", ""),
 			Username:   getEnv("SISTER_API_USERNAME", ""),
 			Password:   getEnv("SISTER_API_PASSWORD", ""),

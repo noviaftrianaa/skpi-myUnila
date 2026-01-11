@@ -118,8 +118,8 @@ func (s *Service) executeWithRetry(schedule ScheduledSync) error {
 		if err := s.penugasanService.ForceRefreshToken(); err != nil {
 			log.Printf("⚠️  Failed to refresh token for penugasan sync, continuing anyway: %v", err)
 		}
-	} else if schedule.SyncType == "penelitian" || schedule.SyncType == "pengabdian" || schedule.SyncType == "pendidikan" || schedule.SyncType == "publikasi" || schedule.SyncType == "riwayat_pekerjaan" || schedule.SyncType == "riwayat_fungsional" {
-		// Penelitian, pengabdian, pendidikan, publikasi, riwayat_pekerjaan, and riwayat_fungsional use the same Sister API token as dosen
+	} else if schedule.SyncType == "penelitian" || schedule.SyncType == "pengabdian" || schedule.SyncType == "pendidikan" || schedule.SyncType == "publikasi" || schedule.SyncType == "riwayat_pekerjaan" || schedule.SyncType == "riwayat_fungsional" || schedule.SyncType == "jabatan_fungsional" || schedule.SyncType == "jabatan_struktural" || schedule.SyncType == "tugas_tambahan" || schedule.SyncType == "sertifikasi_dosen" || schedule.SyncType == "bidang_ilmu" {
+		// Penelitian, pengabdian, pendidikan, publikasi, riwayat_pekerjaan, riwayat_fungsional, jabatan_fungsional, jabatan_struktural, tugas_tambahan, sertifikasi_dosen, and bidang_ilmu use the same Sister API token as dosen
 		if err := s.dosenService.ForceRefreshToken(); err != nil {
 			log.Printf("⚠️  Failed to refresh token for %s sync, continuing anyway: %v", schedule.SyncType, err)
 		}
@@ -155,6 +155,21 @@ func (s *Service) executeWithRetry(schedule ScheduledSync) error {
 		} else if schedule.SyncType == "riwayat_fungsional" {
 			// Execute riwayat fungsional batch sync for all dosen
 			_, err = s.riwayatFungsionalService.BatchSyncAllRwyFungsional("scheduler")
+		} else if schedule.SyncType == "jabatan_fungsional" {
+			// Execute jabatan fungsional batch sync for all dosen
+			_, err = s.riwayatFungsionalService.BatchSyncAllRwyFungsional("scheduler")
+		} else if schedule.SyncType == "jabatan_struktural" {
+			// Execute jabatan struktural batch sync for all dosen
+			_, err = s.jabatanStrukturalService.BatchSyncAllJabatanStruktural("scheduler")
+		} else if schedule.SyncType == "tugas_tambahan" {
+			// Execute tugas tambahan batch sync for all dosen
+			_, err = s.tugasTambahanService.BatchSyncAllTugasTambahan("scheduler")
+		} else if schedule.SyncType == "sertifikasi_dosen" {
+			// Execute sertifikasi dosen batch sync for all dosen
+			_, err = s.sertifikasiDosenService.BatchSyncAllSertifikasi("scheduler")
+		} else if schedule.SyncType == "bidang_ilmu" {
+			// Execute bidang ilmu batch sync for all dosen
+			_, err = s.bidangIlmuService.SyncAllDosen("scheduler")
 		} else {
 			return fmt.Errorf("invalid sync configuration")
 		}
@@ -269,7 +284,7 @@ func (s *Service) CreateSchedule(req CreateScheduledSyncRequest) (*ScheduledSync
 	}
 
 	// Validate endpoint_key only for referensi type
-	// penelitian, pengabdian, pendidikan, publikasi, riwayat_pekerjaan will batch sync all dosen
+	// All other types (dosen, penugasan, penelitian, pengabdian, pendidikan, publikasi, etc.) will batch sync all dosen
 	if req.SyncType == "referensi" && req.EndpointKey == nil {
 		return nil, fmt.Errorf("endpoint_key is required for referensi sync")
 	}

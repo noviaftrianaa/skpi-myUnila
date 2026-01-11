@@ -6,7 +6,7 @@
 #
 # Usage:
 #   bash quick-rebuild.sh              # Rebuild all services
-#   bash quick-rebuild.sh dashboard    # Rebuild only dashboard
+#   bash quick-rebuild.sh public       # Rebuild only public
 #   bash quick-rebuild.sh auth         # Rebuild only auth
 #   bash quick-rebuild.sh sister       # Rebuild only sister
 #   bash quick-rebuild.sh feeder       # Rebuild only feeder
@@ -135,10 +135,10 @@ rebuild_nginx() {
 
 # Rebuild based on argument
 case "$SERVICE" in
-    dashboard)
-        rebuild_service "dashboard"
-        # Dashboard uses nginx as reverse proxy, need to restart nginx too
-        echo -e "${YELLOW}Restarting nginx to reconnect to dashboard-service...${NC}"
+    public)
+        rebuild_service "public"
+        # Public uses nginx as reverse proxy, need to restart nginx too
+        echo -e "${YELLOW}Restarting nginx to reconnect to public-service...${NC}"
         docker restart myunila-nginx 2>/dev/null || true
         ;;
     auth)
@@ -166,7 +166,7 @@ case "$SERVICE" in
         echo "Rebuilding all services..."
         echo ""
         rebuild_frontend
-        rebuild_service "dashboard"
+        rebuild_service "public"
         rebuild_service "auth"
         rebuild_service "sister"
         rebuild_service "feeder"
@@ -179,7 +179,7 @@ case "$SERVICE" in
         echo ""
         echo "Usage:"
         echo "  bash quick-rebuild.sh              # Rebuild all"
-        echo "  bash quick-rebuild.sh dashboard    # Rebuild dashboard only"
+        echo "  bash quick-rebuild.sh public       # Rebuild public only"
         echo "  bash quick-rebuild.sh auth         # Rebuild auth only"
         echo "  bash quick-rebuild.sh sister       # Rebuild sister only"
         echo "  bash quick-rebuild.sh feeder       # Rebuild feeder only"
@@ -208,8 +208,8 @@ echo -e "${YELLOW}Test Endpoints:${NC}"
 if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "frontend" ]; then
     echo "  Frontend:  curl http://localhost:3001"
 fi
-if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "dashboard" ]; then
-    echo "  Dashboard: curl http://localhost:8082/api/health"
+if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "public" ]; then
+    echo "  Public:    curl http://localhost:8082/api/health"
 fi
 if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "auth" ]; then
     echo "  Auth:      curl http://localhost:8081/api/health"

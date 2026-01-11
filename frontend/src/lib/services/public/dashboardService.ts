@@ -1,7 +1,7 @@
 /**
- * Dashboard Service
+ * Public Service
  *
- * Handle dashboard-service API operations:
+ * Handle public-service API operations:
  * - University Rankings
  * - University Profile
  * - Statistics
@@ -38,10 +38,10 @@ import type {
   SebaranMahasiswaAsingResponse,
 } from '@/lib/types/dashboardTypes';
 
-// Dashboard Service Base URL - Via Kong Gateway (Public endpoints)
-const DASHBOARD_API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL
-  ? `${process.env.NEXT_PUBLIC_DASHBOARD_API_URL}/public/api/v1`
-  : 'http://localhost:9800/dashboard-service/public/api/v1';
+// Public Service Base URL - Via Kong Gateway (Public endpoints)
+const PUBLIC_API_URL = process.env.NEXT_PUBLIC_PUBLIC_API_URL
+  ? `${process.env.NEXT_PUBLIC_PUBLIC_API_URL}`
+  : 'http://localhost:9800/public-service/api/v1';
 
 /**
  * Dashboard Service Class
@@ -53,7 +53,7 @@ class DashboardService {
   async getLatestRankings(): Promise<LatestRankingsResponse> {
     try {
       const response = await axios.get<LatestRankingsResponse>(
-        `${DASHBOARD_API_URL}/rankings/latest`
+        `${PUBLIC_API_URL}/rankings/latest`
       );
       return response.data;
     } catch (error) {
@@ -77,7 +77,7 @@ class DashboardService {
   async getRankingHistory(categoryCode: string): Promise<RankingHistoryResponse> {
     try {
       const response = await axios.get<RankingHistoryResponse>(
-        `${DASHBOARD_API_URL}/rankings/${categoryCode}/history`
+        `${PUBLIC_API_URL}/rankings/${categoryCode}/history`
       );
       return response.data;
     } catch (error) {
@@ -100,7 +100,7 @@ class DashboardService {
       if (categoryCode) params.append('category_code', categoryCode);
 
       const response = await axios.get<ChartDataResponse>(
-        `${DASHBOARD_API_URL}/rankings/chart?${params.toString()}`
+        `${PUBLIC_API_URL}/rankings/chart?${params.toString()}`
       );
       return response.data;
     } catch (error) {
@@ -124,7 +124,7 @@ class DashboardService {
   async getCategories(): Promise<CategoriesResponse> {
     try {
       const response = await axios.get<CategoriesResponse>(
-        `${DASHBOARD_API_URL}/rankings/categories`
+        `${PUBLIC_API_URL}/rankings/categories`
       );
       return response.data;
     } catch (error) {
@@ -138,7 +138,7 @@ class DashboardService {
   async getStatistics(): Promise<StatisticsResponse> {
     try {
       const response = await axios.get<StatisticsResponse>(
-        `${DASHBOARD_API_URL}/rankings/statistics`
+        `${PUBLIC_API_URL}/rankings/statistics`
       );
       return response.data;
     } catch (error) {
@@ -177,7 +177,7 @@ class DashboardService {
       if (params?.sort_order) queryParams.append('sort_order', params.sort_order);
 
       const response = await axios.get<ProgramStudiListResponse>(
-        `${DASHBOARD_API_URL}/program-studi?${queryParams.toString()}`
+        `${PUBLIC_API_URL}/program-studi?${queryParams.toString()}`
       );
       return response.data;
     } catch (error) {
@@ -200,7 +200,7 @@ class DashboardService {
       if (params?.akreditasi) queryParams.append('akreditasi', params.akreditasi);
 
       const response = await axios.get<ProgramStudiStatisticsResponse>(
-        `${DASHBOARD_API_URL}/program-studi/statistics?${queryParams.toString()}`
+        `${PUBLIC_API_URL}/program-studi/statistics?${queryParams.toString()}`
       );
       return response.data;
     } catch (error) {
@@ -214,7 +214,7 @@ class DashboardService {
   async getProgramStudiPeriods(): Promise<ProgramStudiPeriodsResponse> {
     try {
       const response = await axios.get<ProgramStudiPeriodsResponse>(
-        `${DASHBOARD_API_URL}/program-studi/periods`
+        `${PUBLIC_API_URL}/program-studi/periods`
       );
       return response.data;
     } catch (error) {
@@ -228,7 +228,7 @@ class DashboardService {
   async getProgramStudiFilterOptions(): Promise<ProgramStudiFilterOptionsResponse> {
     try {
       const response = await axios.get<ProgramStudiFilterOptionsResponse>(
-        `${DASHBOARD_API_URL}/program-studi/filter-options`
+        `${PUBLIC_API_URL}/program-studi/filter-options`
       );
       return response.data;
     } catch (error) {
@@ -244,7 +244,7 @@ class DashboardService {
       const queryParams = new URLSearchParams();
       if (periode) queryParams.append('periode', periode);
 
-      const url = `${DASHBOARD_API_URL}/program-studi/${id}${periode ? `?${queryParams.toString()}` : ''}`;
+      const url = `${PUBLIC_API_URL}/program-studi/${id}${periode ? `?${queryParams.toString()}` : ''}`;
       const response = await axios.get<ProgramStudiDetailResponse>(url);
       return response.data;
     } catch (error) {
@@ -259,7 +259,7 @@ class DashboardService {
   async getDosenByProgramStudi(id: string): Promise<DosenListResponse> {
     try {
       const response = await axios.get<DosenListResponse>(
-        `${DASHBOARD_API_URL}/program-studi/${id}/dosen`
+        `${PUBLIC_API_URL}/program-studi/${id}/dosen`
       );
       return response.data;
     } catch (error) {
@@ -274,7 +274,7 @@ class DashboardService {
   async getMahasiswaTrend(id: string): Promise<MahasiswaTrendResponse> {
     try {
       const response = await axios.get<MahasiswaTrendResponse>(
-        `${DASHBOARD_API_URL}/program-studi/${id}/mahasiswa-trend`
+        `${PUBLIC_API_URL}/program-studi/${id}/mahasiswa-trend`
       );
       return response.data;
     } catch (error) {
@@ -302,7 +302,7 @@ class DashboardService {
       if (params?.page) queryParams.append('page', params.page.toString());
       if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
 
-      const url = `${DASHBOARD_API_URL}/program-studi/${id}/mahasiswa${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      const url = `${PUBLIC_API_URL}/program-studi/${id}/mahasiswa${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       const response = await axios.get<MahasiswaListResponse>(url);
       return response.data;
     } catch (error) {
@@ -317,7 +317,7 @@ class DashboardService {
   async getKurikulumByProgramStudi(id: string): Promise<KurikulumListResponse> {
     try {
       const response = await axios.get<KurikulumListResponse>(
-        `${DASHBOARD_API_URL}/program-studi/${id}/kurikulum`
+        `${PUBLIC_API_URL}/program-studi/${id}/kurikulum`
       );
       return response.data;
     } catch (error) {
@@ -332,7 +332,7 @@ class DashboardService {
   async getMataKuliahByKurikulum(idKurikulum: string): Promise<MataKuliahResponse> {
     try {
       const response = await axios.get<MataKuliahResponse>(
-        `${DASHBOARD_API_URL}/program-studi/kurikulum/${idKurikulum}/mata-kuliah`
+        `${PUBLIC_API_URL}/program-studi/kurikulum/${idKurikulum}/mata-kuliah`
       );
       return response.data;
     } catch (error) {
@@ -347,7 +347,7 @@ class DashboardService {
   async getTracerStudyByProgramStudi(id: string): Promise<TracerStudyResponse> {
     try {
       const response = await axios.get<TracerStudyResponse>(
-        `${DASHBOARD_API_URL}/program-studi/${id}/tracer-study`
+        `${PUBLIC_API_URL}/program-studi/${id}/tracer-study`
       );
       return response.data;
     } catch (error) {
@@ -367,7 +367,7 @@ class DashboardService {
     try {
       // Add cache-busting parameter to force fresh data
       const response = await axios.get<UnilaStatisticsResponse>(
-        `${DASHBOARD_API_URL}/unila/statistics`,
+        `${PUBLIC_API_URL}/unila/statistics`,
         {
           params: { _t: Date.now() }
         }
@@ -388,7 +388,7 @@ class DashboardService {
   async getUnilaProfile(): Promise<UnilaProfileResponse> {
     try {
       const response = await axios.get<UnilaProfileResponse>(
-        `${DASHBOARD_API_URL}/unila/profile`
+        `${PUBLIC_API_URL}/unila/profile`
       );
       return response.data;
     } catch (error) {
@@ -403,7 +403,7 @@ class DashboardService {
     try {
       const params = periode ? { periode } : {};
       const response = await axios.get<SebaranFakultasResponse>(
-        `${DASHBOARD_API_URL}/program-studi/sebaran-fakultas`,
+        `${PUBLIC_API_URL}/program-studi/sebaran-fakultas`,
         { params }
       );
       return response.data;
@@ -420,7 +420,7 @@ class DashboardService {
     try {
       const params = periode ? { periode } : {};
       const response = await axios.get<ProdiByFakultasResponse>(
-        `${DASHBOARD_API_URL}/program-studi/fakultas/${fakultasId}/prodi`,
+        `${PUBLIC_API_URL}/program-studi/fakultas/${fakultasId}/prodi`,
         { params }
       );
       return response.data;
@@ -440,7 +440,7 @@ class DashboardService {
   async getMahasiswaAllStatistics(): Promise<MahasiswaAllStatisticsResponse> {
     try {
       const response = await axios.get<MahasiswaAllStatisticsResponse>(
-        `${DASHBOARD_API_URL}/mahasiswa-statistics`
+        `${PUBLIC_API_URL}/mahasiswa-statistics`
       );
       return response.data;
     } catch (error) {
@@ -455,7 +455,7 @@ class DashboardService {
   async getMahasiswaAktifTrend(): Promise<MahasiswaAktifTrendResponse> {
     try {
       const response = await axios.get<MahasiswaAktifTrendResponse>(
-        `${DASHBOARD_API_URL}/mahasiswa-statistics/trend`
+        `${PUBLIC_API_URL}/mahasiswa-statistics/trend`
       );
       return response.data;
     } catch (error) {
@@ -470,7 +470,7 @@ class DashboardService {
   async getSebaranMahasiswaByJenjang(): Promise<SebaranJenjangResponse> {
     try {
       const response = await axios.get<SebaranJenjangResponse>(
-        `${DASHBOARD_API_URL}/mahasiswa-statistics/jenjang`
+        `${PUBLIC_API_URL}/mahasiswa-statistics/jenjang`
       );
       return response.data;
     } catch (error) {
@@ -485,7 +485,7 @@ class DashboardService {
   async getSebaranMahasiswaByStatus(): Promise<SebaranStatusResponse> {
     try {
       const response = await axios.get<SebaranStatusResponse>(
-        `${DASHBOARD_API_URL}/mahasiswa-statistics/status`
+        `${PUBLIC_API_URL}/mahasiswa-statistics/status`
       );
       return response.data;
     } catch (error) {
@@ -500,7 +500,7 @@ class DashboardService {
   async getSebaranMahasiswaByJenisKelamin(): Promise<SebaranJenisKelaminResponse> {
     try {
       const response = await axios.get<SebaranJenisKelaminResponse>(
-        `${DASHBOARD_API_URL}/mahasiswa-statistics/jenis-kelamin`
+        `${PUBLIC_API_URL}/mahasiswa-statistics/jenis-kelamin`
       );
       return response.data;
     } catch (error) {
@@ -515,7 +515,7 @@ class DashboardService {
   async getSebaranMahasiswaByJalurDaftar(): Promise<SebaranJalurDaftarResponse> {
     try {
       const response = await axios.get<SebaranJalurDaftarResponse>(
-        `${DASHBOARD_API_URL}/mahasiswa-statistics/jalur-daftar`
+        `${PUBLIC_API_URL}/mahasiswa-statistics/jalur-daftar`
       );
       return response.data;
     } catch (error) {
@@ -530,7 +530,7 @@ class DashboardService {
   async getSebaranMahasiswaAsing(): Promise<SebaranMahasiswaAsingResponse> {
     try {
       const response = await axios.get<SebaranMahasiswaAsingResponse>(
-        `${DASHBOARD_API_URL}/mahasiswa-statistics/mahasiswa-asing`
+        `${PUBLIC_API_URL}/mahasiswa-statistics/mahasiswa-asing`
       );
       return response.data;
     } catch (error) {

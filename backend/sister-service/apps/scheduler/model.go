@@ -7,7 +7,7 @@ type ScheduledSync struct {
 	ID             int       `db:"id" json:"id"`
 	Name           string    `db:"name" json:"name"`
 	Description    string    `db:"description" json:"description"`
-	SyncType       string    `db:"sync_type" json:"sync_type"`         // 'referensi' or 'dosen'
+	SyncType       string    `db:"sync_type" json:"sync_type"`         // 'referensi', 'dosen', 'penugasan', 'penelitian', 'pengabdian', 'pendidikan', 'publikasi', 'riwayat_pekerjaan', 'riwayat_fungsional', 'jabatan_fungsional', 'jabatan_struktural', 'tugas_tambahan', 'sertifikasi_dosen', 'bidang_ilmu'
 	EndpointKey    *string   `db:"endpoint_key" json:"endpoint_key"`   // For referensi only
 	CronExpression string    `db:"cron_expression" json:"cron_expression"`
 	ScheduleTime   *time.Time `db:"schedule_time" json:"schedule_time"` // User-friendly time display
@@ -23,7 +23,7 @@ type ScheduledSync struct {
 type CreateScheduledSyncRequest struct {
 	Name         string  `json:"name" validate:"required"`
 	Description  string  `json:"description"`
-	SyncType     string  `json:"sync_type" validate:"required,oneof=referensi dosen"`
+	SyncType     string  `json:"sync_type" validate:"required,oneof=referensi dosen penugasan penelitian pengabdian pendidikan publikasi riwayat_pekerjaan riwayat_fungsional jabatan_fungsional jabatan_struktural tugas_tambahan sertifikasi_dosen bidang_ilmu"`
 	EndpointKey  *string `json:"endpoint_key"`
 	ScheduleDate string  `json:"schedule_date" validate:"required"` // Format: YYYY-MM-DD
 	ScheduleTime string  `json:"schedule_time" validate:"required"` // Format: HH:mm

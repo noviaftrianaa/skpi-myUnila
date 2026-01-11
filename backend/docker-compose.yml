@@ -147,15 +147,15 @@ services:
       - redis
     restart: unless-stopped
 
-  # Dashboard Service
-  dashboard-service:
+  # Public Service (Public API for data visualization)
+  public-service:
     build:
-      context: ./dashboard-service
+      context: ./public-service
       dockerfile: Dockerfile
-    container_name: myunila-dashboard-service
+    container_name: myunila-public-service
     working_dir: /var/www
     env_file:
-      - ./dashboard-service/.env
+      - ./public-service/.env
     environment:
       # Override for Docker networking only
       REDIS_HOST: redis
@@ -163,8 +163,8 @@ services:
       MEILISEARCH_HOST: meilisearch
       MEILISEARCH_PORT: 7700
     volumes:
-      - ./dashboard-service:/var/www
-      - dashboard_vendor:/var/www/vendor
+      - ./public-service:/var/www
+      - public_vendor:/var/www/vendor
     networks:
       - myunila-network
     extra_hosts:
@@ -196,7 +196,7 @@ services:
       - DB_MAX_OPEN_CONNS=25
       - DB_MAX_IDLE_CONNS=5
       - DB_CONN_MAX_LIFETIME=5m
-      - SISTER_API_BASE_URL=https://sister-api.kemdikbud.go.id/ws.php
+      - SISTER_API_BASE_URL=https://sister-api.kemdiksaintek.go.id/ws.php
       - SISTER_API_IDPENGGUNA=125e6431-7727-402e-adb5-24d410af493c
       - SISTER_API_USERNAME=gTZydwjeJo5DV9qZk0scK+IBTvQGVEMgX/nR9y8coKEBuBUAdCN1hOiQQvfr62+GiAPzlliyGOZOLCUEukikmA==
       - SISTER_API_PASSWORD=
@@ -229,14 +229,14 @@ services:
     volumes:
       - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./docker/nginx/conf.d/auth-service.conf:/etc/nginx/conf.d/auth-service.conf:ro
-      - ./docker/nginx/conf.d/dashboard-service.conf:/etc/nginx/conf.d/dashboard-service.conf:ro
+      - ./docker/nginx/conf.d/public-service.conf:/etc/nginx/conf.d/public-service.conf:ro
       - ./auth-service/public:/var/www/auth-service/public
-      - ./dashboard-service/public:/var/www/dashboard-service/public
+      - ./public-service/public:/var/www/public-service/public
     networks:
       - myunila-network
     depends_on:
       - auth-service
-      - dashboard-service
+      - public-service
     restart: unless-stopped
 
 # ========================================
@@ -257,5 +257,5 @@ volumes:
     driver: local
   auth_vendor:
     driver: local
-  dashboard_vendor:
+  public_vendor:
     driver: local

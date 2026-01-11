@@ -128,7 +128,7 @@ func main() {
 		log.Println("⚠️  No encryption key configured - API config encryption disabled")
 	}
 
-	// Initialize Laravel encryption service for decrypting encrypted IDs from dashboard-service
+	// Initialize Laravel encryption service for decrypting encrypted IDs from public-service
 	var laravelCrypto *crypto.LaravelEncryption
 	if config.Cfg.LaravelAppKey != "" {
 		var err error

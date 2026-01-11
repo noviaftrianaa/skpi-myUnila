@@ -436,7 +436,7 @@ func (r *repository) GetDosenStats() (*DosenStats, error) {
 	}
 
 	// Get total aktif (with filters: reg_ptk, keaktifan_ptk, homebase Unila, active tahun ajaran)
-	// This matches the logic in dashboard-service DosenRepository.getTotalDosen()
+	// This matches the logic in public-service DosenRepository.getTotalDosen()
 	activeQuery := `
 		SELECT COUNT(DISTINCT ptk.id_sdm) AS total
 		FROM pdrd.reg_ptk AS ptk

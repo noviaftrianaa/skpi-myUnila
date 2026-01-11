@@ -63,7 +63,7 @@ docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-
 docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.feeder.yml" down 2>/dev/null || true
 docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.sister.yml" down 2>/dev/null || true
 docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.auth.yml" down 2>/dev/null || true
-docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.dashboard.yml" down 2>/dev/null || true
+docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.public.yml" down 2>/dev/null || true
 docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/2-gateway/docker-compose.kong.yml" down 2>/dev/null || true
 docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/1-infrastructure/docker-compose.meilisearch.yml" down 2>/dev/null || true
 docker compose -f "$DEPLOYMENT_DIR/services/1-infrastructure/docker-compose.redis.yml" down 2>/dev/null || true
@@ -114,8 +114,8 @@ echo ""
 
 cd "$DEPLOYMENT_DIR"
 
-echo "  → Building Dashboard Service..."
-docker compose --env-file .env -f services/3-backend/docker-compose.dashboard.yml build --no-cache --pull dashboard-service
+echo "  → Building Public Service..."
+docker compose --env-file .env -f services/3-backend/docker-compose.public.yml build --no-cache --pull public-service
 echo ""
 
 echo "  → Building Auth Service..."
@@ -155,8 +155,8 @@ echo "  → Starting Kong Gateway..."
 docker compose --env-file .env -f services/2-gateway/docker-compose.kong.yml up -d
 sleep 10
 
-echo "  → Starting Dashboard Service..."
-docker compose --env-file .env -f services/3-backend/docker-compose.dashboard.yml up -d
+echo "  → Starting Public Service..."
+docker compose --env-file .env -f services/3-backend/docker-compose.public.yml up -d
 
 echo "  → Starting Auth Service..."
 docker compose --env-file .env -f services/3-backend/docker-compose.auth.yml up -d
@@ -211,7 +211,7 @@ echo ""
 
 echo -e "${YELLOW}Access Points (Local):${NC}"
 echo "  Auth Service:      http://localhost:8081"
-echo "  Dashboard Service: http://localhost:8082"
+echo "  Public Service:    http://localhost:8082"
 echo "  Sister Service:    http://localhost:8083"
 echo "  Feeder Service:    http://localhost:8084"
 echo "  MyUnila Service:   http://localhost:8086"
@@ -223,7 +223,7 @@ echo "  Meilisearch:       http://localhost:7700"
 echo ""
 
 echo -e "${YELLOW}Test Endpoints:${NC}"
-echo "  Dashboard Health: curl http://localhost:8082/api/health"
+echo "  Public Health:    curl http://localhost:8082/api/health"
 echo "  Auth Health:      curl http://localhost:8081/api/health"
 echo "  Sister Health:    curl http://localhost:8083/health"
 echo "  Feeder Health:    curl http://localhost:8084/health"
@@ -245,7 +245,7 @@ if [ "$UNHEALTHY" -gt 0 ]; then
 fi
 
 echo -e "${YELLOW}Check logs:${NC}"
-echo "  docker logs myunila-dashboard-service --tail 50"
+echo "  docker logs myunila-public-service --tail 50"
 echo "  docker logs myunila-auth-service --tail 50"
 echo "  docker logs myunila-sister-service --tail 50"
 echo "  docker logs myunila-feeder-service --tail 50"

@@ -54,7 +54,7 @@ func (s *service) SyncPenelitianByIDSDM(idSDM string, syncedBy string) (*BatchPe
 	if err != nil {
 		syncErr := fmt.Errorf("failed to fetch penelitian list: %w", err)
 		monitorSvc.FailSync(syncID, syncErr.Error())
-		s.logSyncResult("Penelitian", "penelitian", "by_dosen", syncedBy, 0, 0, 0, startTime, syncErr)
+		// Don't log here - will be logged by BatchSyncAllPenelitian if called from scheduler
 		return nil, syncErr
 	}
 
@@ -62,7 +62,7 @@ func (s *service) SyncPenelitianByIDSDM(idSDM string, syncedBy string) (*BatchPe
 	if err := json.Unmarshal(rawData, &penelitianList); err != nil {
 		syncErr := fmt.Errorf("failed to parse penelitian list: %w", err)
 		monitorSvc.FailSync(syncID, syncErr.Error())
-		s.logSyncResult("Penelitian", "penelitian", "by_dosen", syncedBy, 0, 0, 0, startTime, syncErr)
+		// Don't log here - will be logged by BatchSyncAllPenelitian if called from scheduler
 		return nil, syncErr
 	}
 
@@ -75,7 +75,7 @@ func (s *service) SyncPenelitianByIDSDM(idSDM string, syncedBy string) (*BatchPe
 
 	if totalPenelitian == 0 {
 		monitorSvc.CompleteSync(syncID, "No penelitian to sync")
-		s.logSyncResult("Penelitian", "penelitian", "by_dosen", syncedBy, 0, 0, 0, startTime, nil)
+		// Don't log here - will be logged by BatchSyncAllPenelitian if called from scheduler
 		return &BatchPenelitianSyncResult{
 			TotalProcessed: 0,
 			TotalSuccess:   0,
@@ -142,12 +142,7 @@ func (s *service) SyncPenelitianByIDSDM(idSDM string, syncedBy string) (*BatchPe
 		)
 	}
 
-	// Log sync result to database
-	var syncErr error
-	if successCount == 0 && failedCount > 0 {
-		syncErr = fmt.Errorf("all %d penelitian failed to sync", failedCount)
-	}
-	s.logSyncResult("Penelitian", "penelitian", "by_dosen", syncedBy, totalPenelitian, successCount, failedCount, startTime, syncErr)
+	// Don't log to database here - will be logged by BatchSyncAllPenelitian if called from scheduler
 
 	return &BatchPenelitianSyncResult{
 		TotalProcessed: len(allResults),
@@ -181,7 +176,7 @@ func (s *service) SyncPengabdianByIDSDM(idSDM string, syncedBy string) (*BatchPe
 	if err != nil {
 		syncErr := fmt.Errorf("failed to fetch pengabdian list: %w", err)
 		monitorSvc.FailSync(syncID, syncErr.Error())
-		s.logSyncResult("Pengabdian", "pengabdian", "by_dosen", syncedBy, 0, 0, 0, startTime, syncErr)
+		// Don't log here - will be logged by BatchSyncAllPengabdian if called from scheduler
 		return nil, syncErr
 	}
 
@@ -189,7 +184,7 @@ func (s *service) SyncPengabdianByIDSDM(idSDM string, syncedBy string) (*BatchPe
 	if err := json.Unmarshal(rawData, &pengabdianList); err != nil {
 		parseErr := fmt.Errorf("failed to parse pengabdian list: %w", err)
 		monitorSvc.FailSync(syncID, parseErr.Error())
-		s.logSyncResult("Pengabdian", "pengabdian", "by_dosen", syncedBy, 0, 0, 0, startTime, parseErr)
+		// Don't log here - will be logged by BatchSyncAllPengabdian if called from scheduler
 		return nil, parseErr
 	}
 
@@ -203,7 +198,7 @@ func (s *service) SyncPengabdianByIDSDM(idSDM string, syncedBy string) (*BatchPe
 	if totalPengabdian == 0 {
 		log.Printf("✅ No pengabdian found for id_sdm: %s", idSDM)
 		monitorSvc.CompleteSync(syncID, "No pengabdian to sync")
-		s.logSyncResult("Pengabdian", "pengabdian", "by_dosen", syncedBy, 0, 0, 0, startTime, nil)
+		// Don't log here - will be logged by BatchSyncAllPengabdian if called from scheduler
 		return &BatchPenelitianSyncResult{
 			TotalProcessed: 0,
 			TotalSuccess:   0,
@@ -245,12 +240,7 @@ func (s *service) SyncPengabdianByIDSDM(idSDM string, syncedBy string) (*BatchPe
 	log.Printf("📊 Total: %d | Success: %d | Failed: %d",
 		totalPengabdian, successCount, failedCount)
 
-	// Log to database
-	var syncErr error
-	if failedCount > 0 {
-		syncErr = fmt.Errorf("%d out of %d pengabdian failed to sync", failedCount, totalPengabdian)
-	}
-	s.logSyncResult("Pengabdian", "pengabdian", "by_dosen", syncedBy, totalPengabdian, successCount, failedCount, startTime, syncErr)
+	// Don't log to database here - will be logged by BatchSyncAllPengabdian if called from scheduler
 
 	// Complete monitoring
 	if failedCount > 0 {

@@ -27,6 +27,9 @@ class AuthApi
         }
 
         if($decodeToken->sso === false) {
+            // Inject id_pengguna to request for use in controllers
+            $request->merge(['id_pengguna' => $decodeToken->id_pengguna]);
+            $request->id_pengguna = $decodeToken->id_pengguna;
             return $next($request);
         } else {
             return WrapResponse(['data' => ['errors' => 'Token tidak valid!']], 'Otorisasi gagal!', FALSE);

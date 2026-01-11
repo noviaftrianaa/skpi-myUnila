@@ -33,7 +33,7 @@ show_menu() {
     echo ""
     echo -e "  ${GREEN}1)${NC} Clean Rebuild All (Hapus semua & rebuild)"
     echo -e "  ${GREEN}2)${NC} Quick Rebuild All Services"
-    echo -e "  ${GREEN}3)${NC} Quick Rebuild - Dashboard Only"
+    echo -e "  ${GREEN}3)${NC} Quick Rebuild - Public Only"
     echo -e "  ${GREEN}4)${NC} Quick Rebuild - Auth Only"
     echo -e "  ${GREEN}5)${NC} Quick Rebuild - Sister Only"
     echo -e "  ${GREEN}6)${NC} Quick Rebuild - Feeder Only"
@@ -42,12 +42,12 @@ show_menu() {
     echo -e "  ${GREEN}9)${NC} Quick Rebuild - Nginx Only"
     echo ""
     echo -e "  ${CYAN}--- Quick Dev Rebuild (Dengan Cache, Lebih Cepat) ---${NC}"
-    echo -e "  ${CYAN}22)${NC} Quick Dev Rebuild - All Laravel (auth + dashboard)"
-    echo -e "  ${CYAN}23)${NC} Quick Dev Rebuild - Dashboard Only"
+    echo -e "  ${CYAN}22)${NC} Quick Dev Rebuild - All Laravel (auth + public)"
+    echo -e "  ${CYAN}23)${NC} Quick Dev Rebuild - Public Only"
     echo -e "  ${CYAN}24)${NC} Quick Dev Rebuild - Auth Only"
     echo ""
     echo -e "  ${BLUE}10)${NC} Restart All Services"
-    echo -e "  ${BLUE}11)${NC} Restart Dashboard Only"
+    echo -e "  ${BLUE}11)${NC} Restart Public Only"
     echo -e "  ${BLUE}12)${NC} Restart Auth Only"
     echo -e "  ${BLUE}13)${NC} Restart Sister Only"
     echo -e "  ${BLUE}14)${NC} Restart Feeder Only"
@@ -88,7 +88,7 @@ show_status() {
 show_logs() {
     echo ""
     echo -e "${YELLOW}Pilih service untuk lihat logs:${NC}"
-    echo "  1) Dashboard"
+    echo "  1) Public"
     echo "  2) Auth"
     echo "  3) Sister"
     echo "  4) Feeder"
@@ -101,7 +101,7 @@ show_logs() {
     read -p "Pilihan [1-9]: " log_choice
 
     case $log_choice in
-        1) docker logs myunila-dashboard-service --tail 100 -f ;;
+        1) docker logs myunila-public-service --tail 100 -f ;;
         2) docker logs myunila-auth-service --tail 100 -f ;;
         3) docker logs myunila-sister-service --tail 100 -f ;;
         4) docker logs myunila-feeder-service --tail 100 -f ;;
@@ -120,12 +120,12 @@ test_endpoints() {
     echo -e "${BLUE}Testing Endpoints...${NC}"
     echo ""
 
-    echo -n "Dashboard Health: "
-    DASH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8082/api/health 2>/dev/null || echo "000")
-    if [ "$DASH_STATUS" = "200" ]; then
-        echo -e "${GREEN}✓ $DASH_STATUS OK${NC}"
+    echo -n "Public Health:    "
+    PUBLIC_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8082/api/health 2>/dev/null || echo "000")
+    if [ "$PUBLIC_STATUS" = "200" ]; then
+        echo -e "${GREEN}✓ $PUBLIC_STATUS OK${NC}"
     else
-        echo -e "${RED}✗ $DASH_STATUS${NC}"
+        echo -e "${RED}✗ $PUBLIC_STATUS${NC}"
     fi
 
     echo -n "Auth Health:      "
@@ -162,7 +162,7 @@ test_endpoints() {
 
     echo ""
     echo -e "${YELLOW}URLs:${NC}"
-    echo "  Dashboard: http://localhost:8082"
+    echo "  Public:    http://localhost:8082"
     echo "  Auth:      http://localhost:8081"
     echo "  Sister:    http://localhost:8083"
     echo "  Feeder:    http://localhost:8084"
@@ -186,7 +186,7 @@ while true; do
             read -p "Press Enter to continue..."
             ;;
         3)
-            bash "$SCRIPT_DIR/quick-rebuild.sh" dashboard
+            bash "$SCRIPT_DIR/quick-rebuild.sh" public
             read -p "Press Enter to continue..."
             ;;
         4)
@@ -218,7 +218,7 @@ while true; do
             read -p "Press Enter to continue..."
             ;;
         11)
-            bash "$SCRIPT_DIR/restart-services.sh" dashboard
+            bash "$SCRIPT_DIR/restart-services.sh" public
             read -p "Press Enter to continue..."
             ;;
         12)
@@ -289,10 +289,10 @@ while true; do
             ;;
         23)
             echo ""
-            echo -e "${CYAN}Quick Dev Rebuild - Dashboard Only (dengan cache)${NC}"
+            echo -e "${CYAN}Quick Dev Rebuild - Public Only (dengan cache)${NC}"
             echo -e "${YELLOW}Lebih cepat untuk perubahan kode saja!${NC}"
             echo ""
-            bash "$SCRIPT_DIR/quick-dev-rebuild.sh" dashboard
+            bash "$SCRIPT_DIR/quick-dev-rebuild.sh" public
             read -p "Press Enter to continue..."
             ;;
         24)
@@ -315,8 +315,8 @@ while true; do
             # Clear Laravel cache for all services
             echo -e "${BLUE}Clearing Laravel cache on Auth Service...${NC}"
             docker exec myunila-auth-service php artisan optimize:clear 2>/dev/null || echo "Auth service not running"
-            echo -e "${BLUE}Clearing Laravel cache on Dashboard Service...${NC}"
-            docker exec myunila-dashboard-service php artisan optimize:clear 2>/dev/null || echo "Dashboard service not running"
+            echo -e "${BLUE}Clearing Laravel cache on Public Service...${NC}"
+            docker exec myunila-public-service php artisan optimize:clear 2>/dev/null || echo "Public service not running"
             echo ""
             echo -e "${GREEN}✓ All cache cleared!${NC}"
             read -p "Press Enter to continue..."
@@ -336,8 +336,8 @@ while true; do
             echo ""
             echo -e "${BLUE}Clearing Laravel cache on Auth Service...${NC}"
             docker exec myunila-auth-service php artisan optimize:clear 2>/dev/null || echo "Auth service not running"
-            echo -e "${BLUE}Clearing Laravel cache on Dashboard Service...${NC}"
-            docker exec myunila-dashboard-service php artisan optimize:clear 2>/dev/null || echo "Dashboard service not running"
+            echo -e "${BLUE}Clearing Laravel cache on Public Service...${NC}"
+            docker exec myunila-public-service php artisan optimize:clear 2>/dev/null || echo "Public service not running"
             echo ""
             echo -e "${GREEN}✓ Laravel cache cleared!${NC}"
             read -p "Press Enter to continue..."

@@ -23,7 +23,8 @@ class SsoRadiusController extends Controller
     private $dosenJkCache = [];      // Cache jenis kelamin dosen
     private $tendikJkCache = [];     // Cache jenis kelamin tendik
     private $tendikOrgCache = [];    // Cache organisasi tendik: ['nm_organisasi' => string, 'id_organisasi' => string|null]
-    private $dosenOrgCache = [];     // Cache id_sms dosen dari reg_ptk (terbaru)
+    private $dosenOrgCache = [];     // Cache id_sms dosen dari reg_ptk (SEMUA, bukan hanya terbaru)
+    private $mahasiswaOrgCache = []; // Cache id_sms mahasiswa dari reg_pd (SEMUA, bukan hanya terbaru)
     private $smsNameToIdCache = [];  // Cache mapping pdrd.sms.nm_lemb -> id_sms
 
     /**
@@ -57,7 +58,7 @@ class SsoRadiusController extends Controller
 
     /**
      * Get SSO users list with pagination
-     * GET /api/live/sso-radius/users?page=1&limit=10&search=
+     * GET /api/live/sso-radius/users?page=1&limit=10&search=&username=&nm_peran=&updated_at_from=&updated_at_to=
      */
     public function users(Request $request)
     {
@@ -65,6 +66,10 @@ class SsoRadiusController extends Controller
             $page = $request->input('page', 1);
             $limit = $request->input('limit', 10);
             $search = $request->input('search', '');
+            $usernameFilter = $request->input('username', '');
+            $nmPeranFilter = $request->input('nm_peran', '');
+            $updatedAtFrom = $request->input('updated_at_from', '');
+            $updatedAtTo = $request->input('updated_at_to', '');
             $offset = ($page - 1) * $limit;
 
             // Build query
@@ -87,6 +92,19 @@ class SsoRadiusController extends Controller
                 });
             }
 
+            // Apply username filter (exact or partial match)
+            if (!empty($usernameFilter)) {
+                $query->where('username', 'like', "%{$usernameFilter}%");
+            }
+
+            // Apply updated_at date range filter
+            if (!empty($updatedAtFrom)) {
+                $query->where('updated_at', '>=', $updatedAtFrom . ' 00:00:00');
+            }
+            if (!empty($updatedAtTo)) {
+                $query->where('updated_at', '<=', $updatedAtTo . ' 23:59:59');
+            }
+
             // Get total count
             $total = $query->count();
 
@@ -102,9 +120,10 @@ class SsoRadiusController extends Controller
                     'nip',
                     'status',
                     'a_aktif',
+                    'updated_at',
                     DB::raw("SUBSTRING_INDEX(SUBSTRING_INDEX(email, '@', -1), '.', 1) AS domain_email")
                 )
-                ->orderBy('id', 'desc')
+                ->orderBy('updated_at', 'desc')
                 ->skip($offset)
                 ->take($limit)
                 ->get();
@@ -114,8 +133,22 @@ class SsoRadiusController extends Controller
             $this->preloadDataForChunk($users->toArray());
 
             // Enrich users with role info from determineRole logic
-            $enrichedUsers = $users->map(function ($user) {
-                $roleData = $this->determineRoleWithDetails($user);
+            // Filter by nm_peran if specified
+            $enrichedUsers = $users->map(function ($user) use ($nmPeranFilter) {
+                $rolesData = $this->determineAllRoles($user);
+
+                // Filter by nm_peran if specified
+                $filteredRoles = $rolesData['roles'];
+                if (!empty($nmPeranFilter)) {
+                    $filteredRoles = array_filter($filteredRoles, function ($role) use ($nmPeranFilter) {
+                        return stripos($role['nm_peran'], $nmPeranFilter) !== false;
+                    });
+                }
+
+                // If filtering by role and no matching roles, return null (will be filtered out later)
+                if (!empty($nmPeranFilter) && empty($filteredRoles)) {
+                    return null;
+                }
 
                 return [
                     'id' => $user->id,
@@ -127,30 +160,33 @@ class SsoRadiusController extends Controller
                     'nip' => $user->nip,
                     'status' => $user->status,
                     'domain_email' => $user->domain_email,
-                    'jenis_kelamin' => $roleData['jenis_kelamin'], // From peserta_didik/sdm
+                    'updated_at' => $user->updated_at,
+                    'jenis_kelamin' => $rolesData['jenis_kelamin'], // From peserta_didik/sdm
                     // Reference IDs at top level (kolom di man_akses.pengguna)
-                    'id_pd_pengguna' => $roleData['id_pd_pengguna'],
-                    'id_sdm_pengguna' => $roleData['id_sdm_pengguna'],
-                    'id_user_sikep' => $roleData['id_user_sikep'],
-                    'role_pengguna' => [
-                        'id_peran' => $roleData['id_peran'],
-                        'nm_peran' => $roleData['nm_peran'],
-                        'id_organisasi' => $roleData['id_organisasi'],
-                        'nm_organisasi' => $roleData['nm_organisasi'],
-                    ],
-                    'found_in_pdut' => $roleData['id_pd_pengguna'] || $roleData['id_sdm_pengguna'] || $roleData['id_user_sikep'] ? true : false,
+                    'id_pd_pengguna' => $rolesData['id_pd_pengguna'],
+                    'id_sdm_pengguna' => $rolesData['id_sdm_pengguna'],
+                    'id_user_sikep' => $rolesData['id_user_sikep'],
+                    // MULTIPLE ROLES - array of roles for this user
+                    'roles_pengguna' => array_values($filteredRoles), // re-index array after filter
+                    'found_in_pdut' => $rolesData['id_pd_pengguna'] || $rolesData['id_sdm_pengguna'] || $rolesData['id_user_sikep'] ? true : false,
                 ];
-            });
+            })->filter()->values(); // Remove nulls from role filtering & re-index
+
+            // Adjust total count if filtered by role
+            $finalTotal = $total;
+            if (!empty($nmPeranFilter)) {
+                $finalTotal = $enrichedUsers->count();
+            }
 
             return response()->json([
                 'success' => true,
                 'message' => 'SSO users retrieved successfully',
                 'data' => $enrichedUsers,
                 'meta' => [
-                    'total' => $total,
+                    'total' => $finalTotal,
                     'page' => (int) $page,
                     'limit' => (int) $limit,
-                    'total_pages' => ceil($total / $limit),
+                    'total_pages' => ceil($finalTotal / $limit),
                 ],
             ]);
         } catch (\Exception $e) {
@@ -360,26 +396,33 @@ class SsoRadiusController extends Controller
         $nipChunks = array_chunk($nips, 1000);
 
         // Preload mahasiswa - native SQL with jenis kelamin from peserta_didik
-        // PENTING: Ambil reg_pd TERBARU (ROW_NUMBER by id_reg_pd DESC) karena one-to-many
+        // PENTING: Ambil SEMUA reg_pd (untuk multiple roles)
         foreach ($nipChunks as $nipChunk) {
             $placeholders = implode(',', array_fill(0, count($nipChunk), '?'));
             $sql = "
-                WITH LatestRegPd AS (
-                    SELECT rp.id_pd, rp.nipd, rp.id_sms, pd.jk,
-                           ROW_NUMBER() OVER (PARTITION BY rp.nipd ORDER BY rp.id_reg_pd DESC) as rn
-                    FROM pdrd.reg_pd rp
-                    LEFT JOIN pdrd.peserta_didik pd ON rp.id_pd = pd.id_pd
-                    WHERE rp.nipd IN ({$placeholders})
-                )
-                SELECT id_pd, nipd, id_sms, jk
-                FROM LatestRegPd
-                WHERE rn = 1
+                SELECT rp.id_pd, rp.nipd, rp.id_sms, pd.jk, rp.id_reg_pd
+                FROM pdrd.reg_pd rp
+                LEFT JOIN pdrd.peserta_didik pd ON rp.id_pd = pd.id_pd
+                WHERE rp.nipd IN ({$placeholders})
+                ORDER BY rp.id_reg_pd DESC
             ";
-            $mahasiswa = DB::connection('sqlsrv')->select($sql, array_values($nipChunk));
+            $mahasiswaList = DB::connection('sqlsrv')->select($sql, array_values($nipChunk));
 
-            foreach ($mahasiswa as $m) {
-                $this->mahasiswaCache[$m->nipd] = $m;
-                $this->mahasiswaJkCache[$m->nipd] = $m->jk;
+            foreach ($mahasiswaList as $m) {
+                // Set mahasiswa cache dengan data terbaru (untuk id_pd_pengguna)
+                if (!isset($this->mahasiswaCache[$m->nipd])) {
+                    $this->mahasiswaCache[$m->nipd] = $m;
+                    $this->mahasiswaJkCache[$m->nipd] = $m->jk;
+                }
+
+                // Set organisasi cache - ARRAY untuk support multiple roles
+                if (!isset($this->mahasiswaOrgCache[$m->nipd])) {
+                    $this->mahasiswaOrgCache[$m->nipd] = [];
+                }
+                // Add id_sms jika belum ada (untuk distinct organisations)
+                if (!in_array($m->id_sms, $this->mahasiswaOrgCache[$m->nipd])) {
+                    $this->mahasiswaOrgCache[$m->nipd][] = $m->id_sms;
+                }
             }
         }
 
@@ -453,26 +496,29 @@ class SsoRadiusController extends Controller
             }
         }
 
-        // Preload dosen organisasi dari reg_ptk - PENTING: Ambil TERBARU karena one-to-many
+        // Preload dosen organisasi dari reg_ptk - PENTING: Ambil SEMUA reg_ptk (untuk multiple roles)
         foreach ($nipChunks as $nipChunk) {
             $placeholders = implode(',', array_fill(0, count($nipChunk), '?'));
             $sql = "
-                WITH LatestRegPtk AS (
-                    SELECT s.nip, rp.id_sms,
-                           ROW_NUMBER() OVER (PARTITION BY s.nip ORDER BY rp.id_reg_ptk DESC) as rn
-                    FROM pdrd.sdm s
-                    INNER JOIN pdrd.reg_ptk rp ON s.id_sdm = rp.id_sdm
-                    WHERE s.nip IN ({$placeholders})
-                )
-                SELECT RTRIM(LTRIM(nip)) as nip, id_sms
-                FROM LatestRegPtk
-                WHERE rn = 1
+                SELECT RTRIM(LTRIM(s.nip)) as nip, rp.id_sms, rp.id_reg_ptk
+                FROM pdrd.sdm s
+                INNER JOIN pdrd.reg_ptk rp ON s.id_sdm = rp.id_sdm
+                WHERE s.nip IN ({$placeholders})
+                ORDER BY rp.id_reg_ptk DESC
             ";
-            $dosenOrg = DB::connection('sqlsrv')->select($sql, array_values($nipChunk));
+            $dosenOrgList = DB::connection('sqlsrv')->select($sql, array_values($nipChunk));
 
-            foreach ($dosenOrg as $do) {
+            foreach ($dosenOrgList as $do) {
                 $nipTrimmed = trim($do->nip);
-                $this->dosenOrgCache[$nipTrimmed] = $do->id_sms;
+
+                // Set organisasi cache - ARRAY untuk support multiple roles
+                if (!isset($this->dosenOrgCache[$nipTrimmed])) {
+                    $this->dosenOrgCache[$nipTrimmed] = [];
+                }
+                // Add id_sms jika belum ada (untuk distinct organisations)
+                if (!in_array($do->id_sms, $this->dosenOrgCache[$nipTrimmed])) {
+                    $this->dosenOrgCache[$nipTrimmed][] = $do->id_sms;
+                }
             }
         }
     }
@@ -697,6 +743,163 @@ class SsoRadiusController extends Controller
         }
 
         return $cache[$idLembaga];
+    }
+
+    /**
+     * Determine ALL roles for a user (support multiple roles dari multiple reg_pd/reg_ptk)
+     * Returns array of roles with id_pd_pengguna, id_sdm_pengguna, id_user_sikep at top level
+     */
+    private function determineAllRoles(object $user): array
+    {
+        $result = [
+            'id_pd_pengguna' => null,
+            'id_sdm_pengguna' => null,
+            'id_user_sikep' => null,
+            'jenis_kelamin' => 'L', // Default
+            'roles' => [], // Array of roles
+        ];
+
+        $domain = strtolower($user->domain_email ?? '');
+
+        // MAHASISWA: Email @students.unila.ac.id - MULTIPLE ROLES jika punya multiple reg_pd
+        if ($domain === 'students') {
+            if (!empty($user->nip) && isset($this->mahasiswaCache[$user->nip])) {
+                $mhs = $this->mahasiswaCache[$user->nip];
+                $result['id_pd_pengguna'] = $mhs->id_pd;
+
+                // Get jenis kelamin
+                if (isset($this->mahasiswaJkCache[$user->nip]) && $this->mahasiswaJkCache[$user->nip]) {
+                    $result['jenis_kelamin'] = $this->mahasiswaJkCache[$user->nip];
+                }
+
+                // Add ALL roles from ALL reg_pd (multiple organisations)
+                if (isset($this->mahasiswaOrgCache[$user->nip])) {
+                    foreach ($this->mahasiswaOrgCache[$user->nip] as $id_sms) {
+                        $orgData = $this->getOrganisasiWithName($id_sms);
+                        $result['roles'][] = [
+                            'id_peran' => 39, // Mahasiswa
+                            'nm_peran' => 'Mahasiswa',
+                            'id_organisasi' => $orgData['id_organisasi'],
+                            'nm_organisasi' => $orgData['nm_organisasi'],
+                        ];
+                    }
+                }
+
+                // If no organisasi data found, add default role
+                if (empty($result['roles'])) {
+                    $result['roles'][] = [
+                        'id_peran' => 39,
+                        'nm_peran' => 'Mahasiswa',
+                        'id_organisasi' => 'e2b705a7-173e-464a-9fac-509128709515',
+                        'nm_organisasi' => 'Universitas Lampung',
+                    ];
+                }
+            } else {
+                // Not found in PDUT, default role
+                $result['roles'][] = [
+                    'id_peran' => 39,
+                    'nm_peran' => 'Mahasiswa',
+                    'id_organisasi' => 'e2b705a7-173e-464a-9fac-509128709515',
+                    'nm_organisasi' => 'Universitas Lampung',
+                ];
+            }
+        }
+        // TENDIK: Email @staff.unila.ac.id - Usually single role
+        elseif ($domain === 'staff') {
+            $nipTrimmed = trim($user->nip ?? '');
+            if (!empty($nipTrimmed) && isset($this->tendikCache[$nipTrimmed])) {
+                $tendik = $this->tendikCache[$nipTrimmed];
+                $result['id_user_sikep'] = $tendik->id_pegawai;
+
+                // Get jenis kelamin
+                if (isset($this->tendikJkCache[$nipTrimmed]) && $this->tendikJkCache[$nipTrimmed]) {
+                    $result['jenis_kelamin'] = $this->tendikJkCache[$nipTrimmed];
+                }
+
+                // Get organisasi
+                $nmOrganisasi = 'Universitas Lampung';
+                $idOrganisasi = 'e2b705a7-173e-464a-9fac-509128709515';
+
+                if (isset($this->tendikOrgCache[$nipTrimmed])) {
+                    $orgCache = $this->tendikOrgCache[$nipTrimmed];
+                    $nmOrganisasi = $orgCache['nm_organisasi'] ?? 'Universitas Lampung';
+
+                    if (!empty($orgCache['id_sms'])) {
+                        $orgData = $this->getOrganisasiWithName($orgCache['id_sms']);
+                        $idOrganisasi = $orgData['id_organisasi'];
+                    }
+                }
+
+                $result['roles'][] = [
+                    'id_peran' => 111, // Tendik
+                    'nm_peran' => 'Tendik',
+                    'id_organisasi' => $idOrganisasi,
+                    'nm_organisasi' => $nmOrganisasi,
+                ];
+            } else {
+                // Default tendik role
+                $result['roles'][] = [
+                    'id_peran' => 111,
+                    'nm_peran' => 'Tendik',
+                    'id_organisasi' => 'e2b705a7-173e-464a-9fac-509128709515',
+                    'nm_organisasi' => 'Universitas Lampung',
+                ];
+            }
+        }
+        // DOSEN: Email @ft, @fp, @fmipa, dll - MULTIPLE ROLES jika punya multiple reg_ptk
+        elseif (isset($this->fakultasCache[$domain])) {
+            $nipTrimmed = trim($user->nip ?? '');
+            if (!empty($nipTrimmed) && isset($this->dosenCache[$nipTrimmed])) {
+                $dosen = $this->dosenCache[$nipTrimmed];
+                $result['id_sdm_pengguna'] = $dosen->id_sdm;
+
+                // Get jenis kelamin
+                if (isset($this->dosenJkCache[$nipTrimmed]) && $this->dosenJkCache[$nipTrimmed]) {
+                    $result['jenis_kelamin'] = $this->dosenJkCache[$nipTrimmed];
+                }
+
+                // Add ALL roles from ALL reg_ptk (multiple organisations)
+                if (isset($this->dosenOrgCache[$nipTrimmed]) && !empty($this->dosenOrgCache[$nipTrimmed])) {
+                    foreach ($this->dosenOrgCache[$nipTrimmed] as $id_sms) {
+                        $orgData = $this->getOrganisasiWithName($id_sms);
+                        $result['roles'][] = [
+                            'id_peran' => 46, // Dosen
+                            'nm_peran' => 'Dosen',
+                            'id_organisasi' => $orgData['id_organisasi'],
+                            'nm_organisasi' => $orgData['nm_organisasi'],
+                        ];
+                    }
+                } else {
+                    // Fallback ke fakultas domain
+                    $id_sms = $this->fakultasCache[$domain];
+                    $orgData = $this->getOrganisasiWithName($id_sms);
+                    $result['roles'][] = [
+                        'id_peran' => 46,
+                        'nm_peran' => 'Dosen',
+                        'id_organisasi' => $orgData['id_organisasi'],
+                        'nm_organisasi' => $orgData['nm_organisasi'],
+                    ];
+                }
+            } else {
+                // Not found in SDM, set to Guest
+                $result['roles'][] = [
+                    'id_peran' => 40,
+                    'nm_peran' => 'Guest',
+                    'id_organisasi' => 'e2b705a7-173e-464a-9fac-509128709515',
+                    'nm_organisasi' => 'Universitas Lampung',
+                ];
+            }
+        } else {
+            // Default Guest role
+            $result['roles'][] = [
+                'id_peran' => 40,
+                'nm_peran' => 'Guest',
+                'id_organisasi' => 'e2b705a7-173e-464a-9fac-509128709515',
+                'nm_organisasi' => 'Universitas Lampung',
+            ];
+        }
+
+        return $result;
     }
 
     /**

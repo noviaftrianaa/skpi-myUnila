@@ -11,10 +11,10 @@ const API_V1_BASE = process.env.NEXT_PUBLIC_SISTER_API_URL
   ? `${process.env.NEXT_PUBLIC_SISTER_API_URL}/api/v1`
   : 'http://localhost:9800/sister-service/api/v1';
 
-// Dashboard API for penelitian detail
-const DASHBOARD_API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL
-  ? `${process.env.NEXT_PUBLIC_DASHBOARD_API_URL}/public/api/v1`
-  : 'http://localhost:9800/dashboard-service/public/api/v1';
+// Public API for penelitian detail
+const PUBLIC_API_URL = process.env.NEXT_PUBLIC_PUBLIC_API_URL
+  ? `${process.env.NEXT_PUBLIC_PUBLIC_API_URL}`
+  : 'http://localhost:9800/public-service/api/v1';
 
 // Types
 export interface AnggotaLitabmasInfo {
@@ -99,7 +99,7 @@ export interface BatchAllSyncResult {
   failed_dosen?: string[];
 }
 
-// Penelitian Detail Types (from dashboard-service)
+// Penelitian Detail Types (from public-service)
 export interface AnggotaTim {
   id_sdm_anggota_litabmas: string;
   id_sdm: string;
@@ -264,12 +264,12 @@ export const sisterPenelitianService = {
 
   /**
    * Get penelitian statistics for dashboard (with sebaran fakultas/prodi)
-   * This uses dashboard-service API endpoint
+   * This uses public-service API endpoint
    */
   async getStatistics(): Promise<PenelitianStatistics> {
     // Use native fetch to avoid axios interceptor issues
     const response = await fetch(
-      `${DASHBOARD_API_URL}/penelitian/statistics`
+      `${PUBLIC_API_URL}/penelitian/statistics`
     );
 
     if (!response.ok) {
@@ -282,11 +282,11 @@ export const sisterPenelitianService = {
 
   /**
    * Get penelitian detail by ID
-   * This uses dashboard-service API endpoint
+   * This uses public-service API endpoint
    */
   async getPenelitianDetail(idLitabmas: string): Promise<PenelitianDetailResponse> {
     const response = await axios.get<PenelitianDetailResponse>(
-      `${DASHBOARD_API_URL}/penelitian/${idLitabmas}`
+      `${PUBLIC_API_URL}/penelitian/${idLitabmas}`
     );
     return response.data;
   },

@@ -11,10 +11,10 @@ const API_V1_BASE = process.env.NEXT_PUBLIC_SISTER_API_URL
   ? `${process.env.NEXT_PUBLIC_SISTER_API_URL}/api/v1`
   : 'http://localhost:9800/sister-service/api/v1';
 
-// Dashboard API for pengabdian detail
-const DASHBOARD_API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL
-  ? `${process.env.NEXT_PUBLIC_DASHBOARD_API_URL}/public/api/v1`
-  : 'http://localhost:9800/dashboard-service/public/api/v1';
+// Public API for pengabdian detail
+const PUBLIC_API_URL = process.env.NEXT_PUBLIC_PUBLIC_API_URL
+  ? `${process.env.NEXT_PUBLIC_PUBLIC_API_URL}`
+  : 'http://localhost:9800/public-service/api/v1';
 
 // Types - Reuse Litabmas type from penelitian since they share the same entity
 export interface AnggotaLitabmasInfo {
@@ -99,7 +99,7 @@ export interface BatchAllSyncResult {
   failed_dosen?: string[];
 }
 
-// Pengabdian Detail Types (from dashboard-service)
+// Pengabdian Detail Types (from public-service)
 export interface AnggotaTim {
   id_sdm_anggota_litabmas: string;
   id_sdm: string;
@@ -253,11 +253,11 @@ export const sisterPengabdianService = {
 
   /**
    * Get pengabdian detail by ID
-   * This uses dashboard-service API endpoint
+   * This uses public-service API endpoint
    */
   async getPengabdianDetail(idLitabmas: string): Promise<PengabdianDetailResponse> {
     const response = await axios.get<PengabdianDetailResponse>(
-      `${DASHBOARD_API_URL}/pengabdian/${idLitabmas}`
+      `${PUBLIC_API_URL}/pengabdian/${idLitabmas}`
     );
     return response.data;
   },

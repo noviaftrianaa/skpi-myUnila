@@ -52,7 +52,7 @@ func (s *service) SyncPublikasiByIDSDM(idSDM string, syncedBy string) (*BatchPub
 	if err != nil {
 		syncErr := fmt.Errorf("failed to fetch publikasi list: %w", err)
 		monitorSvc.FailSync(syncID, syncErr.Error())
-		s.logSyncResult("Publikasi", "publikasi", "by_dosen", syncedBy, 0, 0, 0, startTime, syncErr)
+		// Don't log here - will be logged by BatchSyncAllPublikasi if called from scheduler
 		return nil, syncErr
 	}
 
@@ -60,7 +60,7 @@ func (s *service) SyncPublikasiByIDSDM(idSDM string, syncedBy string) (*BatchPub
 	if err := json.Unmarshal(rawData, &publikasiList); err != nil {
 		parseErr := fmt.Errorf("failed to parse publikasi list: %w", err)
 		monitorSvc.FailSync(syncID, parseErr.Error())
-		s.logSyncResult("Publikasi", "publikasi", "by_dosen", syncedBy, 0, 0, 0, startTime, parseErr)
+		// Don't log here - will be logged by BatchSyncAllPublikasi if called from scheduler
 		return nil, parseErr
 	}
 
@@ -74,7 +74,7 @@ func (s *service) SyncPublikasiByIDSDM(idSDM string, syncedBy string) (*BatchPub
 	if totalPublikasi == 0 {
 		log.Printf("✅ No publikasi found for id_sdm: %s", idSDM)
 		monitorSvc.CompleteSync(syncID, "No publikasi to sync")
-		s.logSyncResult("Publikasi", "publikasi", "by_dosen", syncedBy, 0, 0, 0, startTime, nil)
+		// Don't log here - will be logged by BatchSyncAllPublikasi if called from scheduler
 		return &BatchPublikasiSyncResult{
 			TotalProcessed: 0,
 			TotalSuccess:   0,
@@ -116,12 +116,7 @@ func (s *service) SyncPublikasiByIDSDM(idSDM string, syncedBy string) (*BatchPub
 	log.Printf("📊 Total: %d | Success: %d | Failed: %d",
 		totalPublikasi, successCount, failedCount)
 
-	// Log to database
-	var syncErr error
-	if failedCount > 0 {
-		syncErr = fmt.Errorf("%d out of %d publikasi failed to sync", failedCount, totalPublikasi)
-	}
-	s.logSyncResult("Publikasi", "publikasi", "by_dosen", syncedBy, totalPublikasi, successCount, failedCount, startTime, syncErr)
+	// Don't log to database here - will be logged by BatchSyncAllPublikasi if called from scheduler
 
 	// Complete monitoring
 	if failedCount > 0 {

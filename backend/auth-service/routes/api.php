@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\ManAkses\DashboardController;
 use App\Http\Controllers\Api\UserContextController;
 use App\Http\Controllers\Api\Logger\LoggerController;
 use App\Http\Controllers\Api\Logger\KongLogController;
+use App\Http\Controllers\Api\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -135,6 +136,9 @@ Route::prefix('v1')->group(function () {
             // App Menus endpoint (RBAC-based menu visibility)
             Route::get('/app-menus', [UserContextController::class, 'getAppMenus']);           // Get user's accessible menus for an app
         });
+
+        // Profile endpoints (get complete user profile with roles and detailed data)
+        Route::get('/profile', [ProfileController::class, 'getProfile']);
 
     });
 

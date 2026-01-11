@@ -26,7 +26,7 @@ REM Start main services
 echo ========================================
 echo === Starting Main Services ===
 echo ========================================
-echo [INFO] Starting Auth Service, Dashboard Service, Nginx, Redis...
+echo [INFO] Starting Auth Service, Public Service, Nginx, Redis...
 docker-compose up -d
 if errorlevel 1 (
     echo [ERROR] Failed to start main services
@@ -112,17 +112,17 @@ if not errorlevel 1 (
     echo [OK] Auth route added
 )
 
-REM Check if dashboard-service already exists
-curl -s http://localhost:9801/services/dashboard-service >nul 2>&1
+REM Check if public-service already exists
+curl -s http://localhost:9801/services/public-service >nul 2>&1
 if not errorlevel 1 (
-    echo [WARNING] Service 'dashboard-service' already configured
+    echo [WARNING] Service 'public-service' already configured
 ) else (
-    echo [INFO] Adding dashboard-service to Kong...
-    curl -s -X POST http://localhost:9801/services --data name=dashboard-service --data url=http://nginx:81 >nul 2>&1
-    echo [OK] Dashboard service added
+    echo [INFO] Adding public-service to Kong...
+    curl -s -X POST http://localhost:9801/services --data name=public-service --data url=http://nginx:81 >nul 2>&1
+    echo [OK] Public service added
 
-    curl -s -X POST http://localhost:9801/services/dashboard-service/routes --data "name=dashboard-route" --data "paths[]=/dashboard-service" --data strip_path=true >nul 2>&1
-    echo [OK] Dashboard route added
+    curl -s -X POST http://localhost:9801/services/public-service/routes --data "name=public-route" --data "paths[]=/public-service" --data strip_path=true >nul 2>&1
+    echo [OK] Public route added
 )
 echo.
 
@@ -139,12 +139,12 @@ if not errorlevel 1 (
     echo [WARNING] Auth Service might not be ready
 )
 
-echo [INFO] Testing Dashboard Service (Direct - Port 8082)...
-curl -s http://localhost:8082/api/health | findstr "healthy" >nul 2>&1
+echo [INFO] Testing Public Service (Direct - Port 8082)...
+curl -s http://localhost:8082/api/v1/health | findstr "healthy" >nul 2>&1
 if not errorlevel 1 (
-    echo [OK] Dashboard Service is working
+    echo [OK] Public Service is working
 ) else (
-    echo [WARNING] Dashboard Service might not be ready
+    echo [WARNING] Public Service might not be ready
 )
 
 echo [INFO] Testing Kong Admin API (Port 9801)...
@@ -183,7 +183,7 @@ echo ========================================
 echo.
 echo Main Services:
 echo   - Auth Service:           http://localhost:8081
-echo   - Dashboard Service:      http://localhost:8082
+echo   - Public Service:         http://localhost:8082
 echo   - Redis:                  localhost:6379
 echo.
 echo Kong API Gateway:
@@ -196,10 +196,10 @@ echo   - Login:                  http://localhost:8081/api/v1/auth/login
 echo   - Login (via Kong):       http://localhost:9800/auth-service/api/v1/auth/login
 echo   - Health Check:           http://localhost:8081/api/v1/health
 echo.
-echo Dashboard Service Endpoints:
+echo Public Service Endpoints:
 echo   - University Profile:     http://localhost:8082/api/v1/university-profile
 echo   - Quick Facts:            http://localhost:8082/api/v1/university-profile/quick-facts
-echo   - Via Kong:               http://localhost:9800/dashboard-service/api/v1/university-profile
+echo   - Via Kong:               http://localhost:9800/public-service/api/v1/university-profile
 echo.
 echo ========================================
 echo [OK] All services started successfully!
