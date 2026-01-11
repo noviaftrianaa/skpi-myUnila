@@ -77,8 +77,7 @@
     - name: Setup Kong routes (services, routes, plugins)
       shell: |
         cd {{ deployment_dir }}/scripts
-        chmod +x setup-kong-routes.sh
-        ./setup-kong-routes.sh
+        bash setup-kong-routes.sh
       args:
         executable: /bin/bash
       become_user: "{{ ansible_user }}"
