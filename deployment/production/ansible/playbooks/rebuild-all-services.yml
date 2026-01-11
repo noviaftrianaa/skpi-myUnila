@@ -74,6 +74,21 @@
         delay: 5
         timeout: 60
 
+    - name: Setup Kong routes (services, routes, plugins)
+      shell: |
+        cd {{ deployment_dir }}/scripts
+        chmod +x setup-kong-routes.sh
+        ./setup-kong-routes.sh
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: kong_routes_setup
+
+    - name: Display Kong routes setup result
+      debug:
+        msg: "{{ kong_routes_setup.stdout_lines[-20:] }}"
+      when: kong_routes_setup.stdout_lines is defined
+
     - name: Rebuild Frontend image
       shell: |
         cd {{ deployment_dir }}
