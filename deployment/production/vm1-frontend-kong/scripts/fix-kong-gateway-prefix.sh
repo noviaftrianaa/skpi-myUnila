@@ -24,23 +24,23 @@ parse_json_id() {
     echo "$1" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4
 }
 
-# Update dashboard-public-route
-echo -e "${YELLOW}[1/4] Updating dashboard-public-route...${NC}"
-curl -s -X PATCH "$KONG_ADMIN_URL/routes/dashboard-public-route" \
+# Update public-public-route
+echo -e "${YELLOW}[1/4] Updating public-public-route...${NC}"
+curl -s -X PATCH "$KONG_ADMIN_URL/routes/public-public-route" \
   -H "Content-Type: application/json" \
   -d '{
-    "paths": ["/gateway/dashboard-service/public"]
+    "paths": ["/gateway/public-service/public"]
   }' > /dev/null
-echo -e "${GREEN}  ✓ Updated to /gateway/dashboard-service/public${NC}"
+echo -e "${GREEN}  ✓ Updated to /gateway/public-service/public${NC}"
 
-# Update dashboard-protected-route
-echo -e "${YELLOW}[2/4] Updating dashboard-protected-route...${NC}"
-curl -s -X PATCH "$KONG_ADMIN_URL/routes/dashboard-protected-route" \
+# Update public-protected-route
+echo -e "${YELLOW}[2/4] Updating public-protected-route...${NC}"
+curl -s -X PATCH "$KONG_ADMIN_URL/routes/public-protected-route" \
   -H "Content-Type: application/json" \
   -d '{
-    "paths": ["/gateway/dashboard-service/api/v1/my"]
+    "paths": ["/gateway/public-service/api/v1/my"]
   }' > /dev/null
-echo -e "${GREEN}  ✓ Updated to /gateway/dashboard-service/api/v1/my${NC}"
+echo -e "${GREEN}  ✓ Updated to /gateway/public-service/api/v1/my${NC}"
 
 # Update auth-service-route
 echo -e "${YELLOW}[3/4] Updating auth-service-route...${NC}"
@@ -76,8 +76,8 @@ echo -e "${GREEN}=========================================${NC}"
 echo ""
 
 echo -e "${YELLOW}Updated Routes:${NC}"
-echo "  Dashboard (public):    https://my.unila.ac.id/gateway/dashboard-service/public/..."
-echo "  Dashboard (protected): https://my.unila.ac.id/gateway/dashboard-service/api/v1/my/..."
+echo "  Public (public):       https://my.unila.ac.id/gateway/public-service/public/..."
+echo "  Public (protected):    https://my.unila.ac.id/gateway/public-service/api/v1/my/..."
 echo "  Auth:                  https://my.unila.ac.id/gateway/auth-service/api/v1/..."
 echo "  Sister:                https://my.unila.ac.id/gateway/sister-service/api/v1/..."
 echo "  Feeder:                https://my.unila.ac.id/gateway/feeder-service/api/v1/..."

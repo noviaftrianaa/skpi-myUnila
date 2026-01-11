@@ -72,10 +72,10 @@
         port: '8082'
         proto: tcp
 
-    - name: Build Dashboard Service
+    - name: Build Public Service
       shell: |
         cd {{ app_dir }}/deployment/production/vm2-backend1
-        docker compose -f services/dashboard/docker-compose.yml build --no-cache dashboard-service
+        docker compose -f services/public/docker-compose.yml build --no-cache public-service
       args:
         executable: /bin/bash
       become_user: "{{ ansible_user }}"

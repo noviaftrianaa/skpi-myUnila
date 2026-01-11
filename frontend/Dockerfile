@@ -2,7 +2,10 @@
 
 # Stage 1: Dependencies
 FROM node:20-alpine AS deps
-RUN apk add --no-cache libc6-compat
+
+# Update apk and install libc6-compat if available (optional for Next.js)
+RUN apk update && apk add --no-cache libc6-compat 2>/dev/null || true
+
 WORKDIR /app
 
 # Copy package files

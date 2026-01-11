@@ -39,7 +39,7 @@ services:
       # Encryption Key
       API_CONFIG_ENCRYPTION_KEY: ${API_CONFIG_ENCRYPTION_KEY}
 
-      # Laravel APP_KEY for decrypting encrypted IDs from dashboard-service
+      # Laravel APP_KEY for decrypting encrypted IDs from public-service
       LARAVEL_APP_KEY: ${LARAVEL_APP_KEY}
 
       # JWT
