@@ -180,87 +180,49 @@ fi
 echo ""
 
 ###############################################################################
-# 1. Dashboard Service
+# 1. Public Service (formerly Dashboard Service)
 ###############################################################################
-echo -e "${GREEN}[1/6] Setting up Dashboard Service...${NC}"
+echo -e "${GREEN}[1/6] Setting up Public Service...${NC}"
 
-# Create Dashboard Service (for protected endpoints)
-# Note: Upstream is at VM2 (e.g., 192.168.120.42:8082)
-# Add /api path prefix to match Laravel 11 auto-prefixing
-DASHBOARD_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+# Note: Public service only has public endpoints (no JWT required)
+# All endpoints: /public/api/v1/*
+
+# Create Public Service for public endpoints
+# Laravel routes: /public/api/v1/...
+# Kong will strip /public-service and forward to /public
+echo -e "${YELLOW}  → Creating public-service for public endpoints...${NC}"
+PUBLIC_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
   -d "{
-    \"name\": \"dashboard-service\",
-    \"url\": \"${DASHBOARD_SERVICE_URL:-http://192.168.120.42:8082/api}\"
+    \"name\": \"public-service\",
+    \"url\": \"${PUBLIC_SERVICE_URL:-http://192.168.120.42:8082}/public\"
   }")
 
-DASHBOARD_SERVICE_ID=$(parse_json_id "$DASHBOARD_SERVICE")
+PUBLIC_SERVICE_ID=$(parse_json_id "$PUBLIC_SERVICE")
 
-if [ -z "$DASHBOARD_SERVICE_ID" ]; then
-    echo -e "${RED}  ✗ Failed to create Dashboard service${NC}"
+if [ -z "$PUBLIC_SERVICE_ID" ]; then
+    echo -e "${RED}  ✗ Failed to create Public service${NC}"
 else
-    echo -e "${GREEN}  ✓ Dashboard service created: $DASHBOARD_SERVICE_ID${NC}"
-fi
+    echo -e "${GREEN}  ✓ Public service created: $PUBLIC_SERVICE_ID${NC}"
 
-# Create separate Dashboard Public Service for public endpoints
-# Laravel routes: /api/public/api/v1/...
-# Kong will strip /dashboard-service/public and forward to /api/public
-echo -e "${YELLOW}  → Creating dashboard-public-service for public endpoints...${NC}"
-DASHBOARD_PUBLIC_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
-  -H "Content-Type: application/json" \
-  -d "{
-    \"name\": \"dashboard-public-service\",
-    \"url\": \"${DASHBOARD_SERVICE_URL:-http://192.168.120.42:8082}/api/public\"
-  }")
-
-DASHBOARD_PUBLIC_SERVICE_ID=$(parse_json_id "$DASHBOARD_PUBLIC_SERVICE")
-
-if [ -z "$DASHBOARD_PUBLIC_SERVICE_ID" ]; then
-    echo -e "${RED}  ✗ Failed to create Dashboard Public service${NC}"
-else
-    echo -e "${GREEN}  ✓ Dashboard Public service created: $DASHBOARD_PUBLIC_SERVICE_ID${NC}"
-
-    # Route 1: Public endpoints (no JWT) - /dashboard-service/public/api/v1/X → /api/public/api/v1/X
-    # Strip /dashboard-service/public, forward to /api/public (via service path)
-    echo -e "${YELLOW}  → Creating public route for /public endpoints...${NC}"
-    DASHBOARD_PUBLIC_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$DASHBOARD_PUBLIC_SERVICE_ID/routes" \
+    # Route: Public endpoints (no JWT) - /public-service/api/v1/X → /public/api/v1/X
+    echo -e "${YELLOW}  → Creating public route...${NC}"
+    PUBLIC_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$PUBLIC_SERVICE_ID/routes" \
       -H "Content-Type: application/json" \
       -d '{
-        "name": "dashboard-public-route",
-        "paths": ["/dashboard-service/public"],
+        "name": "public-service-route",
+        "paths": ["/public-service"],
         "strip_path": true,
         "preserve_host": false,
         "protocols": ["http", "https"],
         "regex_priority": 300
       }')
 
-    DASHBOARD_PUBLIC_ROUTE_ID=$(parse_json_id "$DASHBOARD_PUBLIC_ROUTE")
+    PUBLIC_ROUTE_ID=$(parse_json_id "$PUBLIC_ROUTE")
 
-    if [ -n "$DASHBOARD_PUBLIC_ROUTE_ID" ]; then
-        # No CORS plugin here - Laravel handles CORS to avoid duplicate headers
-        echo -e "${GREEN}  ✓ Public route created (no JWT, no Kong CORS - Laravel handles CORS)${NC}"
-    fi
-fi
-
-# Route 2: Protected endpoints (with JWT) - /dashboard-service/api/v1/my → /api/api/v1/my
-if [ -n "$DASHBOARD_SERVICE_ID" ]; then
-    echo -e "${YELLOW}  → Creating protected route for /my endpoints...${NC}"
-    DASHBOARD_PROTECTED_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$DASHBOARD_SERVICE_ID/routes" \
-      -H "Content-Type: application/json" \
-      -d '{
-        "name": "dashboard-protected-route",
-        "paths": ["/dashboard-service/api/v1/my"],
-        "strip_path": true,
-        "preserve_host": false,
-        "protocols": ["http", "https"],
-        "regex_priority": 200
-      }')
-
-    DASHBOARD_PROTECTED_ROUTE_ID=$(parse_json_id "$DASHBOARD_PROTECTED_ROUTE")
-
-    if [ -n "$DASHBOARD_PROTECTED_ROUTE_ID" ]; then
-        # Add CORS plugin
-        curl -s -X POST "$KONG_ADMIN_URL/routes/$DASHBOARD_PROTECTED_ROUTE_ID/plugins" \
+    if [ -n "$PUBLIC_ROUTE_ID" ]; then
+        # Add CORS plugin (no JWT plugin - all public)
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$PUBLIC_ROUTE_ID/plugins" \
           -H "Content-Type: application/json" \
           -d '{
             "name": "cors",
@@ -273,24 +235,7 @@ if [ -n "$DASHBOARD_SERVICE_ID" ]; then
               "max_age": 3600
             }
           }' > /dev/null
-
-        # Add JWT plugin
-        curl -s -X POST "$KONG_ADMIN_URL/routes/$DASHBOARD_PROTECTED_ROUTE_ID/plugins" \
-          -H "Content-Type: application/json" \
-          -d '{
-            "name": "jwt",
-            "config": {
-              "claims_to_verify": ["exp"],
-              "key_claim_name": "iss",
-              "secret_is_base64": false,
-              "anonymous": null,
-              "run_on_preflight": false,
-              "maximum_expiration": 0,
-              "header_names": ["authorization"],
-              "cookie_names": []
-            }
-          }' > /dev/null
-        echo -e "${GREEN}  ✓ Protected route created with JWT (for /api/v1/my/*)${NC}"
+        echo -e "${GREEN}  ✓ Public route created (no JWT)${NC}"
     fi
 fi
 
@@ -851,8 +796,7 @@ echo -e "${GREEN}=========================================${NC}"
 echo ""
 
 echo -e "${YELLOW}Configured Routes:${NC}"
-echo "  Dashboard (public):    http://localhost:9800/dashboard-service/public/api/v1"
-echo "  Dashboard (protected): http://localhost:9800/dashboard-service/api/v1"
+echo "  Public (public):       http://localhost:9800/public-service/api/v1"
 echo "  Auth:                  http://localhost:9800/auth-service/api/v1"
 echo "  Sister (protected):    http://localhost:9800/sister-service/api/v1"
 echo "  Sister (public photo): http://localhost:9800/sister-service/public/api/v1/dosen/photo/:id"
@@ -862,8 +806,8 @@ echo "  MyUnila (public):      http://localhost:9800/myunila-service/public/api/
 echo ""
 
 echo -e "${YELLOW}Example Test Commands:${NC}"
-echo "  # Dashboard public (no auth)"
-echo "  curl http://localhost:9800/dashboard-service/public/api/v1/dosen/statistics"
+echo "  # Public service (no auth)"
+echo "  curl http://localhost:9800/public-service/api/v1/dosen/statistics"
 echo ""
 echo "  # Sister public photo (no auth)"
 echo "  curl http://localhost:9800/sister-service/public/api/v1/dosen/photo/YOUR-ID-HERE"

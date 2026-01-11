@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  public-service:
+    build:
+      context: ../../../../backend/public-service
+      dockerfile: Dockerfile
+    image: myunila/public-service:latest
+    container_name: myunila-public-service
+    working_dir: /var/www
+    env_file:
+      - ../../.env
+    environment:
+      # Redis (override from env_file if needed)
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+
+      TZ: "${TZ:-Asia/Jakarta}"
+    volumes:
+      - public_storage:/var/www/storage
+      - public_logs:/var/www/storage/logs
+    networks:
+      - myunila-network
+    depends_on:
+      - redis-check
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'php-fpm: master process' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "service=public"
+
+  # Public Scheduler (Supervisor)
+  public-scheduler:
+    image: myunila/public-service:latest
+    container_name: myunila-public-scheduler
+    working_dir: /var/www
+    env_file:
+      - ../../.env
+    environment:
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+      TZ: "${TZ:-Asia/Jakarta}"
+    volumes:
+      - public_storage:/var/www/storage
+      - public_logs:/var/www/storage/logs
+      - ../../../../backend/public-service/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf:ro
+    networks:
+      - myunila-network
+    depends_on:
+      - public-service
+      - redis-check
+    command: >
+      sh -c "
+      apk add --no-cache supervisor > /dev/null 2>&1 &&
+      mkdir -p /var/log/supervisor &&
+      /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+      "
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=public-scheduler"
+
+  # Redis health check
+  redis-check:
+    image: redis:7-alpine
+    container_name: myunila-redis-check-public
+    command: >
+      sh -c "
+      until redis-cli -h redis ping; do
+        echo 'Waiting for Redis...';
+        sleep 2;
+      done;
+      echo 'Redis is ready!';
+      "
+    networks:
+      - myunila-network
+    restart: "no"
+
+networks:
+  myunila-network:
+    external: true
+    name: myunila-network
+
+volumes:
+  public_storage:
+    driver: local
+    name: myunila-public-storage
+  public_logs:
+    driver: local
+    name: myunila-public-logs

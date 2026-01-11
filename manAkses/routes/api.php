@@ -32,5 +32,10 @@ Route::group([
             Route::get('/users-with-roles', 'SsoRadiusController@usersWithRoles');
         });
 
+        // Profile API - Get complete user profile (protected)
+        Route::middleware('auth.api')->prefix('v1')->group(function () {
+            Route::get('/profile', 'ProfileController@getProfile');
+        });
+
     });
 });

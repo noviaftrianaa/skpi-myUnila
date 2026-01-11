@@ -11,9 +11,9 @@ const API_V1_BASE = process.env.NEXT_PUBLIC_SISTER_API_URL
   ? `${process.env.NEXT_PUBLIC_SISTER_API_URL}/api/v1`
   : 'http://localhost:9800/sister-service/api/v1';
 
-const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL
-  ? `${process.env.NEXT_PUBLIC_DASHBOARD_API_URL}/public/api/v1`
-  : 'http://localhost:9800/dashboard-service/public/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_PUBLIC_API_URL
+  ? `${process.env.NEXT_PUBLIC_PUBLIC_API_URL}`
+  : 'http://localhost:9800/public-service/api/v1';
 
 // Types
 export interface PublikasiByJenis {
@@ -65,7 +65,7 @@ export const publikasiService = {
 
   /**
    * Get publikasi detail by ID
-   * This uses dashboard-service API endpoint
+   * This uses public-service API endpoint
    */
   async getPublikasiDetail(idPublikasi: string): Promise<PublikasiDetailResponse> {
     const response = await axios.get<PublikasiDetailResponse>(
@@ -135,7 +135,7 @@ export interface BatchAllSyncResult {
   failed_dosen?: string[];
 }
 
-// Publikasi Detail Types (from dashboard-service)
+// Publikasi Detail Types (from public-service)
 export interface PenulisPublikasi {
   id_sdm: string;
   encrypted_id: string;

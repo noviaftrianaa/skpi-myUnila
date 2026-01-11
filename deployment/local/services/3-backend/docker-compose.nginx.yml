@@ -6,12 +6,12 @@ services:
     container_name: myunila-nginx
     ports:
       - "8081:80"   # Auth Service
-      - "8082:81"   # Dashboard Service
+      - "8082:81"   # Public Service
     volumes:
       - ../../configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ../../configs/nginx/conf.d:/etc/nginx/conf.d:ro
       - auth_public:/var/www/auth-service/public:ro
-      - dashboard_public:/var/www/dashboard-service/public:ro
+      - public_public:/var/www/public-service/public:ro
     networks:
       - myunila-network
     restart: unless-stopped
@@ -35,6 +35,6 @@ volumes:
   auth_public:
     external: true
     name: myunila-auth-storage
-  dashboard_public:
+  public_public:
     external: true
-    name: myunila-dashboard-storage
+    name: myunila-public-storage

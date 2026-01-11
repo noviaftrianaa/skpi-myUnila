@@ -50,7 +50,7 @@ check_docker() {
 
 # Start main services
 start_main() {
-    print_header "Starting Main Services (Auth, Dashboard, Nginx, Redis)"
+    print_header "Starting Main Services (Auth, Public, Nginx, Redis)"
 
     docker-compose up -d
 
@@ -138,25 +138,25 @@ configure_kong() {
         fi
     fi
 
-    # Configure dashboard-service
-    if curl -s http://localhost:9801/services/dashboard-service 2>/dev/null | grep -q "dashboard-service"; then
-        print_warning "Service 'dashboard-service' already configured"
+    # Configure public-service
+    if curl -s http://localhost:9801/services/public-service 2>/dev/null | grep -q "public-service"; then
+        print_warning "Service 'public-service' already configured"
     else
-        print_info "Adding dashboard-service to Kong..."
+        print_info "Adding public-service to Kong..."
         response=$(curl -s -X POST http://localhost:9801/services \
-            --data name=dashboard-service \
+            --data name=public-service \
             --data url=http://nginx:81)
 
-        if echo "$response" | grep -q "dashboard-service"; then
-            print_success "Dashboard service added"
+        if echo "$response" | grep -q "public-service"; then
+            print_success "Public service added"
 
-            response=$(curl -s -X POST http://localhost:9801/services/dashboard-service/routes \
-                --data "name=dashboard-route" \
-                --data "paths[]=/dashboard-service" \
+            response=$(curl -s -X POST http://localhost:9801/services/public-service/routes \
+                --data "name=public-route" \
+                --data "paths[]=/public-service" \
                 --data strip_path=true)
 
-            if echo "$response" | grep -q "dashboard-route"; then
-                print_success "Dashboard route added"
+            if echo "$response" | grep -q "public-route"; then
+                print_success "Public route added"
             fi
         fi
     fi
@@ -201,7 +201,7 @@ show_urls() {
     echo ""
     echo -e "${GREEN}Main Services:${NC}"
     echo "  → Auth Service:           http://localhost:8081"
-    echo "  → Dashboard Service:      http://localhost:8082"
+    echo "  → Public Service:         http://localhost:8082"
     echo "  → Redis:                  localhost:6379"
     echo ""
     echo -e "${GREEN}Kong API Gateway:${NC}"
@@ -214,10 +214,10 @@ show_urls() {
     echo "  → Login (via Kong):       http://localhost:9800/auth-service/api/v1/auth/login"
     echo "  → Swagger Docs:           http://localhost:8081/api/documentation"
     echo ""
-    echo -e "${GREEN}Dashboard Service Endpoints:${NC}"
+    echo -e "${GREEN}Public Service Endpoints:${NC}"
     echo "  → University Profile:     http://localhost:8082/api/v1/university-profile"
     echo "  → Quick Facts:            http://localhost:8082/api/v1/university-profile/quick-facts"
-    echo "  → Via Kong:               http://localhost:9800/dashboard-service/api/v1/university-profile"
+    echo "  → Via Kong:               http://localhost:9800/public-service/api/v1/university-profile"
     echo ""
 }
 

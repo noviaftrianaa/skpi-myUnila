@@ -1,0 +1,149 @@
+version: '3.8'
+
+services:
+  public-service:
+    build:
+      context: ../../../../../backend/public-service
+      dockerfile: Dockerfile
+      args:
+        - APP_ENV=production
+    image: myunila/public-service:production
+    container_name: myunila-public-service
+    env_file:
+      - ../../.env
+    environment:
+      APP_NAME: "${APP_NAME:-MyUnila}"
+      APP_ENV: production
+      APP_KEY: "${PUBLIC_APP_KEY}"
+      APP_DEBUG: "${APP_DEBUG:-false}"
+      APP_URL: "${APP_URL}"
+
+      # Database
+      DB_CONNECTION: sqlsrv
+      DB_HOST: "${PUBLIC_DB_HOST}"
+      DB_PORT: "${PUBLIC_DB_PORT}"
+      DB_DATABASE: "${PUBLIC_DB_DATABASE}"
+      DB_USERNAME: "${PUBLIC_DB_USERNAME}"
+      DB_PASSWORD: "${PUBLIC_DB_PASSWORD}"
+
+      # Sister Database (same as pdut)
+      SISTER_DB_HOST: "${PUBLIC_DB_HOST}"
+      SISTER_DB_PORT: "${PUBLIC_DB_PORT}"
+      SISTER_DB_DATABASE: "${PUBLIC_DB_DATABASE}"
+      SISTER_DB_USERNAME: "${PUBLIC_DB_USERNAME}"
+      SISTER_DB_PASSWORD: "${PUBLIC_DB_PASSWORD}"
+
+      # Meilisearch
+      MEILISEARCH_HOST: "${MEILISEARCH_HOST}"
+      MEILISEARCH_KEY: "${MEILISEARCH_KEY}"
+
+      # Redis
+      REDIS_HOST: "${REDIS_HOST}"
+      REDIS_PORT: "${REDIS_PORT}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+
+      TZ: "${TIMEZONE:-Asia/Jakarta}"
+
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 6G
+        reservations:
+          cpus: '2'
+          memory: 2G
+
+    networks:
+      - myunila-prod-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f php-fpm || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "service=public,vm=vm2"
+
+  # Public Scheduler (Supervisor)
+  public-scheduler:
+    image: myunila/public-service:production
+    container_name: myunila-public-scheduler
+    env_file:
+      - ../../.env
+    environment:
+      APP_NAME: "${APP_NAME:-MyUnila}"
+      APP_ENV: production
+      APP_KEY: "${PUBLIC_APP_KEY}"
+      APP_DEBUG: "${APP_DEBUG:-false}"
+      APP_URL: "${APP_URL}"
+
+      # Database
+      DB_CONNECTION: sqlsrv
+      DB_HOST: "${PUBLIC_DB_HOST}"
+      DB_PORT: "${PUBLIC_DB_PORT}"
+      DB_DATABASE: "${PUBLIC_DB_DATABASE}"
+      DB_USERNAME: "${PUBLIC_DB_USERNAME}"
+      DB_PASSWORD: "${PUBLIC_DB_PASSWORD}"
+
+      # Sister Database (same as pdut)
+      SISTER_DB_HOST: "${PUBLIC_DB_HOST}"
+      SISTER_DB_PORT: "${PUBLIC_DB_PORT}"
+      SISTER_DB_DATABASE: "${PUBLIC_DB_DATABASE}"
+      SISTER_DB_USERNAME: "${PUBLIC_DB_USERNAME}"
+      SISTER_DB_PASSWORD: "${PUBLIC_DB_PASSWORD}"
+
+      # Meilisearch
+      MEILISEARCH_HOST: "${MEILISEARCH_HOST}"
+      MEILISEARCH_KEY: "${MEILISEARCH_KEY}"
+
+      # Redis
+      REDIS_HOST: "${REDIS_HOST}"
+      REDIS_PORT: "${REDIS_PORT}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+
+      TZ: "${TIMEZONE:-Asia/Jakarta}"
+
+    volumes:
+      - ../../../../../backend/public-service/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf:ro
+      - public_logs:/var/www/storage/logs
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+    networks:
+      - myunila-prod-network
+    depends_on:
+      - public-service
+    command: >
+      sh -c "
+      apk add --no-cache supervisor &&
+      mkdir -p /var/log/supervisor &&
+      /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+      "
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=public-scheduler,vm=vm2"
+
+volumes:
+  public_logs:
+    driver: local
+
+networks:
+  myunila-prod-network:
+    external: true
+    name: myunila-prod-network

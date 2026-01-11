@@ -155,7 +155,7 @@ export const bidangIlmuHelpers = {
 };
 
 // Public Dashboard API
-const API_BASE_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL || 'http://localhost:9800/dashboard-service/public/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_PUBLIC_API_URL || 'http://localhost:9800/public-service/api/v1';
 
 export interface BidangIlmuSearchItem {
   id_kel_bidang: string;

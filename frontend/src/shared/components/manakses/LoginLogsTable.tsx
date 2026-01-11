@@ -2,10 +2,9 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import DataTable, { Column } from "../ui/DataTable";
-import { Chip, Select, SelectItem, Button, Input } from "@heroui/react";
-import { FiEye, FiCalendar } from "react-icons/fi";
+import { Chip, Select, SelectItem, Button } from "@heroui/react";
+import { FiEye } from "react-icons/fi";
 import { loggerService, type LoginLog } from "@/lib/services/manakses/loggerService";
-import { aplikasiService, type Aplikasi } from "@/lib/services/manakses/aplikasiService";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import LoginLogDetailModal from "./LoginLogDetailModal";
@@ -18,14 +17,10 @@ export default function LoginLogsTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [totalRecords, setTotalRecords] = useState(0);
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [filterAplikasi, setFilterAplikasi] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("waktu_login");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-
-  // Aplikasi options
-  const [aplikasiOptions, setAplikasiOptions] = useState<Aplikasi[]>([]);
 
   // Modal states
   const [detailModalOpen, setDetailModalOpen] = useState(false);
@@ -41,23 +36,6 @@ export default function LoginLogsTable() {
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
 
-  // Load aplikasi options on mount
-  useEffect(() => {
-    let isMounted = true;
-    const loadAplikasi = async () => {
-      try {
-        const response = await aplikasiService.getList({ page: 1, limit: 1000 });
-        if (isMounted) {
-          setAplikasiOptions(response.data);
-        }
-      } catch (error) {
-        console.error('Error loading aplikasi:', error);
-      }
-    };
-    loadAplikasi();
-    return () => { isMounted = false; };
-  }, []);
-
   // Load data when filters change
   useEffect(() => {
     let isMounted = true;
@@ -68,7 +46,6 @@ export default function LoginLogsTable() {
           page: currentPage,
           limit: rowsPerPage,
           search: searchQuery || undefined,
-          id_aplikasi: filterAplikasi !== "all" ? filterAplikasi : undefined,
           a_sesi_aktif: filterStatus !== "all" ? (filterStatus === "aktif" ? "true" : "false") : undefined,
           date_from: dateFrom || undefined,
           date_to: dateTo || undefined,
@@ -92,7 +69,7 @@ export default function LoginLogsTable() {
     };
     loadData();
     return () => { isMounted = false; };
-  }, [currentPage, rowsPerPage, searchQuery, filterAplikasi, filterStatus, dateFrom, dateTo, sortBy, sortOrder]);
+  }, [currentPage, rowsPerPage, searchQuery, filterStatus, dateFrom, dateTo, sortBy, sortOrder]);
 
   const handleViewDetail = (logId: string) => {
     setSelectedLogId(logId);
@@ -121,41 +98,6 @@ export default function LoginLogsTable() {
   // Filter slot
   const filterSlot = (
     <div className="flex items-center gap-2">
-      <Select
-        aria-label="Filter Aplikasi"
-        placeholder="Semua Aplikasi"
-        selectedKeys={filterAplikasi !== "all" ? [filterAplikasi] : []}
-        onChange={(e) => {
-          setFilterAplikasi(e.target.value || "all");
-          setCurrentPage(1);
-        }}
-        classNames={{
-          base: "w-40",
-          trigger: "h-9 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-indigo-400 focus:border-indigo-500 transition-colors shadow-sm",
-          value: "text-sm font-medium text-gray-700 dark:text-gray-300 pr-6",
-          innerWrapper: "!bg-white dark:!bg-gray-800",
-          popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200",
-          listbox: "!bg-white dark:!bg-gray-800",
-        }}
-        size="sm"
-        variant="bordered"
-        renderValue={(items) => {
-          if (!items || items.length === 0) return "Semua Aplikasi";
-          const item = items[0];
-          if (item.key === "all") return "Semua Aplikasi";
-          return item.textValue || "Semua Aplikasi";
-        }}
-      >
-        <SelectItem key="all" value="all" textValue="Semua Aplikasi">
-          Semua Aplikasi
-        </SelectItem>
-        {aplikasiOptions.map((app) => (
-          <SelectItem key={app.id_aplikasi} value={app.id_aplikasi} textValue={app.nm_aplikasi}>
-            {app.nm_aplikasi}
-          </SelectItem>
-        ))}
-      </Select>
-
       <Select
         aria-label="Filter Status Sesi"
         placeholder="Semua Status"

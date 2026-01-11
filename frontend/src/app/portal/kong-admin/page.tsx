@@ -62,7 +62,7 @@ interface KongInfo {
 // All services use consistent /api/documentation path
 const serviceDocsMap: Record<string, string> = {
   "auth-service": "http://localhost:8081/api/documentation",
-  "dashboard-service": "http://localhost:8082/api/documentation",
+  "public-service": "http://localhost:8082/api/documentation",
   "sister-service": "http://localhost:8083/api/documentation",
 };
 
@@ -418,7 +418,7 @@ export default function KongAdminPage() {
               <p className="text-xs text-blue-600">
                 <strong>Note:</strong> Documentation is only available for services
                 that have Swagger UI configured (e.g., auth-service,
-                dashboard-service, sister-service).
+                public-service, sister-service).
               </p>
             </div>
           </div>

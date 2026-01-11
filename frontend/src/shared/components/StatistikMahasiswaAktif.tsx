@@ -22,9 +22,9 @@ import type {
 // Import ECharts dynamically (same as SebaranMahasiswa)
 const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });
 
-const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL
-  ? `${process.env.NEXT_PUBLIC_DASHBOARD_API_URL}/public/api/v1`
-  : 'http://localhost:9800/dashboard-service/public/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_PUBLIC_API_URL
+  ? `${process.env.NEXT_PUBLIC_PUBLIC_API_URL}`
+  : 'http://localhost:9800/public-service/api/v1';
 
 interface FakultasDataItem {
   id: string;

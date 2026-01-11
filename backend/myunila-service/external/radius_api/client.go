@@ -71,7 +71,7 @@ type SSOUser struct {
 	IDPdPengguna  *string       `json:"id_pd_pengguna"`
 	IDSdmPengguna *string       `json:"id_sdm_pengguna"`
 	IDUserSikep   *string       `json:"id_user_sikep"`
-	RolePengguna  *RolePengguna `json:"role_pengguna"`
+	RolesPengguna  []*RolePengguna `json:"roles_pengguna"` // Changed from singular to array for multiple roles support
 	FoundInPDUT   bool          `json:"found_in_pdut"`
 }
 
@@ -293,14 +293,92 @@ func (c *RadiusClient) GetUsers(page, limit int) (*UsersResponse, error) {
 	return &usersResp, nil
 }
 
+// GetUsersWithFilter fetches SSO users with optional filters
+func (c *RadiusClient) GetUsersWithFilter(page, limit int, username, nmPeran, updatedAtFrom, updatedAtTo string) (*UsersResponse, error) {
+	if c.Token == "" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+	}
+
+	// Build URL with query parameters
+	url := fmt.Sprintf("%s/sso-radius/users?page=%d&limit=%d", c.BaseURL, page, limit)
+	if username != "" {
+		url += fmt.Sprintf("&username=%s", username)
+	}
+	if nmPeran != "" {
+		url += fmt.Sprintf("&nm_peran=%s", nmPeran)
+	}
+	if updatedAtFrom != "" {
+		url += fmt.Sprintf("&updated_at_from=%s", updatedAtFrom)
+	}
+	if updatedAtTo != "" {
+		url += fmt.Sprintf("&updated_at_to=%s", updatedAtTo)
+	}
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Authorization", "Bearer "+c.Token)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response: %w", err)
+	}
+
+	// Handle unauthorized - try to refresh token
+	if resp.StatusCode == http.StatusUnauthorized {
+		c.mu.Lock()
+		c.Token = ""
+		c.mu.Unlock()
+		if err := c.GetToken(); err != nil {
+			return nil, fmt.Errorf("failed to refresh token: %w", err)
+		}
+		return c.GetUsersWithFilter(page, limit, username, nmPeran, updatedAtFrom, updatedAtTo)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("HTTP error %d: %s", resp.StatusCode, string(body))
+	}
+
+	var usersResp UsersResponse
+	if err := json.Unmarshal(body, &usersResp); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
+	}
+
+	if !usersResp.Success {
+		return nil, fmt.Errorf("API error: %s", usersResp.Message)
+	}
+
+	log.Printf("📊 [Radius API] GetUsersWithFilter(page=%d, limit=%d, username=%s, nm_peran=%s, from=%s, to=%s) -> returned %d records, total: %d",
+		page, limit, username, nmPeran, updatedAtFrom, updatedAtTo, len(usersResp.Data), usersResp.Meta.Total)
+
+	return &usersResp, nil
+}
+
 // GetAllUsers fetches all SSO users with automatic pagination
 func (c *RadiusClient) GetAllUsers() ([]SSOUser, error) {
+	return c.GetAllUsersWithFilter("", "", "", "")
+}
+
+// GetAllUsersWithFilter fetches all SSO users with filters and automatic pagination
+func (c *RadiusClient) GetAllUsersWithFilter(username, nmPeran, updatedAtFrom, updatedAtTo string) ([]SSOUser, error) {
 	var allUsers []SSOUser
 	page := 1
 	limit := 1000 // Large batch size
 
 	for {
-		resp, err := c.GetUsers(page, limit)
+		resp, err := c.GetUsersWithFilter(page, limit, username, nmPeran, updatedAtFrom, updatedAtTo)
 		if err != nil {
 			if len(allUsers) > 0 {
 				log.Printf("⚠️  [Radius API] Error at page %d, returning %d records collected so far: %v", page, len(allUsers), err)
@@ -322,7 +400,8 @@ func (c *RadiusClient) GetAllUsers() ([]SSOUser, error) {
 		page++
 	}
 
-	log.Printf("📊 [Radius API] GetAllUsers -> total %d records", len(allUsers))
+	log.Printf("📊 [Radius API] GetAllUsersWithFilter(username=%s, nm_peran=%s, from=%s, to=%s) -> total %d records",
+		username, nmPeran, updatedAtFrom, updatedAtTo, len(allUsers))
 	return allUsers, nil
 }
 

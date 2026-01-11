@@ -39,16 +39,9 @@ func NewService(repo Repository, syncService SyncService, db *sqlx.DB, loggerSvc
 
 // SyncPendidikanFormalByIDSDM syncs pendidikan formal for a single dosen
 func (s *service) SyncPendidikanFormalByIDSDM(idSDM, syncedBy string) (*BatchPendidikanFormalSyncResult, error) {
-	startTime := timeutil.NowWIB()
-
 	result, err := s.syncService.SyncPendidikanFormalByIDSDM(idSDM, syncedBy)
 
-	// Log sync result
-	if result != nil {
-		s.logSyncResult("Pendidikan Formal By ID SDM", idSDM, syncedBy, result.TotalProcessed, result.TotalSuccess, result.TotalFailed, startTime, err)
-	} else {
-		s.logSyncResult("Pendidikan Formal By ID SDM", idSDM, syncedBy, 0, 0, 1, startTime, err)
-	}
+	// Don't log here - will be logged by BatchSyncAllPendidikanFormal if called from scheduler
 
 	return result, err
 }

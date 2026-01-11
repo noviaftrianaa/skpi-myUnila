@@ -6,9 +6,9 @@
 import axios from 'axios';
 import { sisterClient } from '@/lib/api/sisterClient';
 
-const API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL
-  ? `${process.env.NEXT_PUBLIC_DASHBOARD_API_URL}/public/api/v1`
-  : 'http://localhost:9800/dashboard-service/public/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_PUBLIC_API_URL
+  ? `${process.env.NEXT_PUBLIC_PUBLIC_API_URL}`
+  : 'http://localhost:9800/public-service/api/v1';
 
 // Types
 export interface PendidikanDosen {
@@ -318,7 +318,7 @@ export const sisterDosenService = {
   },
 
   /**
-   * Get dosen bidang ilmu/keahlian from database (via dashboard-service)
+   * Get dosen bidang ilmu/keahlian from database (via public-service)
    */
   async getBidangIlmu(idSDM: string): Promise<any[]> {
     const response = await axios.get<ApiResponse<any[]>>(
