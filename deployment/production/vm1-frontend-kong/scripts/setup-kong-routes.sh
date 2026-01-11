@@ -185,17 +185,17 @@ echo ""
 echo -e "${GREEN}[1/6] Setting up Public Service...${NC}"
 
 # Note: Public service only has public endpoints (no JWT required)
-# All endpoints: /public/api/v1/*
+# All endpoints: /api/v1/* (Kong route: /public-service/api/v1/*)
 
 # Create Public Service for public endpoints
-# Laravel routes: /public/api/v1/...
-# Kong will strip /public-service and forward to /public
+# Laravel routes: /api/v1/...
+# Kong will strip /public-service and forward to backend
 echo -e "${YELLOW}  → Creating public-service for public endpoints...${NC}"
 PUBLIC_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
   -d "{
     \"name\": \"public-service\",
-    \"url\": \"${PUBLIC_SERVICE_URL:-http://192.168.120.42:8082}/public\"
+    \"url\": \"${PUBLIC_SERVICE_URL:-http://192.168.120.42:8082}\"
   }")
 
 PUBLIC_SERVICE_ID=$(parse_json_id "$PUBLIC_SERVICE")
@@ -205,7 +205,7 @@ if [ -z "$PUBLIC_SERVICE_ID" ]; then
 else
     echo -e "${GREEN}  ✓ Public service created: $PUBLIC_SERVICE_ID${NC}"
 
-    # Route: Public endpoints (no JWT) - /public-service/api/v1/X → /public/api/v1/X
+    # Route: Public endpoints (no JWT) - /public-service/api/v1/X → /api/v1/X
     echo -e "${YELLOW}  → Creating public route...${NC}"
     PUBLIC_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$PUBLIC_SERVICE_ID/routes" \
       -H "Content-Type: application/json" \

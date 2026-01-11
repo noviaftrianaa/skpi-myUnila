@@ -36,7 +36,7 @@ use App\Http\Controllers\SearchController;
 | Note: Laravel 11 does NOT auto-prefix /api anymore (no prefix in bootstrap/app.php)
 |
 | All endpoints are public (no JWT required):
-| - /public/api/v1/* - Public endpoints
+| - /api/v1/* - Public endpoints (via Kong: /public-service/api/v1/*)
 |
 */
 
@@ -52,8 +52,9 @@ Route::get('/health', function () {
 
 // ============================================
 // PUBLIC API Routes (no JWT required)
+// Route: /api/v1/* (via Kong: /public-service/api/v1/*)
 // ============================================
-Route::prefix('public/api/v1')->group(function () {
+Route::prefix('api/v1')->group(function () {
 
     // University Profile
     Route::get('/university-profile', [UniversityProfileController::class, 'index']);
