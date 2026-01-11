@@ -136,14 +136,14 @@
     deployment_dir: "{{ app_dir }}/deployment/production/vm2-backend1"
 
   tasks:
-    - name: Rebuild Dashboard Service image
+    - name: Rebuild Public Service image
       shell: |
         cd {{ deployment_dir }}
-        docker compose --env-file .env -f services/dashboard/docker-compose.yml build --no-cache
+        docker compose --env-file .env -f services/public/docker-compose.yml build --no-cache
       args:
         executable: /bin/bash
       become_user: "{{ ansible_user }}"
-      register: dashboard_build
+      register: public_build
 
     - name: Rebuild Auth Service image
       shell: |
@@ -154,10 +154,10 @@
       become_user: "{{ ansible_user }}"
       register: auth_build
 
-    - name: Restart Dashboard Service
+    - name: Restart Public Service
       shell: |
         cd {{ deployment_dir }}
-        docker compose --env-file .env -f services/dashboard/docker-compose.yml up -d
+        docker compose --env-file .env -f services/public/docker-compose.yml up -d
       args:
         executable: /bin/bash
       become_user: "{{ ansible_user }}"
