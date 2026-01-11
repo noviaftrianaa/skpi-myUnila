@@ -14,10 +14,8 @@ import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'ax
 import { getToken, setToken, clearTokens } from './client';
 
 // Auth API URL via Kong Gateway
-// Note: Auth service adds /api/v1 suffix for API endpoints
-const AUTH_API_URL = process.env.NEXT_PUBLIC_AUTH_API_URL
-  ? `${process.env.NEXT_PUBLIC_AUTH_API_URL}/api/v1`
-  : 'http://localhost:9800/auth-service/api/v1';
+// Note: Environment variable should include full path with /api/v1 suffix
+const AUTH_API_URL = process.env.NEXT_PUBLIC_AUTH_API_URL || 'http://localhost:9800/auth-service/api/v1';
 const API_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '30000');
 
 /**
@@ -75,9 +73,8 @@ const createAuthClient = (): AxiosInstance => {
           }
 
           // Call refresh token endpoint
-          const AUTH_REFRESH_URL = process.env.NEXT_PUBLIC_AUTH_API_URL
-            ? `${process.env.NEXT_PUBLIC_AUTH_API_URL}/auth/refresh`
-            : 'http://localhost:9800/auth-service/api/v1/auth/refresh';
+          // Note: NEXT_PUBLIC_AUTH_API_URL includes /api/v1, so just append /auth/refresh
+          const AUTH_REFRESH_URL = `${process.env.NEXT_PUBLIC_AUTH_API_URL || 'http://localhost:9800/auth-service/api/v1'}/auth/refresh`;
 
           const response = await axios.post(
             AUTH_REFRESH_URL,

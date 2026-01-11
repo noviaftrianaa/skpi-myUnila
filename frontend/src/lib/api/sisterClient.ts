@@ -76,9 +76,8 @@ const createSisterClient = (): AxiosInstance => {
 
 
           // Call refresh token endpoint via Kong Gateway with refresh_token in body
-          const AUTH_REFRESH_URL = process.env.NEXT_PUBLIC_AUTH_API_URL
-            ? `${process.env.NEXT_PUBLIC_AUTH_API_URL}/auth/refresh`
-            : 'http://localhost:9800/auth-service/api/v1/auth/refresh';
+          // Note: NEXT_PUBLIC_AUTH_API_URL includes /api/v1, so just append /auth/refresh
+          const AUTH_REFRESH_URL = `${process.env.NEXT_PUBLIC_AUTH_API_URL || 'http://localhost:9800/auth-service/api/v1'}/auth/refresh`;
 
           const response = await axios.post(
             AUTH_REFRESH_URL,

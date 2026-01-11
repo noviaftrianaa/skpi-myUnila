@@ -89,10 +89,8 @@ export const useAuthStore = create<AuthState>()(
             return;
           }
 
-          // Verify token with backend
-          const AUTH_API_URL = process.env.NEXT_PUBLIC_AUTH_API_URL
-            ? `${process.env.NEXT_PUBLIC_AUTH_API_URL}/api/v1`
-            : 'http://localhost:9800/auth-service/api/v1';
+          // Verify token with backend (env var should include full path with /api/v1)
+          const AUTH_API_URL = process.env.NEXT_PUBLIC_AUTH_API_URL || 'http://localhost:9800/auth-service/api/v1';
 
           const response = await fetch(`${AUTH_API_URL}/auth/me`, {
             headers: {
