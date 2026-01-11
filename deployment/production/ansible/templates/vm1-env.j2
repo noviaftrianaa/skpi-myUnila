@@ -27,10 +27,10 @@ KONG_UI_PORT=9803
 # ============================================
 FRONTEND_PORT=3000
 
-# API Endpoints
+# API Endpoints (Auth and Public must include /api/v1 as frontend uses them directly)
 NEXT_PUBLIC_API_URL=http://{{ ansible_host }}:9800
-NEXT_PUBLIC_AUTH_API_URL=http://{{ ansible_host }}:9800/auth-service
-NEXT_PUBLIC_PUBLIC_API_URL=http://{{ ansible_host }}:9800/public-service
+NEXT_PUBLIC_AUTH_API_URL=http://{{ ansible_host }}:9800/auth-service/api/v1
+NEXT_PUBLIC_PUBLIC_API_URL=http://{{ ansible_host }}:9800/public-service/api/v1
 NEXT_PUBLIC_SISTER_API_URL=http://{{ ansible_host }}:9800/sister-service
 NEXT_PUBLIC_FEEDER_API_URL=http://{{ ansible_host }}:9800/feeder-service
 NEXT_PUBLIC_MYUNILA_API_URL=http://{{ ansible_host }}:9800/myunila-service
