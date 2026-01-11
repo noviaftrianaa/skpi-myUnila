@@ -397,7 +397,7 @@
           - Kong Admin:  http://192.168.120.41:9801
 
           Backend services (via Kong):
-          - Dashboard:   http://192.168.120.41:9800/dashboard-service/api/health
+          - Public:      http://192.168.120.41:9800/public-service/api/health
           - Auth:        http://192.168.120.41:9800/auth-service/api/health
           - Sister:      http://192.168.120.41:9800/sister-service/health
           - Feeder:      http://192.168.120.41:9800/feeder-service/health
