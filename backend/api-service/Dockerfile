@@ -1,5 +1,5 @@
 # Stage 1: Build the application
-FROM golang:1.22.6-alpine AS builder
+FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
 
@@ -29,14 +29,13 @@ RUN apk --no-cache add ca-certificates tzdata wget
 # Copy binary from builder
 COPY --from=builder /app/server .
 COPY --from=builder /app/.env.example .env.example
-COPY --from=builder /app/docs ./docs
 
 # Expose port
-EXPOSE 8087
+EXPOSE 8085
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD wget --quiet --tries=1 --spider http://localhost:8087/health || exit 1
+  CMD wget --quiet --tries=1 --spider http://localhost:8085/health || exit 1
 
 # Run the application
 CMD ["./server"]

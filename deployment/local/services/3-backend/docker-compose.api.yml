@@ -1,0 +1,46 @@
+services:
+  api-service:
+    container_name: myunila-api-service
+    build:
+      context: ../../../../backend/api-service
+      dockerfile: Dockerfile
+    ports:
+      - "8085:8085"
+    env_file:
+      - ../../.env
+    environment:
+      - APP_NAME=${API_APP_NAME:-MyUnila API Service}
+      - APP_PORT=${API_APP_PORT:-:8085}
+      - APP_ENV=${API_APP_ENV:-development}
+      - APP_URL=${API_APP_URL:-http://localhost:8085}
+      - DB_DRIVER=sqlserver
+      - DB_HOST=${DB_MSSQL_HOST:-192.168.123.119}
+      - DB_PORT=${DB_MSSQL_PORT:-1433}
+      - DB_DATABASE=${DB_MSSQL_DATABASE:-pdut_dev}
+      - DB_USERNAME=${DB_MSSQL_USERNAME:-mizarzulmi}
+      - DB_PASSWORD=${DB_MSSQL_PASSWORD:-__REDACTED_DB_PASSWORD__}
+      - DB_TRUST_SERVER_CERTIFICATE=true
+      - DB_MAX_OPEN_CONNS=25
+      - DB_MAX_IDLE_CONNS=5
+      - DB_CONN_MAX_LIFETIME=5m
+      - REDIS_HOST=${REDIS_HOST:-myunila-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - REDIS_DB=${API_REDIS_DB:-2}
+      - JWT_SECRET=${JWT_SECRET:-local-dev-jwt-secret-key-change-in-production}
+      - JWT_ALGO=${JWT_ALGO:-HS256}
+      - JWT_ACCESS_TOKEN_TTL=${JWT_ACCESS_TOKEN_TTL:-900}
+      - JWT_ISSUER=${JWT_ISSUER:-myunila-api}
+    restart: unless-stopped
+    networks:
+      - myunila-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8085/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  myunila-network:
+    external: true

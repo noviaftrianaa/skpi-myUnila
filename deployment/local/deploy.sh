@@ -38,8 +38,9 @@ show_menu() {
     echo -e "  ${GREEN}5)${NC} Quick Rebuild - Sister Only"
     echo -e "  ${GREEN}6)${NC} Quick Rebuild - Feeder Only"
     echo -e "  ${GREEN}7)${NC} Quick Rebuild - MyUnila Only"
-    echo -e "  ${GREEN}8)${NC} Quick Rebuild - Frontend Only"
-    echo -e "  ${GREEN}9)${NC} Quick Rebuild - Nginx Only"
+    echo -e "  ${GREEN}8)${NC} Quick Rebuild - API Service Only"
+    echo -e "  ${GREEN}9)${NC} Quick Rebuild - Frontend Only"
+    echo -e "  ${GREEN}29)${NC} Quick Rebuild - Nginx Only"
     echo ""
     echo -e "  ${CYAN}--- Quick Dev Rebuild (Dengan Cache, Lebih Cepat) ---${NC}"
     echo -e "  ${CYAN}22)${NC} Quick Dev Rebuild - All Laravel (auth + public)"
@@ -52,7 +53,8 @@ show_menu() {
     echo -e "  ${BLUE}13)${NC} Restart Sister Only"
     echo -e "  ${BLUE}14)${NC} Restart Feeder Only"
     echo -e "  ${BLUE}15)${NC} Restart MyUnila Only"
-    echo -e "  ${BLUE}16)${NC} Restart Nginx Only"
+    echo -e "  ${BLUE}16)${NC} Restart API Service Only"
+    echo -e "  ${BLUE}30)${NC} Restart Nginx Only"
     echo ""
     echo -e "  ${YELLOW}17)${NC} Show Container Status"
     echo -e "  ${YELLOW}18)${NC} Show Logs"
@@ -71,7 +73,7 @@ show_menu() {
     echo ""
     echo -e "  ${RED}0)${NC} Exit"
     echo ""
-    echo -n "Pilihan [0-28]: "
+    echo -n "Pilihan [0-30]: "
 }
 
 # Function to show container status
@@ -93,23 +95,25 @@ show_logs() {
     echo "  3) Sister"
     echo "  4) Feeder"
     echo "  5) MyUnila"
-    echo "  6) Nginx"
-    echo "  7) Redis"
-    echo "  8) MeiliSearch"
-    echo "  9) Kong"
+    echo "  6) API Service"
+    echo "  7) Nginx"
+    echo "  8) Redis"
+    echo "  9) MeiliSearch"
+    echo "  10) Kong"
     echo ""
-    read -p "Pilihan [1-9]: " log_choice
+    read -p "Pilihan [1-10]: " log_choice
 
     case $log_choice in
         1) docker logs myunila-public-service --tail 100 -f ;;
         2) docker logs myunila-auth-service --tail 100 -f ;;
         3) docker logs myunila-sister-service --tail 100 -f ;;
         4) docker logs myunila-feeder-service --tail 100 -f ;;
-        5) docker logs myunila-integrator-service --tail 100 -f ;;
-        6) docker logs myunila-nginx --tail 100 -f ;;
-        7) docker logs myunila-redis --tail 100 -f ;;
-        8) docker logs myunila-meilisearch --tail 100 -f ;;
-        9) docker logs myunila-kong --tail 100 -f ;;
+        5) docker logs myunila-service --tail 100 -f ;;
+        6) docker logs myunila-api-service --tail 100 -f ;;
+        7) docker logs myunila-nginx --tail 100 -f ;;
+        8) docker logs myunila-redis --tail 100 -f ;;
+        9) docker logs myunila-meilisearch --tail 100 -f ;;
+        10) docker logs myunila-kong --tail 100 -f ;;
         *) echo "Invalid choice" ;;
     esac
 }
@@ -160,13 +164,23 @@ test_endpoints() {
         echo -e "${RED}✗ $MYUNILA_STATUS${NC}"
     fi
 
+    echo -n "API Service:      "
+    API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8085/health 2>/dev/null || echo "000")
+    if [ "$API_STATUS" = "200" ]; then
+        echo -e "${GREEN}✓ $API_STATUS OK${NC}"
+    else
+        echo -e "${RED}✗ $API_STATUS${NC}"
+    fi
+
     echo ""
     echo -e "${YELLOW}URLs:${NC}"
-    echo "  Public:    http://localhost:8082"
-    echo "  Auth:      http://localhost:8081"
-    echo "  Sister:    http://localhost:8083"
-    echo "  Feeder:    http://localhost:8084"
-    echo "  MyUnila:   http://localhost:8086"
+    echo "  Public:      http://localhost:8082"
+    echo "  Auth:        http://localhost:8081"
+    echo "  Sister:      http://localhost:8083"
+    echo "  Feeder:      http://localhost:8084"
+    echo "  MyUnila:     http://localhost:8086"
+    echo "  API Service: http://localhost:8085"
+    echo "  API Docs:    http://localhost:8085/api/docs"
     echo ""
     read -p "Press Enter to continue..."
 }
@@ -206,10 +220,14 @@ while true; do
             read -p "Press Enter to continue..."
             ;;
         8)
-            bash "$SCRIPT_DIR/quick-rebuild.sh" frontend
+            bash "$SCRIPT_DIR/quick-rebuild.sh" api
             read -p "Press Enter to continue..."
             ;;
         9)
+            bash "$SCRIPT_DIR/quick-rebuild.sh" frontend
+            read -p "Press Enter to continue..."
+            ;;
+        29)
             bash "$SCRIPT_DIR/quick-rebuild.sh" nginx
             read -p "Press Enter to continue..."
             ;;
@@ -238,6 +256,10 @@ while true; do
             read -p "Press Enter to continue..."
             ;;
         16)
+            bash "$SCRIPT_DIR/restart-services.sh" api
+            read -p "Press Enter to continue..."
+            ;;
+        30)
             bash "$SCRIPT_DIR/restart-services.sh" nginx
             read -p "Press Enter to continue..."
             ;;

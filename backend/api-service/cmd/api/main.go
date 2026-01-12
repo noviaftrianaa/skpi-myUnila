@@ -2,30 +2,40 @@ package main
 
 import (
 	"log"
-
-	"github.com/myunila/api-service/external/database"
-	"github.com/myunila/api-service/internal/config"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/logger"
+	fiberlogger "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/myunila/api-service/apps/auth"
+	"github.com/myunila/api-service/docs"
+	"github.com/myunila/api-service/external/database"
+	"github.com/myunila/api-service/external/redis"
+	"github.com/myunila/api-service/internal/config"
 )
 
-// @title Api Service API
+// @title MyUnila API Service
 // @version 1.0
-// @description API for Api Service
+// @description API untuk integrasi data antar sistem di Universitas Lampung
 // @termsOfService http://swagger.io/terms/
 
-// @contact.name API Support
+// @contact.name UPT TIK Universitas Lampung
 // @contact.email support@unila.ac.id
 
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host localhost:8087
+// @host localhost:8085
 // @BasePath /
 // @schemes http https
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 
 func main() {
 	// Load configuration
@@ -33,7 +43,7 @@ func main() {
 		log.Fatal("Failed to load config:", err)
 	}
 
-	log.Println("🚀 Starting Api Service...")
+	log.Println("🚀 Starting MyUnila API Service...")
 	log.Printf("📝 App Name: %s", config.Cfg.App.Name)
 	log.Printf("🌍 Environment: %s", config.Cfg.App.Env)
 
@@ -55,26 +65,38 @@ func main() {
 	defer db.Close()
 	log.Println("✅ Database connected successfully")
 
+	// Connect to Redis
+	if err := redis.Connect(config.Cfg.Redis); err != nil {
+		log.Printf("⚠️  Warning: Failed to connect to Redis: %v", err)
+		log.Println("   JWT token caching will be disabled")
+	} else {
+		defer redis.Close()
+	}
+
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
 		AppName:      config.Cfg.App.Name,
-		ServerHeader: "Api Service",
+		ServerHeader: "MyUnila API Service",
 		ErrorHandler: customErrorHandler,
 	})
 
 	// Middlewares
 	app.Use(recover.New())
-	app.Use(logger.New(logger.Config{
-		Format: "[\] \ - \ \ \\n",
+	app.Use(fiberlogger.New(fiberlogger.Config{
+		Format: "[${time}] ${status} - ${latency} ${method} ${path}\n",
 	}))
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:3000, http://localhost:3001, http://localhost:9800",
+		AllowOrigins:     "http://localhost:3000, http://localhost:3001, http://localhost:9800, https://my.unila.ac.id",
 		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS,PATCH",
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-Requested-With",
-		AllowCredentials: true,
+		AllowCredentials: false,
 		ExposeHeaders:    "Content-Length",
 		MaxAge:           12 * 3600,
 	}))
+
+	// Setup Swagger documentation
+	docs.SetupSwagger(app)
+	log.Println("✅ API Documentation available at /docs")
 
 	// Health check endpoint
 	app.Get("/health", func(c *fiber.Ctx) error {
@@ -90,24 +112,40 @@ func main() {
 		return c.JSON(fiber.Map{
 			"service": config.Cfg.App.Name,
 			"version": "1.0.0",
-			"message": "Api Service API",
+			"message": "MyUnila API Service - Integrasi Data Universitas Lampung",
 			"endpoints": fiber.Map{
-				"health": "/health",
-				"api":    "/api/v1",
+				"health":        "/health",
+				"documentation": "/docs",
+				"api":           "/v1",
+				"auth_login":    "/v1/auth/login",
+				"auth_check":    "/v1/auth/check-token",
 			},
 		})
 	})
 
-	// API routes
-	api := app.Group("/api/v1")
-	api.Get("/", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{
-			"message": "Api Service API v1",
-		})
-	})
+	// API routes - menggunakan /v1 tanpa /api prefix
+	// Production URL: https://my.unila.ac.id/gateway/api-service/v1/...
+	apiV1 := app.Group("/v1")
+
+	// Initialize Auth module
+	auth.Init(apiV1, db)
+	log.Println("✅ Auth module initialized")
+
+	// Graceful shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-quit
+		log.Println("🛑 Shutting down server...")
+		if err := app.Shutdown(); err != nil {
+			log.Printf("⚠️  Error during shutdown: %v", err)
+		}
+	}()
 
 	// Start server
 	log.Printf("🚀 Server starting on port %s", config.Cfg.App.Port)
+	log.Printf("📚 API Docs: http://localhost%s/docs", config.Cfg.App.Port)
 	if err := app.Listen(config.Cfg.App.Port); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
