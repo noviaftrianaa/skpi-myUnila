@@ -11,10 +11,41 @@ services:
     env_file:
       - ../../.env
     environment:
-      # Redis (override from env_file if needed)
+      # App Config
+      APP_NAME: "${PUBLIC_APP_NAME:-MyUnila Public Service}"
+      APP_ENV: "${PUBLIC_APP_ENV:-local}"
+      APP_KEY: "${PUBLIC_APP_KEY}"
+      APP_DEBUG: "${PUBLIC_APP_DEBUG:-true}"
+      APP_URL: "${PUBLIC_APP_URL:-http://localhost:8082}"
+
+      # Database (map PUBLIC_DB_* to DB_*)
+      DB_CONNECTION: "${PUBLIC_DB_CONNECTION:-sqlsrv}"
+      DB_HOST: "${PUBLIC_DB_HOST}"
+      DB_PORT: "${PUBLIC_DB_PORT:-1433}"
+      DB_DATABASE: "${PUBLIC_DB_DATABASE}"
+      DB_USERNAME: "${PUBLIC_DB_USERNAME}"
+      DB_PASSWORD: "${PUBLIC_DB_PASSWORD}"
+      DB_ENCRYPT: "${DB_ENCRYPT:-no}"
+      DB_TRUST_SERVER_CERTIFICATE: "${DB_TRUST_SERVER_CERTIFICATE:-yes}"
+
+      # Sister DB (same as main DB)
+      SISTER_DB_HOST: "${PUBLIC_DB_HOST}"
+      SISTER_DB_PORT: "${PUBLIC_DB_PORT:-1433}"
+      SISTER_DB_DATABASE: "${PUBLIC_DB_DATABASE}"
+      SISTER_DB_USERNAME: "${PUBLIC_DB_USERNAME}"
+      SISTER_DB_PASSWORD: "${PUBLIC_DB_PASSWORD}"
+
+      # Redis
+      REDIS_HOST: "${PUBLIC_REDIS_HOST:-redis}"
+      REDIS_PORT: "${PUBLIC_REDIS_PORT:-6379}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
       CACHE_DRIVER: redis
       SESSION_DRIVER: redis
       QUEUE_CONNECTION: redis
+
+      # Meilisearch
+      MEILISEARCH_HOST: "${MEILISEARCH_HOST:-http://meilisearch:7700}"
+      MEILISEARCH_KEY: "${MEILISEARCH_KEY:-}"
 
       TZ: "${TZ:-Asia/Jakarta}"
     volumes:
@@ -46,9 +77,38 @@ services:
     env_file:
       - ../../.env
     environment:
+      # App Config
+      APP_NAME: "${PUBLIC_APP_NAME:-MyUnila Public Service}"
+      APP_ENV: "${PUBLIC_APP_ENV:-local}"
+      APP_KEY: "${PUBLIC_APP_KEY}"
+      APP_DEBUG: "${PUBLIC_APP_DEBUG:-true}"
+      APP_URL: "${PUBLIC_APP_URL:-http://localhost:8082}"
+
+      # Database (map PUBLIC_DB_* to DB_*)
+      DB_CONNECTION: "${PUBLIC_DB_CONNECTION:-sqlsrv}"
+      DB_HOST: "${PUBLIC_DB_HOST}"
+      DB_PORT: "${PUBLIC_DB_PORT:-1433}"
+      DB_DATABASE: "${PUBLIC_DB_DATABASE}"
+      DB_USERNAME: "${PUBLIC_DB_USERNAME}"
+      DB_PASSWORD: "${PUBLIC_DB_PASSWORD}"
+      DB_ENCRYPT: "${DB_ENCRYPT:-no}"
+      DB_TRUST_SERVER_CERTIFICATE: "${DB_TRUST_SERVER_CERTIFICATE:-yes}"
+
+      # Sister DB (same as main DB)
+      SISTER_DB_HOST: "${PUBLIC_DB_HOST}"
+      SISTER_DB_PORT: "${PUBLIC_DB_PORT:-1433}"
+      SISTER_DB_DATABASE: "${PUBLIC_DB_DATABASE}"
+      SISTER_DB_USERNAME: "${PUBLIC_DB_USERNAME}"
+      SISTER_DB_PASSWORD: "${PUBLIC_DB_PASSWORD}"
+
+      # Redis
+      REDIS_HOST: "${PUBLIC_REDIS_HOST:-redis}"
+      REDIS_PORT: "${PUBLIC_REDIS_PORT:-6379}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
       CACHE_DRIVER: redis
       SESSION_DRIVER: redis
       QUEUE_CONNECTION: redis
+
       TZ: "${TZ:-Asia/Jakarta}"
     volumes:
       - public_storage:/var/www/storage
