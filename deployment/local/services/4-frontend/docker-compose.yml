@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ../../../../frontend
+      dockerfile: Dockerfile
+      args:
+        # API URLs via Kong Gateway
+        NEXT_PUBLIC_API_URL: "${NEXT_PUBLIC_API_URL:-http://localhost:9800}"
+        NEXT_PUBLIC_AUTH_API_URL: "${NEXT_PUBLIC_AUTH_API_URL:-http://localhost:9800/auth-service/api/v1}"
+        NEXT_PUBLIC_PUBLIC_API_URL: "${NEXT_PUBLIC_PUBLIC_API_URL:-http://localhost:9800/public-service/api/v1}"
+        NEXT_PUBLIC_SISTER_API_URL: "${NEXT_PUBLIC_SISTER_API_URL:-http://localhost:9800/sister-service}"
+        NEXT_PUBLIC_FEEDER_API_URL: "${NEXT_PUBLIC_FEEDER_API_URL:-http://localhost:9800/feeder-service}"
+        NEXT_PUBLIC_MYUNILA_API_URL: "${NEXT_PUBLIC_MYUNILA_API_URL:-http://localhost:9800/myunila-service}"
+    image: myunila/frontend:latest
+    container_name: myunila-frontend
+    environment:
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: 1
+    ports:
+      - "3000:3000"
+    networks:
+      - myunila-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  myunila-network:
+    external: true
+    name: myunila-network

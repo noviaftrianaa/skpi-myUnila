@@ -99,15 +99,15 @@ rebuild_frontend() {
 
     # Stop the frontend service
     echo "  → Stopping frontend..."
-    docker compose --env-file .env -f services/1-nextjs/docker-compose.yml stop nextjs 2>/dev/null || true
+    docker compose --env-file .env -f services/4-frontend/docker-compose.yml stop frontend 2>/dev/null || true
 
     # Rebuild without cache - use --no-cache to ensure code changes are picked up
     echo "  → Rebuilding image (no-cache)..."
-    docker compose --env-file .env -f services/1-nextjs/docker-compose.yml build --no-cache --pull nextjs
+    docker compose --env-file .env -f services/4-frontend/docker-compose.yml build --no-cache --pull frontend
 
     # Start the service
     echo "  → Starting frontend..."
-    docker compose --env-file .env -f services/1-nextjs/docker-compose.yml up -d nextjs
+    docker compose --env-file .env -f services/4-frontend/docker-compose.yml up -d frontend
 
     echo -e "${GREEN}✓ Frontend rebuilt${NC}"
     echo ""
@@ -156,6 +156,9 @@ case "$SERVICE" in
     myunila)
         rebuild_service "myunila"
         ;;
+    api)
+        rebuild_service "api"
+        ;;
     frontend)
         rebuild_frontend
         ;;
@@ -171,6 +174,7 @@ case "$SERVICE" in
         rebuild_service "sister"
         rebuild_service "feeder"
         rebuild_service "myunila"
+        rebuild_service "api"
         rebuild_nginx
         echo ""
         ;;
@@ -184,6 +188,7 @@ case "$SERVICE" in
         echo "  bash quick-rebuild.sh sister       # Rebuild sister only"
         echo "  bash quick-rebuild.sh feeder       # Rebuild feeder only"
         echo "  bash quick-rebuild.sh myunila      # Rebuild myunila only"
+        echo "  bash quick-rebuild.sh api          # Rebuild api (onedata) only"
         echo "  bash quick-rebuild.sh frontend     # Rebuild frontend only"
         echo "  bash quick-rebuild.sh nginx        # Rebuild nginx only"
         echo ""
@@ -222,5 +227,9 @@ if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "feeder" ]; then
 fi
 if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "myunila" ]; then
     echo "  MyUnila:   curl http://localhost:8086/health"
+fi
+if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "api" ]; then
+    echo "  OneData:   curl http://localhost:8085/health"
+    echo "  API Docs:  http://localhost:8085/api/docs"
 fi
 echo ""

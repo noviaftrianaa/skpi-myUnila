@@ -57,7 +57,8 @@ echo "✓ .env file found"
 echo ""
 
 # Step 2: Stop all services
-echo -e "${GREEN}[2/7] Stopping all services...${NC}"
+echo -e "${GREEN}[2/8] Stopping all services...${NC}"
+docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/4-frontend/docker-compose.yml" down 2>/dev/null || true
 docker compose -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.nginx.yml" down 2>/dev/null || true
 docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.myunila.yml" down 2>/dev/null || true
 docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.feeder.yml" down 2>/dev/null || true
@@ -134,11 +135,15 @@ echo "  → Building MyUnila Service..."
 docker compose --env-file .env -f services/3-backend/docker-compose.myunila.yml build --no-cache --pull myunila-service
 echo ""
 
+echo "  → Building Frontend..."
+docker compose --env-file .env -f services/4-frontend/docker-compose.yml build --no-cache --pull frontend
+echo ""
+
 echo -e "${GREEN}✓ All images rebuilt${NC}"
 echo ""
 
 # Step 7: Start all services
-echo -e "${GREEN}[7/7] Starting all services in correct order...${NC}"
+echo -e "${GREEN}[7/8] Starting all services in correct order...${NC}"
 echo ""
 
 cd "$DEPLOYMENT_DIR"
@@ -188,6 +193,10 @@ if ! docker ps --filter "name=myunila-nginx" --filter "status=running" --format 
 fi
 
 echo ""
+echo "  → Starting Frontend..."
+docker compose --env-file .env -f services/4-frontend/docker-compose.yml up -d
+
+echo ""
 echo -e "${GREEN}✓ All services started${NC}"
 echo ""
 
@@ -210,6 +219,7 @@ echo -e "${BLUE}=========================================${NC}"
 echo ""
 
 echo -e "${YELLOW}Access Points (Local):${NC}"
+echo "  Frontend:          http://localhost:3000"
 echo "  Auth Service:      http://localhost:8081"
 echo "  Public Service:    http://localhost:8082"
 echo "  Sister Service:    http://localhost:8083"
