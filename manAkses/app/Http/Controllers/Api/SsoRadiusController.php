@@ -515,8 +515,8 @@ class SsoRadiusController extends Controller
                 if (!isset($this->dosenOrgCache[$nipTrimmed])) {
                     $this->dosenOrgCache[$nipTrimmed] = [];
                 }
-                // Add id_sms jika belum ada (untuk distinct organisations)
-                if (!in_array($do->id_sms, $this->dosenOrgCache[$nipTrimmed])) {
+                // Add id_sms jika belum ada dan tidak null (untuk distinct organisations)
+                if ($do->id_sms !== null && !in_array($do->id_sms, $this->dosenOrgCache[$nipTrimmed])) {
                     $this->dosenOrgCache[$nipTrimmed][] = $do->id_sms;
                 }
             }
@@ -695,13 +695,15 @@ class SsoRadiusController extends Controller
                 $result['id_sdm_pengguna'] = $dosen->id_sdm;
 
                 // Untuk dosen: gunakan id_sms dari reg_ptk terbaru (bukan dari fakultas domain)
-                if (isset($this->dosenOrgCache[$nipTrimmed]) && $this->dosenOrgCache[$nipTrimmed]) {
-                    $orgData = $this->getOrganisasiWithName($this->dosenOrgCache[$nipTrimmed]);
+                if (isset($this->dosenOrgCache[$nipTrimmed]) && !empty($this->dosenOrgCache[$nipTrimmed])) {
+                    // Use first id_sms from array (determinRole only returns single role)
+                    $firstIdSms = $this->dosenOrgCache[$nipTrimmed][0] ?? null;
+                    $orgData = $this->getOrganisasiWithName($firstIdSms);
                     $result['id_organisasi'] = $orgData['id_organisasi'];
                     $result['nm_organisasi'] = $orgData['nm_organisasi'];
                 } else {
                     // Fallback ke fakultas domain jika tidak ada data reg_ptk
-                    $id_sms = $this->fakultasCache[$domain];
+                    $id_sms = $this->fakultasCache[$domain] ?? null;
                     $orgData = $this->getOrganisasiWithName($id_sms);
                     $result['id_organisasi'] = $orgData['id_organisasi'];
                     $result['nm_organisasi'] = $orgData['nm_organisasi'];
@@ -724,9 +726,17 @@ class SsoRadiusController extends Controller
     /**
      * Get organisasi ID and name by id_lembaga_asal
      */
-    private function getOrganisasiWithName(string $idLembaga): array
+    private function getOrganisasiWithName(?string $idLembaga): array
     {
         static $cache = [];
+
+        // Return default if idLembaga is null or empty
+        if (empty($idLembaga)) {
+            return [
+                'id_organisasi' => 'e2b705a7-173e-464a-9fac-509128709515',
+                'nm_organisasi' => 'Universitas Lampung',
+            ];
+        }
 
         if (!isset($cache[$idLembaga])) {
             $org = DB::connection('sqlsrv')
@@ -871,7 +881,7 @@ class SsoRadiusController extends Controller
                     }
                 } else {
                     // Fallback ke fakultas domain
-                    $id_sms = $this->fakultasCache[$domain];
+                    $id_sms = $this->fakultasCache[$domain] ?? null;
                     $orgData = $this->getOrganisasiWithName($id_sms);
                     $result['roles'][] = [
                         'id_peran' => 46,
