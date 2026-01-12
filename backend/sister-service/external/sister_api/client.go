@@ -2,6 +2,7 @@ package sister_api
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -23,13 +24,25 @@ type Client struct {
 
 // NewClient creates a new Sister API client
 func NewClient(cfg config.SisterAPIConfig) *Client {
+	// Configure TLS to skip certificate verification
+	// This is needed because Sister API (kemdiktisaintek.go.id) uses a certificate
+	// that may not be trusted by the default CA bundle in Docker containers
+	tlsConfig := &tls.Config{
+		InsecureSkipVerify: true, // Skip certificate verification for Sister API
+	}
+
+	transport := &http.Transport{
+		TLSClientConfig: tlsConfig,
+	}
+
 	return &Client{
 		BaseURL:    cfg.BaseURL,
 		IDPengguna: cfg.IDPengguna,
 		Username:   cfg.Username,
 		Password:   cfg.Password,
 		HTTPClient: &http.Client{
-			Timeout: 30 * time.Second,
+			Timeout:   30 * time.Second,
+			Transport: transport,
 		},
 	}
 }
