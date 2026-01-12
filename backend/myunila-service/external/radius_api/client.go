@@ -233,6 +233,41 @@ func (c *RadiusClient) GetToken() error {
 	return nil
 }
 
+// RawUsersResponse is used for flexible JSON parsing where data could be array or object
+type RawUsersResponse struct {
+	Success bool            `json:"success"`
+	Status  bool            `json:"status"` // ManAkses API uses "status" instead of "success" for some responses
+	Message string          `json:"message"`
+	Data    json.RawMessage `json:"data"` // Raw JSON to handle both array and object
+	Meta    UsersMeta       `json:"meta"`
+}
+
+// parseUsersFromRawData parses the data field which could be array or object
+func parseUsersFromRawData(rawData json.RawMessage) ([]SSOUser, error) {
+	if len(rawData) == 0 {
+		return []SSOUser{}, nil
+	}
+
+	// Check if data starts with '[' (array) or '{' (object)
+	trimmed := string(rawData)
+	if len(trimmed) > 0 && trimmed[0] == '[' {
+		// It's an array, parse normally
+		var users []SSOUser
+		if err := json.Unmarshal(rawData, &users); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal users array: %w", err)
+		}
+		return users, nil
+	} else if len(trimmed) > 0 && trimmed[0] == '{' {
+		// It's an object (could be empty {} or error object), treat as empty array
+		log.Printf("⚠️ [Radius API] data is object instead of array, treating as empty")
+		return []SSOUser{}, nil
+	}
+
+	// Unknown format
+	log.Printf("⚠️ [Radius API] unknown data format: %s", trimmed[:min(50, len(trimmed))])
+	return []SSOUser{}, nil
+}
+
 // GetUsers fetches SSO users from Radius API with pagination
 func (c *RadiusClient) GetUsers(page, limit int) (*UsersResponse, error) {
 	if c.Token == "" {
@@ -278,19 +313,35 @@ func (c *RadiusClient) GetUsers(page, limit int) (*UsersResponse, error) {
 		return nil, fmt.Errorf("HTTP error %d: %s", resp.StatusCode, string(body))
 	}
 
-	var usersResp UsersResponse
-	if err := json.Unmarshal(body, &usersResp); err != nil {
+	// First, parse into RawUsersResponse to handle flexible data field
+	var rawResp RawUsersResponse
+	if err := json.Unmarshal(body, &rawResp); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 
-	if !usersResp.Success {
-		return nil, fmt.Errorf("API error: %s", usersResp.Message)
+	// Check success (API might use "success" or "status" field)
+	isSuccess := rawResp.Success || rawResp.Status
+	if !isSuccess {
+		return nil, fmt.Errorf("API error: %s", rawResp.Message)
+	}
+
+	// Parse data field - could be array or object (when empty/error)
+	users, err := parseUsersFromRawData(rawResp.Data)
+	if err != nil {
+		return nil, err
+	}
+
+	result := &UsersResponse{
+		Success: isSuccess,
+		Message: rawResp.Message,
+		Data:    users,
+		Meta:    rawResp.Meta,
 	}
 
 	log.Printf("📊 [Radius API] GetUsers(page=%d, limit=%d) -> returned %d records, total: %d",
-		page, limit, len(usersResp.Data), usersResp.Meta.Total)
+		page, limit, len(result.Data), result.Meta.Total)
 
-	return &usersResp, nil
+	return result, nil
 }
 
 // GetUsersWithFilter fetches SSO users with optional filters
@@ -351,19 +402,35 @@ func (c *RadiusClient) GetUsersWithFilter(page, limit int, username, nmPeran, up
 		return nil, fmt.Errorf("HTTP error %d: %s", resp.StatusCode, string(body))
 	}
 
-	var usersResp UsersResponse
-	if err := json.Unmarshal(body, &usersResp); err != nil {
+	// First, parse into RawUsersResponse to handle flexible data field
+	var rawResp RawUsersResponse
+	if err := json.Unmarshal(body, &rawResp); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 
-	if !usersResp.Success {
-		return nil, fmt.Errorf("API error: %s", usersResp.Message)
+	// Check success (API might use "success" or "status" field)
+	isSuccess := rawResp.Success || rawResp.Status
+	if !isSuccess {
+		return nil, fmt.Errorf("API error: %s", rawResp.Message)
+	}
+
+	// Parse data field - could be array or object (when empty/error)
+	users, err := parseUsersFromRawData(rawResp.Data)
+	if err != nil {
+		return nil, err
+	}
+
+	result := &UsersResponse{
+		Success: isSuccess,
+		Message: rawResp.Message,
+		Data:    users,
+		Meta:    rawResp.Meta,
 	}
 
 	log.Printf("📊 [Radius API] GetUsersWithFilter(page=%d, limit=%d, username=%s, nm_peran=%s, from=%s, to=%s) -> returned %d records, total: %d",
-		page, limit, username, nmPeran, updatedAtFrom, updatedAtTo, len(usersResp.Data), usersResp.Meta.Total)
+		page, limit, username, nmPeran, updatedAtFrom, updatedAtTo, len(result.Data), result.Meta.Total)
 
-	return &usersResp, nil
+	return result, nil
 }
 
 // GetAllUsers fetches all SSO users with automatic pagination
