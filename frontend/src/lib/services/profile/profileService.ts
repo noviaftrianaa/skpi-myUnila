@@ -6,11 +6,10 @@
 import axios from "axios";
 import { getToken } from "@/lib/api/client";
 
-// Base URL for auth service (env doesn't include /api/v1, so we add it)
-const AUTH_SERVICE_BASE = process.env.NEXT_PUBLIC_AUTH_API_URL || "http://localhost:9800/auth-service";
-const AUTH_SERVICE_URL = `${AUTH_SERVICE_BASE}/api/v1`;
+// Base URL for auth service (env already includes /api/v1)
+const AUTH_SERVICE_URL = process.env.NEXT_PUBLIC_AUTH_API_URL || "http://localhost:9800/auth-service/api/v1";
 
-// Profile API endpoint
+// Profile API endpoint - use AUTH_SERVICE_URL directly (already has /api/v1)
 const PROFILE_API_URL = `${AUTH_SERVICE_URL}/profile`;
 
 // Types
