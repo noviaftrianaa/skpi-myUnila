@@ -33,14 +33,15 @@ use App\Http\Controllers\SearchController;
 |
 | Public service API routes for data visualization
 |
-| Note: Laravel 11 does NOT auto-prefix /api anymore (no prefix in bootstrap/app.php)
+| Note: Laravel 11 auto-prefixes /api when using api: in bootstrap/app.php
+| So routes here become /api/v1/* automatically
 |
 | All endpoints are public (no JWT required):
 | - /api/v1/* - Public endpoints (via Kong: /public-service/api/v1/*)
 |
 */
 
-// Health check (public)
+// Health check (public) - accessible at /api/health
 Route::get('/health', function () {
     return response()->json([
         'service' => 'Public Service',
@@ -52,9 +53,9 @@ Route::get('/health', function () {
 
 // ============================================
 // PUBLIC API Routes (no JWT required)
-// Route: /api/v1/* (via Kong: /public-service/api/v1/*)
+// Laravel auto-prefix /api + this prefix /v1 = /api/v1/*
 // ============================================
-Route::prefix('api/v1')->group(function () {
+Route::prefix('v1')->group(function () {
 
     // University Profile
     Route::get('/university-profile', [UniversityProfileController::class, 'index']);
