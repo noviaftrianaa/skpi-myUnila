@@ -22,7 +22,7 @@ class PublikasiController extends Controller
      * @return JsonResponse
      */
     #[OA\Get(
-        path: '/api/v1/publikasi/statistics',
+        path: '/publikasi/statistics',
         tags: ['Publikasi'],
         summary: 'Get publikasi statistics',
         description: 'Mendapatkan statistik publikasi dosen Universitas Lampung, termasuk total publikasi, distribusi per jenis publikasi, dan tren publikasi per tahun',

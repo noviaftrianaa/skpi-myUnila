@@ -27,7 +27,7 @@ class ProgramStudiController extends Controller
      * Get list of program studi with pagination
      */
     #[OA\Get(
-        path: '/api/v1/program-studi',
+        path: '/program-studi',
         operationId: 'getProgramStudiList',
         summary: 'Get list of program studi',
         description: 'Retrieve paginated list of program studi with filters, search, and sorting capabilities',
@@ -195,7 +195,7 @@ class ProgramStudiController extends Controller
      * Get summary statistics for program studi
      */
     #[OA\Get(
-        path: '/api/v1/program-studi/statistics',
+        path: '/program-studi/statistics',
         operationId: 'getProgramStudiStatistics',
         summary: 'Get program studi statistics',
         description: 'Retrieve summary statistics including total counts, accreditation breakdown, and education level distribution',
@@ -312,7 +312,7 @@ class ProgramStudiController extends Controller
      * Get available periods
      */
     #[OA\Get(
-        path: '/api/v1/program-studi/periods',
+        path: '/program-studi/periods',
         operationId: 'getProgramStudiPeriods',
         summary: 'Get available periods',
         description: 'Retrieve list of available semester periods (5 years from active period)',
@@ -362,7 +362,7 @@ class ProgramStudiController extends Controller
      * Get filter options
      */
     #[OA\Get(
-        path: '/api/v1/program-studi/filter-options',
+        path: '/program-studi/filter-options',
         operationId: 'getProgramStudiFilterOptions',
         summary: 'Get filter options',
         description: 'Retrieve available filter options for fakultas, jenjang, and akreditasi',
@@ -428,7 +428,7 @@ class ProgramStudiController extends Controller
      * Get program studi detail by ID
      */
     #[OA\Get(
-        path: '/api/v1/program-studi/{id}',
+        path: '/program-studi/{id}',
         operationId: 'getProgramStudiDetail',
         summary: 'Get program studi detail',
         description: 'Retrieve detailed information about a specific program studi including SDM, students, and accreditation data',
@@ -583,7 +583,7 @@ class ProgramStudiController extends Controller
      * Get daftar dosen by program studi
      */
     #[OA\Get(
-        path: '/api/v1/program-studi/{id}/dosen',
+        path: '/program-studi/{id}/dosen',
         operationId: 'getDosenByProgramStudi',
         summary: 'Get list of dosen by program studi',
         description: 'Retrieve list of dosen (lecturers) who have homebase in a specific program studi',
@@ -683,7 +683,7 @@ class ProgramStudiController extends Controller
      * Get mahasiswa list by program studi
      */
     #[OA\Get(
-        path: '/api/v1/program-studi/{id}/mahasiswa',
+        path: '/program-studi/{id}/mahasiswa',
         operationId: 'getMahasiswaByProgramStudi',
         summary: 'Get list of mahasiswa by program studi',
         description: 'Retrieve paginated list of active mahasiswa in a specific program studi',
@@ -800,7 +800,7 @@ class ProgramStudiController extends Controller
      * Get mahasiswa trend for 5 latest semesters
      */
     #[OA\Get(
-        path: '/api/v1/program-studi/{id}/mahasiswa-trend',
+        path: '/program-studi/{id}/mahasiswa-trend',
         operationId: 'getMahasiswaTrendByProgramStudi',
         summary: 'Get mahasiswa trend data',
         description: 'Retrieve total mahasiswa for the latest 5 semesters by program studi',
@@ -872,7 +872,7 @@ class ProgramStudiController extends Controller
      * Get kurikulum by program studi
      */
     #[OA\Get(
-        path: '/api/v1/program-studi/{id}/kurikulum',
+        path: '/program-studi/{id}/kurikulum',
         operationId: 'getKurikulumByProgramStudi',
         summary: 'Get kurikulum by program studi',
         description: 'Retrieve list of curriculum (kurikulum) for a specific program studi',
@@ -973,7 +973,7 @@ class ProgramStudiController extends Controller
      * Get mata kuliah by kurikulum (grouped by semester)
      */
     #[OA\Get(
-        path: '/api/v1/program-studi/kurikulum/{id_kurikulum}/mata-kuliah',
+        path: '/program-studi/kurikulum/{id_kurikulum}/mata-kuliah',
         operationId: 'getMataKuliahByKurikulum',
         summary: 'Get mata kuliah by kurikulum',
         description: 'Retrieve list of mata kuliah (courses) for a specific kurikulum, grouped by semester',
@@ -1059,7 +1059,7 @@ class ProgramStudiController extends Controller
      * Get tracer study data for a program studi
      */
     #[OA\Get(
-        path: '/api/v1/program-studi/{id}/tracer-study',
+        path: '/program-studi/{id}/tracer-study',
         operationId: 'getTracerStudyByProgramStudi',
         summary: 'Get tracer study data',
         description: 'Retrieve tracer study data including employment statistics, salary averages, and alumni outcomes for a specific program studi',
