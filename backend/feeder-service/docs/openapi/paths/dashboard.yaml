@@ -1,0 +1,48 @@
+stats:
+  get:
+    tags:
+      - Dashboard
+    summary: Get Dashboard Statistics
+    description: Mengambil statistik untuk dashboard
+    operationId: getDashboardStats
+    responses:
+      '200':
+        description: Berhasil mengambil statistik dashboard
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: object
+                  properties:
+                    mahasiswa:
+                      type: object
+                      properties:
+                        total:
+                          type: integer
+                          example: 25000
+                        synced:
+                          type: integer
+                          example: 24500
+                    kelas_kuliah:
+                      type: object
+                      properties:
+                        total:
+                          type: integer
+                        synced:
+                          type: integer
+                    nilai_perkuliahan:
+                      type: object
+                      properties:
+                        total:
+                          type: integer
+                        synced:
+                          type: integer
+                    last_sync:
+                      type: string
+                      format: date-time
+                      example: "2024-01-15T10:30:00Z"

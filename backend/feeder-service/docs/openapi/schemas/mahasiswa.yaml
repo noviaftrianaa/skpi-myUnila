@@ -1,0 +1,59 @@
+Mahasiswa:
+  type: object
+  properties:
+    id_pd:
+      type: string
+      description: ID Peserta Didik (UUID dari Feeder)
+      example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    nim:
+      type: string
+      example: "2011234567"
+    nama:
+      type: string
+      example: "Budi Santoso"
+    jenis_kelamin:
+      type: string
+      enum: [L, P]
+      example: "L"
+    tempat_lahir:
+      type: string
+      example: "Bandar Lampung"
+    tanggal_lahir:
+      type: string
+      format: date
+      example: "2002-05-15"
+    id_prodi:
+      type: string
+      example: "12345678-1234-1234-1234-123456789012"
+    nama_prodi:
+      type: string
+      example: "Teknik Informatika"
+    angkatan:
+      type: string
+      example: "2020"
+    id_status_mahasiswa:
+      type: string
+      example: "A"
+    nama_status_mahasiswa:
+      type: string
+      example: "Aktif"
+    ipk:
+      type: number
+      format: float
+      example: 3.75
+    sks_total:
+      type: integer
+      example: 120
+    email:
+      type: string
+      format: email
+      example: "budi.santoso@student.unila.ac.id"
+    no_hp:
+      type: string
+      example: "081234567890"
+    created_at:
+      type: string
+      format: date-time
+    updated_at:
+      type: string
+      format: date-time

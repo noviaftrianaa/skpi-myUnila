@@ -1,0 +1,44 @@
+SyncLog:
+  type: object
+  properties:
+    id:
+      type: integer
+      example: 1
+    sync_id:
+      type: string
+      example: "sync-mhs-2024-001"
+    sync_type:
+      type: string
+      example: "mahasiswa"
+    status:
+      type: string
+      enum: [running, completed, failed]
+      example: "completed"
+    started_at:
+      type: string
+      format: date-time
+    finished_at:
+      type: string
+      format: date-time
+    duration_seconds:
+      type: integer
+      example: 120
+    items_processed:
+      type: integer
+      example: 5000
+    items_created:
+      type: integer
+      example: 100
+    items_updated:
+      type: integer
+      example: 4900
+    items_failed:
+      type: integer
+      example: 0
+    error_message:
+      type: string
+      nullable: true
+    params:
+      type: object
+      example:
+        angkatan: "2024"

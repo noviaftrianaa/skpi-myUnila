@@ -1,0 +1,37 @@
+Schedule:
+  type: object
+  properties:
+    id:
+      type: integer
+      example: 1
+    name:
+      type: string
+      example: "Sync Mahasiswa Harian"
+    cron_expression:
+      type: string
+      description: Cron expression (format standar)
+      example: "0 2 * * *"
+    sync_type:
+      type: string
+      enum: [mahasiswa, kelas_kuliah, nilai_perkuliahan, kurikulum, aktivitas_mahasiswa, prestasi]
+      example: "mahasiswa"
+    params:
+      type: object
+      description: Parameter tambahan untuk sync
+      example:
+        angkatan: "2024"
+    is_active:
+      type: boolean
+      example: true
+    last_run:
+      type: string
+      format: date-time
+    next_run:
+      type: string
+      format: date-time
+    created_at:
+      type: string
+      format: date-time
+    updated_at:
+      type: string
+      format: date-time

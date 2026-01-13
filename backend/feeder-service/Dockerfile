@@ -6,7 +6,7 @@ RUN apk add --no-cache git ca-certificates tzdata
 
 WORKDIR /app
 
-# Copy go mod files
+# Copy go mod files first for layer caching
 COPY go.mod go.sum ./
 RUN go mod download
 
@@ -28,6 +28,9 @@ COPY --from=builder /app/main .
 
 # Copy timezone data from builder
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+
+# Copy static assets for docs
+COPY --from=builder /app/docs/logo-unila.png ./docs/logo-unila.png
 
 # Expose port
 EXPOSE 8084

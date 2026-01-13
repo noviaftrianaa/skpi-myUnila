@@ -11,8 +11,8 @@ README.md
 test/
 tests/
 
-# Ignore documentation
-docs/
+# Ignore documentation markdown files
+docs/*.md
 swagger/
 
 # Ignore build artifacts

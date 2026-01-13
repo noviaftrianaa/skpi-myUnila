@@ -1,0 +1,52 @@
+active:
+  get:
+    tags:
+      - Monitoring
+    summary: Get Active Sync Progress
+    description: Mengambil progress sinkronisasi yang sedang berjalan (real-time)
+    operationId: getActiveSyncProgress
+    security: []
+    responses:
+      '200':
+        description: Berhasil mengambil progress aktif
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      sync_id:
+                        type: string
+                        example: sync-mhs-2024-001
+                      sync_type:
+                        type: string
+                        example: mahasiswa
+                      status:
+                        type: string
+                        enum: [running, completed, failed]
+                      progress:
+                        type: integer
+                        description: Progress dalam persen (0-100)
+                        example: 45
+                      current_item:
+                        type: string
+                        example: "Processing batch 45/100"
+                      started_at:
+                        type: string
+                        format: date-time
+                      items_processed:
+                        type: integer
+                        example: 4500
+                      items_total:
+                        type: integer
+                        example: 10000
+                      errors:
+                        type: integer
+                        example: 0

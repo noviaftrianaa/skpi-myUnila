@@ -1,0 +1,49 @@
+AktivitasMahasiswa:
+  type: object
+  properties:
+    id:
+      type: string
+    id_pd:
+      type: string
+      description: ID Peserta Didik
+    nim:
+      type: string
+      example: "2011234567"
+    nama_mahasiswa:
+      type: string
+      example: "Budi Santoso"
+    id_jenis_aktivitas:
+      type: string
+    nama_jenis_aktivitas:
+      type: string
+      example: "Kuliah Kerja Nyata (KKN)"
+    judul_aktivitas:
+      type: string
+      example: "KKN Tematik Desa Mandiri"
+    lokasi:
+      type: string
+      example: "Desa Sukamaju, Lampung Selatan"
+    id_semester:
+      type: string
+      example: "20241"
+    nama_semester:
+      type: string
+      example: "2024/2025 Ganjil"
+    tanggal_mulai:
+      type: string
+      format: date
+    tanggal_selesai:
+      type: string
+      format: date
+    sks:
+      type: integer
+      example: 4
+    nilai:
+      type: string
+      example: "A"
+    created_at:
+      type: string
+      format: date-time
+    updated_at:
+      type: string
+      format: date-time

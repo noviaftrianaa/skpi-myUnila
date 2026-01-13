@@ -1,0 +1,51 @@
+KelasKuliah:
+  type: object
+  properties:
+    id_kls:
+      type: string
+      description: ID Kelas Kuliah
+      example: "abc12345-6789-0abc-def0-123456789012"
+    nama_kelas_kuliah:
+      type: string
+      example: "Algoritma dan Pemrograman - A"
+    id_mk:
+      type: string
+      description: ID Matakuliah
+    kode_mk:
+      type: string
+      example: "IF1234"
+    nama_mk:
+      type: string
+      example: "Algoritma dan Pemrograman"
+    sks_mk:
+      type: integer
+      example: 3
+    id_prodi:
+      type: string
+    nama_prodi:
+      type: string
+      example: "Teknik Informatika"
+    id_semester:
+      type: string
+      example: "20241"
+    nama_semester:
+      type: string
+      example: "2024/2025 Ganjil"
+    kapasitas:
+      type: integer
+      example: 40
+    jumlah_peserta:
+      type: integer
+      example: 35
+    id_dosen:
+      type: string
+      description: ID Dosen Pengampu
+    nama_dosen:
+      type: string
+      example: "Dr. Ahmad, M.Kom."
+    created_at:
+      type: string
+      format: date-time
+    updated_at:
+      type: string
+      format: date-time

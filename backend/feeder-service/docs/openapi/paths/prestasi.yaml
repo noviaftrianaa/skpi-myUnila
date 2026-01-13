@@ -1,0 +1,104 @@
+list:
+  get:
+    tags:
+      - Prestasi
+    summary: Get List Prestasi
+    description: Mengambil daftar prestasi mahasiswa dengan pagination
+    operationId: getPrestasiList
+    parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 1
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 10
+      - name: tahun
+        in: query
+        description: Filter berdasarkan tahun
+        schema:
+          type: string
+      - name: search
+        in: query
+        description: Cari berdasarkan nama prestasi
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Berhasil mengambil data prestasi
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: array
+                  items:
+                    $ref: '../schemas/prestasi.yaml#/Prestasi'
+                pagination:
+                  $ref: '../schemas/common.yaml#/Pagination'
+
+stats:
+  get:
+    tags:
+      - Prestasi
+    summary: Get Statistik Prestasi
+    description: Mengambil statistik data prestasi mahasiswa
+    operationId: getPrestasiStats
+    responses:
+      '200':
+        description: Berhasil mengambil statistik
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: object
+                  properties:
+                    total:
+                      type: integer
+                    by_tahun:
+                      type: object
+                      additionalProperties:
+                        type: integer
+
+sync:
+  post:
+    tags:
+      - Prestasi
+    summary: Sinkronisasi Prestasi
+    description: Melakukan sinkronisasi data prestasi dari Feeder PDDIKTI
+    operationId: syncPrestasi
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              tahun:
+                type: string
+                description: Tahun yang akan disinkronkan (opsional)
+    responses:
+      '200':
+        description: Sinkronisasi berhasil dimulai
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: Sync started successfully
