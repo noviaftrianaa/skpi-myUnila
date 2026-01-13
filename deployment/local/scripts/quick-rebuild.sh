@@ -159,6 +159,9 @@ case "$SERVICE" in
     api)
         rebuild_service "api"
         ;;
+    dashboard)
+        rebuild_service "dashboard"
+        ;;
     frontend)
         rebuild_frontend
         ;;
@@ -175,6 +178,7 @@ case "$SERVICE" in
         rebuild_service "feeder"
         rebuild_service "myunila"
         rebuild_service "api"
+        rebuild_service "dashboard"
         rebuild_nginx
         echo ""
         ;;
@@ -189,6 +193,7 @@ case "$SERVICE" in
         echo "  bash quick-rebuild.sh feeder       # Rebuild feeder only"
         echo "  bash quick-rebuild.sh myunila      # Rebuild myunila only"
         echo "  bash quick-rebuild.sh api          # Rebuild api (onedata) only"
+        echo "  bash quick-rebuild.sh dashboard    # Rebuild dashboard only"
         echo "  bash quick-rebuild.sh frontend     # Rebuild frontend only"
         echo "  bash quick-rebuild.sh nginx        # Rebuild nginx only"
         echo ""
@@ -231,5 +236,8 @@ fi
 if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "api" ]; then
     echo "  OneData:   curl http://localhost:8085/health"
     echo "  API Docs:  http://localhost:8085/api/docs"
+fi
+if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "dashboard" ]; then
+    echo "  Dashboard: curl http://localhost:8087/api/health"
 fi
 echo ""

@@ -77,6 +77,12 @@ case "$SERVICE" in
     myunila)
         restart_service "myunila"
         ;;
+    api)
+        restart_service "api"
+        ;;
+    public)
+        restart_service "public"
+        ;;
     redis)
         echo -e "${GREEN}Restarting Redis...${NC}"
         docker compose restart redis

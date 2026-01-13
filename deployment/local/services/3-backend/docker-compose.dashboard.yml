@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  dashboard-service:
+    build:
+      context: ../../../../backend/dashboard-service
+      dockerfile: Dockerfile
+    image: myunila/dashboard-service:latest
+    container_name: myunila-dashboard-service
+    working_dir: /var/www
+    # Port exposed via nginx (8087:82 -> dashboard-service:9000)
+    expose:
+      - "9000"
+    env_file:
+      - ../../.env
+    environment:
+      # App Config
+      APP_NAME: "${DASHBOARD_APP_NAME:-Dashboard Service}"
+      APP_ENV: "${DASHBOARD_APP_ENV:-local}"
+      APP_KEY: "${DASHBOARD_APP_KEY}"
+      APP_DEBUG: "${DASHBOARD_APP_DEBUG:-true}"
+      APP_URL: "${DASHBOARD_APP_URL:-http://localhost:8087}"
+      APP_APLIKASI_ID: "${APP_APLIKASI_ID}"
+
+      # Database (SQL Server)
+      DB_CONNECTION: "${DASHBOARD_DB_CONNECTION:-sqlsrv}"
+      DB_HOST: "${DASHBOARD_DB_HOST}"
+      DB_PORT: "${DASHBOARD_DB_PORT:-1433}"
+      DB_DATABASE: "${DASHBOARD_DB_DATABASE}"
+      DB_USERNAME: "${DASHBOARD_DB_USERNAME}"
+      DB_PASSWORD: "${DASHBOARD_DB_PASSWORD}"
+      DB_ENCRYPT: "${DB_ENCRYPT:-no}"
+      DB_TRUST_SERVER_CERTIFICATE: "${DB_TRUST_SERVER_CERTIFICATE:-yes}"
+
+      # Redis
+      REDIS_HOST: "${DASHBOARD_REDIS_HOST:-redis}"
+      REDIS_PORT: "${DASHBOARD_REDIS_PORT:-6379}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+
+      # JWT Configuration
+      JWT_SECRET: "${JWT_SECRET}"
+      JWT_ACCESS_TOKEN_TTL: "${JWT_ACCESS_TOKEN_TTL:-15}"
+      JWT_REFRESH_TOKEN_TTL: "${JWT_REFRESH_TOKEN_TTL:-10080}"
+      JWT_ALGO: "${JWT_ALGORITHM:-HS256}"
+
+      TZ: "${TZ:-Asia/Jakarta}"
+    volumes:
+      - dashboard_storage:/var/www/storage
+      - dashboard_logs:/var/www/storage/logs
+    networks:
+      - myunila-network
+    depends_on:
+      - redis-check
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'php-fpm: master process' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "service=dashboard"
+
+  # Redis health check
+  redis-check:
+    image: redis:7-alpine
+    container_name: myunila-redis-check-dashboard
+    command: >
+      sh -c "
+      until redis-cli -h redis ping; do
+        echo 'Waiting for Redis...';
+        sleep 2;
+      done;
+      echo 'Redis is ready!';
+      "
+    networks:
+      - myunila-network
+    restart: "no"
+
+networks:
+  myunila-network:
+    external: true
+    name: myunila-network
+
+volumes:
+  dashboard_storage:
+    driver: local
+    name: myunila-dashboard-storage
+  dashboard_logs:
+    driver: local
+    name: myunila-dashboard-logs
